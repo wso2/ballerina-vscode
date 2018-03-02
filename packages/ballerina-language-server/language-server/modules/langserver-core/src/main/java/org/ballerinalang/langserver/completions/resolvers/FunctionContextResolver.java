@@ -1,5 +1,5 @@
 /*
-*  Copyright (c) 2017, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+*  Copyright (c) 2018, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
 *
 *  WSO2 Inc. licenses this file to you under the Apache License,
 *  Version 2.0 (the "License"); you may not use this file except
@@ -17,24 +17,25 @@
 */
 package org.ballerinalang.langserver.completions.resolvers;
 
+import org.antlr.v4.runtime.ParserRuleContext;
+import org.ballerinalang.langserver.DocumentServiceKeys;
 import org.ballerinalang.langserver.TextDocumentServiceContext;
-import org.ballerinalang.langserver.completions.util.filters.BTypeFilter;
+import org.ballerinalang.langserver.completions.util.CompletionItemResolver;
 import org.eclipse.lsp4j.CompletionItem;
 
 import java.util.ArrayList;
 
 /**
- * Variable definition Statement context resolver for resolving the items.
+ * Completion Item resolver for the BLangFunction context.
  */
-class VariableDefinitionStatementContextResolver extends AbstractItemResolver {
+public class FunctionContextResolver extends AbstractItemResolver {
     @Override
-    @SuppressWarnings("unchecked")
     public ArrayList<CompletionItem> resolveItems(TextDocumentServiceContext completionContext) {
-
-        ArrayList<CompletionItem> completionItems = new ArrayList<>();
-        BTypeFilter bTypeFilter = new BTypeFilter();
-        populateCompletionItemList(bTypeFilter.filterItems(completionContext), completionItems);
-
-        return completionItems;
+        ParserRuleContext parserRuleContext = completionContext.get(DocumentServiceKeys.PARSER_RULE_CONTEXT_KEY);
+        AbstractItemResolver contextResolver = CompletionItemResolver.getResolverByClass(parserRuleContext.getClass());
+        if (contextResolver != null) {
+            return contextResolver.resolveItems(completionContext);
+        }
+        return null;
     }
 }
