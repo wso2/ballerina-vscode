@@ -18,19 +18,21 @@
 package org.ballerinalang.langserver.completions.util.sorters;
 
 import org.ballerinalang.langserver.LSServiceOperationContext;
-import org.ballerinalang.langserver.completions.CompletionKeys;
 import org.ballerinalang.langserver.completions.util.ItemResolverConstants;
 import org.ballerinalang.langserver.completions.util.Priority;
 import org.eclipse.lsp4j.CompletionItem;
-import org.wso2.ballerinalang.compiler.tree.BLangVariable;
-import org.wso2.ballerinalang.compiler.tree.types.BLangEndpointTypeNode;
 
 import java.util.List;
 
 /**
- * Endpoint definition context item sorter.
+ * Completion item sorter for conditional statements such as if statement and while statement conditions.
+ * @since 0.965.0
  */
-public class EndpointDefContextItemSorter extends CompletionItemSorter {
+public class ConditionalStatementItemSorter extends CompletionItemSorter {
+
+    private static final String OPEN_BRACKET = "(";
+    
+    private static final String CLOSE_BRACKET = ")";
     /**
      * Sort Completion Items based on a particular criteria.
      *
@@ -40,23 +42,16 @@ public class EndpointDefContextItemSorter extends CompletionItemSorter {
     @Override
     public void sortItems(LSServiceOperationContext ctx, List<CompletionItem> completionItems) {
         this.setPriorities(completionItems);
-        BLangVariable bLangVariable = (BLangVariable) ctx.get(CompletionKeys.SYMBOL_ENV_NODE_KEY);
-        if (!(bLangVariable.typeNode instanceof BLangEndpointTypeNode)) {
-            return;
-        }
-        String constraintType = ((BLangEndpointTypeNode) bLangVariable.typeNode).endpointType
-                .type.toString();
         completionItems.forEach(completionItem -> {
-            if (completionItem.getDetail().equals(ItemResolverConstants.FUNCTION_TYPE)) {
-                String label = completionItem.getLabel();
-                String[] returnTypes = label.substring(label.lastIndexOf("(") + 1, label.lastIndexOf(")")).split(",");
-                if (returnTypes.length == 1 && returnTypes[0].equals(constraintType)) {
-                    String newPriority = Priority.shiftPriority(completionItem.getSortText(), -1);
-                    completionItem.setSortText(String.valueOf(newPriority));
+            String detail = completionItem.getDetail();
+            if (detail.equals(ItemResolverConstants.FUNCTION_TYPE)) {
+                String signature = completionItem.getLabel();
+                String returnType = signature
+                        .substring(signature.lastIndexOf(OPEN_BRACKET), signature.lastIndexOf(CLOSE_BRACKET)).trim();
+                if (returnType.endsWith(ItemResolverConstants.BOOLEAN_TYPE)) {
+                    completionItem.setSortText(Priority.shiftPriority(completionItem.getSortText(), -1));
                 }
-            } else if (completionItem.getDetail().equals(ItemResolverConstants.KEYWORD_TYPE)) {
-                completionItem.setSortText(Priority.shiftPriority(Priority.PRIORITY110.toString(), -1));
-            } else if (completionItem.getDetail().equals(constraintType)) {
+            } else if (detail.equals(ItemResolverConstants.BOOLEAN_TYPE)) {
                 completionItem.setSortText(Priority.shiftPriority(completionItem.getSortText(), -1));
             }
         });
