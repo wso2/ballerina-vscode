@@ -15,22 +15,27 @@
 *  specific language governing permissions and limitations
 *  under the License.
 */
+package org.ballerinalang.langserver;
 
-package org.ballerinalang.langserver.completions.resolvers.parsercontext;
-
-import org.ballerinalang.langserver.TextDocumentServiceContext;
-import org.ballerinalang.langserver.completions.resolvers.AbstractItemResolver;
-import org.eclipse.lsp4j.CompletionItem;
-
-import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
- * constant definition context resolver for the completion items.
+ * Language server context for text document server.
+ * @since 0.95.5
  */
-public class ParserRuleConstantDefinitionContextResolver extends AbstractItemResolver {
+public class LSServiceOperationContext implements LSContext {
+
+    private Map<Key<?>, Object> props = new HashMap<>();
+
     @Override
-    public ArrayList<CompletionItem> resolveItems(TextDocumentServiceContext completionContext) {
-        // TODO: Implementation required after revamp
-        return new ArrayList<>();
+    public <V> void put(Key<V> key, V value) {
+        props.put(key, value);
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public <V> V get(Key<V> key) {
+        return (V) props.get(key);
     }
 }
