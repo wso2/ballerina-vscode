@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.ballerinalang.langserver.common.modal;
+package org.ballerinalang.langserver.compiler.common.modal;
 
 import org.ballerinalang.util.diagnostic.Diagnostic;
 import org.wso2.ballerinalang.compiler.tree.BLangPackage;

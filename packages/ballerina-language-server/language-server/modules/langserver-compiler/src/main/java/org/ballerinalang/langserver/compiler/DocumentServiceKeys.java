@@ -15,7 +15,7 @@
 *  specific language governing permissions and limitations
 *  under the License.
 */
-package org.ballerinalang.langserver;
+package org.ballerinalang.langserver.compiler;
 
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.TokenStream;
@@ -55,7 +55,7 @@ public class DocumentServiceKeys {
             = new LSContext.Key<>();
     public static final LSContext.Key<String> CURRENT_PACKAGE_NAME_KEY
             = new LSContext.Key<>();
-    public static final LSContext.Key<LSServiceOperationContext> OPERATION_META_CONTEXT_KEY
+    public static final LSContext.Key<LSContext> OPERATION_META_CONTEXT_KEY
             = new LSContext.Key<>();
     public static final LSContext.Key<BLangPackage> CURRENT_BLANG_PACKAGE_CONTEXT_KEY
             = new LSContext.Key<>();

@@ -15,9 +15,11 @@
 *  specific language governing permissions and limitations
 *  under the License.
 */
-package org.ballerinalang.langserver.workspace;
+package org.ballerinalang.langserver.compiler.workspace;
 
 import java.nio.file.Path;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Represents a document open in workspace.
@@ -26,10 +28,12 @@ public class WorkspaceDocument {
 
     private Path path;
     private String content;
+    private final ReentrantLock lock;
 
     public WorkspaceDocument(Path path, String content) {
         this.path = path;
         this.content = content;
+        lock = new ReentrantLock(true);
     }
 
     public Path getPath() {
@@ -46,5 +50,9 @@ public class WorkspaceDocument {
 
     public void setContent(String content) {
         this.content = content;
+    }
+
+    public Lock getLock() {
+        return lock;
     }
 }

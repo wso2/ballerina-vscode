@@ -15,13 +15,14 @@
 *  specific language governing permissions and limitations
 *  under the License.
 */
-package org.ballerinalang.langserver;
+package org.ballerinalang.langserver.compiler;
 
 import java.util.HashMap;
 import java.util.Map;
 
 /**
  * Language server context for text document server.
+ *
  * @since 0.95.5
  */
 public class LSServiceOperationContext implements LSContext {

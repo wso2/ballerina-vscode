@@ -15,9 +15,11 @@
 *  specific language governing permissions and limitations
 *  under the License.
 */
-package org.ballerinalang.langserver.workspace;
+package org.ballerinalang.langserver.compiler.workspace;
 
 import java.nio.file.Path;
+import java.util.Optional;
+import java.util.concurrent.locks.Lock;
 
 /**
  * This represents a Document Manager for the workspace. Example, an in-memory document
@@ -63,4 +65,11 @@ public interface WorkspaceDocumentManager {
      * @return Content of the file
      */
     String getFileContent(Path filePath);
+
+    /**
+     * Acquire a file lock.
+     * @param filePath Path of the file
+     * @return lock or null
+     */
+    Optional<Lock> lockFile(Path filePath);
 }

@@ -13,10 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.ballerinalang.langserver;
+package org.ballerinalang.langserver.compiler;
 
 import org.ballerinalang.util.diagnostic.Diagnostic;
 import org.ballerinalang.util.diagnostic.DiagnosticListener;
+
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -25,6 +27,7 @@ import java.util.List;
 public class CollectDiagnosticListener implements DiagnosticListener {
 
     private List<Diagnostic> diagnostics;
+
     public CollectDiagnosticListener(List<Diagnostic> diagnostics) {
         this.diagnostics = diagnostics;
     }
@@ -35,6 +38,12 @@ public class CollectDiagnosticListener implements DiagnosticListener {
     }
 
     public List<Diagnostic> getDiagnostics() {
+        List<Diagnostic> diagnostics = new ArrayList<>();
+        diagnostics.addAll(this.diagnostics);
         return diagnostics;
+    }
+
+    public void clearAll() {
+        this.diagnostics.clear();
     }
 }

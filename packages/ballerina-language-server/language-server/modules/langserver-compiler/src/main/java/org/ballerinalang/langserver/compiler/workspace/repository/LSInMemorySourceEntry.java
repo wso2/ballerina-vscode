@@ -15,35 +15,33 @@
 *  specific language governing permissions and limitations
 *  under the License.
 */
-package org.ballerinalang.langserver.workspace.repository;
+package org.ballerinalang.langserver.compiler.workspace.repository;
 
-import org.ballerinalang.langserver.workspace.WorkspaceDocumentManager;
+import org.ballerinalang.langserver.compiler.workspace.WorkspaceDocumentManager;
 import org.ballerinalang.model.elements.PackageID;
-import org.ballerinalang.repository.CompilerInput;
-import org.wso2.ballerinalang.compiler.packaging.converters.FileSystemSourceInput;
-import org.wso2.ballerinalang.compiler.packaging.converters.PathConverter;
+import org.wso2.ballerinalang.compiler.packaging.converters.FileSystemSourceEntry;
 
-import java.nio.file.Files;
+import java.io.UnsupportedEncodingException;
 import java.nio.file.Path;
-import java.util.stream.Stream;
 
 /**
- * Language Server Path Converter.
+ * LSInMemorySourceEntry.
  */
-class LSPathConverter extends PathConverter {
+class LSInMemorySourceEntry extends FileSystemSourceEntry {
+
     private WorkspaceDocumentManager documentManager;
-    
-    LSPathConverter(Path root, WorkspaceDocumentManager documentManager) {
-        super(root);
+    LSInMemorySourceEntry(Path path, PackageID pkgId, WorkspaceDocumentManager documentManager) {
+        super(path, pkgId);
         this.documentManager = documentManager;
     }
 
     @Override
-    public Stream<CompilerInput> finalize(Path path, PackageID id) {
-        if (documentManager.isFileOpen(path) || !Files.isRegularFile(path)) {
-            return Stream.of(new LSInMemorySourceInput(path, id, documentManager));
-        } else {
-            return Stream.of(new FileSystemSourceInput(path));
+    public byte[] getCode() {
+        try {
+            return documentManager.getFileContent(this.getPath()).getBytes("UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            throw new RuntimeException("Error in loading package source entry '" + getPath() +
+                    "': " + e.getMessage(), e);
         }
     }
 }

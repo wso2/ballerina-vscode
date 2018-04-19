@@ -1,6 +1,6 @@
-package org.ballerinalang.langserver.workspace.repository;
+package org.ballerinalang.langserver.compiler.workspace.repository;
 
-import org.ballerinalang.langserver.workspace.WorkspaceDocumentManager;
+import org.ballerinalang.langserver.compiler.workspace.WorkspaceDocumentManager;
 import org.ballerinalang.model.elements.PackageID;
 import org.ballerinalang.repository.CompilerInput;
 import org.ballerinalang.repository.PackageRepository;

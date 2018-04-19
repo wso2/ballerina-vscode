@@ -13,19 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.ballerinalang.langserver;
+package org.ballerinalang.langserver.compiler;
 
 import org.ballerinalang.compiler.CompilerPhase;
-import org.ballerinalang.langserver.workspace.repository.NullSourceDirectory;
 import org.ballerinalang.model.elements.PackageID;
 import org.ballerinalang.util.diagnostic.Diagnostic;
 import org.ballerinalang.util.diagnostic.DiagnosticListener;
 import org.wso2.ballerinalang.compiler.PackageCache;
 import org.wso2.ballerinalang.compiler.SourceDirectory;
+import org.wso2.ballerinalang.compiler.packaging.converters.Converter;
 import org.wso2.ballerinalang.compiler.util.CompilerContext;
 import org.wso2.ballerinalang.compiler.util.CompilerOptions;
 
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.nio.charset.Charset;
+import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -41,10 +46,6 @@ import static org.ballerinalang.compiler.CompilerOptionName.PROJECT_DIR;
 public class LSContextManager {
     private static final LSContextManager INSTANCE = new LSContextManager();
     private static final String BUILT_IN_PACKAGES_PROJ_DIR = "$builtInPackagesProjectDir";
-    /**
-     * Use this lock to synchronize the compilation process since CompilerContext is being reused and shared.
-     */
-    public static final Object COMPILER_LOCK = new Object();
 
     private final Map<String, CompilerContext> contextMap;
 
@@ -95,7 +96,8 @@ public class LSContextManager {
         CompilerContext compilerContext = contextMap.get(projectDir);
         if (compilerContext == null && createIfNotExists) {
             synchronized (LSContextManager.class) {
-                if (contextMap.get(projectDir) == null) {
+                compilerContext = contextMap.get(projectDir);
+                if (compilerContext == null) {
                     compilerContext = createNewCompilerContext(packageID);
                     contextMap.put(projectDir, compilerContext);
                 }
@@ -171,5 +173,55 @@ public class LSContextManager {
         }
         //Set the package local cache into current context
         PackageCache.setInstance(instance.getPackageCache(), context);
+    }
+
+    /**
+     * Null source directory.
+     */
+    public static class NullSourceDirectory implements SourceDirectory {
+        @Override
+        public boolean canHandle(Path dirPath) {
+            return true;
+        }
+
+        @Override
+        public Path getPath() {
+            return null;
+        }
+
+        @Override
+        public List<String> getSourceFileNames() {
+            return Collections.emptyList();
+        }
+
+        @Override
+        public List<String> getSourcePackageNames() {
+            return Collections.emptyList();
+        }
+
+        @Override
+        public InputStream getManifestContent() {
+            return new ByteArrayInputStream("".getBytes(Charset.defaultCharset()));
+        }
+
+        @Override
+        public InputStream getLockFileContent() {
+            return null;
+        }
+
+        @Override
+        public Path saveCompiledProgram(InputStream source, String fileName) {
+            return null;
+        }
+
+        @Override
+        public void saveCompiledPackage(InputStream source, String fileName) {
+
+        }
+
+        @Override
+        public Converter<Path> getConverter() {
+            return null;
+        }
     }
 }

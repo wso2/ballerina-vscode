@@ -15,23 +15,34 @@
 *  specific language governing permissions and limitations
 *  under the License.
 */
-package org.ballerinalang.langserver.workspace.repository;
-
-import org.ballerinalang.langserver.workspace.WorkspaceDocumentManager;
-import org.wso2.ballerinalang.compiler.packaging.converters.PathConverter;
-import org.wso2.ballerinalang.compiler.packaging.repo.ProjectSourceRepo;
-
-import java.nio.file.Path;
+package org.ballerinalang.langserver.compiler;
 
 /**
- * Language Server Source Repo.
+ * Ballerina Language server context.
+ * @since 0.970.0
  */
-class LSProjectSourceRepo extends ProjectSourceRepo {
-    private LSProjectSourceRepo(PathConverter converter) {
-        super(converter);
-    }
+public interface LSContext {
 
-    LSProjectSourceRepo(Path projectRoot, WorkspaceDocumentManager documentManager) {
-        this(new LSPathConverter(projectRoot, documentManager));
+    /**
+     * Add new Context property.
+     * @param key   Property Key
+     * @param value Property value
+     * @param <V>   Key Type
+     */
+    <V> void put(Key<V> key, V value);
+
+    /**
+     * Get property by Key.
+     * @param key   Property Key
+     * @param <V>   Key Type
+     * @return {@link Object}   Property
+     */
+    <V> V get(Key<V> key);
+
+    /**
+     * @param <K>
+     * @since 0.95.5
+     */
+    class Key<K> {
     }
 }

@@ -15,11 +15,11 @@
 *  specific language governing permissions and limitations
 *  under the License.
 */
-package org.ballerinalang.langserver.common;
+package org.ballerinalang.langserver.compiler.common;
 
-import org.ballerinalang.langserver.LSContext;
-import org.ballerinalang.langserver.common.constants.ContextConstants;
-import org.ballerinalang.langserver.completions.CompletionCustomErrorStrategy;
+import org.ballerinalang.langserver.compiler.LSContext;
+
+import java.lang.reflect.InvocationTargetException;
 
 /**
  * Custom error strategy factory.
@@ -34,13 +34,14 @@ public class CustomErrorStrategyFactory {
      */
     public static LSCustomErrorStrategy getCustomErrorStrategy(Class customErrorStrategyClass,
                                                                LSContext context) {
-        LSCustomErrorStrategy lsCustomErrorStrategy;
-        switch (customErrorStrategyClass.getSimpleName()) {
-            case ContextConstants.COMPLETION_ERROR_STRATEGY:
-                lsCustomErrorStrategy = new CompletionCustomErrorStrategy(context);
-                break;
-            default:
-                lsCustomErrorStrategy = new LSCustomErrorStrategy(context);
+        //TODO re-visit this to remove reflections
+        LSCustomErrorStrategy lsCustomErrorStrategy = null;
+        try {
+            lsCustomErrorStrategy = (LSCustomErrorStrategy)
+                    customErrorStrategyClass.getConstructor(LSContext.class).newInstance(context);
+        } catch (InvocationTargetException | InstantiationException | IllegalAccessException
+                | NoSuchMethodException e) {
+            lsCustomErrorStrategy = new LSCustomErrorStrategy(context);
         }
         return lsCustomErrorStrategy;
     }

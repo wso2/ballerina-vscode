@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.ballerinalang.langserver;
+package org.ballerinalang.langserver.compiler;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
@@ -43,7 +43,8 @@ public class LSPackageCache {
         LSPackageCache lsPackageCache = context.get(LS_PACKAGE_CACHE_KEY);
         if (lsPackageCache == null) {
             synchronized (LOCK) {
-                if (context.get(LS_PACKAGE_CACHE_KEY) == null) {
+                lsPackageCache = context.get(LS_PACKAGE_CACHE_KEY);
+                if (lsPackageCache == null) {
                     lsPackageCache = new LSPackageCache(context);
                 }
             }
@@ -52,8 +53,8 @@ public class LSPackageCache {
     }
 
     private LSPackageCache(CompilerContext context) {
-        context.put(LS_PACKAGE_CACHE_KEY, this);
         packageCache = new ExtendedPackageCache(context);
+        context.put(LS_PACKAGE_CACHE_KEY, this);
     }
 
     /**
@@ -91,7 +92,7 @@ public class LSPackageCache {
      *
      * @param bLangPackage ballerina package to be added.
      */
-    void addPackage(PackageID packageID, BLangPackage bLangPackage) {
+    public void addPackage(PackageID packageID, BLangPackage bLangPackage) {
         if (bLangPackage != null) {
             bLangPackage.packageID = packageID;
             packageCache.put(packageID, bLangPackage);

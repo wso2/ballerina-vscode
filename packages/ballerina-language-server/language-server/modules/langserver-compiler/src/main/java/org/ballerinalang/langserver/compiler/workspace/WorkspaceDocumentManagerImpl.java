@@ -15,14 +15,16 @@
 *  specific language governing permissions and limitations
 *  under the License.
 */
-package org.ballerinalang.langserver.workspace;
+package org.ballerinalang.langserver.compiler.workspace;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.nio.file.Path;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.Lock;
 
 /**
  * An in-memory document manager that keeps dirty files in-memory and will match the collection of files currently
@@ -36,7 +38,7 @@ public class WorkspaceDocumentManagerImpl implements WorkspaceDocumentManager {
 
     private static WorkspaceDocumentManagerImpl instance = new WorkspaceDocumentManagerImpl();
 
-    private WorkspaceDocumentManagerImpl() {
+    protected WorkspaceDocumentManagerImpl() {
     }
     
     public static WorkspaceDocumentManagerImpl getInstance() {
@@ -80,4 +82,14 @@ public class WorkspaceDocumentManagerImpl implements WorkspaceDocumentManager {
         return isFileOpen(filePath) ? documentList.get(filePath).getContent() : null;
     }
 
+    @Override
+    public Optional<Lock> lockFile(Path filePath) {
+        WorkspaceDocument document = documentList.get(filePath);
+        Lock lock = null;
+        if (document != null) {
+            lock = document.getLock();
+            lock.lock();
+        }
+        return Optional.ofNullable(lock);
+    }
 }
