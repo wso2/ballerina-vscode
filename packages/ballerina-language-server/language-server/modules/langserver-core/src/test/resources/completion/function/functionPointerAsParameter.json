@@ -1,9 +1,9 @@
 {
   "position": {
-    "line": 4,
-    "character": 9
+    "line": 2,
+    "character": 4
   },
-  "source": "resource/source/nonEmptyLinePrimitiveDataTypes.bal",
+  "source": "function/source/functionPointerAsParameter.bal",
   "items": [
     {
       "label":"xmlns",
@@ -103,6 +103,14 @@
       "insertTextFormat":"Snippet"
     },
     {
+      "label":"bar(int a, string b)(float)",
+      "kind":"Function",
+      "detail":"Function",
+      "sortText":"120",
+      "insertText":"bar(${1:a}, ${2:b})",
+      "insertTextFormat":"Snippet"
+    },
+    {
       "label":"xml",
       "detail":"BType",
       "sortText":"170",
@@ -169,6 +177,13 @@
       "insertText":"future"
     },
     {
+      "label":"x",
+      "kind":"Unit",
+      "detail":"int",
+      "sortText":"110",
+      "insertText":"x"
+    },
+    {
       "label":"typedesc",
       "detail":"BType",
       "sortText":"170",
@@ -187,36 +202,24 @@
       "insertText":"null"
     },
     {
-      "label":"http",
-      "detail":"BType",
-      "sortText":"170",
-      "insertText":"http"
-    },
-    {
-      "label":"request",
-      "kind":"Unit",
-      "detail":"ballerina/http:Request",
-      "sortText":"110",
-      "insertText":"request"
-    },
-    {
       "label":"string",
       "detail":"BType",
       "sortText":"170",
       "insertText":"string"
     },
     {
+      "label":"foo(int x, function (int,string) returns (float) bar)(float)",
+      "kind":"Function",
+      "detail":"Function",
+      "sortText":"120",
+      "insertText":"foo(${1:x}, ${2:bar})",
+      "insertTextFormat":"Snippet"
+    },
+    {
       "label":"error",
       "detail":"BType",
       "sortText":"170",
       "insertText":"error"
-    },
-    {
-      "label":"client",
-      "kind":"Unit",
-      "detail":"ballerina/http:Listener",
-      "sortText":"110",
-      "insertText":"client"
     },
     {
       "label":"json",
