@@ -1,6 +1,8 @@
 {
-  "nodeType": "function",
-  "nodeLine": "3",
+  "arguments": "int a, int b",
+  "functionName": "addTwoIntegers2",
+  "returns": "int",
+  "returnsDefault": "return 0;",
   "expected": {
     "result":{
       "edit":{
@@ -13,15 +15,15 @@
               {
                 "range":{
                   "start":{
-                    "line":0,
-                    "character":0
+                    "line":6,
+                    "character":1
                   },
                   "end":{
-                    "line":3,
-                    "character":30
+                    "line":9,
+                    "character":0
                   }
                 },
-                "newText":"import ballerina/io;\nimport ballerina/http;\n\ndocumentation {\n\t\n}\nfunction testDocumentation() {"
+                "newText":"\n\nfunction addTwoIntegers2(int a, int b) returns \"int\" {\n\"return 0;\"\n}\n"
               }
             ]
           }

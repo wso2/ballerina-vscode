@@ -9,7 +9,13 @@ endpoint http:Listener listener {
     
 };
 
+@http:ServiceConfig {
+    basePath: "/testDoc"
+}
 service<http:Service> testDocService bind { port: 9090 } {
+    @http:ResourceConfig {
+        path: "/testDocRes"
+    }
     testDocResource (endpoint caller, http:Request request) {
         http:Response res = new;
         _ = caller->respond(res);
@@ -27,7 +33,7 @@ type testDocObject object {
     public string testString = "hello";
 
     function testFunctionSignature();
-    public function testFunctionWithImpl() {
+    function testFunctionWithImpl() {
         io:println("Hello World!!");
     }
 };
