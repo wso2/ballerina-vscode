@@ -18,28 +18,22 @@
 package org.ballerinalang.langserver.completions.resolvers.parsercontext;
 
 import org.ballerinalang.langserver.compiler.LSServiceOperationContext;
-import org.ballerinalang.langserver.completions.CompletionKeys;
 import org.ballerinalang.langserver.completions.resolvers.AbstractItemResolver;
-import org.ballerinalang.langserver.completions.util.ItemResolverConstants;
-import org.ballerinalang.langserver.completions.util.Snippet;
+import org.ballerinalang.langserver.completions.util.CompletionItemResolver;
 import org.eclipse.lsp4j.CompletionItem;
+import org.wso2.ballerinalang.compiler.parser.antlr4.BallerinaParser;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 /**
- * Completion Item resolver for the resource definition context.
+ * Completion Item resolver for Return Statement context.
+ * 
+ * @since 0.982.0
  */
-public class ParserRuleResourceDefinitionContextResolver extends AbstractItemResolver {
+public class ParserRuleReturnStatementContextRexolver extends AbstractItemResolver {
     @Override
     public List<CompletionItem> resolveItems(LSServiceOperationContext context) {
-        boolean isSnippet = context.get(CompletionKeys.CLIENT_CAPABILITIES_KEY).getCompletionItem().getSnippetSupport();
-        CompletionItem resource = new CompletionItem();
-        Snippet.DEF_RESOURCE.getBlock().populateCompletionItem(resource, isSnippet);
-        resource.setLabel(ItemResolverConstants.RESOURCE_TYPE);
-        resource.setDetail(ItemResolverConstants.SNIPPET_TYPE);
-        
-        return new ArrayList<>(Collections.singletonList(resource));
+        return CompletionItemResolver
+                .getResolverByClass(BallerinaParser.VariableDefinitionStatementContext.class).resolveItems(context);
     }
 }
