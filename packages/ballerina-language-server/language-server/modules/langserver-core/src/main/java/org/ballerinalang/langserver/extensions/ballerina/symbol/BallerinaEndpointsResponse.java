@@ -13,24 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.ballerinalang.langserver.extensions.ballerina.document;
+package org.ballerinalang.langserver.extensions.ballerina.symbol;
 
-import org.eclipse.lsp4j.TextDocumentIdentifier;
+import java.util.List;
 
 /**
- * Represents a request for a Ballerina AST.
+ * Represents available endpoints response.
  *
  * @since 0.981.2
  */
-public class BallerinaASTRequest {
+public class BallerinaEndpointsResponse {
+    List<Endpoint> endpoints;
 
-    private TextDocumentIdentifier documentIdentifier;
-
-    public TextDocumentIdentifier getDocumentIdentifier() {
-        return documentIdentifier;
+    public List<Endpoint> getEndpoints() {
+        return endpoints;
     }
 
-    public void setDocumentIdentifier(TextDocumentIdentifier documentIdentifier) {
-        this.documentIdentifier = documentIdentifier;
+    public void setEndpoints(List<Endpoint> endpoints) {
+        this.endpoints = endpoints;
     }
 }

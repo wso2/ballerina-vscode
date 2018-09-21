@@ -13,24 +13,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.ballerinalang.langserver.extensions.ballerina.document;
 
-import org.eclipse.lsp4j.TextDocumentIdentifier;
+package org.ballerinalang.langserver.extensions.ballerina.traces;
 
 /**
- * Represents a request for a Ballerina AST.
- *
- * @since 0.981.2
+ * Model class for trace log.
  */
-public class BallerinaASTRequest {
+public class TraceRecord {
+    private Trace meta;
+    private String record;
 
-    private TextDocumentIdentifier documentIdentifier;
-
-    public TextDocumentIdentifier getDocumentIdentifier() {
-        return documentIdentifier;
+    TraceRecord(Trace meta, String record) {
+        this.setMeta(meta);
+        this.setRecord(record);
     }
 
-    public void setDocumentIdentifier(TextDocumentIdentifier documentIdentifier) {
-        this.documentIdentifier = documentIdentifier;
+    public void setMeta(Trace meta) {
+        this.meta = meta;
+    }
+    public Trace getMeta() {
+        return meta;
+    }
+    public String getRecord() {
+        return record;
+    }
+
+    public void setRecord(String record) {
+        this.record = record;
     }
 }
