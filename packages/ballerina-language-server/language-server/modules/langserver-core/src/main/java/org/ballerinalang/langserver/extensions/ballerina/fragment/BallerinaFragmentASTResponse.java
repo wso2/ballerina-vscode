@@ -13,21 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.ballerinalang.langserver.extensions.ballerina.document;
+package org.ballerinalang.langserver.extensions.ballerina.fragment;
 
 import com.google.gson.JsonObject;
-import org.eclipse.lsp4j.VersionedTextDocumentIdentifier;
 
 /**
- * Represents an AST change notification sent from client to server.
+ * Represents a represents with an AST for a code fragment.
  *
  * @since 0.981.2
  */
-public class BallerinaASTDidChange {
+public class BallerinaFragmentASTResponse {
 
     JsonObject ast;
-
-    VersionedTextDocumentIdentifier textDocumentIdentifier;
 
     public JsonObject getAst() {
         return ast;
@@ -35,13 +32,5 @@ public class BallerinaASTDidChange {
 
     public void setAst(JsonObject ast) {
         this.ast = ast;
-    }
-
-    public VersionedTextDocumentIdentifier getTextDocumentIdentifier() {
-        return textDocumentIdentifier;
-    }
-
-    public void setTextDocumentIdentifier(VersionedTextDocumentIdentifier textDocumentIdentifier) {
-        this.textDocumentIdentifier = textDocumentIdentifier;
     }
 }
