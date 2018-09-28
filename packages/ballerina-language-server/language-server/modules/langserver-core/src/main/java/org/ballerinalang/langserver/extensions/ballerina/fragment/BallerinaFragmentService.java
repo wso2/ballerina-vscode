@@ -13,24 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.ballerinalang.langserver.extensions.ballerina.document;
+package org.ballerinalang.langserver.extensions.ballerina.fragment;
 
-import org.eclipse.lsp4j.TextDocumentIdentifier;
+import org.eclipse.lsp4j.jsonrpc.services.JsonRequest;
+import org.eclipse.lsp4j.jsonrpc.services.JsonSegment;
+
+import java.util.concurrent.CompletableFuture;
 
 /**
- * Represents a request for a Ballerina AST.
+ * An extension interface for Language server to add features related to ballerina code fragments.
  *
  * @since 0.981.2
  */
-public class BallerinaASTRequest {
-
-    private TextDocumentIdentifier documentIdentifier;
-
-    public TextDocumentIdentifier getDocumentIdentifier() {
-        return documentIdentifier;
-    }
-
-    public void setDocumentIdentifier(TextDocumentIdentifier documentIdentifier) {
-        this.documentIdentifier = documentIdentifier;
-    }
+@JsonSegment("ballerinaFragment")
+public interface BallerinaFragmentService {
+    @JsonRequest
+    CompletableFuture<BallerinaFragmentASTResponse> ast(BallerinaFragmentASTRequest request);
 }

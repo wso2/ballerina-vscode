@@ -13,24 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.ballerinalang.langserver.extensions.ballerina.document;
 
-import org.eclipse.lsp4j.TextDocumentIdentifier;
+package org.ballerinalang.langserver.extensions.ballerina.traces;
 
+import org.eclipse.lsp4j.jsonrpc.services.JsonNotification;
+import org.eclipse.lsp4j.jsonrpc.services.JsonSegment;
 /**
- * Represents a request for a Ballerina AST.
- *
- * @since 0.981.2
+ * An extension interface for Language server to add features related to ballerina files.
  */
-public class BallerinaASTRequest {
+@JsonSegment("ballerinaTrace")
+public interface BallerinaTraceService {
 
-    private TextDocumentIdentifier documentIdentifier;
+    @JsonNotification("pushLogToClient")
+    void pushLogToClient(TraceRecord traceRecord);
 
-    public TextDocumentIdentifier getDocumentIdentifier() {
-        return documentIdentifier;
-    }
-
-    public void setDocumentIdentifier(TextDocumentIdentifier documentIdentifier) {
-        this.documentIdentifier = documentIdentifier;
-    }
 }

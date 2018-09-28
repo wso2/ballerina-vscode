@@ -13,24 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.ballerinalang.langserver.extensions.ballerina.document;
 
-import org.eclipse.lsp4j.TextDocumentIdentifier;
+package org.ballerinalang.langserver.client;
 
 /**
- * Represents a request for a Ballerina AST.
- *
- * @since 0.981.2
+ * Extended LanguageClientAware interface.
  */
-public class BallerinaASTRequest {
-
-    private TextDocumentIdentifier documentIdentifier;
-
-    public TextDocumentIdentifier getDocumentIdentifier() {
-        return documentIdentifier;
-    }
-
-    public void setDocumentIdentifier(TextDocumentIdentifier documentIdentifier) {
-        this.documentIdentifier = documentIdentifier;
-    }
+public interface ExtendedLanguageClientAware {
+    void connect(ExtendedLanguageClient client);
 }
