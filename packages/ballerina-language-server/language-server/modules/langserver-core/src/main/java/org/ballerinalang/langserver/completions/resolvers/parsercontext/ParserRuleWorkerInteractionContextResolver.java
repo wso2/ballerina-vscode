@@ -17,24 +17,32 @@
 */
 package org.ballerinalang.langserver.completions.resolvers.parsercontext;
 
+import org.antlr.v4.runtime.ParserRuleContext;
 import org.ballerinalang.langserver.compiler.LSServiceOperationContext;
 import org.ballerinalang.langserver.completions.CompletionKeys;
 import org.ballerinalang.langserver.completions.resolvers.AbstractItemResolver;
-import org.ballerinalang.langserver.completions.util.Snippet;
+import org.ballerinalang.langserver.completions.util.CompletionItemResolver;
 import org.eclipse.lsp4j.CompletionItem;
+import org.wso2.ballerinalang.compiler.parser.antlr4.BallerinaParser;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 /**
- * Completion Item resolver for the resource definition context.
+ * Worker interaction context resolver for the completion items.
+ * @since 0.983.0
  */
-public class ParserRuleResourceDefinitionContextResolver extends AbstractItemResolver {
+public class ParserRuleWorkerInteractionContextResolver extends AbstractItemResolver {
     @Override
     public List<CompletionItem> resolveItems(LSServiceOperationContext context) {
-        boolean isSnippet = context.get(CompletionKeys.CLIENT_CAPABILITIES_KEY).getCompletionItem().getSnippetSupport();
-        CompletionItem resource = Snippet.DEF_RESOURCE.get().build(new CompletionItem(), isSnippet);
-        return new ArrayList<>(Collections.singletonList(resource));
+        ParserRuleContext contextParent = context.get(CompletionKeys.PARSER_RULE_CONTEXT_KEY).getParent();
+        if (contextParent instanceof BallerinaParser.BinaryEqualExpressionContext) {
+            contextParent = contextParent.getParent();
+        }
+        if (contextParent != null) {
+            return CompletionItemResolver.getResolverByClass(contextParent.getClass()).resolveItems(context);
+        }
+
+        return new ArrayList<>();
     }
 }
