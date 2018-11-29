@@ -13,21 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-package org.ballerinalang.langserver.client;
-
-import org.ballerinalang.langserver.extensions.ballerina.traces.TraceRecord;
-import org.eclipse.lsp4j.Location;
-import org.eclipse.lsp4j.jsonrpc.services.JsonNotification;
-import org.eclipse.lsp4j.services.LanguageClient;
+package org.ballerinalang.langserver.extensions.ballerina.document;
 
 /**
- * Extended Language Client interface.
+ * Represents a Ballerina service list reuqest.
+ *
+ * @since 0.981.2
  */
-public interface ExtendedLanguageClient extends LanguageClient {
-    @JsonNotification("window/traceLogs")
-    void traceLogs(TraceRecord rawTrace);
+public class BallerinaServiceListResponse {
 
-    @JsonNotification("window/showTextDocument")
-    void showTextDocument(Location location);
+    private String[] services;
+
+    public String[] getServices() {
+        return this.services;
+    }
+
+    public void setServices(String[] services) {
+        this.services = services;
+    }
+
 }
