@@ -14,20 +14,30 @@
  * limitations under the License.
  */
 
-package org.ballerinalang.langserver.client;
-
-import org.ballerinalang.langserver.extensions.ballerina.traces.TraceRecord;
-import org.eclipse.lsp4j.Location;
-import org.eclipse.lsp4j.jsonrpc.services.JsonNotification;
-import org.eclipse.lsp4j.services.LanguageClient;
+package org.ballerinalang.langserver.extensions.ballerina.document;
 
 /**
- * Extended Language Client interface.
+ * Represent a response for ballerina OAS.
  */
-public interface ExtendedLanguageClient extends LanguageClient {
-    @JsonNotification("window/traceLogs")
-    void traceLogs(TraceRecord rawTrace);
+public class BallerinaOASResponse {
 
-    @JsonNotification("window/showTextDocument")
-    void showTextDocument(Location location);
+    private String ballerinaOASJson;
+    private Boolean isError;
+
+    public Boolean getIsError() {
+        return this.isError;
+    }
+
+    public void isIsError(Boolean isError) {
+        this.isError = isError;
+    }
+
+    public String getBallerinaOASJson() {
+        return this.ballerinaOASJson;
+    }
+
+    public void setBallerinaOASJson(String ballerinaOASJson) {
+        this.ballerinaOASJson = ballerinaOASJson;
+    }
+
 }
