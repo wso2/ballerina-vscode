@@ -1,147 +1,21 @@
 {
   "position": {
-    "line": 12,
-    "character": 8
+    "line": 8,
+    "character": 4
   },
-  "source": "resource/source/allVisibleSymbolsEmptyLine.bal",
+  "source": "service/source/serviceBodyCompletion1.bal",
   "items": [
-    {
-      "label":"xmlns",
-      "kind":"Snippet",
-      "detail":"Snippet",
-      "sortText":"190",
-      "insertText":"xmlns \"${1}\" as ${2:ns};",
-      "insertTextFormat":"Snippet"
-    },
-    {
-      "label":"var",
-      "kind":"Keyword",
-      "detail":"Keyword",
-      "sortText":"210",
-      "insertText":"var ",
-      "insertTextFormat":"Snippet"
-    },
-    {
-      "label":"error",
-      "kind":"Snippet",
-      "detail":"Snippet",
-      "sortText":"190",
-      "insertText":"error ${1:name} \u003d error(\"${2:errorCode}\", { message: \"${3}\" });",
-      "insertTextFormat":"Snippet"
-    },
-    {
-      "label":"foreach",
-      "kind":"Snippet",
-      "detail":"Statement",
-      "sortText":"200",
-      "insertText":"foreach ${1:var} ${2:item} in ${3:itemList} {\n\t${4}\n}",
-      "insertTextFormat":"Snippet"
-    },
-    {
-      "label":"fork",
-      "kind":"Snippet",
-      "detail":"Statement",
-      "sortText":"200",
-      "insertText":"fork {\n\t${1}\n}",
-      "insertTextFormat":"Snippet"
-    },
-    {
-      "label":"if",
-      "kind":"Snippet",
-      "detail":"Statement",
-      "sortText":"200",
-      "insertText":"if (${1:true}) {\n\t${2}\n}",
-      "insertTextFormat":"Snippet"
-    },
-    {
-      "label":"lock",
-      "kind":"Snippet",
-      "detail":"Statement",
-      "sortText":"200",
-      "insertText":"lock {\n\t${1}\n}",
-      "insertTextFormat":"Snippet"
-    },
-    {
-      "label":"match",
-      "kind":"Snippet",
-      "detail":"Statement",
-      "sortText":"200",
-      "insertText":"match ",
-      "insertTextFormat":"Snippet"
-    },
-    {
-      "label":"panic",
-      "kind":"Snippet",
-      "detail":"Statement",
-      "sortText":"200",
-      "insertText":"panic ",
-      "insertTextFormat":"Snippet"
-    },
-    {
-      "label":"return",
-      "kind":"Snippet",
-      "detail":"Statement",
-      "sortText":"200",
-      "insertText":"return;",
-      "insertTextFormat":"Snippet"
-    },
-    {
-      "label":"transaction",
-      "kind":"Snippet",
-      "detail":"Statement",
-      "sortText":"200",
-      "insertText":"transaction with retries ${1:0} {\n\t${2}\n} onretry {\n\t${3}\n}",
-      "insertTextFormat":"Snippet"
-    },
-    {
-      "label":"while",
-      "kind":"Snippet",
-      "detail":"Statement",
-      "sortText":"200",
-      "insertText":"while (${1:true}) {\n\t${2}\n}",
-      "insertTextFormat":"Snippet"
-    },
     {
       "label":"channel",
       "kind":"Keyword",
       "detail":"BType",
-      "sortText":"170",
       "insertText":"channel"
-    },
-    {
-      "label":"const2",
-      "kind":"Variable",
-      "detail":"string",
-      "documentation":{
-        "left":"Constant"
-      },
-      "sortText":"110",
-      "insertText":"const2"
-    },
-    {
-      "label":"const1",
-      "kind":"Unit",
-      "detail":"int",
-      "sortText":"110",
-      "insertText":"const1"
     },
     {
       "label":"xml",
       "kind":"Keyword",
       "detail":"BType",
-      "sortText":"170",
       "insertText":"xml"
-    },
-    {
-      "label":"queryTableWithJoinClause(string sqlQuery, table fromTable, table joinTable, any parameters, any retType)(table\u003c$anonType$builtin$8\u003e)",
-      "kind":"Function",
-      "detail":"Function",
-      "documentation":{
-        "left":"Execute the given sql query to fetch the records and return as a new in memory table.\n"
-      },
-      "sortText":"120",
-      "insertText":"queryTableWithJoinClause(${1:sqlQuery}, ${2:fromTable}, ${3:joinTable}, ${4:parameters}, ${5:retType})",
-      "insertTextFormat":"Snippet"
     },
     {
       "label":"TableConfig",
@@ -150,197 +24,126 @@
       "documentation":{
         "left":"TableConfig represents properties used during table initialization.\n"
       },
-      "sortText":"170",
       "insertText":"TableConfig"
     },
     {
       "label":"byte",
       "kind":"Keyword",
       "detail":"BType",
-      "sortText":"170",
       "insertText":"byte"
-    },
-    {
-      "label":"queryTableWithoutJoinClause(string sqlQuery, table fromTable, any parameters, any retType)(table\u003c$anonType$builtin$10\u003e)",
-      "kind":"Function",
-      "detail":"Function",
-      "documentation":{
-        "left":"Execute the given sql query to fetch the records and return as a new in memory table.\n"
-      },
-      "sortText":"120",
-      "insertText":"queryTableWithoutJoinClause(${1:sqlQuery}, ${2:fromTable}, ${3:parameters}, ${4:retType})",
-      "insertTextFormat":"Snippet"
-    },
-    {
-      "label":"startForever(string streamQuery, any inStreamRefs, any inTableRefs, any outStreamRefs, any outTableRefs, any funcPointers)",
-      "kind":"Function",
-      "detail":"Function",
-      "documentation":{
-        "left":"Creates the forever runtime.\n"
-      },
-      "sortText":"120",
-      "insertText":"startForever(${1:streamQuery}, ${2:inStreamRefs}, ${3:inTableRefs}, ${4:outStreamRefs}, ${5:outTableRefs}, ${6:funcPointers})",
-      "insertTextFormat":"Snippet"
     },
     {
       "label":"stream",
       "kind":"Keyword",
       "detail":"BType",
-      "sortText":"170",
       "insertText":"stream"
     },
     {
       "label":"AbstractListener",
       "kind":"Class",
       "detail":"BType",
-      "sortText":"170",
       "insertText":"AbstractListener"
     },
     {
       "label":"map",
       "kind":"Keyword",
       "detail":"BType",
-      "sortText":"170",
       "insertText":"map"
     },
     {
       "label":"table",
       "kind":"Keyword",
       "detail":"BType",
-      "sortText":"170",
       "insertText":"table"
     },
     {
       "label":"anydata",
       "kind":"Keyword",
       "detail":"BType",
-      "sortText":"170",
       "insertText":"anydata"
     },
     {
       "label":"future",
       "kind":"Keyword",
       "detail":"BType",
-      "sortText":"170",
       "insertText":"future"
     },
     {
       "label":"typedesc",
       "kind":"Keyword",
       "detail":"BType",
-      "sortText":"170",
       "insertText":"typedesc"
     },
     {
       "label":"float",
       "kind":"Keyword",
       "detail":"BType",
-      "sortText":"170",
       "insertText":"float"
     },
     {
       "label":"null",
       "kind":"Keyword",
       "detail":"BType",
-      "sortText":"170",
       "insertText":"null"
     },
     {
       "label":"decimal",
       "kind":"Keyword",
       "detail":"BType",
-      "sortText":"170",
       "insertText":"decimal"
-    },
-    {
-      "label":"request",
-      "kind":"Variable",
-      "detail":"ballerina/http:Request",
-      "sortText":"110",
-      "insertText":"request"
     },
     {
       "label":"string",
       "kind":"Keyword",
       "detail":"BType",
-      "sortText":"170",
       "insertText":"string"
     },
     {
       "label":"error",
       "kind":"Keyword",
       "detail":"BType",
-      "sortText":"170",
       "insertText":"error"
     },
     {
       "label":"json",
       "kind":"Keyword",
       "detail":"BType",
-      "sortText":"170",
       "insertText":"json"
-    },
-    {
-      "label":"var2",
-      "kind":"Variable",
-      "detail":"int",
-      "sortText":"110",
-      "insertText":"var2"
-    },
-    {
-      "label":"var1",
-      "kind":"Variable",
-      "detail":"int",
-      "sortText":"110",
-      "insertText":"var1"
     },
     {
       "label":"any",
       "kind":"Keyword",
       "detail":"BType",
-      "sortText":"170",
       "insertText":"any"
     },
     {
       "label":"int",
       "kind":"Keyword",
       "detail":"BType",
-      "sortText":"170",
       "insertText":"int"
-    },
-    {
-      "label":"caller",
-      "kind":"Variable",
-      "detail":"ballerina/http:Caller",
-      "sortText":"110",
-      "insertText":"caller"
     },
     {
       "label":"boolean",
       "kind":"Keyword",
       "detail":"BType",
-      "sortText":"170",
       "insertText":"boolean"
     },
     {
       "label":"service",
       "kind":"Keyword",
       "detail":"BType",
-      "sortText":"170",
       "insertText":"service"
     },
     {
       "label":"ballerina/http",
       "kind":"Module",
       "detail":"Package",
-      "sortText":"140",
       "insertText":"http"
     },
     {
       "label":"ballerina/transactions",
       "kind":"Module",
       "detail":"Package",
-      "sortText":"140",
       "insertText":"transactions",
       "additionalTextEdits":[
         {
@@ -362,7 +165,6 @@
       "label":"ballerina/websub",
       "kind":"Module",
       "detail":"Package",
-      "sortText":"140",
       "insertText":"websub",
       "additionalTextEdits":[
         {
@@ -384,7 +186,6 @@
       "label":"ballerina/grpc",
       "kind":"Module",
       "detail":"Package",
-      "sortText":"140",
       "insertText":"grpc",
       "additionalTextEdits":[
         {
@@ -406,7 +207,6 @@
       "label":"ballerina/reflect",
       "kind":"Module",
       "detail":"Package",
-      "sortText":"140",
       "insertText":"reflect",
       "additionalTextEdits":[
         {
@@ -428,7 +228,6 @@
       "label":"ballerina/log",
       "kind":"Module",
       "detail":"Package",
-      "sortText":"140",
       "insertText":"log",
       "additionalTextEdits":[
         {
@@ -450,7 +249,6 @@
       "label":"ballerina/time",
       "kind":"Module",
       "detail":"Package",
-      "sortText":"140",
       "insertText":"time",
       "additionalTextEdits":[
         {
@@ -472,7 +270,6 @@
       "label":"ballerina/test",
       "kind":"Module",
       "detail":"Package",
-      "sortText":"140",
       "insertText":"test",
       "additionalTextEdits":[
         {
@@ -494,7 +291,6 @@
       "label":"ballerina/runtime",
       "kind":"Module",
       "detail":"Package",
-      "sortText":"140",
       "insertText":"runtime",
       "additionalTextEdits":[
         {
@@ -516,7 +312,6 @@
       "label":"ballerina/swagger",
       "kind":"Module",
       "detail":"Package",
-      "sortText":"140",
       "insertText":"swagger",
       "additionalTextEdits":[
         {
@@ -538,7 +333,6 @@
       "label":"ballerina/file",
       "kind":"Module",
       "detail":"Package",
-      "sortText":"140",
       "insertText":"file",
       "additionalTextEdits":[
         {
@@ -560,7 +354,6 @@
       "label":"ballerina/sql",
       "kind":"Module",
       "detail":"Package",
-      "sortText":"140",
       "insertText":"sql",
       "additionalTextEdits":[
         {
@@ -582,7 +375,6 @@
       "label":"ballerina/internal",
       "kind":"Module",
       "detail":"Package",
-      "sortText":"140",
       "insertText":"internal",
       "additionalTextEdits":[
         {
@@ -604,7 +396,6 @@
       "label":"ballerina/mysql",
       "kind":"Module",
       "detail":"Package",
-      "sortText":"140",
       "insertText":"mysql",
       "additionalTextEdits":[
         {
@@ -626,7 +417,6 @@
       "label":"ballerina/mime",
       "kind":"Module",
       "detail":"Package",
-      "sortText":"140",
       "insertText":"mime",
       "additionalTextEdits":[
         {
@@ -648,7 +438,6 @@
       "label":"ballerina/task",
       "kind":"Module",
       "detail":"Package",
-      "sortText":"140",
       "insertText":"task",
       "additionalTextEdits":[
         {
@@ -670,7 +459,6 @@
       "label":"ballerina/crypto",
       "kind":"Module",
       "detail":"Package",
-      "sortText":"140",
       "insertText":"crypto",
       "additionalTextEdits":[
         {
@@ -692,7 +480,6 @@
       "label":"ballerina/io",
       "kind":"Module",
       "detail":"Package",
-      "sortText":"140",
       "insertText":"io",
       "additionalTextEdits":[
         {
@@ -714,7 +501,6 @@
       "label":"ballerina/cache",
       "kind":"Module",
       "detail":"Package",
-      "sortText":"140",
       "insertText":"cache",
       "additionalTextEdits":[
         {
@@ -736,7 +522,6 @@
       "label":"ballerina/auth",
       "kind":"Module",
       "detail":"Package",
-      "sortText":"140",
       "insertText":"auth",
       "additionalTextEdits":[
         {
@@ -758,7 +543,6 @@
       "label":"ballerina/jms",
       "kind":"Module",
       "detail":"Package",
-      "sortText":"140",
       "insertText":"jms",
       "additionalTextEdits":[
         {
@@ -780,7 +564,6 @@
       "label":"ballerina/system",
       "kind":"Module",
       "detail":"Package",
-      "sortText":"140",
       "insertText":"system",
       "additionalTextEdits":[
         {
@@ -802,7 +585,6 @@
       "label":"ballerina/h2",
       "kind":"Module",
       "detail":"Package",
-      "sortText":"140",
       "insertText":"h2",
       "additionalTextEdits":[
         {
@@ -824,14 +606,12 @@
       "label":"ballerina/builtin",
       "kind":"Module",
       "detail":"Package",
-      "sortText":"140",
       "insertText":"builtin"
     },
     {
       "label":"ballerina/math",
       "kind":"Module",
       "detail":"Package",
-      "sortText":"140",
       "insertText":"math",
       "additionalTextEdits":[
         {
@@ -853,7 +633,6 @@
       "label":"ballerina/config",
       "kind":"Module",
       "detail":"Package",
-      "sortText":"140",
       "insertText":"config",
       "additionalTextEdits":[
         {
@@ -872,11 +651,17 @@
       ]
     },
     {
-      "label":"worker",
+      "label":"Resource",
       "kind":"Snippet",
       "detail":"Snippet",
-      "sortText":"190",
-      "insertText":"worker ${1:name} {\n\t${2}\n}",
+      "insertText":"resource function ${1:newResource}(http:Caller ${2:caller}, ${3:http:Request request}) {\n\t${4}\n}",
+      "insertTextFormat":"Snippet"
+    },
+    {
+      "label":"function",
+      "kind":"Snippet",
+      "detail":"Snippet",
+      "insertText":"function ${1:name}(${2}) {\n\t${3}\n}",
       "insertTextFormat":"Snippet"
     }
   ]
