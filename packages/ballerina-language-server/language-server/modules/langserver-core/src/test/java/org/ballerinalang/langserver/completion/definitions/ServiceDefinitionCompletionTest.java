@@ -18,21 +18,31 @@
 package org.ballerinalang.langserver.completion.definitions;
 
 import org.ballerinalang.langserver.completion.CompletionTest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.testng.annotations.DataProvider;
 
 /**
  * Completion item tests for service definition.
  */
-public class ServiceDefinition extends CompletionTest {
+public class ServiceDefinitionCompletionTest extends CompletionTest {
+
+    private static final Logger log = LoggerFactory.getLogger(ServiceDefinitionCompletionTest.class);
+
     @DataProvider(name = "completion-data-provider")
     @Override
     public Object[][] dataProvider() {
+        log.info("Test textDocument/completion for Service Definitions Scope");
         return new Object[][] {
             {"serviceEndpointBind1.json", "service"},
             {"serviceEndpointBind2.json", "service"},
             {"serviceEndpointBind3.json", "service"},
             {"serviceEndpointBind4.json", "service"},
-            {"serviceBodyCompletion.json", "service"},
+            {"serviceBodyCompletion1.json", "service"},
+            {"serviceBodyCompletion2.json", "service"},
+            {"serviceBodyCompletion3.json", "service"},
+            {"serviceBodyCompletion4.json", "service"},
+            {"serviceBodyCompletion5.json", "service"},
         };
     }
 }
