@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.ballerinalang.langserver.formatting;
+package org.ballerinalang.langserver.compiler.format;
 
 /**
  * Formatting constants for keywords used in the formatting util.
@@ -54,4 +54,5 @@ public class FormattingConstants {
     public static final String KIND = "kind";
     public static final String TYPE = "type";
     public static final String NAME = "name";
+    public static final String EXPRESSIONS = "expressions";
 }

@@ -1,9 +1,9 @@
 {
   "position": {
-    "line": 4,
-    "character": 8
+    "line": 10,
+    "character": 9
   },
-  "source": "resource/source/userDefinedRecordEmptyLine.bal",
+  "source": "resource/source/nonEmptyLineCompletion.bal",
   "items": [
     {
       "label": "xmlns",
@@ -118,6 +118,25 @@
       "insertTextFormat": "Snippet"
     },
     {
+      "label": "const2",
+      "kind": "Variable",
+      "detail": "string",
+      "documentation": {
+        "left": "Constant"
+      },
+      "sortText": "110",
+      "insertText": "const2",
+      "insertTextFormat": "Snippet"
+    },
+    {
+      "label": "const1",
+      "kind": "Unit",
+      "detail": "int",
+      "sortText": "110",
+      "insertText": "const1",
+      "insertTextFormat": "Snippet"
+    },
+    {
       "label": "xml",
       "kind": "Keyword",
       "detail": "Xml",
@@ -136,8 +155,12 @@
         }
       },
       "sortText": "120",
-      "insertText": "queryTableWithJoinClause(${1:sqlQuery}, ${2:fromTable}, ${3:joinTable}, ${4:parameters}, ${5:retType})",
-      "insertTextFormat": "Snippet"
+      "insertText": "queryTableWithJoinClause(${1})",
+      "insertTextFormat": "Snippet",
+      "command": {
+        "title": "editor.action.triggerParameterHints",
+        "command": "editor.action.triggerParameterHints"
+      }
     },
     {
       "label": "TableConfig",
@@ -185,8 +208,12 @@
         }
       },
       "sortText": "120",
-      "insertText": "queryTableWithoutJoinClause(${1:sqlQuery}, ${2:fromTable}, ${3:parameters}, ${4:retType})",
-      "insertTextFormat": "Snippet"
+      "insertText": "queryTableWithoutJoinClause(${1})",
+      "insertTextFormat": "Snippet",
+      "command": {
+        "title": "editor.action.triggerParameterHints",
+        "command": "editor.action.triggerParameterHints"
+      }
     },
     {
       "label": "startForever(string streamQuery, any inStreamRefs, any inTableRefs, any outStreamRefs, any outTableRefs, any funcPointers)",
@@ -199,8 +226,12 @@
         }
       },
       "sortText": "120",
-      "insertText": "startForever(${1:streamQuery}, ${2:inStreamRefs}, ${3:inTableRefs}, ${4:outStreamRefs}, ${5:outTableRefs}, ${6:funcPointers});",
-      "insertTextFormat": "Snippet"
+      "insertText": "startForever(${1});",
+      "insertTextFormat": "Snippet",
+      "command": {
+        "title": "editor.action.triggerParameterHints",
+        "command": "editor.action.triggerParameterHints"
+      }
     },
     {
       "label": "stream",
@@ -285,10 +316,28 @@
     {
       "label": "request",
       "kind": "Variable",
-      "detail": "ballerina/http:Request",
+      "detail": "http:Request",
       "sortText": "110",
       "insertText": "request",
       "insertTextFormat": "Snippet"
+    },
+    {
+      "label": "function4()",
+      "kind": "Function",
+      "detail": "Function",
+      "documentation": {
+        "right": {
+          "kind": "markdown",
+          "value": "**Package:** _._  \n  \n  \n  \n---    \n**Parameters**  \n"
+        }
+      },
+      "sortText": "120",
+      "insertText": "function4(${1});",
+      "insertTextFormat": "Snippet",
+      "command": {
+        "title": "editor.action.triggerParameterHints",
+        "command": "editor.action.triggerParameterHints"
+      }
     },
     {
       "label": "string",
@@ -297,6 +346,42 @@
       "sortText": "110",
       "insertText": "string",
       "insertTextFormat": "Snippet"
+    },
+    {
+      "label": "function2()(int)",
+      "kind": "Function",
+      "detail": "Function",
+      "documentation": {
+        "right": {
+          "kind": "markdown",
+          "value": "**Package:** _._  \n  \n  \n  \n---    \n**Parameters**  \n  \n  \n**Return**  \nint"
+        }
+      },
+      "sortText": "120",
+      "insertText": "function2(${1})",
+      "insertTextFormat": "Snippet",
+      "command": {
+        "title": "editor.action.triggerParameterHints",
+        "command": "editor.action.triggerParameterHints"
+      }
+    },
+    {
+      "label": "function1(int a, string b)",
+      "kind": "Function",
+      "detail": "Function",
+      "documentation": {
+        "right": {
+          "kind": "markdown",
+          "value": "**Package:** _._  \n  \n  \n  \n---    \n**Parameters**  \n"
+        }
+      },
+      "sortText": "120",
+      "insertText": "function1(${1});",
+      "insertTextFormat": "Snippet",
+      "command": {
+        "title": "editor.action.triggerParameterHints",
+        "command": "editor.action.triggerParameterHints"
+      }
     },
     {
       "label": "error",
@@ -315,9 +400,25 @@
       "insertTextFormat": "Snippet"
     },
     {
+      "label": "var2",
+      "kind": "Variable",
+      "detail": "int",
+      "sortText": "110",
+      "insertText": "var2",
+      "insertTextFormat": "Snippet"
+    },
+    {
+      "label": "var1",
+      "kind": "Variable",
+      "detail": "int",
+      "sortText": "110",
+      "insertText": "var1",
+      "insertTextFormat": "Snippet"
+    },
+    {
       "label": "serviceName",
       "kind": "Variable",
-      "detail": "serviceName$$service$1",
+      "detail": "serviceName",
       "sortText": "110",
       "insertText": "serviceName",
       "insertTextFormat": "Snippet"
@@ -341,7 +442,7 @@
     {
       "label": "caller",
       "kind": "Variable",
-      "detail": "ballerina/http:Caller",
+      "detail": "http:Caller",
       "sortText": "110",
       "insertText": "caller",
       "insertTextFormat": "Snippet"
@@ -363,7 +464,7 @@
       "insertTextFormat": "Snippet"
     },
     {
-      "label": "ballerina/http",
+      "label": "http",
       "kind": "Module",
       "detail": "Package",
       "sortText": "140",
