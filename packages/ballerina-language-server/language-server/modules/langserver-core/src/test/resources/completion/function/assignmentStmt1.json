@@ -1,233 +1,10 @@
 {
   "position": {
-    "line": 52,
-    "character": 12
+    "line": 3,
+    "character": 8
   },
-  "source": "function/source/commonCompletionBlocks.bal",
+  "source": "function/source/assignmentStmt1.bal",
   "items": [
-    {
-      "label": "xmlns",
-      "kind": "Snippet",
-      "detail": "Snippet",
-      "sortText": "110",
-      "insertText": "xmlns \"${1}\" as ${2:ns};",
-      "insertTextFormat": "Snippet"
-    },
-    {
-      "label": "var",
-      "kind": "Keyword",
-      "detail": "Keyword",
-      "sortText": "210",
-      "insertText": "var ",
-      "insertTextFormat": "Snippet"
-    },
-    {
-      "label": "error",
-      "kind": "Snippet",
-      "detail": "Snippet",
-      "sortText": "110",
-      "insertText": "error ${1:name} = error(\"${2:errorCode}\", message = \"${3}\");",
-      "insertTextFormat": "Snippet"
-    },
-    {
-      "label": "foreach",
-      "kind": "Snippet",
-      "detail": "Statement",
-      "sortText": "200",
-      "insertText": "foreach ${1:var} ${2:item} in ${3:itemList} {\n\t${4}\n}",
-      "insertTextFormat": "Snippet"
-    },
-    {
-      "label": "fork",
-      "kind": "Snippet",
-      "detail": "Statement",
-      "sortText": "200",
-      "insertText": "fork {\n\t${1}\n}",
-      "insertTextFormat": "Snippet"
-    },
-    {
-      "label": "if",
-      "kind": "Snippet",
-      "detail": "Statement",
-      "sortText": "200",
-      "insertText": "if (${1:true}) {\n\t${2}\n}",
-      "insertTextFormat": "Snippet"
-    },
-    {
-      "label": "lock",
-      "kind": "Snippet",
-      "detail": "Statement",
-      "sortText": "200",
-      "insertText": "lock {\n\t${1}\n}",
-      "insertTextFormat": "Snippet"
-    },
-    {
-      "label": "match",
-      "kind": "Snippet",
-      "detail": "Statement",
-      "sortText": "200",
-      "insertText": "match ",
-      "insertTextFormat": "Snippet"
-    },
-    {
-      "label": "panic",
-      "kind": "Snippet",
-      "detail": "Statement",
-      "sortText": "200",
-      "insertText": "panic ",
-      "insertTextFormat": "Snippet"
-    },
-    {
-      "label": "return",
-      "kind": "Snippet",
-      "detail": "Statement",
-      "sortText": "200",
-      "insertText": "return;",
-      "insertTextFormat": "Snippet"
-    },
-    {
-      "label": "transaction",
-      "kind": "Snippet",
-      "detail": "Statement",
-      "sortText": "200",
-      "insertText": "transaction with retries = ${1:0} {\n\t${2}\n} onretry {\n\t${3}\n}",
-      "insertTextFormat": "Snippet"
-    },
-    {
-      "label": "while",
-      "kind": "Snippet",
-      "detail": "Statement",
-      "sortText": "200",
-      "insertText": "while (${1:true}) {\n\t${2}\n}",
-      "insertTextFormat": "Snippet"
-    },
-    {
-      "label": "initiateNestedTransactionInRemote(string nestingMethod)(string)",
-      "kind": "Function",
-      "detail": "Function",
-      "documentation": {
-        "right": {
-          "kind": "markdown",
-          "value": "**Package:** _._  \n  \n  \n  \n  \n**Returns** `string`   \n  \n"
-        }
-      },
-      "sortText": "130",
-      "insertText": "initiateNestedTransactionInRemote(${1})",
-      "insertTextFormat": "Snippet",
-      "command": {
-        "title": "editor.action.triggerParameterHints",
-        "command": "editor.action.triggerParameterHints"
-      }
-    },
-    {
-      "label": "float",
-      "kind": "Keyword",
-      "detail": "Float",
-      "sortText": "120",
-      "insertText": "float",
-      "insertTextFormat": "Snippet"
-    },
-    {
-      "label": "xml",
-      "kind": "Keyword",
-      "detail": "Xml",
-      "sortText": "120",
-      "insertText": "xml",
-      "insertTextFormat": "Snippet"
-    },
-    {
-      "label": "w1",
-      "kind": "Unit",
-      "detail": "future<()>",
-      "sortText": "120",
-      "insertText": "w1",
-      "insertTextFormat": "Snippet"
-    },
-    {
-      "label": "w2",
-      "kind": "Unit",
-      "detail": "future<()>",
-      "sortText": "120",
-      "insertText": "w2",
-      "insertTextFormat": "Snippet"
-    },
-    {
-      "label": "byte",
-      "kind": "Keyword",
-      "detail": "Byte",
-      "sortText": "120",
-      "insertText": "byte",
-      "insertTextFormat": "Snippet"
-    },
-    {
-      "label": "handle",
-      "kind": "Keyword",
-      "detail": "Handle",
-      "sortText": "120",
-      "insertText": "handle",
-      "insertTextFormat": "Snippet"
-    },
-    {
-      "label": "ArgsData",
-      "kind": "Class",
-      "detail": "Record",
-      "documentation": {
-        "left": "Defaultable argument names. This is for internal use.\n"
-      },
-      "sortText": "120",
-      "insertText": "ArgsData",
-      "insertTextFormat": "Snippet"
-    },
-    {
-      "label": "divideNumbers(int a, int b)((int|error))",
-      "kind": "Function",
-      "detail": "Function",
-      "documentation": {
-        "right": {
-          "kind": "markdown",
-          "value": "**Package:** _._  \n  \n  \n  \n  \n**Returns** `(int|error)`   \n  \n"
-        }
-      },
-      "sortText": "130",
-      "insertText": "divideNumbers(${1})",
-      "insertTextFormat": "Snippet",
-      "command": {
-        "title": "editor.action.triggerParameterHints",
-        "command": "editor.action.triggerParameterHints"
-      }
-    },
-    {
-      "label": "null",
-      "kind": "Keyword",
-      "detail": "Nil",
-      "sortText": "120",
-      "insertText": "null",
-      "insertTextFormat": "Snippet"
-    },
-    {
-      "label": "decimal",
-      "kind": "Keyword",
-      "detail": "Decimal",
-      "sortText": "120",
-      "insertText": "decimal",
-      "insertTextFormat": "Snippet"
-    },
-    {
-      "label": "request",
-      "kind": "Variable",
-      "detail": "http:Request",
-      "sortText": "120",
-      "insertText": "request",
-      "insertTextFormat": "Snippet"
-    },
-    {
-      "label": "string",
-      "kind": "Keyword",
-      "detail": "String",
-      "sortText": "120",
-      "insertText": "string",
-      "insertTextFormat": "Snippet"
-    },
     {
       "label": "error",
       "kind": "Keyword",
@@ -240,153 +17,37 @@
       "insertTextFormat": "Snippet"
     },
     {
-      "label": "stream",
-      "kind": "Keyword",
-      "detail": "Stream",
+      "label": "a",
+      "kind": "Variable",
+      "detail": "int",
       "sortText": "120",
-      "insertText": "stream",
+      "insertText": "a",
       "insertTextFormat": "Snippet"
     },
     {
-      "label": "json",
-      "kind": "Keyword",
-      "detail": "Json",
-      "sortText": "120",
-      "insertText": "json",
-      "insertTextFormat": "Snippet"
-    },
-    {
-      "label": "functionForkJoin()(int)",
+      "label": "testFunction(string args)",
       "kind": "Function",
       "detail": "Function",
       "documentation": {
         "right": {
           "kind": "markdown",
-          "value": "**Package:** _._  \n  \n  \n  \n  \n**Returns** `int`   \n  \n"
+          "value": "**Package:** _._  \n  \n  \n"
         }
       },
       "sortText": "130",
-      "insertText": "functionForkJoin()",
-      "insertTextFormat": "Snippet"
+      "insertText": "testFunction(${1});",
+      "insertTextFormat": "Snippet",
+      "command": {
+        "title": "editor.action.triggerParameterHints",
+        "command": "editor.action.triggerParameterHints"
+      }
     },
     {
-      "label": "map",
-      "kind": "Keyword",
-      "detail": "Map",
-      "sortText": "120",
-      "insertText": "map",
-      "insertTextFormat": "Snippet"
-    },
-    {
-      "label": "table",
-      "kind": "Keyword",
-      "detail": "Table",
-      "sortText": "120",
-      "insertText": "table",
-      "insertTextFormat": "Snippet"
-    },
-    {
-      "label": "anydata",
-      "kind": "Keyword",
-      "detail": "Anydata",
-      "sortText": "120",
-      "insertText": "anydata",
-      "insertTextFormat": "Snippet"
-    },
-    {
-      "label": "b",
+      "label": "args",
       "kind": "Variable",
-      "detail": "int",
+      "detail": "string",
       "sortText": "120",
-      "insertText": "b",
-      "insertTextFormat": "Snippet"
-    },
-    {
-      "label": "any",
-      "kind": "Keyword",
-      "detail": "Any",
-      "sortText": "120",
-      "insertText": "any",
-      "insertTextFormat": "Snippet"
-    },
-    {
-      "label": "int",
-      "kind": "Keyword",
-      "detail": "Int",
-      "sortText": "120",
-      "insertText": "int",
-      "insertTextFormat": "Snippet"
-    },
-    {
-      "label": "caller",
-      "kind": "Variable",
-      "detail": "http:Caller",
-      "sortText": "120",
-      "insertText": "caller",
-      "insertTextFormat": "Snippet"
-    },
-    {
-      "label": "boolean",
-      "kind": "Keyword",
-      "detail": "Boolean",
-      "sortText": "120",
-      "insertText": "boolean",
-      "insertTextFormat": "Snippet"
-    },
-    {
-      "label": "sampleService",
-      "kind": "Unit",
-      "detail": "sampleService",
-      "sortText": "120",
-      "insertText": "sampleService",
-      "insertTextFormat": "Snippet"
-    },
-    {
-      "label": "future",
-      "kind": "Keyword",
-      "detail": "Future",
-      "sortText": "120",
-      "insertText": "future",
-      "insertTextFormat": "Snippet"
-    },
-    {
-      "label": "service",
-      "kind": "Keyword",
-      "detail": "Service",
-      "sortText": "120",
-      "insertText": "service",
-      "insertTextFormat": "Snippet"
-    },
-    {
-      "label": "typedesc",
-      "kind": "Keyword",
-      "detail": "Typedesc",
-      "sortText": "120",
-      "insertText": "typedesc",
-      "insertTextFormat": "Snippet"
-    },
-    {
-      "label": "io",
-      "kind": "Module",
-      "detail": "Package",
-      "sortText": "140",
-      "insertText": "io",
-      "insertTextFormat": "Snippet"
-    },
-    {
-      "label": "http",
-      "kind": "Module",
-      "detail": "Package",
-      "sortText": "140",
-      "insertText": "http",
-      "insertTextFormat": "Snippet"
-    },
-    {
-      "label": "log",
-      "kind": "Module",
-      "detail": "Package",
-      "sortText": "140",
-      "insertText": "log",
+      "insertText": "args",
       "insertTextFormat": "Snippet"
     },
     {
@@ -400,11 +61,11 @@
         {
           "range": {
             "start": {
-              "line": 3,
+              "line": 0,
               "character": 0
             },
             "end": {
-              "line": 3,
+              "line": 0,
               "character": 0
             }
           },
@@ -417,21 +78,21 @@
       "kind": "Module",
       "detail": "Package",
       "sortText": "140",
-      "insertText": "'object",
+      "insertText": "\u0027object",
       "insertTextFormat": "Snippet",
       "additionalTextEdits": [
         {
           "range": {
             "start": {
-              "line": 3,
+              "line": 0,
               "character": 0
             },
             "end": {
-              "line": 3,
+              "line": 0,
               "character": 0
             }
           },
-          "newText": "import ballerina/lang.'object;\n"
+          "newText": "import ballerina/lang.\u0027object;\n"
         }
       ]
     },
@@ -446,11 +107,11 @@
         {
           "range": {
             "start": {
-              "line": 3,
+              "line": 0,
               "character": 0
             },
             "end": {
-              "line": 3,
+              "line": 0,
               "character": 0
             }
           },
@@ -463,21 +124,21 @@
       "kind": "Module",
       "detail": "Package",
       "sortText": "140",
-      "insertText": "'xml",
+      "insertText": "\u0027xml",
       "insertTextFormat": "Snippet",
       "additionalTextEdits": [
         {
           "range": {
             "start": {
-              "line": 3,
+              "line": 0,
               "character": 0
             },
             "end": {
-              "line": 3,
+              "line": 0,
               "character": 0
             }
           },
-          "newText": "import ballerina/lang.'xml;\n"
+          "newText": "import ballerina/lang.\u0027xml;\n"
         }
       ]
     },
@@ -492,11 +153,11 @@
         {
           "range": {
             "start": {
-              "line": 3,
+              "line": 0,
               "character": 0
             },
             "end": {
-              "line": 3,
+              "line": 0,
               "character": 0
             }
           },
@@ -509,21 +170,21 @@
       "kind": "Module",
       "detail": "Package",
       "sortText": "140",
-      "insertText": "'array",
+      "insertText": "\u0027array",
       "insertTextFormat": "Snippet",
       "additionalTextEdits": [
         {
           "range": {
             "start": {
-              "line": 3,
+              "line": 0,
               "character": 0
             },
             "end": {
-              "line": 3,
+              "line": 0,
               "character": 0
             }
           },
-          "newText": "import ballerina/lang.'array;\n"
+          "newText": "import ballerina/lang.\u0027array;\n"
         }
       ]
     },
@@ -538,11 +199,11 @@
         {
           "range": {
             "start": {
-              "line": 3,
+              "line": 0,
               "character": 0
             },
             "end": {
-              "line": 3,
+              "line": 0,
               "character": 0
             }
           },
@@ -561,11 +222,11 @@
         {
           "range": {
             "start": {
-              "line": 3,
+              "line": 0,
               "character": 0
             },
             "end": {
-              "line": 3,
+              "line": 0,
               "character": 0
             }
           },
@@ -584,11 +245,11 @@
         {
           "range": {
             "start": {
-              "line": 3,
+              "line": 0,
               "character": 0
             },
             "end": {
-              "line": 3,
+              "line": 0,
               "character": 0
             }
           },
@@ -607,11 +268,11 @@
         {
           "range": {
             "start": {
-              "line": 3,
+              "line": 0,
               "character": 0
             },
             "end": {
-              "line": 3,
+              "line": 0,
               "character": 0
             }
           },
@@ -630,11 +291,11 @@
         {
           "range": {
             "start": {
-              "line": 3,
+              "line": 0,
               "character": 0
             },
             "end": {
-              "line": 3,
+              "line": 0,
               "character": 0
             }
           },
@@ -653,11 +314,11 @@
         {
           "range": {
             "start": {
-              "line": 3,
+              "line": 0,
               "character": 0
             },
             "end": {
-              "line": 3,
+              "line": 0,
               "character": 0
             }
           },
@@ -676,11 +337,11 @@
         {
           "range": {
             "start": {
-              "line": 3,
+              "line": 0,
               "character": 0
             },
             "end": {
-              "line": 3,
+              "line": 0,
               "character": 0
             }
           },
@@ -699,11 +360,11 @@
         {
           "range": {
             "start": {
-              "line": 3,
+              "line": 0,
               "character": 0
             },
             "end": {
-              "line": 3,
+              "line": 0,
               "character": 0
             }
           },
@@ -722,11 +383,11 @@
         {
           "range": {
             "start": {
-              "line": 3,
+              "line": 0,
               "character": 0
             },
             "end": {
-              "line": 3,
+              "line": 0,
               "character": 0
             }
           },
@@ -745,11 +406,11 @@
         {
           "range": {
             "start": {
-              "line": 3,
+              "line": 0,
               "character": 0
             },
             "end": {
-              "line": 3,
+              "line": 0,
               "character": 0
             }
           },
@@ -762,21 +423,44 @@
       "kind": "Module",
       "detail": "Package",
       "sortText": "140",
-      "insertText": "'string",
+      "insertText": "\u0027string",
       "insertTextFormat": "Snippet",
       "additionalTextEdits": [
         {
           "range": {
             "start": {
-              "line": 3,
+              "line": 0,
               "character": 0
             },
             "end": {
-              "line": 3,
+              "line": 0,
               "character": 0
             }
           },
-          "newText": "import ballerina/lang.'string;\n"
+          "newText": "import ballerina/lang.\u0027string;\n"
+        }
+      ]
+    },
+    {
+      "label": "ballerina/io",
+      "kind": "Module",
+      "detail": "Package",
+      "sortText": "140",
+      "insertText": "io",
+      "insertTextFormat": "Snippet",
+      "additionalTextEdits": [
+        {
+          "range": {
+            "start": {
+              "line": 0,
+              "character": 0
+            },
+            "end": {
+              "line": 0,
+              "character": 0
+            }
+          },
+          "newText": "import ballerina/io;\n"
         }
       ]
     },
@@ -791,11 +475,11 @@
         {
           "range": {
             "start": {
-              "line": 3,
+              "line": 0,
               "character": 0
             },
             "end": {
-              "line": 3,
+              "line": 0,
               "character": 0
             }
           },
@@ -814,11 +498,11 @@
         {
           "range": {
             "start": {
-              "line": 3,
+              "line": 0,
               "character": 0
             },
             "end": {
-              "line": 3,
+              "line": 0,
               "character": 0
             }
           },
@@ -837,11 +521,11 @@
         {
           "range": {
             "start": {
-              "line": 3,
+              "line": 0,
               "character": 0
             },
             "end": {
-              "line": 3,
+              "line": 0,
               "character": 0
             }
           },
@@ -860,11 +544,11 @@
         {
           "range": {
             "start": {
-              "line": 3,
+              "line": 0,
               "character": 0
             },
             "end": {
-              "line": 3,
+              "line": 0,
               "character": 0
             }
           },
@@ -883,11 +567,11 @@
         {
           "range": {
             "start": {
-              "line": 3,
+              "line": 0,
               "character": 0
             },
             "end": {
-              "line": 3,
+              "line": 0,
               "character": 0
             }
           },
@@ -906,11 +590,11 @@
         {
           "range": {
             "start": {
-              "line": 3,
+              "line": 0,
               "character": 0
             },
             "end": {
-              "line": 3,
+              "line": 0,
               "character": 0
             }
           },
@@ -929,11 +613,11 @@
         {
           "range": {
             "start": {
-              "line": 3,
+              "line": 0,
               "character": 0
             },
             "end": {
-              "line": 3,
+              "line": 0,
               "character": 0
             }
           },
@@ -946,21 +630,21 @@
       "kind": "Module",
       "detail": "Package",
       "sortText": "140",
-      "insertText": "'future",
+      "insertText": "\u0027future",
       "insertTextFormat": "Snippet",
       "additionalTextEdits": [
         {
           "range": {
             "start": {
-              "line": 3,
+              "line": 0,
               "character": 0
             },
             "end": {
-              "line": 3,
+              "line": 0,
               "character": 0
             }
           },
-          "newText": "import ballerina/lang.'future;\n"
+          "newText": "import ballerina/lang.\u0027future;\n"
         }
       ]
     },
@@ -969,21 +653,21 @@
       "kind": "Module",
       "detail": "Package",
       "sortText": "140",
-      "insertText": "'value",
+      "insertText": "\u0027value",
       "insertTextFormat": "Snippet",
       "additionalTextEdits": [
         {
           "range": {
             "start": {
-              "line": 3,
+              "line": 0,
               "character": 0
             },
             "end": {
-              "line": 3,
+              "line": 0,
               "character": 0
             }
           },
-          "newText": "import ballerina/lang.'value;\n"
+          "newText": "import ballerina/lang.\u0027value;\n"
         }
       ]
     },
@@ -998,11 +682,11 @@
         {
           "range": {
             "start": {
-              "line": 3,
+              "line": 0,
               "character": 0
             },
             "end": {
-              "line": 3,
+              "line": 0,
               "character": 0
             }
           },
@@ -1021,11 +705,11 @@
         {
           "range": {
             "start": {
-              "line": 3,
+              "line": 0,
               "character": 0
             },
             "end": {
-              "line": 3,
+              "line": 0,
               "character": 0
             }
           },
@@ -1044,11 +728,11 @@
         {
           "range": {
             "start": {
-              "line": 3,
+              "line": 0,
               "character": 0
             },
             "end": {
-              "line": 3,
+              "line": 0,
               "character": 0
             }
           },
@@ -1067,11 +751,11 @@
         {
           "range": {
             "start": {
-              "line": 3,
+              "line": 0,
               "character": 0
             },
             "end": {
-              "line": 3,
+              "line": 0,
               "character": 0
             }
           },
@@ -1090,11 +774,11 @@
         {
           "range": {
             "start": {
-              "line": 3,
+              "line": 0,
               "character": 0
             },
             "end": {
-              "line": 3,
+              "line": 0,
               "character": 0
             }
           },
@@ -1107,21 +791,21 @@
       "kind": "Module",
       "detail": "Package",
       "sortText": "140",
-      "insertText": "'float",
+      "insertText": "\u0027float",
       "insertTextFormat": "Snippet",
       "additionalTextEdits": [
         {
           "range": {
             "start": {
-              "line": 3,
+              "line": 0,
               "character": 0
             },
             "end": {
-              "line": 3,
+              "line": 0,
               "character": 0
             }
           },
-          "newText": "import ballerina/lang.'float;\n"
+          "newText": "import ballerina/lang.\u0027float;\n"
         }
       ]
     },
@@ -1136,11 +820,11 @@
         {
           "range": {
             "start": {
-              "line": 3,
+              "line": 0,
               "character": 0
             },
             "end": {
-              "line": 3,
+              "line": 0,
               "character": 0
             }
           },
@@ -1159,11 +843,11 @@
         {
           "range": {
             "start": {
-              "line": 3,
+              "line": 0,
               "character": 0
             },
             "end": {
-              "line": 3,
+              "line": 0,
               "character": 0
             }
           },
@@ -1176,21 +860,44 @@
       "kind": "Module",
       "detail": "Package",
       "sortText": "140",
-      "insertText": "'decimal",
+      "insertText": "\u0027decimal",
       "insertTextFormat": "Snippet",
       "additionalTextEdits": [
         {
           "range": {
             "start": {
-              "line": 3,
+              "line": 0,
               "character": 0
             },
             "end": {
-              "line": 3,
+              "line": 0,
               "character": 0
             }
           },
-          "newText": "import ballerina/lang.'decimal;\n"
+          "newText": "import ballerina/lang.\u0027decimal;\n"
+        }
+      ]
+    },
+    {
+      "label": "ballerina/http",
+      "kind": "Module",
+      "detail": "Package",
+      "sortText": "140",
+      "insertText": "http",
+      "insertTextFormat": "Snippet",
+      "additionalTextEdits": [
+        {
+          "range": {
+            "start": {
+              "line": 0,
+              "character": 0
+            },
+            "end": {
+              "line": 0,
+              "character": 0
+            }
+          },
+          "newText": "import ballerina/http;\n"
         }
       ]
     },
@@ -1205,11 +912,11 @@
         {
           "range": {
             "start": {
-              "line": 3,
+              "line": 0,
               "character": 0
             },
             "end": {
-              "line": 3,
+              "line": 0,
               "character": 0
             }
           },
@@ -1222,21 +929,44 @@
       "kind": "Module",
       "detail": "Package",
       "sortText": "140",
-      "insertText": "'table",
+      "insertText": "\u0027table",
       "insertTextFormat": "Snippet",
       "additionalTextEdits": [
         {
           "range": {
             "start": {
-              "line": 3,
+              "line": 0,
               "character": 0
             },
             "end": {
-              "line": 3,
+              "line": 0,
               "character": 0
             }
           },
-          "newText": "import ballerina/lang.'table;\n"
+          "newText": "import ballerina/lang.\u0027table;\n"
+        }
+      ]
+    },
+    {
+      "label": "ballerina/log",
+      "kind": "Module",
+      "detail": "Package",
+      "sortText": "140",
+      "insertText": "log",
+      "insertTextFormat": "Snippet",
+      "additionalTextEdits": [
+        {
+          "range": {
+            "start": {
+              "line": 0,
+              "character": 0
+            },
+            "end": {
+              "line": 0,
+              "character": 0
+            }
+          },
+          "newText": "import ballerina/log;\n"
         }
       ]
     },
@@ -1251,11 +981,11 @@
         {
           "range": {
             "start": {
-              "line": 3,
+              "line": 0,
               "character": 0
             },
             "end": {
-              "line": 3,
+              "line": 0,
               "character": 0
             }
           },
@@ -1268,21 +998,21 @@
       "kind": "Module",
       "detail": "Package",
       "sortText": "140",
-      "insertText": "'stream",
+      "insertText": "\u0027stream",
       "insertTextFormat": "Snippet",
       "additionalTextEdits": [
         {
           "range": {
             "start": {
-              "line": 3,
+              "line": 0,
               "character": 0
             },
             "end": {
-              "line": 3,
+              "line": 0,
               "character": 0
             }
           },
-          "newText": "import ballerina/lang.'stream;\n"
+          "newText": "import ballerina/lang.\u0027stream;\n"
         }
       ]
     },
@@ -1291,21 +1021,21 @@
       "kind": "Module",
       "detail": "Package",
       "sortText": "140",
-      "insertText": "'error",
+      "insertText": "\u0027error",
       "insertTextFormat": "Snippet",
       "additionalTextEdits": [
         {
           "range": {
             "start": {
-              "line": 3,
+              "line": 0,
               "character": 0
             },
             "end": {
-              "line": 3,
+              "line": 0,
               "character": 0
             }
           },
-          "newText": "import ballerina/lang.'error;\n"
+          "newText": "import ballerina/lang.\u0027error;\n"
         }
       ]
     },
@@ -1314,21 +1044,21 @@
       "kind": "Module",
       "detail": "Package",
       "sortText": "140",
-      "insertText": "'typedesc",
+      "insertText": "\u0027typedesc",
       "insertTextFormat": "Snippet",
       "additionalTextEdits": [
         {
           "range": {
             "start": {
-              "line": 3,
+              "line": 0,
               "character": 0
             },
             "end": {
-              "line": 3,
+              "line": 0,
               "character": 0
             }
           },
-          "newText": "import ballerina/lang.'typedesc;\n"
+          "newText": "import ballerina/lang.\u0027typedesc;\n"
         }
       ]
     },
@@ -1337,21 +1067,21 @@
       "kind": "Module",
       "detail": "Package",
       "sortText": "140",
-      "insertText": "'map",
+      "insertText": "\u0027map",
       "insertTextFormat": "Snippet",
       "additionalTextEdits": [
         {
           "range": {
             "start": {
-              "line": 3,
+              "line": 0,
               "character": 0
             },
             "end": {
-              "line": 3,
+              "line": 0,
               "character": 0
             }
           },
-          "newText": "import ballerina/lang.'map;\n"
+          "newText": "import ballerina/lang.\u0027map;\n"
         }
       ]
     },
@@ -1360,21 +1090,21 @@
       "kind": "Module",
       "detail": "Package",
       "sortText": "140",
-      "insertText": "'int",
+      "insertText": "\u0027int",
       "insertTextFormat": "Snippet",
       "additionalTextEdits": [
         {
           "range": {
             "start": {
-              "line": 3,
+              "line": 0,
               "character": 0
             },
             "end": {
-              "line": 3,
+              "line": 0,
               "character": 0
             }
           },
-          "newText": "import ballerina/lang.'int;\n"
+          "newText": "import ballerina/lang.\u0027int;\n"
         }
       ]
     },
@@ -1389,11 +1119,11 @@
         {
           "range": {
             "start": {
-              "line": 3,
+              "line": 0,
               "character": 0
             },
             "end": {
-              "line": 3,
+              "line": 0,
               "character": 0
             }
           },
