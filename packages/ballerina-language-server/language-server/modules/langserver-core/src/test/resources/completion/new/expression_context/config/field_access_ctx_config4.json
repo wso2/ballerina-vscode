@@ -1,9 +1,9 @@
 {
   "position": {
-    "line": 7,
-    "character": 18
+    "line": 2,
+    "character": 11
   },
-  "source": "function/source/typeGuardSuggestions1.bal",
+  "source": "expression_context/source/field_access_ctx_source4.bal",
   "items": [
     {
       "label": "clone()(anydata)",
@@ -108,122 +108,204 @@
       "insertTextFormat": "Snippet"
     },
     {
-      "label": "fromJsonWithType(typedesc<anydata> t)((t|error))",
+      "label": "length()(int)",
       "kind": "Function",
       "detail": "Function",
       "documentation": {
         "right": {
           "kind": "markdown",
-          "value": "**Package:** _ballerina/lang.value:1.0.0_  \n  \nConverts a value of type json to a user-specified type.\nThis works the same as `cloneWithType`,\nexcept that it also does the inverse of the conversions done by `toJson`.\n  \n**Params**  \n- `typedesc<anydata>` t: type to convert to  \n  \n**Returns** `(t|error)`   \n- value belonging to `t`, or error if this cannot be done  \n  \n"
+          "value": "**Package:** _ballerina/lang.xml:0.8.0_  \n  \nReturns number of xml items in `x`.\n  \n  \n  \n**Returns** `int`   \n- number of XML items in `x`  \n  \n"
         }
       },
       "sortText": "120",
-      "insertText": "fromJsonWithType(${1})",
-      "insertTextFormat": "Snippet",
-      "command": {
-        "title": "editor.action.triggerParameterHints",
-        "command": "editor.action.triggerParameterHints"
-      }
-    },
-    {
-      "label": "mergeJson(json j2)((json|error))",
-      "kind": "Function",
-      "detail": "Function",
-      "documentation": {
-        "right": {
-          "kind": "markdown",
-          "value": "**Package:** _ballerina/lang.value:1.0.0_  \n  \nMerges two json values.\n  \n**Params**  \n- `json` j2: json value  \n  \n**Returns** `(json|error)`   \n- the merge of `j1` with `j2` or an error if the merge fails  \n  \nThe merge of `j1` with `j2` is defined as follows:  \n- if `j1` is `()`, then the result is `j2`  \n- if `j2` is `()`, then the result is `j1`  \n- if `j1` is a mapping and `j2` is a mapping, then for each entry [k, j] in j2,  \n  set `j1[k]` to the merge of `j1[k]` with `j`  \n    - if `j1[k]` is undefined, then set `j1[k]` to `j`  \n    - if any merge fails, then the merge of `j1` with `j2` fails  \n    - otherwise, the result is `j1`.  \n- otherwise, the merge fails  \nIf the merge fails, then `j1` is unchanged.  \n  \n"
-        }
-      },
-      "sortText": "120",
-      "insertText": "mergeJson(${1})",
-      "insertTextFormat": "Snippet",
-      "command": {
-        "title": "editor.action.triggerParameterHints",
-        "command": "editor.action.triggerParameterHints"
-      }
-    },
-    {
-      "label": "abs()(int)",
-      "kind": "Function",
-      "detail": "Function",
-      "documentation": {
-        "right": {
-          "kind": "markdown",
-          "value": "**Package:** _ballerina/lang.int:1.1.0_  \n  \nReturns absolute value of an int.\n  \n  \n  \n**Returns** `int`   \n- absolute value of `n`  \n  \n"
-        }
-      },
-      "sortText": "120",
-      "insertText": "abs()",
+      "insertText": "length()",
       "insertTextFormat": "Snippet"
     },
     {
-      "label": "sum(int... ns)(int)",
+      "label": "iterator()()",
       "kind": "Function",
       "detail": "Function",
       "documentation": {
         "right": {
           "kind": "markdown",
-          "value": "**Package:** _ballerina/lang.int:1.1.0_  \n  \nReturns sum of zero or more int values.\n  \n  \n  \n**Returns** `int`   \n- sum of all the `ns`; 0 is `ns` is empty  \n  \n"
+          "value": "**Package:** _ballerina/lang.xml:0.8.0_  \n  \nReturns an iterator over the xml items of `x`\n  \n  \n  \n**Returns** ``   \n- iterator object  \nEach item is represented by an xml singleton.  \n  \n"
         }
       },
       "sortText": "120",
-      "insertText": "sum(${1})",
-      "insertTextFormat": "Snippet",
-      "command": {
-        "title": "editor.action.triggerParameterHints",
-        "command": "editor.action.triggerParameterHints"
-      }
-    },
-    {
-      "label": "max(int... ns)(int)",
-      "kind": "Function",
-      "detail": "Function",
-      "documentation": {
-        "right": {
-          "kind": "markdown",
-          "value": "**Package:** _ballerina/lang.int:1.1.0_  \n  \nMaximum of one or more int values.\n  \n**Params**  \n- `int[]` ns: other int values  \n  \n**Returns** `int`   \n- maximum value of value of `x` and all the `xs`  \n  \n"
-        }
-      },
-      "sortText": "120",
-      "insertText": "max(${1})",
-      "insertTextFormat": "Snippet",
-      "command": {
-        "title": "editor.action.triggerParameterHints",
-        "command": "editor.action.triggerParameterHints"
-      }
-    },
-    {
-      "label": "min(int... ns)(int)",
-      "kind": "Function",
-      "detail": "Function",
-      "documentation": {
-        "right": {
-          "kind": "markdown",
-          "value": "**Package:** _ballerina/lang.int:1.1.0_  \n  \nMinimum of one or more int values\n  \n**Params**  \n- `int[]` ns: other int values  \n  \n**Returns** `int`   \n- minimum value of `n` and all the `ns`  \n  \n"
-        }
-      },
-      "sortText": "120",
-      "insertText": "min(${1})",
-      "insertTextFormat": "Snippet",
-      "command": {
-        "title": "editor.action.triggerParameterHints",
-        "command": "editor.action.triggerParameterHints"
-      }
-    },
-    {
-      "label": "toHexString()(string)",
-      "kind": "Function",
-      "detail": "Function",
-      "documentation": {
-        "right": {
-          "kind": "markdown",
-          "value": "**Package:** _ballerina/lang.int:1.1.0_  \n  \nReturns representation of `n` as hexdecimal string.\nThere is no `0x` prefix. Lowercase letters a-f are used.\nNegative numbers will have a `-` prefix. No sign for\nnon-negative numbers.\n  \n  \n  \n**Returns** `string`   \n- hexadecimal string representation of int value  \n  \n"
-        }
-      },
-      "sortText": "120",
-      "insertText": "toHexString()",
+      "insertText": "iterator()",
       "insertTextFormat": "Snippet"
+    },
+    {
+      "label": "get(int i)(xml)",
+      "kind": "Function",
+      "detail": "Function",
+      "documentation": {
+        "right": {
+          "kind": "markdown",
+          "value": "**Package:** _ballerina/lang.xml:0.8.0_  \n  \nReturns the item of `x` with index `i`.\nThis differs from `x[i]` in that it panics if\n`x` does not have an item with index `i`.\n  \n**Params**  \n- `int` i: the index  \n  \n**Returns** `xml`   \n- the item with index `i` in `x`  \n  \n"
+        }
+      },
+      "sortText": "120",
+      "insertText": "get(${1})",
+      "insertTextFormat": "Snippet",
+      "command": {
+        "title": "editor.action.triggerParameterHints",
+        "command": "editor.action.triggerParameterHints"
+      }
+    },
+    {
+      "label": "concat((xml|string)... xs)(xml)",
+      "kind": "Function",
+      "detail": "Function",
+      "documentation": {
+        "right": {
+          "kind": "markdown",
+          "value": "**Package:** _ballerina/lang.xml:0.8.0_  \n  \nConcatenates xml and string values.\n  \n  \n  \n**Returns** `xml`   \n- an xml sequence that is the concatenation of all the `xs`;  \n   an empty xml sequence if the `xs` are empty  \n  \n"
+        }
+      },
+      "sortText": "120",
+      "insertText": "concat(${1})",
+      "insertTextFormat": "Snippet",
+      "command": {
+        "title": "editor.action.triggerParameterHints",
+        "command": "editor.action.triggerParameterHints"
+      }
+    },
+    {
+      "label": "slice(int startIndex, int endIndex)(xml)",
+      "kind": "Function",
+      "detail": "Function",
+      "documentation": {
+        "right": {
+          "kind": "markdown",
+          "value": "**Package:** _ballerina/lang.xml:0.8.0_  \n  \nReturns a subsequence of an xml value.\n  \n**Params**  \n- `int` startIndex: start index, inclusive  \n- `int` endIndex: end index, exclusive(Defaultable)  \n  \n**Returns** `xml`   \n- a subsequence of `x` consisting of items with index >= startIndex and < endIndex  \n  \n"
+        }
+      },
+      "sortText": "120",
+      "insertText": "slice(${1})",
+      "insertTextFormat": "Snippet",
+      "command": {
+        "title": "editor.action.triggerParameterHints",
+        "command": "editor.action.triggerParameterHints"
+      }
+    },
+    {
+      "label": "strip()(xml)",
+      "kind": "Function",
+      "detail": "Function",
+      "documentation": {
+        "right": {
+          "kind": "markdown",
+          "value": "**Package:** _ballerina/lang.xml:0.8.0_  \n  \nStrips the insignificant parts of the an xml value.\nComment items, processing instruction items are considered insignificant.\nAfter removal of comments and processing instructions, the text is grouped into\nthe biggest possible chunks (i.e. only elements cause division into multiple chunks)\nand a chunk is considered insignificant if the entire chunk is whitespace.\n  \n  \n  \n**Returns** `xml`   \n- `x` with insignificant parts removed  \n  \n"
+        }
+      },
+      "sortText": "120",
+      "insertText": "strip()",
+      "insertTextFormat": "Snippet"
+    },
+    {
+      "label": "elements((string|()) nm)(xml)",
+      "kind": "Function",
+      "detail": "Function",
+      "documentation": {
+        "right": {
+          "kind": "markdown",
+          "value": "**Package:** _ballerina/lang.xml:0.8.0_  \n  \nSelects elements from an xml value.\nIf `nm` is `()`, selects all elements;\notherwise, selects only elements whose expanded name is `nm`.\n  \n**Params**  \n- `(string|())` nm: the expanded name of the elements to be selected, or `()` for all elements(Defaultable)  \n  \n**Returns** `xml`   \n- an xml sequence consisting of all the element items in `x` whose expanded name is `nm`,  \n or, if `nm` is `()`, all element items in `x`  \n  \n"
+        }
+      },
+      "sortText": "120",
+      "insertText": "elements(${1})",
+      "insertTextFormat": "Snippet",
+      "command": {
+        "title": "editor.action.triggerParameterHints",
+        "command": "editor.action.triggerParameterHints"
+      }
+    },
+    {
+      "label": "children()(xml)",
+      "kind": "Function",
+      "detail": "Function",
+      "documentation": {
+        "right": {
+          "kind": "markdown",
+          "value": "**Package:** _ballerina/lang.xml:0.8.0_  \n  \nReturns the children of elements in an xml value.\nWhen `x` is of type Element, it is equivalent to `getChildren`.  \n  \n  \n**Returns** `xml`   \n- xml sequence containing the children of each element x concatenated in order  \nThis is equivalent to `elements(x).map(getChildren)`.  \n  \n"
+        }
+      },
+      "sortText": "120",
+      "insertText": "children()",
+      "insertTextFormat": "Snippet"
+    },
+    {
+      "label": "elementChildren((string|()) nm)(xml)",
+      "kind": "Function",
+      "detail": "Function",
+      "documentation": {
+        "right": {
+          "kind": "markdown",
+          "value": "**Package:** _ballerina/lang.xml:0.8.0_  \n  \nSelects element children of an xml value  \n**Params**  \n- `(string|())` nm: the expanded name of the elements to be selected, or `()` for all elements(Defaultable)  \n  \n**Returns** `xml`   \n- an xml sequence consisting of child elements of elements in `x`; if `nm`  \n is `()`, returns a sequence of all such elements;  \n otherwise, include only elements whose expanded name is `nm`  \nThis is equivalent to `children(x).elements(nm)`.  \n  \n"
+        }
+      },
+      "sortText": "120",
+      "insertText": "elementChildren(${1})",
+      "insertTextFormat": "Snippet",
+      "command": {
+        "title": "editor.action.triggerParameterHints",
+        "command": "editor.action.triggerParameterHints"
+      }
+    },
+    {
+      "label": "map(function ((xml:Element|xml:Comment|xml:ProcessingInstruction|xml:Text)) returns (xml) func)(xml)",
+      "kind": "Function",
+      "detail": "Function",
+      "documentation": {
+        "right": {
+          "kind": "markdown",
+          "value": "**Package:** _ballerina/lang.xml:0.8.0_  \n  \nApplies a function to each item in an xml sequence, and returns an xml sequence of the results.\nEach item is represented as a singleton value.\n  \n**Params**  \n- `function ((xml:Element|xml:Comment|xml:ProcessingInstruction|xml:Text)) returns (xml)` func: a function to apply to each child or `item`  \n  \n**Returns** `xml`   \n- new xml value containing result of applying `func` to each child or `item`  \n  \n"
+        }
+      },
+      "sortText": "120",
+      "insertText": "map(${1})",
+      "insertTextFormat": "Snippet",
+      "command": {
+        "title": "editor.action.triggerParameterHints",
+        "command": "editor.action.triggerParameterHints"
+      }
+    },
+    {
+      "label": "forEach(function ((xml:Element|xml:Comment|xml:ProcessingInstruction|xml:Text)) returns () func)",
+      "kind": "Function",
+      "detail": "Function",
+      "documentation": {
+        "right": {
+          "kind": "markdown",
+          "value": "**Package:** _ballerina/lang.xml:0.8.0_  \n  \nApplies a function to each item in an xml sequence.\nEach item is represented as a singleton value.\n  \n**Params**  \n- `function ((xml:Element|xml:Comment|xml:ProcessingInstruction|xml:Text)) returns ()` func: a function to apply to each item in `x`"
+        }
+      },
+      "sortText": "120",
+      "insertText": "forEach(${1});",
+      "insertTextFormat": "Snippet",
+      "command": {
+        "title": "editor.action.triggerParameterHints",
+        "command": "editor.action.triggerParameterHints"
+      }
+    },
+    {
+      "label": "filter(function ((xml:Element|xml:Comment|xml:ProcessingInstruction|xml:Text)) returns (boolean) func)(xml)",
+      "kind": "Function",
+      "detail": "Function",
+      "documentation": {
+        "right": {
+          "kind": "markdown",
+          "value": "**Package:** _ballerina/lang.xml:0.8.0_  \n  \nSelects the items from an xml sequence for which a function returns true.\nEach item is represented as a singleton value.\n  \n**Params**  \n- `function ((xml:Element|xml:Comment|xml:ProcessingInstruction|xml:Text)) returns (boolean)` func: a predicate to apply to each item to test whether it should be selected  \n  \n**Returns** `xml`   \n- new xml sequence containing items in `x` for which `func` evaluates to true  \n  \n"
+        }
+      },
+      "sortText": "120",
+      "insertText": "filter(${1})",
+      "insertTextFormat": "Snippet",
+      "command": {
+        "title": "editor.action.triggerParameterHints",
+        "command": "editor.action.triggerParameterHints"
+      }
     }
   ]
 }
