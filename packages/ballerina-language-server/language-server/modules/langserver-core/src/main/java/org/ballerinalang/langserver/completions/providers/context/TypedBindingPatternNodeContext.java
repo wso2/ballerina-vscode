@@ -15,38 +15,35 @@
  */
 package org.ballerinalang.langserver.completions.providers.context;
 
-import io.ballerinalang.compiler.syntax.tree.XMLNamespaceDeclarationNode;
+import io.ballerinalang.compiler.syntax.tree.TypedBindingPatternNode;
 import org.ballerinalang.annotation.JavaSPIService;
 import org.ballerinalang.langserver.commons.LSContext;
 import org.ballerinalang.langserver.commons.completion.LSCompletionException;
 import org.ballerinalang.langserver.commons.completion.LSCompletionItem;
-import org.ballerinalang.langserver.completions.SnippetCompletionItem;
 import org.ballerinalang.langserver.completions.providers.AbstractCompletionProvider;
-import org.ballerinalang.langserver.completions.util.Snippet;
+import org.ballerinalang.langserver.completions.util.CompletionUtil;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Completion provider for {@link XMLNamespaceDeclarationNode} context.
+ * Completion provider for {@link TypedBindingPatternNode} context.
  *
  * @since 2.0.0
  */
 @JavaSPIService("org.ballerinalang.langserver.commons.completion.spi.CompletionProvider")
-public class XMLNSDeclarationNodeContext extends AbstractCompletionProvider<XMLNamespaceDeclarationNode> {
-    
-    public XMLNSDeclarationNodeContext() {
-        super(XMLNamespaceDeclarationNode.class);
+public class TypedBindingPatternNodeContext extends AbstractCompletionProvider<TypedBindingPatternNode> {
+
+    public TypedBindingPatternNodeContext() {
+        super(TypedBindingPatternNode.class);
     }
 
     @Override
-    public List<LSCompletionItem> getCompletions(LSContext context, XMLNamespaceDeclarationNode node)
+    public List<LSCompletionItem> getCompletions(LSContext context, TypedBindingPatternNode node)
             throws LSCompletionException {
-        List<LSCompletionItem> completionItems = new ArrayList<>();
-        if (!node.asKeyword().isPresent() || node.asKeyword().orElse(null).isMissing()) {
-            completionItems.add(new SnippetCompletionItem(context, Snippet.KW_AS.get()));
-        }
-
-        return completionItems;
+        /*
+        When comes to the typed binding pattern we route to the type descriptors to check whether there are resolvers
+        associated with the type descriptor. Otherwise the router will go up the parent ladder.
+         */
+        return CompletionUtil.route(context, node.typeDescriptor());
     }
 }

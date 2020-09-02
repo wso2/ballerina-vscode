@@ -15,37 +15,44 @@
  */
 package org.ballerinalang.langserver.completions.providers.context;
 
-import io.ballerinalang.compiler.syntax.tree.XMLNamespaceDeclarationNode;
+import io.ballerinalang.compiler.syntax.tree.NonTerminalNode;
+import io.ballerinalang.compiler.syntax.tree.QualifiedNameReferenceNode;
+import io.ballerinalang.compiler.syntax.tree.TrapExpressionNode;
 import org.ballerinalang.annotation.JavaSPIService;
+import org.ballerinalang.langserver.common.utils.QNameReferenceUtil;
 import org.ballerinalang.langserver.commons.LSContext;
+import org.ballerinalang.langserver.commons.completion.CompletionKeys;
 import org.ballerinalang.langserver.commons.completion.LSCompletionException;
 import org.ballerinalang.langserver.commons.completion.LSCompletionItem;
-import org.ballerinalang.langserver.completions.SnippetCompletionItem;
 import org.ballerinalang.langserver.completions.providers.AbstractCompletionProvider;
-import org.ballerinalang.langserver.completions.util.Snippet;
 
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Completion provider for {@link XMLNamespaceDeclarationNode} context.
+ * Completion provider for {@link TrapExpressionNode} context.
  *
  * @since 2.0.0
  */
 @JavaSPIService("org.ballerinalang.langserver.commons.completion.spi.CompletionProvider")
-public class XMLNSDeclarationNodeContext extends AbstractCompletionProvider<XMLNamespaceDeclarationNode> {
-    
-    public XMLNSDeclarationNodeContext() {
-        super(XMLNamespaceDeclarationNode.class);
+public class TrapExpressionNodeContext extends AbstractCompletionProvider<TrapExpressionNode> {
+    public TrapExpressionNodeContext() {
+        super(TrapExpressionNode.class);
     }
 
     @Override
-    public List<LSCompletionItem> getCompletions(LSContext context, XMLNamespaceDeclarationNode node)
+    public List<LSCompletionItem> getCompletions(LSContext ctx, TrapExpressionNode node)
             throws LSCompletionException {
-        List<LSCompletionItem> completionItems = new ArrayList<>();
-        if (!node.asKeyword().isPresent() || node.asKeyword().orElse(null).isMissing()) {
-            completionItems.add(new SnippetCompletionItem(context, Snippet.KW_AS.get()));
+        NonTerminalNode nodeAtCursor = ctx.get(CompletionKeys.NODE_AT_CURSOR_KEY);
+        if (this.onQualifiedNameIdentifier(ctx, nodeAtCursor)) {
+            QualifiedNameReferenceNode nameRef = (QualifiedNameReferenceNode) nodeAtCursor;
+            return this.getCompletionItemList(QNameReferenceUtil.getExpressionContextEntries(ctx, nameRef), ctx);
         }
+        /*
+        We add the action keywords in order to support the check action context completions
+         */
+        List<LSCompletionItem> completionItems = new ArrayList<>(this.actionKWCompletions(ctx));
+        completionItems.addAll(this.expressionCompletions(ctx));
 
         return completionItems;
     }
