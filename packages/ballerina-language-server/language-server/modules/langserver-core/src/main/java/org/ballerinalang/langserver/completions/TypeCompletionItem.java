@@ -17,25 +17,28 @@
  */
 package org.ballerinalang.langserver.completions;
 
-import io.ballerina.compiler.api.types.FieldDescriptor;
+import io.ballerina.compiler.api.types.BallerinaTypeDescriptor;
 import org.ballerinalang.langserver.commons.LSContext;
 import org.ballerinalang.langserver.commons.completion.AbstractLSCompletionItem;
 import org.eclipse.lsp4j.CompletionItem;
 
-/**
- * Represents a Field Descriptor Completion Item.
- *
- * @since 1.2.0
- */
-public class FieldCompletionItem extends AbstractLSCompletionItem {
-    private final FieldDescriptor fieldDescriptor;
+import javax.annotation.Nullable;
 
-    public FieldCompletionItem(LSContext lsContext, FieldDescriptor fieldDescriptor, CompletionItem completionItem) {
+/**
+ * Represents a Type Descriptor Based Completion Item.
+ *
+ * @since 2.0.0
+ */
+public class TypeCompletionItem extends AbstractLSCompletionItem {
+    private final BallerinaTypeDescriptor typeDescriptor;
+
+    public TypeCompletionItem(LSContext lsContext, @Nullable BallerinaTypeDescriptor typeDescriptor,
+                              CompletionItem completionItem) {
         super(lsContext, completionItem);
-        this.fieldDescriptor = fieldDescriptor;
+        this.typeDescriptor = typeDescriptor;
     }
 
-    public FieldDescriptor getFieldDescriptor() {
-        return fieldDescriptor;
+    public BallerinaTypeDescriptor getTypeDescriptor() {
+        return typeDescriptor;
     }
 }
