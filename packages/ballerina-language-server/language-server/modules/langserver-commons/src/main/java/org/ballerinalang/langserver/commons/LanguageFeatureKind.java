@@ -15,32 +15,15 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.ballerinalang.langserver.completion.latest;
-
-import org.testng.annotations.DataProvider;
-
-import java.util.Collections;
-import java.util.List;
+package org.ballerinalang.langserver.commons;
 
 /**
- * Expression Context tests.
- *
+ * Represents the language server features.
+ * 
  * @since 2.0.0
  */
-public class AnnotationTest extends CompletionTestNew {
-    @DataProvider(name = "completion-data-provider")
-    @Override
-    public Object[][] dataProvider() {
-        return this.getConfigsList();
-    }
-
-    @Override
-    public List<String> skipList() {
-        return Collections.singletonList("anonFuncExprAnnotation5.json");
-    }
-
-    @Override
-    public String getTestResourceDir() {
-        return "annotation_ctx";
-    }
+public enum LanguageFeatureKind {
+    COMPLETION,
+    DIAGNOSTIC,
+    FORMAT
 }

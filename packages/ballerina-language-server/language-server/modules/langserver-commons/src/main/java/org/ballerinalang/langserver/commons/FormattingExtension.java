@@ -15,32 +15,26 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.ballerinalang.langserver.completion.latest;
+package org.ballerinalang.langserver.commons;
 
-import org.testng.annotations.DataProvider;
+import org.eclipse.lsp4j.DocumentFormattingParams;
+import org.eclipse.lsp4j.TextEdit;
 
-import java.util.Collections;
 import java.util.List;
 
 /**
- * Expression Context tests.
+ * Represents a completion extension.
  *
  * @since 2.0.0
  */
-public class AnnotationTest extends CompletionTestNew {
-    @DataProvider(name = "completion-data-provider")
-    @Override
-    public Object[][] dataProvider() {
-        return this.getConfigsList();
-    }
+public interface FormattingExtension
+        extends LanguageExtension<DocumentFormattingParams, List<? extends TextEdit>> {
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
-    public List<String> skipList() {
-        return Collections.singletonList("anonFuncExprAnnotation5.json");
-    }
-
-    @Override
-    public String getTestResourceDir() {
-        return "annotation_ctx";
+    default LanguageFeatureKind kind() {
+        return LanguageFeatureKind.FORMAT;
     }
 }
