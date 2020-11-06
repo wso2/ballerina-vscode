@@ -16,64 +16,55 @@
 package org.ballerinalang.langserver.completions.providers.context;
 
 import io.ballerina.compiler.api.symbols.Symbol;
-import io.ballerina.compiler.api.symbols.SymbolKind;
+import io.ballerina.compiler.syntax.tree.LetClauseNode;
 import io.ballerina.compiler.syntax.tree.NonTerminalNode;
 import io.ballerina.compiler.syntax.tree.QualifiedNameReferenceNode;
-import io.ballerina.compiler.syntax.tree.RecordTypeDescriptorNode;
+import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import org.ballerinalang.annotation.JavaSPIService;
 import org.ballerinalang.langserver.common.utils.QNameReferenceUtil;
 import org.ballerinalang.langserver.commons.LSContext;
 import org.ballerinalang.langserver.commons.completion.CompletionKeys;
 import org.ballerinalang.langserver.commons.completion.LSCompletionItem;
+import org.ballerinalang.langserver.completions.SnippetCompletionItem;
 import org.ballerinalang.langserver.completions.providers.AbstractCompletionProvider;
+import org.ballerinalang.langserver.completions.util.Snippet;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Predicate;
 
 /**
- * Completion provider for {@link RecordTypeDescriptorNode} context.
+ * Completion provider for {@link LetClauseNode} context.
  *
  * @since 2.0.0
  */
 @JavaSPIService("org.ballerinalang.langserver.commons.completion.spi.CompletionProvider")
-public class RecordTypeDescriptorNodeContext extends AbstractCompletionProvider<RecordTypeDescriptorNode> {
+public class LetClauseNodeContext extends AbstractCompletionProvider<LetClauseNode> {
 
-    public RecordTypeDescriptorNodeContext() {
-        super(RecordTypeDescriptorNode.class);
+    public LetClauseNodeContext() {
+        super(LetClauseNode.class);
     }
 
     @Override
-    public List<LSCompletionItem> getCompletions(LSContext context, RecordTypeDescriptorNode node) {
-        /*
-        Covers the following cases,
-        (1) public type T5 record {
-                i<cursor>
-            };
-        (2) public type T5 record {
-                <cursor>
-            };
-        (3) public type T5 record {
-                mod:<cursor>
-            };
-        (4) public type T5 record {
-                mod:a<cursor>
-            };
-         */
+    public List<LSCompletionItem> getCompletions(LSContext context, LetClauseNode node) {
         NonTerminalNode nodeAtCursor = context.get(CompletionKeys.NODE_AT_CURSOR_KEY);
 
-        if (this.onQualifiedNameIdentifier(context, nodeAtCursor)) {
-            Predicate<Symbol> predicate =
-                    symbol -> symbol.kind() == SymbolKind.TYPE || symbol.kind() == SymbolKind.CLASS;
-            List<Symbol> types = QNameReferenceUtil.getModuleContent(context,
-                    (QualifiedNameReferenceNode) nodeAtCursor, predicate);
-            return this.getCompletionItemList(types, context);
+        if (nodeAtCursor.kind() == SyntaxKind.QUALIFIED_NAME_REFERENCE) {
+            /*
+            Covers the cases where the cursor is within the expression context
+             */
+            QualifiedNameReferenceNode qNameRef = (QualifiedNameReferenceNode) nodeAtCursor;
+            List<Symbol> typesInModule = QNameReferenceUtil.getTypesInModule(context, qNameRef);
+
+            return this.getCompletionItemList(typesInModule, context);
         }
 
-        List<LSCompletionItem> completionItems = new ArrayList<>();
-        completionItems.addAll(this.getModuleCompletionItems(context));
-        completionItems.addAll(this.getTypeItems(context));
+        List<LSCompletionItem> completionItems = this.getTypeItems(context);
+        completionItems.add(new SnippetCompletionItem(context, Snippet.KW_VAR.get()));
 
         return completionItems;
+    }
+
+    @Override
+    public boolean onPreValidation(LSContext context, LetClauseNode node) {
+        return !node.letKeyword().isMissing();
     }
 }
