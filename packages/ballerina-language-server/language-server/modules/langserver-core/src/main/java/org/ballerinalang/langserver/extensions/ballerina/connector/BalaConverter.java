@@ -28,13 +28,13 @@ import java.nio.file.Path;
 import java.util.stream.Stream;
 
 /**
- * Provide functions need to covert a patten to a balo path.
+ * Provide functions need to covert a patten to a bala path.
  */
-public class BaloConverter implements Converter<Path> {
+public class BalaConverter implements Converter<Path> {
 
     @Override
     public Path combine(Path a, String b) {
-        if (!a.toString().endsWith(".balo")) {
+        if (!a.toString().endsWith(".bala")) {
             return (a.resolve(b));
         } else {
             return a;
