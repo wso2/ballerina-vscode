@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, WSO2 Inc. (http://wso2.com) All Rights Reserved.
+ * Copyright (c) 2020, WSO2 Inc. (http://wso2.com) All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,12 @@
  */
 package org.ballerinalang.langserver.command.executors;
 
+import io.ballerina.compiler.api.SemanticModel;
+import io.ballerina.compiler.api.symbols.Documentable;
+import io.ballerina.compiler.api.symbols.Symbol;
+import io.ballerina.compiler.syntax.tree.ModulePartNode;
 import io.ballerina.compiler.syntax.tree.NonTerminalNode;
+import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.compiler.syntax.tree.SyntaxTree;
 import org.ballerinalang.annotation.JavaSPIService;
 import org.ballerinalang.langserver.command.docs.DocAttachmentInfo;
@@ -34,17 +39,19 @@ import java.util.Collections;
 import java.util.Optional;
 
 import static org.ballerinalang.langserver.command.CommandUtil.applySingleTextEdit;
+import static org.ballerinalang.langserver.command.docs.DocumentationGenerator.getDocsRange;
+import static org.ballerinalang.langserver.command.docs.DocumentationGenerator.getDocumentableSymbol;
 import static org.ballerinalang.langserver.command.docs.DocumentationGenerator.getDocumentationEditForNode;
 
 /**
- * Command executor for adding single documentation.
+ * Command executor for updating single documentation.
  *
- * @since 0.983.0
+ * @since 2.0.0
  */
 @JavaSPIService("org.ballerinalang.langserver.commons.command.spi.LSCommandExecutor")
-public class AddDocumentationExecutor implements LSCommandExecutor {
+public class UpdateDocumentationExecutor implements LSCommandExecutor {
 
-    public static final String COMMAND = "ADD_DOC";
+    public static final String COMMAND = "UPDATE_DOC";
 
     /**
      * {@inheritDoc}
@@ -78,12 +85,22 @@ public class AddDocumentationExecutor implements LSCommandExecutor {
 
         SyntaxTree syntaxTree = ctx.workspace().syntaxTree(filePath.get()).orElseThrow();
         NonTerminalNode node = CommonUtil.findNode(nodeRange, syntaxTree);
+        if (node.kind() == SyntaxKind.MODULE_PART) {
+            node = ((ModulePartNode) node).members().get(0);
+        }
+        SemanticModel semanticModel = ctx.workspace().semanticModel(filePath.get()).orElseThrow();
+        Optional<Symbol> documentableSymbol = getDocumentableSymbol(node, semanticModel,
+                                                                    filePath.get().toFile().getName());
+
         Optional<DocAttachmentInfo> docAttachmentInfo = getDocumentationEditForNode(node);
-        if (docAttachmentInfo.isPresent()) {
+        if (docAttachmentInfo.isPresent() && documentableSymbol.isPresent()) {
             DocAttachmentInfo docs = docAttachmentInfo.get();
-            Range range = new Range(docs.getDocStartPos(), docs.getDocStartPos());
+            Range range = getDocsRange(node).orElseThrow();
             LanguageClient languageClient = ctx.getLanguageClient();
-            return applySingleTextEdit(docs.getDocumentationString(), range, textDocumentIdentifier, languageClient);
+
+            docs = docs.mergeDocAttachment(((Documentable) documentableSymbol.get()).documentation().orElseThrow());
+            return applySingleTextEdit(docs.getDocumentationString().trim(), range, textDocumentIdentifier,
+                                       languageClient);
         }
 
         return Collections.emptyList();
