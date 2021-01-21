@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, WSO2 Inc. (http://wso2.com) All Rights Reserved.
+ * Copyright (c) 2021, WSO2 Inc. (http://wso2.com) All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,19 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.ballerinalang.langserver.extensions.ballerina.project;
+package org.ballerinalang.langserver.completions.toml;
 
 /**
- * Represents a Ballerina Project Packages request.
+ * Represets Toml Node for completion builder.
+ *
+ * @since 2.0.0
  */
-public class PackagesRequest {
-    private String sourceRoot;
+public interface TomlNode {
 
-    public String getSourceRoot() {
-        return sourceRoot;
-    }
-
-    public void setSourceRoot(String sourceRoot) {
-        this.sourceRoot = sourceRoot;
-    }
+    String prettyPrint();
 }
