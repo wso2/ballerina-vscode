@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, WSO2 Inc. (http://wso2.com) All Rights Reserved.
+ * Copyright (c) 2021, WSO2 Inc. (http://wso2.com) All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,20 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.ballerinalang.langserver.extensions.ballerina.project;
 
-import org.eclipse.lsp4j.jsonrpc.services.JsonRequest;
-import org.eclipse.lsp4j.jsonrpc.services.JsonSegment;
-
-import java.util.concurrent.CompletableFuture;
+package org.ballerinalang.debugadapter.evaluation.parser;
 
 /**
- * An extension interface for Language server to add features related to ballerina files.
+ * A wrapper implementation to denote debug parsing failures.
  *
- * @since 1.0.0
+ * @since 2.0.0
  */
-@JsonSegment("ballerinaProject")
-public interface BallerinaProjectService {
-    @JsonRequest
-    CompletableFuture<PackagesResponse> packages(PackagesRequest request);
+public class DebugParserException extends Exception {
+
+    public DebugParserException(String message) {
+        super(message);
+    }
 }
