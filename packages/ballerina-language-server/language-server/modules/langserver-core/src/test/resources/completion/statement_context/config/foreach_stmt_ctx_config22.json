@@ -1,30 +1,30 @@
 {
   "position": {
-    "line": 2,
-    "character": 12
+    "line": 29,
+    "character": 15
   },
-  "source": "statement_context/source/foreach_stmt_ctx_source12.bal",
+  "source": "statement_context/source/projectls/foreach_stmt_ctx_mm_source1.bal",
   "items": [
     {
       "label": "foreach",
       "kind": "Snippet",
       "detail": "foreach var item in expr",
       "documentation": {
-        "left": "foreach statement for iterable variable - myTuple"
+        "left": "foreach statement for iterable variable - listResult"
       },
       "sortText": "Q",
-      "insertText": "foreach string item in myTuple {\n\t${1}\n}",
+      "insertText": "foreach Report item in listResult {\n\t${1}\n}",
       "insertTextFormat": "Snippet",
       "additionalTextEdits": [
         {
           "range": {
             "start": {
-              "line": 2,
+              "line": 29,
               "character": 4
             },
             "end": {
-              "line": 2,
-              "character": 12
+              "line": 29,
+              "character": 15
             }
           },
           "newText": ""
@@ -36,21 +36,21 @@
       "kind": "Snippet",
       "detail": "foreach int i in 0...expr",
       "documentation": {
-        "left": "foreach i statement for iterable variable - myTuple"
+        "left": "foreach i statement for iterable variable - listResult"
       },
       "sortText": "Q",
-      "insertText": "foreach int i in ${1:0}...myTuple.length() {\n\t${2}\n}",
+      "insertText": "foreach int i in ${1:0}...listResult.length() {\n\t${2}\n}",
       "insertTextFormat": "Snippet",
       "additionalTextEdits": [
         {
           "range": {
             "start": {
-              "line": 2,
+              "line": 29,
               "character": 4
             },
             "end": {
-              "line": 2,
-              "character": 12
+              "line": 29,
+              "character": 15
             }
           },
           "newText": ""
