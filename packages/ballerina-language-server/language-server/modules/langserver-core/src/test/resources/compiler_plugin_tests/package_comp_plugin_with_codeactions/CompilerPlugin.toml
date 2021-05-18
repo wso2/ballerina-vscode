@@ -1,5 +1,0 @@
-[plugin]
-class = "io.ballerina.plugins.codeaction.CompilerPluginWithCodeActions"
-
-[[dependency]]
-path = "../../../../../build/compiler-plugin-jars/compiler-plugin-with-codeactions-1.0.0.jar"
