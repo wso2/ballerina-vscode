@@ -1,9 +1,9 @@
 {
   "position": {
     "line": 6,
-    "character": 28
+    "character": 15
   },
-  "source": "statement_context/source/assignment_stmt_ctx_source9.bal",
+  "source": "statement_context/source/lock_stmt_ctx_source2.bal",
   "items": [
     {
       "label": "start",
@@ -35,14 +35,6 @@
       "detail": "Snippet",
       "sortText": "Q",
       "insertText": "from ${1:var} ${2:item} in ${3}",
-      "insertTextFormat": "Snippet"
-    },
-    {
-      "label": "module1",
-      "kind": "Module",
-      "detail": "Module",
-      "sortText": "P",
-      "insertText": "module1",
       "insertTextFormat": "Snippet"
     },
     {
@@ -92,11 +84,11 @@
       ]
     },
     {
-      "label": "ballerina/lang.test",
+      "label": "ballerina/module1",
       "kind": "Module",
       "detail": "Module",
       "sortText": "Q",
-      "insertText": "test",
+      "insertText": "module1",
       "insertTextFormat": "Snippet",
       "additionalTextEdits": [
         {
@@ -110,7 +102,7 @@
               "character": 0
             }
           },
-          "newText": "import ballerina/lang.test;\n"
+          "newText": "import ballerina/module1;\n"
         }
       ]
     },
@@ -157,6 +149,29 @@
             }
           },
           "newText": "import ballerina/jballerina.java;\n"
+        }
+      ]
+    },
+    {
+      "label": "ballerina/lang.test",
+      "kind": "Module",
+      "detail": "Module",
+      "sortText": "Q",
+      "insertText": "test",
+      "insertTextFormat": "Snippet",
+      "additionalTextEdits": [
+        {
+          "range": {
+            "start": {
+              "line": 0,
+              "character": 0
+            },
+            "end": {
+              "line": 0,
+              "character": 0
+            }
+          },
+          "newText": "import ballerina/lang.test;\n"
         }
       ]
     },
@@ -433,35 +448,29 @@
       "insertTextFormat": "Snippet"
     },
     {
-      "label": "ProxyClient",
-      "kind": "Interface",
-      "detail": "Class",
-      "sortText": "M",
-      "insertText": "ProxyClient",
+      "label": "StrandData",
+      "kind": "Struct",
+      "detail": "Record",
+      "documentation": {
+        "left": "Describes Strand execution details for the runtime.\n"
+      },
+      "sortText": "N",
+      "insertText": "StrandData",
       "insertTextFormat": "Snippet"
     },
     {
-      "label": "self",
-      "kind": "Variable",
-      "detail": "ProxyClient",
-      "sortText": "D",
-      "insertText": "self",
-      "insertTextFormat": "Snippet"
-    },
-    {
-      "label": "self.proxyClient",
-      "kind": "Field",
-      "detail": "module1:Client",
-      "sortText": "H",
-      "insertText": "self.proxyClient",
-      "insertTextFormat": "Snippet"
-    },
-    {
-      "label": "proxyPort",
-      "kind": "Variable",
-      "detail": "int",
-      "sortText": "D",
-      "insertText": "proxyPort",
+      "label": "testFunction()",
+      "kind": "Function",
+      "detail": "Function",
+      "documentation": {
+        "right": {
+          "kind": "markdown",
+          "value": "**Package:** _._  \n  \n  \n"
+        }
+      },
+      "sortText": "E",
+      "filterText": "testFunction",
+      "insertText": "testFunction()",
       "insertTextFormat": "Snippet"
     },
     {
@@ -473,22 +482,27 @@
       "insertTextFormat": "Snippet"
     },
     {
-      "label": "proxyHost",
+      "label": "breakValue",
       "kind": "Variable",
-      "detail": "string",
-      "sortText": "D",
-      "insertText": "proxyHost",
+      "detail": "int",
+      "sortText": "A",
+      "insertText": "breakValue",
       "insertTextFormat": "Snippet"
     },
     {
-      "label": "StrandData",
-      "kind": "Struct",
-      "detail": "Record",
-      "documentation": {
-        "left": "Describes Strand execution details for the runtime.\n"
-      },
-      "sortText": "N",
-      "insertText": "StrandData",
+      "label": "counter",
+      "kind": "Variable",
+      "detail": "int",
+      "sortText": "A",
+      "insertText": "counter",
+      "insertTextFormat": "Snippet"
+    },
+    {
+      "label": "numberList",
+      "kind": "Variable",
+      "detail": "int[]",
+      "sortText": "D",
+      "insertText": "numberList",
       "insertTextFormat": "Snippet"
     },
     {
@@ -546,24 +560,6 @@
       "sortText": "Q",
       "insertText": "byte",
       "insertTextFormat": "Snippet"
-    },
-    {
-      "label": "new(string url)",
-      "kind": "Function",
-      "detail": "Function",
-      "documentation": {
-        "right": {
-          "kind": "markdown",
-          "value": "**Package:** _ballerina/module1:0.1.0_  \n  \n  \n**Params**  \n- `string` url"
-        }
-      },
-      "sortText": "E",
-      "insertText": "new(${1})",
-      "insertTextFormat": "Snippet",
-      "command": {
-        "title": "editor.action.triggerParameterHints",
-        "command": "editor.action.triggerParameterHints"
-      }
     }
   ]
 }
