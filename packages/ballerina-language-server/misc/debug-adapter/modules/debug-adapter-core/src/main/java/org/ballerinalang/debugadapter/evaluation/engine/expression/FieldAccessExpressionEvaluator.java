@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.ballerinalang.debugadapter.evaluation.engine;
+package org.ballerinalang.debugadapter.evaluation.engine.expression;
 
 import com.sun.jdi.Value;
 import io.ballerina.compiler.syntax.tree.FieldAccessExpressionNode;
@@ -22,6 +22,7 @@ import org.ballerinalang.debugadapter.SuspendedContext;
 import org.ballerinalang.debugadapter.evaluation.BExpressionValue;
 import org.ballerinalang.debugadapter.evaluation.EvaluationException;
 import org.ballerinalang.debugadapter.evaluation.EvaluationExceptionKind;
+import org.ballerinalang.debugadapter.evaluation.engine.Evaluator;
 import org.ballerinalang.debugadapter.variable.BVariable;
 import org.ballerinalang.debugadapter.variable.BVariableType;
 import org.ballerinalang.debugadapter.variable.DebugVariableException;
@@ -56,8 +57,10 @@ public class FieldAccessExpressionEvaluator extends Evaluator {
         try {
             BExpressionValue result = objectExpressionEvaluator.evaluate();
             BVariable resultVar = VariableFactory.getVariable(context, result.getJdiValue());
-            if (resultVar.getBType() != BVariableType.OBJECT && resultVar.getBType() != BVariableType.RECORD &&
-                    resultVar.getBType() != BVariableType.JSON) {
+            if (resultVar.getBType() != BVariableType.OBJECT
+                    && resultVar.getBType() != BVariableType.SERVICE
+                    && resultVar.getBType() != BVariableType.RECORD
+                    && resultVar.getBType() != BVariableType.JSON) {
                 throw new EvaluationException(String.format(EvaluationExceptionKind.CUSTOM_ERROR.getString(), "Field " +
                         "access is not supported on type '" + resultVar.getBType().getString() + "'."));
             }
