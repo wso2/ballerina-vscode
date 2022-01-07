@@ -1,18 +1,10 @@
 {
   "position": {
-    "line": 25,
-    "character": 65
+    "line": 1,
+    "character": 25
   },
-  "source": "field_access_expression_context/source/field_access_ctx_source50.bal",
+  "source": "field_access_expression_context/source/field_access_ctx_source51.bal",
   "items": [
-    {
-      "label": "field1",
-      "kind": "Field",
-      "detail": "int",
-      "sortText": "AA",
-      "insertText": "field1",
-      "insertTextFormat": "Snippet"
-    },
     {
       "label": "reduce(function () func, map:Type1 initial)",
       "kind": "Function",
@@ -95,7 +87,7 @@
           "value": "**Package:** _ballerina/lang.map:0.0.0_  \n  \nReturns number of members of a map.\n  \n  \n  \n**Return** `int`   \n- number of members in parameter `m`  \n  \n"
         }
       },
-      "sortText": "AD",
+      "sortText": "CD",
       "filterText": "length",
       "insertText": "length()",
       "insertTextFormat": "Snippet"
@@ -316,44 +308,6 @@
       "insertTextFormat": "Snippet"
     },
     {
-      "label": "fromJsonWithType(typedesc<anydata> t)",
-      "kind": "Function",
-      "detail": "t|error",
-      "documentation": {
-        "right": {
-          "kind": "markdown",
-          "value": "**Package:** _ballerina/lang.value:0.0.0_  \n  \nConverts a value of type json to a user-specified type.\n\nThis works the same as function `cloneWithType`,\nexcept that it also does the inverse of the conversions done by `toJson`.\n  \n**Params**  \n- `typedesc<anydata>` t: type to convert to(Defaultable)  \n  \n**Return** `t|error`   \n- value belonging to type parameter `t` or error if this cannot be done  \n  \n"
-        }
-      },
-      "sortText": "CD",
-      "filterText": "fromJsonWithType",
-      "insertText": "fromJsonWithType(${1})",
-      "insertTextFormat": "Snippet",
-      "command": {
-        "title": "editor.action.triggerParameterHints",
-        "command": "editor.action.triggerParameterHints"
-      }
-    },
-    {
-      "label": "mergeJson(json j2)",
-      "kind": "Function",
-      "detail": "json|error",
-      "documentation": {
-        "right": {
-          "kind": "markdown",
-          "value": "**Package:** _ballerina/lang.value:0.0.0_  \n  \nMerges two `json` values.\n\nThe merge of parameter `j1` with parameter `j2` is defined as follows:\n- if parameter `j1` is `()`, then the result is parameter `j2`\n- if parameter `j2` is `()`, then the result is parameter `j1`\n- if parameter `j1` is a mapping and parameter `j2` is a mapping, then for each entry [k, j] in parameter `j2`, set `j1[k]` to the merge of `j1[k]` with `j`\n- if `j1[k]` is undefined, then set `j1[k]` to `j`\n- if any merge fails, then the merge of parameter `j1` with parameter `j2` fails\n- otherwise, the result is parameter `j1`.\n- otherwise, the merge fails\nIf the merge fails, then parameter `j1` is unchanged.\n  \n**Params**  \n- `json` j2: json value  \n  \n**Return** `json|error`   \n- the merge of parameter `j1` with parameter `j2` or an error if the merge fails  \n  \n"
-        }
-      },
-      "sortText": "CD",
-      "filterText": "mergeJson",
-      "insertText": "mergeJson(${1})",
-      "insertTextFormat": "Snippet",
-      "command": {
-        "title": "editor.action.triggerParameterHints",
-        "command": "editor.action.triggerParameterHints"
-      }
-    },
-    {
       "label": "clone()",
       "kind": "Function",
       "detail": "value:CloneableType",
@@ -415,6 +369,66 @@
       "sortText": "CD",
       "filterText": "toJsonString",
       "insertText": "toJsonString()",
+      "insertTextFormat": "Snippet"
+    },
+    {
+      "label": "foreach",
+      "kind": "Snippet",
+      "detail": "foreach var item in expr",
+      "documentation": {
+        "left": "foreach statement for iterable variable - functionWithReturn()"
+      },
+      "sortText": "CR",
+      "insertText": "foreach var item in functionWithReturn() {\n\t${1}\n}",
+      "insertTextFormat": "Snippet",
+      "additionalTextEdits": [
+        {
+          "range": {
+            "start": {
+              "line": 1,
+              "character": 4
+            },
+            "end": {
+              "line": 2,
+              "character": 14
+            }
+          },
+          "newText": ""
+        }
+      ]
+    },
+    {
+      "label": "foreach i",
+      "kind": "Snippet",
+      "detail": "foreach int i in 0...expr",
+      "documentation": {
+        "left": "foreach i statement for iterable variable - functionWithReturn()"
+      },
+      "sortText": "CR",
+      "insertText": "foreach int i in ${1:0}...functionWithReturn().length() {\n\t${2}\n}",
+      "insertTextFormat": "Snippet",
+      "additionalTextEdits": [
+        {
+          "range": {
+            "start": {
+              "line": 1,
+              "character": 4
+            },
+            "end": {
+              "line": 2,
+              "character": 14
+            }
+          },
+          "newText": ""
+        }
+      ]
+    },
+    {
+      "label": "testOptional",
+      "kind": "Field",
+      "detail": "int?",
+      "sortText": "CA",
+      "insertText": "testOptional",
       "insertTextFormat": "Snippet"
     },
     {
