@@ -46,6 +46,7 @@ Follow the steps below to create a sample Ballerina program in VSCode.
 
 5. Click the **Show Diagram** button on the editor’s title bar to view the graphical representation of the program.
 
+---
 ## Functionalities
 
 ### Source Code View
@@ -218,7 +219,10 @@ Run and debug code lenses are shown for the entry points of the Ballerina projec
 
 <img src="https://github.com/wso2/ballerina-plugin-vscode/blob/main/resources/images/low-code-view.gif?raw=true" width="100%" />
 
-## Configuration
+Being based on sequence diagrams, Ballerina allows you to visualize a program written in Ballerina as a sequence diagram. The diagram displays the logic and network interaction of a function or a service resource making it easy to understand the source. You can view these diagrams using the Ballerina VSCode plugin.
+
+---
+## Configurations
 - **Code Lens - All: Enabled** : It enables all code lens features irrespective of the **Code Lens - Docs: Enabled** and **Code Lens - Executor: Enabled** settings and is enabled by default.
 - **Code Lens - Docs: Enabled** : It enables the **Documentation** code lens feature, which provides Ballerina document generation capabilities and is enabled by default. This configuration is overridden by the **Code Lens - All: Enabled** settings.
 - **Code Lens - Executor: Enabled** : It enables the **Executor** code lens feature, which provides quick run and debug capabilities for the Ballerina language. It is enabled by default. This configuration is overridden by the **Code Lens - All: Enabled** settings.
@@ -232,3 +236,25 @@ Run and debug code lenses are shown for the entry points of the Ballerina projec
 - **Ballerina: Low Code Mode** : This sets the low code as the default view of the plugin. Source code is the default view in a fresh installation. 
 - **Ballerina: Plugin Dev Mode** : It enables the plugin development mode and is disabled by default. If it is disabled, the extension picks up the Ballerina runtime installed in the environment. Also, if it is enabled, the extension picks up the Ballerina runtime defined in the **Home** configuration above.
 - **Ballerina: Trace Log** : It enables printing trace messages onto the Ballerina output channel and is disabled by default. These trace logs mainly include the details of the requests sent from the extension to the Ballerina Language Server.
+
+---
+## Troubleshooting
+
+For troubleshooting, see the Ballerina Output. To view the Ballerina output tab, click **View**, click **Output,** and select **Ballerina** from the output list. It provides additional information if the plugin fails to detect a Ballerina distribution.  
+
+You can also enable [debug logs](https://ballerina.io/learn/tooling-guide/visual-studio-code-extension/configurations/#debug-log) from the Ballerina extension settings to view any issues arising from the extension features.
+
+---
+## Ask for Help
+
+Create [Github issues](https://github.com/wso2/ballerina-plugin-vscode/issues) to reach out to us.
+
+---
+## License
+
+By downloading and using the Visual Studio Code Ballerina extension, you agree to the [license terms](https://wso2.com/licenses/ballerina-vscode-plugin-2021-05-25/) and [privacy statement](https://wso2.com/privacy-policy).
+
+The VS Code Ballerina extension uses the following components, which are licensed separately.
+
+*   It runs with the support of the Ballerina Language Server, which is a part of the Ballerina language distribution. The [Ballerina language](https://ballerina.io/) is an open-source software that comes under the [Apache License](https://www.apache.org/licenses/LICENSE-2.0).
+*   It is structured as an extension pack along with the [TOML Language Support](https://marketplace.visualstudio.com/items?itemName=be5invis.toml) extension.
