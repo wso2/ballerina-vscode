@@ -17,8 +17,8 @@ Before getting started, make sure you have installed the [Visual Studio Code edi
 Follow the steps below to install the Ballerina extension.
 
 1. [Download](https://ballerina.io/downloads/) and [install](https://ballerina.io/learn/user-guide/getting-started/setting-up-ballerina/#installing-ballerina) Ballerina.
-2. [Install](https://ballerina.io/learn/tooling-guide/visual-studio-code-extension/quick-start/#installing-the-ballerina-extension) Ballerina VS Code Extension. Launch VS Code Quick Open (`Ctrl + P`), and paste following `ext install WSO2.ballerina`
-3. Open a Ballerina `.bal` file or a package directory to activate the extension.
+2. [Install](https://ballerina.io/learn/tooling-guide/visual-studio-code-extension/quick-start/#installing-the-ballerina-extension) Ballerina VS Code Extension. Launch VS Code Quick Open (`Ctrl + P` or `Cmd + P` in mac), and paste following `ext install WSO2.ballerina`
+3. Open a Ballerina `.bal` file or a project directory to activate the extension.
 
 	**Info:** When the extension is activated, you can see the `Ballerina SDK: <version>` in the status bar at the bottom left corner.
 
@@ -34,7 +34,7 @@ Follow the steps below to create a sample Ballerina program in VSCode.
 
     >**Tip:** You can use the shortcut methods `⌘ + ↑ + P` on Mac and `Ctrl + Shift + P` on Windows and Linux.
 
-2. In the search bar, type `Ballerina Examples` and click **Ballerina: Show Examples**.
+2. In the search bar, type `Show Examples` and click **Ballerina: Show Examples**.
 
 3. Select the **Hello World Main** example.
 
@@ -64,6 +64,7 @@ When hovering over a symbol name, you will be provided with quick information ab
 
 <img src="https://github.com/wso2/ballerina-plugin-vscode/blob/main/resources/images/symbol-information-on-hover.gif?raw=true" width="100%" />
 
+##### Signature Help
 When typing a function/method call expression, the signature help will show information such as the function/method call’s description and parameter information. Signature help will be triggered when typing the open parenthesis and comma.
 
 <img src="https://github.com/wso2/ballerina-plugin-vscode/blob/main/resources/images/signature-help.gif?raw=true" width="100%" />
@@ -120,13 +121,13 @@ For detailed documentation on initializing debug sessions, using the debugging f
 
 ##### Go to Definition 
 
-For a symbol, this feature will navigate you to the definition of the particular symbol. For example, when invoking the go to definition from a function call expression, you will be navigated to the definition of the function. Apart from jumping to the definition, the peek definition will also be supported. The behavior will be the same not only for the constructs within the sources in the current package but also for external modules and standard libraries as well.
+For a symbol, this feature will navigate you to the definition of the particular symbol. For example, when invoking the go to definition from a function call expression, you will be navigated to the definition of the function. Apart from jumping to the definition, the peek definition will also be supported. The behavior will be the same not only for the constructs within the sources in the current project but also for external modules and standard libraries as well.
 
 <img src="https://github.com/wso2/ballerina-plugin-vscode/blob/main/resources/images/go-to-definition.gif?raw=true" width="100%" />
 
 ##### Find all References
 
-Invoking the references on a symbol will prompt you with all the symbol references in the current package.
+Invoking the references on a symbol will prompt you with all the symbol references in the current project.
 
 <img src="https://github.com/wso2/ballerina-plugin-vscode/blob/main/resources/images/find-all-references.gif?raw=true" width="100%" />
 
@@ -162,6 +163,7 @@ Below demonstrate the code actions available for union type variables.
 Below demonstrate the code actions available for imports.
 - `Import a module`: Add the import statement for a module, which has a reference without an import statement. This supports only the language library and the standard library.
 - `Optimize imports`: Optimize the import statements to remove unused imports and arrange the imports in alphabetical order.
+- `Pull module`: Pull locally unavailable Ballerina packages from Ballerina Central repository.
 
 ##### Code Actions for Documentation
 Below demonstrate the code actions available for documentation.
@@ -228,14 +230,14 @@ Being based on sequence diagrams, Ballerina allows you to visualize a program wr
 - **Code Lens - Executor: Enabled** : It enables the **Executor** code lens feature, which provides quick run and debug capabilities for the Ballerina language. It is enabled by default. This configuration is overridden by the **Code Lens - All: Enabled** settings.
 - **Data Mapper: Url** : It specifies the URL of the data mapping service backend.
 - **Debug Log** : It enables printing debug messages on to the Ballerina output channel and is disabled by default. These debug logs mainly include additional logs added for troubleshooting the extension.
+- **Ballerina: Trace Log** : It enables printing trace messages onto the Ballerina output channel and is disabled by default. These trace logs mainly include the details of the requests sent from the extension to the Ballerina Language Server.
 - **Enable File Watcher** : It enables watching file change events of the Ballerina project and is enabled by default.
 - **Ballerina: Enable Performance Forecast** : It enables to provide estimates on performance of the services.
 - **Ballerina: Enable Semantic Highlighting** : Semantic highlighting is enabled by default in the plugin. Users have an option to disable this and rely with syntax highlighting.
 - **Enable Telemetry** : It enables the Ballerina [telemetry](https://code.visualstudio.com/docs/getstarted/telemetry) service and is enabled by default. 
-- **Home** - It specifies the Ballerina home directory path and is only applicable if the **Plugin - Dev: Mod** is enabled.
 - **Ballerina: Low Code Mode** : This sets the low code as the default view of the plugin. Source code is the default view in a fresh installation. 
+- **Home** - It specifies the Ballerina home directory path and is only applicable if the **Plugin - Dev: Mod** is enabled.
 - **Ballerina: Plugin Dev Mode** : It enables the plugin development mode and is disabled by default. If it is disabled, the extension picks up the Ballerina runtime installed in the environment. Also, if it is enabled, the extension picks up the Ballerina runtime defined in the **Home** configuration above.
-- **Ballerina: Trace Log** : It enables printing trace messages onto the Ballerina output channel and is disabled by default. These trace logs mainly include the details of the requests sent from the extension to the Ballerina Language Server.
 
 ---
 ## Troubleshooting
