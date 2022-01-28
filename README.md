@@ -225,10 +225,7 @@ Being based on sequence diagrams, Ballerina allows you to visualize a program wr
 
 ---
 ## Configurations
-- **Code Lens - All: Enabled** : It enables all code lens features irrespective of the **Code Lens - Docs: Enabled** and **Code Lens - Executor: Enabled** settings and is enabled by default.
-- **Code Lens - Docs: Enabled** : It enables the **Documentation** code lens feature, which provides Ballerina document generation capabilities and is enabled by default. This configuration is overridden by the **Code Lens - All: Enabled** settings.
-- **Code Lens - Executor: Enabled** : It enables the **Executor** code lens feature, which provides quick run and debug capabilities for the Ballerina language. It is enabled by default. This configuration is overridden by the **Code Lens - All: Enabled** settings.
-- **Data Mapper: Url** : It specifies the URL of the data mapping service backend.
+- **Code Lens - All: Enabled** : It enables all code lens features and is enabled by default.
 - **Debug Log** : It enables printing debug messages on to the Ballerina output channel and is disabled by default. These debug logs mainly include additional logs added for troubleshooting the extension.
 - **Ballerina: Trace Log** : It enables printing trace messages onto the Ballerina output channel and is disabled by default. These trace logs mainly include the details of the requests sent from the extension to the Ballerina Language Server.
 - **Enable File Watcher** : It enables watching file change events of the Ballerina project and is enabled by default.
