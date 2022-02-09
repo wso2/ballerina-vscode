@@ -233,8 +233,9 @@ Being based on sequence diagrams, Ballerina allows you to visualize a program wr
 - **Ballerina: Enable Semantic Highlighting** : Semantic highlighting is enabled by default in the plugin. Users have an option to disable this and rely with syntax highlighting.
 - **Enable Telemetry** : It enables the Ballerina [telemetry](https://code.visualstudio.com/docs/getstarted/telemetry) service and is enabled by default. 
 - **Ballerina: Low Code Mode** : This sets the low code as the default view of the plugin. Source code is the default view in a fresh installation. 
-- **Home** - It specifies the Ballerina home directory path and is only applicable if the **Plugin - Dev: Mod** is enabled.
+- **Home** - It specifies the Ballerina home directory path and is only applicable if the **Plugin Dev Mode** is enabled.
 - **Ballerina: Plugin Dev Mode** : It enables the plugin development mode and is disabled by default. If it is disabled, the extension picks up the Ballerina runtime installed in the environment. Also, if it is enabled, the extension picks up the Ballerina runtime defined in the **Home** configuration above.
+- **Enable Language Server Debug** : It enables the Language Server debug mode and is disabled by default. It is only applicable if the **Plugin Dev Mode** is enabled.
 
 ---
 ## Troubleshooting
