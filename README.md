@@ -10,7 +10,7 @@ You can visualize the graphical representation of your Ballerina source further 
 
 ### Setting up the Prerequisites
 
-Before getting started, make sure you have installed the [Visual Studio Code editor](https://code.visualstudio.com/download).
+Before getting started, make sure you have installed the [Visual Studio Code editor](https://code.visualstudio.com/download) with version >= 1.67.0.
 
 ### Installing the Ballerina Extension
 
@@ -228,6 +228,54 @@ Run and debug code lenses are shown for the entry points of the Ballerina projec
 
 Being based on sequence diagrams, Ballerina allows you to visualize a program written in Ballerina as a sequence diagram. The diagram displays the logic and network interaction of a function or a service resource making it easy to understand the source. You can view these diagrams using the Ballerina VS Code plugin.
 
+### Ballerina Notebook
+
+Ballerina notebooks can be created in VS Code using the `.balnotebook` extension for filename. Markdown and Ballerina code snippets are supported by Ballerina notebook cells.
+
+>**Info:** Make sure your VS Code version is `1.67.0` or higher when using Ballerina notebook.
+
+<details open>
+<summary>Code execution</summary>
+
+Notebook cells can be executed using the Run button available at the left side of the cell or using `shift` + `enter` keys. Additionally `Run All`, `Execute Above Cells`, `Execute Cell and Below`, `Clear outputs of All Cells` and `Restart Notebook` actions are available through the user interface.
+
+<img src="https://github.com/wso2/ballerina-plugin-vscode/blob/main/resources/images/notebook-code-execution.gif?raw=true" width="100%" />
+
+</details>
+
+<details>
+<summary>IntelliSense</summary>
+
+##### Code Completion
+
+<img src="https://github.com/wso2/ballerina-plugin-vscode/blob/main/resources/images/notebook-code-completion.gif?raw=true" width="100%" />
+
+</details>
+
+<details>
+<summary>Variable view</summary>
+
+<img src="https://github.com/wso2/ballerina-plugin-vscode/blob/main/resources/images/notebook-variable-view.gif?raw=true" width="100%" />
+
+</details>
+
+<details>
+<summary>Debugging</summary>
+
+It is required to enable notebook debug mode to debug the notebook.
+
+<img src="https://github.com/wso2/ballerina-plugin-vscode/blob/main/resources/images/notebook-debug.gif?raw=true" width="100%" />
+
+</details>
+
+<details>
+<summary>Commands</summary>
+
+- **Create Notebook**: This command creates a notebook with the given filename.
+<img src="https://github.com/wso2/ballerina-plugin-vscode/blob/main/resources/images/notebook-create.gif?raw=true" width="100%" />
+
+</details>
+
 ---
 ## Configurations
 - **Code Lens - All: Enabled**: It enables all code lens features and is enabled by default.
@@ -242,6 +290,7 @@ Being based on sequence diagrams, Ballerina allows you to visualize a program wr
 - **Ballerina: Plugin Dev Mode**: It enables the plugin development mode and is disabled by default. If it is disabled, the extension picks up the Ballerina runtime installed in the environment. Also, if it is enabled, the extension picks up the Ballerina runtime defined in the **Home** configuration above.
 - **Enable Language Server Debug**: It enables the Language Server debug mode and is disabled by default. It is only applicable if the **Plugin Dev Mode** is enabled.
 - **Enable Configurable Editor**: It enables the configurable editor in code view when the run button flow is executed. By default, this is enabled only in the low code view.
+- **Enable Notebook Debug**: It enables the notebook debug mode which provides a button in the dropdown near cell execution button, and is disabled by default.
 
 ---
 ## Troubleshooting
