@@ -8,6 +8,47 @@ Ballerina is a multi paradigm language. With Ballerina you can write the data tr
 
 Let's take the following example where you have to transform the Person and a list of courses to a student record. At start you would have the following data in json format. 
 
+```json
+// Input
+{
+    "person":{
+        "id": 1001,
+        "firstName": "Vinnie",
+        "lastName": "Hickman"
+    },
+    "course": [
+        {
+            "id": "CS6002",
+            "title": "Computation Structures",
+            "credits": 4
+        },
+        {
+            "id": "CS6003",
+            "title": "Circuits and Electronics",
+            "credits": 3
+        },
+        {
+            "id": "CS6004",
+            "title": "Signals and Systems",
+            "credits": 3
+        }
+    ]
+}
+
+//Output - Student
+{
+    "id": 1001,
+    "fullName": "Vinnie Hickman",
+    "cources": [
+        "CS6002 - Computation Structures",
+        "CS6003 - Circuits and Electronics",
+        "CS6004 - Signals and Systems"
+    ],
+    "totalCredits": 10
+}
+
+```
+
 Create a package if you are not already working on one. 
 
 `bal new convert`
@@ -26,7 +67,7 @@ Once you add the above function the VSCode plugin will display a code lens calle
 
 ![Open Data Mapper](images/goto-design-view.gif "Open Data Mapper via code lens") 
 
-Once the data mapper is opened it will prompt you to provide input and output of the transformation function. The input and output can be anydata type in Ballerina. In the example we are converting json to json hence we can use Ballerina record types and input and output. 
+Once the data mapper is opened it will prompt you to provide input and output of the transformation function. The input and output can be any data type in Ballerina. In the example we are converting json to json hence we can use Ballerina record types and input and output. 
 
 In data mapper form you have several options to provide input and output. If the records are already defined in your package you can select one of those. If you are starting from scratch you can either create the record from record editor view or import a json to create a matching record. For this example I will import json files and create records. 
 
