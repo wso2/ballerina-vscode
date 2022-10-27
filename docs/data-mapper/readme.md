@@ -83,7 +83,7 @@ In data mapper form you have several options to provide input and output records
 
 Once you select the records for input and output and click save the  data mapper will display the mapping view. Mapping view will have Inputs on your left and the Output on the right. To map fields click on the input field port and then click the output field port. If the input and output fields are compatible and can be mapped directly you will see a solid line connecting them. In the example you can map from person id to student id. 
 
-Giff
+![Basic Mapping](images/basic-mapping.gif "Save and do a basic mapping")
 
 ### Diagnostics and fixing errors
 
@@ -91,13 +91,13 @@ When you map input to an output field some time they might not be compatible due
 
 To fix the error hover over the alert sign and click “Fix by editing expression”. Then the data mapper will popout the expression editor for the specific expression. Now you can modify the expression to return a string. In this case you can use “toBalString” langlib function to convert the int to string.
 
-Giff
+![Fix Errors](images/fix-diagnostics.gif "Fix incompetible types error")
 
 ### Aggregate multiple input fields to one output field
 
 To aggregate fields you can map two or more fields to the same output field. The data mapper will automatically combine the two fields and assign it to the output field. By default the fields will be combined with a plus operator. If you want to use a different operator or method to combine two fields you can click on the code button and customize the expression with the expression editor. In the example you can combine firstName and lastName fields to create the fullName of the student
 
-Giff
+![Concatinate](images/concatinate.gif "Aggregate multiple input fields")
 
 ### Mapping arrays
 
@@ -107,7 +107,7 @@ To convert one array type to another you can use Ballerina query support. To use
 
 Click the expand query button to move into the query mapping. Now you can use the same mapping techniques to map array types. Once array type mapping is completed select transform function name in the top breadcrumb bar.
 
- 
+![Convert To Query](images/convert-query.gif "Mapping incompatible arrays")
 
 
 
