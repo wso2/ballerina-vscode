@@ -77,7 +77,7 @@ Once the data mapper is opened it will prompt you to provide input and output of
 
 In data mapper form you have several options to provide input and output records. If the records are already defined in your package you can select one of those. If you are starting from scratch you can either create the record from record editor view or import a json to create a matching record. For this example I will import json files and create records. Then select the input and output record types
 
-Giff
+![Configure Data Mapper](images/choose-input-output.gif "Choose Inputs and Output for Data Mapper")
 
 ### Basic mapping
 
