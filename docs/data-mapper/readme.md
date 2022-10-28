@@ -52,7 +52,6 @@ Ballerina is a multi-paradigm language. You can write the data transformation lo
         ],
         "totalCredits": 10
     }
-
     ```
 
 2. Install the latest versions of [Ballerina](https://ballerina.io/downloads/) and [Ballerina Visual Studio Code plugin](https://marketplace.visualstudio.com/items?itemName=wso2.ballerina).
@@ -99,34 +98,34 @@ Once you add the above function, the VS Code plugin will display a code lens cal
 
 Map the `person id` to the `student id` as shown below. 
 
->**Info:** The mapping view will have the **Inputs** on the left hand side of the screen and the **Output** on the right. To map the fields, click on the input field port and then, click the output field port. If the input and output fields are compatible and can be mapped directly, you will see a solid line connecting them. 
+  >**Info:** The mapping view will have the **Inputs** on the left hand side of the screen and the **Output** on the right. To map the fields, click on the input field port and then, click the output field port. If the input and output fields are compatible and can be mapped directly, you will see a solid line connecting them. 
 
-![Basic Mapping](images/basic-mapping.gif "Save and do a basic mapping")
+  ![Basic Mapping](images/basic-mapping.gif "Save and do a basic mapping")
 
 ### Diagnostics and fixing errors
 
 Use the `toBalString` langlib function to convert the int to string as shown below.
 
->**Info:** When you map the input to an output fields, some of them might not be compatible due to type mismatch. In this example, if you map the `person age` to `student` age, it will result in an error for type mismatch since the `input age` type is an integer and `output age` type is string. In this case, the datamapper will connect the two fields with a red line and show an alert sign. You can see the error by hovering over the alert sign. In this case, it will show `incompatible types: expected 'string', found 'int'`. To fix the error, hover over the alert sign and click `Fix by editing expression`. Then, the data mapper will pop out the expression editor for the specific expression. Now, you can modify the expression to return a string. 
+  >**Info:** When you map the input to an output fields, some of them might not be compatible due to type mismatch. In this example, if you map the `person age` to `student` age, it will result in an error for type mismatch since the `input age` type is an integer and `output age` type is string. In this case, the datamapper will connect the two fields with a red line and show an alert sign. You can see the error by hovering over the alert sign. In this case, it will show `incompatible types: expected 'string', found 'int'`. To fix the error, hover over the alert sign and click `Fix by editing expression`. Then, the data mapper will pop out the expression editor for the specific expression. Now, you can modify the expression to return a string. 
 
-![Fix Errors](images/fix-diagnostics.gif "Fix incompetible types error")
+  ![Fix Errors](images/fix-diagnostics.gif "Fix incompetible types error")
 
 ### Aggregate multiple input fields to one output field
 
 Combine the `firstName` and `lastName` fields to create the `fullName` of the student as shown below.
 
->**Info:** To aggregate fields, you can map two or more fields to the same output field. The data mapper will automatically combine the two fields and assign it to the output field. By default, the fields will be combined with a plus operator. If you want to use a different operator or method to combine two fields, you can click on the code button and customize the expression with the expression editor. 
+  >**Info:** To aggregate fields, you can map two or more fields to the same output field. The data mapper will automatically combine the two fields and assign it to the output field. By default, the fields will be combined with a plus operator. If you want to use a different operator or method to combine two fields, you can click on the code button and customize the expression with the expression editor. 
 
-![Concatinate](images/concatinate.gif "Aggregate multiple input fields")
+  ![Concatinate](images/concatinate.gif "Aggregate multiple input fields")
 
 ### Map the arrays
 
 Click the **Expand query** button to move into the query mapping and use the same mapping techniques to map array types as shown below. 
 
->**Info:** To convert from one array type to another, you can simply map the input array to the output array. If the arrays are compatible, they will be connected with a blue line. If they are not compatible, the connecting line will appear in red. 
+  >**Info:** To convert from one array type to another, you can simply map the input array to the output array. If the arrays are compatible, they will be connected with a blue line. If they are not compatible, the connecting line will appear in red. 
 
->**Info:** You can use Ballerina query support to convert one array type to another. To use a query in a data mapper, you can select the array by clicking on it. Then, it will provide you with several buttons. Click the code action button (bulb sign) and select **Convert to query**. Then, the data mapper will convert the mapping to a query. Then, move into the query and do the mapping between the array types. 
+  >**Info:** You can use Ballerina query support to convert one array type to another. To use a query in a data mapper, you can select the array by clicking on it. Then, it will provide you with several buttons. Click the code action button (bulb sign) and select **Convert to query**. Then, the data mapper will convert the mapping to a query. Then, move into the query and do the mapping between the array types. 
 
-![Convert To Query](images/convert-query.gif "Mapping incompatible arrays")
+  ![Convert To Query](images/convert-query.gif "Mapping incompatible arrays")
 
 Once array type mapping is completed, select the transform function name in the top breadcrumb bar.
