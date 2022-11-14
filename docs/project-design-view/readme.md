@@ -3,10 +3,11 @@
 With the increasing size and complexity of software applications, it is likely that your product is a composition of multiple inter-related components. When the number and/or depth of such components grow, the need to create a simple picture of its interactions becomes important. The Ballerina project design view is deployed with this intention of providing a convenient way to generate the high-level picture of such applications, purely based on the source code. And, in addition to the component interactions, the project design view is also capable of visualizing the Ballerina record types in your application and their associations.
 
 ## Prerequisites
+
 1. Ballerina version [2201.2.2](https://ballerina.io/downloads/) or upwards
 2. Ballerina VSCode plugin version [3.3.0](https://marketplace.visualstudio.com/items?itemName=WSO2.ballerina) or upwards
 
-The Ballerina Project Design View tool is packed with the latest release of the Ballerina VS Code plugin available in the VS Code marketplace. The diagrams can be generated upon executing the `Ballerina: Project Design View` extension command. However, to get the best possible view of your project, it is necessary to setup your Ballerina project with the following concepts in mind.
+The Ballerina Project Design View tool is packed with the latest release of the Ballerina VS Code plugin available in the VS Code marketplace. The diagrams can be generated upon executing the `Ballerina: Project Design` extension command. However, to get the best possible view of your project, it is necessary to setup your Ballerina project with the following concepts in mind.
 
 ## Related Concepts
 
@@ -68,7 +69,11 @@ isolated function getSupportedCurrencies() returns string[]|error {
 The resource invocations between services need to be done using [client access actions](https://ballerina.io/downloads/swan-lake-release-notes/swan-lake-2201.2.0#support-for-resource-methods-in-client-objects).
 
 ## Explore the Project Design View Features
-As mentioned previously, the Ballerina design diagrams can be generated through `Ballerina: Project Design View` extension command. This will lead you to a separate webview panel that will contain three types of design diagrams.
+
+As mentioned previously, the Ballerina design diagrams can be generated through `Ballerina: Project Design` command. This command can be found in the VS Code command palette, as seen below.
+![Extension Command](images/extension-command.gif)
+
+The execution of this command will lead you to a separate webview panel that will contain three types of design diagrams.
 
 ### 1. Service Diagram - Level 1
 
@@ -94,7 +99,6 @@ The types diagram provides a comprehensive view of all the Ballerina record type
 
    > The multiplicities of the associations are represented on either side of the connector, while the [type inclusions](https://ballerina.io/learn/by-example/type-inclusion-for-records/) are differentiated using a directed link (represents inheritance).
 
-
 In addition to the above diagrams, you can also view the **composition** of an individual record type. These type compositions can be accessed through:
    1. Clicking on the record types that are included in the request/response bodies of service invocations shown in the level 2 service diagram
    2. Clicking on the record head of the records displayed in the types diagram
@@ -107,6 +111,6 @@ The following is the composition diagram generated for the *PassengerFare* recor
 ### Accessory Features
 
 In addition to the above, the Ballerina project design diagram tool also includes the following features.
-   1. Export the diagrams in JPEG format
-   2. Filter the services and types based on the packages
-   3. Rearrange the diagram as you see fit
+   1. Filter the services and types based on the packages
+   2. Rearrange the diagram as you see fit
+   3. Export the diagrams in JPEG format
