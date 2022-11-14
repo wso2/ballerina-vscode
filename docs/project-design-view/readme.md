@@ -68,6 +68,45 @@ isolated function getSupportedCurrencies() returns string[]|error {
 The resource invocations between services need to be done using [client access actions](https://ballerina.io/downloads/swan-lake-release-notes/swan-lake-2201.2.0#support-for-resource-methods-in-client-objects).
 
 ## Explore the Project Design View Features
-As mentioned previously, the design diagrams view for Ballerina projects can be generated through the extension command.
+As mentioned previously, the Ballerina design diagrams can be generated through `Ballerina: Project Design View` extension command. This will lead you to a separate webview panel that will contain three types of design diagrams.
 
-  ![Extension Command](images/project-design-command.gif "Executing the Ballerina Project Design Diagram command")
+### 1. Service Diagram - Level 1
+
+The level 1 diagram is your starting point with the design diagram tool. This diagram displays all the available services within your project, with directed links representing any interactions between them. The following is a level 1 diagram generated for a sample Ballerina project. 
+
+   ![L1 Service Diagram](images/service-l1.png)
+   > This project has 4 HTTP services that interact with one another. The directed link between the *Flights* service and the *Bookings* service is an indication that a component in the Flights service invokes the *Booking* service. In addition to this, the *Flights* service also invokes an **external** service via a connector.
+
+### 2. Service Diagram - Level 2
+
+The level 2 diagram delves deeper into the compositions of the services and the interactions between them. The following diagram is the level 2 representation of the same project sample referred to above. This diagram has further delved into the individual resource/remote functions of the services and their invocations.
+
+   ![L2 Service Diagram](images/service-l2.png)
+
+The data types of the request and response bodies of for the interactions can be viewed when hovering over a particular invocation.
+   ![L2 Service Data Types Hover](images/invocation-data-types.png)
+
+### 3. Types Diagram
+
+The types diagram provides a comprehensive view of all the Ballerina record types defined in your project and their associations.
+
+   ![Types Diagram](images/types-diagram.png)
+
+   > The multiplicities of the associations are represented on either side of the connector, while the [type inclusions](https://ballerina.io/learn/by-example/type-inclusion-for-records/) are differentiated using a directed link (represents inheritance).
+
+
+In addition to the above diagrams, you can also view the **composition** of an individual record type. These type compositions can be accessed through:
+   1. Clicking on the record types that are included in the request/response bodies of service invocations shown in the level 2 service diagram
+   2. Clicking on the record head of the records displayed in the types diagram
+
+The following is the composition diagram generated for the *PassengerFare* record type seen in the above types diagram.
+   
+   ![Types Composition Diagram](images/types-composition.png)
+
+
+### Accessory Features
+
+In addition to the above, the Ballerina project design diagram tool also includes the following features.
+   1. Export the diagrams in JPEG format
+   2. Filter the services and types based on the packages
+   3. Rearrange the diagram as you see fit
