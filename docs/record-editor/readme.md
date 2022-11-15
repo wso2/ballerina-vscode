@@ -20,12 +20,11 @@ In the record editor, users have the ability to create a record from scratch or 
 
 ### Create a record from scratch
 
-1. Navigate to the record editor please select Create New option.
+1. Navigate to the record editor please select **Create New** option.
 
 ![Create new record](images/create-new.gif "Create new record via record editor")
 
 2. In order to provide a record name, Please double-click on the default record name.
-Change record name image
 
 ![Change record name](images/change-record-name.png "Change record name via record editor")
 
@@ -38,7 +37,11 @@ Change record name image
 
 ![Add default value](images/default-value.gif "Add default value to a field")
 
-5. Once the record field configuration is done, please click save.
+5. Users have the ability switch between open and closed records as shown below.
+
+![Open Close](images/open-close-switch.gif "Switch between Open and Closed records")
+
+6. Once the record field configuration is done, please click save.
 
 ![Save create new record](images/save-create-new.gif "Save the newly created record")
 
