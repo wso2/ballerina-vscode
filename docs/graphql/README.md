@@ -37,7 +37,7 @@ Once you add the above function, the VS Code plugin will display a code lens cal
 3. Click the Design ` Try it ` code lens to open the Graphql try-it view.
  >**Info:** The service must be in the running state to use Graphql try-it view
 4. Once the Graphql view is opened, click the ` Explorer ` button to open the explorer view. You can find available APIs from the side menu opened. 
-5. Select the API/s from the explorer menu to try. This will automatically generate the payload in the editor. You can edit the payload and add the required parameters (Ex: Type your name under the name parameter). ` Pretify ` button will format the code for you.
+5. Select the API/s from the **Explorer** menu to try. This will automatically generate the payload in the editor. You can edit the payload and add the required parameters (e.g., type your name under the name parameter). The **Pretify** button will format the code for you.
 6. Click the` Run ` button to send the request. The response will be displayed in the right-side window.
 
   ![Graphql try it](./../../resources/release-notes/3.3.0/graphql-tryit.gif)
