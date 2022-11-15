@@ -31,7 +31,7 @@ GraphQL is an open-source data query and manipulation language for APIs. While y
         }
     }
     ```
-    Once you add the above function, the VS Code plugin will display a code lens called ` Try it ` on top of the function.
+Once you add the above function, the VS Code plugin will display a code lens called ` Try it ` on top of the function.
     
 2. Click the Design ` Run ` code lens to run the program. This will open the terminal and start running the service.
 3. Click the Design ` Try it ` code lens to open the Graphql try-it view.
