@@ -1,5 +1,5 @@
 # Try Graphql services with Ballerina
-GraphQL is an open-source data query and manipulation language for APIs. While you develop an HTTP service you need to try it and debug how it works. Ballerina VSCode plugin provides the Graphql try-it view which gives the ability to try Graphql services within VSCode instead of using any third-party software.
+GraphQL is an open-source data query and manipulation language for APIs. While you develop an HTTP service, you need to try it and debug it to check how it works. The Ballerina VSCode plugin provides the Graphql try-it view, which gives the ability to try Graphql services within VS Code instead of using any third-party software.
 
 ## Set up the prerequisites
 1. Install the latest versions of [Ballerina](https://ballerina.io/downloads/) and [Ballerina Visual Studio Code plugin](https://marketplace.visualstudio.com/items?itemName=wso2.ballerina).
