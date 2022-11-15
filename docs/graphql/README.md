@@ -11,7 +11,7 @@ GraphQL is an open-source data query and manipulation language for APIs. While y
     ```
 3. Open the created package in VS Code.
 
-## Write Graphql service
+## Write the Graphql service
 1. Add the code below to the main.bal file
     ```ballerina
     import ballerina/graphql;
