@@ -16,7 +16,7 @@ GraphQL is an open-source data query and manipulation language for APIs. While y
     ```ballerina
     import ballerina/graphql;
     
-    # A service representing a network-accessible GraphQL API
+    # A service representing a network-accessible GraphQL API.
     service / on new graphql:Listener(8090) {
     
         # A resource for generating greetings
