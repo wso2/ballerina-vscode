@@ -19,7 +19,7 @@ GraphQL is an open-source data query and manipulation language for APIs. While y
     # A service representing a network-accessible GraphQL API.
     service / on new graphql:Listener(8090) {
     
-        # A resource for generating greetings
+        # A resource for generating greetings.
         # + name - the input string name
         # + return - string name with greeting message or error
         resource function get greeting(string name) returns string|error {
