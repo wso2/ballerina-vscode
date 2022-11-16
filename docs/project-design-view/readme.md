@@ -2,7 +2,7 @@
 
 With the increasing size and complexity of software applications, it is likely that your product is a composition of multiple interrelated components. When the number and/or depth of such components grow, the need to generate a simplified overview of their interactions arises. The Ballerina project design view is deployed with the intention of providing a convenient way to generate a high-level picture of such applications, purely based on the source code. In addition to the component interactions, the project design view is also capable of visualizing the Ballerina record types in your application and their associations.
 
-## Prerequisites
+## Set up the prerequisites
 
 Install the latest versions of [Ballerina](https://ballerina.io/downloads/) and [Ballerina Visual Studio Code plugin](https://marketplace.visualstudio.com/items?itemName=wso2.ballerina).
 
@@ -23,7 +23,7 @@ In the context of this tool, a Ballerina project is contained by a [VS Code work
 
 Since multiple services can have the same path, this tool depends on an additional annotation to uniquely identify the services within your project. The current approach to do so is via the `display` annotation, which is a general-purpose annotation that can be used in Ballerina code.
 
-By providing a unique value to the `id` field of the display annotation, you can assign an identifier to each service. For reference, the *CurrencyService* in the following code snippet has been annotated with an ID of the value `currency`, and this identifier will be used to differentiate the service throughout the project.
+By providing a unique value to the `id` field of the display annotation, you can assign an identifier to each service. For reference, the `CurrencyService` in the following code snippet has been annotated with an ID of the value `currency`, and this identifier will be used to differentiate the service throughout the project.
 
 ```ballerina
 @display {
@@ -83,14 +83,14 @@ The level 1 diagram is your starting point with the design diagram tool. This di
 
 ### Service Diagram - Level 2
 
-The level 2 diagram dives deeper into the compositions of the services and the interactions between them. The following diagram is the level 2 representation of the [same project sample above]. This diagram depicts the individual resource/remote functions of the services and their invocations.
+The level 2 diagram dives deeper into the compositions of the services and the interactions between them. The following diagram is the level 2 representation of the [same project sample above](#service-diagram---level-1). This diagram depicts the individual resource/remote functions of the services and their invocations.
 
    ![L2 Service Diagram](images/service-l2.png)
 
 The data types of the request and response bodies of the interactions can be viewed when hovering over a particular invocation.
    ![L2 Service Data Types Hover](images/invocation-data-types.png)
 
-### 3. Types Diagram
+### Types Diagram
 
 The types diagram provides a comprehensive view of all the Ballerina record types defined in your project and their associations.
 
@@ -98,11 +98,11 @@ The types diagram provides a comprehensive view of all the Ballerina record type
 
    >**Info:** The multiplicities of the associations are represented on either side of the connector while the [type inclusions](https://ballerina.io/learn/by-example/type-inclusion-for-records/) are differentiated using a directed link (represents inheritance).
 
-In addition to the above diagrams, you can also view the **composition** of an individual record type. These type composition diagrams can be accessed by:
+In addition to the above diagrams, you can also view the **composition** of an individual record type. These composition diagrams can be accessed by:
    1. Clicking on the record types that are included in the request/response bodies of service invocations shown in the level 2 service diagram
-   2. Clicking on the record head of the records displayed in the types diagram
+   2. Clicking on the head of the records displayed in the types diagram
 
-The following is the composition diagram generated for the `PassengerFare` record type seen in the [types diagram] above.
+The following is the composition diagram generated for the `PassengerFare` record type seen in the [types diagram](#types-diagram) above.
    
    ![Types Composition Diagram](images/types-composition.png)
 
