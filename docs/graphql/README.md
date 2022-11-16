@@ -12,32 +12,35 @@ GraphQL is an open-source data query and manipulation language for APIs. While y
 3. Open the created package in VS Code.
 
 ## Write the GraphQL service
-1. Add the code below to the `main.bal` file.
-    ```ballerina
-    import ballerina/graphql;
-    
-    # A service representing a network-accessible GraphQL API.
-    service / on new graphql:Listener(8090) {
-    
-        # A resource for generating greetings.
-        # + name - the input string name
-        # + return - string name with greeting message or error
-        resource function get greeting(string name) returns string|error {
-            // Send a response back to the caller.
-            if name is "" {
-                return error("name should not be empty!");
-            }
-            return "Hello, " + name;
+Add the code below to the `main.bal` file.
+```ballerina
+import ballerina/graphql;
+
+# A service representing a network-accessible GraphQL API.
+service / on new graphql:Listener(8090) {
+
+    # A resource for generating greetings.
+    # + name - the input string name
+    # + return - string name with greeting message or error
+    resource function get greeting(string name) returns string|error {
+        // Send a response back to the caller.
+        if name is "" {
+            return error("name should not be empty!");
         }
+        return "Hello, " + name;
     }
-    ```
-Once you add the above function, the VS Code plugin will display a code lens called **Try it** on top of the function.
+}
     
-2. Click the **Run** code lens to run the program. This will open the terminal and start running the service.
-3. Click the **Try it** code lens to open the GraphQL try-it view.
+```
+    
+Once you add the above function, the VS Code plugin will display a code lens called **Try it** on top of the function.
+
+## Try the GraphQL service
+1. Click the **Run** code lens to run the program. This will open the terminal and start running the service.
+2. Click the **Try it** code lens to open the GraphQL try-it view.
    >**Info:** The service must be in the running state to use GraphQL Try it view
-4. Once the GraphQL view is opened, click the **Explorer** button to open the **Explorer** view. You can find available APIs from the opened side menu. 
-5. Select the APIs from the **Explorer** menu to try. This will automatically generate the payload in the editor. You can edit the payload and add the required parameters (e.g., type your name under the name parameter). The **Prettify** button will format the code for you.
-6. Click the` Run ` button to send the request. The response will be displayed in the right-side window.
+3. Once the GraphQL view is opened, click the **Explorer** button to open the **Explorer** view. You can find available APIs from the opened side menu. 
+4. Select the APIs from the **Explorer** menu to try. This will automatically generate the payload in the editor. You can edit the payload and add the required parameters (e.g., type your name under the name parameter). The **Prettify** button will format the code for you.
+5. Click the` Run ` button to send the request. The response will be displayed in the right-side window.
 
   ![GraphQL try it](./../../resources/release-notes/3.3.0/graphql-tryit.gif)
