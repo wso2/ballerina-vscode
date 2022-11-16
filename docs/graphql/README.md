@@ -43,8 +43,8 @@ Once you add the above function, the VS Code plugin will display a code lens cal
    >**Info:** The service must be in the running state to use GraphQL Try it view.
 3. Once the GraphQL view is opened, click the **Explorer** button to open the **Explorer** view.
    >**Tip:** You can find available APIs from the opened side menu.
-4. Select the APIs from the **Explorer** menu to try. This will automatically generate the payload in the editor.
-   >**Info:** You can edit the payload and add the required parameters (e.g., type your name under the name parameter). The **Prettify** button will format the code for you.
+4. Select the APIs from the **Explorer** menu to try.
+   >**Info:** This will automatically generate the payload in the editor. You can edit the payload and add the required parameters (e.g., type your name under the name parameter). The **Prettify** button will format the code for you.
 5. Click the **Run** button to send the request.
 
     The response gets displayed in the right-side window.
