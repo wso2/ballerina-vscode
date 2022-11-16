@@ -1,10 +1,10 @@
-# Editing records graphically with Ballerina
+# Edit records graphically with Ballerina
 
-Record is the type system introduced by the ballerina language to hold data by a user. Users can use records when they want to define their data schemas. Once the records are created users can easily manipulate data inside a user programme.
+Record is the type system introduced by the Ballerina language to hold data by a user. You can use records when you want to define data schemas. Once the records are created, you can easily manipulate data inside a program.
 
-Ballerina is a multi-paradigm language. You can define records in an imperative manner with Ballerina. On top of that, the Ballerina VS Code plugin comes with record editing capabilities, which will help users to edit records graphically.
+Ballerina is a multi-paradigm language. You can define records in an imperative manner with Ballerina. On top of that, the Ballerina VS Code plugin comes with record editing capabilities, which will help you to edit records graphically.
 
-In the record editor, users have the ability to create a record from scratch or create a record by importing a JSON.
+In the record editor, you have the ability to create a record from scratch or create a record by importing a JSON.
 
 ## Set up the prerequisites
 
@@ -18,39 +18,40 @@ In the record editor, users have the ability to create a record from scratch or 
 
 3. Open the created package in VS Code.
 
-### Create a record from scratch
+## Create records from scratch
 
-1. Navigate to the record editor please select **Create New** option.
+1. Navigate to the record editor and select **Create New**.
 
-![Create new record](images/create-new.gif "Create new record via record editor")
+    ![Create new record](images/create-new.gif "Create new record via record editor")
 
-2. In order to provide a record name, Please double-click on the default record name.
+2. Double click the default record name to change it.
 
-![Change record name](images/change-record-name.png "Change record name via record editor")
+    ![Change record name](images/change-record-name.png "Change record name via record editor")
 
-3. Use the plus button at the end to add new fields to the record.
->**Info:** Use the expressions tab in the record editor to create nested records by selecting the particular record expression.
+3. Click the plus button at the end of the field to add new fields to the record.
+>**Info:** Use the **Expressions** tab in the record editor to create nested records by selecting the particular record expression.
 
-![Add fields](images/add-fields.gif "Add fields to a record")
+    ![Add fields](images/add-fields.gif "Add fields to a record")
 
-4. In order to add default values please select the semicolon(;) of a field and select the default value expression.
+4. Select the semicolon(;) of a field and select the default value expression to add default values.
 
-![Add default value](images/default-value.gif "Add default value to a field")
+    ![Add default value](images/default-value.gif "Add default value to a field")
 
-5. Users have the ability switch between open and closed records as shown below.
+5. Select/Deselect the **isClosed** option to switch between the open and closed records.
 
-![Open Close](images/open-close-switch.gif "Switch between Open and Closed records")
+    ![Open Close](images/open-close-switch.gif "Switch between Open and Closed records")
 
-6. Once the record field configuration is done, please click save.
+6. Once the record field configuration is done, click **Save**.
 
-![Save create new record](images/save-create-new.gif "Save the newly created record")
+    ![Save create new record](images/save-create-new.gif "Save the newly created record")
 
-### Create a record by importing a JSON
+## Create records by importing a JSON
 
-#### Prerequisites
-* Create a file with the data below in JSON format.
+The Ballerina language provides an option to convert JSON files into record definitions. Follow the steps below to create a record from a JSON.
 
-    >**Info:** The example below converts a `person` and a list of `courses` to a `student` record. 
+1. Create a file with the data below in JSON format.
+
+    >**Info:** The example below converts a `person` and a list of `courses` to a `Student` record. 
 
     ```json
     {
@@ -80,18 +81,16 @@ In the record editor, users have the ability to create a record from scratch or 
     }
     ```
 
-In ballerina language, it provides an option for users to bring their JSONs and easily convert those JSONs into record definitions. Please use the following steps to create a record from a JSON.
+2. In the record editor, select the **Import A JSON** option.
 
-1. Once you navigate to the record editor please select **Import A JSON** option.
+3. Provide a name for the record.
 
-2. Then provide a name for the record.
+4. Provide the sample JSON by either typing on the text area or by choosing the file created from the file selector.
 
-3. Then provide the sample JSON by either typing on the text area or by choosing the file created from the file selector.
+5. Select **Make Separate Record Definitions** to create separate Ballerina record definitions.
 
-4. In order to make separate ballerina record definitions please check **Make Separate Record Definitions**.
+    ![Import a JSON](images/import-JSON.gif "Import a JSON from record editor and covert to a record")
 
-![Import a JSON](images/import-JSON.gif "Import a JSON from record editor and covert to a record")
+6. Use the preview of the created record to edit the created records further, and click **Finish** once editing is complete.
 
-5. Then use the preview of the created record to further edit the created records and click save once editing is complete.
-
-![Preview created records](images/preview.png "Preview the created records")
+    ![Preview created records](images/preview.png "Preview the created records")
