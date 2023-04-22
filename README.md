@@ -31,13 +31,12 @@ Use the following features of this extension to edit Ballerina code via the VS C
 
 The VS Code extension allows you to visualize a program written in Ballerina as a graphical representation of the code. This graphical view displays the logic and network interaction of a function or a service resource, which makes it easy to understand the source. 
 
-
 - [Sequence Diagram](https://wso2.com/ballerina/vscode/docs/visual-programming/sequence-diagram-view/)
-- [Architecture Diagram](https://wso2.com/ballerina/vscode/docs/visual-programming/architecture-diagram)
+- [Architecture Diagram](https://wso2.com/ballerina/vscode/docs/visual-programming/architecture-view/architecture-diagram/)
 - [Data Mapper](https://wso2.com/ballerina/vscode/docs/visual-programming/data-mapper/)
 - [HTTP API Designer](https://wso2.com/ballerina/vscode/docs/visual-programming/http-api-designer/)
 - [GraphQL API Designer](https://wso2.com/ballerina/vscode/docs/visual-programming/graphql-api-designer/)
-- [Type Diagram](https://wso2.com/ballerina/vscode/docs/visual-programming/type-diagram/)
+- [Type Diagram](https://wso2.com/ballerina/vscode/docs/visual-programming/architecture-view/type-diagram/)
 
 ### Debugging capabilities
 
