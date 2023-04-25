@@ -33,11 +33,11 @@ The VS Code extension allows you to visualize a program written in Ballerina as 
 
 
 - [Sequence Diagram](https://wso2.com/ballerina/vscode/docs/visual-programming/sequence-diagram-view/)
-- [Architecture Diagram](https://wso2.com/ballerina/vscode/docs/visual-programming/architecture-diagram)
+- [Architecture Diagram](https://wso2.com/ballerina/vscode/docs/visual-programming/architecture-view/architecture-diagram/)
 - [Data Mapper](https://wso2.com/ballerina/vscode/docs/visual-programming/data-mapper/)
 - [HTTP API Designer](https://wso2.com/ballerina/vscode/docs/visual-programming/http-api-designer/)
-- [GraphQL API Designer](https://wso2.com/ballerina/vscode/docs/visual-programming/graphql-api-designer/)
-- [Type Diagram](https://wso2.com/ballerina/vscode/docs/visual-programming/type-diagram/)
+- [GraphQL API Designer](https://wso2.com/ballerina/vscode/docs/visual-programming/graphql-designer/)
+- [Type Diagram](https://wso2.com/ballerina/vscode/docs/visual-programming/architecture-view/type-diagram/)
 
 ### Debugging capabilities
 
