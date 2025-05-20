@@ -104,6 +104,7 @@ public class Type {
     public boolean selected = false;
 
     public Type() {
+
     }
 
     public Type(String name, String typeName, boolean optional, TypeInfo typeInfo, boolean defaultable,
