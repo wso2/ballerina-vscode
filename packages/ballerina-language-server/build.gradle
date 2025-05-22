@@ -205,6 +205,7 @@ def pullBallerinaModule(String packageName, String version = null, String orgNam
 
 task copyArtifactZip {
     dependsOn(":model-generator-commons:build")
+    dependsOn(":launcher:build")
     dependsOn(":architecture-model-generator:architecture-model-generator-core:build")
     dependsOn(":architecture-model-generator:architecture-model-generator-plugin:build")
     dependsOn(":architecture-model-generator:architecture-model-generator-ls-extension:build")
@@ -303,11 +304,6 @@ test.dependsOn rootProject.pullBallerinaModule('kafka', ballerinaxKafkaVersion)
 test.dependsOn rootProject.pullBallerinaModule('rabbitmq', ballerinaxRabbitmqVersion)
 test.dependsOn rootProject.pullBallerinaModule('trigger.github', ballerinaxGithubTriggerVersion)
 
-task build {
-    dependsOn test
-    dependsOn createArtifactZip
-}
-
 task clean {
     delete "build"
     delete "dist"
@@ -338,6 +334,76 @@ task buildTestService {
 
 task buildCommons {
     dependsOn(":model-generator-commons:build")
+}
+
+configurations {
+    externalJarDeps
+}
+
+dependencies {
+    externalJarDeps "org.eclipse.lsp4j:org.eclipse.lsp4j:${eclipseLsp4jVersion}"
+    externalJarDeps "com.google.code.gson:gson:${gsonVersion}"
+    externalJarDeps "org.eclipse.lsp4j:org.eclipse.lsp4j:${eclipseLsp4jVersion}"
+    externalJarDeps "com.fasterxml.jackson.core:jackson-databind:${jacksonDatabindVersion}"
+    externalJarDeps "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:${jacksonDataformatYamlVersion}"
+    externalJarDeps "io.netty:netty-buffer:${nettyBufferVersion}"
+    externalJarDeps "org.slf4j:slf4j-jdk14:${slf4jJdk14Version}"
+    externalJarDeps "com.google.code.findbugs:jsr305:${findbugsJsr305Version}"
+    externalJarDeps "org.apache.commons:commons-lang3:${apacheCommonsLang3Version}"
+    externalJarDeps "commons-io:commons-io:${commonsIoVersion}"
+    externalJarDeps "com.google.guava:guava:${guavaVersion}"
+    externalJarDeps "com.moandjiezana.toml:toml4j:${moandjiezanaToml4jVersion}"
+}
+
+task combineAllJars(type: com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar) {
+    description 'Creates a single JAR containing all submodules'
+    group 'build'
+
+    // Depend on each subproject's build task
+    dependsOn subprojects.collect { it.path + ':build' }
+
+    archiveBaseName = 'ballerina-language-server'
+    archiveClassifier = ''
+    archiveVersion = project.version
+    destinationDirectory = file("$project.buildDir")
+
+    configurations = [project.configurations.externalJarDeps]
+
+    // Include the compiled classes and resources from all submodules
+    subprojects.each { subproject ->
+        if (subproject.tasks.findByName('jar')) {
+            from subproject.tasks.jar.outputs
+        }
+    }
+
+    // Set the main class for the executable JAR
+    manifest {
+        attributes(
+                'Main-Class': 'org.ballerinalang.langserver.launchers.stdio.Main',
+                'Implementation-Title': 'Ballerina Language Server',
+                'Implementation-Version': project.version
+        )
+    }
+
+    // Manage dependencies to avoid duplicates
+    mergeServiceFiles()
+    exclude 'META-INF/*.SF'
+    exclude 'META-INF/*.DSA'
+    exclude 'META-INF/*.RSA'
+
+    // Create a manifest with the main class if needed
+    manifest {
+        attributes(
+                'Implementation-Title': 'Ballerina Dev Tools Combined',
+                'Implementation-Version': project.version
+        )
+    }
+}
+
+task build {
+    dependsOn test
+    dependsOn(':launcher:build')
+    dependsOn combineAllJars
 }
 
 build.doNotTrackState("build needs to run every time")
