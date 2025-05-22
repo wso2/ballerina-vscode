@@ -154,20 +154,6 @@ def moduleVersion = project.version
 if (moduleVersion.indexOf('-') != -1) {
     moduleVersion = moduleVersion.substring(0, moduleVersion.indexOf('-'))
 }
-def artifactBreLib = file("$project.rootDir/build/ls-extensions/bre-libs")
-def artifactLsLib = file("$project.rootDir/build/ls-extensions/ls-libs")
-def artifactLibParent = file("$project.rootDir/build/architecture-model-generator/")
-def targetModelGeneratorCommons = file("$project.rootDir/model-generator-commons/build/libs/model-generator-commons-${project.version}.jar")
-def targetArchModelGeneratorCore = file("$project.rootDir/architecture-model-generator/modules/architecture-model-generator-core/build/libs/architecture-model-generator-core-${project.version}.jar")
-def targetArchModelGeneratorPlugin = file("$project.rootDir/architecture-model-generator/modules/architecture-model-generator-plugin/build/libs/architecture-model-generator-plugin-${project.version}.jar")
-def targetArchModelGeneratorLSExt = file("$project.rootDir/architecture-model-generator/modules/architecture-model-generator-ls-extension/build/libs/architecture-model-generator-ls-extension-${project.version}.jar")
-def targetFlowModelGeneratorCore = file("$project.rootDir/flow-model-generator/modules/flow-model-generator-core/build/libs/flow-model-generator-core-${project.version}.jar")
-def targetFlowModelGeneratorLSExt = file("$project.rootDir/flow-model-generator/modules/flow-model-generator-ls-extension/build/libs/flow-model-generator-ls-extension-${project.version}.jar")
-def targetFlowModelGeneratorCentral = file("$project.rootDir/flow-model-generator/modules/flow-model-central-client/build/libs/flow-model-central-client-${project.version}.jar")
-def targetServiceModelGeneratorLSExt = file("$project.rootDir/service-model-generator/modules/service-model-generator-ls-extension/build/libs/service-model-generator-ls-extension-${project.version}.jar")
-def targetSequenceDiagramGeneratorCore = file("$project.rootDir/sequence-model-generator/modules/sequence-model-generator-core/build/libs/sequence-model-generator-core-${project.version}.jar")
-def targetSequenceDiagramGeneratorLSExt = file("$project.rootDir/sequence-model-generator/modules/sequence-model-generator-ls-extension/build/libs/sequence-model-generator-ls-extension-${project.version}.jar")
-def targetTestManagerServiceLSExt = file("$project.rootDir/test-manager-service/modules/test-manager-service-ls-extension/build/libs/test-manager-service-ls-extension-${project.version}.jar")
 
 // TODO: Remove this once the workspace manager is refactored to import modules where necessary.
 def pullBallerinaModule(String packageName, String version = null, String orgName = "ballerinax") {
@@ -203,77 +189,11 @@ def pullBallerinaModule(String packageName, String version = null, String orgNam
     }
 }
 
-task copyArtifactZip {
-    dependsOn(":model-generator-commons:build")
-    dependsOn(":launcher:build")
-    dependsOn(":architecture-model-generator:architecture-model-generator-core:build")
-    dependsOn(":architecture-model-generator:architecture-model-generator-plugin:build")
-    dependsOn(":architecture-model-generator:architecture-model-generator-ls-extension:build")
-    dependsOn(":generatePomFileForMavenJavaPublication")
-    dependsOn(":flow-model-generator:flow-model-central-client:build")
-    dependsOn(":flow-model-generator:flow-model-generator-core:build")
-    dependsOn(":flow-model-generator:flow-model-generator-ls-extension:build")
-    dependsOn(":service-model-generator:service-model-generator-ls-extension:build")
-    dependsOn(":test-manager-service:test-manager-service-ls-extension:build")
-    dependsOn(":sequence-model-generator:sequence-model-generator-core:build")
-    dependsOn(":sequence-model-generator:sequence-model-generator-ls-extension:build")
-    dependsOn(":test-manager-service:test-manager-service-ls-extension:build")
-    inputs.dir file(project.rootDir)
-    doLast {
-        def breLibArtifacts = [
-                targetModelGeneratorCommons,
-                targetArchModelGeneratorCore,
-                targetArchModelGeneratorPlugin,
-                targetSequenceDiagramGeneratorCore,
-                targetFlowModelGeneratorCore,
-                targetFlowModelGeneratorCentral
-        ]
-
-        def lsLibArtifacts = [
-                targetArchModelGeneratorLSExt,
-                targetSequenceDiagramGeneratorLSExt,
-                targetFlowModelGeneratorLSExt,
-                targetServiceModelGeneratorLSExt,
-                targetTestManagerServiceLSExt
-        ]
-
-        breLibArtifacts.each { artifact ->
-            copy {
-                from artifact
-                into file(artifactBreLib)
-            }
-        }
-
-        lsLibArtifacts.each { artifact ->
-            copy {
-                from artifact
-                into file(artifactLsLib)
-            }
-        }
-    }
-    outputs.dir artifactLibParent
-    doNotTrackState("build needs to run every time")
-}
-
-task createArtifactZip(type: Zip) {
-    dependsOn copyArtifactZip
-    from "build"
-    archiveFileName = 'ballerina-dev-tools-' + project.version + '.zip'
-    destinationDirectory = file("dist")
-    doNotTrackState("build needs to run every time")
-}
-
 publishing {
-    publications {
-        mavenJava(MavenPublication) {
-            artifact source: createArtifactZip, extension: 'zip'
-        }
-    }
-
     repositories {
         maven {
             name = "GitHubPackages"
-            url = uri("https://maven.pkg.github.com/ballerina-platform/ballerina-dev-tools")
+            url = uri("https://maven.pkg.github.com/ballerina-platform/ballerina-language-server")
             credentials {
                 username = System.getenv("packageUser")
                 password = System.getenv("packagePAT")
