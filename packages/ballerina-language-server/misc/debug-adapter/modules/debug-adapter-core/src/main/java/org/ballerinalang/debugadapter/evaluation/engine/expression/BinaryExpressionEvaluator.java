@@ -1,0 +1,323 @@
+/*
+ * Copyright (c) 2020, WSO2 Inc. (http://wso2.com) All Rights Reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.ballerinalang.debugadapter.evaluation.engine.expression;
+
+import com.sun.jdi.Value;
+import io.ballerina.compiler.syntax.tree.BinaryExpressionNode;
+import io.ballerina.compiler.syntax.tree.SyntaxKind;
+import org.ballerinalang.debugadapter.EvaluationContext;
+import org.ballerinalang.debugadapter.evaluation.BExpressionValue;
+import org.ballerinalang.debugadapter.evaluation.EvaluationException;
+import org.ballerinalang.debugadapter.evaluation.engine.Evaluator;
+import org.ballerinalang.debugadapter.evaluation.engine.invokable.GeneratedStaticMethod;
+import org.ballerinalang.debugadapter.evaluation.engine.invokable.RuntimeStaticMethod;
+import org.ballerinalang.debugadapter.evaluation.utils.VMUtils;
+import org.ballerinalang.debugadapter.variable.BVariable;
+import org.ballerinalang.debugadapter.variable.BVariableType;
+import org.ballerinalang.debugadapter.variable.VariableFactory;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.ballerinalang.debugadapter.evaluation.EvaluationException.createEvaluationException;
+import static org.ballerinalang.debugadapter.evaluation.EvaluationExceptionKind.INTERNAL_ERROR;
+import static org.ballerinalang.debugadapter.evaluation.EvaluationExceptionKind.UNSUPPORTED_OPERATION;
+import static org.ballerinalang.debugadapter.evaluation.utils.EvaluationUtils.B_ADD_METHOD;
+import static org.ballerinalang.debugadapter.evaluation.utils.EvaluationUtils.B_ARITHMETIC_EXPR_HELPER_CLASS;
+import static org.ballerinalang.debugadapter.evaluation.utils.EvaluationUtils.B_BITWISE_AND_METHOD;
+import static org.ballerinalang.debugadapter.evaluation.utils.EvaluationUtils.B_BITWISE_EXPR_HELPER_CLASS;
+import static org.ballerinalang.debugadapter.evaluation.utils.EvaluationUtils.B_BITWISE_OR_METHOD;
+import static org.ballerinalang.debugadapter.evaluation.utils.EvaluationUtils.B_BITWISE_XOR_METHOD;
+import static org.ballerinalang.debugadapter.evaluation.utils.EvaluationUtils.B_DIV_METHOD;
+import static org.ballerinalang.debugadapter.evaluation.utils.EvaluationUtils.B_GT_EQUALS_METHOD;
+import static org.ballerinalang.debugadapter.evaluation.utils.EvaluationUtils.B_GT_METHOD;
+import static org.ballerinalang.debugadapter.evaluation.utils.EvaluationUtils.B_LEFT_SHIFT_METHOD;
+import static org.ballerinalang.debugadapter.evaluation.utils.EvaluationUtils.B_LOGICAL_AND_METHOD;
+import static org.ballerinalang.debugadapter.evaluation.utils.EvaluationUtils.B_LOGICAL_EXPR_HELPER_CLASS;
+import static org.ballerinalang.debugadapter.evaluation.utils.EvaluationUtils.B_LOGICAL_OR_METHOD;
+import static org.ballerinalang.debugadapter.evaluation.utils.EvaluationUtils.B_LT_EQUALS_METHOD;
+import static org.ballerinalang.debugadapter.evaluation.utils.EvaluationUtils.B_LT_METHOD;
+import static org.ballerinalang.debugadapter.evaluation.utils.EvaluationUtils.B_MOD_METHOD;
+import static org.ballerinalang.debugadapter.evaluation.utils.EvaluationUtils.B_MUL_METHOD;
+import static org.ballerinalang.debugadapter.evaluation.utils.EvaluationUtils.B_RELATIONAL_EXPR_HELPER_CLASS;
+import static org.ballerinalang.debugadapter.evaluation.utils.EvaluationUtils.B_SHIFT_EXPR_HELPER_CLASS;
+import static org.ballerinalang.debugadapter.evaluation.utils.EvaluationUtils.B_SIGNED_RIGHT_SHIFT_METHOD;
+import static org.ballerinalang.debugadapter.evaluation.utils.EvaluationUtils.B_SUB_METHOD;
+import static org.ballerinalang.debugadapter.evaluation.utils.EvaluationUtils.B_TYPE_CHECKER_CLASS;
+import static org.ballerinalang.debugadapter.evaluation.utils.EvaluationUtils.B_UNSIGNED_RIGHT_SHIFT_METHOD;
+import static org.ballerinalang.debugadapter.evaluation.utils.EvaluationUtils.B_XML_FACTORY_CLASS;
+import static org.ballerinalang.debugadapter.evaluation.utils.EvaluationUtils.B_XML_VALUE_CLASS;
+import static org.ballerinalang.debugadapter.evaluation.utils.EvaluationUtils.JAVA_OBJECT_CLASS;
+import static org.ballerinalang.debugadapter.evaluation.utils.EvaluationUtils.REF_EQUAL_METHOD;
+import static org.ballerinalang.debugadapter.evaluation.utils.EvaluationUtils.VALUE_EQUAL_METHOD;
+import static org.ballerinalang.debugadapter.evaluation.utils.EvaluationUtils.XML_CONCAT_METHOD;
+import static org.ballerinalang.debugadapter.evaluation.utils.EvaluationUtils.getGeneratedMethod;
+import static org.ballerinalang.debugadapter.evaluation.utils.EvaluationUtils.getRuntimeMethod;
+import static org.ballerinalang.debugadapter.evaluation.utils.EvaluationUtils.getValueAsObject;
+
+/**
+ * Evaluator implementation for binary expressions.
+ *
+ * @since 2.0.0
+ */
+public class BinaryExpressionEvaluator extends Evaluator {
+
+    protected final BinaryExpressionNode syntaxNode;
+    protected final Evaluator lhsEvaluator;
+    protected final Evaluator rhsEvaluator;
+
+    public BinaryExpressionEvaluator(EvaluationContext context, BinaryExpressionNode node, Evaluator lhsEvaluator,
+                                     Evaluator rhsEvaluator) {
+        super(context);
+        this.syntaxNode = node;
+        this.lhsEvaluator = lhsEvaluator;
+        this.rhsEvaluator = rhsEvaluator;
+    }
+
+    @Override
+    public BExpressionValue evaluate() throws EvaluationException {
+        try {
+            // Evaluates the lhs and rhs expressions.
+            BExpressionValue lhsResult = lhsEvaluator.evaluate();
+            BExpressionValue rhsResult = rhsEvaluator.evaluate();
+            return performOperation(lhsResult, rhsResult);
+        } catch (EvaluationException e) {
+            throw e;
+        } catch (Exception e) {
+            throw createEvaluationException(INTERNAL_ERROR, syntaxNode.toSourceCode().trim());
+        }
+    }
+
+    /**
+     * Performs the binary operation and returns the evaluation result.
+     *
+     * @param lhs LHS evaluation result
+     * @param rhs RHS evaluation result
+     * @return returns the evaluation result of the binary operation.
+     */
+    private BExpressionValue performOperation(BExpressionValue lhs, BExpressionValue rhs) throws EvaluationException {
+        Value lValue = lhs.getJdiValue();
+        Value rValue = rhs.getJdiValue();
+        BVariable lVar = VariableFactory.getVariable(context, lValue);
+        BVariable rVar = VariableFactory.getVariable(context, rValue);
+        SyntaxKind operatorType = syntaxNode.operator().kind();
+
+        return switch (operatorType) {
+            case PLUS_TOKEN,
+                 MINUS_TOKEN,
+                 ASTERISK_TOKEN,
+                 SLASH_TOKEN,
+                 PERCENT_TOKEN -> performArithmeticOperation(lVar, rVar, operatorType);
+            case LT_TOKEN,
+                 GT_TOKEN,
+                 LT_EQUAL_TOKEN,
+                 GT_EQUAL_TOKEN -> compare(lVar, rVar, operatorType);
+            case BITWISE_AND_TOKEN,
+                 PIPE_TOKEN,
+                 BITWISE_XOR_TOKEN -> performBitwiseOperation(lVar, rVar, operatorType);
+            case DOUBLE_LT_TOKEN,
+                 DOUBLE_GT_TOKEN,
+                 TRIPPLE_GT_TOKEN -> performShiftOperation(lVar, rVar, operatorType);
+            case LOGICAL_AND_TOKEN,
+                 LOGICAL_OR_TOKEN -> performLogicalOperation(lVar, rVar, operatorType);
+            case ELVIS_TOKEN -> conditionalReturn(lVar, rVar);
+            case DOUBLE_EQUAL_TOKEN,
+                 NOT_EQUAL_TOKEN -> checkValueEquality(lVar, rVar, operatorType);
+            case TRIPPLE_EQUAL_TOKEN,
+                 NOT_DOUBLE_EQUAL_TOKEN -> checkReferenceEquality(lVar, rVar, operatorType);
+            default -> throw createUnsupportedOperationException(lVar, rVar, operatorType);
+        };
+    }
+
+    /**
+     * Performs addition/concatenation operation on the given ballerina variable values and returns the result.
+     */
+    private BExpressionValue performArithmeticOperation(BVariable lVar, BVariable rVar, SyntaxKind operator)
+            throws EvaluationException {
+
+        // XML concatenation.
+        if (lVar.getBType() == BVariableType.XML && rVar.getBType() == BVariableType.XML &&
+                operator == SyntaxKind.PLUS_TOKEN) {
+            // Prepares to invoke the JVM runtime util function which is responsible for XML concatenation.
+            List<Value> argList = new ArrayList<>();
+            argList.add(getValueAsObject(context, lVar));
+            argList.add(getValueAsObject(context, rVar));
+            List<String> argTypeNames = new ArrayList<>();
+            argTypeNames.add(B_XML_VALUE_CLASS);
+            argTypeNames.add(B_XML_VALUE_CLASS);
+            RuntimeStaticMethod runtimeMethod = getRuntimeMethod(context, B_XML_FACTORY_CLASS, XML_CONCAT_METHOD,
+                    argTypeNames);
+            runtimeMethod.setArgValues(argList);
+            Value result = runtimeMethod.invokeSafely();
+            return new BExpressionValue(context, result);
+        } else {
+            List<Value> argList = new ArrayList<>();
+            argList.add(getValueAsObject(context, lVar));
+            argList.add(getValueAsObject(context, rVar));
+
+            GeneratedStaticMethod genMethod = switch (operator) {
+                case PLUS_TOKEN -> getGeneratedMethod(context, B_ARITHMETIC_EXPR_HELPER_CLASS, B_ADD_METHOD);
+                case MINUS_TOKEN -> getGeneratedMethod(context, B_ARITHMETIC_EXPR_HELPER_CLASS, B_SUB_METHOD);
+                case ASTERISK_TOKEN -> getGeneratedMethod(context, B_ARITHMETIC_EXPR_HELPER_CLASS, B_MUL_METHOD);
+                case SLASH_TOKEN -> getGeneratedMethod(context, B_ARITHMETIC_EXPR_HELPER_CLASS, B_DIV_METHOD);
+                case PERCENT_TOKEN -> getGeneratedMethod(context, B_ARITHMETIC_EXPR_HELPER_CLASS, B_MOD_METHOD);
+                default -> throw createUnsupportedOperationException(lVar, rVar, operator);
+            };
+            genMethod.setArgValues(argList);
+            Value result = genMethod.invokeSafely();
+            return new BExpressionValue(context, result);
+        }
+    }
+
+    private BExpressionValue compare(BVariable lVar, BVariable rVar, SyntaxKind operator) throws EvaluationException {
+
+        // Tests the relative order of two values. There must be an ordered type to which the static type of both
+        // operands belong. The static type of the result is boolean.
+        //
+        // OrderedType ::= ()|boolean|int|float|decimal|string|OrderedType[]
+        List<Value> argList = new ArrayList<>();
+        argList.add(getValueAsObject(context, lVar));
+        argList.add(getValueAsObject(context, rVar));
+
+        GeneratedStaticMethod genMethod = switch (operator) {
+            case LT_TOKEN -> getGeneratedMethod(context, B_RELATIONAL_EXPR_HELPER_CLASS, B_LT_METHOD);
+            case LT_EQUAL_TOKEN -> getGeneratedMethod(context, B_RELATIONAL_EXPR_HELPER_CLASS, B_LT_EQUALS_METHOD);
+            case GT_TOKEN -> getGeneratedMethod(context, B_RELATIONAL_EXPR_HELPER_CLASS, B_GT_METHOD);
+            case GT_EQUAL_TOKEN -> getGeneratedMethod(context, B_RELATIONAL_EXPR_HELPER_CLASS, B_GT_EQUALS_METHOD);
+            default -> throw createUnsupportedOperationException(lVar, rVar, operator);
+        };
+        genMethod.setArgValues(argList);
+        Value result = genMethod.invokeSafely();
+        return new BExpressionValue(context, result);
+    }
+
+    private BExpressionValue performBitwiseOperation(BVariable lVar, BVariable rVar, SyntaxKind operator)
+            throws EvaluationException {
+        List<Value> argList = new ArrayList<>();
+        argList.add(getValueAsObject(context, lVar));
+        argList.add(getValueAsObject(context, rVar));
+
+        GeneratedStaticMethod genMethod = switch (operator) {
+            case BITWISE_AND_TOKEN -> getGeneratedMethod(context, B_BITWISE_EXPR_HELPER_CLASS, B_BITWISE_AND_METHOD);
+            case PIPE_TOKEN -> getGeneratedMethod(context, B_BITWISE_EXPR_HELPER_CLASS, B_BITWISE_OR_METHOD);
+            case BITWISE_XOR_TOKEN -> getGeneratedMethod(context, B_BITWISE_EXPR_HELPER_CLASS, B_BITWISE_XOR_METHOD);
+            default -> throw createUnsupportedOperationException(lVar, rVar, operator);
+        };
+        genMethod.setArgValues(argList);
+        Value result = genMethod.invokeSafely();
+        return new BExpressionValue(context, result);
+    }
+
+    private BExpressionValue performShiftOperation(BVariable lVar, BVariable rVar, SyntaxKind operator)
+            throws EvaluationException {
+        List<Value> argList = new ArrayList<>();
+        argList.add(getValueAsObject(context, lVar));
+        argList.add(getValueAsObject(context, rVar));
+
+        GeneratedStaticMethod genMethod = switch (operator) {
+            case DOUBLE_LT_TOKEN -> getGeneratedMethod(context, B_SHIFT_EXPR_HELPER_CLASS, B_LEFT_SHIFT_METHOD);
+            case DOUBLE_GT_TOKEN -> getGeneratedMethod(context, B_SHIFT_EXPR_HELPER_CLASS, B_SIGNED_RIGHT_SHIFT_METHOD);
+            case TRIPPLE_GT_TOKEN ->
+                    getGeneratedMethod(context, B_SHIFT_EXPR_HELPER_CLASS, B_UNSIGNED_RIGHT_SHIFT_METHOD);
+            default -> throw createUnsupportedOperationException(lVar, rVar, operator);
+        };
+        genMethod.setArgValues(argList);
+        Value result = genMethod.invokeSafely();
+        return new BExpressionValue(context, result);
+    }
+
+    private BExpressionValue performLogicalOperation(BVariable lVar, BVariable rVar, SyntaxKind operator)
+            throws EvaluationException {
+        List<Value> argList = new ArrayList<>();
+        argList.add(getValueAsObject(context, lVar));
+        argList.add(getValueAsObject(context, rVar));
+
+        GeneratedStaticMethod genMethod = switch (operator) {
+            case LOGICAL_AND_TOKEN -> getGeneratedMethod(context, B_LOGICAL_EXPR_HELPER_CLASS, B_LOGICAL_AND_METHOD);
+            case LOGICAL_OR_TOKEN -> getGeneratedMethod(context, B_LOGICAL_EXPR_HELPER_CLASS, B_LOGICAL_OR_METHOD);
+            default -> throw createUnsupportedOperationException(lVar, rVar, operator);
+        };
+        genMethod.setArgValues(argList);
+        Value result = genMethod.invokeSafely();
+        return new BExpressionValue(context, result);
+    }
+
+    /**
+     * Performs elvis conditional operation.
+     */
+    private BExpressionValue conditionalReturn(BVariable lVar, BVariable rVar) {
+        // Evaluate LHS to get a value x.
+        // If x is not nil, then return x.
+        // Otherwise, return the result of evaluating RHS.
+        if (lVar.getBType() != BVariableType.NIL) {
+            return new BExpressionValue(context, lVar.getJvmValue());
+        } else {
+            return new BExpressionValue(context, rVar.getJvmValue());
+        }
+    }
+
+    /**
+     * Checks for deep value equality.
+     */
+    private BExpressionValue checkValueEquality(BVariable lVar, BVariable rVar, SyntaxKind operatorType)
+            throws EvaluationException {
+        List<Value> argList = new ArrayList<>();
+        argList.add(getValueAsObject(context, lVar));
+        argList.add(getValueAsObject(context, rVar));
+
+        List<String> argTypeNames = new ArrayList<>();
+        argTypeNames.add(JAVA_OBJECT_CLASS);
+        argTypeNames.add(JAVA_OBJECT_CLASS);
+        RuntimeStaticMethod runtimeMethod = getRuntimeMethod(context, B_TYPE_CHECKER_CLASS, VALUE_EQUAL_METHOD,
+                argTypeNames);
+        runtimeMethod.setArgValues(argList);
+        Value result = runtimeMethod.invokeSafely();
+        BVariable variable = VariableFactory.getVariable(context, result);
+        boolean booleanValue = Boolean.parseBoolean(variable.getDapVariable().getValue());
+        booleanValue = operatorType == SyntaxKind.DOUBLE_EQUAL_TOKEN ? booleanValue : !booleanValue;
+        return VMUtils.make(context, booleanValue);
+    }
+
+    /**
+     * Checks for reference equality.
+     */
+    private BExpressionValue checkReferenceEquality(BVariable lVar, BVariable rVar, SyntaxKind operatorType)
+            throws EvaluationException {
+        List<Value> argList = new ArrayList<>();
+        argList.add(getValueAsObject(context, lVar));
+        argList.add(getValueAsObject(context, rVar));
+
+        List<String> argTypeNames = new ArrayList<>();
+        argTypeNames.add(JAVA_OBJECT_CLASS);
+        argTypeNames.add(JAVA_OBJECT_CLASS);
+        RuntimeStaticMethod runtimeMethod = getRuntimeMethod(context, B_TYPE_CHECKER_CLASS, REF_EQUAL_METHOD,
+                argTypeNames);
+        runtimeMethod.setArgValues(argList);
+        Value result = runtimeMethod.invokeSafely();
+        BVariable variable = VariableFactory.getVariable(context, result);
+        boolean booleanValue = Boolean.parseBoolean(variable.getDapVariable().getValue());
+        booleanValue = operatorType == SyntaxKind.TRIPPLE_EQUAL_TOKEN ? booleanValue : !booleanValue;
+        return VMUtils.make(context, booleanValue);
+    }
+
+    protected EvaluationException createUnsupportedOperationException(BVariable lVar, BVariable rVar,
+                                                                      SyntaxKind operator) {
+        return createEvaluationException(UNSUPPORTED_OPERATION, operator.stringValue(), lVar.getBType().getString(),
+                rVar.getBType().getString());
+
+    }
+}

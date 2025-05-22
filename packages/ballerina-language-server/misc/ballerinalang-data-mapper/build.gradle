@@ -1,0 +1,94 @@
+plugins {
+    id 'javaProjectWithExtBala'
+    id 'baseNativeStdLibProject'
+    id 'ballerinaLangLibLoad'
+}
+
+//apply plugin: 'jacoco'
+
+configurations {
+    dist {
+        transitive false
+    }
+    dependency {
+        transitive false
+    }
+    libs
+}
+
+dependencies {
+    implementation project(':ballerina-tools-api')
+    implementation project(':ballerina-lang')
+    implementation project(':ballerina-parser')
+    implementation project(':ballerina-runtime')
+    implementation project(':language-server:language-server-commons')
+    implementation project(':language-server:language-server-core')
+    implementation project(':language-server:language-server-cli')
+    implementation libs.apache.commons.lang3
+
+    implementation project(':testerina:testerina-core')
+    implementation project(':ballerina-cli')
+
+    implementation libs.eclipse.lsp4j
+
+    implementation libs.jackson.databind
+
+    testImplementation libs.testng
+
+    implementation libs.eclipse.jetty.server
+    implementation libs.eclipse.jetty.servlet
+}
+
+test {
+    dependsOn loadDistributionCache
+    systemProperty "ballerina.home", "$buildDir/"
+    systemProperty "experimental", "true"
+    systemProperty "ballerina.version", project.version
+    useTestNG() {
+        suites 'src/test/resources/testng.xml'
+    }
+}
+
+CopySpec copyJarSpec = copySpec {
+    from configurations.dependency
+    into("lib")
+}
+
+tasks.register('createZip', Zip) {
+    dependsOn createBalHome
+    with copyJarSpec
+}
+
+tasks.register('buildAndCopy', Copy) {
+    dependsOn build
+    from 'build/libs/ballerinalang-data-mapper-' + project.version + '.jar'
+    into  project(':jballerina-tools').projectDir.absolutePath +
+            '/build/extracted-distributions/jballerina-tools-' + project.version +
+            '/bre/lib'
+}
+
+jacocoTestReport {
+    reports {
+        xml.required = true // coveralls plugin depends on xml format report
+        html.required = true
+    }
+    afterEvaluate {
+        classDirectories.setFrom(files(classDirectories.files.collect {
+            fileTree(dir: it, exclude: '**/utils/**')
+        }))
+    }
+}
+
+compileJava {
+    doFirst {
+        options.compilerArgs << '--module-path' << classpath.asPath
+        classpath = files()
+    }
+}
+
+javadoc {
+    doFirst {
+        options.modulePath = classpath.toList()
+        classpath = files()
+    }
+}
