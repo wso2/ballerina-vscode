@@ -26,3 +26,7 @@ replay_pid*
 # IDE specific files
 .idea/
 .vscode/
+
+# Build directories
+.gradle/
+build/
