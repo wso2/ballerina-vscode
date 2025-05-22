@@ -1,0 +1,103 @@
+{
+  "description": "",
+  "filePath": "source.bal",
+  "context": {
+    "expression": "i am not a string",
+    "startLine": {
+      "line": 13,
+      "offset": 8
+    },
+    "offset": 0,
+    "codedata": {
+      "node": "NEW_CONNECTION",
+      "org": "ballerinax",
+      "module": "redis",
+      "object": "Client",
+      "symbol": "init",
+      "id": 691
+    },
+    "property": {
+      "metadata": {
+        "label": "connection",
+        "description": ""
+      },
+      "valueType": "EXPRESSION",
+      "valueTypeConstraint": "redis:ConnectionUri|redis:ConnectionParams",
+      "placeholder": "\"redis://localhost:6379\"",
+      "optional": true,
+      "editable": true,
+      "advanced": true,
+      "kind": "INCLUDED_FIELD"
+    }
+  },
+  "diagnostics": [
+    {
+      "range": {
+        "start": {
+          "line": 0,
+          "character": 11
+        },
+        "end": {
+          "line": 0,
+          "character": 17
+        }
+      },
+      "severity": "Error",
+      "code": {
+        "left": "BCE0600"
+      },
+      "message": "invalid token 'string'"
+    },
+    {
+      "range": {
+        "start": {
+          "line": 0,
+          "character": 9
+        },
+        "end": {
+          "line": 0,
+          "character": 10
+        }
+      },
+      "severity": "Error",
+      "code": {
+        "left": "BCE0600"
+      },
+      "message": "invalid token 'a'"
+    },
+    {
+      "range": {
+        "start": {
+          "line": 0,
+          "character": 5
+        },
+        "end": {
+          "line": 0,
+          "character": 8
+        }
+      },
+      "severity": "Error",
+      "code": {
+        "left": "BCE0600"
+      },
+      "message": "invalid token 'not'"
+    },
+    {
+      "range": {
+        "start": {
+          "line": 0,
+          "character": 2
+        },
+        "end": {
+          "line": 0,
+          "character": 4
+        }
+      },
+      "severity": "Error",
+      "code": {
+        "left": "BCE0600"
+      },
+      "message": "invalid token 'am'"
+    }
+  ]
+}

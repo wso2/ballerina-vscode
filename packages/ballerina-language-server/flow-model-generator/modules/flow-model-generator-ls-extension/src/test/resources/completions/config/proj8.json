@@ -1,0 +1,87 @@
+{
+  "description": "",
+  "filePath": "proj/main.bal",
+  "context": {
+    "expression": "{}",
+    "startLine": {
+      "line": 3,
+      "offset": 4
+    },
+    "offset": 1,
+    "codedata": {
+      "node": "VARIABLE",
+      "lineRange": {
+        "fileName": "new_data.bal",
+        "startLine": {
+          "line": 1,
+          "offset": 4
+        },
+        "endLine": {
+          "line": 1,
+          "offset": 14
+        }
+      },
+      "sourceCode": "int i = 12;"
+    },
+    "property": {
+      "metadata": {
+        "label": "Expression",
+        "description": "Initialize with value"
+      },
+      "valueType": "EXPRESSION",
+      "valueTypeConstraint": "Location",
+      "value": "",
+      "optional": true,
+      "editable": true,
+      "advanced": false
+    }
+  },
+  "completionContext": {
+    "triggerKind": "Invoked"
+  },
+  "completions": [
+    {
+      "label": "readonly",
+      "kind": "Keyword",
+      "detail": "Keyword",
+      "sortText": "U",
+      "filterText": "readonly",
+      "insertText": "readonly ",
+      "insertTextFormat": "Snippet"
+    },
+    {
+      "label": "Fill Location Required Fields",
+      "kind": "Property",
+      "detail": "Location",
+      "sortText": "R",
+      "filterText": "fill",
+      "insertText": "country: ${1:\"\"},\ncity: ${2:\"\"}",
+      "insertTextFormat": "Snippet"
+    },
+    {
+      "label": "...__reserved__",
+      "kind": "Variable",
+      "detail": "Location",
+      "sortText": "AC",
+      "filterText": "__reserved__",
+      "insertText": "...__reserved__",
+      "insertTextFormat": "Snippet"
+    },
+    {
+      "label": "country",
+      "kind": "Field",
+      "detail": "Location.country",
+      "sortText": "K",
+      "insertText": "country: ${1:\"\"}",
+      "insertTextFormat": "Snippet"
+    },
+    {
+      "label": "city",
+      "kind": "Field",
+      "detail": "Location.city",
+      "sortText": "K",
+      "insertText": "city: ${1:\"\"}",
+      "insertTextFormat": "Snippet"
+    }
+  ]
+}

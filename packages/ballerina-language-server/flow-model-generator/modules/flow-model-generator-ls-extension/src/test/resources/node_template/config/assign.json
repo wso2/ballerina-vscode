@@ -1,0 +1,44 @@
+{
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "ASSIGN"
+  },
+  "output": {
+    "id": "31",
+    "metadata": {
+      "label": "Assign",
+      "description": "Assign a value to a variable"
+    },
+    "codedata": {
+      "node": "ASSIGN",
+      "isNew": true
+    },
+    "returning": false,
+    "properties": {
+      "variable": {
+        "metadata": {
+          "label": "Variable",
+          "description": "Name of the variable/field"
+        },
+        "valueType": "LV_EXPRESSION",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      },
+      "expression": {
+        "metadata": {
+          "label": "Expression",
+          "description": "Assign value"
+        },
+        "valueType": "ACTION_OR_EXPRESSION",
+        "value": "",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      }
+    },
+    "flags": 0
+  }
+}

@@ -1,0 +1,11 @@
+io.ballerina.flowmodelgenerator.extension.FlowModelGeneratorService
+io.ballerina.flowmodelgenerator.extension.ExpressionEditorService
+io.ballerina.flowmodelgenerator.extension.ConfigEditorService
+io.ballerina.flowmodelgenerator.extension.DataMapperService
+io.ballerina.flowmodelgenerator.extension.TypesManagerService
+io.ballerina.flowmodelgenerator.extension.OpenAPIService
+io.ballerina.flowmodelgenerator.extension.JsonToRecordConverterService
+io.ballerina.flowmodelgenerator.extension.XMLToRecordConverterService
+io.ballerina.flowmodelgenerator.extension.InitializerService
+io.ballerina.flowmodelgenerator.extension.ICPEnablerService
+io.ballerina.flowmodelgenerator.extension.AgentsManagerService

@@ -1,0 +1,8 @@
+{
+  "source": "agent_1/agents.bal",
+  "description": "Sample diagram node",
+  "functions": [
+    "fn",
+    "fn2"
+  ]
+}

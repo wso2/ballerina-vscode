@@ -1,0 +1,77 @@
+{
+  "description": "",
+  "filePath": "source.bal",
+  "context": {
+    "expression": "x == y",
+    "startLine": {
+      "line": 13,
+      "offset": 8
+    },
+    "offset": 0,
+    "codedata": {
+      "node": "IF",
+      "lineRange": {
+        "fileName": "if_node.bal",
+        "startLine": {
+          "line": 15,
+          "offset": 8
+        },
+        "endLine": {
+          "line": 20,
+          "offset": 9
+        }
+      },
+      "sourceCode": "if flag {\n            int a = 1;\n        } else {\n            int b = 2;\n            string c = \"12\";\n        }"
+    },
+    "branch": "self.classVar > ",
+    "property": {
+      "metadata": {
+        "label": "Condition",
+        "description": "Boolean Condition"
+      },
+      "valueType": "EXPRESSION",
+      "value": "self.classVar > ",
+      "valueTypeConstraint": "boolean",
+      "placeholder": "true",
+      "optional": false,
+      "editable": true,
+      "advanced": false
+    }
+  },
+  "diagnostics": [
+    {
+      "range": {
+        "start": {
+          "line": 13,
+          "character": 36
+        },
+        "end": {
+          "line": 13,
+          "character": 37
+        }
+      },
+      "severity": "Error",
+      "code": {
+        "left": "BCE2010"
+      },
+      "message": "undefined symbol 'y'"
+    },
+    {
+      "range": {
+        "start": {
+          "line": 13,
+          "character": 31
+        },
+        "end": {
+          "line": 13,
+          "character": 32
+        }
+      },
+      "severity": "Error",
+      "code": {
+        "left": "BCE2010"
+      },
+      "message": "undefined symbol 'x'"
+    }
+  ]
+}

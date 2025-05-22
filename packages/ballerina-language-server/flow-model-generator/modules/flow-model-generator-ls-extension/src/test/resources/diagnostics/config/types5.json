@@ -1,0 +1,67 @@
+{
+  "description": "",
+  "filePath": "source.bal",
+  "context": {
+    "expression": "MyError",
+    "startLine": {
+      "line": 30,
+      "offset": 0
+    },
+    "offset": 2,
+    "codedata": {
+      "node": "REMOTE_ACTION_CALL",
+      "org": "ballerina",
+      "module": "http",
+      "object": "Client",
+      "symbol": "get",
+      "version": "2.13.2",
+      "lineRange": {
+        "fileName": "sample.bal",
+        "startLine": {
+          "line": 6,
+          "offset": 4
+        },
+        "endLine": {
+          "line": 6,
+          "offset": 45
+        }
+      },
+      "sourceCode": "json val = check httpClient->get(\"/foo\");"
+    },
+    "property": {
+      "metadata": {
+        "label": "targetType",
+        "description": "HTTP response, `anydata` or stream of HTTP SSE, which is expected to be returned after data binding"
+      },
+      "valueType": "TYPE",
+      "valueTypeConstraint": "anydata",
+      "placeholder": "json",
+      "optional": true,
+      "editable": true,
+      "advanced": true,
+      "codedata": {
+        "kind": "PARAM_FOR_TYPE_INFER",
+        "originalName": "targetType"
+      }
+    }
+  },
+  "diagnostics": [
+    {
+      "range": {
+        "start": {
+          "line": 30,
+          "character": 0
+        },
+        "end": {
+          "line": 30,
+          "character": 7
+        }
+      },
+      "severity": "Error",
+      "code": {
+        "left": ""
+      },
+      "message": "expected a subtype of 'anydata', but found 'MyError'"
+    }
+  ]
+}

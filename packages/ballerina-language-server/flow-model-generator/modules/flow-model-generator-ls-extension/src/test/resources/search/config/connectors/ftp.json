@@ -1,0 +1,30 @@
+{
+  "description": "Sample flow model",
+  "kind": "CONNECTOR",
+  "source": "empty.bal",
+  "queryMap": {
+    "q": "ftp"
+  },
+  "categories": [
+    {
+      "metadata": {
+        "label": "FTP",
+        "description": "Represents an FTP client that intracts with an FTP server",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ftp_2.13.1.png",
+        "data": {
+          "isAgentSupport": false
+        }
+      },
+      "codedata": {
+        "node": "NEW_CONNECTION",
+        "org": "ballerina",
+        "module": "ftp",
+        "object": "Client",
+        "symbol": "init",
+        "version": "2.13.1",
+        "isGenerated": false
+      },
+      "enabled": true
+    }
+  ]
+}

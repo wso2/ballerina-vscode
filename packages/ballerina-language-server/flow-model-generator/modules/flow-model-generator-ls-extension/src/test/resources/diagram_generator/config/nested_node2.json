@@ -1,0 +1,1267 @@
+{
+  "start": {
+    "line": 11,
+    "offset": 4
+  },
+  "end": {
+    "line": 20,
+    "offset": 5
+  },
+  "source": "nested_node.bal",
+  "description": "Tests a diagram flow with nested nodes",
+  "diagram": {
+    "fileName": "nested_node.bal",
+    "nodes": [
+      {
+        "id": "44924",
+        "metadata": {
+          "label": "Start",
+          "data": {
+            "parameters": [
+              "boolean isKandy"
+            ],
+            "return": "error?"
+          }
+        },
+        "codedata": {
+          "node": "EVENT_START",
+          "lineRange": {
+            "fileName": "nested_node.bal",
+            "startLine": {
+              "line": 11,
+              "offset": 64
+            },
+            "endLine": {
+              "line": 20,
+              "offset": 5
+            }
+          },
+          "sourceCode": "resource function get path2(boolean isKandy) returns error? {\n        transaction {\n            if isKandy {\n                json j = check asiri->get(path = \"/doctors/kandy\");\n            } else {\n                json j = check asiri->get(path = \"/doctors/colombo\");\n            }\n            error? unionResult = commit;\n        }\n    }"
+        },
+        "returning": false,
+        "flags": 0
+      },
+      {
+        "id": "44122",
+        "metadata": {
+          "label": "Transaction",
+          "description": "Handle transaction."
+        },
+        "codedata": {
+          "node": "TRANSACTION",
+          "lineRange": {
+            "fileName": "nested_node.bal",
+            "startLine": {
+              "line": 12,
+              "offset": 8
+            },
+            "endLine": {
+              "line": 19,
+              "offset": 9
+            }
+          },
+          "sourceCode": "transaction {\n            if isKandy {\n                json j = check asiri->get(path = \"/doctors/kandy\");\n            } else {\n                json j = check asiri->get(path = \"/doctors/colombo\");\n            }\n            error? unionResult = commit;\n        }"
+        },
+        "returning": false,
+        "branches": [
+          {
+            "label": "Body",
+            "kind": "BLOCK",
+            "codedata": {
+              "node": "BODY",
+              "lineRange": {
+                "fileName": "nested_node.bal",
+                "startLine": {
+                  "line": 12,
+                  "offset": 20
+                },
+                "endLine": {
+                  "line": 19,
+                  "offset": 9
+                }
+              },
+              "sourceCode": "{\n            if isKandy {\n                json j = check asiri->get(path = \"/doctors/kandy\");\n            } else {\n                json j = check asiri->get(path = \"/doctors/colombo\");\n            }\n            error? unionResult = commit;\n        }"
+            },
+            "repeatable": "ONE",
+            "children": [
+              {
+                "id": "45149",
+                "metadata": {
+                  "label": "If",
+                  "description": "Add conditional branch to the integration flow."
+                },
+                "codedata": {
+                  "node": "IF",
+                  "lineRange": {
+                    "fileName": "nested_node.bal",
+                    "startLine": {
+                      "line": 13,
+                      "offset": 12
+                    },
+                    "endLine": {
+                      "line": 17,
+                      "offset": 13
+                    }
+                  },
+                  "sourceCode": "if isKandy {\n                json j = check asiri->get(path = \"/doctors/kandy\");\n            } else {\n                json j = check asiri->get(path = \"/doctors/colombo\");\n            }"
+                },
+                "returning": false,
+                "branches": [
+                  {
+                    "label": "Then",
+                    "kind": "BLOCK",
+                    "codedata": {
+                      "node": "CONDITIONAL",
+                      "lineRange": {
+                        "fileName": "nested_node.bal",
+                        "startLine": {
+                          "line": 13,
+                          "offset": 23
+                        },
+                        "endLine": {
+                          "line": 15,
+                          "offset": 13
+                        }
+                      },
+                      "sourceCode": "{\n                json j = check asiri->get(path = \"/doctors/kandy\");\n            }"
+                    },
+                    "repeatable": "ONE_OR_MORE",
+                    "properties": {
+                      "condition": {
+                        "metadata": {
+                          "label": "Condition",
+                          "description": "Boolean Condition"
+                        },
+                        "valueType": "EXPRESSION",
+                        "value": "isKandy ",
+                        "placeholder": "true",
+                        "optional": false,
+                        "editable": true,
+                        "advanced": false,
+                        "hidden": false
+                      }
+                    },
+                    "children": [
+                      {
+                        "id": "46195",
+                        "metadata": {
+                          "label": "get",
+                          "description": "The `Client.get()` function can be used to send HTTP GET requests to HTTP endpoints.\n",
+                          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.14.0.png"
+                        },
+                        "codedata": {
+                          "node": "REMOTE_ACTION_CALL",
+                          "org": "ballerina",
+                          "module": "http",
+                          "object": "Client",
+                          "symbol": "get",
+                          "version": "2.14.0",
+                          "lineRange": {
+                            "fileName": "nested_node.bal",
+                            "startLine": {
+                              "line": 14,
+                              "offset": 16
+                            },
+                            "endLine": {
+                              "line": 14,
+                              "offset": 67
+                            }
+                          },
+                          "sourceCode": "json j = check asiri->get(path = \"/doctors/kandy\");",
+                          "inferredReturnType": "targetType"
+                        },
+                        "returning": false,
+                        "properties": {
+                          "connection": {
+                            "metadata": {
+                              "label": "Connection",
+                              "description": "Connection to use"
+                            },
+                            "valueType": "EXPRESSION",
+                            "value": "asiri",
+                            "optional": false,
+                            "editable": false,
+                            "advanced": false,
+                            "hidden": false
+                          },
+                          "targetType": {
+                            "metadata": {
+                              "label": "targetType",
+                              "description": "HTTP response, `anydata` or stream of HTTP SSE, which is expected to be returned after data binding"
+                            },
+                            "valueType": "TYPE",
+                            "valueTypeConstraint": "anydata",
+                            "value": "json",
+                            "placeholder": "anydata",
+                            "optional": false,
+                            "editable": true,
+                            "advanced": false,
+                            "hidden": false,
+                            "codedata": {
+                              "kind": "PARAM_FOR_TYPE_INFER",
+                              "originalName": "targetType"
+                            }
+                          },
+                          "path": {
+                            "metadata": {
+                              "label": "path",
+                              "description": "Request path"
+                            },
+                            "valueType": "EXPRESSION",
+                            "valueTypeConstraint": "string",
+                            "value": "\"/doctors/kandy\"",
+                            "placeholder": "\"\"",
+                            "optional": false,
+                            "editable": true,
+                            "advanced": false,
+                            "hidden": false,
+                            "codedata": {
+                              "kind": "REQUIRED",
+                              "originalName": "path"
+                            },
+                            "typeMembers": [
+                              {
+                                "type": "string",
+                                "packageInfo": "",
+                                "kind": "BASIC_TYPE",
+                                "selected": true
+                              }
+                            ]
+                          },
+                          "headers": {
+                            "metadata": {
+                              "label": "headers",
+                              "description": "The entity headers"
+                            },
+                            "valueType": "EXPRESSION",
+                            "valueTypeConstraint": "map<string|string[]>|()",
+                            "placeholder": "()",
+                            "optional": true,
+                            "editable": true,
+                            "advanced": true,
+                            "hidden": false,
+                            "codedata": {
+                              "kind": "DEFAULTABLE",
+                              "originalName": "headers"
+                            },
+                            "typeMembers": [
+                              {
+                                "type": "()",
+                                "packageInfo": "",
+                                "kind": "BASIC_TYPE",
+                                "selected": false
+                              },
+                              {
+                                "type": "map<string|string[]>",
+                                "packageInfo": "",
+                                "kind": "MAP_TYPE",
+                                "selected": false
+                              }
+                            ]
+                          },
+                          "checkError": {
+                            "metadata": {
+                              "label": "Check Error",
+                              "description": "Trigger error flow"
+                            },
+                            "valueType": "FLAG",
+                            "value": true,
+                            "optional": false,
+                            "editable": true,
+                            "advanced": true,
+                            "hidden": false
+                          },
+                          "variable": {
+                            "metadata": {
+                              "label": "Variable Name",
+                              "description": "Name of the variable"
+                            },
+                            "valueType": "IDENTIFIER",
+                            "value": "j",
+                            "optional": false,
+                            "editable": false,
+                            "advanced": false,
+                            "hidden": false,
+                            "codedata": {
+                              "lineRange": {
+                                "fileName": "nested_node.bal",
+                                "startLine": {
+                                  "line": 14,
+                                  "offset": 21
+                                },
+                                "endLine": {
+                                  "line": 14,
+                                  "offset": 22
+                                }
+                              }
+                            }
+                          },
+                          "type": {
+                            "metadata": {
+                              "label": "Variable Type",
+                              "description": "Type of the variable"
+                            },
+                            "valueType": "TYPE",
+                            "value": "json",
+                            "placeholder": "var",
+                            "optional": false,
+                            "editable": false,
+                            "advanced": false,
+                            "hidden": false,
+                            "codedata": {}
+                          }
+                        },
+                        "flags": 1
+                      }
+                    ]
+                  },
+                  {
+                    "label": "Else",
+                    "kind": "BLOCK",
+                    "codedata": {
+                      "node": "ELSE",
+                      "lineRange": {
+                        "fileName": "nested_node.bal",
+                        "startLine": {
+                          "line": 15,
+                          "offset": 19
+                        },
+                        "endLine": {
+                          "line": 17,
+                          "offset": 13
+                        }
+                      },
+                      "sourceCode": "{\n                json j = check asiri->get(path = \"/doctors/colombo\");\n            }"
+                    },
+                    "repeatable": "ZERO_OR_ONE",
+                    "children": [
+                      {
+                        "id": "48181",
+                        "metadata": {
+                          "label": "get",
+                          "description": "The `Client.get()` function can be used to send HTTP GET requests to HTTP endpoints.\n",
+                          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.14.0.png"
+                        },
+                        "codedata": {
+                          "node": "REMOTE_ACTION_CALL",
+                          "org": "ballerina",
+                          "module": "http",
+                          "object": "Client",
+                          "symbol": "get",
+                          "version": "2.14.0",
+                          "lineRange": {
+                            "fileName": "nested_node.bal",
+                            "startLine": {
+                              "line": 16,
+                              "offset": 16
+                            },
+                            "endLine": {
+                              "line": 16,
+                              "offset": 69
+                            }
+                          },
+                          "sourceCode": "json j = check asiri->get(path = \"/doctors/colombo\");",
+                          "inferredReturnType": "targetType"
+                        },
+                        "returning": false,
+                        "properties": {
+                          "connection": {
+                            "metadata": {
+                              "label": "Connection",
+                              "description": "Connection to use"
+                            },
+                            "valueType": "EXPRESSION",
+                            "value": "asiri",
+                            "optional": false,
+                            "editable": false,
+                            "advanced": false,
+                            "hidden": false
+                          },
+                          "targetType": {
+                            "metadata": {
+                              "label": "targetType",
+                              "description": "HTTP response, `anydata` or stream of HTTP SSE, which is expected to be returned after data binding"
+                            },
+                            "valueType": "TYPE",
+                            "valueTypeConstraint": "anydata",
+                            "value": "json",
+                            "placeholder": "anydata",
+                            "optional": false,
+                            "editable": true,
+                            "advanced": false,
+                            "hidden": false,
+                            "codedata": {
+                              "kind": "PARAM_FOR_TYPE_INFER",
+                              "originalName": "targetType"
+                            }
+                          },
+                          "path": {
+                            "metadata": {
+                              "label": "path",
+                              "description": "Request path"
+                            },
+                            "valueType": "EXPRESSION",
+                            "valueTypeConstraint": "string",
+                            "value": "\"/doctors/colombo\"",
+                            "placeholder": "\"\"",
+                            "optional": false,
+                            "editable": true,
+                            "advanced": false,
+                            "hidden": false,
+                            "codedata": {
+                              "kind": "REQUIRED",
+                              "originalName": "path"
+                            },
+                            "typeMembers": [
+                              {
+                                "type": "string",
+                                "packageInfo": "",
+                                "kind": "BASIC_TYPE",
+                                "selected": true
+                              }
+                            ]
+                          },
+                          "headers": {
+                            "metadata": {
+                              "label": "headers",
+                              "description": "The entity headers"
+                            },
+                            "valueType": "EXPRESSION",
+                            "valueTypeConstraint": "map<string|string[]>|()",
+                            "placeholder": "()",
+                            "optional": true,
+                            "editable": true,
+                            "advanced": true,
+                            "hidden": false,
+                            "codedata": {
+                              "kind": "DEFAULTABLE",
+                              "originalName": "headers"
+                            },
+                            "typeMembers": [
+                              {
+                                "type": "()",
+                                "packageInfo": "",
+                                "kind": "BASIC_TYPE",
+                                "selected": false
+                              },
+                              {
+                                "type": "map<string|string[]>",
+                                "packageInfo": "",
+                                "kind": "MAP_TYPE",
+                                "selected": false
+                              }
+                            ]
+                          },
+                          "checkError": {
+                            "metadata": {
+                              "label": "Check Error",
+                              "description": "Trigger error flow"
+                            },
+                            "valueType": "FLAG",
+                            "value": true,
+                            "optional": false,
+                            "editable": true,
+                            "advanced": true,
+                            "hidden": false
+                          },
+                          "variable": {
+                            "metadata": {
+                              "label": "Variable Name",
+                              "description": "Name of the variable"
+                            },
+                            "valueType": "IDENTIFIER",
+                            "value": "j",
+                            "optional": false,
+                            "editable": false,
+                            "advanced": false,
+                            "hidden": false,
+                            "codedata": {
+                              "lineRange": {
+                                "fileName": "nested_node.bal",
+                                "startLine": {
+                                  "line": 16,
+                                  "offset": 21
+                                },
+                                "endLine": {
+                                  "line": 16,
+                                  "offset": 22
+                                }
+                              }
+                            }
+                          },
+                          "type": {
+                            "metadata": {
+                              "label": "Variable Type",
+                              "description": "Type of the variable"
+                            },
+                            "valueType": "TYPE",
+                            "value": "json",
+                            "placeholder": "var",
+                            "optional": false,
+                            "editable": false,
+                            "advanced": false,
+                            "hidden": false,
+                            "codedata": {}
+                          }
+                        },
+                        "flags": 1
+                      }
+                    ]
+                  }
+                ],
+                "flags": 0
+              },
+              {
+                "id": "50012",
+                "metadata": {
+                  "label": "Commit",
+                  "description": "Commit transaction"
+                },
+                "codedata": {
+                  "node": "COMMIT",
+                  "lineRange": {
+                    "fileName": "nested_node.bal",
+                    "startLine": {
+                      "line": 18,
+                      "offset": 12
+                    },
+                    "endLine": {
+                      "line": 18,
+                      "offset": 40
+                    }
+                  },
+                  "sourceCode": "error? unionResult = commit;"
+                },
+                "returning": false,
+                "properties": {
+                  "variable": {
+                    "metadata": {
+                      "label": "Variable Name",
+                      "description": "Name of the variable"
+                    },
+                    "valueType": "IDENTIFIER",
+                    "value": "unionResult",
+                    "optional": false,
+                    "editable": false,
+                    "advanced": false,
+                    "hidden": false,
+                    "codedata": {
+                      "lineRange": {
+                        "fileName": "nested_node.bal",
+                        "startLine": {
+                          "line": 18,
+                          "offset": 19
+                        },
+                        "endLine": {
+                          "line": 18,
+                          "offset": 30
+                        }
+                      }
+                    }
+                  },
+                  "type": {
+                    "metadata": {
+                      "label": "Variable Type",
+                      "description": "Type of the variable"
+                    },
+                    "valueType": "TYPE",
+                    "value": "()",
+                    "placeholder": "var",
+                    "optional": false,
+                    "editable": true,
+                    "advanced": false,
+                    "hidden": false,
+                    "codedata": {}
+                  }
+                },
+                "flags": 0
+              }
+            ]
+          }
+        ],
+        "flags": 0
+      }
+    ],
+    "connections": [
+      {
+        "id": "33790",
+        "metadata": {
+          "label": "New Connection",
+          "description": "The HTTP client provides the capability for initiating contact with a remote HTTP service. The API it\nprovides includes the functions for the standard HTTP methods forwarding a received request and sending requests\nusing custom HTTP verbs.",
+          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.14.0.png"
+        },
+        "codedata": {
+          "node": "NEW_CONNECTION",
+          "org": "ballerina",
+          "module": "http",
+          "object": "Client",
+          "symbol": "init",
+          "lineRange": {
+            "fileName": "nested_node.bal",
+            "startLine": {
+              "line": 2,
+              "offset": 0
+            },
+            "endLine": {
+              "line": 2,
+              "offset": 62
+            }
+          },
+          "sourceCode": "final http:Client asiri = check new (\"http://localhost:9090\");"
+        },
+        "returning": false,
+        "properties": {
+          "url": {
+            "metadata": {
+              "label": "url",
+              "description": "URL of the target service"
+            },
+            "valueType": "EXPRESSION",
+            "valueTypeConstraint": "string",
+            "value": "\"http://localhost:9090\"",
+            "placeholder": "\"\"",
+            "optional": false,
+            "editable": true,
+            "advanced": false,
+            "hidden": false,
+            "codedata": {
+              "kind": "REQUIRED",
+              "originalName": "url"
+            },
+            "typeMembers": [
+              {
+                "type": "string",
+                "packageInfo": "",
+                "kind": "BASIC_TYPE",
+                "selected": true
+              }
+            ]
+          },
+          "httpVersion": {
+            "metadata": {
+              "label": "httpVersion",
+              "description": "The HTTP version understood by the client"
+            },
+            "valueType": "EXPRESSION",
+            "valueTypeConstraint": "http:HttpVersion",
+            "placeholder": "\"2.0\"",
+            "optional": true,
+            "editable": true,
+            "advanced": true,
+            "hidden": false,
+            "codedata": {
+              "kind": "INCLUDED_FIELD",
+              "originalName": "httpVersion"
+            },
+            "typeMembers": [
+              {
+                "type": "HttpVersion",
+                "packageInfo": "ballerina:http:2.14.0",
+                "kind": "BASIC_TYPE",
+                "selected": false
+              }
+            ]
+          },
+          "http1Settings": {
+            "metadata": {
+              "label": "http1Settings",
+              "description": "Configurations related to HTTP/1.x protocol"
+            },
+            "valueType": "EXPRESSION",
+            "valueTypeConstraint": "http:ClientHttp1Settings",
+            "placeholder": "{}",
+            "optional": true,
+            "editable": true,
+            "advanced": true,
+            "hidden": false,
+            "codedata": {
+              "kind": "INCLUDED_FIELD",
+              "originalName": "http1Settings"
+            },
+            "typeMembers": [
+              {
+                "type": "ClientHttp1Settings",
+                "packageInfo": "ballerina:http:2.14.0",
+                "kind": "RECORD_TYPE",
+                "selected": false
+              }
+            ]
+          },
+          "http2Settings": {
+            "metadata": {
+              "label": "http2Settings",
+              "description": "Configurations related to HTTP/2 protocol"
+            },
+            "valueType": "EXPRESSION",
+            "valueTypeConstraint": "http:ClientHttp2Settings",
+            "placeholder": "{}",
+            "optional": true,
+            "editable": true,
+            "advanced": true,
+            "hidden": false,
+            "codedata": {
+              "kind": "INCLUDED_FIELD",
+              "originalName": "http2Settings"
+            },
+            "typeMembers": [
+              {
+                "type": "ClientHttp2Settings",
+                "packageInfo": "ballerina:http:2.14.0",
+                "kind": "RECORD_TYPE",
+                "selected": false
+              }
+            ]
+          },
+          "timeout": {
+            "metadata": {
+              "label": "timeout",
+              "description": "The maximum time to wait (in seconds) for a response before closing the connection"
+            },
+            "valueType": "EXPRESSION",
+            "valueTypeConstraint": "decimal",
+            "placeholder": "0.0d",
+            "optional": true,
+            "editable": true,
+            "advanced": true,
+            "hidden": false,
+            "codedata": {
+              "kind": "INCLUDED_FIELD",
+              "originalName": "timeout"
+            },
+            "typeMembers": [
+              {
+                "type": "decimal",
+                "packageInfo": "",
+                "kind": "BASIC_TYPE",
+                "selected": false
+              }
+            ]
+          },
+          "forwarded": {
+            "metadata": {
+              "label": "forwarded",
+              "description": "The choice of setting `forwarded`/`x-forwarded` header"
+            },
+            "valueType": "EXPRESSION",
+            "valueTypeConstraint": "string",
+            "placeholder": "\"\"",
+            "optional": true,
+            "editable": true,
+            "advanced": true,
+            "hidden": false,
+            "codedata": {
+              "kind": "INCLUDED_FIELD",
+              "originalName": "forwarded"
+            },
+            "typeMembers": [
+              {
+                "type": "string",
+                "packageInfo": "",
+                "kind": "BASIC_TYPE",
+                "selected": false
+              }
+            ]
+          },
+          "followRedirects": {
+            "metadata": {
+              "label": "followRedirects",
+              "description": "Configurations associated with Redirection"
+            },
+            "valueType": "EXPRESSION",
+            "valueTypeConstraint": "http:FollowRedirects|()",
+            "placeholder": "()",
+            "optional": true,
+            "editable": true,
+            "advanced": true,
+            "hidden": false,
+            "codedata": {
+              "kind": "INCLUDED_FIELD",
+              "originalName": "followRedirects"
+            },
+            "typeMembers": [
+              {
+                "type": "FollowRedirects",
+                "packageInfo": "ballerina:http:2.14.0",
+                "kind": "RECORD_TYPE",
+                "selected": false
+              },
+              {
+                "type": "()",
+                "packageInfo": "",
+                "kind": "BASIC_TYPE",
+                "selected": false
+              }
+            ]
+          },
+          "poolConfig": {
+            "metadata": {
+              "label": "poolConfig",
+              "description": "Configurations associated with request pooling"
+            },
+            "valueType": "EXPRESSION",
+            "valueTypeConstraint": "http:PoolConfiguration|()",
+            "placeholder": "()",
+            "optional": true,
+            "editable": true,
+            "advanced": true,
+            "hidden": false,
+            "codedata": {
+              "kind": "INCLUDED_FIELD",
+              "originalName": "poolConfig"
+            },
+            "typeMembers": [
+              {
+                "type": "PoolConfiguration",
+                "packageInfo": "ballerina:http:2.14.0",
+                "kind": "RECORD_TYPE",
+                "selected": false
+              },
+              {
+                "type": "()",
+                "packageInfo": "",
+                "kind": "BASIC_TYPE",
+                "selected": false
+              }
+            ]
+          },
+          "cache": {
+            "metadata": {
+              "label": "cache",
+              "description": "HTTP caching related configurations"
+            },
+            "valueType": "EXPRESSION",
+            "valueTypeConstraint": "http:CacheConfig",
+            "placeholder": "{}",
+            "optional": true,
+            "editable": true,
+            "advanced": true,
+            "hidden": false,
+            "codedata": {
+              "kind": "INCLUDED_FIELD",
+              "originalName": "cache"
+            },
+            "typeMembers": [
+              {
+                "type": "CacheConfig",
+                "packageInfo": "ballerina:http:2.14.0",
+                "kind": "RECORD_TYPE",
+                "selected": false
+              }
+            ]
+          },
+          "compression": {
+            "metadata": {
+              "label": "compression",
+              "description": "Specifies the way of handling compression (`accept-encoding`) header"
+            },
+            "valueType": "EXPRESSION",
+            "valueTypeConstraint": "http:Compression",
+            "placeholder": "\"AUTO\"",
+            "optional": true,
+            "editable": true,
+            "advanced": true,
+            "hidden": false,
+            "codedata": {
+              "kind": "INCLUDED_FIELD",
+              "originalName": "compression"
+            },
+            "typeMembers": [
+              {
+                "type": "Compression",
+                "packageInfo": "ballerina:http:2.14.0",
+                "kind": "BASIC_TYPE",
+                "selected": false
+              }
+            ]
+          },
+          "auth": {
+            "metadata": {
+              "label": "auth",
+              "description": "Configurations related to client authentication"
+            },
+            "valueType": "EXPRESSION",
+            "valueTypeConstraint": "http:CredentialsConfig|http:BearerTokenConfig|http:JwtIssuerConfig|http:OAuth2ClientCredentialsGrantConfig|http:OAuth2PasswordGrantConfig|http:OAuth2RefreshTokenGrantConfig|http:OAuth2JwtBearerGrantConfig|()",
+            "placeholder": "()",
+            "optional": true,
+            "editable": true,
+            "advanced": true,
+            "hidden": false,
+            "codedata": {
+              "kind": "INCLUDED_FIELD",
+              "originalName": "auth"
+            },
+            "typeMembers": [
+              {
+                "type": "CredentialsConfig",
+                "packageInfo": "ballerina:http:2.14.0",
+                "kind": "RECORD_TYPE",
+                "selected": false
+              },
+              {
+                "type": "BearerTokenConfig",
+                "packageInfo": "ballerina:http:2.14.0",
+                "kind": "RECORD_TYPE",
+                "selected": false
+              },
+              {
+                "type": "JwtIssuerConfig",
+                "packageInfo": "ballerina:http:2.14.0",
+                "kind": "RECORD_TYPE",
+                "selected": false
+              },
+              {
+                "type": "OAuth2ClientCredentialsGrantConfig",
+                "packageInfo": "ballerina:http:2.14.0",
+                "kind": "RECORD_TYPE",
+                "selected": false
+              },
+              {
+                "type": "OAuth2PasswordGrantConfig",
+                "packageInfo": "ballerina:http:2.14.0",
+                "kind": "RECORD_TYPE",
+                "selected": false
+              },
+              {
+                "type": "OAuth2RefreshTokenGrantConfig",
+                "packageInfo": "ballerina:http:2.14.0",
+                "kind": "RECORD_TYPE",
+                "selected": false
+              },
+              {
+                "type": "OAuth2JwtBearerGrantConfig",
+                "packageInfo": "ballerina:http:2.14.0",
+                "kind": "RECORD_TYPE",
+                "selected": false
+              },
+              {
+                "type": "()",
+                "packageInfo": "",
+                "kind": "BASIC_TYPE",
+                "selected": false
+              }
+            ]
+          },
+          "circuitBreaker": {
+            "metadata": {
+              "label": "circuitBreaker",
+              "description": "Configurations associated with the behaviour of the Circuit Breaker"
+            },
+            "valueType": "EXPRESSION",
+            "valueTypeConstraint": "http:CircuitBreakerConfig|()",
+            "placeholder": "()",
+            "optional": true,
+            "editable": true,
+            "advanced": true,
+            "hidden": false,
+            "codedata": {
+              "kind": "INCLUDED_FIELD",
+              "originalName": "circuitBreaker"
+            },
+            "typeMembers": [
+              {
+                "type": "CircuitBreakerConfig",
+                "packageInfo": "ballerina:http:2.14.0",
+                "kind": "RECORD_TYPE",
+                "selected": false
+              },
+              {
+                "type": "()",
+                "packageInfo": "",
+                "kind": "BASIC_TYPE",
+                "selected": false
+              }
+            ]
+          },
+          "retryConfig": {
+            "metadata": {
+              "label": "retryConfig",
+              "description": "Configurations associated with retrying"
+            },
+            "valueType": "EXPRESSION",
+            "valueTypeConstraint": "http:RetryConfig|()",
+            "placeholder": "()",
+            "optional": true,
+            "editable": true,
+            "advanced": true,
+            "hidden": false,
+            "codedata": {
+              "kind": "INCLUDED_FIELD",
+              "originalName": "retryConfig"
+            },
+            "typeMembers": [
+              {
+                "type": "RetryConfig",
+                "packageInfo": "ballerina:http:2.14.0",
+                "kind": "RECORD_TYPE",
+                "selected": false
+              },
+              {
+                "type": "()",
+                "packageInfo": "",
+                "kind": "BASIC_TYPE",
+                "selected": false
+              }
+            ]
+          },
+          "cookieConfig": {
+            "metadata": {
+              "label": "cookieConfig",
+              "description": "Configurations associated with cookies"
+            },
+            "valueType": "EXPRESSION",
+            "valueTypeConstraint": "http:CookieConfig|()",
+            "placeholder": "()",
+            "optional": true,
+            "editable": true,
+            "advanced": true,
+            "hidden": false,
+            "codedata": {
+              "kind": "INCLUDED_FIELD",
+              "originalName": "cookieConfig"
+            },
+            "typeMembers": [
+              {
+                "type": "CookieConfig",
+                "packageInfo": "ballerina:http:2.14.0",
+                "kind": "RECORD_TYPE",
+                "selected": false
+              },
+              {
+                "type": "()",
+                "packageInfo": "",
+                "kind": "BASIC_TYPE",
+                "selected": false
+              }
+            ]
+          },
+          "responseLimits": {
+            "metadata": {
+              "label": "responseLimits",
+              "description": "Configurations associated with inbound response size limits"
+            },
+            "valueType": "EXPRESSION",
+            "valueTypeConstraint": "http:ResponseLimitConfigs",
+            "placeholder": "{}",
+            "optional": true,
+            "editable": true,
+            "advanced": true,
+            "hidden": false,
+            "codedata": {
+              "kind": "INCLUDED_FIELD",
+              "originalName": "responseLimits"
+            },
+            "typeMembers": [
+              {
+                "type": "ResponseLimitConfigs",
+                "packageInfo": "ballerina:http:2.14.0",
+                "kind": "RECORD_TYPE",
+                "selected": false
+              }
+            ]
+          },
+          "proxy": {
+            "metadata": {
+              "label": "proxy",
+              "description": "Proxy server related options"
+            },
+            "valueType": "EXPRESSION",
+            "valueTypeConstraint": "http:ProxyConfig|()",
+            "placeholder": "()",
+            "optional": true,
+            "editable": true,
+            "advanced": true,
+            "hidden": false,
+            "codedata": {
+              "kind": "INCLUDED_FIELD",
+              "originalName": "proxy"
+            },
+            "typeMembers": [
+              {
+                "type": "ProxyConfig",
+                "packageInfo": "ballerina:http:2.14.0",
+                "kind": "RECORD_TYPE",
+                "selected": false
+              },
+              {
+                "type": "()",
+                "packageInfo": "",
+                "kind": "BASIC_TYPE",
+                "selected": false
+              }
+            ]
+          },
+          "validation": {
+            "metadata": {
+              "label": "validation",
+              "description": "Enables the inbound payload validation functionalty which provided by the constraint package. Enabled by default"
+            },
+            "valueType": "EXPRESSION",
+            "valueTypeConstraint": "boolean",
+            "placeholder": "false",
+            "optional": true,
+            "editable": true,
+            "advanced": true,
+            "hidden": false,
+            "codedata": {
+              "kind": "INCLUDED_FIELD",
+              "originalName": "validation"
+            },
+            "typeMembers": [
+              {
+                "type": "boolean",
+                "packageInfo": "",
+                "kind": "BASIC_TYPE",
+                "selected": false
+              }
+            ]
+          },
+          "socketConfig": {
+            "metadata": {
+              "label": "socketConfig",
+              "description": "Provides settings related to client socket configuration"
+            },
+            "valueType": "EXPRESSION",
+            "valueTypeConstraint": "http:ClientSocketConfig",
+            "placeholder": "{}",
+            "optional": true,
+            "editable": true,
+            "advanced": true,
+            "hidden": false,
+            "codedata": {
+              "kind": "INCLUDED_FIELD",
+              "originalName": "socketConfig"
+            },
+            "typeMembers": [
+              {
+                "type": "ClientSocketConfig",
+                "packageInfo": "ballerina:http:2.14.0",
+                "kind": "RECORD_TYPE",
+                "selected": false
+              }
+            ]
+          },
+          "laxDataBinding": {
+            "metadata": {
+              "label": "laxDataBinding",
+              "description": "Enables or disables relaxed data binding on the client side. Disabled by default.\nWhen enabled, the JSON data will be projected to the Ballerina record type and\nduring the projection, nil values will be considered as optional fields and\nabsent fields will be considered for nilable types"
+            },
+            "valueType": "EXPRESSION",
+            "valueTypeConstraint": "boolean",
+            "placeholder": "false",
+            "optional": true,
+            "editable": true,
+            "advanced": true,
+            "hidden": false,
+            "codedata": {
+              "kind": "INCLUDED_FIELD",
+              "originalName": "laxDataBinding"
+            },
+            "typeMembers": [
+              {
+                "type": "boolean",
+                "packageInfo": "",
+                "kind": "BASIC_TYPE",
+                "selected": false
+              }
+            ]
+          },
+          "secureSocket": {
+            "metadata": {
+              "label": "secureSocket",
+              "description": "SSL/TLS-related options"
+            },
+            "valueType": "EXPRESSION",
+            "valueTypeConstraint": "http:ClientSecureSocket|()",
+            "placeholder": "()",
+            "optional": true,
+            "editable": true,
+            "advanced": true,
+            "hidden": false,
+            "codedata": {
+              "kind": "INCLUDED_FIELD",
+              "originalName": "secureSocket"
+            },
+            "typeMembers": [
+              {
+                "type": "ClientSecureSocket",
+                "packageInfo": "ballerina:http:2.14.0",
+                "kind": "RECORD_TYPE",
+                "selected": false
+              },
+              {
+                "type": "()",
+                "packageInfo": "",
+                "kind": "BASIC_TYPE",
+                "selected": false
+              }
+            ]
+          },
+          "checkError": {
+            "metadata": {
+              "label": "Check Error",
+              "description": "Terminate on error"
+            },
+            "valueType": "FLAG",
+            "value": true,
+            "optional": false,
+            "editable": false,
+            "advanced": true,
+            "hidden": false
+          },
+          "scope": {
+            "metadata": {
+              "label": "Connection Scope",
+              "description": "Scope of the connection, Global or Local"
+            },
+            "valueType": "ENUM",
+            "value": "Global",
+            "optional": false,
+            "editable": true,
+            "advanced": true,
+            "hidden": false
+          },
+          "variable": {
+            "metadata": {
+              "label": "Connection Name",
+              "description": "Name of the variable"
+            },
+            "valueType": "IDENTIFIER",
+            "value": "asiri",
+            "optional": false,
+            "editable": false,
+            "advanced": false,
+            "hidden": false,
+            "codedata": {
+              "lineRange": {
+                "fileName": "nested_node.bal",
+                "startLine": {
+                  "line": 2,
+                  "offset": 18
+                },
+                "endLine": {
+                  "line": 2,
+                  "offset": 23
+                }
+              }
+            }
+          },
+          "type": {
+            "metadata": {
+              "label": "Connection Type",
+              "description": "Type of the variable"
+            },
+            "valueType": "TYPE",
+            "value": "http:Client",
+            "placeholder": "var",
+            "optional": false,
+            "editable": false,
+            "advanced": false,
+            "hidden": false,
+            "codedata": {}
+          }
+        },
+        "flags": 1
+      }
+    ]
+  }
+}
