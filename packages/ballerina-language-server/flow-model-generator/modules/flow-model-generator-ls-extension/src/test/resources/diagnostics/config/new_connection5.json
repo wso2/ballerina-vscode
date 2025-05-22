@@ -1,0 +1,49 @@
+{
+  "description": "",
+  "filePath": "source.bal",
+  "context": {
+    "expression": "{}",
+    "startLine": {
+      "line": 0,
+      "offset": 0
+    },
+    "offset": 1,
+    "codedata": {
+      "node": "NEW_CONNECTION",
+      "org": "ballerinax",
+      "module": "snowflake",
+      "object": "Client",
+      "symbol": "init",
+      "version": "2.0.0",
+      "lineRange": {
+        "fileName": "connections.bal",
+        "startLine": {
+          "line": 4,
+          "offset": 0
+        },
+        "endLine": {
+          "line": 4,
+          "offset": 64
+        }
+      },
+      "sourceCode": "final snowflake:Client snowflakeClient = check new (\"\", \"\", \"\");"
+    },
+    "property": {
+      "metadata": {
+        "label": "options",
+        "description": "The Snowflake client properties"
+      },
+      "valueType": "EXPRESSION",
+      "valueTypeConstraint": "snowflake:Options|()",
+      "placeholder": "()",
+      "optional": true,
+      "editable": true,
+      "advanced": true,
+      "codedata": {
+        "kind": "DEFAULTABLE",
+        "originalName": "options"
+      }
+    }
+  },
+  "diagnostics": []
+}

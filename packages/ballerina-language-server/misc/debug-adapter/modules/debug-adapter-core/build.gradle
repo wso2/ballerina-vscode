@@ -1,0 +1,70 @@
+plugins {
+    id 'javaProjectWithExtBala'
+}
+
+repositories {
+    mavenCentral()
+}
+
+configurations {
+    dist {
+        transitive false
+    }
+    dependency {
+        transitive false
+    }
+    lib
+}
+
+dependencies {
+    implementation project(':ballerina-lang')
+    implementation project(':ballerina-parser')
+    implementation project(':ballerina-tools-api')
+    implementation project(':ballerina-runtime')
+    implementation project(':identifier-util')
+    implementation libs.eclipse.lsp4j.debug
+    implementation libs.eclipse.lsp4j.jsonrpc
+    implementation libs.eclipse.lsp4j.jsonrpc.debug
+    implementation libs.zafarkhaja.jsemver
+    implementation libs.commons.io
+    implementation libs.apache.commons.lang3
+
+    dependency libs.eclipse.lsp4j.debug
+    dependency libs.eclipse.lsp4j.jsonrpc
+    dependency libs.eclipse.lsp4j.jsonrpc.debug
+    dependency libs.zafarkhaja.jsemver
+    dependency libs.commons.io
+}
+
+tasks.register('createZip', Zip) {
+    dependsOn createBalHome
+}
+
+artifacts {
+    dist file: file(createZip.archiveFile), builtBy: createZip
+    lib configurations.dependency.files
+}
+
+compileJava {
+    doFirst {
+        options.compilerArgs << '--module-path' << classpath.asPath
+        classpath = files()
+    }
+}
+
+javadoc {
+    doFirst {
+        options.modulePath = classpath.toList()
+        classpath = files()
+    }
+}
+
+test {
+    useTestNG() {
+        suites 'src/test/resources/testng.xml'
+    }
+}
+
+description = 'Ballerina - Debug Adapter - Debug Adaptor Core'
+
+ext.moduleName = 'ballerina.debug.adapter.core'

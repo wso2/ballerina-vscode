@@ -1,0 +1,89 @@
+{
+  "description": "",
+  "filePath": "proj/fn.bal",
+  "context": {
+    "expression": "{}",
+    "startLine": {
+      "line": 0,
+      "offset": 0
+    },
+    "offset": 1,
+    "codedata": {
+      "node": "NEW_CONNECTION",
+      "org": "ballerinax",
+      "module": "snowflake",
+      "object": "Client",
+      "symbol": "init",
+      "version": "2.0.0",
+      "lineRange": {
+        "fileName": "connections.bal",
+        "startLine": {
+          "line": 4,
+          "offset": 0
+        },
+        "endLine": {
+          "line": 4,
+          "offset": 64
+        }
+      },
+      "sourceCode": "final snowflake:Client snowflakeClient = check new (\"\", \"\", \"\");"
+    },
+    "property": {
+      "metadata": {
+        "label": "connectionPool",
+        "description": "The `sql:ConnectionPool` to be used for the connection. If there is no\n`connectionPool` provided, the global connection pool (shared by all clients) will be used"
+      },
+      "valueType": "EXPRESSION",
+      "valueTypeConstraint": "sql:ConnectionPool|()",
+      "placeholder": "()",
+      "optional": true,
+      "editable": true,
+      "advanced": true,
+      "imports": {
+        "sql": "ballerina/sql:1.15.0"
+      },
+      "codedata": {
+        "kind": "DEFAULTABLE",
+        "originalName": "connectionPool"
+      }
+    }
+  },
+  "completionContext": {
+    "triggerKind": "Invoked"
+  },
+  "completions": [
+    {
+      "label": "readonly",
+      "kind": "Keyword",
+      "detail": "Keyword",
+      "sortText": "U",
+      "filterText": "readonly",
+      "insertText": "readonly ",
+      "insertTextFormat": "Snippet"
+    },
+    {
+      "label": "maxOpenConnections",
+      "kind": "Field",
+      "detail": "sql:ConnectionPool.maxOpenConnections",
+      "sortText": "K",
+      "insertText": "maxOpenConnections: ${1:0}",
+      "insertTextFormat": "Snippet"
+    },
+    {
+      "label": "maxConnectionLifeTime",
+      "kind": "Field",
+      "detail": "sql:ConnectionPool.maxConnectionLifeTime",
+      "sortText": "K",
+      "insertText": "maxConnectionLifeTime: ${1:0}",
+      "insertTextFormat": "Snippet"
+    },
+    {
+      "label": "minIdleConnections",
+      "kind": "Field",
+      "detail": "sql:ConnectionPool.minIdleConnections",
+      "sortText": "K",
+      "insertText": "minIdleConnections: ${1:0}",
+      "insertTextFormat": "Snippet"
+    }
+  ]
+}

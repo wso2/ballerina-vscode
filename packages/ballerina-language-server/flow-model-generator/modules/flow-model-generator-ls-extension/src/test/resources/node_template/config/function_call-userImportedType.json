@@ -1,0 +1,119 @@
+{
+  "source": "data_mapper/main.bal",
+  "position": {
+    "line": 14,
+    "offset": 0
+  },
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "FUNCTION_CALL",
+    "symbol": "customFnWithImportedType",
+    "org": "nipunaf",
+    "module": "new_connection1"
+  },
+  "output": {
+    "id": "31",
+    "metadata": {
+      "label": "customFnWithImportedType",
+      "description": "",
+      "icon": "https://bcentral-packageicons.azureedge.net/images/nipunaf_new_connection1_null.png"
+    },
+    "codedata": {
+      "node": "FUNCTION_CALL",
+      "org": "nipunaf",
+      "module": "new_connection1",
+      "symbol": "customFnWithImportedType",
+      "isNew": true
+    },
+    "returning": false,
+    "properties": {
+      "config": {
+        "metadata": {
+          "label": "config"
+        },
+        "valueType": "EXPRESSION",
+        "valueTypeConstraint": "http:ClientConfiguration",
+        "placeholder": "{}",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false,
+        "codedata": {
+          "kind": "REQUIRED",
+          "originalName": "config"
+        },
+        "typeMembers": [
+          {
+            "type": "ClientConfiguration",
+            "packageInfo": "ballerina:http:2.14.0",
+            "kind": "RECORD_TYPE",
+            "selected": false
+          }
+        ],
+        "imports": {
+          "http": "ballerina/http"
+        }
+      },
+      "address": {
+        "metadata": {
+          "label": "address"
+        },
+        "valueType": "EXPRESSION",
+        "valueTypeConstraint": "Address",
+        "placeholder": "{houseNo: \"\", line1: \"\", line2: \"\", city: \"\", country: \"\"}",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false,
+        "codedata": {
+          "kind": "REQUIRED",
+          "originalName": "address"
+        },
+        "typeMembers": [
+          {
+            "type": "Address",
+            "packageInfo": "nipunaf:new_connection1:0.1.0",
+            "kind": "RECORD_TYPE",
+            "selected": false
+          }
+        ],
+        "imports": {
+          "http": "ballerina/http"
+        }
+      },
+      "type": {
+        "metadata": {
+          "label": "Variable Type",
+          "description": "Type of the variable"
+        },
+        "valueType": "TYPE",
+        "value": "http:HttpServiceConfig",
+        "placeholder": "var",
+        "optional": false,
+        "editable": false,
+        "advanced": false,
+        "hidden": false,
+        "codedata": {},
+        "imports": {
+          "http": "ballerina/http"
+        }
+      },
+      "variable": {
+        "metadata": {
+          "label": "Variable Name",
+          "description": "Name of the variable"
+        },
+        "valueType": "IDENTIFIER",
+        "value": "httpHttpserviceconfig",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false,
+        "imports": {
+          "http": "ballerina/http"
+        }
+      }
+    },
+    "flags": 0
+  }
+}

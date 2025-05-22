@@ -1,0 +1,399 @@
+{
+  "description": "",
+  "source": "graphql",
+  "completions": [
+    {
+      "label": "Profile",
+      "labelDetails": {
+        "detail": "User-Defined",
+        "description": "Object"
+      },
+      "kind": "Interface",
+      "insertText": "Profile"
+    },
+    {
+      "label": "AbstractProfile",
+      "labelDetails": {
+        "detail": "User-Defined",
+        "description": "Record"
+      },
+      "kind": "Struct",
+      "insertText": "AbstractProfile"
+    },
+    {
+      "label": "Address",
+      "labelDetails": {
+        "detail": "User-Defined",
+        "description": "Record"
+      },
+      "kind": "Struct",
+      "insertText": "Address"
+    },
+    {
+      "label": "UserName",
+      "labelDetails": {
+        "detail": "User-Defined",
+        "description": "Record"
+      },
+      "kind": "Struct",
+      "insertText": "UserName"
+    },
+    {
+      "label": "User",
+      "labelDetails": {
+        "detail": "User-Defined",
+        "description": "Record"
+      },
+      "kind": "Struct",
+      "documentation": {
+        "left": "User record type\nSimple record type with docs, anonymous field types (union, record)"
+      },
+      "insertText": "User"
+    },
+    {
+      "label": "City",
+      "labelDetails": {
+        "detail": "User-Defined",
+        "description": "Record"
+      },
+      "kind": "Struct",
+      "insertText": "City"
+    },
+    {
+      "label": "UserAddress",
+      "labelDetails": {
+        "detail": "User-Defined",
+        "description": "Record"
+      },
+      "kind": "Struct",
+      "documentation": {
+        "left": "Record type with a rest field"
+      },
+      "insertText": "UserAddress"
+    },
+    {
+      "label": "TimeSheet",
+      "labelDetails": {
+        "detail": "User-Defined",
+        "description": "Array"
+      },
+      "kind": "TypeParameter",
+      "insertText": "TimeSheet"
+    },
+    {
+      "label": "ApartmentAddress",
+      "labelDetails": {
+        "detail": "User-Defined",
+        "description": "Record"
+      },
+      "kind": "Struct",
+      "documentation": {
+        "left": "Record type with a anonymous rest field"
+      },
+      "insertText": "ApartmentAddress"
+    },
+    {
+      "label": "FooApartmentAddress",
+      "labelDetails": {
+        "detail": "User-Defined",
+        "description": "Record"
+      },
+      "kind": "Struct",
+      "documentation": {
+        "left": "Record type with default values"
+      },
+      "insertText": "FooApartmentAddress"
+    },
+    {
+      "label": "UserAsArrays",
+      "labelDetails": {
+        "detail": "User-Defined",
+        "description": "Record"
+      },
+      "kind": "Struct",
+      "documentation": {
+        "left": "Record type with array field type"
+      },
+      "insertText": "UserAsArrays"
+    },
+    {
+      "label": "Employee",
+      "labelDetails": {
+        "detail": "User-Defined",
+        "description": "Record"
+      },
+      "kind": "Struct",
+      "insertText": "Employee"
+    },
+    {
+      "label": "SubjectArea",
+      "labelDetails": {
+        "detail": "User-Defined",
+        "description": "enum"
+      },
+      "kind": "Enum",
+      "insertText": "SubjectArea"
+    },
+    {
+      "label": "UserRole",
+      "labelDetails": {
+        "detail": "User-Defined",
+        "description": "enum"
+      },
+      "kind": "Enum",
+      "insertText": "UserRole"
+    },
+    {
+      "label": "AddressType",
+      "labelDetails": {
+        "detail": "User-Defined",
+        "description": "enum"
+      },
+      "kind": "Enum",
+      "insertText": "AddressType"
+    },
+    {
+      "label": "Teacher",
+      "labelDetails": {
+        "detail": "User-Defined",
+        "description": "Class"
+      },
+      "kind": "Interface",
+      "insertText": "Teacher"
+    },
+    {
+      "label": "Student",
+      "labelDetails": {
+        "detail": "User-Defined",
+        "description": "Class"
+      },
+      "kind": "Interface",
+      "insertText": "Student"
+    },
+    {
+      "label": "UserProfile",
+      "labelDetails": {
+        "detail": "User-Defined",
+        "description": "Class"
+      },
+      "kind": "Interface",
+      "insertText": "UserProfile"
+    },
+    {
+      "label": "any",
+      "labelDetails": {
+        "detail": "Other Types",
+        "description": "Any"
+      },
+      "kind": "TypeParameter",
+      "insertText": "any"
+    },
+    {
+      "label": "readonly",
+      "labelDetails": {
+        "detail": "Other Types",
+        "description": "Readonly"
+      },
+      "kind": "TypeParameter",
+      "insertText": "readonly"
+    },
+    {
+      "label": "string",
+      "labelDetails": {
+        "detail": "Primitive Types",
+        "description": "String"
+      },
+      "kind": "TypeParameter",
+      "insertText": "string"
+    },
+    {
+      "label": "int",
+      "labelDetails": {
+        "detail": "Primitive Types",
+        "description": "Int"
+      },
+      "kind": "TypeParameter",
+      "insertText": "int"
+    },
+    {
+      "label": "float",
+      "labelDetails": {
+        "detail": "Primitive Types",
+        "description": "Float"
+      },
+      "kind": "TypeParameter",
+      "insertText": "float"
+    },
+    {
+      "label": "decimal",
+      "labelDetails": {
+        "detail": "Primitive Types",
+        "description": "Decimal"
+      },
+      "kind": "TypeParameter",
+      "insertText": "decimal"
+    },
+    {
+      "label": "boolean",
+      "labelDetails": {
+        "detail": "Primitive Types",
+        "description": "Boolean"
+      },
+      "kind": "TypeParameter",
+      "insertText": "boolean"
+    },
+    {
+      "label": "()",
+      "labelDetails": {
+        "detail": "Primitive Types",
+        "description": "Nil"
+      },
+      "kind": "TypeParameter",
+      "insertText": "()"
+    },
+    {
+      "label": "byte",
+      "labelDetails": {
+        "detail": "Primitive Types",
+        "description": "Byte"
+      },
+      "kind": "TypeParameter",
+      "insertText": "byte"
+    },
+    {
+      "label": "byte[]",
+      "labelDetails": {
+        "detail": "Structural Types",
+        "description": "Array"
+      },
+      "kind": "TypeParameter",
+      "insertText": "byte[]"
+    },
+    {
+      "label": "map<json>",
+      "labelDetails": {
+        "detail": "Structural Types",
+        "description": "Map"
+      },
+      "kind": "TypeParameter",
+      "insertText": "map<json>"
+    },
+    {
+      "label": "map<string>",
+      "labelDetails": {
+        "detail": "Structural Types",
+        "description": "Map"
+      },
+      "kind": "TypeParameter",
+      "insertText": "map<string>"
+    },
+    {
+      "label": "json[]",
+      "labelDetails": {
+        "detail": "Structural Types",
+        "description": "Array"
+      },
+      "kind": "TypeParameter",
+      "insertText": "json[]"
+    },
+    {
+      "label": "string[]",
+      "labelDetails": {
+        "detail": "Structural Types",
+        "description": "Array"
+      },
+      "kind": "TypeParameter",
+      "insertText": "string[]"
+    },
+    {
+      "label": "record",
+      "labelDetails": {
+        "detail": "Structural Types",
+        "description": "Record"
+      },
+      "kind": "Struct",
+      "insertText": "record"
+    },
+    {
+      "label": "function",
+      "labelDetails": {
+        "detail": "Behaviour Types",
+        "description": "Function"
+      },
+      "kind": "TypeParameter",
+      "insertText": "function"
+    },
+    {
+      "label": "future",
+      "labelDetails": {
+        "detail": "Behaviour Types",
+        "description": "Future"
+      },
+      "kind": "TypeParameter",
+      "insertText": "future"
+    },
+    {
+      "label": "typedesc",
+      "labelDetails": {
+        "detail": "Behaviour Types",
+        "description": "Typedesc"
+      },
+      "kind": "TypeParameter",
+      "insertText": "typedesc"
+    },
+    {
+      "label": "handle",
+      "labelDetails": {
+        "detail": "Behaviour Types",
+        "description": "Handle"
+      },
+      "kind": "TypeParameter",
+      "insertText": "handle"
+    },
+    {
+      "label": "stream",
+      "labelDetails": {
+        "detail": "Behaviour Types",
+        "description": "Stream"
+      },
+      "kind": "TypeParameter",
+      "insertText": "stream"
+    },
+    {
+      "label": "error",
+      "labelDetails": {
+        "detail": "Error Types",
+        "description": "Error"
+      },
+      "kind": "Event",
+      "insertText": "error"
+    },
+    {
+      "label": "json",
+      "labelDetails": {
+        "detail": "Data Types",
+        "description": "Json"
+      },
+      "kind": "TypeParameter",
+      "insertText": "json"
+    },
+    {
+      "label": "xml",
+      "labelDetails": {
+        "detail": "Data Types",
+        "description": "Xml"
+      },
+      "kind": "TypeParameter",
+      "insertText": "xml"
+    },
+    {
+      "label": "anydata",
+      "labelDetails": {
+        "detail": "Data Types",
+        "description": "Anydata"
+      },
+      "kind": "TypeParameter",
+      "insertText": "anydata"
+    }
+  ]
+}

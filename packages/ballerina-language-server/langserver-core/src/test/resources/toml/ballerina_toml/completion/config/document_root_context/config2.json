@@ -1,0 +1,37 @@
+{
+  "position": {
+    "line": 1,
+    "character": 0
+  },
+  "source": "source/project2/Ballerina.toml",
+  "items": [
+    {
+      "label": "platform.java21",
+      "kind": "Snippet",
+      "detail": "Table",
+      "sortText": "C",
+      "insertText": "[platform.java21]"
+    },
+    {
+      "label": "platform.java21.dependency",
+      "kind": "Snippet",
+      "detail": "Table Array",
+      "sortText": "C",
+      "insertText": "[[platform.java21.dependency]]"
+    },
+    {
+      "label": "platform.java21.repository",
+      "kind": "Snippet",
+      "detail": "Table Array",
+      "sortText": "C",
+      "insertText": "[[platform.java21.repository]]"
+    },
+    {
+      "label": "dependency",
+      "kind": "Snippet",
+      "detail": "Table Array",
+      "sortText": "C",
+      "insertText": "[[dependency]]"
+    }
+  ]
+}

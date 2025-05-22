@@ -1,0 +1,4600 @@
+{
+  "description": "A simple example of a package",
+  "position": {
+    "line": 16,
+    "offset": 0
+  },
+  "source": "connector.bal",
+  "categories": [
+    {
+      "metadata": {
+        "label": "Connections",
+        "description": "The connections used in the flow"
+      },
+      "items": [
+        {
+          "metadata": {
+            "label": "moduleClient"
+          },
+          "items": [
+            {
+              "metadata": {
+                "label": "get",
+                "description": "The `Client.get()` function can be used to send HTTP GET requests to HTTP endpoints.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.14.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerina",
+                "module": "http",
+                "object": "Client",
+                "symbol": "get",
+                "version": "2.14.0",
+                "parentSymbol": "moduleClient",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "post",
+                "description": "The `Client.post()` function can be used to send HTTP POST requests to HTTP endpoints.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.14.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerina",
+                "module": "http",
+                "object": "Client",
+                "symbol": "post",
+                "version": "2.14.0",
+                "parentSymbol": "moduleClient",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "put",
+                "description": "The `Client.put()` function can be used to send HTTP PUT requests to HTTP endpoints.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.14.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerina",
+                "module": "http",
+                "object": "Client",
+                "symbol": "put",
+                "version": "2.14.0",
+                "parentSymbol": "moduleClient",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "delete",
+                "description": "The `Client.delete()` function can be used to send HTTP DELETE requests to HTTP endpoints.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.14.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerina",
+                "module": "http",
+                "object": "Client",
+                "symbol": "delete",
+                "version": "2.14.0",
+                "parentSymbol": "moduleClient",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "patch",
+                "description": "The `Client.patch()` function can be used to send HTTP PATCH requests to HTTP endpoints.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.14.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerina",
+                "module": "http",
+                "object": "Client",
+                "symbol": "patch",
+                "version": "2.14.0",
+                "parentSymbol": "moduleClient",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "head",
+                "description": "The `Client.head()` function can be used to send HTTP HEAD requests to HTTP endpoints.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.14.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerina",
+                "module": "http",
+                "object": "Client",
+                "symbol": "head",
+                "version": "2.14.0",
+                "parentSymbol": "moduleClient",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "options",
+                "description": "The `Client.options()` function can be used to send HTTP OPTIONS requests to HTTP endpoints.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.14.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerina",
+                "module": "http",
+                "object": "Client",
+                "symbol": "options",
+                "version": "2.14.0",
+                "parentSymbol": "moduleClient",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "execute",
+                "description": "Invokes an HTTP call with the specified HTTP verb.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.14.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerina",
+                "module": "http",
+                "object": "Client",
+                "symbol": "execute",
+                "version": "2.14.0",
+                "parentSymbol": "moduleClient",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "forward",
+                "description": "The `Client.forward()` function can be used to invoke an HTTP call with inbound request's HTTP verb\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.14.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerina",
+                "module": "http",
+                "object": "Client",
+                "symbol": "forward",
+                "version": "2.14.0",
+                "parentSymbol": "moduleClient",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "submit",
+                "description": "Submits an HTTP request to a service with the specified HTTP verb.\nThe `Client->submit()` function does not give out a `http:Response` as the result.\nRather it returns an `http:HttpFuture` which can be used to do further interactions with the endpoint.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.14.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerina",
+                "module": "http",
+                "object": "Client",
+                "symbol": "submit",
+                "version": "2.14.0",
+                "parentSymbol": "moduleClient",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "getResponse",
+                "description": "This just pass the request to actual network call.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.14.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerina",
+                "module": "http",
+                "object": "Client",
+                "symbol": "getResponse",
+                "version": "2.14.0",
+                "parentSymbol": "moduleClient",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "hasPromise",
+                "description": "This just pass the request to actual network call.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.14.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerina",
+                "module": "http",
+                "object": "Client",
+                "symbol": "hasPromise",
+                "version": "2.14.0",
+                "parentSymbol": "moduleClient",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "getNextPromise",
+                "description": "This just pass the request to actual network call.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.14.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerina",
+                "module": "http",
+                "object": "Client",
+                "symbol": "getNextPromise",
+                "version": "2.14.0",
+                "parentSymbol": "moduleClient",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "getPromisedResponse",
+                "description": "Passes the request to an actual network call.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.14.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerina",
+                "module": "http",
+                "object": "Client",
+                "symbol": "getPromisedResponse",
+                "version": "2.14.0",
+                "parentSymbol": "moduleClient",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "rejectPromise",
+                "description": "This just pass the request to actual network call.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.14.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerina",
+                "module": "http",
+                "object": "Client",
+                "symbol": "rejectPromise",
+                "version": "2.14.0",
+                "parentSymbol": "moduleClient",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "getCookieStore",
+                "description": "Retrieves the cookie store of the client.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.14.0.png"
+              },
+              "codedata": {
+                "node": "METHOD_CALL",
+                "org": "ballerina",
+                "module": "http",
+                "object": "Client",
+                "symbol": "getCookieStore",
+                "version": "2.14.0",
+                "parentSymbol": "moduleClient",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "circuitBreakerForceClose",
+                "description": "The circuit breaker client related method to force the circuit into a closed state in which it will allow\nrequests regardless of the error percentage until the failure threshold exceeds.",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.14.0.png"
+              },
+              "codedata": {
+                "node": "METHOD_CALL",
+                "org": "ballerina",
+                "module": "http",
+                "object": "Client",
+                "symbol": "circuitBreakerForceClose",
+                "version": "2.14.0",
+                "parentSymbol": "moduleClient",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "circuitBreakerForceOpen",
+                "description": "The circuit breaker client related method to force the circuit into a open state in which it will suspend all\nrequests until `resetTime` interval exceeds.",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.14.0.png"
+              },
+              "codedata": {
+                "node": "METHOD_CALL",
+                "org": "ballerina",
+                "module": "http",
+                "object": "Client",
+                "symbol": "circuitBreakerForceOpen",
+                "version": "2.14.0",
+                "parentSymbol": "moduleClient",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "getCircuitBreakerCurrentState",
+                "description": "The circuit breaker client related method to provides the `http:CircuitState` of the circuit breaker.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.14.0.png"
+              },
+              "codedata": {
+                "node": "METHOD_CALL",
+                "org": "ballerina",
+                "module": "http",
+                "object": "Client",
+                "symbol": "getCircuitBreakerCurrentState",
+                "version": "2.14.0",
+                "parentSymbol": "moduleClient",
+                "resourcePath": ""
+              },
+              "enabled": true
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "label": "redisClient"
+          },
+          "items": [
+            {
+              "metadata": {
+                "label": "append",
+                "description": "Append a value to a key.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "append",
+                "version": "3.1.0",
+                "parentSymbol": "redisClient",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "bitCount",
+                "description": "Count set bits in a string.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "bitCount",
+                "version": "3.1.0",
+                "parentSymbol": "redisClient",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "bitOpAnd",
+                "description": "Perform bitwise AND between strings.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "bitOpAnd",
+                "version": "3.1.0",
+                "parentSymbol": "redisClient",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "bitOpOr",
+                "description": "Perform bitwise OR between strings.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "bitOpOr",
+                "version": "3.1.0",
+                "parentSymbol": "redisClient",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "bitOpNot",
+                "description": "Perform bitwise NOT on a string.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "bitOpNot",
+                "version": "3.1.0",
+                "parentSymbol": "redisClient",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "bitOpXor",
+                "description": "Perform bitwise XOR between strings.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "bitOpXor",
+                "version": "3.1.0",
+                "parentSymbol": "redisClient",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "decr",
+                "description": "Decrement integer value of a key by one.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "decr",
+                "version": "3.1.0",
+                "parentSymbol": "redisClient",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "decrBy",
+                "description": "Decrement integer value of a key by the given number.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "decrBy",
+                "version": "3.1.0",
+                "parentSymbol": "redisClient",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "getBit",
+                "description": "Returns bit value at offset in the string value stored at key.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "getBit",
+                "version": "3.1.0",
+                "parentSymbol": "redisClient",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "getRange",
+                "description": "Get substring of string stored at a key.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "getRange",
+                "version": "3.1.0",
+                "parentSymbol": "redisClient",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "getSet",
+                "description": "Set string value of key and return its existing value.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "getSet",
+                "version": "3.1.0",
+                "parentSymbol": "redisClient",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "get",
+                "description": "Get value of key.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "get",
+                "version": "3.1.0",
+                "parentSymbol": "redisClient",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "incr",
+                "description": "Increment integer value of a key by one.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "incr",
+                "version": "3.1.0",
+                "parentSymbol": "redisClient",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "incrBy",
+                "description": "Increment integer value of key by the given amount.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "incrBy",
+                "version": "3.1.0",
+                "parentSymbol": "redisClient",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "incrByFloat",
+                "description": "Increment integer value of key by the given float.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "incrByFloat",
+                "version": "3.1.0",
+                "parentSymbol": "redisClient",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "mGet",
+                "description": "Get values of all given keys.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "mGet",
+                "version": "3.1.0",
+                "parentSymbol": "redisClient",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "mSet",
+                "description": "Set multiple keys to multiple values.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "mSet",
+                "version": "3.1.0",
+                "parentSymbol": "redisClient",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "mSetNx",
+                "description": "Set multiple keys to multiple values, only if none of the keys exist.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "mSetNx",
+                "version": "3.1.0",
+                "parentSymbol": "redisClient",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "pSetEx",
+                "description": "Set value and expiration in milliseconds of a key.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "pSetEx",
+                "version": "3.1.0",
+                "parentSymbol": "redisClient",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "set",
+                "description": "Set the value of a key.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "set",
+                "version": "3.1.0",
+                "parentSymbol": "redisClient",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "setBit",
+                "description": "Sets or clears the bit at offset in the string value stored at key.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "setBit",
+                "version": "3.1.0",
+                "parentSymbol": "redisClient",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "setEx",
+                "description": "Set the value and expiration of a key.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "setEx",
+                "version": "3.1.0",
+                "parentSymbol": "redisClient",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "setNx",
+                "description": "Set value of a key, only if key does not exist.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "setNx",
+                "version": "3.1.0",
+                "parentSymbol": "redisClient",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "setRange",
+                "description": "Overwrite part of string at key starting at the specified offset.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "setRange",
+                "version": "3.1.0",
+                "parentSymbol": "redisClient",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "strLen",
+                "description": "Get length of value stored in a key.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "strLen",
+                "version": "3.1.0",
+                "parentSymbol": "redisClient",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "lPush",
+                "description": "Prepend one or multiple values to list.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "lPush",
+                "version": "3.1.0",
+                "parentSymbol": "redisClient",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "lPop",
+                "description": "Remove and get the first element in a list.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "lPop",
+                "version": "3.1.0",
+                "parentSymbol": "redisClient",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "lPushX",
+                "description": "Prepend one or multiple values to a list, only if the list exists.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "lPushX",
+                "version": "3.1.0",
+                "parentSymbol": "redisClient",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "bLPop",
+                "description": "Remove and get the first element in a list, or block until one is available.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "bLPop",
+                "version": "3.1.0",
+                "parentSymbol": "redisClient",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "bRPop",
+                "description": "Remove and get the last element in a list, or block until one is available.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "bRPop",
+                "version": "3.1.0",
+                "parentSymbol": "redisClient",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "lIndex",
+                "description": "Get an element from list by its index.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "lIndex",
+                "version": "3.1.0",
+                "parentSymbol": "redisClient",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "lInsert",
+                "description": "Insert an element before or after another element in a list.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "lInsert",
+                "version": "3.1.0",
+                "parentSymbol": "redisClient",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "lLen",
+                "description": "Get length of a list.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "lLen",
+                "version": "3.1.0",
+                "parentSymbol": "redisClient",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "lRange",
+                "description": "Get a range of elements from a list.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "lRange",
+                "version": "3.1.0",
+                "parentSymbol": "redisClient",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "lRem",
+                "description": "Remove elements from list.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "lRem",
+                "version": "3.1.0",
+                "parentSymbol": "redisClient",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "lSet",
+                "description": "Set the value of an element in a list by its index.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "lSet",
+                "version": "3.1.0",
+                "parentSymbol": "redisClient",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "lTrim",
+                "description": "Trim list to the specified range.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "lTrim",
+                "version": "3.1.0",
+                "parentSymbol": "redisClient",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "rPop",
+                "description": "Remove and get the last element in a list.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "rPop",
+                "version": "3.1.0",
+                "parentSymbol": "redisClient",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "rPopLPush",
+                "description": "Remove the last element in a list, append it to another list and return it.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "rPopLPush",
+                "version": "3.1.0",
+                "parentSymbol": "redisClient",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "rPush",
+                "description": "Append one or multiple values to a list.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "rPush",
+                "version": "3.1.0",
+                "parentSymbol": "redisClient",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "rPushX",
+                "description": "Append one or multiple values to a list, only if the list exists.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "rPushX",
+                "version": "3.1.0",
+                "parentSymbol": "redisClient",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "sAdd",
+                "description": "Add one or more members to a set.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "sAdd",
+                "version": "3.1.0",
+                "parentSymbol": "redisClient",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "sCard",
+                "description": "Get the number of members in a set\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "sCard",
+                "version": "3.1.0",
+                "parentSymbol": "redisClient",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "sDiff",
+                "description": "Return set resulting from the difference between the first set and all the successive sets\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "sDiff",
+                "version": "3.1.0",
+                "parentSymbol": "redisClient",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "sDiffStore",
+                "description": "Obtain the set resulting from the difference between the first set and all the successive.\nsets and store at the provided destination.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "sDiffStore",
+                "version": "3.1.0",
+                "parentSymbol": "redisClient",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "sInter",
+                "description": "Return the intersection of the provided sets.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "sInter",
+                "version": "3.1.0",
+                "parentSymbol": "redisClient",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "sInterStore",
+                "description": "Obtain the intersection of the provided sets and store at the provided destination.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "sInterStore",
+                "version": "3.1.0",
+                "parentSymbol": "redisClient",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "sIsMember",
+                "description": "Determine if a given value is a member of a set.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "sIsMember",
+                "version": "3.1.0",
+                "parentSymbol": "redisClient",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "sMembers",
+                "description": "Get all members in a set.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "sMembers",
+                "version": "3.1.0",
+                "parentSymbol": "redisClient",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "sMove",
+                "description": "Move a member from one set to another.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "sMove",
+                "version": "3.1.0",
+                "parentSymbol": "redisClient",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "sPop",
+                "description": "Remove and return a random member from a set.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "sPop",
+                "version": "3.1.0",
+                "parentSymbol": "redisClient",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "sRandMember",
+                "description": "Get one or multiple random members from a set.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "sRandMember",
+                "version": "3.1.0",
+                "parentSymbol": "redisClient",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "sRem",
+                "description": "Remove one or more members from a set.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "sRem",
+                "version": "3.1.0",
+                "parentSymbol": "redisClient",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "sUnion",
+                "description": "Return the union of multiple sets.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "sUnion",
+                "version": "3.1.0",
+                "parentSymbol": "redisClient",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "sUnionStore",
+                "description": "Return the union of multiple sets.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "sUnionStore",
+                "version": "3.1.0",
+                "parentSymbol": "redisClient",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "zAdd",
+                "description": "Add one or more members to a sorted set, or update its score if it already exist.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "zAdd",
+                "version": "3.1.0",
+                "parentSymbol": "redisClient",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "zCard",
+                "description": "Get the number of members in a sorted set.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "zCard",
+                "version": "3.1.0",
+                "parentSymbol": "redisClient",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "zCount",
+                "description": "Count the members in a sorted set with scores within the given range.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "zCount",
+                "version": "3.1.0",
+                "parentSymbol": "redisClient",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "zIncrBy",
+                "description": "Increment the score of a member in a sorted set.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "zIncrBy",
+                "version": "3.1.0",
+                "parentSymbol": "redisClient",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "zInterStore",
+                "description": "Intersect multiple sorted sets and store the resulting sorted set in a new key.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "zInterStore",
+                "version": "3.1.0",
+                "parentSymbol": "redisClient",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "zLexCount",
+                "description": "Count the members in a sorted set within the given lexicographical range.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "zLexCount",
+                "version": "3.1.0",
+                "parentSymbol": "redisClient",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "zRange",
+                "description": "Return a range of members in a sorted set, by index.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "zRange",
+                "version": "3.1.0",
+                "parentSymbol": "redisClient",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "zRangeByLex",
+                "description": "Return a range of members in a sorted set, by lexicographical range from lowest to highest.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "zRangeByLex",
+                "version": "3.1.0",
+                "parentSymbol": "redisClient",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "zRevRangeByLex",
+                "description": "Return a range of members in a sorted set, by lexicographical range ordered from highest to\nlowest.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "zRevRangeByLex",
+                "version": "3.1.0",
+                "parentSymbol": "redisClient",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "zRangeByScore",
+                "description": "Return a range of members in a sorted set, by score from lowest to highest.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "zRangeByScore",
+                "version": "3.1.0",
+                "parentSymbol": "redisClient",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "zRank",
+                "description": "Determine index of a member in a sorted set.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "zRank",
+                "version": "3.1.0",
+                "parentSymbol": "redisClient",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "zRem",
+                "description": "Remove one or more members from a sorted set\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "zRem",
+                "version": "3.1.0",
+                "parentSymbol": "redisClient",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "zRemRangeByLex",
+                "description": "Remove all members in a sorted set between the given lexicographical range.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "zRemRangeByLex",
+                "version": "3.1.0",
+                "parentSymbol": "redisClient",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "zRemRangeByRank",
+                "description": "Remove all members in a sorted set within the given indices.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "zRemRangeByRank",
+                "version": "3.1.0",
+                "parentSymbol": "redisClient",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "zRemRangeByScore",
+                "description": "Remove all members in a sorted set within the given scores.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "zRemRangeByScore",
+                "version": "3.1.0",
+                "parentSymbol": "redisClient",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "zRevRange",
+                "description": "Return a range of members in a sorted set, by index, ordered highest to lowest.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "zRevRange",
+                "version": "3.1.0",
+                "parentSymbol": "redisClient",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "zRevRangeByScore",
+                "description": "Return a range of members in a sorted set, by score from highest to lowest.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "zRevRangeByScore",
+                "version": "3.1.0",
+                "parentSymbol": "redisClient",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "zRevRank",
+                "description": "Determine the index of a member in a sorted set\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "zRevRank",
+                "version": "3.1.0",
+                "parentSymbol": "redisClient",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "zScore",
+                "description": "Determine the score of a member in a sorted set\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "zScore",
+                "version": "3.1.0",
+                "parentSymbol": "redisClient",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "zUnionStore",
+                "description": "Return the union of multiple sorted sets\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "zUnionStore",
+                "version": "3.1.0",
+                "parentSymbol": "redisClient",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "hDel",
+                "description": "Delete one or more hash fields.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "hDel",
+                "version": "3.1.0",
+                "parentSymbol": "redisClient",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "hExists",
+                "description": "Determine if a hash field exists.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "hExists",
+                "version": "3.1.0",
+                "parentSymbol": "redisClient",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "hGet",
+                "description": "Get the value of a hash field.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "hGet",
+                "version": "3.1.0",
+                "parentSymbol": "redisClient",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "hGetAll",
+                "description": "Get the all values of a hash.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "hGetAll",
+                "version": "3.1.0",
+                "parentSymbol": "redisClient",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "hIncrBy",
+                "description": "Increment the integer value of a hash field by the given number.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "hIncrBy",
+                "version": "3.1.0",
+                "parentSymbol": "redisClient",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "hIncrByFloat",
+                "description": "Increment the float value of a hash field by the given number.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "hIncrByFloat",
+                "version": "3.1.0",
+                "parentSymbol": "redisClient",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "hKeys",
+                "description": "Get all the fields in a hash.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "hKeys",
+                "version": "3.1.0",
+                "parentSymbol": "redisClient",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "hLen",
+                "description": "Get the number of fields in a hash.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "hLen",
+                "version": "3.1.0",
+                "parentSymbol": "redisClient",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "hMGet",
+                "description": "Get the values of all the given hash fields.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "hMGet",
+                "version": "3.1.0",
+                "parentSymbol": "redisClient",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "hMSet",
+                "description": "Set multiple hash fields to multiple values.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "hMSet",
+                "version": "3.1.0",
+                "parentSymbol": "redisClient",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "hSet",
+                "description": "Set the string value of a hash field.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "hSet",
+                "version": "3.1.0",
+                "parentSymbol": "redisClient",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "hSetNx",
+                "description": "Set the string value of a hash field, only if the field does not exist.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "hSetNx",
+                "version": "3.1.0",
+                "parentSymbol": "redisClient",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "hStrLen",
+                "description": "Get the string length of the field value in a hash.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "hStrLen",
+                "version": "3.1.0",
+                "parentSymbol": "redisClient",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "hVals",
+                "description": "Get all the values in a hash.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "hVals",
+                "version": "3.1.0",
+                "parentSymbol": "redisClient",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "del",
+                "description": "Delete one or more keys.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "del",
+                "version": "3.1.0",
+                "parentSymbol": "redisClient",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "exists",
+                "description": "Determine how many keys exist.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "exists",
+                "version": "3.1.0",
+                "parentSymbol": "redisClient",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "expire",
+                "description": "Set a key's time to live in seconds.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "expire",
+                "version": "3.1.0",
+                "parentSymbol": "redisClient",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "keys",
+                "description": "Find all keys matching the given pattern.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "keys",
+                "version": "3.1.0",
+                "parentSymbol": "redisClient",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "move",
+                "description": "Move a key to another database.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "move",
+                "version": "3.1.0",
+                "parentSymbol": "redisClient",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "persist",
+                "description": "Remove the expiration from a key.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "persist",
+                "version": "3.1.0",
+                "parentSymbol": "redisClient",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "pExpire",
+                "description": "Set a key's time to live in milliseconds.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "pExpire",
+                "version": "3.1.0",
+                "parentSymbol": "redisClient",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "pTtl",
+                "description": "Get the time to live for a key in milliseconds.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "pTtl",
+                "version": "3.1.0",
+                "parentSymbol": "redisClient",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "randomKey",
+                "description": "Return a random key from the keyspace.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "randomKey",
+                "version": "3.1.0",
+                "parentSymbol": "redisClient",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "rename",
+                "description": "Rename a key.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "rename",
+                "version": "3.1.0",
+                "parentSymbol": "redisClient",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "renameNx",
+                "description": "Rename a key, only if the new key does not exist.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "renameNx",
+                "version": "3.1.0",
+                "parentSymbol": "redisClient",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "sort",
+                "description": "Sort elements in a list, set or sorted set.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "sort",
+                "version": "3.1.0",
+                "parentSymbol": "redisClient",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "ttl",
+                "description": "Get the time to live for a key.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "ttl",
+                "version": "3.1.0",
+                "parentSymbol": "redisClient",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "redisType",
+                "description": "Determine the type stored at key.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "redisType",
+                "version": "3.1.0",
+                "parentSymbol": "redisClient",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "clusterInfo",
+                "description": "Retrieve information and statistics about the cluster observed by the current node.\nThis command is exclusively available in cluster mode. If the connection is in a non-clustered mode,\nthe API will return a `redis:Error`. Other errors will also be appropriately handled.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "clusterInfo",
+                "version": "3.1.0",
+                "parentSymbol": "redisClient",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "ping",
+                "description": "Ping the server.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "ping",
+                "version": "3.1.0",
+                "parentSymbol": "redisClient",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "auth",
+                "description": "Authenticate to the server.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "auth",
+                "version": "3.1.0",
+                "parentSymbol": "redisClient",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "echo",
+                "description": "Echo the given string.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "echo",
+                "version": "3.1.0",
+                "parentSymbol": "redisClient",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "close",
+                "description": "Close the connection.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "METHOD_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "close",
+                "version": "3.1.0",
+                "parentSymbol": "redisClient",
+                "resourcePath": ""
+              },
+              "enabled": true
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "label": "redisClientResult"
+          },
+          "items": [
+            {
+              "metadata": {
+                "label": "append",
+                "description": "Append a value to a key.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "append",
+                "version": "3.1.0",
+                "parentSymbol": "redisClientResult",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "bitCount",
+                "description": "Count set bits in a string.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "bitCount",
+                "version": "3.1.0",
+                "parentSymbol": "redisClientResult",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "bitOpAnd",
+                "description": "Perform bitwise AND between strings.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "bitOpAnd",
+                "version": "3.1.0",
+                "parentSymbol": "redisClientResult",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "bitOpOr",
+                "description": "Perform bitwise OR between strings.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "bitOpOr",
+                "version": "3.1.0",
+                "parentSymbol": "redisClientResult",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "bitOpNot",
+                "description": "Perform bitwise NOT on a string.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "bitOpNot",
+                "version": "3.1.0",
+                "parentSymbol": "redisClientResult",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "bitOpXor",
+                "description": "Perform bitwise XOR between strings.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "bitOpXor",
+                "version": "3.1.0",
+                "parentSymbol": "redisClientResult",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "decr",
+                "description": "Decrement integer value of a key by one.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "decr",
+                "version": "3.1.0",
+                "parentSymbol": "redisClientResult",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "decrBy",
+                "description": "Decrement integer value of a key by the given number.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "decrBy",
+                "version": "3.1.0",
+                "parentSymbol": "redisClientResult",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "getBit",
+                "description": "Returns bit value at offset in the string value stored at key.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "getBit",
+                "version": "3.1.0",
+                "parentSymbol": "redisClientResult",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "getRange",
+                "description": "Get substring of string stored at a key.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "getRange",
+                "version": "3.1.0",
+                "parentSymbol": "redisClientResult",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "getSet",
+                "description": "Set string value of key and return its existing value.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "getSet",
+                "version": "3.1.0",
+                "parentSymbol": "redisClientResult",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "get",
+                "description": "Get value of key.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "get",
+                "version": "3.1.0",
+                "parentSymbol": "redisClientResult",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "incr",
+                "description": "Increment integer value of a key by one.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "incr",
+                "version": "3.1.0",
+                "parentSymbol": "redisClientResult",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "incrBy",
+                "description": "Increment integer value of key by the given amount.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "incrBy",
+                "version": "3.1.0",
+                "parentSymbol": "redisClientResult",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "incrByFloat",
+                "description": "Increment integer value of key by the given float.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "incrByFloat",
+                "version": "3.1.0",
+                "parentSymbol": "redisClientResult",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "mGet",
+                "description": "Get values of all given keys.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "mGet",
+                "version": "3.1.0",
+                "parentSymbol": "redisClientResult",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "mSet",
+                "description": "Set multiple keys to multiple values.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "mSet",
+                "version": "3.1.0",
+                "parentSymbol": "redisClientResult",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "mSetNx",
+                "description": "Set multiple keys to multiple values, only if none of the keys exist.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "mSetNx",
+                "version": "3.1.0",
+                "parentSymbol": "redisClientResult",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "pSetEx",
+                "description": "Set value and expiration in milliseconds of a key.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "pSetEx",
+                "version": "3.1.0",
+                "parentSymbol": "redisClientResult",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "set",
+                "description": "Set the value of a key.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "set",
+                "version": "3.1.0",
+                "parentSymbol": "redisClientResult",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "setBit",
+                "description": "Sets or clears the bit at offset in the string value stored at key.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "setBit",
+                "version": "3.1.0",
+                "parentSymbol": "redisClientResult",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "setEx",
+                "description": "Set the value and expiration of a key.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "setEx",
+                "version": "3.1.0",
+                "parentSymbol": "redisClientResult",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "setNx",
+                "description": "Set value of a key, only if key does not exist.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "setNx",
+                "version": "3.1.0",
+                "parentSymbol": "redisClientResult",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "setRange",
+                "description": "Overwrite part of string at key starting at the specified offset.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "setRange",
+                "version": "3.1.0",
+                "parentSymbol": "redisClientResult",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "strLen",
+                "description": "Get length of value stored in a key.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "strLen",
+                "version": "3.1.0",
+                "parentSymbol": "redisClientResult",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "lPush",
+                "description": "Prepend one or multiple values to list.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "lPush",
+                "version": "3.1.0",
+                "parentSymbol": "redisClientResult",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "lPop",
+                "description": "Remove and get the first element in a list.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "lPop",
+                "version": "3.1.0",
+                "parentSymbol": "redisClientResult",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "lPushX",
+                "description": "Prepend one or multiple values to a list, only if the list exists.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "lPushX",
+                "version": "3.1.0",
+                "parentSymbol": "redisClientResult",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "bLPop",
+                "description": "Remove and get the first element in a list, or block until one is available.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "bLPop",
+                "version": "3.1.0",
+                "parentSymbol": "redisClientResult",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "bRPop",
+                "description": "Remove and get the last element in a list, or block until one is available.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "bRPop",
+                "version": "3.1.0",
+                "parentSymbol": "redisClientResult",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "lIndex",
+                "description": "Get an element from list by its index.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "lIndex",
+                "version": "3.1.0",
+                "parentSymbol": "redisClientResult",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "lInsert",
+                "description": "Insert an element before or after another element in a list.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "lInsert",
+                "version": "3.1.0",
+                "parentSymbol": "redisClientResult",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "lLen",
+                "description": "Get length of a list.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "lLen",
+                "version": "3.1.0",
+                "parentSymbol": "redisClientResult",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "lRange",
+                "description": "Get a range of elements from a list.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "lRange",
+                "version": "3.1.0",
+                "parentSymbol": "redisClientResult",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "lRem",
+                "description": "Remove elements from list.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "lRem",
+                "version": "3.1.0",
+                "parentSymbol": "redisClientResult",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "lSet",
+                "description": "Set the value of an element in a list by its index.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "lSet",
+                "version": "3.1.0",
+                "parentSymbol": "redisClientResult",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "lTrim",
+                "description": "Trim list to the specified range.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "lTrim",
+                "version": "3.1.0",
+                "parentSymbol": "redisClientResult",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "rPop",
+                "description": "Remove and get the last element in a list.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "rPop",
+                "version": "3.1.0",
+                "parentSymbol": "redisClientResult",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "rPopLPush",
+                "description": "Remove the last element in a list, append it to another list and return it.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "rPopLPush",
+                "version": "3.1.0",
+                "parentSymbol": "redisClientResult",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "rPush",
+                "description": "Append one or multiple values to a list.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "rPush",
+                "version": "3.1.0",
+                "parentSymbol": "redisClientResult",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "rPushX",
+                "description": "Append one or multiple values to a list, only if the list exists.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "rPushX",
+                "version": "3.1.0",
+                "parentSymbol": "redisClientResult",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "sAdd",
+                "description": "Add one or more members to a set.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "sAdd",
+                "version": "3.1.0",
+                "parentSymbol": "redisClientResult",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "sCard",
+                "description": "Get the number of members in a set\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "sCard",
+                "version": "3.1.0",
+                "parentSymbol": "redisClientResult",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "sDiff",
+                "description": "Return set resulting from the difference between the first set and all the successive sets\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "sDiff",
+                "version": "3.1.0",
+                "parentSymbol": "redisClientResult",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "sDiffStore",
+                "description": "Obtain the set resulting from the difference between the first set and all the successive.\nsets and store at the provided destination.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "sDiffStore",
+                "version": "3.1.0",
+                "parentSymbol": "redisClientResult",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "sInter",
+                "description": "Return the intersection of the provided sets.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "sInter",
+                "version": "3.1.0",
+                "parentSymbol": "redisClientResult",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "sInterStore",
+                "description": "Obtain the intersection of the provided sets and store at the provided destination.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "sInterStore",
+                "version": "3.1.0",
+                "parentSymbol": "redisClientResult",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "sIsMember",
+                "description": "Determine if a given value is a member of a set.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "sIsMember",
+                "version": "3.1.0",
+                "parentSymbol": "redisClientResult",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "sMembers",
+                "description": "Get all members in a set.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "sMembers",
+                "version": "3.1.0",
+                "parentSymbol": "redisClientResult",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "sMove",
+                "description": "Move a member from one set to another.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "sMove",
+                "version": "3.1.0",
+                "parentSymbol": "redisClientResult",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "sPop",
+                "description": "Remove and return a random member from a set.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "sPop",
+                "version": "3.1.0",
+                "parentSymbol": "redisClientResult",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "sRandMember",
+                "description": "Get one or multiple random members from a set.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "sRandMember",
+                "version": "3.1.0",
+                "parentSymbol": "redisClientResult",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "sRem",
+                "description": "Remove one or more members from a set.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "sRem",
+                "version": "3.1.0",
+                "parentSymbol": "redisClientResult",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "sUnion",
+                "description": "Return the union of multiple sets.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "sUnion",
+                "version": "3.1.0",
+                "parentSymbol": "redisClientResult",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "sUnionStore",
+                "description": "Return the union of multiple sets.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "sUnionStore",
+                "version": "3.1.0",
+                "parentSymbol": "redisClientResult",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "zAdd",
+                "description": "Add one or more members to a sorted set, or update its score if it already exist.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "zAdd",
+                "version": "3.1.0",
+                "parentSymbol": "redisClientResult",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "zCard",
+                "description": "Get the number of members in a sorted set.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "zCard",
+                "version": "3.1.0",
+                "parentSymbol": "redisClientResult",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "zCount",
+                "description": "Count the members in a sorted set with scores within the given range.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "zCount",
+                "version": "3.1.0",
+                "parentSymbol": "redisClientResult",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "zIncrBy",
+                "description": "Increment the score of a member in a sorted set.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "zIncrBy",
+                "version": "3.1.0",
+                "parentSymbol": "redisClientResult",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "zInterStore",
+                "description": "Intersect multiple sorted sets and store the resulting sorted set in a new key.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "zInterStore",
+                "version": "3.1.0",
+                "parentSymbol": "redisClientResult",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "zLexCount",
+                "description": "Count the members in a sorted set within the given lexicographical range.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "zLexCount",
+                "version": "3.1.0",
+                "parentSymbol": "redisClientResult",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "zRange",
+                "description": "Return a range of members in a sorted set, by index.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "zRange",
+                "version": "3.1.0",
+                "parentSymbol": "redisClientResult",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "zRangeByLex",
+                "description": "Return a range of members in a sorted set, by lexicographical range from lowest to highest.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "zRangeByLex",
+                "version": "3.1.0",
+                "parentSymbol": "redisClientResult",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "zRevRangeByLex",
+                "description": "Return a range of members in a sorted set, by lexicographical range ordered from highest to\nlowest.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "zRevRangeByLex",
+                "version": "3.1.0",
+                "parentSymbol": "redisClientResult",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "zRangeByScore",
+                "description": "Return a range of members in a sorted set, by score from lowest to highest.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "zRangeByScore",
+                "version": "3.1.0",
+                "parentSymbol": "redisClientResult",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "zRank",
+                "description": "Determine index of a member in a sorted set.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "zRank",
+                "version": "3.1.0",
+                "parentSymbol": "redisClientResult",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "zRem",
+                "description": "Remove one or more members from a sorted set\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "zRem",
+                "version": "3.1.0",
+                "parentSymbol": "redisClientResult",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "zRemRangeByLex",
+                "description": "Remove all members in a sorted set between the given lexicographical range.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "zRemRangeByLex",
+                "version": "3.1.0",
+                "parentSymbol": "redisClientResult",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "zRemRangeByRank",
+                "description": "Remove all members in a sorted set within the given indices.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "zRemRangeByRank",
+                "version": "3.1.0",
+                "parentSymbol": "redisClientResult",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "zRemRangeByScore",
+                "description": "Remove all members in a sorted set within the given scores.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "zRemRangeByScore",
+                "version": "3.1.0",
+                "parentSymbol": "redisClientResult",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "zRevRange",
+                "description": "Return a range of members in a sorted set, by index, ordered highest to lowest.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "zRevRange",
+                "version": "3.1.0",
+                "parentSymbol": "redisClientResult",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "zRevRangeByScore",
+                "description": "Return a range of members in a sorted set, by score from highest to lowest.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "zRevRangeByScore",
+                "version": "3.1.0",
+                "parentSymbol": "redisClientResult",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "zRevRank",
+                "description": "Determine the index of a member in a sorted set\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "zRevRank",
+                "version": "3.1.0",
+                "parentSymbol": "redisClientResult",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "zScore",
+                "description": "Determine the score of a member in a sorted set\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "zScore",
+                "version": "3.1.0",
+                "parentSymbol": "redisClientResult",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "zUnionStore",
+                "description": "Return the union of multiple sorted sets\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "zUnionStore",
+                "version": "3.1.0",
+                "parentSymbol": "redisClientResult",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "hDel",
+                "description": "Delete one or more hash fields.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "hDel",
+                "version": "3.1.0",
+                "parentSymbol": "redisClientResult",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "hExists",
+                "description": "Determine if a hash field exists.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "hExists",
+                "version": "3.1.0",
+                "parentSymbol": "redisClientResult",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "hGet",
+                "description": "Get the value of a hash field.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "hGet",
+                "version": "3.1.0",
+                "parentSymbol": "redisClientResult",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "hGetAll",
+                "description": "Get the all values of a hash.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "hGetAll",
+                "version": "3.1.0",
+                "parentSymbol": "redisClientResult",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "hIncrBy",
+                "description": "Increment the integer value of a hash field by the given number.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "hIncrBy",
+                "version": "3.1.0",
+                "parentSymbol": "redisClientResult",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "hIncrByFloat",
+                "description": "Increment the float value of a hash field by the given number.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "hIncrByFloat",
+                "version": "3.1.0",
+                "parentSymbol": "redisClientResult",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "hKeys",
+                "description": "Get all the fields in a hash.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "hKeys",
+                "version": "3.1.0",
+                "parentSymbol": "redisClientResult",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "hLen",
+                "description": "Get the number of fields in a hash.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "hLen",
+                "version": "3.1.0",
+                "parentSymbol": "redisClientResult",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "hMGet",
+                "description": "Get the values of all the given hash fields.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "hMGet",
+                "version": "3.1.0",
+                "parentSymbol": "redisClientResult",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "hMSet",
+                "description": "Set multiple hash fields to multiple values.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "hMSet",
+                "version": "3.1.0",
+                "parentSymbol": "redisClientResult",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "hSet",
+                "description": "Set the string value of a hash field.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "hSet",
+                "version": "3.1.0",
+                "parentSymbol": "redisClientResult",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "hSetNx",
+                "description": "Set the string value of a hash field, only if the field does not exist.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "hSetNx",
+                "version": "3.1.0",
+                "parentSymbol": "redisClientResult",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "hStrLen",
+                "description": "Get the string length of the field value in a hash.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "hStrLen",
+                "version": "3.1.0",
+                "parentSymbol": "redisClientResult",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "hVals",
+                "description": "Get all the values in a hash.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "hVals",
+                "version": "3.1.0",
+                "parentSymbol": "redisClientResult",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "del",
+                "description": "Delete one or more keys.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "del",
+                "version": "3.1.0",
+                "parentSymbol": "redisClientResult",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "exists",
+                "description": "Determine how many keys exist.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "exists",
+                "version": "3.1.0",
+                "parentSymbol": "redisClientResult",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "expire",
+                "description": "Set a key's time to live in seconds.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "expire",
+                "version": "3.1.0",
+                "parentSymbol": "redisClientResult",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "keys",
+                "description": "Find all keys matching the given pattern.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "keys",
+                "version": "3.1.0",
+                "parentSymbol": "redisClientResult",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "move",
+                "description": "Move a key to another database.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "move",
+                "version": "3.1.0",
+                "parentSymbol": "redisClientResult",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "persist",
+                "description": "Remove the expiration from a key.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "persist",
+                "version": "3.1.0",
+                "parentSymbol": "redisClientResult",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "pExpire",
+                "description": "Set a key's time to live in milliseconds.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "pExpire",
+                "version": "3.1.0",
+                "parentSymbol": "redisClientResult",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "pTtl",
+                "description": "Get the time to live for a key in milliseconds.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "pTtl",
+                "version": "3.1.0",
+                "parentSymbol": "redisClientResult",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "randomKey",
+                "description": "Return a random key from the keyspace.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "randomKey",
+                "version": "3.1.0",
+                "parentSymbol": "redisClientResult",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "rename",
+                "description": "Rename a key.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "rename",
+                "version": "3.1.0",
+                "parentSymbol": "redisClientResult",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "renameNx",
+                "description": "Rename a key, only if the new key does not exist.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "renameNx",
+                "version": "3.1.0",
+                "parentSymbol": "redisClientResult",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "sort",
+                "description": "Sort elements in a list, set or sorted set.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "sort",
+                "version": "3.1.0",
+                "parentSymbol": "redisClientResult",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "ttl",
+                "description": "Get the time to live for a key.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "ttl",
+                "version": "3.1.0",
+                "parentSymbol": "redisClientResult",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "redisType",
+                "description": "Determine the type stored at key.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "redisType",
+                "version": "3.1.0",
+                "parentSymbol": "redisClientResult",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "clusterInfo",
+                "description": "Retrieve information and statistics about the cluster observed by the current node.\nThis command is exclusively available in cluster mode. If the connection is in a non-clustered mode,\nthe API will return a `redis:Error`. Other errors will also be appropriately handled.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "clusterInfo",
+                "version": "3.1.0",
+                "parentSymbol": "redisClientResult",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "ping",
+                "description": "Ping the server.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "ping",
+                "version": "3.1.0",
+                "parentSymbol": "redisClientResult",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "auth",
+                "description": "Authenticate to the server.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "auth",
+                "version": "3.1.0",
+                "parentSymbol": "redisClientResult",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "echo",
+                "description": "Echo the given string.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "echo",
+                "version": "3.1.0",
+                "parentSymbol": "redisClientResult",
+                "resourcePath": ""
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "close",
+                "description": "Close the connection.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "METHOD_CALL",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "close",
+                "version": "3.1.0",
+                "parentSymbol": "redisClientResult",
+                "resourcePath": ""
+              },
+              "enabled": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "metadata": {
+        "label": "Statement",
+        "description": "Fundamental executable units in a program"
+      },
+      "items": [
+        {
+          "metadata": {
+            "label": "Declare Variable"
+          },
+          "codedata": {
+            "node": "VARIABLE"
+          },
+          "enabled": true
+        },
+        {
+          "metadata": {
+            "label": "Assign",
+            "description": "Assign a value to a variable"
+          },
+          "codedata": {
+            "node": "ASSIGN"
+          },
+          "enabled": true
+        },
+        {
+          "metadata": {
+            "label": "Call Function",
+            "description": "Both project and utility functions"
+          },
+          "codedata": {
+            "node": "FUNCTION"
+          },
+          "enabled": true
+        },
+        {
+          "metadata": {
+            "label": "Map Data"
+          },
+          "codedata": {
+            "node": "DATA_MAPPER_CALL"
+          },
+          "enabled": true
+        },
+        {
+          "metadata": {
+            "label": "Call Natural Function",
+            "description": "Call a natural programming function",
+            "icon": "https://gist.github.com/user-attachments/assets/903c5c16-7d67-4af8-8113-ce7c59ccdaab"
+          },
+          "codedata": {
+            "node": "NP_FUNCTION"
+          },
+          "enabled": true
+        },
+        {
+          "metadata": {
+            "label": "Agent",
+            "description": "Create new agent"
+          },
+          "codedata": {
+            "node": "AGENT_CALL",
+            "org": "ballerinax",
+            "module": "ai",
+            "object": "Agent",
+            "symbol": "run"
+          },
+          "enabled": true
+        }
+      ]
+    },
+    {
+      "metadata": {
+        "label": "Control",
+        "description": "Control nodes"
+      },
+      "items": [
+        {
+          "metadata": {
+            "label": "If",
+            "description": "Add conditional branch to the integration flow."
+          },
+          "codedata": {
+            "node": "IF"
+          },
+          "enabled": true
+        },
+        {
+          "metadata": {
+            "label": "Match",
+            "description": "Switches the data flow based on the value of an expression."
+          },
+          "codedata": {
+            "node": "MATCH"
+          },
+          "enabled": true
+        },
+        {
+          "metadata": {
+            "label": "While",
+            "description": "Loop over a block of code."
+          },
+          "codedata": {
+            "node": "WHILE"
+          },
+          "enabled": true
+        },
+        {
+          "metadata": {
+            "label": "Foreach",
+            "description": "Iterate over a block of code."
+          },
+          "codedata": {
+            "node": "FOREACH"
+          },
+          "enabled": true
+        },
+        {
+          "metadata": {
+            "label": "Return"
+          },
+          "codedata": {
+            "node": "RETURN"
+          },
+          "enabled": true
+        }
+      ]
+    },
+    {
+      "metadata": {
+        "label": "Error Handling",
+        "description": "Handle errors that occur during execution"
+      },
+      "items": [
+        {
+          "metadata": {
+            "label": "ErrorHandler",
+            "description": "Catch and handle errors"
+          },
+          "codedata": {
+            "node": "ERROR_HANDLER"
+          },
+          "enabled": true
+        },
+        {
+          "metadata": {
+            "label": "Fail",
+            "description": "Fail the execution"
+          },
+          "codedata": {
+            "node": "FAIL"
+          },
+          "enabled": true
+        },
+        {
+          "metadata": {
+            "label": "Panic",
+            "description": "Panic and stop the execution"
+          },
+          "codedata": {
+            "node": "PANIC"
+          },
+          "enabled": true
+        }
+      ]
+    },
+    {
+      "metadata": {
+        "label": "Concurrency",
+        "description": "Concurrency nodes"
+      },
+      "items": [
+        {
+          "metadata": {
+            "label": "Fork",
+            "description": "Create parallel workers"
+          },
+          "codedata": {
+            "node": "FORK"
+          },
+          "enabled": true
+        },
+        {
+          "metadata": {
+            "label": "Parallel Flow",
+            "description": "Create parallel flows"
+          },
+          "codedata": {
+            "node": "PARALLEL_FLOW"
+          },
+          "enabled": true
+        },
+        {
+          "metadata": {
+            "label": "Wait",
+            "description": "Wait for a set of futures to complete"
+          },
+          "codedata": {
+            "node": "WAIT"
+          },
+          "enabled": true
+        },
+        {
+          "metadata": {
+            "label": "Lock",
+            "description": "Allow to access mutable states safely"
+          },
+          "codedata": {
+            "node": "LOCK"
+          },
+          "enabled": true
+        },
+        {
+          "metadata": {
+            "label": "Start",
+            "description": "Execute a function or a method invocation in a new strand"
+          },
+          "codedata": {
+            "node": "START"
+          },
+          "enabled": true
+        },
+        {
+          "metadata": {
+            "label": "Transaction",
+            "description": "Handle transaction."
+          },
+          "codedata": {
+            "node": "TRANSACTION"
+          },
+          "enabled": true
+        },
+        {
+          "metadata": {
+            "label": "Commit",
+            "description": "Commit transaction"
+          },
+          "codedata": {
+            "node": "COMMIT"
+          },
+          "enabled": true
+        },
+        {
+          "metadata": {
+            "label": "Rollback",
+            "description": "Rollback the transaction"
+          },
+          "codedata": {
+            "node": "ROLLBACK"
+          },
+          "enabled": true
+        },
+        {
+          "metadata": {
+            "label": "Retry Block",
+            "description": "Retry block."
+          },
+          "codedata": {
+            "node": "RETRY"
+          },
+          "enabled": true
+        }
+      ]
+    },
+    {
+      "metadata": {
+        "label": "Logging"
+      },
+      "items": [
+        {
+          "metadata": {
+            "label": "Log Info",
+            "description": "Prints info logs.\n```ballerina\nlog:printInfo(\"info message\", id = 845315)\n```\n\n",
+            "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_log_2.10.0.png"
+          },
+          "codedata": {
+            "node": "FUNCTION_CALL",
+            "org": "ballerina",
+            "module": "log",
+            "symbol": "printInfo",
+            "version": "2.10.0"
+          },
+          "enabled": true
+        },
+        {
+          "metadata": {
+            "label": "Log Error",
+            "description": "Prints error logs.\n```ballerina\nerror e = error(\"error occurred\");\nlog:printError(\"error log with cause\", 'error = e, id = 845315);\n```\n\n",
+            "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_log_2.10.0.png"
+          },
+          "codedata": {
+            "node": "FUNCTION_CALL",
+            "org": "ballerina",
+            "module": "log",
+            "symbol": "printError",
+            "version": "2.10.0"
+          },
+          "enabled": true
+        },
+        {
+          "metadata": {
+            "label": "Log Warn",
+            "description": "Prints warn logs.\n```ballerina\nlog:printWarn(\"warn message\", id = 845315)\n```\n\n",
+            "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_log_2.10.0.png"
+          },
+          "codedata": {
+            "node": "FUNCTION_CALL",
+            "org": "ballerina",
+            "module": "log",
+            "symbol": "printWarn",
+            "version": "2.10.0"
+          },
+          "enabled": true
+        },
+        {
+          "metadata": {
+            "label": "Log Debug",
+            "description": "Prints debug logs.\n```ballerina\nlog:printDebug(\"debug message\", id = 845315)\n```\n\n",
+            "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_log_2.10.0.png"
+          },
+          "codedata": {
+            "node": "FUNCTION_CALL",
+            "org": "ballerina",
+            "module": "log",
+            "symbol": "printDebug",
+            "version": "2.10.0"
+          },
+          "enabled": true
+        }
+      ]
+    }
+  ]
+}

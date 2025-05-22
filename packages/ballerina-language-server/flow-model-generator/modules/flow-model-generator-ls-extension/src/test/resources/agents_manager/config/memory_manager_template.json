@@ -1,0 +1,88 @@
+{
+  "source": "agent_1/agents.bal",
+  "position": {
+    "line": 0,
+    "offset": 0
+  },
+  "description": "",
+  "codedata": {
+    "node": "CLASS_INIT",
+    "org": "ballerinax",
+    "module": "ai",
+    "object": "MessageWindowChatMemory",
+    "symbol": "init",
+    "version": "1.0.1"
+  },
+  "output": {
+    "id": "31",
+    "metadata": {
+      "label": "Class",
+      "description": "Initializes a new memory window with a default or given size.",
+      "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_ai_1.0.1.png"
+    },
+    "codedata": {
+      "node": "CLASS_INIT",
+      "org": "ballerinax",
+      "module": "ai",
+      "object": "MessageWindowChatMemory",
+      "symbol": "init",
+      "version": "1.0.1",
+      "isNew": true
+    },
+    "returning": false,
+    "properties": {
+      "size": {
+        "metadata": {
+          "label": "size",
+          "description": "The maximum capacity for stored messages"
+        },
+        "valueType": "EXPRESSION",
+        "valueTypeConstraint": "int",
+        "placeholder": "0",
+        "optional": true,
+        "editable": true,
+        "advanced": true,
+        "hidden": false,
+        "codedata": {
+          "kind": "DEFAULTABLE",
+          "originalName": "size"
+        },
+        "typeMembers": [
+          {
+            "type": "int",
+            "packageInfo": "",
+            "kind": "BASIC_TYPE",
+            "selected": false
+          }
+        ]
+      },
+      "type": {
+        "metadata": {
+          "label": "Variable Type",
+          "description": "Type of the variable"
+        },
+        "valueType": "TYPE",
+        "value": "ai:MessageWindowChatMemory",
+        "placeholder": "var",
+        "optional": false,
+        "editable": false,
+        "advanced": false,
+        "hidden": false,
+        "codedata": {}
+      },
+      "variable": {
+        "metadata": {
+          "label": "Variable Name",
+          "description": "Name of the variable"
+        },
+        "valueType": "IDENTIFIER",
+        "value": "aiMessagewindowchatmemory",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      }
+    },
+    "flags": 0
+  }
+}

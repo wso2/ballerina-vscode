@@ -1,0 +1,19 @@
+{
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "BREAK"
+  },
+  "output": {
+    "id": "31",
+    "metadata": {
+      "label": "Break",
+      "description": "Exit the current loop"
+    },
+    "codedata": {
+      "node": "BREAK",
+      "isNew": true
+    },
+    "returning": false,
+    "flags": 0
+  }
+}

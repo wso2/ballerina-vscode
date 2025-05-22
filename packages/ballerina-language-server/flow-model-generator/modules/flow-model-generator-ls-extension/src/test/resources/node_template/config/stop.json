@@ -1,0 +1,19 @@
+{
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "STOP"
+  },
+  "output": {
+    "id": "31",
+    "metadata": {
+      "label": "Stop",
+      "description": "Stop the flow"
+    },
+    "codedata": {
+      "node": "STOP",
+      "isNew": true
+    },
+    "returning": false,
+    "flags": 0
+  }
+}

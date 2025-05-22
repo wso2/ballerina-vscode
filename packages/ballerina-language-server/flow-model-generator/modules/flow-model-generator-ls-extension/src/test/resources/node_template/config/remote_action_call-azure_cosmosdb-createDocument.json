@@ -1,0 +1,259 @@
+{
+  "source": "data_mapper/method_call.bal",
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "REMOTE_ACTION_CALL",
+    "org": "ballerinax",
+    "module": "azure_cosmosdb",
+    "object": "DataPlaneClient",
+    "symbol": "createDocument",
+    "parentSymbol": "covid19Client",
+    "version": "4.2.0"
+  },
+  "output": {
+    "id": "31",
+    "metadata": {
+      "label": "createDocument",
+      "description": "Creates a document.\n",
+      "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_azure_cosmosdb_4.2.0.png"
+    },
+    "codedata": {
+      "node": "REMOTE_ACTION_CALL",
+      "org": "ballerinax",
+      "module": "azure_cosmosdb",
+      "object": "DataPlaneClient",
+      "symbol": "createDocument",
+      "version": "4.2.0",
+      "isNew": true
+    },
+    "returning": false,
+    "properties": {
+      "connection": {
+        "metadata": {
+          "label": "Connection",
+          "description": "Connection to use"
+        },
+        "valueType": "EXPRESSION",
+        "valueTypeConstraint": "azure_cosmosdb:DataPlaneClient",
+        "value": "covid19Client",
+        "optional": false,
+        "editable": false,
+        "advanced": false,
+        "hidden": false
+      },
+      "databaseId": {
+        "metadata": {
+          "label": "Database ID",
+          "description": "ID of the database to which the container belongs to"
+        },
+        "valueType": "EXPRESSION",
+        "valueTypeConstraint": "string",
+        "placeholder": "\"\"",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false,
+        "codedata": {
+          "kind": "REQUIRED",
+          "originalName": "databaseId"
+        },
+        "typeMembers": [
+          {
+            "type": "string",
+            "packageInfo": "",
+            "kind": "BASIC_TYPE",
+            "selected": false
+          }
+        ]
+      },
+      "containerId": {
+        "metadata": {
+          "label": "Container ID",
+          "description": "ID of the container where, document is created"
+        },
+        "valueType": "EXPRESSION",
+        "valueTypeConstraint": "string",
+        "placeholder": "\"\"",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false,
+        "codedata": {
+          "kind": "REQUIRED",
+          "originalName": "containerId"
+        },
+        "typeMembers": [
+          {
+            "type": "string",
+            "packageInfo": "",
+            "kind": "BASIC_TYPE",
+            "selected": false
+          }
+        ]
+      },
+      "documemtId": {
+        "metadata": {
+          "label": "Document ID",
+          "description": "ID of the document"
+        },
+        "valueType": "EXPRESSION",
+        "valueTypeConstraint": "string",
+        "placeholder": "\"\"",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false,
+        "codedata": {
+          "kind": "REQUIRED",
+          "originalName": "documemtId"
+        },
+        "typeMembers": [
+          {
+            "type": "string",
+            "packageInfo": "",
+            "kind": "BASIC_TYPE",
+            "selected": false
+          }
+        ]
+      },
+      "document": {
+        "metadata": {
+          "label": "Document",
+          "description": "A JSON document to be saved in the database"
+        },
+        "valueType": "EXPRESSION",
+        "valueTypeConstraint": "map<json>",
+        "placeholder": "{}",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false,
+        "codedata": {
+          "kind": "REQUIRED",
+          "originalName": "document"
+        },
+        "typeMembers": [
+          {
+            "type": "map<json>",
+            "packageInfo": "",
+            "kind": "MAP_TYPE",
+            "selected": false
+          }
+        ]
+      },
+      "partitionKey": {
+        "metadata": {
+          "label": "Partition Key",
+          "description": "The specific value related to the partition key field of the container "
+        },
+        "valueType": "EXPRESSION",
+        "valueTypeConstraint": "int|float|decimal|string",
+        "placeholder": "0",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false,
+        "codedata": {
+          "kind": "REQUIRED",
+          "originalName": "partitionKey"
+        },
+        "typeMembers": [
+          {
+            "type": "int",
+            "packageInfo": "",
+            "kind": "BASIC_TYPE",
+            "selected": false
+          },
+          {
+            "type": "float",
+            "packageInfo": "",
+            "kind": "BASIC_TYPE",
+            "selected": false
+          },
+          {
+            "type": "decimal",
+            "packageInfo": "",
+            "kind": "BASIC_TYPE",
+            "selected": false
+          },
+          {
+            "type": "string",
+            "packageInfo": "",
+            "kind": "BASIC_TYPE",
+            "selected": false
+          }
+        ]
+      },
+      "requestOptions": {
+        "metadata": {
+          "label": "Optional Header Parameters",
+          "description": "The `cosmos_db:RequestOptions` which can be used to add additional capabilities that can \noverride client configuration provided in the inilization"
+        },
+        "valueType": "EXPRESSION",
+        "valueTypeConstraint": "azure_cosmosdb:RequestOptions|()",
+        "placeholder": "()",
+        "optional": true,
+        "editable": true,
+        "advanced": true,
+        "hidden": false,
+        "codedata": {
+          "kind": "DEFAULTABLE",
+          "originalName": "requestOptions"
+        },
+        "typeMembers": [
+          {
+            "type": "RequestOptions",
+            "packageInfo": "ballerinax:azure_cosmosdb:4.2.0",
+            "kind": "RECORD_TYPE",
+            "selected": false
+          },
+          {
+            "type": "()",
+            "packageInfo": "",
+            "kind": "BASIC_TYPE",
+            "selected": false
+          }
+        ]
+      },
+      "type": {
+        "metadata": {
+          "label": "Variable Type",
+          "description": "Type of the variable"
+        },
+        "valueType": "TYPE",
+        "value": "azure_cosmosdb:DocumentResponse",
+        "placeholder": "var",
+        "optional": false,
+        "editable": false,
+        "advanced": false,
+        "hidden": false,
+        "codedata": {}
+      },
+      "variable": {
+        "metadata": {
+          "label": "Variable Name",
+          "description": "Name of the variable"
+        },
+        "valueType": "IDENTIFIER",
+        "value": "azureCosmosdbDocumentresponse",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      },
+      "checkError": {
+        "metadata": {
+          "label": "Check Error",
+          "description": "Trigger error flow"
+        },
+        "valueType": "FLAG",
+        "value": true,
+        "optional": false,
+        "editable": true,
+        "advanced": true,
+        "hidden": false
+      }
+    },
+    "flags": 0
+  }
+}

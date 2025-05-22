@@ -1,0 +1,10 @@
+{
+  "filePath": "proj/main.bal",
+  "testFilePath": "test1.bal",
+  "jsonString": "{\n      \"variable\": {\n        \"metadata\": {\n          \"label\": \"Name\",\n          \"description\": \"Name of the variable\"\n        },\n        \"valueType\": \"IDENTIFIER\",\n        \"value\": \"var1\",\n        \"optional\": false,\n        \"editable\": true,\n        \"advanced\": false\n      },\n      \"type\": {\n        \"metadata\": {\n          \"label\": \"Type\",\n          \"description\": \"Type of the variable\"\n        },\n        \"valueType\": \"TYPE\",\n        \"value\": \"Studentsss\",\n        \"placeholder\": \"var\",\n        \"optional\": false,\n        \"editable\": true,\n        \"advanced\": false\n      },\n      \"expression\": {\n        \"metadata\": {\n          \"label\": \"Expression\",\n          \"description\": \"Initialize with value\"\n        },\n        \"valueType\": \"EXPRESSION\",\n        \"value\": \"{names: [[[\\\"1\\\", \\\"2\\\", \\\"\\\"]], [[\\\"3\\\"]]]}\",\n        \"optional\": true,\n        \"editable\": true,\n        \"advanced\": false\n      }\n    }",
+  "recordName": "Rec",
+  "prefix": "new",
+  "isClosed": false,
+  "isRecordTypeDesc": false,
+  "records": "\ntype NewMetadata record {|\n\tstring label;\n\tstring description;\n|};\n\ntype NewVariable record {|\n\tNewMetadata metadata;\n\tstring valueType;\n\tstring value;\n\tboolean optional;\n\tboolean editable;\n\tboolean advanced;\n|};\n\ntype NewType record {|\n\tNewMetadata metadata;\n\tstring valueType;\n\tstring value;\n\tstring placeholder;\n\tboolean optional;\n\tboolean editable;\n\tboolean advanced;\n|};\n\ntype NewExpression record {|\n\tNewMetadata metadata;\n\tstring valueType;\n\tstring value;\n\tboolean optional;\n\tboolean editable;\n\tboolean advanced;\n|};\n\ntype Rec record {|\n\tNewVariable variable;\n\tNewType 'type;\n\tNewExpression expression;\n|};\n"
+}
