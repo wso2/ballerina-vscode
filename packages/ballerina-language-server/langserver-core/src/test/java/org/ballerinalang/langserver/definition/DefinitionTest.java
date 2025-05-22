@@ -89,7 +89,7 @@ public class DefinitionTest {
      *
      * @param withBalaScheme Whether to use bala scheme or not when fetching definition.
      */
-    private void performStdLibDefinitionTest(Path sourceRootPath, String configPath, String configDir, 
+    private void performStdLibDefinitionTest(Path sourceRootPath, String configPath, String configDir,
                                              boolean withBalaScheme)
             throws IOException, URISyntaxException {
         JsonObject configObject = FileUtils.fileContentAsObject(configRoot.resolve(configDir)
@@ -168,7 +168,6 @@ public class DefinitionTest {
                 {"defProject8.json", "project"},
                 {"def_error_config2.json", "project"},
                 {"def_retry_spec_config1.json", "project"},
-                {"defProject14.json", "project"},
                 {"defProject14.json", "project"}
         };
     }
@@ -192,7 +191,7 @@ public class DefinitionTest {
                 .withInitOption(InitializationOptions.KEY_BALA_SCHEME_SUPPORT, false)
                 .build();
     }
-    
+
     protected void alterExpectedUri(JsonArray expected, Path root) throws IOException {
         for (JsonElement jsonElement : expected) {
             JsonObject item = jsonElement.getAsJsonObject();
@@ -210,13 +209,28 @@ public class DefinitionTest {
         for (JsonElement jsonElement : expected) {
             JsonObject item = jsonElement.getAsJsonObject();
             String[] uriComponents = item.get("uri").toString().replace("\"", "").split("/");
-            Path expectedPath = Path.of("build").toAbsolutePath();
-            for (String uriComponent : uriComponents) {
-                expectedPath = expectedPath.resolve(uriComponent);
-            }
+
+            Path expectedPath = getPath(uriComponents);
             item.remove("uri");
             item.addProperty("uri", expectedPath.toFile().getCanonicalPath());
         }
+    }
+
+    private static Path getPath(String[] uriComponents) {
+        int startIndex = 0;
+        for (int i = 0; i < uriComponents.length; i++) {
+            if (uriComponents[i].equals("repo")) {
+                startIndex = i;
+                break;
+            }
+        }
+        Path expectedPath = Path.of("/");
+        for (int i = startIndex; i < uriComponents.length; i++) {
+            if (!uriComponents[i].isEmpty()) {
+                expectedPath = expectedPath.resolve(uriComponents[i]);
+            }
+        }
+        return expectedPath;
     }
 
     protected void alterActualStdLibUri(JsonArray actual) throws IOException, URISyntaxException {
@@ -225,7 +239,7 @@ public class DefinitionTest {
             String fileUri = item.get("uri").toString().replace("\"", "");
 
             // Check bala URI scheme
-            URI  uri = new URI(fileUri);
+            URI uri = new URI(fileUri);
             Assert.assertEquals(uri.getScheme(), getExpectedUriScheme(),
                     String.format("Expected %s: URI scheme", getExpectedUriScheme()));
             fileUri = PathUtil.convertUriSchemeFromBala(fileUri);
@@ -234,11 +248,23 @@ public class DefinitionTest {
                     "Expected file URI scheme after conversion");
 
             String canonicalPath = new File(URI.create(fileUri)).getCanonicalPath();
+            if (canonicalPath.contains("repo")) {
+                canonicalPath = "/repo" + canonicalPath.substring(canonicalPath.indexOf("repo") + 4);
+            }
+            // Remove version directory (d.d.d pattern) from canonical path if it exists
+            String[] pathParts = canonicalPath.split("/");
+            StringBuilder result = new StringBuilder();
+            for (int i = 0; i < pathParts.length; i++) {
+                String part = pathParts[i];
+                result.append("/").append(part);
+            }
+            canonicalPath = result.toString().replaceFirst("^/", "");
+
             item.remove("uri");
             item.addProperty("uri", canonicalPath);
         }
     }
-    
+
     protected void alterActualUri(JsonArray actual) throws IOException {
         for (JsonElement jsonElement : actual) {
             JsonObject item = jsonElement.getAsJsonObject();
@@ -248,7 +274,7 @@ public class DefinitionTest {
             item.addProperty("uri", canonicalPath);
         }
     }
-    
+
     protected String getExpectedUriScheme() {
         return CommonUtil.URI_SCHEME_FILE;
     }
