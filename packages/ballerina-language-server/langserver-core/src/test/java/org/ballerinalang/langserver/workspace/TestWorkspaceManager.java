@@ -74,7 +74,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
-import static io.ballerina.projects.util.ProjectConstants.BALLERINA_HOME;
 import static org.awaitility.Awaitility.await;
 
 /**

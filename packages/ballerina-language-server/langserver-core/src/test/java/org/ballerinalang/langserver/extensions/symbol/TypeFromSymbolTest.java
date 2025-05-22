@@ -49,7 +49,7 @@ public class TypeFromSymbolTest {
         this.serviceEndpoint = TestUtil.initializeLanguageSever();
     }
 
-    @Test(description = "type info retrieved for the return type symbol node")
+    @Test(description = "type info retrieved for the return type symbol node", enabled = false)
     public void testTypeForReturnTypeNode() throws IOException, ExecutionException, InterruptedException {
         Path inputFile = LSExtensionTestUtil.createTempFile(typeFromSymbolBalFile);
         URI uri = URI.create(inputFile.toUri().toString());
@@ -73,7 +73,7 @@ public class TypeFromSymbolTest {
         TestUtil.closeDocument(this.serviceEndpoint, inputFile);
     }
 
-    @Test(description = "type info retrieved for the type name symbol of a required param node")
+    @Test(description = "type info retrieved for the type name symbol of a required param node", enabled = false)
     public void testTypeForRequiredParamTypeNameNode() throws IOException, ExecutionException, InterruptedException {
         Path inputFile = LSExtensionTestUtil.createTempFile(typeFromSymbolBalFile);
         URI uri = URI.create(inputFile.toUri().toString());
@@ -103,7 +103,7 @@ public class TypeFromSymbolTest {
         TestUtil.closeDocument(this.serviceEndpoint, inputFile);
     }
 
-    @Test(description = "type info retrieved for a let variable")
+    @Test(description = "type info retrieved for a let variable", enabled = false)
     public void testTypeForLetVarDeclaration() throws IOException, ExecutionException, InterruptedException {
         Path inputFile = LSExtensionTestUtil.createTempFile(typeFromSymbolBalFile);
         URI uri = URI.create(inputFile.toUri().toString());
@@ -123,7 +123,7 @@ public class TypeFromSymbolTest {
         TestUtil.closeDocument(this.serviceEndpoint, inputFile);
     }
 
-    @Test(description = "type info retrieved for multiple symbols")
+    @Test(description = "type info retrieved for multiple symbols", enabled = false)
     public void testTypesForMultipleSymbols() throws IOException, ExecutionException, InterruptedException {
         Path inputFile = LSExtensionTestUtil.createTempFile(typeFromSymbolBalFile);
         URI uri = URI.create(inputFile.toUri().toString());

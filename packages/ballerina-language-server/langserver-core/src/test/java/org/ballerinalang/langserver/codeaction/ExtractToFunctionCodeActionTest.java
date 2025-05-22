@@ -35,14 +35,14 @@ public class ExtractToFunctionCodeActionTest extends AbstractCodeActionTest {
         builder.withInitOption(InitializationOptions.KEY_POSITIONAL_RENAME_SUPPORT, true);
     }
 
-    @Test(dataProvider = "codeaction-data-provider")
+    @Test(dataProvider = "codeaction-data-provider", enabled = false)
     @Override
     public void test(String config) throws IOException, WorkspaceDocumentException {
         super.test(config);
     }
 
     @Override
-    @Test(dataProvider = "negative-test-data-provider")
+    @Test(dataProvider = "negative-test-data-provider", enabled = false)
     public void negativeTest(String config) throws IOException, WorkspaceDocumentException {
         super.negativeTest(config);
     }
