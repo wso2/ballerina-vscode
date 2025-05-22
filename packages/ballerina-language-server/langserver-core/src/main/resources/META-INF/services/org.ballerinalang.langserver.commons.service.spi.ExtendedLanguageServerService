@@ -1,0 +1,6 @@
+org.ballerinalang.langserver.extensions.ballerina.example.BallerinaExampleService
+org.ballerinalang.langserver.extensions.ballerina.runner.BallerinaRunnerService
+org.ballerinalang.langserver.extensions.ballerina.symbol.BallerinaSymbolService
+org.ballerinalang.langserver.extensions.ballerina.document.BallerinaDocumentService
+org.ballerinalang.langserver.extensions.ballerina.packages.BallerinaPackageService
+org.ballerinalang.langserver.extensions.ballerina.connector.BallerinaConnectorService

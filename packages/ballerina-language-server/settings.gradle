@@ -36,9 +36,9 @@ include(':flow-model-generator:flow-model-central-client')
 include(':service-model-generator:service-model-generator-ls-extension')
 include(':service-model-generator:service-model-index-generator')
 include(':test-manager-service:test-manager-service-ls-extension')
-//include(":langserver-commons")
-//include(":langserver-core")
-//include(":langserver-stdlib")
+include(":langserver-commons")
+include(":langserver-core")
+include(":langserver-stdlib")
 
 project(':checkstyle').projectDir = file("build-config${File.separator}checkstyle")
 project(':model-generator-commons').projectDir = file('model-generator-commons')
@@ -55,9 +55,9 @@ project(':flow-model-generator:flow-model-central-client').projectDir = file('fl
 project(':service-model-generator:service-model-generator-ls-extension').projectDir = file('service-model-generator/modules/service-model-generator-ls-extension')
 project(':service-model-generator:service-model-index-generator').projectDir = file('service-model-generator/modules/service-model-index-generator')
 project(':test-manager-service:test-manager-service-ls-extension').projectDir = file('test-manager-service/modules/test-manager-service-ls-extension')
-//project(":langserver-commons").projectDir = file("langserver-commons")
-//project(":langserver-core").projectDir = file("langserver-core")
-//project(":langserver-stdlib").projectDir = file("langserver-stdlib")
+project(":langserver-commons").projectDir = file("langserver-commons")
+project(":langserver-core").projectDir = file("langserver-core")
+project(":langserver-stdlib").projectDir = file("langserver-stdlib")
 
 gradleEnterprise {
     buildScan {

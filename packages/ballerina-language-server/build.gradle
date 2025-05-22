@@ -64,8 +64,14 @@ subprojects {
     apply plugin: "java"
     configurations {
         ballerinaStdLibs
+        jbalTools
     }
+
     dependencies {
+        jbalTools ("org.ballerinalang:jballerina-tools:${ballerinaLangVersion}") {
+            transitive = false
+        }
+
         /* Standard libraries */
         ballerinaStdLibs "io.ballerina.stdlib:constraint-ballerina:${stdlibConstraintVersion}"
         ballerinaStdLibs "io.ballerina.stdlib:io-ballerina:${stdlibIoVersion}"
