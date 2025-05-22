@@ -175,6 +175,7 @@ test {
     dependsOn buildAndCopyLangserverStdlib
 
     systemProperty "ballerina.home", balDistribution
+    systemProperty "responseTimeThreshold", 2000
 
     useTestNG() {
         suites "src/test/resources/testng.xml"
