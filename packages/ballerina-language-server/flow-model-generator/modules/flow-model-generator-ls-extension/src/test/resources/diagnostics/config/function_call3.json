@@ -1,0 +1,48 @@
+{
+  "description": "",
+  "filePath": "source.bal",
+  "context": {
+    "expression": "50",
+    "startLine": {
+      "line": 13,
+      "offset": 8
+    },
+    "offset": 0,
+    "codedata": {
+      "node": "FUNCTION_CALL",
+      "symbol": "fn"
+    },
+    "property": {
+      "metadata": {
+        "label": "rec"
+      },
+      "valueType": "EXPRESSION",
+      "valueTypeConstraint": "MyRecord",
+      "value": "{id: 0}",
+      "placeholder": "{id: 0}",
+      "optional": false,
+      "editable": true,
+      "advanced": false,
+      "kind": "REQUIRED"
+    }
+  },
+  "diagnostics": [
+    {
+      "range": {
+        "start": {
+          "line": 13,
+          "character": 32
+        },
+        "end": {
+          "line": 13,
+          "character": 34
+        }
+      },
+      "severity": "Error",
+      "code": {
+        "left": "BCE2066"
+      },
+      "message": "incompatible types: expected 'MyRecord', found 'int'"
+    }
+  ]
+}

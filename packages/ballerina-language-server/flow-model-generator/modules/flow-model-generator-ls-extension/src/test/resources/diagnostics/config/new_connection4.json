@@ -1,0 +1,52 @@
+{
+  "description": "",
+  "filePath": "source.bal",
+  "context": {
+    "expression": "{}",
+    "startLine": {
+      "line": 4,
+      "offset": 0
+    },
+    "offset": 1,
+    "codedata": {
+      "node": "NEW_CONNECTION",
+      "org": "ballerinax",
+      "module": "snowflake",
+      "object": "Client",
+      "symbol": "init",
+      "version": "2.0.0",
+      "lineRange": {
+        "fileName": "connections.bal",
+        "startLine": {
+          "line": 4,
+          "offset": 0
+        },
+        "endLine": {
+          "line": 4,
+          "offset": 64
+        }
+      },
+      "sourceCode": "final snowflake:Client snowflakeClient = check new (\"\", \"\", \"\");"
+    },
+    "property": {
+      "metadata": {
+        "label": "connectionPool",
+        "description": "The `sql:ConnectionPool` to be used for the connection. If there is no\n`connectionPool` provided, the global connection pool (shared by all clients) will be used"
+      },
+      "valueType": "EXPRESSION",
+      "valueTypeConstraint": "sql:ConnectionPool|()",
+      "placeholder": "()",
+      "optional": true,
+      "editable": true,
+      "advanced": true,
+      "imports": {
+        "sql": "ballerina/sql:1.15.0"
+      },
+      "codedata": {
+        "kind": "DEFAULTABLE",
+        "originalName": "connectionPool"
+      }
+    }
+  },
+  "diagnostics": []
+}

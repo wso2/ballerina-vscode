@@ -1,0 +1,263 @@
+{
+  "source": "agent_1/agents.bal",
+  "position": {
+    "line": 0,
+    "offset": 0
+  },
+  "description": "",
+  "codedata": {
+    "node": "AGENT",
+    "org": "ballerinax",
+    "module": "ai",
+    "object": "Agent",
+    "symbol": "init",
+    "version": "1.0.1"
+  },
+  "output": {
+    "id": "31",
+    "metadata": {
+      "label": "Agent",
+      "description": "Represents an agent.",
+      "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_ai_1.0.1.png",
+      "data": {
+        "paramsToHide": [
+          "model",
+          "tools",
+          "type"
+        ]
+      }
+    },
+    "codedata": {
+      "node": "AGENT",
+      "org": "ballerinax",
+      "module": "ai",
+      "object": "Agent",
+      "symbol": "init",
+      "version": "1.0.1",
+      "isNew": true
+    },
+    "returning": false,
+    "properties": {
+      "systemPrompt": {
+        "metadata": {
+          "label": "System Prompt",
+          "description": "The system prompt assigned to the agent"
+        },
+        "valueType": "EXPRESSION",
+        "valueTypeConstraint": "ai:SystemPrompt",
+        "placeholder": "{role: \"\", instructions: \"\"}",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false,
+        "codedata": {
+          "kind": "INCLUDED_FIELD",
+          "originalName": "systemPrompt"
+        },
+        "typeMembers": [
+          {
+            "type": "SystemPrompt",
+            "packageInfo": "ballerinax:ai:1.0.1",
+            "kind": "RECORD_TYPE",
+            "selected": false
+          }
+        ]
+      },
+      "model": {
+        "metadata": {
+          "label": "Model",
+          "description": "The model used by the agent"
+        },
+        "valueType": "EXPRESSION",
+        "valueTypeConstraint": "ai:ModelProvider",
+        "placeholder": "object {}",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false,
+        "codedata": {
+          "kind": "INCLUDED_FIELD",
+          "originalName": "model"
+        },
+        "typeMembers": [
+          {
+            "type": "ModelProvider",
+            "packageInfo": "ballerinax:ai:1.0.1",
+            "kind": "OBJECT_TYPE",
+            "selected": false
+          }
+        ]
+      },
+      "tools": {
+        "metadata": {
+          "label": "Tools",
+          "description": "The tools available for the agent"
+        },
+        "valueType": "EXPRESSION",
+        "valueTypeConstraint": "(ai:BaseToolKit|ai:ToolConfig|ai:FunctionTool)[]",
+        "placeholder": "[]",
+        "optional": true,
+        "editable": true,
+        "advanced": true,
+        "hidden": false,
+        "codedata": {
+          "kind": "INCLUDED_FIELD",
+          "originalName": "tools"
+        },
+        "typeMembers": [
+          {
+            "type": "BaseToolKit|ai",
+            "packageInfo": "",
+            "kind": "ARRAY_TYPE",
+            "selected": false
+          }
+        ]
+      },
+      "agentType": {
+        "metadata": {
+          "label": "Agent Type",
+          "description": "Type of the agent"
+        },
+        "valueType": "EXPRESSION",
+        "valueTypeConstraint": "ai:AgentType",
+        "placeholder": "\"FUNCTION_CALL_AGENT\"",
+        "optional": true,
+        "editable": true,
+        "advanced": true,
+        "hidden": false,
+        "codedata": {
+          "kind": "INCLUDED_FIELD",
+          "originalName": "agentType"
+        },
+        "typeMembers": [
+          {
+            "type": "AgentType",
+            "packageInfo": "ballerinax:ai:1.0.1",
+            "kind": "BASIC_TYPE",
+            "selected": false
+          }
+        ]
+      },
+      "maxIter": {
+        "metadata": {
+          "label": "Maximum Iterations",
+          "description": "The maximum number of iterations the agent performs to complete the task"
+        },
+        "valueType": "EXPRESSION",
+        "valueTypeConstraint": "int",
+        "placeholder": "0",
+        "optional": true,
+        "editable": true,
+        "advanced": true,
+        "hidden": false,
+        "codedata": {
+          "kind": "INCLUDED_FIELD",
+          "originalName": "maxIter"
+        },
+        "typeMembers": [
+          {
+            "type": "int",
+            "packageInfo": "",
+            "kind": "BASIC_TYPE",
+            "selected": false
+          }
+        ]
+      },
+      "verbose": {
+        "metadata": {
+          "label": "Verbose",
+          "description": "Specifies whether verbose logging is enabled"
+        },
+        "valueType": "EXPRESSION",
+        "valueTypeConstraint": "boolean",
+        "placeholder": "false",
+        "optional": true,
+        "editable": true,
+        "advanced": true,
+        "hidden": false,
+        "codedata": {
+          "kind": "INCLUDED_FIELD",
+          "originalName": "verbose"
+        },
+        "typeMembers": [
+          {
+            "type": "boolean",
+            "packageInfo": "",
+            "kind": "BASIC_TYPE",
+            "selected": false
+          }
+        ]
+      },
+      "memory": {
+        "metadata": {
+          "label": "Memory",
+          "description": "The memory used by the agent to store and manage conversation history"
+        },
+        "valueType": "EXPRESSION",
+        "valueTypeConstraint": "ai:Memory|()",
+        "placeholder": "()",
+        "optional": true,
+        "editable": true,
+        "advanced": true,
+        "hidden": false,
+        "codedata": {
+          "kind": "INCLUDED_FIELD",
+          "originalName": "memory"
+        },
+        "typeMembers": [
+          {
+            "type": "Memory",
+            "packageInfo": "ballerinax:ai:1.0.1",
+            "kind": "OBJECT_TYPE",
+            "selected": false
+          },
+          {
+            "type": "()",
+            "packageInfo": "",
+            "kind": "BASIC_TYPE",
+            "selected": false
+          }
+        ]
+      },
+      "type": {
+        "metadata": {
+          "label": "Variable Type",
+          "description": "Type of the variable"
+        },
+        "valueType": "TYPE",
+        "value": "ai:Agent",
+        "placeholder": "var",
+        "optional": false,
+        "editable": false,
+        "advanced": false,
+        "hidden": false,
+        "codedata": {}
+      },
+      "variable": {
+        "metadata": {
+          "label": "Variable Name",
+          "description": "Name of the variable"
+        },
+        "valueType": "IDENTIFIER",
+        "value": "aiAgent",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      },
+      "checkError": {
+        "metadata": {
+          "label": "Check Error",
+          "description": "Trigger error flow"
+        },
+        "valueType": "FLAG",
+        "value": true,
+        "optional": false,
+        "editable": true,
+        "advanced": true,
+        "hidden": false
+      }
+    },
+    "flags": 0
+  }
+}

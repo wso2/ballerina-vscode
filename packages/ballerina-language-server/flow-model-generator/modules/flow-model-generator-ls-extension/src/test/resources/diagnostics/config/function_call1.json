@@ -1,0 +1,52 @@
+{
+  "description": "",
+  "filePath": "source.bal",
+  "context": {
+    "expression": "50",
+    "startLine": {
+      "line": 13,
+      "offset": 8
+    },
+    "offset": 0,
+    "codedata": {
+      "node": "FUNCTION_CALL",
+      "org": "ballerina",
+      "module": "log",
+      "symbol": "printInfo",
+      "version": "2.10.0"
+    },
+    "property": {
+      "metadata": {
+        "label": "msg",
+        "description": "The message to be logged"
+      },
+      "valueType": "EXPRESSION",
+      "valueTypeConstraint": "string",
+      "value": "\"\"",
+      "placeholder": "\"\"",
+      "optional": false,
+      "editable": true,
+      "advanced": false,
+      "kind": "REQUIRED"
+    }
+  },
+  "diagnostics": [
+    {
+      "range": {
+        "start": {
+          "line": 14,
+          "character": 30
+        },
+        "end": {
+          "line": 14,
+          "character": 32
+        }
+      },
+      "severity": "Error",
+      "code": {
+        "left": "BCE2066"
+      },
+      "message": "incompatible types: expected 'string', found 'int'"
+    }
+  ]
+}

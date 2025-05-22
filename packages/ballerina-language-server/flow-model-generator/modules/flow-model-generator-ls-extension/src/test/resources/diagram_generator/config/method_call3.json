@@ -1,0 +1,301 @@
+{
+  "start": {
+    "line": 4,
+    "offset": 0
+  },
+  "end": {
+    "line": 6,
+    "offset": 1
+  },
+  "source": "method_call_redis.bal",
+  "description": "Tests a simple diagram flow",
+  "diagram": {
+    "fileName": "method_call_redis.bal",
+    "nodes": [
+      {
+        "id": "37077",
+        "metadata": {
+          "label": "Start",
+          "data": {
+            "return": "error?"
+          }
+        },
+        "codedata": {
+          "node": "EVENT_START",
+          "lineRange": {
+            "fileName": "method_call_redis.bal",
+            "startLine": {
+              "line": 4,
+              "offset": 42
+            },
+            "endLine": {
+              "line": 6,
+              "offset": 1
+            }
+          },
+          "sourceCode": "function closeConnection() returns error? {\n    check redisClient.close();\n}"
+        },
+        "returning": false,
+        "flags": 0
+      },
+      {
+        "id": "36858",
+        "metadata": {
+          "label": "close",
+          "description": "Close the connection.\n",
+          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+        },
+        "codedata": {
+          "node": "METHOD_CALL",
+          "org": "ballerinax",
+          "module": "redis",
+          "object": "Client",
+          "symbol": "close",
+          "version": "3.1.0",
+          "lineRange": {
+            "fileName": "method_call_redis.bal",
+            "startLine": {
+              "line": 5,
+              "offset": 4
+            },
+            "endLine": {
+              "line": 5,
+              "offset": 30
+            }
+          },
+          "sourceCode": "check redisClient.close();"
+        },
+        "returning": false,
+        "properties": {
+          "connection": {
+            "metadata": {
+              "label": "Connection",
+              "description": "Connection to use"
+            },
+            "valueType": "EXPRESSION",
+            "value": "redisClient",
+            "optional": false,
+            "editable": false,
+            "advanced": false,
+            "hidden": false
+          },
+          "checkError": {
+            "metadata": {
+              "label": "Check Error",
+              "description": "Trigger error flow"
+            },
+            "valueType": "FLAG",
+            "value": true,
+            "optional": false,
+            "editable": true,
+            "advanced": true,
+            "hidden": false
+          }
+        },
+        "flags": 1
+      }
+    ],
+    "connections": [
+      {
+        "id": "33771",
+        "metadata": {
+          "label": "New Connection",
+          "description": "Ballerina Redis connector provides the capability to access Redis cache.\nThis connector lets you to perform operations to access and manipulate key-value data stored in a Redis database. \n",
+          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+        },
+        "codedata": {
+          "node": "NEW_CONNECTION",
+          "org": "ballerinax",
+          "module": "redis",
+          "object": "Client",
+          "symbol": "init",
+          "lineRange": {
+            "fileName": "method_call_redis.bal",
+            "startLine": {
+              "line": 2,
+              "offset": 0
+            },
+            "endLine": {
+              "line": 2,
+              "offset": 43
+            }
+          },
+          "sourceCode": "final redis:Client redisClient = check new;"
+        },
+        "returning": false,
+        "properties": {
+          "$connection": {
+            "metadata": {
+              "label": "Connection Type",
+              "description": "Connection configurations of the Redis server. This can be either a single URI or a set of parameters"
+            },
+            "valueType": "EXPRESSION",
+            "valueTypeConstraint": "redis:ConnectionUri|redis:ConnectionParams",
+            "placeholder": "\"\"",
+            "optional": true,
+            "editable": true,
+            "advanced": true,
+            "hidden": false,
+            "codedata": {
+              "kind": "INCLUDED_FIELD",
+              "originalName": "connection"
+            },
+            "typeMembers": [
+              {
+                "type": "ConnectionUri",
+                "packageInfo": "ballerinax:redis:3.1.0",
+                "kind": "BASIC_TYPE",
+                "selected": false
+              },
+              {
+                "type": "ConnectionParams",
+                "packageInfo": "ballerinax:redis:3.1.0",
+                "kind": "RECORD_TYPE",
+                "selected": false
+              }
+            ]
+          },
+          "connectionPooling": {
+            "metadata": {
+              "label": "Connection Pooling Enabled",
+              "description": "Flag to indicate whether connection pooling is enabled"
+            },
+            "valueType": "EXPRESSION",
+            "valueTypeConstraint": "boolean",
+            "placeholder": "false",
+            "optional": true,
+            "editable": true,
+            "advanced": true,
+            "hidden": false,
+            "codedata": {
+              "kind": "INCLUDED_FIELD",
+              "originalName": "connectionPooling"
+            },
+            "typeMembers": [
+              {
+                "type": "boolean",
+                "packageInfo": "",
+                "kind": "BASIC_TYPE",
+                "selected": false
+              }
+            ]
+          },
+          "isClusterConnection": {
+            "metadata": {
+              "label": "Cluster Mode Enabled",
+              "description": "Flag to indicate whether the connection is a cluster connection"
+            },
+            "valueType": "EXPRESSION",
+            "valueTypeConstraint": "boolean",
+            "placeholder": "false",
+            "optional": true,
+            "editable": true,
+            "advanced": true,
+            "hidden": false,
+            "codedata": {
+              "kind": "INCLUDED_FIELD",
+              "originalName": "isClusterConnection"
+            },
+            "typeMembers": [
+              {
+                "type": "boolean",
+                "packageInfo": "",
+                "kind": "BASIC_TYPE",
+                "selected": false
+              }
+            ]
+          },
+          "secureSocket": {
+            "metadata": {
+              "label": "Secure Socket Configurations",
+              "description": "Configurations related to SSL/TLS encryption"
+            },
+            "valueType": "EXPRESSION",
+            "valueTypeConstraint": "redis:SecureSocket",
+            "placeholder": "{}",
+            "optional": true,
+            "editable": true,
+            "advanced": true,
+            "hidden": false,
+            "codedata": {
+              "kind": "INCLUDED_FIELD",
+              "originalName": "secureSocket"
+            },
+            "typeMembers": [
+              {
+                "type": "SecureSocket",
+                "packageInfo": "ballerinax:redis:3.1.0",
+                "kind": "RECORD_TYPE",
+                "selected": false
+              }
+            ]
+          },
+          "checkError": {
+            "metadata": {
+              "label": "Check Error",
+              "description": "Terminate on error"
+            },
+            "valueType": "FLAG",
+            "value": true,
+            "optional": false,
+            "editable": false,
+            "advanced": true,
+            "hidden": false
+          },
+          "scope": {
+            "metadata": {
+              "label": "Connection Scope",
+              "description": "Scope of the connection, Global or Local"
+            },
+            "valueType": "ENUM",
+            "value": "Global",
+            "optional": false,
+            "editable": true,
+            "advanced": true,
+            "hidden": false
+          },
+          "variable": {
+            "metadata": {
+              "label": "Connection Name",
+              "description": "Name of the variable"
+            },
+            "valueType": "IDENTIFIER",
+            "value": "redisClient",
+            "optional": false,
+            "editable": false,
+            "advanced": false,
+            "hidden": false,
+            "codedata": {
+              "lineRange": {
+                "fileName": "method_call_redis.bal",
+                "startLine": {
+                  "line": 2,
+                  "offset": 19
+                },
+                "endLine": {
+                  "line": 2,
+                  "offset": 30
+                }
+              }
+            }
+          },
+          "type": {
+            "metadata": {
+              "label": "Connection Type",
+              "description": "Type of the variable"
+            },
+            "valueType": "TYPE",
+            "value": "redis:Client",
+            "placeholder": "var",
+            "optional": false,
+            "editable": false,
+            "advanced": false,
+            "hidden": false,
+            "codedata": {}
+          }
+        },
+        "flags": 1
+      }
+    ]
+  }
+}

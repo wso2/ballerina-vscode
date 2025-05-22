@@ -1,0 +1,44 @@
+{
+  "description": "",
+  "filePath": "proj/fn.bal",
+  "context": {
+    "expression": "``",
+    "startLine": {
+      "line": 0,
+      "offset": 0
+    },
+    "offset": 1,
+    "codedata": {
+      "node": "REMOTE_ACTION_CALL",
+      "org": "ballerinax",
+      "module": "snowflake",
+      "object": "Client",
+      "symbol": "query",
+      "id": 1181
+    },
+    "property": {
+      "metadata": {
+        "label": "sqlQuery",
+        "description": "The SQL query such as `` `SELECT * from Album WHERE name=${albumName}` ``"
+      },
+      "valueType": "EXPRESSION",
+      "valueTypeConstraint": "sql:ParameterizedQuery",
+      "value": "object {}",
+      "placeholder": "object {}",
+      "optional": false,
+      "editable": true,
+      "advanced": false,
+      "imports": {
+        "sql": "ballerina/sql:1.15.0"
+      },
+      "codedata": {
+        "kind": "REQUIRED",
+        "originalName": "sqlQuery"
+      }
+    }
+  },
+  "completionContext": {
+    "triggerKind": "Invoked"
+  },
+  "completions": []
+}

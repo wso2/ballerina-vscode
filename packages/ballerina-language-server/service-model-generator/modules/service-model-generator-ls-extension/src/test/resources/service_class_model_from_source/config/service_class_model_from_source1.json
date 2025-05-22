@@ -1,0 +1,211 @@
+{
+  "filePath": "sample1/main.bal",
+  "description": "Test the model generated for a service class",
+  "start": {
+    "line": 0,
+    "offset": 0
+  },
+  "end": {
+    "line": 37,
+    "offset": 0
+  },
+  "context": "GRAPHQL_DIAGRAM",
+  "response": {
+    "id": "0",
+    "name": "Book",
+    "type": "service",
+    "properties": {
+      "name": {
+        "metadata": {
+          "label": "Object Name",
+          "description": "The name of the object"
+        },
+        "enabled": true,
+        "editable": false,
+        "value": "Book",
+        "valueType": "IDENTIFIER",
+        "valueTypeConstraint": "Global",
+        "isType": false,
+        "placeholder": "",
+        "optional": false,
+        "advanced": false,
+        "codedata": {
+          "lineRange": {
+            "fileName": "main.bal",
+            "startLine": {
+              "line": 0,
+              "offset": 21
+            },
+            "endLine": {
+              "line": 0,
+              "offset": 25
+            }
+          },
+          "inListenerInit": false,
+          "isBasePath": false,
+          "inDisplayAnnotation": false
+        },
+        "addNewButton": false,
+        "imports": {}
+      }
+    },
+    "codedata": {
+      "lineRange": {
+        "fileName": "main.bal",
+        "startLine": {
+          "line": 0,
+          "offset": 0
+        },
+        "endLine": {
+          "line": 37,
+          "offset": 1
+        }
+      },
+      "inListenerInit": false,
+      "isBasePath": false,
+      "inDisplayAnnotation": false
+    },
+    "functions": [
+      {
+        "metadata": {
+          "label": "Resource Method",
+          "description": "Resource Method"
+        },
+        "kind": "RESOURCE",
+        "accessor": {
+          "metadata": {
+            "label": "Accessor",
+            "description": "The accessor of the function"
+          },
+          "enabled": true,
+          "editable": true,
+          "value": "get",
+          "valueType": "IDENTIFIER",
+          "isType": false,
+          "optional": false,
+          "advanced": false,
+          "addNewButton": false,
+          "imports": {}
+        },
+        "name": {
+          "metadata": {
+            "label": "Field Name",
+            "description": "The name of the field"
+          },
+          "enabled": true,
+          "editable": true,
+          "value": "author/[int id]",
+          "valueType": "IDENTIFIER",
+          "isType": false,
+          "optional": false,
+          "advanced": false,
+          "codedata": {
+            "lineRange": {
+              "fileName": "main.bal",
+              "startLine": {
+                "line": 14,
+                "offset": 22
+              },
+              "endLine": {
+                "line": 14,
+                "offset": 25
+              }
+            },
+            "inListenerInit": false,
+            "isBasePath": false,
+            "inDisplayAnnotation": false
+          },
+          "addNewButton": false,
+          "imports": {}
+        },
+        "parameters": [],
+        "schema": {
+          "parameter": {
+            "type": {
+              "metadata": {
+                "label": "Argument Type",
+                "description": "The type of the argument"
+              },
+              "enabled": true,
+              "editable": true,
+              "valueType": "TYPE",
+              "isType": true,
+              "optional": false,
+              "advanced": false,
+              "addNewButton": false,
+              "imports": {}
+            },
+            "name": {
+              "metadata": {
+                "label": "Argument Name",
+                "description": "The name of the argument"
+              },
+              "enabled": true,
+              "editable": true,
+              "valueType": "IDENTIFIER",
+              "isType": false,
+              "optional": false,
+              "advanced": false,
+              "addNewButton": false,
+              "imports": {}
+            },
+            "defaultValue": {
+              "metadata": {
+                "label": "Default Value",
+                "description": "The default value of the argument"
+              },
+              "enabled": true,
+              "editable": true,
+              "valueType": "EXPRESSION",
+              "isType": false,
+              "optional": true,
+              "advanced": false,
+              "addNewButton": false,
+              "imports": {}
+            },
+            "enabled": true,
+            "editable": true,
+            "optional": false,
+            "advanced": false
+          }
+        },
+        "returnType": {
+          "hasError": false,
+          "metadata": {
+            "label": "Field Type",
+            "description": "The type of the field"
+          },
+          "enabled": true,
+          "editable": true,
+          "value": "string|error?",
+          "valueType": "TYPE",
+          "isType": false,
+          "optional": true,
+          "advanced": false,
+          "addNewButton": false
+        },
+        "enabled": true,
+        "optional": false,
+        "editable": true,
+        "canAddParameters": false,
+        "codedata": {
+          "lineRange": {
+            "fileName": "main.bal",
+            "startLine": {
+              "line": 14,
+              "offset": 4
+            },
+            "endLine": {
+              "line": 28,
+              "offset": 5
+            }
+          },
+          "inListenerInit": false,
+          "isBasePath": false,
+          "inDisplayAnnotation": false
+        }
+      }
+    ],
+    "fields": []
+  }
+}

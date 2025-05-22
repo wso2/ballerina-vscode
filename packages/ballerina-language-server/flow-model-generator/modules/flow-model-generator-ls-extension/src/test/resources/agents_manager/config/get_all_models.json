@@ -1,0 +1,47 @@
+{
+  "source": "agent_1/agents.bal",
+  "description": "Sample diagram node",
+  "agent": "FunctionCallAgent",
+  "models": [
+    {
+      "node": "CLASS_INIT",
+      "org": "ballerinax",
+      "module": "ai",
+      "object": "OpenAiProvider",
+      "symbol": "init",
+      "version": "1.0.1"
+    },
+    {
+      "node": "CLASS_INIT",
+      "org": "ballerinax",
+      "module": "ai",
+      "object": "AzureOpenAiProvider",
+      "symbol": "init",
+      "version": "1.0.1"
+    },
+    {
+      "node": "CLASS_INIT",
+      "org": "ballerinax",
+      "module": "ai",
+      "object": "AnthropicProvider",
+      "symbol": "init",
+      "version": "1.0.1"
+    },
+    {
+      "node": "CLASS_INIT",
+      "org": "ballerinax",
+      "module": "ai",
+      "object": "MistralAiProvider",
+      "symbol": "init",
+      "version": "1.0.1"
+    },
+    {
+      "node": "CLASS_INIT",
+      "org": "ballerinax",
+      "module": "ai",
+      "object": "OllamaProvider",
+      "symbol": "init",
+      "version": "1.0.1"
+    }
+  ]
+}

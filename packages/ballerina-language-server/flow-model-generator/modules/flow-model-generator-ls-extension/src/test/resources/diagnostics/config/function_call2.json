@@ -1,0 +1,52 @@
+{
+  "description": "",
+  "filePath": "source.bal",
+  "context": {
+    "expression": "50",
+    "startLine": {
+      "line": 13,
+      "offset": 8
+    },
+    "offset": 0,
+    "codedata": {
+      "node": "FUNCTION_CALL",
+      "org": "ballerina",
+      "module": "time",
+      "symbol": "utcFromCivil",
+      "version": "2.5.0"
+    },
+    "property": {
+      "metadata": {
+        "label": "civilTime",
+        "description": "`time:Civil` time"
+      },
+      "valueType": "EXPRESSION",
+      "valueTypeConstraint": "time:Civil",
+      "value": "{year: 0, month: 0, day: 0, hour: 0, minute: 0}",
+      "placeholder": "{year: 0, month: 0, day: 0, hour: 0, minute: 0}",
+      "optional": false,
+      "editable": true,
+      "advanced": false,
+      "kind": "REQUIRED"
+    }
+  },
+  "diagnostics": [
+    {
+      "range": {
+        "start": {
+          "line": 14,
+          "character": 34
+        },
+        "end": {
+          "line": 14,
+          "character": 36
+        }
+      },
+      "severity": "Error",
+      "code": {
+        "left": "BCE2066"
+      },
+      "message": "incompatible types: expected 'ballerina/time:2.7.0:Civil', found 'int'"
+    }
+  ]
+}

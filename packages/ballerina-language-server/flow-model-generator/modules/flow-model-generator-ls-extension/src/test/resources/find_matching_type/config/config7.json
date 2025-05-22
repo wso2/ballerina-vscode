@@ -1,0 +1,698 @@
+{
+  "filePath": "proj",
+  "typeMembers": [
+    {
+      "type": "ConnectionConfig",
+      "packageInfo": "ballerinax:mongodb:5.1.0",
+      "kind": "RECORD_TYPE",
+      "selected": false
+    }
+  ],
+  "expr": "{\nconnection: {\nserverAddress: {\nhost,\nport\n}\n}\n}",
+  "output": {
+    "recordConfig": {
+      "fields": [
+        {
+          "members": [
+            {
+              "fields": [
+                {
+                  "members": [
+                    {
+                      "fields": [
+                        {
+                          "name": "host",
+                          "typeName": "string",
+                          "optional": false,
+                          "defaultable": true,
+                          "documentation": "The host address of the MongoDB server",
+                          "isRestType": false,
+                          "value": "host",
+                          "selected": true
+                        },
+                        {
+                          "name": "port",
+                          "typeName": "int",
+                          "optional": false,
+                          "defaultable": true,
+                          "documentation": "The port of the MongoDB server",
+                          "isRestType": false,
+                          "value": "port",
+                          "selected": true
+                        }
+                      ],
+                      "hasRestType": false,
+                      "name": "ServerAddress",
+                      "typeName": "record",
+                      "optional": false,
+                      "typeInfo": {
+                        "name": "ServerAddress",
+                        "orgName": "ballerinax",
+                        "moduleName": "mongodb",
+                        "version": "5.1.0"
+                      },
+                      "defaultable": false,
+                      "isRestType": false,
+                      "selected": true
+                    },
+                    {
+                      "memberType": {
+                        "fields": [
+                          {
+                            "name": "host",
+                            "typeName": "string",
+                            "optional": false,
+                            "defaultable": true,
+                            "documentation": "The host address of the MongoDB server",
+                            "isRestType": false,
+                            "value": "host",
+                            "selected": true
+                          },
+                          {
+                            "name": "port",
+                            "typeName": "int",
+                            "optional": false,
+                            "defaultable": true,
+                            "documentation": "The port of the MongoDB server",
+                            "isRestType": false,
+                            "value": "port",
+                            "selected": true
+                          }
+                        ],
+                        "hasRestType": false,
+                        "name": "ServerAddress",
+                        "typeName": "record",
+                        "optional": false,
+                        "typeInfo": {
+                          "name": "ServerAddress",
+                          "orgName": "ballerinax",
+                          "moduleName": "mongodb",
+                          "version": "5.1.0"
+                        },
+                        "defaultable": false,
+                        "isRestType": false,
+                        "selected": false
+                      },
+                      "typeName": "array",
+                      "optional": false,
+                      "defaultable": false,
+                      "isRestType": false,
+                      "selected": false
+                    }
+                  ],
+                  "name": "serverAddress",
+                  "typeName": "union",
+                  "optional": false,
+                  "defaultable": true,
+                  "documentation": "Server address (or the list of server addresses for replica sets) of the MongoDB server",
+                  "isRestType": false,
+                  "selected": true
+                },
+                {
+                  "members": [
+                    {
+                      "fields": [
+                        {
+                          "name": "authMechanism",
+                          "typeName": "PLAIN",
+                          "optional": false,
+                          "defaultable": true,
+                          "documentation": "The authentication mechanism to use",
+                          "isRestType": false,
+                          "selected": false
+                        },
+                        {
+                          "name": "username",
+                          "typeName": "string",
+                          "optional": false,
+                          "defaultable": false,
+                          "documentation": "The username for the database connection",
+                          "isRestType": false,
+                          "selected": false
+                        },
+                        {
+                          "name": "password",
+                          "typeName": "string",
+                          "optional": false,
+                          "defaultable": false,
+                          "documentation": "The password for the database connection",
+                          "isRestType": false,
+                          "selected": false
+                        },
+                        {
+                          "name": "database",
+                          "typeName": "string",
+                          "optional": false,
+                          "defaultable": false,
+                          "documentation": "The source database for authenticate the client. Usually the database name",
+                          "isRestType": false,
+                          "selected": false
+                        }
+                      ],
+                      "hasRestType": false,
+                      "name": "BasicAuthCredential",
+                      "typeName": "record",
+                      "optional": false,
+                      "typeInfo": {
+                        "name": "BasicAuthCredential",
+                        "orgName": "ballerinax",
+                        "moduleName": "mongodb",
+                        "version": "5.1.0"
+                      },
+                      "defaultable": false,
+                      "isRestType": false,
+                      "selected": false
+                    },
+                    {
+                      "fields": [
+                        {
+                          "name": "authMechanism",
+                          "typeName": "SCRAM_SHA_1",
+                          "optional": false,
+                          "defaultable": true,
+                          "documentation": "The authentication mechanism to use",
+                          "isRestType": false,
+                          "selected": false
+                        },
+                        {
+                          "name": "username",
+                          "typeName": "string",
+                          "optional": false,
+                          "defaultable": false,
+                          "documentation": "The username for the database connection",
+                          "isRestType": false,
+                          "selected": false
+                        },
+                        {
+                          "name": "password",
+                          "typeName": "string",
+                          "optional": false,
+                          "defaultable": false,
+                          "documentation": "The password for the database connection",
+                          "isRestType": false,
+                          "selected": false
+                        },
+                        {
+                          "name": "database",
+                          "typeName": "string",
+                          "optional": false,
+                          "defaultable": false,
+                          "documentation": "The source database for authenticate the client. Usually the database name",
+                          "isRestType": false,
+                          "selected": false
+                        }
+                      ],
+                      "hasRestType": false,
+                      "name": "ScramSha1AuthCredential",
+                      "typeName": "record",
+                      "optional": false,
+                      "typeInfo": {
+                        "name": "ScramSha1AuthCredential",
+                        "orgName": "ballerinax",
+                        "moduleName": "mongodb",
+                        "version": "5.1.0"
+                      },
+                      "defaultable": false,
+                      "isRestType": false,
+                      "selected": false
+                    },
+                    {
+                      "fields": [
+                        {
+                          "name": "authMechanism",
+                          "typeName": "SCRAM_SHA_256",
+                          "optional": false,
+                          "defaultable": true,
+                          "documentation": "The authentication mechanism to use",
+                          "isRestType": false,
+                          "selected": false
+                        },
+                        {
+                          "name": "username",
+                          "typeName": "string",
+                          "optional": false,
+                          "defaultable": false,
+                          "documentation": "The username for the database connection",
+                          "isRestType": false,
+                          "selected": false
+                        },
+                        {
+                          "name": "password",
+                          "typeName": "string",
+                          "optional": false,
+                          "defaultable": false,
+                          "documentation": "The password for the database connection",
+                          "isRestType": false,
+                          "selected": false
+                        },
+                        {
+                          "name": "database",
+                          "typeName": "string",
+                          "optional": false,
+                          "defaultable": false,
+                          "documentation": "The source database for authenticate the client. Usually the database name",
+                          "isRestType": false,
+                          "selected": false
+                        }
+                      ],
+                      "hasRestType": false,
+                      "name": "ScramSha256AuthCredential",
+                      "typeName": "record",
+                      "optional": false,
+                      "typeInfo": {
+                        "name": "ScramSha256AuthCredential",
+                        "orgName": "ballerinax",
+                        "moduleName": "mongodb",
+                        "version": "5.1.0"
+                      },
+                      "defaultable": false,
+                      "isRestType": false,
+                      "selected": false
+                    },
+                    {
+                      "fields": [
+                        {
+                          "name": "authMechanism",
+                          "typeName": "MONGODB_X509",
+                          "optional": false,
+                          "defaultable": true,
+                          "documentation": "The authentication mechanism to use",
+                          "isRestType": false,
+                          "selected": false
+                        },
+                        {
+                          "name": "username",
+                          "typeName": "string",
+                          "optional": true,
+                          "defaultable": false,
+                          "documentation": "The username for authenticating the client certificate",
+                          "isRestType": false,
+                          "selected": false
+                        }
+                      ],
+                      "hasRestType": false,
+                      "name": "X509Credential",
+                      "typeName": "record",
+                      "optional": false,
+                      "typeInfo": {
+                        "name": "X509Credential",
+                        "orgName": "ballerinax",
+                        "moduleName": "mongodb",
+                        "version": "5.1.0"
+                      },
+                      "defaultable": false,
+                      "isRestType": false,
+                      "selected": false
+                    },
+                    {
+                      "fields": [
+                        {
+                          "name": "authMechanism",
+                          "typeName": "GSSAPI",
+                          "optional": false,
+                          "defaultable": true,
+                          "documentation": "The authentication mechanism to use",
+                          "isRestType": false,
+                          "selected": false
+                        },
+                        {
+                          "name": "username",
+                          "typeName": "string",
+                          "optional": false,
+                          "defaultable": false,
+                          "documentation": "The username for the database connection",
+                          "isRestType": false,
+                          "selected": false
+                        },
+                        {
+                          "name": "serviceName",
+                          "typeName": "string",
+                          "optional": true,
+                          "defaultable": false,
+                          "documentation": "The service name for the database connection. Use this to override the default service name of `mongodb`",
+                          "isRestType": false,
+                          "selected": false
+                        }
+                      ],
+                      "hasRestType": false,
+                      "name": "GssApiCredential",
+                      "typeName": "record",
+                      "optional": false,
+                      "typeInfo": {
+                        "name": "GssApiCredential",
+                        "orgName": "ballerinax",
+                        "moduleName": "mongodb",
+                        "version": "5.1.0"
+                      },
+                      "defaultable": false,
+                      "isRestType": false,
+                      "selected": false
+                    }
+                  ],
+                  "name": "auth",
+                  "typeName": "union",
+                  "optional": true,
+                  "defaultable": false,
+                  "documentation": "The authentication configurations for the MongoDB connection",
+                  "isRestType": false,
+                  "selected": false
+                }
+              ],
+              "hasRestType": false,
+              "name": "ConnectionParameters",
+              "typeName": "record",
+              "optional": false,
+              "typeInfo": {
+                "name": "ConnectionParameters",
+                "orgName": "ballerinax",
+                "moduleName": "mongodb",
+                "version": "5.1.0"
+              },
+              "defaultable": false,
+              "isRestType": false,
+              "selected": true
+            },
+            {
+              "typeName": "string",
+              "optional": false,
+              "defaultable": false,
+              "isRestType": false,
+              "selected": false
+            }
+          ],
+          "name": "connection",
+          "typeName": "union",
+          "optional": false,
+          "defaultable": false,
+          "documentation": "connection - Connection string or the connection parameters for the MongoDB connection",
+          "isRestType": false,
+          "selected": true
+        },
+        {
+          "fields": [
+            {
+              "members": [
+                {
+                  "typeName": "snapshot",
+                  "optional": false,
+                  "defaultable": false,
+                  "isRestType": false,
+                  "selected": false
+                },
+                {
+                  "typeName": "linearizable",
+                  "optional": false,
+                  "defaultable": false,
+                  "isRestType": false,
+                  "selected": false
+                },
+                {
+                  "typeName": "majority",
+                  "optional": false,
+                  "defaultable": false,
+                  "isRestType": false,
+                  "selected": false
+                },
+                {
+                  "typeName": "available",
+                  "optional": false,
+                  "defaultable": false,
+                  "isRestType": false,
+                  "selected": false
+                },
+                {
+                  "typeName": "local",
+                  "optional": false,
+                  "defaultable": false,
+                  "isRestType": false,
+                  "selected": false
+                }
+              ],
+              "name": "readConcern",
+              "typeName": "enum",
+              "optional": true,
+              "typeInfo": {
+                "name": "ReadConcern",
+                "orgName": "ballerinax",
+                "moduleName": "mongodb",
+                "version": "5.1.0"
+              },
+              "defaultable": false,
+              "documentation": "The read concern level to use",
+              "isRestType": false,
+              "selected": false
+            },
+            {
+              "name": "writeConcern",
+              "typeName": "string",
+              "optional": true,
+              "defaultable": false,
+              "documentation": "The write concern level to use",
+              "isRestType": false,
+              "selected": false
+            },
+            {
+              "name": "readPreference",
+              "typeName": "string",
+              "optional": true,
+              "defaultable": false,
+              "documentation": "The read preference for the replica set",
+              "isRestType": false,
+              "selected": false
+            },
+            {
+              "name": "replicaSet",
+              "typeName": "string",
+              "optional": true,
+              "defaultable": false,
+              "documentation": "The replica set name if it is to connect to replicas",
+              "isRestType": false,
+              "selected": false
+            },
+            {
+              "name": "sslEnabled",
+              "typeName": "boolean",
+              "optional": false,
+              "defaultable": true,
+              "documentation": "Whether SSL connection is enabled",
+              "isRestType": false,
+              "selected": false
+            },
+            {
+              "name": "invalidHostNameAllowed",
+              "typeName": "boolean",
+              "optional": false,
+              "defaultable": true,
+              "documentation": "Whether invalid host names should be allowed",
+              "isRestType": false,
+              "selected": false
+            },
+            {
+              "fields": [
+                {
+                  "fields": [
+                    {
+                      "name": "path",
+                      "typeName": "string",
+                      "optional": false,
+                      "defaultable": false,
+                      "documentation": "",
+                      "isRestType": false,
+                      "selected": false
+                    },
+                    {
+                      "name": "password",
+                      "typeName": "string",
+                      "optional": false,
+                      "defaultable": false,
+                      "documentation": "The password for the database connection",
+                      "isRestType": false,
+                      "selected": false
+                    }
+                  ],
+                  "hasRestType": false,
+                  "name": "trustStore",
+                  "typeName": "record",
+                  "optional": false,
+                  "typeInfo": {
+                    "name": "TrustStore",
+                    "orgName": "ballerina",
+                    "moduleName": "crypto",
+                    "version": "2.8.0"
+                  },
+                  "defaultable": false,
+                  "documentation": "Configurations associated with the TrustStore",
+                  "isRestType": false,
+                  "selected": false
+                },
+                {
+                  "fields": [
+                    {
+                      "name": "path",
+                      "typeName": "string",
+                      "optional": false,
+                      "defaultable": false,
+                      "documentation": "",
+                      "isRestType": false,
+                      "selected": false
+                    },
+                    {
+                      "name": "password",
+                      "typeName": "string",
+                      "optional": false,
+                      "defaultable": false,
+                      "documentation": "The password for the database connection",
+                      "isRestType": false,
+                      "selected": false
+                    }
+                  ],
+                  "hasRestType": false,
+                  "name": "keyStore",
+                  "typeName": "record",
+                  "optional": false,
+                  "typeInfo": {
+                    "name": "KeyStore",
+                    "orgName": "ballerina",
+                    "moduleName": "crypto",
+                    "version": "2.8.0"
+                  },
+                  "defaultable": false,
+                  "documentation": "Configurations associated with the KeyStore",
+                  "isRestType": false,
+                  "selected": false
+                },
+                {
+                  "name": "protocol",
+                  "typeName": "string",
+                  "optional": false,
+                  "defaultable": false,
+                  "documentation": "The standard name of the requested protocol",
+                  "isRestType": false,
+                  "selected": false
+                }
+              ],
+              "hasRestType": false,
+              "name": "secureSocket",
+              "typeName": "record",
+              "optional": true,
+              "typeInfo": {
+                "name": "SecureSocket",
+                "orgName": "ballerinax",
+                "moduleName": "mongodb",
+                "version": "5.1.0"
+              },
+              "defaultable": false,
+              "documentation": "Configurations related to facilitating secure connection",
+              "isRestType": false,
+              "selected": false
+            },
+            {
+              "name": "retryWrites",
+              "typeName": "boolean",
+              "optional": true,
+              "defaultable": false,
+              "documentation": "Whether to retry writing failures",
+              "isRestType": false,
+              "selected": false
+            },
+            {
+              "name": "socketTimeout",
+              "typeName": "int",
+              "optional": true,
+              "defaultable": false,
+              "documentation": "The timeout for the socket",
+              "isRestType": false,
+              "selected": false
+            },
+            {
+              "name": "connectionTimeout",
+              "typeName": "int",
+              "optional": true,
+              "defaultable": false,
+              "documentation": "The timeout for the connection",
+              "isRestType": false,
+              "selected": false
+            },
+            {
+              "name": "maxPoolSize",
+              "typeName": "int",
+              "optional": true,
+              "defaultable": false,
+              "documentation": "The maximum connection pool size",
+              "isRestType": false,
+              "selected": false
+            },
+            {
+              "name": "maxIdleTime",
+              "typeName": "int",
+              "optional": true,
+              "defaultable": false,
+              "documentation": "The maximum idle time for a pooled connection in milliseconds",
+              "isRestType": false,
+              "selected": false
+            },
+            {
+              "name": "maxLifeTime",
+              "typeName": "int",
+              "optional": true,
+              "defaultable": false,
+              "documentation": "The maximum life time for a pooled connection in milliseconds",
+              "isRestType": false,
+              "selected": false
+            },
+            {
+              "name": "minPoolSize",
+              "typeName": "int",
+              "optional": true,
+              "defaultable": false,
+              "documentation": "The minimum connection pool size",
+              "isRestType": false,
+              "selected": false
+            },
+            {
+              "name": "localThreshold",
+              "typeName": "int",
+              "optional": true,
+              "defaultable": false,
+              "documentation": "The local threshold latency in milliseconds",
+              "isRestType": false,
+              "selected": false
+            },
+            {
+              "name": "heartbeatFrequency",
+              "typeName": "int",
+              "optional": true,
+              "defaultable": false,
+              "documentation": "The heartbeat frequency in milliseconds. This is the frequency that the driver will attempt\nto determine the current state of each server in the cluster.",
+              "isRestType": false,
+              "selected": false
+            }
+          ],
+          "hasRestType": false,
+          "name": "options",
+          "typeName": "record",
+          "optional": true,
+          "typeInfo": {
+            "name": "ConnectionProperties",
+            "orgName": "ballerinax",
+            "moduleName": "mongodb",
+            "version": "5.1.0"
+          },
+          "defaultable": false,
+          "documentation": "The additional connection options for the MongoDB connection",
+          "isRestType": false,
+          "selected": false
+        }
+      ],
+      "hasRestType": false,
+      "name": "ConnectionConfig",
+      "typeName": "record",
+      "optional": false,
+      "defaultable": false,
+      "documentation": "Represents the Client configurations for MongoDB.",
+      "isRestType": false,
+      "selected": true
+    },
+    "typeName": "ConnectionConfig"
+  }
+}
