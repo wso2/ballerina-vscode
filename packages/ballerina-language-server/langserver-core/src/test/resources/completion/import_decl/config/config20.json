@@ -34,15 +34,6 @@
       "additionalTextEdits": []
     },
     {
-      "label": "lang.test",
-      "kind": "Module",
-      "detail": "Module",
-      "sortText": "D",
-      "insertText": "lang.test;",
-      "insertTextFormat": "Snippet",
-      "additionalTextEdits": []
-    },
-    {
       "label": "lang.array",
       "kind": "Module",
       "detail": "Module",
@@ -192,6 +183,15 @@
       "detail": "Module",
       "sortText": "D",
       "insertText": "lang.regexp;",
+      "insertTextFormat": "Snippet",
+      "additionalTextEdits": []
+    },
+    {
+      "label": "test",
+      "kind": "Module",
+      "detail": "Module",
+      "sortText": "D",
+      "insertText": "test",
       "insertTextFormat": "Snippet",
       "additionalTextEdits": []
     }

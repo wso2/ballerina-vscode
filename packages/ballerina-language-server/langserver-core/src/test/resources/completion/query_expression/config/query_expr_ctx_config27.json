@@ -4,6 +4,7 @@
     "character": 46
   },
   "source": "query_expression/source/query_expr_ctx_source27.bal",
+  "description": "",
   "items": [
     {
       "label": "TEST_INT_CONST1",
@@ -251,7 +252,7 @@
       "label": "TEST_FUTURE_INT",
       "kind": "Variable",
       "detail": "future<int>",
-      "sortText": "BC",
+      "sortText": "AC",
       "insertText": "TEST_FUTURE_INT",
       "insertTextFormat": "Snippet"
     },

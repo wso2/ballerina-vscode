@@ -4,6 +4,7 @@
     "character": 10
   },
   "source": "statement_context/source/wait_action_ctx_source3.bal",
+  "description": "",
   "items": [
     {
       "label": "fs",
@@ -14,7 +15,7 @@
       "insertTextFormat": "Snippet"
     },
     {
-      "label": "ballerina/lang.test",
+      "label": "ballerina/test",
       "kind": "Module",
       "detail": "Module",
       "sortText": "R",
@@ -33,7 +34,7 @@
               "character": 0
             }
           },
-          "newText": "import ballerina/lang.test;\n"
+          "newText": "import ballerina/test;\n"
         }
       ]
     },

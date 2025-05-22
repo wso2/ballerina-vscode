@@ -375,7 +375,7 @@
       "insertTextFormat": "Snippet"
     },
     {
-      "label": "ballerina/lang.test",
+      "label": "ballerina/test",
       "kind": "Module",
       "detail": "Module",
       "sortText": "F",
@@ -394,7 +394,7 @@
               "character": 0
             }
           },
-          "newText": "import ballerina/lang.test;\n"
+          "newText": "import ballerina/test;\n"
         }
       ]
     },
@@ -543,30 +543,6 @@
       "insertText": "service ${1} on new module1:Listener(${2:0}) {\n    ${3}\n}\n",
       "insertTextFormat": "Snippet",
       "additionalTextEdits": []
-    },
-    {
-      "label": "service on lang.test:MockListener",
-      "kind": "Snippet",
-      "detail": "Snippet",
-      "sortText": "AC",
-      "filterText": "service_lang_test_MockListener",
-      "insertText": "service ${1} on new test:MockListener(${2:0}) {\n    ${3}\n}\n",
-      "insertTextFormat": "Snippet",
-      "additionalTextEdits": [
-        {
-          "range": {
-            "start": {
-              "line": 0,
-              "character": 0
-            },
-            "end": {
-              "line": 0,
-              "character": 0
-            }
-          },
-          "newText": "import ballerina/lang.test;\n"
-        }
-      ]
     },
     {
       "label": "test/project1",

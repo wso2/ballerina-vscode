@@ -94,7 +94,7 @@
       "label": "ballerina/lang.runtime",
       "kind": "Module",
       "detail": "Module",
-      "sortText": "RG",
+      "sortText": "RH",
       "filterText": "runtime",
       "insertText": "runtime",
       "insertTextFormat": "Snippet",
@@ -118,7 +118,7 @@
       "label": "ballerina/module1",
       "kind": "Module",
       "detail": "Module",
-      "sortText": "RI",
+      "sortText": "RJ",
       "filterText": "module1",
       "insertText": "module1",
       "insertTextFormat": "Snippet",
@@ -139,10 +139,10 @@
       ]
     },
     {
-      "label": "ballerina/lang.test",
+      "label": "ballerina/test",
       "kind": "Module",
       "detail": "Module",
-      "sortText": "RJ",
+      "sortText": "RG",
       "filterText": "test",
       "insertText": "test1",
       "insertTextFormat": "Snippet",
@@ -158,7 +158,7 @@
               "character": 0
             }
           },
-          "newText": "import ballerina/lang.test as test1;\n"
+          "newText": "import ballerina/test as test1;\n"
         }
       ]
     },
@@ -572,7 +572,7 @@
       "label": "ballerina/lang.regexp",
       "kind": "Module",
       "detail": "Module",
-      "sortText": "RH",
+      "sortText": "RI",
       "filterText": "regexp",
       "insertText": "regexp",
       "insertTextFormat": "Snippet",

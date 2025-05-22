@@ -285,10 +285,10 @@
       ]
     },
     {
-      "label": "ballerina/lang.test",
+      "label": "ballerina/test",
       "kind": "Module",
       "detail": "Module",
-      "sortText": "CE",
+      "sortText": "CF",
       "filterText": "test",
       "insertText": "test",
       "insertTextFormat": "Snippet",
@@ -304,7 +304,7 @@
               "character": 0
             }
           },
-          "newText": "import ballerina/lang.test;\n"
+          "newText": "import ballerina/test;\n"
         }
       ]
     },

@@ -4,6 +4,7 @@
     "character": 4
   },
   "source": "function_body/source/source10.bal",
+  "description": "",
   "items": [
     {
       "label": "start",
@@ -33,7 +34,7 @@
       "insertTextFormat": "Snippet"
     },
     {
-      "label": "ballerina/lang.test",
+      "label": "ballerina/test",
       "kind": "Module",
       "detail": "Module",
       "sortText": "R",
@@ -52,7 +53,7 @@
               "character": 0
             }
           },
-          "newText": "import ballerina/lang.test;\n"
+          "newText": "import ballerina/test;\n"
         }
       ]
     },
@@ -554,7 +555,7 @@
       "documentation": {
         "right": {
           "kind": "markdown",
-          "value": "**Package:** _._  \n  \n  \n**Params**  \n- `int` i  \n- `$CompilationError$` t"
+          "value": "**Package:** _._  \n  \n  \n**Params**  \n- `int` i  \n- `` t"
         }
       },
       "sortText": "C",

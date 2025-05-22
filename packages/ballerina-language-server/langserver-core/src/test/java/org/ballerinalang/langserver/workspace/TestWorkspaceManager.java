@@ -636,7 +636,6 @@ public class TestWorkspaceManager {
     private RunResult executeRunCommand(Path filePath)
             throws WorkspaceDocumentException, EventSyncException, LSCommandExecutorException {
         System.setProperty("java.command", guessJavaPath());
-        System.setProperty(BALLERINA_HOME, "./build");
         workspaceManager.loadProject(filePath);
         RunExecutor runExecutor = new RunExecutor();
         MockSettings mockSettings = Mockito.withSettings().stubOnly();

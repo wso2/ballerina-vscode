@@ -4,6 +4,7 @@
     "character": 43
   },
   "source": "expression_context/source/error_constructor_expr_ctx_source12.bal",
+  "description": "",
   "items": [
     {
       "label": "ballerina/lang.runtime",
@@ -126,7 +127,7 @@
       ]
     },
     {
-      "label": "ballerina/lang.test",
+      "label": "ballerina/test",
       "kind": "Module",
       "detail": "Module",
       "sortText": "R",
@@ -145,7 +146,7 @@
               "character": 0
             }
           },
-          "newText": "import ballerina/lang.test;\n"
+          "newText": "import ballerina/test;\n"
         }
       ]
     },

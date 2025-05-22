@@ -4,6 +4,7 @@
     "character": 40
   },
   "source": "let_expression_context/source/let_expr_ctx_source12.bal",
+  "description": "",
   "items": [
     {
       "label": "ballerina/lang.array",
@@ -266,10 +267,10 @@
       "insertTextFormat": "Snippet"
     },
     {
-      "label": "ballerina/lang.test",
+      "label": "ballerina/test",
       "kind": "Module",
       "detail": "Module",
-      "sortText": "CE",
+      "sortText": "CF",
       "filterText": "test",
       "insertText": "test1",
       "insertTextFormat": "Snippet",
@@ -285,7 +286,7 @@
               "character": 0
             }
           },
-          "newText": "import ballerina/lang.test as test1;\n"
+          "newText": "import ballerina/test as test1;\n"
         }
       ]
     },

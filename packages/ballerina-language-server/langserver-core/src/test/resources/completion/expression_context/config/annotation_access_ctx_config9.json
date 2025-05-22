@@ -4,6 +4,7 @@
     "character": 8
   },
   "source": "expression_context/source/annotation_access_ctx_source9.bal",
+  "description": "",
   "items": [
     {
       "label": "display",
@@ -30,7 +31,7 @@
       "insertTextFormat": "Snippet"
     },
     {
-      "label": "ballerina/lang.test",
+      "label": "ballerina/test",
       "kind": "Module",
       "detail": "Module",
       "sortText": "BR",
@@ -49,7 +50,7 @@
               "character": 0
             }
           },
-          "newText": "import ballerina/lang.test;\n"
+          "newText": "import ballerina/test;\n"
         }
       ]
     },
