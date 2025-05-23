@@ -86,6 +86,7 @@ subprojects {
         ballerinaStdLibs "io.ballerina.lib:data.jsondata-ballerina:${stdlibJsonDataVersion}"
         ballerinaStdLibs "io.ballerina.stdlib:http-ballerina:${stdlibHttpVersion}"
         ballerinaStdLibs "io.ballerina.stdlib:graphql-ballerina:${stdlibGraphqlVersion}"
+        ballerinaStdLibs "io.ballerina.stdlib:sql-ballerina:${stdLibSqlVersion}"
         ballerinaStdLibs "io.ballerina.stdlib:grpc-ballerina:${stdlibGrpcVersion}"
         ballerinaStdLibs "io.ballerina:observe-ballerina:${observeInternalVersion}"
         ballerinaStdLibs "io.ballerina.stdlib:observe-ballerina:${observeVersion}"
