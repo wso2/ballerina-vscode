@@ -40,7 +40,7 @@ jobs:
         env:
           packageUser: ${{ github.actor }}
           packagePAT: ${{ secrets.GITHUB_TOKEN }}
-        run: ./gradlew :flow-model-generator:flow-model-generator-core:build
+        run: ./gradlew :flow-model-generator:flow-model-generator-ls-extension:test
 
   windows-build:
     runs-on: windows-latest

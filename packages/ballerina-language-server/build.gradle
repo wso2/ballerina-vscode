@@ -20,6 +20,7 @@ plugins {
     id "com.github.johnrengelman.shadow" version "${shadowJarPluginVersion}"
     id "de.undercouch.download" version "${downloadPluginVersion}"
     id "net.researchgate.release" version "${releasePluginVersion}"
+    id "java"
 }
 apply plugin: 'maven-publish'
 
@@ -215,10 +216,6 @@ release {
     }
 }
 
-task clean {
-    delete "build"
-    delete "dist"
-}
 
 configurations {
     externalJarDeps
@@ -285,21 +282,19 @@ task combineAllJars(type: com.github.jengelman.gradle.plugins.shadow.tasks.Shado
 }
 
 task pullBallerinaModules {
-    dependsOn rootProject.pullBallerinaModule('ai', ballerinaxAiAgent)
-    dependsOn rootProject.pullBallerinaModule('kafka', ballerinaxKafkaVersion)
-    dependsOn rootProject.pullBallerinaModule('rabbitmq', ballerinaxRabbitmqVersion)
-    dependsOn rootProject.pullBallerinaModule('trigger.github', ballerinaxGithubTriggerVersion)
-    dependsOn rootProject.pullBallerinaModule('np', ballerinaxNp)
+    dependsOn pullBallerinaModule('ai', ballerinaxAiAgent)
+    dependsOn pullBallerinaModule('kafka', ballerinaxKafkaVersion)
+    dependsOn pullBallerinaModule('rabbitmq', ballerinaxRabbitmqVersion)
+    dependsOn pullBallerinaModule('trigger.github', ballerinaxGithubTriggerVersion)
+    dependsOn pullBallerinaModule('np', ballerinaxNp)
 }
 
-task test {
+test {
     dependsOn pullBallerinaModules
 }
 
-task build {
-}
-
-build.dependsOn test
+test.dependsOn pullBallerinaModules
+build.dependsOn combineAllJars
 
 task buildFlow {
     dependsOn(":flow-model-generator:flow-model-generator-core:build")
