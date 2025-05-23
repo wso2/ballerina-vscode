@@ -4,6 +4,7 @@
     "character": 12
   },
   "source": "field_access_expression_context/source/foreach_stmt_ctx_source1.bal",
+  "description": "",
   "items": [
     {
       "label": "Thread",
@@ -169,7 +170,7 @@
       ]
     },
     {
-      "label": "ballerina/lang.test",
+      "label": "ballerina/test",
       "kind": "Module",
       "detail": "Module",
       "sortText": "R",
@@ -188,7 +189,7 @@
               "character": 0
             }
           },
-          "newText": "import ballerina/lang.test;\n"
+          "newText": "import ballerina/test;\n"
         }
       ]
     },

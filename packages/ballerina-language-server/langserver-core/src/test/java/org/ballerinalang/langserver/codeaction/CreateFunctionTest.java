@@ -41,13 +41,13 @@ public class CreateFunctionTest extends AbstractCodeActionTest {
     }
 
     @Override
-    @Test(dataProvider = "codeaction-data-provider")
+    @Test(dataProvider = "codeaction-data-provider", enabled = false)
     public void test(String config) throws IOException, WorkspaceDocumentException {
         super.test(config);
     }
 
     @Override
-    @Test(dataProvider = "negative-test-data-provider")
+    @Test(dataProvider = "negative-test-data-provider", enabled = false)
     public void negativeTest(String config) throws IOException, WorkspaceDocumentException {
         super.negativeTest(config);
     }

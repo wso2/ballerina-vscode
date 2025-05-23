@@ -4,6 +4,7 @@
     "character": 17
   },
   "source": "import_decl/source/source3.bal",
+  "description": "",
   "items": [
     {
       "label": "lang.object",
@@ -27,14 +28,6 @@
       "detail": "Module",
       "sortText": "B",
       "insertText": "lang.'xml;",
-      "insertTextFormat": "Snippet"
-    },
-    {
-      "label": "lang.test",
-      "kind": "Module",
-      "detail": "Module",
-      "sortText": "B",
-      "insertText": "lang.test;",
       "insertTextFormat": "Snippet"
     },
     {
@@ -179,6 +172,14 @@
       "detail": "Module",
       "sortText": "B",
       "insertText": "lang.regexp;",
+      "insertTextFormat": "Snippet"
+    },
+    {
+      "label": "test",
+      "kind": "Module",
+      "detail": "Module",
+      "sortText": "A",
+      "insertText": "test",
       "insertTextFormat": "Snippet"
     }
   ]

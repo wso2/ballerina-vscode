@@ -4,6 +4,7 @@
     "character": 78
   },
   "source": "query_expression/source/query_expr_ctx_join_clause_source18.bal",
+  "description": "",
   "items": [
     {
       "label": "Thread",
@@ -105,7 +106,7 @@
       "insertTextFormat": "Snippet"
     },
     {
-      "label": "ballerina/lang.test",
+      "label": "ballerina/test",
       "kind": "Module",
       "detail": "Module",
       "sortText": "R",
@@ -124,7 +125,7 @@
               "character": 0
             }
           },
-          "newText": "import ballerina/lang.test;\n"
+          "newText": "import ballerina/test;\n"
         }
       ]
     },

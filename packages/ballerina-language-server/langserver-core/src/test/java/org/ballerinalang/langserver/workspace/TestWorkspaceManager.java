@@ -74,7 +74,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
-import static io.ballerina.projects.util.ProjectConstants.BALLERINA_HOME;
 import static org.awaitility.Awaitility.await;
 
 /**
@@ -636,7 +635,6 @@ public class TestWorkspaceManager {
     private RunResult executeRunCommand(Path filePath)
             throws WorkspaceDocumentException, EventSyncException, LSCommandExecutorException {
         System.setProperty("java.command", guessJavaPath());
-        System.setProperty(BALLERINA_HOME, "./build");
         workspaceManager.loadProject(filePath);
         RunExecutor runExecutor = new RunExecutor();
         MockSettings mockSettings = Mockito.withSettings().stubOnly();

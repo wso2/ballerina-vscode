@@ -378,7 +378,7 @@
       "insertTextFormat": "Snippet"
     },
     {
-      "label": "ballerina/lang.test",
+      "label": "ballerina/test",
       "kind": "Module",
       "detail": "Module",
       "sortText": "CR",
@@ -397,7 +397,7 @@
               "character": 0
             }
           },
-          "newText": "import ballerina/lang.test as test1;\n"
+          "newText": "import ballerina/test as test1;\n"
         }
       ]
     },

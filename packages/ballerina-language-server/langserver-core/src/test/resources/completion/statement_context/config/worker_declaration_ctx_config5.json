@@ -4,6 +4,7 @@
     "character": 22
   },
   "source": "statement_context/source/worker_declaration_ctx_source5.bal",
+  "description": "",
   "items": [
     {
       "label": "Thread",
@@ -169,10 +170,10 @@
       ]
     },
     {
-      "label": "ballerina/lang.test",
+      "label": "ballerina/test",
       "kind": "Module",
       "detail": "Module",
-      "sortText": "CE",
+      "sortText": "CF",
       "filterText": "test",
       "insertText": "test",
       "insertTextFormat": "Snippet",
@@ -188,7 +189,7 @@
               "character": 0
             }
           },
-          "newText": "import ballerina/lang.test;\n"
+          "newText": "import ballerina/test;\n"
         }
       ]
     },

@@ -4,6 +4,7 @@
     "character": 40
   },
   "source": "query_expression/source/query_expr_ctx_source31.bal",
+  "description": "",
   "items": [
     {
       "label": "Customer",
@@ -210,7 +211,7 @@
       ]
     },
     {
-      "label": "ballerina/lang.test",
+      "label": "ballerina/test",
       "kind": "Module",
       "detail": "Module",
       "sortText": "R",
@@ -229,7 +230,7 @@
               "character": 0
             }
           },
-          "newText": "import ballerina/lang.test;\n"
+          "newText": "import ballerina/test;\n"
         }
       ]
     },

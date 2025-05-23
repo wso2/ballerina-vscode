@@ -4,6 +4,7 @@
     "character": 1
   },
   "source": "annotation_ctx/source/moduleLevelAnnotation2.bal",
+  "description": "",
   "items": [
     {
       "label": "ballerina/jballerina.java",
@@ -102,7 +103,7 @@
       ]
     },
     {
-      "label": "ballerina/lang.test",
+      "label": "ballerina/test",
       "kind": "Module",
       "detail": "Module",
       "sortText": "R",
@@ -121,7 +122,7 @@
               "character": 0
             }
           },
-          "newText": "import ballerina/lang.test;\n"
+          "newText": "import ballerina/test;\n"
         }
       ]
     },

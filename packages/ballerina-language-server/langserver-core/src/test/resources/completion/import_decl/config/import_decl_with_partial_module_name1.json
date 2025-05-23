@@ -329,29 +329,6 @@
       ]
     },
     {
-      "label": "lang.test",
-      "kind": "Module",
-      "detail": "Module",
-      "sortText": "A",
-      "insertText": "lang.test;",
-      "insertTextFormat": "Snippet",
-      "additionalTextEdits": [
-        {
-          "range": {
-            "start": {
-              "line": 0,
-              "character": 17
-            },
-            "end": {
-              "line": 0,
-              "character": 22
-            }
-          },
-          "newText": ""
-        }
-      ]
-    },
-    {
       "label": "lang.value",
       "kind": "Module",
       "detail": "Module",
@@ -495,6 +472,29 @@
       "detail": "Module",
       "sortText": "A",
       "insertText": "lang.'float;",
+      "insertTextFormat": "Snippet",
+      "additionalTextEdits": [
+        {
+          "range": {
+            "start": {
+              "line": 0,
+              "character": 17
+            },
+            "end": {
+              "line": 0,
+              "character": 22
+            }
+          },
+          "newText": ""
+        }
+      ]
+    },
+    {
+      "label": "test",
+      "kind": "Module",
+      "detail": "Module",
+      "sortText": "D",
+      "insertText": "test",
       "insertTextFormat": "Snippet",
       "additionalTextEdits": [
         {

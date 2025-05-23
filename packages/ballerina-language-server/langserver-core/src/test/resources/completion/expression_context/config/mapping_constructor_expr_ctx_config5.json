@@ -4,6 +4,7 @@
     "character": 39
   },
   "source": "expression_context/source/mapping_constructor_expr_ctx_source5.bal",
+  "description": "",
   "items": [
     {
       "label": "test/project2",
@@ -102,7 +103,7 @@
       ]
     },
     {
-      "label": "ballerina/lang.test",
+      "label": "ballerina/test",
       "kind": "Module",
       "detail": "Module",
       "sortText": "R",
@@ -121,7 +122,7 @@
               "character": 0
             }
           },
-          "newText": "import ballerina/lang.test;\n"
+          "newText": "import ballerina/test;\n"
         }
       ]
     },

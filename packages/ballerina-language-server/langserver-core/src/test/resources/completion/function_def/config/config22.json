@@ -4,6 +4,7 @@
     "character": 27
   },
   "source": "function_def/source/source22.bal",
+  "description": "",
   "items": [
     {
       "label": "MyType",
@@ -177,10 +178,10 @@
       ]
     },
     {
-      "label": "ballerina/lang.test",
+      "label": "ballerina/test",
       "kind": "Module",
       "detail": "Module",
-      "sortText": "CE",
+      "sortText": "CF",
       "filterText": "test",
       "insertText": "test",
       "insertTextFormat": "Snippet",
@@ -196,7 +197,7 @@
               "character": 0
             }
           },
-          "newText": "import ballerina/lang.test;\n"
+          "newText": "import ballerina/test;\n"
         }
       ]
     },

@@ -4,7 +4,7 @@ name = "module1"
 version = "0.1.0"
 
 [[platform.java21.dependency]]
-path = "../libs/language-server-stdlib-${version}.jar"
+path = "../libs/<jar>"
 groupId = "ballerina"
 artifactId = "mock"
 version = "0.0.0"

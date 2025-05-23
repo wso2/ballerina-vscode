@@ -4,6 +4,7 @@
     "character": 22
   },
   "source": "query_expression/source/query_expr_ctx_where_clause_source2.bal",
+  "description": "",
   "items": [
     {
       "label": "ENUM1_FIELD1",
@@ -97,7 +98,7 @@
       "label": "TestMap2",
       "kind": "TypeParameter",
       "detail": "Map",
-      "sortText": "BN",
+      "sortText": "AN",
       "insertText": "TestMap2",
       "insertTextFormat": "Snippet"
     },
@@ -148,7 +149,7 @@
       "documentation": {
         "left": "The HTTP client provides the capability for initiating contact with a remote HTTP service. The API it\nprovides includes functions for the standard HTTP methods, forwarding a received request and sending requests\nusing custom HTTP verbs."
       },
-      "sortText": "BK",
+      "sortText": "AK",
       "insertText": "Client",
       "insertTextFormat": "Snippet"
     },

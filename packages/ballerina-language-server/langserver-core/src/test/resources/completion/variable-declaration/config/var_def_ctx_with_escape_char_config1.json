@@ -4,6 +4,7 @@
     "character": 12
   },
   "source": "variable-declaration/source/var_def_ctx_with_escape_char_source1.bal",
+  "description": "",
   "items": [
     {
       "label": "start",
@@ -138,7 +139,7 @@
       ]
     },
     {
-      "label": "ballerina/lang.test",
+      "label": "ballerina/test",
       "kind": "Module",
       "detail": "Module",
       "sortText": "R",
@@ -157,7 +158,7 @@
               "character": 0
             }
           },
-          "newText": "import ballerina/lang.test;\n"
+          "newText": "import ballerina/test;\n"
         }
       ]
     },

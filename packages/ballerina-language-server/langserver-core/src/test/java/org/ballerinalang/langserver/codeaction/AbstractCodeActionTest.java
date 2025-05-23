@@ -314,6 +314,7 @@ public abstract class AbstractCodeActionTest extends AbstractLSTest {
                         String.format("Found an unexpected code action: %s", testConfig.description));
             }
         }
+        TestUtil.closeDocument(getServiceEndpoint(), sourcePath);
     }
 
     protected Path getConfigJsonPath(String configFilePath) {
