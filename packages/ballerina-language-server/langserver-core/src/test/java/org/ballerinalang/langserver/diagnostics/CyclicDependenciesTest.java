@@ -31,6 +31,8 @@ import org.ballerinalang.langserver.workspace.BallerinaWorkspaceManager;
 import org.eclipse.lsp4j.MessageParams;
 import org.eclipse.lsp4j.MessageType;
 import org.mockito.Mockito;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
@@ -45,8 +47,20 @@ import java.util.List;
 public class CyclicDependenciesTest {
 
     private final Path projectRoot = FileUtils.RES_DIR.resolve("diagnostics").resolve("sources");
-    private final LanguageServerContext serverContext = new LanguageServerContextImpl();
-    private final BallerinaWorkspaceManager workspaceManager = new BallerinaWorkspaceManager(serverContext);
+    private LanguageServerContext serverContext;
+    private BallerinaWorkspaceManager workspaceManager;
+
+    @BeforeClass
+    public void setup() {
+        serverContext = new LanguageServerContextImpl();
+        workspaceManager = new BallerinaWorkspaceManager(serverContext);
+    }
+
+    @AfterClass
+    public void cleanup() {
+        workspaceManager = null;
+        serverContext = null;
+    }
 
     @Test(dataProvider = "cyclic-package-provider")
     public void testCyclicDependenciesOnOpen(String packageName, List<String> expectedMessages)

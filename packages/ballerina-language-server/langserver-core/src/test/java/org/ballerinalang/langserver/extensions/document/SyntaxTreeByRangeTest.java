@@ -94,5 +94,6 @@ public class SyntaxTreeByRangeTest {
     @AfterClass
     public void stopLangServer() {
         TestUtil.shutdownLanguageServer(this.serviceEndpoint);
+        this.serviceEndpoint = null;
     }
 }

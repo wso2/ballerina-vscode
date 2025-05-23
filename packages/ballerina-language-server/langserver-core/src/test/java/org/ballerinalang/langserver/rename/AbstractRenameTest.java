@@ -79,6 +79,7 @@ public abstract class AbstractRenameTest {
     @AfterClass
     public void shutDownLanguageServer() {
         TestUtil.shutdownLanguageServer(this.serviceEndpoint);
+        this.serviceEndpoint = null;
     }
 
     protected abstract String configRoot();

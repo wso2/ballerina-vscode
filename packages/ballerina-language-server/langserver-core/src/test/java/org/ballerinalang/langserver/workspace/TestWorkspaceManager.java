@@ -56,6 +56,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.MockSettings;
 import org.mockito.Mockito;
 import org.testng.Assert;
+import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -92,6 +93,11 @@ public class TestWorkspaceManager {
     void initWorkspaceManager() {
         // Need to get a clean workspace manager before each test method
         workspaceManager = new BallerinaWorkspaceManager(new LanguageServerContextImpl());
+    }
+
+    @AfterClass
+    void cleanupWorkspaceManager() {
+        workspaceManager = null;
     }
 
     @Test(dataProvider = "fileOpenUpdateTestDataProvider")

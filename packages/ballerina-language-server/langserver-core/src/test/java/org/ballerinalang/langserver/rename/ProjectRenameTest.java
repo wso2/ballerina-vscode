@@ -17,8 +17,6 @@
  */
 package org.ballerinalang.langserver.rename;
 
-import org.ballerinalang.langserver.util.TestUtil;
-import org.testng.annotations.AfterClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
@@ -56,12 +54,6 @@ public class ProjectRenameTest extends AbstractRenameTest {
                 {"rename_invalid_token_result1.json", "token"},
                 {"rename_table_row_type_and_stream_type.json", "Student"},
         };
-    }
-
-    @Override
-    @AfterClass
-    public void shutDownLanguageServer() {
-        TestUtil.shutdownLanguageServer(this.serviceEndpoint);
     }
 
     @Override

@@ -110,6 +110,7 @@ public class ExecutorPositionsTest {
     @AfterClass
     public void cleanupLanguageServer() {
         TestUtil.shutdownLanguageServer(this.serviceEndpoint);
+        this.serviceEndpoint = null;
     }
 
     @DataProvider(name = "exec-positions-data-provider")

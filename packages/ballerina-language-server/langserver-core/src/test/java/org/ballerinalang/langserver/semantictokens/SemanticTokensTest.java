@@ -111,8 +111,8 @@ public class SemanticTokensTest {
 
     @AfterClass
     public void cleanupLanguageServer() {
-
         TestUtil.shutdownLanguageServer(this.serviceEndpoint);
+        this.serviceEndpoint = null;
     }
 
     @DataProvider(name = "semantictokens-data-provider")

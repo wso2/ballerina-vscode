@@ -137,6 +137,7 @@ public class ReferencesTest {
     @AfterClass
     public void shutDownLanguageServer() {
         TestUtil.shutdownLanguageServer(this.serviceEndpoint);
+        this.serviceEndpoint = null;
     }
 
     protected Endpoint getLanguageServerEndpoint() {
