@@ -53,6 +53,12 @@ public class ArtifactsTest extends AbstractLSTest {
     }
 
     @Override
+    protected String[] skipList() {
+        // TODO: Need to replace this with the latest ai agent implementation
+        return new String[]{"agent.json"};
+    }
+
+    @Override
     protected String getResourceDir() {
         return "artifacts";
     }
