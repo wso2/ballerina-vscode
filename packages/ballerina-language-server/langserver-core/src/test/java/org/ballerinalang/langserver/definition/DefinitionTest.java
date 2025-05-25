@@ -202,7 +202,7 @@ public class DefinitionTest {
                 expectedPath = expectedPath.resolve(uriComponent);
             }
             item.remove("uri");
-            item.addProperty("uri", expectedPath.toFile().getCanonicalPath());
+            item.addProperty("uri", expectedPath.toFile().getPath());
         }
     }
 
@@ -213,7 +213,7 @@ public class DefinitionTest {
 
             Path expectedPath = getPath(uriComponents);
             item.remove("uri");
-            item.addProperty("uri", expectedPath.toFile().getCanonicalPath());
+            item.addProperty("uri", expectedPath.toFile().getPath());
         }
     }
 
@@ -262,7 +262,7 @@ public class DefinitionTest {
             canonicalPath = result.toString().replaceFirst("^/", "");
 
             item.remove("uri");
-            item.addProperty("uri", canonicalPath);
+            item.addProperty("uri", new File(canonicalPath).getPath());
         }
     }
 
