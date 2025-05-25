@@ -236,7 +236,7 @@ dependencies {
     externalJarDeps "com.moandjiezana.toml:toml4j:${moandjiezanaToml4jVersion}"
 }
 
-task combineAllJars(type: com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar) {
+task pack(type: com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar) {
     description 'Creates a single JAR containing all submodules'
     group 'build'
 
@@ -293,9 +293,6 @@ test {
     dependsOn pullBallerinaModules
 }
 
-test.dependsOn pullBallerinaModules
-build.dependsOn combineAllJars
-
 task buildFlow {
     dependsOn(":flow-model-generator:flow-model-generator-core:build")
     dependsOn(":flow-model-generator:flow-model-generator-ls-extension:build")
@@ -324,7 +321,7 @@ task buildCommons {
 }
 
 
-
+build.dependsOn test
 build.doNotTrackState("build needs to run every time")
 publishToMavenLocal.dependsOn build
 publish.dependsOn build
