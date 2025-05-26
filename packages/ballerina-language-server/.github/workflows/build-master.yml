@@ -13,9 +13,6 @@ jobs:
       group: ${{ github.ref_name }}-ubuntu
       cancel-in-progress: true
     steps:
-      - name: Enable long paths for Git
-        run: git config --system core.longpaths true
-
       - name: Checkout repository
         uses: actions/checkout@v4
 
@@ -55,6 +52,9 @@ jobs:
       group: ${{ github.ref_name }}-windows
       cancel-in-progress: true
     steps:
+      - name: Enable long paths for Git
+        run: git config --system core.longpaths true
+
       - name: Checkout repository
         uses: actions/checkout@v4
 
