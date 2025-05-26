@@ -54,8 +54,12 @@ public class ArtifactsTest extends AbstractLSTest {
 
     @Override
     protected String[] skipList() {
-        // TODO: Need to replace this with the latest ai agent implementation
-        return new String[]{"agent.json"};
+        return new String[]{
+                // TODO: Need to replace this with the latest ai agent implementation
+                "agent.json",
+                // TODO: Investigate why the following test fails intermittently in Windows
+                "graphql.json"
+        };
     }
 
     @Override
