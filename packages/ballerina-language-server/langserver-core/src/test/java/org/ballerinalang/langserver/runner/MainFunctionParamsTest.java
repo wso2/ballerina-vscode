@@ -69,6 +69,7 @@ public class MainFunctionParamsTest {
     @AfterClass
     public void cleanupLanguageServer() {
         TestUtil.shutdownLanguageServer(this.serviceEndpoint);
+        this.serviceEndpoint = null;
     }
 
     private JsonObject getResponseJson(String response) {

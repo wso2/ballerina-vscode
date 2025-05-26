@@ -151,5 +151,6 @@ public class DiagnosticsTest {
     @AfterClass
     public void cleanupLanguageServer() {
         TestUtil.shutdownLanguageServer(this.serviceEndpoint);
+        this.serviceEndpoint = null;
     }
 }

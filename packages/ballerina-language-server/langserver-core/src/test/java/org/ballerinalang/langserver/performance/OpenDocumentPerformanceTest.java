@@ -71,6 +71,7 @@ public class OpenDocumentPerformanceTest {
     @AfterClass
     public void cleanupLanguageServer() {
         TestUtil.shutdownLanguageServer(this.serviceEndpoint);
+        this.serviceEndpoint = null;
     }
 
     @DataProvider(name = "performance-data-provider")
@@ -84,6 +85,7 @@ public class OpenDocumentPerformanceTest {
         return "performance" + File.separator + "config" + File.separator + getResourceDir() + File.separator
                 + configFilePath;
     }
+
     public String getResourceDir() {
         return "performance_open_document";
     }

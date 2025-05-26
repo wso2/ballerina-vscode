@@ -27,6 +27,7 @@ import org.ballerinalang.langserver.util.FileUtils;
 import org.ballerinalang.langserver.util.TestUtil;
 import org.eclipse.lsp4j.jsonrpc.Endpoint;
 import org.testng.Assert;
+import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
@@ -110,5 +111,11 @@ public class ReoccurringTypesTest {
         Assert.assertEquals(recordType.fields.size(), 1);
         Assert.assertEquals(recordType.fields.get(0).name, "name");
         Assert.assertEquals(recordType.fields.get(0).typeName, SymbolServiceTestUtil.STRING);
+    }
+
+    @AfterClass
+    public void shutdownLanguageServer() {
+        TestUtil.shutdownLanguageServer(this.serviceEndpoint);
+        this.serviceEndpoint = null;
     }
 }

@@ -64,6 +64,7 @@ public class EventSyncPubSubTest {
     @AfterClass
     public void cleanupLanguageServer() {
         TestUtil.shutdownLanguageServer(this.serviceEndpoint);
+        this.serviceEndpoint = null;
     }
 
     @DataProvider(name = "eventsync-data-provider")

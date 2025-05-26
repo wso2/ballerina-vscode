@@ -80,6 +80,7 @@ public class ConfigSchemaTest {
     @AfterClass
     public void cleanupLanguageServer() {
         TestUtil.shutdownLanguageServer(this.serviceEndpoint);
+        this.serviceEndpoint = null;
     }
 
     @DataProvider(name = "config-schema-data-provider")

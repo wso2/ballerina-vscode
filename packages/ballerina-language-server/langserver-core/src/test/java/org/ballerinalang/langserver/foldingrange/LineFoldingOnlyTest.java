@@ -68,8 +68,9 @@ public class LineFoldingOnlyTest {
     }
 
     @AfterClass
-    public void cleanupLanguageServer() {
+    public void shutdownLanguageServer() {
         TestUtil.shutdownLanguageServer(this.serviceEndpoint);
+        this.serviceEndpoint = null;
     }
 
     @DataProvider(name = "foldingrange-data-provider")

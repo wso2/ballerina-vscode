@@ -20,9 +20,9 @@ plugins {
     id "com.github.johnrengelman.shadow" version "${shadowJarPluginVersion}"
     id "de.undercouch.download" version "${downloadPluginVersion}"
     id "net.researchgate.release" version "${releasePluginVersion}"
+    id "java"
 }
 apply plugin: 'maven-publish'
-
 
 allprojects {
     group = project.group
@@ -87,6 +87,7 @@ subprojects {
         ballerinaStdLibs "io.ballerina.lib:data.jsondata-ballerina:${stdlibJsonDataVersion}"
         ballerinaStdLibs "io.ballerina.stdlib:http-ballerina:${stdlibHttpVersion}"
         ballerinaStdLibs "io.ballerina.stdlib:graphql-ballerina:${stdlibGraphqlVersion}"
+        ballerinaStdLibs "io.ballerina.stdlib:sql-ballerina:${stdLibSqlVersion}"
         ballerinaStdLibs "io.ballerina.stdlib:grpc-ballerina:${stdlibGrpcVersion}"
         ballerinaStdLibs "io.ballerina:observe-ballerina:${observeInternalVersion}"
         ballerinaStdLibs "io.ballerina.stdlib:observe-ballerina:${observeVersion}"
@@ -215,46 +216,6 @@ release {
     }
 }
 
-task test {
-}
-
-test.dependsOn rootProject.pullBallerinaModule('ai', ballerinaxAiAgent)
-test.dependsOn rootProject.pullBallerinaModule('np', ballerinaxNp)
-test.dependsOn rootProject.pullBallerinaModule('kafka', ballerinaxKafkaVersion)
-test.dependsOn rootProject.pullBallerinaModule('rabbitmq', ballerinaxRabbitmqVersion)
-test.dependsOn rootProject.pullBallerinaModule('trigger.github', ballerinaxGithubTriggerVersion)
-
-task clean {
-    delete "build"
-    delete "dist"
-}
-
-task buildFlow {
-    dependsOn(":flow-model-generator:flow-model-generator-core:build")
-    dependsOn(":flow-model-generator:flow-model-generator-ls-extension:build")
-}
-
-task buildService {
-    dependsOn(":service-model-generator:service-model-generator-ls-extension:build")
-}
-
-task buildDesign {
-    dependsOn(":architecture-model-generator:architecture-model-generator-core:build")
-    dependsOn(":architecture-model-generator:architecture-model-generator-ls-extension:build")
-}
-
-task buildSequence {
-    dependsOn(":sequence-model-generator:sequence-model-generator-core:build")
-    dependsOn(":sequence-model-generator:sequence-model-generator-ls-extension:build")
-}
-
-task buildTestService {
-    dependsOn(":test-manager-service:test-manager-service-ls-extension:build")
-}
-
-task buildCommons {
-    dependsOn(":model-generator-commons:build")
-}
 
 configurations {
     externalJarDeps
@@ -275,7 +236,7 @@ dependencies {
     externalJarDeps "com.moandjiezana.toml:toml4j:${moandjiezanaToml4jVersion}"
 }
 
-task combineAllJars(type: com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar) {
+task pack(type: com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar) {
     description 'Creates a single JAR containing all submodules'
     group 'build'
 
@@ -320,12 +281,47 @@ task combineAllJars(type: com.github.jengelman.gradle.plugins.shadow.tasks.Shado
     }
 }
 
-task build {
-    dependsOn test
-    dependsOn(':launcher:build')
-    dependsOn combineAllJars
+task pullBallerinaModules {
+    dependsOn pullBallerinaModule('ai', ballerinaxAiAgent)
+    dependsOn pullBallerinaModule('kafka', ballerinaxKafkaVersion)
+    dependsOn pullBallerinaModule('rabbitmq', ballerinaxRabbitmqVersion)
+    dependsOn pullBallerinaModule('trigger.github', ballerinaxGithubTriggerVersion)
+    dependsOn pullBallerinaModule('np', ballerinaxNp)
 }
 
+test {
+    dependsOn pullBallerinaModules
+}
+
+task buildFlow {
+    dependsOn(":flow-model-generator:flow-model-generator-core:build")
+    dependsOn(":flow-model-generator:flow-model-generator-ls-extension:build")
+}
+
+task buildService {
+    dependsOn(":service-model-generator:service-model-generator-ls-extension:build")
+}
+
+task buildDesign {
+    dependsOn(":architecture-model-generator:architecture-model-generator-core:build")
+    dependsOn(":architecture-model-generator:architecture-model-generator-ls-extension:build")
+}
+
+task buildSequence {
+    dependsOn(":sequence-model-generator:sequence-model-generator-core:build")
+    dependsOn(":sequence-model-generator:sequence-model-generator-ls-extension:build")
+}
+
+task buildTestService {
+    dependsOn(":test-manager-service:test-manager-service-ls-extension:build")
+}
+
+task buildCommons {
+    dependsOn(":model-generator-commons:build")
+}
+
+
+build.dependsOn test
 build.doNotTrackState("build needs to run every time")
 publishToMavenLocal.dependsOn build
 publish.dependsOn build

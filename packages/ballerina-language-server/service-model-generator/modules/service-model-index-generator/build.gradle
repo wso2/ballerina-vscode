@@ -38,13 +38,13 @@ dependencies {
         exclude group: 'io.ballerina.flowmodelgenerator.core', module: 'flow-model-generator-core'
     }
     implementation project(":model-generator-commons")
+    implementation project(":langserver-core")
 
     implementation "org.ballerinalang:ballerina-lang:${ballerinaLangVersion}"
     implementation "org.ballerinalang:ballerina-parser:${ballerinaLangVersion}"
     implementation "org.ballerinalang:ballerina-tools-api:${ballerinaLangVersion}"
     implementation "org.ballerinalang:diagram-util:${ballerinaLangVersion}"
     implementation "org.ballerinalang:toml-parser:${ballerinaLangVersion}"
-    implementation "org.ballerinalang:language-server-core:${ballerinaLangVersion}"
     implementation "org.xerial:sqlite-jdbc:${sqliteJdbcVersion}"
     implementation "com.google.code.gson:gson:${gsonVersion}"
 }

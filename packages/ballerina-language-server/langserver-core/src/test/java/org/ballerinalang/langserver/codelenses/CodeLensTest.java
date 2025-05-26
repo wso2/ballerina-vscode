@@ -77,6 +77,7 @@ public class CodeLensTest {
     public void shutDownLanguageServer() {
         TestUtil.closeDocument(this.serviceEndpoint, functionsBalPath);
         TestUtil.shutdownLanguageServer(this.serviceEndpoint);
+        this.serviceEndpoint = null;
     }
 
     @DataProvider(name = "codeLensFunctionPositions")

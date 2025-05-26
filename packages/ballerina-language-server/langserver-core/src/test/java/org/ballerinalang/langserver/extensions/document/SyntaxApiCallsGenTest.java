@@ -21,6 +21,7 @@ import org.ballerinalang.langserver.util.FileUtils;
 import org.ballerinalang.langserver.util.TestUtil;
 import org.eclipse.lsp4j.jsonrpc.Endpoint;
 import org.testng.Assert;
+import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
@@ -91,5 +92,11 @@ public class SyntaxApiCallsGenTest {
 
     private String replaceLineEnds(String source) {
         return source.replace("\r\n", "\n").replace("\\r\\n", "\\n");
+    }
+
+    @AfterClass
+    public void shutdownLanguageServer() {
+        TestUtil.shutdownLanguageServer(this.serviceEndpoint);
+        this.serviceEndpoint = null;
     }
 }

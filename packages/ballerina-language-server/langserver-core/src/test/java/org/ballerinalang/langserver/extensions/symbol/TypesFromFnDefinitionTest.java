@@ -28,6 +28,7 @@ import org.ballerinalang.langserver.util.FileUtils;
 import org.ballerinalang.langserver.util.TestUtil;
 import org.eclipse.lsp4j.jsonrpc.Endpoint;
 import org.testng.Assert;
+import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
@@ -672,5 +673,11 @@ public class TypesFromFnDefinitionTest {
         Assert.assertEquals(unionType.members.size(), 2);
         Assert.assertEquals(unionType.members.get(0).typeName, SymbolServiceTestUtil.STRING);
         Assert.assertEquals(unionType.members.get(1).typeName, SymbolServiceTestUtil.INTEGER);
+    }
+
+    @AfterClass
+    public void shutdownLanguageServer() {
+        TestUtil.shutdownLanguageServer(this.serviceEndpoint);
+        this.serviceEndpoint = null;
     }
 }

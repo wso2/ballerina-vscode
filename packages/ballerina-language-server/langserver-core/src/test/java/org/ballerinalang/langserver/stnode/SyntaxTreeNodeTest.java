@@ -62,6 +62,7 @@ public class SyntaxTreeNodeTest {
     @AfterClass
     public void cleanupLanguageServer() {
         TestUtil.shutdownLanguageServer(this.serviceEndpoint);
+        this.serviceEndpoint = null;
     }
 
     @DataProvider(name = "stnode-data-provider")

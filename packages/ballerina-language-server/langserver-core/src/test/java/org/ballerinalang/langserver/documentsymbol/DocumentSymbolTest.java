@@ -55,6 +55,7 @@ public class DocumentSymbolTest {
     @AfterClass
     public void shutDownLanguageServer() {
         TestUtil.shutdownLanguageServer(this.serviceEndpoint);
+        this.serviceEndpoint = null;
     }
 
 }

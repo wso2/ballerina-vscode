@@ -32,14 +32,14 @@ configurations {
 dependencies {
     compileOnly "org.ballerinalang:ballerina-lang:${ballerinaLangVersion}"
     implementation "org.ballerinalang:ballerina-tools-api:${ballerinaLangVersion}"
-    compileOnly "org.ballerinalang:language-server-commons:${ballerinaLangVersion}"
+    compileOnly project(":langserver-commons")
     compileOnly "org.eclipse.lsp4j:org.eclipse.lsp4j:${eclipseLsp4jVersion}"
 
     implementation "com.google.code.gson:gson:${gsonVersion}"
     implementation project(':sequence-model-generator:sequence-model-generator-core')
 
     testImplementation project(':sequence-model-generator:sequence-model-generator-core')
-    testImplementation "org.ballerinalang:language-server-core:${ballerinaLangVersion}"
+    testImplementation project(":langserver-core")
     testImplementation "org.eclipse.lsp4j:org.eclipse.lsp4j:${eclipseLsp4jVersion}"
     testImplementation "org.testng:testng:${testngVersion}"
 

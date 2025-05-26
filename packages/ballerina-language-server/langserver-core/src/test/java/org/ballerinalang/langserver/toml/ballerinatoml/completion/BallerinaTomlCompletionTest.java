@@ -125,6 +125,7 @@ public abstract class BallerinaTomlCompletionTest {
     @AfterClass
     public void cleanupLanguageServer() {
         TestUtil.shutdownLanguageServer(this.serviceEndpoint);
+        this.serviceEndpoint = null;
     }
 
     protected Object[][] getConfigsList() {

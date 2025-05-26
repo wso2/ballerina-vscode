@@ -109,5 +109,6 @@ public class SyntaxTreeNodeByPositionTest {
     @AfterClass
     public void stopLangServer() {
         TestUtil.shutdownLanguageServer(this.serviceEndpoint);
+        this.serviceEndpoint = null;
     }
 }

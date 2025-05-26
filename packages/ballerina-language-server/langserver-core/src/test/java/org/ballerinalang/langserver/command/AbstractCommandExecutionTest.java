@@ -110,6 +110,7 @@ public abstract class AbstractCommandExecutionTest {
     @AfterClass
     public void cleanupLanguageServer() {
         TestUtil.shutdownLanguageServer(this.serviceEndpoint);
+        this.serviceEndpoint = null;
     }
 
     private List<Object> argsToJson(List<Object> args) {

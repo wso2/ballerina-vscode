@@ -105,5 +105,6 @@ public class VisibleEndpointTest {
     public void stopLangServer() {
         TestUtil.closeDocument(this.serviceEndpoint, nestedVisibleEPsFile);
         TestUtil.shutdownLanguageServer(this.serviceEndpoint);
+        this.serviceEndpoint = null;
     }
 }

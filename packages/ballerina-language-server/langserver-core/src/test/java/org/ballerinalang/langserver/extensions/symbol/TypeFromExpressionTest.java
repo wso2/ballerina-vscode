@@ -26,6 +26,7 @@ import org.ballerinalang.langserver.util.FileUtils;
 import org.ballerinalang.langserver.util.TestUtil;
 import org.eclipse.lsp4j.jsonrpc.Endpoint;
 import org.testng.Assert;
+import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
@@ -219,5 +220,11 @@ public class TypeFromExpressionTest {
         Assert.assertEquals(typeFromExpression.getTypes().size(), 0);
 
         TestUtil.closeDocument(this.serviceEndpoint, inputFile);
+    }
+
+    @AfterClass
+    public void shutdownLanguageServer() {
+        TestUtil.shutdownLanguageServer(this.serviceEndpoint);
+        this.serviceEndpoint = null;
     }
 }

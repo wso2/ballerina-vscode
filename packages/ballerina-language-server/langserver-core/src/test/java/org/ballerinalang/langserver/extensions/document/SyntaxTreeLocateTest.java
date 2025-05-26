@@ -123,5 +123,6 @@ public class SyntaxTreeLocateTest {
     @AfterClass
     public void stopLangServer() {
         TestUtil.shutdownLanguageServer(this.serviceEndpoint);
+        this.serviceEndpoint = null;
     }
 }

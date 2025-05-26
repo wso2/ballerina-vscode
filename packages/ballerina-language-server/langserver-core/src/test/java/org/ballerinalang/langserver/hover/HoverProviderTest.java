@@ -24,6 +24,7 @@ import org.ballerinalang.langserver.util.TestUtil;
 import org.eclipse.lsp4j.Position;
 import org.eclipse.lsp4j.jsonrpc.Endpoint;
 import org.testng.Assert;
+import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -116,5 +117,11 @@ public class HoverProviderTest {
         position.setCharacter(positionObj.get("character").getAsInt());
 
         return position;
+    }
+
+    @AfterClass
+    public void shutdownLanguageServer() {
+        TestUtil.shutdownLanguageServer(this.serviceEndpoint);
+        this.serviceEndpoint = null;
     }
 }

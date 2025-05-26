@@ -35,12 +35,13 @@ configurations {
 
 dependencies {
     implementation project(':flow-model-generator:flow-model-central-client')
+    implementation project(":langserver-core")
+    implementation project(":langserver-commons")
+
     implementation "org.ballerinalang:ballerina-lang:${ballerinaLangVersion}"
     implementation "org.ballerinalang:ballerina-parser:${ballerinaLangVersion}"
     implementation "org.ballerinalang:ballerina-tools-api:${ballerinaLangVersion}"
-    implementation "org.ballerinalang:language-server-commons:${ballerinaLangVersion}"
     implementation "org.eclipse.lsp4j:org.eclipse.lsp4j:${eclipseLsp4jVersion}"
-    implementation "org.ballerinalang:language-server-core:${ballerinaLangVersion}"
     implementation "com.google.code.gson:gson:${gsonVersion}"
     implementation "org.testng:testng:${testngVersion}"
 }

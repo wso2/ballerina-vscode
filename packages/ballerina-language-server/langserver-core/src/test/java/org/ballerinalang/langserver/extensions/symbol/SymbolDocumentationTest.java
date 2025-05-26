@@ -23,6 +23,7 @@ import org.ballerinalang.langserver.util.TestUtil;
 import org.eclipse.lsp4j.Position;
 import org.eclipse.lsp4j.jsonrpc.Endpoint;
 import org.testng.Assert;
+import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
@@ -263,6 +264,12 @@ public class SymbolDocumentationTest {
         Assert.assertEquals(symbolInfoResponse.getDocumentation().getParameters().get(0).getDescription(),
                 "Id of the student");
         TestUtil.closeDocument(this.serviceEndpoint, inputFile);
+    }
+
+    @AfterClass
+    public void shutdownLanguageServer() {
+        TestUtil.shutdownLanguageServer(this.serviceEndpoint);
+        this.serviceEndpoint = null;
     }
 
 }
