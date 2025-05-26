@@ -24,7 +24,6 @@ import io.ballerina.flowmodelgenerator.extension.request.FlowModelGeneratorReque
 import io.ballerina.modelgenerator.commons.AbstractLSTest;
 import io.ballerina.tools.text.LinePosition;
 import org.testng.Assert;
-import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import java.io.IOException;
@@ -60,18 +59,10 @@ public class ModelGeneratorTest extends AbstractLSTest {
         if (!fileNameEquality || !flowEquality) {
             TestConfig updatedConfig = new TestConfig(testConfig.start(), testConfig.end(), testConfig.source(),
                     testConfig.description(), modifiedDiagram);
-            updateConfig(configJsonPath, updatedConfig);
+//            updateConfig(configJsonPath, updatedConfig);
             compareJsonElements(modifiedDiagram, testConfig.diagram());
             Assert.fail(String.format("Failed test: '%s' (%s)", testConfig.description(), configJsonPath));
         }
-    }
-
-    @DataProvider(name = "data-provider")
-    @Override
-    protected Object[] getConfigsList() {
-        return new Object[] {
-                Path.of("remote_action_call-mysql1.json")
-        };
     }
 
     @Override

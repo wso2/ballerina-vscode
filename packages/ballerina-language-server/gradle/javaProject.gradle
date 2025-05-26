@@ -32,7 +32,7 @@ dependencies {
         implementation "org.ballerinalang:ballerina-parser:${ballerinaLangVersion}"
         implementation "org.ballerinalang:ballerina-cli:${ballerinaLangVersion}"
         implementation "org.ballerinalang:ballerina-tools-api:${ballerinaLangVersion}"
-        implementation "org.ballerinalang:language-server-commons:${ballerinaLangVersion}"
+        implementation project(":langserver-commons")
         // StdLib Dependencies
         implementation "io.ballerina.stdlib:http-native:${stdlibHttpVersion}"
         implementation "io.ballerina.stdlib:graphql-commons:${stdlibGraphqlVersion}"
