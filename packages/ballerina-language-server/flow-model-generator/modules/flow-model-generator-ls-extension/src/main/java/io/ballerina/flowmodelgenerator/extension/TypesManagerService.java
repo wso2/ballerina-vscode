@@ -26,6 +26,7 @@ import io.ballerina.compiler.api.symbols.SymbolKind;
 import io.ballerina.compiler.api.symbols.TypeDescKind;
 import io.ballerina.compiler.api.symbols.TypeSymbol;
 import io.ballerina.flowmodelgenerator.core.TypesManager;
+import io.ballerina.flowmodelgenerator.core.converters.JsonToTypeMapper;
 import io.ballerina.flowmodelgenerator.core.model.Codedata;
 import io.ballerina.flowmodelgenerator.core.model.PropertyTypeMemberInfo;
 import io.ballerina.flowmodelgenerator.core.model.TypeData;
@@ -35,6 +36,7 @@ import io.ballerina.flowmodelgenerator.core.utils.FileSystemUtils;
 import io.ballerina.flowmodelgenerator.extension.request.FilePathRequest;
 import io.ballerina.flowmodelgenerator.extension.request.FindTypeRequest;
 import io.ballerina.flowmodelgenerator.extension.request.GetTypeRequest;
+import io.ballerina.flowmodelgenerator.extension.request.JsonToTypeRequest;
 import io.ballerina.flowmodelgenerator.extension.request.MultipleTypeUpdateRequest;
 import io.ballerina.flowmodelgenerator.extension.request.RecordConfigRequest;
 import io.ballerina.flowmodelgenerator.extension.request.RecordValueGenerateRequest;
@@ -351,6 +353,40 @@ public class TypesManagerService implements ExtendedLanguageServerService {
             return response;
         });
     }
+
+    @JsonRequest
+    public CompletableFuture<TypeListResponse> jsonToType(JsonToTypeRequest request) {
+        return CompletableFuture.supplyAsync(() -> {
+            TypeListResponse response = new TypeListResponse();
+
+            String jsonString = request.jsonString();
+            String typeName = request.typeName();
+            String prefix = request.prefix();
+            boolean isRecordTypeDesc = request.asInline();
+            boolean isClosed = !request.allowAdditionalFields();
+            boolean isNullAsOptional = request.isNullAsOptional();
+
+            try {
+                Path filePath = Path.of(request.filePath());
+                FileSystemUtils.createFileIfNotExists(workspaceManager, filePath);
+
+                JsonToTypeMapper jsonToTypeMapper = new JsonToTypeMapper(
+                        isClosed,
+                        isRecordTypeDesc,
+                        prefix,
+                        workspaceManager,
+                        filePath
+                );
+                JsonElement converted = jsonToTypeMapper.convert(jsonString, typeName);
+                response.setTypes(converted);
+            } catch (Throwable e) {
+                throw new RuntimeException(e);
+            }
+            return response;
+        });
+    }
+
+    // Utility methods
 
     private Optional<SemanticModel> getCachedSemanticModel(String org, String packageName, String version,
                                                            Path filePath) {
