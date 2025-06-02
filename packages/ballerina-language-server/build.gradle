@@ -234,6 +234,7 @@ dependencies {
     externalJarDeps "commons-io:commons-io:${commonsIoVersion}"
     externalJarDeps "com.google.guava:guava:${guavaVersion}"
     externalJarDeps "com.moandjiezana.toml:toml4j:${moandjiezanaToml4jVersion}"
+    externalJarDeps "com.github.zafarkhaja:java-semver:${javaSemverVersion}"
 }
 
 task pack(type: com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar) {
