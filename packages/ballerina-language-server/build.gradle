@@ -248,7 +248,6 @@ publishing {
             publication.artifact(tasks.pack) {
                 classifier = null
             }
-            from components.java
         }
     }
 

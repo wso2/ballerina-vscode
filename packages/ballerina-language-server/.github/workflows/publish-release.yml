@@ -47,7 +47,7 @@ jobs:
             git fetch --tags
             
             # Find the highest RC number for this base version
-            HIGHEST_RC=$(git tag -l "v${BASE_VERSION}-rc*" | sed "s/v${BASE_VERSION}-rc//" | sort -n | tail -1)
+            HIGHEST_RC=$(git tag -l "v${BASE_VERSION}-rc.*" | sed "s/v${BASE_VERSION}-rc.//" | sort -n | tail -1)
             
             if [ -z "$HIGHEST_RC" ]; then
               # No RC tags found, start with rc1
@@ -57,7 +57,7 @@ jobs:
               RC_NUMBER=$((HIGHEST_RC + 1))
             fi
             
-            echo VERSION=${BASE_VERSION}-rc${RC_NUMBER} >> $GITHUB_ENV
+            echo VERSION=${BASE_VERSION}-rc.${RC_NUMBER} >> $GITHUB_ENV
             echo PRE_RELEASE=true >> $GITHUB_ENV
           else
             # Normal release - use the base version
@@ -96,10 +96,10 @@ jobs:
         run: |
           ./gradlew -Pversion=${VERSION} release -Prelease.useAutomaticVersion=true -x test
 
-      # - name: Set up Ballerina
-      #   uses: ballerina-platform/setup-ballerina@v1.1.1
-      #   with:
-      #     version: 2201.12.3
+      - name: Set up Ballerina
+        uses: ballerina-platform/setup-ballerina@v1.1.1
+        with:
+          version: 2201.12.3
 
       # - name: Publish the artifacts
       #   env:
@@ -120,6 +120,7 @@ jobs:
           draft: false
           prerelease: ${{ env.PRE_RELEASE == 'true' }}
           generate_release_notes: true
+          files: build/libs/ballerina-language-server-${{ env.VERSION }}.jar
 
       - name: Post release PR
         if: env.PRE_RELEASE == 'false'
