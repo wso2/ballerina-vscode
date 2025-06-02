@@ -58,7 +58,7 @@ public class JsonToTypeTest extends AbstractLSTest {
                 testConfig.prefix(),
                 testConfig.allowAdditionalFields(),
                 testConfig.asInline(),
-                false, // isNullAsOptional is not used in this context
+                false, // nullAsOptional is not used in this context
                 sourceFile);
         JsonArray types = getResponse(request).getAsJsonArray("types");
 

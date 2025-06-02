@@ -26,7 +26,7 @@ package io.ballerina.flowmodelgenerator.extension.request;
  * @param prefix Prefix to be added to the generated type name
  * @param allowAdditionalFields Whether to allow additional fields in the generated type
  * @param asInline Whether to generate the type as an inline type
- * @param isNullAsOptional Whether to treat null values as optional in the generated type
+ * @param nullAsOptional Whether to treat null values as optional in the generated type
  * @param filePath File path where the type should be generated
  */
 public record JsonToTypeRequest(String jsonString,
@@ -34,6 +34,6 @@ public record JsonToTypeRequest(String jsonString,
                                 String prefix,
                                 boolean allowAdditionalFields,
                                 boolean asInline,
-                                boolean isNullAsOptional,
+                                boolean nullAsOptional,
                                 String filePath) {
 }

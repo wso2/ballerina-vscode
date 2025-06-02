@@ -412,7 +412,7 @@ public class TypesManagerService implements ExtendedLanguageServerService {
             String prefix = request.prefix();
             boolean isRecordTypeDesc = request.asInline();
             boolean isClosed = !request.allowAdditionalFields();
-            boolean isNullAsOptional = request.isNullAsOptional();
+            boolean isNullAsOptional = request.nullAsOptional();
 
             try {
                 Path filePath = Path.of(request.filePath());
