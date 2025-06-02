@@ -137,33 +137,6 @@ def pullBallerinaModule(String packageName, String version = null, String orgNam
     }
 }
 
-publishing {
-    repositories {
-        maven {
-            name = "GitHubPackages"
-            url = uri("https://maven.pkg.github.com/ballerina-platform/ballerina-language-server")
-            credentials {
-                username = System.getenv("packageUser")
-                password = System.getenv("packagePAT")
-            }
-        }
-    }
-}
-
-release {
-    failOnPublishNeeded = false
-
-    buildTasks = ['build']
-    versionPropertyFile = 'gradle.properties'
-    tagTemplate = 'v${version}'
-    git {
-        // To release from any branch
-        requireBranch = "release-${moduleVersion}"
-        pushToRemote = 'origin'
-    }
-}
-
-
 configurations {
     externalJarDeps
 }
@@ -269,6 +242,40 @@ task buildCommons {
     dependsOn(":model-generator-commons:build")
 }
 
+publishing {    
+    publications {
+        shadow(MavenPublication) { publication ->
+            publication.artifact(tasks.pack) {
+                classifier = null
+            }
+            from components.java
+        }
+    }
+
+    repositories {
+        maven {
+            name = "GitHubPackages"
+            url = uri("https://maven.pkg.github.com/ballerina-platform/ballerina-language-server")
+            credentials {
+                username = System.getenv("packageUser")
+                password = System.getenv("packagePAT")
+            }
+        }
+    }
+}
+
+release {
+    failOnPublishNeeded = false
+
+    buildTasks = ['build']
+    versionPropertyFile = 'gradle.properties'
+    tagTemplate = 'v${version}'
+    git {
+        // To release from any branch
+        requireBranch = "release-${moduleVersion}"
+        pushToRemote = 'origin'
+    }
+}
 
 build.dependsOn test
 build.doNotTrackState("build needs to run every time")
