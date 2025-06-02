@@ -96,59 +96,6 @@ subprojects {
         /* Ballerina Persist Tool */
         ballerinaStdLibs "io.ballerina:persist-tools:${persistToolVersion}"
     }
-
-    ext.defineSyncTask = { String pathParam ->
-        tasks.register('localSync') {
-            doLast {
-                def distVersion = ""
-                def distributionsDir = new File("${System.getProperty('user.home')}/.ballerina/ballerina-home/distributions/")
-                if (distributionsDir.exists()) {
-                    def ballerinaDirectories = distributionsDir.listFiles().findAll {
-                        it.isDirectory() && it.name.startsWith("ballerina-")
-                    }
-
-                    if (ballerinaDirectories) {
-                        ballerinaDirectories.sort { a, b -> b.name <=> a.name }
-                        def latestDir = ballerinaDirectories[0]
-                        distVersion = latestDir.name.substring("ballerina-".length())
-                    } else {
-                        println "No Ballerina distributions found."
-                        return
-                    }
-                } else {
-                    println "Distributions directory does not exist at: ${distributionsDir.absolutePath}"
-                    return
-                }
-
-                def buildLibsDir = file('build/libs')
-                def destinationPath = "${System.getProperty('user.home')}/.ballerina/ballerina-home/distributions/ballerina-${distVersion}/${pathParam}"
-
-                if (buildLibsDir.exists() && buildLibsDir.listFiles()) {
-                    def jarFiles = buildLibsDir.listFiles().findAll { it.name.endsWith('.jar') }
-                    if (jarFiles) {
-                        // Get module name from the built jar (removing version part)
-                        def jarName = jarFiles[0].name
-                        def moduleJarName = jarName.contains('-') ? jarName.substring(0, jarName.lastIndexOf('-')) : jarName.replace('.jar', '')
-
-                        def jarsToRemove = fileTree(destinationPath).matching {
-                            include "${moduleJarName}*.jar"
-                        }
-                        if (!jarsToRemove.isEmpty()) {
-                            jarsToRemove.each { jar ->
-                                println "Removing existing jar: ${jar}"
-                                jar.delete()
-                            }
-                        }
-                    }
-                }
-                copy {
-                    from fileTree(dir: 'build/libs', include: '*.jar')
-                    println "Updating ${destinationPath}"
-                    into destinationPath
-                }
-            }
-        }
-    }
 }
 
 def moduleVersion = project.version
@@ -190,37 +137,11 @@ def pullBallerinaModule(String packageName, String version = null, String orgNam
     }
 }
 
-publishing {
-    repositories {
-        maven {
-            name = "GitHubPackages"
-            url = uri("https://maven.pkg.github.com/ballerina-platform/ballerina-language-server")
-            credentials {
-                username = System.getenv("packageUser")
-                password = System.getenv("packagePAT")
-            }
-        }
-    }
-}
-
-release {
-    failOnPublishNeeded = false
-
-    buildTasks = ['build']
-    versionPropertyFile = 'gradle.properties'
-    tagTemplate = 'v${version}'
-    git {
-        // To release from any branch
-        requireBranch = "release-${moduleVersion}"
-        pushToRemote = 'origin'
-    }
-}
-
-
 configurations {
     externalJarDeps
 }
 
+// Defines the third party dependencies to be included in the final JAR
 dependencies {
     externalJarDeps "org.eclipse.lsp4j:org.eclipse.lsp4j:${eclipseLsp4jVersion}"
     externalJarDeps "com.google.code.gson:gson:${gsonVersion}"
@@ -234,6 +155,7 @@ dependencies {
     externalJarDeps "commons-io:commons-io:${commonsIoVersion}"
     externalJarDeps "com.google.guava:guava:${guavaVersion}"
     externalJarDeps "com.moandjiezana.toml:toml4j:${moandjiezanaToml4jVersion}"
+    externalJarDeps "com.github.zafarkhaja:java-semver:${javaSemverVersion}"
 }
 
 task pack(type: com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar) {
@@ -320,6 +242,40 @@ task buildCommons {
     dependsOn(":model-generator-commons:build")
 }
 
+publishing {    
+    publications {
+        shadow(MavenPublication) { publication ->
+            publication.artifact(tasks.pack) {
+                classifier = null
+            }
+            from components.java
+        }
+    }
+
+    repositories {
+        maven {
+            name = "GitHubPackages"
+            url = uri("https://maven.pkg.github.com/ballerina-platform/ballerina-language-server")
+            credentials {
+                username = System.getenv("packageUser")
+                password = System.getenv("packagePAT")
+            }
+        }
+    }
+}
+
+release {
+    failOnPublishNeeded = false
+
+    buildTasks = ['build']
+    versionPropertyFile = 'gradle.properties'
+    tagTemplate = 'v${version}'
+    git {
+        // To release from any branch
+        requireBranch = "release-${moduleVersion}"
+        pushToRemote = 'origin'
+    }
+}
 
 build.dependsOn test
 build.doNotTrackState("build needs to run every time")
