@@ -58,7 +58,16 @@ jobs:
           echo "RC Release: ${PRE_RELEASE}"
           git config user.name ${{ secrets.BALLERINA_BOT_USERNAME }}
           git config user.email ${{ secrets.BALLERINA_BOT_EMAIL }}
-          git checkout -b release-${BASE_VERSION}
+          
+          # Check if release branch exists in origin
+          if git ls-remote --heads origin release-${BASE_VERSION} | grep -q release-${BASE_VERSION}; then
+            echo "Branch release-${BASE_VERSION} exists in origin, checking out..."
+            git fetch origin release-${BASE_VERSION}
+            git checkout release-${BASE_VERSION}
+          else
+            echo "Branch release-${BASE_VERSION} does not exist, creating new branch..."
+            git checkout -b release-${BASE_VERSION}
+          fi
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
@@ -71,7 +80,7 @@ jobs:
           packagePAT: ${{ secrets.BALLERINA_BOT_TOKEN }}
         run: |
           ./gradlew -Pversion=${VERSION} release -Prelease.useAutomaticVersion=true -x test
-      
+
       # - name: Set up Ballerina
       #   uses: ballerina-platform/setup-ballerina@v1.1.1
       #   with:
