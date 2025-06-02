@@ -25,11 +25,6 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
 
-      - name: Set Up Ballerina
-        uses: ballerina-platform/setup-ballerina@v1.1.1
-        with:
-          version: 2201.12.3
-
       - name: Cache Ballerina dependencies
         uses: actions/cache@v4
         id: cache-ballerina
@@ -75,7 +70,7 @@ jobs:
           packageUser: ${{ secrets.BALLERINA_BOT_USERNAME }}
           packagePAT: ${{ secrets.BALLERINA_BOT_TOKEN }}
         run: |
-          ./gradlew -Pversion=${VERSION} release -Prelease.useAutomaticVersion=true
+          ./gradlew -Pversion=${VERSION} release -Prelease.useAutomaticVersion=true -x test
           ./gradlew -Pversion=${VERSION} publish -x test
 
       - name: Create Github release from the release tag
