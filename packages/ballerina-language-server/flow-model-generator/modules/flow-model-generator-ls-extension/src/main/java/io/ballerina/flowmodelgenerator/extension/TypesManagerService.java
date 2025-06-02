@@ -410,7 +410,7 @@ public class TypesManagerService implements ExtendedLanguageServerService {
             String jsonString = request.jsonString();
             String typeName = request.typeName();
             String prefix = request.prefix();
-            boolean isRecordTypeDesc = request.asInline();
+            boolean asInline = request.asInline();
             boolean isClosed = !request.allowAdditionalFields();
             boolean isNullAsOptional = request.nullAsOptional();
 
@@ -420,7 +420,7 @@ public class TypesManagerService implements ExtendedLanguageServerService {
 
                 JsonToTypeMapper jsonToTypeMapper = new JsonToTypeMapper(
                         isClosed,
-                        isRecordTypeDesc,
+                        asInline,
                         prefix,
                         workspaceManager,
                         filePath
