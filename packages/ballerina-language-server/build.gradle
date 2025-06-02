@@ -245,6 +245,15 @@ task buildCommons {
 publishing {    
     publications {
         shadow(MavenPublication) { publication ->
+            publication.groupId = project.group
+            publication.artifactId = 'ballerina-language-server'
+            publication.version = project.version
+
+            publication.pom {
+                description = 'Language server for the Ballerina language,' +
+                              ' including the extended services for the Ballerina Integrator.'
+            }
+            
             publication.artifact(tasks.pack) {
                 classifier = null
             }
