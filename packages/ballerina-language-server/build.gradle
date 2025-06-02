@@ -96,59 +96,6 @@ subprojects {
         /* Ballerina Persist Tool */
         ballerinaStdLibs "io.ballerina:persist-tools:${persistToolVersion}"
     }
-
-    ext.defineSyncTask = { String pathParam ->
-        tasks.register('localSync') {
-            doLast {
-                def distVersion = ""
-                def distributionsDir = new File("${System.getProperty('user.home')}/.ballerina/ballerina-home/distributions/")
-                if (distributionsDir.exists()) {
-                    def ballerinaDirectories = distributionsDir.listFiles().findAll {
-                        it.isDirectory() && it.name.startsWith("ballerina-")
-                    }
-
-                    if (ballerinaDirectories) {
-                        ballerinaDirectories.sort { a, b -> b.name <=> a.name }
-                        def latestDir = ballerinaDirectories[0]
-                        distVersion = latestDir.name.substring("ballerina-".length())
-                    } else {
-                        println "No Ballerina distributions found."
-                        return
-                    }
-                } else {
-                    println "Distributions directory does not exist at: ${distributionsDir.absolutePath}"
-                    return
-                }
-
-                def buildLibsDir = file('build/libs')
-                def destinationPath = "${System.getProperty('user.home')}/.ballerina/ballerina-home/distributions/ballerina-${distVersion}/${pathParam}"
-
-                if (buildLibsDir.exists() && buildLibsDir.listFiles()) {
-                    def jarFiles = buildLibsDir.listFiles().findAll { it.name.endsWith('.jar') }
-                    if (jarFiles) {
-                        // Get module name from the built jar (removing version part)
-                        def jarName = jarFiles[0].name
-                        def moduleJarName = jarName.contains('-') ? jarName.substring(0, jarName.lastIndexOf('-')) : jarName.replace('.jar', '')
-
-                        def jarsToRemove = fileTree(destinationPath).matching {
-                            include "${moduleJarName}*.jar"
-                        }
-                        if (!jarsToRemove.isEmpty()) {
-                            jarsToRemove.each { jar ->
-                                println "Removing existing jar: ${jar}"
-                                jar.delete()
-                            }
-                        }
-                    }
-                }
-                copy {
-                    from fileTree(dir: 'build/libs', include: '*.jar')
-                    println "Updating ${destinationPath}"
-                    into destinationPath
-                }
-            }
-        }
-    }
 }
 
 def moduleVersion = project.version
@@ -221,6 +168,7 @@ configurations {
     externalJarDeps
 }
 
+// Defines the third party dependencies to be included in the final JAR
 dependencies {
     externalJarDeps "org.eclipse.lsp4j:org.eclipse.lsp4j:${eclipseLsp4jVersion}"
     externalJarDeps "com.google.code.gson:gson:${gsonVersion}"
