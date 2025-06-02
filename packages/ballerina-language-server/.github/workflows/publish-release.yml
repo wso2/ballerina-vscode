@@ -3,10 +3,11 @@ name: Publish release
 on:
   workflow_dispatch:
     inputs:
-      rc_artifact_id:
-        description: 'RC Artifact ID (leave empty if not pre-release)'
+      is_prerelease:
+        description: 'Create a pre-release (RC) version'
         required: false
-        type: string
+        type: boolean
+        default: false
 
 jobs:
   publish-release:
@@ -40,9 +41,23 @@ jobs:
           BASE_VERSION=$(grep -w "version" gradle.properties | cut -d= -f2 | cut -d- -f1)
           echo BASE_VERSION=${BASE_VERSION} >> $GITHUB_ENV
 
-          if [ -n "${{ github.event.inputs.rc_artifact_id }}" ]; then
-            # Pre release - use the base version with rc suffix
-            echo VERSION=${BASE_VERSION}-rc${{ github.event.inputs.rc_artifact_id }} >> $GITHUB_ENV
+          if [ "${{ github.event.inputs.is_prerelease }}" == "true" ]; then
+            # Pre release - determine the next RC number
+            # Fetch all tags to check for existing RC tags
+            git fetch --tags
+            
+            # Find the highest RC number for this base version
+            HIGHEST_RC=$(git tag -l "v${BASE_VERSION}-rc*" | sed "s/v${BASE_VERSION}-rc//" | sort -n | tail -1)
+            
+            if [ -z "$HIGHEST_RC" ]; then
+              # No RC tags found, start with rc1
+              RC_NUMBER=1
+            else
+              # Increment the highest RC number
+              RC_NUMBER=$((HIGHEST_RC + 1))
+            fi
+            
+            echo VERSION=${BASE_VERSION}-rc${RC_NUMBER} >> $GITHUB_ENV
             echo PRE_RELEASE=true >> $GITHUB_ENV
           else
             # Normal release - use the base version
@@ -55,7 +70,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.BALLERINA_BOT_TOKEN }}
         run: |
           echo "Version: ${VERSION}"
-          echo "RC Release: ${PRE_RELEASE}"
+          echo "Pre Release: ${PRE_RELEASE}"
           git config user.name ${{ secrets.BALLERINA_BOT_USERNAME }}
           git config user.email ${{ secrets.BALLERINA_BOT_EMAIL }}
           
