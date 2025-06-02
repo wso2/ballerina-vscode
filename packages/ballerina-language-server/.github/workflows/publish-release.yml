@@ -63,7 +63,7 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      - name: Release and publish artifacts
+      - name: Release the artifacts
         env:
           GITHUB_TOKEN: ${{ secrets.BALLERINA_BOT_TOKEN }}
           BALLERINA_CENTRAL_ACCESS_TOKEN: ${{ secrets.BALLERINA_CENTRAL_ACCESS_TOKEN }}
@@ -71,7 +71,20 @@ jobs:
           packagePAT: ${{ secrets.BALLERINA_BOT_TOKEN }}
         run: |
           ./gradlew -Pversion=${VERSION} release -Prelease.useAutomaticVersion=true -x test
-          ./gradlew -Pversion=${VERSION} publish -x test
+      
+      # - name: Set up Ballerina
+      #   uses: ballerina-platform/setup-ballerina@v1.1.1
+      #   with:
+      #     version: 2201.12.3
+
+      # - name: Publish the artifacts
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.BALLERINA_BOT_TOKEN }}
+      #     BALLERINA_CENTRAL_ACCESS_TOKEN: ${{ secrets.BALLERINA_CENTRAL_ACCESS_TOKEN }}
+      #     packageUser: ${{ secrets.BALLERINA_BOT_USERNAME }}
+      #     packagePAT: ${{ secrets.BALLERINA_BOT_TOKEN }}
+      #   run: |
+      #     ./gradlew -Pversion=${VERSION} publish -x test
 
       - name: Create Github release from the release tag
         uses: actions/create-release@v1
