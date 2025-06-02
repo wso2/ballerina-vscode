@@ -88,6 +88,12 @@ public class TypesManagerService implements ExtendedLanguageServerService {
         return null;
     }
 
+    /**
+     * Get all the types in the project with references.
+     *
+     * @param request {@link FindTypeRequest}
+     * @return {@link TypeListResponse} all the types found in the project with references
+     */
     @JsonRequest
     public CompletableFuture<TypeListResponse> getTypes(FilePathRequest request) {
         return CompletableFuture.supplyAsync(() -> {
@@ -110,6 +116,12 @@ public class TypesManagerService implements ExtendedLanguageServerService {
         });
     }
 
+    /**
+     * Get the type information for a specific line position in a file.
+     *
+     * @param request {@link GetTypeRequest}
+     * @return {@link TypeResponse} the type information for the given line position
+     */
     @JsonRequest
     public CompletableFuture<TypeResponse> getType(GetTypeRequest request) {
         return CompletableFuture.supplyAsync(() -> {
@@ -136,6 +148,12 @@ public class TypesManagerService implements ExtendedLanguageServerService {
         });
     }
 
+    /**
+     * Get the GraphQL type information for a specific line position in a file.
+     *
+     * @param request {@link GetTypeRequest}
+     * @return {@link TypeResponse} the GraphQL type information for the given line position
+     */
     @JsonRequest
     public CompletableFuture<TypeResponse> getGraphqlType(GetTypeRequest request) {
         // TODO: Different implementation may be needed with future requirements
@@ -164,6 +182,12 @@ public class TypesManagerService implements ExtendedLanguageServerService {
         });
     }
 
+    /**
+     * Create a GraphQL class type in the specified file.
+     *
+     * @param request {@link TypeUpdateRequest}
+     * @return {@link TypeUpdateResponse} the response containing the text edits for creating the type
+     */
     @JsonRequest
     public CompletableFuture<TypeUpdateResponse> createGraphqlClassType(TypeUpdateRequest request) {
         return CompletableFuture.supplyAsync(() -> {
@@ -186,6 +210,12 @@ public class TypesManagerService implements ExtendedLanguageServerService {
         });
     }
 
+    /**
+     * Update an existing type in the specified file.
+     *
+     * @param request {@link TypeUpdateRequest}
+     * @return {@link TypeUpdateResponse} the response containing the text edits for updating the type
+     */
     @JsonRequest
     public CompletableFuture<TypeUpdateResponse> updateType(TypeUpdateRequest request) {
         return CompletableFuture.supplyAsync(() -> {
@@ -205,6 +235,12 @@ public class TypesManagerService implements ExtendedLanguageServerService {
         });
     }
 
+    /**
+     * Create multiple types in the specified file.
+     *
+     * @param request {@link MultipleTypeUpdateRequest}
+     * @return {@link MultipleTypeUpdateResponse} the response containing the text edits for creating multiple types
+     */
     @JsonRequest
     public CompletableFuture<MultipleTypeUpdateResponse> updateTypes(MultipleTypeUpdateRequest request) {
         return CompletableFuture.supplyAsync(() -> {
@@ -226,6 +262,12 @@ public class TypesManagerService implements ExtendedLanguageServerService {
         });
     }
 
+    /**
+     * Get the record configuration for a specific type.
+     *
+     * @param request {@link RecordConfigRequest}
+     * @return {@link RecordConfigResponse} the record configuration for the specified type
+     */
     @JsonRequest
     public CompletableFuture<RecordConfigResponse> recordConfig(RecordConfigRequest request) {
         return CompletableFuture.supplyAsync(() -> {
@@ -354,6 +396,12 @@ public class TypesManagerService implements ExtendedLanguageServerService {
         });
     }
 
+    /**
+     * Convert a JSON string to a Ballerina type.
+     *
+     * @param request {@link JsonToTypeRequest}
+     * @return {@link TypeListResponse} the response containing the converted types
+     */
     @JsonRequest
     public CompletableFuture<TypeListResponse> jsonToType(JsonToTypeRequest request) {
         return CompletableFuture.supplyAsync(() -> {
