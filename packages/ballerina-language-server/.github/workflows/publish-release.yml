@@ -111,14 +111,15 @@ jobs:
       #     ./gradlew -Pversion=${VERSION} publish -x test
 
       - name: Create Github release from the release tag
-        uses: actions/create-release@v1
+        uses: softprops/action-gh-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.BALLERINA_BOT_TOKEN }}
         with:
           tag_name: v${{ env.VERSION }}
-          release_name: ballerina-language-server-v${{ env.VERSION }}
+          name: ballerina-ls-v${{ env.VERSION }}
           draft: false
           prerelease: ${{ env.PRE_RELEASE == 'true' }}
+          generate_release_notes: true
 
       - name: Post release PR
         if: env.PRE_RELEASE == 'false'
