@@ -734,11 +734,11 @@ public class DataMapManager {
             }
         } else {
             String fieldsPattern = getFieldsPattern(targetField);
-            if (source.matches(".*" + fieldsPattern + "\\s*:\\s*from.*in.*select.*$")) {
-                String[] split = source.split(fieldsPattern + "\\s*:\\s*from");
-                String newSource = split[0] + fieldsPattern + ": from";
-                String[] splitBySelect = split[1].split("select");
-                return newSource + splitBySelect[0] + "select" + splitBySelect[1].replaceFirst("\\{.*?}",
+            if (source.matches("(?s).*" + fieldsPattern + "(?s).*:(?s).*from.*in.*select(?s).*")) {
+//                String[] split = source.split(fieldsPattern + "\\s*:\\s*from");
+//                String newSource = split[0] + fieldsPattern + ": from";
+                String[] splitBySelect = source.split("select");
+                return splitBySelect[0] + "select" + splitBySelect[1].replaceFirst("(?s).*?}",
                         mappingSource);
             }
         }
