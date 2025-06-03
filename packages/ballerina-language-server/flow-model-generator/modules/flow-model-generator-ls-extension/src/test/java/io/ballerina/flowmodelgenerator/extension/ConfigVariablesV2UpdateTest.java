@@ -53,7 +53,8 @@ public class ConfigVariablesV2UpdateTest extends AbstractLSTest {
                 Paths.get(projectPath, testConfig.request().configFilePath()).toAbsolutePath().toString(),
                 testConfig.request().configVariable()
         );
-        ConfigVariableUpdateResponse actualResponse = gson.fromJson(getResponse(request), ConfigVariableUpdateResponse.class);
+        ConfigVariableUpdateResponse actualResponse = gson.fromJson(getResponse(request),
+                ConfigVariableUpdateResponse.class);
 
         if (!isEqual(testConfig.response().textEdits(), actualResponse.textEdits())) {
 //            updateConfig(configJsonPath, new ConfigVariableUpdateTestConfig(

@@ -41,6 +41,7 @@ import io.ballerina.flowmodelgenerator.core.model.FlowNode;
 import io.ballerina.flowmodelgenerator.core.model.NodeBuilder;
 import io.ballerina.flowmodelgenerator.core.model.NodeKind;
 import io.ballerina.flowmodelgenerator.core.model.Property;
+import io.ballerina.flowmodelgenerator.extension.request.ConfigVariableDeleteRequest;
 import io.ballerina.flowmodelgenerator.extension.request.ConfigVariableGetRequest;
 import io.ballerina.flowmodelgenerator.extension.request.ConfigVariableNodeTemplateRequest;
 import io.ballerina.flowmodelgenerator.extension.request.ConfigVariableUpdateRequest;
@@ -137,7 +138,7 @@ public class ConfigEditorV2Service implements ExtendedLanguageServerService {
                 }
 
                 response.setConfigVariables(gson.toJsonTree(configVarMap));
-            } catch (Throwable e) {
+            } catch (Exception e) {
                 response.setError(e);
             }
             return response;
@@ -171,7 +172,7 @@ public class ConfigEditorV2Service implements ExtendedLanguageServerService {
                         configVariable, configTomlPath, false));
 
                 response.setTextEdits(gson.toJsonTree(allTextEdits));
-            } catch (Throwable e) {
+            } catch (Exception e) {
                 response.setError(e);
             }
 
@@ -187,7 +188,7 @@ public class ConfigEditorV2Service implements ExtendedLanguageServerService {
      */
     @JsonRequest
     @SuppressWarnings("unused")
-    public CompletableFuture<ConfigVariableDeleteResponse> deleteConfigVariable(ConfigVariableUpdateRequest req) {
+    public CompletableFuture<ConfigVariableDeleteResponse> deleteConfigVariable(ConfigVariableDeleteRequest req) {
         return CompletableFuture.supplyAsync(() -> {
             ConfigVariableDeleteResponse response = new ConfigVariableDeleteResponse();
             try {
@@ -204,7 +205,7 @@ public class ConfigEditorV2Service implements ExtendedLanguageServerService {
                         configVariable, configTomlPath, true));
 
                 response.setTextEdits(gson.toJsonTree(allTextEdits));
-            } catch (Throwable e) {
+            } catch (Exception e) {
                 response.setError(e);
             }
 
@@ -219,7 +220,8 @@ public class ConfigEditorV2Service implements ExtendedLanguageServerService {
      */
     @JsonRequest
     @SuppressWarnings("unused")
-    public CompletableFuture<ConfigVariableNodeTemplateResponse> getNodeTemplate(ConfigVariableNodeTemplateRequest request) {
+    public CompletableFuture<ConfigVariableNodeTemplateResponse> getNodeTemplate(
+            ConfigVariableNodeTemplateRequest request) {
         return CompletableFuture.supplyAsync(() -> {
             ConfigVariableNodeTemplateResponse response = new ConfigVariableNodeTemplateResponse();
             try {
@@ -263,7 +265,7 @@ public class ConfigEditorV2Service implements ExtendedLanguageServerService {
 
             textEditsMap.put(configTomlPath, textEdits);
             return textEditsMap;
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             return textEditsMap;
         }
     }
@@ -716,11 +718,12 @@ public class ConfigEditorV2Service implements ExtendedLanguageServerService {
             List<TextEdit> textEdits = new ArrayList<>();
             if (oldConfigValue.isPresent()) {
                 String fileName = oldConfigValue.get().location().lineRange().fileName();
-                LinePosition startPos = LinePosition.from(oldConfigValue.get().location().lineRange().startLine().line(), 0);
-                LinePosition endPos = LinePosition.from(oldConfigValue.get().location().lineRange().endLine().line(),
-                        oldConfigValue.get().location().lineRange().endLine().offset());
-                LineRange lineRange = LineRange.from(fileName, startPos, endPos);
-                textEdits.add(new TextEdit(CommonUtils.toRange(lineRange), newContent));
+                LineRange lineRange = oldConfigValue.get().location().lineRange();
+                LinePosition startPos = LinePosition.from(lineRange.startLine().line(), 0);
+                LinePosition endPos = LinePosition.from(lineRange.endLine().line(), lineRange.endLine().offset());
+
+                LineRange newlineRange = LineRange.from(fileName, startPos, endPos);
+                textEdits.add(new TextEdit(CommonUtils.toRange(newlineRange), newContent));
             } else {
                 // if the variable is new, we need to find the relevant section in Config.toml file and add the new
                 // entry after the last entry of the section.
@@ -788,7 +791,7 @@ public class ConfigEditorV2Service implements ExtendedLanguageServerService {
 
             textEditsMap.put(configTomlPath, textEdits);
             return textEditsMap;
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             return new HashMap<>();
         }
     }
@@ -810,9 +813,9 @@ public class ConfigEditorV2Service implements ExtendedLanguageServerService {
             return String.format("%s = %s", variableName, tomlValue);
         } else {
             if (moduleName.isEmpty()) {
-                return String.format("[%s.%s]\n%s = %s", orgName, packageName, variableName, tomlValue);
+                return String.format("[%s.%s]%n%s = %s", orgName, packageName, variableName, tomlValue);
             } else {
-                return String.format("[%s.%s.%s]\n%s = %s", orgName, packageName, moduleName, variableName, tomlValue);
+                return String.format("[%s.%s.%s]%n%s = %s", orgName, packageName, moduleName, variableName, tomlValue);
             }
         }
     }

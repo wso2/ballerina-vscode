@@ -23,6 +23,10 @@ import com.google.gson.JsonElement;
 /**
  * Represents the request to update config variables in Config API V2.
  *
+ * @param packageName    name of the package
+ * @param moduleName     name of the module
+ * @param configFilePath path of the config file
+ * @param configVariable config variable to be updated
  * @since 2.0.0
  */
 public record ConfigVariableUpdateRequest(String packageName, String moduleName, String configFilePath,
