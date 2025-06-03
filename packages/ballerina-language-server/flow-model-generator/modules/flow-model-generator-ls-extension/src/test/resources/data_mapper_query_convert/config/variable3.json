@@ -1,0 +1,114 @@
+{
+  "source": "variable2.bal",
+  "description": "Sample diagram node",
+  "diagram": {
+    "id": "42930",
+    "metadata": {
+      "label": "Declare Variable",
+      "description": "Assign a value to a variable"
+    },
+    "codedata": {
+      "node": "VARIABLE",
+      "lineRange": {
+        "fileName": "main.bal",
+        "startLine": {
+          "line": 11,
+          "offset": 8
+        },
+        "endLine": {
+          "line": 11,
+          "offset": 26
+        }
+      },
+      "sourceCode": "MyType2 var3 = {};"
+    },
+    "returning": false,
+    "properties": {
+      "expression": {
+        "metadata": {
+          "label": "Expression",
+          "description": "Initialize with value"
+        },
+        "valueType": "ACTION_OR_EXPRESSION",
+        "value": "{arr:var2.arr}",
+        "optional": true,
+        "editable": true,
+        "advanced": false,
+        "hidden": false,
+        "diagnostics": {
+          "hasDiagnostics": true,
+          "diagnostics": [
+            {
+              "severity": "ERROR",
+              "message": "missing non-defaultable required record field 'Aa'"
+            },
+            {
+              "severity": "ERROR",
+              "message": "missing non-defaultable required record field 'arr'"
+            }
+          ]
+        }
+      },
+      "variable": {
+        "metadata": {
+          "label": "Name",
+          "description": "Name of the variable"
+        },
+        "valueType": "IDENTIFIER",
+        "value": "var3",
+        "optional": false,
+        "editable": false,
+        "advanced": false,
+        "hidden": false,
+        "codedata": {
+          "lineRange": {
+            "fileName": "main.bal",
+            "startLine": {
+              "line": 11,
+              "offset": 16
+            },
+            "endLine": {
+              "line": 11,
+              "offset": 20
+            }
+          }
+        }
+      },
+      "type": {
+        "metadata": {
+          "label": "Type",
+          "description": "Type of the variable"
+        },
+        "valueType": "TYPE",
+        "value": "MyType2",
+        "placeholder": "var",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false,
+        "codedata": {}
+      }
+    },
+    "diagnostics": {
+      "hasDiagnostics": true
+    },
+    "flags": 0,
+    "viewState": {
+      "x": -140,
+      "y": 410.20000000000005,
+      "lw": 140,
+      "rw": 140,
+      "h": 73.6,
+      "clw": 140,
+      "crw": 140,
+      "ch": 73.6
+    }
+  },
+  "propertyKey": "expression",
+  "position": {
+    "line": 29,
+    "offset": 8
+  },
+  "output": "{arr:from var arrItem in var2.arr select {p: ,q: }}",
+  "targetField": "var3.arr"
+}

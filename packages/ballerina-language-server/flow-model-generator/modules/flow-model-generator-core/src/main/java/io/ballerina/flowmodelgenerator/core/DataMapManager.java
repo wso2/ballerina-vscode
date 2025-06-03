@@ -352,7 +352,7 @@ public class DataMapManager {
             }
         }
         if (lastTypeSymbol != null && lastTypeSymbol.typeKind() == TypeDescKind.ARRAY
-                && lastExpr != null && lastExpr.kind() == SyntaxKind.QUERY_EXPRESSION) {
+                && lastExpr != null && (lastExpr.kind() == SyntaxKind.QUERY_EXPRESSION || lastExpr.kind() == SyntaxKind.FIELD_ACCESS)) {
             return new TargetNode(lastTypeSymbol, splits[splits.length - 1], lastExpr);
         }
         return null;
