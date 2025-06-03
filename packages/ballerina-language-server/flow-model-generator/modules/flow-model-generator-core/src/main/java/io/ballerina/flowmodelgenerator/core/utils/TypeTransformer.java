@@ -297,13 +297,14 @@ public class TypeTransformer {
             Object transformedRestType = transform(restTypeSymbol.get(), restTypeDataBuilder);
             if (transformedRestType.equals(BUILT_IN_ANYDATA)) {
                 typeDataBuilder.allowAdditionalFields(true);
+            } else {
+                Member restMember = memberBuilder
+                        .kind(Member.MemberKind.FIELD)
+                        .type(transformedRestType)
+                        .refs(getTypeRefs(transformedRestType, restTypeSymbol.get()))
+                        .build();
+                typeDataBuilder.restMember(restMember);
             }
-            Member restMember = memberBuilder
-                    .kind(Member.MemberKind.FIELD)
-                    .type(transformedRestType)
-                    .refs(getTypeRefs(transformedRestType, restTypeSymbol.get()))
-                    .build();
-            typeDataBuilder.restMember(restMember);
         }
 
         // members

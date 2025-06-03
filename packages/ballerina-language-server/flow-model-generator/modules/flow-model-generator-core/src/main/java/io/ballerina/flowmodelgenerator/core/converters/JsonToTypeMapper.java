@@ -449,12 +449,26 @@ public class JsonToTypeMapper {
                             .build());
                 }
 
+                /*
+                * In JSON to type conversion, we create only records with `json...;` rest instead of `anydata...;`
+                * if the user has allowed additional fields.
+                *
+                * E.g. record {| int id; string name; json...; |} instead of record { int id; string name; }
+                */
+                if (this.allowAdditionalFields) {
+                    typeDataBuilder.restMember(memberBuilder
+                            .kind(Member.MemberKind.FIELD)
+                            .type(JSON_KEYWORD)
+                            .refs(List.of())
+                            .optional(false)
+                            .build());
+                }
+
                 yield typeDataBuilder
                         .members(members)
                         .codedata()
                         .node(NodeKind.RECORD)
                         .stepOut()
-                        .allowAdditionalFields(this.allowAdditionalFields)
                         .build();
             }
             case ArrayTypeDesc arrayTypeDesc -> {
