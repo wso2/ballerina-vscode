@@ -252,10 +252,11 @@ publishing {
             publication.pom {
                 name.set('Ballerina Language Server')
                 description.set('Language server for the Ballerina language, including the extended services for the Ballerina Integrator.')
+                url.set('https://github.com/nipunayf/ballerina-language-server')
             }
             
             publication.artifact(tasks.pack) {
-                classifier = null
+                classifier = 'standalone'
             }
         }
     }
@@ -279,13 +280,12 @@ release {
     versionPropertyFile = 'gradle.properties'
     tagTemplate = 'v${version}'
     git {
-        // To release from any branch
         requireBranch = "release-${moduleVersion}"
         pushToRemote = 'origin'
     }
 }
 
-// build.dependsOn test
+build.dependsOn test
 build.doNotTrackState("build needs to run every time")
 publishToMavenLocal.dependsOn build
 publish.dependsOn build
