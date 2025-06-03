@@ -1,0 +1,10 @@
+{
+  "description": "Simple JSON object",
+  "filePath": "proj/types.bal",
+  "jsonString": "{\n        \"name\": \"John Doe\",\n        \"age\": 30,\n        \"active\": true,\n        \"address\": {\n            \"street\": \"123 Main St\",\n            \"city\": \"Anytown\",\n            \"state\": \"CA\",\n            \"zip\": \"12345\"\n        },\n        \"phoneNumbers\": [\n            {\n                \"type\": \"home\",\n                \"number\": \"555-1234\"\n            },\n\t\t\t\"444-555-1234\",\n            {\n                \"type\": \"work\",\n                \"number\": \"555-5678\"\n            }\n        ]\n    }",
+  "typeName": "Person",
+  "prefix": "",
+  "allowAdditionalFields": true,
+  "asInline": true,
+  "expectedTypes": "\ntype Person record {\n\tstring name;\n\tint age;\n\tboolean active;\n\trecord {\n\tstring street;\n\tstring city;\n\tstring state;\n\tstring zip;\n} address;\n\t(record {\n\tstring 'type;\n\tstring number;\n}|string)[] phoneNumbers;\n};\n"
+}
