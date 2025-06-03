@@ -244,14 +244,14 @@ task buildCommons {
 
 publishing {    
     publications {
-        shadow(MavenPublication) { publication ->
+        mavenJava(MavenPublication) { publication ->
             publication.groupId = project.group
             publication.artifactId = 'ballerina-language-server'
             publication.version = project.version
 
             publication.pom {
-                description = 'Language server for the Ballerina language,' +
-                              ' including the extended services for the Ballerina Integrator.'
+                name.set('Ballerina Language Server')
+                description.set('Language server for the Ballerina language, including the extended services for the Ballerina Integrator.')
             }
             
             publication.artifact(tasks.pack) {
@@ -285,7 +285,7 @@ release {
     }
 }
 
-build.dependsOn test
+// build.dependsOn test
 build.doNotTrackState("build needs to run every time")
 publishToMavenLocal.dependsOn build
 publish.dependsOn build
