@@ -43,6 +43,7 @@ public class DataMappingQueryConvertTest extends AbstractLSTest {
         return new Object[][]{
                 {Path.of("variable1.json")},
                 {Path.of("variable2.json")},
+                {Path.of("variable3.json")},
         };
     }
 
