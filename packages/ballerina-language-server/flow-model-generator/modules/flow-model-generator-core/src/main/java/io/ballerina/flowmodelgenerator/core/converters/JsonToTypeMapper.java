@@ -251,11 +251,8 @@ public class JsonToTypeMapper {
         return new RecordField(fieldName, null);
     }
 
-    private ArrayTypeDesc createArrayTypeDesc(String fieldName, JsonArray jsonArray) {
-        String typeName = getRecordName(fieldName);
-
-        // Use Set to avoid duplicates more efficiently
-        Set<String> seenTypes = new HashSet<>();
+    private ArrayTypeDesc createArrayTypeDesc(String typeName, JsonArray jsonArray) {
+        Set<String> seenTypes = new HashSet<>();    // Use Set to avoid duplicates more efficiently
         List<TypeDesc> typeDescList = new ArrayList<>();
 
         for (JsonElement element : jsonArray) {
@@ -277,7 +274,7 @@ public class JsonToTypeMapper {
                 typeDesc = new ReferenceTypeDesc(updatedType);
                 typeString = updatedType;
             } else if (element.isJsonArray()) {
-                typeDesc = createArrayTypeDesc(fieldName, element.getAsJsonArray());
+                typeDesc = createArrayTypeDesc(typeName, element.getAsJsonArray());
                 typeString = typeDesc.toString();
             }
 
