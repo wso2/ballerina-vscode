@@ -175,17 +175,22 @@ public class SourceCodeGenerator {
             fieldsBuilder.append(generateFieldMember(member, true));
         }
 
+        boolean isOpenRecord = typeData.allowAdditionalFields();
+
         // Build the rest field (if present).
         String restField = "";
         if (typeData.restMember() != null) {
             String typeDescriptor = generateTypeDescriptor(typeData.restMember().type());
-            restField = LS + "\t" + typeDescriptor + " ...;";
+            if (TypeTransformer.BUILT_IN_ANYDATA.equals(typeDescriptor)) {
+                isOpenRecord = true; // If the rest field is of type anydata, we treat it as an open record.
+            } else if (!isOpenRecord) {
+                restField = LS + "\t" + typeDescriptor + " ...;";
+            }
         }
 
         // The template assumes that the dynamic parts already include their needed newlines and indentation.
         String template = "record {|%s%s%s%n|}";
-        if (typeData.allowAdditionalFields()) {
-            restField = ""; // If additional fields are allowed, we do not need a specific rest field.
+        if (isOpenRecord) {
             template = "record {%s%s%s%n}";
         }
 
