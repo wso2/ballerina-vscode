@@ -71,6 +71,7 @@
                 "description": "Config value of the variable, to be used in Config.toml"
               },
               "valueType": "EXPRESSION",
+              "value": "",
               "optional": true,
               "editable": true,
               "advanced": false,
@@ -161,6 +162,7 @@
                 "description": "Config value of the variable, to be used in Config.toml"
               },
               "valueType": "EXPRESSION",
+              "value": "",
               "optional": true,
               "editable": true,
               "advanced": false,
@@ -238,6 +240,7 @@
                 "description": "Default value of the variable"
               },
               "valueType": "EXPRESSION",
+              "value": "",
               "optional": true,
               "editable": true,
               "advanced": true,
@@ -250,6 +253,7 @@
                 "description": "Config value of the variable, to be used in Config.toml"
               },
               "valueType": "EXPRESSION",
+              "value": "",
               "optional": true,
               "editable": true,
               "advanced": false,
@@ -342,6 +346,7 @@
                 "description": "Config value of the variable, to be used in Config.toml"
               },
               "valueType": "EXPRESSION",
+              "value": "",
               "optional": true,
               "editable": true,
               "advanced": false,
