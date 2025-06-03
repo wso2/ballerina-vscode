@@ -411,7 +411,7 @@ public class TypesManagerService implements ExtendedLanguageServerService {
             String typeName = request.typeName();
             String prefix = request.prefix();
             boolean asInline = request.asInline();
-            boolean isClosed = !request.allowAdditionalFields();
+            boolean allowAdditionalFields = request.allowAdditionalFields();
             boolean isNullAsOptional = request.nullAsOptional();
 
             try {
@@ -419,7 +419,7 @@ public class TypesManagerService implements ExtendedLanguageServerService {
                 FileSystemUtils.createFileIfNotExists(workspaceManager, filePath);
 
                 JsonToTypeMapper jsonToTypeMapper = new JsonToTypeMapper(
-                        isClosed,
+                        allowAdditionalFields,
                         asInline,
                         prefix,
                         workspaceManager,

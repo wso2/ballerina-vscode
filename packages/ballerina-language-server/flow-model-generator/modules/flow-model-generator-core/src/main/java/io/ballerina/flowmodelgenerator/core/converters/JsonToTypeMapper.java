@@ -61,7 +61,7 @@ public class JsonToTypeMapper {
 
     private static final String ARRAY_RECORD_SUFFIX = "Item";
     private static final String JSON_KEYWORD = "json";
-    private static final String NEW_RECORD_NAME = "NewRecord";
+    private static final String NEW_TYPE_NAME = "NewType";
     private static final String STRING_TYPE = "string";
     private static final String BOOLEAN_TYPE = "boolean";
     private static final String DECIMAL_TYPE = "decimal";
@@ -76,13 +76,13 @@ public class JsonToTypeMapper {
     private final Map<String, String> primitiveTypeCache = new ConcurrentHashMap<>();
 
     private final String typePrefix;
-    private final boolean isClosed;
+    private final boolean allowAdditionalFields;
     private final boolean asInlineType;
 
-    public JsonToTypeMapper(boolean isClosed, boolean isRecordTypeDesc, String typePrefix,
+    public JsonToTypeMapper(boolean allowAdditionalFields, boolean asInlineType, String typePrefix,
                             WorkspaceManager workspaceManager, Path filePath) {
-        this.isClosed = isClosed;
-        this.asInlineType = isRecordTypeDesc;
+        this.allowAdditionalFields = allowAdditionalFields;
+        this.asInlineType = asInlineType;
         this.typePrefix = typePrefix;
 
         List<String> existingNames = getExistingTypeNames(workspaceManager, filePath);
@@ -99,7 +99,7 @@ public class JsonToTypeMapper {
             throw new JsonToRecordConverterException("JSON string parsing failed: Invalid JSON structure");
         }
 
-        String typeDefName = (name == null || name.isEmpty()) ? NEW_RECORD_NAME : name;
+        String typeDefName = (name == null || name.isEmpty()) ? NEW_TYPE_NAME : name;
 
         if (jsonElement.isJsonObject()) {
             generateForNestedStructures(jsonElement, name, false, null);
@@ -225,7 +225,7 @@ public class JsonToTypeMapper {
             }
         }
 
-        return new RecordTypeDesc(recordFields, this.isClosed);
+        return new RecordTypeDesc(recordFields, !this.allowAdditionalFields);
     }
 
     private RecordField createRecordField(Map.Entry<String, JsonElement> entry, boolean isOptional) {
@@ -389,7 +389,7 @@ public class JsonToTypeMapper {
                             field.isOptional
                     ));
                 }
-                yield new RecordTypeDesc(recordFields, this.isClosed);
+                yield new RecordTypeDesc(recordFields, !this.allowAdditionalFields);
             }
             case ArrayTypeDesc arrayTypeDesc -> {
                 TypeDesc elementType = convertToInlineTypeDesc(arrayTypeDesc.elementType);
@@ -454,7 +454,7 @@ public class JsonToTypeMapper {
                         .codedata()
                         .node(NodeKind.RECORD)
                         .stepOut()
-                        .allowAdditionalFields(!this.isClosed)
+                        .allowAdditionalFields(this.allowAdditionalFields)
                         .build();
             }
             case ArrayTypeDesc arrayTypeDesc -> {
