@@ -101,7 +101,7 @@
   },
   "response": {
     "textEdits": {
-      "/Users/nino/Desktop/repos/ballerina-dev-tools/flow-model-generator/modules/flow-model-generator-ls-extension/src/test/resources/configurable_variables_v2_update/source/config_update_test_project/Config.toml": [
+      "Config.toml": [
         {
           "range": {
             "start": {
@@ -116,7 +116,7 @@
           "newText": "newVariable = \"configValue\"\n"
         }
       ],
-      "/Users/nino/Desktop/repos/ballerina-dev-tools/flow-model-generator/modules/flow-model-generator-ls-extension/src/test/resources/configurable_variables_v2_update/source/config_update_test_project/config.bal": [
+      "config.bal": [
         {
           "range": {
             "start": {
@@ -128,7 +128,7 @@
               "character": 0
             }
           },
-          "newText": "# This is the documentation for the new variable.\nconfigurable string newVariable = \"defaultValue\";"
+          "newText": "# This is the documentation for the new variable.\nconfigurable string newVariable = \"defaultValue\";\n"
         }
       ]
     }

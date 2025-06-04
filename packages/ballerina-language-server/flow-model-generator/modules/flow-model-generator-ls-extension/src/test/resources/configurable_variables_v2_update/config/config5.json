@@ -99,7 +99,7 @@
   },
   "response": {
     "textEdits": {
-      "/Users/nino/Desktop/repos/ballerina-dev-tools/flow-model-generator/modules/flow-model-generator-ls-extension/src/test/resources/configurable_variables_v2_update/source/config_update_test_project/Config.toml": [
+      "Config.toml": [
         {
           "range": {
             "start": {
@@ -114,7 +114,7 @@
           "newText": ""
         }
       ],
-      "/Users/nino/Desktop/repos/ballerina-dev-tools/flow-model-generator/modules/flow-model-generator-ls-extension/src/test/resources/configurable_variables_v2_update/source/config_update_test_project/config.bal": [
+      "config.bal": [
         {
           "range": {
             "start": {

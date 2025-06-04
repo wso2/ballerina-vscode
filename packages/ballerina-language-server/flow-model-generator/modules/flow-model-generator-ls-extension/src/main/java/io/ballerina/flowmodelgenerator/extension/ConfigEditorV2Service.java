@@ -297,7 +297,7 @@ public class ConfigEditorV2Service implements ExtendedLanguageServerService {
                 textEdits.add(new TextEdit(CommonUtils.toRange(lineRange), configStatement));
             }
 
-            textEditsMap.put(variableFilePath, textEdits);
+            textEditsMap.put(rootProject.sourceRoot().relativize(variableFilePath), textEdits);
             return textEditsMap;
         } catch (RuntimeException e) {
             return textEditsMap;
@@ -871,7 +871,7 @@ public class ConfigEditorV2Service implements ExtendedLanguageServerService {
                 }
             }
 
-            textEditsMap.put(configTomlPath, textEdits);
+            textEditsMap.put(project.sourceRoot().relativize(configTomlPath), textEdits);
             return textEditsMap;
         } catch (RuntimeException e) {
             return new HashMap<>();
