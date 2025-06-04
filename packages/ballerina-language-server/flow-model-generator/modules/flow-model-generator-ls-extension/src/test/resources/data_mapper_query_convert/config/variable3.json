@@ -92,17 +92,7 @@
     "diagnostics": {
       "hasDiagnostics": true
     },
-    "flags": 0,
-    "viewState": {
-      "x": -140,
-      "y": 410.20000000000005,
-      "lw": 140,
-      "rw": 140,
-      "h": 73.6,
-      "clw": 140,
-      "crw": 140,
-      "ch": 73.6
-    }
+    "flags": 0
   },
   "propertyKey": "expression",
   "position": {
