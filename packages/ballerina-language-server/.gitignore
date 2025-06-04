@@ -30,3 +30,4 @@ replay_pid*
 # Build directories
 .gradle/
 build/
+**/bin/
