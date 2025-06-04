@@ -721,7 +721,15 @@ public class DataMapManager {
         if (flowNode.codedata().node() != NodeKind.VARIABLE) {
             return "";
         }
-        String mappingSource = genSource(genSourceForMappings(fieldMapping, getVariableName(flowNode)));
+
+        String name;
+        if (targetField == null || targetField.isEmpty()) {
+            name = getVariableName(flowNode);
+        } else {
+            String[] splits = targetField.split("\\.");
+            name = splits[splits.length - 1];
+        }
+        String mappingSource = genSource(genSourceForMappings(fieldMapping, name));
         Optional<Property> optProperty = flowNode.getProperty("expression");
         if (optProperty.isEmpty()) {
             return mappingSource;
@@ -736,8 +744,6 @@ public class DataMapManager {
         } else {
             String fieldsPattern = getFieldsPattern(targetField);
             if (source.matches("(?s).*" + fieldsPattern + "(?s).*:(?s).*from.*in.*select(?s).*")) {
-//                String[] split = source.split(fieldsPattern + "\\s*:\\s*from");
-//                String newSource = split[0] + fieldsPattern + ": from";
                 String[] splitBySelect = source.split("select");
                 return splitBySelect[0] + "select" + splitBySelect[1].replaceFirst("(?s).*?}",
                         mappingSource);

@@ -83,7 +83,6 @@
     "line": 30,
     "offset": 70
   },
-  "targetField": "p.contactDetails.phoneNumbers",
   "mappings": [
     {
       "output": "phoneNumbers.code",
@@ -104,5 +103,6 @@
       "elements": []
     }
   ],
-  "output": "{names:[[\"1\", \"6\"],[\"10\", \"60\", \"70\"]]}"
+  "output": "{\n        contactDetails: {\n            phoneNumbers: from var secondaryPhonesItem in u.info.secondaryPhones\n                select{code:secondaryPhonesItem.code,number:secondaryPhonesItem.number}\n        }\n    }",
+  "targetField": "p.contactDetails.phoneNumbers"
 }
