@@ -393,7 +393,7 @@ public class Type {
         return type;
     }
 
-    private static Type getAlreadyVisitedType(Symbol symbol, String typeName, VisitedType visitedType,
+    public static Type getAlreadyVisitedType(Symbol symbol, String typeName, VisitedType visitedType,
                                               boolean getClone) {
         if (visitedType.isCompleted()) {
             Type existingType = visitedType.getTypeNode();
@@ -452,7 +452,7 @@ public class Type {
         return type;
     }
 
-    private static Type getRecordType(RecordTypeSymbol recordTypeSymbol, Map<String, String> documentationMap,
+    public static Type getRecordType(RecordTypeSymbol recordTypeSymbol, Map<String, String> documentationMap,
                                       SemanticModel semanticModel) {
         Type type;
         List<Type> fields = new ArrayList<>();
@@ -497,7 +497,7 @@ public class Type {
         });
     }
 
-    private static Type getEnumType(TypeReferenceTypeSymbol typeReferenceTypeSymbol, Symbol symbol,
+    public static Type getEnumType(TypeReferenceTypeSymbol typeReferenceTypeSymbol, Symbol symbol,
                                     Map<String, String> documentationMap, SemanticModel semanticModel) {
         Type type;
         if (typeReferenceTypeSymbol.definition().kind().equals(SymbolKind.ENUM)) {
