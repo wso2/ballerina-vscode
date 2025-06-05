@@ -142,5 +142,3 @@ compileJava {
         classpath = files()
     }
 }
-
-defineSyncTask("lib/tools/lang-server/lib")
