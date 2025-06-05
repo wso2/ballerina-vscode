@@ -50,5 +50,6 @@ module io.ballerina.flow.model.generator {
     exports io.ballerina.flowmodelgenerator.core.expressioneditor.services;
     exports io.ballerina.flowmodelgenerator.core.search;
     exports io.ballerina.flowmodelgenerator.core.type;
+    exports io.ballerina.flowmodelgenerator.core.diagnostics;
     exports io.ballerina.flowmodelgenerator.core.analyzers.function;
 }

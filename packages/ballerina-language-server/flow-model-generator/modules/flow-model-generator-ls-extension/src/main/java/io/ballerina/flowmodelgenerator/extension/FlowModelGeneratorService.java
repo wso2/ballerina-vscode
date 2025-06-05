@@ -35,6 +35,8 @@ import io.ballerina.flowmodelgenerator.core.SourceGenerator;
 import io.ballerina.flowmodelgenerator.core.SuggestedComponentService;
 import io.ballerina.flowmodelgenerator.core.SuggestedModelGenerator;
 import io.ballerina.flowmodelgenerator.core.analyzers.function.ModuleNodeAnalyzer;
+import io.ballerina.flowmodelgenerator.core.diagnostics.DiagnosticsDebouncer;
+import io.ballerina.flowmodelgenerator.core.diagnostics.FlowNodeDiagnosticsRequest;
 import io.ballerina.flowmodelgenerator.core.search.SearchCommand;
 import io.ballerina.flowmodelgenerator.core.utils.FileSystemUtils;
 import io.ballerina.flowmodelgenerator.extension.request.ComponentDeleteRequest;
@@ -525,16 +527,28 @@ public class FlowModelGeneratorService implements ExtendedLanguageServerService 
 
     @JsonRequest
     public CompletableFuture<FlowModelNodeTemplateResponse> diagnostics(FlowModelSourceGeneratorRequest request) {
-        return CompletableFuture.supplyAsync(() -> {
-            FlowModelNodeTemplateResponse response = new FlowModelNodeTemplateResponse();
-            try {
-                // TODO: Implement diagnostics logic here
-                response.setFlowNode(request.flowNode());
-            } catch (Throwable e) {
-                response.setError(e);
-            }
-            return response;
-        });
+        // Use DiagnosticsDebouncer to schedule the diagnostics request
+        FlowNodeDiagnosticsRequest diagnosticsRequest = new FlowNodeDiagnosticsRequest(
+                request.filePath(), 
+                request.flowNode(), 
+                workspaceManager
+        );
+        
+        return DiagnosticsDebouncer.getInstance().debounceWithDefaultDelay(diagnosticsRequest)
+                .thenApply(flowNode -> {
+                    FlowModelNodeTemplateResponse response = new FlowModelNodeTemplateResponse();
+                    try {
+                        response.setFlowNode(flowNode);
+                    } catch (Throwable e) {
+                        response.setError(e);
+                    }
+                    return response;
+                })
+                .exceptionally(throwable -> {
+                    FlowModelNodeTemplateResponse response = new FlowModelNodeTemplateResponse();
+                    response.setError(throwable);
+                    return response;
+                });
     }
 
     @JsonRequest
