@@ -524,6 +524,20 @@ public class FlowModelGeneratorService implements ExtendedLanguageServerService 
     }
 
     @JsonRequest
+    public CompletableFuture<FlowModelNodeTemplateResponse> diagnostics(FlowModelSourceGeneratorRequest request) {
+        return CompletableFuture.supplyAsync(() -> {
+            FlowModelNodeTemplateResponse response = new FlowModelNodeTemplateResponse();
+            try {
+                // TODO: Implement diagnostics logic here
+                response.setFlowNode(request.flowNode());
+            } catch (Throwable e) {
+                response.setError(e);
+            }
+            return response;
+        });
+    }
+
+    @JsonRequest
     public CompletableFuture<FlowModelAvailableNodesResponse> search(SearchRequest request) {
         return CompletableFuture.supplyAsync(() -> {
             FlowModelAvailableNodesResponse response = new FlowModelAvailableNodesResponse();
