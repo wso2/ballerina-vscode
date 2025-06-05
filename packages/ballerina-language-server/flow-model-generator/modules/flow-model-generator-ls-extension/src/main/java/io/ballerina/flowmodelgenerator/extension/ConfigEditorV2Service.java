@@ -749,24 +749,39 @@ public class ConfigEditorV2Service implements ExtendedLanguageServerService {
      * Creates a template {@link FlowNode} for a configuration variable.
      */
     private static FlowNode getConfigVariableFlowNodeTemplate(boolean isNew) {
-        NodeBuilder nodeBuilder = NodeBuilder.getNodeFromKind(NodeKind.CONFIG_VARIABLE)
+        NodeBuilder nodeBuilder = NodeBuilder
+                .getNodeFromKind(NodeKind.CONFIG_VARIABLE)
                 .defaultModuleName(null);
-        return nodeBuilder
+
+        nodeBuilder = nodeBuilder
                 .metadata()
                 .stepOut()
                 .codedata()
                 .node(NodeKind.CONFIG_VARIABLE)
                 .lineRange(null)
                 .isNew(isNew)
-                .stepOut()
-                .properties()
-                .type(null, true, false)
-                .variableName(null, true, false)
-                .defaultValue(null)
-                .configValue(null)
-                .documentation(null)
-                .stepOut()
-                .build();
+                .stepOut();
+
+        if (isNew) {
+            nodeBuilder = nodeBuilder
+                    .properties()
+                    .variableName(null, true, false)
+                    .type(null, true, false)
+                    .configValue(null)
+                    .defaultValue(null)
+                    .documentation(null)
+                    .stepOut();
+        } else {
+            nodeBuilder = nodeBuilder
+                    .properties()
+                    .variableName(null, true, false)
+                    .type(null, true, false)
+                    .defaultValue(null)
+                    .documentation(null)
+                    .stepOut();
+        }
+
+        return nodeBuilder.build();
     }
 
     /**

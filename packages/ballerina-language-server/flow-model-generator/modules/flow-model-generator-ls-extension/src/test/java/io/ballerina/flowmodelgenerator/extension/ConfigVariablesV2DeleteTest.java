@@ -19,7 +19,7 @@
 package io.ballerina.flowmodelgenerator.extension;
 
 import com.google.gson.JsonElement;
-import io.ballerina.flowmodelgenerator.extension.request.ConfigVariableUpdateRequest;
+import io.ballerina.flowmodelgenerator.extension.request.ConfigVariableDeleteRequest;
 import io.ballerina.modelgenerator.commons.AbstractLSTest;
 import org.eclipse.lsp4j.TextEdit;
 import org.testng.Assert;
@@ -32,11 +32,11 @@ import java.nio.file.Paths;
 import java.util.Map;
 
 /**
- * Test class for 'updateConfigVariable()' API in config API V2.
+ * Test class for 'deleteConfigVariable()' API in config API V2.
  *
  * @since 1.0.0
  */
-public class ConfigVariablesV2UpdateTest extends AbstractLSTest {
+public class ConfigVariablesV2DeleteTest extends AbstractLSTest {
 
     @Override
     @Test(dataProvider = "data-provider")
@@ -45,14 +45,14 @@ public class ConfigVariablesV2UpdateTest extends AbstractLSTest {
         TestConfig testConfig = gson.fromJson(Files.newBufferedReader(configJsonPath), TestConfig.class);
         String projectPath = sourceDir.resolve(testConfig.project()).toAbsolutePath().toString();
 
-        ConfigVariableUpdateRequest request = new ConfigVariableUpdateRequest(
+        ConfigVariableDeleteRequest request = new ConfigVariableDeleteRequest(
                 testConfig.request().packageName(),
                 testConfig.request().moduleName(),
                 Paths.get(projectPath, testConfig.request().configFilePath()).toAbsolutePath().toString(),
                 testConfig.request().configVariable()
         );
-        ConfigVariableUpdateResponse actualResponse = gson.fromJson(getResponse(request),
-                ConfigVariableUpdateResponse.class);
+        ConfigVariableDeleteResponse actualResponse = gson.fromJson(getResponse(request),
+                ConfigVariableDeleteResponse.class);
 
         if (!isEqual(testConfig.response().textEdits(), actualResponse.textEdits())) {
 //            updateConfig(configJsonPath, new TestConfig(
@@ -88,17 +88,17 @@ public class ConfigVariablesV2UpdateTest extends AbstractLSTest {
 
     @Override
     protected String getResourceDir() {
-        return "configurable_variables_v2_update";
+        return "configurable_variables_v2_delete";
     }
 
     @Override
     protected Class<? extends AbstractLSTest> clazz() {
-        return ConfigVariablesV2UpdateTest.class;
+        return ConfigVariablesV2DeleteTest.class;
     }
 
     @Override
     protected String getApiName() {
-        return "updateConfigVariable";
+        return "deleteConfigVariable";
     }
 
     @Override
@@ -106,7 +106,7 @@ public class ConfigVariablesV2UpdateTest extends AbstractLSTest {
         return "configEditorV2";
     }
 
-    private record ConfigVariableUpdateResponse(Map<String, TextEdit[]> textEdits) {
+    private record ConfigVariableDeleteResponse(Map<String, TextEdit[]> textEdits) {
     }
 
     private record TestConfig(String description, String project, Request request, Response response) {

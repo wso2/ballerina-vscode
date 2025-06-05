@@ -33,7 +33,7 @@ import java.util.Map;
 /**
  * Test class for 'getConfigVariables()' API in config API V2.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class ConfigVariablesV2Test extends AbstractLSTest {
 
@@ -59,7 +59,7 @@ public class ConfigVariablesV2Test extends AbstractLSTest {
 
     @Override
     protected String getResourceDir() {
-        return "configurable_variables_v2";
+        return "configurable_variables_v2_get";
     }
 
     @Override

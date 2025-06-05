@@ -1,5 +1,5 @@
 {
-  "isNew": true,
+  "isNew": false,
   "flowNode": {
     "id": "31",
     "metadata": {
@@ -8,10 +8,23 @@
     },
     "codedata": {
       "node": "CONFIG_VARIABLE",
-      "isNew": true
+      "isNew": false
     },
     "returning": false,
     "properties": {
+      "variable": {
+        "metadata": {
+          "label": "Variable Name",
+          "description": "Name of the variable"
+        },
+        "valueType": "IDENTIFIER",
+        "valueTypeConstraint": "Global",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false,
+        "modified": false
+      },
       "type": {
         "metadata": {
           "label": "Variable Type",
@@ -27,19 +40,6 @@
         "modified": false,
         "codedata": {}
       },
-      "variable": {
-        "metadata": {
-          "label": "Variable Name",
-          "description": "Name of the variable"
-        },
-        "valueType": "IDENTIFIER",
-        "valueTypeConstraint": "Global",
-        "optional": false,
-        "editable": true,
-        "advanced": false,
-        "hidden": false,
-        "modified": false
-      },
       "defaultValue": {
         "metadata": {
           "label": "Default Value",
@@ -50,19 +50,6 @@
         "optional": true,
         "editable": true,
         "advanced": true,
-        "hidden": false,
-        "modified": false
-      },
-      "configValue": {
-        "metadata": {
-          "label": "Config Value",
-          "description": "Config value of the variable, to be used in Config.toml"
-        },
-        "valueType": "EXPRESSION",
-        "value": "",
-        "optional": true,
-        "editable": true,
-        "advanced": false,
         "hidden": false,
         "modified": false
       },

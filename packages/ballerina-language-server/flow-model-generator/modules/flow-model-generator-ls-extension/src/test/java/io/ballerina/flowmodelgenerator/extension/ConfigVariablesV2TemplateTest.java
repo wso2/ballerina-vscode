@@ -31,7 +31,7 @@ import java.nio.file.Path;
 /**
  * Test class for 'getNodeTemplate()' API in config API V2.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class ConfigVariablesV2TemplateTest extends AbstractLSTest {
 
@@ -41,7 +41,7 @@ public class ConfigVariablesV2TemplateTest extends AbstractLSTest {
         Path configJsonPath = configDir.resolve(config);
         TestConfig testConfig = gson.fromJson(Files.newBufferedReader(configJsonPath), TestConfig.class);
 
-        ConfigVariableNodeTemplateRequest request = new ConfigVariableNodeTemplateRequest(true);
+        ConfigVariableNodeTemplateRequest request = new ConfigVariableNodeTemplateRequest(testConfig.isNew());
         ConfigVariableResponse actualResponse = gson.fromJson(getResponse(request), ConfigVariableResponse.class);
 
         if (!actualResponse.flowNode().equals(testConfig.flowNode())) {
@@ -70,7 +70,7 @@ public class ConfigVariablesV2TemplateTest extends AbstractLSTest {
         return "configEditorV2";
     }
 
-    private record TestConfig(FlowNode flowNode) {
+    private record TestConfig(boolean isNew, FlowNode flowNode) {
 
     }
 
