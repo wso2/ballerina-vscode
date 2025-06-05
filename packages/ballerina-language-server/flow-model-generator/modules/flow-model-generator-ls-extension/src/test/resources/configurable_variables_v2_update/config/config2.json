@@ -39,7 +39,7 @@
           "editable": true,
           "advanced": false,
           "hidden": false,
-          "modified": false,
+          "modified": true,
           "codedata": {}
         },
         "variable": {
@@ -53,7 +53,7 @@
           "editable": true,
           "advanced": false,
           "hidden": false,
-          "modified": false,
+          "modified": true,
           "value": "newVariable"
         },
         "defaultValue": {
@@ -66,7 +66,7 @@
           "editable": true,
           "advanced": true,
           "hidden": false,
-          "modified": false,
+          "modified": true,
           "value": "\"defaultValue\""
         },
         "configValue": {
@@ -79,7 +79,7 @@
           "editable": true,
           "advanced": false,
           "hidden": false,
-          "modified": false,
+          "modified": true,
           "value": "\"configValue\""
         },
         "documentation": {
@@ -93,7 +93,7 @@
           "editable": true,
           "advanced": true,
           "hidden": false,
-          "modified": false
+          "modified": true
         }
       },
       "flags": 0

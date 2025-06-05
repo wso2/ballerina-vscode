@@ -65,7 +65,7 @@
           "editable": true,
           "advanced": true,
           "hidden": false,
-          "modified": false
+          "modified": true
         },
         "configValue": {
           "metadata": {
@@ -91,7 +91,7 @@
           "editable": true,
           "advanced": true,
           "hidden": false,
-          "modified": false
+          "modified": true
         }
       },
       "flags": 0

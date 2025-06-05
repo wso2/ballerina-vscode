@@ -77,7 +77,7 @@
           "editable": true,
           "advanced": false,
           "hidden": false,
-          "modified": false,
+          "modified": true,
           "value": "\"configValue\""
         },
         "documentation": {
@@ -112,21 +112,6 @@
             }
           },
           "newText": "optionalConfig = \"configValue\"\n"
-        }
-      ],
-      "config.bal": [
-        {
-          "range": {
-            "start": {
-              "line": 1,
-              "character": 0
-            },
-            "end": {
-              "line": 1,
-              "character": 54
-            }
-          },
-          "newText": "configurable string optionalConfig = \"defaultValue\";"
         }
       ]
     }

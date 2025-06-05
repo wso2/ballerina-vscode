@@ -39,7 +39,7 @@
           "editable": true,
           "advanced": false,
           "hidden": false,
-          "modified": false,
+          "modified": true,
           "codedata": {}
         },
         "variable": {
@@ -53,7 +53,7 @@
           "editable": true,
           "advanced": false,
           "hidden": false,
-          "modified": false,
+          "modified": true,
           "value": "newVariable"
         },
         "defaultValue": {

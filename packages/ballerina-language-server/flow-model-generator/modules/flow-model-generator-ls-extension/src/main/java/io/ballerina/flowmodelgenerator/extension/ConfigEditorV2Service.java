@@ -93,6 +93,7 @@ import java.util.concurrent.CompletableFuture;
 import static io.ballerina.flowmodelgenerator.core.model.Property.CONFIG_VALUE_KEY;
 import static io.ballerina.flowmodelgenerator.core.model.Property.CONFIG_VAR_DOC_KEY;
 import static io.ballerina.flowmodelgenerator.core.model.Property.DEFAULT_VALUE_KEY;
+import static io.ballerina.flowmodelgenerator.core.model.Property.VARIABLE_KEY;
 
 /**
  * Provides extended services for viewing and editing Ballerina configuration variables.
@@ -192,13 +193,15 @@ public class ConfigEditorV2Service implements ExtendedLanguageServerService {
 
                 Map<Path, List<TextEdit>> allTextEdits = new HashMap<>();
                 // Text edits for Ballerina source files.
-                if (isPackageInRootProject(request.packageName(), rootProject)) {
+                if (requireSourceEdits(configVariable) && isPackageInRootProject(request.packageName(), rootProject)) {
                     allTextEdits.putAll(constructSourceTextEdits(rootProject, configFilePath, configVariable, false));
                 }
                 // Text edits for Config.toml.
-                Path configTomlPath = rootProject.sourceRoot().resolve(CONFIG_TOML_FILENAME);
-                allTextEdits.putAll(constructConfigTomlTextEdits(rootProject, request.packageName(),
-                        request.moduleName(), configVariable, configTomlPath, false));
+                if (requireConfigTomlEdits(configVariable)) {
+                    Path configTomlPath = rootProject.sourceRoot().resolve(CONFIG_TOML_FILENAME);
+                    allTextEdits.putAll(constructConfigTomlTextEdits(rootProject, request.packageName(),
+                            request.moduleName(), configVariable, configTomlPath, false));
+                }
 
                 response.setTextEdits(gson.toJsonTree(allTextEdits));
             } catch (Exception e) {
@@ -956,5 +959,30 @@ public class ConfigEditorV2Service implements ExtendedLanguageServerService {
                 return configValueExpr.toSourceCode();
             }
         }
+    }
+
+    /**
+     * Checks if the Ballerina source edits are required when updating a configuration variable, based on its modified
+     * properties.
+     */
+    private boolean requireSourceEdits(FlowNode configVariable) {
+        Property variableName = configVariable.properties().get(VARIABLE_KEY);
+        Property variableType = configVariable.properties().get(Property.TYPE_KEY);
+        Property defaultValue = configVariable.properties().get(DEFAULT_VALUE_KEY);
+        Property documentation = configVariable.properties().get(CONFIG_VAR_DOC_KEY);
+
+        return (variableName != null && Boolean.TRUE.equals(variableName.modified()))
+                || (variableType != null && Boolean.TRUE.equals(variableType.modified()))
+                || (defaultValue != null && Boolean.TRUE.equals(defaultValue.modified()))
+                || (documentation != null && Boolean.TRUE.equals(documentation.modified()));
+    }
+
+    /**
+     * Checks if the Config.toml edits are required when updating a configuration variable, based on its modified
+     * properties.
+     */
+    private boolean requireConfigTomlEdits(FlowNode configVariable) {
+        Property configValue = configVariable.properties().get(CONFIG_VALUE_KEY);
+        return configValue != null && Boolean.TRUE.equals(configValue.modified());
     }
 }
