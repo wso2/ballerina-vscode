@@ -426,31 +426,6 @@
         },
         {
           "metadata": {
-            "label": "salesforce.soap",
-            "description": "",
-            "keywords": []
-          },
-          "items": [
-            {
-              "metadata": {
-                "label": "ConnectionConfig",
-                "description": "Salesforce client configuration.\n",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_salesforce_8.2.0.png"
-              },
-              "codedata": {
-                "node": "TYPEDESC",
-                "org": "ballerinax",
-                "module": "salesforce.soap",
-                "packageName": "salesforce",
-                "symbol": "ConnectionConfig",
-                "version": "8.2.0"
-              },
-              "enabled": true
-            }
-          ]
-        },
-        {
-          "metadata": {
             "label": "salesforce.bulk",
             "description": "",
             "keywords": []
@@ -466,6 +441,31 @@
                 "node": "TYPEDESC",
                 "org": "ballerinax",
                 "module": "salesforce.bulk",
+                "packageName": "salesforce",
+                "symbol": "ConnectionConfig",
+                "version": "8.2.0"
+              },
+              "enabled": true
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "label": "salesforce.soap",
+            "description": "",
+            "keywords": []
+          },
+          "items": [
+            {
+              "metadata": {
+                "label": "ConnectionConfig",
+                "description": "Salesforce client configuration.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_salesforce_8.2.0.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "salesforce.soap",
                 "packageName": "salesforce",
                 "symbol": "ConnectionConfig",
                 "version": "8.2.0"
