@@ -23,7 +23,6 @@ import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.compiler.api.symbols.*;
 import io.ballerina.compiler.syntax.tree.*;
 import org.ballerinalang.diagramutil.connector.models.connector.reftypes.*;
-import org.ballerinalang.diagramutil.connector.models.connector.types.*;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
@@ -73,6 +72,22 @@ public class RefType {
     public RefType(String name, String typeName){
         this.name = name;
         this.typeName = typeName;
+    }
+
+    //Constructor to set the values excluding the dependent types
+    public RefType(RefType refType) {
+        this.name = refType.name;
+        this.typeName = refType.typeName;
+        this.hashCode = refType.hashCode;
+        this.optional = refType.optional;
+        this.typeInfo = refType.typeInfo;
+        this.defaultable = refType.defaultable;
+        this.defaultValue = refType.defaultValue;
+        this.displayAnnotation = refType.displayAnnotation;
+        this.documentation = refType.documentation;
+        this.isRestType = refType.isRestType;
+        this.value = refType.value;
+        this.selected = refType.selected;
     }
 
     public RefType(String name, String typeName, boolean optional, TypeInfo typeInfo, boolean defaultable,
@@ -243,8 +258,14 @@ public class RefType {
         return null;
     }
 
-    public static void completeVisitedTypeEntry(String typeName, RefType typeNode) {
+    public static void completeVisitedTypeEntry(String typeName, RefType typeNode, Map<String, RefType> dependentTypes) {
         RefVisitedType visitedType = visitedTypeMap.get(typeName);
+        typeNode.dependentTypes = new HashMap<>();
+        for (Map.Entry<String, RefType> entry : dependentTypes.entrySet()) {
+            if (entry.getValue() != null) {
+                typeNode.dependentTypes.put(entry.getKey(), entry.getValue());
+            }
+        }
         visitedType.setCompleted(true);
         visitedType.setTypeNode(typeNode);
     }
@@ -260,28 +281,38 @@ public class RefType {
 
     private static RefType fromSemanticSymbolV2(Symbol symbol, Map<String, String> documentationMap,
                                              SemanticModel semanticModel) {
-        return fromSemanticSymbolV2(symbol, documentationMap, semanticModel, true);
+        Map<String, RefType> dependentTypes = new HashMap<>();
+        return  fromSemanticSymbolV2(symbol, documentationMap, semanticModel, dependentTypes, true);
+
     }
 
     private static RefType fromSemanticSymbolV2(Symbol symbol, Map<String, String> documentationMap,
-                                              SemanticModel semanticModel, boolean isRoot) {
+                                              SemanticModel semanticModel, Map<String,RefType> dependentTypes, boolean isRoot) {
         RefType type = null;
-//        RefType fullType;
         if (symbol instanceof TypeReferenceTypeSymbol typeReferenceTypeSymbol) {
-            type = getEnumType(typeReferenceTypeSymbol, symbol, documentationMap, semanticModel);
+            type = getEnumType(typeReferenceTypeSymbol, symbol, documentationMap, semanticModel, dependentTypes, isRoot);
         } else if (symbol instanceof RecordTypeSymbol recordTypeSymbol) {
             String typeName = String.valueOf(recordTypeSymbol.hashCode());
             RefVisitedType visitedType = getVisitedType(typeName);
             if (visitedType != null) {
-                return getAlreadyVisitedType(symbol, typeName, visitedType, false);
+                return getAlreadyVisitedType(symbol, typeName, visitedType, false, dependentTypes, isRoot);
             } else {
                 if (typeName.contains("record {")) {
-                    type = getRecordType(recordTypeSymbol, documentationMap, semanticModel);
+                    type = getRecordType(recordTypeSymbol, documentationMap, semanticModel, dependentTypes);
                 } else {
                     visitedTypeMap.put(typeName, new RefVisitedType());
-                    type = getRecordType(recordTypeSymbol, documentationMap, semanticModel);
-//                    type = getDependentRecordType(recordTypeSymbol, documentationMap, semanticModel);
-                    completeVisitedTypeEntry(typeName, type);
+                    type = getRecordType(recordTypeSymbol, documentationMap, semanticModel, dependentTypes);
+                    if (!dependentTypes.isEmpty()) {
+                        Map<String, RefType> depTypes = new HashMap<>();
+                        dependentTypes.forEach((key, value) -> {
+                            if (value != null) {
+                                depTypes.put(key, value);
+                            }
+                        });
+                        type.dependentTypes = depTypes;
+                    }
+
+                    completeVisitedTypeEntry(typeName, type, dependentTypes);
                 }
             }
         } else if (symbol instanceof ArrayTypeSymbol arrayTypeSymbol) {
@@ -302,11 +333,11 @@ public class RefType {
             String typeName = String.valueOf(unionSymbol.hashCode());
             RefVisitedType visitedType = getVisitedType(typeName);
             if (visitedType != null) {
-                return getAlreadyVisitedType(symbol, typeName, visitedType, true);
+                return getAlreadyVisitedType(symbol, typeName, visitedType, true, dependentTypes, isRoot);
             } else {
                 visitedTypeMap.put(typeName, new RefVisitedType());
                 type = getUnionType(unionSymbol, documentationMap, semanticModel);
-                completeVisitedTypeEntry(typeName, type);
+                completeVisitedTypeEntry(typeName, type, dependentTypes);
             }
         } else if (symbol instanceof ErrorTypeSymbol errSymbol) {
             RefErrorType errType = new RefErrorType();
@@ -319,11 +350,11 @@ public class RefType {
             String typeName = String.valueOf(intersectionTypeSymbol.hashCode());
             RefVisitedType visitedType = getVisitedType(typeName);
             if (visitedType != null) {
-                return getAlreadyVisitedType(symbol, typeName, visitedType, false);
+                return getAlreadyVisitedType(symbol, typeName, visitedType, false, dependentTypes, isRoot);
             } else {
                 visitedTypeMap.put(typeName, new RefVisitedType());
                 type = getIntersectionType(intersectionTypeSymbol, documentationMap, semanticModel);
-                completeVisitedTypeEntry(typeName, type);
+                completeVisitedTypeEntry(typeName, type, dependentTypes);
             }
         } else if (symbol instanceof StreamTypeSymbol streamTypeSymbol) {
             type = getStreamType(streamTypeSymbol, documentationMap, semanticModel);
@@ -350,7 +381,7 @@ public class RefType {
                 type.defaultable = parameterSymbol.paramKind() == ParameterKind.DEFAULTABLE;
             }
         } else if (symbol instanceof VariableSymbol variableSymbol) {
-            type = fromSemanticSymbolV2(variableSymbol.typeDescriptor(), documentationMap, semanticModel);
+            type = fromSemanticSymbolV2(variableSymbol.typeDescriptor(), documentationMap, semanticModel, dependentTypes, isRoot);
         } else if (symbol instanceof TypeSymbol typeSymbol) {
             String typeName = typeSymbol.signature();
             if (typeName.startsWith("\"") && typeName.endsWith("\"")) {
@@ -367,27 +398,12 @@ public class RefType {
             type.documentation = typeDocumentation.get();
         }
 
-//        if(isRoot){
-//            assert type != null;
-//            populateDependentTypes(type);
-//        }
         return type;
     }
 
-//    private static void populateDependentTypes(RefType type) {
-//        type.dependentTypes = new HashMap<>();
-//        visitedTypeMap.forEach((typeName, visitedType) -> {
-//            RefType dependentType = visitedType.getTypeNode();
-//            boolean isComplete = visitedType.isCompleted();
-//
-//            if (dependentType != null && isComplete) {
-//                type.dependentTypes.put(typeName, dependentType);
-//            }
-//        });
-//    }
 
     private static RefType getAlreadyVisitedType(Symbol symbol, String typeName, RefVisitedType visitedType,
-                                                 boolean getClone) {
+                                                 boolean getClone, Map<String, RefType> dependentTypes, boolean isRoot) {
         if (visitedType.isCompleted()) {
             RefType existingType = visitedType.getTypeNode();
             if (getClone) {
@@ -446,13 +462,12 @@ public class RefType {
     }
 
     private static RefType getRecordType(RecordTypeSymbol recordTypeSymbol, Map<String, String> documentationMap,
-                                         SemanticModel semanticModel) {
+                                         SemanticModel semanticModel, Map<String, RefType> dependentTypes) {
         RefType type;
-        Map<String, RefType> dependentTypes = new HashMap<>();
         List<RefType> fields = new ArrayList<>();
         collectRecordDocumentation(recordTypeSymbol, semanticModel, documentationMap);
         recordTypeSymbol.fieldDescriptors().forEach((name, field) -> {
-            RefType subType = fromSemanticSymbolV2(field.typeDescriptor(), documentationMap, semanticModel, false);
+            RefType subType = fromSemanticSymbolV2(field.typeDescriptor(), documentationMap, semanticModel, dependentTypes, false);
             if (subType != null) {
                 if(subType instanceof RefPrimitiveType){
                     subType.setName(name);
@@ -464,38 +479,19 @@ public class RefType {
                     RefType recordSubType = new RefType(name, subType.getName());
                     recordSubType.setHashCode(subType.getName());
                     fields.add(recordSubType);
-                    dependentTypes.put(subType.getName(), subType);
+                    RefType depType = new RefRecordType((RefRecordType) subType, false);
+                    dependentTypes.put(subType.getName(), depType);
+                    if (subType.dependentTypes != null) {
+                        dependentTypes.putAll(subType.dependentTypes);
+                    }
                 }
             }
         });
         RefType restType = recordTypeSymbol.restTypeDescriptor().isPresent() ?
-                fromSemanticSymbolV2(recordTypeSymbol.restTypeDescriptor().get(), documentationMap, semanticModel) : null;
-        if(dependentTypes.isEmpty()){
-            type = new RefRecordType(fields, restType);
-        }else{
-            type = new RefRecordType(fields, restType, dependentTypes);
-        }
+                fromSemanticSymbolV2(recordTypeSymbol.restTypeDescriptor().get(), documentationMap, semanticModel, dependentTypes, false) : null;
+        type = new RefRecordType(fields, restType);
         return type;
     }
-
-//    private static RefType getDependentRecordType(RecordTypeSymbol recordTypeSymbol, Map<String, String> documentationMap,
-//                                                  SemanticModel semanticModel) {
-//        RefType type;
-//        List<RefType> fields = new ArrayList<>();
-//        collectRecordDocumentation(recordTypeSymbol, semanticModel, documentationMap);
-//        recordTypeSymbol.fieldDescriptors().forEach((name, field) -> {
-//            RefType subType = fromSemanticSymbolV2(field.typeDescriptor(), documentationMap, semanticModel, false);
-//            if (subType != null) {
-//                subType.setHashCode(recordTypeSymbol.hashCode()+ (recordTypeSymbol.getName().isPresent() ? recordTypeSymbol.getName().get() : "noName"));
-//                subType.setName(name);
-//                fields.add(subType);
-//            }
-//        });
-//        RefType restType = recordTypeSymbol.restTypeDescriptor().isPresent() ?
-//                fromSemanticSymbolV2(recordTypeSymbol.restTypeDescriptor().get(), documentationMap, semanticModel) : null;
-//        type = new RefRecordType(fields, restType);
-//        return type;
-//    }
 
     private static void collectRecordDocumentation(RecordTypeSymbol recordTypeSymbol, SemanticModel semanticModel,
                                                    Map<String, String> documentationMap) {
@@ -522,20 +518,20 @@ public class RefType {
     }
 
     private static RefType getEnumType(TypeReferenceTypeSymbol typeReferenceTypeSymbol, Symbol symbol,
-                                       Map<String, String> documentationMap, SemanticModel semanticModel) {
+                                       Map<String, String> documentationMap, SemanticModel semanticModel, Map<String, RefType> dependentTypes, boolean isRoot) {
         RefType type;
         if (typeReferenceTypeSymbol.definition().kind().equals(SymbolKind.ENUM)) {
             List<RefType> fields = new ArrayList<>();
             ((UnionTypeSymbol) typeReferenceTypeSymbol.typeDescriptor()).memberTypeDescriptors()
                     .forEach(typeSymbol -> {
-                        RefType semanticSymbol = fromSemanticSymbolV2(typeSymbol, documentationMap, semanticModel);
+                        RefType semanticSymbol = fromSemanticSymbolV2(typeSymbol, documentationMap, semanticModel, dependentTypes, isRoot);
                         if (semanticSymbol != null) {
                             fields.add(semanticSymbol);
                         }
                     });
             type = new RefEnumType(fields);
         } else {
-            type = fromSemanticSymbolV2(typeReferenceTypeSymbol.typeDescriptor(), documentationMap, semanticModel);
+            type = fromSemanticSymbolV2(typeReferenceTypeSymbol.typeDescriptor(), documentationMap, semanticModel, dependentTypes, isRoot);
         }
         setTypeInfo(typeReferenceTypeSymbol.getName().isPresent() ? typeReferenceTypeSymbol.getName().get()
                 : null, symbol, type);
@@ -626,5 +622,9 @@ public class RefType {
 
     public void setRestType(boolean restType) {
         isRestType = restType;
+    }
+
+    public void setDependentTypes(Map<String, RefType> dependentTypes) {
+        this.dependentTypes = dependentTypes;
     }
 }
