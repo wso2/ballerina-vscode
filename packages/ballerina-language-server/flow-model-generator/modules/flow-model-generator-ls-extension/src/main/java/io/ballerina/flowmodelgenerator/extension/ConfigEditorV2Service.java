@@ -48,7 +48,7 @@ import io.ballerina.flowmodelgenerator.extension.request.ConfigVariableUpdateReq
 import io.ballerina.flowmodelgenerator.extension.response.ConfigVariableDeleteResponse;
 import io.ballerina.flowmodelgenerator.extension.response.ConfigVariableNodeTemplateResponse;
 import io.ballerina.flowmodelgenerator.extension.response.ConfigVariableUpdateResponse;
-import io.ballerina.flowmodelgenerator.extension.response.ConfigVariablesResponse;
+import io.ballerina.flowmodelgenerator.extension.response.ConfigVariablesGetResponse;
 import io.ballerina.modelgenerator.commons.CommonUtils;
 import io.ballerina.projects.Document;
 import io.ballerina.projects.DocumentId;
@@ -146,13 +146,13 @@ public class ConfigEditorV2Service implements ExtendedLanguageServerService {
      * Retrieves configuration variables from the Ballerina project.
      *
      * @param request The request containing the project path.
-     * @return A {@link CompletableFuture} containing the {@link ConfigVariablesResponse}.
+     * @return A {@link CompletableFuture} containing the {@link ConfigVariablesGetResponse}.
      */
     @JsonRequest
     @SuppressWarnings("unused")
-    public CompletableFuture<ConfigVariablesResponse> getConfigVariables(ConfigVariableGetRequest request) {
+    public CompletableFuture<ConfigVariablesGetResponse> getConfigVariables(ConfigVariableGetRequest request) {
         return CompletableFuture.supplyAsync(() -> {
-            ConfigVariablesResponse response = new ConfigVariablesResponse();
+            ConfigVariablesGetResponse response = new ConfigVariablesGetResponse();
             // Need to preserve the insertion order (default package first).
             Map<String, Map<String, List<FlowNode>>> configVarMap = new LinkedHashMap<>();
             try {

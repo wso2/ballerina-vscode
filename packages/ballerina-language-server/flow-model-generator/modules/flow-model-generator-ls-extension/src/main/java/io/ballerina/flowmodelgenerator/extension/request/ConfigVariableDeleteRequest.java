@@ -27,7 +27,7 @@ import com.google.gson.JsonElement;
  * @param moduleName     name of the module
  * @param configFilePath path of the config file
  * @param configVariable config variable to be deleted
- * @since 2.0.0
+ * @since 1.0.0
  */
 public record ConfigVariableDeleteRequest(String packageName, String moduleName, String configFilePath,
                                           JsonElement configVariable) {

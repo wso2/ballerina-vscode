@@ -21,9 +21,9 @@ package io.ballerina.flowmodelgenerator.extension.response;
 import com.google.gson.JsonElement;
 
 /**
- * Represents the response for the config variable node template API.
+ * Represents the response of getNodeTemplate API in Config API V2.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class ConfigVariableNodeTemplateResponse extends AbstractFlowModelResponse {
 

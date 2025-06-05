@@ -19,12 +19,12 @@
 package io.ballerina.flowmodelgenerator.extension.request;
 
 /**
- * Represents the request to get config variables.
+ * Represents the request to get config variables in Config API V2.
  *
  * @param projectPath      path of the config file
  * @param includeLibraries whether to include library variables in the response
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public record ConfigVariableGetRequest(String projectPath, boolean includeLibraries) {
 

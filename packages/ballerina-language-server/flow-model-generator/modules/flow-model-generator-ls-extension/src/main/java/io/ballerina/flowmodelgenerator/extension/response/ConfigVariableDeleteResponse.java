@@ -21,9 +21,9 @@ package io.ballerina.flowmodelgenerator.extension.response;
 import com.google.gson.JsonElement;
 
 /**
- * Represents the response for updating config variables.
+ * Represents the response for updating config variables in Config API V2.
  *
- * @since 1.4.0
+ * @since 1.0.0
  */
 public class ConfigVariableDeleteResponse extends AbstractFlowModelResponse {
 
