@@ -1,0 +1,34 @@
+{
+  "description": "A simple example of a reference-based type",
+  "source": "RefTypeTest/BalProject",
+  "typeSymbolName": "SampleType",
+  "refType": {
+    "fields": [
+      {
+        "name": "sampleTypeName",
+        "typeName": "string",
+        "optional": false,
+        "defaultable": false,
+        "documentation": "",
+        "isRestType": false,
+        "selected": false
+      },
+      {
+        "name": "sampleTypeCode",
+        "typeName": "int",
+        "optional": false,
+        "defaultable": false,
+        "documentation": "",
+        "isRestType": false,
+        "selected": false
+      }
+    ],
+    "hasRestType": false,
+    "dependentTypes": {},
+    "typeName": "record",
+    "optional": false,
+    "defaultable": false,
+    "isRestType": false,
+    "selected": false
+  }
+}
