@@ -484,6 +484,12 @@ public class RefType {
                     if (subType.dependentTypes != null) {
                         dependentTypes.putAll(subType.dependentTypes);
                     }
+                } else {
+                    subType.setName(name);
+                    subType.setOptional(field.isOptional());
+                    subType.setDefaultable(field.hasDefaultValue());
+                    subType.setDocumentation(documentationMap.get(name));
+                    fields.add(subType);
                 }
             }
         });
