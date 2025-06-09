@@ -295,7 +295,7 @@ public class RefType {
             String typeName = String.valueOf(recordTypeSymbol.hashCode());
             RefVisitedType visitedType = getVisitedType(typeName);
             if (visitedType != null) {
-                return getAlreadyVisitedType(symbol, typeName, visitedType, false, dependentTypes, isRoot);
+                return getAlreadyVisitedType(symbol, typeName, visitedType, false);
             } else {
                 if (typeName.contains("record {")) {
                     type = getRecordType(recordTypeSymbol, documentationMap, semanticModel, dependentTypes);
@@ -333,7 +333,7 @@ public class RefType {
             String typeName = String.valueOf(unionSymbol.hashCode());
             RefVisitedType visitedType = getVisitedType(typeName);
             if (visitedType != null) {
-                return getAlreadyVisitedType(symbol, typeName, visitedType, true, dependentTypes, isRoot);
+                return getAlreadyVisitedType(symbol, typeName, visitedType, true);
             } else {
                 visitedTypeMap.put(typeName, new RefVisitedType());
                 type = getUnionType(unionSymbol, documentationMap, semanticModel);
@@ -350,7 +350,7 @@ public class RefType {
             String typeName = String.valueOf(intersectionTypeSymbol.hashCode());
             RefVisitedType visitedType = getVisitedType(typeName);
             if (visitedType != null) {
-                return getAlreadyVisitedType(symbol, typeName, visitedType, false, dependentTypes, isRoot);
+                return getAlreadyVisitedType(symbol, typeName, visitedType, false);
             } else {
                 visitedTypeMap.put(typeName, new RefVisitedType());
                 type = getIntersectionType(intersectionTypeSymbol, documentationMap, semanticModel);
@@ -403,7 +403,7 @@ public class RefType {
 
 
     private static RefType getAlreadyVisitedType(Symbol symbol, String typeName, RefVisitedType visitedType,
-                                                 boolean getClone, Map<String, RefType> dependentTypes, boolean isRoot) {
+                                                 boolean getClone) {
         if (visitedType.isCompleted()) {
             RefType existingType = visitedType.getTypeNode();
             if (getClone) {
@@ -477,10 +477,12 @@ public class RefType {
                     fields.add(subType);
                 } else if (subType instanceof RefRecordType) {
                     RefType recordSubType = new RefType(name, subType.getName());
-                    recordSubType.setHashCode(subType.getName());
+                    TypeInfo typeInfo = subType.getTypeInfo();
+                    String hashCode = String.valueOf((typeInfo.name + typeInfo.orgName + typeInfo.moduleName + typeInfo.version).hashCode());
+                    recordSubType.setHashCode(hashCode);
                     fields.add(recordSubType);
                     RefType depType = new RefRecordType((RefRecordType) subType, false);
-                    dependentTypes.put(subType.getName(), depType);
+                    dependentTypes.put(hashCode, depType);
                     if (subType.dependentTypes != null) {
                         dependentTypes.putAll(subType.dependentTypes);
                     }
