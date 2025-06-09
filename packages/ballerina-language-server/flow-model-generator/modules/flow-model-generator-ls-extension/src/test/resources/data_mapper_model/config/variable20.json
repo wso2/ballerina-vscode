@@ -221,7 +221,20 @@
         "diagnostics": [],
         "elements": []
       }
-    ]
+    ],
+    "query": {
+      "output": "stores.credentials",
+      "inputs": [
+        "bank.userInfo"
+      ],
+      "fromClause": {
+        "typeDesc": "UserInfo",
+        "variableName": "info",
+        "collection": "bank.userInfo"
+      },
+      "intermediateClauses": [],
+      "resultClause": "{password: , username: info.username}"
+    }
   },
   "targetField": "stores.credentials"
 }
