@@ -39,12 +39,14 @@ import io.ballerina.compiler.api.symbols.VariableSymbol;
 import io.ballerina.compiler.syntax.tree.BinaryExpressionNode;
 import io.ballerina.compiler.syntax.tree.CheckExpressionNode;
 import io.ballerina.compiler.syntax.tree.ClauseNode;
+import io.ballerina.compiler.syntax.tree.CollectClauseNode;
 import io.ballerina.compiler.syntax.tree.ExpressionNode;
 import io.ballerina.compiler.syntax.tree.FieldAccessExpressionNode;
 import io.ballerina.compiler.syntax.tree.FromClauseNode;
 import io.ballerina.compiler.syntax.tree.FunctionArgumentNode;
 import io.ballerina.compiler.syntax.tree.FunctionCallExpressionNode;
 import io.ballerina.compiler.syntax.tree.ImplicitNewExpressionNode;
+import io.ballerina.compiler.syntax.tree.IntermediateClauseNode;
 import io.ballerina.compiler.syntax.tree.ListConstructorExpressionNode;
 import io.ballerina.compiler.syntax.tree.MappingConstructorExpressionNode;
 import io.ballerina.compiler.syntax.tree.MappingFieldNode;
@@ -59,12 +61,14 @@ import io.ballerina.compiler.syntax.tree.NonTerminalNode;
 import io.ballerina.compiler.syntax.tree.ParenthesizedArgList;
 import io.ballerina.compiler.syntax.tree.PositionalArgumentNode;
 import io.ballerina.compiler.syntax.tree.QueryExpressionNode;
+import io.ballerina.compiler.syntax.tree.QueryPipelineNode;
 import io.ballerina.compiler.syntax.tree.SelectClauseNode;
 import io.ballerina.compiler.syntax.tree.SeparatedNodeList;
 import io.ballerina.compiler.syntax.tree.SpecificFieldNode;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.compiler.syntax.tree.TypedBindingPatternNode;
 import io.ballerina.compiler.syntax.tree.VariableDeclarationNode;
+import io.ballerina.compiler.syntax.tree.WhereClauseNode;
 import io.ballerina.flowmodelgenerator.core.model.Codedata;
 import io.ballerina.flowmodelgenerator.core.model.FlowNode;
 import io.ballerina.flowmodelgenerator.core.model.NodeBuilder;
@@ -180,15 +184,32 @@ public class DataMapManager {
 
         Type type;
         ExpressionNode expressionNode = targetNode.expressionNode();
+        Query query = null;
         if (expressionNode != null && targetNode.expressionNode().kind() == SyntaxKind.QUERY_EXPRESSION) {
-            FromClauseNode fromClauseNode =
-                    ((QueryExpressionNode) targetNode.expressionNode()).queryPipeline().fromClause();
-            Optional<TypeSymbol> typeSymbol = newSemanticModel.typeOf(fromClauseNode.expression());
+            QueryExpressionNode queryExpressionNode = (QueryExpressionNode) targetNode.expressionNode();
+            FromClauseNode fromClauseNode = queryExpressionNode.queryPipeline().fromClause();
+            List<String> inputs = new ArrayList<>();
+            ExpressionNode expression = fromClauseNode.expression();
+            inputs.add(expression.toSourceCode().trim());
+            Optional<TypeSymbol> typeSymbol = newSemanticModel.typeOf(expression);
+            String itemType = fromClauseNode.typedBindingPattern().typeDescriptor().toSourceCode().trim();
+            String fromClauseVar = fromClauseNode.typedBindingPattern().bindingPattern().toSourceCode().trim();
             if (typeSymbol.isPresent() && typeSymbol.get().typeKind() == TypeDescKind.ARRAY) {
-                String fromClauseVar = fromClauseNode.typedBindingPattern().bindingPattern().toSourceCode().trim();
-                inputPorts.add(getMappingPort(fromClauseVar, fromClauseVar,
-                        Type.fromSemanticSymbol(((ArrayTypeSymbol) typeSymbol.get()).memberTypeDescriptor())));
+                TypeSymbol memberTypeSymbol = ((ArrayTypeSymbol) typeSymbol.get()).memberTypeDescriptor();
+                inputPorts.add(getMappingPort(fromClauseVar, fromClauseVar, Type.fromSemanticSymbol(memberTypeSymbol)));
+                itemType = memberTypeSymbol.signature().trim();
             }
+
+            FromClause fromClause = new FromClause(itemType, fromClauseVar, expression.toSourceCode().trim());
+            String resultClause;
+            ClauseNode clauseNode = queryExpressionNode.resultClause();
+            if (clauseNode.kind() == SyntaxKind.SELECT_CLAUSE) {
+                resultClause = ((SelectClauseNode) clauseNode).expression().toSourceCode().trim();
+            } else {
+                resultClause = ((CollectClauseNode) clauseNode).expression().toSourceCode().trim();
+            }
+            query = new Query(targetField, inputs, fromClause,
+                    getQueryIntermediateClause(queryExpressionNode.queryPipeline()), resultClause);
             type = Type.fromSemanticSymbol(((ArrayTypeSymbol) targetNode.typeSymbol()).memberTypeDescriptor());
         } else {
             type = Type.fromSemanticSymbol(targetNode.typeSymbol());
@@ -204,7 +225,7 @@ public class DataMapManager {
                 generateArrayVariableDataMapping(expressionNode, mappings, name, newSemanticModel);
             }
         }
-        return gson.toJsonTree(new Model(inputPorts, outputPort, mappings));
+        return gson.toJsonTree(new Model(inputPorts, outputPort, mappings, query));
     }
 
     private TargetNode getTargetNode(Node parentNode, String targetField, NodeKind nodeKind, String propertyKey,
@@ -352,7 +373,8 @@ public class DataMapManager {
             }
         }
         if (lastTypeSymbol != null && lastTypeSymbol.typeKind() == TypeDescKind.ARRAY
-                && lastExpr != null && lastExpr.kind() == SyntaxKind.QUERY_EXPRESSION) {
+                && lastExpr != null &&
+                (lastExpr.kind() == SyntaxKind.QUERY_EXPRESSION || lastExpr.kind() == SyntaxKind.FIELD_ACCESS)) {
             return new TargetNode(lastTypeSymbol, splits[splits.length - 1], lastExpr);
         }
         return null;
@@ -1128,12 +1150,57 @@ public class DataMapManager {
         return targetType;
     }
 
-    private record Model(List<MappingPort> inputs, MappingPort output, List<Mapping> mappings) {
+    private List<IntermediateClause> getQueryIntermediateClause(QueryPipelineNode queryPipelineNode) {
+        List<IntermediateClause> intermediateClauses = new ArrayList<>();
+        for (IntermediateClauseNode intermediateClause : queryPipelineNode.intermediateClauses()) {
+            SyntaxKind kind = intermediateClause.kind();
+            switch (kind) {
+                case FROM_CLAUSE -> {
+                    FromClauseNode fromClauseNode = (FromClauseNode) intermediateClause;
+                    TypedBindingPatternNode typedBindingPattern = fromClauseNode.typedBindingPattern();
+                    FromClause fromClause = new FromClause(typedBindingPattern.typeDescriptor().toSourceCode().trim(),
+                            typedBindingPattern.bindingPattern().toSourceCode().trim(),
+                            fromClauseNode.expression().toSourceCode().trim());
+                    intermediateClauses.add(new IntermediateClause("from", fromClause));
+                }
+                case WHERE_CLAUSE -> {
+                    WhereClauseNode whereClauseNode = (WhereClauseNode) intermediateClause;
+                    ExpressionNode expression = whereClauseNode.expression();
+                    intermediateClauses.add(new IntermediateClause("where", expression.toSourceCode().trim()));
+                }
+                default -> {
+                }
+            }
+        }
+        return intermediateClauses;
+    }
 
+    private record Model(List<MappingPort> inputs, MappingPort output, List<Mapping> mappings, Query query) {
+
+        private Model(List<MappingPort> inputs, MappingPort output, List<Mapping> mappings) {
+            this(inputs, output, mappings, null);
+        }
+
+        private Model(List<MappingPort> inputs, MappingPort output, Query query) {
+            this(inputs, output, new ArrayList<>(), query);
+        }
     }
 
     private record Mapping(String output, List<String> inputs, String expression, List<String> diagnostics,
                            List<MappingElements> elements) {
+
+    }
+
+    private record Query(String output, List<String> inputs, FromClause fromClause,
+                         List<IntermediateClause> intermediateClauses, String resultClause) {
+
+    }
+
+    private record FromClause(String typeDesc, String variableName, String collection) {
+
+    }
+
+    private record IntermediateClause(String type, Object clause) {
 
     }
 
