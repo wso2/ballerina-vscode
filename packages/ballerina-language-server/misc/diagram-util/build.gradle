@@ -15,10 +15,8 @@
  *
  */
 
-//plugins {
-//    id 'javaProject'
-//    id 'ballerinaLangLibLoad'
-//}
+apply from: "$rootDir/gradle/javaProject.gradle"
+apply plugin: "java"
 
 configurations {
     dist {
@@ -47,12 +45,32 @@ description = 'Diagram utils for Syntax tree JSON generation'
 
 ext.moduleName = 'diagram-util'
 
-//test {
-//    dependsOn loadDistributionCache
-//    systemProperty "ballerina.home", "$buildDir/"
-//    systemProperty "experimental", "true"
-//    systemProperty "ballerina.version", project.version
-//    useTestNG() {
-//        suites 'src/test/resources/testng.xml'
-//    }
-//}
+sourceSets {
+    test {
+        resources {
+            srcDirs = ['src/test/resources']
+        }
+    }
+}
+
+tasks.register('loadDistributionCache') {
+    dependsOn configurations.distributionBala
+    doLast {
+        configurations.distributionBala.each { artifact ->
+            copy {
+                from zipTree( artifact.getPath() )
+                into "$buildDir/repo"
+            }
+        }
+    }
+}
+
+test {
+    dependsOn loadDistributionCache
+    systemProperty "ballerina.home", "$buildDir/"
+    systemProperty "experimental", "true"
+    systemProperty "ballerina.version", project.version
+    useTestNG() {
+        suites 'src/test/resources/testng.xml'
+    }
+}

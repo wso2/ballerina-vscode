@@ -393,7 +393,7 @@ public class Type {
         return type;
     }
 
-    public static Type getAlreadyVisitedType(Symbol symbol, String typeName, VisitedType visitedType,
+    private static Type getAlreadyVisitedType(Symbol symbol, String typeName, VisitedType visitedType,
                                               boolean getClone) {
         if (visitedType.isCompleted()) {
             Type existingType = visitedType.getTypeNode();

@@ -415,7 +415,7 @@ public class RefType {
                         existingType.getDisplayAnnotation(), existingType.getDocumentation());
             }
             if (existingType instanceof RefRecordType recordType) {
-                return new RefRecordType(recordType);
+                return new RefRecordType(recordType, true);
             }
             return existingType;
         } else {

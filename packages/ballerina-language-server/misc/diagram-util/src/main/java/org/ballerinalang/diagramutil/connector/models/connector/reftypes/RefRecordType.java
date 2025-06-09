@@ -53,33 +53,6 @@ public class RefRecordType extends RefType {
         }
     }
 
-    public RefRecordType(List<RefType> fields, RefType restType, Map<String, RefType> dependentTypes){
-        this.typeName = "record";
-        this.fields = fields;
-        this.restType = restType;
-        if (restType != null) {
-            this.hasRestType = true;
-        }
-        this.dependentTypes = dependentTypes;
-    }
-
-    public RefRecordType(RefRecordType recordType) {
-        this.typeName = recordType.typeName;
-        this.name = recordType.name;
-        this.fields = recordType.fields;
-        this.optional = recordType.optional;
-        this.typeInfo = recordType.typeInfo;
-        this.defaultable = recordType.defaultable;
-        this.defaultValue = recordType.defaultValue;
-        this.displayAnnotation = recordType.displayAnnotation;
-        this.documentation = recordType.documentation;
-        this.restType = recordType.restType;
-        if (restType != null) {
-            this.hasRestType = true;
-        }
-        this.dependentTypes = recordType.dependentTypes;
-    }
-
     public RefRecordType(RefRecordType recordType, Boolean needDependentTypes) {
         this.typeName = recordType.typeName;
         this.name = recordType.name;
@@ -94,7 +67,7 @@ public class RefRecordType extends RefType {
         if (restType != null) {
             this.hasRestType = true;
         }
-        if(needDependentTypes){
+        if (needDependentTypes){
             this.dependentTypes = recordType.dependentTypes;
         }
     }

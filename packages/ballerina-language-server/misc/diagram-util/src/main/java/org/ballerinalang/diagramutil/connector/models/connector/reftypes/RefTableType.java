@@ -24,7 +24,7 @@ import java.util.List;
 
 
 /**
- * Map type model.
+ * Table type model.
  */
 public class RefTableType extends RefType {
     @Expose
