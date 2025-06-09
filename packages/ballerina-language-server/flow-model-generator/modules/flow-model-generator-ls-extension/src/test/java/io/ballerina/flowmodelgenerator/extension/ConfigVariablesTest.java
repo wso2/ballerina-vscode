@@ -84,7 +84,7 @@ public class ConfigVariablesTest extends AbstractLSTest {
         if (assertFalse) {
             ConfigVariablesTestConfig updatedConfig = new ConfigVariablesTestConfig(testConfig.project(),
                     actualFlowNodes);
-            updateConfig(configJsonPath, updatedConfig);
+//            updateConfig(configJsonPath, updatedConfig);
             Assert.fail(String.format("Failed test: '%s'", configJsonPath));
         }
     }

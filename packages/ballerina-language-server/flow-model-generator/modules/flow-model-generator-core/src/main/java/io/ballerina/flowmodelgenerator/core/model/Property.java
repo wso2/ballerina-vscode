@@ -210,8 +210,8 @@ public record Property(Metadata metadata, String valueType, Object valueTypeCons
     public static final String CONFIG_VALUE_DOC = "Config value of the variable, to be used in Config.toml";
 
     public static final String CONFIG_VAR_DOC_KEY = "documentation";
-    public static final String CONFIG_VAR_DOC_LABEL = "Description";
-    public static final String CONFIG_VAR_DOC_DOC = "Documentation for the variable, provided in Markdown format.";
+    public static final String CONFIG_VAR_DOC_LABEL = "Documentation";
+    public static final String CONFIG_VAR_DOC_DOC = "Variable documentation in Markdown format";
 
     public static final String PARAMETER_LABEL = "Parameter";
     public static final String PARAMETER_DOC = "Function parameter";

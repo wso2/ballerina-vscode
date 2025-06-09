@@ -84,8 +84,8 @@
         },
         "documentation": {
           "metadata": {
-            "label": "Description",
-            "description": "Documentation for the variable, provided in Markdown format."
+            "label": "Documentation",
+            "description": "Variable documentation in Markdown format."
           },
           "valueType": "STRING",
           "value": "",

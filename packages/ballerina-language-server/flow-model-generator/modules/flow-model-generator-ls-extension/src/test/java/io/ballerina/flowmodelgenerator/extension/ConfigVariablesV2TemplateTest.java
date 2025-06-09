@@ -45,7 +45,7 @@ public class ConfigVariablesV2TemplateTest extends AbstractLSTest {
         ConfigVariableResponse actualResponse = gson.fromJson(getResponse(request), ConfigVariableResponse.class);
 
         if (!actualResponse.flowNode().equals(testConfig.flowNode())) {
-//            updateConfig(configJsonPath, new TestConfig(actualResponse.flowNode()));
+//            updateConfig(configJsonPath, new TestConfig(request.isNew(), actualResponse.flowNode()));
             Assert.fail(String.format("Failed test: '%s'", configJsonPath));
         }
     }

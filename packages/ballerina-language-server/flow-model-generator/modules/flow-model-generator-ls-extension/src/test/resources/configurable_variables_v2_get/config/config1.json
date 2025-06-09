@@ -80,8 +80,8 @@
             },
             "documentation": {
               "metadata": {
-                "label": "Description",
-                "description": "Documentation for the variable, provided in Markdown format."
+                "label": "Documentation",
+                "description": "Variable documentation in Markdown format"
               },
               "valueType": "STRING",
               "value": "Configurable variable with integer value.",
@@ -171,8 +171,8 @@
             },
             "documentation": {
               "metadata": {
-                "label": "Description",
-                "description": "Documentation for the variable, provided in Markdown format."
+                "label": "Documentation",
+                "description": "Variable documentation in Markdown format"
               },
               "valueType": "STRING",
               "value": "",
@@ -262,8 +262,8 @@
             },
             "documentation": {
               "metadata": {
-                "label": "Description",
-                "description": "Documentation for the variable, provided in Markdown format."
+                "label": "Documentation",
+                "description": "Variable documentation in Markdown format"
               },
               "valueType": "STRING",
               "value": "",
@@ -353,8 +353,8 @@
             },
             "documentation": {
               "metadata": {
-                "label": "Description",
-                "description": "Documentation for the variable, provided in Markdown format."
+                "label": "Documentation",
+                "description": "Variable documentation in Markdown format"
               },
               "valueType": "STRING",
               "value": "",
@@ -444,8 +444,8 @@
             },
             "documentation": {
               "metadata": {
-                "label": "Description",
-                "description": "Documentation for the variable, provided in Markdown format."
+                "label": "Documentation",
+                "description": "Variable documentation in Markdown format"
               },
               "valueType": "STRING",
               "value": "Configurable variable with array value.",
@@ -535,8 +535,8 @@
             },
             "documentation": {
               "metadata": {
-                "label": "Description",
-                "description": "Documentation for the variable, provided in Markdown format."
+                "label": "Documentation",
+                "description": "Variable documentation in Markdown format"
               },
               "valueType": "STRING",
               "value": "Configurable variable with record value.",
@@ -626,8 +626,8 @@
             },
             "documentation": {
               "metadata": {
-                "label": "Description",
-                "description": "Documentation for the variable, provided in Markdown format."
+                "label": "Documentation",
+                "description": "Variable documentation in Markdown format"
               },
               "valueType": "STRING",
               "value": "",
