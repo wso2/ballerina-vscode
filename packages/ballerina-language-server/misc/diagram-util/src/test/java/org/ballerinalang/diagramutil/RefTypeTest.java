@@ -46,7 +46,7 @@ public class RefTypeTest {
     public Object[][] getConfigsList() {
         return new Object[][]{
                 new Object[]{
-                        TestUtil.RES_DIR.resolve("RefTypeTest/TestData/sample1.json")
+                        TestUtil.RES_DIR.resolve("RefTypeTest/TestData/sample4.json")
                 }
         };
     }
@@ -76,7 +76,7 @@ public class RefTypeTest {
                 .findFirst()
                 .orElseThrow(() -> new RuntimeException("Type symbol '" + typeSymbolName + "' not found"));
 
-        RefType refType = RefType.fromSemanticSymbolV2(typeSymbol);
+        RefType refType = RefType.fromSemanticSymbol(typeSymbol);
         String refTypeJson = gson.toJson(refType).concat(System.lineSeparator());
         String expectedRefTypeJson = gson.toJson(jsonObject.get("refType")).concat(System.lineSeparator());
 
