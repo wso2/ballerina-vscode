@@ -43,6 +43,7 @@ import java.util.Set;
  * @param editable            whether the property is not readonly
  * @param advanced            whether the property should be shown in the advanced tab
  * @param hidden              whether the property should be hidden
+ * @param modified            Whether the property is modified in the UI.
  * @param diagnostics         diagnostics of the property
  * @param codedata            codedata of the property
  * @param typeMembers         member types of the type constrain
@@ -52,12 +53,13 @@ import java.util.Set;
  */
 public record Property(Metadata metadata, String valueType, Object valueTypeConstraint, Object value,
                        String placeholder, boolean optional, boolean editable, boolean advanced, boolean hidden,
-                       Diagnostics diagnostics, PropertyCodedata codedata, List<PropertyTypeMemberInfo> typeMembers,
-                       Object advancedValue, Map<String, String> imports) {
+                       Boolean modified, Diagnostics diagnostics, PropertyCodedata codedata,
+                       List<PropertyTypeMemberInfo> typeMembers, Object advancedValue, Map<String, String> imports) {
 
     private static final Gson gson = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
 
-    public static final TypeToken<List<Property>> LIST_PROPERTY_TYPE_TOKEN = new TypeToken<List<Property>>() { };
+    public static final TypeToken<List<Property>> LIST_PROPERTY_TYPE_TOKEN = new TypeToken<List<Property>>() {
+    };
 
     @SuppressWarnings("unchecked")
     public <T> T valueAsType(TypeToken<T> typeToken) {
@@ -199,10 +201,17 @@ public record Property(Metadata metadata, String valueType, Object valueTypeCons
     public static final String RETRY_COUNT_LABEL = "Retry Count";
     public static final String RETRY_COUNT_DOC = "Number of retries";
 
-    public static final String DEFAULTABLE_KEY = "defaultable";
-    public static final String DEFAULT_VALUE_LABEL = "Default value";
-    public static final String DEFAULT_VALUE_DOC = "Default value for the config, if empty your need to " +
-            "provide a value at runtime";
+    public static final String DEFAULT_VALUE_KEY = "defaultValue";
+    public static final String DEFAULT_VALUE_LABEL = "Default Value";
+    public static final String DEFAULT_VALUE_DOC = "Default value of the variable";
+
+    public static final String CONFIG_VALUE_KEY = "configValue";
+    public static final String CONFIG_VALUE_LABEL = "Config Value";
+    public static final String CONFIG_VALUE_DOC = "Config value of the variable, to be used in Config.toml";
+
+    public static final String CONFIG_VAR_DOC_KEY = "documentation";
+    public static final String CONFIG_VAR_DOC_LABEL = "Documentation";
+    public static final String CONFIG_VAR_DOC_DOC = "Variable documentation in Markdown format";
 
     public static final String PARAMETER_LABEL = "Parameter";
     public static final String PARAMETER_DOC = "Function parameter";
@@ -263,6 +272,7 @@ public record Property(Metadata metadata, String valueType, Object valueTypeCons
         private boolean editable;
         private boolean advanced;
         private boolean hidden;
+        private Boolean modified;
         private Object typeConstraint;
         private Metadata.Builder<Builder<T>> metadataBuilder;
         private Diagnostics.Builder<Builder<T>> diagnosticsBuilder;
@@ -313,6 +323,11 @@ public record Property(Metadata metadata, String valueType, Object valueTypeCons
 
         public Builder<T> advanced(boolean advanced) {
             this.advanced = advanced;
+            return this;
+        }
+
+        public Builder<T> modified(Boolean modified) {
+            this.modified = modified;
             return this;
         }
 
@@ -402,7 +417,7 @@ public record Property(Metadata metadata, String valueType, Object valueTypeCons
 
         public Property build() {
             Property property = new Property(metadataBuilder == null ? null : metadataBuilder.build(), type,
-                    typeConstraint, value, placeholder, optional, editable, advanced, hidden,
+                    typeConstraint, value, placeholder, optional, editable, advanced, hidden, modified,
                     diagnosticsBuilder == null ? null : diagnosticsBuilder.build(),
                     codedataBuilder == null ? null : codedataBuilder.build(), typeMembers, advancedValue,
                     imports == null ? null : imports);
