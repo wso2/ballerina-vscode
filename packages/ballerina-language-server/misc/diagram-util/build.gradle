@@ -1,32 +1,34 @@
 /*
- * Copyright (c) 2020, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ *  Copyright (c) 2025, WSO2 LLC. (http://www.wso2.com)
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ *  WSO2 LLC. licenses this file to you under the Apache License,
+ *  Version 2.0 (the "License"); you may not use this file except
+ *  in compliance with the License.
+ *  You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *
+ *  Unless required by applicable law or agreed to in writing,
+ *  software distributed under the License is distributed on an
+ *  "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ *  KIND, either express or implied.  See the License for the
+ *  specific language governing permissions and limitations
+ *  under the License.
  */
 
 apply from: "$rootDir/gradle/javaProject.gradle"
+apply plugin: "com.github.johnrengelman.shadow"
 apply plugin: "java"
 
+configurations.all {
+    resolutionStrategy.preferProjectModules()
+}
+
 configurations {
+    balTools
     dist {
-        transitive false
+        transitive true
     }
-    dependency {
-        transitive false
-    }
-    libs
-    distributionBala
 }
 
 dependencies {
@@ -41,36 +43,134 @@ dependencies {
     testImplementation "org.testng:testng:${testngVersion}"
 }
 
-description = 'Diagram utils for Syntax tree JSON generation'
+ext.moduleName = 'io.ballerina.language-server-commons.extension'
+jar {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    dependsOn configurations.dist
+    from { configurations.dist.collect { it.isDirectory() ? it : zipTree(it) } } {
+        exclude 'META-INF/*.RSA', 'META-INF/*.SF', 'META-INF/*.DSA'
+    }
+}
 
-ext.moduleName = 'diagram-util'
-
-sourceSets {
-    test {
-        resources {
-            srcDirs = ['src/test/resources']
+tasks.register('copyRuntime') {
+    dependsOn configurations.dist
+    doFirst {
+        configurations.dist.each { artifact ->
+            copy {
+                from artifact.getPath()
+                into "$buildDir/bre/lib"
+            }
         }
     }
 }
 
-tasks.register('loadDistributionCache') {
-    dependsOn configurations.distributionBala
+def balDistribution = file("$project.buildDir/jballerina-tools-${ballerinaLangVersion}")
+
+task unpackJballerinaTools {
+    project.configurations.each { configuration ->
+        if (configuration.name == "externalJars") {
+            dependsOn(project.copyToLib)
+        }
+    }
+
     doLast {
-        configurations.distributionBala.each { artifact ->
+        project.configurations.jbalTools.resolvedConfiguration.resolvedArtifacts.each { artifact ->
+            project.copy {
+                from project.zipTree(artifact.getFile())
+                into new File("${project.buildDir}/")
+            }
+        }
+    }
+}
+
+task unpackStdLibs() {
+    dependsOn(unpackJballerinaTools)
+    doLast {
+        configurations.ballerinaStdLibs.resolvedConfiguration.resolvedArtifacts.each { artifact ->
             copy {
-                from zipTree( artifact.getPath() )
-                into "$buildDir/repo"
+                from project.zipTree(artifact.getFile())
+                into new File("${project.buildDir}/extracted-stdlibs/" + artifact.name + "-zip")
+            }
+        }
+    }
+}
+
+task copyStdlibs() {
+    dependsOn(unpackStdLibs)
+    doLast {
+        /* Standard Libraries */
+        configurations.ballerinaStdLibs.resolvedConfiguration.resolvedArtifacts.each { artifact ->
+            def artifactExtractedPath = "${project.buildDir}/extracted-stdlibs/" + artifact.name + '-zip'
+            project.copy {
+                def ballerinaDist = "build/jballerina-tools-${project.ballerinaLangVersion}"
+                into ballerinaDist
+                into('repo/bala') {
+                    from "${artifactExtractedPath}/bala"
+                }
+                into('repo/cache') {
+                    from "${artifactExtractedPath}/cache"
+                }
+            }
+        }
+    }
+}
+
+task buildAndCopyLangserverStdlib() {
+    dependsOn ':langserver-stdlib:build'
+
+    doLast {
+        // Get all .bala files from the source directory
+        fileTree("${rootProject.project(':langserver-stdlib').buildDir}/ballerina-src/target/bala").include("**/*.bala").each { balaFile ->
+            // Parse the bala filename to extract organization, package, jdk, and version
+            // Format: <org>-<package>-<jdk>-<version>.bala
+            def fileName = balaFile.name.replace('.bala', '')
+            def parts = fileName.split('-')
+
+            if (parts.length >= 4) {
+                def org = parts[0]
+                def version = parts[parts.length - 1]
+                def jdk = parts[parts.length - 2]
+                // Package name could be multiple parts joined with hyphens
+                def packageParts = parts[1..(parts.length - 3)]
+                def packageName = packageParts.join('-')
+
+                // Create directory structure: <org>/<package>/<version>/<jdk>
+                def targetDir = "${project.buildDir}/jballerina-tools-${project.ballerinaLangVersion}/repo/bala/${org}/${packageName}/${version}/${jdk}"
+
+                // Extract the .bala file to the destination directory
+                // .bala files are ZIP archives, so we can use zipTree to extract them
+                copy {
+                    from zipTree(balaFile)
+                    into targetDir
+                }
+
+                println "Extracted ${balaFile.name} to ${targetDir}"
+            } else {
+                println "Warning: Bala file ${balaFile.name} does not match the expected format <org>-<package>-<jdk>-<version>.bala"
             }
         }
     }
 }
 
 test {
-    dependsOn loadDistributionCache
-    systemProperty "ballerina.home", "$buildDir/"
-    systemProperty "experimental", "true"
-    systemProperty "ballerina.version", project.version
+    dependsOn copyRuntime
+    dependsOn unpackJballerinaTools
+    dependsOn buildAndCopyLangserverStdlib
+
+    systemProperty "ballerina.home", balDistribution
+    systemProperty "responseTimeThreshold", 2000
+
     useTestNG() {
-        suites 'src/test/resources/testng.xml'
+        suites "src/test/resources/testng.xml"
     }
 }
+
+compileJava {
+    doFirst {
+        options.compilerArgs = [
+                '--module-path', classpath.asPath,
+        ]
+        classpath = files()
+    }
+}
+

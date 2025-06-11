@@ -15,10 +15,15 @@
  */
 package org.ballerinalang.diagramutil;
 
-import com.google.gson.*;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.compiler.api.symbols.Symbol;
-import io.ballerina.projects.*;
+import io.ballerina.projects.ModuleId;
+import io.ballerina.projects.PackageCompilation;
 import io.ballerina.projects.directory.BuildProject;
 import org.ballerinalang.diagramutil.connector.models.connector.RefType;
 import org.testng.Assert;
@@ -31,9 +36,9 @@ import java.nio.file.Path;
 import java.util.Optional;
 
 /**
- * Test for Reference-Based Types
+ * Test for Reference-Based Types.
  */
-public class RefTypeTest{
+public class RefTypeTest {
 
     protected final Gson gson = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
 
@@ -75,9 +80,11 @@ public class RefTypeTest{
         String refTypeJson = gson.toJson(refType).concat(System.lineSeparator());
         String expectedRefTypeJson = gson.toJson(jsonObject.get("refType")).concat(System.lineSeparator());
 
-        if( !refTypeJson.equals(expectedRefTypeJson)) {
-            updateConfig(jsonPath, refTypeJson);
-            Assert.fail(String.format("Reference type JSON does not match.\n Expected : %s\n Received %s", expectedRefTypeJson, refTypeJson));
+        if (!refTypeJson.equals(expectedRefTypeJson)) {
+//            updateConfig(jsonPath, refTypeJson);
+            Assert.fail(
+                    String.format("Reference type JSON does not match.\n Expected : %s\n Received %s",
+                            expectedRefTypeJson, refTypeJson));
         }
     }
 

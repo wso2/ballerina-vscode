@@ -20,11 +20,57 @@ package org.ballerinalang.diagramutil.connector.models.connector;
 import com.google.gson.annotations.Expose;
 import io.ballerina.compiler.api.ModuleID;
 import io.ballerina.compiler.api.SemanticModel;
-import io.ballerina.compiler.api.symbols.*;
-import io.ballerina.compiler.syntax.tree.*;
-import org.ballerinalang.diagramutil.connector.models.connector.reftypes.*;
+import io.ballerina.compiler.api.symbols.ArrayTypeSymbol;
+import io.ballerina.compiler.api.symbols.Documentation;
+import io.ballerina.compiler.api.symbols.ErrorTypeSymbol;
+import io.ballerina.compiler.api.symbols.IntersectionTypeSymbol;
+import io.ballerina.compiler.api.symbols.MapTypeSymbol;
+import io.ballerina.compiler.api.symbols.ObjectTypeSymbol;
+import io.ballerina.compiler.api.symbols.ParameterKind;
+import io.ballerina.compiler.api.symbols.ParameterSymbol;
+import io.ballerina.compiler.api.symbols.RecordFieldSymbol;
+import io.ballerina.compiler.api.symbols.RecordTypeSymbol;
+import io.ballerina.compiler.api.symbols.StreamTypeSymbol;
+import io.ballerina.compiler.api.symbols.Symbol;
+import io.ballerina.compiler.api.symbols.SymbolKind;
+import io.ballerina.compiler.api.symbols.TableTypeSymbol;
+import io.ballerina.compiler.api.symbols.TypeDefinitionSymbol;
+import io.ballerina.compiler.api.symbols.TypeReferenceTypeSymbol;
+import io.ballerina.compiler.api.symbols.TypeSymbol;
+import io.ballerina.compiler.api.symbols.UnionTypeSymbol;
+import io.ballerina.compiler.api.symbols.VariableSymbol;
+import io.ballerina.compiler.syntax.tree.ArrayTypeDescriptorNode;
+import io.ballerina.compiler.syntax.tree.BuiltinSimpleNameReferenceNode;
+import io.ballerina.compiler.syntax.tree.IntersectionTypeDescriptorNode;
+import io.ballerina.compiler.syntax.tree.MapTypeDescriptorNode;
+import io.ballerina.compiler.syntax.tree.Node;
+import io.ballerina.compiler.syntax.tree.OptionalTypeDescriptorNode;
+import io.ballerina.compiler.syntax.tree.RecordFieldNode;
+import io.ballerina.compiler.syntax.tree.RecordTypeDescriptorNode;
+import io.ballerina.compiler.syntax.tree.StreamTypeDescriptorNode;
+import io.ballerina.compiler.syntax.tree.StreamTypeParamsNode;
+import io.ballerina.compiler.syntax.tree.SyntaxKind;
+import io.ballerina.compiler.syntax.tree.TableTypeDescriptorNode;
+import io.ballerina.compiler.syntax.tree.UnionTypeDescriptorNode;
+import org.ballerinalang.diagramutil.connector.models.connector.reftypes.RefArrayType;
+import org.ballerinalang.diagramutil.connector.models.connector.reftypes.RefEnumType;
+import org.ballerinalang.diagramutil.connector.models.connector.reftypes.RefErrorType;
+import org.ballerinalang.diagramutil.connector.models.connector.reftypes.RefInclusionType;
+import org.ballerinalang.diagramutil.connector.models.connector.reftypes.RefIntersectionType;
+import org.ballerinalang.diagramutil.connector.models.connector.reftypes.RefMapType;
+import org.ballerinalang.diagramutil.connector.models.connector.reftypes.RefObjectType;
+import org.ballerinalang.diagramutil.connector.models.connector.reftypes.RefPrimitiveType;
+import org.ballerinalang.diagramutil.connector.models.connector.reftypes.RefRecordType;
+import org.ballerinalang.diagramutil.connector.models.connector.reftypes.RefStreamType;
+import org.ballerinalang.diagramutil.connector.models.connector.reftypes.RefTableType;
+import org.ballerinalang.diagramutil.connector.models.connector.reftypes.RefUnionType;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -53,15 +99,15 @@ public class RefType {
     @Expose
     public String defaultValue;
     @Expose
-    public Map<String, String> displayAnnotation;//No need for data mapper
+    public Map<String, String> displayAnnotation; //No need for data-mapper
     @Expose
-    public String documentation;//No need for data mapper
+    public String documentation; //No need for data-mapper
     @Expose
     public boolean isRestType;
     @Expose
-    public String value;//No need for data mapper
+    public String value; //No need for data-mapper
     @Expose
-    public boolean selected = false;//No need for data mapper
+    public boolean selected = false; //No need for data-mapper
 
 
 
@@ -69,7 +115,7 @@ public class RefType {
 
     }
 
-    public RefType(String name, String typeName){
+    public RefType(String name, String typeName) {
         this.name = name;
         this.typeName = typeName;
     }
@@ -258,7 +304,8 @@ public class RefType {
         return null;
     }
 
-    public static void completeVisitedTypeEntry(String typeName, RefType typeNode, Map<String, RefType> dependentTypes) {
+    public static void completeVisitedTypeEntry(String typeName, RefType typeNode,
+                                                Map<String, RefType> dependentTypes) {
         RefVisitedType visitedType = visitedTypeMap.get(typeName);
         typeNode.dependentTypes = new HashMap<>();
         for (Map.Entry<String, RefType> entry : dependentTypes.entrySet()) {
@@ -287,10 +334,12 @@ public class RefType {
     }
 
     private static RefType fromSemanticSymbolV2(Symbol symbol, Map<String, String> documentationMap,
-                                              SemanticModel semanticModel, Map<String,RefType> dependentTypes, boolean isRoot) {
+                                              SemanticModel semanticModel, Map<String, RefType> dependentTypes,
+                                                boolean isRoot) {
         RefType type = null;
         if (symbol instanceof TypeReferenceTypeSymbol typeReferenceTypeSymbol) {
-            type = getEnumType(typeReferenceTypeSymbol, symbol, documentationMap, semanticModel, dependentTypes, isRoot);
+            type = getEnumType(typeReferenceTypeSymbol, symbol,
+                    documentationMap, semanticModel, dependentTypes, isRoot);
         } else if (symbol instanceof RecordTypeSymbol recordTypeSymbol) {
             String typeName = String.valueOf(recordTypeSymbol.hashCode());
             RefVisitedType visitedType = getVisitedType(typeName);
@@ -360,7 +409,8 @@ public class RefType {
             type = getStreamType(streamTypeSymbol, documentationMap, semanticModel);
         } else if (symbol instanceof ObjectTypeSymbol objectTypeSymbol) {
             RefObjectType objectType = new RefObjectType();
-            objectTypeSymbol.fieldDescriptors().forEach((typeName, typeSymbol) -> {
+            objectTypeSymbol.fieldDescriptors()
+                    .forEach((typeName, typeSymbol) -> {
                 RefType semanticSymbol = fromSemanticSymbolV2(typeSymbol, documentationMap, semanticModel);
                 if (semanticSymbol != null) {
                     objectType.fields.add(semanticSymbol);
@@ -381,7 +431,8 @@ public class RefType {
                 type.defaultable = parameterSymbol.paramKind() == ParameterKind.DEFAULTABLE;
             }
         } else if (symbol instanceof VariableSymbol variableSymbol) {
-            type = fromSemanticSymbolV2(variableSymbol.typeDescriptor(), documentationMap, semanticModel, dependentTypes, isRoot);
+            type = fromSemanticSymbolV2(variableSymbol.typeDescriptor(),
+                    documentationMap, semanticModel, dependentTypes, isRoot);
         } else if (symbol instanceof TypeSymbol typeSymbol) {
             String typeName = typeSymbol.signature();
             if (typeName.startsWith("\"") && typeName.endsWith("\"")) {
@@ -467,9 +518,10 @@ public class RefType {
         List<RefType> fields = new ArrayList<>();
         collectRecordDocumentation(recordTypeSymbol, semanticModel, documentationMap);
         recordTypeSymbol.fieldDescriptors().forEach((name, field) -> {
-            RefType subType = fromSemanticSymbolV2(field.typeDescriptor(), documentationMap, semanticModel, dependentTypes, false);
+            RefType subType = fromSemanticSymbolV2(field.typeDescriptor(),
+                    documentationMap, semanticModel, dependentTypes, false);
             if (subType != null) {
-                if(subType instanceof RefPrimitiveType){
+                if (subType instanceof RefPrimitiveType) {
                     subType.setName(name);
                     subType.setOptional(field.isOptional());
                     subType.setDefaultable(field.hasDefaultValue());
@@ -478,7 +530,8 @@ public class RefType {
                 } else if (subType instanceof RefRecordType) {
                     RefType recordSubType = new RefType(name, subType.getName());
                     TypeInfo typeInfo = subType.getTypeInfo();
-                    String hashCode = String.valueOf((typeInfo.name + typeInfo.orgName + typeInfo.moduleName + typeInfo.version).hashCode());
+                    String hashCode = String.valueOf(
+                            (typeInfo.name + typeInfo.orgName + typeInfo.moduleName + typeInfo.version).hashCode());
                     recordSubType.setHashCode(hashCode);
                     fields.add(recordSubType);
                     RefType depType = new RefRecordType((RefRecordType) subType, false);
@@ -496,7 +549,8 @@ public class RefType {
             }
         });
         RefType restType = recordTypeSymbol.restTypeDescriptor().isPresent() ?
-                fromSemanticSymbolV2(recordTypeSymbol.restTypeDescriptor().get(), documentationMap, semanticModel, dependentTypes, false) : null;
+                fromSemanticSymbolV2(recordTypeSymbol.restTypeDescriptor().get(),
+                        documentationMap, semanticModel, dependentTypes, false) : null;
         type = new RefRecordType(fields, restType);
         return type;
     }
@@ -511,7 +565,8 @@ public class RefType {
                         "", includedType.getName().get());
                 if (typeByName.isPresent() && typeByName.get() instanceof TypeDefinitionSymbol typeDefinitionSymbol) {
                     Optional<Documentation> documentation = typeDefinitionSymbol.documentation();
-                    documentation.ifPresent(documentation1 -> documentationMap.putAll(documentation1.parameterMap()));
+                    documentation.ifPresent(documentation1
+                            -> documentationMap.putAll(documentation1.parameterMap()));
                 }
             }
         });
@@ -526,20 +581,24 @@ public class RefType {
     }
 
     private static RefType getEnumType(TypeReferenceTypeSymbol typeReferenceTypeSymbol, Symbol symbol,
-                                       Map<String, String> documentationMap, SemanticModel semanticModel, Map<String, RefType> dependentTypes, boolean isRoot) {
+                                       Map<String, String> documentationMap,
+                                       SemanticModel semanticModel, Map<String, RefType> dependentTypes,
+                                       boolean isRoot) {
         RefType type;
         if (typeReferenceTypeSymbol.definition().kind().equals(SymbolKind.ENUM)) {
             List<RefType> fields = new ArrayList<>();
             ((UnionTypeSymbol) typeReferenceTypeSymbol.typeDescriptor()).memberTypeDescriptors()
                     .forEach(typeSymbol -> {
-                        RefType semanticSymbol = fromSemanticSymbolV2(typeSymbol, documentationMap, semanticModel, dependentTypes, isRoot);
+                        RefType semanticSymbol = fromSemanticSymbolV2(typeSymbol,
+                                documentationMap, semanticModel, dependentTypes, isRoot);
                         if (semanticSymbol != null) {
                             fields.add(semanticSymbol);
                         }
                     });
             type = new RefEnumType(fields);
         } else {
-            type = fromSemanticSymbolV2(typeReferenceTypeSymbol.typeDescriptor(), documentationMap, semanticModel, dependentTypes, isRoot);
+            type = fromSemanticSymbolV2(typeReferenceTypeSymbol.typeDescriptor(),
+                    documentationMap, semanticModel, dependentTypes, isRoot);
         }
         setTypeInfo(typeReferenceTypeSymbol.getName().isPresent() ? typeReferenceTypeSymbol.getName().get()
                 : null, symbol, type);

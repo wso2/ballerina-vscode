@@ -21,7 +21,6 @@ import com.google.gson.annotations.Expose;
 import org.ballerinalang.diagramutil.connector.models.connector.RefType;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -67,7 +66,7 @@ public class RefRecordType extends RefType {
         if (restType != null) {
             this.hasRestType = true;
         }
-        if (needDependentTypes){
+        if (needDependentTypes) {
             this.dependentTypes = recordType.dependentTypes;
         }
     }

@@ -14,7 +14,7 @@
         "selected": false
       },
       {
-        "hashCode": "SampleRecord",
+        "hashCode": "625390834",
         "name": "sampleRecord",
         "typeName": "SampleRecord",
         "optional": false,
@@ -25,7 +25,7 @@
     ],
     "hasRestType": false,
     "dependentTypes": {
-      "SampleType": {
+      "-1165196247": {
         "fields": [
           {
             "name": "sampleTypeName",
@@ -60,7 +60,7 @@
         "isRestType": false,
         "selected": false
       },
-      "SampleRecord": {
+      "625390834": {
         "fields": [
           {
             "name": "sampleRecordName",
@@ -72,7 +72,7 @@
             "selected": false
           },
           {
-            "hashCode": "SampleType",
+            "hashCode": "-1165196247",
             "name": "recordType",
             "typeName": "SampleType",
             "optional": false,
