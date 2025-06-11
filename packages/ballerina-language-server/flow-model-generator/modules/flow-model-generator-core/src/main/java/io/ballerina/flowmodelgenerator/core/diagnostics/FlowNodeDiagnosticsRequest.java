@@ -32,17 +32,15 @@ import io.ballerina.flowmodelgenerator.core.model.SourceBuilder;
 import io.ballerina.modelgenerator.commons.ModuleInfo;
 import io.ballerina.projects.Document;
 import io.ballerina.projects.Project;
+import io.ballerina.tools.text.LinePosition;
 import io.ballerina.tools.text.TextDocument;
+import io.ballerina.tools.text.TextDocumentChange;
 import io.ballerina.tools.text.TextRange;
-import org.ballerinalang.langserver.commons.eventsync.exceptions.EventSyncException;
-import org.ballerinalang.langserver.commons.workspace.WorkspaceDocumentException;
 import org.ballerinalang.langserver.commons.workspace.WorkspaceManager;
-import org.eclipse.lsp4j.Diagnostic;
 import org.eclipse.lsp4j.TextEdit;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -107,28 +105,26 @@ public class FlowNodeDiagnosticsRequest implements DebouncedDiagnosticsRequest<J
             if (lspEdits != null) {
                 for (TextEdit edit : lspEdits) {
                     // Convert LSP TextEdit to Ballerina TextEdit
-                    start = textDocument.textPositionFrom(io.ballerina.tools.text.LinePosition.from(
-                            edit.getRange().getStart().getLine(),
+                    int startLine = edit.getRange().getStart().getLine();
+                    start = textDocument.textPositionFrom(LinePosition.from(
+                            startLine,
                             edit.getRange().getStart().getCharacter()
                     ));
-                    end = textDocument.textPositionFrom(io.ballerina.tools.text.LinePosition.from(
+                    end = textDocument.textPositionFrom(LinePosition.from(
                             edit.getRange().getEnd().getLine(),
-                            edit.getRange().getEnd().getCharacter()
+                            startLine + edit.getNewText().length()
                     ));
                     ballerinaEdits.add(io.ballerina.tools.text.TextEdit.from(
-                            io.ballerina.tools.text.TextRange.from(start, end - start),
+                            TextRange.from(start, end - start),
                             edit.getNewText()
                     ));
                 }
             }
 
-            io.ballerina.tools.text.TextDocument newTextDocument = textDocument;
+            TextDocument newTextDocument = textDocument;
             if (!ballerinaEdits.isEmpty()) {
                 newTextDocument = textDocument.apply(
-                        io.ballerina.tools.text.TextDocumentChange.from(
-                                ballerinaEdits.toArray(new io.ballerina.tools.text.TextEdit[0])
-                        )
-                );
+                        TextDocumentChange.from(ballerinaEdits.toArray(new io.ballerina.tools.text.TextEdit[0])));
             }
 
             // Update the document in the project with the new content

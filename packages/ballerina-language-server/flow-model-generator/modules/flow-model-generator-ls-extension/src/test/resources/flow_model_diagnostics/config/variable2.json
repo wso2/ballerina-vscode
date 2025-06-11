@@ -1,5 +1,5 @@
 {
-  "source": "simple_source.bal",
+  "source": "variable.bal",
   "description": "Test diagnostics with simple flow node",
   "flowNode": {
     "id": "35987",
@@ -30,7 +30,7 @@
           "description": "Initialize with value"
         },
         "valueType": "ACTION_OR_EXPRESSION",
-        "value": "\"hello\"",
+        "value": "12",
         "optional": true,
         "editable": true,
         "advanced": false,
@@ -79,7 +79,7 @@
     "flags": 0
   },
   "output": {
-    "id": "34864",
+    "id": "34859",
     "metadata": {
       "label": "Declare Variable",
       "description": "Assign a value to a variable"
@@ -87,17 +87,17 @@
     "codedata": {
       "node": "VARIABLE",
       "lineRange": {
-        "fileName": "simple_source.bal",
+        "fileName": "variable.bal",
         "startLine": {
           "line": 3,
           "offset": 4
         },
         "endLine": {
           "line": 3,
-          "offset": 20
+          "offset": 15
         }
       },
-      "sourceCode": "int s = \"hello\";"
+      "sourceCode": "int s = 12;"
     },
     "returning": false,
     "properties": {
@@ -107,20 +107,11 @@
           "description": "Initialize with value"
         },
         "valueType": "ACTION_OR_EXPRESSION",
-        "value": "\"hello\"",
+        "value": "12",
         "optional": true,
         "editable": true,
         "advanced": false,
-        "hidden": false,
-        "diagnostics": {
-          "hasDiagnostics": true,
-          "diagnostics": [
-            {
-              "severity": "ERROR",
-              "message": "incompatible types: expected 'int', found 'string'"
-            }
-          ]
-        }
+        "hidden": false
       },
       "variable": {
         "metadata": {
@@ -135,7 +126,7 @@
         "hidden": false,
         "codedata": {
           "lineRange": {
-            "fileName": "simple_source.bal",
+            "fileName": "variable.bal",
             "startLine": {
               "line": 3,
               "offset": 8
@@ -161,9 +152,6 @@
         "hidden": false,
         "codedata": {}
       }
-    },
-    "diagnostics": {
-      "hasDiagnostics": true
     },
     "flags": 0
   }

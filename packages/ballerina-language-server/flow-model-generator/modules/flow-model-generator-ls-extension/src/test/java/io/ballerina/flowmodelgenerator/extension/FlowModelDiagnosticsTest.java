@@ -22,6 +22,7 @@ import com.google.gson.JsonElement;
 import io.ballerina.flowmodelgenerator.extension.request.FlowModelSourceGeneratorRequest;
 import io.ballerina.modelgenerator.commons.AbstractLSTest;
 import org.testng.Assert;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import java.io.IOException;
@@ -40,12 +41,13 @@ public class FlowModelDiagnosticsTest extends AbstractLSTest {
     public void test(Path config) throws IOException {
         Path configJsonPath = configDir.resolve(config);
         TestConfig testConfig = gson.fromJson(Files.newBufferedReader(configJsonPath), TestConfig.class);
+        String sourcePath = getSourcePath(testConfig.source());
 
-        String filePath = testConfig.source() == null ? "" :
-                sourceDir.resolve(testConfig.source()).toAbsolutePath().toString();
+        notifyDidOpen(sourcePath);
         FlowModelSourceGeneratorRequest request =
-                new FlowModelSourceGeneratorRequest(filePath, testConfig.flowNode());
+                new FlowModelSourceGeneratorRequest(sourcePath, testConfig.flowNode());
         JsonElement flowNode = getResponse(request).get("flowNode");
+        notifyDidClose(sourcePath);
 
         if (!flowNode.equals(testConfig.output())) {
             TestConfig updateConfig = new TestConfig(testConfig.source(), testConfig.description(),
