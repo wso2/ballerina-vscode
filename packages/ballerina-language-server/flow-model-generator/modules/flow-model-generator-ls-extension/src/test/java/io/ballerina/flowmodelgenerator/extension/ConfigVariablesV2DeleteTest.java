@@ -54,7 +54,7 @@ public class ConfigVariablesV2DeleteTest extends AbstractLSTest {
         ConfigVariableDeleteResponse actualResponse = gson.fromJson(getResponse(request),
                 ConfigVariableDeleteResponse.class);
 
-        if (!isEqual(testConfig.response().textEdits(), actualResponse.textEdits())) {
+        if (!isEqual(testConfig.response().textEdits(), actualResponse.textEdits(), projectPath)) {
 //            updateConfig(configJsonPath, new TestConfig(
 //                    testConfig.description(),
 //                    testConfig.project(),
@@ -65,15 +65,17 @@ public class ConfigVariablesV2DeleteTest extends AbstractLSTest {
         }
     }
 
-    private boolean isEqual(Map<String, TextEdit[]> expected, Map<String, TextEdit[]> actual) {
+    private boolean isEqual(Map<String, TextEdit[]> expected, Map<String, TextEdit[]> actual, String projectPath) {
         if (expected.size() != actual.size()) {
             return false;
         }
 
         for (Map.Entry<String, TextEdit[]> entry : expected.entrySet()) {
-            String key = entry.getKey();
+            String expectedFilePath = entry.getKey();
             TextEdit[] expectedEdits = entry.getValue();
-            TextEdit[] actualEdits = actual.get(key);
+
+            String actualFilePath = Paths.get(projectPath, expectedFilePath).toAbsolutePath().toString();
+            TextEdit[] actualEdits = actual.get(actualFilePath);
             if (actualEdits == null || expectedEdits.length != actualEdits.length) {
                 return false;
             }
@@ -107,14 +109,18 @@ public class ConfigVariablesV2DeleteTest extends AbstractLSTest {
     }
 
     private record ConfigVariableDeleteResponse(Map<String, TextEdit[]> textEdits) {
+
     }
 
     private record TestConfig(String description, String project, Request request, Response response) {
+
     }
 
     private record Request(String packageName, String moduleName, String configFilePath, JsonElement configVariable) {
+
     }
 
     private record Response(Map<String, TextEdit[]> textEdits) {
+
     }
 }
