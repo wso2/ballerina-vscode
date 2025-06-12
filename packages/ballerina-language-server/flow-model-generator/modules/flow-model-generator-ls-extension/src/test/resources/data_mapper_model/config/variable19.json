@@ -168,6 +168,18 @@
         "diagnostics": [],
         "elements": []
       }
-    ]
+    ],
+    "query": {
+      "inputs": [
+        "userInfo"
+      ],
+      "fromClause": {
+        "typeDesc": "UserInfo",
+        "variableName": "item",
+        "collection": "userInfo"
+      },
+      "intermediateClauses": [],
+      "resultClause": "{username: item.username, password: item.password}"
+    }
   }
 }

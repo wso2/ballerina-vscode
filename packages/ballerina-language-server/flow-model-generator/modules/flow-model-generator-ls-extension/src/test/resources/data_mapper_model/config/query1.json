@@ -161,7 +161,20 @@
         "diagnostics": [],
         "elements": []
       }
-    ]
+    ],
+    "query": {
+      "output": "p.contactDetails.phoneNumbers",
+      "inputs": [
+        "u.info.secondaryPhones"
+      ],
+      "fromClause": {
+        "typeDesc": "string",
+        "variableName": "secondaryPhonesItem",
+        "collection": "u.info.secondaryPhones"
+      },
+      "intermediateClauses": [],
+      "resultClause": "secondaryPhonesItem"
+    }
   },
   "targetField": "p.contactDetails.phoneNumbers"
 }
