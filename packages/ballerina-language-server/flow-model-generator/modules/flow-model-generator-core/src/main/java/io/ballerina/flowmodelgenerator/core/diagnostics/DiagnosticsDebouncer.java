@@ -78,9 +78,7 @@ public class DiagnosticsDebouncer {
             } catch (Exception ex) {
                 promise.completeExceptionally(ex);
             } finally {
-                if (promise.isCompletedExceptionally()) {
-                    request.revertDocument();
-                }
+                request.revertDocument();
                 delayedMap.remove(key);
             }
         }, DELAY, TIME_UNIT);

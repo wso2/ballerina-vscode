@@ -59,6 +59,7 @@ public class DiagnosticRequest implements Callable<JsonElement> {
     private final String filePath;
     private final JsonElement flowNode;
     private final WorkspaceManager workspaceManager;
+    private TextDocument prevDoc;
 
     public DiagnosticRequest(String filePath, JsonElement flowNode, WorkspaceManager workspaceManager) {
         this.filePath = filePath;
@@ -67,7 +68,7 @@ public class DiagnosticRequest implements Callable<JsonElement> {
     }
 
     @Override
-    public JsonElement call() throws Exception {
+    public JsonElement call() {
         try {
             // Get the project and document
             Path path = Path.of(filePath);
@@ -111,8 +112,9 @@ public class DiagnosticRequest implements Callable<JsonElement> {
                             edit.getNewText()));
 
                     // Calculate the end position after the edit:
-                    // - If multi-line edit: position is at the end of the last line (textLine.length())
-                    // - If single-line edit: position is start character + length of inserted text
+                    // - If multi-line edit: position is at the end of the last inserted text line
+                    // - If single-line edit: position is start character + length of inserted text. (We need to
+                    // account the existing indentation at the start)
                     List<String> textEditLines = edit.getNewText().lines().toList();
                     String textLine = textEditLines.getLast();
                     endLinePosition = LinePosition.from(endLine, textEditLines.size() > 1 ? textLine.length()
@@ -127,6 +129,7 @@ public class DiagnosticRequest implements Callable<JsonElement> {
             // Update the document in the project with the new content
             TextDocument newTextDocument = textDocument.apply(
                     TextDocumentChange.from(ballerinaEdits.toArray(new io.ballerina.tools.text.TextEdit[0])));
+            prevDoc = document.get().textDocument();
             Document updatedDoc = document.get()
                     .modify()
                     .withContent(String.join(System.lineSeparator(), newTextDocument.textLines()))
@@ -159,7 +162,12 @@ public class DiagnosticRequest implements Callable<JsonElement> {
     }
 
     public void revertDocument() {
-        // No document modifications are made in this implementation,
-        // so no revert action is needed
+        if (prevDoc != null) {
+            Path path = Path.of(filePath);
+            workspaceManager.document(path).ifPresent(value -> value
+                    .modify()
+                    .withContent(String.join(System.lineSeparator(), prevDoc.textLines()))
+                    .apply());
+        }
     }
 }

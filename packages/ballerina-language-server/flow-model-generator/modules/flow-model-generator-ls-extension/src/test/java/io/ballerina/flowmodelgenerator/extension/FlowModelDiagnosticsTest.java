@@ -19,6 +19,7 @@
 package io.ballerina.flowmodelgenerator.extension;
 
 import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import io.ballerina.flowmodelgenerator.extension.request.FlowModelSourceGeneratorRequest;
 import io.ballerina.modelgenerator.commons.AbstractLSTest;
 import org.testng.Assert;
@@ -57,6 +58,28 @@ public class FlowModelDiagnosticsTest extends AbstractLSTest {
         }
     }
 
+    @Test
+    public void testMultipleRequests() throws IOException, InterruptedException {
+        // Load the template test config
+        Path configJsonPath = configDir.resolve("variable1.json");
+        TestConfig testConfig = gson.fromJson(Files.newBufferedReader(configJsonPath), TestConfig.class);
+        String sourcePath = getSourcePath(testConfig.source());
+        notifyDidOpen(sourcePath);
+
+        // Fire multiple requests with the same flow node to test race conditions
+        JsonElement flowNode = testConfig.flowNode();
+        for (int i = 0; i < 3; i++) {
+            getResponse(new FlowModelSourceGeneratorRequest(sourcePath, flowNode));
+            Thread.sleep(50);
+        }
+
+        // Make a final request and verify it returns the expected response
+        FlowModelSourceGeneratorRequest finalReq = new FlowModelSourceGeneratorRequest(sourcePath, flowNode);
+        JsonObject response = getResponse(finalReq);
+        notifyDidClose(sourcePath);
+        Assert.assertEquals(response.get("flowNode"), testConfig.output());
+    }
+
     @Override
     protected String getResourceDir() {
         return "flow_model_diagnostics";
@@ -70,11 +93,6 @@ public class FlowModelDiagnosticsTest extends AbstractLSTest {
     @Override
     protected String getApiName() {
         return "diagnostics";
-    }
-
-    @Override
-    protected String getServiceName() {
-        return "flowDesignService";
     }
 
     private record TestConfig(String source, String description, JsonElement flowNode, JsonElement output) {
