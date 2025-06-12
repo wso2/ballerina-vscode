@@ -37,6 +37,7 @@ import io.ballerina.tools.text.TextDocument;
 import io.ballerina.tools.text.TextDocumentChange;
 import io.ballerina.tools.text.TextRange;
 import org.ballerinalang.langserver.commons.workspace.WorkspaceManager;
+import org.eclipse.lsp4j.Range;
 import org.eclipse.lsp4j.TextEdit;
 
 import java.nio.file.Path;
@@ -102,22 +103,25 @@ public class FlowNodeDiagnosticsRequest implements DebouncedDiagnosticsRequest<J
             List<TextEdit> lspEdits = textEdits.get(path);
             int start = 0;
             int end = 0;
+            LinePosition endLinePosition = null;
             if (lspEdits != null) {
                 for (TextEdit edit : lspEdits) {
                     // Convert LSP TextEdit to Ballerina TextEdit
-                    int startLine = edit.getRange().getStart().getLine();
-                    start = textDocument.textPositionFrom(LinePosition.from(
-                            startLine,
-                            edit.getRange().getStart().getCharacter()
-                    ));
-                    end = textDocument.textPositionFrom(LinePosition.from(
-                            edit.getRange().getEnd().getLine(),
-                            startLine + edit.getNewText().length()
-                    ));
-                    ballerinaEdits.add(io.ballerina.tools.text.TextEdit.from(
-                            TextRange.from(start, end - start),
-                            edit.getNewText()
-                    ));
+                    Range editRange = edit.getRange();
+                    int startLine = editRange.getStart().getLine();
+                    int endLine = editRange.getEnd().getLine();
+
+                    List<String> textEditLines = edit.getNewText().lines().toList();
+                    String textLine = textEditLines.getLast();
+
+                    start = textDocument.textPositionFrom(
+                            LinePosition.from(startLine, editRange.getStart().getCharacter()));
+                    end = textDocument.textPositionFrom(LinePosition.from(endLine, editRange.getEnd().getCharacter()));
+                    endLinePosition = LinePosition.from(endLine,
+                            textEditLines.size() > 1 ? textLine.length() :
+                                    editRange.getStart().getCharacter() + textLine.length());
+                    ballerinaEdits.add(io.ballerina.tools.text.TextEdit.from(TextRange.from(start, end - start),
+                            edit.getNewText()));
                 }
             }
 
@@ -142,9 +146,10 @@ public class FlowNodeDiagnosticsRequest implements DebouncedDiagnosticsRequest<J
             TextDocument updatedTextDocument = updatedDoc.textDocument();
             SyntaxTree updatedSyntaxTree = updatedDoc.syntaxTree();
             ModulePartNode modulePartNode = updatedSyntaxTree.rootNode();
+            int newEnd = updatedTextDocument.textPositionFrom(endLinePosition) - 1;
 
             // Use the full document range for the flow node (can be customized)
-            NonTerminalNode node = modulePartNode.findNode(TextRange.from(start, end - start), true);
+            NonTerminalNode node = modulePartNode.findNode(TextRange.from(start, newEnd - start), true);
 
             // Analyze the node to get the flow node using CodeAnalyzer
             CodeAnalyzer codeAnalyzer = new CodeAnalyzer(
