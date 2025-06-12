@@ -27,18 +27,18 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Debouncing specifically designed for diagnostics requests in the Flow Model Generator.
- * This debouncer ensures that diagnostics processing is only executed after a specified delay has passed
- * since the last invocation, cancelling any pending executions in between. This class follows the Singleton
- * pattern, ensuring only one instance exists across the application for diagnostics operations.
+ * Debouncing specifically designed for diagnostics requests in the Flow Model Generator. This debouncer ensures that
+ * diagnostics processing is only executed after a specified delay has passed since the last invocation, cancelling any
+ * pending executions in between. This class follows the Singleton pattern, ensuring only one instance exists across the
+ * application for diagnostics operations.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class DiagnosticsDebouncer {
 
     // Time unit for the delay
     private static final TimeUnit TIME_UNIT = TimeUnit.MILLISECONDS;
-    
+
     // Default delay for diagnostics debouncing (in milliseconds)
     private static final long DEFAULT_DIAGNOSTICS_DELAY = 300;
 
@@ -58,11 +58,11 @@ public class DiagnosticsDebouncer {
     }
 
     /**
-     * Debounce the given diagnostics request by scheduling it to execute after the provided delay.
-     * Any previously scheduled task with the same key is cancelled.
+     * Debounce the given diagnostics request by scheduling it to execute after the provided delay. Any previously
+     * scheduled task with the same key is cancelled.
      *
      * @param request the diagnostics request to debounce
-     * @param <T> the type of result promised by the CompletableFuture
+     * @param <T>     the type of result promised by the CompletableFuture
      * @return a CompletableFuture that will complete with the result of the diagnostics operation
      */
     public <T> CompletableFuture<T> debounce(DebouncedDiagnosticsRequest<T> request) {
@@ -100,7 +100,7 @@ public class DiagnosticsDebouncer {
      * Debounce a diagnostics request with the default delay.
      *
      * @param request the diagnostics request to debounce
-     * @param <T> the type of result promised by the CompletableFuture
+     * @param <T>     the type of result promised by the CompletableFuture
      * @return a CompletableFuture that will complete with the result of the diagnostics operation
      */
     public <T> CompletableFuture<T> debounceWithDefaultDelay(DebouncedDiagnosticsRequest<T> request) {
@@ -137,22 +137,8 @@ public class DiagnosticsDebouncer {
         return Holder.INSTANCE;
     }
 
-    /**
-     * Shutdown the debouncer and clean up resources.
-     */
-    public void shutdown() {
-        scheduler.shutdown();
-        try {
-            if (!scheduler.awaitTermination(5, TimeUnit.SECONDS)) {
-                scheduler.shutdownNow();
-            }
-        } catch (InterruptedException e) {
-            scheduler.shutdownNow();
-            Thread.currentThread().interrupt();
-        }
-    }
-
     private static class Holder {
+
         private static final DiagnosticsDebouncer INSTANCE = new DiagnosticsDebouncer();
     }
 
@@ -160,7 +146,8 @@ public class DiagnosticsDebouncer {
      * Holder for scheduled diagnostics task information.
      *
      * @param <T>     the type of result promised by the CompletableFuture.
-     * @param promise the CompletableFuture that will eventually complete with the result of the scheduled diagnostics task.
+     * @param promise the CompletableFuture that will eventually complete with the result of the scheduled diagnostics
+     *                task.
      * @param future  the Future representing the scheduled diagnostics task, allowing for control over task execution.
      */
     private record ScheduledDiagnosticsTaskHolder<T>(CompletableFuture<T> promise, Future<?> future) {

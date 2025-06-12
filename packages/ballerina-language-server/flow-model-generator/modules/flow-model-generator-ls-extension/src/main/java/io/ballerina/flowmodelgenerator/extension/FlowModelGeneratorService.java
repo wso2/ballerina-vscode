@@ -64,6 +64,7 @@ import io.ballerina.flowmodelgenerator.extension.response.FlowModelSourceGenerat
 import io.ballerina.flowmodelgenerator.extension.response.FlowNodeDeleteResponse;
 import io.ballerina.flowmodelgenerator.extension.response.FunctionDefinitionResponse;
 import io.ballerina.flowmodelgenerator.extension.response.OpenApiServiceGenerationResponse;
+import io.ballerina.modelgenerator.commons.CommonUtils;
 import io.ballerina.modelgenerator.commons.ModuleInfo;
 import io.ballerina.modelgenerator.commons.PackageUtil;
 import io.ballerina.projects.Document;
@@ -82,6 +83,7 @@ import org.ballerinalang.langserver.LSClientLogger;
 import org.ballerinalang.langserver.commons.LanguageServerContext;
 import org.ballerinalang.langserver.commons.service.spi.ExtendedLanguageServerService;
 import org.ballerinalang.langserver.commons.workspace.WorkspaceManager;
+import org.ballerinalang.langserver.commons.workspace.WorkspaceManagerProxy;
 import org.eclipse.lsp4j.jsonrpc.services.JsonRequest;
 import org.eclipse.lsp4j.jsonrpc.services.JsonSegment;
 import org.eclipse.lsp4j.services.LanguageServer;
@@ -101,13 +103,13 @@ import java.util.concurrent.CompletableFuture;
 @JsonSegment("flowDesignService")
 public class FlowModelGeneratorService implements ExtendedLanguageServerService {
 
-    private WorkspaceManager workspaceManager;
+    private WorkspaceManagerProxy workspaceManagerProxy;
     private LSClientLogger lsClientLogger;
 
     @Override
-    public void init(LanguageServer langServer, WorkspaceManager workspaceManager,
+    public void init(LanguageServer langServer, WorkspaceManagerProxy workspaceManagerProxy,
                      LanguageServerContext serverContext) {
-        this.workspaceManager = workspaceManager;
+        this.workspaceManagerProxy = workspaceManagerProxy;
         this.lsClientLogger = LSClientLogger.getInstance(serverContext);
     }
 
@@ -123,16 +125,17 @@ public class FlowModelGeneratorService implements ExtendedLanguageServerService 
             FlowModelGeneratorResponse response = new FlowModelGeneratorResponse();
             try {
                 Path filePath = Path.of(request.filePath());
+                WorkspaceManager workspaceManager = this.workspaceManagerProxy.get();
 
                 // Obtain the semantic model and the document
-                Project project = this.workspaceManager.loadProject(filePath);
-                Optional<SemanticModel> semanticModel = this.workspaceManager.semanticModel(filePath);
-                Optional<Document> document = this.workspaceManager.document(filePath);
+                Project project = workspaceManager.loadProject(filePath);
+                Optional<SemanticModel> semanticModel = workspaceManager.semanticModel(filePath);
+                Optional<Document> document = workspaceManager.document(filePath);
                 if (semanticModel.isEmpty() || document.isEmpty()) {
                     return response;
                 }
                 // TODO: Check how we can delegate this to the model generator
-                Path projectPath = this.workspaceManager.projectRoot(filePath);
+                Path projectPath = workspaceManager.projectRoot(filePath);
                 Optional<Document> dataMappingsDoc = getDocumentFromFile(projectPath, "data_mappings.bal");
                 Optional<Document> functionsDoc = getDocumentFromFile(projectPath, "functions.bal");
 
@@ -157,16 +160,17 @@ public class FlowModelGeneratorService implements ExtendedLanguageServerService 
             FlowModelGeneratorResponse response = new FlowModelGeneratorResponse();
             try {
                 Path filePath = Path.of(request.filePath());
+                WorkspaceManager workspaceManager = this.workspaceManagerProxy.get();
 
                 // Obtain the semantic model and the document
-                Project project = this.workspaceManager.loadProject(filePath);
-                Optional<SemanticModel> semanticModel = this.workspaceManager.semanticModel(filePath);
-                Optional<Document> document = this.workspaceManager.document(filePath);
+                Project project = workspaceManager.loadProject(filePath);
+                Optional<SemanticModel> semanticModel = workspaceManager.semanticModel(filePath);
+                Optional<Document> document = workspaceManager.document(filePath);
                 if (semanticModel.isEmpty() || document.isEmpty()) {
                     return response;
                 }
                 // TODO: Check how we can delegate this to the model generator
-                Path projectPath = this.workspaceManager.projectRoot(filePath);
+                Path projectPath = workspaceManager.projectRoot(filePath);
                 Optional<Document> dataMappingsDoc = getDocumentFromFile(projectPath, "data_mappings.bal");
                 Optional<Document> functionsDoc = getDocumentFromFile(projectPath, "functions.bal");
 
@@ -252,7 +256,7 @@ public class FlowModelGeneratorService implements ExtendedLanguageServerService 
                 Files.writeString(tempFilePath, fileContent);
 
                 SuggestedComponentService suggestedComponentService = new SuggestedComponentService();
-                Project project = this.workspaceManager.loadProject(tempFilePath);
+                Project project = this.workspaceManagerProxy.get().loadProject(tempFilePath);
                 return suggestedComponentService.getPackageComponent(project);
             } catch (Throwable e) {
                 return response;
@@ -267,7 +271,7 @@ public class FlowModelGeneratorService implements ExtendedLanguageServerService 
             FlowModelSourceGeneratorResponse response = new FlowModelSourceGeneratorResponse();
             try {
                 SourceGenerator sourceGenerator =
-                        new SourceGenerator(workspaceManager, Path.of(request.filePath()));
+                        new SourceGenerator(this.workspaceManagerProxy.get(), Path.of(request.filePath()));
                 response.setTextEdits(sourceGenerator.toSourceCode(request.flowNode(), lsClientLogger));
             } catch (Throwable e) {
                 response.setError(e);
@@ -284,9 +288,10 @@ public class FlowModelGeneratorService implements ExtendedLanguageServerService 
             FlowModelAvailableNodesResponse response = new FlowModelAvailableNodesResponse();
             try {
                 Path filePath = Path.of(request.filePath());
-                Project project = this.workspaceManager.loadProject(filePath);
-                Optional<SemanticModel> semanticModel = this.workspaceManager.semanticModel(filePath);
-                Optional<Document> document = this.workspaceManager.document(filePath);
+                WorkspaceManager workspaceManager = this.workspaceManagerProxy.get();
+                Project project = workspaceManager.loadProject(filePath);
+                Optional<SemanticModel> semanticModel = workspaceManager.semanticModel(filePath);
+                Optional<Document> document = workspaceManager.document(filePath);
                 if (semanticModel.isEmpty() || document.isEmpty()) {
                     return response;
                 }
@@ -310,8 +315,8 @@ public class FlowModelGeneratorService implements ExtendedLanguageServerService 
             try {
                 NodeTemplateGenerator generator = new NodeTemplateGenerator(lsClientLogger);
                 Path filePath = Path.of(request.filePath());
-                JsonElement nodeTemplate =
-                        generator.getNodeTemplate(workspaceManager, filePath, request.position(), request.id());
+                JsonElement nodeTemplate = generator.getNodeTemplate(this.workspaceManagerProxy.get(),
+                        filePath, request.position(), request.id());
                 response.setFlowNode(nodeTemplate);
             } catch (Throwable e) {
                 response.setError(e);
@@ -327,9 +332,10 @@ public class FlowModelGeneratorService implements ExtendedLanguageServerService 
             FlowModelGeneratorResponse response = new FlowModelGeneratorResponse();
             try {
                 Path filePath = Path.of(request.filePath());
+                WorkspaceManager workspaceManager = this.workspaceManagerProxy.get();
 
                 // Obtain the semantic model and the document
-                Project project = this.workspaceManager.loadProject(filePath);
+                Project project = workspaceManager.loadProject(filePath);
                 SemanticModel semanticModel = FileSystemUtils.getSemanticModel(workspaceManager, filePath);
 
                 // Generate the flow design model
@@ -349,9 +355,10 @@ public class FlowModelGeneratorService implements ExtendedLanguageServerService 
             FlowModelGeneratorResponse response = new FlowModelGeneratorResponse();
             try {
                 Path filePath = Path.of(request.filePath());
+                WorkspaceManager workspaceManager = this.workspaceManagerProxy.get();
 
                 // Obtain the semantic model and the document
-                Project project = this.workspaceManager.loadProject(filePath);
+                Project project = workspaceManager.loadProject(filePath);
                 SemanticModel semanticModel = FileSystemUtils.getSemanticModel(workspaceManager, filePath);
 
                 // Generate the flow design model
@@ -371,7 +378,7 @@ public class FlowModelGeneratorService implements ExtendedLanguageServerService 
             try {
                 Path filePath = Path.of(request.filePath());
                 CopilotContextGenerator connectorGenerator =
-                        new CopilotContextGenerator(workspaceManager, filePath, request.position());
+                        new CopilotContextGenerator(workspaceManagerProxy.get(), filePath, request.position());
                 connectorGenerator.generate();
                 response.setPrefix(connectorGenerator.prefix());
                 response.setSuffix(connectorGenerator.suffix());
@@ -391,17 +398,17 @@ public class FlowModelGeneratorService implements ExtendedLanguageServerService 
             FlowNodeDeleteResponse response = new FlowNodeDeleteResponse();
             try {
                 Path filePath = Path.of(request.filePath());
+                WorkspaceManager workspaceManager = this.workspaceManagerProxy.get();
                 DeleteNodeHandler deleteNodeHandler = new DeleteNodeHandler(request.flowNode(), filePath);
-                Project project = this.workspaceManager.loadProject(filePath);
-                Optional<SemanticModel> semanticModel = this.workspaceManager.semanticModel(filePath);
-                Optional<Document> document = this.workspaceManager.document(filePath);
+                Project project = workspaceManager.loadProject(filePath);
+                Optional<SemanticModel> semanticModel = workspaceManager.semanticModel(filePath);
+                Optional<Document> document = workspaceManager.document(filePath);
                 if (semanticModel.isEmpty() || document.isEmpty()) {
                     return response;
                 }
                 response.setTextEdits(
                         deleteNodeHandler.getTextEditsToDeletedNode(document.get(), project));
             } catch (Throwable e) {
-                //TODO: Handle errors generated by the flow model generator service.
                 response.setError(e);
             }
             return response;
@@ -414,9 +421,10 @@ public class FlowModelGeneratorService implements ExtendedLanguageServerService 
             ComponentDeleteResponse response = new ComponentDeleteResponse();
             try {
                 Path filePath = Path.of(request.filePath());
-                Project project = this.workspaceManager.loadProject(filePath);
-                Optional<SemanticModel> semanticModel = this.workspaceManager.semanticModel(filePath);
-                Optional<Document> document = this.workspaceManager.document(filePath);
+                WorkspaceManager workspaceManager = this.workspaceManagerProxy.get();
+                Project project = workspaceManager.loadProject(filePath);
+                Optional<SemanticModel> semanticModel = workspaceManager.semanticModel(filePath);
+                Optional<Document> document = workspaceManager.document(filePath);
                 if (semanticModel.isEmpty() || document.isEmpty()) {
                     return response;
                 }
@@ -424,7 +432,6 @@ public class FlowModelGeneratorService implements ExtendedLanguageServerService 
                         request.component(), filePath, document.get(), project
                 ));
             } catch (Throwable e) {
-                //TODO: Handle errors generated by the flow model generator service.
                 response.setError(e);
             }
 
@@ -442,10 +449,9 @@ public class FlowModelGeneratorService implements ExtendedLanguageServerService 
                 Path openApiContractPath = Path.of(request.openApiContractPath());
                 Path projectPath = Path.of(request.projectPath());
                 OpenApiServiceGenerator openApiServiceGenerator = new OpenApiServiceGenerator(openApiContractPath,
-                        projectPath, workspaceManager);
+                        projectPath, workspaceManagerProxy.get());
                 response.setTextEdits(openApiServiceGenerator.generateService(request.name(), request.listeners()));
             } catch (Throwable e) {
-                //TODO: Handle errors generated by the flow model generator service.
                 response.setError(e);
             }
             return response;
@@ -459,10 +465,9 @@ public class FlowModelGeneratorService implements ExtendedLanguageServerService 
             FlowModelSourceGeneratorResponse response = new FlowModelSourceGeneratorResponse();
             try {
                 ErrorHandlerGenerator errorHandlerGenerator =
-                        new ErrorHandlerGenerator(workspaceManager, Path.of(request.filePath()));
+                        new ErrorHandlerGenerator(workspaceManagerProxy.get(), Path.of(request.filePath()));
                 response.setTextEdits(errorHandlerGenerator.getTextEdits());
             } catch (Throwable e) {
-                //TODO: Handle errors generated by the flow model generator service.
                 response.setError(e);
             }
             return response;
@@ -475,8 +480,9 @@ public class FlowModelGeneratorService implements ExtendedLanguageServerService 
             EnclosedFuncDefResponse response = new EnclosedFuncDefResponse();
             try {
                 Path path = Path.of(request.filePath());
-                Project project = this.workspaceManager.loadProject(path);
-                Optional<Document> document = this.workspaceManager.document(path);
+                WorkspaceManager workspaceManager = this.workspaceManagerProxy.get();
+                Project project = workspaceManager.loadProject(path);
+                Optional<Document> document = workspaceManager.document(path);
                 if (document.isEmpty()) {
                     return response;
                 }
@@ -498,21 +504,19 @@ public class FlowModelGeneratorService implements ExtendedLanguageServerService 
         return CompletableFuture.supplyAsync(() -> {
             FunctionDefinitionResponse response = new FunctionDefinitionResponse();
             try {
-                // Load the project
                 Path projectPath = Path.of(request.projectPath());
-                Project project = this.workspaceManager.loadProject(projectPath);
+                WorkspaceManager workspaceManager = this.workspaceManagerProxy.get();
+                Project project = workspaceManager.loadProject(projectPath);
 
-                // Find the document containing the function definition
                 Path documentPath = project.kind() == ProjectKind.SINGLE_FILE_PROJECT ? projectPath :
                         projectPath.resolve(request.fileName());
-                Optional<Document> optDocument = this.workspaceManager.document(documentPath);
-                Optional<SemanticModel> optSemanticModel = this.workspaceManager.semanticModel(documentPath);
+                Optional<Document> optDocument = workspaceManager.document(documentPath);
+                Optional<SemanticModel> optSemanticModel = workspaceManager.semanticModel(documentPath);
                 if (optDocument.isEmpty() || optSemanticModel.isEmpty()) {
                     return response;
                 }
                 Document document = optDocument.get();
 
-                // Analyze the module part nodes to find the respective function definition
                 ModuleNodeAnalyzer moduleNodeAnalyzer =
                         new ModuleNodeAnalyzer(ModuleInfo.from(document.module().descriptor()), optSemanticModel.get());
                 ModulePartNode rootNode = document.syntaxTree().rootNode();
@@ -529,11 +533,11 @@ public class FlowModelGeneratorService implements ExtendedLanguageServerService 
     public CompletableFuture<FlowModelNodeTemplateResponse> diagnostics(FlowModelSourceGeneratorRequest request) {
         // Use DiagnosticsDebouncer to schedule the diagnostics request
         FlowNodeDiagnosticsRequest diagnosticsRequest = new FlowNodeDiagnosticsRequest(
-                request.filePath(), 
-                request.flowNode(), 
-                workspaceManager
+                request.filePath(),
+                request.flowNode(),
+                workspaceManagerProxy.get(CommonUtils.getExprUri(request.filePath()))
         );
-        
+
         return DiagnosticsDebouncer.getInstance().debounceWithDefaultDelay(diagnosticsRequest)
                 .thenApply(flowNode -> {
                     FlowModelNodeTemplateResponse response = new FlowModelNodeTemplateResponse();
@@ -557,7 +561,8 @@ public class FlowModelGeneratorService implements ExtendedLanguageServerService 
             FlowModelAvailableNodesResponse response = new FlowModelAvailableNodesResponse();
             try {
                 Path filePath = Path.of(request.filePath());
-                Project project = this.workspaceManager.loadProject(filePath);
+                WorkspaceManager workspaceManager = this.workspaceManagerProxy.get();
+                Project project = workspaceManager.loadProject(filePath);
                 SearchCommand.Kind searchKind = SearchCommand.Kind.valueOf(request.searchKind());
                 LineRange position = request.position();
                 if (request.position() != null) {
@@ -567,7 +572,7 @@ public class FlowModelGeneratorService implements ExtendedLanguageServerService 
                             request.position().endLine());
                 }
 
-                Path projectPath = this.workspaceManager.projectRoot(filePath);
+                Path projectPath = workspaceManager.projectRoot(filePath);
                 Optional<Document> functionsDoc = getDocumentFromFile(projectPath, "functions.bal");
 
                 SearchCommand command = SearchCommand.from(searchKind, project, position, request.queryMap(),
@@ -594,7 +599,7 @@ public class FlowModelGeneratorService implements ExtendedLanguageServerService 
 
     private Optional<Document> getDocumentFromFile(Path projectPath, String fileName) {
         try {
-            return this.workspaceManager.document(projectPath.resolve(fileName));
+            return this.workspaceManagerProxy.get().document(projectPath.resolve(fileName));
         } catch (Throwable e) {
             return Optional.empty();
         }
