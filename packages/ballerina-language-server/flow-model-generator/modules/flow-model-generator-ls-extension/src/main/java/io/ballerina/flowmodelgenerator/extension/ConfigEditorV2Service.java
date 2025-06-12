@@ -902,7 +902,7 @@ public class ConfigEditorV2Service implements ExtendedLanguageServerService {
      * Checks if the configurable variable name has been modified.
      */
     private static boolean isNameModified(Property nameProp) {
-        return nameProp.modified() != null && nameProp.modified() && nameProp.oldValue() != null;
+        return Boolean.TRUE.equals(nameProp.modified()) && nameProp.oldValue() != null;
     }
 
     /**
