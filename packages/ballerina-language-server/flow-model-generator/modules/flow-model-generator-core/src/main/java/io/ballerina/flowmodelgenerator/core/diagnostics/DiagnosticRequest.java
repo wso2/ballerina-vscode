@@ -23,7 +23,6 @@ import com.google.gson.JsonElement;
 import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.compiler.syntax.tree.ModulePartNode;
 import io.ballerina.compiler.syntax.tree.NonTerminalNode;
-import io.ballerina.compiler.syntax.tree.SyntaxTree;
 import io.ballerina.flowmodelgenerator.core.CodeAnalyzer;
 import io.ballerina.flowmodelgenerator.core.model.FlowNode;
 import io.ballerina.flowmodelgenerator.core.model.NodeBuilder;
@@ -48,9 +47,10 @@ import java.util.Optional;
 import java.util.concurrent.Callable;
 
 /**
- * This class handles diagnostic processing for flow nodes in the Flow Model Generator.
+ * Represents a request for obtaining diagnostics for the entire flow node. This class implements {@link Callable}, and
+ * returns a {@link JsonElement} with the diagnostics annotated to the flow node.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class DiagnosticRequest implements Callable<JsonElement> {
 
@@ -60,13 +60,6 @@ public class DiagnosticRequest implements Callable<JsonElement> {
     private final JsonElement flowNode;
     private final WorkspaceManager workspaceManager;
 
-    /**
-     * Constructs a new FlowNodeDiagnosticsRequest.
-     *
-     * @param filePath         the file path for the diagnostics request
-     * @param flowNode         the flow node to analyze for diagnostics
-     * @param workspaceManager the workspace manager for accessing project context
-     */
     public DiagnosticRequest(String filePath, JsonElement flowNode, WorkspaceManager workspaceManager) {
         this.filePath = filePath;
         this.flowNode = flowNode;
@@ -93,64 +86,61 @@ public class DiagnosticRequest implements Callable<JsonElement> {
 
             // Generate text edits using SourceBuilder (similar to SourceGenerator)
             SourceBuilder sourceBuilder = new SourceBuilder(flowNodeObj, workspaceManager, path);
-            Map<Path, List<TextEdit>> textEdits =
-                    NodeBuilder.getNodeFromKind(flowNodeObj.codedata().node()).toSource(sourceBuilder);
+            Map<Path, List<TextEdit>> textEdits = NodeBuilder
+                    .getNodeFromKind(flowNodeObj.codedata().node())
+                    .toSource(sourceBuilder);
 
-            // --- Apply text edits to the document using Ballerina APIs ---
+            // Apply text edits to the document
             TextDocument textDocument = document.get().textDocument();
             List<io.ballerina.tools.text.TextEdit> ballerinaEdits = new ArrayList<>();
             List<TextEdit> lspEdits = textEdits.get(path);
             int start = 0;
-            int end = 0;
             LinePosition endLinePosition = null;
             if (lspEdits != null) {
+                // Transform every LSP TextEdit to a Ballerina TextEdit
                 for (TextEdit edit : lspEdits) {
-                    // Convert LSP TextEdit to Ballerina TextEdit
+                    // Generate the Ballerina TextEdit from the LSP TextEdit
                     Range editRange = edit.getRange();
                     int startLine = editRange.getStart().getLine();
                     int endLine = editRange.getEnd().getLine();
-
-                    List<String> textEditLines = edit.getNewText().lines().toList();
-                    String textLine = textEditLines.getLast();
-
-                    start = textDocument.textPositionFrom(
-                            LinePosition.from(startLine, editRange.getStart().getCharacter()));
-                    end = textDocument.textPositionFrom(LinePosition.from(endLine, editRange.getEnd().getCharacter()));
-                    endLinePosition = LinePosition.from(endLine,
-                            textEditLines.size() > 1 ? textLine.length() :
-                                    editRange.getStart().getCharacter() + textLine.length());
+                    int startCharacter = editRange.getStart().getCharacter();
+                    int endCharacter = editRange.getEnd().getCharacter();
+                    start = textDocument.textPositionFrom(LinePosition.from(startLine, startCharacter));
+                    int end = textDocument.textPositionFrom(LinePosition.from(endLine, endCharacter));
                     ballerinaEdits.add(io.ballerina.tools.text.TextEdit.from(TextRange.from(start, end - start),
                             edit.getNewText()));
+
+                    // Calculate the end position after the edit:
+                    // - If multi-line edit: position is at the end of the last line (textLine.length())
+                    // - If single-line edit: position is start character + length of inserted text
+                    List<String> textEditLines = edit.getNewText().lines().toList();
+                    String textLine = textEditLines.getLast();
+                    endLinePosition = LinePosition.from(endLine, textEditLines.size() > 1 ? textLine.length()
+                            : startCharacter + textLine.length());
                 }
             }
-
-            TextDocument newTextDocument = textDocument;
-            if (!ballerinaEdits.isEmpty()) {
-                newTextDocument = textDocument.apply(
-                        TextDocumentChange.from(ballerinaEdits.toArray(new io.ballerina.tools.text.TextEdit[0])));
+            // If no edits were made, return null
+            if (ballerinaEdits.isEmpty()) {
+                return null;
             }
 
             // Update the document in the project with the new content
-            Document updatedDoc = project.currentPackage().getDefaultModule()
-                    .document(document.get().documentId())
+            TextDocument newTextDocument = textDocument.apply(
+                    TextDocumentChange.from(ballerinaEdits.toArray(new io.ballerina.tools.text.TextEdit[0])));
+            Document updatedDoc = document.get()
                     .modify()
                     .withContent(String.join(System.lineSeparator(), newTextDocument.textLines()))
                     .apply();
 
-            // Get diagnostics from the updated document
+            // Find the ST node relevant to the modified range
+            TextDocument updatedTextDocument = updatedDoc.textDocument();
+            ModulePartNode modulePartNode = updatedDoc.syntaxTree().rootNode();
+            NonTerminalNode node = modulePartNode.findNode(TextRange.from(start,
+                    updatedTextDocument.textPositionFrom(endLinePosition) - 1 - start), true);
+
+            // Generate the flow node for the ST node with the respective diagnostics annotated
             SemanticModel semanticModel = project.currentPackage().getCompilation()
                     .getSemanticModel(project.currentPackage().getDefaultModule().moduleId());
-
-            // --- Generate the flow node for the given line range using updatedDoc.syntaxTree() ---
-            TextDocument updatedTextDocument = updatedDoc.textDocument();
-            SyntaxTree updatedSyntaxTree = updatedDoc.syntaxTree();
-            ModulePartNode modulePartNode = updatedSyntaxTree.rootNode();
-            int newEnd = updatedTextDocument.textPositionFrom(endLinePosition) - 1;
-
-            // Use the full document range for the flow node (can be customized)
-            NonTerminalNode node = modulePartNode.findNode(TextRange.from(start, newEnd - start), true);
-
-            // Analyze the node to get the flow node using CodeAnalyzer
             CodeAnalyzer codeAnalyzer = new CodeAnalyzer(project, semanticModel, Property.LOCAL_SCOPE, Map.of(),
                     Map.of(), updatedTextDocument, ModuleInfo.from(updatedDoc.module().descriptor()), true);
             node.accept(codeAnalyzer);
@@ -165,8 +155,7 @@ public class DiagnosticRequest implements Callable<JsonElement> {
     }
 
     public String getKey() {
-        // Create a unique key based on file path and flow node content
-        return "flownode-diagnostics:" + filePath + ":" + flowNode.hashCode();
+        return filePath + ":" + flowNode.hashCode();
     }
 
     public void revertDocument() {

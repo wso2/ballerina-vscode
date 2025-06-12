@@ -29,9 +29,9 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Debouncing specifically designed for diagnostics requests in the Flow Model Generator. This debouncer ensures that
- * diagnostics processing is only executed after a specified delay has passed since the last invocation, cancelling any
- * pending executions in between. This class follows the Singleton pattern, ensuring only one instance exists across the
+ * Debouncing specifically designed for diagnostics requests in the Flow Model. This debouncer ensures that diagnostics
+ * processing is only executed after a specified delay has passed since the last invocation, cancelling any pending
+ * executions in between. This class follows the Singleton pattern, ensuring only one instance exists across the
  * application for diagnostics operations.
  *
  * @since 1.0.0
