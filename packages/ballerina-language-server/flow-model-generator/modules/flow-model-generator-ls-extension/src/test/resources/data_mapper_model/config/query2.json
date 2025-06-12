@@ -221,9 +221,9 @@
         "u.info.secondaryPhones"
       ],
       "fromClause": {
-        "typeDesc": "SecondaryPhones",
-        "variableName": "secondaryPhonesItem",
-        "collection": "u.info.secondaryPhones"
+        "type": "SecondaryPhones",
+        "name": "secondaryPhonesItem",
+        "expression": "u.info.secondaryPhones"
       },
       "intermediateClauses": [],
       "resultClause": "{code: secondaryPhonesItem.code, number: secondaryPhonesItem.number}"

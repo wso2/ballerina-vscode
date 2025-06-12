@@ -168,9 +168,9 @@
         "u.info.secondaryPhones"
       ],
       "fromClause": {
-        "typeDesc": "string",
-        "variableName": "secondaryPhonesItem",
-        "collection": "u.info.secondaryPhones"
+        "type": "string",
+        "name": "secondaryPhonesItem",
+        "expression": "u.info.secondaryPhones"
       },
       "intermediateClauses": [],
       "resultClause": "secondaryPhonesItem"

@@ -146,17 +146,17 @@
         "u.info.secondaryPhones"
       ],
       "fromClause": {
-        "typeDesc": "var",
-        "variableName": "secondaryPhonesItem",
-        "collection": "u.info.secondaryPhones"
+        "type": "var",
+        "name": "secondaryPhonesItem",
+        "expression": "u.info.secondaryPhones"
       },
       "intermediateClauses": [
         {
           "type": "from",
           "clause": {
-            "typeDesc": "var",
-            "variableName": "email",
-            "collection": "u.info.emails"
+            "type": "var",
+            "name": "email",
+            "expression": "u.info.emails"
           }
         },
         {
