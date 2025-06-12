@@ -45,16 +45,15 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.Callable;
 
 /**
- * Concrete implementation of DebouncedDiagnosticsRequest for FlowNode diagnostics. This class handles diagnostic
- * processing for flow nodes in the Flow Model Generator.
+ * This class handles diagnostic processing for flow nodes in the Flow Model Generator.
  *
  * @since 2.0.0
  */
-public class FlowNodeDiagnosticsRequest implements DebouncedDiagnosticsRequest<JsonElement> {
+public class DiagnosticRequest implements Callable<JsonElement> {
 
-    private static final long DEFAULT_DELAY = 300; // 300ms delay for diagnostics
     private static final Gson gson = new Gson();
 
     private final String filePath;
@@ -68,7 +67,7 @@ public class FlowNodeDiagnosticsRequest implements DebouncedDiagnosticsRequest<J
      * @param flowNode         the flow node to analyze for diagnostics
      * @param workspaceManager the workspace manager for accessing project context
      */
-    public FlowNodeDiagnosticsRequest(String filePath, JsonElement flowNode, WorkspaceManager workspaceManager) {
+    public DiagnosticRequest(String filePath, JsonElement flowNode, WorkspaceManager workspaceManager) {
         this.filePath = filePath;
         this.flowNode = flowNode;
         this.workspaceManager = workspaceManager;
@@ -98,7 +97,7 @@ public class FlowNodeDiagnosticsRequest implements DebouncedDiagnosticsRequest<J
                     NodeBuilder.getNodeFromKind(flowNodeObj.codedata().node()).toSource(sourceBuilder);
 
             // --- Apply text edits to the document using Ballerina APIs ---
-            io.ballerina.tools.text.TextDocument textDocument = document.get().textDocument();
+            TextDocument textDocument = document.get().textDocument();
             List<io.ballerina.tools.text.TextEdit> ballerinaEdits = new ArrayList<>();
             List<TextEdit> lspEdits = textEdits.get(path);
             int start = 0;
@@ -152,16 +151,8 @@ public class FlowNodeDiagnosticsRequest implements DebouncedDiagnosticsRequest<J
             NonTerminalNode node = modulePartNode.findNode(TextRange.from(start, newEnd - start), true);
 
             // Analyze the node to get the flow node using CodeAnalyzer
-            CodeAnalyzer codeAnalyzer = new CodeAnalyzer(
-                    project,
-                    semanticModel,
-                    Property.LOCAL_SCOPE,
-                    Map.of(),
-                    Map.of(),
-                    updatedTextDocument,
-                    ModuleInfo.from(updatedDoc.module().descriptor()),
-                    true
-            );
+            CodeAnalyzer codeAnalyzer = new CodeAnalyzer(project, semanticModel, Property.LOCAL_SCOPE, Map.of(),
+                    Map.of(), updatedTextDocument, ModuleInfo.from(updatedDoc.module().descriptor()), true);
             node.accept(codeAnalyzer);
             List<FlowNode> flowNodes = codeAnalyzer.getFlowNodes();
             if (flowNodes.size() != 1) {
@@ -173,18 +164,11 @@ public class FlowNodeDiagnosticsRequest implements DebouncedDiagnosticsRequest<J
         }
     }
 
-    @Override
     public String getKey() {
         // Create a unique key based on file path and flow node content
         return "flownode-diagnostics:" + filePath + ":" + flowNode.hashCode();
     }
 
-    @Override
-    public long getDelay() {
-        return DEFAULT_DELAY;
-    }
-
-    @Override
     public void revertDocument() {
         // No document modifications are made in this implementation,
         // so no revert action is needed

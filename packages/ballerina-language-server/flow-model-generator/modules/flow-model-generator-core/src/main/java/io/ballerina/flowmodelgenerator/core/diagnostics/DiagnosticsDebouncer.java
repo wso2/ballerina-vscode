@@ -18,6 +18,8 @@
 
 package io.ballerina.flowmodelgenerator.core.diagnostics;
 
+import com.google.gson.JsonElement;
+
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
@@ -40,7 +42,7 @@ public class DiagnosticsDebouncer {
     private static final TimeUnit TIME_UNIT = TimeUnit.MILLISECONDS;
 
     // Default delay for diagnostics debouncing (in milliseconds)
-    private static final long DEFAULT_DIAGNOSTICS_DELAY = 300;
+    private static final long DELAY = 300;
 
     // Map to hold scheduled diagnostics tasks
     private final ConcurrentHashMap<String, ScheduledDiagnosticsTaskHolder<?>> delayedMap;
@@ -58,22 +60,20 @@ public class DiagnosticsDebouncer {
     }
 
     /**
-     * Debounce the given diagnostics request by scheduling it to execute after the provided delay. Any previously
+     * Debounce the given diagnostics request by scheduling it to execute after the default delay. Any previously
      * scheduled task with the same key is cancelled.
      *
      * @param request the diagnostics request to debounce
-     * @param <T>     the type of result promised by the CompletableFuture
      * @return a CompletableFuture that will complete with the result of the diagnostics operation
      */
-    public <T> CompletableFuture<T> debounce(DebouncedDiagnosticsRequest<T> request) {
-        long delay = request.getDelay();
+    public CompletableFuture<JsonElement> debounce(DiagnosticRequest request) {
         String key = request.getKey();
-        CompletableFuture<T> promise = new CompletableFuture<>();
+        CompletableFuture<JsonElement> promise = new CompletableFuture<>();
 
-        // Schedule the task to run after the specified delay.
+        // Schedule the task to run after the default delay.
         Future<?> scheduledFuture = scheduler.schedule(() -> {
             try {
-                T result = request.call();
+                JsonElement result = request.call();
                 promise.complete(result);
             } catch (Exception ex) {
                 promise.completeExceptionally(ex);
@@ -83,49 +83,18 @@ public class DiagnosticsDebouncer {
                 }
                 delayedMap.remove(key);
             }
-        }, delay, TIME_UNIT);
+        }, DELAY, TIME_UNIT);
 
         // Replace any existing scheduled task with the new one.
         @SuppressWarnings("unchecked")
-        ScheduledDiagnosticsTaskHolder<T> prev = (ScheduledDiagnosticsTaskHolder<T>) delayedMap.put(key,
-                new ScheduledDiagnosticsTaskHolder<>(promise, scheduledFuture));
+        ScheduledDiagnosticsTaskHolder<JsonElement> prev =
+                (ScheduledDiagnosticsTaskHolder<JsonElement>) delayedMap.put(key,
+                        new ScheduledDiagnosticsTaskHolder<>(promise, scheduledFuture));
         if (prev != null) {
             prev.future().cancel(true);
             prev.promise().completeExceptionally(new CancellationException("Debounced by a new diagnostics request"));
         }
         return promise;
-    }
-
-    /**
-     * Debounce a diagnostics request with the default delay.
-     *
-     * @param request the diagnostics request to debounce
-     * @param <T>     the type of result promised by the CompletableFuture
-     * @return a CompletableFuture that will complete with the result of the diagnostics operation
-     */
-    public <T> CompletableFuture<T> debounceWithDefaultDelay(DebouncedDiagnosticsRequest<T> request) {
-        // Override the delay with the default diagnostics delay
-        return debounce(new DebouncedDiagnosticsRequest<T>() {
-            @Override
-            public T call() throws Exception {
-                return request.call();
-            }
-
-            @Override
-            public String getKey() {
-                return request.getKey();
-            }
-
-            @Override
-            public long getDelay() {
-                return DEFAULT_DIAGNOSTICS_DELAY;
-            }
-
-            @Override
-            public void revertDocument() {
-                request.revertDocument();
-            }
-        });
     }
 
     /**

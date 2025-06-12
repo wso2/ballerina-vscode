@@ -36,7 +36,7 @@ import io.ballerina.flowmodelgenerator.core.SuggestedComponentService;
 import io.ballerina.flowmodelgenerator.core.SuggestedModelGenerator;
 import io.ballerina.flowmodelgenerator.core.analyzers.function.ModuleNodeAnalyzer;
 import io.ballerina.flowmodelgenerator.core.diagnostics.DiagnosticsDebouncer;
-import io.ballerina.flowmodelgenerator.core.diagnostics.FlowNodeDiagnosticsRequest;
+import io.ballerina.flowmodelgenerator.core.diagnostics.DiagnosticRequest;
 import io.ballerina.flowmodelgenerator.core.search.SearchCommand;
 import io.ballerina.flowmodelgenerator.core.utils.FileSystemUtils;
 import io.ballerina.flowmodelgenerator.extension.request.ComponentDeleteRequest;
@@ -531,14 +531,14 @@ public class FlowModelGeneratorService implements ExtendedLanguageServerService 
 
     @JsonRequest
     public CompletableFuture<FlowModelNodeTemplateResponse> diagnostics(FlowModelSourceGeneratorRequest request) {
-        // Use DiagnosticsDebouncer to schedule the diagnostics request
-        FlowNodeDiagnosticsRequest diagnosticsRequest = new FlowNodeDiagnosticsRequest(
+        DiagnosticRequest diagnosticsRequest = new DiagnosticRequest(
                 request.filePath(),
                 request.flowNode(),
                 workspaceManagerProxy.get(CommonUtils.getExprUri(request.filePath()))
         );
 
-        return DiagnosticsDebouncer.getInstance().debounceWithDefaultDelay(diagnosticsRequest)
+        // Use debouncer to schedule the diagnostics request
+        return DiagnosticsDebouncer.getInstance().debounce(diagnosticsRequest)
                 .thenApply(flowNode -> {
                     FlowModelNodeTemplateResponse response = new FlowModelNodeTemplateResponse();
                     try {
