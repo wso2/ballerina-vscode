@@ -997,7 +997,9 @@ public class ConfigEditorV2Service implements ExtendedLanguageServerService {
      * properties.
      */
     private boolean requireConfigTomlEdits(FlowNode configVariable) {
+        Property variableName = configVariable.properties().get(VARIABLE_KEY);
         Property configValue = configVariable.properties().get(CONFIG_VALUE_KEY);
-        return configValue != null && Boolean.TRUE.equals(configValue.modified());
+        return (variableName != null && Boolean.TRUE.equals(variableName.modified()))
+                || (configValue != null && Boolean.TRUE.equals(configValue.modified()));
     }
 }
