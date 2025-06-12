@@ -160,7 +160,8 @@
         ],
         "expression": "std.lastName",
         "diagnostics": [],
-        "elements": []
+        "elements": [],
+        "isQueryExpression": false
       },
       {
         "output": "var1909.foo.bar.firstName",
@@ -169,7 +170,8 @@
         ],
         "expression": "std.firstName",
         "diagnostics": [],
-        "elements": []
+        "elements": [],
+        "isQueryExpression": false
       }
     ]
   }

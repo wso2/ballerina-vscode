@@ -500,7 +500,8 @@ public class DataMapManager {
         List<String> inputs = new ArrayList<>();
         genInputs(expr, inputs);
         Mapping mapping = new Mapping(name, inputs, expr.toSourceCode(),
-                getDiagnostics(expr.lineRange(), semanticModel), new ArrayList<>());
+                getDiagnostics(expr.lineRange(), semanticModel), new ArrayList<>(),
+                expr.kind() == SyntaxKind.QUERY_EXPRESSION);
         elements.add(mapping);
     }
 
@@ -552,6 +553,9 @@ public class DataMapManager {
         } else if (kind == SyntaxKind.INDEXED_EXPRESSION) {
             String source = expr.toSourceCode().trim();
             inputs.add(source.replace("[", ".").substring(0, source.length() - 1));
+        } else if (kind == SyntaxKind.QUERY_EXPRESSION) {
+            QueryExpressionNode queryExpr = (QueryExpressionNode) expr;
+            inputs.add(queryExpr.queryPipeline().fromClause().expression().toSourceCode().trim());
         }
     }
 
@@ -1187,8 +1191,12 @@ public class DataMapManager {
     }
 
     private record Mapping(String output, List<String> inputs, String expression, List<String> diagnostics,
-                           List<MappingElements> elements) {
+                           List<MappingElements> elements, Boolean isQueryExpression) {
 
+        private Mapping(String output, List<String> inputs, String expression, List<String> diagnostics,
+                        List<MappingElements> elements) {
+            this(output, inputs, expression, diagnostics, elements, null);
+        }
     }
 
     private record Query(String output, List<String> inputs, FromClause fromClause,
