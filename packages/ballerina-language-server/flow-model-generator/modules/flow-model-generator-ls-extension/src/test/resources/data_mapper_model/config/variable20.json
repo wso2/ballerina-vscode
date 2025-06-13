@@ -230,9 +230,9 @@
         "bank.userInfo"
       ],
       "fromClause": {
-        "typeDesc": "UserInfo",
-        "variableName": "info",
-        "collection": "bank.userInfo"
+        "type": "UserInfo",
+        "name": "info",
+        "expression": "bank.userInfo"
       },
       "intermediateClauses": [],
       "resultClause": "{password: , username: info.username}"

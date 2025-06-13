@@ -117,6 +117,17 @@ public class DataMapManager {
     private final Document document;
     private final Gson gson;
 
+    private static final String FROM = "from";
+    private static final String WHERE = "where";
+    private static final String ORDER_BY = "order-by";
+    private static final String ORDER_BY_CLAUSE = "order by";
+    private static final String LET = "let";
+    private static final String LIMIT = "limit";
+    private static final String SELECT = "select";
+    private static final String COLLECT = "collect";
+    private static final String IN = "in";
+    private static final String SPACE = " ";
+
     public DataMapManager(WorkspaceManager workspaceManager, Document document) {
         this.workspaceManager = workspaceManager;
         this.document = document;
@@ -746,7 +757,15 @@ public class DataMapManager {
         if (flowNode.codedata().node() != NodeKind.VARIABLE) {
             return "";
         }
-        String mappingSource = genSource(genSourceForMappings(fieldMapping, getVariableName(flowNode)));
+
+        String name;
+        if (targetField == null || targetField.isEmpty()) {
+            name = getVariableName(flowNode);
+        } else {
+            String[] splits = targetField.split("\\.");
+            name = splits[splits.length - 1];
+        }
+        String mappingSource = genSource(genSourceForMappings(fieldMapping, name));
         Optional<Property> optProperty = flowNode.getProperty("expression");
         if (optProperty.isEmpty()) {
             return mappingSource;
@@ -760,15 +779,94 @@ public class DataMapManager {
             }
         } else {
             String fieldsPattern = getFieldsPattern(targetField);
-            if (source.matches(".*" + fieldsPattern + "\\s*:\\s*from.*in.*select.*$")) {
-                String[] split = source.split(fieldsPattern + "\\s*:\\s*from");
-                String newSource = split[0] + fieldsPattern + ": from";
-                String[] splitBySelect = split[1].split("select");
-                return newSource + splitBySelect[0] + "select" + splitBySelect[1].replaceFirst("\\{.*?}",
+            if (source.matches("(?s).*" + fieldsPattern + "(?s).*:(?s).*from.*in.*select(?s).*")) {
+                String[] splitBySelect = source.split("select");
+                return splitBySelect[0] + "select" + splitBySelect[1].replaceFirst("(?s).*?}",
                         mappingSource);
             }
         }
         return mappingSource;
+    }
+
+    private record QueryData(FromClause fromClause, List<Clause> intermediateClauses, Clause resultClause) {
+
+    }
+
+    private static final java.lang.reflect.Type queryType = new TypeToken<QueryData>() {
+    }.getType();
+
+    public String addClauses(JsonElement clauses, JsonElement fNode, String targetField) {
+        FlowNode flowNode = gson.fromJson(fNode, FlowNode.class);
+        QueryData query = gson.fromJson(clauses, queryType);
+        if (flowNode.codedata().node() != NodeKind.VARIABLE) {
+            return "";
+        }
+
+        StringBuilder queryStr = new StringBuilder();
+        FromClause fromClause = query.fromClause();
+        queryStr.append(FROM).append(SPACE).append(fromClause.type()).append(SPACE).append(fromClause.name())
+                .append(SPACE).append(IN).append(SPACE).append(fromClause.expression()).append(System.lineSeparator());
+
+        List<Clause> intermediateClauses = query.intermediateClauses();
+        if (intermediateClauses != null) {
+            for (Clause intermediateClause : intermediateClauses) {
+                Properties properties = intermediateClause.properties();
+                switch (intermediateClause.type()) {
+                    case FROM:
+                        queryStr.append(FROM).append(SPACE).append(properties.type()).append(SPACE)
+                                .append(properties.name()).append(SPACE).append(IN).append(SPACE)
+                                .append(properties.expression()).append(System.lineSeparator());
+                        break;
+                    case WHERE:
+                        queryStr.append(WHERE).append(SPACE).append(properties.expression())
+                                .append(System.lineSeparator());
+                        break;
+                    case ORDER_BY:
+                        queryStr.append(ORDER_BY_CLAUSE).append(SPACE).append(properties.expression()).append(SPACE);
+                        String order = properties.order();
+                        if (order != null && !order.isEmpty()) {
+                            queryStr.append(order);
+                        }
+                        queryStr.append(System.lineSeparator());
+                        break;
+                    case LET:
+                        queryStr.append(LET).append(SPACE).append(properties.type()).append(SPACE)
+                                .append(properties.name()).append(" = ").append(properties.expression())
+                                .append(System.lineSeparator());
+                        break;
+                    case LIMIT:
+                        queryStr.append(LIMIT).append(SPACE).append(properties.expression())
+                                .append(System.lineSeparator());
+                        break;
+                    default:
+                        throw new IllegalStateException("Unknown clause type: " + intermediateClause.type());
+                }
+            }
+        }
+
+        Clause resultClause = query.resultClause();
+        String type = resultClause.type();
+        if (type.equals(SELECT)) {
+            queryStr.append(SELECT).append(SPACE);
+        } else if (type.equals(COLLECT)) {
+            queryStr.append(COLLECT).append(SPACE);
+        }
+
+        queryStr.append(resultClause.properties().expression());
+
+        Optional<Property> optProperty = flowNode.getProperty("expression");
+        if (optProperty.isEmpty()) {
+            return "";
+        }
+        Property property = optProperty.get();
+        String source = property.toSourceCode();
+        if (targetField == null || targetField.isEmpty()) {
+            if (source.matches("^from.*in.*select.*$")) {
+                String[] split = source.split(FROM);
+                return split[0] + queryStr;
+            }
+        }
+        return source;
     }
 
     private String getVariableName(FlowNode flowNode) {
@@ -1204,11 +1302,19 @@ public class DataMapManager {
 
     }
 
-    private record FromClause(String typeDesc, String variableName, String collection) {
+    private record FromClause(String type, String name, String expression) {
 
     }
 
     private record IntermediateClause(String type, Object clause) {
+
+    }
+
+    private record Properties(String name, String type, String expression, String order) {
+
+    }
+
+    private record Clause(String type, Properties properties) {
 
     }
 

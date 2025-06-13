@@ -176,9 +176,9 @@
         "userInfo"
       ],
       "fromClause": {
-        "typeDesc": "UserInfo",
-        "variableName": "item",
-        "collection": "userInfo"
+        "type": "UserInfo",
+        "name": "item",
+        "expression": "userInfo"
       },
       "intermediateClauses": [],
       "resultClause": "{username: item.username, password: item.password}"
