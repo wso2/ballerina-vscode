@@ -1,12 +1,12 @@
 {
-  "description": "Update the config value of a variable",
+  "description": "Define config value for a config variable from an imported module(HTTP)",
   "project": "config_update_test_project",
   "request": {
-    "packageName": "config_tests/config_update_test_project",
+    "packageName": "ballerina/http",
     "moduleName": "",
     "configFilePath": "config.bal",
     "configVariable": {
-      "id": "32790",
+      "id": "49713",
       "metadata": {
         "label": "Config",
         "description": "Create a configurable variable"
@@ -14,14 +14,14 @@
       "codedata": {
         "node": "CONFIG_VARIABLE",
         "lineRange": {
-          "fileName": "config.bal",
+          "fileName": "http_default_listener.bal",
           "startLine": {
-            "line": 1,
+            "line": 18,
             "offset": 0
           },
           "endLine": {
-            "line": 1,
-            "offset": 54
+            "line": 20,
+            "offset": 51
           }
         }
       },
@@ -34,12 +34,11 @@
           },
           "valueType": "IDENTIFIER",
           "valueTypeConstraint": "Global",
-          "value": "optionalConfig",
+          "value": "defaultListenerPort",
           "optional": false,
-          "editable": true,
+          "editable": false,
           "advanced": false,
-          "hidden": false,
-          "modified": false
+          "hidden": false
         },
         "type": {
           "metadata": {
@@ -47,13 +46,12 @@
             "description": "Type of the variable"
           },
           "valueType": "TYPE",
-          "value": "string",
+          "value": "int",
           "placeholder": "var",
           "optional": false,
-          "editable": true,
+          "editable": false,
           "advanced": false,
           "hidden": false,
-          "modified": false,
           "codedata": {}
         },
         "defaultValue": {
@@ -62,9 +60,9 @@
             "description": "Default value of the variable"
           },
           "valueType": "EXPRESSION",
-          "value": "\"defaultValue\"",
+          "value": "9090",
           "optional": true,
-          "editable": true,
+          "editable": false,
           "advanced": true,
           "hidden": false,
           "modified": false
@@ -80,7 +78,7 @@
           "advanced": false,
           "hidden": false,
           "modified": true,
-          "value": "\"configValue\""
+          "value": "9095"
         },
         "documentation": {
           "metadata": {
@@ -88,9 +86,9 @@
             "description": "Variable documentation in Markdown format."
           },
           "valueType": "STRING",
-          "value": "",
+          "value": "Default HTTP listener port used by the HTTP Default Listener.\nThe default value is 9090.",
           "optional": true,
-          "editable": true,
+          "editable": false,
           "advanced": true,
           "hidden": false,
           "modified": false
@@ -113,7 +111,7 @@
               "character": 0
             }
           },
-          "newText": "optionalConfig = \"configValue\"\n"
+          "newText": "\n[ballerina.http]\ndefaultListenerPort = 9095\n"
         }
       ]
     }
