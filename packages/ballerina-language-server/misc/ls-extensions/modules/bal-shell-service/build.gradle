@@ -16,30 +16,47 @@
  *  under the License.
  */
 
-plugins {
-    id 'javaProject'
-    id 'ballerinaLangLibLoad'
+apply from: "$rootDir/gradle/javaProject.gradle"
+apply plugin: "com.github.johnrengelman.shadow"
+apply plugin: "java"
+
+configurations.all {
+    resolutionStrategy.preferProjectModules()
 }
 
 configurations {
-    compile.transitive = false
-    compileClasspath.extendsFrom(compileOnly)
-    runtimeClasspath.transitive = false
+    balTools
+    dist {
+        transitive true
+    }
 }
 
 dependencies {
-    compileOnly project(':ballerina-lang')
-    implementation project(':ballerina-runtime')
-    compileOnly project(':language-server:language-server-commons')
-    compileOnly project(':ballerina-shell:shell-core')
-    compileOnly project(':ballerina-shell:shell-cli')
-    compileOnly libs.eclipse.lsp4j
-    implementation libs.jackson.databind
+    implementation project(":langserver-commons")
+    
+    implementation "org.ballerinalang:ballerina-runtime:${ballerinaLangVersion}"
+    implementation "org.ballerinalang:ballerina-lang:${ballerinaLangVersion}"
+    implementation "org.ballerinalang:shell-core:${ballerinaLangVersion}"
+    implementation "org.ballerinalang:shell-cli:${ballerinaLangVersion}"
+    implementation "org.ballerinalang:shell-rt:${ballerinaLangVersion}"
 
-    testImplementation libs.testng
-    testImplementation libs.gson
-    testImplementation project(':language-server:language-server-core')
-    testImplementation libs.eclipse.lsp4j
+    implementation "org.eclipse.lsp4j:org.eclipse.lsp4j:${eclipseLsp4jVersion}"
+    implementation "com.fasterxml.jackson.core:jackson-databind:${jacksonDatabindVersion}"
+    testImplementation "org.testng:testng:${testngVersion}"
+    testImplementation "com.google.code.gson:gson:${gsonVersion}"
+    testImplementation project(":langserver-core")
+}
+
+ext.moduleName = 'bal-shell-service'
+jar {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    dependsOn configurations.dist
+    from { configurations.dist.collect { it.isDirectory() ? it : zipTree(it) } } {
+        exclude 'META-INF/*.RSA', 'META-INF/*.SF', 'META-INF/*.DSA'
+    }
+    manifest {
+        attributes "Main-Class": "io.ballerina.shell.service.BalShellService"
+    }
 }
 
 test {
@@ -50,30 +67,12 @@ test {
 
 description = 'LS extension for get results from Bal Shell execution'
 
-ext.moduleName = 'bal-shell-service'
-
 compileJava {
-    inputs.property("moduleName", moduleName)
     doFirst {
-        options.compilerArgs << '--module-path' << classpath.asPath
+        options.compilerArgs = [
+                '--module-path', classpath.asPath,
+        ]
         classpath = files()
-    }
-}
-
-javadoc {
-    doFirst {
-        options.modulePath = classpath.toList()
-        classpath = files()
-    }
-}
-
-jar {
-    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-    manifest {
-        attributes "Main-Class": "io.ballerina.shell.service.BalShellService"
-    }
-    from {
-        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
     }
 }
 
