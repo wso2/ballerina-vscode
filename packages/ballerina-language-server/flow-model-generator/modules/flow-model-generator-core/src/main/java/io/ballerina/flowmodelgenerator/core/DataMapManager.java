@@ -120,6 +120,7 @@ public class DataMapManager {
     private static final String FROM = "from";
     private static final String WHERE = "where";
     private static final String ORDER_BY = "order-by";
+    private static final String ORDER_BY_CLAUSE = "order by";
     private static final String LET = "let";
     private static final String LIMIT = "limit";
     private static final String SELECT = "select";
@@ -811,7 +812,7 @@ public class DataMapManager {
                                 .append(System.lineSeparator());
                         break;
                     case ORDER_BY:
-                        queryStr.append("order by").append(SPACE).append(properties.expression()).append(SPACE);
+                        queryStr.append(ORDER_BY_CLAUSE).append(SPACE).append(properties.expression()).append(SPACE);
                         String order = properties.order();
                         if (order != null && !order.isEmpty()) {
                             queryStr.append(order);
