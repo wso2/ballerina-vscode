@@ -138,7 +138,8 @@
                 ],
                 "expression": "userInfo[0].username",
                 "diagnostics": [],
-                "elements": []
+                "elements": [],
+                "isQueryExpression": false
               },
               {
                 "output": "credentials.0.password",
@@ -147,7 +148,8 @@
                 ],
                 "expression": "userInfo[0].password",
                 "diagnostics": [],
-                "elements": []
+                "elements": [],
+                "isQueryExpression": false
               }
             ]
           }

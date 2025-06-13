@@ -250,7 +250,7 @@ public class DefinitionTest {
 
             String canonicalPath = new File(URI.create(fileUri)).getCanonicalPath();
             if (canonicalPath.contains("repo")) {
-                canonicalPath = "/repo" + canonicalPath.substring(canonicalPath.indexOf("repo") + 4);
+                canonicalPath = "/repo" + canonicalPath.substring(canonicalPath.lastIndexOf("repo") + 4);
             }
             // Remove version directory (d.d.d pattern) from canonical path if it exists
             String[] pathParts = canonicalPath.split("/");

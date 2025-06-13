@@ -203,7 +203,8 @@
         ],
         "expression": "secondaryPhonesItem.code",
         "diagnostics": [],
-        "elements": []
+        "elements": [],
+        "isQueryExpression": false
       },
       {
         "output": "phoneNumbers.number",
@@ -212,7 +213,8 @@
         ],
         "expression": "secondaryPhonesItem.number",
         "diagnostics": [],
-        "elements": []
+        "elements": [],
+        "isQueryExpression": false
       }
     ],
     "query": {

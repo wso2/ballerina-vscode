@@ -151,7 +151,8 @@
         ],
         "expression": "user.length()",
         "diagnostics": [],
-        "elements": []
+        "elements": [],
+        "isQueryExpression": false
       },
       {
         "output": "user1.user2.user3.user4.user5.u",
@@ -168,7 +169,8 @@
                 ],
                 "expression": "user.name",
                 "diagnostics": [],
-                "elements": []
+                "elements": [],
+                "isQueryExpression": false
               }
             ]
           },
@@ -181,7 +183,8 @@
                 ],
                 "expression": "user.name",
                 "diagnostics": [],
-                "elements": []
+                "elements": [],
+                "isQueryExpression": false
               }
             ]
           }
@@ -200,7 +203,8 @@
                 "inputs": [],
                 "expression": "0.0",
                 "diagnostics": [],
-                "elements": []
+                "elements": [],
+                "isQueryExpression": false
               },
               {
                 "output": "user1.user2.user3.user4.users6.0.account",
@@ -209,7 +213,8 @@
                 ],
                 "expression": "user.name",
                 "diagnostics": [],
-                "elements": []
+                "elements": [],
+                "isQueryExpression": false
               }
             ]
           },
@@ -220,7 +225,8 @@
                 "inputs": [],
                 "expression": "1.0",
                 "diagnostics": [],
-                "elements": []
+                "elements": [],
+                "isQueryExpression": false
               },
               {
                 "output": "user1.user2.user3.user4.users6.1.account",
@@ -229,7 +235,8 @@
                 ],
                 "expression": "user.name",
                 "diagnostics": [],
-                "elements": []
+                "elements": [],
+                "isQueryExpression": false
               }
             ]
           }
@@ -242,7 +249,8 @@
         ],
         "expression": "user.name",
         "diagnostics": [],
-        "elements": []
+        "elements": [],
+        "isQueryExpression": false
       }
     ]
   }

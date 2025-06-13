@@ -157,7 +157,8 @@
         ],
         "expression": "item.username",
         "diagnostics": [],
-        "elements": []
+        "elements": [],
+        "isQueryExpression": false
       },
       {
         "output": "credentials.password",
@@ -166,7 +167,8 @@
         ],
         "expression": "item.password",
         "diagnostics": [],
-        "elements": []
+        "elements": [],
+        "isQueryExpression": false
       }
     ],
     "query": {
