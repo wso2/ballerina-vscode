@@ -203,7 +203,8 @@
         ],
         "expression": "secondaryPhonesItem.code",
         "diagnostics": [],
-        "elements": []
+        "elements": [],
+        "isQueryExpression": false
       },
       {
         "output": "phoneNumbers.number",
@@ -212,9 +213,23 @@
         ],
         "expression": "secondaryPhonesItem.number",
         "diagnostics": [],
-        "elements": []
+        "elements": [],
+        "isQueryExpression": false
       }
-    ]
+    ],
+    "query": {
+      "output": "p.contactDetails.phoneNumbers",
+      "inputs": [
+        "u.info.secondaryPhones"
+      ],
+      "fromClause": {
+        "typeDesc": "SecondaryPhones",
+        "variableName": "secondaryPhonesItem",
+        "collection": "u.info.secondaryPhones"
+      },
+      "intermediateClauses": [],
+      "resultClause": "{code: secondaryPhonesItem.code, number: secondaryPhonesItem.number}"
+    }
   },
   "targetField": "p.contactDetails.phoneNumbers"
 }

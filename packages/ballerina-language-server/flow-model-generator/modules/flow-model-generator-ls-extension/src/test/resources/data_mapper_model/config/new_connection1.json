@@ -561,7 +561,8 @@
         "inputs": [],
         "expression": "\"\"",
         "diagnostics": [],
-        "elements": []
+        "elements": [],
+        "isQueryExpression": false
       }
     ]
   }

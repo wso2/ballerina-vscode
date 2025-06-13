@@ -126,7 +126,8 @@
         ],
         "expression": "userInfo.username",
         "diagnostics": [],
-        "elements": []
+        "elements": [],
+        "isQueryExpression": false
       },
       {
         "output": "student.password",
@@ -136,14 +137,16 @@
         ],
         "expression": "userInfo.password + userInfo.username",
         "diagnostics": [],
-        "elements": []
+        "elements": [],
+        "isQueryExpression": false
       },
       {
         "output": "student.length",
         "inputs": [],
         "expression": "41",
         "diagnostics": [],
-        "elements": []
+        "elements": [],
+        "isQueryExpression": false
       }
     ]
   }
