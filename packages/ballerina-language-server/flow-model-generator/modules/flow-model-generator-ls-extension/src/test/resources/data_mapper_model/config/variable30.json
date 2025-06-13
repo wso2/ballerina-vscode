@@ -134,7 +134,8 @@
                 ],
                 "expression": "user.phoneNumber[0]",
                 "diagnostics": [],
-                "elements": []
+                "elements": [],
+                "isQueryExpression": false
               },
               {
                 "output": "var3.contacts.0.secondaryPhone",
@@ -143,7 +144,8 @@
                 ],
                 "expression": "user.phoneNumber[1]",
                 "diagnostics": [],
-                "elements": []
+                "elements": [],
+                "isQueryExpression": false
               }
             ]
           },
@@ -156,7 +158,8 @@
                 ],
                 "expression": "user.phoneNumber[2]",
                 "diagnostics": [],
-                "elements": []
+                "elements": [],
+                "isQueryExpression": false
               },
               {
                 "output": "var3.contacts.1.secondaryPhone",
@@ -165,7 +168,8 @@
                 ],
                 "expression": "user.phoneNumber[3]",
                 "diagnostics": [],
-                "elements": []
+                "elements": [],
+                "isQueryExpression": false
               }
             ]
           }

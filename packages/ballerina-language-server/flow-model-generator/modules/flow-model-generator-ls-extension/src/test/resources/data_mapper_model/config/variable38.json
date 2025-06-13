@@ -191,7 +191,8 @@
                         "inputs": [],
                         "expression": "0",
                         "diagnostics": [],
-                        "elements": []
+                        "elements": [],
+                        "isQueryExpression": false
                       },
                       {
                         "output": "users4.0.users6.0.banks",
@@ -216,7 +217,8 @@
                                         ],
                                         "expression": "user.name",
                                         "diagnostics": [],
-                                        "elements": []
+                                        "elements": [],
+                                        "isQueryExpression": false
                                       }
                                     ]
                                   }
@@ -233,7 +235,8 @@
                         ],
                         "expression": "user.name",
                         "diagnostics": [],
-                        "elements": []
+                        "elements": [],
+                        "isQueryExpression": false
                       }
                     ]
                   }
@@ -254,7 +257,8 @@
                         ],
                         "expression": "user.name",
                         "diagnostics": [],
-                        "elements": []
+                        "elements": [],
+                        "isQueryExpression": false
                       }
                     ]
                   },
@@ -267,7 +271,8 @@
                         ],
                         "expression": "user.name",
                         "diagnostics": [],
-                        "elements": []
+                        "elements": [],
+                        "isQueryExpression": false
                       }
                     ]
                   }

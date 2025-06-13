@@ -138,7 +138,8 @@
         "inputs": [],
         "expression": "1234",
         "diagnostics": [],
-        "elements": []
+        "elements": [],
+        "isQueryExpression": false
       },
       {
         "output": "student.credentials.username",
@@ -147,7 +148,8 @@
         ],
         "expression": "userInfo.username",
         "diagnostics": [],
-        "elements": []
+        "elements": [],
+        "isQueryExpression": false
       },
       {
         "output": "student.credentials.password",
@@ -156,14 +158,16 @@
         ],
         "expression": "userInfo.password",
         "diagnostics": [],
-        "elements": []
+        "elements": [],
+        "isQueryExpression": false
       },
       {
         "output": "student.length",
         "inputs": [],
         "expression": "0",
         "diagnostics": [],
-        "elements": []
+        "elements": [],
+        "isQueryExpression": false
       }
     ]
   }

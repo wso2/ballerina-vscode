@@ -156,7 +156,8 @@
         "diagnostics": [
           "undefined symbol 'student1'"
         ],
-        "elements": []
+        "elements": [],
+        "isQueryExpression": false
       },
       {
         "output": "userInfo.password",
@@ -167,7 +168,8 @@
         "diagnostics": [
           "undefined symbol 'student1'"
         ],
-        "elements": []
+        "elements": [],
+        "isQueryExpression": false
       }
     ]
   }
