@@ -1,5 +1,5 @@
 {
-  "source": "query1.bal",
+  "source": "query2.bal",
   "description": "Sample diagram node",
   "diagram": {
     "id": "69725",
@@ -12,11 +12,11 @@
       "lineRange": {
         "fileName": "main.bal",
         "startLine": {
-          "line": 21,
+          "line": 26,
           "offset": 4
         },
         "endLine": {
-          "line": 26,
+          "line": 31,
           "offset": 6
         }
       },
@@ -30,7 +30,7 @@
           "description": "Initialize with value"
         },
         "valueType": "EXPRESSION",
-        "value": "{\n        contactDetails: {\n            phoneNumbers: from var secondaryPhonesItem in u.info.secondaryPhones\n                select secondaryPhonesItem\n        }\n    }",
+        "value": "{\n        contactDetails: {\n            phoneNumbers: from var secondaryPhonesItem in u.info.secondaryPhones\n                select {code: secondaryPhonesItem.code, number: secondaryPhonesItem.number}\n        }\n    }",
         "optional": true,
         "editable": true,
         "advanced": false,
@@ -80,7 +80,7 @@
   },
   "propertyKey": "expression",
   "position": {
-    "line": 21,
+    "line": 31,
     "offset": 4
   },
   "model": {
@@ -91,13 +91,27 @@
             "fields": [
               {
                 "member": {
+                  "fields": [
+                    {
+                      "id": "u.info.secondaryPhones.code",
+                      "variableName": "code",
+                      "typeName": "string",
+                      "kind": "string"
+                    },
+                    {
+                      "id": "u.info.secondaryPhones.number",
+                      "variableName": "number",
+                      "typeName": "string",
+                      "kind": "string"
+                    }
+                  ],
                   "id": "u.info.secondaryPhones",
-                  "typeName": "string",
-                  "kind": "string"
+                  "typeName": "SecondaryPhones",
+                  "kind": "record"
                 },
                 "id": "u.info.secondaryPhones",
                 "variableName": "secondaryPhones",
-                "typeName": "string[]",
+                "typeName": "SecondaryPhones[]",
                 "kind": "array"
               },
               {
@@ -139,43 +153,71 @@
         "typeName": "User",
         "kind": "record",
         "category": "variable"
-      },
-      {
-        "id": "secondaryPhonesItem",
-        "typeName": "string",
-        "kind": "string"
       }
     ],
     "output": {
-      "id": "phoneNumbers",
-      "typeName": "string",
-      "kind": "string"
+      "fields": [
+        {
+          "fields": [
+            {
+              "member": {
+                "fields": [
+                  {
+                    "id": "p.contactDetails.phoneNumbers.code",
+                    "variableName": "code",
+                    "typeName": "string",
+                    "kind": "string"
+                  },
+                  {
+                    "id": "p.contactDetails.phoneNumbers.number",
+                    "variableName": "number",
+                    "typeName": "string",
+                    "kind": "string"
+                  }
+                ],
+                "id": "p.contactDetails.phoneNumbers",
+                "typeName": "SecondaryPhonesX",
+                "kind": "record"
+              },
+              "id": "p.contactDetails.phoneNumbers",
+              "variableName": "phoneNumbers",
+              "typeName": "SecondaryPhonesX[]",
+              "kind": "array"
+            },
+            {
+              "member": {
+                "id": "p.contactDetails.addresses",
+                "typeName": "string",
+                "kind": "string"
+              },
+              "id": "p.contactDetails.addresses",
+              "variableName": "addresses",
+              "typeName": "string[]",
+              "kind": "array"
+            }
+          ],
+          "id": "p.contactDetails",
+          "variableName": "contactDetails",
+          "typeName": "ContactDetails",
+          "kind": "record"
+        }
+      ],
+      "id": "p",
+      "variableName": "p",
+      "typeName": "Person",
+      "kind": "record"
     },
     "mappings": [
       {
-        "output": "phoneNumbers",
+        "output": "p.contactDetails.phoneNumbers",
         "inputs": [
-          "secondaryPhonesItem"
+          "u.info.secondaryPhones"
         ],
-        "expression": "secondaryPhonesItem\n",
+        "expression": "from var secondaryPhonesItem in u.info.secondaryPhones\n            select {code: secondaryPhonesItem.code, number: secondaryPhonesItem.number}\n",
         "diagnostics": [],
         "elements": [],
-        "isQueryExpression": false
+        "isQueryExpression": true
       }
-    ],
-    "query": {
-      "output": "p.contactDetails.phoneNumbers",
-      "inputs": [
-        "u.info.secondaryPhones"
-      ],
-      "fromClause": {
-        "type": "string",
-        "name": "secondaryPhonesItem",
-        "expression": "u.info.secondaryPhones"
-      },
-      "intermediateClauses": [],
-      "resultClause": "secondaryPhonesItem"
-    }
-  },
-  "targetField": "p.contactDetails.phoneNumbers"
+    ]
+  }
 }

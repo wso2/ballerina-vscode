@@ -120,7 +120,8 @@
         ],
         "expression": "userInfo.username",
         "diagnostics": [],
-        "elements": []
+        "elements": [],
+        "isQueryExpression": false
       }
     ]
   }

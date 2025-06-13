@@ -138,7 +138,8 @@
                 "inputs": [],
                 "expression": "\"123\"",
                 "diagnostics": [],
-                "elements": []
+                "elements": [],
+                "isQueryExpression": false
               }
             ]
           },
@@ -149,7 +150,8 @@
                 "inputs": [],
                 "expression": "\"456\"",
                 "diagnostics": [],
-                "elements": []
+                "elements": [],
+                "isQueryExpression": false
               }
             ]
           }

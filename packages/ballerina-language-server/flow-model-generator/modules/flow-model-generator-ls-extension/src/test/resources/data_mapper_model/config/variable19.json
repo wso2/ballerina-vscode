@@ -157,7 +157,8 @@
         ],
         "expression": "item.username",
         "diagnostics": [],
-        "elements": []
+        "elements": [],
+        "isQueryExpression": false
       },
       {
         "output": "credentials.password",
@@ -166,7 +167,8 @@
         ],
         "expression": "item.password",
         "diagnostics": [],
-        "elements": []
+        "elements": [],
+        "isQueryExpression": false
       }
     ],
     "query": {
@@ -174,9 +176,9 @@
         "userInfo"
       ],
       "fromClause": {
-        "typeDesc": "UserInfo",
-        "variableName": "item",
-        "collection": "userInfo"
+        "type": "UserInfo",
+        "name": "item",
+        "expression": "userInfo"
       },
       "intermediateClauses": [],
       "resultClause": "{username: item.username, password: item.password}"
