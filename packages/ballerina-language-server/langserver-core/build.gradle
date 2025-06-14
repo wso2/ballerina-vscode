@@ -100,38 +100,6 @@ task unpackJballerinaTools {
     }
 }
 
-task unpackStdLibs() {
-    dependsOn(unpackJballerinaTools)
-    doLast {
-        configurations.ballerinaStdLibs.resolvedConfiguration.resolvedArtifacts.each { artifact ->
-            copy {
-                from project.zipTree(artifact.getFile())
-                into new File("${project.buildDir}/extracted-stdlibs/" + artifact.name + "-zip")
-            }
-        }
-    }
-}
-
-task copyStdlibs() {
-    dependsOn(unpackStdLibs)
-    doLast {
-        /* Standard Libraries */
-        configurations.ballerinaStdLibs.resolvedConfiguration.resolvedArtifacts.each { artifact ->
-            def artifactExtractedPath = "${project.buildDir}/extracted-stdlibs/" + artifact.name + '-zip'
-            project.copy {
-                def ballerinaDist = "build/jballerina-tools-${project.ballerinaLangVersion}"
-                into ballerinaDist
-                into('repo/bala') {
-                    from "${artifactExtractedPath}/bala"
-                }
-                into('repo/cache') {
-                    from "${artifactExtractedPath}/cache"
-                }
-            }
-        }
-    }
-}
-
 task buildAndCopyLangserverStdlib() {
     dependsOn ':langserver-stdlib:build'
 
