@@ -300,7 +300,7 @@ public class ConfigEditorV2Service implements ExtendedLanguageServerService {
                 textEdits.add(new TextEdit(CommonUtils.toRange(lineRange), configStatement));
             }
 
-            textEditsMap.put(rootProject.sourceRoot().relativize(variableFilePath), textEdits);
+            textEditsMap.put(variableFilePath, textEdits);
             return textEditsMap;
         } catch (RuntimeException e) {
             return textEditsMap;
@@ -795,13 +795,14 @@ public class ConfigEditorV2Service implements ExtendedLanguageServerService {
             if (!configVariable.properties().containsKey(CONFIG_VALUE_KEY)) {
                 return textEditsMap;
             }
-            Map<String, Property> properties = configVariable.properties();
-            String variableName = properties.get(Property.VARIABLE_KEY).value().toString();
-            String configValue = properties.get(CONFIG_VALUE_KEY).toSourceCode();
-
             Toml existingConfigToml = parseConfigToml(project);
+            Property nameProp = configVariable.properties().get(VARIABLE_KEY);
+            String oldVariableName = isNameModified(nameProp) ? nameProp.oldValue().toString()
+                    : nameProp.value().toString();
+
             Optional<TomlNode> oldConfigValue = getConfigValue(existingConfigToml, packageName, moduleName,
-                    variableName, isPackageInRootProject(packageName, project));
+                    oldVariableName, isPackageInRootProject(packageName, project));
+            String configValue = configVariable.properties().get(CONFIG_VALUE_KEY).toSourceCode();
             if (isDelete && oldConfigValue.isEmpty()) {
                 return textEditsMap;
             } else if (oldConfigValue.isEmpty() && configValue.isEmpty()) {
@@ -811,6 +812,7 @@ public class ConfigEditorV2Service implements ExtendedLanguageServerService {
             String[] pkgParts = packageName.split(FORWARD_SLASH);
             String orgName = pkgParts.length > 0 ? pkgParts[0] : EMPTY_STRING;
             String pkgName = pkgParts.length > 1 ? pkgParts[1] : EMPTY_STRING;
+            String variableName = nameProp.value().toString();
 
             String newContent = isDelete || configValue.isEmpty() ? EMPTY_STRING : constructConfigTomlStatement(
                     orgName, pkgName, moduleName, variableName, configValue, oldConfigValue.isPresent());
@@ -889,11 +891,18 @@ public class ConfigEditorV2Service implements ExtendedLanguageServerService {
                 }
             }
 
-            textEditsMap.put(project.sourceRoot().relativize(configTomlPath), textEdits);
+            textEditsMap.put(configTomlPath, textEdits);
             return textEditsMap;
         } catch (RuntimeException e) {
             return new HashMap<>();
         }
+    }
+
+    /**
+     * Checks if the configurable variable name has been modified.
+     */
+    private static boolean isNameModified(Property nameProp) {
+        return Boolean.TRUE.equals(nameProp.modified()) && nameProp.oldValue() != null;
     }
 
     /**
@@ -997,7 +1006,9 @@ public class ConfigEditorV2Service implements ExtendedLanguageServerService {
      * properties.
      */
     private boolean requireConfigTomlEdits(FlowNode configVariable) {
+        Property variableName = configVariable.properties().get(VARIABLE_KEY);
         Property configValue = configVariable.properties().get(CONFIG_VALUE_KEY);
-        return configValue != null && Boolean.TRUE.equals(configValue.modified());
+        return (variableName != null && Boolean.TRUE.equals(variableName.modified()))
+                || (configValue != null && Boolean.TRUE.equals(configValue.modified()));
     }
 }

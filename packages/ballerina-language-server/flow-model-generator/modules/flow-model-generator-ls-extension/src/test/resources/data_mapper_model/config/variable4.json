@@ -122,7 +122,8 @@
         "diagnostics": [
           "incompatible types: expected 'string', found 'UserInfo'"
         ],
-        "elements": []
+        "elements": [],
+        "isQueryExpression": false
       }
     ]
   }

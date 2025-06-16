@@ -86,30 +86,35 @@
   "model": {
     "inputs": [],
     "output": {
-      "fields": [
-        {
-          "id": "phoneNumbers.code",
-          "variableName": "code",
-          "typeName": "string",
-          "kind": "string"
-        },
-        {
-          "id": "phoneNumbers.number",
-          "variableName": "number",
-          "typeName": "string",
-          "kind": "string"
-        },
-        {
-          "id": "phoneNumbers.email",
-          "variableName": "email",
-          "typeName": "string",
-          "kind": "string"
-        }
-      ],
+      "member": {
+        "fields": [
+          {
+            "id": "phoneNumbers.code",
+            "variableName": "code",
+            "typeName": "string",
+            "kind": "string"
+          },
+          {
+            "id": "phoneNumbers.number",
+            "variableName": "number",
+            "typeName": "string",
+            "kind": "string"
+          },
+          {
+            "id": "phoneNumbers.email",
+            "variableName": "email",
+            "typeName": "string",
+            "kind": "string"
+          }
+        ],
+        "id": "phoneNumbers",
+        "typeName": "SecondaryPhonesX",
+        "kind": "record"
+      },
       "id": "phoneNumbers",
       "variableName": "phoneNumbers",
-      "typeName": "SecondaryPhonesX",
-      "kind": "record"
+      "typeName": "SecondaryPhonesX[]",
+      "kind": "array"
     },
     "mappings": [
       {
@@ -119,7 +124,8 @@
         ],
         "expression": "secondaryPhonesItem.code",
         "diagnostics": [],
-        "elements": []
+        "elements": [],
+        "isQueryExpression": false
       },
       {
         "output": "phoneNumbers.number",
@@ -128,7 +134,8 @@
         ],
         "expression": "secondaryPhonesItem.number",
         "diagnostics": [],
-        "elements": []
+        "elements": [],
+        "isQueryExpression": false
       },
       {
         "output": "phoneNumbers.email",
@@ -137,7 +144,8 @@
         ],
         "expression": "email",
         "diagnostics": [],
-        "elements": []
+        "elements": [],
+        "isQueryExpression": false
       }
     ],
     "query": {
@@ -146,17 +154,17 @@
         "u.info.secondaryPhones"
       ],
       "fromClause": {
-        "typeDesc": "var",
-        "variableName": "secondaryPhonesItem",
-        "collection": "u.info.secondaryPhones"
+        "type": "var",
+        "name": "secondaryPhonesItem",
+        "expression": "u.info.secondaryPhones"
       },
       "intermediateClauses": [
         {
           "type": "from",
           "clause": {
-            "typeDesc": "var",
-            "variableName": "email",
-            "collection": "u.info.emails"
+            "type": "var",
+            "name": "email",
+            "expression": "u.info.emails"
           }
         },
         {

@@ -147,9 +147,15 @@
       }
     ],
     "output": {
+      "member": {
+        "id": "phoneNumbers",
+        "typeName": "string",
+        "kind": "string"
+      },
       "id": "phoneNumbers",
-      "typeName": "string",
-      "kind": "string"
+      "variableName": "phoneNumbers",
+      "typeName": "string[]",
+      "kind": "array"
     },
     "mappings": [
       {
@@ -159,7 +165,8 @@
         ],
         "expression": "secondaryPhonesItem\n",
         "diagnostics": [],
-        "elements": []
+        "elements": [],
+        "isQueryExpression": false
       }
     ],
     "query": {
@@ -168,9 +175,9 @@
         "u.info.secondaryPhones"
       ],
       "fromClause": {
-        "typeDesc": "string",
-        "variableName": "secondaryPhonesItem",
-        "collection": "u.info.secondaryPhones"
+        "type": "string",
+        "name": "secondaryPhonesItem",
+        "expression": "u.info.secondaryPhones"
       },
       "intermediateClauses": [],
       "resultClause": "secondaryPhonesItem"

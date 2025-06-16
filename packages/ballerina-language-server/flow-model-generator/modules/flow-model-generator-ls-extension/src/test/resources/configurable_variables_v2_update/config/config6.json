@@ -1,12 +1,12 @@
 {
-  "description": "Define config value for a config variable from an imported module(HTTP)",
+  "description": "Rename a configurable variable having a Config.toml entry",
   "project": "config_update_test_project",
   "request": {
-    "packageName": "ballerina/http",
+    "packageName": "config_tests/config_update_test_project",
     "moduleName": "",
     "configFilePath": "config.bal",
     "configVariable": {
-      "id": "49713",
+      "id": "31780",
       "metadata": {
         "label": "Config",
         "description": "Create a configurable variable"
@@ -14,14 +14,14 @@
       "codedata": {
         "node": "CONFIG_VARIABLE",
         "lineRange": {
-          "fileName": "http_default_listener.bal",
+          "fileName": "config.bal",
           "startLine": {
-            "line": 18,
+            "line": 0,
             "offset": 0
           },
           "endLine": {
-            "line": 20,
-            "offset": 51
+            "line": 0,
+            "offset": 36
           }
         }
       },
@@ -34,11 +34,13 @@
           },
           "valueType": "IDENTIFIER",
           "valueTypeConstraint": "Global",
-          "value": "defaultListenerPort",
+          "value": "requiredConf",
+          "oldValue": "requiredConfig",
           "optional": false,
-          "editable": false,
+          "editable": true,
           "advanced": false,
-          "hidden": false
+          "hidden": false,
+          "modified": true
         },
         "type": {
           "metadata": {
@@ -49,7 +51,7 @@
           "value": "int",
           "placeholder": "var",
           "optional": false,
-          "editable": false,
+          "editable": true,
           "advanced": false,
           "hidden": false,
           "codedata": {}
@@ -60,9 +62,8 @@
             "description": "Default value of the variable"
           },
           "valueType": "EXPRESSION",
-          "value": "9090",
           "optional": true,
-          "editable": false,
+          "editable": true,
           "advanced": true,
           "hidden": false,
           "modified": false
@@ -73,12 +74,12 @@
             "description": "Config value of the variable, to be used in Config.toml"
           },
           "valueType": "EXPRESSION",
+          "value": "20",
           "optional": true,
           "editable": true,
           "advanced": false,
           "hidden": false,
-          "modified": true,
-          "value": "9095"
+          "modified": false
         },
         "documentation": {
           "metadata": {
@@ -86,9 +87,9 @@
             "description": "Variable documentation in Markdown format."
           },
           "valueType": "STRING",
-          "value": "Default HTTP listener port used by the HTTP Default Listener.\nThe default value is 9090.",
+          "value": "",
           "optional": true,
-          "editable": false,
+          "editable": true,
           "advanced": true,
           "hidden": false,
           "modified": false
@@ -103,15 +104,30 @@
         {
           "range": {
             "start": {
-              "line": 3,
+              "line": 2,
               "character": 0
             },
             "end": {
-              "line": 3,
-              "character": 0
+              "line": 2,
+              "character": 19
             }
           },
-          "newText": "\n[ballerina.http]\ndefaultListenerPort = 9095\n"
+          "newText": "requiredConf = 20"
+        }
+      ],
+      "config.bal": [
+        {
+          "range": {
+            "start": {
+              "line": 0,
+              "character": 0
+            },
+            "end": {
+              "line": 0,
+              "character": 36
+            }
+          },
+          "newText": "configurable int requiredConf = ?;"
         }
       ]
     }

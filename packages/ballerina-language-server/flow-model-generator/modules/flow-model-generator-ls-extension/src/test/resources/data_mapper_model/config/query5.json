@@ -153,88 +153,71 @@
         "typeName": "User",
         "kind": "record",
         "category": "variable"
-      },
-      {
-        "fields": [
-          {
-            "id": "secondaryPhonesItem.code",
-            "variableName": "code",
-            "typeName": "string",
-            "kind": "string"
-          },
-          {
-            "id": "secondaryPhonesItem.number",
-            "variableName": "number",
-            "typeName": "string",
-            "kind": "string"
-          }
-        ],
-        "id": "secondaryPhonesItem",
-        "variableName": "secondaryPhonesItem",
-        "typeName": "SecondaryPhones",
-        "kind": "record"
       }
     ],
     "output": {
-      "member": {
-        "fields": [
-          {
-            "id": "phoneNumbers.code",
-            "variableName": "code",
-            "typeName": "string",
-            "kind": "string"
-          },
-          {
-            "id": "phoneNumbers.number",
-            "variableName": "number",
-            "typeName": "string",
-            "kind": "string"
-          }
-        ],
-        "id": "phoneNumbers",
-        "typeName": "SecondaryPhonesX",
-        "kind": "record"
-      },
-      "id": "phoneNumbers",
-      "variableName": "phoneNumbers",
-      "typeName": "SecondaryPhonesX[]",
-      "kind": "array"
+      "fields": [
+        {
+          "fields": [
+            {
+              "member": {
+                "fields": [
+                  {
+                    "id": "p.contactDetails.phoneNumbers.code",
+                    "variableName": "code",
+                    "typeName": "string",
+                    "kind": "string"
+                  },
+                  {
+                    "id": "p.contactDetails.phoneNumbers.number",
+                    "variableName": "number",
+                    "typeName": "string",
+                    "kind": "string"
+                  }
+                ],
+                "id": "p.contactDetails.phoneNumbers",
+                "typeName": "SecondaryPhonesX",
+                "kind": "record"
+              },
+              "id": "p.contactDetails.phoneNumbers",
+              "variableName": "phoneNumbers",
+              "typeName": "SecondaryPhonesX[]",
+              "kind": "array"
+            },
+            {
+              "member": {
+                "id": "p.contactDetails.addresses",
+                "typeName": "string",
+                "kind": "string"
+              },
+              "id": "p.contactDetails.addresses",
+              "variableName": "addresses",
+              "typeName": "string[]",
+              "kind": "array"
+            }
+          ],
+          "id": "p.contactDetails",
+          "variableName": "contactDetails",
+          "typeName": "ContactDetails",
+          "kind": "record"
+        }
+      ],
+      "id": "p",
+      "variableName": "p",
+      "typeName": "Person",
+      "kind": "record"
     },
     "mappings": [
       {
-        "output": "phoneNumbers.code",
+        "output": "p.contactDetails.phoneNumbers",
         "inputs": [
-          "secondaryPhonesItem.code"
+          "u.info.secondaryPhones"
         ],
-        "expression": "secondaryPhonesItem.code",
+        "expression": "from var secondaryPhonesItem in u.info.secondaryPhones\n            select {code: secondaryPhonesItem.code, number: secondaryPhonesItem.number}\n",
         "diagnostics": [],
         "elements": [],
-        "isQueryExpression": false
-      },
-      {
-        "output": "phoneNumbers.number",
-        "inputs": [
-          "secondaryPhonesItem.number"
-        ],
-        "expression": "secondaryPhonesItem.number",
-        "diagnostics": [],
-        "elements": [],
-        "isQueryExpression": false
+        "isQueryExpression": true
       }
-    ],
-    "query": {
-      "output": "p.contactDetails.phoneNumbers",
-      "inputs": [
-        "u.info.secondaryPhones"
-      ],
-      "fromClause": {
-        "type": "SecondaryPhones",
-        "name": "secondaryPhonesItem",
-        "expression": "u.info.secondaryPhones"
-      },
-      "intermediateClauses": [],
-      "resultClause": "{code: secondaryPhonesItem.code, number: secondaryPhonesItem.number}"
-    }
-  },
-  "targetField": "p.contactDetails.phoneNumbers"
+    ]
+  }
 }
