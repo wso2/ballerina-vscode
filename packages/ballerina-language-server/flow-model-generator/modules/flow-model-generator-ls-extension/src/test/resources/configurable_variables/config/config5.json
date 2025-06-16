@@ -50,17 +50,18 @@
           "advanced": false,
           "hidden": false
         },
-        "defaultable": {
+        "defaultValue": {
           "metadata": {
-            "label": "Default value",
-            "description": "Default value for the config, if empty your need to provide a value at runtime"
+            "label": "Default Value",
+            "description": "Default value of the variable"
           },
           "valueType": "EXPRESSION",
           "value": "10",
           "optional": true,
           "editable": true,
           "advanced": false,
-          "hidden": false
+          "hidden": false,
+          "modified": false
         }
       },
       "flags": 0
@@ -114,10 +115,10 @@
           "advanced": false,
           "hidden": false
         },
-        "defaultable": {
+        "defaultValue": {
           "metadata": {
-            "label": "Default value",
-            "description": "Default value for the config, if empty your need to provide a value at runtime"
+            "label": "Default Value",
+            "description": "Default value of the variable"
           },
           "valueType": "EXPRESSION",
           "value": "12.4",
@@ -125,6 +126,7 @@
           "editable": true,
           "advanced": false,
           "hidden": false,
+          "modified": false,
           "diagnostics": {
             "hasDiagnostics": true,
             "diagnostics": [
@@ -190,10 +192,10 @@
           "advanced": false,
           "hidden": false
         },
-        "defaultable": {
+        "defaultValue": {
           "metadata": {
-            "label": "Default value",
-            "description": "Default value for the config, if empty your need to provide a value at runtime"
+            "label": "Default Value",
+            "description": "Default value of the variable"
           },
           "valueType": "EXPRESSION",
           "value": "\"welcome\"",
@@ -201,6 +203,7 @@
           "editable": true,
           "advanced": false,
           "hidden": false,
+          "modified": false,
           "diagnostics": {
             "hasDiagnostics": true,
             "diagnostics": [
@@ -266,10 +269,10 @@
           "advanced": false,
           "hidden": false
         },
-        "defaultable": {
+        "defaultValue": {
           "metadata": {
-            "label": "Default value",
-            "description": "Default value for the config, if empty your need to provide a value at runtime"
+            "label": "Default Value",
+            "description": "Default value of the variable"
           },
           "valueType": "EXPRESSION",
           "value": "23",
@@ -277,6 +280,7 @@
           "editable": true,
           "advanced": false,
           "hidden": false,
+          "modified": false,
           "diagnostics": {
             "hasDiagnostics": true,
             "diagnostics": [

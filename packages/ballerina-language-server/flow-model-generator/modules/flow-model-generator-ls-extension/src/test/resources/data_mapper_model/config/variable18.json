@@ -138,7 +138,8 @@
         "diagnostics": [
           "incompatible types: expected 'Credentials[]', found 'UserInfo[]'"
         ],
-        "elements": []
+        "elements": [],
+        "isQueryExpression": false
       }
     ]
   }

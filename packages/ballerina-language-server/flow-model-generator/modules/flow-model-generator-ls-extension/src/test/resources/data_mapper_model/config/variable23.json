@@ -160,7 +160,8 @@
         ],
         "expression": "std.lastName\n",
         "diagnostics": [],
-        "elements": []
+        "elements": [],
+        "isQueryExpression": false
       }
     ]
   }

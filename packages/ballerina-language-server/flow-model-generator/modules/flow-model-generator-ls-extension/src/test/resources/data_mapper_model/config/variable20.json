@@ -181,24 +181,29 @@
       }
     ],
     "output": {
-      "fields": [
-        {
-          "id": "credentials.username",
-          "variableName": "username",
-          "typeName": "string",
-          "kind": "string"
-        },
-        {
-          "id": "credentials.password",
-          "variableName": "password",
-          "typeName": "string",
-          "kind": "string"
-        }
-      ],
+      "member": {
+        "fields": [
+          {
+            "id": "credentials.username",
+            "variableName": "username",
+            "typeName": "string",
+            "kind": "string"
+          },
+          {
+            "id": "credentials.password",
+            "variableName": "password",
+            "typeName": "string",
+            "kind": "string"
+          }
+        ],
+        "id": "credentials",
+        "typeName": "Credentials",
+        "kind": "record"
+      },
       "id": "credentials",
       "variableName": "credentials",
-      "typeName": "Credentials",
-      "kind": "record"
+      "typeName": "Credentials[]",
+      "kind": "array"
     },
     "mappings": [
       {
@@ -210,7 +215,8 @@
         "diagnostics": [
           "missing identifier"
         ],
-        "elements": []
+        "elements": [],
+        "isQueryExpression": false
       },
       {
         "output": "credentials.username",
@@ -219,9 +225,23 @@
         ],
         "expression": "info.username",
         "diagnostics": [],
-        "elements": []
+        "elements": [],
+        "isQueryExpression": false
       }
-    ]
+    ],
+    "query": {
+      "output": "stores.credentials",
+      "inputs": [
+        "bank.userInfo"
+      ],
+      "fromClause": {
+        "type": "UserInfo",
+        "name": "info",
+        "expression": "bank.userInfo"
+      },
+      "intermediateClauses": [],
+      "resultClause": "{password: , username: info.username}"
+    }
   },
   "targetField": "stores.credentials"
 }

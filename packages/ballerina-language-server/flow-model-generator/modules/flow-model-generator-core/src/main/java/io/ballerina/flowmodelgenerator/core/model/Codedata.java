@@ -164,6 +164,11 @@ public record Codedata(NodeKind node, String org, String module, String packageN
             return this;
         }
 
+        public Builder<T> isNew(boolean isNew) {
+            this.isNew = isNew;
+            return this;
+        }
+
         public Builder<T> isGenerated(Boolean isGenerated) {
             this.isGenerated = isGenerated;
             return this;

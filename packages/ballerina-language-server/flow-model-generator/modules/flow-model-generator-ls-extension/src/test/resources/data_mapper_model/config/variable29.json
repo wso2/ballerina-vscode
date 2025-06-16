@@ -133,7 +133,8 @@
                         ],
                         "expression": "user.phoneNumber[0]",
                         "diagnostics": [],
-                        "elements": []
+                        "elements": [],
+                        "isQueryExpression": false
                       }
                     ]
                   }
@@ -158,7 +159,8 @@
                         ],
                         "expression": "user.phoneNumber[1]",
                         "diagnostics": [],
-                        "elements": []
+                        "elements": [],
+                        "isQueryExpression": false
                       }
                     ]
                   }
@@ -183,7 +185,8 @@
                         ],
                         "expression": "user.phoneNumber[2]",
                         "diagnostics": [],
-                        "elements": []
+                        "elements": [],
+                        "isQueryExpression": false
                       }
                     ]
                   },
@@ -196,7 +199,8 @@
                         ],
                         "expression": "user.phoneNumber[3]",
                         "diagnostics": [],
-                        "elements": []
+                        "elements": [],
+                        "isQueryExpression": false
                       }
                     ]
                   }

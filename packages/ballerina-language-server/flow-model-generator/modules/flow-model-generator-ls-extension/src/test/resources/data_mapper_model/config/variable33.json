@@ -157,7 +157,8 @@
                 "inputs": [],
                 "expression": "\"\"",
                 "diagnostics": [],
-                "elements": []
+                "elements": [],
+                "isQueryExpression": false
               },
               {
                 "output": "var3.contacts.0.secondaryPhones",
@@ -172,7 +173,8 @@
                         "inputs": [],
                         "expression": "                \"1\"",
                         "diagnostics": [],
-                        "elements": []
+                        "elements": [],
+                        "isQueryExpression": false
                       }
                     ]
                   },
@@ -185,7 +187,8 @@
                         ],
                         "expression": "                user.phoneNumber[0]\n",
                         "diagnostics": [],
-                        "elements": []
+                        "elements": [],
+                        "isQueryExpression": false
                       }
                     ]
                   }
