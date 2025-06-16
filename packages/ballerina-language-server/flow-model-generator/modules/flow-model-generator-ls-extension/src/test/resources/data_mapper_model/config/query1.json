@@ -147,9 +147,15 @@
       }
     ],
     "output": {
+      "member": {
+        "id": "phoneNumbers",
+        "typeName": "string",
+        "kind": "string"
+      },
       "id": "phoneNumbers",
-      "typeName": "string",
-      "kind": "string"
+      "variableName": "phoneNumbers",
+      "typeName": "string[]",
+      "kind": "array"
     },
     "mappings": [
       {

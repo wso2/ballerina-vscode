@@ -221,10 +221,8 @@ public class DataMapManager {
             }
             query = new Query(targetField, inputs, fromClause,
                     getQueryIntermediateClause(queryExpressionNode.queryPipeline()), resultClause);
-            type = Type.fromSemanticSymbol(((ArrayTypeSymbol) targetNode.typeSymbol()).memberTypeDescriptor());
-        } else {
-            type = Type.fromSemanticSymbol(targetNode.typeSymbol());
         }
+        type = Type.fromSemanticSymbol(targetNode.typeSymbol());
         String name = targetNode.name();
         MappingPort outputPort = getMappingPort(name, name, type);
         List<Mapping> mappings = new ArrayList<>();

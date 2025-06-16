@@ -130,24 +130,29 @@
       }
     ],
     "output": {
-      "fields": [
-        {
-          "id": "credentials.username",
-          "variableName": "username",
-          "typeName": "string",
-          "kind": "string"
-        },
-        {
-          "id": "credentials.password",
-          "variableName": "password",
-          "typeName": "string",
-          "kind": "string"
-        }
-      ],
+      "member": {
+        "fields": [
+          {
+            "id": "credentials.username",
+            "variableName": "username",
+            "typeName": "string",
+            "kind": "string"
+          },
+          {
+            "id": "credentials.password",
+            "variableName": "password",
+            "typeName": "string",
+            "kind": "string"
+          }
+        ],
+        "id": "credentials",
+        "typeName": "Credentials",
+        "kind": "record"
+      },
       "id": "credentials",
       "variableName": "credentials",
-      "typeName": "Credentials",
-      "kind": "record"
+      "typeName": "Credentials[]",
+      "kind": "array"
     },
     "mappings": [
       {

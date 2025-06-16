@@ -176,24 +176,29 @@
       }
     ],
     "output": {
-      "fields": [
-        {
-          "id": "phoneNumbers.code",
-          "variableName": "code",
-          "typeName": "string",
-          "kind": "string"
-        },
-        {
-          "id": "phoneNumbers.number",
-          "variableName": "number",
-          "typeName": "string",
-          "kind": "string"
-        }
-      ],
+      "member": {
+        "fields": [
+          {
+            "id": "phoneNumbers.code",
+            "variableName": "code",
+            "typeName": "string",
+            "kind": "string"
+          },
+          {
+            "id": "phoneNumbers.number",
+            "variableName": "number",
+            "typeName": "string",
+            "kind": "string"
+          }
+        ],
+        "id": "phoneNumbers",
+        "typeName": "SecondaryPhonesX",
+        "kind": "record"
+      },
       "id": "phoneNumbers",
       "variableName": "phoneNumbers",
-      "typeName": "SecondaryPhonesX",
-      "kind": "record"
+      "typeName": "SecondaryPhonesX[]",
+      "kind": "array"
     },
     "mappings": [
       {
