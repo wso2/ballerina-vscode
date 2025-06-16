@@ -32,6 +32,12 @@ import {
     AIPanelPrompt,
     Command,
     TemplateId,
+    ChatNotify,
+    GenerateCodeRequest,
+    TestPlanGenerationRequest,
+    TestGeneratorIntermediaryState,
+    SourceFiles,
+    ChatEntry,
 } from "@wso2/ballerina-core";
 
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
@@ -47,7 +53,6 @@ import { AIChatView, Header, HeaderButtons, ChatMessage, Badge } from "../../sty
 import ReferenceDropdown from "../ReferenceDropdown";
 import AccordionItem from "../TestScenarioSegment";
 import { VSCodeButton } from "@vscode/webview-ui-toolkit/react";
-import { TestGeneratorIntermediaryState } from "../../features/testGenerator";
 import {
     CopilotContentBlockContent,
     CopilotErrorContent,
@@ -82,18 +87,9 @@ import { getOnboardingOpens, incrementOnboardingOpens } from "./utils/utils";
 import FeedbackBar from "./../FeedbackBar";
 import { useFeedback } from "./utils/useFeedback";
 
-/* REFACTORED CODE START [1] */
-/* REFACTORED CODE END [1] */
-
 interface CodeBlock {
     filePath: string;
     content: string;
-}
-
-interface ChatEntry {
-    actor: string;
-    message: string;
-    isCodeGeneration?: boolean;
 }
 
 interface ApiResponse {
@@ -142,7 +138,6 @@ const CHECK_DRIFT_BETWEEN_CODE_AND_DOCUMENTATION = "Check drift between code and
 const GENERATE_CODE_AGAINST_THE_PROVIDED_REQUIREMENTS = "Generate code based on the following requirements: ";
 const GENERATE_CODE_AGAINST_THE_PROVIDED_REQUIREMENTS_TRIMMED = GENERATE_CODE_AGAINST_THE_PROVIDED_REQUIREMENTS.trim();
 
-//TOOD: Add the backend URL
 //TODO: Add better error handling from backend. stream error type and non 200 status codes
 
 const AIChat: React.FC = () => {
@@ -167,6 +162,8 @@ const AIChat: React.FC = () => {
     const functionsRef = useRef<any>([]);
     const lastAttatchmentsRef = useRef<any>([]);
     const aiChatInputRef = useRef<AIChatInputRef>(null);
+    const messagesRef = useRef<any>([]);
+
 
     const messagesEndRef = React.createRef<HTMLDivElement>();
 
@@ -282,6 +279,50 @@ const AIChat: React.FC = () => {
                     });
             });
     }, []);
+
+    rpcClient?.onChatNotify((response: ChatNotify) => {
+        const type = response.type;
+        if (type === "content_block") {
+            const content = response.content;
+            setMessages((prevMessages) => {
+                const newMessages = [...prevMessages];
+                newMessages[newMessages.length - 1].content += content;
+                return newMessages;
+            });
+        } else if (type === "content_replace") {
+            const content = response.content;
+            setMessages((prevMessages) => {
+                const newMessages = [...prevMessages];
+                newMessages[newMessages.length - 1].content = content;
+                return newMessages;
+            });
+        } else if (type === "intermediary_state") {
+            const state = response.state;
+            setTestGenIntermediaryState(state);
+        } else if (type === "diagnostics") {
+            const content = response.diagnostics;
+            currentDiagnosticsRef.current = content;
+        } else if (type === "messages") {
+            const messages = response.messages;
+            messagesRef.current = messages;
+        } else if (type === "stop") {
+            console.log("Received stop signal");
+            setIsCodeLoading(false);
+            setIsLoading(false);
+            addChatEntry("user", messages[messages.length - 2].content,); // Handle this in input layer?
+            addChatEntry("assistant", messages[messages.length - 1].content);
+        } else if (type === "error") {
+            console.log("Received error signal");
+            const errorTemplate = `\n<error data-system="true" data-auth="${SYSTEM_ERROR_SECRET}">${response.content}</error>`;
+            setMessages((prevMessages) => {
+                const newMessages = [...prevMessages];
+                newMessages[newMessages.length - 1].content += errorTemplate;
+                return newMessages;
+            });
+            setIsCodeLoading(false);
+            setIsLoading(false);
+        }
+    });
 
     function generateNaturalProgrammingTemplate(isReqFileExists: boolean) {
         if (isReqFileExists) {
@@ -637,212 +678,19 @@ const AIChat: React.FC = () => {
 
     async function processCodeGeneration(content: [string, Attachment[], string], message: string) {
         const [useCase, attachments, operationType] = content;
-
-        let assistant_response = "";
-        let project: ProjectSource;
-        try {
-            project = await rpcClient.getAiPanelRpcClient().getProjectSource(operationType);
-        } catch (error) {
-            throw new Error(
-                "This workspace doesn't appear to be a Ballerina project. Please open a folder that contains a Ballerina.toml file to continue."
-            );
-        }
-        const requestBody: any = {
-            usecase: useCase,
-            chatHistory: chatArray,
-            sourceFiles: transformProjectSource(project),
-            operationType,
-            packageName: project.projectName,
-        };
-
         const fileAttatchments = attachments.map((file) => ({
             fileName: file.name,
             content: file.content,
         }));
 
-        requestBody.fileAttachmentContents = fileAttatchments;
-        lastAttatchmentsRef.current = fileAttatchments;
+        const requestBody: GenerateCodeRequest = {
+            usecase: useCase,
+            chatHistory: chatArray,
+            operationType,
+            fileAttachmentContents: fileAttatchments
+        };
 
-        const response = await fetchWithAuth({
-            url: backendRootUri + "/code",
-            method: "POST",
-            body: requestBody,
-            rpcClient: rpcClient,
-        });
-
-        if (!response.ok) {
-            setIsLoading(false);
-            let error = `Failed to fetch response.`;
-            if (response.status == 429) {
-                response.json().then((body) => {
-                    error += RATE_LIMIT_ERROR;
-                });
-            }
-            throw new Error(error);
-        }
-        const reader: ReadableStreamDefaultReader<Uint8Array> = response.body?.getReader();
-        const decoder = new TextDecoder();
-        let buffer = "";
-        let codeSnippetBuffer = "";
-        remainingTokenPercentage = "Unlimited";
-        setIsCodeLoading(true);
-        while (true) {
-            const { done, value } = await reader.read();
-            if (done) {
-                setIsLoading(false);
-                break;
-            }
-
-            buffer += decoder.decode(value, { stream: true });
-
-            let boundary = buffer.indexOf("\n\n");
-            while (boundary !== -1) {
-                const chunk = buffer.slice(0, boundary + 2);
-                buffer = buffer.slice(boundary + 2);
-                try {
-                    await processSSEEvent(chunk);
-                } catch (error) {
-                    console.error("Failed to parse SSE event:", error);
-                }
-
-                boundary = buffer.indexOf("\n\n");
-            }
-        }
-
-        async function processSSEEvent(chunk: string) {
-            const event = parseSSEEvent(chunk);
-            if (event.event == "content_block_delta") {
-                let textDelta = event.body.text;
-                assistant_response += textDelta;
-
-                handleContentBlockDelta(textDelta);
-            } else if (event.event == "functions") {
-                // Update the functions state instead of the global variable
-                functionsRef.current = event.body;
-            } else if (event.event == "message_stop") {
-                let diagnostics: DiagnosticEntry[] = [];
-                try {
-                    const postProcessResp: PostProcessResponse = await rpcClient.getAiPanelRpcClient().postProcess({
-                        assistant_response: assistant_response,
-                    });
-                    console.log("Raw resp Before repair:", assistant_response);
-                    assistant_response = postProcessResp.assistant_response;
-                    diagnostics = postProcessResp.diagnostics.diagnostics;
-                    console.log("Initial Diagnostics : ", diagnostics);
-                    currentDiagnosticsRef.current = diagnostics;
-                } catch (error) {
-                    // Add this catch block because `Add to Integration` button not appear for `/code`
-                    // Related issue: https://github.com/wso2/vscode-extensions/issues/5065
-                    console.log("A critical error occurred while post processing the response: ", error);
-                    diagnostics = [];
-                }
-                const MAX_REPAIR_ATTEMPTS = 3;
-                let repair_attempt = 0;
-                let diagnosticFixResp = assistant_response;
-                while (
-                    hasCodeBlocks(assistant_response) &&
-                    diagnostics.length > 0 &&
-                    repair_attempt < MAX_REPAIR_ATTEMPTS
-                ) {
-                    console.log("Repair iteration: ", repair_attempt);
-                    console.log("Diagnotsics trynna fix: ", diagnostics);
-                    const diagReq = {
-                        response: diagnosticFixResp,
-                        diagnostics: diagnostics,
-                    };
-                    const startTime = performance.now();
-                    let newReqBody: any = {
-                        usecase: useCase,
-                        chatHistory: chatArray,
-                        sourceFiles: transformProjectSource(project),
-                        diagnosticRequest: diagReq,
-                        functions: functionsRef.current,
-                        operationType,
-                        packageName: project.projectName,
-                    };
-                    if (attachments.length > 0) {
-                        newReqBody.fileAttachmentContents = fileAttatchments;
-                    }
-                    const response = await fetchWithAuth({
-                        url: backendRootUri + "/code/repair",
-                        method: "POST",
-                        body: newReqBody,
-                        rpcClient: rpcClient,
-                    });
-                    if (!response.ok) {
-                        setIsCodeLoading(false);
-                        console.log("errr");
-                        break;
-                    } else {
-                        const jsonBody = await response.json();
-                        const repairResponse = jsonBody.repairResponse;
-                        console.log("Resposne of attempt" + repair_attempt + " : ", repairResponse);
-                        // replace original response with new code blocks
-                        diagnosticFixResp = replaceCodeBlocks(diagnosticFixResp, repairResponse);
-                        const postProcessResp: PostProcessResponse = await rpcClient.getAiPanelRpcClient().postProcess({
-                            assistant_response: diagnosticFixResp,
-                        });
-                        diagnosticFixResp = postProcessResp.assistant_response;
-                        const endTime = performance.now();
-                        const executionTime = endTime - startTime;
-                        console.log(`Repair call time: ${executionTime} milliseconds`);
-                        console.log("After auto repair, Diagnostics : ", postProcessResp.diagnostics.diagnostics);
-                        diagnostics = postProcessResp.diagnostics.diagnostics;
-                        currentDiagnosticsRef.current = postProcessResp.diagnostics.diagnostics;
-                        repair_attempt++;
-                    }
-                }
-                assistant_response = diagnosticFixResp;
-                setIsCodeLoading(false);
-                setMessages((prevMessages) => {
-                    const newMessages = [...prevMessages];
-                    newMessages[newMessages.length - 1].content = assistant_response;
-                    return newMessages;
-                });
-            } else if (event.event == "error") {
-                console.log("Streaming Error: " + event.body);
-                setIsLoading(false);
-                setMessages((prevMessages) => {
-                    const newMessages = [...prevMessages];
-                    newMessages[newMessages.length - 1].content +=
-                        "\nUnknown error occurred while receiving the response.";
-                    newMessages[newMessages.length - 1].type = "Error";
-                    return newMessages;
-                });
-                assistant_response = "\nUnknown error occurred while receiving the response.";
-                throw new Error("Streaming error");
-            }
-        }
-
-        function handleContentBlockDelta(textDelta: string) {
-            const matchText = codeSnippetBuffer + textDelta;
-            const matchedResult = findRegexMatches(matchText);
-            if (matchedResult.length > 0) {
-                if (matchedResult[0].end === matchText.length) {
-                    codeSnippetBuffer = matchText;
-                } else {
-                    codeSnippetBuffer = "";
-                    setMessages((prevMessages) => {
-                        const newMessages = [...prevMessages];
-                        newMessages[newMessages.length - 1].content += matchText;
-                        return newMessages;
-                    });
-                }
-            } else {
-                codeSnippetBuffer = "";
-                setMessages((prevMessages) => {
-                    const newMessages = [...prevMessages];
-                    newMessages[newMessages.length - 1].content += matchText;
-                    return newMessages;
-                });
-            }
-        }
-
-        const userMessage = getUserMessage([message, attachments]);
-        addChatEntry("user", userMessage, true);
-        const diagnosedSourceFiles: ProjectSource = getProjectFromResponse(assistant_response);
-        setIsSyntaxError(await rpcClient.getAiPanelRpcClient().checkSyntaxError(diagnosedSourceFiles));
-        addChatEntry("assistant", assistant_response);
+        await rpcClient.getAiPanelRpcClient().generateCode(requestBody)
     }
 
     // Helper function to escape regex special characters in a string
@@ -1133,54 +981,13 @@ const AIChat: React.FC = () => {
                 targetType === "service"
                     ? await rpcClient.getAiPanelRpcClient().getServiceSourceForName(target)
                     : await rpcClient.getAiPanelRpcClient().getResourceSourceForMethodAndPath(target);
-            const requestBody = {
-                targetType: targetType,
+            const requestBody: TestPlanGenerationRequest = {
+                targetType: targetType === "service" ? TestGenerationTarget.Service : TestGenerationTarget.Function,
                 targetSource: targetSource,
+                target: target
             };
 
-            const response = await fetchWithAuth({
-                url: backendRootUri + "/testplan",
-                method: "POST",
-                body: requestBody,
-                rpcClient: rpcClient,
-            });
-
-            if (!response.ok) {
-                handleErrorResponse(response);
-            }
-
-            const reader = response.body?.getReader();
-            const decoder = new TextDecoder();
-            let buffer = "";
-
-            while (true) {
-                const { done, value } = await reader.read();
-                if (done) {
-                    if (targetType === "service") {
-                        await processServiceTestGeneration(content, target, assistantResponse);
-                        setIsLoading(false);
-                    } else if (targetType === "function") {
-                        assistantResponse += `\n\n<button type="generate_test_group">Generate Tests</button>`;
-                        setMessages((prevMessages) => {
-                            const newMessages = [...prevMessages];
-                            newMessages[newMessages.length - 1].content = assistantResponse;
-                            return newMessages;
-                        });
-                        setTestGenIntermediaryState({
-                            content: content,
-                            resourceFunction: target,
-                            testPlan: assistantResponse,
-                        });
-                    } else {
-                        setIsLoading(false);
-                        throw new Error(`Invalid target type: ${targetType}`);
-                    }
-                    break;
-                }
-
-                buffer += decoder.decode(value, { stream: true });
-                buffer = await processBuffer(buffer);
-            }
+            await rpcClient.getAiPanelRpcClient().generateTestPlan(requestBody);
         } catch (error: any) {
             setIsLoading(false);
             const errorName = error instanceof Error ? error.name : "Unknown error";
@@ -1192,223 +999,8 @@ const AIChat: React.FC = () => {
                 throw new Error(errorMessage);
             }
         }
-
-        async function processBuffer(buffer: string) {
-            let boundary = buffer.indexOf("\n\n");
-            while (boundary !== -1) {
-                const chunk = buffer.slice(0, boundary + 2);
-                buffer = buffer.slice(boundary + 2);
-                await processSSEEvent(chunk);
-                boundary = buffer.indexOf("\n\n");
-            }
-            return buffer;
-        }
-
-        async function processSSEEvent(chunk: string) {
-            try {
-                const event = parseCopilotSSEEvent(chunk);
-                if (event.event === CopilotEvent.CONTENT_BLOCK) {
-                    const text = (event.body as CopilotContentBlockContent).text;
-                    assistantResponse += text;
-                    handleContentBlockDelta(text);
-                } else if (event.event === "error") {
-                    throw new Error(`Streaming Error: ${(event.body as CopilotErrorContent).message}`);
-                }
-            } catch (error) {
-                setIsLoading(false);
-                const errorMessage = error instanceof Error ? error.message : "Unknown error";
-                throw new Error(`Failed to parse SSE event: ${errorMessage}`);
-            }
-        }
-
-        function handleContentBlockDelta(text: string) {
-            setMessages((prevMessages) => {
-                const newMessages = [...prevMessages];
-                newMessages[newMessages.length - 1].content += text;
-                return newMessages;
-            });
-        }
-
-        async function handleErrorResponse(response: Response) {
-            if (response.status === 429) {
-                const body = await response.json();
-                throw new Error(`Too many requests: ${RATE_LIMIT_ERROR}`);
-            }
-
-            throw new Error(`Failed to fetch response. HTTP Status: ${response.status}`);
-        }
     }
 
-    async function processServiceTestGeneration(
-        content: [string, Attachment[]],
-        serviceName: string,
-        testPlan: string
-    ) {
-        let assistantResponse = `${testPlan}`;
-
-        const updateAssistantMessage = (message: string) => {
-            assistantResponse += message;
-            setMessages((prevMessages) => {
-                const newMessages = [...prevMessages];
-                newMessages[newMessages.length - 1].content = assistantResponse;
-                return newMessages;
-            });
-        };
-
-        updateAssistantMessage(
-            `\n\n**Initiating test generation for the ${serviceName} service, following the _outlined test plan_. Please wait...**`
-        );
-
-        updateAssistantMessage(
-            `\n\n<progress>Generating tests for the ${serviceName} service. This may take a moment.</progress>`
-        );
-
-        try {
-            const response = await rpcClient.getAiPanelRpcClient().getGeneratedTests({
-                backendUri: backendRootUri,
-                targetType: TestGenerationTarget.Service,
-                targetIdentifier: serviceName,
-                testPlan,
-            });
-            updateAssistantMessage(`\n<progress>Analyzing generated tests for potential issues.</progress>`);
-
-            const diagnostics = await rpcClient.getAiPanelRpcClient().getTestDiagnostics(response);
-            let testCode = response.testSource;
-            const testConfig = response.testConfig;
-
-            if (diagnostics.diagnostics.length > 0) {
-                updateAssistantMessage(
-                    `\n<progress>Refining tests based on feedback to ensure accuracy and reliability.</progress>`
-                );
-                const fixedCode = await rpcClient.getAiPanelRpcClient().getGeneratedTests({
-                    backendUri: backendRootUri,
-                    targetType: TestGenerationTarget.Service,
-                    targetIdentifier: serviceName,
-                    testPlan: testPlan,
-                    diagnostics: diagnostics,
-                    existingTests: response.testSource,
-                });
-                testCode = fixedCode.testSource;
-            }
-
-            updateAssistantMessage(
-                `\n\nTest generation completed. Displaying the generated tests for the ${serviceName} service below:`
-            );
-
-            setIsLoading(false);
-            setIsCodeLoading(false);
-
-            updateAssistantMessage(
-                `\n\n<code filename="tests/test.bal" type="test">\n\`\`\`ballerina\n${testCode}\n\`\`\`\n</code>`
-            );
-            if (testConfig) {
-                updateAssistantMessage(
-                    `\n\n<code filename="tests/Config.toml" type="test">\n\`\`\`ballerina\n${testConfig}\n\`\`\`\n</code>`
-                );
-            }
-
-            const userMessage = getUserMessage(content);
-            addChatEntry("user", userMessage);
-            addChatEntry("assistant", assistantResponse);
-        } catch (error) {
-            throw error;
-        }
-    }
-
-    async function processFunctionTestGeneration(
-        content: [string, Attachment[]],
-        functionIdentifier: string,
-        testPlan: string
-    ) {
-        const testPath = "tests/test.bal";
-        setIsCodeLoading(true);
-        let assistantResponse = `${testPlan}`;
-
-        const updateAssistantMessage = (message: string) => {
-            assistantResponse += message;
-            setMessages((prevMessages) => {
-                const newMessages = [...prevMessages];
-                newMessages[newMessages.length - 1].content = assistantResponse;
-                return newMessages;
-            });
-        };
-
-        updateAssistantMessage(
-            `\n\n**Initiating test generation for the function ${functionIdentifier}, following the _outlined test plan_. Please wait...**`
-        );
-
-        updateAssistantMessage(
-            `\n\n<progress>Generating tests for the function ${functionIdentifier}. This may take a moment.</progress>`
-        );
-
-        try {
-            const response = await rpcClient.getAiPanelRpcClient().getGeneratedTests({
-                backendUri: backendRootUri,
-                targetType: TestGenerationTarget.Function,
-                targetIdentifier: functionIdentifier,
-                testPlan,
-            });
-            updateAssistantMessage(`\n<progress>Analyzing generated tests for potential issues.</progress>`);
-
-            let existingSource = "";
-            try {
-                existingSource = await rpcClient.getAiPanelRpcClient().getFromFile({ filePath: testPath });
-            } catch {
-                // File doesn't exist
-            }
-            const generatedFullSource = existingSource
-                ? existingSource +
-                "\n\n// >>>>>>>>>>>>>>TEST CASES NEED TO BE FIXED <<<<<<<<<<<<<<<\n\n" +
-                response.testSource
-                : response.testSource;
-
-            const diagnostics = await rpcClient.getAiPanelRpcClient().getTestDiagnostics({
-                testSource: generatedFullSource,
-            });
-
-            console.log(diagnostics);
-
-            let testCode = response.testSource;
-            const testConfig = response.testConfig;
-
-            if (diagnostics.diagnostics.length > 0) {
-                updateAssistantMessage(
-                    `\n<progress>Refining tests based on feedback to ensure accuracy and reliability.</progress>`
-                );
-                const fixedCode = await rpcClient.getAiPanelRpcClient().getGeneratedTests({
-                    backendUri: backendRootUri,
-                    targetType: TestGenerationTarget.Function,
-                    targetIdentifier: functionIdentifier,
-                    testPlan: testPlan,
-                    diagnostics: diagnostics,
-                    existingTests: generatedFullSource,
-                });
-                testCode = fixedCode.testSource;
-            }
-
-            updateAssistantMessage(
-                `\n\nTest generation completed. Displaying the generated tests for the function ${functionIdentifier} below:`
-            );
-
-            setIsLoading(false);
-            setIsCodeLoading(false);
-
-            updateAssistantMessage(
-                `\n\n<code filename="${testPath}" type="test">\n\`\`\`ballerina\n${testCode}\n\`\`\`\n</code>`
-            );
-            if (testConfig) {
-                updateAssistantMessage(
-                    `\n\n<code filename="tests/Config.toml" type="test">\n\`\`\`ballerina\n${testConfig}\n\`\`\`\n</code>`
-                );
-            }
-
-            const userMessage = getUserMessage(content);
-            addChatEntry("user", userMessage);
-            addChatEntry("assistant", assistantResponse);
-        } catch (error) {
-            throw error;
-        }
-    }
 
     // Process records from another package
     function processRecordReference(
@@ -1812,232 +1404,23 @@ const AIChat: React.FC = () => {
     }
 
     async function processHealthcareCodeGeneration(useCase: string, message: string) {
-        let assistant_response = "";
-        let project: ProjectSource;
-        try {
-            project = await rpcClient.getAiPanelRpcClient().getProjectSource(CodeGenerationType.CODE_GENERATION);
-        } catch (error) {
-            throw new Error(
-                "This workspace doesn't appear to be a Ballerina project. Please open a folder that contains a Ballerina.toml file to continue."
-            );
-        }
-        const requestBody: any = {
+
+        const requestBody: GenerateCodeRequest = {
             usecase: useCase,
             chatHistory: chatArray,
-            sourceFiles: transformProjectSource(project),
-            packageName: project.projectName,
+            fileAttachmentContents: [],
+            operationType: CodeGenerationType.CODE_GENERATION,
         };
-        const response = await fetchWithAuth({
-            url: backendRootUri + "/healthcare",
-            method: "POST",
-            body: requestBody,
-            rpcClient: rpcClient,
-        });
-
-        if (!response.ok) {
-            setIsLoading(false);
-            let error = `Failed to fetch response.`;
-            if (response.status == 429) {
-                response.json().then((body) => {
-                    error += RATE_LIMIT_ERROR;
-                });
-            }
-            throw new Error(error);
-        }
-        const reader: ReadableStreamDefaultReader<Uint8Array> = response.body?.getReader();
-        const decoder = new TextDecoder();
-        let buffer = "";
-        let codeSnippetBuffer = "";
-        remainingTokenPercentage = "Unlimited";
-        setIsCodeLoading(true);
-        while (true) {
-            const { done, value } = await reader.read();
-            if (done) {
-                setIsLoading(false);
-                break;
-            }
-
-            buffer += decoder.decode(value, { stream: true });
-
-            let boundary = buffer.indexOf("\n\n");
-            while (boundary !== -1) {
-                const chunk = buffer.slice(0, boundary + 2);
-                buffer = buffer.slice(boundary + 2);
-                try {
-                    await processSSEEvent(chunk);
-                } catch (error) {
-                    console.error("Failed to parse SSE event:", error);
-                }
-
-                boundary = buffer.indexOf("\n\n");
-            }
-        }
-
-        async function processSSEEvent(chunk: string) {
-            const event = parseSSEEvent(chunk);
-            if (event.event == "content_block_delta") {
-                let textDelta = event.body.text;
-                assistant_response += textDelta;
-
-                handleContentBlockDelta(textDelta);
-            } else if (event.event == "message_stop") {
-                setIsCodeLoading(false);
-                setMessages((prevMessages) => {
-                    const newMessages = [...prevMessages];
-                    newMessages[newMessages.length - 1].content = assistant_response;
-                    return newMessages;
-                });
-            } else if (event.event == "error") {
-                console.log("Streaming Error: ", event);
-                setIsLoading(false);
-                setMessages((prevMessages) => {
-                    const newMessages = [...prevMessages];
-                    newMessages[newMessages.length - 1].content +=
-                        "\nUnknown error occurred while receiving the response.";
-                    newMessages[newMessages.length - 1].type = "Error";
-                    return newMessages;
-                });
-                assistant_response = "\nUnknown error occurred while receiving the response.";
-                throw new Error("Streaming error");
-            }
-        }
-
-        function handleContentBlockDelta(textDelta: string) {
-            const matchText = codeSnippetBuffer + textDelta;
-            const matchedResult = findRegexMatches(matchText);
-            if (matchedResult.length > 0) {
-                if (matchedResult[0].end === matchText.length) {
-                    codeSnippetBuffer = matchText;
-                } else {
-                    codeSnippetBuffer = "";
-                    setMessages((prevMessages) => {
-                        const newMessages = [...prevMessages];
-                        newMessages[newMessages.length - 1].content += matchText;
-                        return newMessages;
-                    });
-                }
-            } else {
-                codeSnippetBuffer = "";
-                setMessages((prevMessages) => {
-                    const newMessages = [...prevMessages];
-                    newMessages[newMessages.length - 1].content += matchText;
-                    return newMessages;
-                });
-            }
-        }
-
-        addChatEntry("user", message);
-        addChatEntry("assistant", assistant_response);
+        await rpcClient.getAiPanelRpcClient().generateHealthcareCode(requestBody)
     }
 
     async function processOpenAPICodeGeneration(useCase: string, message: string) {
-        let assistant_response = "";
         const requestBody: any = {
             query: useCase,
             chatHistory: chatArray,
         };
 
-        const response = await fetchWithAuth({
-            url: backendRootUri + "/openapi",
-            method: "POST",
-            body: requestBody,
-            rpcClient: rpcClient,
-        });
-
-        if (!response.ok) {
-            setIsLoading(false);
-            let error = `Failed to fetch response.`;
-            if (response.status == 429) {
-                response.json().then((body) => {
-                    error += RATE_LIMIT_ERROR;
-                });
-            }
-            throw new Error(error);
-        }
-        const reader: ReadableStreamDefaultReader<Uint8Array> = response.body?.getReader();
-        const decoder = new TextDecoder();
-        let buffer = "";
-        let codeSnippetBuffer = "";
-        remainingTokenPercentage = "Unlimited";
-        setIsCodeLoading(true);
-        while (true) {
-            const { done, value } = await reader.read();
-            if (done) {
-                setIsLoading(false);
-                break;
-            }
-
-            buffer += decoder.decode(value, { stream: true });
-
-            let boundary = buffer.indexOf("\n\n");
-            while (boundary !== -1) {
-                const chunk = buffer.slice(0, boundary + 2);
-                buffer = buffer.slice(boundary + 2);
-                try {
-                    await processSSEEvent(chunk);
-                } catch (error) {
-                    console.error("Failed to parse SSE event:", error);
-                }
-
-                boundary = buffer.indexOf("\n\n");
-            }
-        }
-
-        async function processSSEEvent(chunk: string) {
-            const event = parseSSEEvent(chunk);
-            if (event.event == "content_block_delta") {
-                let textDelta = event.body.text;
-                assistant_response += textDelta;
-
-                handleContentBlockDelta(textDelta);
-            } else if (event.event == "message_stop") {
-                setIsCodeLoading(false);
-                setMessages((prevMessages) => {
-                    const newMessages = [...prevMessages];
-                    newMessages[newMessages.length - 1].content = assistant_response;
-                    return newMessages;
-                });
-            } else if (event.event == "error") {
-                console.log("Streaming Error: ", event);
-                setIsLoading(false);
-                setMessages((prevMessages) => {
-                    const newMessages = [...prevMessages];
-                    newMessages[newMessages.length - 1].content +=
-                        "\nUnknown error occurred while receiving the response.";
-                    newMessages[newMessages.length - 1].type = "Error";
-                    return newMessages;
-                });
-                assistant_response = "\nUnknown error occurred while receiving the response.";
-                throw new Error("Streaming error");
-            }
-        }
-
-        function handleContentBlockDelta(textDelta: string) {
-            const matchText = codeSnippetBuffer + textDelta;
-            const matchedResult = findRegexMatches(matchText);
-            if (matchedResult.length > 0) {
-                if (matchedResult[0].end === matchText.length) {
-                    codeSnippetBuffer = matchText;
-                } else {
-                    codeSnippetBuffer = "";
-                    setMessages((prevMessages) => {
-                        const newMessages = [...prevMessages];
-                        newMessages[newMessages.length - 1].content += matchText;
-                        return newMessages;
-                    });
-                }
-            } else {
-                codeSnippetBuffer = "";
-                setMessages((prevMessages) => {
-                    const newMessages = [...prevMessages];
-                    newMessages[newMessages.length - 1].content += matchText;
-                    return newMessages;
-                });
-            }
-        }
-
-        addChatEntry("user", message);
-        addChatEntry("assistant", assistant_response);
+        await rpcClient.getAiPanelRpcClient().generateOpenAPI(requestBody);
     }
 
     async function handleStop() {
@@ -2198,11 +1581,11 @@ const AIChat: React.FC = () => {
     };
 
     const generateFunctionTests = async () => {
-        await processFunctionTestGeneration(
-            testGenIntermediaryState.content,
-            testGenIntermediaryState.resourceFunction,
-            testGenIntermediaryState.testPlan
-        );
+        setIsCodeLoading(true);
+        await rpcClient.getAiPanelRpcClient().generateFunctionTests({
+            testPlan: testGenIntermediaryState.testPlan,
+            resourceFunction: testGenIntermediaryState.resourceFunction,
+        });
     };
 
     const handleRetryRepair = async () => {
@@ -2212,77 +1595,11 @@ const AIChat: React.FC = () => {
         setIsCodeLoading(true);
         setIsLoading(true);
 
-        try {
-            const project: ProjectSource = await rpcClient
-                .getAiPanelRpcClient()
-                .getProjectSource(CodeGenerationType.CODE_GENERATION);
-
-            const usecase = messages[messages.length - 2].content;
-            const latestMessage = messages[messages.length - 1].content;
-
-            const diagReq = {
-                response: latestMessage,
-                diagnostics: currentDiagnostics,
-            };
-
-            const reqBody: any = {
-                usecase: usecase,
-                chatHistory: chatArray.slice(0, chatArray.length - 2),
-                sourceFiles: transformProjectSource(project),
-                diagnosticRequest: diagReq,
-                functions: functionsRef.current,
-                operationType: CodeGenerationType.CODE_GENERATION,
-                packageName: project.projectName,
-            };
-
-            const attatchments = lastAttatchmentsRef.current;
-            if (attatchments) {
-                reqBody.fileAttachmentContents = attatchments;
-            }
-            console.log("Request body for repair:", reqBody);
-            const response = await fetchWithAuth({
-                url: backendRootUri + "/code/repair",
-                method: "POST",
-                body: reqBody,
-                rpcClient: rpcClient,
-            });
-
-            if (!response.ok) {
-                throw new Error("Repair failed");
-            }
-
-            const jsonBody = await response.json();
-            const repairResponse = jsonBody.repairResponse;
-            let fixedResponse = replaceCodeBlocks(latestMessage, repairResponse);
-
-            const postProcessResp: PostProcessResponse = await rpcClient.getAiPanelRpcClient().postProcess({
-                assistant_response: fixedResponse,
-            });
-
-            fixedResponse = postProcessResp.assistant_response;
-            currentDiagnosticsRef.current = postProcessResp.diagnostics.diagnostics;
-            const diagnosedSourceFiles: ProjectSource = getProjectFromResponse(fixedResponse);
-            setIsSyntaxError(await rpcClient.getAiPanelRpcClient().checkSyntaxError(diagnosedSourceFiles));
-            setMessages((prevMessages) => {
-                const newMessages = [...prevMessages];
-                newMessages[newMessages.length - 1].content = fixedResponse;
-                return newMessages;
-            });
-
-            // Update chat entry
-            const lastIndex = chatArray.length - 1;
-            if (lastIndex >= 0 && chatArray[lastIndex].actor === "assistant") {
-                updateChatEntry(lastIndex, {
-                    actor: "assistant",
-                    message: fixedResponse,
-                });
-            }
-        } catch (error) {
-            console.error("Repair retry failed:", error);
-        } finally {
-            setIsCodeLoading(false);
-            setIsLoading(false);
-        }
+        await rpcClient.getAiPanelRpcClient().repairGeneratedCode({
+            diagnostics: currentDiagnostics,
+            assistantResponse: messages[messages.length - 1].content,
+            previousMessages: messagesRef.current
+        });
     };
 
     return (
@@ -2383,7 +1700,7 @@ const AIChat: React.FC = () => {
                                                         isReady={!isCodeLoading}
                                                         message={message}
                                                         buttonsActive={showGeneratingFiles}
-                                                        isSyntaxError={isSyntaxError}
+                                                        isSyntaxError={isContainsSyntaxError(currentDiagnosticsRef.current)}
                                                         command={segment.command}
                                                         diagnostics={currentDiagnosticsRef.current}
                                                         onRetryRepair={handleRetryRepair}
@@ -2580,6 +1897,9 @@ function extractRecordTypes(typesCode: string): { name: string; code: string }[]
         code: match[0].trim(),
     }));
 }
+interface ContentBlock {
+    delta: ContentBlockDeltaBody;
+}
 
 // Define the different event body types
 interface ContentBlockDeltaBody {
@@ -2592,7 +1912,7 @@ interface OtherEventBody {
 }
 
 // Define the SSEEvent type with a discriminated union for the body
-type SSEEvent = { event: "content_block_delta"; body: ContentBlockDeltaBody } | { event: string; body: OtherEventBody };
+type SSEEvent = { event: "content_block_delta"; body: ContentBlock } | { event: string; body: OtherEventBody };
 
 /**
  * Parses a chunk of text to extract the SSE event and body.
@@ -2848,11 +2168,6 @@ function generateChatHistoryForSummarize(chatArray: ChatEntry[]): ChatEntry[] {
         );
 }
 
-interface SourceFiles {
-    filePath: string;
-    content: string;
-}
-
 function transformProjectSource(project: ProjectSource): SourceFiles[] {
     const sourceFiles: SourceFiles[] = [];
     project.sourceFiles.forEach((file) => {
@@ -2879,4 +2194,20 @@ function transformProjectSource(project: ProjectSource): SourceFiles[] {
         });
     });
     return sourceFiles;
+}
+
+
+function isContainsSyntaxError(diagnostics: DiagnosticEntry[]): boolean {
+    return diagnostics.some((diag) => {
+            if (typeof diag.code === "string" && diag.code.startsWith("BCE")) {
+                const match = diag.code.match(/^BCE(\d+)$/);
+                if (match) {
+                    const codeNumber = Number(match[1]);
+                    if (codeNumber < 2000) {
+                        return true;
+                    }
+                }
+            }
+        }
+    );
 }

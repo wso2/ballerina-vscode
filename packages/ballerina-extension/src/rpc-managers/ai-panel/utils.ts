@@ -42,6 +42,10 @@ import { BACKEND_URL } from "../../features/ai/utils";
 import { getAccessToken, getRefreshedAccessToken } from "../../../src/utils/ai/auth";
 import { AIStateMachine } from "../../../src/views/ai-panel/aiMachine";
 import { AIChatError } from "./utils/errors";
+import { generateAutoMappings } from "../../../src/features/ai/service/datamapper/datamapper";
+import { DatamapperResponse, Payload } from "../../../src/features/ai/service/datamapper/types";
+import { DataMapperRequest, DataMapperResponse, FileData, processDataMapperInput } from "../../../src/features/ai/service/datamapper/context_api";
+import { getAskResponse } from "../../../src/features/ai/service/ask/ask";
 
 const BACKEND_BASE_URL = BACKEND_URL.replace(/\/v2\.0$/, "");
 //TODO: Temp workaround as custom domain seem to block file uploads
@@ -1281,32 +1285,9 @@ export async function getDatamapperCode(parameterDefinitions: ErrorCode | Parame
             console.error(error);
             return NOT_LOGGED_IN;
         });
-        let response = await sendDatamapperRequest(parameterDefinitions, accessToken);
-        if (isErrorCode(response)) {
-            return (response as ErrorCode);
-        }
+        let response: DatamapperResponse = await sendDatamapperRequest(parameterDefinitions, accessToken);
 
-        response = (response as Response);
-
-        // Refresh
-        if (response.status === 401) {
-            const newAccessToken = await getRefreshedAccessToken();
-            if (!newAccessToken) {
-                AIStateMachine.service().send(AIMachineEventType.LOGOUT);
-                return;
-            }
-            let retryResponse: Response | ErrorCode = await sendDatamapperRequest(parameterDefinitions, newAccessToken);
-            
-            if (isErrorCode(retryResponse)) {
-                return (retryResponse as ErrorCode);
-            }
-
-            retryResponse = (retryResponse as Response);
-            let intermediateMapping = await filterResponse(retryResponse); 
-            let finalCode =  await generateBallerinaCode(intermediateMapping, parameterDefinitions, "", nestedKeyArray);
-            return finalCode;
-        }
-        let intermediateMapping = await filterResponse(response);
+        let intermediateMapping = response.mappings;
         let finalCode =  await generateBallerinaCode(intermediateMapping, parameterDefinitions, "", nestedKeyArray);
         return finalCode; 
     } catch (error) {
@@ -1357,45 +1338,23 @@ export function notifyNoGeneratedMappings() {
     window.showInformationMessage(msg);
 }
 
-async function sendDatamapperRequest(parameterDefinitions: ParameterMetadata | ErrorCode, accessToken: string | ErrorCode): Promise<Response | ErrorCode> {
-    const response = await fetchWithTimeout(BACKEND_URL + "/datamapper", {
-        method: "POST",
-        headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json',
-            'User-Agent': 'Ballerina-VSCode-Plugin',
-            'Authorization': 'Bearer ' + accessToken
-        },
-        body: JSON.stringify(parameterDefinitions)
-    }, REQUEST_TIMEOUT);
-
-    return response;
-}
-
-async function sendMappingFileUploadRequest(file: Blob): Promise<Response | ErrorCode> {
-    const formData = new FormData();
-    formData.append("file", file);
-    const response = await fetchWithToken(CONTEXT_UPLOAD_URL_V1 + "/file_upload/generate_mapping_instruction", {
-        method: "POST",
-        body: formData
-    });
+async function sendDatamapperRequest(parameterDefinitions: ParameterMetadata | ErrorCode, accessToken: string | ErrorCode): Promise<DatamapperResponse> {
+    const response : DatamapperResponse= await generateAutoMappings(parameterDefinitions as Payload);
     return response;
 }
 
 export async function searchDocumentation(message: string): Promise<string> {
-    const response = await fetchWithToken(ASK_API_URL_V1 + "/documentation-assistant", {
-        method: "POST",
-        headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            "query": `${message}`
-        })
-    });
+    const resp = await getAskResponse(message,);
+    const finalResponse = resp.content.replace(/<thinking>[\s\S]*?<\/thinking>/g, '');
+    const referenceSources = resp.references;
+    let responseContent: string;
+    if (referenceSources.length > 0) {
+        responseContent = `${finalResponse}  \nreference sources:  \n${referenceSources.join('  \n')}`;
+    }else{
+        responseContent = finalResponse;
+    }
 
-    return await filterDocumentation(response as Response);
-    
+    return responseContent;
 }
 
 export async function filterDocumentation(resp: Response): Promise<string> {
@@ -1439,59 +1398,22 @@ async function filterMappingResponse(resp: Response): Promise<string| ErrorCode>
     }
 }
 
-export async function getMappingFromFile(file: Blob): Promise<MappingFileRecord | ErrorCode> {
-    try {
-        let response = await sendMappingFileUploadRequest(file);
-        if (isErrorCode(response)) {
-            return response as ErrorCode;
-        }
-        response = response as Response;
-        let mappingContent = JSON.parse((await filterMappingResponse(response)) as string);
-        if (isErrorCode(mappingContent)) {
-            return mappingContent as ErrorCode;
-        }
-        return mappingContent;
-    } catch (error) {
-        console.error(error);
-        return TIMEOUT;
-    }
-}
-
-async function sendTypesFileUploadRequest(file: Blob): Promise<Response | ErrorCode> {
-    const formData = new FormData();
-    formData.append("file", file);
-    const response = await fetchWithToken(CONTEXT_UPLOAD_URL_V1 + "/file_upload/generate_record", {
-        method: "POST",
-        body: formData
-    });
-    return response;
-}
-
-export async function getTypesFromFile(file: Blob): Promise<string | ErrorCode> {
-    try {
-        let response = await sendTypesFileUploadRequest(file);
-        if (isErrorCode(response)) {
-            return response as ErrorCode;
-        }
-        response = response as Response;
-        let typesContent = await filterMappingResponse(response) as string;
-        return typesContent;
-    } catch (error) {
-        console.error(error);
-        return TIMEOUT;
-    }
+async function attatchmentToFileData(file: Attachment): Promise<FileData> {
+    return {
+        fileName: file.name,
+        content: file.content
+    };
 }
 
 export async function mappingFileParameterDefinitions(file: Attachment, parameterDefinitions: ErrorCode | ParameterMetadata): Promise<ParameterMetadata | ErrorCode> {
     if (!file) { return parameterDefinitions; }
-
-    const convertedFile = convertBase64ToBlob(file);
-    if (!convertedFile) { throw new Error("Invalid file content"); }
-
-    let mappingFile = await getMappingFromFile(convertedFile);
-    if (isErrorCode(mappingFile)) { return mappingFile as ErrorCode; }
-
-    mappingFile = mappingFile as MappingFileRecord;
+    const fileData = await attatchmentToFileData(file);
+    const params: DataMapperRequest = {
+        file: fileData,
+        processType: "mapping_instruction"
+    };
+    const resp: DataMapperResponse = await processDataMapperInput(params);
+    let mappingFile: MappingFileRecord = JSON.parse(resp.fileContent) as MappingFileRecord;
 
     return {
         ...parameterDefinitions,
@@ -1502,13 +1424,13 @@ export async function mappingFileParameterDefinitions(file: Attachment, paramete
 export async function typesFileParameterDefinitions(file: Attachment): Promise<string | ErrorCode> {
     if (!file) { throw new Error("File is undefined"); }
 
-    const convertedFile = convertBase64ToBlob(file);
-    if (!convertedFile) { throw new Error("Invalid file content"); }
-
-    let typesFile = await getTypesFromFile(convertedFile);
-    if (isErrorCode(typesFile)) { return typesFile as ErrorCode; }
-
-    return typesFile;
+    const fileData = await attatchmentToFileData(file);
+    const params: DataMapperRequest = {
+        file: fileData,
+        processType: "records"
+    };
+    const resp: DataMapperResponse = await processDataMapperInput(params);
+    return resp.fileContent;
 }
 
 function convertBase64ToBlob(file: Attachment): Blob | null {
@@ -2108,17 +2030,15 @@ export async function requirementsSpecification(filepath: string): Promise<strin
     if (!filepath) { 
         throw new Error("File is undefined"); 
     }
-
-    const convertedFile = convertBase64ToBlob({name: path.basename(filepath), 
+    const fileData = await attatchmentToFileData({name: path.basename(filepath), 
                             content: getBase64FromFile(filepath), status: AttachmentStatus.UnknownError});
-    if (!convertedFile) { throw new Error("Invalid file content"); }
-
-    let requirements = await getTextFromRequirements(convertedFile);
-    if (isErrorCode(requirements)) { 
-        return requirements as ErrorCode; 
-    }
-
-    return requirements;
+    const params: DataMapperRequest = {
+        file: fileData,
+        processType: "requirements",
+        isRequirementAnalysis: true
+    };
+    const resp: DataMapperResponse = await processDataMapperInput(params);
+    return resp.fileContent;
 }
 
 function getBase64FromFile(filePath) {

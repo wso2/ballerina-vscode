@@ -15,7 +15,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { AddToProjectRequest, GetFromFileRequest, DeleteFromProjectRequest, GenerateMappingsRequest, GenerateMappingsResponse, NotifyAIMappingsRequest, ProjectSource, ProjectDiagnostics, GenerateMappingsFromRecordRequest, GenerateMappingFromRecordResponse, PostProcessRequest, PostProcessResponse, GenerateTypesFromRecordRequest, GenerateTypesFromRecordResponse, FetchDataRequest, FetchDataResponse, TestGenerationRequest, TestGenerationResponse, TestGenerationMentions, AIChatSummary, DeveloperDocument, RequirementSpecification, LLMDiagnostics, GetModuleDirParams, AIPanelPrompt, AIMachineSnapshot, SubmitFeedbackRequest } from "./interfaces";
+import { AddToProjectRequest, GetFromFileRequest, DeleteFromProjectRequest, GenerateMappingsRequest, GenerateMappingsResponse, NotifyAIMappingsRequest, ProjectSource, ProjectDiagnostics, GenerateMappingsFromRecordRequest, GenerateMappingFromRecordResponse, PostProcessRequest, PostProcessResponse, GenerateTypesFromRecordRequest, GenerateTypesFromRecordResponse, FetchDataRequest, FetchDataResponse, TestGenerationRequest, TestGenerationResponse, TestGenerationMentions, AIChatSummary, DeveloperDocument, RequirementSpecification, LLMDiagnostics, GetModuleDirParams, AIPanelPrompt, AIMachineSnapshot, SubmitFeedbackRequest, RelevantLibrariesAndFunctionsRequest, RelevantLibrariesAndFunctionsResponse, GenerateOpenAPIRequest, GenerateCodeRequest, RepairParams, TestPlanGenerationRequest, TestGeneratorIntermediaryState } from "./interfaces";
 import { RequestType, NotificationType } from "vscode-messenger-common";
 
 const _preFix = "ai-panel";
@@ -67,3 +67,10 @@ export const createTestDirecoryIfNotExists: NotificationType<string> = { method:
 export const getModuleDirectory: RequestType<GetModuleDirParams, string> = { method: `${_preFix}/getModuleDirectory` };
 export const getContentFromFile: RequestType<GetFromFileRequest, string> = { method: `${_preFix}/getContentFromFile` };
 export const submitFeedback: RequestType<SubmitFeedbackRequest, boolean> = { method: `${_preFix}/submitFeedback` };
+export const getRelevantLibrariesAndFunctions: RequestType<RelevantLibrariesAndFunctionsRequest, RelevantLibrariesAndFunctionsResponse> = { method: `${_preFix}/getRelevantLibrariesAndFunctions` };
+export const generateOpenAPI: NotificationType<GenerateOpenAPIRequest> = { method: `${_preFix}/generateOpenAPI` };
+export const generateCode: NotificationType<GenerateCodeRequest> = { method: `${_preFix}/generateCode` };
+export const repairGeneratedCode: NotificationType<RepairParams> = { method: `${_preFix}/repairGeneratedCode` };
+export const generateTestPlan: NotificationType<TestPlanGenerationRequest> = { method: `${_preFix}/generateTestPlan` };
+export const generateFunctionTests: NotificationType<TestGeneratorIntermediaryState> = { method: `${_preFix}/generateFunctionTests` };
+export const generateHealthcareCode: NotificationType<GenerateCodeRequest> = { method: `${_preFix}/generateHealthcareCode` };
