@@ -20,3 +20,10 @@ public type FinalNote record {|
     SampleRecord sampleRecord;
     ProgressNote[] progressNotes;
 |};
+
+type unionSymbol  SampleType|SampleRecord|ProgressNote|FinalNote;
+
+public type unionMemberType record {|
+    unionSymbol member;
+    FinalNote finalNote;
+|};

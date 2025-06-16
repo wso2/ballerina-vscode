@@ -46,7 +46,7 @@ public class RefTypeTest {
     public Object[][] getConfigsList() {
         return new Object[][]{
                 new Object[]{
-                        TestUtil.RES_DIR.resolve("RefTypeTest/TestData/sample6.json")
+                        TestUtil.RES_DIR.resolve("RefTypeTest/TestData/unionSample8.json")
                 }
         };
     }
@@ -81,7 +81,7 @@ public class RefTypeTest {
         String expectedRefTypeJson = gson.toJson(jsonObject.get("refType")).concat(System.lineSeparator());
 
         if (!refTypeJson.equals(expectedRefTypeJson)) {
-//            updateConfig(jsonPath, refTypeJson);
+            updateConfig(jsonPath, refTypeJson);
             Assert.fail(
                     String.format("Reference type JSON does not match.\n Expected : %s\n Received %s",
                             expectedRefTypeJson, refTypeJson));

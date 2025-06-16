@@ -381,7 +381,16 @@ public class RefType {
                 return getAlreadyVisitedType(symbol, typeName, visitedType, true);
             } else {
                 visitedTypeMap.put(typeName, new RefVisitedType());
-                type = getUnionType(unionSymbol, documentationMap, semanticModel);
+                type = getUnionType(unionSymbol, documentationMap, semanticModel, dependentTypes);
+                if (!dependentTypes.isEmpty()) {
+                    Map<String, RefType> depTypes = new HashMap<>();
+                    dependentTypes.forEach((key, value) -> {
+                        if (value != null) {
+                            depTypes.put(key, value);
+                        }
+                    });
+                    type.dependentTypes = depTypes;
+                }
                 completeVisitedTypeEntry(typeName, type, dependentTypes);
             }
         } else if (symbol instanceof ErrorTypeSymbol errSymbol) {
@@ -435,7 +444,28 @@ public class RefType {
                 typeName = typeName.substring(1, typeName.length() - 1);
             }
             type = new RefPrimitiveType(typeName);
-        } else if (symbol instanceof TypeDefinitionSymbol typeDefinitionSymbol) {
+        }
+//        else if (symbol.kind() == SymbolKind.ENUM) {
+//            String typeName = String.valueOf(symbol.hashCode());
+//            RefVisitedType visitedType = getVisitedType(typeName);
+//            if (visitedType != null) {
+//                return getAlreadyVisitedType(symbol, typeName, visitedType, false);
+//            } else {
+//                visitedTypeMap.put(typeName, new RefVisitedType());
+//                List<RefType> fields = new ArrayList<>();
+//                ((UnionTypeSymbol) symbol).memberTypeDescriptors()
+//                        .forEach(typeSymbol -> {
+//                            RefType semanticSymbol = fromSemanticSymbol(typeSymbol, documentationMap,
+//                                    semanticModel);
+//                            if (semanticSymbol != null) {
+//                                fields.add(semanticSymbol);
+//                            }
+//                        });
+//                type = new RefEnumType(fields);
+//                completeVisitedTypeEntry(typeName, type, dependentTypes);
+//            }
+//        }
+        else if (symbol instanceof TypeDefinitionSymbol typeDefinitionSymbol) {
             AtomicReference<String> typeDocumentation = new AtomicReference<>();
             typeDefinitionSymbol.documentation().ifPresent(doc -> {
                 documentationMap.putAll(doc.parameterMap());
@@ -488,13 +518,29 @@ public class RefType {
     }
 
     private static RefType getUnionType(UnionTypeSymbol unionSymbol,
-                                        Map<String, String> documentationMap, SemanticModel semanticModel) {
+                                        Map<String, String> documentationMap, SemanticModel semanticModel, Map<String, RefType> dependentTypes) {
         RefType type;
         RefUnionType unionType = new RefUnionType();
         unionSymbol.memberTypeDescriptors().forEach(typeSymbol -> {
-            RefType semanticSymbol = fromSemanticSymbol(typeSymbol, documentationMap, semanticModel);
-            if (semanticSymbol != null) {
-                unionType.members.add(semanticSymbol);
+            RefType subType = fromSemanticSymbol(typeSymbol, documentationMap, semanticModel, dependentTypes, false);
+            if (subType != null) {
+                if (subType instanceof RefPrimitiveType) {
+                    unionType.members.add(subType);
+                } else if (subType instanceof RefRecordType) {
+                    String name = subType.getName();
+                    RefType recordSubType = new RefType(name, subType.getName());
+                    TypeInfo typeInfo = subType.getTypeInfo();
+                    String hashCode = String.valueOf(
+                            (typeInfo.name + typeInfo.orgName + typeInfo.moduleName + typeInfo.version).hashCode());
+                    recordSubType.setHashCode(hashCode);
+                    unionType.members.add(recordSubType);
+                    RefType depType = new RefRecordType((RefRecordType) subType, false);
+                    dependentTypes.put(hashCode, depType);
+                    if (subType.dependentTypes != null) {
+                        dependentTypes.putAll(subType.dependentTypes);
+                    }
+                }
+//                unionType.members.add(subType);
             }
         });
         if (unionType.members.stream().allMatch(type1 -> type1 instanceof RefErrorType)) {
@@ -556,7 +602,17 @@ public class RefType {
                     if (subType.dependentTypes != null) {
                         dependentTypes.putAll(subType.dependentTypes);
                     }
-                } else {
+                } else if (subType instanceof RefUnionType) {
+                    RefUnionType unionsubType = new RefUnionType((RefUnionType) subType);
+                    fields.add(unionsubType);
+                    if (subType.dependentTypes != null) {
+                        dependentTypes.putAll(subType.dependentTypes);
+                    }
+                }
+
+
+
+                else {
                     subType.setName(name);
                     subType.setOptional(field.isOptional());
                     subType.setDefaultable(field.hasDefaultValue());
