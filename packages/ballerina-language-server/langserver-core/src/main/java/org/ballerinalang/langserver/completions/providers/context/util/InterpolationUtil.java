@@ -36,12 +36,12 @@ import java.util.function.Predicate;
 /**
  * Utility class for handling interpolation related operations.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class InterpolationUtil {
 
     /**
-     * Finds an {@link InterpolationNode} which is/is a parent of the cursor node.
+     * Finds an {@link InterpolationNode} which is a parent of the cursor node.
      *
      * @param cursorNode Node at cursor
      * @param node       Template or Natural expression node
