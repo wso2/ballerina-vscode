@@ -48,7 +48,7 @@ import static io.ballerina.servicemodelgenerator.extension.util.Utils.removeLead
 /**
  * Analyzes the Listener declaration and generates the properties.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class ListenerDeclAnalyzer {
 

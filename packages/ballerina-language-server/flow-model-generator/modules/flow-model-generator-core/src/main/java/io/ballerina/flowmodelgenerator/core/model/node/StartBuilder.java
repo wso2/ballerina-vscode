@@ -33,7 +33,7 @@ import java.util.Optional;
 /**
  * Represents the properties of a start node in the flow model.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class StartBuilder extends NodeBuilder {
 

@@ -36,7 +36,7 @@ import java.util.Optional;
 /**
  * Code Action for setters.
  *
- * @since 2201.1.1
+ * @since 1.0.0
  */
 @JavaSPIService("org.ballerinalang.langserver.commons.codeaction.spi.LSCodeActionProvider")
 public class SetterCodeAction implements RangeBasedCodeActionProvider {

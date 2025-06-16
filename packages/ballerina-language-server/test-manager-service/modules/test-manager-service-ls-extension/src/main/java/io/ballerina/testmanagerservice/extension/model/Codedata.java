@@ -25,7 +25,7 @@ import io.ballerina.tools.text.LineRange;
  *
  * @param lineRange line range of the code data
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public record Codedata(LineRange lineRange) {
 }

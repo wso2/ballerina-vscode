@@ -39,7 +39,7 @@ import java.util.Optional;
 /**
  * Code Action for pulling a package from central.
  *
- * @since 1.1.1
+ * @since 1.0.0
  */
 @JavaSPIService("org.ballerinalang.langserver.commons.codeaction.spi.LSCodeActionProvider")
 public class PullModuleCodeAction implements DiagnosticBasedCodeActionProvider {

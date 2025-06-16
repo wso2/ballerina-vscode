@@ -19,7 +19,7 @@ package io.ballerina.architecturemodelgenerator.plugin;
 /**
  * Plugin Constants.
  *
- * @since 2201.4.0
+ * @since 1.0.0
  */
 public class PluginConstants {
     public static final String MODEL_DIR_NAME = "component-model";

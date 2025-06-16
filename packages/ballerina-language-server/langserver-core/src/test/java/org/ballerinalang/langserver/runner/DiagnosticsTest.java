@@ -40,7 +40,7 @@ import java.util.Map;
 /**
  * Tests {@link org.ballerinalang.langserver.extensions.ballerina.runner.BallerinaRunnerService} diagnostics api.
  *
- * @since 2201.11.0
+ * @since 1.0.0
  */
 public class DiagnosticsTest {
 

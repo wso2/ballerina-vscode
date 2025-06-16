@@ -48,7 +48,7 @@ import javax.annotation.Nonnull;
 /**
  * Language server context implementation.
  *
- * @since 1.2.0
+ * @since 1.0.0
  */
 public class AbstractDocumentServiceContext implements DocumentServiceContext {
 
@@ -268,7 +268,7 @@ public class AbstractDocumentServiceContext implements DocumentServiceContext {
      * Represents Language server context Builder.
      *
      * @param <T> builder type
-     * @since 2.0.0
+     * @since 1.0.0
      */
     protected abstract static class AbstractContextBuilder<T extends AbstractContextBuilder<T>> {
         protected final LSOperation operation;

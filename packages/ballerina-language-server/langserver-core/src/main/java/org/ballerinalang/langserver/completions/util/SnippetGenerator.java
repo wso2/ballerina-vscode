@@ -26,7 +26,7 @@ import java.util.List;
 /**
  * Generates Snippets for language constructs.
  *
- * @since 0.982.0
+ * @since 1.0.0
  */
 public final class SnippetGenerator {
 

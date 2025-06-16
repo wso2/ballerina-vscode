@@ -21,7 +21,7 @@ import org.ballerinalang.langserver.commons.command.LSCommandExecutorException;
 /**
  * Represents the SPI interface for the Language Server Command Executor.
  * 
- * @since 0.983.0
+ * @since 1.0.0
  */
 public interface LSCommandExecutor {
     /**

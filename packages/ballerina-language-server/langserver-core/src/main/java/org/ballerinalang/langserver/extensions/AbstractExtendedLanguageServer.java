@@ -42,7 +42,7 @@ import java.util.concurrent.CompletableFuture;
  * Provides capabilities for the extended language server services.
  *
  * @see ExtendedLanguageServerService
- * @since 2.0.0
+ * @since 1.0.0
  */
 public abstract class AbstractExtendedLanguageServer implements LanguageServer, Endpoint, JsonRpcMethodProvider {
     protected List<ExtendedLanguageServerService> extendedServices = new ArrayList<>();

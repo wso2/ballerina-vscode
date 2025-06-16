@@ -25,7 +25,7 @@ import com.google.gson.JsonArray;
  *
  * @param filePath path of the file
  * @param types new data of the types
- * @since 2.0.0
+ * @since 1.0.0
  */
 public record MultipleTypeUpdateRequest(String filePath, JsonArray types) {
 }

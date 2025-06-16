@@ -24,7 +24,7 @@ import java.io.IOException;
 /**
  * Test Cases for Make Annotation Declaration Constant code action.
  *
- * @since 2201.1.1
+ * @since 1.0.0
  */
 public class MakeAnnotDeclarationConstantCodeActionTest extends AbstractCodeActionTest {
     @Test(dataProvider = "codeaction-data-provider")

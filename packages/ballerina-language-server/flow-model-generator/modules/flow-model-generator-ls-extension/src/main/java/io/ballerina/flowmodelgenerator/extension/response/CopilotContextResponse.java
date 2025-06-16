@@ -21,7 +21,7 @@ package io.ballerina.flowmodelgenerator.extension.response;
 /**
  * Represents the response for the copilot context service.
  *
- * @since 1.4.0
+ * @since 1.0.0
  */
 public class CopilotContextResponse extends AbstractFlowModelResponse {
 

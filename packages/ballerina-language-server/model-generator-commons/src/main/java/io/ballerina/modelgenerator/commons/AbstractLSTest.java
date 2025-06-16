@@ -57,7 +57,7 @@ import java.util.stream.Stream;
 /**
  * Represents the abstract test class for the flow model generator service.
  *
- * @since 1.4.0
+ * @since 1.0.0
  */
 public abstract class AbstractLSTest {
 

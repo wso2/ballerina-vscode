@@ -46,7 +46,7 @@ import java.util.stream.Collectors;
 /**
  * Code Action for optimizing all imports.
  *
- * @since 1.2.0
+ * @since 1.0.0
  */
 @JavaSPIService("org.ballerinalang.langserver.commons.codeaction.spi.LSCodeActionProvider")
 public class OptimizeImportsCodeAction implements RangeBasedCodeActionProvider {

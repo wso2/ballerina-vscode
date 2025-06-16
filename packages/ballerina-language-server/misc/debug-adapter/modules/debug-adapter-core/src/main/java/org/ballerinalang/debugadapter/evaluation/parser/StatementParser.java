@@ -19,7 +19,7 @@ package org.ballerinalang.debugadapter.evaluation.parser;
 /**
  * An extended debug parser implementation for ballerina statement-specific parsing.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class StatementParser extends DebugParser {
 

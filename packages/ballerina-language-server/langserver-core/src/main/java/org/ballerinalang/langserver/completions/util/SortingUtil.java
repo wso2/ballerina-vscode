@@ -64,7 +64,7 @@ import static org.ballerinalang.langserver.commons.completion.LSCompletionItem.C
 /**
  * Enclose a set of utilities for sorting and ranking of completion items.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public final class SortingUtil {
 

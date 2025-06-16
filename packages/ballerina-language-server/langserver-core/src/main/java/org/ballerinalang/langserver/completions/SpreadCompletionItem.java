@@ -26,7 +26,7 @@ import java.util.Optional;
  * Represents a Spread Completion Item.
  * Eg: ...varName
  *
- * @since 2201.8.0
+ * @since 1.0.0
  */
 public class SpreadCompletionItem extends AbstractLSCompletionItem {
     private final Symbol expression;

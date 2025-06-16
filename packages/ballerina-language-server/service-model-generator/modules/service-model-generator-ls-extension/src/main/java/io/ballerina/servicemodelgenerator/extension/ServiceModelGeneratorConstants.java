@@ -23,7 +23,7 @@ import io.ballerina.servicemodelgenerator.extension.model.MetaData;
 /**
  * Represents constants for the trigger model generator service.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class ServiceModelGeneratorConstants {
 

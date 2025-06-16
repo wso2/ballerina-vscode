@@ -34,7 +34,7 @@ import java.util.function.Predicate;
 /**
  * Completion provider for {@link ComputedResourceAccessSegmentNode} context.
  *
- * @since 2201.2.0
+ * @since 1.0.0
  */
 @JavaSPIService("org.ballerinalang.langserver.commons.completion.spi.BallerinaCompletionProvider")
 public class ComputedResourceAccessSegmentNodeContext extends

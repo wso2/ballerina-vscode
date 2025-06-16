@@ -21,7 +21,7 @@ import org.ballerinalang.langserver.commons.codelenses.spi.LSCodeLensesProvider;
 /**
  * Abstract code lenses provider containing all utility functions.
  *
- * @since 0.990.3
+ * @since 1.0.0
  */
 public abstract class AbstractCodeLensesProvider implements LSCodeLensesProvider {
     /**

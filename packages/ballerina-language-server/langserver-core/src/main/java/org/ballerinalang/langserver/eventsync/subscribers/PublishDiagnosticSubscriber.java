@@ -29,7 +29,7 @@ import org.ballerinalang.langserver.diagnostic.DiagnosticsHelper;
 /**
  * Publishes diagnostics.
  *
- * @since 2201.1.1
+ * @since 1.0.0
  */
 @JavaSPIService("org.ballerinalang.langserver.commons.eventsync.spi.EventSubscriber")
 public class PublishDiagnosticSubscriber implements EventSubscriber {

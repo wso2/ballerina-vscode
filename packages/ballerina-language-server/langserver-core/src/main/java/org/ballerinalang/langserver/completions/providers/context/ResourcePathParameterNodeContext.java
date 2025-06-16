@@ -36,7 +36,7 @@ import java.util.List;
 /**
  * Completion provider for the {@link ResourcePathParameterNode} context.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 @JavaSPIService("org.ballerinalang.langserver.commons.completion.spi.BallerinaCompletionProvider")
 public class ResourcePathParameterNodeContext extends AbstractCompletionProvider<ResourcePathParameterNode> {

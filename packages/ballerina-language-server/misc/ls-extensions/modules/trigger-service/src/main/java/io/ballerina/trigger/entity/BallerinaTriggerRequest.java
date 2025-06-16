@@ -21,7 +21,7 @@ package io.ballerina.trigger.entity;
 /**
  * Request to get Trigger details.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class BallerinaTriggerRequest {
     private String id;

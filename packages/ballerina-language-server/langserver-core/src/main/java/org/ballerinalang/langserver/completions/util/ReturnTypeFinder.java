@@ -37,7 +37,7 @@ import java.util.Optional;
  * That is, this class will visit the parents until it finds a context to
  * which a return type is applicable and returns the expected type.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class ReturnTypeFinder extends NodeTransformer<Optional<TypeSymbol>> {
 

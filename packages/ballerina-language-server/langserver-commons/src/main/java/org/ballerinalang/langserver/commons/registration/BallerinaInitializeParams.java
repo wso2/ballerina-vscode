@@ -20,7 +20,7 @@ import java.util.List;
 /**
  * Represents the input parameters for the initBalServices API in the language server.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class BallerinaInitializeParams {
     private List<Object> ballerinaClientCapabilities;

@@ -29,7 +29,7 @@ import java.util.Set;
  * @param location location of the resource function
  * @param connections dependent connections of the resource function
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public record ResourceFunction(String accessor, String path, Location location, Set<String> connections) {
 

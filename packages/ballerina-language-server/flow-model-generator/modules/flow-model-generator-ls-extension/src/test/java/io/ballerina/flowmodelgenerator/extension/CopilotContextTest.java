@@ -32,7 +32,7 @@ import java.nio.file.Path;
 /**
  * Tests for the copilot context service.
  *
- * @since 1.4.0
+ * @since 1.0.0
  */
 public class CopilotContextTest extends AbstractLSTest {
 

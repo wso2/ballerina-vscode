@@ -55,7 +55,7 @@ import java.util.Set;
 /**
  * Code Action for change parameter type.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 @JavaSPIService("org.ballerinalang.langserver.commons.codeaction.spi.LSCodeActionProvider")
 public class ChangeParameterTypeCodeAction implements DiagnosticBasedCodeActionProvider {

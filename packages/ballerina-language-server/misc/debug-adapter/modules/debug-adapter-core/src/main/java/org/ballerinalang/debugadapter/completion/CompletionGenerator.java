@@ -36,7 +36,7 @@ import static org.ballerinalang.debugadapter.completion.util.CompletionUtil.getC
 /**
  * Completion generator to get the completion items based on the resolver node.
  *
- * @since 2201.1.0
+ * @since 1.0.0
  */
 public final class CompletionGenerator {
 

@@ -29,7 +29,7 @@ import java.util.Map;
  * @param filePath the path of the file (may be null for certain search kinds)
  * @param position the line range of the current position (may be null for certain search kinds)
  * @param queryMap the map containing queryMap parameters
- * @since 2.0.0
+ * @since 1.0.0
  */
 public record SearchRequest(String searchKind, String filePath, LineRange position, Map<String, String> queryMap) {
 

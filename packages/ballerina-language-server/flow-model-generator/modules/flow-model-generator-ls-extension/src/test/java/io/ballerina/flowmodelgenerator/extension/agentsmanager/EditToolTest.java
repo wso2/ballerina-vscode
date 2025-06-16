@@ -39,7 +39,7 @@ import java.util.Map;
 /**
  * Tests for the agent editing.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class EditToolTest extends AbstractLSTest {
 

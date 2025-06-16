@@ -25,7 +25,7 @@ import java.util.concurrent.ExecutionException;
 /**
  * getResult End point tests related to shell commands.
  *
- * @since 2201.2.1
+ * @since 1.0.0
  */
 public class ShellCommandsTests extends AbstractGetResultTest {
 

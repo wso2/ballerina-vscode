@@ -60,7 +60,7 @@ import java.util.Set;
 /**
  * Code Action for making a variable immutable. This will ensure that the given variable is both final and readonly.
  *
- * @since 2201.9.0
+ * @since 1.0.0
  */
 @JavaSPIService("org.ballerinalang.langserver.commons.codeaction.spi.LSCodeActionProvider")
 public class MakeVariableImmutableCodeAction implements DiagnosticBasedCodeActionProvider {

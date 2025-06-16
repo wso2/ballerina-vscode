@@ -30,7 +30,7 @@ import java.util.List;
  * @param typeMembers Type members
  * @param expr Expression to find the type
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public record FindTypeRequest(String filePath, List<PropertyTypeMemberInfo> typeMembers, String expr) {
 

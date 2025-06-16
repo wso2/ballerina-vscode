@@ -22,7 +22,7 @@ import io.ballerina.shell.service.BalShellGetResultResponse;
 /**
  * Class to represent GetResultTestCase json.
  *
- * @since 2201.1.1
+ * @since 1.0.0
  */
 public class GetResultTestCase {
     private String source;

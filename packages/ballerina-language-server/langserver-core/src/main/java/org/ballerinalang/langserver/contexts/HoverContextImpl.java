@@ -32,7 +32,7 @@ import javax.annotation.Nonnull;
 /**
  * Hover context implementation.
  *
- * @since 1.2.0
+ * @since 1.0.0
  */
 public class HoverContextImpl extends PositionedOperationContextImpl implements HoverContext {
 
@@ -79,7 +79,7 @@ public class HoverContextImpl extends PositionedOperationContextImpl implements 
     /**
      * Represents Language server signature help context Builder.
      *
-     * @since 2.0.0
+     * @since 1.0.0
      */
     protected static class HoverContextBuilder extends AbstractContextBuilder<HoverContextBuilder> {
 

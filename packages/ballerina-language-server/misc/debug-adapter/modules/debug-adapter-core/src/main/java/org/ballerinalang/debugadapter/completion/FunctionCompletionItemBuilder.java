@@ -37,7 +37,7 @@ import java.util.Optional;
 /**
  * This class is being used to build function type completion item.
  *
- * @since 2201.1.0
+ * @since 1.0.0
  */
 public final class FunctionCompletionItemBuilder {
 

@@ -28,7 +28,7 @@ import java.util.Map;
  * Implementation for ballerina variable types which can contain a large number of child variable entries and
  * hence should be lazy loaded (i.e. array elements, table entries, map entries, json elements, etc.)
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public abstract class IndexedCompoundVariable extends BCompoundVariable {
 

@@ -31,7 +31,7 @@ import java.util.List;
 /**
  * Represents a {@code Diagnostic} related to XML to Record converter.
  *
- * @since 2201.7.2
+ * @since 1.0.0
  */
 public class XMLToRecordConverterDiagnostic extends Diagnostic {
 

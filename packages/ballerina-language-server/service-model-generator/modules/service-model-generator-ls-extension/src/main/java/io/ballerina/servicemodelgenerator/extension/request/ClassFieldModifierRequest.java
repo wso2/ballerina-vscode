@@ -26,7 +26,7 @@ import io.ballerina.servicemodelgenerator.extension.model.Field;
  * @param filePath file path
  * @param field object level field model
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public record ClassFieldModifierRequest(String filePath, Field field) {
 }

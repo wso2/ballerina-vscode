@@ -20,7 +20,7 @@ package org.ballerinalang.langserver.commons.toml.visitor;
 /**
  * Represents a value type in toml.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public enum ValueType {
     STRING("\"", "\""),

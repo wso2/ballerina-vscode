@@ -45,7 +45,7 @@ import java.util.Optional;
 /**
  * Completion provider for {@link LetVariableDeclarationNode} context.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 @JavaSPIService("org.ballerinalang.langserver.commons.completion.spi.BallerinaCompletionProvider")
 public class LetVariableDeclarationNodeContext extends AbstractCompletionProvider<LetVariableDeclarationNode> {

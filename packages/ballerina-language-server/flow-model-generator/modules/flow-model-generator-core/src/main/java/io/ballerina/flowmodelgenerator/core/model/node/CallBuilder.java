@@ -46,7 +46,7 @@ import java.util.Map;
 /**
  * Abstract base class for function-like builders (functions, methods, resource actions).
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public abstract class CallBuilder extends NodeBuilder {
 

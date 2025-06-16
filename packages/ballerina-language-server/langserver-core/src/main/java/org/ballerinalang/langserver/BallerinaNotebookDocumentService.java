@@ -25,7 +25,7 @@ import org.eclipse.lsp4j.services.NotebookDocumentService;
 /**
  * Notebook document service implementation for ballerina.
  *
- * @since 2201.4.0
+ * @since 1.0.0
  */
 public class BallerinaNotebookDocumentService implements NotebookDocumentService {
 

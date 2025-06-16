@@ -61,7 +61,7 @@ import static org.ballerinalang.debugadapter.utils.ServerUtils.supportsBreakpoin
  * breakpoint types (conditional breakpoints and log-points) and, switching in-between user breakpoints and dynamic
  * breakpoints based on the debug instruction.
  *
- * @since 2201.0.1
+ * @since 1.0.0
  */
 public class BreakpointProcessor {
 

@@ -20,7 +20,7 @@ import java.util.List;
 /**
  * Represents an example category.
  *
- * @since 0.981.2
+ * @since 1.0.0
  */
 public class BallerinaExampleCategory {
 

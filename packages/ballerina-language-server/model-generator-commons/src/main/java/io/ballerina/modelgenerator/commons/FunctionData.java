@@ -23,7 +23,7 @@ import java.util.Map;
 /**
  * Represents the result of a function.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class FunctionData {
 

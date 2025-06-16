@@ -24,7 +24,7 @@ import java.util.Optional;
 /**
  * Represents a Ballerina operation context where the cursor is enclosed within a module member.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public interface BallerinaEnclosedPositionContext {
     /**

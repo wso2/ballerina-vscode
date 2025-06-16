@@ -20,7 +20,7 @@ package org.ballerinalang.langserver.commons;
 /**
  * Represents the language server features.
  * 
- * @since 2.0.0
+ * @since 1.0.0
  */
 public enum LanguageFeatureKind {
     COMPLETION,

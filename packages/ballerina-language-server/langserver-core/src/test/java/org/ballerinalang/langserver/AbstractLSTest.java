@@ -46,7 +46,7 @@ import java.util.Map;
 /**
  * An abstract class for LS unit tests.
  *
- * @since 2201.1.0
+ * @since 1.0.0
  */
 public abstract class AbstractLSTest {
 

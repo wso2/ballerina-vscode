@@ -41,7 +41,7 @@ import static org.ballerinalang.debugadapter.utils.PackageUtils.INIT_TYPE_INSTAN
 /**
  * Ballerina type resolver implementation for resolving ballerina runtime types from the syntax nodes.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class NodeBasedTypeResolver extends EvaluationTypeResolver<Node> {
 

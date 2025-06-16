@@ -57,7 +57,7 @@ import static org.ballerinalang.langserver.common.utils.CommonUtil.LINE_SEPARATO
 /**
  * Represents the common class for implementing the functions of an object.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public abstract class AbstractImplementMethodCodeAction {
 

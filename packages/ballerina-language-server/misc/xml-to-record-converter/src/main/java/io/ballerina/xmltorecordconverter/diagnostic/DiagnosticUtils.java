@@ -25,7 +25,7 @@ import java.util.List;
 /**
  * Util methods for XML to record converter diagnostics.
  *
- * @since 2201.7.2
+ * @since 1.0.0
  */
 public final class DiagnosticUtils {
 

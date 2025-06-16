@@ -24,7 +24,7 @@ import org.ballerinalang.langserver.commons.toml.visitor.ValueType;
 /**
  * Utility class used as a helper for Toml Syntax tree related usage.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public final class TomlSyntaxTreeUtil {
 

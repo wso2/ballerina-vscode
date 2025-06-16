@@ -29,7 +29,7 @@ import java.util.List;
 /**
  * Visitor to find the base url of endpoint.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class ResourceFinder extends NodeVisitor {
 

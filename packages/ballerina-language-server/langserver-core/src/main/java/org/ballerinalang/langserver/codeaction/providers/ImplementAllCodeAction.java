@@ -42,7 +42,7 @@ import static org.ballerinalang.langserver.codeaction.CodeActionUtil.computePosi
 /**
  * Code Action provider for implementing all the functions of an object.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 @JavaSPIService("org.ballerinalang.langserver.commons.codeaction.spi.LSCodeActionProvider")
 public class ImplementAllCodeAction extends AbstractImplementMethodCodeAction implements RangeBasedCodeActionProvider {

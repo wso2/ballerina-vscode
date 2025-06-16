@@ -54,7 +54,7 @@ import java.util.Set;
 /**
  * Handles the search command for connectors.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class ConnectorSearchCommand extends SearchCommand {
 

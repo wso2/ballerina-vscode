@@ -189,7 +189,7 @@ public class OpenApiClientGeneratorTest extends AbstractLSTest {
      * @param output       Expected output
      * @param textEdits    Text edits
      * @param modules      Available modules
-     * @since 1.4.0
+     * @since 1.0.0
      */
     private record TestConfig(String contractFile, String balToml, String module, String source,
                               LinePosition position, String description, JsonObject codedata, JsonElement output,

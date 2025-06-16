@@ -37,7 +37,7 @@ import java.util.Optional;
  * This proxy maintains two workspace managers, one for the expr file scheme based documents and the default manager
  * for the file scheme based documents.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class BallerinaWorkspaceManagerProxyImpl implements BallerinaWorkspaceManagerProxy {
     private final WorkspaceManager baseWorkspaceManager;

@@ -30,7 +30,7 @@ import java.util.Map;
  * @param name        The name of the component
  * @param description The description of the component
  * @param attributes  Additional attributes as key-value pairs
- * @since 2.0.0
+ * @since 1.0.0
  */
 public record SearchResult(Package packageInfo, String name, String description, Map<String, String> attributes) {
 

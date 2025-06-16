@@ -35,7 +35,7 @@ import java.util.List;
  * @param enable Whether the function is enabled
  * @param parameters The parameters of the function
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public record ServiceTypeFunction(
         int functionId,

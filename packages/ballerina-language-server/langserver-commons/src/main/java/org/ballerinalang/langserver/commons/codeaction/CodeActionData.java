@@ -20,7 +20,7 @@ import org.eclipse.lsp4j.Range;
 /**
  * Code action data.
  *
- * @since 2201.2.1
+ * @since 1.0.0
  */
 public class CodeActionData {
     String extName;

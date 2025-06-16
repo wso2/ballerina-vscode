@@ -53,7 +53,7 @@ import java.util.function.Predicate;
  * eg: Optional Field access and Field Access
  *
  * @param <T> Field access node type
- * @since 2.0.0
+ * @since 1.0.0
  */
 public abstract class FieldAccessContext<T extends Node> extends AbstractCompletionProvider<T> {
 

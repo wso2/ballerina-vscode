@@ -25,7 +25,7 @@ import java.util.concurrent.CompletableFuture;
 /**
  * Extended Language Server interface which includes ballerina document services.
  *
- * @since 0.981.2
+ * @since 1.0.0
  */
 public interface ExtendedLanguageServer extends LanguageServer {
 

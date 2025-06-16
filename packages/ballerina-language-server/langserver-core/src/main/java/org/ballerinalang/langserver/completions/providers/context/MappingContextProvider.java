@@ -63,7 +63,7 @@ import static io.ballerina.compiler.api.symbols.SymbolKind.FUNCTION;
  * Abstract completion provider for mapping constructor context.
  *
  * @param <T> mapping constructor node type.
- * @since 2.0.0
+ * @since 1.0.0
  */
 public abstract class MappingContextProvider<T extends Node> extends AbstractCompletionProvider<T> {
 

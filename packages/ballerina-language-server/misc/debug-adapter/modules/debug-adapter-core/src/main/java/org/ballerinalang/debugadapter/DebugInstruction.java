@@ -19,7 +19,7 @@ package org.ballerinalang.debugadapter;
 /**
  * Debug control flow instructions supported by the ballerina debugger.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public enum DebugInstruction {
     STEP_IN,

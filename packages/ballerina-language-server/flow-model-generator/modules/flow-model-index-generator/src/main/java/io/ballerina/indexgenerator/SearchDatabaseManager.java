@@ -35,7 +35,7 @@ import java.util.logging.Logger;
  * This class provides functionality to create and populate a search index database with
  * package-related data including functions, connectors, and types.
  * 
- * @since 2.0.0
+ * @since 1.0.0
  */
 class SearchDatabaseManager {
 

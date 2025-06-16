@@ -43,7 +43,7 @@ import java.util.Optional;
 /**
  * Code action to create a record for an unknown type.
  *
- * @since 2201.1.1
+ * @since 1.0.0
  */
 @JavaSPIService("org.ballerinalang.langserver.commons.codeaction.spi.LSCodeActionProvider")
 public class CreateTypeCodeAction implements DiagnosticBasedCodeActionProvider {

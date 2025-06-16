@@ -23,7 +23,7 @@ package io.ballerina.flowmodelgenerator.extension.request;
  *
  * @param projectPath         Location for the generated services
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public record OpenAPIGeneratedModulesRequest(String projectPath) {
 

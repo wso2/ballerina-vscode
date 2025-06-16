@@ -38,7 +38,7 @@ import static org.ballerinalang.debugadapter.utils.PackageUtils.INIT_TYPE_INSTAN
  * Todo - try to convert into a symbol API based resolver, once
  *  https://github.com/ballerina-platform/ballerina-lang/pull/31589 is merged.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class NameBasedTypeResolver extends EvaluationTypeResolver<String> {
 

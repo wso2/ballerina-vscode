@@ -23,7 +23,7 @@ import org.ballerinalang.langserver.commons.registration.BallerinaClientCapabili
 /**
  * Client capability setter for the {@link BallerinaRunnerService}.
  *
- * @since 2201.11.0
+ * @since 1.0.0
  */
 @JavaSPIService("org.ballerinalang.langserver.commons.registration.BallerinaClientCapabilitySetter")
 public class BallerinaRunnerServiceClientCapabilitySetter extends

@@ -40,7 +40,7 @@ import java.util.Map;
 /**
  * Test cases for the record conversion from xml.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class XMLConverterTest extends AbstractLSTest {
 

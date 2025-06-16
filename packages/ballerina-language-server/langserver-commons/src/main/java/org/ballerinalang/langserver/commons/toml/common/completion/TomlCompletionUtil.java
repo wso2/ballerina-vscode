@@ -47,7 +47,7 @@ import java.util.stream.Collectors;
 /**
  * Contains utility functions required for providing auto-completion for .toml files.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public final class TomlCompletionUtil {
 

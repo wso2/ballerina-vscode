@@ -85,7 +85,7 @@ import java.util.stream.Collectors;
 /**
  * Common utility functions used in the project.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class CommonUtils {
 

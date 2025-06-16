@@ -63,7 +63,7 @@ import java.util.Optional;
 /**
  * Analyzes the module level functions and generates the flow model.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class ModuleNodeAnalyzer extends NodeVisitor {
 

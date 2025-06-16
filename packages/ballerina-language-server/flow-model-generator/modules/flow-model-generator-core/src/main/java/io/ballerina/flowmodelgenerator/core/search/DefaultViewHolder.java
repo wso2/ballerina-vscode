@@ -34,7 +34,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * fetchPopularItems method of the SearchCommand when first requested and then cached for subsequent calls.
  * </p>
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 class DefaultViewHolder {
 

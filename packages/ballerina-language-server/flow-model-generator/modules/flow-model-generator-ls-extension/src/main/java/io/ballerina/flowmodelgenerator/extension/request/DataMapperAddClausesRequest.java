@@ -28,7 +28,7 @@ import com.google.gson.JsonElement;
  * @param query       query representation
  * @param propertyKey The property that needs to consider to get the type
  * @param targetField The target field that needs to consider to get the type
- * @since 2.0.0
+ * @since 1.0.0
  */
 public record DataMapperAddClausesRequest(String filePath, JsonElement flowNode, JsonElement query, String propertyKey,
                                           String targetField) {

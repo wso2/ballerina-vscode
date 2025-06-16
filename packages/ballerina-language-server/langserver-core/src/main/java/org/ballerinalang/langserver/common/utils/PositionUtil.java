@@ -32,7 +32,7 @@ import java.util.Optional;
 /**
  * Carries a set of utilities for position calculations.
  *
- * @since 2201.1.1
+ * @since 1.0.0
  */
 public final class PositionUtil {
 

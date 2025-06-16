@@ -18,7 +18,7 @@ package org.ballerinalang.langserver.commons.codelenses;
 /**
  * Exception for Language Server Code Lenses.
  * 
- * @since 0.990.3
+ * @since 1.0.0
  */
 public class LSCodeLensesProviderException extends Exception {
     public LSCodeLensesProviderException(String message) {

@@ -47,7 +47,7 @@ import java.util.Map;
 /**
  * An implementation of the Central API using a local index.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class LocalIndexCentral {
 

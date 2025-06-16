@@ -48,7 +48,7 @@ import static org.ballerinalang.debugadapter.variable.VariableUtils.removeRedund
 /**
  * Evaluator implementation for error constructor expressions.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class ErrorConstructorExpressionEvaluator extends Evaluator {
 

@@ -39,7 +39,7 @@ import java.util.Map;
  * which returns the appropriate implementation based on the specified kind. The class follows the command design
  * pattern allowing to execute various search strategies depending on the commands.</p>
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public abstract class SearchCommand {
 

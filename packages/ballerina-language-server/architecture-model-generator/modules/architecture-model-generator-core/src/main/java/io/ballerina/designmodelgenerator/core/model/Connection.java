@@ -25,7 +25,7 @@ import java.util.Set;
 /**
  * Represents a module client declaration node.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class Connection extends DesignGraphNode {
 

@@ -25,7 +25,7 @@ import java.util.Map;
 /**
  * Filter words using Trie data structure.
  *
- * @since 2201.1.1
+ * @since 1.0.0
  * */
 public class Trie {
     /**

@@ -30,7 +30,7 @@ import java.util.List;
 /**
  * Abstract implementation of the {@link PositionedOperationContext}.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public abstract class PositionedOperationContextImpl extends AbstractDocumentServiceContext
         implements PositionedOperationContext {

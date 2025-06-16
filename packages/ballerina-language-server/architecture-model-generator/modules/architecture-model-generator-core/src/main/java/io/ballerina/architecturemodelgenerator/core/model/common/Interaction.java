@@ -27,7 +27,7 @@ import java.util.List;
 /**
  * Represent interaction with another service.
  *
- * @since 2201.2.2
+ * @since 1.0.0
  */
 public class Interaction extends ModelElement {
 

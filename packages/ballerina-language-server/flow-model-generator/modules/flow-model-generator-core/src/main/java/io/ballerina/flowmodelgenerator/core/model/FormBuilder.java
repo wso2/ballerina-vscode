@@ -74,7 +74,7 @@ import static io.ballerina.flowmodelgenerator.core.model.node.DataMapperBuilder.
  * Represents a builder for the form of a flow node.
  *
  * @param <T> Parent builder type
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class FormBuilder<T> extends FacetedBuilder<T> {
 

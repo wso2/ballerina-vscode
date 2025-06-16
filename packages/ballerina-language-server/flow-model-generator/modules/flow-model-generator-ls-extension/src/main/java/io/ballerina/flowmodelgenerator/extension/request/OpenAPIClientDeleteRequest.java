@@ -24,7 +24,7 @@ package io.ballerina.flowmodelgenerator.extension.request;
  * @param projectPath         Location for the generated services
  * @param module              Target module
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public record OpenAPIClientDeleteRequest(String projectPath, String module) {
 

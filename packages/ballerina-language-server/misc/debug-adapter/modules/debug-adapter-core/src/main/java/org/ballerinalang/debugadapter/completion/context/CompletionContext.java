@@ -30,7 +30,7 @@ import java.util.Optional;
 /**
  * Ballerina debug completion context.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class CompletionContext {
 

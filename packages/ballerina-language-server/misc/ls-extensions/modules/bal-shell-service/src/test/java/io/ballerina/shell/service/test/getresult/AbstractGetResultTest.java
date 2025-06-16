@@ -30,7 +30,7 @@ import java.util.concurrent.ExecutionException;
 /**
  * Base class for getResult End point tests.
  *
- * @since 2201.1.1
+ * @since 1.0.0
  */
 public abstract class AbstractGetResultTest extends AbstractShellServiceTest {
     private static final String GET_RESULT = "balShell/getResult";

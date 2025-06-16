@@ -24,7 +24,7 @@ import java.io.IOException;
 /**
  * Tests ignore unused variable code action.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class IgnoreUnusedVariableCodeActionTest extends AbstractCodeActionTest {
 

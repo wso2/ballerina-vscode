@@ -32,7 +32,7 @@ import static org.ballerinalang.debugadapter.evaluation.EvaluationExceptionKind.
 /**
  * Ballerina JVM runtime instance method representation.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class RuntimeInstanceMethod extends RuntimeMethod {
 

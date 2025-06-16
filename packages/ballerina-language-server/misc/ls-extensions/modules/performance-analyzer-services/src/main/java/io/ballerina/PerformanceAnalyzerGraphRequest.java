@@ -24,7 +24,7 @@ import org.eclipse.lsp4j.TextDocumentIdentifier;
 /**
  * Request format for performance analyzer graph request.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class PerformanceAnalyzerGraphRequest {
 

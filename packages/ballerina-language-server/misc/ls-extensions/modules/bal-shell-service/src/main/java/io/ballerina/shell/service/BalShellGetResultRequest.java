@@ -20,7 +20,7 @@ package io.ballerina.shell.service;
 /**
  * Request format for get Result from BalShell endpoint.
  *
- * @since 2201.1.1
+ * @since 1.0.0
  */
 public class BalShellGetResultRequest {
     private final String source;

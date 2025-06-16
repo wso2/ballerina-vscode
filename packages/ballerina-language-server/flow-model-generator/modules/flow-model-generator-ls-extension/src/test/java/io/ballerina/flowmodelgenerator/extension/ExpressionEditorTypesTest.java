@@ -34,7 +34,7 @@ import java.util.List;
 /**
  * Tests for the expression editor types service.
  *
- * @since 1.4.0
+ * @since 1.0.0
  */
 public class ExpressionEditorTypesTest extends AbstractLSTest {
 

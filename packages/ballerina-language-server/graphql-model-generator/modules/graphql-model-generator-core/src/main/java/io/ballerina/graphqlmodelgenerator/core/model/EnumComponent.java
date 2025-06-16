@@ -25,7 +25,7 @@ import java.util.List;
 /**
  * Represents the Enum Component type of GraphQL model.
  *
- * @since 2201.5.0
+ * @since 1.0.0
  */
 public class EnumComponent {
     private final String name;

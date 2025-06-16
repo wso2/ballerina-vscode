@@ -20,7 +20,7 @@ import org.ballerinalang.langserver.commons.LSOperation;
 /**
  * Represents a example context.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public enum ExampleContext implements LSOperation {
     EXAMPLE_LIST("ballerinaExample/list");

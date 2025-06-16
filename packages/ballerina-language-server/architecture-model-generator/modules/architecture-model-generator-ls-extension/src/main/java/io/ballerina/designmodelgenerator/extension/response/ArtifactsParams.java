@@ -25,7 +25,7 @@ import java.util.Map;
 /**
  * Represents parameters for publishing artifacts notification.
  * 
- * @since 2.3.0
+ * @since 1.0.0
  */
 public class ArtifactsParams {
 

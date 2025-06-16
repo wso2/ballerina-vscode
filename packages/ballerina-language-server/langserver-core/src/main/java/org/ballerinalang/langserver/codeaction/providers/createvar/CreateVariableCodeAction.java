@@ -50,7 +50,7 @@ import java.util.stream.Collectors;
 /**
  * Code Action for variable assignment.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 @JavaSPIService("org.ballerinalang.langserver.commons.codeaction.spi.LSCodeActionProvider")
 public class CreateVariableCodeAction implements DiagnosticBasedCodeActionProvider {

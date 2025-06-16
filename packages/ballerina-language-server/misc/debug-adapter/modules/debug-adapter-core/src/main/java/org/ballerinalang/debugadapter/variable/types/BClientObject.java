@@ -23,7 +23,7 @@ import org.ballerinalang.debugadapter.variable.BVariableType;
 /**
  * Ballerina client object variable type.
  *
- * @since 2201.2.0
+ * @since 1.0.0
  */
 public class BClientObject extends BObject {
 

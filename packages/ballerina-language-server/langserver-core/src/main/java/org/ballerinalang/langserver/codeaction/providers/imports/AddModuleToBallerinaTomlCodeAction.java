@@ -47,7 +47,7 @@ import java.util.Optional;
 /**
  * Code Action for adding a dependency to Ballerina.toml file.
  *
- * @since 2201.8.0
+ * @since 1.0.0
  */
 @JavaSPIService("org.ballerinalang.langserver.commons.codeaction.spi.LSCodeActionProvider")
 public class AddModuleToBallerinaTomlCodeAction implements DiagnosticBasedCodeActionProvider {

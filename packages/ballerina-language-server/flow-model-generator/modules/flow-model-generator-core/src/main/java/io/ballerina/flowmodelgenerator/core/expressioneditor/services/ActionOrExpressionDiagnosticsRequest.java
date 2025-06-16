@@ -26,7 +26,7 @@ import io.ballerina.flowmodelgenerator.core.expressioneditor.ExpressionEditorCon
  * Handles diagnostic requests for action or expression validation in the expression editor.
  *
  * @see DiagnosticsRequest
- * @since 2.5.0
+ * @since 1.0.0
  */
 public class ActionOrExpressionDiagnosticsRequest extends ExpressionDiagnosticsRequest {
 

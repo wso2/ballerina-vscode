@@ -24,7 +24,7 @@ import java.io.IOException;
 /**
  * Test Cases for Add Isolated Qualifier Code Action.
  *
- * @since 2201.1.1
+ * @since 1.0.0
  */
 public class AddIsolatedQualifierCodeActionTest extends AbstractCodeActionTest {
 

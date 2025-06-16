@@ -28,7 +28,7 @@ import java.util.Map;
 /**
  * Response format for architecture model request.
  *
- * @since 2201.2.2
+ * @since 1.0.0
  */
 public class ArchitectureModelResponse extends ModelResponse {
 

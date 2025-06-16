@@ -22,7 +22,7 @@ import com.google.gson.JsonElement;
 /**
  * Represents a Ballerina Syntax Tree response.
  *
- * @since 1.3.0
+ * @since 1.0.0
  */
 public class STResponse {
 

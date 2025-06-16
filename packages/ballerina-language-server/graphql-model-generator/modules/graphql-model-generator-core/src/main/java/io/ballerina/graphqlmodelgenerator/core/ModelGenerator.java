@@ -50,7 +50,7 @@ import static io.ballerina.stdlib.graphql.compiler.Utils.getSchemaObject;
 /**
  * Represents the root model generator.
  *
- * @since 2201.5.0
+ * @since 1.0.0
  */
 public class ModelGenerator {
 

@@ -28,7 +28,7 @@ import org.eclipse.lsp4j.jsonrpc.CancelChecker;
 /**
  * Implementation of {@link RenameContext}.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class RenameContextImpl extends ReferencesContextImpl implements RenameContext {
 
@@ -55,7 +55,7 @@ public class RenameContextImpl extends ReferencesContextImpl implements RenameCo
     /**
      * Represents Language server rename context Builder.
      *
-     * @since 2.0.0
+     * @since 1.0.0
      */
     protected static class RenameContextBuilder extends PositionedOperationContextBuilder<RenameContext> {
 

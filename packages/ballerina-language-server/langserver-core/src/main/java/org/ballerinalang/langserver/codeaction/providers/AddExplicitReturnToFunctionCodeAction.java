@@ -47,7 +47,7 @@ import static org.ballerinalang.util.diagnostic.DiagnosticWarningCode.FUNCTION_S
 /**
  * Code action to add an explicit return statement.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 @JavaSPIService("org.ballerinalang.langserver.commons.codeaction.spi.LSCodeActionProvider")
 public class AddExplicitReturnToFunctionCodeAction implements DiagnosticBasedCodeActionProvider {

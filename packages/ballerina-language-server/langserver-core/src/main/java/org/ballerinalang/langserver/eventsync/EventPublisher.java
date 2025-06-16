@@ -28,7 +28,7 @@ import java.util.List;
 /**
  * Represents the language server event publisher.
  *
- * @since 2201.1.1
+ * @since 1.0.0
  */
 public interface EventPublisher {
     

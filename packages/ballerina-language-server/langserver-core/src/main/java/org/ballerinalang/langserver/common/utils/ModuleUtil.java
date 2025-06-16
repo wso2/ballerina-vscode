@@ -49,7 +49,7 @@ import static io.ballerina.compiler.api.symbols.SymbolKind.MODULE;
 /**
  * Carries a set of utilities used for operations on modules.
  *
- * @since 2201.1.1
+ * @since 1.0.0
  */
 public final class ModuleUtil {
 

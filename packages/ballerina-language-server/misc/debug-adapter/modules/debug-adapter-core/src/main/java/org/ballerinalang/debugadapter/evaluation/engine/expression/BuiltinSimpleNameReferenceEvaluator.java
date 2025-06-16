@@ -38,7 +38,7 @@ import static org.ballerinalang.debugadapter.evaluation.utils.EvaluationUtils.ge
 /**
  * Builtin simple name reference evaluator implementation.
  *
- * @since 2201.3.1
+ * @since 1.0.0
  */
 public class BuiltinSimpleNameReferenceEvaluator extends Evaluator {
 

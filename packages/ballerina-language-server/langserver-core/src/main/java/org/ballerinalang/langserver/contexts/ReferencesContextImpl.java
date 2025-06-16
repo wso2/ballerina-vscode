@@ -28,7 +28,7 @@ import org.eclipse.lsp4j.jsonrpc.CancelChecker;
 /**
  * Language server context implementation.
  *
- * @since 1.2.0
+ * @since 1.0.0
  */
 public class ReferencesContextImpl extends PositionedOperationContextImpl implements ReferencesContext {
 
@@ -44,7 +44,7 @@ public class ReferencesContextImpl extends PositionedOperationContextImpl implem
     /**
      * Represents Language server references context Builder.
      *
-     * @since 2.0.0
+     * @since 1.0.0
      */
     protected static class ReferencesContextBuilder extends PositionedOperationContextBuilder<ReferencesContext> {
 

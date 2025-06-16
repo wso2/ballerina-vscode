@@ -27,7 +27,7 @@ import io.ballerina.tools.text.LineRange;
  * @param filePath  file path of the source file
  * @param startLine start line of the source range
  * @param endLine   end line of the source range
- * @since 1.4.0
+ * @since 1.0.0
  */
 public record FlowModelGeneratorRequest(String filePath, LinePosition startLine, LinePosition endLine) {
 

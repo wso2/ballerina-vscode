@@ -53,7 +53,7 @@ import java.util.Optional;
 /**
  * Completion extension implementation for ballerina compiler plugins.
  *
- * @since 2201.7.0
+ * @since 1.0.0
  */
 @JavaSPIService("org.ballerinalang.langserver.commons.LanguageExtension")
 public class CompilerPluginCompletionExtension implements CompletionExtension {

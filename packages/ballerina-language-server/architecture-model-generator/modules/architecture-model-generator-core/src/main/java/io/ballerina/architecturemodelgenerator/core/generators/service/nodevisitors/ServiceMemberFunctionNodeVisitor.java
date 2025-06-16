@@ -77,7 +77,7 @@ import static io.ballerina.architecturemodelgenerator.core.generators.GeneratorU
 /**
  * Visitor class for FunctionDefinition node.
  *
- * @since 2201.2.2
+ * @since 1.0.0
  */
 public class ServiceMemberFunctionNodeVisitor extends NodeVisitor {
     private final String serviceId;

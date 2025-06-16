@@ -20,7 +20,7 @@ package io.ballerina.converters.util;
 /**
  * Container for error messages of the JSON converter exception.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public final class ErrorMessages {
 
