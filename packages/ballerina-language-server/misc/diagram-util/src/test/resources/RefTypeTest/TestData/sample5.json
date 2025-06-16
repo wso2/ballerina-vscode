@@ -24,41 +24,15 @@
       },
       {
         "memberType": {
-          "fields": [
-            {
-              "name": "note",
-              "typeName": "string",
-              "optional": false,
-              "defaultable": false,
-              "documentation": "",
-              "isRestType": false,
-              "selected": false
-            },
-            {
-              "hashCode": "625390834",
-              "name": "sampleRecord1",
-              "typeName": "SampleRecord",
-              "optional": false,
-              "defaultable": false,
-              "isRestType": false,
-              "selected": false
-            }
-          ],
-          "hasRestType": false,
           "hashCode": "1441125966",
           "name": "ProgressNote",
           "typeName": "record",
           "optional": false,
-          "typeInfo": {
-            "name": "ProgressNote",
-            "orgName": "ballerinax",
-            "moduleName": "health.ccda.r3",
-            "version": "0.1.0"
-          },
           "defaultable": false,
           "isRestType": false,
           "selected": false
         },
+        "name": "progressNotes",
         "typeName": "array",
         "optional": false,
         "defaultable": false,

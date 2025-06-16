@@ -541,7 +541,16 @@ public class RefType {
                     String hashCode = String.valueOf(
                             (typeInfo.name + typeInfo.orgName + typeInfo.moduleName + typeInfo.version).hashCode());
                     arraySubType.memberType.setHashCode(hashCode);
-                    fields.add(arraySubType);
+
+                    if(arraySubType.memberType instanceof RefRecordType) {
+                        RefType recordSubType = new RefType(arraySubType.memberType.getName(), arraySubType.memberType.getTypeName()
+                        );
+                        recordSubType.setHashCode(hashCode);
+                        RefArrayType arraySubTypeWithRecord = new RefArrayType(recordSubType, name);
+                        fields.add(arraySubTypeWithRecord);
+                    }else{
+                        fields.add(arraySubType);
+                    }
                     RefType depType = new RefRecordType((RefRecordType) (((RefArrayType) subType).memberType), false);
                     dependentTypes.put(hashCode, depType);
                     if (subType.dependentTypes != null) {
