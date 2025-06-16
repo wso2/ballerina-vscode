@@ -1,27 +1,28 @@
 /*
- * Copyright (c) 2021, WSO2 Inc. (http://wso2.com) All Rights Reserved.
+ * Copyright (c) 2025, WSO2 LLC. (http://www.wso2.com)
  *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *  http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
+
 package org.ballerinalang.langserver.completions.providers.context;
 
 import io.ballerina.compiler.api.symbols.Symbol;
 import io.ballerina.compiler.api.symbols.TypeSymbol;
 import io.ballerina.compiler.syntax.tree.InterpolationNode;
+import io.ballerina.compiler.syntax.tree.NaturalExpressionNode;
 import io.ballerina.compiler.syntax.tree.NonTerminalNode;
 import io.ballerina.compiler.syntax.tree.QualifiedNameReferenceNode;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
-import io.ballerina.compiler.syntax.tree.TemplateExpressionNode;
 import org.ballerinalang.annotation.JavaSPIService;
 import org.ballerinalang.langserver.common.utils.SymbolUtil;
 import org.ballerinalang.langserver.commons.BallerinaCompletionContext;
@@ -29,7 +30,6 @@ import org.ballerinalang.langserver.commons.completion.LSCompletionItem;
 import org.ballerinalang.langserver.completions.SymbolCompletionItem;
 import org.ballerinalang.langserver.completions.providers.AbstractCompletionProvider;
 import org.ballerinalang.langserver.completions.providers.context.util.InterpolationUtil;
-import org.ballerinalang.langserver.completions.providers.context.util.RegexpCompletionProvider;
 import org.ballerinalang.langserver.completions.util.QNameRefCompletionUtil;
 import org.ballerinalang.langserver.completions.util.SortingUtil;
 
@@ -38,37 +38,33 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * Completion provider for {@link TemplateExpressionNode}.
+ * Completion provider for {@link NaturalExpressionNode}.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 @JavaSPIService("org.ballerinalang.langserver.commons.completion.spi.BallerinaCompletionProvider")
-public class TemplateExpressionNodeContext extends AbstractCompletionProvider<TemplateExpressionNode> {
+public class NaturalExpressionNodeContext extends AbstractCompletionProvider<NaturalExpressionNode> {
 
-    public TemplateExpressionNodeContext() {
-        super(TemplateExpressionNode.class);
+    public NaturalExpressionNodeContext() {
+        super(NaturalExpressionNode.class);
     }
 
     @Override
-    public List<LSCompletionItem> getCompletions(BallerinaCompletionContext context, TemplateExpressionNode node) {
+    public List<LSCompletionItem> getCompletions(BallerinaCompletionContext context, NaturalExpressionNode node) {
         NonTerminalNode nodeAtCursor = context.getNodeAtCursor();
         List<LSCompletionItem> completionItems = new ArrayList<>();
-
-        if (node.kind() == SyntaxKind.REGEX_TEMPLATE_EXPRESSION) {
-            if (InterpolationUtil.isCursorWithInBackticks(context, node)) {
-                completionItems.addAll(RegexpCompletionProvider.getRegexCompletions(nodeAtCursor, context));
-            }
-        }
 
         Optional<InterpolationNode> interpolationNode = InterpolationUtil.findInterpolationNode(nodeAtCursor, node);
         if (interpolationNode.isEmpty() || !InterpolationUtil.isWithinInterpolation(context, node)) {
             return completionItems;
         }
-        // If the node at cursor is an interpolation, show expression suggestions
+
         if (QNameRefCompletionUtil.onQualifiedNameIdentifier(context, nodeAtCursor)) {
             QualifiedNameReferenceNode qNameRef = (QualifiedNameReferenceNode) nodeAtCursor;
             List<Symbol> moduleContent = QNameRefCompletionUtil.getModuleContent(
-                    context, qNameRef, InterpolationUtil.getFunctionAndVariableFilterPredicate()
+                    context,
+                    qNameRef,
+                    InterpolationUtil.getFunctionAndVariableFilterPredicate()
             );
             completionItems.addAll(this.getCompletionItemList(moduleContent, context));
         } else {
@@ -81,8 +77,16 @@ public class TemplateExpressionNodeContext extends AbstractCompletionProvider<Te
     }
 
     @Override
-    public void sort(BallerinaCompletionContext context, TemplateExpressionNode node,
-                     List<LSCompletionItem> completionItems, Object... interpolationParent) {
+    public boolean onPreValidation(BallerinaCompletionContext context, NaturalExpressionNode node) {
+        return node.textRange().startOffset() <= context.getCursorPositionInTree()
+                && context.getCursorPositionInTree() <= node.textRange().endOffset();
+    }
+
+    @Override
+    public void sort(BallerinaCompletionContext context,
+                     NaturalExpressionNode node,
+                     List<LSCompletionItem> completionItems,
+                     Object... interpolationParent) {
         if (interpolationParent.length == 0 || !(interpolationParent[0] instanceof SyntaxKind)) {
             throw new RuntimeException("Invalid sorting meta data provided");
         }
@@ -98,30 +102,26 @@ public class TemplateExpressionNodeContext extends AbstractCompletionProvider<Te
             } else {
                 Symbol symbol = ((SymbolCompletionItem) lsCItem).getSymbol().get();
                 Optional<TypeSymbol> typeSymbol = SymbolUtil.getTypeDescriptor(symbol);
-                if (typeSymbol.isEmpty()) {
-                    // Added for safety, and should not hit this point
-                    sortText = SortingUtil.genSortText(SortingUtil.toRank(context, lsCItem, 1));
-                } else {
-                    /*
-                    Here the sort text is three-fold.
-                    First we will assign the highest priority (Symbols over the others such as keywords),
-                    then we sort with the resolved type,
-                    Then we again append the sorting among the symbols (ex: functions over variable).
-                     */
-                    sortText = SortingUtil.genSortText(1)
-                            + InterpolationUtil.getSortTextForResolvedType(typeSymbol.get(),
-                            (SyntaxKind) interpolationParent[0])
-                            + SortingUtil.genSortText(SortingUtil.toRank(context, lsCItem));
-                }
+
+                /*
+                Here the sort text is three-fold.
+                First we will assign the highest priority (Symbols over the others such as keywords),
+                then we sort with the resolved type,
+                Then we again append the sorting among the symbols (ex: functions over variable).
+                */
+                sortText = typeSymbol
+                        .map(value -> SortingUtil.genSortText(1)
+                                + InterpolationUtil.getSortTextForResolvedType(value,
+                                (SyntaxKind) interpolationParent[0])
+                                + SortingUtil.genSortText(SortingUtil.toRank(context, lsCItem))
+                        )
+                        .orElseGet(
+                                // Added for safety, and should not hit this point
+                                () -> SortingUtil.genSortText(SortingUtil.toRank(context, lsCItem, 1))
+                        );
             }
 
             lsCItem.getCompletionItem().setSortText(sortText);
         }
-    }
-
-    @Override
-    public boolean onPreValidation(BallerinaCompletionContext context, TemplateExpressionNode node) {
-        return node.textRange().startOffset() <= context.getCursorPositionInTree()
-                && context.getCursorPositionInTree() <= node.textRange().endOffset();
     }
 }
