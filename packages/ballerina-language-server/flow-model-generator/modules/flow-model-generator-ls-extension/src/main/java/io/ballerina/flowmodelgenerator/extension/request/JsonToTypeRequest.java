@@ -28,6 +28,8 @@ package io.ballerina.flowmodelgenerator.extension.request;
  * @param asInline Whether to generate the type as an inline type
  * @param nullAsOptional Whether to treat null values as optional in the generated type
  * @param filePath File path where the type should be generated
+ *
+ * @since 1.0.0
  */
 public record JsonToTypeRequest(String jsonString,
                                 String typeName,

@@ -39,7 +39,7 @@ import java.util.Map;
 /**
  * Test cases for converting JSON to Ballerina types.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class JsonToTypeTest extends AbstractLSTest {
     private static final Type textEditListType = new TypeToken<Map<String, List<TextEdit>>>() {
