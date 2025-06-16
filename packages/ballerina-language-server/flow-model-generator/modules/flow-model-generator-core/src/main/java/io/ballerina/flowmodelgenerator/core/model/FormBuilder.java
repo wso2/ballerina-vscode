@@ -692,7 +692,6 @@ public class FormBuilder<T> extends FacetedBuilder<T> {
                 .value((expr != null && expr.kind() != SyntaxKind.REQUIRED_EXPRESSION) ? expr.toSourceCode() : "")
                 .type(Property.ValueType.EXPRESSION)
                 .optional(true)
-                .advanced(true)
                 .modified(false)
                 .editable(editable);
         addProperty(Property.DEFAULT_VALUE_KEY, expr);
@@ -729,7 +728,6 @@ public class FormBuilder<T> extends FacetedBuilder<T> {
                 .value(concatDocLines(docNode))
                 .type(Property.ValueType.STRING)
                 .optional(true)
-                .advanced(true)
                 .editable(editable)
                 .modified(false);
         addProperty(Property.CONFIG_VAR_DOC_KEY, docNode);
