@@ -64,7 +64,7 @@
               "value": "-1",
               "optional": true,
               "editable": false,
-              "advanced": true,
+              "advanced": false,
               "hidden": false,
               "modified": false
             },
@@ -78,7 +78,7 @@
               "optional": true,
               "editable": true,
               "advanced": false,
-              "hidden": false,
+              "hidden": true,
               "modified": false
             },
             "documentation": {
@@ -90,7 +90,7 @@
               "value": "",
               "optional": true,
               "editable": false,
-              "advanced": true,
+              "advanced": false,
               "hidden": false,
               "modified": false
             }
@@ -155,7 +155,7 @@
               "value": "100",
               "optional": true,
               "editable": false,
-              "advanced": true,
+              "advanced": false,
               "hidden": false,
               "modified": false
             },
@@ -169,7 +169,7 @@
               "optional": true,
               "editable": true,
               "advanced": false,
-              "hidden": false,
+              "hidden": true,
               "modified": false
             },
             "documentation": {
@@ -181,7 +181,7 @@
               "value": "",
               "optional": true,
               "editable": false,
-              "advanced": true,
+              "advanced": false,
               "hidden": false,
               "modified": false
             }
@@ -246,7 +246,7 @@
               "value": "30",
               "optional": true,
               "editable": false,
-              "advanced": true,
+              "advanced": false,
               "hidden": false,
               "modified": false
             },
@@ -260,7 +260,7 @@
               "optional": true,
               "editable": true,
               "advanced": false,
-              "hidden": false,
+              "hidden": true,
               "modified": false
             },
             "documentation": {
@@ -272,7 +272,7 @@
               "value": "",
               "optional": true,
               "editable": false,
-              "advanced": true,
+              "advanced": false,
               "hidden": false,
               "modified": false
             }
@@ -337,7 +337,7 @@
               "value": "100",
               "optional": true,
               "editable": false,
-              "advanced": true,
+              "advanced": false,
               "hidden": false,
               "modified": false
             },
@@ -351,7 +351,7 @@
               "optional": true,
               "editable": true,
               "advanced": false,
-              "hidden": false,
+              "hidden": true,
               "modified": false
             },
             "documentation": {
@@ -363,7 +363,7 @@
               "value": "",
               "optional": true,
               "editable": false,
-              "advanced": true,
+              "advanced": false,
               "hidden": false,
               "modified": false
             }
@@ -428,7 +428,7 @@
               "value": "300",
               "optional": true,
               "editable": false,
-              "advanced": true,
+              "advanced": false,
               "hidden": false,
               "modified": false
             },
@@ -442,7 +442,7 @@
               "optional": true,
               "editable": true,
               "advanced": false,
-              "hidden": false,
+              "hidden": true,
               "modified": false
             },
             "documentation": {
@@ -454,7 +454,7 @@
               "value": "",
               "optional": true,
               "editable": false,
-              "advanced": true,
+              "advanced": false,
               "hidden": false,
               "modified": false
             }
@@ -519,7 +519,7 @@
               "value": "30",
               "optional": true,
               "editable": false,
-              "advanced": true,
+              "advanced": false,
               "hidden": false,
               "modified": false
             },
@@ -533,7 +533,7 @@
               "optional": true,
               "editable": true,
               "advanced": false,
-              "hidden": false,
+              "hidden": true,
               "modified": false
             },
             "documentation": {
@@ -545,7 +545,7 @@
               "value": "",
               "optional": true,
               "editable": false,
-              "advanced": true,
+              "advanced": false,
               "hidden": false,
               "modified": false
             }
@@ -610,7 +610,7 @@
               "value": "300",
               "optional": true,
               "editable": false,
-              "advanced": true,
+              "advanced": false,
               "hidden": false,
               "modified": false
             },
@@ -624,7 +624,7 @@
               "optional": true,
               "editable": true,
               "advanced": false,
-              "hidden": false,
+              "hidden": true,
               "modified": false
             },
             "documentation": {
@@ -636,7 +636,7 @@
               "value": "",
               "optional": true,
               "editable": false,
-              "advanced": true,
+              "advanced": false,
               "hidden": false,
               "modified": false
             }
@@ -701,7 +701,7 @@
               "value": "30",
               "optional": true,
               "editable": false,
-              "advanced": true,
+              "advanced": false,
               "hidden": false,
               "modified": false
             },
@@ -715,7 +715,7 @@
               "optional": true,
               "editable": true,
               "advanced": false,
-              "hidden": false,
+              "hidden": true,
               "modified": false
             },
             "documentation": {
@@ -727,7 +727,7 @@
               "value": "",
               "optional": true,
               "editable": false,
-              "advanced": true,
+              "advanced": false,
               "hidden": false,
               "modified": false
             }
@@ -792,7 +792,7 @@
               "value": "9090",
               "optional": true,
               "editable": false,
-              "advanced": true,
+              "advanced": false,
               "hidden": false,
               "modified": false
             },
@@ -806,7 +806,7 @@
               "optional": true,
               "editable": true,
               "advanced": false,
-              "hidden": false,
+              "hidden": true,
               "modified": false
             },
             "documentation": {
@@ -818,7 +818,7 @@
               "value": "Default HTTP listener port used by the HTTP Default Listener.\nThe default value is 9090.",
               "optional": true,
               "editable": false,
-              "advanced": true,
+              "advanced": false,
               "hidden": false,
               "modified": false
             }
@@ -883,7 +883,7 @@
               "value": "{}",
               "optional": true,
               "editable": false,
-              "advanced": true,
+              "advanced": false,
               "hidden": false,
               "modified": false
             },
@@ -897,7 +897,7 @@
               "optional": true,
               "editable": true,
               "advanced": false,
-              "hidden": false,
+              "hidden": true,
               "modified": false
             },
             "documentation": {
@@ -909,7 +909,7 @@
               "value": "Default HTTP listener configuration used by the HTTP Default Listener.",
               "optional": true,
               "editable": false,
-              "advanced": true,
+              "advanced": false,
               "hidden": false,
               "modified": false
             }
@@ -974,7 +974,7 @@
               "value": "false",
               "optional": true,
               "editable": false,
-              "advanced": true,
+              "advanced": false,
               "hidden": false,
               "modified": false
             },
@@ -988,7 +988,7 @@
               "optional": true,
               "editable": true,
               "advanced": false,
-              "hidden": false,
+              "hidden": true,
               "modified": false
             },
             "documentation": {
@@ -1000,7 +1000,7 @@
               "value": "",
               "optional": true,
               "editable": false,
-              "advanced": true,
+              "advanced": false,
               "hidden": false,
               "modified": false
             }
@@ -1065,7 +1065,7 @@
               "value": "{}",
               "optional": true,
               "editable": false,
-              "advanced": true,
+              "advanced": false,
               "hidden": false,
               "modified": false
             },
@@ -1079,7 +1079,7 @@
               "optional": true,
               "editable": true,
               "advanced": false,
-              "hidden": false,
+              "hidden": true,
               "modified": false
             },
             "documentation": {
@@ -1091,7 +1091,7 @@
               "value": "",
               "optional": true,
               "editable": false,
-              "advanced": true,
+              "advanced": false,
               "hidden": false,
               "modified": false
             }
@@ -1156,7 +1156,7 @@
               "value": "{}",
               "optional": true,
               "editable": false,
-              "advanced": true,
+              "advanced": false,
               "hidden": false,
               "modified": false
             },
@@ -1170,7 +1170,7 @@
               "optional": true,
               "editable": true,
               "advanced": false,
-              "hidden": false,
+              "hidden": true,
               "modified": false
             },
             "documentation": {
@@ -1182,7 +1182,7 @@
               "value": "",
               "optional": true,
               "editable": false,
-              "advanced": true,
+              "advanced": false,
               "hidden": false,
               "modified": false
             }

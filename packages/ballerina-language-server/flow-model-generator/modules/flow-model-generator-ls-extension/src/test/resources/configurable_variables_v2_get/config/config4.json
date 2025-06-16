@@ -61,7 +61,7 @@
               "value": "table [\n    { name: \"John\", salary: 100 },\n    { name: \"Jane\", salary: 200 }\n]",
               "optional": true,
               "editable": true,
-              "advanced": true,
+              "advanced": false,
               "hidden": false,
               "modified": false
             },
@@ -75,7 +75,7 @@
               "optional": true,
               "editable": true,
               "advanced": false,
-              "hidden": false,
+              "hidden": true,
               "modified": false
             },
             "documentation": {
@@ -87,7 +87,7 @@
               "value": "",
               "optional": true,
               "editable": true,
-              "advanced": true,
+              "advanced": false,
               "hidden": false,
               "modified": false
             }
@@ -152,7 +152,7 @@
               "value": "{\"item1\": 11, \"item2\": 12, \"item3\": 45}",
               "optional": true,
               "editable": true,
-              "advanced": true,
+              "advanced": false,
               "hidden": false,
               "modified": false
             },
@@ -166,7 +166,7 @@
               "optional": true,
               "editable": true,
               "advanced": false,
-              "hidden": false,
+              "hidden": true,
               "modified": false
             },
             "documentation": {
@@ -178,7 +178,7 @@
               "value": "",
               "optional": true,
               "editable": true,
-              "advanced": true,
+              "advanced": false,
               "hidden": false,
               "modified": false
             }
@@ -243,7 +243,7 @@
               "value": "RED",
               "optional": true,
               "editable": true,
-              "advanced": true,
+              "advanced": false,
               "hidden": false,
               "modified": false
             },
@@ -257,7 +257,7 @@
               "optional": true,
               "editable": true,
               "advanced": false,
-              "hidden": false,
+              "hidden": true,
               "modified": false
             },
             "documentation": {
@@ -269,7 +269,7 @@
               "value": "",
               "optional": true,
               "editable": true,
-              "advanced": true,
+              "advanced": false,
               "hidden": false,
               "modified": false
             }
@@ -334,7 +334,7 @@
               "value": "1",
               "optional": true,
               "editable": true,
-              "advanced": true,
+              "advanced": false,
               "hidden": false,
               "modified": false
             },
@@ -348,7 +348,7 @@
               "optional": true,
               "editable": true,
               "advanced": false,
-              "hidden": false,
+              "hidden": true,
               "modified": false
             },
             "documentation": {
@@ -360,7 +360,7 @@
               "value": "",
               "optional": true,
               "editable": true,
-              "advanced": true,
+              "advanced": false,
               "hidden": false,
               "modified": false
             }
@@ -425,7 +425,7 @@
               "value": "1.4",
               "optional": true,
               "editable": true,
-              "advanced": true,
+              "advanced": false,
               "hidden": false,
               "modified": false
             },
@@ -439,7 +439,7 @@
               "optional": true,
               "editable": true,
               "advanced": false,
-              "hidden": false,
+              "hidden": true,
               "modified": false
             },
             "documentation": {
@@ -451,7 +451,7 @@
               "value": "",
               "optional": true,
               "editable": true,
-              "advanced": true,
+              "advanced": false,
               "hidden": false,
               "modified": false
             }
@@ -516,7 +516,7 @@
               "value": "[{\"val1\" : 22}, {\"val2\" : 32}]",
               "optional": true,
               "editable": true,
-              "advanced": true,
+              "advanced": false,
               "hidden": false,
               "modified": false
             },
@@ -530,7 +530,7 @@
               "optional": true,
               "editable": true,
               "advanced": false,
-              "hidden": false,
+              "hidden": true,
               "modified": false
             },
             "documentation": {
@@ -542,7 +542,7 @@
               "value": "",
               "optional": true,
               "editable": true,
-              "advanced": true,
+              "advanced": false,
               "hidden": false,
               "modified": false
             }
@@ -607,7 +607,7 @@
               "value": "",
               "optional": true,
               "editable": true,
-              "advanced": true,
+              "advanced": false,
               "hidden": false,
               "modified": false
             },
@@ -621,7 +621,7 @@
               "optional": true,
               "editable": true,
               "advanced": false,
-              "hidden": false,
+              "hidden": true,
               "modified": false
             },
             "documentation": {
@@ -633,7 +633,7 @@
               "value": "",
               "optional": true,
               "editable": true,
-              "advanced": true,
+              "advanced": false,
               "hidden": false,
               "modified": false
             }
@@ -698,7 +698,7 @@
               "value": "{\"emp1\": {name: \"user1\", salary: 1200}}",
               "optional": true,
               "editable": true,
-              "advanced": true,
+              "advanced": false,
               "hidden": false,
               "modified": false
             },
@@ -712,7 +712,7 @@
               "optional": true,
               "editable": true,
               "advanced": false,
-              "hidden": false,
+              "hidden": true,
               "modified": false
             },
             "documentation": {
@@ -724,7 +724,7 @@
               "value": "",
               "optional": true,
               "editable": true,
-              "advanced": true,
+              "advanced": false,
               "hidden": false,
               "modified": false
             }
@@ -789,7 +789,7 @@
               "value": "",
               "optional": true,
               "editable": true,
-              "advanced": true,
+              "advanced": false,
               "hidden": false,
               "modified": false
             },
@@ -803,7 +803,7 @@
               "optional": true,
               "editable": true,
               "advanced": false,
-              "hidden": false,
+              "hidden": true,
               "modified": false
             },
             "documentation": {
@@ -815,7 +815,7 @@
               "value": "",
               "optional": true,
               "editable": true,
-              "advanced": true,
+              "advanced": false,
               "hidden": false,
               "modified": false
             }
@@ -880,7 +880,7 @@
               "value": "",
               "optional": true,
               "editable": true,
-              "advanced": true,
+              "advanced": false,
               "hidden": false,
               "modified": false
             },
@@ -894,7 +894,7 @@
               "optional": true,
               "editable": true,
               "advanced": false,
-              "hidden": false,
+              "hidden": true,
               "modified": false
             },
             "documentation": {
@@ -906,7 +906,7 @@
               "value": "",
               "optional": true,
               "editable": true,
-              "advanced": true,
+              "advanced": false,
               "hidden": false,
               "modified": false
             }

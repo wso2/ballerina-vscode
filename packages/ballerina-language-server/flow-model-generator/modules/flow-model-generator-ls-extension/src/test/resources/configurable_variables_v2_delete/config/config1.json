@@ -63,7 +63,7 @@
           "value": "",
           "optional": true,
           "editable": true,
-          "advanced": true,
+          "advanced": false,
           "hidden": false,
           "modified": true
         },
@@ -89,7 +89,7 @@
           "value": "This is the new documentation",
           "optional": true,
           "editable": true,
-          "advanced": true,
+          "advanced": false,
           "hidden": false,
           "modified": true
         }
