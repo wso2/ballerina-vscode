@@ -21,7 +21,7 @@ package io.ballerina.component;
 /**
  * models if statement nodes.
  *
- * @since 2201.2.3
+ * @since 1.0.0
  */
 public class ReturningIfStatementNode extends IfStatementNode {
 

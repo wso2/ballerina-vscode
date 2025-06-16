@@ -38,7 +38,7 @@ package io.ballerina.modelgenerator.commons;
  * @param listenerKind The kind of the listener
  * @param kind The kind of the service
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public record ServiceDeclaration(Package packageInfo, String displayName,
                                  int optionalTypeDescriptor, String typeDescriptorLabel,

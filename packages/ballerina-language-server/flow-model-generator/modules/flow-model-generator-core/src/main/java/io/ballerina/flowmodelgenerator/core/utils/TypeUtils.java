@@ -36,7 +36,7 @@ import java.util.Set;
 /**
  * Utility class for types.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class TypeUtils {
     private static final Set<TypeDescKind> BUILT_IN_TYPE_KINDS = Set.of(

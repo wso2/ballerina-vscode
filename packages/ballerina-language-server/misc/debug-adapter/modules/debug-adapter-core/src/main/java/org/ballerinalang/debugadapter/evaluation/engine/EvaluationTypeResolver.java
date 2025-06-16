@@ -62,7 +62,7 @@ import static org.ballerinalang.debugadapter.utils.PackageUtils.INIT_TYPE_INSTAN
  * Ballerina type resolver implementation for resolving ballerina runtime types using type descriptors.
  *
  * @param <T> Type descriptor type (e.g. syntax tree node, string)
- * @since 2.0.0
+ * @since 1.0.0
  */
 public abstract class EvaluationTypeResolver<T> {
 

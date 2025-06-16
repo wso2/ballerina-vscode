@@ -41,7 +41,7 @@ import java.util.stream.Collectors;
 /**
  * Generates LS API specifications for JSON-RPC methods.
  *
- * @since 2201.12.0
+ * @since 1.0.0
  */
 public class ApiSpecGenerator {
 

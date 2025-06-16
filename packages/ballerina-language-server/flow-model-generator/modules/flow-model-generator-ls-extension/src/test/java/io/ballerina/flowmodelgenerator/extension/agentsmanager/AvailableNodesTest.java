@@ -33,7 +33,7 @@ import java.nio.file.Path;
 /**
  * Test for the getting available nodes service.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class AvailableNodesTest extends AbstractLSTest {
 

@@ -28,7 +28,7 @@ import java.util.List;
 /**
  * Expression Context tests.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class ClassDefContextTest extends CompletionTest {
 

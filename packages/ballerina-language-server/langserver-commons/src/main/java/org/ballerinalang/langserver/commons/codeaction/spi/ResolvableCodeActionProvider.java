@@ -22,7 +22,7 @@ import org.eclipse.lsp4j.CodeAction;
 /**
  * Represents the SPI interface for the Ballerina Resolvable Code Action Provider.
  *
- * @since 2201.2.1
+ * @since 1.0.0
  */
 public interface ResolvableCodeActionProvider extends LSCodeActionProvider {
 

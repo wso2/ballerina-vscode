@@ -41,7 +41,7 @@ import static io.ballerina.compiler.api.symbols.SymbolKind.WORKER;
 /**
  * Completion provider for {@link WaitFieldsListNode} context.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 @JavaSPIService("org.ballerinalang.langserver.commons.completion.spi.BallerinaCompletionProvider")
 public class WaitFieldsListNodeContext extends AbstractCompletionProvider<WaitFieldsListNode> {

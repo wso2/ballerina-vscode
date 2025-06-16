@@ -47,7 +47,7 @@ import static io.ballerina.PerformanceAnalyzerNodeVisitor.ENDPOINTS_KEY;
 /**
  * The extended service for the performance analyzer.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 @JavaSPIService("org.ballerinalang.langserver.commons.service.spi.ExtendedLanguageServerService")
 @JsonSegment("performanceAnalyzer")

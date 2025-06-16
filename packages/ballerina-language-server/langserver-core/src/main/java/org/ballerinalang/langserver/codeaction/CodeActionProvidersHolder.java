@@ -34,7 +34,7 @@ import java.util.ServiceLoader;
 /**
  * Represents the Code Action provider factory.
  *
- * @since 1.1.1
+ * @since 1.0.0
  */
 public class CodeActionProvidersHolder {
     private static final Map<SyntaxKind, List<RangeBasedCodeActionProvider>> rangeBasedProviders = new HashMap<>();

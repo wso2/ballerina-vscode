@@ -28,7 +28,7 @@ import java.util.List;
  * @param <I> Input parameter type
  * @param <O> output parameter type
  * @param <C> execution context parameter type
- * @since 2.0.0
+ * @since 1.0.0
  */
 public interface LanguageExtension<I, O, C extends DocumentServiceContext> {
 

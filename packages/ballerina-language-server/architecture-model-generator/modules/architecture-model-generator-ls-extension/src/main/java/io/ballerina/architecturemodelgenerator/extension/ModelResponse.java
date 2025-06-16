@@ -25,7 +25,7 @@ import java.util.List;
 /**
  * Response class for Architecture Model Responses.
  *
- * @since 2201.6.0
+ * @since 1.0.0
  */
 public abstract class ModelResponse {
 

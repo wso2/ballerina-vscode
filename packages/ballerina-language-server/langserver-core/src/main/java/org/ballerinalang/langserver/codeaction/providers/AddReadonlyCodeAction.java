@@ -49,7 +49,7 @@ import java.util.Set;
 /**
  * Code action to add readonly to the type.
  *
- * @since 2201.10.0
+ * @since 1.0.0
  */
 @JavaSPIService("org.ballerinalang.langserver.commons.codeaction.spi.LSCodeActionProvider")
 public class AddReadonlyCodeAction implements DiagnosticBasedCodeActionProvider {

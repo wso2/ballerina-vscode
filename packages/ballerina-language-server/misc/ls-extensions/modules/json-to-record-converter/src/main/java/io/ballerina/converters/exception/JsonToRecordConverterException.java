@@ -20,7 +20,7 @@ package io.ballerina.converters.exception;
 /**
  * JSON converter exception.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class JsonToRecordConverterException extends Exception {
 

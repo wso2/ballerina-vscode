@@ -38,6 +38,7 @@ import java.util.Set;
  * @param valueType           acceptable value types of the property
  * @param valueTypeConstraint constraint of the value type
  * @param value               value of the property
+ * @param oldValue            old value of the property (before modification)
  * @param placeholder         default value of the property
  * @param optional            whether the property can be left empty
  * @param editable            whether the property is not readonly
@@ -49,9 +50,9 @@ import java.util.Set;
  * @param typeMembers         member types of the type constrain
  * @param advancedValue       advanced value of the property
  * @param imports             import statements of the dependent types in the format prefix -> moduleId
- * @since 2.0.0
+ * @since 1.0.0
  */
-public record Property(Metadata metadata, String valueType, Object valueTypeConstraint, Object value,
+public record Property(Metadata metadata, String valueType, Object valueTypeConstraint, Object value, Object oldValue,
                        String placeholder, boolean optional, boolean editable, boolean advanced, boolean hidden,
                        Boolean modified, Diagnostics diagnostics, PropertyCodedata codedata,
                        List<PropertyTypeMemberInfo> typeMembers, Object advancedValue, Map<String, String> imports) {
@@ -267,6 +268,7 @@ public record Property(Metadata metadata, String valueType, Object valueTypeCons
 
         private String type;
         private Object value;
+        private Object oldValue;
         private String placeholder;
         private boolean optional;
         private boolean editable;
@@ -302,6 +304,11 @@ public record Property(Metadata metadata, String valueType, Object valueTypeCons
 
         public Builder<T> value(Object value) {
             this.value = value;
+            return this;
+        }
+
+        public Builder<T> oldValue(Object oldValue) {
+            this.oldValue = oldValue;
             return this;
         }
 
@@ -360,13 +367,14 @@ public record Property(Metadata metadata, String valueType, Object valueTypeCons
 
         public Builder<T> typeMembers(List<ParameterMemberTypeData> memberTypeData) {
             this.typeMembers = memberTypeData.stream().map(memberType -> new PropertyTypeMemberInfo(memberType.type(),
-                    memberType.packageInfo(), memberType.kind(), false)).toList();
+                    memberType.packageInfo(), memberType.packageName(), memberType.kind(), false)).toList();
             return this;
         }
 
         public Builder<T> typeMembers(List<ParameterMemberTypeData> memberTypeData, String selectedType) {
             this.typeMembers = memberTypeData.stream().map(memberType -> new PropertyTypeMemberInfo(memberType.type(),
-                    memberType.packageInfo(), memberType.kind(), memberType.type().equals(selectedType))).toList();
+                    memberType.packageInfo(), memberType.packageName(), memberType.kind(),
+                    memberType.type().equals(selectedType))).toList();
             return this;
         }
 
@@ -417,7 +425,7 @@ public record Property(Metadata metadata, String valueType, Object valueTypeCons
 
         public Property build() {
             Property property = new Property(metadataBuilder == null ? null : metadataBuilder.build(), type,
-                    typeConstraint, value, placeholder, optional, editable, advanced, hidden, modified,
+                    typeConstraint, value, oldValue, placeholder, optional, editable, advanced, hidden, modified,
                     diagnosticsBuilder == null ? null : diagnosticsBuilder.build(),
                     codedataBuilder == null ? null : codedataBuilder.build(), typeMembers, advancedValue,
                     imports == null ? null : imports);
@@ -425,6 +433,7 @@ public record Property(Metadata metadata, String valueType, Object valueTypeCons
             this.type = null;
             this.typeConstraint = null;
             this.value = null;
+            this.oldValue = null;
             this.placeholder = null;
             this.optional = false;
             this.editable = false;

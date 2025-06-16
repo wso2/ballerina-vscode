@@ -25,7 +25,7 @@ import org.eclipse.lsp4j.jsonrpc.CancelChecker;
 /**
  * Represents folding range context implementation.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class FoldingRangeContextImpl extends AbstractDocumentServiceContext implements FoldingRangeContext {
 

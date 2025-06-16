@@ -28,7 +28,7 @@ import java.nio.file.Path;
 /**
  * Base class for shell service tests.
  *
- * @since 2201.1.1
+ * @since 1.0.0
  */
 
 public abstract class AbstractShellServiceTest {

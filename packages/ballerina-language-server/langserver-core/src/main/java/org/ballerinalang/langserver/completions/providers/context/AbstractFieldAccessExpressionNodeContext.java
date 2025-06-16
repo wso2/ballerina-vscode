@@ -30,7 +30,7 @@ import java.util.Optional;
  * Abstract implementation of the field access and optional field access expression completion providers.
  *
  * @param <T> Field access node type
- * @since 2.0.0
+ * @since 1.0.0
  */
 public abstract class AbstractFieldAccessExpressionNodeContext<T extends Node> extends FieldAccessContext<T> {
 

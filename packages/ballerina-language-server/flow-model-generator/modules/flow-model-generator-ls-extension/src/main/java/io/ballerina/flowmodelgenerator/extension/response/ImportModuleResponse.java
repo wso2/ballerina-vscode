@@ -21,7 +21,7 @@ package io.ballerina.flowmodelgenerator.extension.response;
 /**
  * An abstract response to return the import module statement details.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class ImportModuleResponse extends AbstractFlowModelResponse {
     private String prefix;

@@ -38,7 +38,7 @@ import java.util.Set;
  * @param repeatable the repeatable pattern of the branch
  * @param properties properties of the branch
  * @param children   children of the branch
- * @since 2.0.0
+ * @since 1.0.0
  */
 public record Branch(String label, BranchKind kind, Codedata codedata, Repeatable repeatable,
                      Map<String, Property> properties, List<FlowNode> children) {
@@ -113,7 +113,7 @@ public record Branch(String label, BranchKind kind, Codedata codedata, Repeatabl
     /**
      * Represents a builder for the branch.
      *
-     * @since 2.0.0
+     * @since 1.0.0
      */
     public static class Builder {
 

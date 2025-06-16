@@ -44,7 +44,7 @@ import java.util.Optional;
 /**
  * Tests for the flow model source generator service.
  *
- * @since 1.4.0
+ * @since 1.0.0
  */
 public class DeleteNodeTest extends AbstractLSTest {
 

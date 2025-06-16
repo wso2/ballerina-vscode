@@ -21,7 +21,7 @@ import com.sun.jdi.ThreadReference;
 /**
  * Proxy definition for JDI thread reference.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public interface ThreadReferenceProxy extends ObjectReferenceProxy {
 

@@ -176,24 +176,29 @@
       }
     ],
     "output": {
-      "fields": [
-        {
-          "id": "phoneNumbers.code",
-          "variableName": "code",
-          "typeName": "string",
-          "kind": "string"
-        },
-        {
-          "id": "phoneNumbers.number",
-          "variableName": "number",
-          "typeName": "string",
-          "kind": "string"
-        }
-      ],
+      "member": {
+        "fields": [
+          {
+            "id": "phoneNumbers.code",
+            "variableName": "code",
+            "typeName": "string",
+            "kind": "string"
+          },
+          {
+            "id": "phoneNumbers.number",
+            "variableName": "number",
+            "typeName": "string",
+            "kind": "string"
+          }
+        ],
+        "id": "phoneNumbers",
+        "typeName": "SecondaryPhonesX",
+        "kind": "record"
+      },
       "id": "phoneNumbers",
       "variableName": "phoneNumbers",
-      "typeName": "SecondaryPhonesX",
-      "kind": "record"
+      "typeName": "SecondaryPhonesX[]",
+      "kind": "array"
     },
     "mappings": [
       {
@@ -203,7 +208,8 @@
         ],
         "expression": "secondaryPhonesItem.code",
         "diagnostics": [],
-        "elements": []
+        "elements": [],
+        "isQueryExpression": false
       },
       {
         "output": "phoneNumbers.number",
@@ -212,7 +218,8 @@
         ],
         "expression": "secondaryPhonesItem.number",
         "diagnostics": [],
-        "elements": []
+        "elements": [],
+        "isQueryExpression": false
       }
     ],
     "query": {
@@ -221,9 +228,9 @@
         "u.info.secondaryPhones"
       ],
       "fromClause": {
-        "typeDesc": "SecondaryPhones",
-        "variableName": "secondaryPhonesItem",
-        "collection": "u.info.secondaryPhones"
+        "type": "SecondaryPhones",
+        "name": "secondaryPhonesItem",
+        "expression": "u.info.secondaryPhones"
       },
       "intermediateClauses": [
         {

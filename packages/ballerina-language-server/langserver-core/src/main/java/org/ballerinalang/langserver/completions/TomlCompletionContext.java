@@ -24,7 +24,7 @@ import java.util.List;
 /**
  * Represents the Completion operation context for toml.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 @Deprecated
 public interface TomlCompletionContext extends CompletionContext {

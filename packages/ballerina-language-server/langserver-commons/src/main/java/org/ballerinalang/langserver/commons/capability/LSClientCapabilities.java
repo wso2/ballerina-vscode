@@ -25,7 +25,7 @@ import java.util.Map;
 /**
  * This class represents the resolved capabilities for the language server.
  *
- * @since 1.2.0
+ * @since 1.0.0
  */
 public interface LSClientCapabilities {
 

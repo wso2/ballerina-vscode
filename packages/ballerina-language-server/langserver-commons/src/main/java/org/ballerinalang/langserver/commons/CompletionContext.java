@@ -22,7 +22,7 @@ import org.eclipse.lsp4j.CompletionCapabilities;
 /**
  * Represents the Completion operation context.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public interface CompletionContext extends PositionedOperationContext {
     /**

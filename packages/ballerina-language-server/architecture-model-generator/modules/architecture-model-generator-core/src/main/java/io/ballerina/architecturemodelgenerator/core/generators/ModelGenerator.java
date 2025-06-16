@@ -28,7 +28,7 @@ import java.nio.file.Path;
 /**
  * Model Generator Abstract Class.
  *
- * @since 2201.4.0
+ * @since 1.0.0
  */
 public abstract class ModelGenerator {
     private final PackageCompilation packageCompilation;

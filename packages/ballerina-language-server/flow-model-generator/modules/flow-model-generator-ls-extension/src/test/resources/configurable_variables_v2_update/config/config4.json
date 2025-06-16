@@ -38,7 +38,8 @@
           "optional": false,
           "editable": true,
           "advanced": false,
-          "hidden": false
+          "hidden": false,
+          "modified": false
         },
         "type": {
           "metadata": {
@@ -52,6 +53,7 @@
           "editable": true,
           "advanced": false,
           "hidden": false,
+          "modified": false,
           "codedata": {}
         },
         "defaultValue": {

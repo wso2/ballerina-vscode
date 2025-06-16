@@ -20,7 +20,7 @@ package org.ballerinalang.langserver.commons.toml.visitor;
 /**
  * Represents Toml Node in {@link TomlSchemaVisitor}.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public interface TomlNode {
 

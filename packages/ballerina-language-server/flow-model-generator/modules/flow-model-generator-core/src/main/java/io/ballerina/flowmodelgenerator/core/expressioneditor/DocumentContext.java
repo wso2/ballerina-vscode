@@ -40,7 +40,7 @@ import java.util.Optional;
 /**
  * Encapsulates document and import related context with lazy loading capabilities.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class DocumentContext {
 

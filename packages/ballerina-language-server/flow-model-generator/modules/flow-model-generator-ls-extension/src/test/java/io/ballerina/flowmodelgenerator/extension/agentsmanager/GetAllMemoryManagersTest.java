@@ -32,7 +32,7 @@ import java.nio.file.Path;
 /**
  * Tests for get all memory managers.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class GetAllMemoryManagersTest extends AbstractLSTest {
 

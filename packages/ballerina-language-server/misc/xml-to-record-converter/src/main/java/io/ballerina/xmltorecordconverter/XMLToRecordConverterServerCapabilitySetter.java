@@ -26,7 +26,7 @@ import java.util.Optional;
 /**
  * Capability setter for the {@link XMLToRecordConverterService}.
  *
- * @since 2201.7.2
+ * @since 1.0.0
  */
 @JavaSPIService("org.ballerinalang.langserver.commons.registration.BallerinaServerCapabilitySetter")
 public class XMLToRecordConverterServerCapabilitySetter extends

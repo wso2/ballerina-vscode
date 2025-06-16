@@ -25,7 +25,7 @@ import org.eclipse.lsp4j.jsonrpc.CancelChecker;
 /**
  * Represents semantic tokens context implementation.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class SemanticTokensContextImpl extends AbstractDocumentServiceContext implements SemanticTokensContext {
 

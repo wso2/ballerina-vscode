@@ -32,7 +32,7 @@ import java.util.List;
 /**
  * Command to generate API specifications for the active LS APIs.
  *
- * @since 2201.12.0
+ * @since 1.0.0
  */
 @CommandLine.Command(name = "language-server-spec", description = "Generate specifications for the LS APIs")
 public class LangServerSpecCmd implements BLauncherCmd {

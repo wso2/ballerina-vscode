@@ -18,7 +18,7 @@ package org.ballerinalang.langserver.commons.capability;
 /**
  * Represents Extended LSP capabilities.
  *
- * @since 1.2.0
+ * @since 1.0.0
  */
 public interface ExperimentalClientCapabilities {
 

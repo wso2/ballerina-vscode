@@ -44,7 +44,7 @@ import java.util.stream.Collectors;
 /**
  * Carries a set of utilities used for operations on names of variables, types, parameters, visible symbols.
  *
- * @since 2201.1.1
+ * @since 1.0.0
  */
 public final class NameUtil {
 

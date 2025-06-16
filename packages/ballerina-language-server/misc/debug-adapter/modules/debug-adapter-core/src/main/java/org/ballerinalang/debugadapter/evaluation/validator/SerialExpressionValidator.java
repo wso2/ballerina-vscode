@@ -39,7 +39,7 @@ import static org.ballerinalang.debugadapter.evaluation.EvaluationException.crea
  * Please note that this is a trial-based implementation and hence the user input might go though several parsing
  * cycles.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class SerialExpressionValidator extends Validator {
 

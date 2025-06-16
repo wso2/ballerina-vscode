@@ -31,7 +31,7 @@ import java.nio.file.Path;
 /**
  * Test cases for the function definition request.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class FunctionDefinitionTest extends AbstractLSTest {
 

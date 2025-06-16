@@ -30,7 +30,7 @@ import java.util.concurrent.locks.ReentrantLock;
  * Singleton cache for storing project artifacts. This class provides thread-safe access to artifact IDs mapped by
  * project ID and file URI.
  *
- * @since 2.3.0
+ * @since 1.0.0
  */
 public class ArtifactsCache {
 

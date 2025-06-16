@@ -38,7 +38,7 @@ import java.util.Map;
 /**
  * Tests for the flow model source generator service.
  *
- * @since 1.4.0
+ * @since 1.0.0
  */
 public class DeleteComponentTest extends AbstractLSTest {
 

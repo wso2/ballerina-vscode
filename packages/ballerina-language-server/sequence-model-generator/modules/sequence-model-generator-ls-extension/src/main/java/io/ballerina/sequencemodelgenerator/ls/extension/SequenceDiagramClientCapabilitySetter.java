@@ -24,7 +24,7 @@ import org.ballerinalang.langserver.commons.registration.BallerinaClientCapabili
 /**
  * Client capability setter for the sequence diagram model generator service.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 @JavaSPIService("org.ballerinalang.langserver.commons.registration.BallerinaClientCapabilitySetter")
 public class SequenceDiagramClientCapabilitySetter extends

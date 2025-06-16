@@ -34,7 +34,7 @@ import java.util.function.Predicate;
 /**
  * Enclosed node finder.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class EnclosedNodeFinder {
 

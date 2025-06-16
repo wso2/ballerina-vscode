@@ -80,7 +80,7 @@ import static org.awaitility.Awaitility.await;
 /**
  * Contains a set of utility methods to manage projects.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class TestWorkspaceManager {
 

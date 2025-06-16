@@ -71,7 +71,7 @@ import java.util.concurrent.CompletableFuture;
 /**
  * Implementation of Ballerina Document extension for Language Server.
  *
- * @since 0.981.2
+ * @since 1.0.0
  */
 @JavaSPIService("org.ballerinalang.langserver.commons.service.spi.ExtendedLanguageServerService")
 @JsonSegment("ballerinaDocument")

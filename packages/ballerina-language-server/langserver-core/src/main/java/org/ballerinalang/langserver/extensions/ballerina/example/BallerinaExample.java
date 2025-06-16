@@ -18,7 +18,7 @@ package org.ballerinalang.langserver.extensions.ballerina.example;
 /**
  * Represents an example.
  *
- * @since 0.981.2
+ * @since 1.0.0
  */
 public class BallerinaExample {
 

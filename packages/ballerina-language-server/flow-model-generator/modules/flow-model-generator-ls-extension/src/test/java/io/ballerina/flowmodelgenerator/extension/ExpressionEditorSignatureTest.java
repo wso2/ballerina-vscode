@@ -34,7 +34,7 @@ import java.nio.file.Path;
 /**
  * Tests for the expression editor signature help service.
  *
- * @since 1.4.0
+ * @since 1.0.0
  */
 public class ExpressionEditorSignatureTest extends AbstractLSTest {
 

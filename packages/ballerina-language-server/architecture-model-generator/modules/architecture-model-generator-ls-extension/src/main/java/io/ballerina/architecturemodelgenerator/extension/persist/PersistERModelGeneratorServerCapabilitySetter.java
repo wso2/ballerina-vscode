@@ -27,7 +27,7 @@ import java.util.Optional;
 /**
  * Capability setter for the {@link PersistERModelGeneratorService}.
  *
- * @since 2201.6.0
+ * @since 1.0.0
  */
 @JavaSPIService("org.ballerinalang.langserver.commons.registration.BallerinaServerCapabilitySetter")
 public class PersistERModelGeneratorServerCapabilitySetter extends

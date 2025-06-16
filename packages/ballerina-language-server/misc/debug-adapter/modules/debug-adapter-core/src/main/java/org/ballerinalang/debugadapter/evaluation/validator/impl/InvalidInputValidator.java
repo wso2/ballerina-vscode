@@ -30,7 +30,7 @@ import static org.ballerinalang.debugadapter.evaluation.validator.ValidatorExcep
 /**
  * Validator implementation to validate invalid ballerina sources (i.e. empty input, comments, documentation, etc.).
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class InvalidInputValidator extends Validator {
 

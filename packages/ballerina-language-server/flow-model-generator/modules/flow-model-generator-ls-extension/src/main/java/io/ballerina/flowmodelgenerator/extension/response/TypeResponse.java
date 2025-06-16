@@ -25,7 +25,7 @@ import com.google.gson.JsonObject;
 /**
  * Represents the response for a type.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class TypeResponse extends AbstractFlowModelResponse {
     private JsonElement type = new JsonObject();

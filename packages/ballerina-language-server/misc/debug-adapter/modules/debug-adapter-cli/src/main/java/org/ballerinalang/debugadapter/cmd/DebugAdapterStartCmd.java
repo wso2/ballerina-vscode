@@ -27,7 +27,7 @@ import java.util.List;
  * Class to implement `start-debugger-adapter` command for Ballerina.
  * Ex: {@code bal start-debugger-adapter [--help|-h] <debugAdapterPort>}
  *
- * @since 1.1.0
+ * @since 1.0.0
  */
 @CommandLine.Command(name = "start-debugger-adapter", description = "start Ballerina Debug adapter")
 public class DebugAdapterStartCmd implements BLauncherCmd {

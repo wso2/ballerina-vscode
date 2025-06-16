@@ -32,7 +32,7 @@ import java.nio.file.Path;
 /**
  * Test cases for the flow model getFlowDesignModel API.
  *
- * @since 1.4.0
+ * @since 1.0.0
  */
 public class ModuleNodesTest extends AbstractLSTest {
 

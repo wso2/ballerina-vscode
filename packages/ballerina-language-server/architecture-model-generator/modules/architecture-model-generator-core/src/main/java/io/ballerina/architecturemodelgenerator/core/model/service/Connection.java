@@ -27,7 +27,7 @@ import java.util.List;
 /**
  * Represent the dependency of another service.
  *
- * @since 2201.4.0
+ * @since 1.0.0
  */
 public class Connection extends ModelElement {
     private final String id;

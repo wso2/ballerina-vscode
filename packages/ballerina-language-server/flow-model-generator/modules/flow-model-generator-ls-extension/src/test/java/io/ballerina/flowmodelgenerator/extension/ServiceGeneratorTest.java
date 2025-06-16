@@ -40,7 +40,7 @@ import java.util.Map;
 /**
  * Test cases for the OpenAPI service generation.
  *
- * @since 1.4.0
+ * @since 1.0.0
  */
 public class ServiceGeneratorTest extends AbstractLSTest {
 
@@ -148,7 +148,7 @@ public class ServiceGeneratorTest extends AbstractLSTest {
      * @param textEdits    line range of service declaration
      * @param name         Service type name
      * @param listeners    Listener names
-     * @since 1.4.0
+     * @since 1.0.0
      */
     private record TestConfig(String contractFile, Map<String, List<TextEdit>> textEdits, String name,
                               List<String> listeners) {

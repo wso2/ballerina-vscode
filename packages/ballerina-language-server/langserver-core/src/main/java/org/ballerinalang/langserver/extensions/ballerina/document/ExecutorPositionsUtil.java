@@ -44,7 +44,7 @@ import java.util.Optional;
 /**
  * Executor positions evaluation utilities.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public final class ExecutorPositionsUtil {
 

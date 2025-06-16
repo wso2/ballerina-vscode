@@ -39,7 +39,7 @@ import java.util.Map;
  * @param refs          Type references associated with the return type of the function.
  * @param properties    Properties of the function.
  * @param imports       Imports of the member.
- * @since 2.0.0
+ * @since 1.0.0
  */
 public record Function(
         String accessor,

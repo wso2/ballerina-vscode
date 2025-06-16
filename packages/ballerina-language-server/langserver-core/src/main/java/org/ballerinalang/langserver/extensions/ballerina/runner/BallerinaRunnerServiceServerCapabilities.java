@@ -22,7 +22,7 @@ import org.ballerinalang.langserver.commons.registration.BallerinaServerCapabili
 /**
  * Server capabilities for the ballerina runner service.
  *
- * @since 2201.11.0
+ * @since 1.0.0
  */
 public class BallerinaRunnerServiceServerCapabilities extends BallerinaServerCapability {
 

@@ -27,7 +27,7 @@ import java.util.List;
 /**
  * Represents the language server workspace service context.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public interface WorkspaceServiceContext {
 

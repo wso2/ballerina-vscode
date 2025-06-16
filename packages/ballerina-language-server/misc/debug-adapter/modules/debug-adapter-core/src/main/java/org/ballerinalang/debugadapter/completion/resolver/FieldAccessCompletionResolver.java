@@ -73,7 +73,7 @@ import java.util.function.Predicate;
  * Symbol resolver for the field access expressions.
  * This visitor will go through the nodes and capture the respective types of the particular node.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class FieldAccessCompletionResolver extends NodeTransformer<Optional<TypeSymbol>> {
 

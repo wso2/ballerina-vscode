@@ -25,7 +25,7 @@ import io.ballerina.tools.text.LinePosition;
  *
  * @param filePath file path of the source file
  * @param position position of the node to be added
- * @since 1.4.0
+ * @since 1.0.0
  */
 public record FlowModelAvailableNodesRequest(String filePath, LinePosition position) {
 

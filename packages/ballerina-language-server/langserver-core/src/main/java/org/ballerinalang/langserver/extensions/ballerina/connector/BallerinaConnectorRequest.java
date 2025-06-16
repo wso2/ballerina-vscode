@@ -21,7 +21,7 @@ package org.ballerinalang.langserver.extensions.ballerina.connector;
 /**
  * Request to get connector AST.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class BallerinaConnectorRequest {
 

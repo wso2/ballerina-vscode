@@ -21,7 +21,7 @@ package io.ballerina.graphqlmodelgenerator.core.model;
 /**
  * Represents the Enum Field type of Enum Component.
  *
- * @since 2201.5.0
+ * @since 1.0.0
  */
 public class EnumField {
     private final String name;

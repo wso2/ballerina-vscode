@@ -26,7 +26,7 @@ import java.util.List;
 /**
  * Represents the language server abstract event publisher.
  *
- * @since 2201.1.1
+ * @since 1.0.0
  */
 public abstract class AbstractEventPublisher implements EventPublisher {
 

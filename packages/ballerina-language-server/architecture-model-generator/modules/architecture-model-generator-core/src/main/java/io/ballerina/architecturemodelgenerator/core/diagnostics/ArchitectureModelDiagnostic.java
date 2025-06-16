@@ -31,7 +31,7 @@ import java.util.List;
 /**
  * Diagnostic class for the Architecture Model Generator Service.
  *
- * @since 2201.2.2
+ * @since 1.0.0
  */
 public class ArchitectureModelDiagnostic extends Diagnostic {
 

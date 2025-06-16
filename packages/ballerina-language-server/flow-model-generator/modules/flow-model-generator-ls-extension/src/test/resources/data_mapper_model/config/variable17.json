@@ -174,7 +174,8 @@
         "inputs": [],
         "expression": "1234",
         "diagnostics": [],
-        "elements": []
+        "elements": [],
+        "isQueryExpression": false
       },
       {
         "output": "student.credentials",
@@ -191,7 +192,8 @@
                 ],
                 "expression": "userInfo[0].username",
                 "diagnostics": [],
-                "elements": []
+                "elements": [],
+                "isQueryExpression": false
               },
               {
                 "output": "student.credentials.0.password",
@@ -200,7 +202,8 @@
                 ],
                 "expression": "userInfo[1].password",
                 "diagnostics": [],
-                "elements": []
+                "elements": [],
+                "isQueryExpression": false
               }
             ]
           }
@@ -211,7 +214,8 @@
         "inputs": [],
         "expression": "0",
         "diagnostics": [],
-        "elements": []
+        "elements": [],
+        "isQueryExpression": false
       }
     ]
   }

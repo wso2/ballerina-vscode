@@ -45,7 +45,7 @@ import java.util.Set;
 /**
  * Code action to clone the value or clone it as a readonly value.
  *
- * @since 2201.10.0
+ * @since 1.0.0
  */
 @JavaSPIService("org.ballerinalang.langserver.commons.codeaction.spi.LSCodeActionProvider")
 public class CloneValueCodeAction implements DiagnosticBasedCodeActionProvider {

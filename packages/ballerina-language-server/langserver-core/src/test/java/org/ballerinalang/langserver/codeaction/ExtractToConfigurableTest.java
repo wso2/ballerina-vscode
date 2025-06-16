@@ -28,7 +28,7 @@ import java.io.IOException;
 /**
  * Test cases for {@link org.ballerinalang.langserver.codeaction.providers.ExtractToConfigurableCodeAction}.
  *
- * @since 2201.10.0
+ * @since 1.0.0
  */
 public class ExtractToConfigurableTest extends AbstractCodeActionTest {
 

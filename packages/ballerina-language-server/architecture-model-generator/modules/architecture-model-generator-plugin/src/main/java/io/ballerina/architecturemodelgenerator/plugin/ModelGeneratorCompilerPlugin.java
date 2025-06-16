@@ -22,7 +22,7 @@ import io.ballerina.projects.plugins.CompilerPluginContext;
 /**
  * Compiler Plugin to generate Component Models.
  *
- * @since 2201.4.0
+ * @since 1.0.0
  */
 public class ModelGeneratorCompilerPlugin extends CompilerPlugin {
     @Override

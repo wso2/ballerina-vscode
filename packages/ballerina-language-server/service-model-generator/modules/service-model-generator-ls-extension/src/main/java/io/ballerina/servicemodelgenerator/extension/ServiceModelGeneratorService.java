@@ -156,7 +156,7 @@ import static io.ballerina.servicemodelgenerator.extension.util.Utils.populateRe
 /**
  * Represents the extended language server service for the trigger model generator service.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 @JavaSPIService("org.ballerinalang.langserver.commons.service.spi.ExtendedLanguageServerService")
 @JsonSegment("serviceDesign")

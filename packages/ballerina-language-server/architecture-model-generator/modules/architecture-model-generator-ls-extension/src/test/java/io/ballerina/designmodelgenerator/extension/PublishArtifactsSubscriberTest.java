@@ -50,7 +50,7 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * Test cases for publishing artifacts.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class PublishArtifactsSubscriberTest extends AbstractLSTest {
 

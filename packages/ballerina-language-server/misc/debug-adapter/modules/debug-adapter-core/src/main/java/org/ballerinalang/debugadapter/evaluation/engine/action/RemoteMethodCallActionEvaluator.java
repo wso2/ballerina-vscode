@@ -48,7 +48,7 @@ import static org.ballerinalang.debugadapter.evaluation.EvaluationExceptionKind.
 /**
  * Evaluator implementation for remote method call invocation actions.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class RemoteMethodCallActionEvaluator extends MethodCallExpressionEvaluator {
 

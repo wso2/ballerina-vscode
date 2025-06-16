@@ -41,7 +41,7 @@ import java.util.Map;
 /**
  * Test the watched file changes.
  * 
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class TestDidChangeWatchedFiles {
     protected Endpoint serviceEndpoint;

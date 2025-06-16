@@ -114,7 +114,7 @@ import static io.ballerina.runtime.api.constants.RuntimeConstants.MODULE_INIT_CL
 /**
  * Contains a set of utility methods to manage projects.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class BallerinaWorkspaceManager implements WorkspaceManager {
 

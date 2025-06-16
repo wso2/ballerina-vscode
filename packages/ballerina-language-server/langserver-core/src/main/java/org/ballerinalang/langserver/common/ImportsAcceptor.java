@@ -39,7 +39,7 @@ import java.util.stream.Collectors;
 /**
  * This class provides imports acceptor and its functionalities.
  *
- * @since 1.3.0
+ * @since 1.0.0
  */
 public class ImportsAcceptor {
 

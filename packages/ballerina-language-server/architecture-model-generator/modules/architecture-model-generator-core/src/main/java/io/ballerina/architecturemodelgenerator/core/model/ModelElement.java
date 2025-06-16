@@ -25,7 +25,7 @@ import java.util.List;
 /**
  * Represents the abstract model for a component model item.
  *
- * @since 2201.3.1
+ * @since 1.0.0
  */
 public abstract class ModelElement {
 

@@ -24,7 +24,7 @@ import java.util.regex.Pattern;
 /**
  * Utility functions for record conversion.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class Utils {
 

@@ -28,7 +28,7 @@ import java.util.ServiceLoader;
  * Extended server capability builder.
  * This utility is responsible for setting the capabilities
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public final class ExtendedClientCapabilityBuilder {
 

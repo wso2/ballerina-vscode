@@ -25,7 +25,7 @@ import org.ballerinalang.debugadapter.evaluation.engine.Evaluator;
 /**
  * Evaluator implementation for optional field access expressions.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class OptionalFieldAccessExpressionEvaluator extends FieldAccessExpressionEvaluator {
 

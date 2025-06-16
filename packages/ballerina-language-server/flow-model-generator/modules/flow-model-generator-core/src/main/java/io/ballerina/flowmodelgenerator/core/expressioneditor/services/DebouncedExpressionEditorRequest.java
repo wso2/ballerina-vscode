@@ -30,7 +30,7 @@ import java.util.concurrent.Callable;
  * asynchronous execution.
  *
  * @param <T> The type of response that will be returned by this request
- * @since 2.0.0
+ * @since 1.0.0
  */
 public abstract class DebouncedExpressionEditorRequest<T> implements Callable<T> {
 

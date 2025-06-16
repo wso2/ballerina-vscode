@@ -52,7 +52,7 @@ import java.util.stream.Collectors;
  * Generic completion resolver for the Type Parameter nodes.
  *
  * @param <T> type parameter node type
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class TypeParameterContextProvider<T extends Node> extends AbstractCompletionProvider<T> {
 

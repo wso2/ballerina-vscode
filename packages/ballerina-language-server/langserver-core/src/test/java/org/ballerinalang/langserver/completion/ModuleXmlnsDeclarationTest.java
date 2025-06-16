@@ -25,7 +25,7 @@ import java.io.IOException;
 /**
  * Service Body Context tests.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class ModuleXmlnsDeclarationTest extends CompletionTest {
 

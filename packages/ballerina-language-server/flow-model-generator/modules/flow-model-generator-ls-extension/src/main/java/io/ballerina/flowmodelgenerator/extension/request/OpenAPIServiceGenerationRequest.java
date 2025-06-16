@@ -27,7 +27,7 @@ import java.util.List;
  * @param projectPath         Location for the generated services
  * @param name                Service type name
  * @param listeners           Listener names
- * @since 1.4.0
+ * @since 1.0.0
  */
 public record OpenAPIServiceGenerationRequest(String openApiContractPath, String projectPath, String name,
                                               List<String> listeners) {

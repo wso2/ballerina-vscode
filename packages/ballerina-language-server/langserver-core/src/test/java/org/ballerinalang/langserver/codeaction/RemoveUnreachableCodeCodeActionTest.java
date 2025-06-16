@@ -24,7 +24,7 @@ import java.io.IOException;
 /**
  * Tests the remove unreachable code action.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class RemoveUnreachableCodeCodeActionTest extends AbstractCodeActionTest {
 

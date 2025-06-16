@@ -30,7 +30,7 @@ import java.util.Map;
 /**
  * Represents intermediate model to represent multi-service projects.
  *
- * @since 2201.2.2
+ * @since 1.0.0
  */
 public class ArchitectureModel {
 

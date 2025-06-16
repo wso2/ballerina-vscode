@@ -21,7 +21,7 @@ package io.ballerina.servicemodelgenerator.extension.model;
 /**
  * Field class to hold the object field information.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class Field extends Parameter {
     private final boolean isPrivate;

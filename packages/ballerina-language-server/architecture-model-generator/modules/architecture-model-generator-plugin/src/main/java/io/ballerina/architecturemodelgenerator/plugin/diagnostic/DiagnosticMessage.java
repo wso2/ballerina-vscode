@@ -21,7 +21,7 @@ import io.ballerina.tools.diagnostics.DiagnosticSeverity;
 /**
  * Model Generator compiler plugin diagnostic messages.
  *
- * @since 2201.4.0
+ * @since 1.0.0
  */
 public enum DiagnosticMessage {
     ERROR_100("MODEL_GENERATOR_PLUGIN_ERROR_100",

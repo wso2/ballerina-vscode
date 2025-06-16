@@ -23,7 +23,7 @@ import com.google.gson.JsonElement;
 /**
  * Represents the response for OpenAPI client delete.
  *
- * @since 1.4.0
+ * @since 1.0.0
  */
 public class OpenAPIClientDeleteResponse extends AbstractFlowModelResponse {
 

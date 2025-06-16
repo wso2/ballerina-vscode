@@ -40,7 +40,7 @@ import java.util.Map;
 /**
  * Test class to test module addition to Ballerina.toml.
  *
- * @since 2201.8.0
+ * @since 1.0.0
  */
 public class AddModuleToBallerinaTomlCodeActionTest extends AbstractCodeActionTest {
     

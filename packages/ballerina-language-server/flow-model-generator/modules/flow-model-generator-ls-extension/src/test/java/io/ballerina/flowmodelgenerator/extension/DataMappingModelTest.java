@@ -37,7 +37,7 @@ import java.nio.file.Path;
 /**
  * Tests for the generation of data mapper model.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class DataMappingModelTest extends AbstractLSTest {
 
@@ -49,6 +49,7 @@ public class DataMappingModelTest extends AbstractLSTest {
                 {Path.of("query2.json")},
                 {Path.of("query3.json")},
                 {Path.of("query4.json")},
+                {Path.of("query5.json")},
                 {Path.of("variable1.json")},
                 {Path.of("variable2.json")},
                 {Path.of("variable3.json")},
@@ -111,7 +112,9 @@ public class DataMappingModelTest extends AbstractLSTest {
             TestConfig updateConfig = new TestConfig(testConfig.source(), testConfig.description(),
                     testConfig.diagram(), testConfig.propertyKey(), testConfig.position(), model,
                     testConfig.targetField());
-//            updateConfig(configJsonPath, updateConfig);
+
+
+            //            updateConfig(configJsonPath, updateConfig);
             compareJsonElements(model, testConfig.model());
             Assert.fail(String.format("Failed test: '%s' (%s)", testConfig.description(), configJsonPath));
         }

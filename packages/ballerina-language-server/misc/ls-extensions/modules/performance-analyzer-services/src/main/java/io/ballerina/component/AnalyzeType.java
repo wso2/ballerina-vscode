@@ -21,7 +21,7 @@ package io.ballerina.component;
 /**
  * Analyze type of performance forecaster.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public enum AnalyzeType {
     ADVANCED("advanced"),

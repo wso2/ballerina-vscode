@@ -30,7 +30,7 @@ import java.util.StringJoiner;
  * Holds the meta information required for the documentation attachment. This class expects a {@link LinkedHashMap} for
  * the parameters in order to keep the ordering of the parameters at the same time.
  *
- * @since 0.985.0
+ * @since 1.0.0
  */
 public class DocAttachmentInfo implements Documentation {
 

@@ -24,7 +24,7 @@ import org.ballerinalang.langserver.commons.registration.BallerinaServerCapabili
 /**
  * Server capabilities for Persist ER Model Generator Service.
  *
- * @since 2201.6.0
+ * @since 1.0.0
  */
 public class PersistERModelGeneratorServerCapabilities extends BallerinaServerCapability {
 

@@ -27,7 +27,7 @@ import io.ballerina.flowmodelgenerator.core.model.Codedata;
  * @param codedata       code data of the type
  * @param typeConstraint type constraint for the record
  * @param expr           expression to be updated
- * @since 2.0.0
+ * @since 1.0.0
  */
 public record UpdatedRecordConfigRequest(String filePath, Codedata codedata, String typeConstraint, String expr) {
 }

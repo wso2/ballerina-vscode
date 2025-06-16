@@ -39,7 +39,7 @@ import java.util.Map;
 /**
  * Test cases for the record conversion from json.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class JsonConverterTest extends AbstractLSTest {
 

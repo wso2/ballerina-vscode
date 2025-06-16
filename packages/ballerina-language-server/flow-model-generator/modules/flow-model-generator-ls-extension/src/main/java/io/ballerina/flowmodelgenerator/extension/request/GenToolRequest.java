@@ -29,7 +29,7 @@ import com.google.gson.JsonElement;
  * @param description description of the tool
  * @param connection  name of the connection
  *                    
- * @since 2.0.0
+ * @since 1.0.0
  */
 public record GenToolRequest(String filePath, JsonElement flowNode, String toolName, String description,
                              String connection) {

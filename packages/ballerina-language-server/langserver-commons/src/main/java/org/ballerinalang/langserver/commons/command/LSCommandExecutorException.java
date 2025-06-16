@@ -18,7 +18,7 @@ package org.ballerinalang.langserver.commons.command;
 /**
  * Exception for Language Server Command Execution.
  * 
- * @since 0.983.0
+ * @since 1.0.0
  */
 public class LSCommandExecutorException extends Exception {
     public LSCommandExecutorException(String message) {

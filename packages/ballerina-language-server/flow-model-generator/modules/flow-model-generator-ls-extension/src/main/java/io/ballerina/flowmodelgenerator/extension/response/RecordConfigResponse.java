@@ -23,7 +23,7 @@ import org.ballerinalang.diagramutil.connector.models.connector.Type;
 /**
  * Represents the response for the record config API.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class RecordConfigResponse extends AbstractFlowModelResponse {
 

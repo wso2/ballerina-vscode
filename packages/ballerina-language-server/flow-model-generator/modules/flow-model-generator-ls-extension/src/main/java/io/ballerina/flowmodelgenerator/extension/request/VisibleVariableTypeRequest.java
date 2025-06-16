@@ -25,7 +25,7 @@ import io.ballerina.tools.text.LinePosition;
  *
  * @param filePath the path of the file
  * @param position the line position in the file
- * @since 1.4.0
+ * @since 1.0.0
  */
 public record VisibleVariableTypeRequest(String filePath, LinePosition position) {
 }

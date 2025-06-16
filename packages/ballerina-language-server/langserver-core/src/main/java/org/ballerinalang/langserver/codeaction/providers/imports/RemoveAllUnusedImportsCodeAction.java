@@ -25,7 +25,7 @@ import java.util.List;
 /**
  * Code Action to remove all unused imports, except when there is a re-declared import statement.
  *
- * @since 2201.1.1
+ * @since 1.0.0
  */
 @JavaSPIService("org.ballerinalang.langserver.commons.codeaction.spi.LSCodeActionProvider")
 public class RemoveAllUnusedImportsCodeAction extends OptimizeImportsCodeAction {

@@ -25,7 +25,7 @@ import com.google.gson.JsonElement;
  *
  * @param filePath path of the file
  * @param type new type data
- * @since 2.0.0
+ * @since 1.0.0
  */
 public record TypeUpdateRequest(String filePath, JsonElement type) {
 }

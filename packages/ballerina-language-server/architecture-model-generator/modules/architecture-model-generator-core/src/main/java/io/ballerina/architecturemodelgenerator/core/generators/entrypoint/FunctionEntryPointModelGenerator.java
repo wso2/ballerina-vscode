@@ -34,7 +34,7 @@ import java.util.List;
 /**
  * Build entry point model based on a given Ballerina package.
  *
- * @since 2201.4.0
+ * @since 1.0.0
  */
 public class FunctionEntryPointModelGenerator extends ModelGenerator {
 

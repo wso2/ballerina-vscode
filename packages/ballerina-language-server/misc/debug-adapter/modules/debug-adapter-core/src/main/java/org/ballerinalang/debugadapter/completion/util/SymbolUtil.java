@@ -36,7 +36,7 @@ import java.util.Optional;
 /**
  * Carries a set of utilities to check the types of the symbols.
  *
- * @since 2201.1.0
+ * @since 1.0.0
  */
 public final class SymbolUtil {
 

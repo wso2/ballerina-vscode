@@ -33,7 +33,7 @@ import java.nio.file.Path;
 /**
  * Tests for the getTestFunction service.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class GetFunctionModelTest extends AbstractLSTest {
 

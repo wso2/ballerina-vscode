@@ -24,7 +24,7 @@ import java.util.Optional;
 /**
  * Util methods for JSON to record converter.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public final class ConverterUtils {
 

@@ -111,3 +111,4 @@ org.ballerinalang.langserver.completions.providers.context.ResourcePathParameter
 org.ballerinalang.langserver.completions.providers.context.ListConstructorExpressionNodeContext
 org.ballerinalang.langserver.completions.providers.context.MethodCallExpressionNodeContext
 org.ballerinalang.langserver.completions.providers.context.ListenerDeclarationNodeContext
+org.ballerinalang.langserver.completions.providers.context.NaturalExpressionNodeContext

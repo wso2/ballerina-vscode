@@ -21,7 +21,7 @@ package io.ballerina.xmltorecordconverter;
 /**
  * Request format for XMLToRecord endpoint.
  *
- * @since 2201.7.2
+ * @since 1.0.0
  */
 public class XMLToRecordRequest {
 

@@ -40,7 +40,7 @@ import java.util.Optional;
 /**
  * Language server context implementation.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class BallerinaCompletionContextImpl extends CompletionContextImpl implements BallerinaCompletionContext {
     private final List<Node> resolverChain = new ArrayList<>();

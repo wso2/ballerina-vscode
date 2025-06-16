@@ -27,7 +27,7 @@ import org.eclipse.lsp4j.CompletionItem;
 /**
  * Represents a Record Field Descriptor Completion Item.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class RecordFieldCompletionItem extends AbstractLSCompletionItem {
     private final RecordFieldSymbol fieldSymbol;

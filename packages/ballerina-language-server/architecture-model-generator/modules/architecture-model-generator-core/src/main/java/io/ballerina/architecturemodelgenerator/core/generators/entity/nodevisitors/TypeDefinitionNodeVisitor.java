@@ -29,7 +29,7 @@ import java.util.Map;
 /**
  * Visitor class for TypeDefinition nodes.
  *
- * @since 2201.4.1
+ * @since 1.0.0
  */
 public class TypeDefinitionNodeVisitor extends NodeVisitor {
 

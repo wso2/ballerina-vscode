@@ -21,7 +21,7 @@ package io.ballerina.flowmodelgenerator.extension.response;
 /**
  * Represents the response for the record value generate API.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class RecordValueGenerateResponse extends AbstractFlowModelResponse {
 

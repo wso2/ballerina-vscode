@@ -25,7 +25,7 @@ import java.util.List;
 /**
  * Proxy implementation for JDI thread group.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class ThreadGroupReferenceProxyImpl extends ObjectReferenceProxyImpl implements ThreadGroupReferenceProxy {
     private static final Logger LOG = LoggerFactory.getLogger(ThreadGroupReferenceProxyImpl.class);

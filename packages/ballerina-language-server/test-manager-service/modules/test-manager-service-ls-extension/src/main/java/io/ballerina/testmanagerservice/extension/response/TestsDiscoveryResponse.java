@@ -31,7 +31,7 @@ import java.util.Map;
  * @param errorMsg   error message if an error occurred
  * @param stacktrace stacktrace of the error
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public record TestsDiscoveryResponse(Map<String, List<FunctionTreeNode>> result, String errorMsg, String stacktrace) {
 

@@ -75,7 +75,7 @@ import static io.ballerina.architecturemodelgenerator.core.generators.GeneratorU
 /**
  * Visitor class for RemoteMethodCallAction nodes.
  *
- * @since 2201.2.2
+ * @since 1.0.0
  */
 public class ActionNodeVisitor extends NodeVisitor {
     private final PackageCompilation packageCompilation;

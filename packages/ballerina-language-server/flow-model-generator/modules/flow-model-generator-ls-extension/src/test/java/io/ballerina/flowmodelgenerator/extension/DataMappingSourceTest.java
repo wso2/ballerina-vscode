@@ -33,7 +33,7 @@ import java.nio.file.Path;
 /**
  * Tests for the generation of data mapper source.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class DataMappingSourceTest extends AbstractLSTest {
 
@@ -58,6 +58,7 @@ public class DataMappingSourceTest extends AbstractLSTest {
                 {Path.of("variable15.json")},
                 {Path.of("variable16.json")},
                 {Path.of("variable17.json")},
+                {Path.of("query1.json")},
         };
     }
 

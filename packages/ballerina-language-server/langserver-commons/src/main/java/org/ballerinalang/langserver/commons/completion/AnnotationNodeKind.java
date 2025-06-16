@@ -18,7 +18,7 @@ package org.ballerinalang.langserver.commons.completion;
 /**
  * Annotation node kind represents a flag for a symbol node to suggest annotations for the particular node.
  * 
- * @since 0.990.0
+ * @since 1.0.0
  */
 public enum AnnotationNodeKind {
     FUNCTION,

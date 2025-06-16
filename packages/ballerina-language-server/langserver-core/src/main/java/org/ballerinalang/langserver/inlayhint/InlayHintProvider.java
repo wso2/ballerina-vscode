@@ -66,7 +66,7 @@ import java.util.Optional;
 /**
  * Represents the Inlay Hint Provider.
  *
- * @since 2201.6.0
+ * @since 1.0.0
  */
 public final class InlayHintProvider {
 

@@ -23,7 +23,7 @@ import org.eclipse.lsp4j.TextDocumentIdentifier;
 /**
  * Represents a request for a Ballerina SyntaxTree by Range.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class BallerinaSyntaxTreeByRangeRequest {
 

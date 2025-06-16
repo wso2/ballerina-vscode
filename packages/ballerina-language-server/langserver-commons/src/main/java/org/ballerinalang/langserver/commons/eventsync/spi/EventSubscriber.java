@@ -25,7 +25,7 @@ import org.ballerinalang.langserver.commons.eventsync.EventKind;
 /**
  * Represents the language server event subscriber.
  *
- * @since 2201.1.1
+ * @since 1.0.0
  */
 public interface EventSubscriber {
 

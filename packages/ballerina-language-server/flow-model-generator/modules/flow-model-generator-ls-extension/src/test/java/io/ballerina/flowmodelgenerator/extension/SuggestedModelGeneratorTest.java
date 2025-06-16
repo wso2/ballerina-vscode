@@ -33,7 +33,7 @@ import java.nio.file.Path;
 /**
  * Test cases for the flow model generator service with the AI suggestions.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class SuggestedModelGeneratorTest extends AbstractLSTest {
 
@@ -92,7 +92,7 @@ public class SuggestedModelGeneratorTest extends AbstractLSTest {
      * @param description The description of the test
      * @param forceAssign whether to render the assign node wherever possible
      * @param diagram     The expected diagram for the given inputs
-     * @since 2.0.0
+     * @since 1.0.0
      */
     private record TestConfig(LinePosition start, LinePosition end, String source, String text, LinePosition position,
                               String description, boolean forceAssign, JsonObject diagram) {

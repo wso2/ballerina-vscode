@@ -60,7 +60,7 @@ import java.util.stream.Collectors;
 /**
  * Resolver for Document Symbols.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class DocumentSymbolResolver extends NodeTransformer<Optional<DocumentSymbol>> {
 
