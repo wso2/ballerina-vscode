@@ -21,7 +21,7 @@ package io.ballerina.sequencemodelgenerator.ls.extension;
 /**
  * Represents the model diagnostic which consist the validity of the model and the error message.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 
 public class ModelDiagnostic {

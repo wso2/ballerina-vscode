@@ -44,7 +44,7 @@ import java.util.Optional;
  * <p>
  * {@code join typed-binding-pattern in expression on expression equals expression}
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 @JavaSPIService("org.ballerinalang.langserver.commons.completion.spi.BallerinaCompletionProvider")
 public class JoinClauseNodeContext extends IntermediateClauseNodeContext<JoinClauseNode> {

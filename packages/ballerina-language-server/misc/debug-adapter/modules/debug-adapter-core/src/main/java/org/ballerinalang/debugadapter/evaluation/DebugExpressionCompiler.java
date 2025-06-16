@@ -28,7 +28,7 @@ import org.ballerinalang.debugadapter.SuspendedContext;
 /**
  * A ballerina expression-specific implementation for validating, parsing and compiling ballerina expressions.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class DebugExpressionCompiler {
 

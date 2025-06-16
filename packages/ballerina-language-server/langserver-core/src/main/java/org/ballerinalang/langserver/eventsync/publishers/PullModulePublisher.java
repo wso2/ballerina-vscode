@@ -27,7 +27,7 @@ import org.ballerinalang.langserver.eventsync.AbstractEventPublisher;
 /**
  * Publishes the pull module event.
  *
- * @since 2201.2.1
+ * @since 1.0.0
  */
 @JavaSPIService("org.ballerinalang.langserver.eventsync.EventPublisher")
 public class PullModulePublisher extends AbstractEventPublisher {

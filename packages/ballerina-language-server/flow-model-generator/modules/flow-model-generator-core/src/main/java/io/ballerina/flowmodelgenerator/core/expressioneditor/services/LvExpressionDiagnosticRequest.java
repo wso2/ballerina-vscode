@@ -41,7 +41,7 @@ import java.util.stream.StreamSupport;
  * Handles diagnostic requests for lv expressions validation in the expression editor.
  *
  * @see DiagnosticsRequest
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class LvExpressionDiagnosticRequest extends DiagnosticsRequest {
 

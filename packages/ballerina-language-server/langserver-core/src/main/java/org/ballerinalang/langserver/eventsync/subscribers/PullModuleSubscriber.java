@@ -28,7 +28,7 @@ import org.ballerinalang.langserver.commons.eventsync.spi.EventSubscriber;
 /**
  * Updates the package map in LSPackage loader.
  *
- * @since 2201.2.1
+ * @since 1.0.0
  */
 @JavaSPIService("org.ballerinalang.langserver.commons.eventsync.spi.EventSubscriber")
 public class PullModuleSubscriber implements EventSubscriber {

@@ -52,7 +52,7 @@ import java.util.stream.StreamSupport;
  * Command executor for running a Ballerina file. Each project at most has a single instance running at a time.
  * See {@link StopExecutor} for stopping a running instance.
  *
- * @since 2201.6.0
+ * @since 1.0.0
  */
 @JavaSPIService("org.ballerinalang.langserver.commons.command.spi.LSCommandExecutor")
 public class RunExecutor implements LSCommandExecutor {

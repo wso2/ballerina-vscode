@@ -31,7 +31,7 @@ import java.util.Map;
 /**
  * Represents the properties of a continue node.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class ContinueBuilder extends NodeBuilder {
 

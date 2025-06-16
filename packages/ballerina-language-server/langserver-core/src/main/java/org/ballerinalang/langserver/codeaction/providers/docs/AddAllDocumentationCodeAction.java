@@ -35,7 +35,7 @@ import java.util.List;
 /**
  * Code Action provider for adding all documentation for top level items.
  *
- * @since 1.1.1
+ * @since 1.0.0
  */
 @JavaSPIService("org.ballerinalang.langserver.commons.codeaction.spi.LSCodeActionProvider")
 public class AddAllDocumentationCodeAction implements RangeBasedCodeActionProvider {

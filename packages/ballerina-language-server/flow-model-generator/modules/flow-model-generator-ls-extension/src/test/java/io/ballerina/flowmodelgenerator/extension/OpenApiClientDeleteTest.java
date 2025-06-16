@@ -175,7 +175,7 @@ public class OpenApiClientDeleteTest extends AbstractLSTest {
      * @param source       Source file name
      * @param textEdits    Text edits
      * @param files        Files to delete
-     * @since 1.4.0
+     * @since 1.0.0
      */
     private record TestConfig(String contractFile, String balToml, String module, String source,
                               Map<String, List<TextEdit>> textEdits, List<String> files) {

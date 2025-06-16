@@ -27,7 +27,7 @@ import java.util.List;
 /**
  * Represents resource funstion parameter information.
  *
- * @since 2201.2.2
+ * @since 1.0.0
  */
 public class ResourceParameter extends ModelElement {
 

@@ -58,7 +58,7 @@ import java.util.logging.Logger;
  * type definitions, and enums) along with their documentation. The extracted information is then stored in a search
  * database.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class SearchIndexGenerator {
 

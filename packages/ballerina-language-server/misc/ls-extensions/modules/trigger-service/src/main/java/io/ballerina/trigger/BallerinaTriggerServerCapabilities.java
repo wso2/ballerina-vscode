@@ -21,7 +21,7 @@ import org.ballerinalang.langserver.commons.registration.BallerinaServerCapabili
 /**
  * Server capabilities for the ballerinaTrigger service.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class BallerinaTriggerServerCapabilities extends BallerinaServerCapability {
     private boolean triggers;

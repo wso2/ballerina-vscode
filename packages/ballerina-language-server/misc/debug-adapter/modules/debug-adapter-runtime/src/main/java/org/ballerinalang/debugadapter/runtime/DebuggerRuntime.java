@@ -77,7 +77,7 @@ import static io.ballerina.runtime.api.creators.TypeCreator.createErrorType;
  *  </ul>
  * invocations using the debugger expression evaluation engine.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 @SuppressWarnings("unused")
 public final class DebuggerRuntime {

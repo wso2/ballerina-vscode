@@ -40,7 +40,7 @@ import java.util.function.Predicate;
  * Completion provider for {@link TypeReferenceNode} context.
  * This is a common handler for both the record-type-inclusion and for object-type-inclusion
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 @JavaSPIService("org.ballerinalang.langserver.commons.completion.spi.BallerinaCompletionProvider")
 public class TypeReferenceNodeContext extends AbstractCompletionProvider<TypeReferenceNode> {

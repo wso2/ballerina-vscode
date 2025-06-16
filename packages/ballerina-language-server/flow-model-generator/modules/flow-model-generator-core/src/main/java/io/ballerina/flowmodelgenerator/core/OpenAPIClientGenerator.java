@@ -64,7 +64,7 @@ import static io.ballerina.openapi.core.generators.common.GeneratorConstants.UTI
 /**
  * Generates client from the OpenAPI contract.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class OpenAPIClientGenerator {
     public static final String BALLERINA_TOML = "Ballerina.toml";

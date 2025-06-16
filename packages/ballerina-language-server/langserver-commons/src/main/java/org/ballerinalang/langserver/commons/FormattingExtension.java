@@ -25,7 +25,7 @@ import java.util.List;
 /**
  * Represents a completion extension.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public interface FormattingExtension
         extends LanguageExtension<DocumentFormattingParams, List<? extends TextEdit>, DocumentServiceContext> {

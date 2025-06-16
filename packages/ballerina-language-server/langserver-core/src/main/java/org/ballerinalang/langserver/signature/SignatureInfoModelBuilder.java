@@ -54,7 +54,7 @@ import java.util.stream.Stream;
 /**
  * A utility for building a SignatureInformation.
  *
- * @since 2201.1.1
+ * @since 1.0.0
  */
 public class SignatureInfoModelBuilder {
     private final Symbol symbol;

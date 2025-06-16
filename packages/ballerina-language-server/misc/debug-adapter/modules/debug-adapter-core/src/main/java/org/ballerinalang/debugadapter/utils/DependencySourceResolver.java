@@ -32,7 +32,7 @@ import java.util.Optional;
 /**
  * Concrete implementation of Ballerina package dependency (stdlib, central modules) source resolver.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class DependencySourceResolver extends SourceResolver {
 

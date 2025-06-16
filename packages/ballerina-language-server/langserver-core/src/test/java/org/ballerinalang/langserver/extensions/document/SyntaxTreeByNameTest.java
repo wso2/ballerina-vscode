@@ -34,7 +34,7 @@ import java.nio.file.Path;
 
 /**
  * Test syntaxTreeByName call.
- * @since 2201.3.0
+ * @since 1.0.0
  */
 public class SyntaxTreeByNameTest {
     private Endpoint serviceEndpoint;

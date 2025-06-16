@@ -24,7 +24,7 @@ package io.ballerina.testmanagerservice.extension.request;
  * @param functionName name of the test function
  * @param filePath     path for the source test
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public record GetTestFunctionRequest(String functionName, String filePath) {
 }

@@ -29,7 +29,7 @@ import io.ballerina.tools.text.LineRange;
  * @param endLine     end line of the source range
  * @param text        the AI generated text
  * @param position    the position of the AI generated text
- * @since 1.4.0
+ * @since 1.0.0
  */
 public record FlowModelSuggestedGenerationRequest(String filePath, LinePosition startLine, LinePosition endLine,
                                                   String text, LinePosition position) {

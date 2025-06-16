@@ -71,7 +71,7 @@ import static io.ballerina.servicemodelgenerator.extension.util.Utils.updateValu
 /**
  * Utility class for HTTP related operations.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public final class HttpUtil {
 

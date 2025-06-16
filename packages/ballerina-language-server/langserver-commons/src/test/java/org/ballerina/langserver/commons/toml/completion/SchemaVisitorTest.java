@@ -38,7 +38,7 @@ import java.util.Map;
 /**
  * Schema Visitor Test.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class SchemaVisitorTest {
 

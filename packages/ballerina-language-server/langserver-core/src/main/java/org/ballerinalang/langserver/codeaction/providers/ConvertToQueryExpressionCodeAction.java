@@ -61,7 +61,7 @@ import java.util.Optional;
  * Code action provider to convert RHS variable assignment to a query expression when both LHS and RHS types are
  * arrays. If the LHS is an array of records, we provide the default value for the record in the select clause.
  *
- * @since 2201.2.1
+ * @since 1.0.0
  */
 @JavaSPIService("org.ballerinalang.langserver.commons.codeaction.spi.LSCodeActionProvider")
 public class ConvertToQueryExpressionCodeAction implements RangeBasedCodeActionProvider {

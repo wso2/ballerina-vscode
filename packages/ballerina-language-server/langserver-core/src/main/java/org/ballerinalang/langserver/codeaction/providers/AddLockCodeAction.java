@@ -49,7 +49,7 @@ import java.util.Set;
 /**
  * A code action to wrap an isolated variable with a lock.
  *
- * @since 2201.9.0
+ * @since 1.0.0
  */
 @JavaSPIService("org.ballerinalang.langserver.commons.codeaction.spi.LSCodeActionProvider")
 public class AddLockCodeAction implements DiagnosticBasedCodeActionProvider {

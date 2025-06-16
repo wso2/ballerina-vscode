@@ -18,7 +18,7 @@ package org.ballerinalang.langserver.commons.workspace;
 /**
  * A proxy implementation for the workspace manager.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public interface WorkspaceManagerProxy {
     /**

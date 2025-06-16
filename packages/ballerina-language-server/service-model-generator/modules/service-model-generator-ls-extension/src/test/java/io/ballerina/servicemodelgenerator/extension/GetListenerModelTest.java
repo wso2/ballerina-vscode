@@ -33,7 +33,7 @@ import java.nio.file.Path;
 /**
  * Assert the response returned by the getListenerModel.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class GetListenerModelTest extends AbstractLSTest {
 
@@ -89,7 +89,7 @@ public class GetListenerModelTest extends AbstractLSTest {
      * @param pkgName   package name
      * @param moduleName module name
      * @param response  expected response
-     * @since 2.0.0
+     * @since 1.0.0
      */
     private record TestConfig(String description,  String orgName, String pkgName, String moduleName,
                               JsonElement response) {

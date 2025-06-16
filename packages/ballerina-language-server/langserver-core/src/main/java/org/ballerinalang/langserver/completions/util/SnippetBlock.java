@@ -33,7 +33,7 @@ import java.util.Optional;
 /**
  * Represent an insert text block having both plain text and snippet format strings.
  *
- * @since 0.982.0
+ * @since 1.0.0
  */
 public class SnippetBlock extends CompletionItemBuilder {
 

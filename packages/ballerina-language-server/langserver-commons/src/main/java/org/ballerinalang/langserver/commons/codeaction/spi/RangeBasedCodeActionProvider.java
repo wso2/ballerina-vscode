@@ -24,7 +24,7 @@ import java.util.List;
 /**
  * Represents the interface for the Ballerina Range Based Code Action Provider.
  *
- * @since 2201.2.0
+ * @since 1.0.0
  */
 public interface RangeBasedCodeActionProvider extends LSCodeActionProvider {
 

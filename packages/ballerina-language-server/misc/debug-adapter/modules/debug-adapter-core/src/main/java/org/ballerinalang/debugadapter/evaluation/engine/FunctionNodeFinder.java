@@ -31,7 +31,7 @@ import java.util.Optional;
  * A {@link NodeVisitor} implementation which can be used to search for function definition information just by using
  * the function name.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class FunctionNodeFinder extends NodeVisitor {
 

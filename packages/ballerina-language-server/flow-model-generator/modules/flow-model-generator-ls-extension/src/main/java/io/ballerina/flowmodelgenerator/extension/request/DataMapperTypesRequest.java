@@ -27,7 +27,7 @@ import com.google.gson.JsonElement;
  * @param flowNode    diagram node
  * @param propertyKey The property that needs to consider to get the type
  *
- * @since 1.4.0
+ * @since 1.0.0
  */
 public record DataMapperTypesRequest(String filePath, JsonElement flowNode, String propertyKey) {
 

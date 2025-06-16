@@ -24,7 +24,7 @@ import org.eclipse.lsp4j.DidOpenTextDocumentParams;
 /**
  * A proxy implementation for the ballerina workspace manager.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public interface BallerinaWorkspaceManagerProxy extends WorkspaceManagerProxy {
     /**

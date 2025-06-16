@@ -44,7 +44,7 @@ import static org.wso2.ballerinalang.compiler.parser.BLangAnonymousModelHelper.L
 /**
  * Represents a ballerina stack frame instance.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class BallerinaStackFrame {
 

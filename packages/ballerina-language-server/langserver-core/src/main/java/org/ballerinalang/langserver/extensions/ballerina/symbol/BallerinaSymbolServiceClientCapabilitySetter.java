@@ -21,7 +21,7 @@ import org.ballerinalang.langserver.commons.registration.BallerinaClientCapabili
 /**
  * Client Capability setter for the {@link BallerinaSymbolService}.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 @JavaSPIService("org.ballerinalang.langserver.commons.registration.BallerinaClientCapabilitySetter")
 public class BallerinaSymbolServiceClientCapabilitySetter extends

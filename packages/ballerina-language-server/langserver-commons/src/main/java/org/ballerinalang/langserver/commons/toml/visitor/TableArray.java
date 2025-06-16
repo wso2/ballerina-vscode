@@ -20,7 +20,7 @@ package org.ballerinalang.langserver.commons.toml.visitor;
 /**
  * Represents Toml TableArray in {@link TomlSchemaVisitor}.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class TableArray implements TomlNode {
 

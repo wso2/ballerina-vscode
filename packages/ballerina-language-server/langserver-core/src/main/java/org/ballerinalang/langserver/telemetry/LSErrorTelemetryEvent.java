@@ -23,7 +23,7 @@ import java.util.StringJoiner;
 /**
  * Parent class for all the telemetry events.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class LSErrorTelemetryEvent extends LSTelemetryEvent {
 

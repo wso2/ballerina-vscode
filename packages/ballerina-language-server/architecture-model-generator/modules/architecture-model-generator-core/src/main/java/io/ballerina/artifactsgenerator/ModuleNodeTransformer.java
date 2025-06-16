@@ -56,7 +56,7 @@ import java.util.stream.Collectors;
  * transforming nodes from a different module, as the semantic model context is specific to the module being processed.
  * </p>
  *
- * @since 2.3.0
+ * @since 1.0.0
  */
 public class ModuleNodeTransformer extends NodeTransformer<Optional<Artifact>> {
 

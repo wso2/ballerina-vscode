@@ -25,7 +25,7 @@ import java.util.Optional;
 /**
  * Abstract implementation of Ballerina debug source resolver.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public abstract class SourceResolver {
 

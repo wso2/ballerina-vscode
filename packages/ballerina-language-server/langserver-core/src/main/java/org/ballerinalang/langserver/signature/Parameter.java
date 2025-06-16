@@ -24,7 +24,7 @@ import java.util.Optional;
 /**
  * Parameter model to hold the parameter information meta data.
  *
- * @since 2201.1.1
+ * @since 1.0.0
  */
 public class Parameter {
 

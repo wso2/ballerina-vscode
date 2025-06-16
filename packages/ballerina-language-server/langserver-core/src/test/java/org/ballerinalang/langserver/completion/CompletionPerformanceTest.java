@@ -33,7 +33,7 @@ import java.nio.file.Path;
 /**
  * Test performance of completions feature in language server.
  *
- *  * @since 2.0.0
+ *  * @since 1.0.0
  */
 public class CompletionPerformanceTest extends CompletionTest {
 

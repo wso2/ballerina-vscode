@@ -52,7 +52,7 @@ import static io.ballerina.flowmodelgenerator.core.converters.utils.Utils.unesca
 /**
  * Util methods for JSON to record direct converter.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public final class JsonToRecordMapperConverterUtils {
 

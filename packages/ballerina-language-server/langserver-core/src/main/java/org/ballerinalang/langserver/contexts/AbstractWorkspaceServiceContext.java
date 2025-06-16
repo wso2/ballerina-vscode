@@ -38,7 +38,7 @@ import java.util.Optional;
 /**
  * Language server workspace service context implementation.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class AbstractWorkspaceServiceContext implements WorkspaceServiceContext {
 
@@ -94,7 +94,7 @@ public class AbstractWorkspaceServiceContext implements WorkspaceServiceContext 
      * Represents Language server workspace service context Builder.
      *
      * @param <T> builder type
-     * @since 2.0.0
+     * @since 1.0.0
      */
     protected abstract static class AbstractContextBuilder<T extends AbstractContextBuilder<T>> {
         protected final LSOperation operation;

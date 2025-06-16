@@ -34,7 +34,7 @@ import java.nio.file.Path;
 /**
  * Tests for the adding elements to array in data mapper.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class DataMappingAddElementTest extends AbstractLSTest {
 

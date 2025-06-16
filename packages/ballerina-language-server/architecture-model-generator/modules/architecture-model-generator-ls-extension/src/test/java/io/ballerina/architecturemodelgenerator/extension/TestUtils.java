@@ -21,7 +21,7 @@ package io.ballerina.architecturemodelgenerator.extension;
 /**
  * Utils for component generation testings.
  *
- * @since 2201.3.4
+ * @since 1.0.0
  */
 public class TestUtils {
     public static String replaceStdLibVersionStrings(String source) {

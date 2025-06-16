@@ -25,7 +25,7 @@ import java.util.List;
 /**
  * Represents the service class component of the graphQL model.
  *
- * @since 2201.5.0
+ * @since 1.0.0
  */
 public class ServiceClassComponent {
     private final String serviceName;

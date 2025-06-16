@@ -30,7 +30,7 @@ import java.nio.charset.StandardCharsets;
 /**
  * Unit test for ConsoleOutCollector.
  *
- * @since 2201.1.1
+ * @since 1.0.0
  */
 public class ConsoleOutCollectorTests {
     private PrintStream original;

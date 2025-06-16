@@ -42,7 +42,7 @@ import static io.ballerina.architecturemodelgenerator.plugin.PluginConstants.MOD
 /**
  * Compilation analyzer to generate component model.
  *
- * @since 2201.4.0
+ * @since 1.0.0
  */
 public class CompilationAnalysisTask implements AnalysisTask<CompilationAnalysisContext> {
     @Override

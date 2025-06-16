@@ -23,7 +23,7 @@ import java.util.Optional;
 /**
  * Capability setter for the {@link BallerinaSymbolService}.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 @JavaSPIService("org.ballerinalang.langserver.commons.registration.BallerinaServerCapabilitySetter")
 public class BallerinaSymbolServiceServerCapabilitySetter extends

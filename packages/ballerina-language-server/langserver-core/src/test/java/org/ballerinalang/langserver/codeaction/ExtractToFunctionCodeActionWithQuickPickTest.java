@@ -27,7 +27,7 @@ import java.nio.file.Path;
 
 /**
  * Test class to test the functionality of the extract to function code action with quick pick capability.
- * @since 2201.5.0
+ * @since 1.0.0
  */
 public class ExtractToFunctionCodeActionWithQuickPickTest extends AbstractCodeActionTest {
 

@@ -23,7 +23,7 @@ package io.ballerina.flowmodelgenerator.extension.request;
  *
  * @param projectPath path of the config file
  *
- * @since 1.4.0
+ * @since 1.0.0
  */
 public record ConfigVariablesGetRequest(String projectPath) {
 }

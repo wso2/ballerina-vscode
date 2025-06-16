@@ -24,7 +24,7 @@ import static org.ballerinalang.debugadapter.utils.PackageUtils.getQModuleNamePa
 /**
  * Holds source information of a given JDI source location.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class LocationInfo {
 

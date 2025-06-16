@@ -53,7 +53,7 @@ import java.util.Map;
  * </p>
  *
  * @see SearchCommand
- * @since 2.0.0
+ * @since 1.0.0
  */
 class TypeSearchCommand extends SearchCommand {
 

@@ -23,7 +23,7 @@ package io.ballerina.testmanagerservice.extension.request;
  *
  * @param filePath path of the file to discover tests
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public record TestsDiscoveryRequest(String filePath) {
 }

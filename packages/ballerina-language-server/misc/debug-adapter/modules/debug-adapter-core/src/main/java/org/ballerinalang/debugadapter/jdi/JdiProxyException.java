@@ -19,7 +19,7 @@ package org.ballerinalang.debugadapter.jdi;
 /**
  * Error type definition for JDI proxy implementation related exceptions.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class JdiProxyException extends Exception {
 

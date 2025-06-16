@@ -27,7 +27,7 @@ import java.util.List;
 /**
  * Represent a Ballerina record.
  *
- * @since 2201.2.2
+ * @since 1.0.0
  */
 public class Entity extends ModelElement {
 

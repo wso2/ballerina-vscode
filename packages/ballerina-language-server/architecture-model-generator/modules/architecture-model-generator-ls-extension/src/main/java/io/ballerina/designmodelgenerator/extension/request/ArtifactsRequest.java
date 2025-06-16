@@ -22,7 +22,7 @@ package io.ballerina.designmodelgenerator.extension.request;
  * Record representing a request for artifacts.
  *
  * @param projectPath The path to the project for which artifacts are requested
- * @since 2.3.0
+ * @since 1.0.0
  */
 public record ArtifactsRequest(String projectPath) {
 }

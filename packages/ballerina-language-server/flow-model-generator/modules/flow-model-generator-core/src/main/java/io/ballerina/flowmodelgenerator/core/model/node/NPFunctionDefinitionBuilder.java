@@ -45,7 +45,7 @@ import static io.ballerina.modelgenerator.commons.ParameterData.Kind.REQUIRED;
 /**
  * Represents the properties of a Natural programming function definition node.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class NPFunctionDefinitionBuilder extends FunctionDefinitionBuilder {
 

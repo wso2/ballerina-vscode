@@ -25,7 +25,7 @@ import java.util.ServiceLoader;
 /**
  * Loads and provides the Completion Providers.
  *
- * @since 0.990.4
+ * @since 1.0.0
  */
 public class ProviderFactory {
 

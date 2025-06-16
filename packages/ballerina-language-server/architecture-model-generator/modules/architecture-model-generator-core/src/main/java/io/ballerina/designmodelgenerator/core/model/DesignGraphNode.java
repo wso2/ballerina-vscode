@@ -23,7 +23,7 @@ import io.ballerina.designmodelgenerator.core.CommonUtils;
 /**
  * Represents the design graph of a Ballerina package.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public abstract class DesignGraphNode {
 

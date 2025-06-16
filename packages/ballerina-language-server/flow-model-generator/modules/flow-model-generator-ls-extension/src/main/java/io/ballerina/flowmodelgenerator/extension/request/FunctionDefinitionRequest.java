@@ -24,7 +24,7 @@ package io.ballerina.flowmodelgenerator.extension.request;
  * @param projectPath  path to the project
  * @param fileName     name of the file containing the function
  * @param functionName name of the function to retrieve
- * @since 2.0.0
+ * @since 1.0.0
  */
 public record FunctionDefinitionRequest(String projectPath, String fileName, String functionName) {
 }

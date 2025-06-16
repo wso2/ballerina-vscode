@@ -5,7 +5,7 @@ import com.google.gson.JsonElement;
 /**
  * Represents the response for the flow model getNodeTemplate API.
  *
- * @since 1.4.0
+ * @since 1.0.0
  */
 public class FlowModelNodeTemplateResponse extends AbstractFlowModelResponse {
 

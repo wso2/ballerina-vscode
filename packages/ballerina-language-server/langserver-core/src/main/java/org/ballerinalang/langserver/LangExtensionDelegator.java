@@ -48,7 +48,7 @@ import java.util.ServiceLoader;
 /**
  * Delegate the operation to the valid extension.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class LangExtensionDelegator {
 

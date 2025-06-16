@@ -52,7 +52,7 @@ import static io.ballerina.compiler.api.symbols.SymbolKind.METHOD;
 /**
  * Common utility methods for debug completions operation.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public final class CompletionUtil {
 

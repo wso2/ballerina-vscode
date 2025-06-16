@@ -20,7 +20,7 @@ import com.google.gson.JsonElement;
 /**
  * Represents a Ballerina Syntax Tree response.
  *
- * @since 2201.3.0
+ * @since 1.0.0
  */
 public class BallerinaSyntaxTreeResponse {
 

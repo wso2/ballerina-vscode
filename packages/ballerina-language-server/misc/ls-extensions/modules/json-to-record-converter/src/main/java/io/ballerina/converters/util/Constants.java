@@ -22,7 +22,7 @@ import java.util.List;
 /**
  * Contains keywords and other constants.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public final class Constants {
 

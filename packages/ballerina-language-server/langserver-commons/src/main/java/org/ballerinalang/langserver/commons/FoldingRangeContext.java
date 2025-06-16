@@ -18,7 +18,7 @@ package org.ballerinalang.langserver.commons;
 /**
  * Represents the folding range operation context.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public interface FoldingRangeContext extends DocumentServiceContext {
 

@@ -26,7 +26,7 @@ import java.io.IOException;
 /**
  * Function Body Context tests.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class FunctionBodyTest extends CompletionTest {
 

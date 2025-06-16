@@ -25,7 +25,7 @@ import org.ballerinalang.langserver.commons.workspace.WorkspaceManager;
 /**
  * Language server's base context implementation.
  *
- * @since 1.2.0
+ * @since 1.0.0
  */
 public class BaseContextImpl extends AbstractDocumentServiceContext {
 
@@ -39,7 +39,7 @@ public class BaseContextImpl extends AbstractDocumentServiceContext {
     /**
      * Represents Language server base context Builder.
      *
-     * @since 2.0.0
+     * @since 1.0.0
      */
     protected static class BaseContextBuilder extends AbstractContextBuilder<BaseContextBuilder> {
 

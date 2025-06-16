@@ -49,7 +49,7 @@ import static org.ballerinalang.debugadapter.evaluation.utils.EvaluationUtils.co
 /**
  * Evaluator implementation for function invocation expressions.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class FunctionInvocationExpressionEvaluator extends Evaluator {
 

@@ -75,7 +75,7 @@ import static io.ballerina.flowmodelgenerator.core.utils.TypeTransformer.BUILT_I
 /**
  * Manage creation, retrieving and updating operations related to types.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class TypesManager {
 

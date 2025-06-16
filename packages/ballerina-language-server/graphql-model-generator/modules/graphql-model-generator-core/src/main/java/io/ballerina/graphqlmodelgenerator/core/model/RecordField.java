@@ -23,7 +23,7 @@ import java.util.List;
 /**
  * Represents the Record field on the type Record component.
  *
- * @since 2201.5.0
+ * @since 1.0.0
  */
 public class RecordField {
     private final String name;

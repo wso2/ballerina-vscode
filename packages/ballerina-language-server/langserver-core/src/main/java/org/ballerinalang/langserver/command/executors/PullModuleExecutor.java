@@ -57,7 +57,7 @@ import java.util.concurrent.CompletableFuture;
 /**
  * Command executor for pulling a package from central.
  *
- * @since 0.983.0
+ * @since 1.0.0
  */
 @JavaSPIService("org.ballerinalang.langserver.commons.command.spi.LSCommandExecutor")
 public class PullModuleExecutor implements LSCommandExecutor {

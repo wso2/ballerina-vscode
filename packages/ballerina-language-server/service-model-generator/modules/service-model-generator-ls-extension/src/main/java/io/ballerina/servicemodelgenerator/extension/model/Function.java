@@ -42,7 +42,7 @@ import static io.ballerina.servicemodelgenerator.extension.util.ServiceClassUtil
 /**
  * Represents a function in a service declaration or in a service class.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class Function {
     private MetaData metadata;

@@ -20,7 +20,7 @@ import org.ballerinalang.langserver.commons.LSOperation;
 /**
  * Represents a document context.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public enum SymbolContext implements LSOperation {
     SC_TYPE_API("ballerinaSymbol/type"),

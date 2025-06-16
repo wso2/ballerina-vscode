@@ -101,7 +101,7 @@ import java.util.Optional;
 /**
  * Code analyzer to analyze ST and update the intermediate model.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class CodeAnalyzer extends NodeVisitor {
 

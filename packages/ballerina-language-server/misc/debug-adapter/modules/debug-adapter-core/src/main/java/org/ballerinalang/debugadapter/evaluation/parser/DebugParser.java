@@ -26,7 +26,7 @@ import java.util.Map;
 /**
  * Debugger expression evaluation specific wrapper implementation of the ballerina tree parser.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class DebugParser {
 

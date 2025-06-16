@@ -46,7 +46,7 @@ import java.util.Optional;
  * <strong>Note</strong>: Rather than doing {@code node.apply(expressionResolver)},
  * please use {@link #findExpression(Node)} since the {@code node.apply()} method may return {@code null}.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class MatchedExpressionNodeResolver extends NodeTransformer<Optional<ExpressionNode>> {
 

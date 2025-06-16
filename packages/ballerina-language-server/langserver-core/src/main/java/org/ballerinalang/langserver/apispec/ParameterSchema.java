@@ -23,7 +23,7 @@ package org.ballerinalang.langserver.apispec;
  *
  * @param name   the name of the parameter
  * @param schema the type schema of the parameter
- * @since 2201.12.0
+ * @since 1.0.0
  */
 public record ParameterSchema(
         String name,

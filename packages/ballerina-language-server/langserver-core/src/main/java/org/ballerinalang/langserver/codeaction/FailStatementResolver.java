@@ -30,7 +30,7 @@ import java.util.Optional;
 /**
  * This visitor is used to resolve the regular compound statement node of a given node.
  * 
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class FailStatementResolver extends NodeTransformer<Optional<Node>> {
     

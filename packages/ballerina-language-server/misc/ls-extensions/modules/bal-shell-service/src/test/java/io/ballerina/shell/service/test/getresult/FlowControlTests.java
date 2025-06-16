@@ -25,7 +25,7 @@ import java.util.concurrent.ExecutionException;
 /**
  * getResult End point tests for flow controlling.
  *
- * @since 2201.1.1
+ * @since 1.0.0
  */
 public class FlowControlTests extends AbstractGetResultTest {
     @Test(description = "Test for flow controls with if statements")

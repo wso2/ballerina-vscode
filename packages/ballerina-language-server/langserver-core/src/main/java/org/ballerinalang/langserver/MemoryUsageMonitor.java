@@ -27,7 +27,7 @@ import java.lang.management.MemoryUsage;
 /**
  * Monitors the memory usage and notifies the user if the memory usage is high.
  *
- * @since 2201.9.0
+ * @since 1.0.0
  */
 public class MemoryUsageMonitor {
 

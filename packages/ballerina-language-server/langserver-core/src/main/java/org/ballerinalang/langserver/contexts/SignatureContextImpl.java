@@ -32,7 +32,7 @@ import java.util.Optional;
 /**
  * Language server context implementation.
  *
- * @since 1.2.0
+ * @since 1.0.0
  */
 public class SignatureContextImpl extends PositionedOperationContextImpl implements SignatureContext {
 
@@ -71,7 +71,7 @@ public class SignatureContextImpl extends PositionedOperationContextImpl impleme
     /**
      * Represents Language server signature help context Builder.
      *
-     * @since 2.0.0
+     * @since 1.0.0
      */
     protected static class SignatureContextBuilder extends AbstractContextBuilder<SignatureContextBuilder> {
 

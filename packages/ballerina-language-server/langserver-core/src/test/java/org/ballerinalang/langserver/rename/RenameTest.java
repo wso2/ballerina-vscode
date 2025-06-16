@@ -23,7 +23,7 @@ import java.io.IOException;
 /**
  * Test class for Renaming.
  *
- * @since 0.982.0
+ * @since 1.0.0
  */
 public class RenameTest extends AbstractRenameTest {
 

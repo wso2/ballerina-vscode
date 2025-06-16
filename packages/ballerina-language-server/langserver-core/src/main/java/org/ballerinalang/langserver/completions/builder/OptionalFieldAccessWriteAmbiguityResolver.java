@@ -37,7 +37,7 @@ import org.ballerinalang.langserver.commons.BallerinaCompletionContext;
  * 
  * returns false if the context where the field access expression and the cursor resides is ambiguous/ possibly a write
  * 
- * @since 2.0.0
+ * @since 1.0.0
  */
 class OptionalFieldAccessWriteAmbiguityResolver extends NodeTransformer<Boolean> {
     private final BallerinaCompletionContext context;

@@ -72,7 +72,7 @@ import static org.ballerinalang.debugadapter.utils.PackageUtils.INIT_CLASS_NAME;
 /**
  * Debug expression evaluation utils.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public final class EvaluationUtils {
 

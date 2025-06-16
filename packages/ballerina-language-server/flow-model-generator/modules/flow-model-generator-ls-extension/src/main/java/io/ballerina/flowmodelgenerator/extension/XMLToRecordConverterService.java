@@ -37,7 +37,7 @@ import java.util.concurrent.CompletableFuture;
 /**
  * The extended service for the JsonToBalRecord endpoint.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 @JavaSPIService("org.ballerinalang.langserver.commons.service.spi.ExtendedLanguageServerService")
 @JsonSegment("xmlToRecordTypes")

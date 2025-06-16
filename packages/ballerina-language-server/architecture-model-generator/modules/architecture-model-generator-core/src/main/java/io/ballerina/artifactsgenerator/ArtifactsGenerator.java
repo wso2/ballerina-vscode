@@ -39,7 +39,7 @@ import java.util.concurrent.ConcurrentMap;
  * Generator class responsible for creating artifacts from a Ballerina syntax tree. This class analyzes the module
  * members in a syntax tree to extract artifact information.
  *
- * @since 2.3.0
+ * @since 1.0.0
  */
 public class ArtifactsGenerator {
 

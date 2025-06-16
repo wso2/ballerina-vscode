@@ -25,7 +25,7 @@ import com.google.gson.JsonElement;
  *
  * @param filePath file path of the source file
  * @param component component to delete
- * @since 1.4.0
+ * @since 1.0.0
  */
 public record ComponentDeleteRequest(String filePath, JsonElement component) {
 

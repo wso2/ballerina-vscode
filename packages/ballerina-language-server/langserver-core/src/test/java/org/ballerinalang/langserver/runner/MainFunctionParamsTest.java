@@ -33,7 +33,7 @@ import java.nio.file.Path;
 /**
  * Tests {@link org.ballerinalang.langserver.extensions.ballerina.runner.BallerinaRunnerService} mainFunctionParams api.
  *
- * @since 2201.11.0
+ * @since 1.0.0
  */
 public class MainFunctionParamsTest {
 

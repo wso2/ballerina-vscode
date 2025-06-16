@@ -26,7 +26,7 @@ import java.io.IOException;
 /**
  * Test class to test the functionality of the extract to function code action.
  *
- * @since 2201.2.1
+ * @since 1.0.0
  */
 public class ExtractToFunctionCodeActionTest extends AbstractCodeActionTest {
 

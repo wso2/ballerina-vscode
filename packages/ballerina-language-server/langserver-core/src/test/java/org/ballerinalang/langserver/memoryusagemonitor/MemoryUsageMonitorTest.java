@@ -35,7 +35,7 @@ import java.lang.management.MemoryUsage;
 /**
  * Tests {@link MemoryUsageMonitor}.
  *
- * @since 2201.9.0
+ * @since 1.0.0
  */
 public class MemoryUsageMonitorTest extends AbstractLSTest {
     private ExtendedLanguageClient mockClient;

@@ -27,7 +27,7 @@ import java.util.List;
 /**
  * Represent a parameter of a Ballerina Object Method.
  *
- * @since 2201.2.2
+ * @since 1.0.0
  */
 public class FunctionParameter extends ModelElement {
 

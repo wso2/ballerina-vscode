@@ -25,7 +25,7 @@ import org.eclipse.lsp4j.CompletionItemKind;
 /**
  * This is used for building parameter completions.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public final class ParameterCompletionItemBuilder {
     private ParameterCompletionItemBuilder() {

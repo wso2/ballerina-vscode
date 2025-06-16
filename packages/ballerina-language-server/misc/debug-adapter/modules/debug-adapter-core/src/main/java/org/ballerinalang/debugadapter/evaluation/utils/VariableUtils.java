@@ -41,7 +41,7 @@ import static org.ballerinalang.debugadapter.variable.VariableUtils.UNKNOWN_VALU
 /**
  * Expression evaluation related variable utils.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public final class VariableUtils {
 

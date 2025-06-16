@@ -32,7 +32,7 @@ import java.util.List;
  * @param typeName The type name of the annotation
  * @param packageInfo The package information of the annotation
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public record AnnotationAttachment(String annotName, List<AnnotationAttachPoint> attachmentPoints, String displayName,
                                    String description, String typeName, String packageInfo) {

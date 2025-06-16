@@ -26,7 +26,7 @@ import java.util.ArrayList;
 /**
  * Response for Persist ER Model.
  *
- * @since 2201.6.0
+ * @since 1.0.0
  */
 public class PersistERModelResponse extends ModelResponse {
 

@@ -27,7 +27,7 @@ import java.util.concurrent.CompletableFuture;
 /**
  * The extended service for the BalShell endpoint.
  *
- * @since 2201.1.1
+ * @since 1.0.0
  */
 @JavaSPIService("org.ballerinalang.langserver.commons.service.spi.ExtendedLanguageServerService")
 @JsonSegment("balShell")

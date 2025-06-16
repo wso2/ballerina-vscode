@@ -52,7 +52,7 @@ import static org.ballerinalang.langserver.completions.util.SortingUtil.genSortT
 /**
  * Utilities for the module part node context.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public final class ModulePartNodeContextUtil {
 

@@ -51,7 +51,7 @@ import java.util.stream.Collectors;
 /**
  * Analyzes the body of a participant.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class ParticipantBodyAnalyzer extends NodeVisitor {
 

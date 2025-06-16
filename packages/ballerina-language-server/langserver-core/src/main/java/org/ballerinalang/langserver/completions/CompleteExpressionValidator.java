@@ -58,7 +58,7 @@ import io.ballerina.compiler.syntax.tree.XMLQualifiedNameNode;
 /**
  * Validates whether the expressions are completed.
  * 
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class CompleteExpressionValidator extends NodeTransformer<Boolean> {
 

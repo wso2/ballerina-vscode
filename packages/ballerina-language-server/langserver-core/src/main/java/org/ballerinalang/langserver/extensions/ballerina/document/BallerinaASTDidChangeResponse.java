@@ -18,7 +18,7 @@ package org.ballerinalang.langserver.extensions.ballerina.document;
 /**
  * Represents the response sent from server to client upon AST changes.
  *
- * @since 0.981.2
+ * @since 1.0.0
  */
 public class BallerinaASTDidChangeResponse {
     String content;

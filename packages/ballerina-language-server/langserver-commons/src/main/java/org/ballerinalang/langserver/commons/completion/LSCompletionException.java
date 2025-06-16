@@ -18,7 +18,7 @@ package org.ballerinalang.langserver.commons.completion;
 /**
  * This Exception is thrown when an error occurs during the completions process.
  * 
- * @since 0.985.0
+ * @since 1.0.0
  */
 public class LSCompletionException extends Exception {
     public LSCompletionException(String message) {

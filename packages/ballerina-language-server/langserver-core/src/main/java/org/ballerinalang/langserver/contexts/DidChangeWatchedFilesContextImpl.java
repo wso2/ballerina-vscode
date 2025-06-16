@@ -25,7 +25,7 @@ import org.ballerinalang.langserver.commons.workspace.WorkspaceManager;
 /**
  * DidChangeWatchedFiles context implementation.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class DidChangeWatchedFilesContextImpl
         extends AbstractWorkspaceServiceContext implements DidChangeWatchedFilesContext {
@@ -37,7 +37,7 @@ public class DidChangeWatchedFilesContextImpl
     /**
      * Represents Language server didChangeWatchedFiles context Builder.
      *
-     * @since 2.0.0
+     * @since 1.0.0
      */
     protected static class DidChangeWatchedFilesContextBuilder
             extends AbstractContextBuilder<DidChangeWatchedFilesContextImpl.DidChangeWatchedFilesContextBuilder> {

@@ -22,7 +22,7 @@ import java.util.List;
 /**
  * Central package list result.
  *
- * @since 2201.8.0
+ * @since 1.0.0
  */
 public class CentralPackageListResult {
 

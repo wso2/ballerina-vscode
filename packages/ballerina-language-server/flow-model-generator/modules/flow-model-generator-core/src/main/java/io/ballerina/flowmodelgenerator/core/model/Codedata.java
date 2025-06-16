@@ -39,7 +39,7 @@ import io.ballerina.tools.text.LineRange;
  * @param isNew              Whether the component is a node template
  * @param isGenerated        The component is auto generated or not
  * @param inferredReturnType The inferred return type of the component if exists
- * @since 2.0.0
+ * @since 1.0.0
  */
 public record Codedata(NodeKind node, String org, String module, String packageName, String object, String symbol,
                        String version, LineRange lineRange, String sourceCode, String parentSymbol,

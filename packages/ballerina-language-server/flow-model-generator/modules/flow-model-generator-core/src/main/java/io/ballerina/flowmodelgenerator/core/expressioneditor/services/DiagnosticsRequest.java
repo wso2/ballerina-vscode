@@ -35,7 +35,7 @@ import java.util.stream.StreamSupport;
  * expression editor. It provides the basic processing workflow to parse the input expression, extract syntax errors,
  * and then, if no syntax issues are found, retrieve semantic diagnostics.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public abstract class DiagnosticsRequest extends DebouncedExpressionEditorRequest<DiagnosticsRequest.Diagnostics> {
 

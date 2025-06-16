@@ -24,7 +24,7 @@ import java.io.IOException;
 /**
  * Test class for Statements Signature help.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class StatementTest extends AbstractSignatureHelpTest {
     @Override

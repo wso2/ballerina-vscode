@@ -50,7 +50,7 @@ import java.util.Set;
  * @param typeMembers         member types of the type constrain
  * @param advancedValue       advanced value of the property
  * @param imports             import statements of the dependent types in the format prefix -> moduleId
- * @since 2.0.0
+ * @since 1.0.0
  */
 public record Property(Metadata metadata, String valueType, Object valueTypeConstraint, Object value, Object oldValue,
                        String placeholder, boolean optional, boolean editable, boolean advanced, boolean hidden,

@@ -19,7 +19,7 @@ package org.ballerinalang.debugadapter.evaluation;
 /**
  * Error type definition for debug expression evaluation related exceptions.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class EvaluationException extends Exception {
 

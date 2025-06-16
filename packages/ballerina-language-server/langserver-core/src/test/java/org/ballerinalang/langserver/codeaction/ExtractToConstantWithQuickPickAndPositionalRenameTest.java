@@ -28,7 +28,7 @@ import java.nio.file.Path;
 /**
  * Test cases for Extract to Constant code action with quick pick.
  * 
- * @since 2201.4.0
+ * @since 1.0.0
  */
 public class ExtractToConstantWithQuickPickAndPositionalRenameTest extends AbstractCodeActionTest {
     
