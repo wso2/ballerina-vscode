@@ -30,5 +30,16 @@ public class RefArrayType extends RefType {
     public RefArrayType(RefType memberType) {
         this.typeName = "array";
         this.memberType = memberType;
+        this.dependentTypes = memberType.dependentTypes;
+        this.memberType.dependentTypes = null;
     }
+
+    public RefArrayType(RefArrayType arrayType, Boolean needDependentTypes) {
+        this.typeName = arrayType.typeName;
+        this.memberType = arrayType.memberType;
+        if (needDependentTypes) {
+            this.dependentTypes = arrayType.dependentTypes;
+        }
+    }
+
 }

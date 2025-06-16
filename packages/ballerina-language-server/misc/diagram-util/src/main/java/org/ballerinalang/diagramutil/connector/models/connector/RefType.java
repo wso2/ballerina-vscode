@@ -535,6 +535,18 @@ public class RefType {
                     if (subType.dependentTypes != null) {
                         dependentTypes.putAll(subType.dependentTypes);
                     }
+                } else if (subType instanceof RefArrayType) {
+                    RefArrayType arraySubType = new RefArrayType(((RefArrayType) subType).memberType);
+                    TypeInfo typeInfo = ((RefArrayType) subType).memberType.getTypeInfo();
+                    String hashCode = String.valueOf(
+                            (typeInfo.name + typeInfo.orgName + typeInfo.moduleName + typeInfo.version).hashCode());
+                    arraySubType.memberType.setHashCode(hashCode);
+                    fields.add(arraySubType);
+                    RefType depType = new RefRecordType((RefRecordType) (((RefArrayType) subType).memberType), false);
+                    dependentTypes.put(hashCode, depType);
+                    if (subType.dependentTypes != null) {
+                        dependentTypes.putAll(subType.dependentTypes);
+                    }
                 } else {
                     subType.setName(name);
                     subType.setOptional(field.isOptional());
