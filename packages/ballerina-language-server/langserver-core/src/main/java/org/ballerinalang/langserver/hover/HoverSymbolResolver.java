@@ -33,7 +33,7 @@ import java.util.Optional;
 /**
  * Resolves a hover symbol.
  *
- * @since 2201.2.0
+ * @since 1.0.0
  */
 public class HoverSymbolResolver extends NodeTransformer<Optional<Symbol>> {
 

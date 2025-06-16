@@ -25,7 +25,7 @@ import org.eclipse.lsp4j.InsertTextFormat;
 /**
  * Abstract representation of the LSCompletionItem.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public abstract class AbstractLSCompletionItem implements LSCompletionItem {
 

@@ -68,7 +68,7 @@ import java.util.stream.Stream;
 /**
  * Create variable code action when type infer diagnostic is presented.
  *
- * @since 2201.4.0
+ * @since 1.0.0
  */
 @JavaSPIService("org.ballerinalang.langserver.commons.codeaction.spi.LSCodeActionProvider")
 public class CreateVariableWithTypeCodeAction extends CreateVariableCodeAction {

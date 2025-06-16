@@ -38,7 +38,7 @@ import java.util.List;
 /**
  * Tests for getting the design model for a package.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class DesignModelGeneratorTest extends AbstractLSTest {
 

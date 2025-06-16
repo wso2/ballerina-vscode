@@ -18,7 +18,7 @@ package org.ballerinalang.langserver.commons.codeaction;
 /**
  * Exception for Language Server Code Actions.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class LSCodeActionProviderException extends Exception {
     public LSCodeActionProviderException(String message) {

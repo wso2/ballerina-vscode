@@ -27,7 +27,7 @@ import java.io.IOException;
 /**
  * Test class to test the converting a variable to immutable code action.
  *
- * @since 2201.9.0
+ * @since 1.0.0
  */
 public class MakeVariableImmutableCodeActionTest extends AbstractCodeActionTest {
 

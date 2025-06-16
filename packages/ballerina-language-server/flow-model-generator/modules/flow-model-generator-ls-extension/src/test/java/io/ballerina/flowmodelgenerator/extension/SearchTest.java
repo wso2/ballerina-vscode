@@ -34,7 +34,7 @@ import java.util.Map;
 /**
  * Tests for the search API.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class SearchTest extends AbstractLSTest {
 

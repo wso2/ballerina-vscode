@@ -21,7 +21,7 @@ package io.ballerina.architecturemodelgenerator.core.diagnostics;
 /**
  * Exception for architecture model generation.
  *
- * @since 2201.2.2
+ * @since 1.0.0
  */
 public class ArchitectureModelException extends Exception {
 

@@ -41,7 +41,7 @@ import java.util.stream.Stream;
 /**
  * Test class for Signature help.
  *
- * @since 0.982.0
+ * @since 1.0.0
  */
 public abstract class AbstractSignatureHelpTest {
 

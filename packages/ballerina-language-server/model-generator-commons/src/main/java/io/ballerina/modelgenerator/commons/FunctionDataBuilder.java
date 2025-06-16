@@ -94,7 +94,7 @@ import java.util.stream.Stream;
  * The class first checks if the item exists in the index. If not, it derives the symbol using the semantic model.
  * </p>
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class FunctionDataBuilder {
 

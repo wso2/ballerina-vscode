@@ -23,7 +23,7 @@ import com.sun.jdi.StackFrame;
 /**
  * Proxy definition for JDI stack frame.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public interface StackFrameProxy extends ObjectReferenceProxy {
 

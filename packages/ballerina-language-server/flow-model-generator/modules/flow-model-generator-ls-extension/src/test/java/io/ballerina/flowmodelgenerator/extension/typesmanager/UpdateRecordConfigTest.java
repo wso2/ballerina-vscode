@@ -33,7 +33,7 @@ import java.nio.file.Path;
 /**
  * Test cases for retrieving the record config model.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class UpdateRecordConfigTest extends AbstractLSTest {
 

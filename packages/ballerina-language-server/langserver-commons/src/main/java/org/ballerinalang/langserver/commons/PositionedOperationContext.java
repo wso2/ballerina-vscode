@@ -22,7 +22,7 @@ import org.eclipse.lsp4j.Position;
 /**
  * Represents an operation context which is triggered with a cursor position.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public interface PositionedOperationContext extends DocumentServiceContext {
 

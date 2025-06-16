@@ -45,7 +45,7 @@ import static io.ballerina.graphqlmodelgenerator.core.Constants.UNEXPECTED_ERROR
 /**
  * Ballerina LS extension for the GraphQL model generator service.
  *
- * @since 2201.5.0
+ * @since 1.0.0
  */
 @JavaSPIService("org.ballerinalang.langserver.commons.service.spi.ExtendedLanguageServerService")
 @JsonSegment("graphqlDesignService")

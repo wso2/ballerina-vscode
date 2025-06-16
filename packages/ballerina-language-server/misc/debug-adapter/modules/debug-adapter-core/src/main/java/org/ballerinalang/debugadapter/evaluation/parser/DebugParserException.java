@@ -19,7 +19,7 @@ package org.ballerinalang.debugadapter.evaluation.parser;
 /**
  * A wrapper implementation to denote debug parsing failures.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class DebugParserException extends Exception {
 

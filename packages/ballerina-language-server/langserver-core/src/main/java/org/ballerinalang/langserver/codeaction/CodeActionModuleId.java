@@ -30,7 +30,7 @@ import java.util.stream.Collectors;
  * Allows convenient transformation of ImportDeclarationNode node model representation for org-name, module-name,
  * version and alias.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class CodeActionModuleId implements ModuleID {
 

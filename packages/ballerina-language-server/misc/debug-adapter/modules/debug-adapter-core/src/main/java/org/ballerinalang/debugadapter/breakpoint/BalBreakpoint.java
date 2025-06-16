@@ -30,7 +30,7 @@ import static org.ballerinalang.debugadapter.breakpoint.LogMessage.INTERPOLATION
 /**
  * Holds Ballerina breakpoint related information.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class BalBreakpoint {
 

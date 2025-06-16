@@ -67,7 +67,7 @@ import static io.ballerina.architecturemodelgenerator.core.Constants.LISTENER;
 /**
  * Visitor class for ServiceDeclaration nodes.
  *
- * @since 2201.2.2
+ * @since 1.0.0
  */
 public class ServiceDeclarationNodeVisitor extends NodeVisitor {
     private final PackageCompilation packageCompilation;

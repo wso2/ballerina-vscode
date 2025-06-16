@@ -34,7 +34,7 @@ import java.util.List;
 /**
  * Code Action for implementing functions of an object.
  *
- * @since 1.2.0
+ * @since 1.0.0
  */
 @JavaSPIService("org.ballerinalang.langserver.commons.codeaction.spi.LSCodeActionProvider")
 public class ImplementMethodCodeAction extends AbstractImplementMethodCodeAction

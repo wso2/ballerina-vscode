@@ -50,7 +50,7 @@ import java.util.stream.Collectors;
  * This class visits each node in bottom-up manner finding best possible scoped node such as functionCall, methodCall
  * etc. covered by the given range.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class ScopedSymbolFinder extends NodeVisitor {
     private final Range range;

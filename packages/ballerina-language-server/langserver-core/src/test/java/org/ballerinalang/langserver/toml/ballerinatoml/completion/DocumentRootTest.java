@@ -26,7 +26,7 @@ import java.io.IOException;
 /**
  * Test document root context.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class DocumentRootTest extends BallerinaTomlCompletionTest {
 

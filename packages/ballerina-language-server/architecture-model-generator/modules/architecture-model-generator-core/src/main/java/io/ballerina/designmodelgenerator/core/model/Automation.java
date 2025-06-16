@@ -24,7 +24,7 @@ import java.util.Objects;
 /**
  * Represents the main function in a ballerina package.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public final class Automation extends DesignGraphNode {
 

@@ -27,7 +27,7 @@ import java.io.IOException;
 /**
  * Test class to test adding readonly to the type.
  *
- * @since 2201.10.0
+ * @since 1.0.0
  */
 public class AddReadonlyCodeActionTest extends AbstractCodeActionTest {
 

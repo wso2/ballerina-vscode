@@ -25,7 +25,7 @@ import com.google.gson.JsonElement;
  *
  * @param configFilePath  path of the config file
  * @param configVariable new config variables
- * @since 1.4.0
+ * @since 1.0.0
  */
 public record ConfigVariablesUpdateRequest(String configFilePath, JsonElement configVariable) {
 }

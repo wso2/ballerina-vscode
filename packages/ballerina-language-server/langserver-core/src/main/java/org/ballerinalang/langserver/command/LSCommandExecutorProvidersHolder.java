@@ -28,7 +28,7 @@ import java.util.ServiceLoader;
 /**
  * Loads and provides the Command Executor Providers.
  *
- * @since 0.983.0
+ * @since 1.0.0
  */
 public class LSCommandExecutorProvidersHolder {
     private static final Map<String, LSCommandExecutor> executors = new HashMap<>();

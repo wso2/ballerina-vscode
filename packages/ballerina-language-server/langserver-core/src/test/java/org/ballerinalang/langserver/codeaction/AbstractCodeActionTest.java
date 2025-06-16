@@ -64,7 +64,7 @@ import java.util.Optional;
 /**
  * Abstract test for code action related tests.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public abstract class AbstractCodeActionTest extends AbstractLSTest {
 

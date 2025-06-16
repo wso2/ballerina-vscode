@@ -32,7 +32,7 @@ import java.util.Optional;
 /**
  * Implementation for the {@link BallerinaDefinitionContext}.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class BallerinaDefinitionContextImpl 
         extends PositionedOperationContextImpl implements BallerinaDefinitionContext {
@@ -66,7 +66,7 @@ public class BallerinaDefinitionContextImpl
     /**
      * Represents Language server completion context Builder.
      *
-     * @since 2.0.0
+     * @since 1.0.0
      */
     protected static class DefinitionContextBuilder extends AbstractContextBuilder<DefinitionContextBuilder> {
         private Position cursor;

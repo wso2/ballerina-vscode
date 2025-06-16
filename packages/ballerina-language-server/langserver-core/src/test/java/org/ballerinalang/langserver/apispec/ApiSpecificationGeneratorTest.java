@@ -38,7 +38,7 @@ import java.util.stream.Stream;
 /**
  * Contains tests for the LS API Specification Generator.
  *
- * @since 2201.12.0
+ * @since 1.0.0
  */
 public class ApiSpecificationGeneratorTest {
 

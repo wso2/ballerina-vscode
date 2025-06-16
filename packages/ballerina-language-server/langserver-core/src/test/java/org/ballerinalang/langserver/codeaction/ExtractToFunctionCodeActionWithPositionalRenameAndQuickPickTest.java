@@ -28,7 +28,7 @@ import java.nio.file.Path;
 /**
  * Test class to test the functionality of the extract to function code action with quick pick and positional
  * rename capability.
- * @since 2201.5.0
+ * @since 1.0.0
  */
 public class ExtractToFunctionCodeActionWithPositionalRenameAndQuickPickTest extends AbstractCodeActionTest {
 

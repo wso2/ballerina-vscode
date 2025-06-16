@@ -27,7 +27,7 @@ import org.ballerinalang.langserver.commons.eventsync.spi.EventSubscriber;
 /**
  * Test Subscriber to test Event Sync publish subscriber.
  *
- * @since 2201.1.1
+ * @since 1.0.0
  */
 @JavaSPIService("org.ballerinalang.langserver.commons.eventsync.spi.EventSubscriber")
 public class EventSyncTestSubscriber implements EventSubscriber {

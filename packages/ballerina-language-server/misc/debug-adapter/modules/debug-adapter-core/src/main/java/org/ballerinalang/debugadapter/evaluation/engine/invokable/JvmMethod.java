@@ -32,7 +32,7 @@ import static org.ballerinalang.debugadapter.evaluation.EvaluationExceptionKind.
 /**
  * JDI based java method representation for a given ballerina function.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public abstract class JvmMethod {
 

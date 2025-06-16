@@ -39,7 +39,7 @@ import java.util.Optional;
  * Parent completion provider for Right arrow action nodes.
  *
  * @param <T> Action node type
- * @since 2.0.0
+ * @since 1.0.0
  */
 public abstract class RightArrowActionNodeContext<T extends ActionNode> extends InvocationNodeContextProvider<T> {
 

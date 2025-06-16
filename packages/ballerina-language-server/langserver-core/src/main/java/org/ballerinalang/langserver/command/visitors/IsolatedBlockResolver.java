@@ -31,7 +31,7 @@ import java.util.Optional;
 /**
  * Finds if a provided {@link NonTerminalNode} node is contained within an isolated block.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class IsolatedBlockResolver extends NodeTransformer<Boolean> {
 

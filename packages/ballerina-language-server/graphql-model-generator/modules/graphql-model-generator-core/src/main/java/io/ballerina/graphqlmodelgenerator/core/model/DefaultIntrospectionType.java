@@ -24,7 +24,7 @@ import java.util.List;
 /**
  * Represents the Default Introspection types.
  *
- * @since 2201.5.0
+ * @since 1.0.0
  */
 public enum DefaultIntrospectionType {
     STRING("String"),

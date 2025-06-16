@@ -35,7 +35,7 @@ import static org.ballerinalang.debugadapter.evaluation.validator.ValidatorExcep
 /**
  * Validator implementation for ballerina expressions.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class ExpressionValidator extends StatementValidator {
 

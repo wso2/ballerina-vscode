@@ -71,7 +71,7 @@ import java.util.stream.Collectors;
 /**
  * Code Action for extracting to a configurable variable.
  *
- * @since 2201.10.0
+ * @since 1.0.0
  */
 @JavaSPIService("org.ballerinalang.langserver.commons.codeaction.spi.LSCodeActionProvider")
 public class ExtractToConfigurableCodeAction implements RangeBasedCodeActionProvider {

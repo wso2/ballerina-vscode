@@ -26,7 +26,7 @@ import java.util.Map;
 /**
  * Represents the response for common source.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class CommonSourceResponse extends AbstractFlowModelResponse {
 

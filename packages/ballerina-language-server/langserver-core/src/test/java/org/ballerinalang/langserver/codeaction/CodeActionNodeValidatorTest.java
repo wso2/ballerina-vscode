@@ -37,7 +37,7 @@ import java.util.Objects;
 /**
  * Test cases to validate the code action syntax.
  *
- * @since 2201.0.3
+ * @since 1.0.0
  */
 public class CodeActionNodeValidatorTest {
 

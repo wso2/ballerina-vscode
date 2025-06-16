@@ -51,7 +51,7 @@ import java.util.function.Predicate;
  * Generic completion resolver for the Block Nodes.
  *
  * @param <T> block node type
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class BlockNodeContextProvider<T extends Node> extends AbstractCompletionProvider<T> {
 

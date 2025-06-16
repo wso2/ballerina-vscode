@@ -21,7 +21,7 @@ package io.ballerina.designmodelgenerator.extension;
 /**
  * Constants for the design model generator.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class DesignModelGeneratorConstants {
     public static final String CAPABILITY_NAME = "designModel";

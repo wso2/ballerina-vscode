@@ -22,7 +22,7 @@ import org.eclipse.lsp4j.CompletionItem;
 /**
  * Wrapper interface for a Completion item.
  *
- * @since 1.2.0
+ * @since 1.0.0
  */
 public interface LSCompletionItem {
 
@@ -33,7 +33,7 @@ public interface LSCompletionItem {
     /**
      * Represents the completion item type.
      * 
-     * @since 2.0.0
+     * @since 1.0.0
      */
     enum CompletionItemType {
         OBJECT_FIELD,

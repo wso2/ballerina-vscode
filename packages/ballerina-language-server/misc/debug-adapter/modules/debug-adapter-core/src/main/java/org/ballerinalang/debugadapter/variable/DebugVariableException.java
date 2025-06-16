@@ -19,7 +19,7 @@ package org.ballerinalang.debugadapter.variable;
 /**
  * Error type definition for debugger variable implementation related exceptions.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class DebugVariableException extends Exception {
 

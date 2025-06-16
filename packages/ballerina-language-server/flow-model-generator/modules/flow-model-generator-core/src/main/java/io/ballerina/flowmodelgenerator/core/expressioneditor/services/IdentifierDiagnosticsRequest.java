@@ -39,7 +39,7 @@ import java.util.stream.Stream;
  * Handles diagnostic requests for identifier validation in the expression editor.
  *
  * @see DiagnosticsRequest
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class IdentifierDiagnosticsRequest extends DiagnosticsRequest {
 

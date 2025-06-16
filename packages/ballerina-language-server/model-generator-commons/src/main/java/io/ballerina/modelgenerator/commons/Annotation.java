@@ -29,7 +29,7 @@ package io.ballerina.modelgenerator.commons;
  * @param orgName The organization name of the annotation
  * @param moduleName The module name of the annotation
  *
- * @since 2.2.0
+ * @since 1.0.0
  */
 public record Annotation(
         String annotationName,

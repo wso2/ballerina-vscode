@@ -39,7 +39,7 @@ import java.util.Map;
 /**
  * Test cases for the flow model generator service.
  *
- * @since 1.4.0
+ * @since 1.0.0
  */
 public class ConfigVariablesUpdateTest extends AbstractLSTest {
 
@@ -107,7 +107,7 @@ public class ConfigVariablesUpdateTest extends AbstractLSTest {
      * @param configFile     Path to config file
      * @param configVariable Config variables
      * @param output         The expected output source code
-     * @since 1.4.0
+     * @since 1.0.0
      */
     private record TestConfig(String configFile, JsonElement configVariable, Map<String, List<TextEdit>> output) {
 

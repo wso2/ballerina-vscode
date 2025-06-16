@@ -26,7 +26,7 @@ import java.io.IOException;
 /**
  * Test cases for ModVarToListenerDeclCodeAction.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class ModVarToListenerDeclCodeActionTest extends AbstractCodeActionTest {
 

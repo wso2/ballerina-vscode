@@ -29,7 +29,7 @@ import static org.ballerinalang.debugadapter.evaluation.EvaluationExceptionKind.
 /**
  * Ballerina JVM runtime method representation.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public abstract class RuntimeMethod extends JvmMethod {
 

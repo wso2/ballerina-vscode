@@ -27,7 +27,7 @@ import java.util.List;
 /**
  * Represents the Command execution operation context.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public interface ExecuteCommandContext extends WorkspaceServiceContext {
 

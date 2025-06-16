@@ -37,7 +37,7 @@ import static org.ballerinalang.debugadapter.evaluation.utils.EvaluationUtils.ge
 /**
  * Trap expression evaluator implementation.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class TrapExpressionEvaluator extends Evaluator {
 

@@ -52,7 +52,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * Utilities for the diagnostics related operations.
  *
- * @since 0.983.0
+ * @since 1.0.0
  */
 public class DiagnosticsHelper {
     private final List<Diagnostic> emptyDiagnosticList = new ArrayList<>(0);

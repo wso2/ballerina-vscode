@@ -20,7 +20,7 @@ import java.util.List;
 /**
  * Represents the result for the initBalServices API in language server.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class BallerinaInitializeResult {
     List<BallerinaServerCapability> ballerinaServerCapabilities;

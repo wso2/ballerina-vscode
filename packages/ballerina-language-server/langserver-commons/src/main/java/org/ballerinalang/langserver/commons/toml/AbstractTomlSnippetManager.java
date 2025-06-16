@@ -29,7 +29,7 @@ import java.util.Map;
 /**
  * Abstract Toml Snippet Manager represents the holder of completion items for a particular toml config file.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public abstract class AbstractTomlSnippetManager {
 

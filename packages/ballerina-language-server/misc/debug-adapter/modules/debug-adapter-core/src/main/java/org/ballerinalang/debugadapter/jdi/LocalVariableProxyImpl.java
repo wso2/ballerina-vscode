@@ -24,7 +24,7 @@ import com.sun.jdi.Type;
 /**
  * Proxy implementation for JDI local variable.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class LocalVariableProxyImpl extends JdiProxy implements LocalVariableProxy {
     private final StackFrameProxyImpl myFrame;

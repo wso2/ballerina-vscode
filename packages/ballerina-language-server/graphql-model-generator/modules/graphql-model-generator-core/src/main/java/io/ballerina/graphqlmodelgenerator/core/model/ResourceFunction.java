@@ -25,7 +25,7 @@ import java.util.List;
 /**
  * Represents the resource function of the graphQL service.
  *
- * @since 2201.5.0
+ * @since 1.0.0
  */
 public class ResourceFunction {
     private final String identifier;

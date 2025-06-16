@@ -39,7 +39,7 @@ import java.util.regex.Pattern;
 /**
  * Common utility functions.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class CommonUtils {
 

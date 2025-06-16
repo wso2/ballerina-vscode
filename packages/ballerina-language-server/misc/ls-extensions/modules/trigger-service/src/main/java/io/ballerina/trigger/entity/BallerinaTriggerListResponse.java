@@ -24,7 +24,7 @@ import java.util.List;
 /**
  * Response to be sent with the triggers list.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class BallerinaTriggerListResponse {
     private List<Trigger> central;

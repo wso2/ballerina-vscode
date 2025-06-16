@@ -33,7 +33,7 @@ import java.nio.file.Path;
 /**
  * Tests for the conversion of data mapper model to query.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class DataMappingQueryConvertTest extends AbstractLSTest {
 

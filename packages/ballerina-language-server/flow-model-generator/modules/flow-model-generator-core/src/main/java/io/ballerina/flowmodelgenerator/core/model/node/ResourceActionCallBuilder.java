@@ -46,7 +46,7 @@ import java.util.Set;
 /**
  * Represents the resource action invocation node in the flow model.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class ResourceActionCallBuilder extends CallBuilder {
 

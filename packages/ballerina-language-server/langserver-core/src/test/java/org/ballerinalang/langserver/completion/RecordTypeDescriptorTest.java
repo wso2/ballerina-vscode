@@ -26,7 +26,7 @@ import java.io.IOException;
 /**
  * Record Type Descriptor Context tests.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class RecordTypeDescriptorTest extends CompletionTest {
     @Test(dataProvider = "completion-data-provider")

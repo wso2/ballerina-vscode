@@ -23,7 +23,7 @@ import io.ballerina.tools.diagnostics.DiagnosticSeverity;
 /**
  * Diagnostic message format for component model generation errors.
  *
- * @since 2201.2.2
+ * @since 1.0.0
  */
 public class DiagnosticMessage {
 

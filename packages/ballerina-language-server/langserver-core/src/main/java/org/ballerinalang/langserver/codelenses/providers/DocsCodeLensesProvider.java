@@ -44,7 +44,7 @@ import java.util.Optional;
 /**
  * Code lenses provider for adding all documentation for top level items.
  *
- * @since 0.990.3
+ * @since 1.0.0
  */
 @JavaSPIService("org.ballerinalang.langserver.commons.codelenses.spi.LSCodeLensesProvider")
 public class DocsCodeLensesProvider extends AbstractCodeLensesProvider {

@@ -22,7 +22,7 @@ import org.eclipse.lsp4j.TextDocumentIdentifier;
 /**
  * {@link BallerinaRunnerService} diagnostics api request.
  *
- * @since 2201.11.0
+ * @since 1.0.0
  */
 public class ProjectDiagnosticsRequest {
 

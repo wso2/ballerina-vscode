@@ -18,7 +18,7 @@ package org.ballerinalang.langserver.extensions.ballerina.document;
 /**
  * Represents the Service constants.
  * 
- * @since 2.0.0
+ * @since 1.0.0
  */
 public final class Constants {
 

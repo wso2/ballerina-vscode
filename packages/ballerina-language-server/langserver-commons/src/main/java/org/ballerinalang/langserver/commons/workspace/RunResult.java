@@ -27,7 +27,7 @@ import java.util.Collection;
  *
  * @param process     {@link Process} instance representing the run operation
  * @param diagnostics diagnostics generated during the compilation
- * @since 2201.12.0
+ * @since 1.0.0
  */
 public record RunResult(Process process, Collection<Diagnostic> diagnostics) {
 

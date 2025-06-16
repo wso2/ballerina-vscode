@@ -32,7 +32,7 @@ import java.util.Map;
 /**
  * Proxy implementation for JDI object reference.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class ObjectReferenceProxyImpl extends JdiProxy {
     private final ObjectReference myObjectReference;

@@ -36,7 +36,7 @@ import java.util.Optional;
 /**
  * Finds references for the given symbol within documentation (parameters).
  *
- * @since 2201.6.0
+ * @since 1.0.0
  */
 public class DocumentationReferenceFinder extends NodeTransformer<List<NodeLocation>> {
 

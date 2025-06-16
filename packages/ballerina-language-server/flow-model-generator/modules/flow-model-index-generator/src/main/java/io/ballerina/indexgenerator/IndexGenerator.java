@@ -91,7 +91,7 @@ import java.util.logging.Logger;
 /**
  * Index generator to cache functions and connectors.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 class IndexGenerator {
 

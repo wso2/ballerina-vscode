@@ -37,7 +37,7 @@ import java.util.logging.Logger;
 /**
  * Manages database operations for retrieving information about external connectors and functions.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class DatabaseManager {
 

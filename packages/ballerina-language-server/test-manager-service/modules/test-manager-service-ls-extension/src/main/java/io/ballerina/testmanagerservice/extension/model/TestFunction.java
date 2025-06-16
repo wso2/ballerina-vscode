@@ -39,7 +39,7 @@ import java.util.Optional;
  * @param annotations annotations
  * @param editable editable
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public record TestFunction(Metadata metadata, Codedata codedata, Property functionName, Property returnType,
                            List<FunctionParameter> parameters, List<Annotation> annotations,

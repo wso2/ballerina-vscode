@@ -28,7 +28,7 @@ import java.util.logging.Logger;
  * Class to implement "langserver start" command for ballerina. Ex: ballerina start-langserver [--debug debugPort]
  * [--help|-h]
  *
- * @since 1.1.0
+ * @since 1.0.0
  */
 @CommandLine.Command(name = "start-language-server", description = "start Ballerina language server")
 public class LangServerStartCmd implements BLauncherCmd {

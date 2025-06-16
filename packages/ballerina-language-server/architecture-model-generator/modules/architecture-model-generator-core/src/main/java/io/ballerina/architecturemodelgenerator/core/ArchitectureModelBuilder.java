@@ -42,7 +42,7 @@ import java.util.concurrent.atomic.AtomicReference;
 /**
  * Construct component model fpr project with multiple service.
  *
- * @since 2201.2.2
+ * @since 1.0.0
  */
 public class ArchitectureModelBuilder {
 

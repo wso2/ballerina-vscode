@@ -32,7 +32,7 @@ import java.util.ServiceLoader;
 /**
  * Subscribes and provide the Event Subscribers.
  *
- * @since 2201.1.1
+ * @since 1.0.0
  */
 public class EventSyncPubSubHolder {
 

@@ -26,7 +26,7 @@ import io.ballerina.testmanagerservice.extension.model.TestFunction;
  * @param filePath  path for the source test
  * @param function  test function
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public record AddTestFunctionRequest(String filePath, TestFunction function) {
 }

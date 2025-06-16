@@ -42,7 +42,7 @@ import java.util.stream.Stream;
 /**
  * Test Persist ER Model generation.
  *
- * @since 2201.6.0
+ * @since 1.0.0
  */
 public class PersistERModelGeneratorTests {
 

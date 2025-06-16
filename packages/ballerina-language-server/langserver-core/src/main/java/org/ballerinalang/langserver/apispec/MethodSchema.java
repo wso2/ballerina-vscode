@@ -26,7 +26,7 @@ import java.util.List;
  * @param method     the JSON-RPC method name
  * @param parameters the list of parameters for the method
  * @param returnType the return type of the method
- * @since 2201.12.0
+ * @since 1.0.0
  */
 public record MethodSchema(
         String method,

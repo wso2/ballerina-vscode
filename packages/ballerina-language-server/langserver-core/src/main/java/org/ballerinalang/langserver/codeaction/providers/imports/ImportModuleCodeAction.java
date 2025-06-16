@@ -55,7 +55,7 @@ import java.util.stream.Collectors;
 /**
  * Code Action for importing a module.
  *
- * @since 1.2.0
+ * @since 1.0.0
  */
 @JavaSPIService("org.ballerinalang.langserver.commons.codeaction.spi.LSCodeActionProvider")
 public class ImportModuleCodeAction implements DiagnosticBasedCodeActionProvider {

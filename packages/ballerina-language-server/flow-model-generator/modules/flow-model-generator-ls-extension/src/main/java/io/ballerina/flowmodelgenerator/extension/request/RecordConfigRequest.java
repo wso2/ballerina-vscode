@@ -26,7 +26,7 @@ import io.ballerina.flowmodelgenerator.core.model.Codedata;
  * @param filePath       path to the respective file
  * @param codedata       code data of the type
  * @param typeConstraint type constraint for the record
- * @since 2.0.0
+ * @since 1.0.0
  */
 public record RecordConfigRequest(String filePath, Codedata codedata, String typeConstraint) {
 }

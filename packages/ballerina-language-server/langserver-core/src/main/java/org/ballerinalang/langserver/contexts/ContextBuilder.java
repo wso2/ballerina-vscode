@@ -52,7 +52,7 @@ import java.util.List;
 /**
  * Builds the language server operation contexts on demand.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public final class ContextBuilder {
 

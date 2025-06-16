@@ -41,7 +41,7 @@ import java.util.stream.Collectors;
 /**
  * Builder for ClientResourceAccessAction completion items.
  *
- * @since 2201.2.0
+ * @since 1.0.0
  */
 public final class ResourcePathCompletionUtil {
 

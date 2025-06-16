@@ -25,7 +25,7 @@ import io.ballerina.compiler.syntax.tree.ReturnStatementNode;
 /**
  * Visitor to find the base url of endpoint.
  *
- * @since 2201.2.3
+ * @since 1.0.0
  */
 public class ReturnFinder extends NodeVisitor {
 

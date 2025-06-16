@@ -24,7 +24,7 @@ package io.ballerina.testmanagerservice.extension.model;
  * @param label label
  * @param description description
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public record Metadata(String label, String description) {
 }

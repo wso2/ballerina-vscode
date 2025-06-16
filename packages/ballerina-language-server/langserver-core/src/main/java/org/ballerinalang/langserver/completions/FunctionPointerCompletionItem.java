@@ -9,7 +9,7 @@ import javax.annotation.Nullable;
 /**
  * Represents a FunctionPointer symbol based completion item.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class FunctionPointerCompletionItem extends SymbolCompletionItem {
 

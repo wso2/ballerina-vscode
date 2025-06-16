@@ -35,7 +35,7 @@ import java.util.Optional;
  * This is the BallerinaLocateSyntaxTreeUtil class for related utils in mapping the location of syntax nodes
  * for a given range.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public final class BallerinaLocateSyntaxTreeUtil {
 

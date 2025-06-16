@@ -36,7 +36,7 @@ import java.util.Map;
 /**
  * Manages the participants in the sequence diagram.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class ParticipantManager {
 

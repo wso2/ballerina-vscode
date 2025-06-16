@@ -44,7 +44,7 @@ import java.util.concurrent.CompletableFuture;
 /**
  * Contains a set of utility methods to manage projects.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public interface WorkspaceManager {
 
@@ -243,7 +243,7 @@ public interface WorkspaceManager {
      * @param runContext context related to the project to be run.
      * @return Process created by running the project. Empty if failed due to non process related issues.
      * @throws IOException If failed to start the process.
-     * @since 2201.6.0
+     * @since 1.0.0
      */
     RunResult run(RunContext runContext) throws IOException;
 
@@ -251,7 +251,7 @@ public interface WorkspaceManager {
      * Stop a running process started with {@link #run}.
      * @param filePath Path that belongs to the project to be stopped.
      * @return {@code true} if the process was stopped successfully (or already dead), {@code false} otherwise.
-     * @since 2201.6.0
+     * @since 1.0.0
      */
     boolean stop(Path filePath);
 

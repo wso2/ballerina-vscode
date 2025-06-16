@@ -43,7 +43,7 @@ import static org.ballerinalang.debugadapter.evaluation.utils.EvaluationUtils.ge
 /**
  * XML template expression evaluator implementation.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class XMLTemplateExpressionEvaluator extends Evaluator {
 

@@ -27,7 +27,7 @@ import java.io.IOException;
 /**
  * Test class to test clone value code action.
  *
- * @since 2201.10.0
+ * @since 1.0.0
  */
 public class CloneValueCodeActionTest extends AbstractCodeActionTest {
 

@@ -30,7 +30,7 @@ import java.util.Map;
 /**
  * The central interface to obtain library information from the Ballerina central.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public interface CentralAPI {
 

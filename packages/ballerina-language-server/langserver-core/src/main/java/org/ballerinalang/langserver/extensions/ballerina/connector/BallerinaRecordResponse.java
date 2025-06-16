@@ -23,7 +23,7 @@ import com.google.gson.JsonElement;
 /**
  * Represents with record AST.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class BallerinaRecordResponse {
 

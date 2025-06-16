@@ -75,7 +75,7 @@ import java.util.function.Function;
 /**
  * Generator for the flow model.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class ModelGenerator {
 

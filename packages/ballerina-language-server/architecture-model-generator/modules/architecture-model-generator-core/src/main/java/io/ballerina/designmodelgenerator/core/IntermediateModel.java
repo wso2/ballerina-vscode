@@ -32,7 +32,7 @@ import java.util.Set;
 /**
  * Intermediate model to store the intermediate representation of the code.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class IntermediateModel {
 

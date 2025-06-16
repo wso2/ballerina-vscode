@@ -20,7 +20,7 @@ import org.ballerinalang.langserver.commons.LSOperation;
 /**
  * Represents a telemetry event for language server.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public abstract class LSTelemetryEvent {
 

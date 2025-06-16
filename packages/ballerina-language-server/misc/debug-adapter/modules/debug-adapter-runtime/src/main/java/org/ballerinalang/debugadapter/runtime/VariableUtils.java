@@ -24,7 +24,7 @@ import io.ballerina.runtime.internal.values.MapValueImpl;
 /**
  * Contains debugger runtime utility functions related to Ballerina runtime variables.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 @SuppressWarnings("unused")
 public final class VariableUtils {

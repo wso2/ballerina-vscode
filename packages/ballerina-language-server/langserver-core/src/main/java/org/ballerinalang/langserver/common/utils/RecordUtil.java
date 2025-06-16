@@ -44,7 +44,7 @@ import static org.ballerinalang.langserver.common.utils.CommonKeys.PKG_DELIMITER
 /**
  * Carries a set of utilities used to derive record field completions.
  *
- * @since 2201.1.1
+ * @since 1.0.0
  */
 public final class RecordUtil {
 

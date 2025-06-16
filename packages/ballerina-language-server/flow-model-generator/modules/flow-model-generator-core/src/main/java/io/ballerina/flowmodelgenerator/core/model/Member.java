@@ -34,7 +34,7 @@ import java.util.Map;
  * @param docs          Documentation of the member
  * @param annotations   Annotations of the member.
  * @param imports       Imports of the member.
- * @since 2.0.0
+ * @since 1.0.0
  */
 public record Member(
         MemberKind kind,

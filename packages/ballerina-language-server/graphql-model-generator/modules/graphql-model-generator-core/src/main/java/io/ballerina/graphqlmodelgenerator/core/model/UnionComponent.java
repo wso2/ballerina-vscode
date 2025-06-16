@@ -25,7 +25,7 @@ import java.util.List;
 /**
  * Represents the Union component of graphql model.
  *
- * @since 2201.5.0
+ * @since 1.0.0
  */
 public class UnionComponent {
     private final String name;

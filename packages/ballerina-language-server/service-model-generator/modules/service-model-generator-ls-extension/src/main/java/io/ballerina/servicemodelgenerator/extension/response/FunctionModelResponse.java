@@ -29,7 +29,7 @@ import java.util.Arrays;
  * @param errorMsg error message
  * @param stacktrace stack trace of the error
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public record FunctionModelResponse(Function function, String errorMsg, String stacktrace) {
 

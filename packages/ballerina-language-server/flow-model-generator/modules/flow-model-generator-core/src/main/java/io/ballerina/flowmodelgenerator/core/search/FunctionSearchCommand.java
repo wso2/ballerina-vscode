@@ -67,7 +67,7 @@ import java.util.Optional;
  * </p>
  *
  * @see SearchCommand
- * @since 2.0.0
+ * @since 1.0.0
  */
 class FunctionSearchCommand extends SearchCommand {
 

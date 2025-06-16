@@ -87,7 +87,7 @@ import static io.ballerina.openapi.core.generators.common.GeneratorConstants.DEF
 /**
  * Generates service from the OpenAPI contract.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class OpenApiServiceGenerator {
 

@@ -22,7 +22,7 @@ package io.ballerina.servicemodelgenerator.extension.model;
 /**
  * Represents the metadata of a diagram component.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class PropertyTypeMemberInfo {
 

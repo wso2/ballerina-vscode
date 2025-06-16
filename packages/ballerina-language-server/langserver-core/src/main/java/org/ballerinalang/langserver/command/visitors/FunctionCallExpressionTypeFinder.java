@@ -92,7 +92,7 @@ import java.util.Optional;
  * best to return a valid {@link TypeSymbol}. Else, it will try to find the {@link TypeDescKind} of the expected return
  * type.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class FunctionCallExpressionTypeFinder extends NodeVisitor {
 

@@ -83,7 +83,7 @@ import java.util.Set;
 /**
  * This class is responsible for managing agents.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class AgentsGenerator {
 

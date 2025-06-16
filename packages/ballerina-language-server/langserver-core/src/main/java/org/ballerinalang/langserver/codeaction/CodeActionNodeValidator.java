@@ -61,7 +61,7 @@ import java.util.Set;
 /**
  * Node Transformer to check whether the syntax is valid.
  *
- * @since 2201.0.3
+ * @since 1.0.0
  */
 public class CodeActionNodeValidator extends NodeTransformer<Boolean> {
 

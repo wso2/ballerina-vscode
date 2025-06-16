@@ -43,7 +43,7 @@ import static org.ballerinalang.debugadapter.variable.VariableUtils.getChildVarB
 /**
  * Evaluator implementation for field access expressions.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class FieldAccessExpressionEvaluator extends Evaluator {
 

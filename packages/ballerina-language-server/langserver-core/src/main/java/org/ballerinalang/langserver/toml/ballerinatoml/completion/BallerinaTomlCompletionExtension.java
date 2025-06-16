@@ -32,7 +32,7 @@ import java.util.List;
 /**
  * Completion extension implementation for Ballerina.toml file.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 @JavaSPIService("org.ballerinalang.langserver.commons.LanguageExtension")
 public class BallerinaTomlCompletionExtension implements TomlCompletionExtension {

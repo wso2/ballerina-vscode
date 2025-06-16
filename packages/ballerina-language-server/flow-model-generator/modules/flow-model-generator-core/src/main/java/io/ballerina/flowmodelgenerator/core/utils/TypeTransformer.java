@@ -69,7 +69,7 @@ import java.util.Optional;
 
 /**
  * Transformer to transform Ballerina type symbols to type data.
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class TypeTransformer {
     private final Module module;

@@ -20,7 +20,7 @@ import org.ballerinalang.annotation.JavaSPIService;
 /**
  * Command executor for updating single documentation.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 @JavaSPIService("org.ballerinalang.langserver.commons.command.spi.LSCommandExecutor")
 public class UpdateDocumentationExecutor extends AbstractDocumentationExecutor {

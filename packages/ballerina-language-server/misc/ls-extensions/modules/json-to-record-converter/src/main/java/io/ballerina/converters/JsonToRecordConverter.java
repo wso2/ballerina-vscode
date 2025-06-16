@@ -74,7 +74,7 @@ import static io.ballerina.converters.util.ConverterUtils.extractReferenceType;
  *
  * The conversion is done by using openAPI schema as an intermediary.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public final class JsonToRecordConverter {
 

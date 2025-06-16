@@ -31,7 +31,7 @@ import java.nio.file.Path;
 /**
  * Tests for the `isIcpEnabled` service.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class ICPEnablerTests extends AbstractLSTest {
 

@@ -44,7 +44,7 @@ import static org.ballerinalang.debugadapter.evaluation.utils.EvaluationUtils.ge
 /**
  * Invocation argument processor based on semantic API's symbols.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class SymbolBasedArgProcessor extends InvocationArgProcessor {
 

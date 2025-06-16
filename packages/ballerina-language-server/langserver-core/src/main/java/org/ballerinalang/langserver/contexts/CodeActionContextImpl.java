@@ -45,7 +45,7 @@ import java.util.Optional;
 /**
  * Language server context implementation.
  *
- * @since 1.2.0
+ * @since 1.0.0
  */
 public class CodeActionContextImpl extends AbstractDocumentServiceContext implements CodeActionContext {
 
@@ -133,7 +133,7 @@ public class CodeActionContextImpl extends AbstractDocumentServiceContext implem
     /**
      * Represents Language server code action context Builder.
      *
-     * @since 2.0.0
+     * @since 1.0.0
      */
     protected static class CodeActionContextBuilder extends AbstractContextBuilder<CodeActionContextBuilder> {
 

@@ -57,7 +57,7 @@ import java.util.Set;
 /**
  * Code Action for incompatible return types.
  *
- * @since 1.1.1
+ * @since 1.0.0
  */
 @JavaSPIService("org.ballerinalang.langserver.commons.codeaction.spi.LSCodeActionProvider")
 public class FixReturnTypeCodeAction implements DiagnosticBasedCodeActionProvider {

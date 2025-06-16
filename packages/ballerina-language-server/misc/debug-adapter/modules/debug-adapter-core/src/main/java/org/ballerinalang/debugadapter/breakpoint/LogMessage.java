@@ -21,7 +21,7 @@ package org.ballerinalang.debugadapter.breakpoint;
 /**
  * Abstract definition for possible Ballerina log-point message types.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public abstract class LogMessage {
 

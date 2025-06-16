@@ -26,7 +26,7 @@ import java.util.function.Function;
 /**
  * This class holds position details for the diagnostics based code actions.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public interface DiagBasedPositionDetails {
 

@@ -28,7 +28,7 @@ import java.util.List;
 /**
  * Provides service related information.
  *
- * @since 2201.2.2
+ * @since 1.0.0
  */
 public class Service extends ModelElement {
 

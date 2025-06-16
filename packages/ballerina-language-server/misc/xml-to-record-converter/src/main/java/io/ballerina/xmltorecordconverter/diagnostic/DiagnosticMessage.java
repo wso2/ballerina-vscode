@@ -25,7 +25,7 @@ import java.util.Objects;
 /**
  * Contains diagnostic messages of the XML to Record converter.
  *
- * @since 2201.7.2
+ * @since 1.0.0
  */
 public class DiagnosticMessage {
 

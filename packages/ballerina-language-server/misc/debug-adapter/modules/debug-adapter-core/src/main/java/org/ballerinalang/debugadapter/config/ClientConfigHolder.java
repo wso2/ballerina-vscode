@@ -25,7 +25,7 @@ import java.util.Optional;
 /**
  * Ballerina DAP Client Configuration holder.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class ClientConfigHolder {
 
