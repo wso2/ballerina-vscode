@@ -61,7 +61,7 @@
               "value": "\"item12393\"",
               "optional": true,
               "editable": true,
-              "advanced": true,
+              "advanced": false,
               "hidden": false,
               "modified": false
             },
@@ -75,7 +75,7 @@
               "optional": true,
               "editable": true,
               "advanced": false,
-              "hidden": false,
+              "hidden": true,
               "modified": false
             },
             "documentation": {
@@ -87,7 +87,7 @@
               "value": "",
               "optional": true,
               "editable": true,
-              "advanced": true,
+              "advanced": false,
               "hidden": false,
               "modified": false
             }
@@ -152,7 +152,7 @@
               "value": "4.5",
               "optional": true,
               "editable": true,
-              "advanced": true,
+              "advanced": false,
               "hidden": false,
               "modified": false
             },
@@ -166,7 +166,7 @@
               "optional": true,
               "editable": true,
               "advanced": false,
-              "hidden": false,
+              "hidden": true,
               "modified": false
             },
             "documentation": {
@@ -178,7 +178,7 @@
               "value": "",
               "optional": true,
               "editable": true,
-              "advanced": true,
+              "advanced": false,
               "hidden": false,
               "modified": false
             }
@@ -243,7 +243,7 @@
               "value": "",
               "optional": true,
               "editable": true,
-              "advanced": true,
+              "advanced": false,
               "hidden": false,
               "modified": false
             },
@@ -257,7 +257,7 @@
               "optional": true,
               "editable": true,
               "advanced": false,
-              "hidden": false,
+              "hidden": true,
               "modified": false
             },
             "documentation": {
@@ -269,7 +269,7 @@
               "value": "",
               "optional": true,
               "editable": true,
-              "advanced": true,
+              "advanced": false,
               "hidden": false,
               "modified": false
             }
@@ -336,7 +336,7 @@
               "value": "\"User\"",
               "optional": true,
               "editable": true,
-              "advanced": true,
+              "advanced": false,
               "hidden": false,
               "modified": false
             },
@@ -350,7 +350,7 @@
               "optional": true,
               "editable": true,
               "advanced": false,
-              "hidden": false,
+              "hidden": true,
               "modified": false
             },
             "documentation": {
@@ -362,7 +362,7 @@
               "value": "",
               "optional": true,
               "editable": true,
-              "advanced": true,
+              "advanced": false,
               "hidden": false,
               "modified": false
             }
@@ -431,7 +431,7 @@
               "value": "\"logfmt\"",
               "optional": true,
               "editable": false,
-              "advanced": true,
+              "advanced": false,
               "hidden": false,
               "modified": false
             },
@@ -445,7 +445,7 @@
               "optional": true,
               "editable": true,
               "advanced": false,
-              "hidden": false,
+              "hidden": true,
               "modified": false
             },
             "documentation": {
@@ -457,7 +457,7 @@
               "value": "",
               "optional": true,
               "editable": false,
-              "advanced": true,
+              "advanced": false,
               "hidden": false,
               "modified": false
             }
@@ -522,7 +522,7 @@
               "value": "\"INFO\"",
               "optional": true,
               "editable": false,
-              "advanced": true,
+              "advanced": false,
               "hidden": false,
               "modified": false
             },
@@ -536,7 +536,7 @@
               "optional": true,
               "editable": true,
               "advanced": false,
-              "hidden": false,
+              "hidden": true,
               "modified": false
             },
             "documentation": {
@@ -548,7 +548,7 @@
               "value": "",
               "optional": true,
               "editable": false,
-              "advanced": true,
+              "advanced": false,
               "hidden": false,
               "modified": false
             }
@@ -613,7 +613,7 @@
               "value": "table []",
               "optional": true,
               "editable": false,
-              "advanced": true,
+              "advanced": false,
               "hidden": false,
               "modified": false
             },
@@ -627,7 +627,7 @@
               "optional": true,
               "editable": true,
               "advanced": false,
-              "hidden": false,
+              "hidden": true,
               "modified": false
             },
             "documentation": {
@@ -639,7 +639,7 @@
               "value": "",
               "optional": true,
               "editable": false,
-              "advanced": true,
+              "advanced": false,
               "hidden": false,
               "modified": false
             }

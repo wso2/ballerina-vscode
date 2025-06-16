@@ -55,6 +55,7 @@
           "node": "AGENT_CALL",
           "org": "ballerinax",
           "module": "ai",
+          "packageName": "ai",
           "object": "Agent",
           "symbol": "run",
           "version": "1.0.1",
@@ -106,6 +107,7 @@
               {
                 "type": "string",
                 "packageInfo": "",
+                "packageName": "",
                 "kind": "BASIC_TYPE",
                 "selected": true
               }
@@ -131,6 +133,7 @@
               {
                 "type": "string",
                 "packageInfo": "",
+                "packageName": "",
                 "kind": "BASIC_TYPE",
                 "selected": false
               }
@@ -241,6 +244,7 @@
               {
                 "type": "ModelProvider",
                 "packageInfo": "ballerinax:ai:1.0.1",
+                "packageName": "ai",
                 "kind": "OBJECT_TYPE",
                 "selected": false
               }
@@ -267,6 +271,7 @@
               {
                 "type": "SystemPrompt",
                 "packageInfo": "ballerinax:ai:1.0.1",
+                "packageName": "ai",
                 "kind": "RECORD_TYPE",
                 "selected": true
               }
@@ -293,6 +298,7 @@
               {
                 "type": "AgentType",
                 "packageInfo": "ballerinax:ai:1.0.1",
+                "packageName": "ai",
                 "kind": "BASIC_TYPE",
                 "selected": false
               }
@@ -319,12 +325,14 @@
               {
                 "type": "Memory",
                 "packageInfo": "ballerinax:ai:1.0.1",
+                "packageName": "ai",
                 "kind": "OBJECT_TYPE",
                 "selected": false
               },
               {
                 "type": "()",
                 "packageInfo": "",
+                "packageName": "",
                 "kind": "BASIC_TYPE",
                 "selected": false
               }
@@ -351,6 +359,7 @@
               {
                 "type": "BaseToolKit|ai",
                 "packageInfo": "",
+                "packageName": "",
                 "kind": "ARRAY_TYPE",
                 "selected": false
               }
@@ -376,6 +385,7 @@
               {
                 "type": "int",
                 "packageInfo": "",
+                "packageName": "",
                 "kind": "BASIC_TYPE",
                 "selected": false
               }
@@ -401,6 +411,7 @@
               {
                 "type": "boolean",
                 "packageInfo": "",
+                "packageName": "",
                 "kind": "BASIC_TYPE",
                 "selected": false
               }
@@ -530,6 +541,7 @@
               {
                 "type": "string",
                 "packageInfo": "",
+                "packageName": "",
                 "kind": "BASIC_TYPE",
                 "selected": false
               }
@@ -556,6 +568,7 @@
               {
                 "type": "string",
                 "packageInfo": "",
+                "packageName": "",
                 "kind": "BASIC_TYPE",
                 "selected": true
               }
@@ -582,6 +595,7 @@
               {
                 "type": "string",
                 "packageInfo": "",
+                "packageName": "",
                 "kind": "BASIC_TYPE",
                 "selected": true
               }
@@ -608,6 +622,7 @@
               {
                 "type": "string",
                 "packageInfo": "",
+                "packageName": "",
                 "kind": "BASIC_TYPE",
                 "selected": true
               }
@@ -633,6 +648,7 @@
               {
                 "type": "int",
                 "packageInfo": "",
+                "packageName": "",
                 "kind": "BASIC_TYPE",
                 "selected": false
               }
@@ -658,6 +674,7 @@
               {
                 "type": "decimal",
                 "packageInfo": "",
+                "packageName": "",
                 "kind": "BASIC_TYPE",
                 "selected": false
               }
@@ -683,6 +700,7 @@
               {
                 "type": "HttpVersion",
                 "packageInfo": "ballerina:http:2.14.1",
+                "packageName": "http",
                 "kind": "BASIC_TYPE",
                 "selected": false
               }
@@ -711,6 +729,7 @@
               {
                 "type": "ClientHttp1Settings",
                 "packageInfo": "ballerina:http:2.14.1",
+                "packageName": "http",
                 "kind": "RECORD_TYPE",
                 "selected": false
               }
@@ -739,6 +758,7 @@
               {
                 "type": "ClientHttp2Settings",
                 "packageInfo": "ballerina:http:2.14.1",
+                "packageName": "http",
                 "kind": "RECORD_TYPE",
                 "selected": false
               }
@@ -767,6 +787,7 @@
               {
                 "type": "decimal",
                 "packageInfo": "",
+                "packageName": "",
                 "kind": "BASIC_TYPE",
                 "selected": false
               }
@@ -795,6 +816,7 @@
               {
                 "type": "string",
                 "packageInfo": "",
+                "packageName": "",
                 "kind": "BASIC_TYPE",
                 "selected": false
               }
@@ -823,6 +845,7 @@
               {
                 "type": "PoolConfiguration",
                 "packageInfo": "ballerina:http:2.14.1",
+                "packageName": "http",
                 "kind": "RECORD_TYPE",
                 "selected": false
               }
@@ -851,6 +874,7 @@
               {
                 "type": "CacheConfig",
                 "packageInfo": "ballerina:http:2.14.1",
+                "packageName": "http",
                 "kind": "RECORD_TYPE",
                 "selected": false
               }
@@ -879,6 +903,7 @@
               {
                 "type": "Compression",
                 "packageInfo": "ballerina:http:2.14.1",
+                "packageName": "http",
                 "kind": "BASIC_TYPE",
                 "selected": false
               }
@@ -907,6 +932,7 @@
               {
                 "type": "CircuitBreakerConfig",
                 "packageInfo": "ballerina:http:2.14.1",
+                "packageName": "http",
                 "kind": "RECORD_TYPE",
                 "selected": false
               }
@@ -935,6 +961,7 @@
               {
                 "type": "RetryConfig",
                 "packageInfo": "ballerina:http:2.14.1",
+                "packageName": "http",
                 "kind": "RECORD_TYPE",
                 "selected": false
               }
@@ -963,6 +990,7 @@
               {
                 "type": "ResponseLimitConfigs",
                 "packageInfo": "ballerina:http:2.14.1",
+                "packageName": "http",
                 "kind": "RECORD_TYPE",
                 "selected": false
               }
@@ -991,6 +1019,7 @@
               {
                 "type": "ClientSecureSocket",
                 "packageInfo": "ballerina:http:2.14.1",
+                "packageName": "http",
                 "kind": "RECORD_TYPE",
                 "selected": false
               }
@@ -1019,6 +1048,7 @@
               {
                 "type": "ProxyConfig",
                 "packageInfo": "ballerina:http:2.14.1",
+                "packageName": "http",
                 "kind": "RECORD_TYPE",
                 "selected": false
               }
@@ -1047,6 +1077,7 @@
               {
                 "type": "boolean",
                 "packageInfo": "",
+                "packageName": "",
                 "kind": "BASIC_TYPE",
                 "selected": false
               }

@@ -59,7 +59,7 @@
           "value": "10",
           "optional": true,
           "editable": true,
-          "advanced": true,
+          "advanced": false,
           "hidden": false,
           "modified": false
         }
@@ -124,7 +124,7 @@
           "value": "\"new config\"",
           "optional": true,
           "editable": true,
-          "advanced": true,
+          "advanced": false,
           "hidden": false,
           "modified": false
         }
@@ -189,7 +189,7 @@
           "value": "10",
           "optional": true,
           "editable": true,
-          "advanced": true,
+          "advanced": false,
           "hidden": false,
           "modified": false
         }
@@ -254,7 +254,7 @@
           "value": "\"new config\"",
           "optional": true,
           "editable": true,
-          "advanced": true,
+          "advanced": false,
           "hidden": false,
           "modified": false
         }

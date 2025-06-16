@@ -50,7 +50,7 @@
         "optional": true,
         "editable": true,
         "advanced": false,
-        "hidden": false,
+        "hidden": true,
         "modified": false
       },
       "defaultValue": {
@@ -62,7 +62,7 @@
         "value": "",
         "optional": true,
         "editable": true,
-        "advanced": true,
+        "advanced": false,
         "hidden": false,
         "modified": false
       },
@@ -75,7 +75,7 @@
         "value": "",
         "optional": true,
         "editable": true,
-        "advanced": true,
+        "advanced": false,
         "hidden": false,
         "modified": false
       }
