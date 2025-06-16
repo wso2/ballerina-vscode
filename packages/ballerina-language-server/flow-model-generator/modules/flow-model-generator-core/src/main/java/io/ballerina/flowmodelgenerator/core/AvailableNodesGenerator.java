@@ -181,6 +181,7 @@ public class AvailableNodesGenerator {
                         .node(NodeKind.AGENT_CALL)
                         .org(BALLERINAX)
                         .module(AI_AGENT)
+                        .packageName(AI_AGENT)
                         .symbol("run")
                         .object("Agent")
                         .build(),
@@ -313,7 +314,8 @@ public class AvailableNodesGenerator {
                             .stepOut()
                         .codedata()
                             .org(org)
-                            .module(functionDataBuilder.isLocal() ? moduleInfo.moduleName() : packageName)
+                            .module(moduleInfo.moduleName())
+                            .packageName(moduleInfo.packageName())
                             .object(className)
                             .symbol(methodFunction.name())
                             .version(version)
