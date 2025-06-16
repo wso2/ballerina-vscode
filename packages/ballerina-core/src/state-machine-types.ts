@@ -21,6 +21,7 @@ import { NodePosition, STNode } from "@wso2/syntax-tree";
 import { LinePosition } from "./interfaces/common";
 import { Type } from "./interfaces/extended-lang-client";
 import { DIRECTORY_MAP, ProjectStructureArtifactResponse, ProjectStructureResponse } from "./interfaces/bi";
+import { DiagnosticEntry, TestGeneratorIntermediaryState } from "./rpc-types/ai-panel/interfaces";
 
 export type MachineStateValue =
     | 'initialize'
@@ -160,8 +161,53 @@ export interface DownloadProgress {
     step?: number;
 }
 
+export type ChatNotify = 
+    | ChatStart
+    | IntermidaryState  
+    | ChatContent
+    | CodeDiagnostics
+    | CodeMessages
+    | ChatStop
+    | ChatError;
+
+export interface ChatStart {
+    type : "start";
+}
+
+export interface IntermidaryState {
+    type : "intermediary_state";
+    state : TestGeneratorIntermediaryState;  // Smells off. Must revist later.
+}
+
+//TODO: Maybe rename content_block to content_append?
+export interface ChatContent {
+    type : "content_block" | "content_replace";
+    content: string;
+}
+
+export interface CodeDiagnostics {
+    type : "diagnostics";
+    diagnostics: DiagnosticEntry[];
+}
+
+//TODO: I'm not sure about messages, maybe revisit later.
+export interface CodeMessages {
+    type : "messages"; 
+    messages: any[];
+}
+
+export interface ChatStop {
+    type : "stop";
+}
+
+export interface ChatError {
+    type : "error";
+    content: string;
+}
+
 export const stateChanged: NotificationType<MachineStateValue> = { method: 'stateChanged' };
 export const onDownloadProgress: NotificationType<DownloadProgress> = { method: 'onDownloadProgress' };
+export const onChatNotify: NotificationType<ChatNotify> = { method: 'onChatNotify' };
 export const projectContentUpdated: NotificationType<boolean> = { method: 'projectContentUpdated' };
 export const getVisualizerLocation: RequestType<void, VisualizerLocation> = { method: 'getVisualizerLocation' };
 export const webviewReady: NotificationType<void> = { method: `webviewReady` };

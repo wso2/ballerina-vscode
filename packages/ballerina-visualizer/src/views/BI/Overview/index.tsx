@@ -18,8 +18,6 @@
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
-    ProjectDiagnostics,
-    ProjectSource,
     ProjectStructureResponse,
     EVENT_TYPE,
     MACHINE_VIEW,
@@ -498,13 +496,8 @@ export function Overview(props: ComponentDiagramProps) {
     const { rpcClient } = useRpcContext();
     const [workspaceName, setWorkspaceName] = React.useState<string>("");
     const [readmeContent, setReadmeContent] = React.useState<string>("");
-    const [isCodeGenerating, setIsCodeGenerating] = React.useState<boolean>(false);
     const [projectStructure, setProjectStructure] = React.useState<ProjectStructureResponse>();
 
-    const [responseText, setResponseText] = useState("");
-    const [isLoading, setIsLoading] = useState(false);
-    const [loadingMessage, setLoadingMessage] = useState("");
-    const backendRootUri = useRef("");
     const [enabled, setEnableICP] = useState(false);
     const { data: devantMetadata } = useQuery({
         queryKey: ["devant-metadata", props.projectPath],
@@ -545,16 +538,6 @@ export function Overview(props: ComponentDiagramProps) {
                 setEnableICP(res.enabled);
             });
 
-        // setResponseText("");
-
-        // Fetching the backend root URI
-        rpcClient
-            .getAiPanelRpcClient()
-            .getBackendUrl()
-            .then((res) => {
-                backendRootUri.current = res;
-            });
-
         rpcClient
             .getBIDiagramRpcClient()
             .getReadmeContent()
@@ -575,23 +558,6 @@ export function Overview(props: ComponentDiagramProps) {
             setShowAlert(status);
         });
     }, []);
-
-    useEffect(() => {
-        console.log(">>> ai responseText", { responseText });
-        if (!responseText) {
-            return;
-        }
-        const segments = splitContent(responseText);
-        console.log(">>> ai code", { segments });
-
-        segments.forEach((segment) => {
-            if (segment.isCode) {
-                let code = segment.text;
-                let file = segment.fileName;
-                rpcClient.getAiPanelRpcClient().addToProject({ content: code, filePath: file, isTestCode: false });
-            }
-        });
-    }, [responseText]);
 
     const deployableIntegrationTypes = useMemo(() => {
         if (!projectStructure) {
@@ -628,118 +594,6 @@ export function Overview(props: ComponentDiagramProps) {
             (!projectStructure.directoryMap[DIRECTORY_MAP.SERVICE] || projectStructure.directoryMap[DIRECTORY_MAP.SERVICE].length === 0) &&
             (!projectStructure.directoryMap.agents || projectStructure.directoryMap.agents.length === 0)
         );
-    }
-
-    async function fetchAiResponse(isQuestion: boolean = false) {
-        if (readmeContent === "" && !isQuestion) {
-            return;
-        }
-
-        setIsLoading(true);
-        setLoadingMessage("Reading...");
-        let assistant_response = "";
-        const controller = new AbortController();
-        const signal = controller.signal;
-        const url = backendRootUri.current;
-        const response = await fetch(url + "/code", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ usecase: readmeContent, chatHistory: [] }),
-            signal: signal,
-        });
-        if (!response.ok) {
-            setIsLoading(false);
-            throw new Error("Failed to fetch response");
-        }
-
-        const reader = response.body?.getReader();
-        const decoder = new TextDecoder();
-        let functions: any;
-        let buffer = "";
-        while (true) {
-            const { done, value } = await reader.read();
-            if (done) {
-                setIsLoading(false);
-                break;
-            }
-
-            buffer += decoder.decode(value, { stream: true });
-
-            let boundary = buffer.indexOf("\n\n");
-            while (boundary !== -1) {
-                const chunk = buffer.slice(0, boundary + 2);
-                buffer = buffer.slice(boundary + 2);
-
-                try {
-                    const event = parseSSEEvent(chunk);
-                    if (event.event == "libraries") {
-                        setLoadingMessage("Looking for libraries...");
-                    } else if (event.event == "functions") {
-                        functions = event.body;
-                        setLoadingMessage("Fetching functions...");
-                    } else if (event.event == "content_block_delta") {
-                        let textDelta = event.body.text;
-                        assistant_response += textDelta;
-                        console.log(">>> Text Delta: " + textDelta);
-                        setLoadingMessage("Generating components...");
-                    } else if (event.event == "message_stop") {
-                        console.log(">>> Streaming stop: ", { responseText, assistant_response });
-                        setLoadingMessage("Verifying components...");
-                        console.log(assistant_response);
-                        const newSourceFiles: ProjectSource = getProjectFromResponse(assistant_response);
-                        // Check diagnostics
-                        const diags: ProjectDiagnostics = await rpcClient
-                            .getAiPanelRpcClient()
-                            .getShadowDiagnostics(newSourceFiles);
-                        if (diags.diagnostics.length > 0) {
-                            console.log("Diagnostics : ");
-                            console.log(diags.diagnostics);
-                            const diagReq = {
-                                response: assistant_response,
-                                diagnostics: diags.diagnostics,
-                            };
-                            const startTime = performance.now();
-                            const response = await fetch(url + "/code/repair", {
-                                method: "POST",
-                                headers: {
-                                    "Content-Type": "application/json",
-                                },
-                                body: JSON.stringify({
-                                    usecase: readmeContent,
-                                    diagnosticRequest: diagReq,
-                                    functions: functions,
-                                }),
-                                signal: signal,
-                            });
-                            if (!response.ok) {
-                                console.log("repair error");
-                                setIsLoading(false);
-                            } else {
-                                const jsonBody = await response.json();
-                                const repairResponse = jsonBody.repairResponse;
-                                // replace original response with new code blocks
-                                const fixedResponse = replaceCodeBlocks(assistant_response, repairResponse);
-                                const endTime = performance.now();
-                                const executionTime = endTime - startTime;
-                                console.log(`Repair call time: ${executionTime} milliseconds`);
-                                assistant_response = fixedResponse;
-                            }
-                        }
-                        setResponseText(assistant_response);
-                        setIsLoading(false);
-                    } else if (event.event == "error") {
-                        console.log(">>> Streaming Error: " + event.body);
-                        setIsLoading(false);
-                    }
-                } catch (error) {
-                    console.error("Failed to parse SSE event:", error);
-                }
-
-                boundary = buffer.indexOf("\n\n");
-            }
-        }
     }
 
     if (!projectStructure) {

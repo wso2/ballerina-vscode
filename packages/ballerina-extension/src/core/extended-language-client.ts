@@ -219,14 +219,18 @@ import {
     ArtifactsNotification,
     OpenConfigTomlRequest,
     UpdateConfigVariableRequestV2,
-    GetConfigVariableNodeTemplateRequest,
     UpdateConfigVariableResponseV2,
     DeleteConfigVariableRequestV2,
     DeleteConfigVariableResponseV2,
     ResourceReturnTypesRequest,
     ResourceReturnTypesResponse,
     JsonToTypeRequest,
-    JsonToTypeResponse
+    JsonToTypeResponse,
+    CopilotCompactLibrariesResponse,
+    CopilotAllLibrariesRequest,
+    CopilotFilterLibrariesResponse,
+    CopilotFilterLibrariesRequest,
+    GetConfigVariableNodeTemplateRequest
 } from "@wso2/ballerina-core";
 import { BallerinaExtension } from "./index";
 import { debug, handlePullModuleProgress } from "../utils";
@@ -376,7 +380,9 @@ enum EXTENDED_APIS {
     OPEN_API_GENERATED_MODULES = 'openAPIService/getModules',
     OPEN_API_CLIENT_DELETE = 'openAPIService/deleteModule',
     GET_ARTIFACTS = 'designModelService/artifacts',
-    PUBLISH_ARTIFACTS = 'designModelService/publishArtifacts'
+    PUBLISH_ARTIFACTS = 'designModelService/publishArtifacts',
+    COPILOT_ALL_LIBRARIES = 'copilotLibraryManager/getLibrariesList',
+    COPILOT_FILTER_LIBRARIES = 'copilotLibraryManager/getFilteredLibraries'
 }
 
 enum EXTENDED_APIS_ORG {
@@ -1134,6 +1140,15 @@ export class ExtendedLangClient extends LanguageClient implements ExtendedLangCl
     async deleteOpenApiGeneratedModule(params: OpenAPIClientDeleteRequest): Promise<OpenAPIClientDeleteResponse> {
         return this.sendRequest<OpenAPIClientDeleteResponse>(EXTENDED_APIS.OPEN_API_CLIENT_DELETE, params);
     }
+
+    async getCopilotCompactLibraries(params: CopilotAllLibrariesRequest): Promise<CopilotCompactLibrariesResponse> {
+        return this.sendRequest<CopilotCompactLibrariesResponse>(EXTENDED_APIS.COPILOT_ALL_LIBRARIES, params);
+    }
+
+    async getCopilotFilteredLibraries(params: CopilotFilterLibrariesRequest): Promise<CopilotFilterLibrariesResponse> {
+        return this.sendRequest<CopilotFilterLibrariesResponse>(EXTENDED_APIS.COPILOT_FILTER_LIBRARIES, params);
+    }
+
 
     // <------------ BI APIS END --------------->
 
