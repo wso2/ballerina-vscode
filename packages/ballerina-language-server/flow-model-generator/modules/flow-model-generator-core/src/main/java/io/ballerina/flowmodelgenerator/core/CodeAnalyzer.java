@@ -177,7 +177,7 @@ import java.util.stream.Collectors;
  *
  * @since 1.0.0
  */
-class CodeAnalyzer extends NodeVisitor {
+public class CodeAnalyzer extends NodeVisitor {
 
     // Readonly fields
     private final Project project;
