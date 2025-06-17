@@ -295,7 +295,7 @@
               "label": "Resource Path",
               "description": "Resource Path"
             },
-            "valueType": "EXPRESSION",
+            "valueType": "ACTION_PATH",
             "value": "/pears",
             "optional": false,
             "editable": true,
