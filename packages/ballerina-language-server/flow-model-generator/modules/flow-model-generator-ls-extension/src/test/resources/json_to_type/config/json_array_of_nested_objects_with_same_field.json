@@ -1,0 +1,10 @@
+{
+  "description": "JSON array of nested objects with same field names",
+  "filePath": "proj/types.bal",
+  "jsonString": "[\n        {\n            \"name\": \"John Doe\",\n            \"age\": 30,\n            \"city\": {\n                \"name\": \"New York\",\n                \"country\": \"USA\"\n            },\n            \"parent\": {\n                \"name\": \"John's Parent\",\n                \"age\": 50,\n                \"parent\": {\n                    \"name\": \"John's Grandparent\",\n                    \"age\": 80\n                }\n            }\n        },\n        {\n            \"name\": \"Jane Smith\",\n            \"age\": 25,\n            \"city\": {\n                \"name\": \"Toronto\",\n                \"country\": \"Canada\"\n            },\n            \"parent\": {\n                \"name\": \"Jane's Parent\",\n                \"age\": 48\n            }\n        }\n    ]",
+  "typeName": "PersonList",
+  "prefix": "",
+  "allowAdditionalFields": false,
+  "asInline": false,
+  "expectedTypes": "\ntype City record {|\n\tstring name;\n\tstring country;\n|};\n\ntype Parent record {|\n\tstring name;\n\tint age;\n\tParent parent?;\n|};\n\ntype PersonListItem record {|\n\tstring name;\n\tint age;\n\tCity city;\n\tParent parent;\n|};\n\ntype PersonList PersonListItem[];\n"
+}
