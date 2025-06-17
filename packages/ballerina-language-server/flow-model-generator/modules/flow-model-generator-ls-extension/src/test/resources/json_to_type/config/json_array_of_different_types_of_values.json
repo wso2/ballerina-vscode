@@ -1,0 +1,10 @@
+{
+  "description": "JSON array of different values",
+  "filePath": "proj/types.bal",
+  "jsonString": "[\n        {\n\t\t\t\"id\": 1, \n\t\t\t\"name\": \"Task 1\",\n\t\t\t\"status\": \"in-progress\",\n\t\t\t\"completed\": false\n\t\t},\n        {\n\t\t\t\"id\": 2,\n\t\t\t\"taskName\": \"Task 2\",\n\t\t\t\"isCompleted\": true\n\t\t},\n\t\t\"3\",\n\t\t4\n    ]",
+  "typeName": "TaskList",
+  "prefix": "",
+  "allowAdditionalFields": false,
+  "asInline": false,
+  "expectedTypes": "\ntype TaskListItem record {|\n\tint id;\n\tstring name?;\n\tstring status?;\n\tboolean completed?;\n\tstring taskName?;\n\tboolean isCompleted?;\n|};\n\ntype TaskList (TaskListItem|string|int)[];\n"
+}
