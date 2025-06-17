@@ -174,7 +174,7 @@ public class NewConnectionBuilder extends CallBuilder {
         setParameterProperties(functionData);
 
         if (CommonUtils.hasReturn(functionData.returnType())) {
-            setReturnTypeProperties(functionData, context, CONNECTION_NAME_LABEL);
+            setReturnTypeProperties(functionData, context, CONNECTION_NAME_LABEL, true);
         }
 
         properties()

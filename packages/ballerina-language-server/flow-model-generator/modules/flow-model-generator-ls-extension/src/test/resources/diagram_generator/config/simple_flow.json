@@ -1258,7 +1258,7 @@
             "optional": false,
             "editable": false,
             "advanced": false,
-            "hidden": false,
+            "hidden": true,
             "codedata": {}
           }
         },
@@ -1971,7 +1971,7 @@
             "optional": false,
             "editable": false,
             "advanced": false,
-            "hidden": false,
+            "hidden": true,
             "codedata": {}
           }
         },

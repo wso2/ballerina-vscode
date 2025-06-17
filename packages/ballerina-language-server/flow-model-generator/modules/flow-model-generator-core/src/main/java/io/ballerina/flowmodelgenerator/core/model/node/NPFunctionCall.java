@@ -123,7 +123,7 @@ public class NPFunctionCall extends FunctionCall {
         String returnTypeName = functionData.returnType();
         if (CommonUtils.hasReturn(functionData.returnType())) {
             properties()
-                    .type(returnTypeName, functionData.inferredReturnType(), functionData.importStatements())
+                     .type(returnTypeName, functionData.inferredReturnType(), functionData.importStatements(), false)
                     .data(returnTypeName, context.getAllVisibleSymbolNames(), Property.VARIABLE_NAME);
         }
 
