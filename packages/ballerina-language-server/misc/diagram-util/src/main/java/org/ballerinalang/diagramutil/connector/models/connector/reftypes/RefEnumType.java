@@ -33,4 +33,14 @@ public class RefEnumType extends RefType {
         this.typeName = "enum";
         this.members = members;
     }
+
+    public RefEnumType(RefEnumType enumType, boolean isFullType) {
+        this.typeName = enumType.typeName;
+        this.name = enumType.name;
+        if (isFullType) {
+            this.members = enumType.members;
+        }
+    }
+
+
 }

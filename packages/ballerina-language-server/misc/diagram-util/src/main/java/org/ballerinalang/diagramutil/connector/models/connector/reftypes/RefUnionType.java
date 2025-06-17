@@ -51,4 +51,18 @@ public class RefUnionType extends RefType {
         this.displayAnnotation = unionType.displayAnnotation;
         this.documentation = unionType.documentation;
     }
+
+    public RefUnionType(RefUnionType unionType, boolean isFullType) {
+        this.typeName = unionType.typeName;
+        this.name = unionType.name;
+        this.optional = unionType.optional;
+        this.typeInfo = unionType.typeInfo;
+        this.defaultable = unionType.defaultable;
+        this.defaultValue = unionType.defaultValue;
+        this.displayAnnotation = unionType.displayAnnotation;
+        this.documentation = unionType.documentation;
+        if (isFullType) {
+            this.members = unionType.members;
+        }
+    }
 }

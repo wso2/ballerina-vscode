@@ -21,7 +21,7 @@ public type FinalNote record {|
     ProgressNote[] progressNotes;
 |};
 
-type unionSymbol  SampleType|SampleRecord|ProgressNote|FinalNote;
+type unionSymbol SampleType|SampleRecord|ProgressNote|FinalNote|ProgressNote[];
 
 public type unionMemberType record {|
     unionSymbol member;

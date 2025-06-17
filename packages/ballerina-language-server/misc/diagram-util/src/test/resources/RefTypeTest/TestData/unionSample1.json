@@ -39,6 +39,22 @@
         "defaultable": false,
         "isRestType": false,
         "selected": false
+      },
+      {
+        "memberType": {
+          "hashCode": "1441125966",
+          "name": "ProgressNote",
+          "typeName": "record",
+          "optional": false,
+          "defaultable": false,
+          "isRestType": false,
+          "selected": false
+        },
+        "typeName": "array",
+        "optional": false,
+        "defaultable": false,
+        "isRestType": false,
+        "selected": false
       }
     ],
     "dependentTypes": {

@@ -539,8 +539,57 @@ public class RefType {
                     if (subType.dependentTypes != null) {
                         dependentTypes.putAll(subType.dependentTypes);
                     }
+                } else if (subType instanceof RefArrayType) {
+                    RefArrayType arraySubType = new RefArrayType(((RefArrayType) subType).memberType);
+                    TypeInfo typeInfo = ((RefArrayType) subType).memberType.getTypeInfo();
+                    String hashCode = String.valueOf(
+                            (typeInfo.name + typeInfo.orgName + typeInfo.moduleName + typeInfo.version).hashCode());
+                    arraySubType.memberType.setHashCode(hashCode);
+
+                    if (arraySubType.memberType instanceof RefRecordType) {
+                        RefType recordSubType = new RefType(arraySubType.memberType.getName(), arraySubType.memberType.getTypeName());
+                        recordSubType.setHashCode(hashCode);
+                        RefArrayType arraySubTypeWithRecord = new RefArrayType(recordSubType);
+                        unionType.members.add(arraySubTypeWithRecord);
+                    } else {
+                        unionType.members.add(arraySubType);
+                    }
+                    RefType depType = new RefRecordType((RefRecordType) (((RefArrayType) subType).memberType), false);
+                    dependentTypes.put(hashCode, depType);
+                    if (subType.dependentTypes != null) {
+                        dependentTypes.putAll(subType.dependentTypes);
+                    }
+                } else if (subType instanceof RefUnionType) {
+                    RefUnionType unionSubType = new RefUnionType((RefUnionType) subType, false);
+                    TypeInfo typeInfo = subType.getTypeInfo();
+                    String hashCode = String.valueOf(
+                            (typeInfo.name + typeInfo.orgName + typeInfo.moduleName + typeInfo.version).hashCode());
+                    unionSubType.setHashCode(hashCode);
+                    unionType.members.add(unionSubType);
+                    RefType depType = new RefUnionType((RefUnionType) subType, true);
+                    dependentTypes.put(hashCode, depType);
+                    if (subType.dependentTypes != null) {
+                        dependentTypes.putAll(subType.dependentTypes);
+                    }
                 }
-//                unionType.members.add(subType);
+//                else if (subType instanceof RefEnumType) {
+//                    RefEnumType enumSubType = new RefEnumType((RefEnumType) subType, false);
+//                    TypeInfo typeInfo = subType.getTypeInfo();
+//                    String hashCode = String.valueOf(
+//                            (typeInfo.name + typeInfo.orgName + typeInfo.moduleName + typeInfo.version).hashCode());
+//                    enumSubType.setHashCode(hashCode);
+//                    unionType.members.add(enumSubType);
+//
+//                    RefType depType = new RefEnumType((RefEnumType) subType, true);
+//                    dependentTypes.put(hashCode, depType);
+//                    if (subType.dependentTypes != null) {
+//                        dependentTypes.putAll(subType.dependentTypes);
+//                    }
+//                }
+
+                else {
+                    unionType.members.add(subType);
+                }
             }
         });
         if (unionType.members.stream().allMatch(type1 -> type1 instanceof RefErrorType)) {
@@ -603,8 +652,26 @@ public class RefType {
                         dependentTypes.putAll(subType.dependentTypes);
                     }
                 } else if (subType instanceof RefUnionType) {
-                    RefUnionType unionsubType = new RefUnionType((RefUnionType) subType);
-                    fields.add(unionsubType);
+                    RefUnionType unionSubType = new RefUnionType((RefUnionType) subType, false);
+                    TypeInfo typeInfo = subType.getTypeInfo();
+                    String hashCode = String.valueOf(
+                            (typeInfo.name + typeInfo.orgName + typeInfo.moduleName + typeInfo.version).hashCode());
+                    unionSubType.setHashCode(hashCode);
+                    fields.add(unionSubType);
+                    RefType depType = new RefUnionType((RefUnionType) subType, true);
+                    dependentTypes.put(hashCode, depType);
+                    if (subType.dependentTypes != null) {
+                        dependentTypes.putAll(subType.dependentTypes);
+                    }
+                } else if(subType instanceof RefEnumType){
+                    RefEnumType enumSubType = new RefEnumType(((RefEnumType) subType), false);
+                    TypeInfo typeInfo = subType.getTypeInfo();
+                    String hashCode = String.valueOf(
+                            (typeInfo.name + typeInfo.orgName + typeInfo.moduleName + typeInfo.version).hashCode());
+                    enumSubType.setHashCode(hashCode);
+                    fields.add(enumSubType);
+                    RefType depType = new RefEnumType((RefEnumType) subType, true);
+                    dependentTypes.put(hashCode, depType);
                     if (subType.dependentTypes != null) {
                         dependentTypes.putAll(subType.dependentTypes);
                     }

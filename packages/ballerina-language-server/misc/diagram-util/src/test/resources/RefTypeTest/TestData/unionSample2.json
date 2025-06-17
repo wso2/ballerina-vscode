@@ -5,44 +5,7 @@
   "refType": {
     "fields": [
       {
-        "members": [
-          {
-            "hashCode": "-1165196247",
-            "name": "SampleType",
-            "typeName": "SampleType",
-            "optional": false,
-            "defaultable": false,
-            "isRestType": false,
-            "selected": false
-          },
-          {
-            "hashCode": "625390834",
-            "name": "SampleRecord",
-            "typeName": "SampleRecord",
-            "optional": false,
-            "defaultable": false,
-            "isRestType": false,
-            "selected": false
-          },
-          {
-            "hashCode": "1441125966",
-            "name": "ProgressNote",
-            "typeName": "ProgressNote",
-            "optional": false,
-            "defaultable": false,
-            "isRestType": false,
-            "selected": false
-          },
-          {
-            "hashCode": "1671983205",
-            "name": "FinalNote",
-            "typeName": "FinalNote",
-            "optional": false,
-            "defaultable": false,
-            "isRestType": false,
-            "selected": false
-          }
-        ],
+        "hashCode": "-1063786010",
         "name": "unionSymbol",
         "typeName": "union",
         "optional": false,
@@ -182,6 +145,74 @@
         "optional": false,
         "typeInfo": {
           "name": "SampleRecord",
+          "orgName": "ballerinax",
+          "moduleName": "health.ccda.r3",
+          "version": "0.1.0"
+        },
+        "defaultable": false,
+        "isRestType": false,
+        "selected": false
+      },
+      "-1063786010": {
+        "members": [
+          {
+            "hashCode": "-1165196247",
+            "name": "SampleType",
+            "typeName": "SampleType",
+            "optional": false,
+            "defaultable": false,
+            "isRestType": false,
+            "selected": false
+          },
+          {
+            "hashCode": "625390834",
+            "name": "SampleRecord",
+            "typeName": "SampleRecord",
+            "optional": false,
+            "defaultable": false,
+            "isRestType": false,
+            "selected": false
+          },
+          {
+            "hashCode": "1441125966",
+            "name": "ProgressNote",
+            "typeName": "ProgressNote",
+            "optional": false,
+            "defaultable": false,
+            "isRestType": false,
+            "selected": false
+          },
+          {
+            "hashCode": "1671983205",
+            "name": "FinalNote",
+            "typeName": "FinalNote",
+            "optional": false,
+            "defaultable": false,
+            "isRestType": false,
+            "selected": false
+          },
+          {
+            "memberType": {
+              "hashCode": "1441125966",
+              "name": "ProgressNote",
+              "typeName": "record",
+              "optional": false,
+              "defaultable": false,
+              "isRestType": false,
+              "selected": false
+            },
+            "typeName": "array",
+            "optional": false,
+            "defaultable": false,
+            "isRestType": false,
+            "selected": false
+          }
+        ],
+        "name": "unionSymbol",
+        "typeName": "union",
+        "optional": false,
+        "typeInfo": {
+          "name": "unionSymbol",
           "orgName": "ballerinax",
           "moduleName": "health.ccda.r3",
           "version": "0.1.0"

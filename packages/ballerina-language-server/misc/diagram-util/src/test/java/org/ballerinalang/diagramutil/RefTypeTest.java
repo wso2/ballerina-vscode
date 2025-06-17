@@ -43,13 +43,22 @@ public class RefTypeTest {
     protected final Gson gson = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
 
     @DataProvider(name = "data-provider")
-    public Object[][] getConfigsList() {
-        return new Object[][]{
-                new Object[]{
-                        TestUtil.RES_DIR.resolve("RefTypeTest/TestData/unionSample8.json")
-                }
-        };
+    public Object[][] getConfigsList() throws IOException {
+        Path testDataDir = TestUtil.RES_DIR.resolve("RefTypeTest/TestData");
+        return Files.list(testDataDir)
+                .filter(path -> path.toString().endsWith(".json"))
+                .map(path -> new Object[]{path})
+                .toArray(Object[][]::new);
     }
+
+//    @DataProvider(name = "data-provider")
+//    public Object[][] getConfigsList() {
+//        return new Object[][]{
+//                new Object[]{
+//                        TestUtil.RES_DIR.resolve("RefTypeTest/TestData/enumSample2.json")
+//                }
+//        };
+//    }
 
     @Test(dataProvider = "data-provider")
     public void getRefTypeForSymbol(Path jsonPath) throws IOException {
