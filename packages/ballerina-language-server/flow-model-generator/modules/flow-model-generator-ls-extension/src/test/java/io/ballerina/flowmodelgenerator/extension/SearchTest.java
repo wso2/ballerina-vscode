@@ -68,8 +68,7 @@ public class SearchTest extends AbstractLSTest {
                 "custom_default1.json",
                 "custom_default2.json",
                 // TODO: Investigate why this test fails on Github Actions
-                "custom_sum.json",
-                "default.json"
+                "custom_sum.json"
         };
     }
 
