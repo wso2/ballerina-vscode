@@ -40,7 +40,7 @@ import static io.ballerina.identifier.Utils.unescapeUnicodeCodepoints;
 /**
  * Util methods for XML to record converter.
  *
- * @since 2201.7.2
+ * @since 1.0.0
  */
 public final class ConverterUtils {
 

@@ -26,7 +26,7 @@ import java.io.IOException;
 /**
  * Test cases for Extract to Variable code action.
  *
- * @since 2201.2.1
+ * @since 1.0.0
  */
 public class ExtractToLocalVarTest extends AbstractCodeActionTest {
 

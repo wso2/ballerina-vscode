@@ -23,7 +23,7 @@ import com.google.gson.JsonArray;
 /**
  * Represents the response for available memory managers.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class GetMemoryManagersResponse extends AbstractFlowModelResponse {
     private JsonArray memoryManagers;

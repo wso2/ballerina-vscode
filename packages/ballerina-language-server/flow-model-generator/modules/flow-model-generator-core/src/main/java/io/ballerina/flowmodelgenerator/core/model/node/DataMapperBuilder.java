@@ -54,7 +54,7 @@ import java.util.TreeSet;
 /**
  * Represents the properties of a data mapper node in the flow model.
  *
- * @since 2.0.0
+ * @since 1.0.0
  * @deprecated Use {@link DataMapperDefinitionBuilder} instead. The implementation is kept in case this feature is
  * needed in the future.
  */

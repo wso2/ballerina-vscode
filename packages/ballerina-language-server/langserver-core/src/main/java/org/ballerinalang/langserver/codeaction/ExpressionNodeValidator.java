@@ -32,7 +32,7 @@ import io.ballerina.compiler.syntax.tree.UnaryExpressionNode;
 /**
  * Visitor to validate an expression node.
  *
- * @since 2201.5.0
+ * @since 1.0.0
  */
 public class ExpressionNodeValidator extends NodeVisitor {
 

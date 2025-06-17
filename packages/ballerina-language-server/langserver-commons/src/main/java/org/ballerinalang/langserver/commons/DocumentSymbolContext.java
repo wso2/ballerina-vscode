@@ -25,7 +25,7 @@ import java.util.Optional;
 /**
  * Represents the document symbol operation context.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public interface DocumentSymbolContext extends DocumentServiceContext {
 

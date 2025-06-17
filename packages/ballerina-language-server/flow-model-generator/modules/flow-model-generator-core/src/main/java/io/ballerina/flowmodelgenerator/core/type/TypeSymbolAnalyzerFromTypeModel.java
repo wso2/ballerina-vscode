@@ -38,7 +38,7 @@ import java.util.Objects;
 /**
  * Analyzes the record value and updates the type configuration.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class TypeSymbolAnalyzerFromTypeModel {
 

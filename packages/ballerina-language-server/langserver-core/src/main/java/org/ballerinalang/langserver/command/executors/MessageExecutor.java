@@ -29,7 +29,7 @@ import static org.ballerinalang.langserver.command.CommandUtil.notifyClient;
 /**
  * Command executor for pulling a package from central.
  *
- * @since 0.983.0
+ * @since 1.0.0
  */
 @JavaSPIService("org.ballerinalang.langserver.commons.command.spi.LSCommandExecutor")
 public class MessageExecutor implements LSCommandExecutor {

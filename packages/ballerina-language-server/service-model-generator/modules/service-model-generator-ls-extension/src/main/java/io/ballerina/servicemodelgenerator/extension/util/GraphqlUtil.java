@@ -25,7 +25,7 @@ import io.ballerina.servicemodelgenerator.extension.model.MetaData;
 /**
  * Util class for GraphQL related operations.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class GraphqlUtil {
 

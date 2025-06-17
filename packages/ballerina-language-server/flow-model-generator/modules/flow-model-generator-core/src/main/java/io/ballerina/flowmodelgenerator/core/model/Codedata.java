@@ -26,6 +26,7 @@ import io.ballerina.tools.text.LineRange;
  *
  * @param node               The kind of the component
  * @param org                The organization which the component belongs to
+ * @param packageName        The package name of the component
  * @param module             The module which the component belongs to
  * @param object             The object of the component if it is a method or an action call
  * @param symbol             The symbol of the component
@@ -38,9 +39,9 @@ import io.ballerina.tools.text.LineRange;
  * @param isNew              Whether the component is a node template
  * @param isGenerated        The component is auto generated or not
  * @param inferredReturnType The inferred return type of the component if exists
- * @since 2.0.0
+ * @since 1.0.0
  */
-public record Codedata(NodeKind node, String org, String module, String object, String symbol,
+public record Codedata(NodeKind node, String org, String module, String packageName, String object, String symbol,
                        String version, LineRange lineRange, String sourceCode, String parentSymbol,
                        String resourcePath, Integer id, Boolean isNew, Boolean isGenerated,
                        String inferredReturnType) {
@@ -75,6 +76,7 @@ public record Codedata(NodeKind node, String org, String module, String object, 
         private NodeKind node;
         private String org;
         private String module;
+        private String packageName;
         private String object;
         private String symbol;
         private String version;
@@ -103,6 +105,11 @@ public record Codedata(NodeKind node, String org, String module, String object, 
 
         public Builder<T> module(String module) {
             this.module = module;
+            return this;
+        }
+
+        public Builder<T> packageName(String packageName) {
+            this.packageName = packageName;
             return this;
         }
 
@@ -173,8 +180,8 @@ public record Codedata(NodeKind node, String org, String module, String object, 
         }
 
         public Codedata build() {
-            return new Codedata(node, org, module, object, symbol, version, lineRange, sourceCode, parentSymbol,
-                    resourcePath, id, isNew, isGenerated, inferredReturnType);
+            return new Codedata(node, org, module, packageName, object, symbol, version, lineRange, sourceCode,
+                    parentSymbol, resourcePath, id, isNew, isGenerated, inferredReturnType);
         }
     }
 }

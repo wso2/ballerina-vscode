@@ -25,7 +25,7 @@ import com.google.gson.JsonElement;
  *
  * @param filePath       path to the respective file
  * @param type           type of the record
- * @since 2.0.0
+ * @since 1.0.0
  */
 public record RecordValueGenerateRequest(String filePath, JsonElement type) {
 }

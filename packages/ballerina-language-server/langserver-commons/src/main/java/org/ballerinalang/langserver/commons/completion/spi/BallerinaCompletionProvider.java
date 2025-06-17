@@ -28,7 +28,7 @@ import java.util.List;
  * Interface for completion item providers.
  *
  * @param <T> generic syntax tree node
- * @since 1.2.0
+ * @since 1.0.0
  */
 public interface BallerinaCompletionProvider<T extends Node> {
 

@@ -40,7 +40,7 @@ import java.util.Optional;
 /**
  * Code Action for ignore variable assignment.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 @JavaSPIService("org.ballerinalang.langserver.commons.codeaction.spi.LSCodeActionProvider")
 public class IgnoreReturnCodeAction extends CreateVariableCodeAction {

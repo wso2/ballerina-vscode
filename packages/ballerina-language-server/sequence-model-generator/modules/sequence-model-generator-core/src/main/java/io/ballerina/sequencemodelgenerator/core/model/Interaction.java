@@ -26,7 +26,7 @@ import java.util.Map;
 /**
  * Represents an interaction in the sequence diagram.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class Interaction extends SequenceNode {
 
@@ -65,7 +65,7 @@ public class Interaction extends SequenceNode {
      * Represents the builder for the {@link Interaction}. Provides the extended methods for building a
      * {@link Interaction} node.
      *
-     * @since 2.0.0
+     * @since 1.0.0
      */
     public static class Builder extends SequenceNode.Builder {
 

@@ -33,7 +33,7 @@ import static org.ballerinalang.debugadapter.utils.PackageUtils.computeProjectKi
  * A cache of Ballerina project instances (against their source roots), which are loaded during the user
  * breakpoints resolving.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class DebugProjectCache {
 

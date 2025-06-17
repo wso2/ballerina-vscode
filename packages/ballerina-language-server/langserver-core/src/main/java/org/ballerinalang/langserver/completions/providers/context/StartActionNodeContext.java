@@ -42,7 +42,7 @@ import static io.ballerina.compiler.api.symbols.SymbolKind.FUNCTION;
 /**
  * Handles the completions for {@link StartActionNode} context.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 @JavaSPIService("org.ballerinalang.langserver.commons.completion.spi.BallerinaCompletionProvider")
 public class StartActionNodeContext extends AbstractCompletionProvider<StartActionNode> {

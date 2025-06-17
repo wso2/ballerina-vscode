@@ -27,7 +27,7 @@ import java.util.Map;
 /**
  * Represents the response for the add or get default listener operation.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class AddOrGetDefaultListenerResponse {
     private String errorMsg;

@@ -31,7 +31,7 @@ import java.util.Iterator;
 /**
  * Handles diagnostics for a given flow model.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class DiagnosticHandler {
 
@@ -152,7 +152,7 @@ public class DiagnosticHandler {
      * Interface representing a builder capable of adding diagnostics. The builder which has the capability to add
      * diagnostic should implement this interface.
      *
-     * @since 2.0.0
+     * @since 1.0.0
      */
     public interface DiagnosticCapable {
 

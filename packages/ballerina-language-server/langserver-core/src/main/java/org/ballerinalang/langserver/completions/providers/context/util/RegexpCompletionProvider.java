@@ -42,7 +42,7 @@ import java.util.List;
 /**
  * Util to generate completions for regexp.
  *
- * @since 2201.5.0
+ * @since 1.0.0
  */
 public final class RegexpCompletionProvider {
 

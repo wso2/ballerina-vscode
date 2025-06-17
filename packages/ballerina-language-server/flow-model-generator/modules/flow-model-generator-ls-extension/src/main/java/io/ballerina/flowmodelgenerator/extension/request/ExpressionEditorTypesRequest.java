@@ -26,7 +26,7 @@ import io.ballerina.tools.text.LinePosition;
  * @param filePath       The path to the file being processed
  * @param typeConstraint The type constraint to filter out the completions
  * @param position       The position in the file where the request is made
- * @since 2.0.0
+ * @since 1.0.0
  */
 public record ExpressionEditorTypesRequest(String filePath, String typeConstraint, LinePosition position) {
 

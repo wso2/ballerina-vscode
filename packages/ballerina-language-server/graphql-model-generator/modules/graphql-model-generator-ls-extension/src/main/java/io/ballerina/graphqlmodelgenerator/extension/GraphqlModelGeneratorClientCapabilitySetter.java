@@ -24,7 +24,7 @@ import org.ballerinalang.langserver.commons.registration.BallerinaClientCapabili
 /**
  * Client capability setter for the graphQL model generator service.
  *
- * @since 2201.5.0
+ * @since 1.0.0
  */
 @JavaSPIService("org.ballerinalang.langserver.commons.registration.BallerinaClientCapabilitySetter")
 public class GraphqlModelGeneratorClientCapabilitySetter extends

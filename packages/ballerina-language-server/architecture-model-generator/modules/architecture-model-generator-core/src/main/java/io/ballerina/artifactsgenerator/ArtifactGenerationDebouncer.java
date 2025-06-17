@@ -30,7 +30,7 @@ import java.util.concurrent.TimeUnit;
  * Debouncer for artifact generation to ensure artifacts are only generated after a specified delay has passed since the
  * last request for the same file.
  *
- * @since 2.3.0
+ * @since 1.0.0
  */
 public class ArtifactGenerationDebouncer {
 

@@ -26,7 +26,7 @@ import java.util.List;
 /**
  * Response format for XMLToRecordConverter endpoint.
  *
- * @since 2201.7.2
+ * @since 1.0.0
  */
 public class XMLToRecordResponse {
     private String codeBlock = "";

@@ -9,7 +9,7 @@ import io.ballerina.tools.text.LinePosition;
  * @param filePath file path of the source file
  * @param position position of the node to be added
  * @param id       codedata of the available node
- * @since 1.4.0
+ * @since 1.0.0
  */
 public record FlowModelNodeTemplateRequest(String filePath, LinePosition position, JsonObject id) {
 

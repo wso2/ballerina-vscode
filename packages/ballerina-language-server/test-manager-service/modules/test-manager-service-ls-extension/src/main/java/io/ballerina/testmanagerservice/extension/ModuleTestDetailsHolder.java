@@ -28,7 +28,7 @@ import java.util.Map;
 /**
  * Holder class to store all the test details of a module.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class ModuleTestDetailsHolder {
 

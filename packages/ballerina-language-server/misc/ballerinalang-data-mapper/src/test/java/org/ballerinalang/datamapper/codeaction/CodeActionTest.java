@@ -46,7 +46,7 @@ import static org.ballerinalang.datamapper.util.DataMapperTestUtils.getCodeActio
 /**
  * Test Cases for CodeActions.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class CodeActionTest {
 

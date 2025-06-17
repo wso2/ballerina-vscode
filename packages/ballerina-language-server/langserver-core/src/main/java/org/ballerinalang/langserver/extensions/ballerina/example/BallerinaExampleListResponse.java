@@ -20,7 +20,7 @@ import java.util.List;
 /**
  * Represents a Ballerina example list response.
  *
- * @since 0.981.2
+ * @since 1.0.0
  */
 public class BallerinaExampleListResponse {
 

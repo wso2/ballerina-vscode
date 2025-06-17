@@ -22,7 +22,7 @@ import org.ballerinalang.langserver.commons.toml.common.TomlSyntaxTreeUtil;
 /**
  * Represents Toml KeyValuePair node in {@link TomlSchemaVisitor}.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class KeyValuePair implements TomlNode {
 

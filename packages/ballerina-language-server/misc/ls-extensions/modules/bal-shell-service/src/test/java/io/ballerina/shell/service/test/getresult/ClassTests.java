@@ -25,7 +25,7 @@ import java.util.concurrent.ExecutionException;
 /**
  * getResult End point tests related to class.
  *
- * @since 2201.1.1
+ * @since 1.0.0
  */
 public class ClassTests extends AbstractGetResultTest {
     @Test(description = "Test for class")

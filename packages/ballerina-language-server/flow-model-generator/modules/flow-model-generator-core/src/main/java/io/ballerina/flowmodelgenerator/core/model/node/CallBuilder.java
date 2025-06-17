@@ -46,7 +46,7 @@ import java.util.Map;
 /**
  * Abstract base class for function-like builders (functions, methods, resource actions).
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public abstract class CallBuilder extends NodeBuilder {
 
@@ -65,7 +65,8 @@ public abstract class CallBuilder extends NodeBuilder {
 
         FunctionDataBuilder functionDataBuilder = new FunctionDataBuilder()
                 .name(codedata.symbol())
-                .moduleInfo(new ModuleInfo(codedata.org(), codedata.module(), codedata.module(), codedata.version()))
+                .moduleInfo(new ModuleInfo(codedata.org(), codedata.packageName(), codedata.module(),
+                        codedata.version()))
                 .lsClientLogger(context.lsClientLogger())
                 .functionResultKind(getFunctionResultKind())
                 .userModuleInfo(moduleInfo);
@@ -97,6 +98,7 @@ public abstract class CallBuilder extends NodeBuilder {
                 .node(functionNodeKind)
                 .org(codedata.org())
                 .module(codedata.module())
+                .packageName(codedata.packageName())
                 .object(codedata.object())
                 .version(codedata.version())
                 .symbol(codedata.symbol())

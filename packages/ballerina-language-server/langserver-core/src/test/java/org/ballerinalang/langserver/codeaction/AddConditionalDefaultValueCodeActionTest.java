@@ -10,7 +10,7 @@ import java.io.IOException;
 /**
  * Test cases for {@link AddConditionalDefaultValueCodeAction}.
  *
- * @since 2201.2.1
+ * @since 1.0.0
  */
 public class AddConditionalDefaultValueCodeActionTest extends AbstractCodeActionTest {
 

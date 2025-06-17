@@ -20,7 +20,7 @@ package io.ballerina.converters;
 /**
  * Request format for JsonToBalRecord endpoint.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class JsonToRecordRequest {
 

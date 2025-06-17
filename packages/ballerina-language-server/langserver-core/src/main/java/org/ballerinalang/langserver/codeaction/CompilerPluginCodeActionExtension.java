@@ -65,7 +65,7 @@ import java.util.Optional;
 /**
  * Compiler plugin code action extension implementation for ballerina.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 @JavaSPIService("org.ballerinalang.langserver.commons.LanguageExtension")
 public class CompilerPluginCodeActionExtension implements CodeActionExtension {

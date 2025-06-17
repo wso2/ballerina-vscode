@@ -22,7 +22,7 @@ package io.ballerina.graphqlmodelgenerator.extension;
 /**
  * GraphQL model generator constants.
  *
- * @since 2201.5.0
+ * @since 1.0.0
  */
 public class GraphqlModelGeneratorConstants {
     public static final String CAPABILITY_NAME = "graphQLDesignServiceLSExtension";

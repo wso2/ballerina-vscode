@@ -39,7 +39,7 @@ import java.util.function.Predicate;
 /**
  * Schema Visitor for visiting toml validation schema.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class TomlSchemaVisitor extends SchemaVisitor {
 

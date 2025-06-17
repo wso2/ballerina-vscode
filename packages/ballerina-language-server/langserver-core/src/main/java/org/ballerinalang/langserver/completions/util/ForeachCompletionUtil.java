@@ -53,7 +53,7 @@ import java.util.stream.Collectors;
 /**
  * Dynamic foreach snippet construction for iterables.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public final class ForeachCompletionUtil {
 

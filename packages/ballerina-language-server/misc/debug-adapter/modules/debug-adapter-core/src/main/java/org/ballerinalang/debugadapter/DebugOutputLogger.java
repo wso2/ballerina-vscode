@@ -24,7 +24,7 @@ import org.eclipse.lsp4j.debug.services.IDebugProtocolClient;
  * Wrapper implementation for the DAP `client/output` endpoint, which can be used to send debug server and target VM
  * outputs to the debugger client side.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class DebugOutputLogger {
 

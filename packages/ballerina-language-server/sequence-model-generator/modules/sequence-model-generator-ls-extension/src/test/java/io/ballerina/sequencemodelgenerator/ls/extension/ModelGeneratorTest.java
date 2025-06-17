@@ -48,7 +48,7 @@ import java.util.concurrent.CompletableFuture;
 /**
  * Test class for sequence model generator service.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class ModelGeneratorTest {
 

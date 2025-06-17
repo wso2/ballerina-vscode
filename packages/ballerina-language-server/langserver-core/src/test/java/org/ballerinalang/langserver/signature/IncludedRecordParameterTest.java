@@ -24,7 +24,7 @@ import java.io.IOException;
 /**
  * Test class for Action Signature help.
  *
- * @since 2201.1.1
+ * @since 1.0.0
  */
 public class IncludedRecordParameterTest extends AbstractSignatureHelpTest {
     

@@ -35,7 +35,7 @@ import java.util.List;
 /**
  * Completion extension implementation for ballerina.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 @JavaSPIService("org.ballerinalang.langserver.commons.LanguageExtension")
 public class BallerinaCompletionExtension implements CompletionExtension {

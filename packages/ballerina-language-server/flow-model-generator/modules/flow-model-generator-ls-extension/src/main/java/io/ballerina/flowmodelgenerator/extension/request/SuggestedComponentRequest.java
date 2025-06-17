@@ -22,7 +22,7 @@ package io.ballerina.flowmodelgenerator.extension.request;
  * Represents a request to the flow model getSuggestedComponents API.
  *
  * @param content The content of the AI-generated text
- * @since 1.4.0
+ * @since 1.0.0
  */
 public record SuggestedComponentRequest(String content) {
 

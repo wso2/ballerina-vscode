@@ -54,7 +54,7 @@ import java.util.Optional;
 /**
  * Code Action to autofill record fields.
  *
- * @since 2201.2.3
+ * @since 1.0.0
  */
 @JavaSPIService("org.ballerinalang.langserver.commons.codeaction.spi.LSCodeActionProvider")
 public class FillRecordFieldsCodeAction implements RangeBasedCodeActionProvider {

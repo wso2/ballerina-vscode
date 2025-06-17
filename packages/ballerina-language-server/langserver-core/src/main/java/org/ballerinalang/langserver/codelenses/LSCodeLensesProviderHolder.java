@@ -28,7 +28,7 @@ import java.util.ServiceLoader;
 /**
  * Loads and provides the Code Lenses Providers.
  *
- * @since 0.990.3
+ * @since 1.0.0
  */
 public class LSCodeLensesProviderHolder {
     private static final List<LSCodeLensesProvider> codeLenses = new ArrayList<>();

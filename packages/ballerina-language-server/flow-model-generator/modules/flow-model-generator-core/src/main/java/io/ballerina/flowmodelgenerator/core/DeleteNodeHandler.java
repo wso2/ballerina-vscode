@@ -63,7 +63,7 @@ import java.util.stream.Collectors;
 /**
  * Generates text edits for the nodes that are requested to delete.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class DeleteNodeHandler {
 

@@ -30,7 +30,7 @@ import javax.annotation.Nullable;
  * Represents a Symbol Based Completion Item.
  * Eg: Invocation Symbol
  *
- * @since 1.2.0
+ * @since 1.0.0
  */
 public class SymbolCompletionItem extends AbstractLSCompletionItem {
     private final Symbol bSymbol;

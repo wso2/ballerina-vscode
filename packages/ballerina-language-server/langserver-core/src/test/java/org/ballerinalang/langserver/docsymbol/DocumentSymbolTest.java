@@ -39,7 +39,7 @@ import java.nio.file.Path;
 /**
  * Ballerina Language Server Workspace Test.
  * 
- * @since 0.982.0
+ * @since 1.0.0
  */
 public class DocumentSymbolTest {
     

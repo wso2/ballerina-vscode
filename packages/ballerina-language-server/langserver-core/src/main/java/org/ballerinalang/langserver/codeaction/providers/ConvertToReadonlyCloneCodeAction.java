@@ -40,7 +40,7 @@ import static org.ballerinalang.util.diagnostic.DiagnosticErrorCode.INVALID_CALL
 /**
  * Code action to convert an expression e to e.cloneReadOnly().
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 @JavaSPIService("org.ballerinalang.langserver.commons.codeaction.spi.LSCodeActionProvider")
 public class ConvertToReadonlyCloneCodeAction implements DiagnosticBasedCodeActionProvider {

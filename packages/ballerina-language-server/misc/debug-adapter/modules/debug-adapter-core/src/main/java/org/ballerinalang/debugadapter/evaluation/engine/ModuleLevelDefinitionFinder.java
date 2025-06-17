@@ -42,7 +42,7 @@ import static io.ballerina.runtime.api.constants.RuntimeConstants.MAIN_FUNCTION_
  * A {@link NodeVisitor} implementation which can be used to search for all the module level definitions
  * (e.g. function,class,type) within a given ballerina module.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class ModuleLevelDefinitionFinder extends NodeVisitor {
 

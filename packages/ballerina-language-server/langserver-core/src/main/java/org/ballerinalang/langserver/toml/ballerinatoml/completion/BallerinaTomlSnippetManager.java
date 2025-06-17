@@ -27,7 +27,7 @@ import java.nio.charset.StandardCharsets;
 /**
  * Maintains all the supported snippets for Ballerina Toml.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class BallerinaTomlSnippetManager extends AbstractTomlSnippetManager {
 

@@ -85,7 +85,7 @@ import static io.ballerina.servicemodelgenerator.extension.util.Utils.importExis
 /**
  * Generates service from the OpenAPI contract.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class OpenApiServiceGenerator {
 

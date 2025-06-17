@@ -45,7 +45,7 @@ import java.util.stream.IntStream;
 /**
  * Dynamic snippet constructs for typeguards.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public final class TypeGuardCompletionUtil {
 

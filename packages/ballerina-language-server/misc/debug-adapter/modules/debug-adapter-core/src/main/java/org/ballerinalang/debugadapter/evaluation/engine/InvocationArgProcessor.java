@@ -62,7 +62,7 @@ import static org.ballerinalang.debugadapter.evaluation.utils.EvaluationUtils.ge
 /**
  * Validates and processes invocation arguments of ballerina functions and object methods.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public abstract class InvocationArgProcessor {
 

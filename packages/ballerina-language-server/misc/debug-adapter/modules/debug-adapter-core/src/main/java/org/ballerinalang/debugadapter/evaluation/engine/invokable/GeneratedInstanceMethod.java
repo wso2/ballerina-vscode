@@ -37,7 +37,7 @@ import static org.ballerinalang.debugadapter.evaluation.utils.EvaluationUtils.JA
 /**
  * JVM generated instance method representation of a ballerina function.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class GeneratedInstanceMethod extends GeneratedMethod {
 

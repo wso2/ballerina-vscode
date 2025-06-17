@@ -23,7 +23,7 @@ import static org.ballerinalang.debugadapter.evaluation.utils.EvaluationUtils.MO
 /**
  * A helper class to hold resolved imports information during evaluation.
  *
- * @since 2.0.0.
+ * @since 1.0.0.
  */
 public class BImport {
 

@@ -26,7 +26,7 @@ import java.nio.file.Path;
  * Command executor for stopping a Ballerina project.
  * See {@link RunExecutor} for running a Ballerina project.
  *
- * @since 2201.6.0
+ * @since 1.0.0
  */
 @JavaSPIService("org.ballerinalang.langserver.commons.command.spi.LSCommandExecutor")
 public class StopExecutor implements LSCommandExecutor {

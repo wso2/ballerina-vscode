@@ -26,7 +26,7 @@ import java.util.List;
 /**
  * Provides code lenses related common functionalities.
  *
- * @since 0.984.0
+ * @since 1.0.0
  */
 public final class CodeLensUtil {
 

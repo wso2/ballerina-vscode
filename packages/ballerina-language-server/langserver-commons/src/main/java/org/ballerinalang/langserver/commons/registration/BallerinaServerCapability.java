@@ -20,7 +20,7 @@ import org.eclipse.lsp4j.jsonrpc.validation.NonNull;
 /**
  * Represents the interface for the server capabilities of the extension services.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class BallerinaServerCapability {
     @NonNull

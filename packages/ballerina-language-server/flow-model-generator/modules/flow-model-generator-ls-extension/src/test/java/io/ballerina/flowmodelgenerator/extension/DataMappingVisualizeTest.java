@@ -37,7 +37,7 @@ import java.nio.file.Path;
 /**
  * Tests for the visualization of data mapper model.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class DataMappingVisualizeTest extends AbstractLSTest {
 

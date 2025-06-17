@@ -18,7 +18,7 @@ package org.ballerinalang.langserver.commons;
 /**
  * Represents a context to track the number of placeholders.
  *
- * @since 2201.4.0
+ * @since 1.0.0
  */
 public class SnippetContext {
     private int placeholderCount = 0;

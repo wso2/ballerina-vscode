@@ -28,7 +28,7 @@ import io.ballerina.tools.text.LinePosition;
  * @param flowNode    flow node of form
  * @param position    position of the cursor
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public record DataMapperVisualizeRequest(String filePath, JsonElement flowNode, LinePosition position) {
 }

@@ -44,7 +44,7 @@ import java.util.Optional;
 /**
  * Tests {@link LSPackageLoader}.
  *
- * @since 2201.2.1
+ * @since 1.0.0
  */
 public class LSPackageLoaderTest extends AbstractLSTest {
 

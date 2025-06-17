@@ -20,7 +20,7 @@ package org.ballerinalang.langserver.commons;
 /**
  * Represents a Ballerina goto definition context.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public interface BallerinaDefinitionContext extends PositionedOperationContext, BallerinaEnclosedPositionContext {
 }

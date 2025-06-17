@@ -53,7 +53,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 /**
  * The extended service for generation solution architecture model.
  *
- * @since 2201.6.0
+ * @since 1.0.0
  */
 @JavaSPIService("org.ballerinalang.langserver.commons.service.spi.ExtendedLanguageServerService")
 @JsonSegment("persistERGeneratorService")

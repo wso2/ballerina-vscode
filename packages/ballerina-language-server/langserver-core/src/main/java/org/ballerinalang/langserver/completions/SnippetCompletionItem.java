@@ -25,7 +25,7 @@ import org.ballerinalang.langserver.completions.util.SnippetBlock;
  * Represents a snippet Completion Item.
  * Eg: Code Snippet
  *
- * @since 1.2.0
+ * @since 1.0.0
  */
 public class SnippetCompletionItem extends AbstractLSCompletionItem {
     private final SnippetBlock.Kind kind;

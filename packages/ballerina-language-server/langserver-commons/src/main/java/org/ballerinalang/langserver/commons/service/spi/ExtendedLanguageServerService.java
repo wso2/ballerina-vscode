@@ -30,7 +30,7 @@ import java.util.Map;
 /**
  * Represents extended language server service interface.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public interface ExtendedLanguageServerService extends JsonRpcMethodProvider {
 
@@ -107,7 +107,7 @@ public interface ExtendedLanguageServerService extends JsonRpcMethodProvider {
      *
      * @return the name of the service
      *
-     * @since 2.0.0
+     * @since 1.0.0
      */
     default String getName() {
         throw new RuntimeException("Method not implemented");

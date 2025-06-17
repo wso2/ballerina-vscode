@@ -25,7 +25,7 @@ import java.util.Optional;
 /**
  * Represents the completion operation context for toml.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public interface TomlCompletionContext extends CompletionContext {
 

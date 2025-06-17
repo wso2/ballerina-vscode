@@ -1,0 +1,10 @@
+{
+  "description": "JSON object with mixed typed fields (arrays of different object types)",
+  "filePath": "proj/types.bal",
+  "jsonString": "{\n        \"name\": \"Product Catalog\",\n        \"version\": 2.5,\n        \"lastUpdated\": \"2025-05-20T15:30:00Z\",\n        \"categories\": [\n            \"Electronics\",\n            \"Computers\",\n            \"Accessories\"\n        ],\n        \"products\": [\n            {\n                \"id\": \"P001\",\n                \"name\": \"Laptop\",\n                \"price\": 1299.99,\n                \"inStock\": true,\n                \"specs\": {\n                    \"processor\": \"i7\",\n                    \"ram\": \"16GB\",\n                    \"storage\": \"512GB SSD\"\n                }\n            },\n            {\n                \"id\": \"P002\",\n                \"name\": \"Mouse\",\n                \"price\": 29.99,\n                \"inStock\": false,\n                \"specs\": {\n                    \"wireless\": true,\n                    \"dpi\": 1600\n                }\n            }\n        ]\n    }",
+  "typeName": "Catalog",
+  "prefix": "",
+  "allowAdditionalFields": false,
+  "asInline": false,
+  "expectedTypes": "\ntype Categories string[];\n\ntype Specs record {|\n\tstring processor?;\n\tstring ram?;\n\tstring storage?;\n\tboolean wireless?;\n\tint dpi?;\n|};\n\ntype ProductsItem record {|\n\tstring id;\n\tstring name;\n\tdecimal price;\n\tboolean inStock;\n\tSpecs specs;\n|};\n\ntype Products ProductsItem[];\n\ntype Catalog record {|\n\tstring name;\n\tdecimal version;\n\tstring lastUpdated;\n\tCategories categories;\n\tProducts products;\n|};\n"
+}

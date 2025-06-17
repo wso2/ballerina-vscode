@@ -35,7 +35,7 @@ import java.util.stream.Collectors;
  * Handles diagnostic requests for expression validation in the expression editor.
  *
  * @see DiagnosticsRequest
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class ExpressionDiagnosticsRequest extends DiagnosticsRequest {
 

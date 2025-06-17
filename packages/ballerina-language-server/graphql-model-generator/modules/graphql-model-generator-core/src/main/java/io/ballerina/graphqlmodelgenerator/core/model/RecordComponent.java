@@ -25,7 +25,7 @@ import java.util.List;
 /**
  * Represents the Parameters of resource and remote functions.
  *
- * @since 2201.5.0
+ * @since 1.0.0
  */
 public class RecordComponent {
     private final String name;

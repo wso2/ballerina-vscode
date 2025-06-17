@@ -20,7 +20,7 @@ import org.eclipse.lsp4j.TextDocumentIdentifier;
 /**
  * Represents the request for getSymbol endpoint of BallerinaSymbolService.
  *
- * @since 2201.1.0
+ * @since 1.0.0
  */
 public class SymbolInfoRequest {
     private TextDocumentIdentifier textDocumentIdentifier;

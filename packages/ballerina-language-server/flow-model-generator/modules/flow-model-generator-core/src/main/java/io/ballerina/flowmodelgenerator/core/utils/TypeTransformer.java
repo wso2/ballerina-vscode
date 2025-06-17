@@ -69,7 +69,7 @@ import java.util.Optional;
 
 /**
  * Transformer to transform Ballerina type symbols to type data.
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class TypeTransformer {
     private final Module module;
@@ -297,13 +297,14 @@ public class TypeTransformer {
             Object transformedRestType = transform(restTypeSymbol.get(), restTypeDataBuilder);
             if (transformedRestType.equals(BUILT_IN_ANYDATA)) {
                 typeDataBuilder.allowAdditionalFields(true);
+            } else {
+                Member restMember = memberBuilder
+                        .kind(Member.MemberKind.FIELD)
+                        .type(transformedRestType)
+                        .refs(getTypeRefs(transformedRestType, restTypeSymbol.get()))
+                        .build();
+                typeDataBuilder.restMember(restMember);
             }
-            Member restMember = memberBuilder
-                    .kind(Member.MemberKind.FIELD)
-                    .type(transformedRestType)
-                    .refs(getTypeRefs(transformedRestType, restTypeSymbol.get()))
-                    .build();
-            typeDataBuilder.restMember(restMember);
         }
 
         // members

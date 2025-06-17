@@ -21,7 +21,7 @@ import org.ballerinalang.debugadapter.evaluation.parser.DebugParser;
 /**
  * Debug source validator.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public abstract class Validator {
 

@@ -33,7 +33,7 @@ import java.util.logging.Logger;
 /**
  * Database Manager use to create the database and insert data.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 class DatabaseManager {
 

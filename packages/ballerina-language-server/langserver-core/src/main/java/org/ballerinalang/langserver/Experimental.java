@@ -19,7 +19,7 @@ package org.ballerinalang.langserver;
 /**
  * Enum for experimental server capabilities in language server.
  *
- * @since 1.1.0
+ * @since 1.0.0
  */
 public enum Experimental {
     INTROSPECTION("introspection"),

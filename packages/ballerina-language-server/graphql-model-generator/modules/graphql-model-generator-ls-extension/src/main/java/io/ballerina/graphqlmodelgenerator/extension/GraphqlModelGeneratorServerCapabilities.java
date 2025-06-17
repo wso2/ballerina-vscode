@@ -23,7 +23,7 @@ import org.ballerinalang.langserver.commons.registration.BallerinaServerCapabili
 /**
  * Server capability for the graphQL model generator service.
  *
- * @since 2201.5.0
+ * @since 1.0.0
  */
 public class GraphqlModelGeneratorServerCapabilities extends BallerinaServerCapability {
     public GraphqlModelGeneratorServerCapabilities() {

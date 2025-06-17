@@ -31,7 +31,7 @@ import java.util.List;
 /**
  * Util used to generate value entries for Config.toml keys.
  *
- * @since 2201.10.0
+ * @since 1.0.0
  */
 public final class ConfigTomlValueGenerationUtil {
 

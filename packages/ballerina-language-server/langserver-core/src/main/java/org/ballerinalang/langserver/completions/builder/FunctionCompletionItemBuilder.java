@@ -71,7 +71,7 @@ import javax.annotation.Nullable;
 /**
  * This class is being used to build function type completion item.
  *
- * @since 0.983.0
+ * @since 1.0.0
  */
 public final class FunctionCompletionItemBuilder {
 
@@ -412,7 +412,7 @@ public final class FunctionCompletionItemBuilder {
     /**
      * Build mode, either explicit or implicit initializer.
      *
-     * @since 2.0.0
+     * @since 1.0.0
      */
     public enum InitializerBuildMode {
         EXPLICIT,

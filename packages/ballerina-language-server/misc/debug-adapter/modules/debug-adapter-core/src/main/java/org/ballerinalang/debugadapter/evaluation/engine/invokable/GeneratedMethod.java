@@ -30,7 +30,7 @@ import static org.ballerinalang.debugadapter.evaluation.EvaluationExceptionKind.
 /**
  * JVM generated method representation of a ballerina function.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public abstract class GeneratedMethod extends JvmMethod {
 

@@ -24,7 +24,7 @@ import java.util.Map;
 /**
  * Request to get the triggers list from Ballerina central.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class BallerinaTriggerListRequest {
     private String targetFile;

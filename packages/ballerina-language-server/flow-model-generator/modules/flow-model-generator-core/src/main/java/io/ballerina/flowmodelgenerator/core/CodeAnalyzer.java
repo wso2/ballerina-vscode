@@ -175,9 +175,9 @@ import java.util.stream.Collectors;
 /**
  * Analyzes the source code and generates the flow model.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
-class CodeAnalyzer extends NodeVisitor {
+public class CodeAnalyzer extends NodeVisitor {
 
     // Readonly fields
     private final Project project;

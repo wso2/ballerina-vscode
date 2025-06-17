@@ -21,7 +21,7 @@ package io.ballerina.flowmodelgenerator.extension.response;
 /**
  * Represents the response for new files.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class ICPEnabledResponse extends AbstractFlowModelResponse {
 

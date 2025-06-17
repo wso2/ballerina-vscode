@@ -23,7 +23,7 @@ import java.util.List;
 /**
  * Proxy definition for JDI virtual machine.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public interface VirtualMachineProxy {
 

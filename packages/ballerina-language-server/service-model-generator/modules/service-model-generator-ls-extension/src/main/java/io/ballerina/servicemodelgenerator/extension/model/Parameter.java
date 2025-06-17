@@ -39,7 +39,7 @@ import static io.ballerina.servicemodelgenerator.extension.ServiceModelGenerator
 /**
  * Represents a parameter in service method.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class Parameter {
     private MetaData metadata;

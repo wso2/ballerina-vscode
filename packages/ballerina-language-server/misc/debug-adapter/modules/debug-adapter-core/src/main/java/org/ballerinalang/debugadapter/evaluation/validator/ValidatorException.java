@@ -19,7 +19,7 @@ package org.ballerinalang.debugadapter.evaluation.validator;
 /**
  * Wrapper to indicate ballerina debug expression validation specific exceptions.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class ValidatorException extends Exception {
 

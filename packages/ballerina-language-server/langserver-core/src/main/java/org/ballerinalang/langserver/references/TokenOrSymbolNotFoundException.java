@@ -18,7 +18,7 @@ package org.ballerinalang.langserver.references;
 /**
  * Exception when token or symbol is not found.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class TokenOrSymbolNotFoundException extends Exception {
     public TokenOrSymbolNotFoundException(String message) {

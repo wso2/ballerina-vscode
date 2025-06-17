@@ -46,7 +46,7 @@ import java.util.Set;
 /**
  * Represents the resource action invocation node in the flow model.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class ResourceActionCallBuilder extends CallBuilder {
 
@@ -66,7 +66,8 @@ public class ResourceActionCallBuilder extends CallBuilder {
 
         FunctionDataBuilder functionDataBuilder = new FunctionDataBuilder()
                 .name(codedata.symbol())
-                .moduleInfo(new ModuleInfo(codedata.org(), codedata.module(), codedata.module(), codedata.version()))
+                .moduleInfo(new ModuleInfo(codedata.org(), codedata.packageName(), codedata.module(),
+                        codedata.version()))
                 .lsClientLogger(context.lsClientLogger())
                 .parentSymbolType(codedata.object())
                 .resourcePath(codedata.resourcePath())

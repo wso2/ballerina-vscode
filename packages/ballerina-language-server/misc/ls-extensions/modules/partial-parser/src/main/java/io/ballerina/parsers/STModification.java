@@ -18,7 +18,7 @@ package io.ballerina.parsers;
 /**
  * Represents a request for partial ST Modify.
  *
- * @since 1.3.0
+ * @since 1.0.0
  */
 public class STModification {
     private int startLine;

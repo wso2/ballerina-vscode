@@ -46,7 +46,7 @@ import java.util.Optional;
 /**
  * Represents the context for the expression editor.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class ExpressionEditorContext {
 
@@ -298,7 +298,7 @@ public class ExpressionEditorContext {
      * methods.
      * </p>
      *
-     * @since 2.0.0
+     * @since 1.0.0
      */
     public static class Property {
 

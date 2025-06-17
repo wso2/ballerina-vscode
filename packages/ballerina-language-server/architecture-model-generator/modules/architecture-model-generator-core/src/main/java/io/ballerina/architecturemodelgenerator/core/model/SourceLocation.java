@@ -21,7 +21,7 @@ package io.ballerina.architecturemodelgenerator.core.model;
 /**
  * Represent the location of a component model element.
  *
- * @since 2201.3.1
+ * @since 1.0.0
  */
 public class SourceLocation {
 
@@ -54,7 +54,7 @@ public class SourceLocation {
     /**
      * Represent the line position of a component model element.
      *
-     * @since 2201.3.1
+     * @since 1.0.0
      */
     public static class LinePosition {
 

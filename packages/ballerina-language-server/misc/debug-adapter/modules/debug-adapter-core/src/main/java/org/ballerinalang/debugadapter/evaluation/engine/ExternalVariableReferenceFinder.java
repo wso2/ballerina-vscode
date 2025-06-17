@@ -77,7 +77,7 @@ import java.util.Set;
  * All the variable references that are defined within the expressions (i.e internal variables)
  * will be ignored. (e.g. declared variables in let expressions, binding patterns in query expressions).
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class ExternalVariableReferenceFinder extends NodeVisitor {
 

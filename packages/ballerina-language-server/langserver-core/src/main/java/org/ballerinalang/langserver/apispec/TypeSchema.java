@@ -24,7 +24,7 @@ import java.util.Map;
 /**
  * Represents a type schema for an LS API.
  *
- * @since 2201.12.0
+ * @since 1.0.0
  */
 public abstract class TypeSchema {
 

@@ -25,7 +25,7 @@ import java.util.Optional;
  * Each extended service should have associated capability setter which will be loaded dynamically at the runtime.
  *
  * @param <T> type of the server capability
- * @since 2.0.0
+ * @since 1.0.0
  */
 public abstract class BallerinaServerCapabilitySetter<T extends BallerinaServerCapability> {
     private final Gson gson = new Gson();

@@ -62,7 +62,7 @@ import java.util.Optional;
 /**
  * Code Action to undefined configurables into Config.toml file.
  *
- * @since 2201.10.0
+ * @since 1.0.0
  */
 @JavaSPIService("org.ballerinalang.langserver.commons.codeaction.spi.LSCodeActionProvider")
 public class AddToConfigTomlCodeAction implements RangeBasedCodeActionProvider {

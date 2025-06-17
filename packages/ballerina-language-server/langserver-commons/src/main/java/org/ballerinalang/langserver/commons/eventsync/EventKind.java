@@ -20,7 +20,7 @@ package org.ballerinalang.langserver.commons.eventsync;
 /**
  * Represents the kinds of event publishers.
  *
- * @since 2201.1.1
+ * @since 1.0.0
  */
 public enum EventKind {
     PROJECT_UPDATE,

@@ -38,7 +38,7 @@ import java.util.concurrent.CompletableFuture;
  * Represents a request for code completion in the expression editor. This class extends
  * DebouncedExpressionEditorRequest to handle completion requests with debouncing functionality.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class CompletionRequest extends DebouncedExpressionEditorRequest<Either<List<CompletionItem>, CompletionList>> {
 

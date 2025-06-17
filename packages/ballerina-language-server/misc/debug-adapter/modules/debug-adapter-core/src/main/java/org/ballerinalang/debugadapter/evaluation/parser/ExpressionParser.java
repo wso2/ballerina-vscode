@@ -21,7 +21,7 @@ import io.ballerina.compiler.syntax.tree.SyntaxKind;
 /**
  * An extended debug parser implementation for ballerina expression-specific parsing.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class ExpressionParser extends StatementParser {
 

@@ -72,7 +72,7 @@ import java.util.Optional;
 /**
  * A utility to handle renaming related operations.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public final class RenameUtil {
 

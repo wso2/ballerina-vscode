@@ -24,7 +24,7 @@ import java.io.IOException;
 /**
  * Test Cases for make construct public code action.
  *
- * @since 2201.0.4
+ * @since 1.0.0
  */
 public class MakeConstructPublicCodeActionTest extends AbstractCodeActionTest {
 

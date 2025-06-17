@@ -22,7 +22,7 @@ package io.ballerina.graphqlmodelgenerator.core.model;
  * Represents the Interactions between the graphQL operations and other components.
  * Based on the component name and the path, the links will be created between the components.
  *
- * @since 2201.5.0
+ * @since 1.0.0
  */
 public class Interaction {
     private final String componentName;

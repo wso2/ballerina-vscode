@@ -48,7 +48,7 @@ import java.util.Optional;
 /**
  * Code Action to make construct public.
  *
- * @since 2201.0.4
+ * @since 1.0.0
  */
 @JavaSPIService("org.ballerinalang.langserver.commons.codeaction.spi.LSCodeActionProvider")
 public class MakeConstructPublicCodeAction implements DiagnosticBasedCodeActionProvider {
