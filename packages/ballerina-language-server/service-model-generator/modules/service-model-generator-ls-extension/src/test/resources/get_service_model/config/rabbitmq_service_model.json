@@ -81,7 +81,7 @@
           "editable": true,
           "value": "",
           "values": [],
-          "valueType": "EXPRESSION",
+          "valueType": "SERVICE_PATH",
           "valueTypeConstraint": "string",
           "isType": false,
           "placeholder": "\"\"",

@@ -60,7 +60,7 @@
         "enabled": true,
         "editable": true,
         "value": "/api/test",
-        "valueType": "IDENTIFIER",
+        "valueType": "SERVICE_PATH",
         "valueTypeConstraint": "string",
         "isType": false,
         "placeholder": "",
