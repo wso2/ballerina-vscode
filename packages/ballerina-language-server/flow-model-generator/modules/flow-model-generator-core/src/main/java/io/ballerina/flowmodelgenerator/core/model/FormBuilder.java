@@ -384,7 +384,7 @@ public class FormBuilder<T> extends FacetedBuilder<T> {
                     .label(Property.RESOURCE_PATH_LABEL)
                     .description(Property.RESOURCE_PATH_DOC)
                     .stepOut()
-                .type(Property.ValueType.EXPRESSION);
+                .type(Property.ValueType.ACTION_PATH);
         if (editable) {
             propertyBuilder
                     .codedata()
