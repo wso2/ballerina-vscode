@@ -76,7 +76,8 @@
         "codedata": {
           "kind": "PARAM_FOR_TYPE_INFER",
           "originalName": "targetType"
-        }
+        },
+        "defaultValue": "http:Response|anydata|stream<http:SseEvent, error?>"
       },
       "headers": {
         "metadata": {
@@ -109,7 +110,8 @@
             "kind": "MAP_TYPE",
             "selected": false
           }
-        ]
+        ],
+        "defaultValue": "()"
       },
       "additionalValues": {
         "metadata": {

@@ -65,7 +65,8 @@
         "codedata": {
           "kind": "PARAM_FOR_TYPE_INFER",
           "originalName": "returnType"
-        }
+        },
+        "defaultValue": "anydata"
       },
       "sqlQuery": {
         "metadata": {
@@ -74,7 +75,7 @@
         },
         "valueType": "EXPRESSION",
         "valueTypeConstraint": "sql:ParameterizedQuery",
-        "placeholder": "``",
+        "placeholder": "object {}",
         "optional": false,
         "editable": true,
         "advanced": false,
@@ -94,7 +95,8 @@
         ],
         "imports": {
           "sql": "ballerina/sql"
-        }
+        },
+        "defaultValue": "``"
       },
       "type": {
         "metadata": {

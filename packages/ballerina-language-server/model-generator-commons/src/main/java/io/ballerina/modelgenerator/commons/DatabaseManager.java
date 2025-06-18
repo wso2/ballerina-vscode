@@ -377,6 +377,7 @@ public class DatabaseManager {
                         rs.getString("name"),
                         rs.getString("type"),
                         ParameterData.Kind.valueOf(rs.getString("kind")),
+                        rs.getString("placeholder"),
                         rs.getString("default_value"),
                         rs.getString("description"),
                         "",
@@ -400,6 +401,7 @@ public class DatabaseManager {
                 "p.type, " +
                 "p.kind, " +
                 "p.optional, " +
+                "p.placeholder, " +
                 "p.default_value, " +
                 "p.description, " +
                 "p.import_statements, " +
@@ -424,6 +426,7 @@ public class DatabaseManager {
                 int parameterId = rs.getInt("parameter_id");
                 String type = rs.getString("type");
                 ParameterData.Kind kind = ParameterData.Kind.valueOf(rs.getString("kind"));
+                String placeholder = rs.getString("placeholder");
                 String defaultValue = rs.getString("default_value");
                 String description = rs.getString("description");
                 boolean optional = rs.getBoolean("optional");
@@ -443,6 +446,7 @@ public class DatabaseManager {
                     builder.name = paramName;
                     builder.type = type;
                     builder.kind = kind;
+                    builder.placeholder = placeholder;
                     builder.defaultValue = defaultValue;
                     builder.description = description;
                     builder.optional = optional;
@@ -478,6 +482,7 @@ public class DatabaseManager {
         String name;
         String type;
         ParameterData.Kind kind;
+        String placeholder;
         String defaultValue;
         String description;
         boolean optional;
@@ -490,6 +495,7 @@ public class DatabaseManager {
                     name,
                     type,
                     kind,
+                    placeholder,
                     defaultValue,
                     description,
                     null,

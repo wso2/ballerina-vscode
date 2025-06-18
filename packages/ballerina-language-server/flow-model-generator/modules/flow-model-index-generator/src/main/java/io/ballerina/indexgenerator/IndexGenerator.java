@@ -270,7 +270,7 @@ class IndexGenerator {
         for (Map.Entry<String, ParameterData> entry : functionData.parameters().entrySet()) {
             ParameterData parameterData = entry.getValue();
             int paramId = DatabaseManager.insertFunctionParameter(functionId, parameterData.name(),
-                    parameterData.description(), parameterData.type(), parameterData.placeholder(),
+                    parameterData.description(), parameterData.type(), parameterData.placeholder(), parameterData.defaultValue(),
                     FunctionParameterKind.fromString(parameterData.kind().name()),
                     parameterData.optional() ? 1 : 0, parameterData.importStatements());
 

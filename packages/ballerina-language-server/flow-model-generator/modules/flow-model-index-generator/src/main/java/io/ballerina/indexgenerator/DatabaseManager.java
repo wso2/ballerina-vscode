@@ -105,16 +105,16 @@ class DatabaseManager {
     }
 
     public static int insertFunctionParameter(int functionId, String paramName, String paramDescription,
-                                              Object paramType, String defaultValue,
+                                              Object paramType, String placeholder, String defaultValue,
                                               IndexGenerator.FunctionParameterKind parameterKind,
                                               int optional, String importStatements) {
 
         String sql =
-                "INSERT INTO Parameter (function_id, name, description, type, default_value, kind, optional, " +
+                "INSERT INTO Parameter (function_id, name, description, type, placeholder, default_value, kind, optional, " +
                         "import_statements) " +
-                        "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+                        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
         return insertEntry(sql,
-                new Object[]{functionId, paramName, paramDescription, paramType, defaultValue,
+                new Object[]{functionId, paramName, paramDescription, paramType, placeholder, defaultValue,
                         parameterKind.name(), optional, importStatements});
     }
 
