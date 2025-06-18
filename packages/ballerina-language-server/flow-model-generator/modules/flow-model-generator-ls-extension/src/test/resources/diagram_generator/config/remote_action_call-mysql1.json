@@ -43,7 +43,7 @@
         "metadata": {
           "label": "query",
           "description": "Executes the query, which may return multiple results.\nWhen processing the stream, make sure to consume all fetched data or close the stream.\n",
-          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_mysql_1.16.0.png"
+          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_mysql_1.15.0.png"
         },
         "codedata": {
           "node": "REMOTE_ACTION_CALL",
@@ -52,7 +52,7 @@
           "packageName": "mysql",
           "object": "Client",
           "symbol": "query",
-          "version": "1.16.0",
+          "version": "1.15.0",
           "lineRange": {
             "fileName": "mysql.bal",
             "startLine": {
@@ -181,7 +181,7 @@
         "metadata": {
           "label": "query",
           "description": "Executes the query, which may return multiple results.\nWhen processing the stream, make sure to consume all fetched data or close the stream.\n",
-          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_mysql_1.16.0.png"
+          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_mysql_1.15.0.png"
         },
         "codedata": {
           "node": "REMOTE_ACTION_CALL",
@@ -190,7 +190,7 @@
           "packageName": "mysql",
           "object": "Client",
           "symbol": "query",
-          "version": "1.16.0",
+          "version": "1.15.0",
           "lineRange": {
             "fileName": "mysql.bal",
             "startLine": {
@@ -321,7 +321,7 @@
         "metadata": {
           "label": "New Connection",
           "description": "Represents a MySQL database client.",
-          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_mysql_1.16.0.png"
+          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_mysql_1.15.0.png"
         },
         "codedata": {
           "node": "NEW_CONNECTION",
@@ -514,7 +514,7 @@
             "typeMembers": [
               {
                 "type": "Options",
-                "packageInfo": "ballerinax:mysql:1.16.0",
+                "packageInfo": "ballerinax:mysql:1.15.0",
                 "packageName": "mysql",
                 "kind": "RECORD_TYPE",
                 "selected": false
