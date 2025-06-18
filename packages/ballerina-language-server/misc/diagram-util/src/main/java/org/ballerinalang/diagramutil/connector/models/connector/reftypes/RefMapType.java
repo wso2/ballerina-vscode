@@ -32,4 +32,18 @@ public class RefMapType extends RefType {
         this.typeName = "map";
         this.paramType = paramType;
     }
+
+    public RefMapType(RefMapType mapType, boolean isFullType) {
+        this.typeName = mapType.typeName;
+        this.name = mapType.name;
+        this.optional = mapType.optional;
+        this.typeInfo = mapType.typeInfo;
+        this.defaultable = mapType.defaultable;
+        this.defaultValue = mapType.defaultValue;
+        this.displayAnnotation = mapType.displayAnnotation;
+        this.documentation = mapType.documentation;
+        if (isFullType) {
+            this.paramType = mapType.paramType;
+        }
+    }
 }

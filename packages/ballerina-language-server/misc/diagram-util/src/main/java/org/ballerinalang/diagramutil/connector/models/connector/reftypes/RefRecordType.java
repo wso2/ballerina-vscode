@@ -70,4 +70,19 @@ public class RefRecordType extends RefType {
             this.dependentTypes = recordType.dependentTypes;
         }
     }
+
+    public RefRecordType(RefType recordType, String hashcode) {
+        this.typeName = recordType.typeName;
+        this.name = recordType.name;
+        this.typeInfo = recordType.typeInfo;
+        this.hashCode = hashcode;
+    }
+
+    public RefRecordType(RefType recordType, String hashcode, boolean needDependentTypes) {
+        this.typeName = recordType.typeName;
+        this.name = recordType.name;
+        this.typeInfo = recordType.typeInfo;
+        this.hashCode = hashcode;
+        this.dependentTypes = recordType.dependentTypes;
+    }
 }

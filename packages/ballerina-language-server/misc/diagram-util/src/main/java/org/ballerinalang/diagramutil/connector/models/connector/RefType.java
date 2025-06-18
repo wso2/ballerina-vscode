@@ -361,10 +361,21 @@ public class RefType {
                 }
             }
         } else if (symbol instanceof ArrayTypeSymbol arrayTypeSymbol) {
-            type = new RefArrayType(fromSemanticSymbol(arrayTypeSymbol.memberTypeDescriptor(), documentationMap,
-                    semanticModel));
+            return new RefArrayType(fromSemanticSymbol(arrayTypeSymbol.memberTypeDescriptor(), documentationMap,
+                        semanticModel));
         } else if (symbol instanceof MapTypeSymbol mapTypeSymbol) {
-            type = new RefMapType(fromSemanticSymbol(mapTypeSymbol.typeParam(), documentationMap, semanticModel));
+            RefType paramType = fromSemanticSymbol(mapTypeSymbol.typeParam(), documentationMap, semanticModel);
+            if (paramType instanceof RefRecordType) {
+                TypeInfo typeInfo = paramType.getTypeInfo();
+                String hashCode = String.valueOf(
+                        (typeInfo.name + typeInfo.orgName + typeInfo.moduleName + typeInfo.version).hashCode());
+                RefRecordType recordType = new RefRecordType(paramType, hashCode);
+                type = new RefMapType(recordType);
+                type.dependentTypes = new HashMap<>();
+                type.dependentTypes.put(hashCode, paramType);
+            } else {
+                type = new RefMapType(fromSemanticSymbol(mapTypeSymbol.typeParam(), documentationMap, semanticModel));
+            }
         } else if (symbol instanceof TableTypeSymbol tableTypeSymbol) {
             TypeSymbol keyConstraint = null;
             if (tableTypeSymbol.keyConstraintTypeParameter().isPresent()) {
@@ -637,13 +648,13 @@ public class RefType {
                             (typeInfo.name + typeInfo.orgName + typeInfo.moduleName + typeInfo.version).hashCode());
                     arraySubType.memberType.setHashCode(hashCode);
 
-                    if(arraySubType.memberType instanceof RefRecordType) {
+                    if (arraySubType.memberType instanceof RefRecordType) {
                         RefType recordSubType = new RefType(arraySubType.memberType.getName(), arraySubType.memberType.getTypeName()
                         );
                         recordSubType.setHashCode(hashCode);
                         RefArrayType arraySubTypeWithRecord = new RefArrayType(recordSubType, name);
                         fields.add(arraySubTypeWithRecord);
-                    }else{
+                    } else {
                         fields.add(arraySubType);
                     }
                     RefType depType = new RefRecordType((RefRecordType) (((RefArrayType) subType).memberType), false);
@@ -663,7 +674,7 @@ public class RefType {
                     if (subType.dependentTypes != null) {
                         dependentTypes.putAll(subType.dependentTypes);
                     }
-                } else if(subType instanceof RefEnumType){
+                } else if (subType instanceof RefEnumType){
                     RefEnumType enumSubType = new RefEnumType(((RefEnumType) subType), false);
                     TypeInfo typeInfo = subType.getTypeInfo();
                     String hashCode = String.valueOf(
@@ -675,10 +686,18 @@ public class RefType {
                     if (subType.dependentTypes != null) {
                         dependentTypes.putAll(subType.dependentTypes);
                     }
+                } else if (subType instanceof RefMapType){
+                    RefMapType mapSubType = new RefMapType(((RefMapType) subType), true);
+                    TypeInfo typeInfo = (((RefMapType) subType).paramType).getTypeInfo();
+                    String hashCode = String.valueOf(
+                            (typeInfo.name + typeInfo.orgName + typeInfo.moduleName + typeInfo.version).hashCode());
+                    fields.add(mapSubType);
+                    RefType depType = new RefMapType((RefMapType) subType, true);
+                    dependentTypes.put(hashCode, depType);
+                    if (subType.dependentTypes != null) {
+                        dependentTypes.putAll(subType.dependentTypes);
+                    }
                 }
-
-
-
                 else {
                     subType.setName(name);
                     subType.setOptional(field.isOptional());

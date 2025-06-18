@@ -55,7 +55,7 @@ public class RefTypeTest {
 //    public Object[][] getConfigsList() {
 //        return new Object[][]{
 //                new Object[]{
-//                        TestUtil.RES_DIR.resolve("RefTypeTest/TestData/enumSample2.json")
+//                        TestUtil.RES_DIR.resolve("RefTypeTest/TestData/arraySample2.json")
 //                }
 //        };
 //    }

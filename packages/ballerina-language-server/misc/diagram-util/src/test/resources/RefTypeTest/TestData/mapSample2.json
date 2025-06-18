@@ -1,29 +1,24 @@
 {
   "description": "A simple example of a reference-based type",
-  "source": "RefTypeTest/BalProject1",
-  "typeSymbolName": "SampleRecord",
+  "source": "RefTypeTest/BalProject4",
+  "typeSymbolName": "sampleTypeMap",
   "refType": {
-    "fields": [
-      {
-        "name": "sampleRecordName",
-        "typeName": "string",
-        "optional": false,
-        "defaultable": false,
-        "documentation": "",
-        "isRestType": false,
-        "selected": false
+    "paramType": {
+      "hasRestType": false,
+      "hashCode": "-1165196247",
+      "name": "SampleType",
+      "typeName": "record",
+      "optional": false,
+      "typeInfo": {
+        "name": "SampleType",
+        "orgName": "ballerinax",
+        "moduleName": "health.ccda.r3",
+        "version": "0.1.0"
       },
-      {
-        "hashCode": "-1165196247",
-        "name": "recordType",
-        "typeName": "SampleType",
-        "optional": false,
-        "defaultable": false,
-        "isRestType": false,
-        "selected": false
-      }
-    ],
-    "hasRestType": false,
+      "defaultable": false,
+      "isRestType": false,
+      "selected": false
+    },
     "dependentTypes": {
       "-1165196247": {
         "fields": [
@@ -47,6 +42,7 @@
           }
         ],
         "hasRestType": false,
+        "dependentTypes": {},
         "name": "SampleType",
         "typeName": "record",
         "optional": false,
@@ -61,7 +57,7 @@
         "selected": false
       }
     },
-    "typeName": "record",
+    "typeName": "map",
     "optional": false,
     "defaultable": false,
     "isRestType": false,

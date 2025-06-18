@@ -1,6 +1,6 @@
 {
   "description": "A simple example of a reference-based type",
-  "source": "RefTypeTest/BalProject",
+  "source": "RefTypeTest/BalProject1",
   "typeSymbolName": "FinalNote",
   "refType": {
     "fields": [
