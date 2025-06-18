@@ -66,6 +66,7 @@ import io.ballerina.compiler.syntax.tree.SelectClauseNode;
 import io.ballerina.compiler.syntax.tree.SeparatedNodeList;
 import io.ballerina.compiler.syntax.tree.SpecificFieldNode;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
+import io.ballerina.compiler.syntax.tree.SyntaxTree;
 import io.ballerina.compiler.syntax.tree.TypedBindingPatternNode;
 import io.ballerina.compiler.syntax.tree.VariableDeclarationNode;
 import io.ballerina.compiler.syntax.tree.WhereClauseNode;
@@ -344,7 +345,7 @@ public class DataMapManager {
             if (expr.kind() != SyntaxKind.MAPPING_CONSTRUCTOR) {
                 return null;
             }
-            Map<String, MappingFieldNode> mappingFieldsMap =
+            Map<String, SpecificFieldNode> mappingFieldsMap =
                     convertMappingFieldsToMap((MappingConstructorExpressionNode) expr);
             MappingFieldNode mappingFieldNode = mappingFieldsMap.get(split);
             if (mappingFieldNode == null) {
@@ -421,10 +422,9 @@ public class DataMapManager {
         return null;
     }
 
-    private Map<String, MappingFieldNode> convertMappingFieldsToMap(
-            MappingConstructorExpressionNode mappingCtrExprNode) {
-        Map<String, MappingFieldNode> mappingFieldNodeMap = new HashMap<>();
-        mappingCtrExprNode.fields().forEach(mappingFieldNode -> {
+    private Map<String, SpecificFieldNode> convertMappingFieldsToMap(MappingConstructorExpressionNode mappingCtrExpr) {
+        Map<String, SpecificFieldNode> mappingFieldNodeMap = new HashMap<>();
+        mappingCtrExpr.fields().forEach(mappingFieldNode -> {
             if (mappingFieldNode.kind() == SyntaxKind.SPECIFIC_FIELD) {
                 SpecificFieldNode specificFieldNode = (SpecificFieldNode) mappingFieldNode;
                 mappingFieldNodeMap.put(specificFieldNode.fieldName().toSourceCode().trim(), specificFieldNode);
@@ -746,6 +746,94 @@ public class DataMapManager {
         }
         if (!m.isEmpty()) {
             elements.add(m);
+        }
+    }
+
+    public JsonElement getSourceV2(Path filePath, JsonElement cd, JsonElement mp, String targetField) {
+        Codedata codedata = gson.fromJson(cd, Codedata.class);
+        Mapping mapping = gson.fromJson(mp, Mapping.class);
+
+        SyntaxTree syntaxTree = document.syntaxTree();
+        ModulePartNode modulePartNode = syntaxTree.rootNode();
+        TextDocument textDocument = syntaxTree.textDocument();
+        LineRange lineRange = codedata.lineRange();
+        int start = textDocument.textPositionFrom(lineRange.startLine());
+        int end = textDocument.textPositionFrom(lineRange.endLine());
+        NonTerminalNode node = modulePartNode.findNode(TextRange.from(start, end - start), true);
+
+        Map<Path, List<TextEdit>> textEditsMap = new HashMap<>();
+        List<TextEdit> textEdits = new ArrayList<>();
+        textEditsMap.put(filePath, textEdits);
+
+        if (node.kind() == SyntaxKind.LOCAL_VAR_DECL) {
+            VariableDeclarationNode varDecl = (VariableDeclarationNode) node;
+            String output = mapping.output();
+            String[] splits = output.split("\\.");
+            ExpressionNode expr = varDecl.initializer().orElseThrow();
+            StringBuilder sb = new StringBuilder();
+            if (splits.length == 1) {
+
+            }
+            genSource(expr, splits, 1, sb, mapping.expression(), null, textEdits);
+        } else if (node.kind() == SyntaxKind.MODULE_VAR_DECL) {
+
+        } else if (node.kind() == SyntaxKind.FUNCTION_CALL) {
+
+        }
+        return gson.toJsonTree(textEditsMap);
+    }
+
+    private void genSource(ExpressionNode expr, String[] names, int idx, StringBuilder stringBuilder,
+                           String mappingExpr, LinePosition position, List<TextEdit> textEdits) {
+        if (expr == null) {
+            String name = names[idx];
+            if (name.matches("\\d+")) {
+                stringBuilder.append(mappingExpr);
+            } else {
+                stringBuilder.append(name).append(": ");
+                for (int i = idx + 1; i < names.length; i++) {
+                    stringBuilder.append("{").append(names[i]).append(": ");
+                }
+                stringBuilder.append(mappingExpr);
+                for (int i = idx + 1; i < names.length; i++) {
+                    stringBuilder.append("}");
+                }
+            }
+            textEdits.add(new TextEdit(CommonUtils.toRange(position), stringBuilder.toString()));
+        } else if (expr.kind() == SyntaxKind.MAPPING_CONSTRUCTOR ) {
+            String name = names[idx];
+            MappingConstructorExpressionNode mappingCtrExpr = (MappingConstructorExpressionNode) expr;
+            Map<String, SpecificFieldNode> mappingFields = convertMappingFieldsToMap(mappingCtrExpr);
+            SpecificFieldNode mappingFieldNode = mappingFields.get(name);
+            if (mappingFieldNode == null) {
+                if (!mappingFields.isEmpty()) {
+                    stringBuilder.append(", ");
+                }
+                genSource(null, names, idx, stringBuilder, mappingExpr,
+                        mappingCtrExpr.closeBrace().lineRange().startLine(), textEdits);
+            } else {
+                genSource(mappingFieldNode.valueExpr().orElseThrow(), names, idx + 1, stringBuilder, mappingExpr, null, textEdits);
+            }
+        } else if (expr.kind() == SyntaxKind.LIST_CONSTRUCTOR) {
+            ListConstructorExpressionNode listCtrExpr = (ListConstructorExpressionNode) expr;
+            String name = names[idx];
+            if (name.matches("\\d+")) {
+                int index = Integer.parseInt(name);
+                if (index >= listCtrExpr.expressions().size()) {
+                    if (idx > 0) {
+                        stringBuilder.append(", ");
+                    }
+                    genSource(null, names, idx, stringBuilder, mappingExpr,
+                            listCtrExpr.closeBracket().lineRange().startLine(), textEdits);
+                } else {
+                    genSource((ExpressionNode) listCtrExpr.expressions().get(index), names, idx + 1, stringBuilder,
+                            mappingExpr, null, textEdits);
+                }
+            }
+        } else {
+            if (idx == names.length) {
+               textEdits.add(new TextEdit(CommonUtils.toRange(expr.lineRange()), mappingExpr));
+            }
         }
     }
 

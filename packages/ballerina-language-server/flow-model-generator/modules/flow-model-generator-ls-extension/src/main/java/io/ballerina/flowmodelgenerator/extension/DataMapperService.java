@@ -25,11 +25,13 @@ import io.ballerina.flowmodelgenerator.extension.request.DataMapperAddElementReq
 import io.ballerina.flowmodelgenerator.extension.request.DataMapperModelRequest;
 import io.ballerina.flowmodelgenerator.extension.request.DataMapperQueryConvertRequest;
 import io.ballerina.flowmodelgenerator.extension.request.DataMapperSourceRequest;
+import io.ballerina.flowmodelgenerator.extension.request.DataMapperSourceRequestV2;
 import io.ballerina.flowmodelgenerator.extension.request.DataMapperTypesRequest;
 import io.ballerina.flowmodelgenerator.extension.request.DataMapperVisualizeRequest;
 import io.ballerina.flowmodelgenerator.extension.response.DataMapperAddElementResponse;
 import io.ballerina.flowmodelgenerator.extension.response.DataMapperModelResponse;
 import io.ballerina.flowmodelgenerator.extension.response.DataMapperSourceResponse;
+import io.ballerina.flowmodelgenerator.extension.response.DataMapperSourceResponseV2;
 import io.ballerina.flowmodelgenerator.extension.response.DataMapperTypesResponse;
 import io.ballerina.flowmodelgenerator.extension.response.DataMapperVisualizeResponse;
 import io.ballerina.projects.Document;
@@ -113,6 +115,28 @@ public class DataMapperService implements ExtendedLanguageServerService {
             try {
                 DataMapManager dataMapManager = new DataMapManager(null, null);
                 response.setSource(dataMapManager.getSource(request.mappings(), request.flowNode(),
+                        request.targetField()));
+            } catch (Throwable e) {
+                response.setError(e);
+            }
+            return response;
+        });
+    }
+
+    @JsonRequest
+    public CompletableFuture<DataMapperSourceResponseV2> getSourceV2(DataMapperSourceRequestV2 request) {
+        return CompletableFuture.supplyAsync(() -> {
+            DataMapperSourceResponseV2 response = new DataMapperSourceResponseV2();
+            try {
+                Path filePath = Path.of(request.filePath());
+                this.workspaceManager.loadProject(filePath);
+                Optional<Document> document = this.workspaceManager.document(filePath);
+                if (document.isEmpty()) {
+                    return response;
+                }
+
+                DataMapManager dataMapManager = new DataMapManager(this.workspaceManager, document.get());
+                response.setTextEdits(dataMapManager.getSourceV2(filePath, request.codedata(), request.mapping(),
                         request.targetField()));
             } catch (Throwable e) {
                 response.setError(e);
