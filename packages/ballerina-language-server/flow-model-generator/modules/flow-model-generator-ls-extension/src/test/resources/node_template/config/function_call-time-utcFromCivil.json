@@ -93,7 +93,7 @@
         "optional": false,
         "editable": true,
         "advanced": true,
-        "hidden": false
+        "hidden": true
       }
     },
     "flags": 0

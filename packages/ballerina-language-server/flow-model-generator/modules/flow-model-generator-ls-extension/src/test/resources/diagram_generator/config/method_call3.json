@@ -90,7 +90,7 @@
             "optional": false,
             "editable": true,
             "advanced": true,
-            "hidden": false
+            "hidden": true
           }
         },
         "flags": 1
@@ -246,7 +246,7 @@
             "optional": false,
             "editable": false,
             "advanced": true,
-            "hidden": false
+            "hidden": true
           },
           "scope": {
             "metadata": {
@@ -258,7 +258,7 @@
             "optional": false,
             "editable": true,
             "advanced": true,
-            "hidden": false
+            "hidden": true
           },
           "variable": {
             "metadata": {

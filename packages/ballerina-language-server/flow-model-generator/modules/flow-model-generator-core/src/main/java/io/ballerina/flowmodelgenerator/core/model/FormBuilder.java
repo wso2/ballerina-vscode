@@ -421,6 +421,7 @@ public class FormBuilder<T> extends FacetedBuilder<T> {
                     .description(doc)
                     .stepOut()
                 .value(checkError)
+                .hidden()
                 .advanced(true)
                 .type(Property.ValueType.FLAG);
         if (editable) {
@@ -892,6 +893,7 @@ public class FormBuilder<T> extends FacetedBuilder<T> {
                     .stepOut()
                 .type(Property.ValueType.ENUM)
                 .value(scope)
+                .hidden()
                 .advanced(true)
                 .editable();
         addProperty(Property.SCOPE_KEY);

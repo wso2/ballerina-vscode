@@ -99,7 +99,7 @@
             "optional": false,
             "editable": true,
             "advanced": true,
-            "hidden": false
+            "hidden": true
           },
           "checkError": {
             "metadata": {
@@ -111,7 +111,7 @@
             "optional": false,
             "editable": false,
             "advanced": true,
-            "hidden": false
+            "hidden": true
           },
           "variable": {
             "metadata": {

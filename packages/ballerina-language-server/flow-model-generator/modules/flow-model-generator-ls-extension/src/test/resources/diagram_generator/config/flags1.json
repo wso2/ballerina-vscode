@@ -98,7 +98,7 @@
             "optional": false,
             "editable": true,
             "advanced": true,
-            "hidden": false
+            "hidden": true
           }
         },
         "flags": 1
@@ -163,7 +163,7 @@
             "optional": false,
             "editable": true,
             "advanced": true,
-            "hidden": false
+            "hidden": true
           }
         },
         "flags": 2
@@ -228,7 +228,7 @@
             "optional": false,
             "editable": true,
             "advanced": true,
-            "hidden": false
+            "hidden": true
           },
           "variable": {
             "metadata": {
@@ -332,7 +332,7 @@
             "optional": false,
             "editable": true,
             "advanced": true,
-            "hidden": false
+            "hidden": true
           },
           "variable": {
             "metadata": {
@@ -436,7 +436,7 @@
             "optional": false,
             "editable": true,
             "advanced": true,
-            "hidden": false
+            "hidden": true
           },
           "variable": {
             "metadata": {
@@ -540,7 +540,7 @@
             "optional": false,
             "editable": true,
             "advanced": true,
-            "hidden": false
+            "hidden": true
           },
           "variable": {
             "metadata": {
