@@ -34,7 +34,10 @@
           },
           "codedata": {
             "node": "NP_FUNCTION_CALL",
-            "symbol": "suggestMovieGenre"
+            "org": "nipunaf",
+            "module": "proj",
+            "symbol": "suggestMovieGenre",
+            "version": "0.1.0"
           },
           "enabled": true
         },
@@ -45,7 +48,10 @@
           },
           "codedata": {
             "node": "NP_FUNCTION_CALL",
-            "symbol": "suggestMovieName1"
+            "org": "nipunaf",
+            "module": "proj",
+            "symbol": "suggestMovieName1",
+            "version": "0.1.0"
           },
           "enabled": true
         },
@@ -56,7 +62,10 @@
           },
           "codedata": {
             "node": "NP_FUNCTION_CALL",
-            "symbol": "suggestMovieName2"
+            "org": "nipunaf",
+            "module": "proj",
+            "symbol": "suggestMovieName2",
+            "version": "0.1.0"
           },
           "enabled": true
         },
@@ -67,7 +76,10 @@
           },
           "codedata": {
             "node": "NP_FUNCTION_CALL",
-            "symbol": "rateMovie"
+            "org": "nipunaf",
+            "module": "proj",
+            "symbol": "rateMovie",
+            "version": "0.1.0"
           },
           "enabled": true
         }
