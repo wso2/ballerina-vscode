@@ -324,7 +324,7 @@ class IndexGenerator {
             List<ParameterData> parameterResults = resourcePathTemplate.pathParams();
             for (ParameterData parameterData : parameterResults) {
                 DatabaseManager.insertFunctionParameter(functionId, parameterData.name(),
-                        parameterData.description(), parameterData.type(), parameterData.defaultValue(),
+                        parameterData.description(), parameterData.type(), parameterData.placeholder(),
                         FunctionParameterKind.fromString(parameterData.kind().name()),
                         parameterData.optional() ? 1 : 0, null);
             }

@@ -370,7 +370,7 @@ public class ListenerUtil {
                     .setCodedata(codedata)
                     .value("")
                     .valueType("EXPRESSION")
-                    .setPlaceholder(paramResult.defaultValue())
+                    .setPlaceholder(paramResult.placeholder())
                     .setValueTypeConstraint(paramResult.type().toString())
                     .editable(true)
                     .isType(false)

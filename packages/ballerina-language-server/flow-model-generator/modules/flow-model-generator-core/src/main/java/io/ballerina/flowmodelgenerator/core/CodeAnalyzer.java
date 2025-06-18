@@ -649,7 +649,7 @@ public class CodeAnalyzer extends NodeVisitor {
                         .kind(paramResult.kind().name())
                         .originalName(paramResult.name())
                         .stepOut()
-                    .defaultValue(paramResult.defaultValue())
+                    .placeholder(paramResult.placeholder())
                     .typeConstraint(paramResult.type())
                     .typeMembers(paramResult.typeMembers())
                     .imports(paramResult.importStatements())
@@ -725,7 +725,7 @@ public class CodeAnalyzer extends NodeVisitor {
                             .kind(paramKind.name())
                             .originalName(paramResult.name())
                             .stepOut()
-                        .defaultValue(paramResult.defaultValue())
+                        .placeholder(paramResult.placeholder())
                         .typeConstraint(paramResult.type())
                         .typeMembers(paramResult.typeMembers())
                         .imports(paramResult.importStatements())
@@ -807,7 +807,7 @@ public class CodeAnalyzer extends NodeVisitor {
                             .typeMembers(paramResult.typeMembers(), selectedType)
                             .imports(paramResult.importStatements())
                             .value(value)
-                            .defaultValue(paramResult.defaultValue())
+                            .placeholder(paramResult.placeholder())
                             .editable()
                             .defaultable(paramResult.optional())
                             .codedata()
@@ -837,7 +837,7 @@ public class CodeAnalyzer extends NodeVisitor {
                         .typeMembers(restParamResult.typeMembers())
                         .imports(restParamResult.importStatements())
                         .value(restArgs)
-                        .defaultValue(restParamResult.defaultValue())
+                        .placeholder(restParamResult.placeholder())
                         .editable()
                         .defaultable(!hasOnlyRestParams)
                         .codedata()
@@ -906,7 +906,7 @@ public class CodeAnalyzer extends NodeVisitor {
                                     .typeMembers(paramResult.typeMembers(), selectedType)
                                     .imports(paramResult.importStatements())
                                     .value(value)
-                                    .defaultValue(paramResult.defaultValue())
+                                    .placeholder(paramResult.placeholder())
                                     .editable()
                                     .defaultable(paramResult.optional())
                                     .codedata()
@@ -953,7 +953,7 @@ public class CodeAnalyzer extends NodeVisitor {
                                         .typeMembers(paramResult.typeMembers(), selectedType)
                                         .imports(paramResult.importStatements())
                                         .value(value)
-                                        .defaultValue(paramResult.defaultValue())
+                                        .placeholder(paramResult.placeholder())
                                         .editable()
                                         .defaultable(paramResult.optional())
                                         .codedata()
@@ -995,7 +995,7 @@ public class CodeAnalyzer extends NodeVisitor {
                                     .typeMembers(paramResult.typeMembers(), selectedType)
                                     .imports(paramResult.importStatements())
                                     .value(value)
-                                    .defaultValue(paramResult.defaultValue())
+                                    .placeholder(paramResult.placeholder())
                                     .editable()
                                     .defaultable(paramResult.optional())
                                     .codedata()
@@ -1042,7 +1042,7 @@ public class CodeAnalyzer extends NodeVisitor {
                         .typeMembers(paramResult.typeMembers(), selectedType)
                         .imports(paramResult.importStatements())
                         .value(value)
-                        .defaultValue(paramResult.defaultValue())
+                        .placeholder(paramResult.placeholder())
                         .editable()
                         .defaultable(paramResult.optional())
                         .codedata()
@@ -1091,7 +1091,7 @@ public class CodeAnalyzer extends NodeVisitor {
                         .typeMembers(paramResult.typeMembers(), selectedType)
                         .imports(paramResult.importStatements())
                         .value(value)
-                        .defaultValue(paramResult.defaultValue())
+                        .placeholder(paramResult.placeholder())
                         .editable()
                         .defaultable(paramResult.optional())
                         .codedata()
@@ -1117,7 +1117,7 @@ public class CodeAnalyzer extends NodeVisitor {
                         .typeMembers(includedRecordRest.typeMembers())
                         .imports(includedRecordRest.importStatements())
                         .value(includedRecordRestArgs)
-                        .defaultValue(includedRecordRest.defaultValue())
+                        .placeholder(includedRecordRest.placeholder())
                         .editable()
                         .defaultable(includedRecordRest.optional())
                         .codedata()
@@ -1603,7 +1603,7 @@ public class CodeAnalyzer extends NodeVisitor {
                 inferredTypeName = node.toSourceCode();
             } else if (typedBindingPatternNode == null) {
                 // Get the default value if the variable is absent
-                inferredTypeName = paramResult.defaultValue();
+                inferredTypeName = paramResult.placeholder();
             } else {
                 // Derive the inferred type from the variable type
                 Optional<Symbol> symbol = semanticModel.symbol(typedBindingPatternNode);

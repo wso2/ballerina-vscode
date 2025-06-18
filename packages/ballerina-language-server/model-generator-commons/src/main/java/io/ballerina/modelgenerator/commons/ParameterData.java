@@ -30,7 +30,7 @@ import java.util.List;
  * @param name             the name of the parameter
  * @param type             the type of the parameter
  * @param kind             the kind of the parameter
- * @param defaultValue     the default value of the parameter
+ * @param placeholder      the default value of the parameter
  * @param description      the description of the parameter
  * @param label            the label of the parameter
  * @param optional         whether the parameter is optional
@@ -43,7 +43,7 @@ public record ParameterData(
         String name,
         Object type,
         Kind kind,
-        String defaultValue,
+        String placeholder,
         String description,
         String label,
         boolean optional,
