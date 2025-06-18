@@ -423,8 +423,20 @@ public class RefType {
         } else if (symbol instanceof ErrorTypeSymbol errSymbol) {
             RefErrorType errType = new RefErrorType();
             if (errSymbol.detailTypeDescriptor() instanceof TypeReferenceTypeSymbol) {
-                errType.detailType = fromSemanticSymbol(errSymbol.detailTypeDescriptor(), documentationMap,
+                RefType detailType = fromSemanticSymbol(errSymbol.detailTypeDescriptor(), documentationMap,
                         semanticModel);
+                if (detailType instanceof RefRecordType){
+                    TypeInfo typeInfo = detailType.getTypeInfo();
+                    String hashCode = String.valueOf(
+                            (typeInfo.name + typeInfo.orgName + typeInfo.moduleName + typeInfo.version).hashCode());
+                    RefRecordType recordType = new RefRecordType(detailType, hashCode);
+                    errType.detailType = recordType;
+                    errType.dependentTypes = new HashMap<>();
+                    errType.dependentTypes.put(hashCode, detailType);
+                    errType.dependentTypes.putAll(detailType.dependentTypes);
+                } else {
+                    errType.detailType = detailType;
+                }
             }
             type = errType;
         } else if (symbol instanceof IntersectionTypeSymbol intersectionTypeSymbol) {
