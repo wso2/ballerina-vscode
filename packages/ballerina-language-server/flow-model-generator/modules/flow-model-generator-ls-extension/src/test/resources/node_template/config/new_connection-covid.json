@@ -95,7 +95,7 @@
         "optional": false,
         "editable": false,
         "advanced": false,
-        "hidden": false,
+        "hidden": true,
         "codedata": {}
       },
       "variable": {
@@ -120,7 +120,7 @@
         "optional": false,
         "editable": true,
         "advanced": true,
-        "hidden": false
+        "hidden": true
       },
       "checkError": {
         "metadata": {
@@ -132,7 +132,7 @@
         "optional": false,
         "editable": false,
         "advanced": true,
-        "hidden": false
+        "hidden": true
       }
     },
     "flags": 0

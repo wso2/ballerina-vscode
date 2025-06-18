@@ -18,15 +18,15 @@
 
 package io.ballerina.modelgenerator.commons;
 
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
- * Represents a search result containing package information, name, description,
- * and additional attributes.
+ * Represents a search result containing package information, name, description, and additional attributes.
  *
- * @param packageInfo The package information containing organization, name and
- *                    version
+ * @param packageInfo The package information containing organization, name and version
  * @param name        The name of the component
  * @param description The description of the component
  * @param attributes  Additional attributes as key-value pairs
@@ -40,8 +40,24 @@ public record SearchResult(Package packageInfo, String name, String description,
 
     public static SearchResult from(String packageOrg, String packageName, String moduleName,
                                     String packageVersion, String name,
-            String description) {
+                                    String description) {
         return from(new Package(packageOrg, packageName, moduleName, packageVersion), name, description);
+    }
+
+    /**
+     * Sorts the given list of SearchResult based on the order of package names in packageList.
+     *
+     * @param searchResults the list of SearchResult to sort
+     * @param packageList   the list of package identifiers
+     */
+    public static void sortByPackageListOrder(List<SearchResult> searchResults, List<String> packageList) {
+        Map<String, Integer> packageOrder = new HashMap<>(packageList.size());
+        for (int i = 0; i < packageList.size(); i++) {
+            String packageName = packageList.get(i).split(":", 2)[0];
+            packageOrder.put(packageName, i);
+        }
+        searchResults.sort(Comparator.comparingInt(
+                a -> packageOrder.getOrDefault(a.packageInfo().packageName(), Integer.MAX_VALUE)));
     }
 
     public record Package(String org, String packageName, String moduleName, String version) {

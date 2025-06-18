@@ -113,7 +113,9 @@ public class ConnectorSearchCommand extends SearchCommand {
 
         Map<String, List<SearchResult>> defaultView = new LinkedHashMap<>();
         for (Map.Entry<String, List<String>> category : categories.entrySet()) {
-            List<SearchResult> searchResults = dbManager.searchConnectorsByPackage(category.getValue(), limit, offset);
+            List<String> packageList = category.getValue();
+            List<SearchResult> searchResults = dbManager.searchConnectorsByPackage(packageList, limit, offset);
+            SearchResult.sortByPackageListOrder(searchResults, packageList);
             defaultView.put(category.getKey(), searchResults);
         }
         return defaultView;

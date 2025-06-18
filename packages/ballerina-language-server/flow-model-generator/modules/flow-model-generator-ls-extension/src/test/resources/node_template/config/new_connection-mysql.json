@@ -265,7 +265,7 @@
         "optional": false,
         "editable": false,
         "advanced": false,
-        "hidden": false,
+        "hidden": true,
         "codedata": {},
         "imports": {
           "sql": "ballerina/sql"
@@ -296,7 +296,7 @@
         "optional": false,
         "editable": true,
         "advanced": true,
-        "hidden": false,
+        "hidden": true,
         "imports": {
           "sql": "ballerina/sql"
         }
@@ -311,7 +311,7 @@
         "optional": false,
         "editable": false,
         "advanced": true,
-        "hidden": false,
+        "hidden": true,
         "imports": {
           "sql": "ballerina/sql"
         }

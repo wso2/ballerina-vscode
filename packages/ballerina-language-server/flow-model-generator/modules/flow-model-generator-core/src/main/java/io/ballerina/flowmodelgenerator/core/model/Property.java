@@ -353,6 +353,11 @@ public record Property(Metadata metadata, String valueType, Object valueTypeCons
             return this;
         }
 
+        public Builder<T> hidden(boolean hidden) {
+            this.hidden = hidden;
+            return this;
+        }
+
         public Builder<T> hidden() {
             this.hidden = true;
             return this;

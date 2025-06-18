@@ -115,7 +115,7 @@
                     "optional": false,
                     "editable": true,
                     "advanced": true,
-                    "hidden": false
+                    "hidden": true
                   }
                 },
                 "flags": 1
@@ -266,7 +266,7 @@
                     "optional": false,
                     "editable": true,
                     "advanced": true,
-                    "hidden": false
+                    "hidden": true
                   }
                 },
                 "flags": 1
@@ -517,7 +517,7 @@
                     "optional": false,
                     "editable": true,
                     "advanced": true,
-                    "hidden": false
+                    "hidden": true
                   }
                 },
                 "flags": 1
