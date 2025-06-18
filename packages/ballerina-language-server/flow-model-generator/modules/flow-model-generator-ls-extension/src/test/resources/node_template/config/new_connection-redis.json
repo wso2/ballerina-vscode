@@ -63,7 +63,8 @@
             "kind": "RECORD_TYPE",
             "selected": false
           }
-        ]
+        ],
+        "defaultValue": "\"\""
       },
       "connectionPooling": {
         "metadata": {
@@ -89,7 +90,8 @@
             "kind": "BASIC_TYPE",
             "selected": false
           }
-        ]
+        ],
+        "defaultValue": "false"
       },
       "isClusterConnection": {
         "metadata": {
@@ -115,7 +117,8 @@
             "kind": "BASIC_TYPE",
             "selected": false
           }
-        ]
+        ],
+        "defaultValue": "false"
       },
       "secureSocket": {
         "metadata": {
@@ -141,7 +144,8 @@
             "kind": "RECORD_TYPE",
             "selected": false
           }
-        ]
+        ],
+        "defaultValue": "{}"
       },
       "type": {
         "metadata": {

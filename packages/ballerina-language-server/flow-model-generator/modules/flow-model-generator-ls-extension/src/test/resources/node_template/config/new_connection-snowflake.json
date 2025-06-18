@@ -136,7 +136,8 @@
             "kind": "BASIC_TYPE",
             "selected": false
           }
-        ]
+        ],
+        "defaultValue": "()"
       },
       "connectionPool": {
         "metadata": {
@@ -172,7 +173,8 @@
         ],
         "imports": {
           "sql": "ballerina/sql"
-        }
+        },
+        "defaultValue": "()"
       },
       "type": {
         "metadata": {

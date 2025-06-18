@@ -610,11 +610,12 @@ public class FunctionDataBuilder {
         ParameterData.Kind parameterKind = ParameterData.Kind.fromKind(paramSymbol.paramKind());
         Object paramType;
         boolean optional = true;
-        String defaultValue;
+        String placeholder;
+        String defaultValue = null;
         TypeSymbol typeSymbol = paramSymbol.typeDescriptor();
         String importStatements = getImportStatements(typeSymbol);
         if (parameterKind == ParameterData.Kind.REST_PARAMETER) {
-            defaultValue = DefaultValueGeneratorUtil.getDefaultValueForType(
+            placeholder = DefaultValueGeneratorUtil.getDefaultValueForType(
                     ((ArrayTypeSymbol) typeSymbol).memberTypeDescriptor());
             paramType = getTypeSignature(((ArrayTypeSymbol) typeSymbol).memberTypeDescriptor());
         } else if (parameterKind == ParameterData.Kind.INCLUDED_RECORD) {
@@ -635,7 +636,7 @@ public class FunctionDataBuilder {
             Map<String, ParameterData> includedParameters = getIncludedRecordParams(
                     (RecordTypeSymbol) CommonUtil.getRawType(typeSymbol), true, includedRecordParamDocs, union);
             parameters.putAll(includedParameters);
-            defaultValue = DefaultValueGeneratorUtil.getDefaultValueForType(typeSymbol);
+            placeholder = DefaultValueGeneratorUtil.getDefaultValueForType(typeSymbol);
         } else if (parameterKind == ParameterData.Kind.REQUIRED) {
             if (isAgentModelType(paramName)) {
                 List<String> memberTypes = new ArrayList<>();
@@ -652,24 +653,26 @@ public class FunctionDataBuilder {
             } else {
                 paramType = getTypeSignature(typeSymbol);
             }
-            defaultValue = DefaultValueGeneratorUtil.getDefaultValueForType(typeSymbol);
+            placeholder = DefaultValueGeneratorUtil.getDefaultValueForType(typeSymbol);
             optional = false;
         } else {
             if (paramForTypeInfer != null) {
                 if (paramForTypeInfer.paramName().equals(paramName)) {
+                    placeholder = paramForTypeInfer.type();
                     defaultValue = paramForTypeInfer.type();
                     paramType = paramForTypeInfer.type();
                     parameters.put(paramName,
-                            ParameterData.from(paramName, paramDescription, paramType, defaultValue,
+                            ParameterData.from(paramName, paramDescription, paramType, placeholder, defaultValue,
                                     ParameterData.Kind.PARAM_FOR_TYPE_INFER, optional, importStatements));
                     return parameters;
                 }
             }
+            placeholder = DefaultValueGeneratorUtil.getDefaultValueForType(typeSymbol);
             defaultValue = getDefaultValue(paramSymbol, typeSymbol);
             paramType = getTypeSignature(typeSymbol);
         }
         ParameterData parameterData = ParameterData.from(paramName, paramDescription,
-                getLabel(paramSymbol.annotAttachments()), paramType, defaultValue, parameterKind, optional,
+                getLabel(paramSymbol.annotAttachments()), paramType, placeholder, defaultValue, parameterKind, optional,
                 importStatements);
         parameters.put(paramName, parameterData);
         addParameterMemberTypes(typeSymbol, parameterData, union);
@@ -789,23 +792,24 @@ public class FunctionDataBuilder {
                 continue;
             }
 
+            String placeholder = DefaultValueGeneratorUtil.getDefaultValueForType(fieldType);
             String defaultValue = getDefaultValue(recordFieldSymbol, fieldType);
             String paramType = getTypeSignature(typeSymbol);
             boolean optional = recordFieldSymbol.isOptional() || recordFieldSymbol.hasDefaultValue();
             ParameterData parameterData = ParameterData.from(paramName, documentationMap.get(paramName),
                     getLabel(recordFieldSymbol.annotAttachments()),
-                    paramType, defaultValue, ParameterData.Kind.INCLUDED_FIELD, optional,
+                    paramType, placeholder, defaultValue, ParameterData.Kind.INCLUDED_FIELD, optional,
                     getImportStatements(typeSymbol));
             parameters.put(paramName, parameterData);
             addParameterMemberTypes(typeSymbol, parameterData, union);
         }
         recordTypeSymbol.restTypeDescriptor().ifPresent(typeSymbol -> {
             String paramType = getTypeSignature(typeSymbol);
-            String defaultValue = DefaultValueGeneratorUtil.getDefaultValueForType(typeSymbol);
-            parameters.put("Additional Values", ParameterData.from("Additional Values",
-                    "Capture key value pairs", paramType, defaultValue,
-                    ParameterData.Kind.INCLUDED_RECORD_REST, true,
-                    getImportStatements(typeSymbol)));
+            String placeholder = DefaultValueGeneratorUtil.getDefaultValueForType(typeSymbol);
+            parameters.put("Additional Values", new ParameterData(0, "Additional Values", 
+                    paramType, ParameterData.Kind.INCLUDED_RECORD_REST, placeholder, null, 
+                    "Capture key value pairs", null, true, getImportStatements(typeSymbol), 
+                    new ArrayList<>()));
         });
         return parameters;
     }

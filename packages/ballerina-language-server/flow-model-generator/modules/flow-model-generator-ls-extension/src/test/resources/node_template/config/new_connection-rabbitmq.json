@@ -109,7 +109,8 @@
             "kind": "BASIC_TYPE",
             "selected": false
           }
-        ]
+        ],
+        "defaultValue": "\"\""
       },
       "password": {
         "metadata": {
@@ -135,7 +136,8 @@
             "kind": "BASIC_TYPE",
             "selected": false
           }
-        ]
+        ],
+        "defaultValue": "\"\""
       },
       "virtualHost": {
         "metadata": {
@@ -161,7 +163,8 @@
             "kind": "BASIC_TYPE",
             "selected": false
           }
-        ]
+        ],
+        "defaultValue": "\"\""
       },
       "connectionTimeout": {
         "metadata": {
@@ -187,7 +190,8 @@
             "kind": "BASIC_TYPE",
             "selected": false
           }
-        ]
+        ],
+        "defaultValue": "0.0d"
       },
       "handshakeTimeout": {
         "metadata": {
@@ -213,7 +217,8 @@
             "kind": "BASIC_TYPE",
             "selected": false
           }
-        ]
+        ],
+        "defaultValue": "0.0d"
       },
       "shutdownTimeout": {
         "metadata": {
@@ -239,7 +244,8 @@
             "kind": "BASIC_TYPE",
             "selected": false
           }
-        ]
+        ],
+        "defaultValue": "0.0d"
       },
       "heartbeat": {
         "metadata": {
@@ -265,7 +271,8 @@
             "kind": "BASIC_TYPE",
             "selected": false
           }
-        ]
+        ],
+        "defaultValue": "0.0d"
       },
       "validation": {
         "metadata": {
@@ -291,7 +298,8 @@
             "kind": "BASIC_TYPE",
             "selected": false
           }
-        ]
+        ],
+        "defaultValue": "false"
       },
       "secureSocket": {
         "metadata": {
@@ -317,7 +325,8 @@
             "kind": "RECORD_TYPE",
             "selected": false
           }
-        ]
+        ],
+        "defaultValue": "{cert: {path: \"\", password: \"\"}}"
       },
       "auth": {
         "metadata": {
@@ -343,7 +352,8 @@
             "kind": "RECORD_TYPE",
             "selected": false
           }
-        ]
+        ],
+        "defaultValue": "{username: \"\", password: \"\"}"
       },
       "type": {
         "metadata": {

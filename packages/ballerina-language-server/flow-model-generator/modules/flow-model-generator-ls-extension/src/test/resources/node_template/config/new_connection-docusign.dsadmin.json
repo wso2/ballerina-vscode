@@ -87,7 +87,8 @@
         ],
         "imports": {
           "http": "ballerina/http"
-        }
+        },
+        "defaultValue": "{token: \"\"}"
       },
       "httpVersion": {
         "metadata": {
@@ -116,7 +117,8 @@
         ],
         "imports": {
           "http": "ballerina/http"
-        }
+        },
+        "defaultValue": "\"2.0\""
       },
       "http1Settings": {
         "metadata": {
@@ -145,7 +147,8 @@
         ],
         "imports": {
           "http": "ballerina/http"
-        }
+        },
+        "defaultValue": "{}"
       },
       "http2Settings": {
         "metadata": {
@@ -174,7 +177,8 @@
         ],
         "imports": {
           "http": "ballerina/http"
-        }
+        },
+        "defaultValue": "{}"
       },
       "timeout": {
         "metadata": {
@@ -203,7 +207,8 @@
         ],
         "imports": {
           "http": "ballerina/http"
-        }
+        },
+        "defaultValue": "0.0d"
       },
       "forwarded": {
         "metadata": {
@@ -232,7 +237,8 @@
         ],
         "imports": {
           "http": "ballerina/http"
-        }
+        },
+        "defaultValue": "\"\""
       },
       "poolConfig": {
         "metadata": {
@@ -261,7 +267,8 @@
         ],
         "imports": {
           "http": "ballerina/http"
-        }
+        },
+        "defaultValue": "{}"
       },
       "cache": {
         "metadata": {
@@ -290,7 +297,8 @@
         ],
         "imports": {
           "http": "ballerina/http"
-        }
+        },
+        "defaultValue": "{}"
       },
       "compression": {
         "metadata": {
@@ -319,7 +327,8 @@
         ],
         "imports": {
           "http": "ballerina/http"
-        }
+        },
+        "defaultValue": "\"AUTO\""
       },
       "circuitBreaker": {
         "metadata": {
@@ -348,7 +357,8 @@
         ],
         "imports": {
           "http": "ballerina/http"
-        }
+        },
+        "defaultValue": "{}"
       },
       "retryConfig": {
         "metadata": {
@@ -377,7 +387,8 @@
         ],
         "imports": {
           "http": "ballerina/http"
-        }
+        },
+        "defaultValue": "{}"
       },
       "responseLimits": {
         "metadata": {
@@ -406,7 +417,8 @@
         ],
         "imports": {
           "http": "ballerina/http"
-        }
+        },
+        "defaultValue": "{}"
       },
       "secureSocket": {
         "metadata": {
@@ -435,7 +447,8 @@
         ],
         "imports": {
           "http": "ballerina/http"
-        }
+        },
+        "defaultValue": "{}"
       },
       "proxy": {
         "metadata": {
@@ -464,7 +477,8 @@
         ],
         "imports": {
           "http": "ballerina/http"
-        }
+        },
+        "defaultValue": "{}"
       },
       "validation": {
         "metadata": {
@@ -493,7 +507,8 @@
         ],
         "imports": {
           "http": "ballerina/http"
-        }
+        },
+        "defaultValue": "false"
       },
       "type": {
         "metadata": {

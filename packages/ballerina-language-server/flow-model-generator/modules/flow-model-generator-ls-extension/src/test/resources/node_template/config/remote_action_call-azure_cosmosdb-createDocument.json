@@ -225,7 +225,8 @@
             "kind": "BASIC_TYPE",
             "selected": false
           }
-        ]
+        ],
+        "defaultValue": "()"
       },
       "type": {
         "metadata": {

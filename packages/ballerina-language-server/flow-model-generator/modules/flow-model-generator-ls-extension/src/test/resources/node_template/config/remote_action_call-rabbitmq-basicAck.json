@@ -72,7 +72,8 @@
             "kind": "BASIC_TYPE",
             "selected": false
           }
-        ]
+        ],
+        "defaultValue": "false"
       },
       "checkError": {
         "metadata": {

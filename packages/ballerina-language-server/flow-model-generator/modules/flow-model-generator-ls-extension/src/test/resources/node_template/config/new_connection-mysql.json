@@ -58,7 +58,8 @@
             "kind": "BASIC_TYPE",
             "selected": false
           }
-        ]
+        ],
+        "defaultValue": "\"\""
       },
       "user": {
         "metadata": {
@@ -91,7 +92,8 @@
             "kind": "BASIC_TYPE",
             "selected": false
           }
-        ]
+        ],
+        "defaultValue": "()"
       },
       "password": {
         "metadata": {
@@ -124,7 +126,8 @@
             "kind": "BASIC_TYPE",
             "selected": false
           }
-        ]
+        ],
+        "defaultValue": "()"
       },
       "database": {
         "metadata": {
@@ -157,7 +160,8 @@
             "kind": "BASIC_TYPE",
             "selected": false
           }
-        ]
+        ],
+        "defaultValue": "()"
       },
       "port": {
         "metadata": {
@@ -183,7 +187,8 @@
             "kind": "BASIC_TYPE",
             "selected": false
           }
-        ]
+        ],
+        "defaultValue": "0"
       },
       "options": {
         "metadata": {
@@ -216,7 +221,8 @@
             "kind": "BASIC_TYPE",
             "selected": false
           }
-        ]
+        ],
+        "defaultValue": "()"
       },
       "connectionPool": {
         "metadata": {
@@ -252,7 +258,8 @@
         ],
         "imports": {
           "sql": "ballerina/sql"
-        }
+        },
+        "defaultValue": "()"
       },
       "type": {
         "metadata": {
