@@ -22,9 +22,8 @@
     "offset": 12
   },
   "mapping": {
-    "output": "users4.0.users6",
-    "inputs": [],
-    "expression": "[{balance: 0, banks: [{bankInfo: [{bankName: user.name}]}], account: user.name}]"
+    "output": "users4.0.users6.0.banks",
+    "expression": "[{bankInfo: [{bankName: user.name}]}]"
   },
   "output": {
     "variable12.bal": [
@@ -32,14 +31,14 @@
         "range": {
           "start": {
             "line": 50,
-            "character": 39
+            "character": 60
           },
           "end": {
             "line": 50,
-            "character": 119
+            "character": 97
           }
         },
-        "newText": "[{balance: 0, banks: [{bankInfo: [{bankName: user.name}]}], account: user.name}]"
+        "newText": "[{bankInfo: [{bankName: user.name}]}]"
       }
     ]
   }

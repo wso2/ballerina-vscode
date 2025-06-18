@@ -1,12 +1,20 @@
 import ballerina/http;
 
-type Person record {|
-    int age;
-|};
+type User record {
+    string[] phoneNumber;
+};
 
-type User record {|
-    string name;
-|};
+type Person record {
+    string[] contacts;
+};
+
+type Account record {
+    string accountNumber;
+    int balance;
+    string lastTransaction;
+};
+
+import ballerina/http;
 
 service / on new http:Listener(9090) {
 
@@ -15,8 +23,8 @@ service / on new http:Listener(9090) {
 
     resource function post getPerson(@http:Payload User user) returns Person|http:InternalServerError {
         do {
-            int intResult = 1;
-            Person var1 = intResult;
+            User u1 = getUser();
+            Account[] var6 = [{accountNumber: u1.phoneNumber[0]}];
         } on fail error e {
             return http:INTERNAL_SERVER_ERROR;
         }

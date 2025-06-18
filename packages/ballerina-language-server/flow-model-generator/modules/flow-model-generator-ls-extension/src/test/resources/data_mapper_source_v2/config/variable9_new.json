@@ -1,20 +1,20 @@
 {
-  "source": "variable9.bal",
+  "source": "variable9_new.bal",
   "description": "Sample diagram node",
   "codedata": {
     "node": "VARIABLE",
     "lineRange": {
-      "fileName": "variable9.bal",
+      "fileName": "variable9_new.bal",
       "startLine": {
         "line": 35,
         "offset": 12
       },
       "endLine": {
         "line": 35,
-        "offset": 129
+        "offset": 85
       }
     },
-    "sourceCode": ""
+    "sourceCode": "User1 user1 = {user2: {user3: {i3: 0, user4: {user5: {u: \"\"}}}}, s1: \"\"};"
   },
   "propertyKey": "expression",
   "position": {
@@ -22,28 +22,28 @@
     "offset": 12
   },
   "mapping": {
-    "output": "user1.user2.user3.user4.user5.u.0",
+    "output": "user1.user2.user3.user4.user5.u",
     "inputs": [
       "user.name"
     ],
-    "expression": "str",
+    "expression": "user.name",
     "diagnostics": [],
     "elements": []
   },
   "output": {
-    "variable9.bal": [
+    "variable9_new.bal": [
       {
         "range": {
           "start": {
             "line": 35,
-            "character": 87
+            "character": 69
           },
           "end": {
             "line": 35,
-            "character": 96
+            "character": 71
           }
         },
-        "newText": "str"
+        "newText": "user.name"
       }
     ]
   }

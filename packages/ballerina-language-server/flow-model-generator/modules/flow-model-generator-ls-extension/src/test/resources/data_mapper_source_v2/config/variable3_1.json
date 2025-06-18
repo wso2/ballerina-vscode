@@ -1,49 +1,45 @@
 {
-  "source": "variable9.bal",
+  "source": "variable2_new.bal",
   "description": "Sample diagram node",
   "codedata": {
     "node": "VARIABLE",
     "lineRange": {
-      "fileName": "variable9.bal",
+      "fileName": "variable2_new.bal",
       "startLine": {
-        "line": 35,
+        "line": 24,
         "offset": 12
       },
       "endLine": {
-        "line": 35,
-        "offset": 129
+        "line": 24,
+        "offset": 98
       }
     },
     "sourceCode": ""
   },
   "propertyKey": "expression",
   "position": {
-    "line": 34,
-    "offset": 12
+    "line": 23,
+    "offset": 65
   },
   "mapping": {
-    "output": "user1.user2.user3.user4.user5.u.0",
-    "inputs": [
-      "user.name"
-    ],
-    "expression": "str",
-    "diagnostics": [],
-    "elements": []
+    "output": "credentials.password",
+    "expression": "item.username.id"
   },
+  "targetField": "credentials",
   "output": {
-    "variable9.bal": [
+    "variable2_new.bal": [
       {
         "range": {
           "start": {
-            "line": 35,
-            "character": 87
+            "line": 24,
+            "character": 96
           },
           "end": {
-            "line": 35,
+            "line": 24,
             "character": 96
           }
         },
-        "newText": "str"
+        "newText": ", password: item.username.id"
       }
     ]
   }

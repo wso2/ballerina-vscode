@@ -1,45 +1,45 @@
 {
-  "source": "variable11.bal",
+  "source": "query2.bal",
   "description": "Sample diagram node",
   "codedata": {
     "node": "VARIABLE",
     "lineRange": {
-      "fileName": "variable11.bal",
+      "fileName": "query2.bal",
       "startLine": {
-        "line": 41,
-        "offset": 14
+        "line": 34,
+        "offset": 12
       },
       "endLine": {
-        "line": 41,
-        "offset": 114
+        "line": 52,
+        "offset": 14
       }
     },
     "sourceCode": ""
   },
   "propertyKey": "expression",
   "position": {
-    "line": 40,
-    "offset": 12
+    "line": 33,
+    "offset": 14
   },
   "mapping": {
-    "output": "users4.0.users6",
-    "inputs": [],
-    "expression": "[{balance: 2.0, account: user.name}]"
+    "output": "credentials.password",
+    "expression": "cred.password"
   },
+  "targetField": "stores.banks.0.userInfo.0.credentials",
   "output": {
-    "variable11.bal": [
+    "query2.bal": [
       {
         "range": {
           "start": {
             "line": 41,
-            "character": 39
+            "character": 67
           },
           "end": {
             "line": 41,
-            "character": 75
+            "character": 67
           }
         },
-        "newText": "[{balance: 2.0, account: user.name}]"
+        "newText": ", password: cred.password"
       }
     ]
   }

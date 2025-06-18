@@ -1,49 +1,49 @@
 {
-  "source": "variable9.bal",
+  "source": "variable11.bal",
   "description": "Sample diagram node",
   "codedata": {
     "node": "VARIABLE",
     "lineRange": {
-      "fileName": "variable9.bal",
+      "fileName": "variable11.bal",
       "startLine": {
-        "line": 35,
-        "offset": 12
+        "line": 41,
+        "offset": 14
       },
       "endLine": {
-        "line": 35,
-        "offset": 129
+        "line": 41,
+        "offset": 114
       }
     },
     "sourceCode": ""
   },
   "propertyKey": "expression",
   "position": {
-    "line": 34,
+    "line": 40,
     "offset": 12
   },
   "mapping": {
-    "output": "user1.user2.user3.user4.user5.u.0",
+    "output": "users4.0.user5.u.0",
     "inputs": [
       "user.name"
     ],
-    "expression": "str",
+    "expression": "user.name_name",
     "diagnostics": [],
     "elements": []
   },
   "output": {
-    "variable9.bal": [
+    "variable11.bal": [
       {
         "range": {
           "start": {
-            "line": 35,
-            "character": 87
+            "line": 41,
+            "character": 89
           },
           "end": {
-            "line": 35,
-            "character": 96
+            "line": 41,
+            "character": 98
           }
         },
-        "newText": "str"
+        "newText": "user.name_name"
       }
     ]
   }

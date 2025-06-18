@@ -26,6 +26,15 @@ type User5 record {|
 type User6 record {|
     string account;
     decimal balance;
+    Bank[] banks;
+|};
+
+type Bank record {|
+    BankInfo[] bankInfo;
+|};
+
+type BankInfo record {|
+    string bankName;
 |};
 
 type User record {|
@@ -39,7 +48,7 @@ service / on new http:Listener(9090) {
 
     resource function post getPerson(@http:Payload User user) returns Person|http:InternalServerError {
         do {
-            User4[] users4 = [{users6: [{balance: 2.0, account: user.name}], user5: {u: [user.name, user.name]}}];
+            User4[] users4 = [{users6: [{balance: 0, banks: [{bankInfo: [{bankName: user.name}, {}]}, {}], account: user.name}, {}], user5: {u: [user.name, user.name]}}]
         } on fail error e {
             return http:INTERNAL_SERVER_ERROR;
         }

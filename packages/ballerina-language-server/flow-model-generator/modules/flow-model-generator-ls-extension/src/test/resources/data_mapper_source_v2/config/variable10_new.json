@@ -22,11 +22,11 @@
     "offset": 12
   },
   "mapping": {
-    "output": "user1.user2.user3.user4.user5.u.0",
+    "output": "user1.user2.user3.user4.user5.u.2",
     "inputs": [
       "user.name"
     ],
-    "expression": "str",
+    "expression": "str str",
     "diagnostics": [],
     "elements": []
   },
@@ -36,14 +36,14 @@
         "range": {
           "start": {
             "line": 35,
-            "character": 87
+            "character": 107
           },
           "end": {
             "line": 35,
-            "character": 96
+            "character": 107
           }
         },
-        "newText": "str"
+        "newText": ", str str"
       }
     ]
   }

@@ -114,6 +114,7 @@ import java.util.Optional;
  */
 public class DataMapManager {
 
+    public static final String DOT = "\\.";
     private final WorkspaceManager workspaceManager;
     private final Document document;
     private final Gson gson;
@@ -333,7 +334,7 @@ public class DataMapManager {
         RecordTypeSymbol recordTypeSymbol = (RecordTypeSymbol) typeSymbol;
         MappingConstructorExpressionNode mappingCtrExprNode = (MappingConstructorExpressionNode) initializer;
 
-        String[] splits = targetField.split("\\.");
+        String[] splits = targetField.split(DOT);
         if (!splits[0].equals(typedBindingPattern.bindingPattern().toSourceCode().trim())) {
             return null;
         }
@@ -670,7 +671,7 @@ public class DataMapManager {
         for (Mapping mapping : mappings) {
             String output = mapping.output();
             String substring = output.substring(prevOutput.length() + 1);
-            String[] splits = substring.split("\\.");
+            String[] splits = substring.split(DOT);
             Map<String, Object> cm = m;
             int length = splits.length;
             for (int i = 0; i < length; i++) {
@@ -715,7 +716,7 @@ public class DataMapManager {
             if (substring.isEmpty()) {
                 continue;
             }
-            String[] splits = substring.split("\\.");
+            String[] splits = substring.split(DOT);
             int length = splits.length;
             String lastSplit = splits[length - 1];
             if (length == 1 && lastSplit.matches("\\d+")) {
@@ -768,15 +769,17 @@ public class DataMapManager {
         if (node.kind() == SyntaxKind.LOCAL_VAR_DECL) {
             VariableDeclarationNode varDecl = (VariableDeclarationNode) node;
             String output = mapping.output();
-            String[] splits = output.split("\\.");
-            ExpressionNode expr = varDecl.initializer().orElseThrow();
+            String[] splits = output.split(DOT);
+            ExpressionNode expr = getMappingExpr(varDecl.initializer().orElseThrow(), targetField);
             StringBuilder sb = new StringBuilder();
-            if (splits.length == 1) {
-
-            }
             genSource(expr, splits, 1, sb, mapping.expression(), null, textEdits);
         } else if (node.kind() == SyntaxKind.MODULE_VAR_DECL) {
-
+            ModuleVariableDeclarationNode moduleVarDecl = (ModuleVariableDeclarationNode) node;
+            String output = mapping.output();
+            String[] splits = output.split(DOT);
+            ExpressionNode expr = getMappingExpr(moduleVarDecl.initializer().orElseThrow(), targetField);
+            StringBuilder sb = new StringBuilder();
+            genSource(expr, splits, 1, sb, mapping.expression(), null, textEdits);
         } else if (node.kind() == SyntaxKind.FUNCTION_CALL) {
 
         }
@@ -816,25 +819,76 @@ public class DataMapManager {
             }
         } else if (expr.kind() == SyntaxKind.LIST_CONSTRUCTOR) {
             ListConstructorExpressionNode listCtrExpr = (ListConstructorExpressionNode) expr;
-            String name = names[idx];
-            if (name.matches("\\d+")) {
-                int index = Integer.parseInt(name);
-                if (index >= listCtrExpr.expressions().size()) {
-                    if (idx > 0) {
-                        stringBuilder.append(", ");
+            if (idx == names.length) {
+                textEdits.add(new TextEdit(CommonUtils.toRange(expr.lineRange()), mappingExpr));
+            } else {
+                String name = names[idx];
+                if (name.matches("\\d+")) {
+                    int index = Integer.parseInt(name);
+                    if (index >= listCtrExpr.expressions().size()) {
+                        if (idx > 0) {
+                            stringBuilder.append(", ");
+                        }
+                        genSource(null, names, idx, stringBuilder, mappingExpr,
+                                listCtrExpr.closeBracket().lineRange().startLine(), textEdits);
+                    } else {
+                        genSource((ExpressionNode) listCtrExpr.expressions().get(index), names, idx + 1, stringBuilder,
+                                mappingExpr, null, textEdits);
                     }
-                    genSource(null, names, idx, stringBuilder, mappingExpr,
-                            listCtrExpr.closeBracket().lineRange().startLine(), textEdits);
-                } else {
-                    genSource((ExpressionNode) listCtrExpr.expressions().get(index), names, idx + 1, stringBuilder,
-                            mappingExpr, null, textEdits);
                 }
             }
         } else {
+            // TODO: check to move this out of if-else and move up
             if (idx == names.length) {
                textEdits.add(new TextEdit(CommonUtils.toRange(expr.lineRange()), mappingExpr));
             }
         }
+    }
+
+    private ExpressionNode getMappingExpr(ExpressionNode expr, String targetField) {
+        if (targetField == null) {
+            return expr;
+        }
+        String[] splits = targetField.split(DOT);
+        ExpressionNode mappingExpr = expr;
+        for (int i = 1; i < splits.length; i++) {
+            if (mappingExpr.kind() == SyntaxKind.MAPPING_CONSTRUCTOR) {
+                MappingConstructorExpressionNode mappingCtrExprNode = (MappingConstructorExpressionNode) mappingExpr;
+                Map<String, SpecificFieldNode> fields = convertMappingFieldsToMap(mappingCtrExprNode);
+                mappingExpr = fields.get(splits[i]).valueExpr().orElseThrow();
+            } else if (mappingExpr.kind() == SyntaxKind.LIST_CONSTRUCTOR) {
+                ListConstructorExpressionNode listCtrExprNode = (ListConstructorExpressionNode) mappingExpr;
+                String name = splits[i];
+                if (name.matches("\\d+")) {
+                    int index = Integer.parseInt(name);
+                    if (index >= listCtrExprNode.expressions().size()) {
+                        throw new IllegalArgumentException("Index out of bounds: " + index);
+                    }
+                    mappingExpr = (ExpressionNode) listCtrExprNode.expressions().get(index);
+                }
+            } else if (mappingExpr.kind() == SyntaxKind.QUERY_EXPRESSION) {
+                QueryExpressionNode queryExpr = (QueryExpressionNode) mappingExpr;
+                ClauseNode clauseNode = queryExpr.resultClause();
+                if (clauseNode.kind() == SyntaxKind.SELECT_CLAUSE) {
+                    mappingExpr = ((SelectClauseNode) clauseNode).expression();
+                    if (mappingExpr.kind() == SyntaxKind.MAPPING_CONSTRUCTOR) {
+                        MappingConstructorExpressionNode mappingCtrExprNode =
+                                (MappingConstructorExpressionNode) mappingExpr;
+                        Map<String, SpecificFieldNode> fields = convertMappingFieldsToMap(mappingCtrExprNode);
+                        mappingExpr = fields.get(splits[i]).valueExpr().orElseThrow();
+                    }
+                }
+            }
+        }
+
+        if (mappingExpr.kind() == SyntaxKind.QUERY_EXPRESSION) {
+            QueryExpressionNode queryExpr = (QueryExpressionNode) mappingExpr;
+            ClauseNode clauseNode = queryExpr.resultClause();
+            if (clauseNode.kind() == SyntaxKind.SELECT_CLAUSE) {
+                return ((SelectClauseNode) clauseNode).expression();
+            }
+        }
+        return mappingExpr;
     }
 
     public String getSource(JsonElement mp, JsonElement fNode, String targetField) {
@@ -848,7 +902,7 @@ public class DataMapManager {
         if (targetField == null || targetField.isEmpty()) {
             name = getVariableName(flowNode);
         } else {
-            String[] splits = targetField.split("\\.");
+            String[] splits = targetField.split(DOT);
             name = splits[splits.length - 1];
         }
         String mappingSource = genSource(genSourceForMappings(fieldMapping, name));
@@ -964,7 +1018,7 @@ public class DataMapManager {
     }
 
     private String getFieldsPattern(String targetField) {
-        String[] splits = targetField.split("\\.");
+        String[] splits = targetField.split(DOT);
         StringBuilder pattern = new StringBuilder();
         int length = splits.length;
         for (int i = 1; i < length - 1; i++) {
@@ -1275,7 +1329,7 @@ public class DataMapManager {
     }
 
     private ExpressionNode getArrayExpr(String targetField, ExpressionNode expr) {
-        String[] splits = targetField.split("\\.");
+        String[] splits = targetField.split(DOT);
         ExpressionNode currentExpr = expr;
         for (int i = 1; i < splits.length; i++) {
             String split = splits[i];
@@ -1313,7 +1367,7 @@ public class DataMapManager {
         if (targetField == null || targetField.isEmpty()) {
             return typeSymbol;
         }
-        String[] splits = targetField.split("\\.");
+        String[] splits = targetField.split(DOT);
         if (splits.length == 1) {
             return typeSymbol;
         }

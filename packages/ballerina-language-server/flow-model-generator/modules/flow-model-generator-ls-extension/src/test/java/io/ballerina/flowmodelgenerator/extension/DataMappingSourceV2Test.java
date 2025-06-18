@@ -18,11 +18,9 @@
 
 package io.ballerina.flowmodelgenerator.extension;
 
-import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
-import io.ballerina.flowmodelgenerator.extension.request.DataMapperSourceRequest;
 import io.ballerina.flowmodelgenerator.extension.request.DataMapperSourceRequestV2;
 import io.ballerina.modelgenerator.commons.AbstractLSTest;
 import org.eclipse.lsp4j.TextEdit;
@@ -56,34 +54,51 @@ public class DataMappingSourceV2Test extends AbstractLSTest {
                 {Path.of("variable2.json")},
                 {Path.of("variable2_1.json")},
                 {Path.of("variable2_2.json")},
-
-//                {Path.of("variable3.json")}, // todo
-//                {Path.of("variable4.json")}, // todo
-//                {Path.of("variable5.json")}, // todo
+                {Path.of("variable3.json")},
+                {Path.of("variable3_1.json")},
                 {Path.of("variable5_array0.json")},
                 {Path.of("variable5_array1.json")},
                 {Path.of("variable5_array2.json")},
                 {Path.of("variable5_array3.json")},
-////                {Path.of("variable6.json")}, // todo
+                {Path.of("variable6.json")},
                 {Path.of("variable7_new.json")},
                 {Path.of("variable7_new1.json")},
-//                {Path.of("variable8.json")},
-//                {Path.of("variable9.json")},
-//                {Path.of("variable10.json")},
-//                {Path.of("variable11.json")},
-//                {Path.of("variable12.json")},
-//                {Path.of("variable13.json")},
-//                {Path.of("variable14.json")},
-//                {Path.of("variable15.json")},
-//                {Path.of("variable16.json")},
-//                {Path.of("variable17.json")},
-//                {Path.of("query1.json")},
+                {Path.of("variable8_new.json")},
+                {Path.of("variable8_new1.json")},
+                {Path.of("variable9.json")},
+                {Path.of("variable9_new.json")},
+                {Path.of("variable9_new1.json")},
+                {Path.of("variable10.json")},
+                {Path.of("variable10_new.json")},
+                {Path.of("variable11.json")},
+                {Path.of("variable11_new.json")},
+                {Path.of("variable12.json")},
+                {Path.of("variable12_new1.json")},
+                {Path.of("variable12_new2.json")},
+                {Path.of("variable13.json")},
+                {Path.of("variable13_new1.json")},
+                {Path.of("variable13_new2.json")},
+                {Path.of("variable13_new3.json")},
+                {Path.of("variable13_new4.json")},
+                {Path.of("variable13_new5.json")},
+                {Path.of("variable13_new6.json")},
+                {Path.of("variable13_new7.json")},
+                {Path.of("variable14.json")},
+                {Path.of("variable15.json")},
+                {Path.of("variable15_new.json")},
+                {Path.of("variable16.json")},
+                {Path.of("variable16_new.json")},
+                {Path.of("variable16_new1.json")},
+                {Path.of("query1.json")},
+                {Path.of("query2.json")},
+                {Path.of("query3.json")},
         };
     }
 
     @Override
     @Test(dataProvider = "data-provider")
     public void test(Path config) throws IOException {
+        // TODO: check the delete operation
         Path configJsonPath = configDir.resolve(config);
         TestConfig testConfig = gson.fromJson(Files.newBufferedReader(configJsonPath), TestConfig.class);
 
