@@ -42,4 +42,17 @@ public class RefTableType extends RefType {
         this.rowType = rowType;
         this.constraintType = constraintType;
     }
+
+    public RefTableType(RefTableType tableType, boolean isFullType, boolean needDependentTypes) {
+        this.typeName = "table";
+        if (isFullType) {
+            this.rowType = tableType.rowType;
+        }
+        if (!needDependentTypes) {
+            if(this.rowType != null) {
+                this.rowType.dependentTypes = null;
+            }
+        }
+    }
+
 }

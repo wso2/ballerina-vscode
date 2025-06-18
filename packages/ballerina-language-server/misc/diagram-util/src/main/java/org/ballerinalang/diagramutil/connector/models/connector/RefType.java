@@ -373,6 +373,7 @@ public class RefType {
                 type = new RefMapType(recordType);
                 type.dependentTypes = new HashMap<>();
                 type.dependentTypes.put(hashCode, paramType);
+                type.dependentTypes.putAll(paramType.dependentTypes);
             } else {
                 type = new RefMapType(fromSemanticSymbol(mapTypeSymbol.typeParam(), documentationMap, semanticModel));
             }
@@ -381,10 +382,25 @@ public class RefType {
             if (tableTypeSymbol.keyConstraintTypeParameter().isPresent()) {
                 keyConstraint = tableTypeSymbol.keyConstraintTypeParameter().get();
             }
-            type = new RefTableType(fromSemanticSymbol(tableTypeSymbol.rowTypeParameter(), documentationMap,
-                    semanticModel),
-                    tableTypeSymbol.keySpecifiers(), fromSemanticSymbol(keyConstraint, documentationMap,
-                    semanticModel));
+            RefType rowType = fromSemanticSymbol(tableTypeSymbol.rowTypeParameter(), documentationMap,
+                    semanticModel);
+            if (rowType instanceof RefRecordType) {
+                TypeInfo typeInfo = rowType.getTypeInfo();
+                String hashCode = String.valueOf(
+                        (typeInfo.name + typeInfo.orgName + typeInfo.moduleName + typeInfo.version).hashCode());
+                RefRecordType recordType = new RefRecordType(rowType, hashCode);
+                type = new RefTableType(recordType, tableTypeSymbol.keySpecifiers(),
+                        fromSemanticSymbol(keyConstraint, documentationMap, semanticModel));
+                type.dependentTypes = new HashMap<>();
+                RefType depType = new RefRecordType((RefRecordType) rowType, false);
+                type.dependentTypes.put(hashCode, depType);
+                type.dependentTypes.putAll(rowType.dependentTypes);
+            } else {
+                type = new RefTableType(fromSemanticSymbol(tableTypeSymbol.rowTypeParameter(), documentationMap,
+                        semanticModel),
+                        tableTypeSymbol.keySpecifiers(), fromSemanticSymbol(keyConstraint, documentationMap,
+                        semanticModel));
+            }
         } else if (symbol instanceof UnionTypeSymbol unionSymbol) {
             String typeName = String.valueOf(unionSymbol.hashCode());
             RefVisitedType visitedType = getVisitedType(typeName);
@@ -693,6 +709,17 @@ public class RefType {
                             (typeInfo.name + typeInfo.orgName + typeInfo.moduleName + typeInfo.version).hashCode());
                     fields.add(mapSubType);
                     RefType depType = new RefMapType((RefMapType) subType, true);
+                    dependentTypes.put(hashCode, depType);
+                    if (subType.dependentTypes != null) {
+                        dependentTypes.putAll(subType.dependentTypes);
+                    }
+                } else if (subType instanceof RefTableType) {
+                    RefTableType tableSubType = new RefTableType(((RefTableType) subType), true, false);
+                    TypeInfo typeInfo = (((RefTableType) subType).rowType).getTypeInfo();
+                    String hashCode = String.valueOf(
+                            (typeInfo.name + typeInfo.orgName + typeInfo.moduleName + typeInfo.version).hashCode());
+                    fields.add(tableSubType);
+                    RefType depType = new RefTableType((RefTableType) subType, true, true);
                     dependentTypes.put(hashCode, depType);
                     if (subType.dependentTypes != null) {
                         dependentTypes.putAll(subType.dependentTypes);
