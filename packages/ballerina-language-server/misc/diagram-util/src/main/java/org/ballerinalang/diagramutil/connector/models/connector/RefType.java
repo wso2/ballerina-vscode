@@ -446,7 +446,7 @@ public class RefType {
                 return getAlreadyVisitedType(symbol, typeName, visitedType, false);
             } else {
                 visitedTypeMap.put(typeName, new RefVisitedType());
-                type = getIntersectionType(intersectionTypeSymbol, documentationMap, semanticModel);
+                type = getIntersectionType(intersectionTypeSymbol, documentationMap, semanticModel, dependentTypes);
                 completeVisitedTypeEntry(typeName, type, dependentTypes);
             }
         } else if (symbol instanceof StreamTypeSymbol streamTypeSymbol) {
@@ -483,28 +483,7 @@ public class RefType {
                 typeName = typeName.substring(1, typeName.length() - 1);
             }
             type = new RefPrimitiveType(typeName);
-        }
-//        else if (symbol.kind() == SymbolKind.ENUM) {
-//            String typeName = String.valueOf(symbol.hashCode());
-//            RefVisitedType visitedType = getVisitedType(typeName);
-//            if (visitedType != null) {
-//                return getAlreadyVisitedType(symbol, typeName, visitedType, false);
-//            } else {
-//                visitedTypeMap.put(typeName, new RefVisitedType());
-//                List<RefType> fields = new ArrayList<>();
-//                ((UnionTypeSymbol) symbol).memberTypeDescriptors()
-//                        .forEach(typeSymbol -> {
-//                            RefType semanticSymbol = fromSemanticSymbol(typeSymbol, documentationMap,
-//                                    semanticModel);
-//                            if (semanticSymbol != null) {
-//                                fields.add(semanticSymbol);
-//                            }
-//                        });
-//                type = new RefEnumType(fields);
-//                completeVisitedTypeEntry(typeName, type, dependentTypes);
-//            }
-//        }
-        else if (symbol instanceof TypeDefinitionSymbol typeDefinitionSymbol) {
+        } else if (symbol instanceof TypeDefinitionSymbol typeDefinitionSymbol) {
             AtomicReference<String> typeDocumentation = new AtomicReference<>();
             typeDefinitionSymbol.documentation().ifPresent(doc -> {
                 documentationMap.putAll(doc.parameterMap());
@@ -542,13 +521,29 @@ public class RefType {
     }
 
     private static RefType getIntersectionType(IntersectionTypeSymbol intersectionTypeSymbol,
-                                               Map<String, String> documentationMap, SemanticModel semanticModel) {
+                                               Map<String, String> documentationMap, SemanticModel semanticModel,Map<String, RefType> dependentTypes) {
         RefType type;
         RefIntersectionType intersectionType = new RefIntersectionType();
         intersectionTypeSymbol.memberTypeDescriptors().forEach(typeSymbol -> {
-            RefType semanticSymbol = fromSemanticSymbol(typeSymbol, documentationMap, semanticModel);
-            if (semanticSymbol != null) {
-                intersectionType.members.add(semanticSymbol);
+            RefType subType = fromSemanticSymbol(typeSymbol, documentationMap, semanticModel);
+            if (subType != null) {
+                if (subType instanceof RefRecordType) {
+                    String name = subType.getName();
+                    RefType recordSubType = new RefType(name, subType.getName());
+                    TypeInfo typeInfo = subType.getTypeInfo();
+                    String hashCode = String.valueOf(
+                            (typeInfo.name + typeInfo.orgName + typeInfo.moduleName + typeInfo.version).hashCode());
+                    recordSubType.setHashCode(hashCode);
+                    intersectionType.members.add(recordSubType);
+                    RefType depType = new RefRecordType((RefRecordType) subType, false);
+                    dependentTypes.put(hashCode, depType);
+                    if (subType.dependentTypes != null) {
+                        dependentTypes.putAll(subType.dependentTypes);
+                    }
+                } else {
+                    intersectionType.members.add(subType);
+                }
+
             }
         });
 

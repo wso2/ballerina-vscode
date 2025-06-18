@@ -42,23 +42,23 @@ public class RefTypeTest {
 
     protected final Gson gson = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
 
-//    @DataProvider(name = "data-provider")
-//    public Object[][] getConfigsList() throws IOException {
-//        Path testDataDir = TestUtil.RES_DIR.resolve("RefTypeTest/TestData");
-//        return Files.list(testDataDir)
-//                .filter(path -> path.toString().endsWith(".json"))
-//                .map(path -> new Object[]{path})
-//                .toArray(Object[][]::new);
-//    }
-
     @DataProvider(name = "data-provider")
-    public Object[][] getConfigsList() {
-        return new Object[][]{
-                new Object[]{
-                        TestUtil.RES_DIR.resolve("RefTypeTest/TestData/errorSample1.json")
-                }
-        };
+    public Object[][] getConfigsList() throws IOException {
+        Path testDataDir = TestUtil.RES_DIR.resolve("RefTypeTest/TestData");
+        return Files.list(testDataDir)
+                .filter(path -> path.toString().endsWith(".json"))
+                .map(path -> new Object[]{path})
+                .toArray(Object[][]::new);
     }
+
+//    @DataProvider(name = "data-provider")
+//    public Object[][] getConfigsList() {
+//        return new Object[][]{
+//                new Object[]{
+//                        TestUtil.RES_DIR.resolve("RefTypeTest/TestData/intersectionSample1.json")
+//                }
+//        };
+//    }
 
     @Test(dataProvider = "data-provider")
     public void getRefTypeForSymbol(Path jsonPath) throws IOException {
@@ -90,7 +90,7 @@ public class RefTypeTest {
         String expectedRefTypeJson = gson.toJson(jsonObject.get("refType")).concat(System.lineSeparator());
 
         if (!refTypeJson.equals(expectedRefTypeJson)) {
-            updateConfig(jsonPath, refTypeJson);
+//            updateConfig(jsonPath, refTypeJson);
             Assert.fail(
                     String.format("Reference type JSON does not match.\n Expected : %s\n Received %s",
                             expectedRefTypeJson, refTypeJson));
