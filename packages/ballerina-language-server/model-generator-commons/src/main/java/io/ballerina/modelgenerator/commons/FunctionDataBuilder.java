@@ -115,6 +115,7 @@ public class FunctionDataBuilder {
     private LSClientLogger lsClientLogger;
     private Project project;
     private boolean isCurrentModule;
+    private boolean disableIndex;
 
     public static final String REST_RESOURCE_PATH = "/path/to/subdirectory";
     public static final String REST_PARAM_PATH = "/path/to/resource";
@@ -215,6 +216,11 @@ public class FunctionDataBuilder {
         return this;
     }
 
+    public FunctionDataBuilder disableIndex() {
+        this.disableIndex = true;
+        return this;
+    }
+
     private void setParentSymbol(Stream<Symbol> symbolStream, String parentSymbolName) {
         this.parentSymbol = symbolStream
                 .filter(symbol -> symbol.kind() == SymbolKind.VARIABLE && symbol.nameEquals(parentSymbolName))
@@ -272,9 +278,11 @@ public class FunctionDataBuilder {
         }
 
         // Check if the function is in the index
-        Optional<FunctionData> indexedResult = getFunctionFromIndex();
-        if (indexedResult.isPresent()) {
-            return indexedResult.get();
+        if (!disableIndex) {
+            Optional<FunctionData> indexedResult = getFunctionFromIndex();
+            if (indexedResult.isPresent()) {
+                return indexedResult.get();
+            }
         }
 
         // Fetch the semantic model if not provided

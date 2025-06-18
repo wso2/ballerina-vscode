@@ -557,17 +557,17 @@
             },
             "typeMembers": [
               {
-                "type": "FollowRedirects",
-                "packageInfo": "ballerina:http:2.14.1",
-                "packageName": "http",
-                "kind": "RECORD_TYPE",
-                "selected": false
-              },
-              {
                 "type": "()",
                 "packageInfo": "",
                 "packageName": "",
                 "kind": "BASIC_TYPE",
+                "selected": false
+              },
+              {
+                "type": "FollowRedirects",
+                "packageInfo": "ballerina:http:2.14.1",
+                "packageName": "http",
+                "kind": "RECORD_TYPE",
                 "selected": false
               }
             ]
@@ -590,17 +590,17 @@
             },
             "typeMembers": [
               {
-                "type": "PoolConfiguration",
-                "packageInfo": "ballerina:http:2.14.1",
-                "packageName": "http",
-                "kind": "RECORD_TYPE",
-                "selected": false
-              },
-              {
                 "type": "()",
                 "packageInfo": "",
                 "packageName": "",
                 "kind": "BASIC_TYPE",
+                "selected": false
+              },
+              {
+                "type": "PoolConfiguration",
+                "packageInfo": "ballerina:http:2.14.1",
+                "packageName": "http",
+                "kind": "RECORD_TYPE",
                 "selected": false
               }
             ]
@@ -675,14 +675,21 @@
             },
             "typeMembers": [
               {
-                "type": "CredentialsConfig",
+                "type": "()",
+                "packageInfo": "",
+                "packageName": "",
+                "kind": "BASIC_TYPE",
+                "selected": false
+              },
+              {
+                "type": "BearerTokenConfig",
                 "packageInfo": "ballerina:http:2.14.1",
                 "packageName": "http",
                 "kind": "RECORD_TYPE",
                 "selected": false
               },
               {
-                "type": "BearerTokenConfig",
+                "type": "CredentialsConfig",
                 "packageInfo": "ballerina:http:2.14.1",
                 "packageName": "http",
                 "kind": "RECORD_TYPE",
@@ -703,6 +710,13 @@
                 "selected": false
               },
               {
+                "type": "OAuth2JwtBearerGrantConfig",
+                "packageInfo": "ballerina:http:2.14.1",
+                "packageName": "http",
+                "kind": "RECORD_TYPE",
+                "selected": false
+              },
+              {
                 "type": "OAuth2PasswordGrantConfig",
                 "packageInfo": "ballerina:http:2.14.1",
                 "packageName": "http",
@@ -714,20 +728,6 @@
                 "packageInfo": "ballerina:http:2.14.1",
                 "packageName": "http",
                 "kind": "RECORD_TYPE",
-                "selected": false
-              },
-              {
-                "type": "OAuth2JwtBearerGrantConfig",
-                "packageInfo": "ballerina:http:2.14.1",
-                "packageName": "http",
-                "kind": "RECORD_TYPE",
-                "selected": false
-              },
-              {
-                "type": "()",
-                "packageInfo": "",
-                "packageName": "",
-                "kind": "BASIC_TYPE",
                 "selected": false
               }
             ]
@@ -750,17 +750,17 @@
             },
             "typeMembers": [
               {
-                "type": "CircuitBreakerConfig",
-                "packageInfo": "ballerina:http:2.14.1",
-                "packageName": "http",
-                "kind": "RECORD_TYPE",
-                "selected": false
-              },
-              {
                 "type": "()",
                 "packageInfo": "",
                 "packageName": "",
                 "kind": "BASIC_TYPE",
+                "selected": false
+              },
+              {
+                "type": "CircuitBreakerConfig",
+                "packageInfo": "ballerina:http:2.14.1",
+                "packageName": "http",
+                "kind": "RECORD_TYPE",
                 "selected": false
               }
             ]
@@ -783,17 +783,17 @@
             },
             "typeMembers": [
               {
-                "type": "RetryConfig",
-                "packageInfo": "ballerina:http:2.14.1",
-                "packageName": "http",
-                "kind": "RECORD_TYPE",
-                "selected": false
-              },
-              {
                 "type": "()",
                 "packageInfo": "",
                 "packageName": "",
                 "kind": "BASIC_TYPE",
+                "selected": false
+              },
+              {
+                "type": "RetryConfig",
+                "packageInfo": "ballerina:http:2.14.1",
+                "packageName": "http",
+                "kind": "RECORD_TYPE",
                 "selected": false
               }
             ]
@@ -816,17 +816,17 @@
             },
             "typeMembers": [
               {
-                "type": "CookieConfig",
-                "packageInfo": "ballerina:http:2.14.1",
-                "packageName": "http",
-                "kind": "RECORD_TYPE",
-                "selected": false
-              },
-              {
                 "type": "()",
                 "packageInfo": "",
                 "packageName": "",
                 "kind": "BASIC_TYPE",
+                "selected": false
+              },
+              {
+                "type": "CookieConfig",
+                "packageInfo": "ballerina:http:2.14.1",
+                "packageName": "http",
+                "kind": "RECORD_TYPE",
                 "selected": false
               }
             ]
@@ -875,17 +875,17 @@
             },
             "typeMembers": [
               {
-                "type": "ProxyConfig",
-                "packageInfo": "ballerina:http:2.14.1",
-                "packageName": "http",
-                "kind": "RECORD_TYPE",
-                "selected": false
-              },
-              {
                 "type": "()",
                 "packageInfo": "",
                 "packageName": "",
                 "kind": "BASIC_TYPE",
+                "selected": false
+              },
+              {
+                "type": "ProxyConfig",
+                "packageInfo": "ballerina:http:2.14.1",
+                "packageName": "http",
+                "kind": "RECORD_TYPE",
                 "selected": false
               }
             ]
@@ -986,17 +986,17 @@
             },
             "typeMembers": [
               {
-                "type": "ClientSecureSocket",
-                "packageInfo": "ballerina:http:2.14.1",
-                "packageName": "http",
-                "kind": "RECORD_TYPE",
-                "selected": false
-              },
-              {
                 "type": "()",
                 "packageInfo": "",
                 "packageName": "",
                 "kind": "BASIC_TYPE",
+                "selected": false
+              },
+              {
+                "type": "ClientSecureSocket",
+                "packageInfo": "ballerina:http:2.14.1",
+                "packageName": "http",
+                "kind": "RECORD_TYPE",
                 "selected": false
               }
             ]

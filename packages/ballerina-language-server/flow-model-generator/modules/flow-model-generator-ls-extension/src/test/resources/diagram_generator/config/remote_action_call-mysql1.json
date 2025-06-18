@@ -388,14 +388,14 @@
             },
             "typeMembers": [
               {
-                "type": "string",
+                "type": "()",
                 "packageInfo": "",
                 "packageName": "",
                 "kind": "BASIC_TYPE",
                 "selected": false
               },
               {
-                "type": "()",
+                "type": "string",
                 "packageInfo": "",
                 "packageName": "",
                 "kind": "BASIC_TYPE",
@@ -421,14 +421,14 @@
             },
             "typeMembers": [
               {
-                "type": "string",
+                "type": "()",
                 "packageInfo": "",
                 "packageName": "",
                 "kind": "BASIC_TYPE",
                 "selected": false
               },
               {
-                "type": "()",
+                "type": "string",
                 "packageInfo": "",
                 "packageName": "",
                 "kind": "BASIC_TYPE",
@@ -454,14 +454,14 @@
             },
             "typeMembers": [
               {
-                "type": "string",
+                "type": "()",
                 "packageInfo": "",
                 "packageName": "",
                 "kind": "BASIC_TYPE",
                 "selected": false
               },
               {
-                "type": "()",
+                "type": "string",
                 "packageInfo": "",
                 "packageName": "",
                 "kind": "BASIC_TYPE",
@@ -513,17 +513,17 @@
             },
             "typeMembers": [
               {
-                "type": "Options",
-                "packageInfo": "ballerinax:mysql:1.15.0",
-                "packageName": "mysql",
-                "kind": "RECORD_TYPE",
-                "selected": false
-              },
-              {
                 "type": "()",
                 "packageInfo": "",
                 "packageName": "",
                 "kind": "BASIC_TYPE",
+                "selected": false
+              },
+              {
+                "type": "Options",
+                "packageInfo": "ballerinax:mysql:1.15.0",
+                "packageName": "mysql",
+                "kind": "RECORD_TYPE",
                 "selected": false
               }
             ]
@@ -546,17 +546,17 @@
             },
             "typeMembers": [
               {
-                "type": "ConnectionPool",
-                "packageInfo": "ballerina:sql:1.16.0",
-                "packageName": "sql",
-                "kind": "RECORD_TYPE",
-                "selected": false
-              },
-              {
                 "type": "()",
                 "packageInfo": "",
                 "packageName": "",
                 "kind": "BASIC_TYPE",
+                "selected": false
+              },
+              {
+                "type": "ConnectionPool",
+                "packageInfo": "ballerina:sql:1.16.0",
+                "packageName": "sql",
+                "kind": "RECORD_TYPE",
                 "selected": false
               }
             ],
