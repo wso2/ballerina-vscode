@@ -230,17 +230,20 @@ public class ModuleNodeAnalyzer extends NodeVisitor {
                                                      boolean isModelParamEnabled) {
         NodeList<Node> prompt = naturalExpression.prompt();
 
-        String promptContent;
+        String promptContent = "";
         LineRange startingNodeLineRange;
         LineRange endingNodeLineRange;
         if (prompt.isEmpty()) {
             startingNodeLineRange = naturalExpression.openBraceToken().lineRange();
             endingNodeLineRange = naturalExpression.closeBraceToken().lineRange();
-            promptContent = System.lineSeparator() + System.lineSeparator();    // "/n/n"
         } else {
             startingNodeLineRange = prompt.get(0).lineRange();
             endingNodeLineRange = prompt.get(prompt.size() - 1).lineRange();
-            promptContent = String.join("", prompt.stream().map(Node::toSourceCode).toList());
+            String stringContent = String.join("", prompt.stream().map(Node::toSourceCode).toList());
+            // Remove last newline character that are always present
+            promptContent = stringContent.lastIndexOf(System.lineSeparator()) == stringContent.length() - 1
+                    ? stringContent.substring(0, stringContent.length() - System.lineSeparator().length())
+                    : stringContent;
         }
         LineRange promptLineRange = LineRange.from(startingNodeLineRange.fileName(), startingNodeLineRange.startLine(),
                 endingNodeLineRange.endLine());
