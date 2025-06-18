@@ -12,7 +12,7 @@
     "packageName": "mssql",
     "object": "Client",
     "symbol": "init",
-    "version": "1.14.0"
+    "version": "1.15.0"
   },
   "output": {
     "id": "31",
@@ -77,14 +77,14 @@
         },
         "typeMembers": [
           {
-            "type": "()",
+            "type": "string",
             "packageInfo": "",
             "packageName": "",
             "kind": "BASIC_TYPE",
             "selected": false
           },
           {
-            "type": "string",
+            "type": "()",
             "packageInfo": "",
             "packageName": "",
             "kind": "BASIC_TYPE",
@@ -110,14 +110,14 @@
         },
         "typeMembers": [
           {
-            "type": "()",
+            "type": "string",
             "packageInfo": "",
             "packageName": "",
             "kind": "BASIC_TYPE",
             "selected": false
           },
           {
-            "type": "string",
+            "type": "()",
             "packageInfo": "",
             "packageName": "",
             "kind": "BASIC_TYPE",
@@ -143,14 +143,14 @@
         },
         "typeMembers": [
           {
-            "type": "()",
+            "type": "string",
             "packageInfo": "",
             "packageName": "",
             "kind": "BASIC_TYPE",
             "selected": false
           },
           {
-            "type": "string",
+            "type": "()",
             "packageInfo": "",
             "packageName": "",
             "kind": "BASIC_TYPE",
@@ -228,17 +228,17 @@
         },
         "typeMembers": [
           {
-            "type": "()",
-            "packageInfo": "",
-            "packageName": "",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          },
-          {
             "type": "Options",
             "packageInfo": "ballerinax:mssql:1.15.0",
             "packageName": "mssql",
             "kind": "RECORD_TYPE",
+            "selected": false
+          },
+          {
+            "type": "()",
+            "packageInfo": "",
+            "packageName": "",
+            "kind": "BASIC_TYPE",
             "selected": false
           }
         ]
@@ -261,17 +261,17 @@
         },
         "typeMembers": [
           {
-            "type": "()",
-            "packageInfo": "",
-            "packageName": "",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          },
-          {
             "type": "ConnectionPool",
             "packageInfo": "ballerina:sql:1.16.0",
             "packageName": "sql",
             "kind": "RECORD_TYPE",
+            "selected": false
+          },
+          {
+            "type": "()",
+            "packageInfo": "",
+            "packageName": "",
+            "kind": "BASIC_TYPE",
             "selected": false
           }
         ],

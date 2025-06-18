@@ -34,8 +34,8 @@
     "properties": {
       "$connection": {
         "metadata": {
-          "label": "connection",
-          "description": ""
+          "label": "Connection Type",
+          "description": "Connection configurations of the Redis server. This can be either a single URI or a set of parameters"
         },
         "valueType": "EXPRESSION",
         "valueTypeConstraint": "redis:ConnectionUri|redis:ConnectionParams",
@@ -50,25 +50,25 @@
         },
         "typeMembers": [
           {
-            "type": "ConnectionParams",
-            "packageInfo": "ballerinax:redis:3.1.0",
-            "packageName": "redis",
-            "kind": "RECORD_TYPE",
-            "selected": false
-          },
-          {
             "type": "ConnectionUri",
             "packageInfo": "ballerinax:redis:3.1.0",
             "packageName": "redis",
             "kind": "BASIC_TYPE",
+            "selected": false
+          },
+          {
+            "type": "ConnectionParams",
+            "packageInfo": "ballerinax:redis:3.1.0",
+            "packageName": "redis",
+            "kind": "RECORD_TYPE",
             "selected": false
           }
         ]
       },
       "connectionPooling": {
         "metadata": {
-          "label": "connectionPooling",
-          "description": ""
+          "label": "Connection Pooling Enabled",
+          "description": "Flag to indicate whether connection pooling is enabled"
         },
         "valueType": "EXPRESSION",
         "valueTypeConstraint": "boolean",
@@ -93,8 +93,8 @@
       },
       "isClusterConnection": {
         "metadata": {
-          "label": "isClusterConnection",
-          "description": ""
+          "label": "Cluster Mode Enabled",
+          "description": "Flag to indicate whether the connection is a cluster connection"
         },
         "valueType": "EXPRESSION",
         "valueTypeConstraint": "boolean",
@@ -119,8 +119,8 @@
       },
       "secureSocket": {
         "metadata": {
-          "label": "secureSocket",
-          "description": ""
+          "label": "Secure Socket Configurations",
+          "description": "Configurations related to SSL/TLS encryption"
         },
         "valueType": "EXPRESSION",
         "valueTypeConstraint": "redis:SecureSocket",
