@@ -579,7 +579,34 @@
             "kind": "BASIC_TYPE",
             "selected": false
           }
-        ],js
+        ],
+        "defaultValue": "false"
+      },
+      "socketConfig": {
+        "metadata": {
+          "label": "Socket Config",
+          "description": "Provides settings related to client socket configuration"
+        },
+        "valueType": "EXPRESSION",
+        "valueTypeConstraint": "http:ClientSocketConfig",
+        "placeholder": "{}",
+        "optional": true,
+        "editable": true,
+        "advanced": true,
+        "hidden": false,
+        "codedata": {
+          "kind": "INCLUDED_FIELD",
+          "originalName": "socketConfig"
+        },
+        "typeMembers": [
+          {
+            "type": "ClientSocketConfig",
+            "packageInfo": "ballerina:http:2.14.0",
+            "packageName": "http",
+            "kind": "RECORD_TYPE",
+            "selected": false
+          }
+        ],
         "defaultValue": "{}"
       },
       "laxDataBinding": {

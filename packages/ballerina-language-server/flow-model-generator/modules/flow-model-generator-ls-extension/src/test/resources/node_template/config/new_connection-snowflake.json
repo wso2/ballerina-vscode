@@ -29,7 +29,7 @@
     "properties": {
       "account_identifier": {
         "metadata": {
-          "label": "Account_identifier",
+          "label": "Account Identifier",
           "description": "The Snowflake account identifier"
         },
         "valueType": "EXPRESSION",

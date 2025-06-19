@@ -1064,6 +1064,9 @@ public class FunctionDataBuilder {
         if (input == null || input.isEmpty()) {
             return input;
         }
+        // Handle snake_case: replace underscores with spaces
+        input = input.replace('_', ' ');
+
         for (Map.Entry<String, String> entry : CONNECTOR_NAME_MAP.entrySet()) {
             String prefix = entry.getKey();
             if (input.startsWith(prefix)) {
@@ -1074,7 +1077,6 @@ public class FunctionDataBuilder {
                     .replaceAll("([A-Z]+)([A-Z][a-z])", "$1 $2")
                     .replaceAll("([a-z0-9])([A-Z])", "$1 $2")
                     .replaceAll("([0-9])([A-Z])", "$1 $2");
-                // Capitalize each word
                 String[] words = withSpaces.split(" ");
                 StringBuilder sb = new StringBuilder();
                 for (String word : words) {
