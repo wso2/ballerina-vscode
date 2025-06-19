@@ -444,7 +444,7 @@ public class RefType {
             if (errSymbol.detailTypeDescriptor() instanceof TypeReferenceTypeSymbol) {
                 RefType detailType = fromSemanticSymbol(errSymbol.detailTypeDescriptor(), documentationMap,
                         semanticModel);
-                if (detailType instanceof RefRecordType){
+                if (detailType instanceof RefRecordType) {
                     TypeInfo typeInfo = detailType.getTypeInfo();
                     String hashCode = String.valueOf(
                             (typeInfo.name + typeInfo.orgName + typeInfo.moduleName + typeInfo.version).hashCode());
@@ -474,7 +474,8 @@ public class RefType {
             RefObjectType objectType = new RefObjectType();
             objectTypeSymbol.fieldDescriptors()
                     .forEach((typeName, typeSymbol) -> {
-                RefType subType = fromSemanticSymbol(typeSymbol, documentationMap, semanticModel, dependentTypes, false);
+                RefType subType = fromSemanticSymbol(typeSymbol, documentationMap,
+                        semanticModel, dependentTypes, false);
                 if (subType != null) {
                     if (subType instanceof RefRecordType) {
                         String name = subType.getName();
@@ -495,7 +496,8 @@ public class RefType {
                 }
             });
             objectTypeSymbol.typeInclusions().forEach(typeSymbol -> {
-                RefType semanticSymbol = fromSemanticSymbol(typeSymbol, documentationMap, semanticModel, dependentTypes, false);
+                RefType semanticSymbol = fromSemanticSymbol(typeSymbol, documentationMap,
+                        semanticModel, dependentTypes, false);
                 if (semanticSymbol != null) {
                     if (semanticSymbol instanceof RefRecordType) {
                         String name = semanticSymbol.getName();
@@ -526,7 +528,7 @@ public class RefType {
                 objectType.dependentTypes = depTypes;
             }
             type = objectType;
-        } else if (symbol instanceof ObjectFieldSymbol){
+        } else if (symbol instanceof ObjectFieldSymbol) {
             type = fromSemanticSymbol(((ObjectFieldSymbol) symbol).typeDescriptor(),
                     documentationMap, semanticModel);
         } else if (symbol instanceof RecordFieldSymbol recordFieldSymbol) {
@@ -582,7 +584,8 @@ public class RefType {
     }
 
     private static RefType getIntersectionType(IntersectionTypeSymbol intersectionTypeSymbol,
-                                               Map<String, String> documentationMap, SemanticModel semanticModel,Map<String, RefType> dependentTypes) {
+                                               Map<String, String> documentationMap, SemanticModel semanticModel,
+                                               Map<String, RefType> dependentTypes) {
         RefType type;
         RefIntersectionType intersectionType = new RefIntersectionType();
         intersectionTypeSymbol.memberTypeDescriptors().forEach(typeSymbol -> {
@@ -613,11 +616,13 @@ public class RefType {
     }
 
     private static RefType getUnionType(UnionTypeSymbol unionSymbol,
-                                        Map<String, String> documentationMap, SemanticModel semanticModel, Map<String, RefType> dependentTypes) {
+                                        Map<String, String> documentationMap, SemanticModel semanticModel,
+                                        Map<String, RefType> dependentTypes) {
         RefType type;
         RefUnionType unionType = new RefUnionType();
         unionSymbol.memberTypeDescriptors().forEach(typeSymbol -> {
-            RefType subType = fromSemanticSymbol(typeSymbol, documentationMap, semanticModel, dependentTypes, false);
+            RefType subType = fromSemanticSymbol(typeSymbol, documentationMap,
+                    semanticModel, dependentTypes, false);
             if (subType != null) {
                 if (subType instanceof RefPrimitiveType) {
                     unionType.members.add(subType);
@@ -642,14 +647,16 @@ public class RefType {
                     arraySubType.memberType.setHashCode(hashCode);
 
                     if (arraySubType.memberType instanceof RefRecordType) {
-                        RefType recordSubType = new RefType(arraySubType.memberType.getName(), arraySubType.memberType.getTypeName());
+                        RefType recordSubType = new RefType(arraySubType.memberType.getName(),
+                                arraySubType.memberType.getTypeName());
                         recordSubType.setHashCode(hashCode);
                         RefArrayType arraySubTypeWithRecord = new RefArrayType(recordSubType);
                         unionType.members.add(arraySubTypeWithRecord);
                     } else {
                         unionType.members.add(arraySubType);
                     }
-                    RefType depType = new RefRecordType((RefRecordType) (((RefArrayType) subType).memberType), false);
+                    RefType depType = new RefRecordType((RefRecordType) (((RefArrayType) subType).memberType),
+                            false);
                     dependentTypes.put(hashCode, depType);
                     if (subType.dependentTypes != null) {
                         dependentTypes.putAll(subType.dependentTypes);
@@ -666,23 +673,7 @@ public class RefType {
                     if (subType.dependentTypes != null) {
                         dependentTypes.putAll(subType.dependentTypes);
                     }
-                }
-//                else if (subType instanceof RefEnumType) {
-//                    RefEnumType enumSubType = new RefEnumType((RefEnumType) subType, false);
-//                    TypeInfo typeInfo = subType.getTypeInfo();
-//                    String hashCode = String.valueOf(
-//                            (typeInfo.name + typeInfo.orgName + typeInfo.moduleName + typeInfo.version).hashCode());
-//                    enumSubType.setHashCode(hashCode);
-//                    unionType.members.add(enumSubType);
-//
-//                    RefType depType = new RefEnumType((RefEnumType) subType, true);
-//                    dependentTypes.put(hashCode, depType);
-//                    if (subType.dependentTypes != null) {
-//                        dependentTypes.putAll(subType.dependentTypes);
-//                    }
-//                }
-
-                else {
+                } else {
                     unionType.members.add(subType);
                 }
             }
@@ -733,8 +724,8 @@ public class RefType {
                     arraySubType.memberType.setHashCode(hashCode);
 
                     if (arraySubType.memberType instanceof RefRecordType) {
-                        RefType recordSubType = new RefType(arraySubType.memberType.getName(), arraySubType.memberType.getTypeName()
-                        );
+                        RefType recordSubType = new RefType(arraySubType.memberType.getName(),
+                                arraySubType.memberType.getTypeName());
                         recordSubType.setHashCode(hashCode);
                         RefArrayType arraySubTypeWithRecord = new RefArrayType(recordSubType, name);
                         fields.add(arraySubTypeWithRecord);
@@ -758,7 +749,7 @@ public class RefType {
                     if (subType.dependentTypes != null) {
                         dependentTypes.putAll(subType.dependentTypes);
                     }
-                } else if (subType instanceof RefEnumType){
+                } else if (subType instanceof RefEnumType) {
                     RefEnumType enumSubType = new RefEnumType(((RefEnumType) subType), false);
                     TypeInfo typeInfo = subType.getTypeInfo();
                     String hashCode = String.valueOf(
@@ -770,7 +761,7 @@ public class RefType {
                     if (subType.dependentTypes != null) {
                         dependentTypes.putAll(subType.dependentTypes);
                     }
-                } else if (subType instanceof RefMapType){
+                } else if (subType instanceof RefMapType) {
                     RefMapType mapSubType = new RefMapType(((RefMapType) subType), true);
                     TypeInfo typeInfo = (((RefMapType) subType).paramType).getTypeInfo();
                     String hashCode = String.valueOf(
@@ -792,8 +783,7 @@ public class RefType {
                     if (subType.dependentTypes != null) {
                         dependentTypes.putAll(subType.dependentTypes);
                     }
-                }
-                else {
+                } else {
                     subType.setName(name);
                     subType.setOptional(field.isOptional());
                     subType.setDefaultable(field.hasDefaultValue());

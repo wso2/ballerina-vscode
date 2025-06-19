@@ -49,7 +49,7 @@ public class RefTableType extends RefType {
             this.rowType = tableType.rowType;
         }
         if (!needDependentTypes) {
-            if(this.rowType != null) {
+            if (this.rowType != null) {
                 this.rowType.dependentTypes = null;
             }
         }
