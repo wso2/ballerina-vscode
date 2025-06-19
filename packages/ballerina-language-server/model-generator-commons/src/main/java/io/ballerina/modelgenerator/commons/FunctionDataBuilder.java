@@ -79,6 +79,7 @@ import org.ballerinalang.langserver.common.utils.CommonUtil;
 import org.eclipse.lsp4j.MessageType;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+
 import java.lang.reflect.Type;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
@@ -693,7 +694,8 @@ public class FunctionDataBuilder {
             paramType = getTypeSignature(typeSymbol);
         }
         ParameterData parameterData = ParameterData.from(paramName, paramDescription,
-                getLabel(paramSymbol.annotAttachments(), paramName), paramType, placeholder, defaultValue, parameterKind, optional,
+                getLabel(paramSymbol.annotAttachments(), paramName), paramType, placeholder, defaultValue,
+                parameterKind, optional,
                 importStatements);
         parameters.put(paramName, parameterData);
         addParameterMemberTypes(typeSymbol, parameterData, union);
@@ -827,9 +829,9 @@ public class FunctionDataBuilder {
         recordTypeSymbol.restTypeDescriptor().ifPresent(typeSymbol -> {
             String paramType = getTypeSignature(typeSymbol);
             String placeholder = DefaultValueGeneratorUtil.getDefaultValueForType(typeSymbol);
-            parameters.put("Additional Values", new ParameterData(0, "Additional Values", 
-                    paramType, ParameterData.Kind.INCLUDED_RECORD_REST, placeholder, null, 
-                    "Capture key value pairs", null, true, getImportStatements(typeSymbol), 
+            parameters.put("Additional Values", new ParameterData(0, "Additional Values",
+                    paramType, ParameterData.Kind.INCLUDED_RECORD_REST, placeholder, null,
+                    "Capture key value pairs", null, true, getImportStatements(typeSymbol),
                     new ArrayList<>()));
         });
         return parameters;
@@ -1053,61 +1055,44 @@ public class FunctionDataBuilder {
         if (output == null || output.isEmpty()) {
             output = paramName;
         }
-        return toTitleCaseWithNumbers(output);
+        return toTitleCase(output);
     }
 
     /**
      * Converts a camelCase or PascalCase string to Title Case with spaces, including before numbers.
-     * E.g., "targetType" -> "Target Type", "http1Config" -> "Http1 Config"
+     * E.g., "targetType" -> "Target Type", "http1Config" -> "Http1 Config", "account_name" -> "Account Name", etc.
      */
-    private static String toTitleCaseWithNumbers(String input) {
-        if (input == null || input.isEmpty()) {
-            return input;
-        }
-        // Handle snake_case: replace underscores with spaces
+    private static String toTitleCase(String input) {
+        if (input == null || input.isEmpty()) return input;
+
+        // Convert snake case to space-separated words
         input = input.replace('_', ' ');
 
+        // Check for connector name prefix mapping
         for (Map.Entry<String, String> entry : CONNECTOR_NAME_MAP.entrySet()) {
-            String prefix = entry.getKey();
-            if (input.startsWith(prefix)) {
-                String rest = input.substring(prefix.length());
-                String result = entry.getValue() + (rest.isEmpty() ? "" : (Character.isDigit(rest.charAt(0)) ? "" : " ") + rest);
-                // Now apply the spacing/capitalization logic to the whole result
-                String withSpaces = result
-                    .replaceAll("([A-Z]+)([A-Z][a-z])", "$1 $2")
-                    .replaceAll("([a-z0-9])([A-Z])", "$1 $2")
-                    .replaceAll("([0-9])([A-Z])", "$1 $2");
-                String[] words = withSpaces.split(" ");
-                StringBuilder sb = new StringBuilder();
-                for (String word : words) {
-                    if (!word.isEmpty()) {
-                        sb.append(Character.toUpperCase(word.charAt(0)));
-                        if (word.length() > 1) {
-                            sb.append(word.substring(1));
-                        }
-                        sb.append(" ");
-                    }
-                }
-                return sb.toString().trim();
+            if (input.startsWith(entry.getKey())) {
+                String rest = input.substring(entry.getKey().length());
+                input = entry.getValue() + (rest.isEmpty() || Character.isDigit(rest.charAt(0)) ? "" : " ") + rest;
+                break;
             }
         }
-        // Fallback: Insert spaces before capital letters (if preceded by lowercase or number)
-        String withSpaces = input
-            .replaceAll("([A-Z]+)([A-Z][a-z])", "$1 $2")
-            .replaceAll("([a-z0-9])([A-Z])", "$1 $2")
-            .replaceAll("([0-9])([A-Z])", "$1 $2");
-        String[] words = withSpaces.split(" ");
-        StringBuilder sb = new StringBuilder();
-        for (String word : words) {
-            if (!word.isEmpty()) {
-                sb.append(Character.toUpperCase(word.charAt(0)));
-                if (word.length() > 1) {
-                    sb.append(word.substring(1));
-                }
-                sb.append(" ");
+
+        // Split camelCase and add spaces before capitals
+        String[] words = input.replaceAll("([A-Z]+)([A-Z][a-z])", "$1 $2")
+                .replaceAll("([a-z0-9])([A-Z])", "$1 $2")
+                .replaceAll("([0-9])([A-Z])", "$1 $2")
+                .split(" ");
+
+        // Capitalize first letter of each word
+        StringBuilder sb = new StringBuilder(input.length() + words.length);
+        for (int i = 0; i < words.length; i++) {
+            if (!words[i].isEmpty()) {
+                sb.append(Character.toUpperCase(words[i].charAt(0)));
+                if (words[i].length() > 1) sb.append(words[i].substring(1));
+                if (i < words.length - 1) sb.append(' ');
             }
         }
-        return sb.toString().trim();
+        return sb.toString();
     }
 
     private boolean isAgentModelType(String paramName) {
