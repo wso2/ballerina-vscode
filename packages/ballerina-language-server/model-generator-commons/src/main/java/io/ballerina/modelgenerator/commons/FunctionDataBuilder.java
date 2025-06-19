@@ -18,6 +18,8 @@
 
 package io.ballerina.modelgenerator.commons;
 
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import io.ballerina.centralconnector.CentralAPI;
 import io.ballerina.centralconnector.RemoteCentral;
 import io.ballerina.compiler.api.ModuleID;
@@ -77,19 +79,18 @@ import io.ballerina.tools.text.TextRange;
 import org.ballerinalang.langserver.LSClientLogger;
 import org.ballerinalang.langserver.common.utils.CommonUtil;
 import org.eclipse.lsp4j.MessageType;
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
 
-import java.lang.reflect.Type;
+import java.io.IOException;
 import java.io.InputStreamReader;
+import java.lang.reflect.Type;
 import java.nio.charset.StandardCharsets;
-
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -139,12 +140,13 @@ public class FunctionDataBuilder {
     private static final Type CONNECTOR_NAME_MAP_TYPE = new TypeToken<Map<String, String>>() { }.getType();
     private static final Map<String, String> CONNECTOR_NAME_MAP;
     static {
-        Map<String, String> map = null;
+        Map<String, String> map;
         try (InputStreamReader reader = new InputStreamReader(
-                FunctionDataBuilder.class.getClassLoader().getResourceAsStream(CONNECTOR_NAME_CORRECTION_JSON),
+                Objects.requireNonNull(
+                        FunctionDataBuilder.class.getClassLoader().getResourceAsStream(CONNECTOR_NAME_CORRECTION_JSON)),
                 StandardCharsets.UTF_8)) {
             map = new Gson().fromJson(reader, CONNECTOR_NAME_MAP_TYPE);
-        } catch (Exception e) {
+        } catch (IOException e) {
             map = Map.of();
         }
         CONNECTOR_NAME_MAP = map;
@@ -1059,11 +1061,13 @@ public class FunctionDataBuilder {
     }
 
     /**
-     * Converts a camelCase or PascalCase string to Title Case with spaces, including before numbers.
-     * E.g., "targetType" -> "Target Type", "http1Config" -> "Http1 Config", "account_name" -> "Account Name", etc.
+     * Converts a camelCase or PascalCase string to Title Case with spaces, including before numbers. E.g., "targetType"
+     * -> "Target Type", "http1Config" -> "Http1 Config", "account_name" -> "Account Name", etc.
      */
     private static String toTitleCase(String input) {
-        if (input == null || input.isEmpty()) return input;
+        if (input == null || input.isEmpty()) {
+            return input;
+        }
 
         // Convert snake case to space-separated words
         input = input.replace('_', ' ');
@@ -1088,8 +1092,12 @@ public class FunctionDataBuilder {
         for (int i = 0; i < words.length; i++) {
             if (!words[i].isEmpty()) {
                 sb.append(Character.toUpperCase(words[i].charAt(0)));
-                if (words[i].length() > 1) sb.append(words[i].substring(1));
-                if (i < words.length - 1) sb.append(' ');
+                if (words[i].length() > 1) {
+                    sb.append(words[i].substring(1));
+                }
+                if (i < words.length - 1) {
+                    sb.append(' ');
+                }
             }
         }
         return sb.toString();
