@@ -672,7 +672,7 @@ public class FunctionDataBuilder {
             paramType = getTypeSignature(typeSymbol);
         }
         ParameterData parameterData = ParameterData.from(paramName, paramDescription,
-                getLabel(paramSymbol.annotAttachments()), paramType, placeholder, defaultValue, parameterKind, optional,
+                getLabel(paramSymbol.annotAttachments(), paramName), paramType, placeholder, defaultValue, parameterKind, optional,
                 importStatements);
         parameters.put(paramName, parameterData);
         addParameterMemberTypes(typeSymbol, parameterData, union);
@@ -797,7 +797,7 @@ public class FunctionDataBuilder {
             String paramType = getTypeSignature(typeSymbol);
             boolean optional = recordFieldSymbol.isOptional() || recordFieldSymbol.hasDefaultValue();
             ParameterData parameterData = ParameterData.from(paramName, documentationMap.get(paramName),
-                    getLabel(recordFieldSymbol.annotAttachments()),
+                    getLabel(recordFieldSymbol.annotAttachments(), paramName),
                     paramType, placeholder, defaultValue, ParameterData.Kind.INCLUDED_FIELD, optional,
                     getImportStatements(typeSymbol));
             parameters.put(paramName, parameterData);
@@ -1003,7 +1003,8 @@ public class FunctionDataBuilder {
         }
     }
 
-    private String getLabel(List<AnnotationAttachmentSymbol> annotationAttachmentSymbols) {
+    private String getLabel(List<AnnotationAttachmentSymbol> annotationAttachmentSymbols, String paramName) {
+        String output = null;
         for (AnnotationAttachmentSymbol annotAttachment : annotationAttachmentSymbols) {
             AnnotationSymbol annotationSymbol = annotAttachment.typeDescriptor();
             Optional<String> optName = annotationSymbol.getName();
@@ -1026,9 +1027,39 @@ public class FunctionDataBuilder {
             if (label == null) {
                 break;
             }
-            return label.toString();
+            output = label.toString();
         }
-        return "";
+        if (output == null || output.isEmpty()) {
+            output = paramName;
+        }
+        return toTitleCaseWithNumbers(output);
+    }
+
+    /**
+     * Converts a camelCase or PascalCase string to Title Case with spaces, including before numbers.
+     * E.g., "targetType" -> "Target Type", "http1Config" -> "Http1 Config"
+     */
+    private static String toTitleCaseWithNumbers(String input) {
+        if (input == null || input.isEmpty()) {
+            return input;
+        }
+        // Insert spaces before capital letters (if preceded by lowercase or number)
+        String withSpaces = input.replaceAll("(?<=[a-z0-9])([A-Z])", " $1");
+        // Insert spaces before a number only if it is followed by a capital letter (e.g., Foo1Bar -> Foo1 Bar)
+        withSpaces = withSpaces.replaceAll("([0-9])([A-Z])", "$1 $2");
+        // Capitalize each word
+        String[] words = withSpaces.split(" ");
+        StringBuilder sb = new StringBuilder();
+        for (String word : words) {
+            if (!word.isEmpty()) {
+                sb.append(Character.toUpperCase(word.charAt(0)));
+                if (word.length() > 1) {
+                    sb.append(word.substring(1));
+                }
+                sb.append(" ");
+            }
+        }
+        return sb.toString().trim();
     }
 
     private boolean isAgentModelType(String paramName) {
