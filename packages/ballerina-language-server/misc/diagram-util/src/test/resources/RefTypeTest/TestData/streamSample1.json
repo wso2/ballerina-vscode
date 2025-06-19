@@ -1,16 +1,16 @@
 {
   "description": "A simple example of a reference-based type",
-  "source": "RefTypeTest/BalProject2",
-  "typeSymbolName": "progressNotes",
+  "source": "RefTypeTest/BalProject8",
+  "typeSymbolName": "evenNumberStream",
   "refType": {
-    "memberType": {
+    "leftTypeParam": {
       "hasRestType": false,
-      "hashCode": "1441125966",
-      "name": "ProgressNote",
+      "hashCode": "625390834",
+      "name": "SampleRecord",
       "typeName": "record",
       "optional": false,
       "typeInfo": {
-        "name": "ProgressNote",
+        "name": "SampleRecord",
         "orgName": "ballerinax",
         "moduleName": "health.ccda.r3",
         "version": "0.1.0"
@@ -19,11 +19,36 @@
       "isRestType": false,
       "selected": false
     },
+    "rightTypeParam": {
+      "members": [
+        {
+          "isErrorUnion": false,
+          "typeName": "error",
+          "optional": false,
+          "defaultable": false,
+          "isRestType": false,
+          "selected": false
+        },
+        {
+          "typeName": "()",
+          "optional": false,
+          "defaultable": false,
+          "isRestType": false,
+          "selected": false
+        }
+      ],
+      "dependentTypes": {},
+      "typeName": "union",
+      "optional": false,
+      "defaultable": false,
+      "isRestType": false,
+      "selected": false
+    },
     "dependentTypes": {
       "-1165196247": {
         "fields": [
           {
-            "name": "sampleTypeName",
+            "name": "field1",
             "typeName": "string",
             "optional": false,
             "defaultable": false,
@@ -32,8 +57,8 @@
             "selected": false
           },
           {
-            "name": "sampleTypeCode",
-            "typeName": "int",
+            "name": "field2",
+            "typeName": "string",
             "optional": false,
             "defaultable": false,
             "documentation": "",
@@ -58,7 +83,7 @@
       "625390834": {
         "fields": [
           {
-            "name": "sampleRecordName",
+            "name": "name",
             "typeName": "string",
             "optional": false,
             "defaultable": false,
@@ -68,7 +93,7 @@
           },
           {
             "hashCode": "-1165196247",
-            "name": "recordType1",
+            "name": "sampleType",
             "typeName": "SampleType",
             "optional": false,
             "defaultable": false,
@@ -89,44 +114,9 @@
         "defaultable": false,
         "isRestType": false,
         "selected": false
-      },
-      "1441125966": {
-        "fields": [
-          {
-            "name": "note",
-            "typeName": "string",
-            "optional": false,
-            "defaultable": false,
-            "documentation": "",
-            "isRestType": false,
-            "selected": false
-          },
-          {
-            "hashCode": "625390834",
-            "name": "sampleRecord1",
-            "typeName": "SampleRecord",
-            "optional": false,
-            "defaultable": false,
-            "isRestType": false,
-            "selected": false
-          }
-        ],
-        "hasRestType": false,
-        "name": "ProgressNote",
-        "typeName": "record",
-        "optional": false,
-        "typeInfo": {
-          "name": "ProgressNote",
-          "orgName": "ballerinax",
-          "moduleName": "health.ccda.r3",
-          "version": "0.1.0"
-        },
-        "defaultable": false,
-        "isRestType": false,
-        "selected": false
       }
     },
-    "typeName": "array",
+    "typeName": "stream",
     "optional": false,
     "defaultable": false,
     "isRestType": false,

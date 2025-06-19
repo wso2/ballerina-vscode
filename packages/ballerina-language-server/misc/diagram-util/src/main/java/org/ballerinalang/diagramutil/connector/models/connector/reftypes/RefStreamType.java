@@ -20,6 +20,8 @@ package org.ballerinalang.diagramutil.connector.models.connector.reftypes;
 import com.google.gson.annotations.Expose;
 import org.ballerinalang.diagramutil.connector.models.connector.RefType;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -45,5 +47,15 @@ public class RefStreamType extends RefType {
         this.typeName = "stream";
         this.leftTypeParam = leftTypeParam;
         this.rightTypeParam = rightTypeParam;
+    }
+
+    public RefStreamType(RefType leftTypeParam, RefType rightTypeParam, Map<String, RefType> dependentTypes) {
+        this.typeName = "stream";
+        this.leftTypeParam = leftTypeParam;
+        this.rightTypeParam = rightTypeParam;
+        this.dependentTypes = new HashMap<>();
+        if (dependentTypes != null) {
+            this.dependentTypes.putAll(dependentTypes);
+        }
     }
 }

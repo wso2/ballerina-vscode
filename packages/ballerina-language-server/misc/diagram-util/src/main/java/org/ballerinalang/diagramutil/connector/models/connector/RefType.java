@@ -361,8 +361,26 @@ public class RefType {
                 }
             }
         } else if (symbol instanceof ArrayTypeSymbol arrayTypeSymbol) {
-            return new RefArrayType(fromSemanticSymbol(arrayTypeSymbol.memberTypeDescriptor(), documentationMap,
+            if (isRoot) {
+                RefType memberType = fromSemanticSymbol(arrayTypeSymbol.memberTypeDescriptor(),
+                        documentationMap, semanticModel, dependentTypes, true);
+                if (memberType instanceof RefRecordType) {
+                    TypeInfo typeInfo = memberType.getTypeInfo();
+                    String hashCode = String.valueOf(
+                            (typeInfo.name + typeInfo.orgName + typeInfo.moduleName + typeInfo.version).hashCode());
+                    RefRecordType recordType = new RefRecordType(memberType, hashCode);
+                    type = new RefArrayType(recordType);
+                    type.dependentTypes = new HashMap<>();
+                    RefType depType = new RefRecordType((RefRecordType) memberType, false);
+                    type.dependentTypes.put(hashCode, depType);
+                    type.dependentTypes.putAll(memberType.dependentTypes);
+                } else {
+                    type = new RefArrayType(memberType);
+                }
+            } else {
+                return new RefArrayType(fromSemanticSymbol(arrayTypeSymbol.memberTypeDescriptor(), documentationMap,
                         semanticModel));
+            }
         } else if (symbol instanceof MapTypeSymbol mapTypeSymbol) {
             RefType paramType = fromSemanticSymbol(mapTypeSymbol.typeParam(), documentationMap, semanticModel);
             if (paramType instanceof RefRecordType) {
@@ -450,7 +468,7 @@ public class RefType {
                 completeVisitedTypeEntry(typeName, type, dependentTypes);
             }
         } else if (symbol instanceof StreamTypeSymbol streamTypeSymbol) {
-            type = getStreamType(streamTypeSymbol, documentationMap, semanticModel);
+            type = getStreamType(streamTypeSymbol, documentationMap, semanticModel, dependentTypes);
         } else if (symbol instanceof ObjectTypeSymbol objectTypeSymbol) {
             RefObjectType objectType = new RefObjectType();
             objectTypeSymbol.fieldDescriptors()
@@ -492,7 +510,6 @@ public class RefType {
             type = fromSemanticSymbol(typeDefinitionSymbol.typeDescriptor(), documentationMap, semanticModel);
             type.documentation = typeDocumentation.get();
         }
-
         return type;
     }
 
@@ -799,11 +816,35 @@ public class RefType {
     }
 
     private static RefType getStreamType(StreamTypeSymbol streamSymbol, Map<String, String> documentationMap,
-                                         SemanticModel semanticModel) {
+                                         SemanticModel semanticModel, Map<String, RefType> dependentTypes) {
         RefType leftType = fromSemanticSymbol(streamSymbol.typeParameter(), documentationMap, semanticModel);
         RefType rightType = fromSemanticSymbol(streamSymbol.completionValueTypeParameter(), documentationMap,
                 semanticModel);
-        return new RefStreamType(leftType, rightType);
+        if (leftType instanceof RefRecordType) {
+            TypeInfo typeInfo = leftType.getTypeInfo();
+            String hashCode = String.valueOf(
+                    (typeInfo.name + typeInfo.orgName + typeInfo.moduleName + typeInfo.version).hashCode());
+            RefRecordType recordType = new RefRecordType((RefRecordType) leftType, hashCode);
+            RefType depType = new RefRecordType((RefRecordType) leftType, false);
+            dependentTypes.put(hashCode, depType);
+            if (leftType.dependentTypes != null) {
+                dependentTypes.putAll(leftType.dependentTypes);
+            }
+            leftType = recordType;
+        }
+        if (rightType instanceof RefRecordType) {
+            TypeInfo typeInfo = rightType.getTypeInfo();
+            String hashCode = String.valueOf(
+                    (typeInfo.name + typeInfo.orgName + typeInfo.moduleName + typeInfo.version).hashCode());
+            RefRecordType recordType = new RefRecordType((RefRecordType) rightType, hashCode);
+            RefType depType = new RefRecordType((RefRecordType) rightType, false);
+            dependentTypes.put(hashCode, depType);
+            if (rightType.dependentTypes != null) {
+                dependentTypes.putAll(rightType.dependentTypes);
+            }
+            rightType = recordType;
+        }
+        return new RefStreamType(leftType, rightType, dependentTypes);
     }
 
     public static void clearParentSymbols() {

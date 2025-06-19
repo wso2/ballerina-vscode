@@ -1,0 +1,20 @@
+{
+  "description": "A simple example of a reference-based type",
+  "source": "RefTypeTest/BalProject9",
+  "typeSymbolName": "sample",
+  "refType": {
+    "fields": [],
+    "name": "sampleClass",
+    "typeName": "object",
+    "optional": false,
+    "typeInfo": {
+      "name": "sampleClass",
+      "orgName": "ballerinax",
+      "moduleName": "health.ccda.r3",
+      "version": "0.1.0"
+    },
+    "defaultable": false,
+    "isRestType": false,
+    "selected": false
+  }
+}
