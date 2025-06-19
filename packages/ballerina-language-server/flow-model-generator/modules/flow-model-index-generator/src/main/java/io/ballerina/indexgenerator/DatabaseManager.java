@@ -110,7 +110,8 @@ class DatabaseManager {
                                               int optional, String importStatements) {
 
         String sql =
-                "INSERT INTO Parameter (function_id, name, description, type, placeholder, default_value, kind, optional, " +
+                "INSERT INTO Parameter (function_id, name, description, type, placeholder, default_value, kind, " +
+                        "optional, " +
                         "import_statements) " +
                         "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
         return insertEntry(sql,

@@ -73,7 +73,7 @@
         },
         "valueType": "EXPRESSION",
         "valueTypeConstraint": "sql:ParameterizedQuery",
-        "placeholder": "object {}",
+        "placeholder": "``",
         "optional": false,
         "editable": true,
         "advanced": false,

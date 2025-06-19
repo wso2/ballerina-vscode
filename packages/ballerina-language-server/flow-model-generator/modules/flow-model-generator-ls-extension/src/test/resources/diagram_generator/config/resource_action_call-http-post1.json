@@ -128,9 +128,9 @@
               "description": "HTTP response, `anydata` or stream of HTTP SSE, which is expected to be returned after data binding"
             },
             "valueType": "TYPE",
-            "valueTypeConstraint": "http:Response|anydata|stream<http:SseEvent, error?>",
+            "valueTypeConstraint": "anydata",
             "value": "json",
-            "placeholder": "http:Response|anydata|stream<http:SseEvent, error?>",
+            "placeholder": "anydata",
             "optional": false,
             "editable": true,
             "advanced": false,
@@ -139,7 +139,7 @@
               "kind": "PARAM_FOR_TYPE_INFER",
               "originalName": "targetType"
             },
-            "defaultValue": "http:Response|anydata|stream<http:SseEvent, error?>"
+            "defaultValue": "anydata"
           },
           "message": {
             "metadata": {
@@ -374,9 +374,9 @@
               "description": "HTTP response, `anydata` or stream of HTTP SSE, which is expected to be returned after data binding"
             },
             "valueType": "TYPE",
-            "valueTypeConstraint": "http:Response|anydata|stream<http:SseEvent, error?>",
+            "valueTypeConstraint": "anydata",
             "value": "json",
-            "placeholder": "http:Response|anydata|stream<http:SseEvent, error?>",
+            "placeholder": "anydata",
             "optional": false,
             "editable": true,
             "advanced": false,
@@ -385,7 +385,7 @@
               "kind": "PARAM_FOR_TYPE_INFER",
               "originalName": "targetType"
             },
-            "defaultValue": "http:Response|anydata|stream<http:SseEvent, error?>"
+            "defaultValue": "anydata"
           },
           "message": {
             "metadata": {
@@ -621,9 +621,9 @@
               "description": "HTTP response, `anydata` or stream of HTTP SSE, which is expected to be returned after data binding"
             },
             "valueType": "TYPE",
-            "valueTypeConstraint": "http:Response|anydata|stream<http:SseEvent, error?>",
+            "valueTypeConstraint": "anydata",
             "value": "json",
-            "placeholder": "http:Response|anydata|stream<http:SseEvent, error?>",
+            "placeholder": "anydata",
             "optional": false,
             "editable": true,
             "advanced": false,
@@ -632,7 +632,7 @@
               "kind": "PARAM_FOR_TYPE_INFER",
               "originalName": "targetType"
             },
-            "defaultValue": "http:Response|anydata|stream<http:SseEvent, error?>"
+            "defaultValue": "anydata"
           },
           "message": {
             "metadata": {
@@ -867,9 +867,9 @@
               "description": "HTTP response, `anydata` or stream of HTTP SSE, which is expected to be returned after data binding"
             },
             "valueType": "TYPE",
-            "valueTypeConstraint": "http:Response|anydata|stream<http:SseEvent, error?>",
+            "valueTypeConstraint": "anydata",
             "value": "json",
-            "placeholder": "http:Response|anydata|stream<http:SseEvent, error?>",
+            "placeholder": "anydata",
             "optional": false,
             "editable": true,
             "advanced": false,
@@ -878,7 +878,7 @@
               "kind": "PARAM_FOR_TYPE_INFER",
               "originalName": "targetType"
             },
-            "defaultValue": "http:Response|anydata|stream<http:SseEvent, error?>"
+            "defaultValue": "anydata"
           },
           "message": {
             "metadata": {
@@ -1117,9 +1117,9 @@
               "description": "HTTP response, `anydata` or stream of HTTP SSE, which is expected to be returned after data binding"
             },
             "valueType": "TYPE",
-            "valueTypeConstraint": "http:Response|anydata|stream<http:SseEvent, error?>",
+            "valueTypeConstraint": "anydata",
             "value": "json",
-            "placeholder": "http:Response|anydata|stream<http:SseEvent, error?>",
+            "placeholder": "anydata",
             "optional": false,
             "editable": true,
             "advanced": false,
@@ -1128,7 +1128,7 @@
               "kind": "PARAM_FOR_TYPE_INFER",
               "originalName": "targetType"
             },
-            "defaultValue": "http:Response|anydata|stream<http:SseEvent, error?>"
+            "defaultValue": "anydata"
           },
           "message": {
             "metadata": {
@@ -1364,9 +1364,9 @@
               "description": "HTTP response, `anydata` or stream of HTTP SSE, which is expected to be returned after data binding"
             },
             "valueType": "TYPE",
-            "valueTypeConstraint": "http:Response|anydata|stream<http:SseEvent, error?>",
+            "valueTypeConstraint": "anydata",
             "value": "Food",
-            "placeholder": "http:Response|anydata|stream<http:SseEvent, error?>",
+            "placeholder": "anydata",
             "optional": false,
             "editable": true,
             "advanced": false,
@@ -1375,7 +1375,7 @@
               "kind": "PARAM_FOR_TYPE_INFER",
               "originalName": "targetType"
             },
-            "defaultValue": "http:Response|anydata|stream<http:SseEvent, error?>"
+            "defaultValue": "anydata"
           },
           "message": {
             "metadata": {
@@ -1610,9 +1610,9 @@
               "description": "HTTP response, `anydata` or stream of HTTP SSE, which is expected to be returned after data binding"
             },
             "valueType": "TYPE",
-            "valueTypeConstraint": "http:Response|anydata|stream<http:SseEvent, error?>",
+            "valueTypeConstraint": "anydata",
             "value": "json",
-            "placeholder": "http:Response|anydata|stream<http:SseEvent, error?>",
+            "placeholder": "anydata",
             "optional": false,
             "editable": true,
             "advanced": false,
@@ -1621,7 +1621,7 @@
               "kind": "PARAM_FOR_TYPE_INFER",
               "originalName": "targetType"
             },
-            "defaultValue": "http:Response|anydata|stream<http:SseEvent, error?>"
+            "defaultValue": "anydata"
           },
           "message": {
             "metadata": {

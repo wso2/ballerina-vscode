@@ -81,17 +81,19 @@ class IndexGenerator {
         }
 
         // TODO: Remove this once thw raw parameter property type is introduced
-        DatabaseManager.executeQuery("UPDATE Parameter SET default_value = '``' WHERE type = 'sql:ParameterizedQuery'");
+        DatabaseManager.executeQuery(
+                "UPDATE Parameter SET default_value = '``', placeholder='``' WHERE type = 'sql:ParameterizedQuery'");
 //
         // TODO: Remove this once the package index is introduced
-        DatabaseManager.executeQuery("UPDATE Parameter SET type= 'anydata', default_value= 'anydata' \n" +
-                "WHERE parameter_id IN (\n" +
-                "    SELECT p.parameter_id\n" +
-                "    FROM Parameter p\n" +
-                "    INNER JOIN Function f ON f.function_id = p.function_id\n" +
-                "    INNER JOIN Package pack ON pack.package_id = f.package_id\n" +
-                "    WHERE pack.name = 'http' AND p.name = 'targetType'\n" +
-                ");");
+        DatabaseManager.executeQuery(
+                "UPDATE Parameter SET type= 'anydata', default_value= 'anydata', placeholder= 'anydata' \n" +
+                        "WHERE parameter_id IN (\n" +
+                        "    SELECT p.parameter_id\n" +
+                        "    FROM Parameter p\n" +
+                        "    INNER JOIN Function f ON f.function_id = p.function_id\n" +
+                        "    INNER JOIN Package pack ON pack.package_id = f.package_id\n" +
+                        "    WHERE pack.package_name = 'http' AND p.name = 'targetType'\n" +
+                        ");");
 
         // TODO: Need to improve how we handle lang lib functions
         DatabaseManager.updateTypeParameter("lang.array", "array:Type1", "(any|error)");
@@ -270,7 +272,8 @@ class IndexGenerator {
         for (Map.Entry<String, ParameterData> entry : functionData.parameters().entrySet()) {
             ParameterData parameterData = entry.getValue();
             int paramId = DatabaseManager.insertFunctionParameter(functionId, parameterData.name(),
-                    parameterData.description(), parameterData.type(), parameterData.placeholder(), parameterData.defaultValue(),
+                    parameterData.description(), parameterData.type(), parameterData.placeholder(),
+                    parameterData.defaultValue(),
                     FunctionParameterKind.fromString(parameterData.kind().name()),
                     parameterData.optional() ? 1 : 0, parameterData.importStatements());
 
