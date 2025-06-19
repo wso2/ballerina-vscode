@@ -97,7 +97,8 @@
             "codedata": {
               "kind": "PARAM_FOR_TYPE_INFER",
               "originalName": "returnType"
-            }
+            },
+            "defaultValue": "anydata"
           },
           "sqlQuery": {
             "metadata": {
@@ -107,7 +108,7 @@
             "valueType": "RAW_TEMPLATE",
             "valueTypeConstraint": "sql:ParameterizedQuery",
             "value": "``",
-            "placeholder": "``",
+            "placeholder": "object {}",
             "optional": false,
             "editable": true,
             "advanced": false,
@@ -127,7 +128,8 @@
             ],
             "imports": {
               "sql": "ballerina/sql"
-            }
+            },
+            "defaultValue": "``"
           },
           "checkError": {
             "metadata": {
@@ -246,7 +248,8 @@
                 "kind": "BASIC_TYPE",
                 "selected": false
               }
-            ]
+            ],
+            "defaultValue": "\"\""
           },
           "user": {
             "metadata": {
@@ -279,7 +282,8 @@
                 "kind": "BASIC_TYPE",
                 "selected": false
               }
-            ]
+            ],
+            "defaultValue": "()"
           },
           "password": {
             "metadata": {
@@ -312,7 +316,8 @@
                 "kind": "BASIC_TYPE",
                 "selected": false
               }
-            ]
+            ],
+            "defaultValue": "()"
           },
           "database": {
             "metadata": {
@@ -345,7 +350,8 @@
                 "kind": "BASIC_TYPE",
                 "selected": false
               }
-            ]
+            ],
+            "defaultValue": "()"
           },
           "port": {
             "metadata": {
@@ -371,7 +377,8 @@
                 "kind": "BASIC_TYPE",
                 "selected": false
               }
-            ]
+            ],
+            "defaultValue": "0"
           },
           "options": {
             "metadata": {
@@ -404,7 +411,8 @@
                 "kind": "RECORD_TYPE",
                 "selected": false
               }
-            ]
+            ],
+            "defaultValue": "()"
           },
           "connectionPool": {
             "metadata": {
@@ -440,7 +448,8 @@
             ],
             "imports": {
               "sql": "ballerina/sql"
-            }
+            },
+            "defaultValue": "()"
           },
           "checkError": {
             "metadata": {

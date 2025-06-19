@@ -39,7 +39,8 @@ import java.util.Set;
  * @param valueTypeConstraint constraint of the value type
  * @param value               value of the property
  * @param oldValue            old value of the property (before modification)
- * @param placeholder         default value of the property
+ * @param placeholder         placeholder value of the property
+ * @param defaultValue        default value of the property
  * @param optional            whether the property can be left empty
  * @param editable            whether the property is not readonly
  * @param advanced            whether the property should be shown in the advanced tab

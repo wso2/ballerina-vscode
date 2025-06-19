@@ -296,7 +296,8 @@
                     "codedata": {
                       "kind": "PARAM_FOR_TYPE_INFER",
                       "originalName": "targetType"
-                    }
+                    },
+                    "defaultValue": "http:Response|anydata|stream<http:SseEvent, error?>"
                   },
                   "path": {
                     "metadata": {
@@ -356,7 +357,8 @@
                         "kind": "MAP_TYPE",
                         "selected": false
                       }
-                    ]
+                    ],
+                    "defaultValue": "()"
                   },
                   "checkError": {
                     "metadata": {
@@ -673,7 +675,8 @@
                 "kind": "BASIC_TYPE",
                 "selected": false
               }
-            ]
+            ],
+            "defaultValue": "\"2.0\""
           },
           "http1Settings": {
             "metadata": {
@@ -699,7 +702,8 @@
                 "kind": "RECORD_TYPE",
                 "selected": false
               }
-            ]
+            ],
+            "defaultValue": "{}"
           },
           "http2Settings": {
             "metadata": {
@@ -725,7 +729,8 @@
                 "kind": "RECORD_TYPE",
                 "selected": false
               }
-            ]
+            ],
+            "defaultValue": "{}"
           },
           "timeout": {
             "metadata": {
@@ -751,7 +756,8 @@
                 "kind": "BASIC_TYPE",
                 "selected": false
               }
-            ]
+            ],
+            "defaultValue": "0.0d"
           },
           "forwarded": {
             "metadata": {
@@ -777,7 +783,8 @@
                 "kind": "BASIC_TYPE",
                 "selected": false
               }
-            ]
+            ],
+            "defaultValue": "\"\""
           },
           "followRedirects": {
             "metadata": {
@@ -810,7 +817,8 @@
                 "kind": "RECORD_TYPE",
                 "selected": false
               }
-            ]
+            ],
+            "defaultValue": "()"
           },
           "poolConfig": {
             "metadata": {
@@ -843,7 +851,8 @@
                 "kind": "RECORD_TYPE",
                 "selected": false
               }
-            ]
+            ],
+            "defaultValue": "()"
           },
           "cache": {
             "metadata": {
@@ -869,7 +878,8 @@
                 "kind": "RECORD_TYPE",
                 "selected": false
               }
-            ]
+            ],
+            "defaultValue": "{}"
           },
           "compression": {
             "metadata": {
@@ -895,7 +905,8 @@
                 "kind": "BASIC_TYPE",
                 "selected": false
               }
-            ]
+            ],
+            "defaultValue": "\"AUTO\""
           },
           "auth": {
             "metadata": {
@@ -970,7 +981,8 @@
                 "kind": "RECORD_TYPE",
                 "selected": false
               }
-            ]
+            ],
+            "defaultValue": "()"
           },
           "circuitBreaker": {
             "metadata": {
@@ -1003,7 +1015,8 @@
                 "kind": "RECORD_TYPE",
                 "selected": false
               }
-            ]
+            ],
+            "defaultValue": "()"
           },
           "retryConfig": {
             "metadata": {
@@ -1036,7 +1049,8 @@
                 "kind": "RECORD_TYPE",
                 "selected": false
               }
-            ]
+            ],
+            "defaultValue": "()"
           },
           "cookieConfig": {
             "metadata": {
@@ -1069,7 +1083,8 @@
                 "kind": "RECORD_TYPE",
                 "selected": false
               }
-            ]
+            ],
+            "defaultValue": "()"
           },
           "responseLimits": {
             "metadata": {
@@ -1095,7 +1110,8 @@
                 "kind": "RECORD_TYPE",
                 "selected": false
               }
-            ]
+            ],
+            "defaultValue": "{}"
           },
           "proxy": {
             "metadata": {
@@ -1128,7 +1144,8 @@
                 "kind": "RECORD_TYPE",
                 "selected": false
               }
-            ]
+            ],
+            "defaultValue": "()"
           },
           "validation": {
             "metadata": {
@@ -1154,7 +1171,8 @@
                 "kind": "BASIC_TYPE",
                 "selected": false
               }
-            ]
+            ],
+            "defaultValue": "false"
           },
           "socketConfig": {
             "metadata": {
@@ -1180,7 +1198,8 @@
                 "kind": "RECORD_TYPE",
                 "selected": false
               }
-            ]
+            ],
+            "defaultValue": "{}"
           },
           "laxDataBinding": {
             "metadata": {
@@ -1206,7 +1225,8 @@
                 "kind": "BASIC_TYPE",
                 "selected": false
               }
-            ]
+            ],
+            "defaultValue": "false"
           },
           "secureSocket": {
             "metadata": {
@@ -1239,7 +1259,8 @@
                 "kind": "RECORD_TYPE",
                 "selected": false
               }
-            ]
+            ],
+            "defaultValue": "()"
           },
           "checkError": {
             "metadata": {

@@ -70,13 +70,15 @@ public record ParameterData(
                 importStatements, new ArrayList<>());
     }
 
-    public static ParameterData from(String name, String description, Object type, String placeholder, String defaultValue,
+    public static ParameterData from(String name, String description, Object type, String placeholder,
+                                     String defaultValue,
                                      Kind kind, boolean optional, String importStatements) {
         return new ParameterData(0, name, type, kind, placeholder, defaultValue, description, null, optional,
                 importStatements, new ArrayList<>());
     }
 
-    public static ParameterData from(String name, String description, String label, Object type, String placeholder, String defaultValue,
+    public static ParameterData from(String name, String description, String label, Object type, String placeholder,
+                                     String defaultValue,
                                      Kind kind, boolean optional, String importStatements) {
         return new ParameterData(0, name, type, kind, placeholder, defaultValue, description, label, optional,
                 importStatements, new ArrayList<>());

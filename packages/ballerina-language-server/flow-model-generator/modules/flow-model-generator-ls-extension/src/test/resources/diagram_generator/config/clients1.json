@@ -97,7 +97,8 @@
             "codedata": {
               "kind": "PARAM_FOR_TYPE_INFER",
               "originalName": "targetType"
-            }
+            },
+            "defaultValue": "http:Response|anydata|stream<http:SseEvent, error?>"
           },
           "path": {
             "metadata": {
@@ -157,7 +158,8 @@
                 "kind": "MAP_TYPE",
                 "selected": false
               }
-            ]
+            ],
+            "defaultValue": "()"
           },
           "checkError": {
             "metadata": {
@@ -464,7 +466,8 @@
             "codedata": {
               "kind": "PARAM_FOR_TYPE_INFER",
               "originalName": "targetType"
-            }
+            },
+            "defaultValue": "http:Response|anydata|stream<http:SseEvent, error?>"
           },
           "path": {
             "metadata": {
@@ -524,7 +527,8 @@
                 "kind": "MAP_TYPE",
                 "selected": false
               }
-            ]
+            ],
+            "defaultValue": "()"
           },
           "checkError": {
             "metadata": {
