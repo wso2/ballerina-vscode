@@ -29,7 +29,7 @@
     "properties": {
       "account_identifier": {
         "metadata": {
-          "label": "account_identifier",
+          "label": "Account_identifier",
           "description": "The Snowflake account identifier"
         },
         "valueType": "EXPRESSION",
@@ -55,7 +55,7 @@
       },
       "user": {
         "metadata": {
-          "label": "user",
+          "label": "User",
           "description": "The username of the Snowflake account"
         },
         "valueType": "EXPRESSION",
@@ -81,7 +81,7 @@
       },
       "password": {
         "metadata": {
-          "label": "password",
+          "label": "Password",
           "description": "The password of the Snowflake account"
         },
         "valueType": "EXPRESSION",
@@ -107,7 +107,7 @@
       },
       "options": {
         "metadata": {
-          "label": "options",
+          "label": "Options",
           "description": "The Snowflake client properties"
         },
         "valueType": "EXPRESSION",
@@ -141,7 +141,7 @@
       },
       "connectionPool": {
         "metadata": {
-          "label": "connectionPool",
+          "label": "Connection Pool",
           "description": "The `sql:ConnectionPool` to be used for the connection. If there is no\n`connectionPool` provided, the global connection pool (shared by all clients) will be used"
         },
         "valueType": "EXPRESSION",

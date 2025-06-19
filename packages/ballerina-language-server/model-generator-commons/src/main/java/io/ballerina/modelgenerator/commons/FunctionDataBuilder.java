@@ -77,6 +77,11 @@ import io.ballerina.tools.text.TextRange;
 import org.ballerinalang.langserver.LSClientLogger;
 import org.ballerinalang.langserver.common.utils.CommonUtil;
 import org.eclipse.lsp4j.MessageType;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+import java.lang.reflect.Type;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -127,6 +132,22 @@ public class FunctionDataBuilder {
     private static final String MODULE_PULLING_SUCCESS_MESSAGE = "Successfully pulled the module: %s";
 
     private static final String CLIENT_SYMBOL = "Client";
+
+    // Add a static field for the connector name correction map
+    private static final String CONNECTOR_NAME_CORRECTION_JSON = "connector_name_correction.json";
+    private static final Type CONNECTOR_NAME_MAP_TYPE = new TypeToken<Map<String, String>>() { }.getType();
+    private static final Map<String, String> CONNECTOR_NAME_MAP;
+    static {
+        Map<String, String> map = null;
+        try (InputStreamReader reader = new InputStreamReader(
+                FunctionDataBuilder.class.getClassLoader().getResourceAsStream(CONNECTOR_NAME_CORRECTION_JSON),
+                StandardCharsets.UTF_8)) {
+            map = new Gson().fromJson(reader, CONNECTOR_NAME_MAP_TYPE);
+        } catch (Exception e) {
+            map = Map.of();
+        }
+        CONNECTOR_NAME_MAP = map;
+    }
 
     public FunctionDataBuilder semanticModel(SemanticModel semanticModel) {
         this.semanticModel = semanticModel;
@@ -1043,11 +1064,36 @@ public class FunctionDataBuilder {
         if (input == null || input.isEmpty()) {
             return input;
         }
-        // Insert spaces before capital letters (if preceded by lowercase or number)
-        String withSpaces = input.replaceAll("(?<=[a-z0-9])([A-Z])", " $1");
-        // Insert spaces before a number only if it is followed by a capital letter (e.g., Foo1Bar -> Foo1 Bar)
-        withSpaces = withSpaces.replaceAll("([0-9])([A-Z])", "$1 $2");
-        // Capitalize each word
+        for (Map.Entry<String, String> entry : CONNECTOR_NAME_MAP.entrySet()) {
+            String prefix = entry.getKey();
+            if (input.startsWith(prefix)) {
+                String rest = input.substring(prefix.length());
+                String result = entry.getValue() + (rest.isEmpty() ? "" : (Character.isDigit(rest.charAt(0)) ? "" : " ") + rest);
+                // Now apply the spacing/capitalization logic to the whole result
+                String withSpaces = result
+                    .replaceAll("([A-Z]+)([A-Z][a-z])", "$1 $2")
+                    .replaceAll("([a-z0-9])([A-Z])", "$1 $2")
+                    .replaceAll("([0-9])([A-Z])", "$1 $2");
+                // Capitalize each word
+                String[] words = withSpaces.split(" ");
+                StringBuilder sb = new StringBuilder();
+                for (String word : words) {
+                    if (!word.isEmpty()) {
+                        sb.append(Character.toUpperCase(word.charAt(0)));
+                        if (word.length() > 1) {
+                            sb.append(word.substring(1));
+                        }
+                        sb.append(" ");
+                    }
+                }
+                return sb.toString().trim();
+            }
+        }
+        // Fallback: Insert spaces before capital letters (if preceded by lowercase or number)
+        String withSpaces = input
+            .replaceAll("([A-Z]+)([A-Z][a-z])", "$1 $2")
+            .replaceAll("([a-z0-9])([A-Z])", "$1 $2")
+            .replaceAll("([0-9])([A-Z])", "$1 $2");
         String[] words = withSpaces.split(" ");
         StringBuilder sb = new StringBuilder();
         for (String word : words) {

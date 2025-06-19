@@ -36,7 +36,7 @@
     "properties": {
       "host": {
         "metadata": {
-          "label": "host",
+          "label": "Host",
           "description": "Hostname of the PostgreSQL server"
         },
         "valueType": "EXPRESSION",
@@ -63,7 +63,7 @@
       },
       "username": {
         "metadata": {
-          "label": "username"
+          "label": "Username"
         },
         "valueType": "EXPRESSION",
         "valueTypeConstraint": "string|()",
@@ -96,7 +96,7 @@
       },
       "password": {
         "metadata": {
-          "label": "password",
+          "label": "Password",
           "description": "The password of the PostgreSQL server for the provided username"
         },
         "valueType": "EXPRESSION",
@@ -130,7 +130,7 @@
       },
       "database": {
         "metadata": {
-          "label": "database",
+          "label": "Database",
           "description": "The name of the database. The default is to connect to a database with the\nsame name as the username"
         },
         "valueType": "EXPRESSION",
@@ -164,7 +164,7 @@
       },
       "port": {
         "metadata": {
-          "label": "port",
+          "label": "Port",
           "description": "Port number of the PostgreSQL server"
         },
         "valueType": "EXPRESSION",
@@ -191,7 +191,7 @@
       },
       "options": {
         "metadata": {
-          "label": "options",
+          "label": "Options",
           "description": "The database specific PostgreSQL connection properties"
         },
         "valueType": "EXPRESSION",
@@ -225,7 +225,7 @@
       },
       "connectionPool": {
         "metadata": {
-          "label": "connectionPool",
+          "label": "Connection Pool",
           "description": "The `sql:ConnectionPool` object to be used within the client. If there is no\n`connectionPool` provided, the global connection pool will be used"
         },
         "valueType": "EXPRESSION",
