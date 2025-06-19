@@ -588,7 +588,8 @@
                 "kind": "BASIC_TYPE",
                 "selected": false
               }
-            ]
+            ],
+            "defaultValue": "0"
           },
           "variable": {
             "metadata": {

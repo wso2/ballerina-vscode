@@ -88,7 +88,7 @@
       "username": {
         "metadata": {
           "label": "username",
-          "description": ""
+          "description": "The username used for establishing the connection"
         },
         "valueType": "EXPRESSION",
         "valueTypeConstraint": "string",
@@ -109,12 +109,13 @@
             "kind": "BASIC_TYPE",
             "selected": false
           }
-        ]
+        ],
+        "defaultValue": "\"\""
       },
       "password": {
         "metadata": {
           "label": "password",
-          "description": ""
+          "description": "The password used for establishing the connection"
         },
         "valueType": "EXPRESSION",
         "valueTypeConstraint": "string",
@@ -135,12 +136,13 @@
             "kind": "BASIC_TYPE",
             "selected": false
           }
-        ]
+        ],
+        "defaultValue": "\"\""
       },
       "virtualHost": {
         "metadata": {
           "label": "virtualHost",
-          "description": ""
+          "description": "The virtual host to use when connecting to the broker"
         },
         "valueType": "EXPRESSION",
         "valueTypeConstraint": "string",
@@ -161,12 +163,13 @@
             "kind": "BASIC_TYPE",
             "selected": false
           }
-        ]
+        ],
+        "defaultValue": "\"\""
       },
       "connectionTimeout": {
         "metadata": {
           "label": "connectionTimeout",
-          "description": ""
+          "description": "Connection TCP establishment timeout in seconds and zero for infinite"
         },
         "valueType": "EXPRESSION",
         "valueTypeConstraint": "decimal",
@@ -187,12 +190,13 @@
             "kind": "BASIC_TYPE",
             "selected": false
           }
-        ]
+        ],
+        "defaultValue": "0.0d"
       },
       "handshakeTimeout": {
         "metadata": {
           "label": "handshakeTimeout",
-          "description": ""
+          "description": "The AMQP 0-9-1 protocol handshake timeout in seconds"
         },
         "valueType": "EXPRESSION",
         "valueTypeConstraint": "decimal",
@@ -213,12 +217,13 @@
             "kind": "BASIC_TYPE",
             "selected": false
           }
-        ]
+        ],
+        "defaultValue": "0.0d"
       },
       "shutdownTimeout": {
         "metadata": {
           "label": "shutdownTimeout",
-          "description": ""
+          "description": "Shutdown timeout in seconds, zero for infinite, and the default value is 10. If the consumers exceed\nthis timeout, then any remaining queued deliveries (and other Consumer callbacks) will be lost"
         },
         "valueType": "EXPRESSION",
         "valueTypeConstraint": "decimal",
@@ -239,12 +244,13 @@
             "kind": "BASIC_TYPE",
             "selected": false
           }
-        ]
+        ],
+        "defaultValue": "0.0d"
       },
       "heartbeat": {
         "metadata": {
           "label": "heartbeat",
-          "description": ""
+          "description": "The initially-requested heartbeat timeout in seconds and zero for none"
         },
         "valueType": "EXPRESSION",
         "valueTypeConstraint": "decimal",
@@ -265,12 +271,13 @@
             "kind": "BASIC_TYPE",
             "selected": false
           }
-        ]
+        ],
+        "defaultValue": "0.0d"
       },
       "validation": {
         "metadata": {
           "label": "validation",
-          "description": ""
+          "description": "Configuration related to constraint validation check"
         },
         "valueType": "EXPRESSION",
         "valueTypeConstraint": "boolean",
@@ -291,12 +298,13 @@
             "kind": "BASIC_TYPE",
             "selected": false
           }
-        ]
+        ],
+        "defaultValue": "false"
       },
       "secureSocket": {
         "metadata": {
           "label": "secureSocket",
-          "description": ""
+          "description": "Configurations for facilitating secure connections"
         },
         "valueType": "EXPRESSION",
         "valueTypeConstraint": "rabbitmq:SecureSocket",
@@ -317,12 +325,13 @@
             "kind": "RECORD_TYPE",
             "selected": false
           }
-        ]
+        ],
+        "defaultValue": "{cert: {path: \"\", password: \"\"}}"
       },
       "auth": {
         "metadata": {
           "label": "auth",
-          "description": ""
+          "description": "Configurations related to authentication"
         },
         "valueType": "EXPRESSION",
         "valueTypeConstraint": "rabbitmq:Credentials",
@@ -343,7 +352,8 @@
             "kind": "RECORD_TYPE",
             "selected": false
           }
-        ]
+        ],
+        "defaultValue": "{username: \"\", password: \"\"}"
       },
       "type": {
         "metadata": {

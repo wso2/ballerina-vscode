@@ -97,7 +97,8 @@
             "codedata": {
               "kind": "PARAM_FOR_TYPE_INFER",
               "originalName": "returnType"
-            }
+            },
+            "defaultValue": "anydata"
           },
           "sqlQuery": {
             "metadata": {
@@ -127,7 +128,8 @@
             ],
             "imports": {
               "sql": "ballerina/sql"
-            }
+            },
+            "defaultValue": "``"
           },
           "checkError": {
             "metadata": {
@@ -246,7 +248,8 @@
                 "kind": "BASIC_TYPE",
                 "selected": false
               }
-            ]
+            ],
+            "defaultValue": "\"\""
           },
           "user": {
             "metadata": {
@@ -266,20 +269,21 @@
             },
             "typeMembers": [
               {
-                "type": "string",
+                "type": "()",
                 "packageInfo": "",
                 "packageName": "",
                 "kind": "BASIC_TYPE",
                 "selected": false
               },
               {
-                "type": "()",
+                "type": "string",
                 "packageInfo": "",
                 "packageName": "",
                 "kind": "BASIC_TYPE",
                 "selected": false
               }
-            ]
+            ],
+            "defaultValue": "()"
           },
           "password": {
             "metadata": {
@@ -299,20 +303,21 @@
             },
             "typeMembers": [
               {
-                "type": "string",
+                "type": "()",
                 "packageInfo": "",
                 "packageName": "",
                 "kind": "BASIC_TYPE",
                 "selected": false
               },
               {
-                "type": "()",
+                "type": "string",
                 "packageInfo": "",
                 "packageName": "",
                 "kind": "BASIC_TYPE",
                 "selected": false
               }
-            ]
+            ],
+            "defaultValue": "()"
           },
           "database": {
             "metadata": {
@@ -332,20 +337,21 @@
             },
             "typeMembers": [
               {
-                "type": "string",
+                "type": "()",
                 "packageInfo": "",
                 "packageName": "",
                 "kind": "BASIC_TYPE",
                 "selected": false
               },
               {
-                "type": "()",
+                "type": "string",
                 "packageInfo": "",
                 "packageName": "",
                 "kind": "BASIC_TYPE",
                 "selected": false
               }
-            ]
+            ],
+            "defaultValue": "()"
           },
           "port": {
             "metadata": {
@@ -371,7 +377,8 @@
                 "kind": "BASIC_TYPE",
                 "selected": false
               }
-            ]
+            ],
+            "defaultValue": "0"
           },
           "options": {
             "metadata": {
@@ -391,20 +398,21 @@
             },
             "typeMembers": [
               {
-                "type": "Options",
-                "packageInfo": "ballerinax:mysql:1.15.0",
-                "packageName": "mysql",
-                "kind": "RECORD_TYPE",
-                "selected": false
-              },
-              {
                 "type": "()",
                 "packageInfo": "",
                 "packageName": "",
                 "kind": "BASIC_TYPE",
                 "selected": false
+              },
+              {
+                "type": "Options",
+                "packageInfo": "ballerinax:mysql:1.15.0",
+                "packageName": "mysql",
+                "kind": "RECORD_TYPE",
+                "selected": false
               }
-            ]
+            ],
+            "defaultValue": "()"
           },
           "connectionPool": {
             "metadata": {
@@ -424,23 +432,24 @@
             },
             "typeMembers": [
               {
-                "type": "ConnectionPool",
-                "packageInfo": "ballerina:sql:1.16.0",
-                "packageName": "sql",
-                "kind": "RECORD_TYPE",
-                "selected": false
-              },
-              {
                 "type": "()",
                 "packageInfo": "",
                 "packageName": "",
                 "kind": "BASIC_TYPE",
                 "selected": false
+              },
+              {
+                "type": "ConnectionPool",
+                "packageInfo": "ballerina:sql:1.16.0",
+                "packageName": "sql",
+                "kind": "RECORD_TYPE",
+                "selected": false
               }
             ],
             "imports": {
               "sql": "ballerina/sql"
-            }
+            },
+            "defaultValue": "()"
           },
           "checkError": {
             "metadata": {

@@ -47,7 +47,8 @@
         "codedata": {
           "kind": "PARAM_FOR_TYPE_INFER",
           "originalName": "returnType"
-        }
+        },
+        "defaultValue": "string[]|map<anydata>"
       },
       "path": {
         "metadata": {
@@ -99,7 +100,8 @@
             "kind": "BASIC_TYPE",
             "selected": false
           }
-        ]
+        ],
+        "defaultValue": "0"
       },
       "type": {
         "metadata": {

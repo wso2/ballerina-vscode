@@ -483,6 +483,7 @@ public class ServiceDatabaseManager {
                     type,
                     kind,
                     defaultValue,
+                    null,
                     description,
                     null,
                     optional,

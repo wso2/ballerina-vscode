@@ -60,7 +60,8 @@
             "selected": false
           }
         ],
-        "imports": {}
+        "imports": {},
+        "defaultValue": "{}"
       },
       "serviceUrl": {
         "metadata": {
@@ -87,7 +88,8 @@
             "selected": false
           }
         ],
-        "imports": {}
+        "imports": {},
+        "defaultValue": "\"\""
       },
       "type": {
         "metadata": {

@@ -12,7 +12,7 @@
     "packageName": "postgresql",
     "object": "Client",
     "symbol": "init",
-    "version": "1.13.1",
+    "version": "1.15.0",
     "isNew": true
   },
   "output": {
@@ -58,7 +58,8 @@
             "kind": "BASIC_TYPE",
             "selected": false
           }
-        ]
+        ],
+        "defaultValue": "\"\""
       },
       "username": {
         "metadata": {
@@ -77,20 +78,21 @@
         },
         "typeMembers": [
           {
-            "type": "()",
+            "type": "string",
             "packageInfo": "",
             "packageName": "",
             "kind": "BASIC_TYPE",
             "selected": false
           },
           {
-            "type": "string",
+            "type": "()",
             "packageInfo": "",
             "packageName": "",
             "kind": "BASIC_TYPE",
             "selected": false
           }
-        ]
+        ],
+        "defaultValue": "()"
       },
       "password": {
         "metadata": {
@@ -110,20 +112,21 @@
         },
         "typeMembers": [
           {
-            "type": "()",
+            "type": "string",
             "packageInfo": "",
             "packageName": "",
             "kind": "BASIC_TYPE",
             "selected": false
           },
           {
-            "type": "string",
+            "type": "()",
             "packageInfo": "",
             "packageName": "",
             "kind": "BASIC_TYPE",
             "selected": false
           }
-        ]
+        ],
+        "defaultValue": "()"
       },
       "database": {
         "metadata": {
@@ -143,20 +146,21 @@
         },
         "typeMembers": [
           {
-            "type": "()",
+            "type": "string",
             "packageInfo": "",
             "packageName": "",
             "kind": "BASIC_TYPE",
             "selected": false
           },
           {
-            "type": "string",
+            "type": "()",
             "packageInfo": "",
             "packageName": "",
             "kind": "BASIC_TYPE",
             "selected": false
           }
-        ]
+        ],
+        "defaultValue": "()"
       },
       "port": {
         "metadata": {
@@ -182,7 +186,8 @@
             "kind": "BASIC_TYPE",
             "selected": false
           }
-        ]
+        ],
+        "defaultValue": "0"
       },
       "options": {
         "metadata": {
@@ -202,20 +207,21 @@
         },
         "typeMembers": [
           {
-            "type": "()",
-            "packageInfo": "",
-            "packageName": "",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          },
-          {
             "type": "Options",
             "packageInfo": "ballerinax:postgresql:1.15.0",
             "packageName": "postgresql",
             "kind": "RECORD_TYPE",
             "selected": false
+          },
+          {
+            "type": "()",
+            "packageInfo": "",
+            "packageName": "",
+            "kind": "BASIC_TYPE",
+            "selected": false
           }
-        ]
+        ],
+        "defaultValue": "()"
       },
       "connectionPool": {
         "metadata": {
@@ -235,23 +241,24 @@
         },
         "typeMembers": [
           {
-            "type": "()",
-            "packageInfo": "",
-            "packageName": "",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          },
-          {
             "type": "ConnectionPool",
             "packageInfo": "ballerina:sql:1.16.0",
             "packageName": "sql",
             "kind": "RECORD_TYPE",
             "selected": false
+          },
+          {
+            "type": "()",
+            "packageInfo": "",
+            "packageName": "",
+            "kind": "BASIC_TYPE",
+            "selected": false
           }
         ],
         "imports": {
           "sql": "ballerina/sql"
-        }
+        },
+        "defaultValue": "()"
       },
       "type": {
         "metadata": {
