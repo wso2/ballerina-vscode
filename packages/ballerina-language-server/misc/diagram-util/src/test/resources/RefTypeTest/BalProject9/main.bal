@@ -1,22 +1,16 @@
-type field1 record {
-    string field1;
-}
 
-type field2 record {
-    string field2;
-}
+type SampleType record {
+    string sampleTypeName;
+    int sampleTypeCode;
+};
 
-class sampleClass {
-    field1 f1;
-    field2 f2;
-    int field3;
-    string field4;
+type SampleRecord record {
+    string sampleRecordName;
+    SampleType recordType1;
+};
 
-    f1 = { field1: "value1" };
-            f2 = { field2: "value2" };
-            field3 = 42;
-            field4 = "Hello, World!";
-        }
-}
-
-sampleClass sample = new sampleClass();
+type objectType object {
+    string name;
+    int age;
+    SampleRecord sampleRecord1;
+};

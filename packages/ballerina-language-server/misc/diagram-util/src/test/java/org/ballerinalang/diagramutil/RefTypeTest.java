@@ -55,7 +55,7 @@ public class RefTypeTest {
 //    public Object[][] getConfigsList() {
 //        return new Object[][]{
 //                new Object[]{
-//                        TestUtil.RES_DIR.resolve("RefTypeTest/TestData/streamSample1.json")
+//                        TestUtil.RES_DIR.resolve("RefTypeTest/TestData/objectSample1.json")
 //                }
 //        };
 //    }

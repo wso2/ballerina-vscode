@@ -25,6 +25,7 @@ import io.ballerina.compiler.api.symbols.Documentation;
 import io.ballerina.compiler.api.symbols.ErrorTypeSymbol;
 import io.ballerina.compiler.api.symbols.IntersectionTypeSymbol;
 import io.ballerina.compiler.api.symbols.MapTypeSymbol;
+import io.ballerina.compiler.api.symbols.ObjectFieldSymbol;
 import io.ballerina.compiler.api.symbols.ObjectTypeSymbol;
 import io.ballerina.compiler.api.symbols.ParameterKind;
 import io.ballerina.compiler.api.symbols.ParameterSymbol;
@@ -473,18 +474,61 @@ public class RefType {
             RefObjectType objectType = new RefObjectType();
             objectTypeSymbol.fieldDescriptors()
                     .forEach((typeName, typeSymbol) -> {
-                RefType semanticSymbol = fromSemanticSymbol(typeSymbol, documentationMap, semanticModel);
-                if (semanticSymbol != null) {
-                    objectType.fields.add(semanticSymbol);
+                RefType subType = fromSemanticSymbol(typeSymbol, documentationMap, semanticModel, dependentTypes, false);
+                if (subType != null) {
+                    if (subType instanceof RefRecordType) {
+                        String name = subType.getName();
+                        RefType recordSubType = new RefType(name, subType.getName());
+                        TypeInfo typeInfo = subType.getTypeInfo();
+                        String hashCode = String.valueOf(
+                                (typeInfo.name + typeInfo.orgName + typeInfo.moduleName + typeInfo.version).hashCode());
+                        recordSubType.setHashCode(hashCode);
+                        objectType.fields.add(recordSubType);
+                        RefType depType = new RefRecordType((RefRecordType) subType, false);
+                        dependentTypes.put(hashCode, depType);
+                        if (subType.dependentTypes != null) {
+                            dependentTypes.putAll(subType.dependentTypes);
+                        }
+                    } else {
+                        objectType.fields.add(subType);
+                    }
                 }
             });
             objectTypeSymbol.typeInclusions().forEach(typeSymbol -> {
-                RefType semanticSymbol = fromSemanticSymbol(typeSymbol, documentationMap, semanticModel);
+                RefType semanticSymbol = fromSemanticSymbol(typeSymbol, documentationMap, semanticModel, dependentTypes, false);
                 if (semanticSymbol != null) {
-                    objectType.fields.add(new RefInclusionType(semanticSymbol));
+                    if (semanticSymbol instanceof RefRecordType) {
+                        String name = semanticSymbol.getName();
+                        RefType recordSubType = new RefType(name, semanticSymbol.getName());
+                        TypeInfo typeInfo = semanticSymbol.getTypeInfo();
+                        String hashCode = String.valueOf(
+                                (typeInfo.name + typeInfo.orgName + typeInfo.moduleName + typeInfo.version).hashCode());
+                        recordSubType.setHashCode(hashCode);
+                        objectType.fields.add(recordSubType);
+                        RefType depType = new RefRecordType((RefRecordType) semanticSymbol, false);
+                        dependentTypes.put(hashCode, depType);
+                        if (semanticSymbol.dependentTypes != null) {
+                            dependentTypes.putAll(semanticSymbol.dependentTypes);
+                        }
+                    } else {
+                        objectType.fields.add(new RefInclusionType(semanticSymbol));
+                    }
+
                 }
             });
+            if (!dependentTypes.isEmpty()) {
+                Map<String, RefType> depTypes = new HashMap<>();
+                dependentTypes.forEach((key, value) -> {
+                    if (value != null) {
+                        depTypes.put(key, value);
+                    }
+                });
+                objectType.dependentTypes = depTypes;
+            }
             type = objectType;
+        } else if (symbol instanceof ObjectFieldSymbol){
+            type = fromSemanticSymbol(((ObjectFieldSymbol) symbol).typeDescriptor(),
+                    documentationMap, semanticModel);
         } else if (symbol instanceof RecordFieldSymbol recordFieldSymbol) {
             type = fromSemanticSymbol(recordFieldSymbol.typeDescriptor(), documentationMap, semanticModel);
         } else if (symbol instanceof ParameterSymbol parameterSymbol) {
@@ -764,7 +808,6 @@ public class RefType {
         type = new RefRecordType(fields, restType);
         return type;
     }
-
     private static void collectRecordDocumentation(RecordTypeSymbol recordTypeSymbol, SemanticModel semanticModel,
                                                    Map<String, String> documentationMap) {
         recordTypeSymbol.typeInclusions().forEach(includedType -> {
@@ -789,6 +832,7 @@ public class RefType {
             }
         });
     }
+
 
     private static RefType getEnumType(TypeReferenceTypeSymbol typeReferenceTypeSymbol, Symbol symbol,
                                        Map<String, String> documentationMap,
