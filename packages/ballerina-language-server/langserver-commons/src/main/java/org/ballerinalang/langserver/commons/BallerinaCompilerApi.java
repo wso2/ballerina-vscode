@@ -18,6 +18,7 @@
 
 package org.ballerinalang.langserver.commons;
 
+import com.github.zafarkhaja.semver.Version;
 import io.ballerina.compiler.syntax.tree.ExpressionFunctionBodyNode;
 import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
 import org.wso2.ballerinalang.util.RepoUtils;
@@ -51,25 +52,34 @@ public abstract class BallerinaCompilerApi {
         ServiceLoader<BallerinaCompilerApi> serviceLoader = ServiceLoader.load(BallerinaCompilerApi.class);
         String ballerinaVersion = RepoUtils.getBallerinaPackVersion();
 
-        // Determine the appropriate implementation based on the Ballerina version,
-        // and default to the base implementation if no exact match is found.
-        BallerinaCompilerApi exactMatch = null;
+        // Ignore the pre-release suffix if present
+        Version currentVersion = Version.valueOf(Version.valueOf(ballerinaVersion).getNormalVersion());
+
+        // Find the best match for the current Ballerina version
+        Version bestMatchVersion = null;
+        BallerinaCompilerApi bestMatch = null;
         BallerinaCompilerApi defaultMatch = null;
         for (BallerinaCompilerApi service : serviceLoader) {
-            String serviceVersion = service.getVersion();
+            String serviceVersionString = service.getVersion();
+            Version serviceVersion = Version.valueOf(serviceVersionString);
 
-            if (ballerinaVersion.startsWith(serviceVersion)) {
-                exactMatch = service;
-                break;
+            // Check if this service version is <= current version
+            if (serviceVersion.lessThanOrEqualTo(currentVersion)) {
+                // Keep track of the highest version that's still <= current version
+                if (bestMatch == null || serviceVersion.greaterThan(bestMatchVersion)) {
+                    bestMatch = service;
+                    bestMatchVersion = serviceVersion;
+                }
             }
 
-            if (DEFAULT_VERSION.startsWith(serviceVersion)) {
+            // Keep track of default version service as fallback
+            if (defaultMatch == null && DEFAULT_VERSION.equals(serviceVersionString)) {
                 defaultMatch = service;
             }
         }
 
-        if (exactMatch != null) {
-            instance = exactMatch;
+        if (bestMatch != null) {
+            instance = bestMatch;
         } else if (defaultMatch != null) {
             instance = defaultMatch;
         } else {
@@ -85,8 +95,8 @@ public abstract class BallerinaCompilerApi {
      */
     public static BallerinaCompilerApi getInstance() {
         if (instance == null) {
-            throw new IllegalStateException("BallerinaVersionAdapter is not initialized. " +
-                    "Please call BallerinaVersionAdapter.initialize() before using this method.");
+            throw new IllegalStateException("BallerinaCompilerApi is not initialized. " +
+                    "Please call BallerinaCompilerApi.initialize() before using this method.");
         }
         return instance;
     }
