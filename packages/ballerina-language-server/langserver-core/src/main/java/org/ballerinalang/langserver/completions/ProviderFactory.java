@@ -19,7 +19,9 @@ import io.ballerina.compiler.syntax.tree.Node;
 import org.ballerinalang.langserver.commons.completion.spi.BallerinaCompletionProvider;
 
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
+import java.util.ServiceConfigurationError;
 import java.util.ServiceLoader;
 
 /**
@@ -37,16 +39,30 @@ public class ProviderFactory {
         @SuppressWarnings("rawtypes")
         ServiceLoader<BallerinaCompletionProvider> providerServices =
                 ServiceLoader.load(BallerinaCompletionProvider.class);
-        for (BallerinaCompletionProvider<Node> provider : providerServices) {
-            if (provider == null) {
-                continue;
-            }
-            for (Class<?> attachmentPoint : provider.getAttachmentPoints()) {
-                if (!providers.containsKey(attachmentPoint) ||
-                        (providers.get(attachmentPoint).getPrecedence() == BallerinaCompletionProvider.Precedence.LOW
-                                && provider.getPrecedence() == BallerinaCompletionProvider.Precedence.HIGH)) {
-                    providers.put(attachmentPoint, provider);
+
+        Iterator<BallerinaCompletionProvider> providerIterator = providerServices.iterator();
+        while (true) {
+            try {
+                // The ServiceConfigurationError can be thrown by hasNext() or next()
+                // if the provider class is not found or cannot be instantiated.
+                if (!providerIterator.hasNext()) {
+                    break;
                 }
+                BallerinaCompletionProvider<Node> provider = providerIterator.next();
+
+                if (provider == null) {
+                    continue;
+                }
+                for (Class<?> attachmentPoint : provider.getAttachmentPoints()) {
+                    if (!providers.containsKey(attachmentPoint) ||
+                            (providers.get(attachmentPoint).getPrecedence() ==
+                                    BallerinaCompletionProvider.Precedence.LOW
+                                    && provider.getPrecedence() == BallerinaCompletionProvider.Precedence.HIGH)) {
+                        providers.put(attachmentPoint, provider);
+                    }
+                }
+            } catch (ServiceConfigurationError e) {
+                // TODO: Need to trace a warning stating that the respective provider could not be loaded
             }
         }
     }

@@ -41,8 +41,6 @@ import io.ballerina.compiler.syntax.tree.BindingPatternNode;
 import io.ballerina.compiler.syntax.tree.BuiltinSimpleNameReferenceNode;
 import io.ballerina.compiler.syntax.tree.ChildNodeList;
 import io.ballerina.compiler.syntax.tree.DoStatementNode;
-import io.ballerina.compiler.syntax.tree.ExpressionFunctionBodyNode;
-import io.ballerina.compiler.syntax.tree.FunctionBodyNode;
 import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
 import io.ballerina.compiler.syntax.tree.IdentifierToken;
 import io.ballerina.compiler.syntax.tree.ModulePartNode;
@@ -839,8 +837,8 @@ public class CommonUtils {
     }
 
     /**
-     * Extracts the default module prefix from a package name.
-     * The prefix is the last segment of the package name after splitting by dots.
+     * Extracts the default module prefix from a package name. The prefix is the last segment of the package name after
+     * splitting by dots.
      *
      * @param packageName The fully qualified package name to extract the prefix from
      * @return The last segment of the package name as the default module prefix
@@ -859,30 +857,30 @@ public class CommonUtils {
      */
     public static String constructModuleId(ModuleDescriptor descriptor) {
         StringBuilder idBuilder = new StringBuilder();
-        
+
         // Add organization
         idBuilder.append(descriptor.org().value()).append('/');
-        
+
         // Add package name
         idBuilder.append(descriptor.name().packageName().value());
-        
+
         // Add module name if it's not the default module
         String moduleNamePart = descriptor.name().moduleNamePart();
         if (moduleNamePart != null && !moduleNamePart.isEmpty()) {
             idBuilder.append('.').append(moduleNamePart);
         }
-        
+
         // Add version
         idBuilder.append(':').append(descriptor.version());
-        
+
         return idBuilder.toString();
     }
 
     /**
      * Checks whether the given import exists in the given module part node.
      *
-     * @param node module part node
-     * @param org organization name
+     * @param node   module part node
+     * @param org    organization name
      * @param module module name
      * @return true if the import exists, false otherwise
      */

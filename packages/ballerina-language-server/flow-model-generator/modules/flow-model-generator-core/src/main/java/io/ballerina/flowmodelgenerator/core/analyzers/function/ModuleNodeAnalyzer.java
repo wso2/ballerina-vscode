@@ -54,8 +54,8 @@ import io.ballerina.flowmodelgenerator.core.model.node.NPFunctionDefinitionBuild
 import io.ballerina.modelgenerator.commons.CommonUtils;
 import io.ballerina.modelgenerator.commons.ModuleInfo;
 import io.ballerina.modelgenerator.commons.ParameterData;
-import org.ballerinalang.langserver.commons.BallerinaCompilerApi;
 import io.ballerina.tools.text.LineRange;
+import org.ballerinalang.langserver.commons.BallerinaCompilerApi;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -97,7 +97,8 @@ public class ModuleNodeAnalyzer extends NodeVisitor {
 
     @Override
     public void visit(FunctionDefinitionNode functionDefinitionNode) {
-        boolean isNpFunction = BallerinaCompilerApi.getInstance().isNaturalExpressionBodiedFunction(functionDefinitionNode);
+        boolean isNpFunction =
+                BallerinaCompilerApi.getInstance().isNaturalExpressionBodiedFunction(functionDefinitionNode);
         NodeKind nodeKind;
         if (isNpFunction) {
             nodeKind = NodeKind.NP_FUNCTION_DEFINITION;
@@ -359,8 +360,8 @@ public class ModuleNodeAnalyzer extends NodeVisitor {
         return new FunctionDocumentation(description.toString(), params, returnDescription);
     }
 
-    private record FunctionDocumentation (String description, Map<String, String> parameterDescriptions,
-                                          String returnDescription) {
+    private record FunctionDocumentation(String description, Map<String, String> parameterDescriptions,
+                                         String returnDescription) {
 
     }
 }

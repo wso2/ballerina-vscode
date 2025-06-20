@@ -249,8 +249,4 @@ public class ModuleNodeTransformer extends NodeTransformer<Optional<Artifact>> {
     private static boolean hasQualifier(NodeList<Token> qualifierList, SyntaxKind kind) {
         return qualifierList.stream().anyMatch(qualifier -> qualifier.kind() == kind);
     }
-
-    private boolean isNaturalExpressionBody(ExpressionFunctionBodyNode expressionFunctionBodyNode) {
-        return expressionFunctionBodyNode.expression().kind() == SyntaxKind.NATURAL_EXPRESSION;
-    }
 }
