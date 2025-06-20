@@ -18,17 +18,24 @@
 
 package io.ballerina.flowmodelgenerator.extension;
 
-import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.reflect.TypeToken;
 import io.ballerina.flowmodelgenerator.extension.request.DataMapperSourceRequest;
 import io.ballerina.modelgenerator.commons.AbstractLSTest;
+import org.eclipse.lsp4j.TextEdit;
 import org.testng.Assert;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import java.io.IOException;
+import java.lang.reflect.Type;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Tests for the generation of data mapper source.
@@ -37,47 +44,99 @@ import java.nio.file.Path;
  */
 public class DataMappingSourceTest extends AbstractLSTest {
 
+    private static final Type textEditListType = new TypeToken<Map<String, List<TextEdit>>>() { }.getType();
+
     @DataProvider(name = "data-provider")
     @Override
     protected Object[] getConfigsList() {
         return new Object[][]{
                 {Path.of("variable1.json")},
                 {Path.of("variable2.json")},
+                {Path.of("variable2_1.json")},
+                {Path.of("variable2_2.json")},
                 {Path.of("variable3.json")},
-//                {Path.of("variable4.json")},
-//                {Path.of("variable5.json")},
-//                {Path.of("variable6.json")},
-//                {Path.of("variable7.json")},
-//                {Path.of("variable8.json")},
-//                {Path.of("variable9.json")},
-//                {Path.of("variable10.json")},
-//                {Path.of("variable11.json")},
-//                {Path.of("variable12.json")},
-//                {Path.of("variable13.json")},
-//                {Path.of("variable14.json")},
-//                {Path.of("variable15.json")},
-//                {Path.of("variable16.json")},
-//                {Path.of("variable17.json")},
-//                {Path.of("query1.json")},
+                {Path.of("variable3_1.json")},
+                {Path.of("variable5_array0.json")},
+                {Path.of("variable5_array1.json")},
+                {Path.of("variable5_array2.json")},
+                {Path.of("variable5_array3.json")},
+                {Path.of("variable6.json")},
+                {Path.of("variable7_new.json")},
+                {Path.of("variable7_new1.json")},
+                {Path.of("variable8_new.json")},
+                {Path.of("variable8_new1.json")},
+                {Path.of("variable9.json")},
+                {Path.of("variable9_new.json")},
+                {Path.of("variable9_new1.json")},
+                {Path.of("variable10.json")},
+                {Path.of("variable10_new.json")},
+                {Path.of("variable11.json")},
+                {Path.of("variable11_new.json")},
+                {Path.of("variable12.json")},
+                {Path.of("variable12_new1.json")},
+                {Path.of("variable12_new2.json")},
+                {Path.of("variable13.json")},
+                {Path.of("variable13_new1.json")},
+                {Path.of("variable13_new2.json")},
+                {Path.of("variable13_new3.json")},
+                {Path.of("variable13_new4.json")},
+                {Path.of("variable13_new5.json")},
+                {Path.of("variable13_new6.json")},
+                {Path.of("variable13_new7.json")},
+                {Path.of("variable14.json")},
+                {Path.of("variable15.json")},
+                {Path.of("variable15_new.json")},
+                {Path.of("variable16.json")},
+                {Path.of("variable16_new.json")},
+                {Path.of("variable16_new1.json")},
+                {Path.of("query1.json")},
+                {Path.of("query2.json")},
+                {Path.of("query3.json")},
         };
     }
 
     @Override
     @Test(dataProvider = "data-provider")
     public void test(Path config) throws IOException {
+        // TODO: check the delete operation
         Path configJsonPath = configDir.resolve(config);
         TestConfig testConfig = gson.fromJson(Files.newBufferedReader(configJsonPath), TestConfig.class);
 
         DataMapperSourceRequest request =
                 new DataMapperSourceRequest(sourceDir.resolve(testConfig.source()).toAbsolutePath().toString(),
-                        testConfig.diagram(), testConfig.mappings(), "", testConfig.targetField());
-        String source = getResponse(request).getAsJsonPrimitive("source").getAsString();
+                        testConfig.codedata(), testConfig.mapping(), "", testConfig.targetField());
+        JsonObject jsonMap = getResponse(request).getAsJsonObject("textEdits");
 
-        if (!source.equals(testConfig.output())) {
-            TestConfig updateConfig = new TestConfig(testConfig.source(), testConfig.description(),
-                    testConfig.diagram(), testConfig.propertyKey(), testConfig.position(), testConfig.mappings(),
-                    source, testConfig.targetField());
-//            updateConfig(configJsonPath, updateConfig);
+        Map<String, List<TextEdit>> actualTextEdits = gson.fromJson(jsonMap, textEditListType);
+
+        boolean assertFailure = false;
+
+        if (actualTextEdits.size() != testConfig.output().size()) {
+            log.info("The number of text edits does not match the expected output.");
+            assertFailure = true;
+        }
+
+        Map<String, List<TextEdit>> newMap = new HashMap<>();
+        for (Map.Entry<String, List<TextEdit>> entry : actualTextEdits.entrySet()) {
+            Path fullPath = Paths.get(entry.getKey());
+            String relativePath = sourceDir.relativize(fullPath).toString();
+
+            List<TextEdit> textEdits = testConfig.output().get(relativePath.replace("\\", "/"));
+            if (textEdits == null) {
+                log.info("No text edits found for the file: " + relativePath);
+                assertFailure = true;
+            } else if (!assertArray("text edits", entry.getValue(), textEdits)) {
+                assertFailure = true;
+            }
+
+            newMap.put(relativePath, entry.getValue());
+        }
+
+        if (assertFailure) {
+            TestConfig updatedConfig = new TestConfig(testConfig.source(), testConfig.description(),
+                    testConfig.codedata(), testConfig.propertyKey(), testConfig.position(), testConfig.mapping(),
+                    testConfig.targetField(), newMap);
+            updateConfig(configJsonPath, updatedConfig);
             Assert.fail(String.format("Failed test: '%s' (%s)", testConfig.description(), configJsonPath));
         }
     }
@@ -107,16 +166,16 @@ public class DataMappingSourceTest extends AbstractLSTest {
      *
      * @param source      The source file name
      * @param description The description of the test
-     * @param diagram     The diagram to generate the source code
+     * @param codedata    The Details of the node
      * @param propertyKey The property key to generate the source code
      * @param position    The position to generate the source code
-     * @param mappings    The expected data mapping model
+     * @param mapping     The expected data mapping model
      * @param output      generated source expression
      * @param targetField The target field to generate the source code
      */
-    private record TestConfig(String source, String description, JsonElement diagram, String propertyKey,
-                              JsonElement position, JsonArray mappings,
-                              String output, String targetField) {
+    private record TestConfig(String source, String description, JsonElement codedata, String propertyKey,
+                              JsonElement position, JsonElement mapping, String targetField,
+                              Map<String, List<TextEdit>> output) {
 
         public String description() {
             return description == null ? "" : description;

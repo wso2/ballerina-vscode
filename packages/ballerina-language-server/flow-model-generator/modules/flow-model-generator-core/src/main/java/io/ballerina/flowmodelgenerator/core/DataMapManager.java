@@ -102,7 +102,6 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -649,108 +648,7 @@ public class DataMapManager {
         }
     }
 
-    private static final java.lang.reflect.Type mt = new TypeToken<List<Mapping>>() {
-    }.getType();
-
-    private Object genSourceForMappings(List<Mapping> mappings, String prevOutput) {
-        Map<String, Object> m = new LinkedHashMap<>();
-        if (mappings.size() == 1) {
-            Mapping firstMapping = mappings.getFirst();
-            if (firstMapping.output().equals(prevOutput)) {
-                List<MappingElements> elements = firstMapping.elements();
-                if (elements == null) {
-                    return genExprFromMapping(firstMapping);
-                }
-                List<Object> rawMappings = new ArrayList<>();
-                for (MappingElements element : elements) {
-                    genSourceFromMappingThroughElements(element, firstMapping.output(), rawMappings);
-                }
-                return rawMappings;
-            }
-        }
-        for (Mapping mapping : mappings) {
-            String output = mapping.output();
-            String substring = output.substring(prevOutput.length() + 1);
-            String[] splits = substring.split(DOT);
-            Map<String, Object> cm = m;
-            int length = splits.length;
-            for (int i = 0; i < length; i++) {
-                String split = splits[i];
-                Object o = cm.get(split);
-                if (o == null) {
-                    if (i == length - 1) {
-                        cm.put(split, genExprFromMapping(mapping));
-                    } else {
-                        Map<String, Object> temp = new LinkedHashMap<>();
-                        cm.put(split, temp);
-                        cm = temp;
-                    }
-                } else if (o instanceof Map<?, ?>) {
-                    cm = ((Map<String, Object>) o);
-                }
-            }
-        }
-        return m;
-    }
-
-    private Object genExprFromMapping(Mapping mapping) {
-        List<MappingElements> elements = mapping.elements();
-        if (elements == null || elements.isEmpty()) {
-            return mapping.expression();
-        } else {
-            List<Object> rawMappings = new ArrayList<>();
-            for (MappingElements element : elements) {
-                genSourceFromMappingThroughElements(element, mapping.output(), rawMappings);
-            }
-            return rawMappings;
-        }
-    }
-
-    private void genSourceFromMappingThroughElements(MappingElements mappingElements, String prevOutput,
-                                                     List<Object> elements) {
-        List<Mapping> mappings = mappingElements.mappings();
-        Map<String, Object> m = new LinkedHashMap<>();
-        for (Mapping mapping : mappings) {
-            String output = mapping.output();
-            String substring = output.substring(prevOutput.length() + 1);
-            if (substring.isEmpty()) {
-                continue;
-            }
-            String[] splits = substring.split(DOT);
-            int length = splits.length;
-            String lastSplit = splits[length - 1];
-            if (length == 1 && lastSplit.matches("\\d+")) {
-                elements.add(mapping.expression());
-                continue;
-            }
-            Map<String, Object> currentMapping = m;
-            String key = splits[0];
-            for (int i = 0; i < length; i++) {
-                String split = splits[i];
-                Object o = currentMapping.get(key);
-                if (o == null) {
-                    if (!split.matches("\\d+")) {
-                        if (i == length - 1) {
-                            Object o1 = genExprFromMapping(mapping);
-                            currentMapping.put(split, o1);
-                        } else {
-                            Map<String, Object> t = new LinkedHashMap<>();
-                            currentMapping.put(split, t);
-                            currentMapping = t;
-                            key = split;
-                        }
-                    }
-                } else if (o instanceof Map<?, ?>) {
-                    currentMapping = (Map<String, Object>) o;
-                }
-            }
-        }
-        if (!m.isEmpty()) {
-            elements.add(m);
-        }
-    }
-
-    public JsonElement getSourceV2(Path filePath, JsonElement cd, JsonElement mp, String targetField) {
+    public JsonElement getSource(Path filePath, JsonElement cd, JsonElement mp, String targetField) {
         Codedata codedata = gson.fromJson(cd, Codedata.class);
         Mapping mapping = gson.fromJson(mp, Mapping.class);
 
@@ -780,8 +678,6 @@ public class DataMapManager {
             ExpressionNode expr = getMappingExpr(moduleVarDecl.initializer().orElseThrow(), targetField);
             StringBuilder sb = new StringBuilder();
             genSource(expr, splits, 1, sb, mapping.expression(), null, textEdits);
-        } else if (node.kind() == SyntaxKind.FUNCTION_CALL) {
-
         }
         return gson.toJsonTree(textEditsMap);
     }
@@ -803,7 +699,7 @@ public class DataMapManager {
                 }
             }
             textEdits.add(new TextEdit(CommonUtils.toRange(position), stringBuilder.toString()));
-        } else if (expr.kind() == SyntaxKind.MAPPING_CONSTRUCTOR ) {
+        } else if (expr.kind() == SyntaxKind.MAPPING_CONSTRUCTOR) {
             String name = names[idx];
             MappingConstructorExpressionNode mappingCtrExpr = (MappingConstructorExpressionNode) expr;
             Map<String, SpecificFieldNode> mappingFields = convertMappingFieldsToMap(mappingCtrExpr);
@@ -815,7 +711,8 @@ public class DataMapManager {
                 genSource(null, names, idx, stringBuilder, mappingExpr,
                         mappingCtrExpr.closeBrace().lineRange().startLine(), textEdits);
             } else {
-                genSource(mappingFieldNode.valueExpr().orElseThrow(), names, idx + 1, stringBuilder, mappingExpr, null, textEdits);
+                genSource(mappingFieldNode.valueExpr().orElseThrow(), names, idx + 1, stringBuilder, mappingExpr,
+                        null, textEdits);
             }
         } else if (expr.kind() == SyntaxKind.LIST_CONSTRUCTOR) {
             ListConstructorExpressionNode listCtrExpr = (ListConstructorExpressionNode) expr;
@@ -889,43 +786,6 @@ public class DataMapManager {
             }
         }
         return mappingExpr;
-    }
-
-    public String getSource(JsonElement mp, JsonElement fNode, String targetField) {
-        FlowNode flowNode = gson.fromJson(fNode, FlowNode.class);
-        List<Mapping> fieldMapping = gson.fromJson(mp, mt);
-        if (flowNode.codedata().node() != NodeKind.VARIABLE) {
-            return "";
-        }
-
-        String name;
-        if (targetField == null || targetField.isEmpty()) {
-            name = getVariableName(flowNode);
-        } else {
-            String[] splits = targetField.split(DOT);
-            name = splits[splits.length - 1];
-        }
-        String mappingSource = genSource(genSourceForMappings(fieldMapping, name));
-        Optional<Property> optProperty = flowNode.getProperty("expression");
-        if (optProperty.isEmpty()) {
-            return mappingSource;
-        }
-        Property property = optProperty.get();
-        String source = property.toSourceCode();
-        if (targetField == null) {
-            if (source.matches("^from.*in.*select.*$")) {
-                String[] split = source.split("select");
-                return split[0] + " select " + mappingSource + ";";
-            }
-        } else {
-            String fieldsPattern = getFieldsPattern(targetField);
-            if (source.matches("(?s).*" + fieldsPattern + "(?s).*:(?s).*from.*in.*select(?s).*")) {
-                String[] splitBySelect = source.split("select");
-                return splitBySelect[0] + "select" + splitBySelect[1].replaceFirst("(?s).*?}",
-                        mappingSource);
-            }
-        }
-        return mappingSource;
     }
 
     private record QueryData(FromClause fromClause, List<Clause> intermediateClauses, Clause resultClause) {
@@ -1007,68 +867,6 @@ public class DataMapManager {
             }
         }
         return source;
-    }
-
-    private String getVariableName(FlowNode flowNode) {
-        Optional<Property> optProperty = flowNode.getProperty("variable");
-        if (optProperty.isEmpty()) {
-            return "";
-        }
-        return optProperty.get().toSourceCode();
-    }
-
-    private String getFieldsPattern(String targetField) {
-        String[] splits = targetField.split(DOT);
-        StringBuilder pattern = new StringBuilder();
-        int length = splits.length;
-        for (int i = 1; i < length - 1; i++) {
-            String split = splits[i];
-            if (split.matches("^-?\\d+$")) {
-                continue;
-            }
-            pattern.append(split).append(".*");
-        }
-        pattern.append(splits[length - 1]);
-        return pattern.toString();
-    }
-
-    private String genSource(Object sourceObj) {
-        if (sourceObj instanceof Map<?, ?>) {
-            StringBuilder sb = new StringBuilder();
-            sb.append("{");
-            Map<String, Object> mappings = (Map<String, Object>) sourceObj;
-            int len = mappings.entrySet().size();
-            int i = 0;
-            for (Map.Entry<String, Object> stringObjectEntry : mappings.entrySet()) {
-                sb.append(stringObjectEntry.getKey()).append(":");
-                sb.append(genSource(stringObjectEntry.getValue()));
-
-                if (i != len - 1) {
-                    sb.append(",");
-                }
-                i = i + 1;
-            }
-            sb.append("}");
-            return sb.toString();
-        } else if (sourceObj instanceof List<?>) {
-            StringBuilder sb = new StringBuilder();
-            sb.append("[");
-            List<Object> objects = (List<Object>) sourceObj;
-            int len = objects.size();
-            int i = 0;
-            for (Object object : objects) {
-                sb.append(genSource(object));
-
-                if (i != len - 1) {
-                    sb.append(",");
-                }
-                i = i + 1;
-            }
-            sb.append("]");
-            return sb.toString();
-        } else {
-            return sourceObj.toString();
-        }
     }
 
     public String getQuery(JsonElement fNode, String targetField, Path filePath, LinePosition position,

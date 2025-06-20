@@ -25,13 +25,12 @@ import io.ballerina.flowmodelgenerator.extension.request.DataMapperAddElementReq
 import io.ballerina.flowmodelgenerator.extension.request.DataMapperModelRequest;
 import io.ballerina.flowmodelgenerator.extension.request.DataMapperQueryConvertRequest;
 import io.ballerina.flowmodelgenerator.extension.request.DataMapperSourceRequest;
-import io.ballerina.flowmodelgenerator.extension.request.DataMapperSourceRequestV2;
 import io.ballerina.flowmodelgenerator.extension.request.DataMapperTypesRequest;
 import io.ballerina.flowmodelgenerator.extension.request.DataMapperVisualizeRequest;
+import io.ballerina.flowmodelgenerator.extension.response.DataMapperAddClauseResponse;
 import io.ballerina.flowmodelgenerator.extension.response.DataMapperAddElementResponse;
 import io.ballerina.flowmodelgenerator.extension.response.DataMapperModelResponse;
 import io.ballerina.flowmodelgenerator.extension.response.DataMapperSourceResponse;
-import io.ballerina.flowmodelgenerator.extension.response.DataMapperSourceResponseV2;
 import io.ballerina.flowmodelgenerator.extension.response.DataMapperTypesResponse;
 import io.ballerina.flowmodelgenerator.extension.response.DataMapperVisualizeResponse;
 import io.ballerina.projects.Document;
@@ -113,21 +112,6 @@ public class DataMapperService implements ExtendedLanguageServerService {
         return CompletableFuture.supplyAsync(() -> {
             DataMapperSourceResponse response = new DataMapperSourceResponse();
             try {
-                DataMapManager dataMapManager = new DataMapManager(null, null);
-                response.setSource(dataMapManager.getSource(request.mappings(), request.flowNode(),
-                        request.targetField()));
-            } catch (Throwable e) {
-                response.setError(e);
-            }
-            return response;
-        });
-    }
-
-    @JsonRequest
-    public CompletableFuture<DataMapperSourceResponseV2> getSourceV2(DataMapperSourceRequestV2 request) {
-        return CompletableFuture.supplyAsync(() -> {
-            DataMapperSourceResponseV2 response = new DataMapperSourceResponseV2();
-            try {
                 Path filePath = Path.of(request.filePath());
                 this.workspaceManager.loadProject(filePath);
                 Optional<Document> document = this.workspaceManager.document(filePath);
@@ -136,7 +120,7 @@ public class DataMapperService implements ExtendedLanguageServerService {
                 }
 
                 DataMapManager dataMapManager = new DataMapManager(this.workspaceManager, document.get());
-                response.setTextEdits(dataMapManager.getSourceV2(filePath, request.codedata(), request.mapping(),
+                response.setTextEdits(dataMapManager.getSource(filePath, request.codedata(), request.mapping(),
                         request.targetField()));
             } catch (Throwable e) {
                 response.setError(e);
@@ -146,9 +130,9 @@ public class DataMapperService implements ExtendedLanguageServerService {
     }
 
     @JsonRequest
-    public CompletableFuture<DataMapperSourceResponse> addClauses(DataMapperAddClausesRequest request) {
+    public CompletableFuture<DataMapperAddClauseResponse> addClauses(DataMapperAddClausesRequest request) {
         return CompletableFuture.supplyAsync(() -> {
-            DataMapperSourceResponse response = new DataMapperSourceResponse();
+            DataMapperAddClauseResponse response = new DataMapperAddClauseResponse();
             try {
                 DataMapManager dataMapManager = new DataMapManager(null, null);
                 response.setSource(dataMapManager.addClauses(request.query(), request.flowNode(),
@@ -161,9 +145,9 @@ public class DataMapperService implements ExtendedLanguageServerService {
     }
 
     @JsonRequest
-    public CompletableFuture<DataMapperSourceResponse> convertToQuery(DataMapperQueryConvertRequest request) {
+    public CompletableFuture<DataMapperAddClauseResponse> convertToQuery(DataMapperQueryConvertRequest request) {
         return CompletableFuture.supplyAsync(() -> {
-            DataMapperSourceResponse response = new DataMapperSourceResponse();
+            DataMapperAddClauseResponse response = new DataMapperAddClauseResponse();
             try {
                 Path filePath = Path.of(request.filePath());
                 Project project = this.workspaceManager.loadProject(filePath);

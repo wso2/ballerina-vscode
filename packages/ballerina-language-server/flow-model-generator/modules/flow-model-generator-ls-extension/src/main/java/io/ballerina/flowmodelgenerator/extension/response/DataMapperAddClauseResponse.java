@@ -16,21 +16,26 @@
  *  under the License.
  */
 
-package io.ballerina.flowmodelgenerator.extension.request;
-
-import com.google.gson.JsonElement;
+package io.ballerina.flowmodelgenerator.extension.response;
 
 /**
- * Represents a request to get the data mapper model for types.
- *
- * @param filePath    file path of the source file
- * @param codedata    Details of the node
- * @param mapping     data mapping
- * @param propertyKey The property that needs to consider to get the type
- * @param targetField The target field that needs to consider to get the type
+ * Represents the response containing data mapper add clause source.
  *
  * @since 2.0.0
  */
-public record DataMapperSourceRequestV2(String filePath, JsonElement codedata, JsonElement mapping, String propertyKey,
-                                        String targetField) {
+public class DataMapperAddClauseResponse extends AbstractFlowModelResponse {
+
+    private String source;
+
+    public DataMapperAddClauseResponse() {
+
+    }
+
+    public void setSource(String source) {
+        this.source = source;
+    }
+
+    public String getSource() {
+        return this.source;
+    }
 }
