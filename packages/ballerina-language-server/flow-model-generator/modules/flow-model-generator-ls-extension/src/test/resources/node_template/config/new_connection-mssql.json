@@ -12,7 +12,7 @@
     "packageName": "mssql",
     "object": "Client",
     "symbol": "init",
-    "version": "1.14.0"
+    "version": "1.15.0"
   },
   "output": {
     "id": "31",
@@ -35,7 +35,7 @@
     "properties": {
       "host": {
         "metadata": {
-          "label": "host",
+          "label": "Host",
           "description": "Hostname of the MSSQL server"
         },
         "valueType": "EXPRESSION",
@@ -57,11 +57,12 @@
             "kind": "BASIC_TYPE",
             "selected": false
           }
-        ]
+        ],
+        "defaultValue": "\"\""
       },
       "user": {
         "metadata": {
-          "label": "user",
+          "label": "User",
           "description": "If the MSSQL server is secured, the username"
         },
         "valueType": "EXPRESSION",
@@ -77,24 +78,25 @@
         },
         "typeMembers": [
           {
-            "type": "()",
+            "type": "string",
             "packageInfo": "",
             "packageName": "",
             "kind": "BASIC_TYPE",
             "selected": false
           },
           {
-            "type": "string",
+            "type": "()",
             "packageInfo": "",
             "packageName": "",
             "kind": "BASIC_TYPE",
             "selected": false
           }
-        ]
+        ],
+        "defaultValue": "()"
       },
       "password": {
         "metadata": {
-          "label": "password",
+          "label": "Password",
           "description": "The password of the MSSQL server for the provided username"
         },
         "valueType": "EXPRESSION",
@@ -110,24 +112,25 @@
         },
         "typeMembers": [
           {
-            "type": "()",
+            "type": "string",
             "packageInfo": "",
             "packageName": "",
             "kind": "BASIC_TYPE",
             "selected": false
           },
           {
-            "type": "string",
+            "type": "()",
             "packageInfo": "",
             "packageName": "",
             "kind": "BASIC_TYPE",
             "selected": false
           }
-        ]
+        ],
+        "defaultValue": "()"
       },
       "database": {
         "metadata": {
-          "label": "database",
+          "label": "Database",
           "description": "The name of the database"
         },
         "valueType": "EXPRESSION",
@@ -143,24 +146,25 @@
         },
         "typeMembers": [
           {
-            "type": "()",
+            "type": "string",
             "packageInfo": "",
             "packageName": "",
             "kind": "BASIC_TYPE",
             "selected": false
           },
           {
-            "type": "string",
+            "type": "()",
             "packageInfo": "",
             "packageName": "",
             "kind": "BASIC_TYPE",
             "selected": false
           }
-        ]
+        ],
+        "defaultValue": "()"
       },
       "port": {
         "metadata": {
-          "label": "port",
+          "label": "Port",
           "description": "Port number of the MSSQL server"
         },
         "valueType": "EXPRESSION",
@@ -182,11 +186,12 @@
             "kind": "BASIC_TYPE",
             "selected": false
           }
-        ]
+        ],
+        "defaultValue": "0"
       },
       "instance": {
         "metadata": {
-          "label": "instance",
+          "label": "Instance",
           "description": "Instance name of the MSSQL server"
         },
         "valueType": "EXPRESSION",
@@ -208,11 +213,12 @@
             "kind": "BASIC_TYPE",
             "selected": false
           }
-        ]
+        ],
+        "defaultValue": "\"\""
       },
       "options": {
         "metadata": {
-          "label": "options",
+          "label": "Options",
           "description": "MSSQL database connection options"
         },
         "valueType": "EXPRESSION",
@@ -228,24 +234,25 @@
         },
         "typeMembers": [
           {
-            "type": "()",
-            "packageInfo": "",
-            "packageName": "",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          },
-          {
             "type": "Options",
             "packageInfo": "ballerinax:mssql:1.15.0",
             "packageName": "mssql",
             "kind": "RECORD_TYPE",
             "selected": false
+          },
+          {
+            "type": "()",
+            "packageInfo": "",
+            "packageName": "",
+            "kind": "BASIC_TYPE",
+            "selected": false
           }
-        ]
+        ],
+        "defaultValue": "()"
       },
       "connectionPool": {
         "metadata": {
-          "label": "connectionPool",
+          "label": "Connection Pool",
           "description": "The `sql:ConnectionPool` to be used for the connection. If there is no\n`connectionPool` provided, the global connection pool (shared by all clients) will be used"
         },
         "valueType": "EXPRESSION",
@@ -261,23 +268,24 @@
         },
         "typeMembers": [
           {
-            "type": "()",
-            "packageInfo": "",
-            "packageName": "",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          },
-          {
             "type": "ConnectionPool",
             "packageInfo": "ballerina:sql:1.16.0",
             "packageName": "sql",
             "kind": "RECORD_TYPE",
             "selected": false
+          },
+          {
+            "type": "()",
+            "packageInfo": "",
+            "packageName": "",
+            "kind": "BASIC_TYPE",
+            "selected": false
           }
         ],
         "imports": {
           "sql": "ballerina/sql"
-        }
+        },
+        "defaultValue": "()"
       },
       "type": {
         "metadata": {
@@ -290,7 +298,7 @@
         "optional": false,
         "editable": false,
         "advanced": false,
-        "hidden": false,
+        "hidden": true,
         "codedata": {},
         "imports": {
           "sql": "ballerina/sql"
@@ -321,7 +329,7 @@
         "optional": false,
         "editable": true,
         "advanced": true,
-        "hidden": false,
+        "hidden": true,
         "imports": {
           "sql": "ballerina/sql"
         }
@@ -336,7 +344,7 @@
         "optional": false,
         "editable": false,
         "advanced": true,
-        "hidden": false,
+        "hidden": true,
         "imports": {
           "sql": "ballerina/sql"
         }

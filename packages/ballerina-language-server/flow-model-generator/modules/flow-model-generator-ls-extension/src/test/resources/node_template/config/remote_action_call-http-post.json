@@ -20,7 +20,7 @@
     "metadata": {
       "label": "post",
       "description": "The `Client.post()` function can be used to send HTTP POST requests to HTTP endpoints.\n",
-      "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.14.0.png"
+      "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.14.1.png"
     },
     "codedata": {
       "node": "REMOTE_ACTION_CALL",
@@ -54,8 +54,8 @@
           "description": "HTTP response, `anydata` or stream of HTTP SSE, which is expected to be returned after data binding"
         },
         "valueType": "TYPE",
-        "valueTypeConstraint": "http:Response|anydata|stream<http:SseEvent, error?>",
-        "placeholder": "http:Response|anydata|stream<http:SseEvent, error?>",
+        "valueTypeConstraint": "anydata",
+        "placeholder": "anydata",
         "optional": false,
         "editable": true,
         "advanced": false,
@@ -63,7 +63,8 @@
         "codedata": {
           "kind": "PARAM_FOR_TYPE_INFER",
           "originalName": "targetType"
-        }
+        },
+        "defaultValue": "anydata"
       },
       "path": {
         "metadata": {
@@ -110,7 +111,7 @@
         "typeMembers": [
           {
             "type": "RequestMessage",
-            "packageInfo": "ballerina:http:2.14.0",
+            "packageInfo": "ballerina:http:2.14.1",
             "packageName": "http",
             "kind": "OTHER",
             "selected": false
@@ -148,7 +149,8 @@
             "kind": "MAP_TYPE",
             "selected": false
           }
-        ]
+        ],
+        "defaultValue": "()"
       },
       "mediaType": {
         "metadata": {
@@ -181,7 +183,8 @@
             "kind": "BASIC_TYPE",
             "selected": false
           }
-        ]
+        ],
+        "defaultValue": "()"
       },
       "type": {
         "metadata": {
@@ -219,7 +222,7 @@
         "optional": false,
         "editable": true,
         "advanced": true,
-        "hidden": false
+        "hidden": true
       }
     },
     "flags": 0

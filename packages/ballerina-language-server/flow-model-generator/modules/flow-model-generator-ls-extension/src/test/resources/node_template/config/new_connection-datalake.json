@@ -36,7 +36,7 @@
     "properties": {
       "config": {
         "metadata": {
-          "label": "config",
+          "label": "Config",
           "description": "The configurations to be used when initializing the `connector` "
         },
         "valueType": "EXPRESSION",
@@ -62,7 +62,7 @@
       },
       "serviceUrl": {
         "metadata": {
-          "label": "serviceUrl",
+          "label": "Service Url",
           "description": "URL of the target service "
         },
         "valueType": "EXPRESSION",
@@ -97,7 +97,7 @@
         "optional": false,
         "editable": false,
         "advanced": false,
-        "hidden": false,
+        "hidden": true,
         "codedata": {}
       },
       "variable": {
@@ -122,7 +122,7 @@
         "optional": false,
         "editable": true,
         "advanced": true,
-        "hidden": false
+        "hidden": true
       },
       "checkError": {
         "metadata": {
@@ -134,7 +134,7 @@
         "optional": false,
         "editable": false,
         "advanced": true,
-        "hidden": false
+        "hidden": true
       }
     },
     "flags": 0

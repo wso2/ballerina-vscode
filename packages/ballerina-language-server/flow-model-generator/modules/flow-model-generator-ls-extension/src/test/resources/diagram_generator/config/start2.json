@@ -65,7 +65,7 @@
         "properties": {
           "$name": {
             "metadata": {
-              "label": "name"
+              "label": "Name"
             },
             "valueType": "EXPRESSION",
             "valueTypeConstraint": "string",
@@ -99,7 +99,7 @@
             "optional": false,
             "editable": true,
             "advanced": true,
-            "hidden": false
+            "hidden": true
           },
           "checkError": {
             "metadata": {
@@ -111,7 +111,7 @@
             "optional": false,
             "editable": false,
             "advanced": true,
-            "hidden": false
+            "hidden": true
           },
           "variable": {
             "metadata": {
@@ -149,7 +149,7 @@
             "optional": false,
             "editable": false,
             "advanced": false,
-            "hidden": false,
+            "hidden": true,
             "codedata": {}
           }
         },

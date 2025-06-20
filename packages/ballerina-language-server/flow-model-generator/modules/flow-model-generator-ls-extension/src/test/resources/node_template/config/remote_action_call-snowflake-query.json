@@ -63,7 +63,8 @@
         "codedata": {
           "kind": "PARAM_FOR_TYPE_INFER",
           "originalName": "rowType"
-        }
+        },
+        "defaultValue": "record {|anydata...;|}"
       },
       "sqlQuery": {
         "metadata": {
@@ -92,7 +93,8 @@
         ],
         "imports": {
           "sql": "ballerina/sql"
-        }
+        },
+        "defaultValue": "``"
       },
       "type": {
         "metadata": {

@@ -117,7 +117,8 @@
                 "kind": "BASIC_TYPE",
                 "selected": false
               }
-            ]
+            ],
+            "defaultValue": "\"2.0\""
           },
           "http1Settings": {
             "metadata": {
@@ -143,7 +144,8 @@
                 "kind": "RECORD_TYPE",
                 "selected": false
               }
-            ]
+            ],
+            "defaultValue": "{}"
           },
           "http2Settings": {
             "metadata": {
@@ -169,7 +171,8 @@
                 "kind": "RECORD_TYPE",
                 "selected": false
               }
-            ]
+            ],
+            "defaultValue": "{}"
           },
           "timeout": {
             "metadata": {
@@ -195,7 +198,8 @@
                 "kind": "BASIC_TYPE",
                 "selected": false
               }
-            ]
+            ],
+            "defaultValue": "0.0d"
           },
           "forwarded": {
             "metadata": {
@@ -221,7 +225,8 @@
                 "kind": "BASIC_TYPE",
                 "selected": false
               }
-            ]
+            ],
+            "defaultValue": "\"\""
           },
           "followRedirects": {
             "metadata": {
@@ -241,20 +246,21 @@
             },
             "typeMembers": [
               {
-                "type": "FollowRedirects",
-                "packageInfo": "ballerina:http:2.14.1",
-                "packageName": "http",
-                "kind": "RECORD_TYPE",
-                "selected": false
-              },
-              {
                 "type": "()",
                 "packageInfo": "",
                 "packageName": "",
                 "kind": "BASIC_TYPE",
                 "selected": false
+              },
+              {
+                "type": "FollowRedirects",
+                "packageInfo": "ballerina:http:2.14.1",
+                "packageName": "http",
+                "kind": "RECORD_TYPE",
+                "selected": false
               }
-            ]
+            ],
+            "defaultValue": "()"
           },
           "poolConfig": {
             "metadata": {
@@ -274,20 +280,21 @@
             },
             "typeMembers": [
               {
-                "type": "PoolConfiguration",
-                "packageInfo": "ballerina:http:2.14.1",
-                "packageName": "http",
-                "kind": "RECORD_TYPE",
-                "selected": false
-              },
-              {
                 "type": "()",
                 "packageInfo": "",
                 "packageName": "",
                 "kind": "BASIC_TYPE",
                 "selected": false
+              },
+              {
+                "type": "PoolConfiguration",
+                "packageInfo": "ballerina:http:2.14.1",
+                "packageName": "http",
+                "kind": "RECORD_TYPE",
+                "selected": false
               }
-            ]
+            ],
+            "defaultValue": "()"
           },
           "cache": {
             "metadata": {
@@ -313,7 +320,8 @@
                 "kind": "RECORD_TYPE",
                 "selected": false
               }
-            ]
+            ],
+            "defaultValue": "{}"
           },
           "compression": {
             "metadata": {
@@ -339,7 +347,8 @@
                 "kind": "BASIC_TYPE",
                 "selected": false
               }
-            ]
+            ],
+            "defaultValue": "\"AUTO\""
           },
           "auth": {
             "metadata": {
@@ -359,14 +368,21 @@
             },
             "typeMembers": [
               {
-                "type": "CredentialsConfig",
+                "type": "()",
+                "packageInfo": "",
+                "packageName": "",
+                "kind": "BASIC_TYPE",
+                "selected": false
+              },
+              {
+                "type": "BearerTokenConfig",
                 "packageInfo": "ballerina:http:2.14.1",
                 "packageName": "http",
                 "kind": "RECORD_TYPE",
                 "selected": false
               },
               {
-                "type": "BearerTokenConfig",
+                "type": "CredentialsConfig",
                 "packageInfo": "ballerina:http:2.14.1",
                 "packageName": "http",
                 "kind": "RECORD_TYPE",
@@ -387,6 +403,13 @@
                 "selected": false
               },
               {
+                "type": "OAuth2JwtBearerGrantConfig",
+                "packageInfo": "ballerina:http:2.14.1",
+                "packageName": "http",
+                "kind": "RECORD_TYPE",
+                "selected": false
+              },
+              {
                 "type": "OAuth2PasswordGrantConfig",
                 "packageInfo": "ballerina:http:2.14.1",
                 "packageName": "http",
@@ -399,22 +422,9 @@
                 "packageName": "http",
                 "kind": "RECORD_TYPE",
                 "selected": false
-              },
-              {
-                "type": "OAuth2JwtBearerGrantConfig",
-                "packageInfo": "ballerina:http:2.14.1",
-                "packageName": "http",
-                "kind": "RECORD_TYPE",
-                "selected": false
-              },
-              {
-                "type": "()",
-                "packageInfo": "",
-                "packageName": "",
-                "kind": "BASIC_TYPE",
-                "selected": false
               }
-            ]
+            ],
+            "defaultValue": "()"
           },
           "circuitBreaker": {
             "metadata": {
@@ -434,20 +444,21 @@
             },
             "typeMembers": [
               {
-                "type": "CircuitBreakerConfig",
-                "packageInfo": "ballerina:http:2.14.1",
-                "packageName": "http",
-                "kind": "RECORD_TYPE",
-                "selected": false
-              },
-              {
                 "type": "()",
                 "packageInfo": "",
                 "packageName": "",
                 "kind": "BASIC_TYPE",
                 "selected": false
+              },
+              {
+                "type": "CircuitBreakerConfig",
+                "packageInfo": "ballerina:http:2.14.1",
+                "packageName": "http",
+                "kind": "RECORD_TYPE",
+                "selected": false
               }
-            ]
+            ],
+            "defaultValue": "()"
           },
           "retryConfig": {
             "metadata": {
@@ -467,20 +478,21 @@
             },
             "typeMembers": [
               {
-                "type": "RetryConfig",
-                "packageInfo": "ballerina:http:2.14.1",
-                "packageName": "http",
-                "kind": "RECORD_TYPE",
-                "selected": false
-              },
-              {
                 "type": "()",
                 "packageInfo": "",
                 "packageName": "",
                 "kind": "BASIC_TYPE",
                 "selected": false
+              },
+              {
+                "type": "RetryConfig",
+                "packageInfo": "ballerina:http:2.14.1",
+                "packageName": "http",
+                "kind": "RECORD_TYPE",
+                "selected": false
               }
-            ]
+            ],
+            "defaultValue": "()"
           },
           "cookieConfig": {
             "metadata": {
@@ -500,20 +512,21 @@
             },
             "typeMembers": [
               {
-                "type": "CookieConfig",
-                "packageInfo": "ballerina:http:2.14.1",
-                "packageName": "http",
-                "kind": "RECORD_TYPE",
-                "selected": false
-              },
-              {
                 "type": "()",
                 "packageInfo": "",
                 "packageName": "",
                 "kind": "BASIC_TYPE",
                 "selected": false
+              },
+              {
+                "type": "CookieConfig",
+                "packageInfo": "ballerina:http:2.14.1",
+                "packageName": "http",
+                "kind": "RECORD_TYPE",
+                "selected": false
               }
-            ]
+            ],
+            "defaultValue": "()"
           },
           "responseLimits": {
             "metadata": {
@@ -539,7 +552,8 @@
                 "kind": "RECORD_TYPE",
                 "selected": false
               }
-            ]
+            ],
+            "defaultValue": "{}"
           },
           "proxy": {
             "metadata": {
@@ -559,20 +573,21 @@
             },
             "typeMembers": [
               {
-                "type": "ProxyConfig",
-                "packageInfo": "ballerina:http:2.14.1",
-                "packageName": "http",
-                "kind": "RECORD_TYPE",
-                "selected": false
-              },
-              {
                 "type": "()",
                 "packageInfo": "",
                 "packageName": "",
                 "kind": "BASIC_TYPE",
                 "selected": false
+              },
+              {
+                "type": "ProxyConfig",
+                "packageInfo": "ballerina:http:2.14.1",
+                "packageName": "http",
+                "kind": "RECORD_TYPE",
+                "selected": false
               }
-            ]
+            ],
+            "defaultValue": "()"
           },
           "validation": {
             "metadata": {
@@ -598,7 +613,8 @@
                 "kind": "BASIC_TYPE",
                 "selected": false
               }
-            ]
+            ],
+            "defaultValue": "false"
           },
           "socketConfig": {
             "metadata": {
@@ -624,7 +640,8 @@
                 "kind": "RECORD_TYPE",
                 "selected": false
               }
-            ]
+            ],
+            "defaultValue": "{}"
           },
           "laxDataBinding": {
             "metadata": {
@@ -650,7 +667,8 @@
                 "kind": "BASIC_TYPE",
                 "selected": false
               }
-            ]
+            ],
+            "defaultValue": "false"
           },
           "secureSocket": {
             "metadata": {
@@ -670,20 +688,21 @@
             },
             "typeMembers": [
               {
-                "type": "ClientSecureSocket",
-                "packageInfo": "ballerina:http:2.14.1",
-                "packageName": "http",
-                "kind": "RECORD_TYPE",
-                "selected": false
-              },
-              {
                 "type": "()",
                 "packageInfo": "",
                 "packageName": "",
                 "kind": "BASIC_TYPE",
                 "selected": false
+              },
+              {
+                "type": "ClientSecureSocket",
+                "packageInfo": "ballerina:http:2.14.1",
+                "packageName": "http",
+                "kind": "RECORD_TYPE",
+                "selected": false
               }
-            ]
+            ],
+            "defaultValue": "()"
           },
           "checkError": {
             "metadata": {
@@ -695,7 +714,7 @@
             "optional": false,
             "editable": false,
             "advanced": true,
-            "hidden": false
+            "hidden": true
           },
           "scope": {
             "metadata": {
@@ -707,7 +726,7 @@
             "optional": false,
             "editable": true,
             "advanced": true,
-            "hidden": false
+            "hidden": true
           },
           "variable": {
             "metadata": {
@@ -745,7 +764,7 @@
             "optional": false,
             "editable": false,
             "advanced": false,
-            "hidden": false,
+            "hidden": true,
             "codedata": {}
           }
         },
@@ -781,7 +800,7 @@
         "properties": {
           "$connection": {
             "metadata": {
-              "label": "Connection Type",
+              "label": "connection",
               "description": "Connection configurations of the Redis server. This can be either a single URI or a set of parameters"
             },
             "valueType": "EXPRESSION",
@@ -797,24 +816,25 @@
             },
             "typeMembers": [
               {
-                "type": "ConnectionUri",
-                "packageInfo": "ballerinax:redis:3.1.0",
-                "packageName": "redis",
-                "kind": "BASIC_TYPE",
-                "selected": false
-              },
-              {
                 "type": "ConnectionParams",
                 "packageInfo": "ballerinax:redis:3.1.0",
                 "packageName": "redis",
                 "kind": "RECORD_TYPE",
                 "selected": false
+              },
+              {
+                "type": "ConnectionUri",
+                "packageInfo": "ballerinax:redis:3.1.0",
+                "packageName": "redis",
+                "kind": "BASIC_TYPE",
+                "selected": false
               }
-            ]
+            ],
+            "defaultValue": "\"\""
           },
           "connectionPooling": {
             "metadata": {
-              "label": "Connection Pooling Enabled",
+              "label": "connectionPooling",
               "description": "Flag to indicate whether connection pooling is enabled"
             },
             "valueType": "EXPRESSION",
@@ -836,11 +856,12 @@
                 "kind": "BASIC_TYPE",
                 "selected": false
               }
-            ]
+            ],
+            "defaultValue": "false"
           },
           "isClusterConnection": {
             "metadata": {
-              "label": "Cluster Mode Enabled",
+              "label": "isClusterConnection",
               "description": "Flag to indicate whether the connection is a cluster connection"
             },
             "valueType": "EXPRESSION",
@@ -862,11 +883,12 @@
                 "kind": "BASIC_TYPE",
                 "selected": false
               }
-            ]
+            ],
+            "defaultValue": "false"
           },
           "secureSocket": {
             "metadata": {
-              "label": "Secure Socket Configurations",
+              "label": "secureSocket",
               "description": "Configurations related to SSL/TLS encryption"
             },
             "valueType": "EXPRESSION",
@@ -888,7 +910,8 @@
                 "kind": "RECORD_TYPE",
                 "selected": false
               }
-            ]
+            ],
+            "defaultValue": "{}"
           },
           "checkError": {
             "metadata": {
@@ -900,7 +923,7 @@
             "optional": false,
             "editable": false,
             "advanced": true,
-            "hidden": false
+            "hidden": true
           },
           "scope": {
             "metadata": {
@@ -912,7 +935,7 @@
             "optional": false,
             "editable": true,
             "advanced": true,
-            "hidden": false
+            "hidden": true
           },
           "variable": {
             "metadata": {
@@ -950,7 +973,7 @@
             "optional": false,
             "editable": false,
             "advanced": false,
-            "hidden": false,
+            "hidden": true,
             "codedata": {}
           }
         },
@@ -1050,7 +1073,7 @@
             "optional": false,
             "editable": false,
             "advanced": true,
-            "hidden": false
+            "hidden": true
           },
           "scope": {
             "metadata": {
@@ -1062,7 +1085,7 @@
             "optional": false,
             "editable": true,
             "advanced": true,
-            "hidden": false
+            "hidden": true
           },
           "variable": {
             "metadata": {
@@ -1100,7 +1123,7 @@
             "optional": false,
             "editable": false,
             "advanced": false,
-            "hidden": false,
+            "hidden": true,
             "codedata": {}
           }
         },
@@ -1185,7 +1208,8 @@
                 "kind": "BASIC_TYPE",
                 "selected": false
               }
-            ]
+            ],
+            "defaultValue": "\"2.0\""
           },
           "http1Settings": {
             "metadata": {
@@ -1211,7 +1235,8 @@
                 "kind": "RECORD_TYPE",
                 "selected": false
               }
-            ]
+            ],
+            "defaultValue": "{}"
           },
           "http2Settings": {
             "metadata": {
@@ -1237,7 +1262,8 @@
                 "kind": "RECORD_TYPE",
                 "selected": false
               }
-            ]
+            ],
+            "defaultValue": "{}"
           },
           "timeout": {
             "metadata": {
@@ -1263,7 +1289,8 @@
                 "kind": "BASIC_TYPE",
                 "selected": false
               }
-            ]
+            ],
+            "defaultValue": "0.0d"
           },
           "forwarded": {
             "metadata": {
@@ -1289,7 +1316,8 @@
                 "kind": "BASIC_TYPE",
                 "selected": false
               }
-            ]
+            ],
+            "defaultValue": "\"\""
           },
           "followRedirects": {
             "metadata": {
@@ -1309,20 +1337,21 @@
             },
             "typeMembers": [
               {
-                "type": "FollowRedirects",
-                "packageInfo": "ballerina:http:2.14.1",
-                "packageName": "http",
-                "kind": "RECORD_TYPE",
-                "selected": false
-              },
-              {
                 "type": "()",
                 "packageInfo": "",
                 "packageName": "",
                 "kind": "BASIC_TYPE",
                 "selected": false
+              },
+              {
+                "type": "FollowRedirects",
+                "packageInfo": "ballerina:http:2.14.1",
+                "packageName": "http",
+                "kind": "RECORD_TYPE",
+                "selected": false
               }
-            ]
+            ],
+            "defaultValue": "()"
           },
           "poolConfig": {
             "metadata": {
@@ -1342,20 +1371,21 @@
             },
             "typeMembers": [
               {
-                "type": "PoolConfiguration",
-                "packageInfo": "ballerina:http:2.14.1",
-                "packageName": "http",
-                "kind": "RECORD_TYPE",
-                "selected": false
-              },
-              {
                 "type": "()",
                 "packageInfo": "",
                 "packageName": "",
                 "kind": "BASIC_TYPE",
                 "selected": false
+              },
+              {
+                "type": "PoolConfiguration",
+                "packageInfo": "ballerina:http:2.14.1",
+                "packageName": "http",
+                "kind": "RECORD_TYPE",
+                "selected": false
               }
-            ]
+            ],
+            "defaultValue": "()"
           },
           "cache": {
             "metadata": {
@@ -1381,7 +1411,8 @@
                 "kind": "RECORD_TYPE",
                 "selected": false
               }
-            ]
+            ],
+            "defaultValue": "{}"
           },
           "compression": {
             "metadata": {
@@ -1407,7 +1438,8 @@
                 "kind": "BASIC_TYPE",
                 "selected": false
               }
-            ]
+            ],
+            "defaultValue": "\"AUTO\""
           },
           "auth": {
             "metadata": {
@@ -1427,14 +1459,21 @@
             },
             "typeMembers": [
               {
-                "type": "CredentialsConfig",
+                "type": "()",
+                "packageInfo": "",
+                "packageName": "",
+                "kind": "BASIC_TYPE",
+                "selected": false
+              },
+              {
+                "type": "BearerTokenConfig",
                 "packageInfo": "ballerina:http:2.14.1",
                 "packageName": "http",
                 "kind": "RECORD_TYPE",
                 "selected": false
               },
               {
-                "type": "BearerTokenConfig",
+                "type": "CredentialsConfig",
                 "packageInfo": "ballerina:http:2.14.1",
                 "packageName": "http",
                 "kind": "RECORD_TYPE",
@@ -1455,6 +1494,13 @@
                 "selected": false
               },
               {
+                "type": "OAuth2JwtBearerGrantConfig",
+                "packageInfo": "ballerina:http:2.14.1",
+                "packageName": "http",
+                "kind": "RECORD_TYPE",
+                "selected": false
+              },
+              {
                 "type": "OAuth2PasswordGrantConfig",
                 "packageInfo": "ballerina:http:2.14.1",
                 "packageName": "http",
@@ -1467,22 +1513,9 @@
                 "packageName": "http",
                 "kind": "RECORD_TYPE",
                 "selected": false
-              },
-              {
-                "type": "OAuth2JwtBearerGrantConfig",
-                "packageInfo": "ballerina:http:2.14.1",
-                "packageName": "http",
-                "kind": "RECORD_TYPE",
-                "selected": false
-              },
-              {
-                "type": "()",
-                "packageInfo": "",
-                "packageName": "",
-                "kind": "BASIC_TYPE",
-                "selected": false
               }
-            ]
+            ],
+            "defaultValue": "()"
           },
           "circuitBreaker": {
             "metadata": {
@@ -1502,20 +1535,21 @@
             },
             "typeMembers": [
               {
-                "type": "CircuitBreakerConfig",
-                "packageInfo": "ballerina:http:2.14.1",
-                "packageName": "http",
-                "kind": "RECORD_TYPE",
-                "selected": false
-              },
-              {
                 "type": "()",
                 "packageInfo": "",
                 "packageName": "",
                 "kind": "BASIC_TYPE",
                 "selected": false
+              },
+              {
+                "type": "CircuitBreakerConfig",
+                "packageInfo": "ballerina:http:2.14.1",
+                "packageName": "http",
+                "kind": "RECORD_TYPE",
+                "selected": false
               }
-            ]
+            ],
+            "defaultValue": "()"
           },
           "retryConfig": {
             "metadata": {
@@ -1535,20 +1569,21 @@
             },
             "typeMembers": [
               {
-                "type": "RetryConfig",
-                "packageInfo": "ballerina:http:2.14.1",
-                "packageName": "http",
-                "kind": "RECORD_TYPE",
-                "selected": false
-              },
-              {
                 "type": "()",
                 "packageInfo": "",
                 "packageName": "",
                 "kind": "BASIC_TYPE",
                 "selected": false
+              },
+              {
+                "type": "RetryConfig",
+                "packageInfo": "ballerina:http:2.14.1",
+                "packageName": "http",
+                "kind": "RECORD_TYPE",
+                "selected": false
               }
-            ]
+            ],
+            "defaultValue": "()"
           },
           "cookieConfig": {
             "metadata": {
@@ -1568,20 +1603,21 @@
             },
             "typeMembers": [
               {
-                "type": "CookieConfig",
-                "packageInfo": "ballerina:http:2.14.1",
-                "packageName": "http",
-                "kind": "RECORD_TYPE",
-                "selected": false
-              },
-              {
                 "type": "()",
                 "packageInfo": "",
                 "packageName": "",
                 "kind": "BASIC_TYPE",
                 "selected": false
+              },
+              {
+                "type": "CookieConfig",
+                "packageInfo": "ballerina:http:2.14.1",
+                "packageName": "http",
+                "kind": "RECORD_TYPE",
+                "selected": false
               }
-            ]
+            ],
+            "defaultValue": "()"
           },
           "responseLimits": {
             "metadata": {
@@ -1607,7 +1643,8 @@
                 "kind": "RECORD_TYPE",
                 "selected": false
               }
-            ]
+            ],
+            "defaultValue": "{}"
           },
           "proxy": {
             "metadata": {
@@ -1627,20 +1664,21 @@
             },
             "typeMembers": [
               {
-                "type": "ProxyConfig",
-                "packageInfo": "ballerina:http:2.14.1",
-                "packageName": "http",
-                "kind": "RECORD_TYPE",
-                "selected": false
-              },
-              {
                 "type": "()",
                 "packageInfo": "",
                 "packageName": "",
                 "kind": "BASIC_TYPE",
                 "selected": false
+              },
+              {
+                "type": "ProxyConfig",
+                "packageInfo": "ballerina:http:2.14.1",
+                "packageName": "http",
+                "kind": "RECORD_TYPE",
+                "selected": false
               }
-            ]
+            ],
+            "defaultValue": "()"
           },
           "validation": {
             "metadata": {
@@ -1666,7 +1704,8 @@
                 "kind": "BASIC_TYPE",
                 "selected": false
               }
-            ]
+            ],
+            "defaultValue": "false"
           },
           "socketConfig": {
             "metadata": {
@@ -1692,7 +1731,8 @@
                 "kind": "RECORD_TYPE",
                 "selected": false
               }
-            ]
+            ],
+            "defaultValue": "{}"
           },
           "laxDataBinding": {
             "metadata": {
@@ -1718,7 +1758,8 @@
                 "kind": "BASIC_TYPE",
                 "selected": false
               }
-            ]
+            ],
+            "defaultValue": "false"
           },
           "secureSocket": {
             "metadata": {
@@ -1738,20 +1779,21 @@
             },
             "typeMembers": [
               {
-                "type": "ClientSecureSocket",
-                "packageInfo": "ballerina:http:2.14.1",
-                "packageName": "http",
-                "kind": "RECORD_TYPE",
-                "selected": false
-              },
-              {
                 "type": "()",
                 "packageInfo": "",
                 "packageName": "",
                 "kind": "BASIC_TYPE",
                 "selected": false
+              },
+              {
+                "type": "ClientSecureSocket",
+                "packageInfo": "ballerina:http:2.14.1",
+                "packageName": "http",
+                "kind": "RECORD_TYPE",
+                "selected": false
               }
-            ]
+            ],
+            "defaultValue": "()"
           },
           "checkError": {
             "metadata": {
@@ -1763,7 +1805,7 @@
             "optional": false,
             "editable": false,
             "advanced": true,
-            "hidden": false
+            "hidden": true
           },
           "scope": {
             "metadata": {
@@ -1775,7 +1817,7 @@
             "optional": false,
             "editable": true,
             "advanced": true,
-            "hidden": false
+            "hidden": true
           },
           "variable": {
             "metadata": {
@@ -1813,7 +1855,7 @@
             "optional": false,
             "editable": false,
             "advanced": false,
-            "hidden": false,
+            "hidden": true,
             "codedata": {}
           }
         },
@@ -1849,7 +1891,7 @@
         "properties": {
           "$connection": {
             "metadata": {
-              "label": "Connection Type",
+              "label": "connection",
               "description": "Connection configurations of the Redis server. This can be either a single URI or a set of parameters"
             },
             "valueType": "EXPRESSION",
@@ -1865,24 +1907,25 @@
             },
             "typeMembers": [
               {
-                "type": "ConnectionUri",
-                "packageInfo": "ballerinax:redis:3.1.0",
-                "packageName": "redis",
-                "kind": "BASIC_TYPE",
-                "selected": false
-              },
-              {
                 "type": "ConnectionParams",
                 "packageInfo": "ballerinax:redis:3.1.0",
                 "packageName": "redis",
                 "kind": "RECORD_TYPE",
                 "selected": false
+              },
+              {
+                "type": "ConnectionUri",
+                "packageInfo": "ballerinax:redis:3.1.0",
+                "packageName": "redis",
+                "kind": "BASIC_TYPE",
+                "selected": false
               }
-            ]
+            ],
+            "defaultValue": "\"\""
           },
           "connectionPooling": {
             "metadata": {
-              "label": "Connection Pooling Enabled",
+              "label": "connectionPooling",
               "description": "Flag to indicate whether connection pooling is enabled"
             },
             "valueType": "EXPRESSION",
@@ -1904,11 +1947,12 @@
                 "kind": "BASIC_TYPE",
                 "selected": false
               }
-            ]
+            ],
+            "defaultValue": "false"
           },
           "isClusterConnection": {
             "metadata": {
-              "label": "Cluster Mode Enabled",
+              "label": "isClusterConnection",
               "description": "Flag to indicate whether the connection is a cluster connection"
             },
             "valueType": "EXPRESSION",
@@ -1930,11 +1974,12 @@
                 "kind": "BASIC_TYPE",
                 "selected": false
               }
-            ]
+            ],
+            "defaultValue": "false"
           },
           "secureSocket": {
             "metadata": {
-              "label": "Secure Socket Configurations",
+              "label": "secureSocket",
               "description": "Configurations related to SSL/TLS encryption"
             },
             "valueType": "EXPRESSION",
@@ -1956,7 +2001,8 @@
                 "kind": "RECORD_TYPE",
                 "selected": false
               }
-            ]
+            ],
+            "defaultValue": "{}"
           },
           "checkError": {
             "metadata": {
@@ -1968,7 +2014,7 @@
             "optional": false,
             "editable": false,
             "advanced": true,
-            "hidden": false
+            "hidden": true
           },
           "scope": {
             "metadata": {
@@ -1980,7 +2026,7 @@
             "optional": false,
             "editable": true,
             "advanced": true,
-            "hidden": false
+            "hidden": true
           },
           "variable": {
             "metadata": {
@@ -2018,7 +2064,7 @@
             "optional": false,
             "editable": false,
             "advanced": false,
-            "hidden": false,
+            "hidden": true,
             "codedata": {}
           }
         },
@@ -2054,7 +2100,7 @@
         "properties": {
           "connection": {
             "metadata": {
-              "label": "Connection Type",
+              "label": "connection",
               "description": "Connection configurations of the Redis server. This can be either a single URI or a set of parameters"
             },
             "valueType": "EXPRESSION",
@@ -2070,24 +2116,25 @@
             },
             "typeMembers": [
               {
-                "type": "ConnectionUri",
-                "packageInfo": "ballerinax:redis:3.1.0",
-                "packageName": "redis",
-                "kind": "BASIC_TYPE",
-                "selected": false
-              },
-              {
                 "type": "ConnectionParams",
                 "packageInfo": "ballerinax:redis:3.1.0",
                 "packageName": "redis",
                 "kind": "RECORD_TYPE",
                 "selected": false
+              },
+              {
+                "type": "ConnectionUri",
+                "packageInfo": "ballerinax:redis:3.1.0",
+                "packageName": "redis",
+                "kind": "BASIC_TYPE",
+                "selected": false
               }
-            ]
+            ],
+            "defaultValue": "\"\""
           },
           "connectionPooling": {
             "metadata": {
-              "label": "Connection Pooling Enabled",
+              "label": "connectionPooling",
               "description": "Flag to indicate whether connection pooling is enabled"
             },
             "valueType": "EXPRESSION",
@@ -2109,11 +2156,12 @@
                 "kind": "BASIC_TYPE",
                 "selected": false
               }
-            ]
+            ],
+            "defaultValue": "false"
           },
           "isClusterConnection": {
             "metadata": {
-              "label": "Cluster Mode Enabled",
+              "label": "isClusterConnection",
               "description": "Flag to indicate whether the connection is a cluster connection"
             },
             "valueType": "EXPRESSION",
@@ -2135,11 +2183,12 @@
                 "kind": "BASIC_TYPE",
                 "selected": false
               }
-            ]
+            ],
+            "defaultValue": "false"
           },
           "secureSocket": {
             "metadata": {
-              "label": "Secure Socket Configurations",
+              "label": "secureSocket",
               "description": "Configurations related to SSL/TLS encryption"
             },
             "valueType": "EXPRESSION",
@@ -2161,7 +2210,8 @@
                 "kind": "RECORD_TYPE",
                 "selected": false
               }
-            ]
+            ],
+            "defaultValue": "{}"
           },
           "checkError": {
             "metadata": {
@@ -2173,7 +2223,7 @@
             "optional": false,
             "editable": false,
             "advanced": true,
-            "hidden": false
+            "hidden": true
           },
           "scope": {
             "metadata": {
@@ -2185,7 +2235,7 @@
             "optional": false,
             "editable": true,
             "advanced": true,
-            "hidden": false
+            "hidden": true
           },
           "variable": {
             "metadata": {
@@ -2223,7 +2273,7 @@
             "optional": false,
             "editable": false,
             "advanced": false,
-            "hidden": false,
+            "hidden": true,
             "codedata": {}
           }
         },

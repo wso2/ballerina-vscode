@@ -87,9 +87,9 @@
               "description": "HTTP response, `anydata` or stream of HTTP SSE, which is expected to be returned after data binding"
             },
             "valueType": "TYPE",
-            "valueTypeConstraint": "http:Response|anydata|stream<http:SseEvent, error?>",
+            "valueTypeConstraint": "anydata",
             "value": "json",
-            "placeholder": "http:Response|anydata|stream<http:SseEvent, error?>",
+            "placeholder": "anydata",
             "optional": false,
             "editable": true,
             "advanced": false,
@@ -97,7 +97,8 @@
             "codedata": {
               "kind": "PARAM_FOR_TYPE_INFER",
               "originalName": "targetType"
-            }
+            },
+            "defaultValue": "anydata"
           },
           "path": {
             "metadata": {
@@ -157,7 +158,8 @@
                 "kind": "MAP_TYPE",
                 "selected": false
               }
-            ]
+            ],
+            "defaultValue": "()"
           },
           "checkError": {
             "metadata": {
@@ -169,7 +171,7 @@
             "optional": false,
             "editable": true,
             "advanced": true,
-            "hidden": false
+            "hidden": true
           },
           "variable": {
             "metadata": {
@@ -349,7 +351,7 @@
             "optional": false,
             "editable": false,
             "advanced": true,
-            "hidden": false
+            "hidden": true
           },
           "scope": {
             "metadata": {
@@ -361,7 +363,7 @@
             "optional": false,
             "editable": true,
             "advanced": true,
-            "hidden": false
+            "hidden": true
           },
           "variable": {
             "metadata": {
@@ -399,7 +401,7 @@
             "optional": false,
             "editable": false,
             "advanced": false,
-            "hidden": false,
+            "hidden": true,
             "codedata": {}
           }
         },
@@ -454,9 +456,9 @@
               "description": "HTTP response, `anydata` or stream of HTTP SSE, which is expected to be returned after data binding"
             },
             "valueType": "TYPE",
-            "valueTypeConstraint": "http:Response|anydata|stream<http:SseEvent, error?>",
+            "valueTypeConstraint": "anydata",
             "value": "json",
-            "placeholder": "http:Response|anydata|stream<http:SseEvent, error?>",
+            "placeholder": "anydata",
             "optional": false,
             "editable": true,
             "advanced": false,
@@ -464,7 +466,8 @@
             "codedata": {
               "kind": "PARAM_FOR_TYPE_INFER",
               "originalName": "targetType"
-            }
+            },
+            "defaultValue": "anydata"
           },
           "path": {
             "metadata": {
@@ -524,7 +527,8 @@
                 "kind": "MAP_TYPE",
                 "selected": false
               }
-            ]
+            ],
+            "defaultValue": "()"
           },
           "checkError": {
             "metadata": {
@@ -536,7 +540,7 @@
             "optional": false,
             "editable": true,
             "advanced": true,
-            "hidden": false
+            "hidden": true
           },
           "variable": {
             "metadata": {
@@ -618,7 +622,7 @@
             "optional": false,
             "editable": true,
             "advanced": true,
-            "hidden": false
+            "hidden": true
           },
           "checkError": {
             "metadata": {
@@ -630,7 +634,7 @@
             "optional": false,
             "editable": false,
             "advanced": true,
-            "hidden": false
+            "hidden": true
           },
           "variable": {
             "metadata": {
@@ -668,7 +672,7 @@
             "optional": false,
             "editable": false,
             "advanced": false,
-            "hidden": false,
+            "hidden": true,
             "codedata": {}
           }
         },
@@ -850,7 +854,7 @@
             "optional": false,
             "editable": false,
             "advanced": true,
-            "hidden": false
+            "hidden": true
           },
           "scope": {
             "metadata": {
@@ -862,7 +866,7 @@
             "optional": false,
             "editable": true,
             "advanced": true,
-            "hidden": false
+            "hidden": true
           },
           "variable": {
             "metadata": {
@@ -900,7 +904,7 @@
             "optional": false,
             "editable": false,
             "advanced": false,
-            "hidden": false,
+            "hidden": true,
             "codedata": {}
           }
         },
@@ -944,7 +948,7 @@
             "optional": false,
             "editable": true,
             "advanced": true,
-            "hidden": false
+            "hidden": true
           },
           "checkError": {
             "metadata": {
@@ -956,7 +960,7 @@
             "optional": false,
             "editable": false,
             "advanced": true,
-            "hidden": false
+            "hidden": true
           },
           "variable": {
             "metadata": {
@@ -994,7 +998,7 @@
             "optional": false,
             "editable": false,
             "advanced": false,
-            "hidden": false,
+            "hidden": true,
             "codedata": {}
           }
         },
@@ -1038,7 +1042,7 @@
             "optional": false,
             "editable": true,
             "advanced": true,
-            "hidden": false
+            "hidden": true
           },
           "checkError": {
             "metadata": {
@@ -1050,7 +1054,7 @@
             "optional": false,
             "editable": false,
             "advanced": true,
-            "hidden": false
+            "hidden": true
           },
           "variable": {
             "metadata": {
@@ -1088,7 +1092,7 @@
             "optional": false,
             "editable": false,
             "advanced": false,
-            "hidden": false,
+            "hidden": true,
             "codedata": {}
           }
         },

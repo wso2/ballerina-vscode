@@ -121,7 +121,7 @@ public abstract class CallBuilder extends NodeBuilder {
         setParameterProperties(functionData);
 
         if (CommonUtils.hasReturn(functionData.returnType())) {
-            setReturnTypeProperties(functionData, context, Property.VARIABLE_NAME);
+            setReturnTypeProperties(functionData, context, Property.VARIABLE_NAME, false);
         }
 
         if (functionData.returnError()) {
@@ -141,7 +141,8 @@ public abstract class CallBuilder extends NodeBuilder {
                     .originalName(paramData.name())
                     .stepOut()
                 .value(value)
-                .placeholder(paramData.defaultValue())
+                .placeholder(paramData.placeholder())
+                .defaultValue(paramData.defaultValue())
                 .type(Property.ValueType.TYPE)
                 .typeConstraint(paramData.type())
                 .imports(paramData.importStatements())
@@ -180,7 +181,8 @@ public abstract class CallBuilder extends NodeBuilder {
                         .kind(paramResult.kind().name())
                         .originalName(paramResult.name())
                         .stepOut()
-                    .placeholder(paramResult.defaultValue())
+                    .placeholder(paramResult.placeholder())
+                    .defaultValue(paramResult.defaultValue())
                     .typeConstraint(paramResult.type())
                     .typeMembers(paramResult.typeMembers())
                     .imports(paramResult.importStatements())
@@ -221,9 +223,10 @@ public abstract class CallBuilder extends NodeBuilder {
         }
     }
 
-    protected void setReturnTypeProperties(FunctionData functionData, TemplateContext context, String label) {
+    protected void setReturnTypeProperties(FunctionData functionData, TemplateContext context, String label,
+                                           boolean hidden) {
         properties()
-                .type(functionData.returnType(), false, functionData.importStatements())
+                .type(functionData.returnType(), false, functionData.importStatements(), hidden)
                 .data(functionData.returnType(), context.getAllVisibleSymbolNames(), label);
     }
 

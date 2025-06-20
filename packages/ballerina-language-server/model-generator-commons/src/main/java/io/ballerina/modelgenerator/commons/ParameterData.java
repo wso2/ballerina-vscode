@@ -30,6 +30,7 @@ import java.util.List;
  * @param name             the name of the parameter
  * @param type             the type of the parameter
  * @param kind             the kind of the parameter
+ * @param placeholder      the placeholder value of the parameter
  * @param defaultValue     the default value of the parameter
  * @param description      the description of the parameter
  * @param label            the label of the parameter
@@ -43,6 +44,7 @@ public record ParameterData(
         String name,
         Object type,
         Kind kind,
+        String placeholder,
         String defaultValue,
         String description,
         String label,
@@ -50,21 +52,35 @@ public record ParameterData(
         String importStatements,
         List<ParameterMemberTypeData> typeMembers) {
 
-    public static ParameterData from(String name, String type, Kind kind, String defaultValue,
+    public static ParameterData from(String name, String type, Kind kind, String placeholder,
                                      String description, boolean optional) {
-        return new ParameterData(0, name, type, kind, defaultValue, description, null, optional,
+        return new ParameterData(0, name, type, kind, placeholder, null, description, null, optional,
                 null, new ArrayList<>());
     }
 
-    public static ParameterData from(String name, String description, Object type, String defaultValue, Kind kind,
+    public static ParameterData from(String name, String description, Object type, String placeholder, Kind kind,
                                      boolean optional, String importStatements) {
-        return new ParameterData(0, name, type, kind, defaultValue, description, null, optional,
+        return new ParameterData(0, name, type, kind, placeholder, null, description, null, optional,
                 importStatements, new ArrayList<>());
     }
 
-    public static ParameterData from(String name, String description, String label, Object type, String defaultValue,
+    public static ParameterData from(String name, String description, String label, Object type, String placeholder,
                                      Kind kind, boolean optional, String importStatements) {
-        return new ParameterData(0, name, type, kind, defaultValue, description, label, optional,
+        return new ParameterData(0, name, type, kind, placeholder, null, description, label, optional,
+                importStatements, new ArrayList<>());
+    }
+
+    public static ParameterData from(String name, String description, Object type, String placeholder,
+                                     String defaultValue,
+                                     Kind kind, boolean optional, String importStatements) {
+        return new ParameterData(0, name, type, kind, placeholder, defaultValue, description, null, optional,
+                importStatements, new ArrayList<>());
+    }
+
+    public static ParameterData from(String name, String description, String label, Object type, String placeholder,
+                                     String defaultValue,
+                                     Kind kind, boolean optional, String importStatements) {
+        return new ParameterData(0, name, type, kind, placeholder, defaultValue, description, label, optional,
                 importStatements, new ArrayList<>());
     }
 

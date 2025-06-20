@@ -95,7 +95,8 @@
             "kind": "ERROR_TYPE",
             "selected": false
           }
-        ]
+        ],
+        "defaultValue": "()"
       },
       "stackTrace": {
         "metadata": {
@@ -128,7 +129,8 @@
             "kind": "ARRAY_TYPE",
             "selected": false
           }
-        ]
+        ],
+        "defaultValue": "()"
       },
       "additionalValues": {
         "metadata": {

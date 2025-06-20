@@ -90,7 +90,7 @@
             "optional": false,
             "editable": true,
             "advanced": true,
-            "hidden": false
+            "hidden": true
           }
         },
         "flags": 1
@@ -127,7 +127,7 @@
         "properties": {
           "$connection": {
             "metadata": {
-              "label": "Connection Type",
+              "label": "connection",
               "description": "Connection configurations of the Redis server. This can be either a single URI or a set of parameters"
             },
             "valueType": "EXPRESSION",
@@ -143,24 +143,25 @@
             },
             "typeMembers": [
               {
-                "type": "ConnectionUri",
-                "packageInfo": "ballerinax:redis:3.1.0",
-                "packageName": "redis",
-                "kind": "BASIC_TYPE",
-                "selected": false
-              },
-              {
                 "type": "ConnectionParams",
                 "packageInfo": "ballerinax:redis:3.1.0",
                 "packageName": "redis",
                 "kind": "RECORD_TYPE",
                 "selected": false
+              },
+              {
+                "type": "ConnectionUri",
+                "packageInfo": "ballerinax:redis:3.1.0",
+                "packageName": "redis",
+                "kind": "BASIC_TYPE",
+                "selected": false
               }
-            ]
+            ],
+            "defaultValue": "\"\""
           },
           "connectionPooling": {
             "metadata": {
-              "label": "Connection Pooling Enabled",
+              "label": "connectionPooling",
               "description": "Flag to indicate whether connection pooling is enabled"
             },
             "valueType": "EXPRESSION",
@@ -182,11 +183,12 @@
                 "kind": "BASIC_TYPE",
                 "selected": false
               }
-            ]
+            ],
+            "defaultValue": "false"
           },
           "isClusterConnection": {
             "metadata": {
-              "label": "Cluster Mode Enabled",
+              "label": "isClusterConnection",
               "description": "Flag to indicate whether the connection is a cluster connection"
             },
             "valueType": "EXPRESSION",
@@ -208,11 +210,12 @@
                 "kind": "BASIC_TYPE",
                 "selected": false
               }
-            ]
+            ],
+            "defaultValue": "false"
           },
           "secureSocket": {
             "metadata": {
-              "label": "Secure Socket Configurations",
+              "label": "secureSocket",
               "description": "Configurations related to SSL/TLS encryption"
             },
             "valueType": "EXPRESSION",
@@ -234,7 +237,8 @@
                 "kind": "RECORD_TYPE",
                 "selected": false
               }
-            ]
+            ],
+            "defaultValue": "{}"
           },
           "checkError": {
             "metadata": {
@@ -246,7 +250,7 @@
             "optional": false,
             "editable": false,
             "advanced": true,
-            "hidden": false
+            "hidden": true
           },
           "scope": {
             "metadata": {
@@ -258,7 +262,7 @@
             "optional": false,
             "editable": true,
             "advanced": true,
-            "hidden": false
+            "hidden": true
           },
           "variable": {
             "metadata": {
@@ -296,7 +300,7 @@
             "optional": false,
             "editable": false,
             "advanced": false,
-            "hidden": false,
+            "hidden": true,
             "codedata": {}
           }
         },

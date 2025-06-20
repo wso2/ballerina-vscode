@@ -151,7 +151,8 @@
                 "kind": "BASIC_TYPE",
                 "selected": true
               }
-            ]
+            ],
+            "defaultValue": "\"\""
           },
           "checkError": {
             "metadata": {
@@ -163,7 +164,7 @@
             "optional": false,
             "editable": true,
             "advanced": true,
-            "hidden": false
+            "hidden": true
           },
           "variable": {
             "metadata": {
@@ -300,7 +301,8 @@
                 "kind": "OBJECT_TYPE",
                 "selected": false
               }
-            ]
+            ],
+            "defaultValue": "object {}"
           },
           "systemPrompt": {
             "metadata": {
@@ -327,7 +329,8 @@
                 "kind": "RECORD_TYPE",
                 "selected": true
               }
-            ]
+            ],
+            "defaultValue": "{role: \"\", instructions: \"\"}"
           },
           "agentType": {
             "metadata": {
@@ -354,7 +357,8 @@
                 "kind": "BASIC_TYPE",
                 "selected": false
               }
-            ]
+            ],
+            "defaultValue": "\"FUNCTION_CALL_AGENT\""
           },
           "memory": {
             "metadata": {
@@ -388,7 +392,8 @@
                 "kind": "BASIC_TYPE",
                 "selected": false
               }
-            ]
+            ],
+            "defaultValue": "()"
           },
           "tools": {
             "metadata": {
@@ -415,7 +420,8 @@
                 "kind": "ARRAY_TYPE",
                 "selected": false
               }
-            ]
+            ],
+            "defaultValue": "[]"
           },
           "maxIter": {
             "metadata": {
@@ -441,7 +447,8 @@
                 "kind": "BASIC_TYPE",
                 "selected": false
               }
-            ]
+            ],
+            "defaultValue": "0"
           },
           "verbose": {
             "metadata": {
@@ -467,7 +474,8 @@
                 "kind": "BASIC_TYPE",
                 "selected": false
               }
-            ]
+            ],
+            "defaultValue": "false"
           },
           "checkError": {
             "metadata": {
@@ -479,7 +487,7 @@
             "optional": false,
             "editable": false,
             "advanced": true,
-            "hidden": false
+            "hidden": true
           },
           "scope": {
             "metadata": {
@@ -491,7 +499,7 @@
             "optional": false,
             "editable": true,
             "advanced": true,
-            "hidden": false
+            "hidden": true
           },
           "variable": {
             "metadata": {
@@ -704,7 +712,8 @@
                 "kind": "BASIC_TYPE",
                 "selected": false
               }
-            ]
+            ],
+            "defaultValue": "0"
           },
           "temperature": {
             "metadata": {
@@ -730,7 +739,8 @@
                 "kind": "BASIC_TYPE",
                 "selected": false
               }
-            ]
+            ],
+            "defaultValue": "0.0d"
           },
           "httpVersion": {
             "metadata": {
@@ -759,7 +769,8 @@
             ],
             "imports": {
               "http": "ballerina/http"
-            }
+            },
+            "defaultValue": "\"2.0\""
           },
           "http1Settings": {
             "metadata": {
@@ -788,7 +799,8 @@
             ],
             "imports": {
               "http": "ballerina/http"
-            }
+            },
+            "defaultValue": "{}"
           },
           "http2Settings": {
             "metadata": {
@@ -817,7 +829,8 @@
             ],
             "imports": {
               "http": "ballerina/http"
-            }
+            },
+            "defaultValue": "{}"
           },
           "timeout": {
             "metadata": {
@@ -846,7 +859,8 @@
             ],
             "imports": {
               "http": "ballerina/http"
-            }
+            },
+            "defaultValue": "0.0d"
           },
           "forwarded": {
             "metadata": {
@@ -875,7 +889,8 @@
             ],
             "imports": {
               "http": "ballerina/http"
-            }
+            },
+            "defaultValue": "\"\""
           },
           "poolConfig": {
             "metadata": {
@@ -904,7 +919,8 @@
             ],
             "imports": {
               "http": "ballerina/http"
-            }
+            },
+            "defaultValue": "{}"
           },
           "cache": {
             "metadata": {
@@ -933,7 +949,8 @@
             ],
             "imports": {
               "http": "ballerina/http"
-            }
+            },
+            "defaultValue": "{}"
           },
           "compression": {
             "metadata": {
@@ -962,7 +979,8 @@
             ],
             "imports": {
               "http": "ballerina/http"
-            }
+            },
+            "defaultValue": "\"AUTO\""
           },
           "circuitBreaker": {
             "metadata": {
@@ -991,7 +1009,8 @@
             ],
             "imports": {
               "http": "ballerina/http"
-            }
+            },
+            "defaultValue": "{}"
           },
           "retryConfig": {
             "metadata": {
@@ -1020,7 +1039,8 @@
             ],
             "imports": {
               "http": "ballerina/http"
-            }
+            },
+            "defaultValue": "{}"
           },
           "responseLimits": {
             "metadata": {
@@ -1049,7 +1069,8 @@
             ],
             "imports": {
               "http": "ballerina/http"
-            }
+            },
+            "defaultValue": "{}"
           },
           "secureSocket": {
             "metadata": {
@@ -1078,7 +1099,8 @@
             ],
             "imports": {
               "http": "ballerina/http"
-            }
+            },
+            "defaultValue": "{}"
           },
           "proxy": {
             "metadata": {
@@ -1107,7 +1129,8 @@
             ],
             "imports": {
               "http": "ballerina/http"
-            }
+            },
+            "defaultValue": "{}"
           },
           "validation": {
             "metadata": {
@@ -1136,7 +1159,8 @@
             ],
             "imports": {
               "http": "ballerina/http"
-            }
+            },
+            "defaultValue": "false"
           },
           "checkError": {
             "metadata": {
@@ -1148,7 +1172,7 @@
             "optional": false,
             "editable": false,
             "advanced": true,
-            "hidden": false,
+            "hidden": true,
             "imports": {
               "http": "ballerina/http"
             }
@@ -1163,7 +1187,7 @@
             "optional": false,
             "editable": true,
             "advanced": true,
-            "hidden": false,
+            "hidden": true,
             "imports": {
               "http": "ballerina/http"
             }

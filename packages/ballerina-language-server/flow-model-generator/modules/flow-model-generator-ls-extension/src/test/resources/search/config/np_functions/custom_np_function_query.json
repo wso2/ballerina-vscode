@@ -34,7 +34,10 @@
           },
           "codedata": {
             "node": "NP_FUNCTION_CALL",
-            "symbol": "rateMovie"
+            "org": "nipunaf",
+            "module": "proj",
+            "symbol": "rateMovie",
+            "version": "0.1.0"
           },
           "enabled": true
         }

@@ -50,7 +50,7 @@
       },
       "multiple": {
         "metadata": {
-          "label": "multiple",
+          "label": "Multiple",
           "description": "Set to `true` to acknowledge all messages up to and including the called on message and\n`false` to acknowledge just the called on message"
         },
         "valueType": "EXPRESSION",
@@ -72,7 +72,8 @@
             "kind": "BASIC_TYPE",
             "selected": false
           }
-        ]
+        ],
+        "defaultValue": "false"
       },
       "checkError": {
         "metadata": {
@@ -84,7 +85,7 @@
         "optional": false,
         "editable": true,
         "advanced": true,
-        "hidden": false
+        "hidden": true
       }
     },
     "flags": 0

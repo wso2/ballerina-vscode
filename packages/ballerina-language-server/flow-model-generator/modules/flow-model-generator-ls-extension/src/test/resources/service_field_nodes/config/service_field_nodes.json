@@ -145,7 +145,8 @@
                 "kind": "BASIC_TYPE",
                 "selected": false
               }
-            ]
+            ],
+            "defaultValue": "\"\""
           },
           "maxTokens": {
             "metadata": {
@@ -171,7 +172,8 @@
                 "kind": "BASIC_TYPE",
                 "selected": false
               }
-            ]
+            ],
+            "defaultValue": "0"
           },
           "temperature": {
             "metadata": {
@@ -197,7 +199,8 @@
                 "kind": "BASIC_TYPE",
                 "selected": false
               }
-            ]
+            ],
+            "defaultValue": "0.0d"
           },
           "httpVersion": {
             "metadata": {
@@ -226,7 +229,8 @@
             ],
             "imports": {
               "http": "ballerina/http"
-            }
+            },
+            "defaultValue": "\"2.0\""
           },
           "http1Settings": {
             "metadata": {
@@ -255,7 +259,8 @@
             ],
             "imports": {
               "http": "ballerina/http"
-            }
+            },
+            "defaultValue": "{}"
           },
           "http2Settings": {
             "metadata": {
@@ -284,7 +289,8 @@
             ],
             "imports": {
               "http": "ballerina/http"
-            }
+            },
+            "defaultValue": "{}"
           },
           "timeout": {
             "metadata": {
@@ -313,7 +319,8 @@
             ],
             "imports": {
               "http": "ballerina/http"
-            }
+            },
+            "defaultValue": "0.0d"
           },
           "forwarded": {
             "metadata": {
@@ -342,7 +349,8 @@
             ],
             "imports": {
               "http": "ballerina/http"
-            }
+            },
+            "defaultValue": "\"\""
           },
           "poolConfig": {
             "metadata": {
@@ -371,7 +379,8 @@
             ],
             "imports": {
               "http": "ballerina/http"
-            }
+            },
+            "defaultValue": "{}"
           },
           "cache": {
             "metadata": {
@@ -400,7 +409,8 @@
             ],
             "imports": {
               "http": "ballerina/http"
-            }
+            },
+            "defaultValue": "{}"
           },
           "compression": {
             "metadata": {
@@ -429,7 +439,8 @@
             ],
             "imports": {
               "http": "ballerina/http"
-            }
+            },
+            "defaultValue": "\"AUTO\""
           },
           "circuitBreaker": {
             "metadata": {
@@ -458,7 +469,8 @@
             ],
             "imports": {
               "http": "ballerina/http"
-            }
+            },
+            "defaultValue": "{}"
           },
           "retryConfig": {
             "metadata": {
@@ -487,7 +499,8 @@
             ],
             "imports": {
               "http": "ballerina/http"
-            }
+            },
+            "defaultValue": "{}"
           },
           "responseLimits": {
             "metadata": {
@@ -516,7 +529,8 @@
             ],
             "imports": {
               "http": "ballerina/http"
-            }
+            },
+            "defaultValue": "{}"
           },
           "secureSocket": {
             "metadata": {
@@ -545,7 +559,8 @@
             ],
             "imports": {
               "http": "ballerina/http"
-            }
+            },
+            "defaultValue": "{}"
           },
           "proxy": {
             "metadata": {
@@ -574,7 +589,8 @@
             ],
             "imports": {
               "http": "ballerina/http"
-            }
+            },
+            "defaultValue": "{}"
           },
           "validation": {
             "metadata": {
@@ -603,7 +619,8 @@
             ],
             "imports": {
               "http": "ballerina/http"
-            }
+            },
+            "defaultValue": "false"
           },
           "checkError": {
             "metadata": {
@@ -615,7 +632,7 @@
             "optional": false,
             "editable": false,
             "advanced": true,
-            "hidden": false,
+            "hidden": true,
             "imports": {
               "http": "ballerina/http"
             }
@@ -630,7 +647,7 @@
             "optional": false,
             "editable": true,
             "advanced": true,
-            "hidden": false,
+            "hidden": true,
             "imports": {
               "http": "ballerina/http"
             }
@@ -691,7 +708,8 @@
                 "kind": "RECORD_TYPE",
                 "selected": true
               }
-            ]
+            ],
+            "defaultValue": "{role: \"\", instructions: \"\"}"
           },
           "model": {
             "metadata": {
@@ -718,7 +736,8 @@
                 "kind": "OBJECT_TYPE",
                 "selected": false
               }
-            ]
+            ],
+            "defaultValue": "object {}"
           },
           "tools": {
             "metadata": {
@@ -745,7 +764,8 @@
                 "kind": "ARRAY_TYPE",
                 "selected": false
               }
-            ]
+            ],
+            "defaultValue": "[]"
           },
           "agentType": {
             "metadata": {
@@ -771,7 +791,8 @@
                 "kind": "BASIC_TYPE",
                 "selected": false
               }
-            ]
+            ],
+            "defaultValue": "\"FUNCTION_CALL_AGENT\""
           },
           "maxIter": {
             "metadata": {
@@ -797,7 +818,8 @@
                 "kind": "BASIC_TYPE",
                 "selected": false
               }
-            ]
+            ],
+            "defaultValue": "0"
           },
           "verbose": {
             "metadata": {
@@ -823,7 +845,8 @@
                 "kind": "BASIC_TYPE",
                 "selected": false
               }
-            ]
+            ],
+            "defaultValue": "false"
           },
           "memory": {
             "metadata": {
@@ -856,7 +879,8 @@
                 "kind": "BASIC_TYPE",
                 "selected": false
               }
-            ]
+            ],
+            "defaultValue": "()"
           },
           "checkError": {
             "metadata": {
@@ -868,7 +892,7 @@
             "optional": false,
             "editable": false,
             "advanced": true,
-            "hidden": false
+            "hidden": true
           },
           "scope": {
             "metadata": {
@@ -880,7 +904,7 @@
             "optional": false,
             "editable": true,
             "advanced": true,
-            "hidden": false
+            "hidden": true
           }
         },
         "flags": 1

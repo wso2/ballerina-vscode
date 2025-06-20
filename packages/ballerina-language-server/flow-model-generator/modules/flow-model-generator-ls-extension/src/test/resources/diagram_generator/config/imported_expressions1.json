@@ -241,7 +241,7 @@
           },
           "randomNumber": {
             "metadata": {
-              "label": "randomNumber"
+              "label": "Random Number"
             },
             "valueType": "EXPRESSION",
             "valueTypeConstraint": "float",
@@ -267,7 +267,7 @@
           },
           "id": {
             "metadata": {
-              "label": "id"
+              "label": "Id"
             },
             "valueType": "EXPRESSION",
             "valueTypeConstraint": "string",

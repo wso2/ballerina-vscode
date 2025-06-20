@@ -60,16 +60,9 @@ public class SearchTest extends AbstractLSTest {
 
     @Override
     protected String[] skipList() {
-        // TODO: Re-enable once the ballerinax/np module is available
         return new String[] {
-                "custom_np_function_query.json",
-                "default_np_function_query.json",
-                "custom_default.json",
-                "custom_default1.json",
-                "custom_default2.json",
                 // TODO: Investigate why this test fails on Github Actions
-                "custom_sum.json",
-                "default.json"
+                "custom_sum.json"
         };
     }
 

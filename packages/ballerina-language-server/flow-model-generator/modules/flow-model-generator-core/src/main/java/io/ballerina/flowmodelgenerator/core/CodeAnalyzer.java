@@ -649,7 +649,8 @@ public class CodeAnalyzer extends NodeVisitor {
                         .kind(paramResult.kind().name())
                         .originalName(paramResult.name())
                         .stepOut()
-                    .placeholder(paramResult.defaultValue())
+                    .placeholder(paramResult.placeholder())
+                    .defaultValue(paramResult.defaultValue())
                     .typeConstraint(paramResult.type())
                     .typeMembers(paramResult.typeMembers())
                     .imports(paramResult.importStatements())
@@ -725,7 +726,8 @@ public class CodeAnalyzer extends NodeVisitor {
                             .kind(paramKind.name())
                             .originalName(paramResult.name())
                             .stepOut()
-                        .placeholder(paramResult.defaultValue())
+                        .placeholder(paramResult.placeholder())
+                        .defaultValue(paramResult.defaultValue())
                         .typeConstraint(paramResult.type())
                         .typeMembers(paramResult.typeMembers())
                         .imports(paramResult.importStatements())
@@ -807,7 +809,8 @@ public class CodeAnalyzer extends NodeVisitor {
                             .typeMembers(paramResult.typeMembers(), selectedType)
                             .imports(paramResult.importStatements())
                             .value(value)
-                            .placeholder(paramResult.defaultValue())
+                            .placeholder(paramResult.placeholder())
+                            .defaultValue(paramResult.defaultValue())
                             .editable()
                             .defaultable(paramResult.optional())
                             .codedata()
@@ -837,7 +840,8 @@ public class CodeAnalyzer extends NodeVisitor {
                         .typeMembers(restParamResult.typeMembers())
                         .imports(restParamResult.importStatements())
                         .value(restArgs)
-                        .placeholder(restParamResult.defaultValue())
+                        .placeholder(restParamResult.placeholder())
+                        .defaultValue(restParamResult.defaultValue())
                         .editable()
                         .defaultable(!hasOnlyRestParams)
                         .codedata()
@@ -906,7 +910,8 @@ public class CodeAnalyzer extends NodeVisitor {
                                     .typeMembers(paramResult.typeMembers(), selectedType)
                                     .imports(paramResult.importStatements())
                                     .value(value)
-                                    .placeholder(paramResult.defaultValue())
+                                    .placeholder(paramResult.placeholder())
+                                    .defaultValue(paramResult.defaultValue())
                                     .editable()
                                     .defaultable(paramResult.optional())
                                     .codedata()
@@ -953,7 +958,8 @@ public class CodeAnalyzer extends NodeVisitor {
                                         .typeMembers(paramResult.typeMembers(), selectedType)
                                         .imports(paramResult.importStatements())
                                         .value(value)
-                                        .placeholder(paramResult.defaultValue())
+                                        .placeholder(paramResult.placeholder())
+                                        .defaultValue(paramResult.defaultValue())
                                         .editable()
                                         .defaultable(paramResult.optional())
                                         .codedata()
@@ -995,7 +1001,8 @@ public class CodeAnalyzer extends NodeVisitor {
                                     .typeMembers(paramResult.typeMembers(), selectedType)
                                     .imports(paramResult.importStatements())
                                     .value(value)
-                                    .placeholder(paramResult.defaultValue())
+                                    .placeholder(paramResult.placeholder())
+                                    .defaultValue(paramResult.defaultValue())
                                     .editable()
                                     .defaultable(paramResult.optional())
                                     .codedata()
@@ -1042,7 +1049,8 @@ public class CodeAnalyzer extends NodeVisitor {
                         .typeMembers(paramResult.typeMembers(), selectedType)
                         .imports(paramResult.importStatements())
                         .value(value)
-                        .placeholder(paramResult.defaultValue())
+                        .placeholder(paramResult.placeholder())
+                        .defaultValue(paramResult.defaultValue())
                         .editable()
                         .defaultable(paramResult.optional())
                         .codedata()
@@ -1091,7 +1099,8 @@ public class CodeAnalyzer extends NodeVisitor {
                         .typeMembers(paramResult.typeMembers(), selectedType)
                         .imports(paramResult.importStatements())
                         .value(value)
-                        .placeholder(paramResult.defaultValue())
+                        .placeholder(paramResult.placeholder())
+                        .defaultValue(paramResult.defaultValue())
                         .editable()
                         .defaultable(paramResult.optional())
                         .codedata()
@@ -1117,7 +1126,8 @@ public class CodeAnalyzer extends NodeVisitor {
                         .typeMembers(includedRecordRest.typeMembers())
                         .imports(includedRecordRest.importStatements())
                         .value(includedRecordRestArgs)
-                        .placeholder(includedRecordRest.defaultValue())
+                        .placeholder(includedRecordRest.placeholder())
+                        .defaultValue(includedRecordRest.defaultValue())
                         .editable()
                         .defaultable(includedRecordRest.optional())
                         .codedata()
@@ -1378,12 +1388,12 @@ public class CodeAnalyzer extends NodeVisitor {
         } else if (nodeBuilder instanceof NewConnectionBuilder) {
             nodeBuilder.properties()
                     .dataVariable(this.typedBindingPatternNode, NewConnectionBuilder.CONNECTION_NAME_LABEL,
-                            NewConnectionBuilder.CONNECTION_TYPE_LABEL, false, new HashSet<>());
+                            NewConnectionBuilder.CONNECTION_TYPE_LABEL, false, new HashSet<>(), true);
         } else if (nodeBuilder instanceof RemoteActionCallBuilder || nodeBuilder instanceof ResourceActionCallBuilder ||
                 nodeBuilder instanceof FunctionCall || nodeBuilder instanceof MethodCall) {
             nodeBuilder.properties()
                     .dataVariable(this.typedBindingPatternNode, Property.VARIABLE_NAME, Property.TYPE_LABEL, false,
-                            new HashSet<>());
+                            new HashSet<>(), false);
         } else {
             nodeBuilder.properties().dataVariable(this.typedBindingPatternNode, implicit, new HashSet<>());
         }
@@ -1603,7 +1613,7 @@ public class CodeAnalyzer extends NodeVisitor {
                 inferredTypeName = node.toSourceCode();
             } else if (typedBindingPatternNode == null) {
                 // Get the default value if the variable is absent
-                inferredTypeName = paramResult.defaultValue();
+                inferredTypeName = paramResult.placeholder();
             } else {
                 // Derive the inferred type from the variable type
                 Optional<Symbol> symbol = semanticModel.symbol(typedBindingPatternNode);
