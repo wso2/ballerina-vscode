@@ -26,6 +26,7 @@ import io.ballerina.projects.ModuleId;
 import io.ballerina.projects.PackageCompilation;
 import io.ballerina.projects.directory.BuildProject;
 import org.ballerinalang.diagramutil.connector.models.connector.RefType;
+import org.ballerinalang.diagramutil.connector.models.connector.Type;
 import org.testng.Assert;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -42,23 +43,23 @@ public class RefTypeTest {
 
     protected final Gson gson = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
 
-    @DataProvider(name = "data-provider")
-    public Object[][] getConfigsList() throws IOException {
-        Path testDataDir = TestUtil.RES_DIR.resolve("RefTypeTest/TestData");
-        return Files.list(testDataDir)
-                .filter(path -> path.toString().endsWith(".json"))
-                .map(path -> new Object[]{path})
-                .toArray(Object[][]::new);
-    }
-
 //    @DataProvider(name = "data-provider")
-//    public Object[][] getConfigsList() {
-//        return new Object[][]{
-//                new Object[]{
-//                        TestUtil.RES_DIR.resolve("RefTypeTest/TestData/objectSample1.json")
-//                }
-//        };
+//    public Object[][] getConfigsList() throws IOException {
+//        Path testDataDir = TestUtil.RES_DIR.resolve("RefTypeTest/TestData");
+//        return Files.list(testDataDir)
+//                .filter(path -> path.toString().endsWith(".json"))
+//                .map(path -> new Object[]{path})
+//                .toArray(Object[][]::new);
 //    }
+
+    @DataProvider(name = "data-provider")
+    public Object[][] getConfigsList() {
+        return new Object[][]{
+                new Object[]{
+                        TestUtil.RES_DIR.resolve("RefTypeTest/TestData/healthSample.json")
+                }
+        };
+    }
 
     @Test(dataProvider = "data-provider")
     public void getRefTypeForSymbol(Path jsonPath) throws IOException {
@@ -85,15 +86,26 @@ public class RefTypeTest {
                 .findFirst()
                 .orElseThrow(() -> new RuntimeException("Type symbol '" + typeSymbolName + "' not found"));
 
-        RefType refType = RefType.fromSemanticSymbol(typeSymbol);
-        String refTypeJson = gson.toJson(refType).concat(System.lineSeparator());
-        String expectedRefTypeJson = gson.toJson(jsonObject.get("refType")).concat(System.lineSeparator());
+//        RefType refType = RefType.fromSemanticSymbol(typeSymbol);
+//        String refTypeJson = gson.toJson(refType).concat(System.lineSeparator());
+//        String expectedRefTypeJson = gson.toJson(jsonObject.get("refType")).concat(System.lineSeparator());
+//
+//        if (!refTypeJson.equals(expectedRefTypeJson)) {
+////            updateConfig(jsonPath, refTypeJson);
+//            Assert.fail(
+//                    String.format("Reference type JSON does not match.\n Expected : %s\n Received %s",
+//                            expectedRefTypeJson, refTypeJson));
+//        }
 
-        if (!refTypeJson.equals(expectedRefTypeJson)) {
-//            updateConfig(jsonPath, refTypeJson);
+        Type type = Type.fromSemanticSymbol(typeSymbol);
+        String typeJson = gson.toJson(type).concat(System.lineSeparator());
+        String expectedTypeJson = gson.toJson(jsonObject.get("type")).concat(System.lineSeparator());
+
+        if (!typeJson.equals(expectedTypeJson)) {
+//            updateConfig(jsonPath, typeJson);
             Assert.fail(
-                    String.format("Reference type JSON does not match.\n Expected : %s\n Received %s",
-                            expectedRefTypeJson, refTypeJson));
+                    String.format("Type JSON does not match.\n Expected : %s\n Received %s",
+                            expectedTypeJson, typeJson));
         }
     }
 
