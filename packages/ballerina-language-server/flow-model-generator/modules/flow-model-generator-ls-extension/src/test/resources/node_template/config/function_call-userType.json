@@ -31,7 +31,7 @@
     "properties": {
       "address": {
         "metadata": {
-          "label": "address"
+          "label": "Address"
         },
         "valueType": "EXPRESSION",
         "valueTypeConstraint": "Address",

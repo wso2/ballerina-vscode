@@ -18,6 +18,8 @@
 
 package io.ballerina.modelgenerator.commons;
 
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import io.ballerina.centralconnector.CentralAPI;
 import io.ballerina.centralconnector.RemoteCentral;
 import io.ballerina.compiler.api.ModuleID;
@@ -71,6 +73,7 @@ import io.ballerina.projects.ModuleName;
 import io.ballerina.projects.Package;
 import io.ballerina.projects.PackageDescriptor;
 import io.ballerina.projects.Project;
+import io.ballerina.runtime.api.utils.IdentifierUtils;
 import io.ballerina.tools.diagnostics.Location;
 import io.ballerina.tools.text.LinePosition;
 import io.ballerina.tools.text.TextRange;
@@ -78,12 +81,17 @@ import org.ballerinalang.langserver.LSClientLogger;
 import org.ballerinalang.langserver.common.utils.CommonUtil;
 import org.eclipse.lsp4j.MessageType;
 
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.lang.reflect.Type;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -127,6 +135,23 @@ public class FunctionDataBuilder {
     private static final String MODULE_PULLING_SUCCESS_MESSAGE = "Successfully pulled the module: %s";
 
     private static final String CLIENT_SYMBOL = "Client";
+
+    // Add a static field for the connector name correction map
+    private static final String CONNECTOR_NAME_CORRECTION_JSON = "connector_name_correction.json";
+    private static final Type CONNECTOR_NAME_MAP_TYPE = new TypeToken<Map<String, String>>() { }.getType();
+    private static final Map<String, String> CONNECTOR_NAME_MAP;
+    static {
+        Map<String, String> map;
+        try (InputStreamReader reader = new InputStreamReader(
+                Objects.requireNonNull(
+                        FunctionDataBuilder.class.getClassLoader().getResourceAsStream(CONNECTOR_NAME_CORRECTION_JSON)),
+                StandardCharsets.UTF_8)) {
+            map = new Gson().fromJson(reader, CONNECTOR_NAME_MAP_TYPE);
+        } catch (IOException e) {
+            map = Map.of();
+        }
+        CONNECTOR_NAME_MAP = map;
+    }
 
     public FunctionDataBuilder semanticModel(SemanticModel semanticModel) {
         this.semanticModel = semanticModel;
@@ -672,7 +697,8 @@ public class FunctionDataBuilder {
             paramType = getTypeSignature(typeSymbol);
         }
         ParameterData parameterData = ParameterData.from(paramName, paramDescription,
-                getLabel(paramSymbol.annotAttachments()), paramType, placeholder, defaultValue, parameterKind, optional,
+                getLabel(paramSymbol.annotAttachments(), paramName), paramType, placeholder, defaultValue,
+                parameterKind, optional,
                 importStatements);
         parameters.put(paramName, parameterData);
         addParameterMemberTypes(typeSymbol, parameterData, union);
@@ -797,7 +823,7 @@ public class FunctionDataBuilder {
             String paramType = getTypeSignature(typeSymbol);
             boolean optional = recordFieldSymbol.isOptional() || recordFieldSymbol.hasDefaultValue();
             ParameterData parameterData = ParameterData.from(paramName, documentationMap.get(paramName),
-                    getLabel(recordFieldSymbol.annotAttachments()),
+                    getLabel(recordFieldSymbol.annotAttachments(), paramName),
                     paramType, placeholder, defaultValue, ParameterData.Kind.INCLUDED_FIELD, optional,
                     getImportStatements(typeSymbol));
             parameters.put(paramName, parameterData);
@@ -806,9 +832,9 @@ public class FunctionDataBuilder {
         recordTypeSymbol.restTypeDescriptor().ifPresent(typeSymbol -> {
             String paramType = getTypeSignature(typeSymbol);
             String placeholder = DefaultValueGeneratorUtil.getDefaultValueForType(typeSymbol);
-            parameters.put("Additional Values", new ParameterData(0, "Additional Values", 
-                    paramType, ParameterData.Kind.INCLUDED_RECORD_REST, placeholder, null, 
-                    "Capture key value pairs", null, true, getImportStatements(typeSymbol), 
+            parameters.put("Additional Values", new ParameterData(0, "Additional Values",
+                    paramType, ParameterData.Kind.INCLUDED_RECORD_REST, placeholder, null,
+                    "Capture key value pairs", null, true, getImportStatements(typeSymbol),
                     new ArrayList<>()));
         });
         return parameters;
@@ -1003,7 +1029,8 @@ public class FunctionDataBuilder {
         }
     }
 
-    private String getLabel(List<AnnotationAttachmentSymbol> annotationAttachmentSymbols) {
+    private String getLabel(List<AnnotationAttachmentSymbol> annotationAttachmentSymbols, String paramName) {
+        String output = null;
         for (AnnotationAttachmentSymbol annotAttachment : annotationAttachmentSymbols) {
             AnnotationSymbol annotationSymbol = annotAttachment.typeDescriptor();
             Optional<String> optName = annotationSymbol.getName();
@@ -1026,9 +1053,63 @@ public class FunctionDataBuilder {
             if (label == null) {
                 break;
             }
-            return label.toString();
+            output = label.toString();
         }
-        return "";
+        if (output == null || output.isEmpty()) {
+            output = paramName;
+        }
+        return toTitleCase(output);
+    }
+
+    /**
+     * Converts a camelCase or PascalCase string to Title Case with spaces, including before numbers. E.g., "targetType"
+     * -> "Target Type", "http1Config" -> "Http1 Config", "account_name" -> "Account Name", etc.
+     */
+    private static String toTitleCase(String input) {
+        if (input == null || input.isEmpty()) {
+            return input;
+        }
+
+        // Escape special characters
+        input = IdentifierUtils.unescapeBallerina(input);
+
+        // Remove leading single quote if it exists
+        if (input.startsWith("'")) {
+            input = input.substring(1);
+        }
+
+        // Convert snake case to space-separated words
+        input = input.replace('_', ' ');
+
+        // Check for connector name prefix mapping
+        for (Map.Entry<String, String> entry : CONNECTOR_NAME_MAP.entrySet()) {
+            if (input.startsWith(entry.getKey())) {
+                String rest = input.substring(entry.getKey().length());
+                input = entry.getValue() + (rest.isEmpty() || Character.isDigit(rest.charAt(0)) ? "" : " ") + rest;
+                break;
+            }
+        }
+
+        // Split camelCase and add spaces before capitals
+        String[] words = input.replaceAll("([A-Z]+)([A-Z][a-z])", "$1 $2")
+                .replaceAll("([a-z0-9])([A-Z])", "$1 $2")
+                .replaceAll("([0-9])([A-Z])", "$1 $2")
+                .split(" ");
+
+        // Capitalize first letter of each word
+        StringBuilder sb = new StringBuilder(input.length() + words.length);
+        for (int i = 0; i < words.length; i++) {
+            if (!words[i].isEmpty()) {
+                sb.append(Character.toUpperCase(words[i].charAt(0)));
+                if (words[i].length() > 1) {
+                    sb.append(words[i].substring(1));
+                }
+                if (i < words.length - 1) {
+                    sb.append(' ');
+                }
+            }
+        }
+        return sb.toString();
     }
 
     private boolean isAgentModelType(String paramName) {
