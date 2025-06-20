@@ -64,6 +64,7 @@ import io.ballerina.tools.text.LineRange;
 import io.ballerina.tools.text.TextDocument;
 import io.ballerina.tools.text.TextRange;
 import org.ballerinalang.langserver.common.utils.CommonUtil;
+import org.ballerinalang.langserver.commons.BallerinaCompilerApi;
 import org.ballerinalang.langserver.commons.workspace.WorkspaceManager;
 import org.ballerinalang.util.diagnostic.DiagnosticErrorCode;
 import org.eclipse.lsp4j.Diagnostic;
@@ -811,13 +812,7 @@ public class CommonUtils {
             return false;
         }
         FunctionDefinitionNode functionDefNode = (FunctionDefinitionNode) node;
-        return isNaturalExpressionBodiedFunction(functionDefNode);
-    }
-
-    public static boolean isNaturalExpressionBodiedFunction(FunctionDefinitionNode functionDefNode) {
-        FunctionBodyNode functionBody = functionDefNode.functionBody();
-        return functionBody.kind() == SyntaxKind.EXPRESSION_FUNCTION_BODY
-                && ((ExpressionFunctionBodyNode) functionBody).expression().kind() == SyntaxKind.NATURAL_EXPRESSION;
+        return BallerinaCompilerApi.getInstance().isNaturalExpressionBodiedFunction(functionDefNode);
     }
 
     public static String getClassType(String packageName, String clientName) {
