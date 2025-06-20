@@ -73,6 +73,7 @@ import io.ballerina.projects.ModuleName;
 import io.ballerina.projects.Package;
 import io.ballerina.projects.PackageDescriptor;
 import io.ballerina.projects.Project;
+import io.ballerina.runtime.api.utils.IdentifierUtils;
 import io.ballerina.tools.diagnostics.Location;
 import io.ballerina.tools.text.LinePosition;
 import io.ballerina.tools.text.TextRange;
@@ -1067,6 +1068,14 @@ public class FunctionDataBuilder {
     private static String toTitleCase(String input) {
         if (input == null || input.isEmpty()) {
             return input;
+        }
+
+        // Escape special characters
+        input = IdentifierUtils.unescapeBallerina(input);
+
+        // Remove leading single quote if it exists
+        if (input.startsWith("'")) {
+            input = input.substring(1);
         }
 
         // Convert snake case to space-separated words

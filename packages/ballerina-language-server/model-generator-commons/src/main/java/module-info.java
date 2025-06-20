@@ -29,6 +29,7 @@ module io.ballerina.model.generator.commons {
     requires io.ballerina.tools.api;
     requires io.ballerina.parser;
     requires io.ballerina.lang;
+    requires io.ballerina.runtime;
     requires java.sql;
 
     exports io.ballerina.modelgenerator.commons;
