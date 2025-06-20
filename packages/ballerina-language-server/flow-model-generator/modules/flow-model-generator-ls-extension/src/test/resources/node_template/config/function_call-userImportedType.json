@@ -31,7 +31,7 @@
     "properties": {
       "config": {
         "metadata": {
-          "label": "config"
+          "label": "Config"
         },
         "valueType": "EXPRESSION",
         "valueTypeConstraint": "http:ClientConfiguration",
@@ -59,7 +59,7 @@
       },
       "address": {
         "metadata": {
-          "label": "address"
+          "label": "Address"
         },
         "valueType": "EXPRESSION",
         "valueTypeConstraint": "Address",

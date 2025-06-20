@@ -1129,7 +1129,7 @@
                           },
                           "amount": {
                             "metadata": {
-                              "label": "amount"
+                              "label": "Amount"
                             },
                             "valueType": "EXPRESSION",
                             "valueTypeConstraint": "decimal",
@@ -1155,7 +1155,7 @@
                           },
                           "cacheValue": {
                             "metadata": {
-                              "label": "cacheValue"
+                              "label": "Cache Value"
                             },
                             "valueType": "EXPRESSION",
                             "valueTypeConstraint": "string",

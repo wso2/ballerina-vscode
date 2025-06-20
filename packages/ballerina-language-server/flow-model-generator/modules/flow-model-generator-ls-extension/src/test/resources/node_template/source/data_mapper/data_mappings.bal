@@ -9,3 +9,8 @@ function transform(Person person, Admission admission) returns Employee => {
     }
 };
 
+public function processData(string 'order, int 'type, string 'user_name,
+        float 'price, boolean 'is\-valid) returns string {
+        string result = string `${'order} -> ${'price}`;
+        return result;
+}

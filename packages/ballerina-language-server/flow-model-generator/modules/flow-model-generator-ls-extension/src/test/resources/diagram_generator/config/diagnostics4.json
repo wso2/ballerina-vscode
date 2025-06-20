@@ -170,7 +170,7 @@
           },
           "src": {
             "metadata": {
-              "label": "src"
+              "label": "Src"
             },
             "valueType": "EXPRESSION",
             "valueTypeConstraint": "Source",
@@ -300,7 +300,7 @@
           },
           "src": {
             "metadata": {
-              "label": "src"
+              "label": "Src"
             },
             "valueType": "EXPRESSION",
             "valueTypeConstraint": "Source",
@@ -430,7 +430,7 @@
           },
           "i": {
             "metadata": {
-              "label": "i"
+              "label": "I"
             },
             "valueType": "EXPRESSION",
             "valueTypeConstraint": "int",
