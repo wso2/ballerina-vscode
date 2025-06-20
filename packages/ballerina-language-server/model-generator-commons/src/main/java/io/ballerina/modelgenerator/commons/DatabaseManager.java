@@ -37,7 +37,7 @@ import java.util.logging.Logger;
 /**
  * Manages database operations for retrieving information about external connectors and functions.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class DatabaseManager {
 
@@ -94,7 +94,8 @@ public class DatabaseManager {
                 "f.return_error, " +
                 "f.inferred_return_type, " +
                 "f.import_statements, " +
-                "p.name AS package_name, " +
+                "p.name AS module_name, " +
+                "p.package_name, " +
                 "p.org, " +
                 "p.version " +
                 "FROM Function f " +
@@ -117,6 +118,7 @@ public class DatabaseManager {
                         rs.getString("function_description"),
                         rs.getString("return_type"),
                         rs.getString("package_name"),
+                        rs.getString("module_name"),
                         rs.getString("org"),
                         rs.getString("version"),
                         rs.getString("resource_path"),
@@ -145,7 +147,8 @@ public class DatabaseManager {
                 "f.inferred_return_type, " +
                 "f.import_statements, " +
                 "f.resource_path, " +
-                "p.name AS package_name, " +
+                "p.name AS module_name, " +
+                "p.package_name, " +
                 "p.org, " +
                 "p.version " +
                 "FROM Function f " +
@@ -165,6 +168,7 @@ public class DatabaseManager {
                         rs.getString("function_description"),
                         rs.getString("return_type"),
                         rs.getString("package_name"),
+                        rs.getString("module_name"),
                         rs.getString("org"),
                         rs.getString("version"),
                         rs.getString("resource_path"),
@@ -193,7 +197,8 @@ public class DatabaseManager {
                 "f.return_error, " +
                 "f.inferred_return_type, " +
                 "f.import_statements, " +
-                "p.name AS package_name, " +
+                "p.name AS module_name, " +
+                "p.package_name, " +
                 "p.org, " +
                 "p.version " +
                 "FROM Function f " +
@@ -223,6 +228,7 @@ public class DatabaseManager {
                         rs.getString("function_description"),
                         rs.getString("return_type"),
                         rs.getString("package_name"),
+                        rs.getString("module_name"),
                         rs.getString("org"),
                         rs.getString("version"),
                         rs.getString("resource_path"),
@@ -239,8 +245,8 @@ public class DatabaseManager {
         }
     }
 
-    public Optional<FunctionData> getFunction(String org, String module, String symbol, FunctionData.Kind kind,
-                                              String resourcePath) {
+    public Optional<FunctionData> getFunction(String org, String packageName, String moduleName, String symbol,
+                                              FunctionData.Kind kind, String resourcePath) {
         StringBuilder sql = new StringBuilder("SELECT ");
         sql.append("f.function_id, ");
         sql.append("f.name AS function_name, ");
@@ -251,13 +257,15 @@ public class DatabaseManager {
         sql.append("f.return_error, ");
         sql.append("f.inferred_return_type, ");
         sql.append("f.import_statements, ");
-        sql.append("p.name AS package_name, ");
+        sql.append("p.module_name AS module_name, ");
+        sql.append("p.package_name, ");
         sql.append("p.org, ");
         sql.append("p.version ");
         sql.append("FROM Function f ");
         sql.append("JOIN Package p ON f.package_id = p.package_id ");
         sql.append("WHERE p.org = ? ");
-        sql.append("AND p.name = ? ");
+        sql.append("AND p.package_name = ? ");
+        sql.append("AND p.module_name = ? ");
         sql.append("AND f.kind = ? ");
         sql.append("AND f.name = ? ");
         if (resourcePath != null) {
@@ -267,11 +275,12 @@ public class DatabaseManager {
         try (Connection conn = DriverManager.getConnection(dbPath);
              PreparedStatement stmt = conn.prepareStatement(sql.toString())) {
             stmt.setString(1, org);
-            stmt.setString(2, module);
-            stmt.setString(3, kind.name());
-            stmt.setString(4, symbol);
+            stmt.setString(2, packageName);
+            stmt.setString(3, moduleName);
+            stmt.setString(4, kind.name());
+            stmt.setString(5, symbol);
             if (resourcePath != null) {
-                stmt.setString(5, resourcePath);
+                stmt.setString(6, resourcePath);
             }
             ResultSet rs = stmt.executeQuery();
             if (rs.next()) {
@@ -281,6 +290,7 @@ public class DatabaseManager {
                         rs.getString("function_description"),
                         rs.getString("return_type"),
                         rs.getString("package_name"),
+                        rs.getString("module_name"),
                         rs.getString("org"),
                         rs.getString("version"),
                         rs.getString("resource_path"),
@@ -303,7 +313,8 @@ public class DatabaseManager {
                 "f.name AS function_name, " +
                 "f.description AS function_description, " +
                 "f.return_type, " +
-                "p.name AS package_name, " +
+                "p.name AS module_name, " +
+                "p.package_name, " +
                 "p.org, " +
                 "p.version, " +
                 "f.resource_path, " +
@@ -325,6 +336,7 @@ public class DatabaseManager {
                         rs.getString("function_description"),
                         rs.getString("return_type"),
                         rs.getString("package_name"),
+                        rs.getString("module_name"),
                         rs.getString("org"),
                         rs.getString("version"),
                         rs.getString("resource_path"),
@@ -365,6 +377,7 @@ public class DatabaseManager {
                         rs.getString("name"),
                         rs.getString("type"),
                         ParameterData.Kind.valueOf(rs.getString("kind")),
+                        rs.getString("placeholder"),
                         rs.getString("default_value"),
                         rs.getString("description"),
                         "",
@@ -388,12 +401,14 @@ public class DatabaseManager {
                 "p.type, " +
                 "p.kind, " +
                 "p.optional, " +
+                "p.placeholder, " +
                 "p.default_value, " +
                 "p.description, " +
                 "p.import_statements, " +
                 "pmt.type AS member_type, " +
                 "pmt.kind AS member_kind, " +
-                "pmt.package AS member_package " +
+                "pmt.package_identifier AS member_package_identifier, " +
+                "pmt.package_name AS member_package_name " +
                 "FROM Parameter p " +
                 "LEFT JOIN ParameterMemberType pmt ON p.parameter_id = pmt.parameter_id " +
                 "WHERE p.function_id = ?;";
@@ -411,6 +426,7 @@ public class DatabaseManager {
                 int parameterId = rs.getInt("parameter_id");
                 String type = rs.getString("type");
                 ParameterData.Kind kind = ParameterData.Kind.valueOf(rs.getString("kind"));
+                String placeholder = rs.getString("placeholder");
                 String defaultValue = rs.getString("default_value");
                 String description = rs.getString("description");
                 boolean optional = rs.getBoolean("optional");
@@ -419,7 +435,8 @@ public class DatabaseManager {
                 // Member type data
                 String memberType = rs.getString("member_type");
                 String memberKind = rs.getString("member_kind");
-                String memberPackage = rs.getString("member_package");
+                String memberPackageIdentifier = rs.getString("member_package_identifier");
+                String memberPackageName = rs.getString("member_package_name");
 
                 // Get or create the builder for this parameter
                 ParameterDataBuilder builder = builders.get(paramName);
@@ -429,6 +446,7 @@ public class DatabaseManager {
                     builder.name = paramName;
                     builder.type = type;
                     builder.kind = kind;
+                    builder.placeholder = placeholder;
                     builder.defaultValue = defaultValue;
                     builder.description = description;
                     builder.optional = optional;
@@ -439,7 +457,7 @@ public class DatabaseManager {
                 // Add member type if present
                 if (memberType != null) {
                     ParameterMemberTypeData memberData = new ParameterMemberTypeData(
-                            memberType, memberKind, memberPackage);
+                            memberType, memberKind, memberPackageIdentifier, memberPackageName);
                     builder.typeMembers.add(memberData);
                 }
             }
@@ -464,6 +482,7 @@ public class DatabaseManager {
         String name;
         String type;
         ParameterData.Kind kind;
+        String placeholder;
         String defaultValue;
         String description;
         boolean optional;
@@ -476,6 +495,7 @@ public class DatabaseManager {
                     name,
                     type,
                     kind,
+                    placeholder,
                     defaultValue,
                     description,
                     null,
@@ -513,6 +533,7 @@ public class DatabaseManager {
                         rs.getString("description"),
                         rs.getString("return_type"),
                         null, // packageName is not selected in this query
+                        null, // moduleName is not selected in this query
                         null, // org is not selected in this query
                         null, // version is not selected in this query
                         rs.getString("resource_path"),
@@ -529,13 +550,14 @@ public class DatabaseManager {
         }
     }
 
-    public List<FunctionData> getMethods(String connectorName, String org, String packageName) {
+    public List<FunctionData> getMethods(String connectorName, String org, String moduleName) {
         String sql = "SELECT " +
                 "f.function_id, " +
                 "f.name AS function_name, " +
                 "f.description, " +
                 "f.kind, " +
                 "p.version, " +
+                "p.package_name, " +
                 "f.return_type, " +
                 "f.resource_path, " +
                 "f.return_error, " +
@@ -547,14 +569,14 @@ public class DatabaseManager {
                 "JOIN Package p ON c.package_id = p.package_id " +
                 "WHERE c.name = ? " +
                 "AND p.org = ? " +
-                "AND p.name = ? " +
+                "AND p.package_name = ? " +
                 "AND c.kind = 'CONNECTOR';";
 
         try (Connection conn = DriverManager.getConnection(dbPath);
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, connectorName);
             stmt.setString(2, org);
-            stmt.setString(3, packageName);
+            stmt.setString(3, moduleName);
             ResultSet rs = stmt.executeQuery();
             List<FunctionData> functionDataList = new ArrayList<>();
             while (rs.next()) {
@@ -563,7 +585,8 @@ public class DatabaseManager {
                         rs.getString("function_name"),
                         rs.getString("description"),
                         rs.getString("return_type"),
-                        packageName,
+                        rs.getString("package_name"),
+                        moduleName,
                         org,
                         rs.getString("version"),
                         rs.getString("resource_path"),
@@ -597,7 +620,8 @@ public class DatabaseManager {
         sql.append("f.return_error, ");
         sql.append("f.inferred_return_type, ");
         sql.append("f.import_statements, ");
-        sql.append("p.name AS package_name, ");
+        sql.append("p.name AS module_name, ");
+        sql.append("p.package_name, ");
         sql.append("p.org, ");
         sql.append("p.version ");
         sql.append("FROM Function f ");
@@ -650,6 +674,7 @@ public class DatabaseManager {
                         rs.getString("function_description"),
                         rs.getString("return_type"),
                         rs.getString("package_name"),
+                        rs.getString("module_name"),
                         rs.getString("org"),
                         rs.getString("version"),
                         rs.getString("resource_path"),

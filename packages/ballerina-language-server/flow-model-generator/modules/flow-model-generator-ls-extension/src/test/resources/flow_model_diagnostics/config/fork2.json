@@ -1,0 +1,312 @@
+{
+  "source": "fork.bal",
+  "description": "Test diagnostics with simple flow node",
+  "flowNode": {
+    "id": "33020",
+    "metadata": {
+      "label": "Fork",
+      "description": "Create parallel workers"
+    },
+    "codedata": {
+      "node": "FORK",
+      "lineRange": {
+        "fileName": "main.bal",
+        "startLine": {
+          "line": 1,
+          "offset": 4
+        },
+        "endLine": {
+          "line": 6,
+          "offset": 5
+        }
+      },
+      "sourceCode": "fork {\n        worker worker1 {\n        }\n        worker worker2 {\n        }\n    }"
+    },
+    "returning": false,
+    "branches": [
+      {
+        "label": "worker1",
+        "kind": "WORKER",
+        "codedata": {
+          "node": "WORKER",
+          "lineRange": {
+            "fileName": "main.bal",
+            "startLine": {
+              "line": 2,
+              "offset": 8
+            },
+            "endLine": {
+              "line": 3,
+              "offset": 9
+            }
+          },
+          "sourceCode": "worker worker1 {\n        }"
+        },
+        "repeatable": "ONE_OR_MORE",
+        "properties": {
+          "variable": {
+            "metadata": {
+              "label": "Worker Name",
+              "description": "Name of the worker"
+            },
+            "valueType": "IDENTIFIER",
+            "value": "worker1",
+            "optional": false,
+            "editable": false,
+            "advanced": false,
+            "hidden": false,
+            "codedata": {
+              "lineRange": {
+                "fileName": "main.bal",
+                "startLine": {
+                  "line": 2,
+                  "offset": 15
+                },
+                "endLine": {
+                  "line": 2,
+                  "offset": 22
+                }
+              }
+            }
+          },
+          "type": {
+            "metadata": {
+              "label": "Return Type",
+              "description": "Type of the return value"
+            },
+            "valueType": "TYPE",
+            "value": "",
+            "optional": true,
+            "editable": true,
+            "advanced": false,
+            "hidden": false
+          }
+        },
+        "children": []
+      },
+      {
+        "label": "worker1",
+        "kind": "WORKER",
+        "codedata": {
+          "node": "WORKER",
+          "lineRange": {
+            "fileName": "main.bal",
+            "startLine": {
+              "line": 4,
+              "offset": 8
+            },
+            "endLine": {
+              "line": 5,
+              "offset": 9
+            }
+          },
+          "sourceCode": "worker worker2 {\n        }"
+        },
+        "repeatable": "ONE_OR_MORE",
+        "properties": {
+          "variable": {
+            "metadata": {
+              "label": "Worker Name",
+              "description": "Name of the worker"
+            },
+            "valueType": "IDENTIFIER",
+            "value": "worker1",
+            "optional": false,
+            "editable": false,
+            "advanced": false,
+            "hidden": false,
+            "codedata": {
+              "lineRange": {
+                "fileName": "main.bal",
+                "startLine": {
+                  "line": 4,
+                  "offset": 15
+                },
+                "endLine": {
+                  "line": 4,
+                  "offset": 22
+                }
+              }
+            }
+          },
+          "type": {
+            "metadata": {
+              "label": "Return Type",
+              "description": "Type of the return value"
+            },
+            "valueType": "TYPE",
+            "value": "",
+            "optional": true,
+            "editable": true,
+            "advanced": false,
+            "hidden": false
+          }
+        },
+        "children": []
+      }
+    ],
+    "flags": 0
+  },
+  "output": {
+    "id": "33016",
+    "metadata": {
+      "label": "Fork",
+      "description": "Create parallel workers"
+    },
+    "codedata": {
+      "node": "FORK",
+      "lineRange": {
+        "fileName": "fork.bal",
+        "startLine": {
+          "line": 1,
+          "offset": 4
+        },
+        "endLine": {
+          "line": 6,
+          "offset": 1
+        }
+      },
+      "sourceCode": "fork {\n    worker worker1 {\n    }\n    worker worker1 {\n    }\n}"
+    },
+    "returning": false,
+    "branches": [
+      {
+        "label": "worker1",
+        "kind": "WORKER",
+        "codedata": {
+          "node": "WORKER",
+          "lineRange": {
+            "fileName": "fork.bal",
+            "startLine": {
+              "line": 2,
+              "offset": 4
+            },
+            "endLine": {
+              "line": 3,
+              "offset": 5
+            }
+          },
+          "sourceCode": "worker worker1 {\n    }"
+        },
+        "repeatable": "ONE_OR_MORE",
+        "properties": {
+          "variable": {
+            "metadata": {
+              "label": "Worker Name",
+              "description": "Name of the worker"
+            },
+            "valueType": "IDENTIFIER",
+            "value": "worker1",
+            "optional": false,
+            "editable": false,
+            "advanced": false,
+            "hidden": false,
+            "codedata": {
+              "lineRange": {
+                "fileName": "fork.bal",
+                "startLine": {
+                  "line": 2,
+                  "offset": 11
+                },
+                "endLine": {
+                  "line": 2,
+                  "offset": 18
+                }
+              }
+            }
+          },
+          "type": {
+            "metadata": {
+              "label": "Return Type",
+              "description": "Type of the return value"
+            },
+            "valueType": "TYPE",
+            "value": "",
+            "optional": true,
+            "editable": true,
+            "advanced": false,
+            "hidden": false
+          }
+        },
+        "children": []
+      },
+      {
+        "label": "worker1",
+        "kind": "WORKER",
+        "codedata": {
+          "node": "WORKER",
+          "lineRange": {
+            "fileName": "fork.bal",
+            "startLine": {
+              "line": 4,
+              "offset": 4
+            },
+            "endLine": {
+              "line": 5,
+              "offset": 5
+            }
+          },
+          "sourceCode": "worker worker1 {\n    }"
+        },
+        "repeatable": "ONE_OR_MORE",
+        "properties": {
+          "variable": {
+            "metadata": {
+              "label": "Worker Name",
+              "description": "Name of the worker"
+            },
+            "valueType": "IDENTIFIER",
+            "value": "worker1",
+            "optional": false,
+            "editable": false,
+            "advanced": false,
+            "hidden": false,
+            "diagnostics": {
+              "hasDiagnostics": true,
+              "diagnostics": [
+                {
+                  "severity": "ERROR",
+                  "message": "redeclared symbol '0worker1'"
+                },
+                {
+                  "severity": "ERROR",
+                  "message": "redeclared symbol 'worker1'"
+                }
+              ]
+            },
+            "codedata": {
+              "lineRange": {
+                "fileName": "fork.bal",
+                "startLine": {
+                  "line": 4,
+                  "offset": 11
+                },
+                "endLine": {
+                  "line": 4,
+                  "offset": 18
+                }
+              }
+            }
+          },
+          "type": {
+            "metadata": {
+              "label": "Return Type",
+              "description": "Type of the return value"
+            },
+            "valueType": "TYPE",
+            "value": "",
+            "optional": true,
+            "editable": true,
+            "advanced": false,
+            "hidden": false
+          }
+        },
+        "children": []
+      }
+    ],
+    "diagnostics": {
+      "hasDiagnostics": true
+    },
+    "flags": 0
+  }
+}

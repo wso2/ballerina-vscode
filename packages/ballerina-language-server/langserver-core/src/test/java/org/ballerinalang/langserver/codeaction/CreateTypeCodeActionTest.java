@@ -24,7 +24,7 @@ import java.io.IOException;
 /**
  * Test class to test the functionality of the create type code action.
  *
- * @since 2201.1.1
+ * @since 1.0.0
  */
 public class CreateTypeCodeActionTest extends AbstractCodeActionTest {
 

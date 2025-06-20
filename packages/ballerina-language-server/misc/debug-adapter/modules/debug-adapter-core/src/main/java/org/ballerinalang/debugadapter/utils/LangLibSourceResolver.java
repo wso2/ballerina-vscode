@@ -33,7 +33,7 @@ import java.util.Optional;
 /**
  * Concrete implementation of Ballerina lang-lib dependency source resolver.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class LangLibSourceResolver extends DependencySourceResolver {
 

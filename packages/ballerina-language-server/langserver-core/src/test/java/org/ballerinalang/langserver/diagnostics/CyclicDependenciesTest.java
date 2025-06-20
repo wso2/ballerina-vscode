@@ -42,7 +42,7 @@ import java.util.List;
 /**
  * Diagnostic tests related to cyclic dependencies.
  *
- * @since 2201.9.0
+ * @since 1.0.0
  */
 public class CyclicDependenciesTest {
 

@@ -23,7 +23,7 @@ import com.google.gson.JsonElement;
 /**
  * Represents the response for the deleteComponent API.
  *
- * @since 1.4.0
+ * @since 1.0.0
  */
 public class ComponentDeleteResponse extends AbstractFlowModelResponse {
 

@@ -21,7 +21,7 @@ package io.ballerina.shell.service;
  * Request format for delete definition or declaration
  * from BalShell endpoint.
  *
- * @since 2201.1.1
+ * @since 1.0.0
  */
 public class DeleteRequest {
     private final String varToDelete;

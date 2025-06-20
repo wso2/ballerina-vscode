@@ -38,7 +38,7 @@ import java.util.Set;
  * Handles diagnostic requests for type descriptor validation in the expression editor.
  *
  * @see DiagnosticsRequest
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class TypeDiagnosticRequest extends DiagnosticsRequest {
 

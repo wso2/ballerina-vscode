@@ -21,7 +21,7 @@ package io.ballerina.graphqlmodelgenerator.core.exception;
 /**
  * Represents the exception class for GraphQL model generator.
  *
- * @since 2201.5.0
+ * @since 1.0.0
  */
 public class GraphqlModelGenerationException extends Exception {
     public GraphqlModelGenerationException(String message) {

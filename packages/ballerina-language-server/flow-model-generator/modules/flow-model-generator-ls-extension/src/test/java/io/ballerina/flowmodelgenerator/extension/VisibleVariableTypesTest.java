@@ -33,7 +33,7 @@ import java.nio.file.Path;
 /**
  * Tests for the visible variable types service.
  *
- * @since 1.4.0
+ * @since 1.0.0
  */
 public class VisibleVariableTypesTest extends AbstractLSTest {
 

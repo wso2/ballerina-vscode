@@ -23,7 +23,7 @@ import com.google.gson.JsonElement;
 /**
  * Represents the response for updating multiple types.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class MultipleTypeUpdateResponse extends AbstractFlowModelResponse {
 

@@ -110,7 +110,7 @@ import static org.ballerinalang.debugadapter.variable.VariableUtils.getPackageOr
  * invoke its '__getEvaluationResult' method. It will return the result of the expression as its return value.
  * </ol>
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class ExpressionAsProgramEvaluator extends Evaluator {
 

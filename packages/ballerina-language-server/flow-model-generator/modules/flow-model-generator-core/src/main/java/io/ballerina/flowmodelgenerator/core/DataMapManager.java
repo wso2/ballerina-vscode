@@ -47,6 +47,8 @@ import io.ballerina.compiler.syntax.tree.FunctionArgumentNode;
 import io.ballerina.compiler.syntax.tree.FunctionCallExpressionNode;
 import io.ballerina.compiler.syntax.tree.ImplicitNewExpressionNode;
 import io.ballerina.compiler.syntax.tree.IntermediateClauseNode;
+import io.ballerina.compiler.syntax.tree.LetExpressionNode;
+import io.ballerina.compiler.syntax.tree.LetVariableDeclarationNode;
 import io.ballerina.compiler.syntax.tree.ListConstructorExpressionNode;
 import io.ballerina.compiler.syntax.tree.MappingConstructorExpressionNode;
 import io.ballerina.compiler.syntax.tree.MappingFieldNode;
@@ -109,7 +111,7 @@ import java.util.Optional;
 /**
  * Generates types of the data mapper model.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class DataMapManager {
 
@@ -194,10 +196,17 @@ public class DataMapManager {
             return null;
         }
 
-        Type type;
+        Type type = Type.fromSemanticSymbol(targetNode.typeSymbol());
+        String name = targetNode.name();
+        MappingPort outputPort = getMappingPort(name, name, type);
         ExpressionNode expressionNode = targetNode.expressionNode();
+        if (expressionNode == null) {
+            return gson.toJsonTree(new Model(inputPorts, outputPort, new ArrayList<>(), null));
+        }
+
         Query query = null;
-        if (expressionNode != null && targetNode.expressionNode().kind() == SyntaxKind.QUERY_EXPRESSION) {
+        List<MappingPort> subMappingPorts = null;
+        if (expressionNode.kind() == SyntaxKind.QUERY_EXPRESSION) {
             QueryExpressionNode queryExpressionNode = (QueryExpressionNode) targetNode.expressionNode();
             FromClauseNode fromClauseNode = queryExpressionNode.queryPipeline().fromClause();
             List<String> inputs = new ArrayList<>();
@@ -222,20 +231,29 @@ public class DataMapManager {
             }
             query = new Query(targetField, inputs, fromClause,
                     getQueryIntermediateClause(queryExpressionNode.queryPipeline()), resultClause);
-        }
-        type = Type.fromSemanticSymbol(targetNode.typeSymbol());
-        String name = targetNode.name();
-        MappingPort outputPort = getMappingPort(name, name, type);
-        List<Mapping> mappings = new ArrayList<>();
-        if (expressionNode != null) {
-            TypeDescKind typeDescKind = CommonUtils.getRawType(targetNode.typeSymbol()).typeKind();
-            if (typeDescKind == TypeDescKind.RECORD) {
-                generateRecordVariableDataMapping(expressionNode, mappings, name, newSemanticModel);
-            } else if (typeDescKind == TypeDescKind.ARRAY) {
-                generateArrayVariableDataMapping(expressionNode, mappings, name, newSemanticModel);
+        } else if (expressionNode.kind() == SyntaxKind.LET_EXPRESSION) {
+            LetExpressionNode letExpressionNode = (LetExpressionNode) expressionNode;
+            subMappingPorts = new ArrayList<>();
+            for (LetVariableDeclarationNode letVarDeclaration : letExpressionNode.letVarDeclarations()) {
+                Optional<Symbol> optSymbol = newSemanticModel.symbol(letVarDeclaration);
+                if (optSymbol.isEmpty()) {
+                    continue;
+                }
+                Symbol symbol = optSymbol.get();
+                String letVarName = symbol.getName().orElseThrow();
+                subMappingPorts.add(getMappingPort(letVarName, letVarName, Type.fromSemanticSymbol(symbol)));
             }
         }
-        return gson.toJsonTree(new Model(inputPorts, outputPort, mappings, query));
+
+        List<Mapping> mappings = new ArrayList<>();
+        TypeDescKind typeDescKind = CommonUtils.getRawType(targetNode.typeSymbol()).typeKind();
+        if (typeDescKind == TypeDescKind.RECORD) {
+            generateRecordVariableDataMapping(expressionNode, mappings, name, newSemanticModel);
+        } else if (typeDescKind == TypeDescKind.ARRAY) {
+            generateArrayVariableDataMapping(expressionNode, mappings, name, newSemanticModel);
+        }
+
+        return gson.toJsonTree(new Model(inputPorts, outputPort, subMappingPorts, mappings, query));
     }
 
     private TargetNode getTargetNode(Node parentNode, String targetField, NodeKind nodeKind, String propertyKey,
@@ -1215,14 +1233,19 @@ public class DataMapManager {
         return intermediateClauses;
     }
 
-    private record Model(List<MappingPort> inputs, MappingPort output, List<Mapping> mappings, Query query) {
+    private record Model(List<MappingPort> inputs, MappingPort output, List<MappingPort> subMappings,
+                         List<Mapping> mappings, Query query) {
 
         private Model(List<MappingPort> inputs, MappingPort output, List<Mapping> mappings) {
-            this(inputs, output, mappings, null);
+            this(inputs, output, null, mappings, null);
         }
 
         private Model(List<MappingPort> inputs, MappingPort output, Query query) {
-            this(inputs, output, new ArrayList<>(), query);
+            this(inputs, output, null, new ArrayList<>(), query);
+        }
+
+        private Model(List<MappingPort> inputs, MappingPort output, List<Mapping> mappings, Query query) {
+            this(inputs, output, null, mappings, query);
         }
     }
 

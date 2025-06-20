@@ -34,7 +34,7 @@ import java.util.Objects;
 /**
  * Analyzes the participant in the sequence diagram.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class ParticipantAnalyzer extends NodeVisitor {
 

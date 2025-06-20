@@ -40,7 +40,7 @@ import java.util.ListIterator;
 /**
  * Proxy impkementation for JDI thread reference.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public final class ThreadReferenceProxyImpl extends ObjectReferenceProxyImpl implements ThreadReferenceProxy {
     private static final Logger LOG = LoggerFactory.getLogger(ThreadReferenceProxyImpl.class);

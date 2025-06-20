@@ -41,7 +41,7 @@ import java.util.Optional;
 /**
  * Utilities for the definition operations.
  *
- * @since 1.2.0
+ * @since 1.0.0
  */
 public final class DefinitionUtil {
 

@@ -37,7 +37,7 @@ import java.util.ArrayList;
 /**
  * Tests the expression file scheme based workspace proxy operations.
  * 
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class TestExpressionFileScheme {
     private static final Path RESOURCE_DIRECTORY = Path.of("src/test/resources/project");

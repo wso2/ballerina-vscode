@@ -24,7 +24,7 @@ import java.util.List;
 /**
  * Represents the SPI interface for the Language Server Code Lenses Provider.
  * 
- * @since 0.990.3
+ * @since 1.0.0
  */
 public interface LSCodeLensesProvider {
     /**

@@ -49,6 +49,7 @@
           "node": "REMOTE_ACTION_CALL",
           "org": "ballerinax",
           "module": "mysql",
+          "packageName": "mysql",
           "object": "Client",
           "symbol": "queryRow",
           "version": "1.15.0",
@@ -96,7 +97,8 @@
             "codedata": {
               "kind": "PARAM_FOR_TYPE_INFER",
               "originalName": "returnType"
-            }
+            },
+            "defaultValue": "anydata"
           },
           "sqlQuery": {
             "metadata": {
@@ -119,13 +121,15 @@
               {
                 "type": "ParameterizedQuery",
                 "packageInfo": "ballerina:sql:1.16.0",
+                "packageName": "sql",
                 "kind": "OBJECT_TYPE",
                 "selected": true
               }
             ],
             "imports": {
               "sql": "ballerina/sql"
-            }
+            },
+            "defaultValue": "``"
           },
           "checkError": {
             "metadata": {
@@ -137,7 +141,7 @@
             "optional": false,
             "editable": true,
             "advanced": true,
-            "hidden": false,
+            "hidden": true,
             "imports": {
               "sql": "ballerina/sql"
             }
@@ -240,10 +244,12 @@
               {
                 "type": "string",
                 "packageInfo": "",
+                "packageName": "",
                 "kind": "BASIC_TYPE",
                 "selected": false
               }
-            ]
+            ],
+            "defaultValue": "\"\""
           },
           "user": {
             "metadata": {
@@ -263,18 +269,21 @@
             },
             "typeMembers": [
               {
-                "type": "string",
+                "type": "()",
                 "packageInfo": "",
+                "packageName": "",
                 "kind": "BASIC_TYPE",
                 "selected": false
               },
               {
-                "type": "()",
+                "type": "string",
                 "packageInfo": "",
+                "packageName": "",
                 "kind": "BASIC_TYPE",
                 "selected": false
               }
-            ]
+            ],
+            "defaultValue": "()"
           },
           "password": {
             "metadata": {
@@ -294,18 +303,21 @@
             },
             "typeMembers": [
               {
-                "type": "string",
+                "type": "()",
                 "packageInfo": "",
+                "packageName": "",
                 "kind": "BASIC_TYPE",
                 "selected": false
               },
               {
-                "type": "()",
+                "type": "string",
                 "packageInfo": "",
+                "packageName": "",
                 "kind": "BASIC_TYPE",
                 "selected": false
               }
-            ]
+            ],
+            "defaultValue": "()"
           },
           "database": {
             "metadata": {
@@ -325,18 +337,21 @@
             },
             "typeMembers": [
               {
-                "type": "string",
+                "type": "()",
                 "packageInfo": "",
+                "packageName": "",
                 "kind": "BASIC_TYPE",
                 "selected": false
               },
               {
-                "type": "()",
+                "type": "string",
                 "packageInfo": "",
+                "packageName": "",
                 "kind": "BASIC_TYPE",
                 "selected": false
               }
-            ]
+            ],
+            "defaultValue": "()"
           },
           "port": {
             "metadata": {
@@ -358,10 +373,12 @@
               {
                 "type": "int",
                 "packageInfo": "",
+                "packageName": "",
                 "kind": "BASIC_TYPE",
                 "selected": false
               }
-            ]
+            ],
+            "defaultValue": "0"
           },
           "options": {
             "metadata": {
@@ -381,18 +398,21 @@
             },
             "typeMembers": [
               {
-                "type": "Options",
-                "packageInfo": "ballerinax:mysql:1.15.0",
-                "kind": "RECORD_TYPE",
+                "type": "()",
+                "packageInfo": "",
+                "packageName": "",
+                "kind": "BASIC_TYPE",
                 "selected": false
               },
               {
-                "type": "()",
-                "packageInfo": "",
-                "kind": "BASIC_TYPE",
+                "type": "Options",
+                "packageInfo": "ballerinax:mysql:1.15.0",
+                "packageName": "mysql",
+                "kind": "RECORD_TYPE",
                 "selected": false
               }
-            ]
+            ],
+            "defaultValue": "()"
           },
           "connectionPool": {
             "metadata": {
@@ -412,21 +432,24 @@
             },
             "typeMembers": [
               {
-                "type": "ConnectionPool",
-                "packageInfo": "ballerina:sql:1.16.0",
-                "kind": "RECORD_TYPE",
+                "type": "()",
+                "packageInfo": "",
+                "packageName": "",
+                "kind": "BASIC_TYPE",
                 "selected": false
               },
               {
-                "type": "()",
-                "packageInfo": "",
-                "kind": "BASIC_TYPE",
+                "type": "ConnectionPool",
+                "packageInfo": "ballerina:sql:1.16.0",
+                "packageName": "sql",
+                "kind": "RECORD_TYPE",
                 "selected": false
               }
             ],
             "imports": {
               "sql": "ballerina/sql"
-            }
+            },
+            "defaultValue": "()"
           },
           "checkError": {
             "metadata": {
@@ -438,7 +461,7 @@
             "optional": false,
             "editable": false,
             "advanced": true,
-            "hidden": false,
+            "hidden": true,
             "imports": {
               "sql": "ballerina/sql"
             }
@@ -453,7 +476,7 @@
             "optional": false,
             "editable": true,
             "advanced": true,
-            "hidden": false,
+            "hidden": true,
             "imports": {
               "sql": "ballerina/sql"
             }
@@ -497,7 +520,7 @@
             "optional": false,
             "editable": false,
             "advanced": false,
-            "hidden": false,
+            "hidden": true,
             "codedata": {},
             "imports": {
               "sql": "ballerina/sql"

@@ -29,7 +29,7 @@ import com.google.gson.JsonElement;
  * @param propertyKey The property that needs to consider to get the type
  * @param targetField The target field that needs to consider to get the type
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public record DataMapperSourceRequest(String filePath, JsonElement codedata, JsonElement mapping, String propertyKey,
                                       String targetField) {

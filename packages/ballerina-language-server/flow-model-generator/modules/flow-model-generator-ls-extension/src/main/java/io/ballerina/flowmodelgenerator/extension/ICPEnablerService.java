@@ -59,7 +59,7 @@ import java.util.stream.Collectors;
 /**
  * Service for enabling ICP.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 @JavaSPIService("org.ballerinalang.langserver.commons.service.spi.ExtendedLanguageServerService")
 @JsonSegment("icpService")

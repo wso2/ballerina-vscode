@@ -55,7 +55,7 @@ allprojects {
     }
 
     ext {
-        snapshotVersion= '-SNAPSHOT'
+        snapshotVersion = '-SNAPSHOT'
         timestampedVersionRegex = '.*-\\d{8}-\\d{6}-\\w.*\$'
     }
 }
@@ -68,7 +68,7 @@ subprojects {
     }
 
     dependencies {
-        jbalTools ("org.ballerinalang:jballerina-tools:${ballerinaLangVersion}") {
+        jbalTools("org.ballerinalang:jballerina-tools:${ballerinaLangVersion}") {
             transitive = false
         }
 
@@ -137,6 +137,75 @@ def pullBallerinaModule(String packageName, String version = null, String orgNam
     }
 }
 
+// Building a custom Ballerina distribution for testing
+ext.configureBallerinaDistribution = { Project targetProject ->
+    targetProject.with {
+        def balDistribution = file("$targetProject.buildDir/jballerina-tools-${ballerinaLangVersion}")
+
+        tasks.register('unpackJballerinaTools') {
+            project.configurations.each { configuration ->
+                if (configuration.name == "externalJars") {
+                    dependsOn(project.copyToLib)
+                }
+            }
+
+            doLast {
+                project.configurations.jbalTools.resolvedConfiguration.resolvedArtifacts.each { artifact ->
+                    project.copy {
+                        from project.zipTree(artifact.getFile())
+                        into new File("${project.buildDir}/")
+                    }
+                }
+            }
+        }
+
+        tasks.register('buildAndCopyLangserverStdlib') {
+            dependsOn ':langserver-stdlib:build'
+
+            doLast {
+                // Get all .bala files from the source directory
+                fileTree("${rootProject.project(':langserver-stdlib').buildDir}/ballerina-src/target/bala").include("**/*.bala").each { balaFile ->
+                    // Parse the bala filename to extract organization, package, jdk, and version
+                    // Format: <org>-<package>-<jdk>-<version>.bala
+                    def fileName = balaFile.name.replace('.bala', '')
+                    def parts = fileName.split('-')
+
+                    if (parts.length >= 4) {
+                        def org = parts[0]
+                        def version = parts[parts.length - 1]
+                        def jdk = parts[parts.length - 2]
+                        // Package name could be multiple parts joined with hyphens
+                        def packageParts = parts[1..(parts.length - 3)]
+                        def packageName = packageParts.join('-')
+
+                        // Create directory structure: <org>/<package>/<version>/<jdk>
+                        def targetDir = "${project.buildDir}/jballerina-tools-${project.ballerinaLangVersion}/repo/bala/${org}/${packageName}/${version}/${jdk}"
+
+                        // Extract the .bala file to the destination directory
+                        // .bala files are ZIP archives, so we can use zipTree to extract them
+                        copy {
+                            from zipTree(balaFile)
+                            into targetDir
+                        }
+
+                        println "Extracted ${balaFile.name} to ${targetDir}"
+                    } else {
+                        println "Warning: Bala file ${balaFile.name} does not match the expected format <org>-<package>-<jdk>-<version>.bala"
+                    }
+                }
+            }
+        }
+
+        // Configure test task to use the common dependencies and system properties
+        test {
+            dependsOn unpackJballerinaTools
+            dependsOn buildAndCopyLangserverStdlib
+            systemProperty "ballerina.home", balDistribution
+            systemProperty "responseTimeThreshold", 2000
+        }
+    }
+}
+
 configurations {
     externalJarDeps
 }
@@ -162,42 +231,42 @@ dependencies {
 task generatePackPom {
     description 'Generates POM file for inclusion in the pack JAR'
     group 'build'
-    
+
     def outputDir = file("$buildDir/generated-pack-pom")
     outputs.dir outputDir
-    
+
     doLast {
         // Create processed POM from template
         def pomTemplate = file('build-config/maven-template/pom-template.xml')
         if (!pomTemplate.exists()) {
             throw new GradleException("POM template file not found: ${pomTemplate.absolutePath}")
         }
-        
+
         def pomContent = pomTemplate.text
-            .replace('{{version}}', project.version)
-            .replace('{{groupId}}', project.group)
-            .replace('{{artifactId}}', project.name)
-            .replace('{{ballerinaLangVersion}}', ballerinaLangVersion ?: 'unknown')
-        
+                .replace('{{version}}', project.version)
+                .replace('{{groupId}}', project.group)
+                .replace('{{artifactId}}', project.name)
+                .replace('{{ballerinaLangVersion}}', ballerinaLangVersion ?: 'unknown')
+
         // Create META-INF/maven directory structure
         def metaInfDir = file("$outputDir/META-INF/maven/${project.group}/${project.name}")
         metaInfDir.mkdirs()
-        
+
         // Write processed POM
         def pomFile = new File(metaInfDir, 'pom.xml')
         pomFile.text = pomContent
-        
+
         // Create pom.properties file 
         def pomPropsTemplate = file('build-config/maven-template/pom-properties-template.properties')
         if (!pomPropsTemplate.exists()) {
             throw new GradleException("POM properties template file not found: ${pomPropsTemplate.absolutePath}")
         }
-        
+
         def pomPropsContent = pomPropsTemplate.text
-            .replace('{{version}}', project.version)
-            .replace('{{groupId}}', project.group)
-            .replace('{{artifactId}}', project.name)
-        
+                .replace('{{version}}', project.version)
+                .replace('{{groupId}}', project.group)
+                .replace('{{artifactId}}', project.name)
+
         def pomPropsFile = new File(metaInfDir, 'pom.properties')
         pomPropsFile.text = pomPropsContent
     }
@@ -244,12 +313,12 @@ task pack(type: com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar) {
     exclude 'META-INF/*.SF'
     exclude 'META-INF/*.DSA'
     exclude 'META-INF/*.RSA'
-    
+
     // Exclude all dependency Maven metadata but keep our main project's POM
     exclude { details ->
         def path = details.path
         return !path.contains("META-INF/maven/${project.group}/${project.name}/") &&
-            (path.startsWith('META-INF/maven/') && (path.contains('/pom.xml') || path.contains('/pom.properties')))
+                (path.startsWith('META-INF/maven/') && (path.contains('/pom.xml') || path.contains('/pom.properties')))
     }
 }
 
@@ -292,7 +361,7 @@ task buildCommons {
     dependsOn(":model-generator-commons:build")
 }
 
-publishing {    
+publishing {
     publications {
         mavenJava(MavenPublication) { publication ->
             publication.artifact(tasks.pack) {

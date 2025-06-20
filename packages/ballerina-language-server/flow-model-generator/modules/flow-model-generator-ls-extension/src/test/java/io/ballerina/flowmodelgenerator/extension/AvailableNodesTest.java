@@ -32,7 +32,7 @@ import java.nio.file.Path;
 /**
  * Test for the getting available nodes service.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class AvailableNodesTest extends AbstractLSTest {
 
@@ -59,9 +59,11 @@ public class AvailableNodesTest extends AbstractLSTest {
 
     @Override
     protected String[] skipList() {
-        //TODO: Need a better approach on how we can mock the central data
         return new String[]{
-                "remote_connector.json"
+                //TODO: Need a better approach on how we can mock the central data
+                "remote_connector.json",
+                // TODO: Fix the OOM issue in Windows
+                "resource_connector.json"
         };
     }
 

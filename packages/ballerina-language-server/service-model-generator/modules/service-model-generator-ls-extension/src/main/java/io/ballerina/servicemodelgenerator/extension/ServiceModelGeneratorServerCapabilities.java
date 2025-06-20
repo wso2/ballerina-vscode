@@ -23,7 +23,7 @@ import org.ballerinalang.langserver.commons.registration.BallerinaServerCapabili
 /**
  * Represents server capabilities for the trigger model generator service.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class ServiceModelGeneratorServerCapabilities extends BallerinaServerCapability {
     public ServiceModelGeneratorServerCapabilities() {

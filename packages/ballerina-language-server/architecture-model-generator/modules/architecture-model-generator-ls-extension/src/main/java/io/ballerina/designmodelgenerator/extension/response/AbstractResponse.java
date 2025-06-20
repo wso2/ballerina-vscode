@@ -23,7 +23,7 @@ import java.util.Arrays;
 /**
  * Represents the response for the design model getDesignModel API.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class AbstractResponse {
 

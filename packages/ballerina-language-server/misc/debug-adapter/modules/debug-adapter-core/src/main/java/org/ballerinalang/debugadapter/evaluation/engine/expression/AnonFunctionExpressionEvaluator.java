@@ -22,7 +22,7 @@ import org.ballerinalang.debugadapter.EvaluationContext;
 /**
  * Anonymous function expression evaluator implementation.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class AnonFunctionExpressionEvaluator extends ExpressionAsProgramEvaluator {
 

@@ -97,7 +97,7 @@ import static io.ballerina.servicemodelgenerator.extension.util.Utils.upperCaseF
 /**
  * Util class for Listener related operations.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class ListenerUtil {
 
@@ -370,7 +370,7 @@ public class ListenerUtil {
                     .setCodedata(codedata)
                     .value("")
                     .valueType("EXPRESSION")
-                    .setPlaceholder(paramResult.defaultValue())
+                    .setPlaceholder(paramResult.placeholder())
                     .setValueTypeConstraint(paramResult.type().toString())
                     .editable(true)
                     .isType(false)

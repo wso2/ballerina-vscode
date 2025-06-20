@@ -41,7 +41,7 @@ import java.util.Map;
 /**
  * Test to create multiple types.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class CreateMultipleTypesTest extends AbstractLSTest {
     private static final Type textEditListType = new TypeToken<Map<String, List<TextEdit>>>() {

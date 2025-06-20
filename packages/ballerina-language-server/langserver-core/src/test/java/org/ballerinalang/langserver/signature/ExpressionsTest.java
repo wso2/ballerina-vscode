@@ -26,7 +26,7 @@ import java.util.List;
 /**
  * Test class for Expressions Signature help.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class ExpressionsTest extends AbstractSignatureHelpTest {
     @Override

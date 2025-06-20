@@ -38,7 +38,7 @@ import java.util.Optional;
 /**
  * Test cases for the flow model generator service.
  *
- * @since 1.4.0
+ * @since 1.0.0
  */
 public class ConfigVariablesTest extends AbstractLSTest {
 
@@ -114,7 +114,7 @@ public class ConfigVariablesTest extends AbstractLSTest {
      *
      * @param project         Path to config file
      * @param configVariables Config variables
-     * @since 1.4.0
+     * @since 1.0.0
      */
     private record ConfigVariablesTestConfig(String project, List<FlowNode> configVariables) {
 

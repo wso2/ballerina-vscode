@@ -31,7 +31,7 @@ import java.nio.file.Path;
 /**
  * Test syntaxApiCallsGen methods.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class SyntaxApiCallsGenTest {
     private final Path syntaxApiCallsDir = FileUtils.RES_DIR.resolve("extensions")

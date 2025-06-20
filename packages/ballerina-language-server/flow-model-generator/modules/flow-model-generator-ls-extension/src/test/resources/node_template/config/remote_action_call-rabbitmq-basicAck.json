@@ -9,6 +9,7 @@
     "node": "REMOTE_ACTION_CALL",
     "org": "ballerinax",
     "module": "rabbitmq",
+    "packageName": "rabbitmq",
     "object": "Caller",
     "symbol": "basicAck",
     "version": "3.2.0",
@@ -26,6 +27,7 @@
       "node": "REMOTE_ACTION_CALL",
       "org": "ballerinax",
       "module": "rabbitmq",
+      "packageName": "rabbitmq",
       "object": "Caller",
       "symbol": "basicAck",
       "version": "3.2.0",
@@ -66,10 +68,12 @@
           {
             "type": "boolean",
             "packageInfo": "",
+            "packageName": "",
             "kind": "BASIC_TYPE",
             "selected": false
           }
-        ]
+        ],
+        "defaultValue": "false"
       },
       "checkError": {
         "metadata": {
@@ -81,7 +85,7 @@
         "optional": false,
         "editable": true,
         "advanced": true,
-        "hidden": false
+        "hidden": true
       }
     },
     "flags": 0

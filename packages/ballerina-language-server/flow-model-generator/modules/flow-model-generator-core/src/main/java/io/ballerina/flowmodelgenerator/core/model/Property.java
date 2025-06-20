@@ -39,7 +39,8 @@ import java.util.Set;
  * @param valueTypeConstraint constraint of the value type
  * @param value               value of the property
  * @param oldValue            old value of the property (before modification)
- * @param placeholder         default value of the property
+ * @param placeholder         placeholder value of the property
+ * @param defaultValue        default value of the property
  * @param optional            whether the property can be left empty
  * @param editable            whether the property is not readonly
  * @param advanced            whether the property should be shown in the advanced tab
@@ -50,12 +51,13 @@ import java.util.Set;
  * @param typeMembers         member types of the type constrain
  * @param advancedValue       advanced value of the property
  * @param imports             import statements of the dependent types in the format prefix -> moduleId
- * @since 2.0.0
+ * @since 1.0.0
  */
 public record Property(Metadata metadata, String valueType, Object valueTypeConstraint, Object value, Object oldValue,
                        String placeholder, boolean optional, boolean editable, boolean advanced, boolean hidden,
                        Boolean modified, Diagnostics diagnostics, PropertyCodedata codedata,
-                       List<PropertyTypeMemberInfo> typeMembers, Object advancedValue, Map<String, String> imports) {
+                       List<PropertyTypeMemberInfo> typeMembers, Object advancedValue, Map<String, String> imports,
+                       String defaultValue) {
 
     private static final Gson gson = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
 
@@ -282,6 +284,7 @@ public record Property(Metadata metadata, String valueType, Object valueTypeCons
         private List<PropertyTypeMemberInfo> typeMembers;
         private Object advancedValue;
         private Map<String, String> imports;
+        private String defaultValue;
 
         public Builder(T parentBuilder) {
             super(parentBuilder);
@@ -353,6 +356,11 @@ public record Property(Metadata metadata, String valueType, Object valueTypeCons
             return this;
         }
 
+        public Builder<T> hidden(boolean hidden) {
+            this.hidden = hidden;
+            return this;
+        }
+
         public Builder<T> hidden() {
             this.hidden = true;
             return this;
@@ -367,13 +375,14 @@ public record Property(Metadata metadata, String valueType, Object valueTypeCons
 
         public Builder<T> typeMembers(List<ParameterMemberTypeData> memberTypeData) {
             this.typeMembers = memberTypeData.stream().map(memberType -> new PropertyTypeMemberInfo(memberType.type(),
-                    memberType.packageInfo(), memberType.kind(), false)).toList();
+                    memberType.packageInfo(), memberType.packageName(), memberType.kind(), false)).toList();
             return this;
         }
 
         public Builder<T> typeMembers(List<ParameterMemberTypeData> memberTypeData, String selectedType) {
             this.typeMembers = memberTypeData.stream().map(memberType -> new PropertyTypeMemberInfo(memberType.type(),
-                    memberType.packageInfo(), memberType.kind(), memberType.type().equals(selectedType))).toList();
+                    memberType.packageInfo(), memberType.packageName(), memberType.kind(),
+                    memberType.type().equals(selectedType))).toList();
             return this;
         }
 
@@ -422,12 +431,17 @@ public record Property(Metadata metadata, String valueType, Object valueTypeCons
             return this.diagnosticsBuilder;
         }
 
+        public Builder<T> defaultValue(String defaultValue) {
+            this.defaultValue = defaultValue;
+            return this;
+        }
+
         public Property build() {
             Property property = new Property(metadataBuilder == null ? null : metadataBuilder.build(), type,
                     typeConstraint, value, oldValue, placeholder, optional, editable, advanced, hidden, modified,
                     diagnosticsBuilder == null ? null : diagnosticsBuilder.build(),
                     codedataBuilder == null ? null : codedataBuilder.build(), typeMembers, advancedValue,
-                    imports == null ? null : imports);
+                    imports == null ? null : imports, defaultValue);
             this.metadataBuilder = null;
             this.type = null;
             this.typeConstraint = null;
@@ -442,6 +456,7 @@ public record Property(Metadata metadata, String valueType, Object valueTypeCons
             this.codedataBuilder = null;
             this.typeMembers = null;
             this.advancedValue = null;
+            this.defaultValue = null;
             return property;
         }
     }

@@ -50,7 +50,7 @@ import static org.ballerinalang.langserver.completions.util.SortingUtil.genSortT
 /**
  * Completion provider for {@link ServiceDeclarationNode} context.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 @JavaSPIService("org.ballerinalang.langserver.commons.completion.spi.BallerinaCompletionProvider")
 public class ServiceDeclarationNodeContext extends ObjectBodiedNodeContextProvider<ServiceDeclarationNode> {

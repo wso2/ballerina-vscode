@@ -42,7 +42,7 @@ import java.util.stream.Collectors;
 /**
  * Code Action to remove an unused or re-declared module import.
  *
- * @since 2201.1.1
+ * @since 1.0.0
  */
 @JavaSPIService("org.ballerinalang.langserver.commons.codeaction.spi.LSCodeActionProvider")
 public class RemoveImportCodeAction implements DiagnosticBasedCodeActionProvider {

@@ -1,18 +1,15 @@
-import ballerinax/np;
-
-function suggestMovieGenre(string input, np:Prompt prompt = `
+function suggestMovieGenre() returns string|error => natural {
     **Assumption**
     Think yourself as a movie expert
 
     **What to do**
-    Suggest a movie genre matching to the input given:
-    ${input}
+    Suggest a movie genre
 
     **Output**
     string - The suggested movie genre
-`) returns string|error = @np:NaturalFunction external;
+};
 
-function suggestMovieName1(string genre, int n, np:Prompt prompt = `
+function suggestMovieName1(string genre, int i) returns string|error => natural {
     **Assumption**
     Think yourself as a movie expert
 
@@ -22,9 +19,9 @@ function suggestMovieName1(string genre, int n, np:Prompt prompt = `
 
     **Output**
     string - The suggested movie name
-`) returns string|error = @np:NaturalFunction external;
+};
 
-function suggestMovieName2(np:Prompt prompt = `
+function suggestMovieName2() returns string|error => natural {
     **Assumption**
     Think yourself as a movie expert
 
@@ -33,9 +30,9 @@ function suggestMovieName2(np:Prompt prompt = `
 
     **Output**
     string - The suggested movie name
-`) returns string|error = @np:NaturalFunction external;
+};
 
-function rateMovie(string movieName, np:Context context, np:Prompt prompt = `
+function rateMovie(string movieName) returns int|error => natural {
     **Assumption**
     Think yourself as a movie expert
 
@@ -44,4 +41,4 @@ function rateMovie(string movieName, np:Context context, np:Prompt prompt = `
 
     **Output**
     int - number between 1 and 10 as the rating
-`) returns int|error = @np:NaturalFunction external;
+};

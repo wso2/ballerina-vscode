@@ -21,7 +21,7 @@ import org.eclipse.lsp4j.SemanticTokenTypes;
 /**
  * Represents the semantic tokens APIs related context.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public interface SemanticTokensContext extends DocumentServiceContext {
 

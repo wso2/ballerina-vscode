@@ -48,6 +48,7 @@
           "node": "FUNCTION_CALL",
           "org": "$anon",
           "module": ".",
+          "packageName": ".",
           "symbol": "fnWithError",
           "version": "0.0.0",
           "lineRange": {
@@ -97,7 +98,7 @@
             "optional": false,
             "editable": true,
             "advanced": true,
-            "hidden": false
+            "hidden": true
           }
         },
         "flags": 1
@@ -112,6 +113,7 @@
           "node": "FUNCTION_CALL",
           "org": "$anon",
           "module": ".",
+          "packageName": ".",
           "symbol": "fnWithError",
           "version": "0.0.0",
           "lineRange": {
@@ -161,7 +163,7 @@
             "optional": false,
             "editable": true,
             "advanced": true,
-            "hidden": false
+            "hidden": true
           }
         },
         "flags": 2
@@ -176,6 +178,7 @@
           "node": "FUNCTION_CALL",
           "org": "$anon",
           "module": ".",
+          "packageName": ".",
           "symbol": "fnWithErrorAndValue",
           "version": "0.0.0",
           "lineRange": {
@@ -225,7 +228,7 @@
             "optional": false,
             "editable": true,
             "advanced": true,
-            "hidden": false
+            "hidden": true
           },
           "variable": {
             "metadata": {
@@ -279,6 +282,7 @@
           "node": "FUNCTION_CALL",
           "org": "$anon",
           "module": ".",
+          "packageName": ".",
           "symbol": "fnWithErrorAndValue",
           "version": "0.0.0",
           "lineRange": {
@@ -328,7 +332,7 @@
             "optional": false,
             "editable": true,
             "advanced": true,
-            "hidden": false
+            "hidden": true
           },
           "variable": {
             "metadata": {
@@ -382,6 +386,7 @@
           "node": "FUNCTION_CALL",
           "org": "$anon",
           "module": ".",
+          "packageName": ".",
           "symbol": "fnWithErrorAndValue",
           "version": "0.0.0",
           "lineRange": {
@@ -431,7 +436,7 @@
             "optional": false,
             "editable": true,
             "advanced": true,
-            "hidden": false
+            "hidden": true
           },
           "variable": {
             "metadata": {
@@ -485,6 +490,7 @@
           "node": "FUNCTION_CALL",
           "org": "$anon",
           "module": ".",
+          "packageName": ".",
           "symbol": "fnWithErrorAndValue",
           "version": "0.0.0",
           "lineRange": {
@@ -534,7 +540,7 @@
             "optional": false,
             "editable": true,
             "advanced": true,
-            "hidden": false
+            "hidden": true
           },
           "variable": {
             "metadata": {

@@ -28,7 +28,7 @@ package io.ballerina.testmanagerservice.extension.model;
  * @param editable editable parameter
  * @param advanced advanced parameter
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public record FunctionParameter(Property type, Property variable, Property defaultValue,
                                 boolean optional, boolean editable, boolean advanced) {

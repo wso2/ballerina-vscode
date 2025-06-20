@@ -26,7 +26,7 @@ import java.util.Optional;
  * 
  * @param <T> type of the capability
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public abstract class BallerinaClientCapabilitySetter<T extends BallerinaClientCapability> {
     private final Gson gson = new Gson();

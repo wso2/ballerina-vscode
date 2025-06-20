@@ -31,7 +31,7 @@ import java.nio.file.Path;
 /**
  * Tests for getting the artifacts for a package.
  *
- * @since 2.3.0
+ * @since 1.0.0
  */
 public class ArtifactsTest extends AbstractLSTest {
 

@@ -65,6 +65,7 @@
                   "node": "FUNCTION_CALL",
                   "org": "$anon",
                   "module": ".",
+                  "packageName": ".",
                   "symbol": "nameOrError",
                   "version": "0.0.0",
                   "lineRange": {
@@ -114,7 +115,7 @@
                     "optional": false,
                     "editable": true,
                     "advanced": true,
-                    "hidden": false
+                    "hidden": true
                   }
                 },
                 "flags": 1
@@ -215,6 +216,7 @@
                   "node": "FUNCTION_CALL",
                   "org": "$anon",
                   "module": ".",
+                  "packageName": ".",
                   "symbol": "nameOrError",
                   "version": "0.0.0",
                   "lineRange": {
@@ -264,7 +266,7 @@
                     "optional": false,
                     "editable": true,
                     "advanced": true,
-                    "hidden": false
+                    "hidden": true
                   }
                 },
                 "flags": 1
@@ -465,6 +467,7 @@
                   "node": "FUNCTION_CALL",
                   "org": "$anon",
                   "module": ".",
+                  "packageName": ".",
                   "symbol": "nameOrError",
                   "version": "0.0.0",
                   "lineRange": {
@@ -514,7 +517,7 @@
                     "optional": false,
                     "editable": true,
                     "advanced": true,
-                    "hidden": false
+                    "hidden": true
                   }
                 },
                 "flags": 1

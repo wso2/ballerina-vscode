@@ -23,7 +23,7 @@ import io.ballerina.tools.text.LinePosition;
 /**
  * Represents the response for the flow model getEnclosedFlowDesignModel API.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class EnclosedFuncDefResponse extends AbstractFlowModelResponse {
     private String filePath;

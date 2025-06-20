@@ -44,7 +44,7 @@ import java.util.Optional;
  * @param icon     icon representing the artifact
  * @param children map of child artifacts (id -> child)
  * @param module   module name of the artifact
- * @since 2.3.0
+ * @since 1.0.0
  */
 public record Artifact(String id, LineRange location, String type, String name, String accessor,
                        String scope, String icon, String module, Map<String, Artifact> children) {

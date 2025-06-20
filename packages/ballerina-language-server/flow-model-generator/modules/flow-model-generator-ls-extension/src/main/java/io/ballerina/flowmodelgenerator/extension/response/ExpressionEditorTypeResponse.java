@@ -23,7 +23,7 @@ import com.google.gson.JsonArray;
 /**
  * This class represents the response for the expression editor types.
  *
- * @since 1.4.0
+ * @since 1.0.0
  */
 public class ExpressionEditorTypeResponse extends AbstractFlowModelResponse {
 

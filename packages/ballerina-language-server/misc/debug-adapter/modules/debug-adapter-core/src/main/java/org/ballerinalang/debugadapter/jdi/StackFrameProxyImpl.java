@@ -43,7 +43,7 @@ import java.util.Map;
 /**
  * Proxy implementation for JDI stack frame.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class StackFrameProxyImpl extends JdiProxy implements StackFrameProxy {
 

@@ -29,7 +29,7 @@ import java.nio.file.Path;
 /**
  * File utils for reading the file content.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public final class FileUtils {
 

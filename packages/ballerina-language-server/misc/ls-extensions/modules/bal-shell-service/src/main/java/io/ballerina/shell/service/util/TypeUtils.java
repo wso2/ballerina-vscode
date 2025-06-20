@@ -24,7 +24,7 @@ import io.ballerina.runtime.api.utils.StringUtils;
 /**
  * Utility functions related with type.
  *
- * @since 2201.1.1
+ * @since 1.0.0
  */
 public final class TypeUtils {
 

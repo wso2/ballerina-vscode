@@ -31,7 +31,7 @@ import java.util.Map;
  * @param errorMsg Error message
  * @param stacktrace Stack trace of the error
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public record CommonSourceResponse(Map<String, List<TextEdit>> textEdits, String errorMsg, String stacktrace) {
 

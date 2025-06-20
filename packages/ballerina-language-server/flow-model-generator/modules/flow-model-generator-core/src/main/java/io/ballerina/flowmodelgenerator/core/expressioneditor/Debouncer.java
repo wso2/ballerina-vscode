@@ -33,7 +33,7 @@ import java.util.concurrent.TimeUnit;
  * cancelling any pending executions in between. This class follows the Singleton pattern, ensuring only one instance
  * exists across the application.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class Debouncer {
 

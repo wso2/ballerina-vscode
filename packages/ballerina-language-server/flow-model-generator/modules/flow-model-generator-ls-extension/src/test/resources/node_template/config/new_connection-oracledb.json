@@ -9,9 +9,10 @@
     "node": "NEW_CONNECTION",
     "org": "ballerinax",
     "module": "oracledb",
+    "packageName": "oracledb",
     "object": "Client",
     "symbol": "init",
-    "version": "1.13.0"
+    "version": "1.14.0"
   },
   "output": {
     "id": "31",
@@ -24,6 +25,7 @@
       "node": "NEW_CONNECTION",
       "org": "ballerinax",
       "module": "oracledb",
+      "packageName": "oracledb",
       "object": "Client",
       "symbol": "init",
       "version": "1.14.0",
@@ -38,7 +40,7 @@
         },
         "valueType": "EXPRESSION",
         "valueTypeConstraint": "string",
-        "placeholder": "\"localhost\"",
+        "placeholder": "\"\"",
         "optional": true,
         "editable": true,
         "advanced": true,
@@ -51,10 +53,12 @@
           {
             "type": "string",
             "packageInfo": "",
+            "packageName": "",
             "kind": "BASIC_TYPE",
             "selected": false
           }
-        ]
+        ],
+        "defaultValue": "\"\""
       },
       "user": {
         "metadata": {
@@ -63,7 +67,7 @@
         },
         "valueType": "EXPRESSION",
         "valueTypeConstraint": "string|()",
-        "placeholder": "\"sys\"",
+        "placeholder": "()",
         "optional": true,
         "editable": true,
         "advanced": true,
@@ -74,18 +78,21 @@
         },
         "typeMembers": [
           {
-            "type": "()",
+            "type": "string",
             "packageInfo": "",
+            "packageName": "",
             "kind": "BASIC_TYPE",
             "selected": false
           },
           {
-            "type": "string",
+            "type": "()",
             "packageInfo": "",
+            "packageName": "",
             "kind": "BASIC_TYPE",
             "selected": false
           }
-        ]
+        ],
+        "defaultValue": "()"
       },
       "password": {
         "metadata": {
@@ -105,18 +112,21 @@
         },
         "typeMembers": [
           {
-            "type": "()",
+            "type": "string",
             "packageInfo": "",
+            "packageName": "",
             "kind": "BASIC_TYPE",
             "selected": false
           },
           {
-            "type": "string",
+            "type": "()",
             "packageInfo": "",
+            "packageName": "",
             "kind": "BASIC_TYPE",
             "selected": false
           }
-        ]
+        ],
+        "defaultValue": "()"
       },
       "database": {
         "metadata": {
@@ -136,18 +146,21 @@
         },
         "typeMembers": [
           {
-            "type": "()",
+            "type": "string",
             "packageInfo": "",
+            "packageName": "",
             "kind": "BASIC_TYPE",
             "selected": false
           },
           {
-            "type": "string",
+            "type": "()",
             "packageInfo": "",
+            "packageName": "",
             "kind": "BASIC_TYPE",
             "selected": false
           }
-        ]
+        ],
+        "defaultValue": "()"
       },
       "port": {
         "metadata": {
@@ -156,7 +169,7 @@
         },
         "valueType": "EXPRESSION",
         "valueTypeConstraint": "int",
-        "placeholder": "1521",
+        "placeholder": "0",
         "optional": true,
         "editable": true,
         "advanced": true,
@@ -169,10 +182,12 @@
           {
             "type": "int",
             "packageInfo": "",
+            "packageName": "",
             "kind": "BASIC_TYPE",
             "selected": false
           }
-        ]
+        ],
+        "defaultValue": "0"
       },
       "options": {
         "metadata": {
@@ -192,18 +207,21 @@
         },
         "typeMembers": [
           {
-            "type": "()",
-            "packageInfo": "",
-            "kind": "BASIC_TYPE",
+            "type": "Options",
+            "packageInfo": "ballerinax:oracledb:1.14.0",
+            "packageName": "oracledb",
+            "kind": "RECORD_TYPE",
             "selected": false
           },
           {
-            "type": "Options",
-            "packageInfo": "ballerinax:oracledb:1.14.0",
-            "kind": "RECORD_TYPE",
+            "type": "()",
+            "packageInfo": "",
+            "packageName": "",
+            "kind": "BASIC_TYPE",
             "selected": false
           }
-        ]
+        ],
+        "defaultValue": "()"
       },
       "connectionPool": {
         "metadata": {
@@ -223,21 +241,24 @@
         },
         "typeMembers": [
           {
-            "type": "()",
-            "packageInfo": "",
-            "kind": "BASIC_TYPE",
+            "type": "ConnectionPool",
+            "packageInfo": "ballerina:sql:1.16.0",
+            "packageName": "sql",
+            "kind": "RECORD_TYPE",
             "selected": false
           },
           {
-            "type": "ConnectionPool",
-            "packageInfo": "ballerina:sql:1.16.0",
-            "kind": "RECORD_TYPE",
+            "type": "()",
+            "packageInfo": "",
+            "packageName": "",
+            "kind": "BASIC_TYPE",
             "selected": false
           }
         ],
         "imports": {
           "sql": "ballerina/sql"
-        }
+        },
+        "defaultValue": "()"
       },
       "type": {
         "metadata": {
@@ -250,7 +271,7 @@
         "optional": false,
         "editable": false,
         "advanced": false,
-        "hidden": false,
+        "hidden": true,
         "codedata": {},
         "imports": {
           "sql": "ballerina/sql"
@@ -281,7 +302,7 @@
         "optional": false,
         "editable": true,
         "advanced": true,
-        "hidden": false,
+        "hidden": true,
         "imports": {
           "sql": "ballerina/sql"
         }
@@ -296,7 +317,7 @@
         "optional": false,
         "editable": false,
         "advanced": true,
-        "hidden": false,
+        "hidden": true,
         "imports": {
           "sql": "ballerina/sql"
         }

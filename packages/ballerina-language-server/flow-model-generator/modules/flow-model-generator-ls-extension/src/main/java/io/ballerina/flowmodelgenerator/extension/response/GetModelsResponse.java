@@ -23,7 +23,7 @@ import com.google.gson.JsonArray;
 /**
  * Represents the response for available models.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class GetModelsResponse extends AbstractFlowModelResponse {
     private JsonArray models;

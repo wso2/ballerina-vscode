@@ -50,7 +50,7 @@ import java.util.concurrent.CompletableFuture;
 /**
  * Implementation of Ballerina runner extension for Language Server.
  *
- * @since 2201.11.0
+ * @since 1.0.0
  */
 @JavaSPIService("org.ballerinalang.langserver.commons.service.spi.ExtendedLanguageServerService")
 @JsonSegment("ballerinaRunner")

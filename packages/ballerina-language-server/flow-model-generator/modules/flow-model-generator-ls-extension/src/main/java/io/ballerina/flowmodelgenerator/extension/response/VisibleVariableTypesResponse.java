@@ -23,7 +23,7 @@ import com.google.gson.JsonArray;
 /**
  * Represents the response containing visible variable types for the given cursor position.
  *
- * @since 1.4.0
+ * @since 1.0.0
  */
 public class VisibleVariableTypesResponse extends AbstractFlowModelResponse {
 

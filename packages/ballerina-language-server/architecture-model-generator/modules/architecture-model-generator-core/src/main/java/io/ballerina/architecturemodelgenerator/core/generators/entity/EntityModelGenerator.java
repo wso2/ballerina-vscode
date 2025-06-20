@@ -82,7 +82,7 @@ import static io.ballerina.architecturemodelgenerator.core.Constants.MIN_LENGTH_
 /**
  * Build entity model to represent relationship between records.
  *
- * @since 2201.2.2
+ * @since 1.0.0
  */
 public class EntityModelGenerator extends ModelGenerator {
 

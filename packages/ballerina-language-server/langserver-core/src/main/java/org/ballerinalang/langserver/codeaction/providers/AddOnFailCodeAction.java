@@ -44,7 +44,7 @@ import java.util.Optional;
 /**
  * On fail suggestion Code Action for check expressions.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 @JavaSPIService("org.ballerinalang.langserver.commons.codeaction.spi.LSCodeActionProvider")
 public class AddOnFailCodeAction implements DiagnosticBasedCodeActionProvider {

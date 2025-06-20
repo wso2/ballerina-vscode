@@ -9,6 +9,7 @@
     "node": "RESOURCE_ACTION_CALL",
     "org": "ballerinax",
     "module": "github",
+    "packageName": "github",
     "object": "Client",
     "symbol": "post",
     "parentSymbol": "githubClient",
@@ -112,7 +113,7 @@
         "optional": false,
         "editable": true,
         "advanced": true,
-        "hidden": false
+        "hidden": true
       }
     },
     "flags": 0

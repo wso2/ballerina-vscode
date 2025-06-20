@@ -9,6 +9,7 @@
     "node": "RESOURCE_ACTION_CALL",
     "org": "ballerinax",
     "module": "docusign.dsadmin",
+    "packageName": "docusign.dsadmin",
     "object": "Client",
     "symbol": "get",
     "parentSymbol": "dsAdminClient",
@@ -115,16 +116,19 @@
           {
             "type": "()",
             "packageInfo": "",
+            "packageName": "",
             "kind": "BASIC_TYPE",
             "selected": false
           },
           {
             "type": "Signed32",
             "packageInfo": "ballerina:lang.int:0.0.0",
+            "packageName": "lang.int",
             "kind": "BASIC_TYPE",
             "selected": false
           }
-        ]
+        ],
+        "defaultValue": "()"
       },
       "take": {
         "metadata": {
@@ -146,16 +150,19 @@
           {
             "type": "()",
             "packageInfo": "",
+            "packageName": "",
             "kind": "BASIC_TYPE",
             "selected": false
           },
           {
             "type": "Signed32",
             "packageInfo": "ballerina:lang.int:0.0.0",
+            "packageName": "lang.int",
             "kind": "BASIC_TYPE",
             "selected": false
           }
-        ]
+        ],
+        "defaultValue": "()"
       },
       "end": {
         "metadata": {
@@ -177,16 +184,19 @@
           {
             "type": "()",
             "packageInfo": "",
+            "packageName": "",
             "kind": "BASIC_TYPE",
             "selected": false
           },
           {
             "type": "Signed32",
             "packageInfo": "ballerina:lang.int:0.0.0",
+            "packageName": "lang.int",
             "kind": "BASIC_TYPE",
             "selected": false
           }
-        ]
+        ],
+        "defaultValue": "()"
       },
       "type": {
         "metadata": {
@@ -224,7 +234,7 @@
         "optional": false,
         "editable": true,
         "advanced": true,
-        "hidden": false
+        "hidden": true
       }
     },
     "flags": 0

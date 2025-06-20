@@ -38,7 +38,7 @@ import java.util.Map;
 /**
  * Tests for the `addICP` service.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class AddICPTest extends AbstractLSTest {
 

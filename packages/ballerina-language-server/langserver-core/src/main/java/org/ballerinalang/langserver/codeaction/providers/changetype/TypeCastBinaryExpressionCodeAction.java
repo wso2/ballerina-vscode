@@ -46,7 +46,7 @@ import java.util.Set;
 /**
  * Code action for unsupported numeric operations.
  *
- * @since 2201.1.1
+ * @since 1.0.0
  */
 @JavaSPIService("org.ballerinalang.langserver.commons.codeaction.spi.LSCodeActionProvider")
 public class TypeCastBinaryExpressionCodeAction extends TypeCastCodeAction {

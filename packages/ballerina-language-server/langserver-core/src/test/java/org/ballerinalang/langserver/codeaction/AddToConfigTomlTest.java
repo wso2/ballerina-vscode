@@ -26,7 +26,7 @@ import java.io.IOException;
 /**
  * Tests cases for {@link org.ballerinalang.langserver.codeaction.providers.AddToConfigTomlCodeAction}.
  *
- * @since 2201.10.0
+ * @since 1.0.0
  */
 public class AddToConfigTomlTest extends AbstractCodeActionTest {
 

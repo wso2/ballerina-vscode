@@ -26,7 +26,7 @@ import java.io.IOException;
 /**
  * Test Cases for remove all unused imports code action.
  *
- * @since 2201.1.1
+ * @since 1.0.0
  */
 public class RemoveAllUnusedImportsTest extends AbstractCodeActionTest {
     @Override

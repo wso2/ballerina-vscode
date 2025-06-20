@@ -26,7 +26,7 @@ import java.io.IOException;
 /**
  * Markdown documentation node context tests.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class MarkdownDocumentationContextTest extends CompletionTest {
 

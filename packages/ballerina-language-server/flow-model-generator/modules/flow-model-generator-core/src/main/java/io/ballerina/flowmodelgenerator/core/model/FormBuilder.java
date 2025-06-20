@@ -74,7 +74,7 @@ import static io.ballerina.flowmodelgenerator.core.model.node.DataMapperBuilder.
  * Represents a builder for the form of a flow node.
  *
  * @param <T> Parent builder type
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class FormBuilder<T> extends FacetedBuilder<T> {
 
@@ -170,24 +170,30 @@ public class FormBuilder<T> extends FacetedBuilder<T> {
 
     public FormBuilder<T> type(Node node, boolean editable, boolean modified) {
         String typeName = (node == null) ? "" : CommonUtils.getVariableName(node);
-        return type(typeName, Property.TYPE_LABEL, editable, modified, node == null ? null : node.lineRange());
+        return type(typeName, Property.TYPE_LABEL, editable, modified, node == null ? null : node.lineRange(), false);
     }
 
     public FormBuilder<T> type(Node node, String label, boolean editable) {
         String typeName = (node == null) ? "" : CommonUtils.getVariableName(node);
-        return type(typeName, label, editable, null, node == null ? null : node.lineRange());
+        return type(typeName, label, editable, null, node == null ? null : node.lineRange(), false);
     }
 
-    public FormBuilder<T> type(String typeName, boolean editable, String importStatements) {
-        return type(typeName, Property.TYPE_LABEL, editable, null, null, importStatements);
+    public FormBuilder<T> type(String typeName, boolean editable, String importStatements, boolean hidden) {
+        return type(typeName, Property.TYPE_LABEL, editable, null, null, importStatements, hidden);
     }
 
-    public FormBuilder<T> type(String typeName, String label, boolean editable, Boolean modified, LineRange lineRange) {
-        return type(typeName, label, editable, modified, lineRange, null);
+    public FormBuilder<T> type(String typeName, String label, boolean editable, Boolean modified, LineRange lineRange,
+                               boolean hidden) {
+        return type(typeName, label, editable, modified, lineRange, null, hidden);
     }
 
     public FormBuilder<T> type(String typeName, String label, boolean editable, Boolean modified, LineRange lineRange,
                                String importStatements) {
+        return type(typeName, label, editable, modified, lineRange, importStatements, false);
+    }
+
+    public FormBuilder<T> type(String typeName, String label, boolean editable, Boolean modified, LineRange lineRange,
+                               String importStatements, boolean hidden) {
         propertyBuilder
                 .metadata()
                     .label(label)
@@ -198,6 +204,7 @@ public class FormBuilder<T> extends FacetedBuilder<T> {
                 .placeholder("var")
                 .value(typeName)
                 .imports(importStatements)
+                .hidden(hidden)
                 .type(Property.ValueType.TYPE)
                 .editable(editable)
                 .modified(modified);
@@ -258,8 +265,8 @@ public class FormBuilder<T> extends FacetedBuilder<T> {
 
     public FormBuilder<T> dataVariable(TypedBindingPatternNode node, boolean implicit, Set<String> names) {
         return implicit ?
-                dataVariable(node, Property.IMPLICIT_VARIABLE_LABEL, Property.IMPLICIT_TYPE_LABEL, true, names)
-                : dataVariable(node, Property.VARIABLE_NAME, Property.TYPE_LABEL, true, names);
+                dataVariable(node, Property.IMPLICIT_VARIABLE_LABEL, Property.IMPLICIT_TYPE_LABEL, true, names, false)
+                : dataVariable(node, Property.VARIABLE_NAME, Property.TYPE_LABEL, true, names, false);
     }
 
     public FormBuilder<T> dataVariable(TypedBindingPatternNode node, Set<String> names) {
@@ -267,14 +274,14 @@ public class FormBuilder<T> extends FacetedBuilder<T> {
     }
 
     public FormBuilder<T> dataVariable(TypedBindingPatternNode node, String variableLabel, String typeDoc,
-                                       boolean editable, Set<String> names) {
+                                       boolean editable, Set<String> names, boolean hidden) {
         data(node == null ? null : node.bindingPattern(), variableLabel, Property.VARIABLE_DOC,
                 NameUtil.generateTypeName("var", names), false);
 
         String typeName = node == null ? "" : CommonUtils.getTypeSymbol(semanticModel, node)
                 .map(typeSymbol -> CommonUtils.getTypeSignature(semanticModel, typeSymbol, true, moduleInfo))
                 .orElse(CommonUtils.getVariableName(node));
-        return type(typeName, typeDoc, editable, null, node == null ? null : node.typeDescriptor().lineRange());
+        return type(typeName, typeDoc, editable, null, node == null ? null : node.typeDescriptor().lineRange(), hidden);
     }
 
     public Property.Builder<FormBuilder<T>> custom() {
@@ -414,6 +421,7 @@ public class FormBuilder<T> extends FacetedBuilder<T> {
                     .description(doc)
                     .stepOut()
                 .value(checkError)
+                .hidden()
                 .advanced(true)
                 .type(Property.ValueType.FLAG);
         if (editable) {
@@ -692,7 +700,6 @@ public class FormBuilder<T> extends FacetedBuilder<T> {
                 .value((expr != null && expr.kind() != SyntaxKind.REQUIRED_EXPRESSION) ? expr.toSourceCode() : "")
                 .type(Property.ValueType.EXPRESSION)
                 .optional(true)
-                .advanced(true)
                 .modified(false)
                 .editable(editable);
         addProperty(Property.DEFAULT_VALUE_KEY, expr);
@@ -709,11 +716,11 @@ public class FormBuilder<T> extends FacetedBuilder<T> {
                 .type(Property.ValueType.EXPRESSION)
                 .optional(true)
                 .modified(false)
+                .hidden()
                 .editable();
         addProperty(Property.CONFIG_VALUE_KEY, expr);
         return this;
     }
-
 
     public FormBuilder<T> documentation(Node docNode) {
         return documentation(docNode, true);
@@ -728,7 +735,6 @@ public class FormBuilder<T> extends FacetedBuilder<T> {
                 .value(concatDocLines(docNode))
                 .type(Property.ValueType.STRING)
                 .optional(true)
-                .advanced(true)
                 .editable(editable)
                 .modified(false);
         addProperty(Property.CONFIG_VAR_DOC_KEY, docNode);
@@ -887,6 +893,7 @@ public class FormBuilder<T> extends FacetedBuilder<T> {
                     .stepOut()
                 .type(Property.ValueType.ENUM)
                 .value(scope)
+                .hidden()
                 .advanced(true)
                 .editable();
         addProperty(Property.SCOPE_KEY);
@@ -1144,7 +1151,7 @@ public class FormBuilder<T> extends FacetedBuilder<T> {
     }
 
     public FormBuilder<T> parameterWithDescription(String type, String name, Token token, Property.ValueType valueType,
-                                    Object typeConstraint, String description) {
+                                                   Object typeConstraint, String description) {
         nestedProperty();
 
         // Build the parameter type property

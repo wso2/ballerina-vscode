@@ -23,7 +23,7 @@ import com.google.gson.JsonArray;
 /**
  * Represents the response for the agent manager getActions API.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class GetConnectorActionsResponse extends AbstractFlowModelResponse {
 

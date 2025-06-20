@@ -9,6 +9,7 @@
     "node": "RESOURCE_ACTION_CALL",
     "org": "ballerina",
     "module": "http",
+    "packageName": "http",
     "object": "Client",
     "symbol": "get",
     "version": "2.12.0",
@@ -20,7 +21,7 @@
     "metadata": {
       "label": "get",
       "description": "The client resource function to send HTTP GET requests to HTTP endpoints.\n",
-      "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.14.0.png"
+      "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.14.1.png"
     },
     "codedata": {
       "node": "RESOURCE_ACTION_CALL",
@@ -75,7 +76,8 @@
         "codedata": {
           "kind": "PARAM_FOR_TYPE_INFER",
           "originalName": "targetType"
-        }
+        },
+        "defaultValue": "anydata"
       },
       "headers": {
         "metadata": {
@@ -97,16 +99,19 @@
           {
             "type": "()",
             "packageInfo": "",
+            "packageName": "",
             "kind": "BASIC_TYPE",
             "selected": false
           },
           {
             "type": "map<string|string[]>",
             "packageInfo": "",
+            "packageName": "",
             "kind": "MAP_TYPE",
             "selected": false
           }
-        ]
+        ],
+        "defaultValue": "()"
       },
       "additionalValues": {
         "metadata": {
@@ -162,7 +167,7 @@
         "optional": false,
         "editable": true,
         "advanced": true,
-        "hidden": false
+        "hidden": true
       }
     },
     "flags": 0

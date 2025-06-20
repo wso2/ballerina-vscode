@@ -59,7 +59,7 @@ import java.util.Optional;
 /**
  * This class provides functionality for generating documentation.
  *
- * @since 0.985.0
+ * @since 1.0.0
  */
 public final class DocumentationGenerator {
 

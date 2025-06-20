@@ -30,7 +30,7 @@ import java.util.Objects;
  * @param startLine start line position of a node.
  * @param endLine end line position of a node.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public record Location(String filePath, LinePosition startLine, LinePosition endLine) {
 

@@ -24,7 +24,7 @@ import java.util.UUID;
 /**
  * A collection of utilities related to LS client.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public final class LSClientUtil {
 

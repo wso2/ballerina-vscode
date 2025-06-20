@@ -29,7 +29,7 @@ import org.eclipse.lsp4j.jsonrpc.CancelChecker;
 /**
  * Language server context implementation.
  *
- * @since 1.2.0
+ * @since 1.0.0
  */
 public class CompletionContextImpl extends PositionedOperationContextImpl implements CompletionContext {
 
@@ -63,7 +63,7 @@ public class CompletionContextImpl extends PositionedOperationContextImpl implem
     /**
      * Represents Language server completion context Builder.
      *
-     * @since 2.0.0
+     * @since 1.0.0
      */
     protected static class CompletionContextBuilder extends AbstractContextBuilder<CompletionContextBuilder> {
 

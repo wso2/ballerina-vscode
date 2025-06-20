@@ -24,7 +24,7 @@ import org.ballerinalang.langserver.commons.registration.BallerinaServerCapabili
 /**
  * Server capabilities for the solution architecture modeling service.
  *
- * @since 2201.2.2
+ * @since 1.0.0
  */
 public class ArchitectureModelGeneratorServerCapabilities extends BallerinaServerCapability {
 

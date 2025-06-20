@@ -41,7 +41,7 @@ import java.util.Optional;
  * TODO: This is a copy of the implementation used in the the language-server core. We need to refactor the
  *  visibility of that class to reuse the implementation.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public final class TypeCompletionItemBuilder {
 

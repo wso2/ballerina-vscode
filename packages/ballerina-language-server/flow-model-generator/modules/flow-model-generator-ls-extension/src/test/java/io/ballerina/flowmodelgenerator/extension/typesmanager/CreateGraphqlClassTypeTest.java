@@ -39,7 +39,7 @@ import java.util.Map;
 /**
  * Test cases for create graphql related class types.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class CreateGraphqlClassTypeTest extends AbstractLSTest {
     private static final Type textEditListType = new TypeToken<Map<String, List<TextEdit>>>() {

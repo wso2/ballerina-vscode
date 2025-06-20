@@ -26,7 +26,7 @@ import java.util.Map;
  * Implementation for ballerina variable types with a known/limited number of child elements. (i.e. error variable
  * fields, object fields, etc.)
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public abstract class NamedCompoundVariable extends BCompoundVariable {
 

@@ -44,7 +44,7 @@ import static org.ballerinalang.langserver.command.docs.DocumentationGenerator.h
 /**
  * Command executor for adding all documentation for top level items.
  *
- * @since 0.983.0
+ * @since 1.0.0
  */
 @JavaSPIService("org.ballerinalang.langserver.commons.command.spi.LSCommandExecutor")
 public class AddAllDocumentationExecutor implements LSCommandExecutor {

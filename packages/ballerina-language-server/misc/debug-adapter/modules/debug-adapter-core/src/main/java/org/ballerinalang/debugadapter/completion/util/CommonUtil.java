@@ -64,7 +64,7 @@ import static io.ballerina.compiler.api.symbols.SymbolKind.MODULE;
 /**
  * Common utils to be reused in debug completion implementation.
  *
- * @since 2201.1.0
+ * @since 1.0.0
  */
 public final class CommonUtil {
 

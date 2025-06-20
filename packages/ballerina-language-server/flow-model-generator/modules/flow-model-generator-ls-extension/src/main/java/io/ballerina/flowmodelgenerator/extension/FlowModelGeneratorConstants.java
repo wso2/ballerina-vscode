@@ -21,7 +21,7 @@ package io.ballerina.flowmodelgenerator.extension;
 /**
  * Represents constants for the flow model generator service.
  *
- * @since 1.4.0
+ * @since 1.0.0
  */
 public class FlowModelGeneratorConstants {
     public static final String CAPABILITY_NAME = "flowModel";

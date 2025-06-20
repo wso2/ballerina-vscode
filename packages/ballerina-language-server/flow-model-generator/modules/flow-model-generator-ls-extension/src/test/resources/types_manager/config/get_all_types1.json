@@ -1237,12 +1237,6 @@
           "docs": ""
         }
       ],
-      "restMember": {
-        "kind": "FIELD",
-        "refs": [],
-        "type": "anydata",
-        "optional": false
-      },
       "includes": [],
       "allowAdditionalFields": true
     },

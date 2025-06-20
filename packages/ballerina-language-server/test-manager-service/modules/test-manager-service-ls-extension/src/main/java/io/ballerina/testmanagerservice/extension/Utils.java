@@ -52,7 +52,7 @@ import java.util.stream.Collectors;
 /**
  * Utils class for the test manager service.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class Utils {
 

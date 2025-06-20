@@ -37,7 +37,7 @@ import static org.ballerinalang.debugadapter.completion.util.CompletionUtil.getC
 /**
  * Handles the completions for the {@link RemoteMethodCallActionNode}.
  *
- * @since 2201.1.0
+ * @since 1.0.0
  */
 public class RemoteMethodCallActionNodeContext {
 

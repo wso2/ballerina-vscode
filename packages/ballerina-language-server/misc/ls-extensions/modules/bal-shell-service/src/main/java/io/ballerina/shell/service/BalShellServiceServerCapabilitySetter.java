@@ -23,7 +23,7 @@ import java.util.Optional;
 /**
  * Capability setter for the {@link BalShellService}.
  *
- * @since 2201.1.1
+ * @since 1.0.0
  */
 @JavaSPIService("org.ballerinalang.langserver.commons.registration.BallerinaServerCapabilitySetter")
 public class BalShellServiceServerCapabilitySetter extends

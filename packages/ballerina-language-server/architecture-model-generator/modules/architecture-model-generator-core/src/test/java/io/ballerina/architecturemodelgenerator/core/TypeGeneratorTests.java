@@ -31,7 +31,7 @@ import java.nio.file.Paths;
 /**
  * Test type generation.
  *
- * @since 2201.3.1
+ * @since 1.0.0
  */
 public class TypeGeneratorTests {
     private static final Path RES_DIR = Paths.get("src", "test", "resources").toAbsolutePath();

@@ -30,7 +30,7 @@ import java.util.logging.SimpleFormatter;
 /**
  * Responsible for logging the progress of indexing packages.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class SearchIndexLogger {
 

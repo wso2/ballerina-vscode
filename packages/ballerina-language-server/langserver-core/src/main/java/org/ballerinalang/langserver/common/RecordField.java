@@ -25,7 +25,7 @@ import java.util.Objects;
 /**
  * Represents a record field.
  *
- * @since 2201.8.0
+ * @since 1.0.0
  */
 public class RecordField {
     String name;
@@ -54,7 +54,7 @@ public class RecordField {
     /**
      * Record Field Identifier.
      *
-     * @since 2201.8.0
+     * @since 1.0.0
      */
     public static class RecordFieldIdentifier {
         private final String name;

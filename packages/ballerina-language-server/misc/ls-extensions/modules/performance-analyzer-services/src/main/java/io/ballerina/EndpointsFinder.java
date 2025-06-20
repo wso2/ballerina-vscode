@@ -51,7 +51,7 @@ import static io.ballerina.PerformanceAnalyzerNodeVisitor.ENDPOINTS_KEY;
 /**
  * Implements functionality to find endpoints and action invocations.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public final class EndpointsFinder {
 

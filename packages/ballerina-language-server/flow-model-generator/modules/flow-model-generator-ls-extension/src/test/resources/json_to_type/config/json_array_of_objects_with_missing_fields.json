@@ -1,0 +1,10 @@
+{
+  "description": "JSON array of objects with some fields missing",
+  "filePath": "proj/types.bal",
+  "jsonString": "[\n        {\n\t\t\t\"id\": 1, \n\t\t\t\"name\": \"Task 1\",\n\t\t\t\"status\": \"in-progress\",\n\t\t\t\"completed\": false\n\t\t},\n        {\n\t\t\t\"id\": 2, \n\t\t\t\"name\": \"Task 2\", \n\t\t\t\"completed\": true,\n\t\t\t\"assignee\": \"John Doe\"\n\t\t}\n    ]",
+  "typeName": "TaskList",
+  "prefix": "",
+  "allowAdditionalFields": false,
+  "asInline": false,
+  "expectedTypes": "\ntype TaskListItem record {|\n\tint id;\n\tstring name;\n\tboolean completed;\n\tstring status?;\n\tstring assignee?;\n|};\n\ntype TaskList TaskListItem[];\n"
+}

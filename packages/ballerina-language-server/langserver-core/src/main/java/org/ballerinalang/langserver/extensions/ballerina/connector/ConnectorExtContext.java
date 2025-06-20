@@ -25,7 +25,7 @@ import java.util.Map;
 /**
  * Ballerina Language server context.
  *
- * @since 0.970.0
+ * @since 1.0.0
  */
 public class ConnectorExtContext implements LSOperation {
 
@@ -47,7 +47,7 @@ public class ConnectorExtContext implements LSOperation {
 
     /**
      * @param <K> Property Key
-     * @since 2.0.0
+     * @since 1.0.0
      */
     public static class Key<K> {
     }

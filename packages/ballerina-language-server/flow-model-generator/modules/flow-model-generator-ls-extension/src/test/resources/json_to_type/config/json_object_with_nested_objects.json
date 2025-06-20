@@ -1,0 +1,10 @@
+{
+  "description": "JSON object with nested records and boolean field",
+  "filePath": "proj/types.bal",
+  "jsonString": "{\n        \"user\": {\n            \"name\": \"Alice Smith\",\n            \"email\": \"alice@example.com\",\n\t\t\t\"age\": 30.3,\n\t\t\t\"isActive\": true\n        },\n        \"address\": {\n            \"street\": \"123 Main St\",\n            \"city\": \"San Francisco\",\n            \"zipcode\": \"94105\"\n        },\n        \"subscriptionActive\": true\n    }",
+  "typeName": "UserProfile",
+  "prefix": "",
+  "allowAdditionalFields": false,
+  "asInline": false,
+  "expectedTypes": "\ntype User record {|\n\tstring name;\n\tstring email;\n\tdecimal age;\n\tboolean isActive;\n|};\n\ntype Address record {|\n\tstring street;\n\tstring city;\n\tstring zipcode;\n|};\n\ntype UserProfile record {|\n\tUser user;\n\tAddress address;\n\tboolean subscriptionActive;\n|};\n"
+}

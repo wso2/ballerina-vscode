@@ -37,7 +37,7 @@ import java.nio.file.Path;
 /**
  * Tests for goto implementation operation.
  *
- * @since 0.990.3
+ * @since 1.0.0
  */
 public class GotoImplementationTest {
     private Endpoint serviceEndpoint;

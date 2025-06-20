@@ -47,7 +47,7 @@ import java.util.Optional;
 /**
  * Carries a set of utilities used to perform Path related checks.
  *
- * @since 2201.1.1
+ * @since 1.0.0
  */
 public final class PathUtil {
 

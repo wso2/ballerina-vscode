@@ -25,7 +25,7 @@ import java.util.concurrent.ExecutionException;
 /**
  * getResult End point tests for simple arithmetics.
  *
- * @since 2201.1.1
+ * @since 1.0.0
  */
 public class SimpleArithmeticTests extends AbstractGetResultTest {
     @Test(description = "Test with simple arithmetic")

@@ -25,7 +25,7 @@ import java.util.Map;
 /**
  * Context holder which contain information of the evaluation state.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class EvaluationContext {
 

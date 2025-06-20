@@ -26,7 +26,7 @@ import java.io.IOException;
 /**
  * Completion tests for comments.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class CommentContextTest extends CompletionTest {
 

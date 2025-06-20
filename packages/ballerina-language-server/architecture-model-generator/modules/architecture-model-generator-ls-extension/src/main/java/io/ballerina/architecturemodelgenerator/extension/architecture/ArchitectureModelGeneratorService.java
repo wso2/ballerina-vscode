@@ -48,7 +48,7 @@ import java.util.concurrent.CompletableFuture;
 /**
  * The extended service for generation solution architecture model.
  *
- * @since 2201.2.2
+ * @since 1.0.0
  */
 @JavaSPIService("org.ballerinalang.langserver.commons.service.spi.ExtendedLanguageServerService")
 @JsonSegment("projectDesignService")

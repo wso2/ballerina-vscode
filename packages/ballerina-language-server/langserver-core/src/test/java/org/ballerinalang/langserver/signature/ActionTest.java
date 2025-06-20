@@ -24,7 +24,7 @@ import java.io.IOException;
 /**
  * Test class for Action Signature help.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class ActionTest extends AbstractSignatureHelpTest {
     @Override

@@ -30,7 +30,7 @@ import java.util.Set;
 /**
  * Prefix based search provider.
  *
- * @since 2201.1.1
+ * @since 1.0.0
  * */
 public class CompletionSearchProvider {
 

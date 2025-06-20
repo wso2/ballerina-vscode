@@ -23,7 +23,7 @@ import io.ballerina.tools.text.LineRange;
 /**
  * Represents a service resource.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class Resource {
 

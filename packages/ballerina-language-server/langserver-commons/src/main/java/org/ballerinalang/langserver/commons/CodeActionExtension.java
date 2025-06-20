@@ -26,7 +26,7 @@ import java.util.List;
 /**
  * Represents a code-action extension.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public interface CodeActionExtension
         extends LanguageExtension<CodeActionParams, List<? extends CodeAction>, CodeActionContext> {

@@ -4,6 +4,7 @@
     "node": "NEW_CONNECTION",
     "org": "ballerinax",
     "module": "docusign.dsadmin",
+    "packageName": "docusign.dsadmin",
     "object": "Client",
     "symbol": "init"
   },
@@ -18,6 +19,7 @@
       "node": "NEW_CONNECTION",
       "org": "ballerinax",
       "module": "docusign.dsadmin",
+      "packageName": "docusign.dsadmin",
       "object": "Client",
       "symbol": "init",
       "version": "2.0.0",
@@ -45,6 +47,7 @@
           {
             "type": "string",
             "packageInfo": "",
+            "packageName": "",
             "kind": "BASIC_TYPE",
             "selected": false
           }
@@ -70,19 +73,22 @@
           {
             "type": "BearerTokenConfig",
             "packageInfo": "ballerina:http:2.10.11",
+            "packageName": "http",
             "kind": "RECORD_TYPE",
             "selected": false
           },
           {
             "type": "OAuth2RefreshTokenGrantConfig",
             "packageInfo": "ballerinax:docusign.dsadmin:2.0.0",
+            "packageName": "docusign.dsadmin",
             "kind": "RECORD_TYPE",
             "selected": false
           }
         ],
         "imports": {
           "http": "ballerina/http"
-        }
+        },
+        "defaultValue": "{token: \"\"}"
       },
       "httpVersion": {
         "metadata": {
@@ -91,7 +97,7 @@
         },
         "valueType": "EXPRESSION",
         "valueTypeConstraint": "http:HttpVersion",
-        "placeholder": "http:HTTP_2_0",
+        "placeholder": "\"2.0\"",
         "optional": true,
         "editable": true,
         "advanced": true,
@@ -104,13 +110,15 @@
           {
             "type": "HttpVersion",
             "packageInfo": "ballerina:http:2.10.11",
+            "packageName": "http",
             "kind": "BASIC_TYPE",
             "selected": false
           }
         ],
         "imports": {
           "http": "ballerina/http"
-        }
+        },
+        "defaultValue": "\"2.0\""
       },
       "http1Settings": {
         "metadata": {
@@ -132,13 +140,15 @@
           {
             "type": "ClientHttp1Settings",
             "packageInfo": "ballerinax:docusign.dsadmin:2.0.0",
+            "packageName": "docusign.dsadmin",
             "kind": "RECORD_TYPE",
             "selected": false
           }
         ],
         "imports": {
           "http": "ballerina/http"
-        }
+        },
+        "defaultValue": "{}"
       },
       "http2Settings": {
         "metadata": {
@@ -160,13 +170,15 @@
           {
             "type": "ClientHttp2Settings",
             "packageInfo": "ballerina:http:2.10.11",
+            "packageName": "http",
             "kind": "RECORD_TYPE",
             "selected": false
           }
         ],
         "imports": {
           "http": "ballerina/http"
-        }
+        },
+        "defaultValue": "{}"
       },
       "timeout": {
         "metadata": {
@@ -175,7 +187,7 @@
         },
         "valueType": "EXPRESSION",
         "valueTypeConstraint": "decimal",
-        "placeholder": "60",
+        "placeholder": "0.0d",
         "optional": true,
         "editable": true,
         "advanced": true,
@@ -188,13 +200,15 @@
           {
             "type": "decimal",
             "packageInfo": "",
+            "packageName": "",
             "kind": "BASIC_TYPE",
             "selected": false
           }
         ],
         "imports": {
           "http": "ballerina/http"
-        }
+        },
+        "defaultValue": "0.0d"
       },
       "forwarded": {
         "metadata": {
@@ -203,7 +217,7 @@
         },
         "valueType": "EXPRESSION",
         "valueTypeConstraint": "string",
-        "placeholder": "\"disable\"",
+        "placeholder": "\"\"",
         "optional": true,
         "editable": true,
         "advanced": true,
@@ -216,13 +230,15 @@
           {
             "type": "string",
             "packageInfo": "",
+            "packageName": "",
             "kind": "BASIC_TYPE",
             "selected": false
           }
         ],
         "imports": {
           "http": "ballerina/http"
-        }
+        },
+        "defaultValue": "\"\""
       },
       "poolConfig": {
         "metadata": {
@@ -244,13 +260,15 @@
           {
             "type": "PoolConfiguration",
             "packageInfo": "ballerina:http:2.10.11",
+            "packageName": "http",
             "kind": "RECORD_TYPE",
             "selected": false
           }
         ],
         "imports": {
           "http": "ballerina/http"
-        }
+        },
+        "defaultValue": "{}"
       },
       "cache": {
         "metadata": {
@@ -272,13 +290,15 @@
           {
             "type": "CacheConfig",
             "packageInfo": "ballerina:http:2.10.11",
+            "packageName": "http",
             "kind": "RECORD_TYPE",
             "selected": false
           }
         ],
         "imports": {
           "http": "ballerina/http"
-        }
+        },
+        "defaultValue": "{}"
       },
       "compression": {
         "metadata": {
@@ -287,7 +307,7 @@
         },
         "valueType": "EXPRESSION",
         "valueTypeConstraint": "http:Compression",
-        "placeholder": "http:COMPRESSION_AUTO",
+        "placeholder": "\"AUTO\"",
         "optional": true,
         "editable": true,
         "advanced": true,
@@ -300,13 +320,15 @@
           {
             "type": "Compression",
             "packageInfo": "ballerina:http:2.10.11",
+            "packageName": "http",
             "kind": "BASIC_TYPE",
             "selected": false
           }
         ],
         "imports": {
           "http": "ballerina/http"
-        }
+        },
+        "defaultValue": "\"AUTO\""
       },
       "circuitBreaker": {
         "metadata": {
@@ -328,13 +350,15 @@
           {
             "type": "CircuitBreakerConfig",
             "packageInfo": "ballerina:http:2.10.11",
+            "packageName": "http",
             "kind": "RECORD_TYPE",
             "selected": false
           }
         ],
         "imports": {
           "http": "ballerina/http"
-        }
+        },
+        "defaultValue": "{}"
       },
       "retryConfig": {
         "metadata": {
@@ -356,13 +380,15 @@
           {
             "type": "RetryConfig",
             "packageInfo": "ballerina:http:2.10.11",
+            "packageName": "http",
             "kind": "RECORD_TYPE",
             "selected": false
           }
         ],
         "imports": {
           "http": "ballerina/http"
-        }
+        },
+        "defaultValue": "{}"
       },
       "responseLimits": {
         "metadata": {
@@ -384,13 +410,15 @@
           {
             "type": "ResponseLimitConfigs",
             "packageInfo": "ballerina:http:2.10.11",
+            "packageName": "http",
             "kind": "RECORD_TYPE",
             "selected": false
           }
         ],
         "imports": {
           "http": "ballerina/http"
-        }
+        },
+        "defaultValue": "{}"
       },
       "secureSocket": {
         "metadata": {
@@ -412,13 +440,15 @@
           {
             "type": "ClientSecureSocket",
             "packageInfo": "ballerina:http:2.10.11",
+            "packageName": "http",
             "kind": "RECORD_TYPE",
             "selected": false
           }
         ],
         "imports": {
           "http": "ballerina/http"
-        }
+        },
+        "defaultValue": "{}"
       },
       "proxy": {
         "metadata": {
@@ -440,13 +470,15 @@
           {
             "type": "ProxyConfig",
             "packageInfo": "ballerina:http:2.10.11",
+            "packageName": "http",
             "kind": "RECORD_TYPE",
             "selected": false
           }
         ],
         "imports": {
           "http": "ballerina/http"
-        }
+        },
+        "defaultValue": "{}"
       },
       "validation": {
         "metadata": {
@@ -455,7 +487,7 @@
         },
         "valueType": "EXPRESSION",
         "valueTypeConstraint": "boolean",
-        "placeholder": "true",
+        "placeholder": "false",
         "optional": true,
         "editable": true,
         "advanced": true,
@@ -468,13 +500,15 @@
           {
             "type": "boolean",
             "packageInfo": "",
+            "packageName": "",
             "kind": "BASIC_TYPE",
             "selected": false
           }
         ],
         "imports": {
           "http": "ballerina/http"
-        }
+        },
+        "defaultValue": "false"
       },
       "type": {
         "metadata": {
@@ -487,7 +521,7 @@
         "optional": false,
         "editable": false,
         "advanced": false,
-        "hidden": false,
+        "hidden": true,
         "codedata": {},
         "imports": {
           "http": "ballerina/http"
@@ -518,7 +552,7 @@
         "optional": false,
         "editable": true,
         "advanced": true,
-        "hidden": false,
+        "hidden": true,
         "imports": {
           "http": "ballerina/http"
         }
@@ -533,7 +567,7 @@
         "optional": false,
         "editable": false,
         "advanced": true,
-        "hidden": false,
+        "hidden": true,
         "imports": {
           "http": "ballerina/http"
         }

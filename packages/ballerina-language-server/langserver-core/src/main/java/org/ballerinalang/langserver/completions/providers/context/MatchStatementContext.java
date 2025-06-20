@@ -33,7 +33,7 @@ import java.util.function.Predicate;
  * Generic Completion provider for match statement related contexts such as match node and pattern clauses.
  *
  * @param <T> Match statement node type
- * @since 2.0.0
+ * @since 1.0.0
  */
 public abstract class MatchStatementContext<T extends Node> extends AbstractCompletionProvider<T> {
 

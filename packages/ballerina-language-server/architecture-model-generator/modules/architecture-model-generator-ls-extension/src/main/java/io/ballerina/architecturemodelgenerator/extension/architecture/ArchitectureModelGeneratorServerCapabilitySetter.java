@@ -27,7 +27,7 @@ import java.util.Optional;
 /**
  * Capability setter for the {@link ArchitectureModelGeneratorService}.
  *
- * @since 2201.2.2
+ * @since 1.0.0
  */
 @JavaSPIService("org.ballerinalang.langserver.commons.registration.BallerinaServerCapabilitySetter")
 public class ArchitectureModelGeneratorServerCapabilitySetter extends

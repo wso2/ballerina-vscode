@@ -31,7 +31,7 @@ import org.eclipse.lsp4j.Range;
 /**
  * Represents the util class associated with functions to get position and node details.
  *
- * @since 2201.5.0
+ * @since 1.0.0
  */
 public class CommonUtil {
     /**

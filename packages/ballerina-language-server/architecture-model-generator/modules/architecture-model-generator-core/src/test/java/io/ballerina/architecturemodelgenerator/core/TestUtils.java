@@ -34,7 +34,7 @@ import java.util.stream.Stream;
 /**
  * Utils for component generation testings.
  *
- * @since 2201.3.1
+ * @since 1.0.0
  */
 public class TestUtils {
     public static Project loadBuildProject(Path projectPath, boolean isSingleFileProject) {

@@ -27,7 +27,7 @@ import java.util.regex.Pattern;
 /**
  * Represents Ballerina logpoint messages with expression interpolations.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class TemplateLogMessage extends LogMessage {
 

@@ -23,7 +23,7 @@ import java.util.List;
 /**
  * Format for hold defined values by the cell.
  *
- * @since 2201.1.1
+ * @since 1.0.0
  */
 
 public class MetaInfo {

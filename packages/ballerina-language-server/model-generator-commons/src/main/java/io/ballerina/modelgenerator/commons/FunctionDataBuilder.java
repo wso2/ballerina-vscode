@@ -94,7 +94,7 @@ import java.util.stream.Stream;
  * The class first checks if the item exists in the index. If not, it derives the symbol using the semantic model.
  * </p>
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class FunctionDataBuilder {
 
@@ -115,6 +115,7 @@ public class FunctionDataBuilder {
     private LSClientLogger lsClientLogger;
     private Project project;
     private boolean isCurrentModule;
+    private boolean disableIndex;
 
     public static final String REST_RESOURCE_PATH = "/path/to/subdirectory";
     public static final String REST_PARAM_PATH = "/path/to/resource";
@@ -215,6 +216,11 @@ public class FunctionDataBuilder {
         return this;
     }
 
+    public FunctionDataBuilder disableIndex() {
+        this.disableIndex = true;
+        return this;
+    }
+
     private void setParentSymbol(Stream<Symbol> symbolStream, String parentSymbolName) {
         this.parentSymbol = symbolStream
                 .filter(symbol -> symbol.kind() == SymbolKind.VARIABLE && symbol.nameEquals(parentSymbolName))
@@ -272,9 +278,11 @@ public class FunctionDataBuilder {
         }
 
         // Check if the function is in the index
-        Optional<FunctionData> indexedResult = getFunctionFromIndex();
-        if (indexedResult.isPresent()) {
-            return indexedResult.get();
+        if (!disableIndex) {
+            Optional<FunctionData> indexedResult = getFunctionFromIndex();
+            if (indexedResult.isPresent()) {
+                return indexedResult.get();
+            }
         }
 
         // Fetch the semantic model if not provided
@@ -312,8 +320,9 @@ public class FunctionDataBuilder {
                     if (initMethod.isEmpty()) {
                         String clientName = getFunctionName();
                         FunctionData functionData = new FunctionData(0, clientName, getDescription(classSymbol),
-                                getTypeSignature(clientName), moduleInfo.packageName(), moduleInfo.org(),
-                                moduleInfo.version(), "", functionKind, false, false, null);
+                                getTypeSignature(clientName), moduleInfo.packageName(), moduleInfo.moduleName(),
+                                moduleInfo.org(), moduleInfo.version(), "", functionKind,
+                                false, false, null);
                         functionData.setParameters(Map.of());
                         return functionData;
                     }
@@ -373,8 +382,9 @@ public class FunctionDataBuilder {
         }
 
         FunctionData functionData = new FunctionData(0, getFunctionName(), description, returnData.returnType(),
-                moduleInfo.packageName(), moduleInfo.org(), moduleInfo.version(), resourcePath, functionKind,
-                returnData.returnError(), paramForTypeInfer != null, returnData.importStatements());
+                moduleInfo.packageName(), moduleInfo.moduleName(), moduleInfo.org(), moduleInfo.version(),
+                resourcePath, functionKind, returnData.returnError(),
+                paramForTypeInfer != null, returnData.importStatements());
 
         Types types = semanticModel.types();
         TypeBuilder builder = semanticModel.types().builder();
@@ -418,7 +428,7 @@ public class FunctionDataBuilder {
         String returnType = returnTypeSymbol
                 .map(typeSymbol -> {
                     if (functionKind == FunctionData.Kind.CONNECTOR || functionKind == FunctionData.Kind.CLASS_INIT) {
-                        return CommonUtils.getClassType(moduleInfo.packageName(),
+                        return CommonUtils.getClassType(moduleInfo.moduleName(),
                                 parentSymbol.getName().orElse("Client"));
                     }
                     return getTypeSignature(typeSymbol, true);
@@ -483,7 +493,7 @@ public class FunctionDataBuilder {
     }
 
     private void deriveSemanticModel() {
-        semanticModel(PackageUtil.getSemanticModel(moduleInfo.org(), moduleInfo.packageName(), moduleInfo.version())
+        semanticModel(PackageUtil.getSemanticModel(moduleInfo)
                 .orElseThrow(() -> new IllegalStateException("Semantic model not found")));
     }
 
@@ -544,6 +554,7 @@ public class FunctionDataBuilder {
                     getDescription(methodSymbol),
                     returnData.returnType(),
                     moduleInfo.packageName(),
+                    moduleInfo.moduleName(),
                     moduleInfo.org(),
                     moduleInfo.version(),
                     methodResourcePath,
@@ -566,8 +577,8 @@ public class FunctionDataBuilder {
         }
 
         Optional<FunctionData> optFunctionResult =
-                dbManager.getFunction(moduleInfo.org(), moduleInfo.packageName(), getFunctionName(),
-                        functionKind, resourcePath);
+                dbManager.getFunction(moduleInfo.org(), moduleInfo.packageName(), moduleInfo.moduleName(),
+                        getFunctionName(), functionKind, resourcePath);
         if (optFunctionResult.isEmpty()) {
             return Optional.empty();
         }
@@ -580,7 +591,7 @@ public class FunctionDataBuilder {
 
     private List<FunctionData> getMethodsFromIndex() {
         DatabaseManager dbManager = DatabaseManager.getInstance();
-        List<FunctionData> methods = dbManager.getMethods(parentSymbolType, moduleInfo.org(), moduleInfo.packageName());
+        List<FunctionData> methods = dbManager.getMethods(parentSymbolType, moduleInfo.org(), moduleInfo.moduleName());
         if (methods.isEmpty()) {
             return new ArrayList<>();
         }
@@ -599,11 +610,12 @@ public class FunctionDataBuilder {
         ParameterData.Kind parameterKind = ParameterData.Kind.fromKind(paramSymbol.paramKind());
         Object paramType;
         boolean optional = true;
-        String defaultValue;
+        String placeholder;
+        String defaultValue = null;
         TypeSymbol typeSymbol = paramSymbol.typeDescriptor();
         String importStatements = getImportStatements(typeSymbol);
         if (parameterKind == ParameterData.Kind.REST_PARAMETER) {
-            defaultValue = DefaultValueGeneratorUtil.getDefaultValueForType(
+            placeholder = DefaultValueGeneratorUtil.getDefaultValueForType(
                     ((ArrayTypeSymbol) typeSymbol).memberTypeDescriptor());
             paramType = getTypeSignature(((ArrayTypeSymbol) typeSymbol).memberTypeDescriptor());
         } else if (parameterKind == ParameterData.Kind.INCLUDED_RECORD) {
@@ -624,7 +636,7 @@ public class FunctionDataBuilder {
             Map<String, ParameterData> includedParameters = getIncludedRecordParams(
                     (RecordTypeSymbol) CommonUtil.getRawType(typeSymbol), true, includedRecordParamDocs, union);
             parameters.putAll(includedParameters);
-            defaultValue = DefaultValueGeneratorUtil.getDefaultValueForType(typeSymbol);
+            placeholder = DefaultValueGeneratorUtil.getDefaultValueForType(typeSymbol);
         } else if (parameterKind == ParameterData.Kind.REQUIRED) {
             if (isAgentModelType(paramName)) {
                 List<String> memberTypes = new ArrayList<>();
@@ -641,24 +653,26 @@ public class FunctionDataBuilder {
             } else {
                 paramType = getTypeSignature(typeSymbol);
             }
-            defaultValue = DefaultValueGeneratorUtil.getDefaultValueForType(typeSymbol);
+            placeholder = DefaultValueGeneratorUtil.getDefaultValueForType(typeSymbol);
             optional = false;
         } else {
             if (paramForTypeInfer != null) {
                 if (paramForTypeInfer.paramName().equals(paramName)) {
+                    placeholder = paramForTypeInfer.type();
                     defaultValue = paramForTypeInfer.type();
                     paramType = paramForTypeInfer.type();
                     parameters.put(paramName,
-                            ParameterData.from(paramName, paramDescription, paramType, defaultValue,
+                            ParameterData.from(paramName, paramDescription, paramType, placeholder, defaultValue,
                                     ParameterData.Kind.PARAM_FOR_TYPE_INFER, optional, importStatements));
                     return parameters;
                 }
             }
+            placeholder = DefaultValueGeneratorUtil.getDefaultValueForType(typeSymbol);
             defaultValue = getDefaultValue(paramSymbol, typeSymbol);
             paramType = getTypeSignature(typeSymbol);
         }
         ParameterData parameterData = ParameterData.from(paramName, paramDescription,
-                getLabel(paramSymbol.annotAttachments()), paramType, defaultValue, parameterKind, optional,
+                getLabel(paramSymbol.annotAttachments()), paramType, placeholder, defaultValue, parameterKind, optional,
                 importStatements);
         parameters.put(paramName, parameterData);
         addParameterMemberTypes(typeSymbol, parameterData, union);
@@ -736,7 +750,8 @@ public class FunctionDataBuilder {
             type = typeParts[1];
         }
 
-        parameterData.typeMembers().add(new ParameterMemberTypeData(type, kind, packageIdentifier));
+        parameterData.typeMembers().add(new ParameterMemberTypeData(type, kind, packageIdentifier,
+                moduleInfo == null ? "" : moduleInfo.packageName()));
     }
 
     private Map<String, ParameterData> getIncludedRecordParams(RecordTypeSymbol recordTypeSymbol,
@@ -777,23 +792,24 @@ public class FunctionDataBuilder {
                 continue;
             }
 
+            String placeholder = DefaultValueGeneratorUtil.getDefaultValueForType(fieldType);
             String defaultValue = getDefaultValue(recordFieldSymbol, fieldType);
             String paramType = getTypeSignature(typeSymbol);
             boolean optional = recordFieldSymbol.isOptional() || recordFieldSymbol.hasDefaultValue();
             ParameterData parameterData = ParameterData.from(paramName, documentationMap.get(paramName),
                     getLabel(recordFieldSymbol.annotAttachments()),
-                    paramType, defaultValue, ParameterData.Kind.INCLUDED_FIELD, optional,
+                    paramType, placeholder, defaultValue, ParameterData.Kind.INCLUDED_FIELD, optional,
                     getImportStatements(typeSymbol));
             parameters.put(paramName, parameterData);
             addParameterMemberTypes(typeSymbol, parameterData, union);
         }
         recordTypeSymbol.restTypeDescriptor().ifPresent(typeSymbol -> {
             String paramType = getTypeSignature(typeSymbol);
-            String defaultValue = DefaultValueGeneratorUtil.getDefaultValueForType(typeSymbol);
-            parameters.put("Additional Values", ParameterData.from("Additional Values",
-                    "Capture key value pairs", paramType, defaultValue,
-                    ParameterData.Kind.INCLUDED_RECORD_REST, true,
-                    getImportStatements(typeSymbol)));
+            String placeholder = DefaultValueGeneratorUtil.getDefaultValueForType(typeSymbol);
+            parameters.put("Additional Values", new ParameterData(0, "Additional Values", 
+                    paramType, ParameterData.Kind.INCLUDED_RECORD_REST, placeholder, null, 
+                    "Capture key value pairs", null, true, getImportStatements(typeSymbol), 
+                    new ArrayList<>()));
         });
         return parameters;
     }

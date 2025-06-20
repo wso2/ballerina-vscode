@@ -25,7 +25,7 @@ import java.util.Optional;
 /**
  * Contains Utilities related toml language support features.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public final class TomlCommonUtil {
 

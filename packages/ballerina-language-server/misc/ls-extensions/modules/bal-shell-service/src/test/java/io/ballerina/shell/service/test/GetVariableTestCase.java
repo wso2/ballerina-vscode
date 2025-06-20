@@ -23,7 +23,7 @@ import java.util.Map;
 /**
  * Class to represent GetVariableTestCase json.
  *
- * @since 2201.1.1
+ * @since 1.0.0
  */
 public class GetVariableTestCase {
     private String source;

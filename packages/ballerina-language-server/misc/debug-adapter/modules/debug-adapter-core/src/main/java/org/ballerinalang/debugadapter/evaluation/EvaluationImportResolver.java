@@ -42,7 +42,7 @@ import static org.ballerinalang.debugadapter.evaluation.IdentifierModifier.encod
 /**
  * Import resolver implementation to capture imported modules within a given code block (syntax node).
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class EvaluationImportResolver extends NodeVisitor {
 

@@ -9,6 +9,7 @@
     "node": "NEW_CONNECTION",
     "org": "ballerinax",
     "module": "covid19",
+    "packageName": "covid19",
     "object": "Client",
     "symbol": "init"
   },
@@ -23,6 +24,7 @@
       "node": "NEW_CONNECTION",
       "org": "ballerinax",
       "module": "covid19",
+      "packageName": "covid19",
       "object": "Client",
       "symbol": "init",
       "version": "1.5.1",
@@ -50,10 +52,12 @@
           {
             "type": "ConnectionConfig",
             "packageInfo": "ballerinax:covid19:1.5.1",
+            "packageName": "covid19",
             "kind": "RECORD_TYPE",
             "selected": false
           }
-        ]
+        ],
+        "defaultValue": "{}"
       },
       "serviceUrl": {
         "metadata": {
@@ -62,7 +66,7 @@
         },
         "valueType": "EXPRESSION",
         "valueTypeConstraint": "string",
-        "placeholder": "\"https://disease.sh\"",
+        "placeholder": "\"\"",
         "optional": true,
         "editable": true,
         "advanced": true,
@@ -75,10 +79,12 @@
           {
             "type": "string",
             "packageInfo": "",
+            "packageName": "",
             "kind": "BASIC_TYPE",
             "selected": false
           }
-        ]
+        ],
+        "defaultValue": "\"\""
       },
       "type": {
         "metadata": {
@@ -91,7 +97,7 @@
         "optional": false,
         "editable": false,
         "advanced": false,
-        "hidden": false,
+        "hidden": true,
         "codedata": {}
       },
       "variable": {
@@ -116,7 +122,7 @@
         "optional": false,
         "editable": true,
         "advanced": true,
-        "hidden": false
+        "hidden": true
       },
       "checkError": {
         "metadata": {
@@ -128,7 +134,7 @@
         "optional": false,
         "editable": false,
         "advanced": true,
-        "hidden": false
+        "hidden": true
       }
     },
     "flags": 0

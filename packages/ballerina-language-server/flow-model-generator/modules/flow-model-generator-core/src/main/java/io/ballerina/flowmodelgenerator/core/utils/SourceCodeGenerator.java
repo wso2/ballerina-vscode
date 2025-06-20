@@ -35,7 +35,7 @@ import java.util.StringJoiner;
 /**
  * Code snippet generator.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class SourceCodeGenerator {
 
@@ -110,7 +110,10 @@ public class SourceCodeGenerator {
     }
 
     private String generateTypeDefCodeSnippet(TypeData typeData) {
-        String docs = generateDocs(typeData.metadata().description(), "");
+        String docs = "";
+        if (typeData.metadata() != null && typeData.metadata().description() != null) {
+            docs = generateDocs(typeData.metadata().description(), "");
+        }
         String typeDescriptor = generateTypeDescriptor(typeData);
 
         String template = "%stype %s %s;";
@@ -158,11 +161,13 @@ public class SourceCodeGenerator {
     private String generateRecordTypeDescriptor(TypeData typeData) {
         // Build the inclusions.
         StringBuilder inclusionsBuilder = new StringBuilder();
-        typeData.includes().forEach(include -> inclusionsBuilder
-                .append(LS)
-                .append("\t*")
-                .append(include)
-                .append(";"));
+        if (typeData.includes() != null && !typeData.includes().isEmpty()) {
+            typeData.includes().forEach(include -> inclusionsBuilder
+                    .append(LS)
+                    .append("\t*")
+                    .append(include)
+                    .append(";"));
+        }
 
         // Build the fields.
         StringBuilder fieldsBuilder = new StringBuilder();
@@ -170,17 +175,22 @@ public class SourceCodeGenerator {
             fieldsBuilder.append(generateFieldMember(member, true));
         }
 
+        boolean isOpenRecord = typeData.allowAdditionalFields();
+
         // Build the rest field (if present).
         String restField = "";
-        // TODO: Add support for rest field with closed records
-//        if (typeData.restMember() != null) {
-//            String typeDescriptor = generateTypeDescriptor(typeData.restMember().type());
-//            restField = LS + "\t" + typeDescriptor + " ...;";
-//        }
+        if (typeData.restMember() != null) {
+            String typeDescriptor = generateTypeDescriptor(typeData.restMember().type());
+            if (TypeTransformer.BUILT_IN_ANYDATA.equals(typeDescriptor)) {
+                isOpenRecord = true; // If the rest field is of type anydata, we treat it as an open record.
+            } else if (!isOpenRecord) {
+                restField = LS + "\t" + typeDescriptor + " ...;";
+            }
+        }
 
         // The template assumes that the dynamic parts already include their needed newlines and indentation.
         String template = "record {|%s%s%s%n|}";
-        if (typeData.allowAdditionalFields()) {
+        if (isOpenRecord) {
             template = "record {%s%s%s%n}";
         }
 

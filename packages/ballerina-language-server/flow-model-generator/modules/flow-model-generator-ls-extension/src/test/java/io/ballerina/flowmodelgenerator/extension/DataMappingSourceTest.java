@@ -40,7 +40,7 @@ import java.util.Map;
 /**
  * Tests for the generation of data mapper source.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class DataMappingSourceTest extends AbstractLSTest {
 

@@ -34,7 +34,7 @@ import java.util.Map;
  * @param docs          Documentation of the member
  * @param annotations   Annotations of the member.
  * @param imports       Imports of the member.
- * @since 2.0.0
+ * @since 1.0.0
  */
 public record Member(
         MemberKind kind,
@@ -107,9 +107,12 @@ public record Member(
         }
 
         public Member build() {
-            Member member = new Member(kind, List.copyOf(refs), type, name, defaultValue, optional, docs,
+            Member member = new Member(
+                    kind, refs != null ? List.copyOf(refs) : null,
+                    type, name, defaultValue, optional, docs,
                     annotations != null ? List.copyOf(annotations) : null,
-                    imports != null ? Map.copyOf(imports) : null);
+                    imports != null ? Map.copyOf(imports) : null
+            );
             this.kind = null;
             this.refs = null;
             this.type = null;

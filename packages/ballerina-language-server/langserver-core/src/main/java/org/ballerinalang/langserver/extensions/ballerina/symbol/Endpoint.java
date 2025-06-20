@@ -18,7 +18,7 @@ package org.ballerinalang.langserver.extensions.ballerina.symbol;
 /**
  * Represents an Endpoint.
  *
- * @since 0.981.2
+ * @since 1.0.0
  */
 public class Endpoint {
     private String name;

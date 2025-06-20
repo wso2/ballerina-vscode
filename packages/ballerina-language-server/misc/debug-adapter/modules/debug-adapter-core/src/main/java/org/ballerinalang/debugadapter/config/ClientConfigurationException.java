@@ -4,7 +4,7 @@ package org.ballerinalang.debugadapter.config;
 /**
  * Ballerina DAP Client Configuration related exceptions.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class ClientConfigurationException extends Exception {
 
