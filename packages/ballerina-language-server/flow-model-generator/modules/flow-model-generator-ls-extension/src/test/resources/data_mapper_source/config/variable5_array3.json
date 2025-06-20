@@ -1,0 +1,48 @@
+{
+  "source": "variable4_array3.bal",
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "variable4_array1.bal",
+      "startLine": {
+        "line": 24,
+        "offset": 12
+      },
+      "endLine": {
+        "line": 24,
+        "offset": 105
+      }
+    },
+    "sourceCode": "UserInfo[] userInfo = [{username: \"un\", password: \"pw\"}, {username: \"un1\", password: \"pw1\"}, {username: \"Alex \"}];"
+  },
+  "propertyKey": "expression",
+  "position": {
+    "line": 23,
+    "offset": 12
+  },
+  "mapping": {
+    "output": "userInfo.2.password",
+    "inputs": [],
+    "expression": "\"BEeEB\"",
+    "diagnostics": [],
+    "elements": []
+  },
+  "output": {
+    "variable4_array3.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 24,
+            "character": 123
+          },
+          "end": {
+            "line": 24,
+            "character": 123
+          }
+        },
+        "newText": ", password: \"BEeEB\""
+      }
+    ]
+  }
+}
