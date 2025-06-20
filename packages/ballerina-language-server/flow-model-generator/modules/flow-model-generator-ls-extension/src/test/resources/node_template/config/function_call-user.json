@@ -31,7 +31,7 @@
     "properties": {
       "x": {
         "metadata": {
-          "label": "x"
+          "label": "X"
         },
         "valueType": "EXPRESSION",
         "valueTypeConstraint": "int",

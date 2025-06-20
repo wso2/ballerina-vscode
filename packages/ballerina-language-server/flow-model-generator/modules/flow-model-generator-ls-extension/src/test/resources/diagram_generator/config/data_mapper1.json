@@ -394,7 +394,7 @@
           },
           "$name": {
             "metadata": {
-              "label": "name"
+              "label": "Name"
             },
             "valueType": "EXPRESSION",
             "valueTypeConstraint": "string",
@@ -420,7 +420,7 @@
           },
           "email": {
             "metadata": {
-              "label": "email"
+              "label": "Email"
             },
             "valueType": "EXPRESSION",
             "valueTypeConstraint": "string",
@@ -446,7 +446,7 @@
           },
           "address": {
             "metadata": {
-              "label": "address"
+              "label": "Address"
             },
             "valueType": "EXPRESSION",
             "valueTypeConstraint": "Address",
@@ -679,7 +679,7 @@
           },
           "person": {
             "metadata": {
-              "label": "person"
+              "label": "Person"
             },
             "valueType": "EXPRESSION",
             "valueTypeConstraint": "Person",
@@ -705,7 +705,7 @@
           },
           "admission": {
             "metadata": {
-              "label": "admission"
+              "label": "Admission"
             },
             "valueType": "EXPRESSION",
             "valueTypeConstraint": "Admission",
@@ -823,7 +823,7 @@
           },
           "employee": {
             "metadata": {
-              "label": "employee"
+              "label": "Employee"
             },
             "valueType": "EXPRESSION",
             "valueTypeConstraint": "Employee",

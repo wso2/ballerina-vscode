@@ -29,7 +29,7 @@
     "properties": {
       "serviceUrl": {
         "metadata": {
-          "label": "serviceUrl",
+          "label": "Service Url",
           "description": "URL of the target service "
         },
         "valueType": "EXPRESSION",
@@ -55,7 +55,7 @@
       },
       "auth": {
         "metadata": {
-          "label": "auth",
+          "label": "Auth",
           "description": "Configurations related to client authentication"
         },
         "valueType": "EXPRESSION",
@@ -92,7 +92,7 @@
       },
       "httpVersion": {
         "metadata": {
-          "label": "httpVersion",
+          "label": "HTTP Version",
           "description": "The HTTP version understood by the client"
         },
         "valueType": "EXPRESSION",
@@ -122,7 +122,7 @@
       },
       "http1Settings": {
         "metadata": {
-          "label": "http1Settings",
+          "label": "HTTP1 Settings",
           "description": "Configurations related to HTTP/1.x protocol"
         },
         "valueType": "EXPRESSION",
@@ -152,7 +152,7 @@
       },
       "http2Settings": {
         "metadata": {
-          "label": "http2Settings",
+          "label": "HTTP2 Settings",
           "description": "Configurations related to HTTP/2 protocol"
         },
         "valueType": "EXPRESSION",
@@ -182,7 +182,7 @@
       },
       "timeout": {
         "metadata": {
-          "label": "timeout",
+          "label": "Timeout",
           "description": "The maximum time to wait (in seconds) for a response before closing the connection"
         },
         "valueType": "EXPRESSION",
@@ -212,7 +212,7 @@
       },
       "forwarded": {
         "metadata": {
-          "label": "forwarded",
+          "label": "Forwarded",
           "description": "The choice of setting `forwarded`/`x-forwarded` header"
         },
         "valueType": "EXPRESSION",
@@ -242,7 +242,7 @@
       },
       "poolConfig": {
         "metadata": {
-          "label": "poolConfig",
+          "label": "Pool Config",
           "description": "Configurations associated with request pooling"
         },
         "valueType": "EXPRESSION",
@@ -272,7 +272,7 @@
       },
       "cache": {
         "metadata": {
-          "label": "cache",
+          "label": "Cache",
           "description": "HTTP caching related configurations"
         },
         "valueType": "EXPRESSION",
@@ -302,7 +302,7 @@
       },
       "compression": {
         "metadata": {
-          "label": "compression",
+          "label": "Compression",
           "description": "Specifies the way of handling compression (`accept-encoding`) header"
         },
         "valueType": "EXPRESSION",
@@ -332,7 +332,7 @@
       },
       "circuitBreaker": {
         "metadata": {
-          "label": "circuitBreaker",
+          "label": "Circuit Breaker",
           "description": "Configurations associated with the behaviour of the Circuit Breaker"
         },
         "valueType": "EXPRESSION",
@@ -362,7 +362,7 @@
       },
       "retryConfig": {
         "metadata": {
-          "label": "retryConfig",
+          "label": "Retry Config",
           "description": "Configurations associated with retrying"
         },
         "valueType": "EXPRESSION",
@@ -392,7 +392,7 @@
       },
       "responseLimits": {
         "metadata": {
-          "label": "responseLimits",
+          "label": "Response Limits",
           "description": "Configurations associated with inbound response size limits"
         },
         "valueType": "EXPRESSION",
@@ -422,7 +422,7 @@
       },
       "secureSocket": {
         "metadata": {
-          "label": "secureSocket",
+          "label": "Secure Socket",
           "description": "SSL/TLS-related options"
         },
         "valueType": "EXPRESSION",
@@ -452,7 +452,7 @@
       },
       "proxy": {
         "metadata": {
-          "label": "proxy",
+          "label": "Proxy",
           "description": "Proxy server related options"
         },
         "valueType": "EXPRESSION",
@@ -482,7 +482,7 @@
       },
       "validation": {
         "metadata": {
-          "label": "validation",
+          "label": "Validation",
           "description": "Enables the inbound payload validation functionality which provided by the constraint package. Enabled by default"
         },
         "valueType": "EXPRESSION",

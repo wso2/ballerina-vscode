@@ -36,7 +36,7 @@
     "properties": {
       "config": {
         "metadata": {
-          "label": "config",
+          "label": "Config",
           "description": "The configurations to be used when initializing the `connector` "
         },
         "valueType": "EXPRESSION",
@@ -62,7 +62,7 @@
       },
       "serviceUrl": {
         "metadata": {
-          "label": "serviceUrl",
+          "label": "Service Url",
           "description": "URL of the target service "
         },
         "valueType": "EXPRESSION",

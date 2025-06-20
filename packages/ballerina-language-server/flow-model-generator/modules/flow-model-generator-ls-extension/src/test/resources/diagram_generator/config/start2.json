@@ -65,7 +65,7 @@
         "properties": {
           "$name": {
             "metadata": {
-              "label": "name"
+              "label": "Name"
             },
             "valueType": "EXPRESSION",
             "valueTypeConstraint": "string",

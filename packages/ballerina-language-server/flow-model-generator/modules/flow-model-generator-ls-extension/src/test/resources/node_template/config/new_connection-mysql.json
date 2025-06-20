@@ -36,7 +36,7 @@
     "properties": {
       "host": {
         "metadata": {
-          "label": "host",
+          "label": "Host",
           "description": "Hostname of the MySQL server"
         },
         "valueType": "EXPRESSION",
@@ -63,7 +63,7 @@
       },
       "user": {
         "metadata": {
-          "label": "user",
+          "label": "User",
           "description": "If the MySQL server is secured, the username"
         },
         "valueType": "EXPRESSION",
@@ -97,7 +97,7 @@
       },
       "password": {
         "metadata": {
-          "label": "password",
+          "label": "Password",
           "description": "The password of the MySQL server for the provided username"
         },
         "valueType": "EXPRESSION",
@@ -131,7 +131,7 @@
       },
       "database": {
         "metadata": {
-          "label": "database",
+          "label": "Database",
           "description": "The name of the database"
         },
         "valueType": "EXPRESSION",
@@ -165,7 +165,7 @@
       },
       "port": {
         "metadata": {
-          "label": "port",
+          "label": "Port",
           "description": "Port number of the MySQL server"
         },
         "valueType": "EXPRESSION",
@@ -192,7 +192,7 @@
       },
       "options": {
         "metadata": {
-          "label": "options",
+          "label": "Options",
           "description": "MySQL database options"
         },
         "valueType": "EXPRESSION",
@@ -226,7 +226,7 @@
       },
       "connectionPool": {
         "metadata": {
-          "label": "connectionPool",
+          "label": "Connection Pool",
           "description": "The `sql:ConnectionPool` to be used for the connection. If there is no\n`connectionPool` provided, the global connection pool (shared by all clients) will be used"
         },
         "valueType": "EXPRESSION",

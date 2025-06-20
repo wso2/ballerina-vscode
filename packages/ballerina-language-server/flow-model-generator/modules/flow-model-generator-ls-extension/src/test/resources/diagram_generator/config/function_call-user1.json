@@ -87,7 +87,7 @@
           },
           "$name": {
             "metadata": {
-              "label": "name"
+              "label": "Name"
             },
             "valueType": "EXPRESSION",
             "valueTypeConstraint": "string",
@@ -205,7 +205,7 @@
           },
           "base": {
             "metadata": {
-              "label": "base"
+              "label": "Base"
             },
             "valueType": "EXPRESSION",
             "valueTypeConstraint": "int",
@@ -231,7 +231,7 @@
           },
           "exponent": {
             "metadata": {
-              "label": "exponent"
+              "label": "Exponent"
             },
             "valueType": "EXPRESSION",
             "valueTypeConstraint": "int",
@@ -349,7 +349,7 @@
           },
           "base": {
             "metadata": {
-              "label": "base"
+              "label": "Base"
             },
             "valueType": "EXPRESSION",
             "valueTypeConstraint": "int",
@@ -375,7 +375,7 @@
           },
           "exponent": {
             "metadata": {
-              "label": "exponent"
+              "label": "Exponent"
             },
             "valueType": "EXPRESSION",
             "valueTypeConstraint": "int",
@@ -682,7 +682,7 @@
           },
           "a": {
             "metadata": {
-              "label": "a"
+              "label": "A"
             },
             "valueType": "EXPRESSION",
             "valueTypeConstraint": "int",
@@ -708,7 +708,7 @@
           },
           "b": {
             "metadata": {
-              "label": "b"
+              "label": "B"
             },
             "valueType": "EXPRESSION",
             "valueTypeConstraint": "int",
@@ -734,7 +734,7 @@
           },
           "func": {
             "metadata": {
-              "label": "func"
+              "label": "Func"
             },
             "valueType": "EXPRESSION",
             "valueTypeConstraint": "function (int, int) returns int",

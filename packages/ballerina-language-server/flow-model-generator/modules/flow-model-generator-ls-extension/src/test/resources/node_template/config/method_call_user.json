@@ -45,7 +45,7 @@
       },
       "item": {
         "metadata": {
-          "label": "item"
+          "label": "Item"
         },
         "valueType": "EXPRESSION",
         "valueTypeConstraint": "string",

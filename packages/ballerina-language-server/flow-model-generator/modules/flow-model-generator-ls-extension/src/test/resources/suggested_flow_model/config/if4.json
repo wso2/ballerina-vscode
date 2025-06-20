@@ -307,7 +307,7 @@
                   },
                   "val": {
                     "metadata": {
-                      "label": "val"
+                      "label": "Val"
                     },
                     "valueType": "EXPRESSION",
                     "valueTypeConstraint": "string",
@@ -409,7 +409,7 @@
                   },
                   "val": {
                     "metadata": {
-                      "label": "val"
+                      "label": "Val"
                     },
                     "valueType": "EXPRESSION",
                     "valueTypeConstraint": "string",
@@ -547,7 +547,7 @@
                           },
                           "val": {
                             "metadata": {
-                              "label": "val"
+                              "label": "Val"
                             },
                             "valueType": "EXPRESSION",
                             "valueTypeConstraint": "string",
@@ -649,7 +649,7 @@
                           },
                           "val": {
                             "metadata": {
-                              "label": "val"
+                              "label": "Val"
                             },
                             "valueType": "EXPRESSION",
                             "valueTypeConstraint": "string",

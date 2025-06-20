@@ -253,7 +253,7 @@
           },
           "value": {
             "metadata": {
-              "label": "value"
+              "label": "Value"
             },
             "valueType": "EXPRESSION",
             "valueTypeConstraint": "int",
@@ -384,7 +384,7 @@
           },
           "value": {
             "metadata": {
-              "label": "value"
+              "label": "Value"
             },
             "valueType": "EXPRESSION",
             "valueTypeConstraint": "int",
