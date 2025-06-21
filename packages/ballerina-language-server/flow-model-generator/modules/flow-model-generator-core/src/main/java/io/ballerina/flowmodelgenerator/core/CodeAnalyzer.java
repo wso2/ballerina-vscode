@@ -171,7 +171,6 @@ import java.util.Queue;
 import java.util.Stack;
 import java.util.stream.Collectors;
 
-
 /**
  * Analyzes the source code and generates the flow model.
  *
