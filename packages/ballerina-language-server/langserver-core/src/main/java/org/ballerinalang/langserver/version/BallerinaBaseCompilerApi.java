@@ -20,6 +20,7 @@ package org.ballerinalang.langserver.version;
 
 import io.ballerina.compiler.syntax.tree.ExpressionFunctionBodyNode;
 import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
+import io.ballerina.projects.Project;
 import org.ballerinalang.annotation.JavaSPIService;
 import org.ballerinalang.langserver.commons.BallerinaCompilerApi;
 
@@ -41,6 +42,11 @@ public class BallerinaBaseCompilerApi extends BallerinaCompilerApi {
 
     @Override
     public boolean isNaturalExpressionBodiedFunction(FunctionDefinitionNode functionDefNode) {
+        return false;
+    }
+
+    @Override
+    public boolean hasOptimizedDependencyCompilation(Project project) {
         return false;
     }
 

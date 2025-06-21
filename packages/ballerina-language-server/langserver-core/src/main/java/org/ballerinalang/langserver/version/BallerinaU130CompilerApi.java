@@ -23,7 +23,6 @@ import io.ballerina.compiler.syntax.tree.FunctionBodyNode;
 import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import org.ballerinalang.annotation.JavaSPIService;
-import org.ballerinalang.langserver.commons.BallerinaCompilerApi;
 
 /**
  * Compiler API implementation for Ballerina 2201.13.0.
@@ -31,7 +30,7 @@ import org.ballerinalang.langserver.commons.BallerinaCompilerApi;
  * @since 1.0.0
  */
 @JavaSPIService("org.ballerinalang.langserver.commons.BallerinaCompilerApi")
-public class BallerinaU13CompilerApi extends BallerinaCompilerApi {
+public class BallerinaU130CompilerApi extends BallerinaU123CompilerApi {
 
     @Override
     public String getVersion() {

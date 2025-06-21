@@ -21,6 +21,7 @@ package org.ballerinalang.langserver.commons;
 import com.github.zafarkhaja.semver.Version;
 import io.ballerina.compiler.syntax.tree.ExpressionFunctionBodyNode;
 import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
+import io.ballerina.projects.Project;
 import org.wso2.ballerinalang.util.RepoUtils;
 
 import java.util.ServiceLoader;
@@ -123,4 +124,12 @@ public abstract class BallerinaCompilerApi {
      * @return {@code true} if the function has a natural expression body.
      */
     public abstract boolean isNaturalExpressionBodiedFunction(FunctionDefinitionNode functionDefNode);
+
+    /**
+     * Checks if the project has optimized dependency compilation enabled.
+     *
+     * @param project The project to check.
+     * @return {@code true} if optimized dependency compilation is enabled.
+     */
+    public abstract boolean hasOptimizedDependencyCompilation(Project project);
 }

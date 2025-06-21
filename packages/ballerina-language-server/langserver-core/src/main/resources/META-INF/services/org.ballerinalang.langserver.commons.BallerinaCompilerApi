@@ -1,2 +1,3 @@
 org.ballerinalang.langserver.version.BallerinaBaseCompilerApi
-org.ballerinalang.langserver.version.BallerinaU13CompilerApi
+org.ballerinalang.langserver.version.BallerinaU123CompilerApi
+org.ballerinalang.langserver.version.BallerinaU130CompilerApi
