@@ -68,7 +68,7 @@
         "fields": [
           {
             "member": {
-              "id": "user.phoneNumber",
+              "id": "user.phoneNumber.0",
               "typeName": "string",
               "kind": "string"
             },

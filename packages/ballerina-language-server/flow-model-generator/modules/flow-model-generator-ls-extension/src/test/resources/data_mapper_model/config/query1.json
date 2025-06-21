@@ -91,7 +91,7 @@
             "fields": [
               {
                 "member": {
-                  "id": "u.info.secondaryPhones",
+                  "id": "u.info.secondaryPhones.0",
                   "typeName": "string",
                   "kind": "string"
                 },
@@ -102,7 +102,7 @@
               },
               {
                 "member": {
-                  "id": "u.info.emails",
+                  "id": "u.info.emails.0",
                   "typeName": "string",
                   "kind": "string"
                 },
@@ -114,11 +114,11 @@
               {
                 "member": {
                   "member": {
-                    "id": "u.info.addresses",
+                    "id": "u.info.addresses.0.0",
                     "typeName": "string",
                     "kind": "string"
                   },
-                  "id": "u.info.addresses",
+                  "id": "u.info.addresses.0",
                   "typeName": "string[]",
                   "kind": "array"
                 },
