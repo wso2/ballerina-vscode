@@ -46,6 +46,7 @@ import org.ballerinalang.formatter.core.options.FormattingOptions;
 import org.ballerinalang.langserver.LSClientLogger;
 import org.ballerinalang.langserver.common.utils.CommonUtil;
 import org.ballerinalang.langserver.common.utils.RecordUtil;
+import org.ballerinalang.langserver.commons.BallerinaCompilerApi;
 import org.ballerinalang.langserver.commons.eventsync.exceptions.EventSyncException;
 import org.ballerinalang.langserver.commons.workspace.WorkspaceDocumentException;
 import org.ballerinalang.langserver.commons.workspace.WorkspaceManager;
@@ -287,7 +288,8 @@ public class SourceBuilder {
         }
 
         SemanticModel semanticModel = FileSystemUtils.getSemanticModel(workspaceManager, filePath);
-        Optional<TypeSymbol> optionalType = semanticModel.types().getType(document, typeName, packageMap);
+        Optional<TypeSymbol> optionalType =
+                BallerinaCompilerApi.getInstance().getType(semanticModel.types(), document, typeName, packageMap);
         if (optionalType.isEmpty()) {
             return Optional.empty();
         }
