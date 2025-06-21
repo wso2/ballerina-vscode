@@ -18,7 +18,14 @@
 
 package org.ballerinalang.langserver.version;
 
+import io.ballerina.compiler.api.Types;
+import io.ballerina.compiler.api.symbols.TypeSymbol;
+import io.ballerina.projects.Document;
 import io.ballerina.projects.Project;
+import org.wso2.ballerinalang.compiler.tree.BLangPackage;
+
+import java.util.Map;
+import java.util.Optional;
 
 /**
  * Compiler API implementation for Ballerina 2201.12.3.
@@ -35,5 +42,16 @@ public class BallerinaU123CompilerApi extends BallerinaBaseCompilerApi {
     @Override
     public boolean hasOptimizedDependencyCompilation(Project project) {
         return project.buildOptions().optimizeDependencyCompilation();
+    }
+
+    @Override
+    public Optional<TypeSymbol> getType(Types types, Document document, String typeName,
+                                        Map<String, BLangPackage> packageMap) {
+        return types.getType(document, typeName, packageMap);
+    }
+
+    @Override
+    public Optional<TypeSymbol> getType(Types types, Document document, String typeName) {
+        return types.getType(document, typeName);
     }
 }

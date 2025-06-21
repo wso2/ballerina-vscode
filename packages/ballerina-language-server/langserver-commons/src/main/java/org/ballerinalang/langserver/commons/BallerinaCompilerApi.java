@@ -19,11 +19,17 @@
 package org.ballerinalang.langserver.commons;
 
 import com.github.zafarkhaja.semver.Version;
+import io.ballerina.compiler.api.Types;
+import io.ballerina.compiler.api.symbols.TypeSymbol;
 import io.ballerina.compiler.syntax.tree.ExpressionFunctionBodyNode;
 import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
+import io.ballerina.projects.Document;
 import io.ballerina.projects.Project;
+import org.wso2.ballerinalang.compiler.tree.BLangPackage;
 import org.wso2.ballerinalang.util.RepoUtils;
 
+import java.util.Map;
+import java.util.Optional;
 import java.util.ServiceLoader;
 
 /**
@@ -37,6 +43,8 @@ import java.util.ServiceLoader;
  * <p>
  * The best practice is to extend the class implementation of the previous version to only highlight the differences
  * (e.g., U13 should extend U12).
+ * <p>
+ * The implementation should be stateless and thread-safe, as the same instance is used across the language server.
  *
  * @since 1.0.0
  */
@@ -132,4 +140,26 @@ public abstract class BallerinaCompilerApi {
      * @return {@code true} if optimized dependency compilation is enabled.
      */
     public abstract boolean hasOptimizedDependencyCompilation(Project project);
+
+    /**
+     * Gets a type symbol from the semantic model by type name and package mapping.
+     *
+     * @param types      The types in the semantic model.
+     * @param document   The document context.
+     * @param typeName   The name of the type to retrieve.
+     * @param packageMap The mapping of package prefixes to BLangPackage instances.
+     * @return An Optional containing the TypeSymbol if found.
+     */
+    public abstract Optional<TypeSymbol> getType(Types types, Document document, String typeName,
+                                                 Map<String, BLangPackage> packageMap);
+
+    /**
+     * Gets a type symbol from the semantic model by type name.
+     *
+     * @param types    The types in the semantic model.
+     * @param document The document context.
+     * @param typeName The name of the type to retrieve.
+     * @return An Optional containing the TypeSymbol if found.
+     */
+    public abstract Optional<TypeSymbol> getType(Types types, Document document, String typeName);
 }

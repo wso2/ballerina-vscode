@@ -18,11 +18,18 @@
 
 package org.ballerinalang.langserver.version;
 
+import io.ballerina.compiler.api.Types;
+import io.ballerina.compiler.api.symbols.TypeSymbol;
 import io.ballerina.compiler.syntax.tree.ExpressionFunctionBodyNode;
 import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
+import io.ballerina.projects.Document;
 import io.ballerina.projects.Project;
 import org.ballerinalang.annotation.JavaSPIService;
 import org.ballerinalang.langserver.commons.BallerinaCompilerApi;
+import org.wso2.ballerinalang.compiler.tree.BLangPackage;
+
+import java.util.Map;
+import java.util.Optional;
 
 /**
  * The base fallback implementation for the Ballerina Compiler API.
@@ -34,6 +41,11 @@ import org.ballerinalang.langserver.commons.BallerinaCompilerApi;
  */
 @JavaSPIService("org.ballerinalang.langserver.commons.BallerinaCompilerApi")
 public class BallerinaBaseCompilerApi extends BallerinaCompilerApi {
+
+    @Override
+    public String getVersion() {
+        return "2201.0.0";
+    }
 
     @Override
     public boolean isNaturalExpressionBody(ExpressionFunctionBodyNode expressionFunctionBodyNode) {
@@ -51,7 +63,13 @@ public class BallerinaBaseCompilerApi extends BallerinaCompilerApi {
     }
 
     @Override
-    public String getVersion() {
-        return "2201.0.0";
+    public Optional<TypeSymbol> getType(Types types, Document document, String typeName,
+                                        Map<String, BLangPackage> packageMap) {
+        return Optional.empty();
+    }
+
+    @Override
+    public Optional<TypeSymbol> getType(Types types, Document document, String typeName) {
+        return Optional.empty();
     }
 }
