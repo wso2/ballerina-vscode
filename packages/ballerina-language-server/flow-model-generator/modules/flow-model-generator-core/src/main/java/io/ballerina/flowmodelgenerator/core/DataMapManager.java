@@ -21,7 +21,6 @@ package io.ballerina.flowmodelgenerator.core;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.google.gson.reflect.TypeToken;
 import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.compiler.api.symbols.ArrayTypeSymbol;
 import io.ballerina.compiler.api.symbols.ClassSymbol;
@@ -119,17 +118,6 @@ public class DataMapManager {
     private final WorkspaceManager workspaceManager;
     private final Document document;
     private final Gson gson;
-
-    private static final String FROM = "from";
-    private static final String WHERE = "where";
-    private static final String ORDER_BY = "order-by";
-    private static final String ORDER_BY_CLAUSE = "order by";
-    private static final String LET = "let";
-    private static final String LIMIT = "limit";
-    private static final String SELECT = "select";
-    private static final String COLLECT = "collect";
-    private static final String IN = "in";
-    private static final String SPACE = " ";
 
     public DataMapManager(WorkspaceManager workspaceManager, Document document) {
         this.workspaceManager = workspaceManager;
@@ -806,85 +794,128 @@ public class DataMapManager {
         return mappingExpr;
     }
 
-    private record QueryData(FromClause fromClause, List<Clause> intermediateClauses, Clause resultClause) {
-
-    }
-
-    private static final java.lang.reflect.Type queryType = new TypeToken<QueryData>() {
-    }.getType();
-
-    public String addClauses(JsonElement clauses, JsonElement fNode, String targetField) {
-        FlowNode flowNode = gson.fromJson(fNode, FlowNode.class);
-        QueryData query = gson.fromJson(clauses, queryType);
-        if (flowNode.codedata().node() != NodeKind.VARIABLE) {
-            return "";
+    public JsonElement addClauses(Path filePath, JsonElement cd, JsonElement cl, int index, String targetField) {
+        Clause clause = gson.fromJson(cl, Clause.class);
+        Codedata codedata = gson.fromJson(cd, Codedata.class);
+        if (codedata.node() != NodeKind.VARIABLE) {
+            return null;
         }
 
-        StringBuilder queryStr = new StringBuilder();
-        FromClause fromClause = query.fromClause();
-        queryStr.append(FROM).append(SPACE).append(fromClause.type()).append(SPACE).append(fromClause.name())
-                .append(SPACE).append(IN).append(SPACE).append(fromClause.expression()).append(System.lineSeparator());
+        SyntaxTree syntaxTree = document.syntaxTree();
+        ModulePartNode modulePartNode = syntaxTree.rootNode();
+        TextDocument textDocument = syntaxTree.textDocument();
+        LineRange lineRange = codedata.lineRange();
+        int start = textDocument.textPositionFrom(lineRange.startLine());
+        int end = textDocument.textPositionFrom(lineRange.endLine());
+        NonTerminalNode node = modulePartNode.findNode(TextRange.from(start, end - start), true);
 
-        List<Clause> intermediateClauses = query.intermediateClauses();
-        if (intermediateClauses != null) {
-            for (Clause intermediateClause : intermediateClauses) {
-                Properties properties = intermediateClause.properties();
-                switch (intermediateClause.type()) {
-                    case FROM:
-                        queryStr.append(FROM).append(SPACE).append(properties.type()).append(SPACE)
-                                .append(properties.name()).append(SPACE).append(IN).append(SPACE)
-                                .append(properties.expression()).append(System.lineSeparator());
-                        break;
-                    case WHERE:
-                        queryStr.append(WHERE).append(SPACE).append(properties.expression())
-                                .append(System.lineSeparator());
-                        break;
-                    case ORDER_BY:
-                        queryStr.append(ORDER_BY_CLAUSE).append(SPACE).append(properties.expression()).append(SPACE);
-                        String order = properties.order();
-                        if (order != null && !order.isEmpty()) {
-                            queryStr.append(order);
-                        }
-                        queryStr.append(System.lineSeparator());
-                        break;
-                    case LET:
-                        queryStr.append(LET).append(SPACE).append(properties.type()).append(SPACE)
-                                .append(properties.name()).append(" = ").append(properties.expression())
-                                .append(System.lineSeparator());
-                        break;
-                    case LIMIT:
-                        queryStr.append(LIMIT).append(SPACE).append(properties.expression())
-                                .append(System.lineSeparator());
-                        break;
-                    default:
-                        throw new IllegalStateException("Unknown clause type: " + intermediateClause.type());
+        Map<Path, List<TextEdit>> textEditsMap = new HashMap<>();
+        List<TextEdit> textEdits = new ArrayList<>();
+        textEditsMap.put(filePath, textEdits);
+
+        if (node.kind() == SyntaxKind.LOCAL_VAR_DECL) {
+            VariableDeclarationNode varDecl = (VariableDeclarationNode) node;
+            QueryExpressionNode queryExpr = getQueryExpr(varDecl.initializer().orElseThrow(), targetField);
+            String clauseStr = genClause(clause);
+            NodeList<IntermediateClauseNode> intermediateClauseNodes = queryExpr.queryPipeline().intermediateClauses();
+            if (codedata.isNew() != null && codedata.isNew()) {
+                clauseStr = System.lineSeparator() + clauseStr;
+                if (intermediateClauseNodes == null || intermediateClauseNodes.isEmpty()) {
+                    textEdits.add(new TextEdit(CommonUtils.toRange(
+                            queryExpr.queryPipeline().fromClause().lineRange().endLine()), clauseStr));
+                } else {
+                    textEdits.add(new TextEdit(CommonUtils.toRange(
+                            intermediateClauseNodes.get(index).lineRange().endLine()), clauseStr));
+                }
+            } else {
+                textEdits.add(new TextEdit(CommonUtils.toRange(
+                        intermediateClauseNodes.get(index).lineRange()), clauseStr));
+            }
+        }
+
+        return gson.toJsonTree(textEditsMap);
+    }
+
+    private QueryExpressionNode getQueryExpr(ExpressionNode expressionNode, String targetField) {
+        if (targetField == null) {
+            if (expressionNode.kind() == SyntaxKind.QUERY_EXPRESSION) {
+                return (QueryExpressionNode) expressionNode;
+            }
+            throw new IllegalArgumentException("Expression is not a query expression: " + expressionNode.kind());
+        }
+
+        String[] splits = targetField.split(DOT);
+        ExpressionNode expr = expressionNode;
+        for (int i = 1; i < splits.length; i++) {
+            if (expr.kind() == SyntaxKind.MAPPING_CONSTRUCTOR) {
+                MappingConstructorExpressionNode mappingCtrExprNode = (MappingConstructorExpressionNode) expr;
+                Map<String, SpecificFieldNode> fields = convertMappingFieldsToMap(mappingCtrExprNode);
+                expr = fields.get(splits[i]).valueExpr().orElseThrow();
+            } else if (expr.kind() == SyntaxKind.LIST_CONSTRUCTOR) {
+                ListConstructorExpressionNode listCtrExprNode = (ListConstructorExpressionNode) expr;
+                String name = splits[i];
+                if (name.matches("\\d+")) {
+                    int index = Integer.parseInt(name);
+                    if (index >= listCtrExprNode.expressions().size()) {
+                        throw new IllegalArgumentException("Index out of bounds: " + index);
+                    }
+                    expr = (ExpressionNode) listCtrExprNode.expressions().get(index);
+                }
+            } else if (expr.kind() == SyntaxKind.QUERY_EXPRESSION) {
+                QueryExpressionNode queryExpr = (QueryExpressionNode) expr;
+                ClauseNode clauseNode = queryExpr.resultClause();
+                if (clauseNode.kind() == SyntaxKind.SELECT_CLAUSE) {
+                    expr = ((SelectClauseNode) clauseNode).expression();
+                    if (expr.kind() == SyntaxKind.MAPPING_CONSTRUCTOR) {
+                        MappingConstructorExpressionNode mappingCtrExprNode =
+                                (MappingConstructorExpressionNode) expr;
+                        Map<String, SpecificFieldNode> fields = convertMappingFieldsToMap(mappingCtrExprNode);
+                        expr = fields.get(splits[i]).valueExpr().orElseThrow();
+                    }
                 }
             }
         }
 
-        Clause resultClause = query.resultClause();
-        String type = resultClause.type();
-        if (type.equals(SELECT)) {
-            queryStr.append(SELECT).append(SPACE);
-        } else if (type.equals(COLLECT)) {
-            queryStr.append(COLLECT).append(SPACE);
+        if (expr.kind() == SyntaxKind.QUERY_EXPRESSION) {
+            return (QueryExpressionNode) expr;
         }
+        throw new IllegalArgumentException("Expression is not a query expression: " + expr.kind());
+    }
 
-        queryStr.append(resultClause.properties().expression());
-
-        Optional<Property> optProperty = flowNode.getProperty("expression");
-        if (optProperty.isEmpty()) {
-            return "";
-        }
-        Property property = optProperty.get();
-        String source = property.toSourceCode();
-        if (targetField == null || targetField.isEmpty()) {
-            if (source.matches("^from.*in.*select.*$")) {
-                String[] split = source.split(FROM);
-                return split[0] + queryStr;
+    private String genClause(Clause clause) {
+        String type = clause.type();
+        Properties properties = clause.properties();
+        switch (type) {
+            case "from": {
+                return "from " + properties.type() + " " + properties.name() +
+                        " in " + properties.expression();
             }
+            case "where": {
+                return "where " + properties.expression();
+            }
+            case "order-by": {
+                String orderBy = "order by " + properties.expression();
+                if (properties.order() != null) {
+                    orderBy += " " + properties.order();
+                }
+                return orderBy;
+            }
+            case "let": {
+                return "let " + properties.type() + " " + properties.name() +
+                        " = " + properties.expression();
+            }
+            case "limit": {
+                return "limit " + properties.expression();
+            }
+            case "select": {
+                return "select " + properties.expression();
+            }
+            case "collect": {
+                return "collect " + properties.expression();
+            }
+            default:
+                throw new IllegalStateException("Unknown clause type: " + type);
         }
-        return source;
     }
 
     public String getQuery(JsonElement fNode, String targetField, Path filePath, LinePosition position,
