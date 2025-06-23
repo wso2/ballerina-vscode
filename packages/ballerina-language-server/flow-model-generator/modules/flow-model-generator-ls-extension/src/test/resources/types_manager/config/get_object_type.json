@@ -99,6 +99,7 @@
         "type": "string",
         "name": "make",
         "optional": false,
+        "readonly": false,
         "docs": ""
       },
       {
@@ -107,6 +108,7 @@
         "type": "string",
         "name": "model",
         "optional": false,
+        "readonly": false,
         "docs": ""
       }
     ],
@@ -173,7 +175,8 @@
             "refs": [],
             "type": "int",
             "name": "year",
-            "optional": false
+            "optional": false,
+            "readonly": false
           }
         ],
         "kind": "FUNCTION",

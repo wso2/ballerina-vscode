@@ -82,21 +82,24 @@
         "refs": [],
         "type": "\"RED\"",
         "name": "RED",
-        "optional": false
+        "optional": false,
+        "readonly": false
       },
       {
         "kind": "NAME",
         "refs": [],
         "type": "\"YELLOW\"",
         "name": "YELLOW",
-        "optional": false
+        "optional": false,
+        "readonly": false
       },
       {
         "kind": "NAME",
         "refs": [],
         "type": "\"GREEN\"",
         "name": "GREEN",
-        "optional": false
+        "optional": false,
+        "readonly": false
       }
     ],
     "allowAdditionalFields": false

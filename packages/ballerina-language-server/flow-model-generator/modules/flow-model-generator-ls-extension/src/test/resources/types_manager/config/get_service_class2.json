@@ -150,6 +150,7 @@
         "type": "string",
         "name": "name",
         "optional": false,
+        "readonly": false,
         "docs": ""
       }
     ],

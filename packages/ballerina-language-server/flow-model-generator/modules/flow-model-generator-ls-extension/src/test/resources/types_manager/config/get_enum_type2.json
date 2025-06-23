@@ -83,7 +83,8 @@
         "type": "\"male\"",
         "name": "MALE",
         "defaultValue": "\"male\"",
-        "optional": false
+        "optional": false,
+        "readonly": false
       },
       {
         "kind": "NAME",
@@ -91,7 +92,8 @@
         "type": "\"female\"",
         "name": "FEMALE",
         "defaultValue": "\"female\"",
-        "optional": false
+        "optional": false,
+        "readonly": false
       }
     ],
     "allowAdditionalFields": false

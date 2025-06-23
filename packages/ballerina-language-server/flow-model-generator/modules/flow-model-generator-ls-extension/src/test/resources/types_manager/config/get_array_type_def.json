@@ -130,6 +130,7 @@
               "type": "int",
               "name": "id",
               "optional": false,
+              "readonly": false,
               "docs": ""
             },
             {
@@ -138,6 +139,7 @@
               "type": "string",
               "name": "name",
               "optional": false,
+              "readonly": false,
               "docs": ""
             },
             {
@@ -148,6 +150,7 @@
               "type": "Names",
               "name": "otherNames",
               "optional": false,
+              "readonly": false,
               "docs": ""
             }
           ],
@@ -155,7 +158,8 @@
           "allowAdditionalFields": false
         },
         "name": "record {|int id; string name; Names otherNames;|}",
-        "optional": false
+        "optional": false,
+        "readonly": false
       }
     ],
     "allowAdditionalFields": false
@@ -250,7 +254,8 @@
           "refs": [],
           "type": "string",
           "name": "string",
-          "optional": false
+          "optional": false,
+          "readonly": false
         }
       ],
       "allowAdditionalFields": false

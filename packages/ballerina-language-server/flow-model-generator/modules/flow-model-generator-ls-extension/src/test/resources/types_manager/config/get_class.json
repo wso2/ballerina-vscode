@@ -153,6 +153,7 @@
         "type": "int",
         "name": "year",
         "optional": false,
+        "readonly": false,
         "docs": "Year of manufacturing."
       },
       {
@@ -161,6 +162,7 @@
         "type": "string",
         "name": "make",
         "optional": false,
+        "readonly": false,
         "docs": ""
       },
       {
@@ -169,6 +171,7 @@
         "type": "string",
         "name": "model",
         "optional": false,
+        "readonly": false,
         "docs": ""
       }
     ],
@@ -238,7 +241,8 @@
             "refs": [],
             "type": "string",
             "name": "time",
-            "optional": false
+            "optional": false,
+            "readonly": false
           }
         ],
         "kind": "FUNCTION",
@@ -296,7 +300,8 @@
             "refs": [],
             "type": "int",
             "name": "year",
-            "optional": false
+            "optional": false,
+            "readonly": false
           }
         ],
         "kind": "FUNCTION",
@@ -491,6 +496,7 @@
           "type": "string",
           "name": "make",
           "optional": false,
+          "readonly": false,
           "docs": ""
         },
         {
@@ -499,6 +505,7 @@
           "type": "string",
           "name": "model",
           "optional": false,
+          "readonly": false,
           "docs": ""
         }
       ],
@@ -565,7 +572,8 @@
               "refs": [],
               "type": "int",
               "name": "year",
-              "optional": false
+              "optional": false,
+              "readonly": false
             }
           ],
           "kind": "FUNCTION",

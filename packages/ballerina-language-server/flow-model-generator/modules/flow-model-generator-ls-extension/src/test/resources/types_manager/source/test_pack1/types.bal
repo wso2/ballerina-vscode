@@ -110,3 +110,34 @@ public isolated readonly distinct client class Vehicle {
         return "";
     }
 }
+
+# Record with readonly field
+type User1 record {|
+	readonly int uuid;
+	readonly string name;
+|};
+
+# Readonly and record type
+type User2 readonly & record {|
+	int uuid;
+	string name;
+|};
+
+# Readonly class
+readonly class User3 {
+	int uuid;
+	function init(int uuid) {
+		self.uuid = uuid;
+	}
+}
+
+# Readonly and object type
+type User4 readonly & object {
+	function getUuid() returns int;
+};
+
+# Readonly and array type
+type Users readonly & User1[];
+
+# Readonly and union type
+type User5 readonly & (User1 | Person);

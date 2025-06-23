@@ -91,7 +91,8 @@
           "refs": [],
           "type": "string",
           "name": "string",
-          "optional": false
+          "optional": false,
+          "readonly": false
         }
       ],
       "allowAdditionalFields": false
@@ -187,7 +188,8 @@
           ],
           "type": "Person",
           "name": "Person",
-          "optional": false
+          "optional": false,
+          "readonly": false
         }
       ],
       "allowAdditionalFields": false
@@ -282,6 +284,7 @@
           "type": "string",
           "name": "name",
           "optional": false,
+          "readonly": false,
           "docs": ""
         },
         {
@@ -290,6 +293,7 @@
           "type": "int",
           "name": "age",
           "optional": false,
+          "readonly": false,
           "docs": ""
         },
         {
@@ -298,6 +302,7 @@
           "type": "boolean",
           "name": "isAdult",
           "optional": false,
+          "readonly": false,
           "docs": ""
         },
         {
@@ -342,13 +347,15 @@
                 ],
                 "type": "Person",
                 "name": "Person",
-                "optional": false
+                "optional": false,
+                "readonly": false
               }
             ],
             "allowAdditionalFields": false
           },
           "name": "children",
           "optional": false,
+          "readonly": false,
           "docs": ""
         }
       ],
@@ -481,7 +488,8 @@
                 ],
                 "type": "PersonWithChildren",
                 "name": "PersonWithChildren",
-                "optional": false
+                "optional": false,
+                "readonly": false
               },
               {
                 "kind": "TYPE",
@@ -490,13 +498,15 @@
                 ],
                 "type": "Person",
                 "name": "Person",
-                "optional": false
+                "optional": false,
+                "readonly": false
               }
             ],
             "allowAdditionalFields": false
           },
           "name": "PersonWithChildren|Person",
-          "optional": false
+          "optional": false,
+          "readonly": false
         }
       ],
       "allowAdditionalFields": false
@@ -626,6 +636,7 @@
                 "type": "int",
                 "name": "id",
                 "optional": false,
+                "readonly": false,
                 "docs": ""
               },
               {
@@ -634,6 +645,7 @@
                 "type": "string",
                 "name": "name",
                 "optional": false,
+                "readonly": false,
                 "docs": ""
               },
               {
@@ -644,6 +656,7 @@
                 "type": "Names",
                 "name": "otherNames",
                 "optional": false,
+                "readonly": false,
                 "docs": ""
               }
             ],
@@ -651,7 +664,8 @@
             "allowAdditionalFields": false
           },
           "name": "record {|int id; string name; Names otherNames;|}",
-          "optional": false
+          "optional": false,
+          "readonly": false
         }
       ],
       "allowAdditionalFields": false
@@ -782,20 +796,23 @@
                 ],
                 "type": "Person",
                 "name": "Person",
-                "optional": false
+                "optional": false,
+                "readonly": false
               },
               {
                 "kind": "TYPE",
                 "refs": [],
                 "type": "string",
                 "name": "string",
-                "optional": false
+                "optional": false,
+                "readonly": false
               }
             ],
             "allowAdditionalFields": false
           },
           "name": "Person|string",
-          "optional": false
+          "optional": false,
+          "readonly": false
         }
       ],
       "allowAdditionalFields": false
@@ -890,6 +907,7 @@
           "type": "string",
           "name": "name",
           "optional": false,
+          "readonly": false,
           "docs": ""
         },
         {
@@ -898,6 +916,7 @@
           "type": "int",
           "name": "age",
           "optional": false,
+          "readonly": false,
           "docs": ""
         },
         {
@@ -906,6 +925,7 @@
           "type": "boolean",
           "name": "isAdult",
           "optional": false,
+          "readonly": false,
           "docs": ""
         }
       ],

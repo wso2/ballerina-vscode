@@ -51,6 +51,18 @@
         "advanced": true,
         "hidden": false
       },
+      "isReadOnly": {
+        "metadata": {
+          "label": "readonly",
+          "description": "Is this readonly"
+        },
+        "valueType": "FLAG",
+        "value": "false",
+        "optional": true,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      },
       "isArray": {
         "metadata": {
           "label": "Is array type",
@@ -126,14 +138,16 @@
               ],
               "type": "ProfileType",
               "name": "ProfileType",
-              "optional": false
+              "optional": false,
+              "readonly": false
             },
             {
               "kind": "TYPE",
               "refs": [],
               "type": "string",
               "name": "string",
-              "optional": false
+              "optional": false,
+              "readonly": false
             }
           ],
           "allowAdditionalFields": false
@@ -260,14 +274,16 @@
           "type": "\"teacher\"",
           "name": "TEACHER",
           "defaultValue": "\"teacher\"",
-          "optional": false
+          "optional": false,
+          "readonly": false
         },
         {
           "kind": "NAME",
           "refs": [],
           "type": "\"STUDENT\"",
           "name": "STUDENT",
-          "optional": false
+          "optional": false,
+          "readonly": false
         }
       ],
       "allowAdditionalFields": false
