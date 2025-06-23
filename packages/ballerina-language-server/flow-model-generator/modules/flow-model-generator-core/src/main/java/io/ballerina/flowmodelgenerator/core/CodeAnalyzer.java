@@ -1591,17 +1591,28 @@ public class CodeAnalyzer extends NodeVisitor {
         calculateFunctionArgs(namedArgValueMap, positionalArgs, arguments);
 
         Map<String, ParameterData> funcParamMap = new LinkedHashMap<>();
+        Map<String, ParameterData> typeInferParamMap = new LinkedHashMap<>();
         FunctionTypeSymbol functionTypeSymbol = functionSymbol.typeDescriptor();
+        
         functionData.parameters().forEach((key, paramResult) -> {
             if (paramResult.kind() == ParameterData.Kind.PATH_PARAM) {
                 // Skip if `path` param
                 return;
             }
 
-            if (paramResult.kind() != ParameterData.Kind.PARAM_FOR_TYPE_INFER) {
-                funcParamMap.put(key, paramResult);
+            if (paramResult.kind() == ParameterData.Kind.PARAM_FOR_TYPE_INFER) {
+                typeInferParamMap.put(key, paramResult);
                 return;
             }
+            
+            funcParamMap.put(key, paramResult);
+        });
+        
+        buildPropsFromFuncCallArgs(arguments, functionTypeSymbol, funcParamMap, positionalArgs, namedArgValueMap);
+        handleCheckFlag(callNode, functionTypeSymbol);
+        
+        // Process PARAM_FOR_TYPE_INFER parameters at the end
+        typeInferParamMap.forEach((key, paramResult) -> {
             String returnType = functionData.returnType();
 
             // Derive the value of the inferred type name
@@ -1629,8 +1640,6 @@ public class CodeAnalyzer extends NodeVisitor {
             nodeBuilder.codedata().inferredReturnType(functionData.returnError() ? returnType : null);
             CallBuilder.buildInferredTypeProperty(nodeBuilder, paramResult, inferredTypeName);
         });
-        buildPropsFromFuncCallArgs(arguments, functionTypeSymbol, funcParamMap, positionalArgs, namedArgValueMap);
-        handleCheckFlag(callNode, functionTypeSymbol);
     }
 
     private static String deriveInferredType(String variableType, String returnType, String key) {
