@@ -28,7 +28,6 @@ import io.ballerina.flowmodelgenerator.extension.request.DataMapperSourceRequest
 import io.ballerina.flowmodelgenerator.extension.request.DataMapperTypesRequest;
 import io.ballerina.flowmodelgenerator.extension.request.DataMapperVisualizeRequest;
 import io.ballerina.flowmodelgenerator.extension.response.DataMapperAddClauseResponse;
-import io.ballerina.flowmodelgenerator.extension.response.DataMapperAddElementResponse;
 import io.ballerina.flowmodelgenerator.extension.response.DataMapperModelResponse;
 import io.ballerina.flowmodelgenerator.extension.response.DataMapperSourceResponse;
 import io.ballerina.flowmodelgenerator.extension.response.DataMapperTypesResponse;
@@ -188,9 +187,9 @@ public class DataMapperService implements ExtendedLanguageServerService {
     }
 
     @JsonRequest
-    public CompletableFuture<DataMapperAddElementResponse> addElement(DataMapperAddElementRequest request) {
+    public CompletableFuture<DataMapperSourceResponse> addElement(DataMapperAddElementRequest request) {
         return CompletableFuture.supplyAsync(() -> {
-            DataMapperAddElementResponse response = new DataMapperAddElementResponse();
+            DataMapperSourceResponse response = new DataMapperSourceResponse();
             try {
                 Path filePath = Path.of(request.filePath());
                 Project project = this.workspaceManager.loadProject(filePath);
@@ -200,8 +199,8 @@ public class DataMapperService implements ExtendedLanguageServerService {
                     return response;
                 }
                 DataMapManager dataMapManager = new DataMapManager(workspaceManager, document.get());
-                response.setSource(dataMapManager.addElement(request.flowNode(), request.propertyKey(),
-                        Path.of(request.filePath()), request.targetField(), project, request.position()));
+                response.setTextEdits(dataMapManager.addElement(semanticModel.get(), request.codedata(),
+                        Path.of(request.filePath()), request.targetField()));
             } catch (Throwable e) {
                 response.setError(e);
             }
