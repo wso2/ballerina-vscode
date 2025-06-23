@@ -50,3 +50,15 @@ type UserAsArrays record {
     int[] ages;
     City[] addresses;
 };
+
+# Record with readonly field
+type User1 record {|
+	readonly int uuid;
+	readonly string name;
+|};
+
+# Readonly and record type
+type User2 readonly & record {|
+	int uuid;
+	string name;
+|};
