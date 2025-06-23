@@ -50,7 +50,7 @@
           "label": "Resource Path",
           "description": "Resource Path"
         },
-        "valueType": "EXPRESSION",
+        "valueType": "ACTION_PATH",
         "value": "/v2/organizations/[organizationId]/accounts/[accountId]/groups",
         "optional": false,
         "editable": false,

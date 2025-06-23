@@ -51,7 +51,7 @@
           "label": "Resource Path",
           "description": "Resource Path"
         },
-        "valueType": "EXPRESSION",
+        "valueType": "ACTION_PATH",
         "value": "/path/to/subdirectory",
         "optional": false,
         "editable": true,
