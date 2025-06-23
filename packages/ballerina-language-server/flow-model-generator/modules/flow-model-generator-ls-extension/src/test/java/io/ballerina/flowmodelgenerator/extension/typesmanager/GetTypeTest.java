@@ -58,38 +58,9 @@ public class GetTypeTest extends AbstractLSTest {
         }
     }
 
-    @DataProvider(name = "data-provider")
-    @Override
-    protected Object[] getConfigsList() {
-        return new Object[][]{
-                {Path.of("get_array_type_def.json")},
-                {Path.of("get_array_type_of_readonly_and_array_type.json")},
-                {Path.of("get_class.json")},
-                {Path.of("get_class_type_of_readonly_class.json")},
-                {Path.of("get_enum_type1.json")},
-                {Path.of("get_enum_type2.json")},
-                {Path.of("get_error_type_def.json")},
-                {Path.of("get_object_type.json")},
-                {Path.of("get_object_type_of_readonly_and_object_type.json")},
-                {Path.of("get_record_type1.json")},
-                {Path.of("get_record_type2.json")},
-                {Path.of("get_record_type3.json")},
-                {Path.of("get_record_type4.json")},
-                {Path.of("get_record_type5.json")},
-                {Path.of("get_record_type_with_readonly_fields.json")},
-                {Path.of("get_record_type_of_readonly_and_record_type.json")},
-                {Path.of("get_service_class1.json")},
-                {Path.of("get_service_class2.json")},
-                {Path.of("get_service_class3.json")},
-                {Path.of("get_table_type_def.json")},
-                {Path.of("get_union_type1.json")},
-                {Path.of("get_union_type_of_readonly_and_union_type.json")},
-        };
-    }
-
     @Override
     protected String getResourceDir() {
-        return "types_manager";
+        return "types_manager/get_type";
     }
 
     @Override

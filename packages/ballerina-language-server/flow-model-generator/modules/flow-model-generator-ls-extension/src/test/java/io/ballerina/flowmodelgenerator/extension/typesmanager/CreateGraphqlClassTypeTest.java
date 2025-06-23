@@ -80,19 +80,9 @@ public class CreateGraphqlClassTypeTest extends AbstractLSTest {
         }
     }
 
-    @DataProvider(name = "data-provider")
-    @Override
-    protected Object[] getConfigsList() {
-        return new Object[][]{
-                {Path.of("create_graphql_class_type1.json")},
-                {Path.of("create_graphql_class_type2.json")},
-                {Path.of("create_graphql_class_type_with_imports.json")},
-        };
-    }
-
     @Override
     protected String getResourceDir() {
-        return "types_manager";
+        return "types_manager/create_graphql_class_type";
     }
 
     @Override

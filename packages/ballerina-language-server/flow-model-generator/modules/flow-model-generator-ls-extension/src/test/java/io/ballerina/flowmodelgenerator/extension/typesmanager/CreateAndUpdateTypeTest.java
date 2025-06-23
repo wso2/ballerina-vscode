@@ -80,34 +80,9 @@ public class CreateAndUpdateTypeTest extends AbstractLSTest {
         }
     }
 
-    @DataProvider(name = "data-provider")
-    @Override
-    protected Object[] getConfigsList() {
-        return new Object[][]{
-                {Path.of("create_array_type1.json")},
-                {Path.of("create_array_type2.json")},
-                {Path.of("create_array_type3.json")},
-                {Path.of("create_array_type4.json")},
-                {Path.of("create_record_type1.json")},
-                {Path.of("create_record_type2.json")},
-                {Path.of("create_record_type3.json")},
-                {Path.of("create_record_type_with_imports.json")},
-                {Path.of("create_union_type.json")},
-                {Path.of("create_enum_type1.json")},
-                {Path.of("create_enum_type2.json")},
-                {Path.of("create_table_type.json")},
-                {Path.of("create_tuple_type.json")},
-                {Path.of("create_intersection_type.json")},
-                {Path.of("update_record_type1.json")},
-                {Path.of("update_record_type2.json")},
-                {Path.of("update_record_type3.json")},
-                {Path.of("update_record_type4.json")},
-        };
-    }
-
     @Override
     protected String getResourceDir() {
-        return "types_manager";
+        return "types_manager/create_and_update";
     }
 
     @Override

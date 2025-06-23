@@ -82,17 +82,9 @@ public class CreateMultipleTypesTest extends AbstractLSTest {
         }
     }
 
-    @DataProvider(name = "data-provider")
-    @Override
-    protected Object[] getConfigsList() {
-        return new Object[][]{
-                {Path.of("create_multiple_types_with_array_of_types.json")}
-        };
-    }
-
     @Override
     protected String getResourceDir() {
-        return "types_manager";
+        return "types_manager/create_multiple_types";
     }
 
     @Override
