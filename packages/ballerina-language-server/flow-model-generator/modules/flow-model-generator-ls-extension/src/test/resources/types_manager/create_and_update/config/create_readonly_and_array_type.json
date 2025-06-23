@@ -1,0 +1,119 @@
+{
+  "filePath": "test_pack1/types.bal",
+  "description": "Create a readonly and array type",
+  "type": {
+    "name": "Users",
+    "editable": true,
+    "metadata": {
+      "label": "Users",
+      "description": "Readonly and array type"
+    },
+    "codedata": {
+      "node": "ARRAY"
+    },
+    "properties": {
+      "name": {
+        "metadata": {
+          "label": "Type name",
+          "description": "Unique name to identify the type"
+        },
+        "valueType": "IDENTIFIER",
+        "value": "Users",
+        "optional": false,
+        "editable": false,
+        "advanced": false,
+        "hidden": false
+      },
+      "isPublic": {
+        "metadata": {
+          "label": "public",
+          "description": "Is this public"
+        },
+        "valueType": "FLAG",
+        "value": "false",
+        "optional": true,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      },
+      "description": {
+        "metadata": {
+          "label": "Type description",
+          "description": "Detailed description about the type"
+        },
+        "valueType": "STRING",
+        "value": "Readonly and array type",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      },
+      "isReadOnly": {
+        "metadata": {
+          "label": "readonly",
+          "description": "Is this readonly"
+        },
+        "valueType": "FLAG",
+        "value": "true",
+        "optional": true,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      },
+      "isArray": {
+        "metadata": {
+          "label": "Is array type",
+          "description": "Is this type an array or list value"
+        },
+        "valueType": "FLAG",
+        "value": "true",
+        "optional": true,
+        "editable": true,
+        "advanced": true,
+        "hidden": false
+      },
+      "arraySize": {
+        "metadata": {
+          "label": "Size of the array",
+          "description": "Array dimensions"
+        },
+        "valueType": "STRING",
+        "value": "",
+        "optional": true,
+        "editable": true,
+        "advanced": true,
+        "hidden": false
+      }
+    },
+    "members": [
+      {
+        "kind": "TYPE",
+        "refs": [
+          "User1"
+        ],
+        "type": "User1",
+        "name": "User1",
+        "optional": false,
+        "readonly": false
+      }
+    ],
+    "allowAdditionalFields": false
+  },
+  "output": {
+    "test_pack1/types.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 37,
+            "character": 0
+          },
+          "end": {
+            "line": 37,
+            "character": 0
+          }
+        },
+        "newText": "\n# Readonly and array type\ntype Users readonly & User1[];"
+      }
+    ]
+  }
+}
