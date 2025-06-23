@@ -31,6 +31,7 @@ import java.util.Map;
  * @param name          Name of the member.
  * @param defaultValue  Default value of the member.
  * @param optional      Whether the member is optional.
+ * @param readonly      Whether the member is readonly.
  * @param docs          Documentation of the member
  * @param annotations   Annotations of the member.
  * @param imports       Imports of the member.
@@ -43,6 +44,7 @@ public record Member(
         String name,
         String defaultValue,
         boolean optional,
+        boolean readonly,
         String docs,
         List<TypeData.Annotation> annotations,
         Map<String, String> imports
@@ -54,6 +56,7 @@ public record Member(
         private String name;
         private String defaultValue;
         private boolean optional = false;
+        private boolean readonly = false;
         private String docs;
         private List<TypeData.Annotation> annotations;
         private Map<String, String> imports;
@@ -91,6 +94,11 @@ public record Member(
             return this;
         }
 
+        public MemberBuilder readonly(boolean readonly) {
+            this.readonly = readonly;
+            return this;
+        }
+
         public MemberBuilder docs(String docs) {
             this.docs = docs;
             return this;
@@ -109,7 +117,7 @@ public record Member(
         public Member build() {
             Member member = new Member(
                     kind, refs != null ? List.copyOf(refs) : null,
-                    type, name, defaultValue, optional, docs,
+                    type, name, defaultValue, optional, readonly, docs,
                     annotations != null ? List.copyOf(annotations) : null,
                     imports != null ? Map.copyOf(imports) : null
             );
@@ -119,6 +127,7 @@ public record Member(
             this.name = null;
             this.defaultValue = null;
             this.optional = false;
+            this.readonly = false;
             this.docs = null;
             this.annotations = null;
             this.imports = null;

@@ -102,6 +102,7 @@ public class TypeTransformer {
                 .properties()
                     .name(attachPoint, false, false, false)
                     .qualifiers(qualifiers, true, true, true)
+                    .isReadOnly(qualifiers.contains(Qualifier.READONLY.getValue()), true, true, false)
                     .isArray("false", true, true, true)
                     .arraySize("", false, false, false);
 
@@ -317,6 +318,7 @@ public class TypeTransformer {
                     .kind(Member.MemberKind.FIELD)
                     .type(transformedFieldType)
                     .optional(fieldSymbol.isOptional())
+                    .readonly(fieldSymbol.qualifiers().contains(Qualifier.READONLY))
                     .refs(getTypeRefs(transformedFieldType, fieldSymbol.typeDescriptor()))
                     .docs(getDocumentString(fieldSymbol))
                     .defaultValue(getDefaultValueOfField(typeDataBuilder.name(), fieldName).orElse(null))
