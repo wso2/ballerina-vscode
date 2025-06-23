@@ -48,24 +48,6 @@
         "advanced": false,
         "hidden": true
       },
-      "rowType": {
-        "metadata": {
-          "label": "rowType",
-          "description": "The `typedesc` of the record to which the result needs to be returned"
-        },
-        "valueType": "TYPE",
-        "valueTypeConstraint": "record {|anydata...;|}",
-        "placeholder": "record {|anydata...;|}",
-        "optional": false,
-        "editable": true,
-        "advanced": false,
-        "hidden": false,
-        "codedata": {
-          "kind": "PARAM_FOR_TYPE_INFER",
-          "originalName": "rowType"
-        },
-        "defaultValue": "record {|anydata...;|}"
-      },
       "sqlQuery": {
         "metadata": {
           "label": "sqlQuery",
@@ -95,6 +77,27 @@
           "sql": "ballerina/sql"
         },
         "defaultValue": "``"
+      },
+      "rowType": {
+        "metadata": {
+          "label": "rowType",
+          "description": "The `typedesc` of the record to which the result needs to be returned"
+        },
+        "valueType": "TYPE",
+        "valueTypeConstraint": "record {|anydata...;|}",
+        "placeholder": "record {|anydata...;|}",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false,
+        "codedata": {
+          "kind": "PARAM_FOR_TYPE_INFER",
+          "originalName": "rowType"
+        },
+        "imports": {
+          "sql": "ballerina/sql"
+        },
+        "defaultValue": "record {|anydata...;|}"
       },
       "type": {
         "metadata": {
