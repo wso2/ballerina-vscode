@@ -255,7 +255,8 @@ public record Property(Metadata metadata, String valueType, Object valueTypeCons
         EXPRESSION_SET,
         FIXED_PROPERTY,
         RAW_TEMPLATE,
-        REPEATABLE_PROPERTY
+        REPEATABLE_PROPERTY,
+        ACTION_PATH
     }
 
     public static ValueType valueTypeFrom(String s) {

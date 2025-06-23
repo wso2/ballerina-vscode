@@ -1,4 +1,5 @@
 module io.ballerina.language.server.commons {
+    uses org.ballerinalang.langserver.commons.BallerinaCompilerApi;
     requires io.ballerina.lang;
     requires io.ballerina.parser;
     requires io.ballerina.tools.api;
@@ -6,6 +7,7 @@ module io.ballerina.language.server.commons {
     requires org.eclipse.lsp4j.jsonrpc;
     requires com.google.gson;
     requires io.ballerina.toml;
+    requires java.semver;
     exports org.ballerinalang.langserver.commons;
     exports org.ballerinalang.langserver.commons.client;
     exports org.ballerinalang.langserver.commons.service.spi;

@@ -368,6 +368,7 @@ public class FormBuilder<T> extends FacetedBuilder<T> {
                     .description(Property.CONNECTION_DOC)
                     .stepOut()
                 .type(Property.ValueType.EXPRESSION)
+                .hidden()
                 .value(expressionNode.toString());
         addProperty(key);
         return this;
@@ -391,7 +392,7 @@ public class FormBuilder<T> extends FacetedBuilder<T> {
                     .label(Property.RESOURCE_PATH_LABEL)
                     .description(Property.RESOURCE_PATH_DOC)
                     .stepOut()
-                .type(Property.ValueType.EXPRESSION);
+                .type(Property.ValueType.ACTION_PATH);
         if (editable) {
             propertyBuilder
                     .codedata()

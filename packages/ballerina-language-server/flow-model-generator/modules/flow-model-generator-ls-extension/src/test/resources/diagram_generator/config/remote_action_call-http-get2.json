@@ -79,7 +79,7 @@
             "optional": false,
             "editable": false,
             "advanced": false,
-            "hidden": false
+            "hidden": true
           },
           "targetType": {
             "metadata": {
@@ -256,7 +256,7 @@
             "optional": false,
             "editable": false,
             "advanced": false,
-            "hidden": false
+            "hidden": true
           },
           "targetType": {
             "metadata": {
@@ -394,7 +394,7 @@
             "optional": false,
             "editable": false,
             "advanced": false,
-            "hidden": false
+            "hidden": true
           },
           "targetType": {
             "metadata": {

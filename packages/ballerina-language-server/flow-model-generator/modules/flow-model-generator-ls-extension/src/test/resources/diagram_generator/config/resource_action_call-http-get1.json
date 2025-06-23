@@ -75,7 +75,7 @@
               "label": "Resource Path",
               "description": "Resource Path"
             },
-            "valueType": "EXPRESSION",
+            "valueType": "ACTION_PATH",
             "value": "/western/apples",
             "optional": false,
             "editable": true,
@@ -95,7 +95,7 @@
             "optional": false,
             "editable": false,
             "advanced": false,
-            "hidden": false
+            "hidden": true
           },
           "variable": {
             "metadata": {
@@ -260,7 +260,7 @@
               "label": "Resource Path",
               "description": "Resource Path"
             },
-            "valueType": "EXPRESSION",
+            "valueType": "ACTION_PATH",
             "value": "/apples",
             "optional": false,
             "editable": true,
@@ -280,7 +280,7 @@
             "optional": false,
             "editable": false,
             "advanced": false,
-            "hidden": false
+            "hidden": true
           },
           "variable": {
             "metadata": {
@@ -452,7 +452,7 @@
               "label": "Resource Path",
               "description": "Resource Path"
             },
-            "valueType": "EXPRESSION",
+            "valueType": "ACTION_PATH",
             "value": "/",
             "optional": false,
             "editable": true,
@@ -472,7 +472,7 @@
             "optional": false,
             "editable": false,
             "advanced": false,
-            "hidden": false
+            "hidden": true
           },
           "variable": {
             "metadata": {
@@ -637,7 +637,7 @@
               "label": "Resource Path",
               "description": "Resource Path"
             },
-            "valueType": "EXPRESSION",
+            "valueType": "ACTION_PATH",
             "value": "/apples",
             "optional": false,
             "editable": true,
@@ -657,7 +657,7 @@
             "optional": false,
             "editable": false,
             "advanced": false,
-            "hidden": false
+            "hidden": true
           },
           "variable": {
             "metadata": {
@@ -826,7 +826,7 @@
               "label": "Resource Path",
               "description": "Resource Path"
             },
-            "valueType": "EXPRESSION",
+            "valueType": "ACTION_PATH",
             "value": "/apples",
             "optional": false,
             "editable": true,
@@ -846,7 +846,7 @@
             "optional": false,
             "editable": false,
             "advanced": false,
-            "hidden": false
+            "hidden": true
           },
           "variable": {
             "metadata": {
@@ -1011,7 +1011,7 @@
               "label": "Resource Path",
               "description": "Resource Path"
             },
-            "valueType": "EXPRESSION",
+            "valueType": "ACTION_PATH",
             "value": "/apples",
             "optional": false,
             "editable": true,
@@ -1031,7 +1031,7 @@
             "optional": false,
             "editable": false,
             "advanced": false,
-            "hidden": false
+            "hidden": true
           },
           "variable": {
             "metadata": {
@@ -1197,7 +1197,7 @@
               "label": "Resource Path",
               "description": "Resource Path"
             },
-            "valueType": "EXPRESSION",
+            "valueType": "ACTION_PATH",
             "value": "/apples",
             "optional": false,
             "editable": true,
@@ -1217,7 +1217,7 @@
             "optional": false,
             "editable": false,
             "advanced": false,
-            "hidden": false
+            "hidden": true
           },
           "variable": {
             "metadata": {
@@ -1382,7 +1382,7 @@
               "label": "Resource Path",
               "description": "Resource Path"
             },
-            "valueType": "EXPRESSION",
+            "valueType": "ACTION_PATH",
             "value": "/apples/[varRef]/[12 + 3]",
             "optional": false,
             "editable": true,
@@ -1402,7 +1402,7 @@
             "optional": false,
             "editable": false,
             "advanced": false,
-            "hidden": false
+            "hidden": true
           },
           "variable": {
             "metadata": {
@@ -1567,7 +1567,7 @@
               "label": "Resource Path",
               "description": "Resource Path"
             },
-            "valueType": "EXPRESSION",
+            "valueType": "ACTION_PATH",
             "value": "/apples",
             "optional": false,
             "editable": true,
@@ -1587,7 +1587,7 @@
             "optional": false,
             "editable": false,
             "advanced": false,
-            "hidden": false
+            "hidden": true
           },
           "variable": {
             "metadata": {

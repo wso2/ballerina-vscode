@@ -96,7 +96,7 @@ public class DataMappingAddClausesTest extends AbstractLSTest {
             TestConfig updatedConfig = new TestConfig(testConfig.source(), testConfig.description(),
                     testConfig.codedata(), testConfig.propertyKey(), testConfig.index(), testConfig.clause(),
                     testConfig.targetField(), newMap);
-            updateConfig(configJsonPath, updatedConfig);
+//            updateConfig(configJsonPath, updatedConfig);
             Assert.fail(String.format("Failed test: '%s' (%s)", testConfig.description(), configJsonPath));
         }
     }

@@ -74,19 +74,19 @@
         "member": {
           "fields": [
             {
-              "id": "userInfo.username",
+              "id": "userInfo.0.username",
               "variableName": "username",
               "typeName": "string",
               "kind": "string"
             },
             {
-              "id": "userInfo.password",
+              "id": "userInfo.0.password",
               "variableName": "password",
               "typeName": "string",
               "kind": "string"
             }
           ],
-          "id": "userInfo",
+          "id": "userInfo.0",
           "typeName": "UserInfo",
           "kind": "record"
         },
