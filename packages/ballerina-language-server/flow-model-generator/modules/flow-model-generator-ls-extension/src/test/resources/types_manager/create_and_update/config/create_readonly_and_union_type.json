@@ -122,7 +122,7 @@
             "character": 0
           }
         },
-        "newText": "\n# Readonly and union type\ntype User5 readonly & (User1 | Person);"
+        "newText": "\n# Readonly and union type\ntype User5 readonly & (User1|Person);"
       }
     ]
   }

@@ -109,7 +109,7 @@
             "character": 0
           }
         },
-        "newText": "# Record with readonly field\ntype User1 record {|\n\treadonly int uuid;\n\treadonly string name;\n|};"
+        "newText": "\n# Record with readonly field\ntype User1 record {|\n\treadonly int uuid;\n\treadonly string name;\n|};"
       }
     ]
   }

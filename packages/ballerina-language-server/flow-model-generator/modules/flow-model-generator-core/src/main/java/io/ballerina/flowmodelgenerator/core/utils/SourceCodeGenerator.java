@@ -119,7 +119,11 @@ public class SourceCodeGenerator {
 
         // Check for readonly property to generate `readonly & <type-desc>` type
         if (isReadonlyFlagOn(typeData.properties())) {
-            typeDescriptor = "readonly & " + typeDescriptor;
+            if (typeData.codedata().node() == NodeKind.UNION) {
+                typeDescriptor = "readonly & (" + typeDescriptor + ")";
+            } else {
+                typeDescriptor = "readonly & " + typeDescriptor;
+            }
         }
 
         String template = "%stype %s %s;";

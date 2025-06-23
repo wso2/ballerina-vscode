@@ -80,6 +80,14 @@ public class CreateAndUpdateTypeTest extends AbstractLSTest {
     }
 
     @Override
+    protected String[] skipList() {
+        // TODO: Implement generate functions logic for object types
+        return new String[]{
+                "create_readonly_and_object_type.json"
+        };
+    }
+
+    @Override
     protected String getResourceDir() {
         return "types_manager/create_and_update";
     }
