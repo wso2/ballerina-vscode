@@ -223,7 +223,7 @@ public abstract class CallBuilder extends NodeBuilder {
                                            boolean hidden) {
         properties()
                 .type(functionData.returnType(), false, functionData.importStatements(), hidden)
-                .data(functionData.returnType(), context.getAllVisibleSymbolNames(), doc, label);
+                .data(functionData.returnType(), context.getAllVisibleSymbolNames(), label, doc);
     }
 
     protected void setExpressionProperty(Codedata codedata) {
