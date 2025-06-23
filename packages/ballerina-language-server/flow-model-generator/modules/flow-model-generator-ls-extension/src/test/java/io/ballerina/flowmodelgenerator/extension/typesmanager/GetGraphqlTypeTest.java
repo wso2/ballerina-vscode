@@ -24,7 +24,6 @@ import io.ballerina.flowmodelgenerator.extension.request.GetTypeRequest;
 import io.ballerina.modelgenerator.commons.AbstractLSTest;
 import io.ballerina.tools.text.LinePosition;
 import org.testng.Assert;
-import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import java.io.IOException;

@@ -26,7 +26,6 @@ import io.ballerina.flowmodelgenerator.extension.request.MultipleTypeUpdateReque
 import io.ballerina.modelgenerator.commons.AbstractLSTest;
 import org.eclipse.lsp4j.TextEdit;
 import org.testng.Assert;
-import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import java.io.IOException;

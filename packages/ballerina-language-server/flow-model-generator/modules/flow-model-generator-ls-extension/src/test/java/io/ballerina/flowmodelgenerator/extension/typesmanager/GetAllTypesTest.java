@@ -23,7 +23,6 @@ import com.google.gson.JsonElement;
 import io.ballerina.flowmodelgenerator.extension.request.FilePathRequest;
 import io.ballerina.modelgenerator.commons.AbstractLSTest;
 import org.testng.Assert;
-import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import java.io.IOException;
