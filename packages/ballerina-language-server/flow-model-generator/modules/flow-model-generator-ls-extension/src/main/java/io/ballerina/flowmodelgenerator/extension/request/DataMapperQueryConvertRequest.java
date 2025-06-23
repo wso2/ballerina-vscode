@@ -19,7 +19,6 @@
 package io.ballerina.flowmodelgenerator.extension.request;
 
 import com.google.gson.JsonElement;
-import io.ballerina.tools.text.LinePosition;
 
 /**
  * Represents a request to get the data mapper model for types.

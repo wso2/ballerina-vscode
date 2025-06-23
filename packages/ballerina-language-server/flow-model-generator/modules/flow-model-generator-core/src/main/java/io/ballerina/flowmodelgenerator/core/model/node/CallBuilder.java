@@ -39,9 +39,7 @@ import org.ballerinalang.langserver.commons.workspace.WorkspaceDocumentException
 import org.ballerinalang.langserver.commons.workspace.WorkspaceManager;
 
 import java.nio.file.Path;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Abstract base class for function-like builders (functions, methods, resource actions).
@@ -155,17 +153,12 @@ public abstract class CallBuilder extends NodeBuilder {
     protected void setParameterProperties(FunctionData function) {
         boolean hasOnlyRestParams = function.parameters().size() == 1;
 
-        // Build the inferred type property at the top if exists
-        Map<String, ParameterData> paramMap = new LinkedHashMap<>();
-        function.parameters().forEach((key, paramData) -> {
-            if (paramData.kind() != ParameterData.Kind.PARAM_FOR_TYPE_INFER) {
-                paramMap.put(key, paramData);
-                return;
+        for (ParameterData paramResult : function.parameters().values()) {
+            if (paramResult.kind() == ParameterData.Kind.PARAM_FOR_TYPE_INFER) {
+                buildInferredTypeProperty(this, paramResult, null);
+                continue;
             }
-            buildInferredTypeProperty(this, paramData, null);
-        });
 
-        for (ParameterData paramResult : paramMap.values()) {
             if (paramResult.kind().equals(ParameterData.Kind.INCLUDED_RECORD)) {
                 continue;
             }
@@ -191,11 +184,6 @@ public abstract class CallBuilder extends NodeBuilder {
                     .defaultable(paramResult.optional());
 
             switch (paramResult.kind()) {
-                case PARAM_FOR_TYPE_INFER -> {
-                    customPropBuilder.advanced(false);
-                    customPropBuilder.optional(false);
-                    customPropBuilder.type(Property.ValueType.TYPE);
-                }
                 case INCLUDED_RECORD_REST -> {
                     if (hasOnlyRestParams) {
                         customPropBuilder.defaultable(false);
