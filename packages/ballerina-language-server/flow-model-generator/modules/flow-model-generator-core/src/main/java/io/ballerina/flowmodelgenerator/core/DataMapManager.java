@@ -1126,55 +1126,56 @@ public class DataMapManager {
         return kind == TypeDescKind.RECORD;
     }
 
-    public String addElement(JsonElement node, String propertyKey, Path filePath, String targetField, Project project,
-                             LinePosition position) {
-        FlowNode flowNode = gson.fromJson(node, FlowNode.class);
-        if (flowNode.codedata().node() != NodeKind.VARIABLE) {
-            return "";
-        }
-        Optional<Property> optProperty = flowNode.getProperty(propertyKey);
-        if (optProperty.isEmpty()) {
-            return "";
-        }
-        Property property = optProperty.get();
-        String source = property.toSourceCode();
+    public JsonElement addElement(SemanticModel semanticModel, JsonElement cd, Path filePath, String targetField) {
+        Codedata codedata = gson.fromJson(cd, Codedata.class);
 
-        SourceModification sourceModification = applyNode(flowNode, project, filePath, position);
-        Node stNode = sourceModification.stNode();
-        if (stNode.kind() != SyntaxKind.LOCAL_VAR_DECL) {
-            return "";
+        SyntaxTree syntaxTree = document.syntaxTree();
+        ModulePartNode modulePartNode = syntaxTree.rootNode();
+        TextDocument textDocument = syntaxTree.textDocument();
+        LineRange lineRange = codedata.lineRange();
+        int start = textDocument.textPositionFrom(lineRange.startLine());
+        int end = textDocument.textPositionFrom(lineRange.endLine());
+        NonTerminalNode stNode = modulePartNode.findNode(TextRange.from(start, end - start), true);
+
+        Map<Path, List<TextEdit>> textEditsMap = new HashMap<>();
+        List<TextEdit> textEdits = new ArrayList<>();
+        textEditsMap.put(filePath, textEdits);
+
+        if (stNode.kind() == SyntaxKind.LOCAL_VAR_DECL) {
+            Optional<Symbol> symbol = semanticModel.symbol(stNode);
+            if (symbol.isEmpty()) {
+                throw new IllegalStateException("Symbol cannot be found for the variable declaration");
+            }
+            TypeSymbol targetType = getTargetType(((VariableSymbol) symbol.get()).typeDescriptor(), targetField);
+            if (targetType == null) {
+                throw new IllegalStateException("Target type cannot be found for the variable declaration");
+            }
+            if (targetType.typeKind() == TypeDescKind.ARRAY) {
+                targetType = ((ArrayTypeSymbol) targetType).memberTypeDescriptor();
+            }
+            String defaultVal = DefaultValueGeneratorUtil.getDefaultValueForType(targetType);
+
+            VariableDeclarationNode varDeclNode = (VariableDeclarationNode) stNode;
+            if (varDeclNode.initializer().isEmpty()) {
+                return null;
+            }
+            ExpressionNode initializer = varDeclNode.initializer().get();
+            ExpressionNode expr = getArrayExpr(targetField, initializer);
+            if (expr == null || expr.kind() != SyntaxKind.LIST_CONSTRUCTOR) {
+                throw new IllegalStateException("Expression is not a list constructor");
+            }
+            ListConstructorExpressionNode listCtrExpr = (ListConstructorExpressionNode) expr;
+            SeparatedNodeList<Node> expressions = listCtrExpr.expressions();
+            if (expressions == null || expressions.isEmpty()) {
+                textEdits.add(new TextEdit(CommonUtils.toRange(listCtrExpr.openBracket().lineRange().endLine()),
+                        defaultVal));
+            } else {
+                defaultVal = ", " + defaultVal;
+                textEdits.add(new TextEdit(CommonUtils.toRange(
+                        expressions.get(expressions.size() - 1).lineRange().endLine()), defaultVal));
+            }
         }
-        Optional<Symbol> symbol = sourceModification.semanticModel().symbol(stNode);
-        if (symbol.isEmpty()) {
-            return "";
-        }
-        TypeSymbol targetType = getTargetType(((VariableSymbol) symbol.get()).typeDescriptor(), targetField);
-        if (targetType == null) {
-            return "";
-        }
-        if (targetType.typeKind() == TypeDescKind.ARRAY) {
-            targetType = ((ArrayTypeSymbol) targetType).memberTypeDescriptor();
-        }
-        String defaultVal = DefaultValueGeneratorUtil.getDefaultValueForType(targetType);
-        if (source.equals("[]")) {
-            return "[" + defaultVal + "]";
-        }
-        VariableDeclarationNode varDeclNode = (VariableDeclarationNode) stNode;
-        if (varDeclNode.initializer().isEmpty()) {
-            return source;
-        }
-        ExpressionNode initializer = varDeclNode.initializer().get();
-        ExpressionNode expr = getArrayExpr(targetField, initializer);
-        if (expr == null || expr.kind() != SyntaxKind.LIST_CONSTRUCTOR) {
-            return source;
-        }
-        ListConstructorExpressionNode listCtrExpr = (ListConstructorExpressionNode) expr;
-        if (!listCtrExpr.expressions().isEmpty()) {
-            defaultVal = ", " + defaultVal;
-        }
-        int pos = listCtrExpr.closeBracket().position() - initializer.position();
-        source = initializer.toSourceCode();
-        return source.substring(0, pos) + defaultVal + source.substring(pos);
+        return gson.toJsonTree(textEditsMap);
     }
 
     private ExpressionNode getArrayExpr(String targetField, ExpressionNode expr) {
