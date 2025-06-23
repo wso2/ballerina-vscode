@@ -27,7 +27,6 @@ import io.ballerina.flowmodelgenerator.extension.request.DataMapperQueryConvertR
 import io.ballerina.flowmodelgenerator.extension.request.DataMapperSourceRequest;
 import io.ballerina.flowmodelgenerator.extension.request.DataMapperTypesRequest;
 import io.ballerina.flowmodelgenerator.extension.request.DataMapperVisualizeRequest;
-import io.ballerina.flowmodelgenerator.extension.response.DataMapperAddClauseResponse;
 import io.ballerina.flowmodelgenerator.extension.response.DataMapperModelResponse;
 import io.ballerina.flowmodelgenerator.extension.response.DataMapperSourceResponse;
 import io.ballerina.flowmodelgenerator.extension.response.DataMapperTypesResponse;
@@ -129,13 +128,20 @@ public class DataMapperService implements ExtendedLanguageServerService {
     }
 
     @JsonRequest
-    public CompletableFuture<DataMapperAddClauseResponse> addClauses(DataMapperAddClausesRequest request) {
+    public CompletableFuture<DataMapperSourceResponse> addClauses(DataMapperAddClausesRequest request) {
         return CompletableFuture.supplyAsync(() -> {
-            DataMapperAddClauseResponse response = new DataMapperAddClauseResponse();
+            DataMapperSourceResponse response = new DataMapperSourceResponse();
             try {
-                DataMapManager dataMapManager = new DataMapManager(null, null);
-                response.setSource(dataMapManager.addClauses(request.query(), request.flowNode(),
-                        request.targetField()));
+                Path filePath = Path.of(request.filePath());
+                this.workspaceManager.loadProject(filePath);
+                Optional<Document> document = this.workspaceManager.document(filePath);
+                if (document.isEmpty()) {
+                    return response;
+                }
+
+                DataMapManager dataMapManager = new DataMapManager(this.workspaceManager, document.get());
+                response.setTextEdits(dataMapManager.addClauses(filePath, request.codedata(), request.clause(),
+                        request.index(), request.targetField()));
             } catch (Throwable e) {
                 response.setError(e);
             }
