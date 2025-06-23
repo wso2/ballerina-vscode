@@ -144,20 +144,20 @@ public class DataMapperService implements ExtendedLanguageServerService {
     }
 
     @JsonRequest
-    public CompletableFuture<DataMapperAddClauseResponse> convertToQuery(DataMapperQueryConvertRequest request) {
+    public CompletableFuture<DataMapperSourceResponse> convertToQuery(DataMapperQueryConvertRequest request) {
         return CompletableFuture.supplyAsync(() -> {
-            DataMapperAddClauseResponse response = new DataMapperAddClauseResponse();
+            DataMapperSourceResponse response = new DataMapperSourceResponse();
             try {
                 Path filePath = Path.of(request.filePath());
-                Project project = this.workspaceManager.loadProject(filePath);
+                this.workspaceManager.loadProject(filePath);
                 Optional<SemanticModel> semanticModel = this.workspaceManager.semanticModel(filePath);
                 Optional<Document> document = this.workspaceManager.document(filePath);
                 if (semanticModel.isEmpty() || document.isEmpty()) {
                     return response;
                 }
                 DataMapManager dataMapManager = new DataMapManager(workspaceManager, document.get());
-                response.setSource(dataMapManager.getQuery(request.flowNode(), request.targetField(),
-                        Path.of(request.filePath()), request.position(), project));
+                response.setTextEdits(dataMapManager.getQuery(semanticModel.get(), request.codedata(),
+                        request.targetField(), Path.of(request.filePath())));
             } catch (Throwable e) {
                 response.setError(e);
             }
