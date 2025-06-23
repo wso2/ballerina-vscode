@@ -95,7 +95,7 @@
             "optional": false,
             "editable": false,
             "advanced": false,
-            "hidden": false
+            "hidden": true
           },
           "variable": {
             "metadata": {
@@ -341,7 +341,7 @@
             "optional": false,
             "editable": false,
             "advanced": false,
-            "hidden": false
+            "hidden": true
           },
           "variable": {
             "metadata": {
@@ -588,7 +588,7 @@
             "optional": false,
             "editable": false,
             "advanced": false,
-            "hidden": false
+            "hidden": true
           },
           "variable": {
             "metadata": {
@@ -834,7 +834,7 @@
             "optional": false,
             "editable": false,
             "advanced": false,
-            "hidden": false
+            "hidden": true
           },
           "variable": {
             "metadata": {
@@ -1084,7 +1084,7 @@
             "optional": false,
             "editable": false,
             "advanced": false,
-            "hidden": false
+            "hidden": true
           },
           "variable": {
             "metadata": {
@@ -1331,7 +1331,7 @@
             "optional": false,
             "editable": false,
             "advanced": false,
-            "hidden": false
+            "hidden": true
           },
           "variable": {
             "metadata": {
@@ -1577,7 +1577,7 @@
             "optional": false,
             "editable": false,
             "advanced": false,
-            "hidden": false
+            "hidden": true
           },
           "variable": {
             "metadata": {

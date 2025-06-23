@@ -368,6 +368,7 @@ public class FormBuilder<T> extends FacetedBuilder<T> {
                     .description(Property.CONNECTION_DOC)
                     .stepOut()
                 .type(Property.ValueType.EXPRESSION)
+                .hidden()
                 .value(expressionNode.toString());
         addProperty(key);
         return this;
