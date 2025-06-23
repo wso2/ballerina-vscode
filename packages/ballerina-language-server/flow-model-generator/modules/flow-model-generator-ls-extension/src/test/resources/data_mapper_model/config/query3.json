@@ -93,19 +93,19 @@
                 "member": {
                   "fields": [
                     {
-                      "id": "u.info.secondaryPhones.code",
+                      "id": "u.info.secondaryPhones.0.code",
                       "variableName": "code",
                       "typeName": "string",
                       "kind": "string"
                     },
                     {
-                      "id": "u.info.secondaryPhones.number",
+                      "id": "u.info.secondaryPhones.0.number",
                       "variableName": "number",
                       "typeName": "string",
                       "kind": "string"
                     }
                   ],
-                  "id": "u.info.secondaryPhones",
+                  "id": "u.info.secondaryPhones.0",
                   "typeName": "SecondaryPhones",
                   "kind": "record"
                 },
@@ -116,7 +116,7 @@
               },
               {
                 "member": {
-                  "id": "u.info.emails",
+                  "id": "u.info.emails.0",
                   "typeName": "string",
                   "kind": "string"
                 },
@@ -128,11 +128,11 @@
               {
                 "member": {
                   "member": {
-                    "id": "u.info.addresses",
+                    "id": "u.info.addresses.0.0",
                     "typeName": "string",
                     "kind": "string"
                   },
-                  "id": "u.info.addresses",
+                  "id": "u.info.addresses.0",
                   "typeName": "string[]",
                   "kind": "array"
                 },
