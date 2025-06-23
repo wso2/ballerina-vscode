@@ -219,6 +219,13 @@ public abstract class CallBuilder extends NodeBuilder {
                 .data(functionData.returnType(), context.getAllVisibleSymbolNames(), label);
     }
 
+    protected void setReturnTypeProperties(FunctionData functionData, TemplateContext context, String label, String doc,
+                                           boolean hidden) {
+        properties()
+                .type(functionData.returnType(), false, functionData.importStatements(), hidden)
+                .data(functionData.returnType(), context.getAllVisibleSymbolNames(), doc, label);
+    }
+
     protected void setExpressionProperty(Codedata codedata) {
         properties().custom()
                 .metadata()
