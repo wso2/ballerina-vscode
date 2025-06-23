@@ -136,6 +136,124 @@
       "allowAdditionalFields": false
     },
     {
+      "name": "User2",
+      "editable": true,
+      "metadata": {
+        "label": "User2",
+        "description": "Readonly and record type"
+      },
+      "codedata": {
+        "node": "RECORD",
+        "lineRange": {
+          "fileName": "types.bal",
+          "startLine": {
+            "line": 120,
+            "offset": 5
+          },
+          "endLine": {
+            "line": 120,
+            "offset": 10
+          }
+        }
+      },
+      "properties": {
+        "name": {
+          "metadata": {
+            "label": "Type name",
+            "description": "Unique name to identify the type"
+          },
+          "valueType": "IDENTIFIER",
+          "value": "User2",
+          "optional": false,
+          "editable": false,
+          "advanced": false,
+          "hidden": false
+        },
+        "isPublic": {
+          "metadata": {
+            "label": "public",
+            "description": "Is this public"
+          },
+          "valueType": "FLAG",
+          "value": "false",
+          "optional": true,
+          "editable": true,
+          "advanced": false,
+          "hidden": false
+        },
+        "description": {
+          "metadata": {
+            "label": "Type description",
+            "description": "Detailed description about the type"
+          },
+          "valueType": "STRING",
+          "value": "Readonly and record type",
+          "optional": false,
+          "editable": true,
+          "advanced": false,
+          "hidden": false
+        },
+        "isReadOnly": {
+          "metadata": {
+            "label": "readonly",
+            "description": "Is this readonly"
+          },
+          "valueType": "FLAG",
+          "value": "true",
+          "optional": true,
+          "editable": true,
+          "advanced": false,
+          "hidden": false
+        },
+        "isArray": {
+          "metadata": {
+            "label": "Is array type",
+            "description": "Is this type an array or list value"
+          },
+          "valueType": "FLAG",
+          "value": "false",
+          "optional": true,
+          "editable": true,
+          "advanced": true,
+          "hidden": false
+        },
+        "arraySize": {
+          "metadata": {
+            "label": "Size of the array",
+            "description": "Array dimensions"
+          },
+          "valueType": "STRING",
+          "value": "",
+          "optional": true,
+          "editable": true,
+          "advanced": true,
+          "hidden": false
+        }
+      },
+      "members": [
+        {
+          "kind": "FIELD",
+          "refs": [],
+          "type": "int",
+          "name": "uuid",
+          "optional": false,
+          "readonly": false,
+          "docs": ""
+        },
+        {
+          "kind": "FIELD",
+          "refs": [],
+          "type": "string",
+          "name": "name",
+          "optional": false,
+          "readonly": false,
+          "docs": ""
+        }
+      ],
+      "includes": [],
+      "allowAdditionalFields": false
+    },
+    {
       "name": "PersonWithId",
       "editable": true,
       "metadata": {
@@ -238,6 +356,112 @@
           "readonly": false
         }
       ],
+      "allowAdditionalFields": false
+    },
+    {
+      "name": "User1",
+      "editable": true,
+      "metadata": {
+        "label": "User1",
+        "description": "Record with readonly field"
+      },
+      "codedata": {
+        "node": "RECORD",
+        "lineRange": {
+          "fileName": "types.bal",
+          "startLine": {
+            "line": 114,
+            "offset": 5
+          },
+          "endLine": {
+            "line": 114,
+            "offset": 10
+          }
+        }
+      },
+      "properties": {
+        "name": {
+          "metadata": {
+            "label": "Type name",
+            "description": "Unique name to identify the type"
+          },
+          "valueType": "IDENTIFIER",
+          "value": "User1",
+          "optional": false,
+          "editable": false,
+          "advanced": false,
+          "hidden": false
+        },
+        "isPublic": {
+          "metadata": {
+            "label": "public",
+            "description": "Is this public"
+          },
+          "valueType": "FLAG",
+          "value": "false",
+          "optional": true,
+          "editable": true,
+          "advanced": false,
+          "hidden": false
+        },
+        "description": {
+          "metadata": {
+            "label": "Type description",
+            "description": "Detailed description about the type"
+          },
+          "valueType": "STRING",
+          "value": "Record with readonly field",
+          "optional": false,
+          "editable": true,
+          "advanced": false,
+          "hidden": false
+        },
+        "isArray": {
+          "metadata": {
+            "label": "Is array type",
+            "description": "Is this type an array or list value"
+          },
+          "valueType": "FLAG",
+          "value": "false",
+          "optional": true,
+          "editable": true,
+          "advanced": true,
+          "hidden": false
+        },
+        "arraySize": {
+          "metadata": {
+            "label": "Size of the array",
+            "description": "Array dimensions"
+          },
+          "valueType": "STRING",
+          "value": "",
+          "optional": true,
+          "editable": true,
+          "advanced": true,
+          "hidden": false
+        }
+      },
+      "members": [
+        {
+          "kind": "FIELD",
+          "refs": [],
+          "type": "int",
+          "name": "uuid",
+          "optional": false,
+          "readonly": true,
+          "docs": ""
+        },
+        {
+          "kind": "FIELD",
+          "refs": [],
+          "type": "string",
+          "name": "name",
+          "optional": false,
+          "readonly": true,
+          "docs": ""
+        }
+      ],
+      "includes": [],
       "allowAdditionalFields": false
     },
     {
@@ -952,6 +1176,125 @@
       "allowAdditionalFields": false
     },
     {
+      "name": "User5",
+      "editable": true,
+      "metadata": {
+        "label": "User5",
+        "description": "Readonly and union type"
+      },
+      "codedata": {
+        "node": "UNION",
+        "lineRange": {
+          "fileName": "types.bal",
+          "startLine": {
+            "line": 142,
+            "offset": 5
+          },
+          "endLine": {
+            "line": 142,
+            "offset": 10
+          }
+        }
+      },
+      "properties": {
+        "name": {
+          "metadata": {
+            "label": "Type name",
+            "description": "Unique name to identify the type"
+          },
+          "valueType": "IDENTIFIER",
+          "value": "User5",
+          "optional": false,
+          "editable": false,
+          "advanced": false,
+          "hidden": false
+        },
+        "isPublic": {
+          "metadata": {
+            "label": "public",
+            "description": "Is this public"
+          },
+          "valueType": "FLAG",
+          "value": "false",
+          "optional": true,
+          "editable": true,
+          "advanced": false,
+          "hidden": false
+        },
+        "description": {
+          "metadata": {
+            "label": "Type description",
+            "description": "Detailed description about the type"
+          },
+          "valueType": "STRING",
+          "value": "Readonly and union type",
+          "optional": false,
+          "editable": true,
+          "advanced": false,
+          "hidden": false
+        },
+        "isReadOnly": {
+          "metadata": {
+            "label": "readonly",
+            "description": "Is this readonly"
+          },
+          "valueType": "FLAG",
+          "value": "true",
+          "optional": true,
+          "editable": true,
+          "advanced": false,
+          "hidden": false
+        },
+        "isArray": {
+          "metadata": {
+            "label": "Is array type",
+            "description": "Is this type an array or list value"
+          },
+          "valueType": "FLAG",
+          "value": "false",
+          "optional": true,
+          "editable": true,
+          "advanced": true,
+          "hidden": false
+        },
+        "arraySize": {
+          "metadata": {
+            "label": "Size of the array",
+            "description": "Array dimensions"
+          },
+          "valueType": "STRING",
+          "value": "",
+          "optional": false,
+          "editable": false,
+          "advanced": false,
+          "hidden": false
+        }
+      },
+      "members": [
+        {
+          "kind": "TYPE",
+          "refs": [
+            "User1"
+          ],
+          "type": "User1",
+          "name": "User1",
+          "optional": false,
+          "readonly": false
+        },
+        {
+          "kind": "TYPE",
+          "refs": [
+            "Person"
+          ],
+          "type": "Person",
+          "name": "Person",
+          "optional": false,
+          "readonly": false
+        }
+      ],
+      "allowAdditionalFields": false
+    },
+    {
       "name": "MixRecord",
       "editable": true,
       "metadata": {
@@ -1237,6 +1580,158 @@
       "allowAdditionalFields": true
     },
     {
+      "name": "User4",
+      "editable": true,
+      "metadata": {
+        "label": "User4",
+        "description": "Readonly and object type"
+      },
+      "codedata": {
+        "node": "OBJECT",
+        "lineRange": {
+          "fileName": "types.bal",
+          "startLine": {
+            "line": 134,
+            "offset": 5
+          },
+          "endLine": {
+            "line": 134,
+            "offset": 10
+          }
+        }
+      },
+      "properties": {
+        "name": {
+          "metadata": {
+            "label": "Type name",
+            "description": "Unique name to identify the type"
+          },
+          "valueType": "IDENTIFIER",
+          "value": "User4",
+          "optional": false,
+          "editable": false,
+          "advanced": false,
+          "hidden": false
+        },
+        "isPublic": {
+          "metadata": {
+            "label": "public",
+            "description": "Is this public"
+          },
+          "valueType": "FLAG",
+          "value": "false",
+          "optional": true,
+          "editable": true,
+          "advanced": false,
+          "hidden": false
+        },
+        "description": {
+          "metadata": {
+            "label": "Type description",
+            "description": "Detailed description about the type"
+          },
+          "valueType": "STRING",
+          "value": "Readonly and object type",
+          "optional": false,
+          "editable": true,
+          "advanced": false,
+          "hidden": false
+        },
+        "isReadOnly": {
+          "metadata": {
+            "label": "readonly",
+            "description": "Is this readonly"
+          },
+          "valueType": "FLAG",
+          "value": "true",
+          "optional": true,
+          "editable": true,
+          "advanced": false,
+          "hidden": false
+        },
+        "isIsolated": {
+          "metadata": {
+            "label": "isolated",
+            "description": "Is this isolated"
+          },
+          "valueType": "FLAG",
+          "value": "false",
+          "optional": true,
+          "editable": true,
+          "advanced": false,
+          "hidden": false
+        },
+        "networkQualifier": {
+          "metadata": {
+            "label": "Network Qualifier",
+            "description": "Network qualifier"
+          },
+          "valueType": "SINGLE_SELECT",
+          "valueTypeConstraint": [
+            "service",
+            "client"
+          ],
+          "value": "",
+          "optional": true,
+          "editable": true,
+          "advanced": false,
+          "hidden": false
+        }
+      },
+      "members": [],
+      "includes": [],
+      "functions": [
+        {
+          "qualifiers": [],
+          "parameters": [],
+          "kind": "FUNCTION",
+          "name": "getUuid",
+          "description": "",
+          "returnType": "int",
+          "refs": [],
+          "properties": {
+            "isPrivate": {
+              "metadata": {
+                "label": "private",
+                "description": "Is this private"
+              },
+              "valueType": "FLAG",
+              "value": "false",
+              "optional": true,
+              "editable": true,
+              "advanced": false,
+              "hidden": false
+            },
+            "isPublic": {
+              "metadata": {
+                "label": "public",
+                "description": "Is this public"
+              },
+              "valueType": "FLAG",
+              "value": "false",
+              "optional": true,
+              "editable": true,
+              "advanced": false,
+              "hidden": false
+            },
+            "isIsolated": {
+              "metadata": {
+                "label": "isolated",
+                "description": "Is this isolated"
+              },
+              "valueType": "FLAG",
+              "value": "false",
+              "optional": true,
+              "editable": true,
+              "advanced": false,
+              "hidden": false
+            }
+          }
+        }
+      ],
+      "allowAdditionalFields": false
+    },
+    {
       "name": "Gender",
       "editable": true,
       "metadata": {
@@ -1327,6 +1822,268 @@
           "readonly": false
         }
       ],
+      "allowAdditionalFields": false
+    },
+    {
+      "name": "Users",
+      "editable": true,
+      "metadata": {
+        "label": "Users",
+        "description": "Readonly and array type"
+      },
+      "codedata": {
+        "node": "ARRAY",
+        "lineRange": {
+          "fileName": "types.bal",
+          "startLine": {
+            "line": 139,
+            "offset": 5
+          },
+          "endLine": {
+            "line": 139,
+            "offset": 10
+          }
+        }
+      },
+      "properties": {
+        "name": {
+          "metadata": {
+            "label": "Type name",
+            "description": "Unique name to identify the type"
+          },
+          "valueType": "IDENTIFIER",
+          "value": "Users",
+          "optional": false,
+          "editable": false,
+          "advanced": false,
+          "hidden": false
+        },
+        "isPublic": {
+          "metadata": {
+            "label": "public",
+            "description": "Is this public"
+          },
+          "valueType": "FLAG",
+          "value": "false",
+          "optional": true,
+          "editable": true,
+          "advanced": false,
+          "hidden": false
+        },
+        "description": {
+          "metadata": {
+            "label": "Type description",
+            "description": "Detailed description about the type"
+          },
+          "valueType": "STRING",
+          "value": "Readonly and array type",
+          "optional": false,
+          "editable": true,
+          "advanced": false,
+          "hidden": false
+        },
+        "isReadOnly": {
+          "metadata": {
+            "label": "readonly",
+            "description": "Is this readonly"
+          },
+          "valueType": "FLAG",
+          "value": "true",
+          "optional": true,
+          "editable": true,
+          "advanced": false,
+          "hidden": false
+        },
+        "isArray": {
+          "metadata": {
+            "label": "Is array type",
+            "description": "Is this type an array or list value"
+          },
+          "valueType": "FLAG",
+          "value": "true",
+          "optional": true,
+          "editable": true,
+          "advanced": true,
+          "hidden": false
+        },
+        "arraySize": {
+          "metadata": {
+            "label": "Size of the array",
+            "description": "Array dimensions"
+          },
+          "valueType": "STRING",
+          "value": "",
+          "optional": true,
+          "editable": true,
+          "advanced": true,
+          "hidden": false
+        }
+      },
+      "members": [
+        {
+          "kind": "TYPE",
+          "refs": [
+            "User1"
+          ],
+          "type": "User1",
+          "name": "User1",
+          "optional": false,
+          "readonly": false
+        }
+      ],
+      "allowAdditionalFields": false
+    },
+    {
+      "name": "User3",
+      "editable": true,
+      "metadata": {
+        "label": "User3",
+        "description": "Readonly class"
+      },
+      "codedata": {
+        "node": "CLASS",
+        "lineRange": {
+          "fileName": "types.bal",
+          "startLine": {
+            "line": 126,
+            "offset": 15
+          },
+          "endLine": {
+            "line": 126,
+            "offset": 20
+          }
+        }
+      },
+      "properties": {
+        "name": {
+          "metadata": {
+            "label": "Type name",
+            "description": "Unique name to identify the type"
+          },
+          "valueType": "IDENTIFIER",
+          "value": "User3",
+          "optional": false,
+          "editable": false,
+          "advanced": false,
+          "hidden": false
+        },
+        "qualifiers": {
+          "metadata": {
+            "label": "Type Qualifiers",
+            "description": "Qualifiers of the type"
+          },
+          "valueType": "MULTIPLE_SELECT",
+          "value": [
+            "readonly",
+            "isolated"
+          ],
+          "optional": true,
+          "editable": true,
+          "advanced": true,
+          "hidden": false
+        },
+        "isArray": {
+          "metadata": {
+            "label": "Is array type",
+            "description": "Is this type an array or list value"
+          },
+          "valueType": "FLAG",
+          "value": "false",
+          "optional": true,
+          "editable": true,
+          "advanced": true,
+          "hidden": false
+        },
+        "arraySize": {
+          "metadata": {
+            "label": "Size of the array",
+            "description": "Array dimensions"
+          },
+          "valueType": "STRING",
+          "value": "",
+          "optional": false,
+          "editable": false,
+          "advanced": false,
+          "hidden": false
+        },
+        "isPublic": {
+          "metadata": {
+            "label": "public",
+            "description": "Is this public"
+          },
+          "valueType": "FLAG",
+          "value": "false",
+          "optional": true,
+          "editable": true,
+          "advanced": false,
+          "hidden": false
+        },
+        "isDistinct": {
+          "metadata": {
+            "label": "distinct",
+            "description": "Is this distinct"
+          },
+          "valueType": "FLAG",
+          "value": "false",
+          "optional": true,
+          "editable": true,
+          "advanced": false,
+          "hidden": false
+        },
+        "isIsolated": {
+          "metadata": {
+            "label": "isolated",
+            "description": "Is this isolated"
+          },
+          "valueType": "FLAG",
+          "value": "true",
+          "optional": true,
+          "editable": true,
+          "advanced": false,
+          "hidden": false
+        },
+        "isReadOnly": {
+          "metadata": {
+            "label": "readonly",
+            "description": "Is this readonly"
+          },
+          "valueType": "FLAG",
+          "value": "true",
+          "optional": true,
+          "editable": true,
+          "advanced": false,
+          "hidden": false
+        },
+        "networkQualifier": {
+          "metadata": {
+            "label": "Network Qualifier",
+            "description": "Network qualifier"
+          },
+          "valueType": "SINGLE_SELECT",
+          "valueTypeConstraint": [
+            "service",
+            "client"
+          ],
+          "value": "",
+          "optional": true,
+          "editable": true,
+          "advanced": false,
+          "hidden": false
+        }
+      },
+      "members": [
+        {
+          "kind": "FIELD",
+          "refs": [],
+          "type": "int",
+          "name": "uuid",
+          "optional": false,
+          "readonly": false,
+          "docs": ""
+        }
+      ],
+      "includes": [],
+      "functions": [],
       "allowAdditionalFields": false
     },
     {
