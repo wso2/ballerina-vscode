@@ -920,40 +920,36 @@ public class DataMapManager {
         }
     }
 
-    public String getQuery(JsonElement fNode, String targetField, Path filePath, LinePosition position,
-                           Project project) {
-        FlowNode flowNode = gson.fromJson(fNode, FlowNode.class);
-        SourceModification modification = applyNode(flowNode, project, filePath, position);
+    public JsonElement getQuery(SemanticModel semanticModel, JsonElement cd, String targetField, Path filePath) {
+        Codedata codedata = gson.fromJson(cd, Codedata.class);
 
-        TargetNode targetNode = getTargetNode(modification.stNode(), targetField, flowNode.codedata().node(), null,
-                modification.semanticModel());
-        if (targetNode == null) {
-            return "";
+        SyntaxTree syntaxTree = document.syntaxTree();
+        ModulePartNode modulePartNode = syntaxTree.rootNode();
+        TextDocument textDocument = syntaxTree.textDocument();
+        LineRange lineRange = codedata.lineRange();
+        int start = textDocument.textPositionFrom(lineRange.startLine());
+        int end = textDocument.textPositionFrom(lineRange.endLine());
+        NonTerminalNode stNode = modulePartNode.findNode(TextRange.from(start, end - start), true);
+
+        Map<Path, List<TextEdit>> textEditsMap = new HashMap<>();
+        List<TextEdit> textEdits = new ArrayList<>();
+        textEditsMap.put(filePath, textEdits);
+
+        TargetNode targetNode = getTargetNode(stNode, targetField, codedata.node(), null, semanticModel);
+        if (targetNode != null) {
+            TypeSymbol targetTypeSymbol = CommonUtils.getRawType(targetNode.typeSymbol());
+            if (targetTypeSymbol.typeKind() == TypeDescKind.ARRAY) {
+                TypeSymbol typeSymbol =
+                        CommonUtils.getRawType(((ArrayTypeSymbol) targetTypeSymbol).memberTypeDescriptor());
+                if (typeSymbol.typeKind() == TypeDescKind.RECORD) {
+                    String query = getQuerySource(targetNode.expressionNode(), (RecordTypeSymbol) typeSymbol);
+                    textEdits.add(new TextEdit(CommonUtils.toRange(targetNode.expressionNode().lineRange()), query));
+                }
+
+            }
         }
 
-        TypeSymbol targetTypeSymbol = CommonUtils.getRawType(targetNode.typeSymbol());
-        if (targetTypeSymbol.typeKind() != TypeDescKind.ARRAY) {
-            return "";
-        }
-        TypeSymbol typeSymbol = CommonUtils.getRawType(((ArrayTypeSymbol) targetTypeSymbol).memberTypeDescriptor());
-        if (typeSymbol.typeKind() != TypeDescKind.RECORD) {
-            return "";
-        }
-
-        String query = getQuerySource(targetNode.expressionNode(), (RecordTypeSymbol) typeSymbol);
-        if (targetField == null) {
-            return query;
-        }
-        if (flowNode.codedata().node() != NodeKind.VARIABLE) {
-            return query;
-        }
-        Optional<Property> optProperty = flowNode.getProperty(Property.EXPRESSION_KEY);
-        if (optProperty.isEmpty()) {
-            return query;
-        }
-        Property property = optProperty.get();
-        String expr = property.toSourceCode();
-        return expr.replace(targetNode.expressionNode().toSourceCode(), query);
+        return gson.toJsonTree(textEditsMap);
     }
 
     private SourceModification applyNode(FlowNode flowNode, Project project, Path filePath, LinePosition position) {
@@ -1045,18 +1041,9 @@ public class DataMapManager {
             FieldAccessExpressionNode fieldAccessExpr = (FieldAccessExpressionNode) inputExpr;
             name = fieldAccessExpr.fieldName().toSourceCode() + "Item";
         }
-
-        StringBuilder sb = new StringBuilder("from var " + name + " in " + inputExpr.toSourceCode());
-        sb.append(" ").append(SyntaxKind.SELECT_KEYWORD.stringValue()).append(" ");
-        sb.append(SyntaxKind.OPEN_BRACE_TOKEN.stringValue());
-        List<String> keys = new ArrayList<>(recordTypeSymbol.fieldDescriptors().keySet());
-        int size = keys.size();
-        for (int i = 0; i < size - 1; i++) {
-            sb.append(keys.get(i)).append(": ").append(SyntaxKind.COMMA_TOKEN.stringValue());
-        }
-        sb.append(keys.get(size - 1)).append(": ");
-        sb.append(SyntaxKind.CLOSE_BRACE_TOKEN.stringValue());
-        return sb.toString();
+        return "from var " + name + " in " + inputExpr.toSourceCode() + " " +
+                SyntaxKind.SELECT_KEYWORD.stringValue() + " " +
+                DefaultValueGeneratorUtil.getDefaultValueForType(recordTypeSymbol);
     }
 
     public JsonElement getVisualizableProperties(JsonElement node, Project project, Path filePath,
