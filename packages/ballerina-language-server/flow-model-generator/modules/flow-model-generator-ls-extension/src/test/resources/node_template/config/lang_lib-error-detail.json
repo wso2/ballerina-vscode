@@ -34,7 +34,7 @@
     "properties": {
       "e": {
         "metadata": {
-          "label": "e",
+          "label": "E",
           "description": "the error value"
         },
         "valueType": "EXPRESSION",

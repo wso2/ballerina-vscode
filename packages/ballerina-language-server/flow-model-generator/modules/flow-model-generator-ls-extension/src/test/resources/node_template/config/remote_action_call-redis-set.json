@@ -49,7 +49,7 @@
       },
       "key": {
         "metadata": {
-          "label": "key",
+          "label": "Key",
           "description": "Key referring to a value"
         },
         "valueType": "EXPRESSION",
@@ -75,7 +75,7 @@
       },
       "value": {
         "metadata": {
-          "label": "value",
+          "label": "Value",
           "description": "Values"
         },
         "valueType": "EXPRESSION",

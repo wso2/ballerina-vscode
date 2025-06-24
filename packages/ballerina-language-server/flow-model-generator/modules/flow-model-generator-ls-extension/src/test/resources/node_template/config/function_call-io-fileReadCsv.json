@@ -34,7 +34,7 @@
     "properties": {
       "returnType": {
         "metadata": {
-          "label": "returnType",
+          "label": "Return Type",
           "description": "The type of the return value (string[] or a Ballerina record)"
         },
         "valueType": "TYPE",
@@ -52,7 +52,7 @@
       },
       "path": {
         "metadata": {
-          "label": "path",
+          "label": "Path",
           "description": "The CSV file path"
         },
         "valueType": "EXPRESSION",
@@ -78,7 +78,7 @@
       },
       "skipHeaders": {
         "metadata": {
-          "label": "skipHeaders",
+          "label": "Skip Headers",
           "description": "Number of headers, which should be skipped prior to reading records"
         },
         "valueType": "EXPRESSION",

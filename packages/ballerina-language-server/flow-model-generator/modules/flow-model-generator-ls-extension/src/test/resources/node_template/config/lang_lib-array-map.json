@@ -33,7 +33,7 @@
     "properties": {
       "arr": {
         "metadata": {
-          "label": "arr",
+          "label": "Arr",
           "description": "the array"
         },
         "valueType": "EXPRESSION",
@@ -59,7 +59,7 @@
       },
       "func": {
         "metadata": {
-          "label": "func",
+          "label": "Func",
           "description": "a function to apply to each member"
         },
         "valueType": "EXPRESSION",

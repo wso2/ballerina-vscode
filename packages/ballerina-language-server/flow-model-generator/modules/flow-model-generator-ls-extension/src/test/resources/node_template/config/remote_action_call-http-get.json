@@ -50,7 +50,7 @@
       },
       "targetType": {
         "metadata": {
-          "label": "targetType",
+          "label": "Target Type",
           "description": "HTTP response, `anydata` or stream of HTTP SSE, which is expected to be returned after data binding"
         },
         "valueType": "TYPE",
@@ -68,7 +68,7 @@
       },
       "path": {
         "metadata": {
-          "label": "path",
+          "label": "Path",
           "description": "Request path"
         },
         "valueType": "EXPRESSION",
@@ -94,7 +94,7 @@
       },
       "headers": {
         "metadata": {
-          "label": "headers",
+          "label": "Headers",
           "description": "The entity headers"
         },
         "valueType": "EXPRESSION",

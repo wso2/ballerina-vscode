@@ -228,7 +228,7 @@
                 "properties": {
                   "seconds": {
                     "metadata": {
-                      "label": "seconds",
+                      "label": "Seconds",
                       "description": "An amount of time to sleep in seconds"
                     },
                     "valueType": "EXPRESSION",
@@ -386,7 +386,7 @@
                 "properties": {
                   "seconds": {
                     "metadata": {
-                      "label": "seconds",
+                      "label": "Seconds",
                       "description": "An amount of time to sleep in seconds"
                     },
                     "valueType": "EXPRESSION",

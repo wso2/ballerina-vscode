@@ -33,7 +33,7 @@
     "properties": {
       "t": {
         "metadata": {
-          "label": "t",
+          "label": "T",
           "description": "the table"
         },
         "valueType": "EXPRESSION",
@@ -59,7 +59,7 @@
       },
       "func": {
         "metadata": {
-          "label": "func",
+          "label": "Func",
           "description": "combining function"
         },
         "valueType": "EXPRESSION",
@@ -85,7 +85,7 @@
       },
       "initial": {
         "metadata": {
-          "label": "initial",
+          "label": "Initial",
           "description": "initial value for the first argument of combining parameter `func`"
         },
         "valueType": "EXPRESSION",
