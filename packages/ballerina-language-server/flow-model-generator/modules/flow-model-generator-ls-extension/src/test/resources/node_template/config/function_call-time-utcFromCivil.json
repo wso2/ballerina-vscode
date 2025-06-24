@@ -73,8 +73,8 @@
       },
       "variable": {
         "metadata": {
-          "label": "Variable Name",
-          "description": "Name of the variable"
+          "label": "Result",
+          "description": "Name of the result variable"
         },
         "valueType": "IDENTIFIER",
         "value": "timeUtc",
