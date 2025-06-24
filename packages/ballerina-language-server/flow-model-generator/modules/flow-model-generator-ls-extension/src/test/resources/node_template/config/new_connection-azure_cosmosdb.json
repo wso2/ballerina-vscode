@@ -75,7 +75,7 @@
       "variable": {
         "metadata": {
           "label": "Connection Name",
-          "description": "Name of the connection instance"
+          "description": "Name of the connection"
         },
         "valueType": "IDENTIFIER",
         "value": "azureCosmosdbDataplaneclient",
