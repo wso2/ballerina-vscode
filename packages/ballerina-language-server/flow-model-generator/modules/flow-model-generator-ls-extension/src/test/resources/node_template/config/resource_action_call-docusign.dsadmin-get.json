@@ -98,7 +98,7 @@
       },
       "start": {
         "metadata": {
-          "label": "start",
+          "label": "Start",
           "description": "Index of first item to include in the response. The default value is 0."
         },
         "valueType": "EXPRESSION",
@@ -132,7 +132,7 @@
       },
       "take": {
         "metadata": {
-          "label": "take",
+          "label": "Take",
           "description": "Page size of the response. The default value is 20."
         },
         "valueType": "EXPRESSION",
@@ -166,7 +166,7 @@
       },
       "end": {
         "metadata": {
-          "label": "end",
+          "label": "End",
           "description": "Index of the last item to include in the response. Ignored if `take` parameter is specified."
         },
         "valueType": "EXPRESSION",
@@ -214,8 +214,8 @@
       },
       "variable": {
         "metadata": {
-          "label": "Variable Name",
-          "description": "Name of the variable"
+          "label": "Result",
+          "description": "Name of the result variable"
         },
         "valueType": "IDENTIFIER",
         "value": "dsadminMembergroupsresponse",

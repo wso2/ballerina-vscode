@@ -83,7 +83,7 @@
           },
           "targetType": {
             "metadata": {
-              "label": "targetType",
+              "label": "Target Type",
               "description": "HTTP response, `anydata` or stream of HTTP SSE, which is expected to be returned after data binding"
             },
             "valueType": "TYPE",
@@ -102,7 +102,7 @@
           },
           "path": {
             "metadata": {
-              "label": "path",
+              "label": "Path",
               "description": "Request path"
             },
             "valueType": "EXPRESSION",
@@ -129,7 +129,7 @@
           },
           "headers": {
             "metadata": {
-              "label": "headers",
+              "label": "Headers",
               "description": "The entity headers"
             },
             "valueType": "EXPRESSION",
@@ -209,7 +209,7 @@
             "optional": false,
             "editable": false,
             "advanced": false,
-            "hidden": false,
+            "hidden": true,
             "codedata": {}
           }
         },
@@ -289,7 +289,7 @@
         "properties": {
           "url": {
             "metadata": {
-              "label": "url",
+              "label": "Url",
               "description": "URL of the target service"
             },
             "valueType": "EXPRESSION",
@@ -316,7 +316,7 @@
           },
           "config": {
             "metadata": {
-              "label": "config",
+              "label": "Config",
               "description": "The configurations to be used when initializing the `client`"
             },
             "valueType": "EXPRESSION",
@@ -452,7 +452,7 @@
           },
           "targetType": {
             "metadata": {
-              "label": "targetType",
+              "label": "Target Type",
               "description": "HTTP response, `anydata` or stream of HTTP SSE, which is expected to be returned after data binding"
             },
             "valueType": "TYPE",
@@ -471,7 +471,7 @@
           },
           "path": {
             "metadata": {
-              "label": "path",
+              "label": "Path",
               "description": "Request path"
             },
             "valueType": "EXPRESSION",
@@ -498,7 +498,7 @@
           },
           "headers": {
             "metadata": {
-              "label": "headers",
+              "label": "Headers",
               "description": "The entity headers"
             },
             "valueType": "EXPRESSION",
@@ -578,7 +578,7 @@
             "optional": false,
             "editable": false,
             "advanced": false,
-            "hidden": false,
+            "hidden": true,
             "codedata": {}
           }
         },
@@ -792,7 +792,7 @@
         "properties": {
           "url": {
             "metadata": {
-              "label": "url",
+              "label": "Url",
               "description": "URL of the target service"
             },
             "valueType": "EXPRESSION",
@@ -819,7 +819,7 @@
           },
           "config": {
             "metadata": {
-              "label": "config",
+              "label": "Config",
               "description": "The configurations to be used when initializing the `client`"
             },
             "valueType": "EXPRESSION",

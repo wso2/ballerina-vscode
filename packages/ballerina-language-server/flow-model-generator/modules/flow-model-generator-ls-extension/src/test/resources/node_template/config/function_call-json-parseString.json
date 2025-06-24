@@ -34,7 +34,7 @@
     "properties": {
       "t": {
         "metadata": {
-          "label": "t",
+          "label": "T",
           "description": "Target type"
         },
         "valueType": "TYPE",
@@ -52,7 +52,7 @@
       },
       "s": {
         "metadata": {
-          "label": "s",
+          "label": "S",
           "description": "Source JSON string value or byte[] or byte-block-stream"
         },
         "valueType": "EXPRESSION",
@@ -78,7 +78,7 @@
       },
       "options": {
         "metadata": {
-          "label": "options",
+          "label": "Options",
           "description": "Options to be used for filtering in the projection"
         },
         "valueType": "EXPRESSION",
@@ -119,8 +119,8 @@
       },
       "variable": {
         "metadata": {
-          "label": "Variable Name",
-          "description": "Name of the variable"
+          "label": "Result",
+          "description": "Name of the result variable"
         },
         "valueType": "IDENTIFIER",
         "value": "t",

@@ -63,7 +63,7 @@
       },
       "targetType": {
         "metadata": {
-          "label": "targetType",
+          "label": "Target Type",
           "description": "HTTP response, `anydata` or stream of HTTP SSE, which is expected to be returned after data binding"
         },
         "valueType": "TYPE",
@@ -81,7 +81,7 @@
       },
       "headers": {
         "metadata": {
-          "label": "headers",
+          "label": "Headers",
           "description": "The entity headers"
         },
         "valueType": "EXPRESSION",
@@ -147,8 +147,8 @@
       },
       "variable": {
         "metadata": {
-          "label": "Variable Name",
-          "description": "Name of the variable"
+          "label": "Result",
+          "description": "Name of the result variable"
         },
         "valueType": "IDENTIFIER",
         "value": "var2",

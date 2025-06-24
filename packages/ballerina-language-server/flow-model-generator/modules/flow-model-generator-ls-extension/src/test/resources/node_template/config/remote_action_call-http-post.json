@@ -50,7 +50,7 @@
       },
       "targetType": {
         "metadata": {
-          "label": "targetType",
+          "label": "Target Type",
           "description": "HTTP response, `anydata` or stream of HTTP SSE, which is expected to be returned after data binding"
         },
         "valueType": "TYPE",
@@ -68,7 +68,7 @@
       },
       "path": {
         "metadata": {
-          "label": "path",
+          "label": "Path",
           "description": "Resource path"
         },
         "valueType": "EXPRESSION",
@@ -94,7 +94,7 @@
       },
       "message": {
         "metadata": {
-          "label": "message",
+          "label": "Message",
           "description": "An HTTP outbound request or any allowed payload"
         },
         "valueType": "EXPRESSION",
@@ -120,7 +120,7 @@
       },
       "headers": {
         "metadata": {
-          "label": "headers",
+          "label": "Headers",
           "description": "The entity headers"
         },
         "valueType": "EXPRESSION",
@@ -154,7 +154,7 @@
       },
       "mediaType": {
         "metadata": {
-          "label": "mediaType",
+          "label": "Media Type",
           "description": "The MIME type header of the request entity"
         },
         "valueType": "EXPRESSION",
@@ -202,8 +202,8 @@
       },
       "variable": {
         "metadata": {
-          "label": "Variable Name",
-          "description": "Name of the variable"
+          "label": "Result",
+          "description": "Name of the result variable"
         },
         "valueType": "IDENTIFIER",
         "value": "var2",

@@ -148,6 +148,22 @@ public class FormBuilder<T> extends FacetedBuilder<T> {
         return this;
     }
 
+    public FormBuilder<T> data(String typeSignature, Set<String> names, String label, String doc) {
+        String varName = typeSignature.contains(RemoteActionCallBuilder.TARGET_TYPE_KEY)
+                ? NameUtil.generateTypeName("var", names)
+                : NameUtil.generateVariableName(typeSignature, names);
+        propertyBuilder
+                .metadata()
+                .label(label)
+                .description(doc)
+                .stepOut()
+                .value(varName)
+                .type(Property.ValueType.IDENTIFIER)
+                .editable();
+        addProperty(Property.VARIABLE_KEY);
+        return this;
+    }
+
     public FormBuilder<T> waitField(Node node) {
         propertyBuilder
                 .metadata()
@@ -263,19 +279,24 @@ public class FormBuilder<T> extends FacetedBuilder<T> {
         return returnType(value, null, true);
     }
 
+    public FormBuilder<T> dataVariable(TypedBindingPatternNode node, Set<String> names) {
+        return dataVariable(node, false, names);
+    }
+
     public FormBuilder<T> dataVariable(TypedBindingPatternNode node, boolean implicit, Set<String> names) {
         return implicit ?
                 dataVariable(node, Property.IMPLICIT_VARIABLE_LABEL, Property.IMPLICIT_TYPE_LABEL, true, names, false)
                 : dataVariable(node, Property.VARIABLE_NAME, Property.TYPE_LABEL, true, names, false);
     }
 
-    public FormBuilder<T> dataVariable(TypedBindingPatternNode node, Set<String> names) {
-        return dataVariable(node, false, names);
+    public FormBuilder<T> dataVariable(TypedBindingPatternNode node, String variableLabel, String typeDoc,
+                                       boolean editable, Set<String> names, boolean hidden) {
+        return dataVariable(node, variableLabel, typeDoc, Property.VARIABLE_DOC, editable, names, hidden);
     }
 
     public FormBuilder<T> dataVariable(TypedBindingPatternNode node, String variableLabel, String typeDoc,
-                                       boolean editable, Set<String> names, boolean hidden) {
-        data(node == null ? null : node.bindingPattern(), variableLabel, Property.VARIABLE_DOC,
+                                       String variableDoc, boolean editable, Set<String> names, boolean hidden) {
+        data(node == null ? null : node.bindingPattern(), variableLabel, variableDoc,
                 NameUtil.generateTypeName("var", names), false);
 
         String typeName = node == null ? "" : CommonUtils.getTypeSymbol(semanticModel, node)

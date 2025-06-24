@@ -147,7 +147,7 @@
                 "properties": {
                   "msg": {
                     "metadata": {
-                      "label": "msg",
+                      "label": "Msg",
                       "description": "The message to be logged"
                     },
                     "valueType": "EXPRESSION",
@@ -181,7 +181,7 @@
                   },
                   "error": {
                     "metadata": {
-                      "label": "error",
+                      "label": "Error",
                       "description": "The error struct to be logged"
                     },
                     "valueType": "EXPRESSION",
@@ -216,7 +216,7 @@
                   },
                   "stackTrace": {
                     "metadata": {
-                      "label": "stackTrace",
+                      "label": "Stack Trace",
                       "description": "The error stack trace to be logged"
                     },
                     "valueType": "EXPRESSION",

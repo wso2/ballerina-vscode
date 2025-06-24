@@ -74,9 +74,12 @@ public record Property(Metadata metadata, String valueType, Object valueTypeCons
 
     public static final String VARIABLE_KEY = "variable";
     public static final String VARIABLE_NAME = "Variable Name";
+    public static final String VARIABLE_DOC = "Name of the variable";
     public static final String PARAMETER_VARIABLE_DOC = "Name of the parameter";
     public static final String IMPLICIT_VARIABLE_LABEL = "Name";
-    public static final String VARIABLE_DOC = "Name of the variable";
+
+    public static final String RESULT_NAME = "Result";
+    public static final String RESULT_DOC = "Name of the result variable";
 
     public static final String WORKER_NAME = "Worker Name";
     public static final String WORKER_DOC = "Name of the worker";

@@ -34,7 +34,7 @@
     "properties": {
       "e": {
         "metadata": {
-          "label": "e",
+          "label": "E",
           "description": "the error value"
         },
         "valueType": "EXPRESSION",
@@ -74,8 +74,8 @@
       },
       "variable": {
         "metadata": {
-          "label": "Variable Name",
-          "description": "Name of the variable"
+          "label": "Result",
+          "description": "Name of the result variable"
         },
         "valueType": "IDENTIFIER",
         "value": "errorDetailReadonly",

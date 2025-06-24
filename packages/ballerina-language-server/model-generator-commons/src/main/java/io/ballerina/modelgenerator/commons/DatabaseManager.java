@@ -360,8 +360,10 @@ public class DatabaseManager {
                 "p.type, " +
                 "p.kind, " +
                 "p.optional, " +
+                "p.placeholder, " +
                 "p.default_value, " +
                 "p.description, " +
+                "p.label, " +
                 "p.import_statements " +
                 "FROM Parameter p " +
                 "WHERE p.function_id = ?;";
@@ -380,7 +382,7 @@ public class DatabaseManager {
                         rs.getString("placeholder"),
                         rs.getString("default_value"),
                         rs.getString("description"),
-                        "",
+                        rs.getString("label"),
                         rs.getBoolean("optional"),
                         rs.getString("import_statements"),
                         new ArrayList<>()
@@ -404,6 +406,7 @@ public class DatabaseManager {
                 "p.placeholder, " +
                 "p.default_value, " +
                 "p.description, " +
+                "p.label, " +
                 "p.import_statements, " +
                 "pmt.type AS member_type, " +
                 "pmt.kind AS member_kind, " +
@@ -429,6 +432,7 @@ public class DatabaseManager {
                 String placeholder = rs.getString("placeholder");
                 String defaultValue = rs.getString("default_value");
                 String description = rs.getString("description");
+                String label = rs.getString("label");
                 boolean optional = rs.getBoolean("optional");
                 String importStatements = rs.getString("import_statements");
 
@@ -449,6 +453,7 @@ public class DatabaseManager {
                     builder.placeholder = placeholder;
                     builder.defaultValue = defaultValue;
                     builder.description = description;
+                    builder.label = label;
                     builder.optional = optional;
                     builder.importStatements = importStatements;
                     builders.put(paramName, builder);
@@ -485,6 +490,7 @@ public class DatabaseManager {
         String placeholder;
         String defaultValue;
         String description;
+        String label;
         boolean optional;
         String importStatements;
         List<ParameterMemberTypeData> typeMembers = new ArrayList<>();
@@ -498,7 +504,7 @@ public class DatabaseManager {
                     placeholder,
                     defaultValue,
                     description,
-                    null,
+                    label,
                     optional,
                     importStatements,
                     typeMembers

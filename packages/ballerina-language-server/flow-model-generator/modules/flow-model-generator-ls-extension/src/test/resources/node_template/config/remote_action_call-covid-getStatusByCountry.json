@@ -49,7 +49,7 @@
       },
       "country": {
         "metadata": {
-          "label": "country",
+          "label": "Country",
           "description": "A country name, iso2, iso3, or country ID code "
         },
         "valueType": "EXPRESSION",
@@ -75,7 +75,7 @@
       },
       "yesterday": {
         "metadata": {
-          "label": "yesterday",
+          "label": "Yesterday",
           "description": "Enter `true`(1) to receive data reported a day ago. Default is `false`(0) "
         },
         "valueType": "EXPRESSION",
@@ -109,7 +109,7 @@
       },
       "twoDaysAgo": {
         "metadata": {
-          "label": "twoDaysAgo",
+          "label": "Two Days Ago",
           "description": "Enter `true`(1) to receive data reported two days ago. Default is `false`(0) "
         },
         "valueType": "EXPRESSION",
@@ -143,7 +143,7 @@
       },
       "strict": {
         "metadata": {
-          "label": "strict",
+          "label": "Strict",
           "description": "Setting to false gives you the ability to fuzzy search countries (i.e. Oman vs. rOMANia) "
         },
         "valueType": "EXPRESSION",
@@ -170,7 +170,7 @@
       },
       "allowNull": {
         "metadata": {
-          "label": "allowNull",
+          "label": "Allow Null",
           "description": "By default, value is 0. Enter `1` to allow nulls to be returned "
         },
         "valueType": "EXPRESSION",
@@ -218,8 +218,8 @@
       },
       "variable": {
         "metadata": {
-          "label": "Variable Name",
-          "description": "Name of the variable"
+          "label": "Result",
+          "description": "Name of the result variable"
         },
         "valueType": "IDENTIFIER",
         "value": "covid19Covidcountry",

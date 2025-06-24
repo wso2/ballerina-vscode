@@ -321,7 +321,7 @@
                   },
                   "key": {
                     "metadata": {
-                      "label": "key",
+                      "label": "Key",
                       "description": "Key referring to a value"
                     },
                     "valueType": "EXPRESSION",
@@ -394,7 +394,7 @@
                     "optional": false,
                     "editable": false,
                     "advanced": false,
-                    "hidden": false,
+                    "hidden": true,
                     "codedata": {}
                   }
                 },
@@ -792,7 +792,7 @@
                           },
                           "targetType": {
                             "metadata": {
-                              "label": "targetType",
+                              "label": "Target Type",
                               "description": "HTTP response, `anydata` or stream of HTTP SSE, which is expected to be returned after data binding"
                             },
                             "valueType": "TYPE",
@@ -811,7 +811,7 @@
                           },
                           "path": {
                             "metadata": {
-                              "label": "path",
+                              "label": "Path",
                               "description": "Request path"
                             },
                             "valueType": "EXPRESSION",
@@ -838,7 +838,7 @@
                           },
                           "headers": {
                             "metadata": {
-                              "label": "headers",
+                              "label": "Headers",
                               "description": "The entity headers"
                             },
                             "valueType": "EXPRESSION",
@@ -918,7 +918,7 @@
                             "optional": false,
                             "editable": false,
                             "advanced": false,
-                            "hidden": false,
+                            "hidden": true,
                             "codedata": {}
                           }
                         },
@@ -1315,7 +1315,7 @@
                           },
                           "key": {
                             "metadata": {
-                              "label": "key",
+                              "label": "Key",
                               "description": "Key referring to a value"
                             },
                             "valueType": "EXPRESSION",
@@ -1342,7 +1342,7 @@
                           },
                           "value": {
                             "metadata": {
-                              "label": "value",
+                              "label": "Value",
                               "description": "Values"
                             },
                             "valueType": "EXPRESSION",
@@ -1709,7 +1709,7 @@
                 "properties": {
                   "msg": {
                     "metadata": {
-                      "label": "msg",
+                      "label": "Msg",
                       "description": "The message to be logged"
                     },
                     "valueType": "EXPRESSION",
@@ -1743,7 +1743,7 @@
                   },
                   "error": {
                     "metadata": {
-                      "label": "error",
+                      "label": "Error",
                       "description": "The error struct to be logged"
                     },
                     "valueType": "EXPRESSION",
@@ -1778,7 +1778,7 @@
                   },
                   "stackTrace": {
                     "metadata": {
-                      "label": "stackTrace",
+                      "label": "Stack Trace",
                       "description": "The error stack trace to be logged"
                     },
                     "valueType": "EXPRESSION",
@@ -1945,7 +1945,7 @@
         "properties": {
           "url": {
             "metadata": {
-              "label": "url",
+              "label": "Url",
               "description": "URL of the target service"
             },
             "valueType": "EXPRESSION",
@@ -1972,7 +1972,7 @@
           },
           "httpVersion": {
             "metadata": {
-              "label": "httpVersion",
+              "label": "HTTP Version",
               "description": "The HTTP version understood by the client"
             },
             "valueType": "EXPRESSION",
@@ -1999,7 +1999,7 @@
           },
           "http1Settings": {
             "metadata": {
-              "label": "http1Settings",
+              "label": "HTTP1 Settings",
               "description": "Configurations related to HTTP/1.x protocol"
             },
             "valueType": "EXPRESSION",
@@ -2026,7 +2026,7 @@
           },
           "http2Settings": {
             "metadata": {
-              "label": "http2Settings",
+              "label": "HTTP2 Settings",
               "description": "Configurations related to HTTP/2 protocol"
             },
             "valueType": "EXPRESSION",
@@ -2053,7 +2053,7 @@
           },
           "timeout": {
             "metadata": {
-              "label": "timeout",
+              "label": "Timeout",
               "description": "The maximum time to wait (in seconds) for a response before closing the connection"
             },
             "valueType": "EXPRESSION",
@@ -2080,7 +2080,7 @@
           },
           "forwarded": {
             "metadata": {
-              "label": "forwarded",
+              "label": "Forwarded",
               "description": "The choice of setting `forwarded`/`x-forwarded` header"
             },
             "valueType": "EXPRESSION",
@@ -2107,7 +2107,7 @@
           },
           "followRedirects": {
             "metadata": {
-              "label": "followRedirects",
+              "label": "Follow Redirects",
               "description": "Configurations associated with Redirection"
             },
             "valueType": "EXPRESSION",
@@ -2141,7 +2141,7 @@
           },
           "poolConfig": {
             "metadata": {
-              "label": "poolConfig",
+              "label": "Pool Config",
               "description": "Configurations associated with request pooling"
             },
             "valueType": "EXPRESSION",
@@ -2175,7 +2175,7 @@
           },
           "cache": {
             "metadata": {
-              "label": "cache",
+              "label": "Cache",
               "description": "HTTP caching related configurations"
             },
             "valueType": "EXPRESSION",
@@ -2202,7 +2202,7 @@
           },
           "compression": {
             "metadata": {
-              "label": "compression",
+              "label": "Compression",
               "description": "Specifies the way of handling compression (`accept-encoding`) header"
             },
             "valueType": "EXPRESSION",
@@ -2229,7 +2229,7 @@
           },
           "auth": {
             "metadata": {
-              "label": "auth",
+              "label": "Auth",
               "description": "Configurations related to client authentication"
             },
             "valueType": "EXPRESSION",
@@ -2305,7 +2305,7 @@
           },
           "circuitBreaker": {
             "metadata": {
-              "label": "circuitBreaker",
+              "label": "Circuit Breaker",
               "description": "Configurations associated with the behaviour of the Circuit Breaker"
             },
             "valueType": "EXPRESSION",
@@ -2339,7 +2339,7 @@
           },
           "retryConfig": {
             "metadata": {
-              "label": "retryConfig",
+              "label": "Retry Config",
               "description": "Configurations associated with retrying"
             },
             "valueType": "EXPRESSION",
@@ -2373,7 +2373,7 @@
           },
           "cookieConfig": {
             "metadata": {
-              "label": "cookieConfig",
+              "label": "Cookie Config",
               "description": "Configurations associated with cookies"
             },
             "valueType": "EXPRESSION",
@@ -2407,7 +2407,7 @@
           },
           "responseLimits": {
             "metadata": {
-              "label": "responseLimits",
+              "label": "Response Limits",
               "description": "Configurations associated with inbound response size limits"
             },
             "valueType": "EXPRESSION",
@@ -2434,7 +2434,7 @@
           },
           "proxy": {
             "metadata": {
-              "label": "proxy",
+              "label": "Proxy",
               "description": "Proxy server related options"
             },
             "valueType": "EXPRESSION",
@@ -2468,7 +2468,7 @@
           },
           "validation": {
             "metadata": {
-              "label": "validation",
+              "label": "Validation",
               "description": "Enables the inbound payload validation functionalty which provided by the constraint package. Enabled by default"
             },
             "valueType": "EXPRESSION",
@@ -2495,7 +2495,7 @@
           },
           "socketConfig": {
             "metadata": {
-              "label": "socketConfig",
+              "label": "Socket Config",
               "description": "Provides settings related to client socket configuration"
             },
             "valueType": "EXPRESSION",
@@ -2522,7 +2522,7 @@
           },
           "laxDataBinding": {
             "metadata": {
-              "label": "laxDataBinding",
+              "label": "Lax Data Binding",
               "description": "Enables or disables relaxed data binding on the client side. Disabled by default.\nWhen enabled, the JSON data will be projected to the Ballerina record type and\nduring the projection, nil values will be considered as optional fields and\nabsent fields will be considered for nilable types"
             },
             "valueType": "EXPRESSION",
@@ -2549,7 +2549,7 @@
           },
           "secureSocket": {
             "metadata": {
-              "label": "secureSocket",
+              "label": "Secure Socket",
               "description": "SSL/TLS-related options"
             },
             "valueType": "EXPRESSION",
@@ -2677,7 +2677,7 @@
         "properties": {
           "$connection": {
             "metadata": {
-              "label": "connection",
+              "label": "Connection Type",
               "description": "Connection configurations of the Redis server. This can be either a single URI or a set of parameters"
             },
             "valueType": "EXPRESSION",
@@ -2712,7 +2712,7 @@
           },
           "connectionPooling": {
             "metadata": {
-              "label": "connectionPooling",
+              "label": "Connection Pooling Enabled",
               "description": "Flag to indicate whether connection pooling is enabled"
             },
             "valueType": "EXPRESSION",
@@ -2739,7 +2739,7 @@
           },
           "isClusterConnection": {
             "metadata": {
-              "label": "isClusterConnection",
+              "label": "Cluster Mode Enabled",
               "description": "Flag to indicate whether the connection is a cluster connection"
             },
             "valueType": "EXPRESSION",
@@ -2766,7 +2766,7 @@
           },
           "secureSocket": {
             "metadata": {
-              "label": "secureSocket",
+              "label": "Secure Socket Configurations",
               "description": "Configurations related to SSL/TLS encryption"
             },
             "valueType": "EXPRESSION",
