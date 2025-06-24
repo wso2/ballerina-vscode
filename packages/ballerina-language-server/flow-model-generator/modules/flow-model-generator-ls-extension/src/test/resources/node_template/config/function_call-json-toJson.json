@@ -33,7 +33,7 @@
     "properties": {
       "v": {
         "metadata": {
-          "label": "v",
+          "label": "V",
           "description": "Source anydata value"
         },
         "valueType": "EXPRESSION",

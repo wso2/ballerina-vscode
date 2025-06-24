@@ -33,7 +33,7 @@
     "properties": {
       "arr": {
         "metadata": {
-          "label": "arr",
+          "label": "Arr",
           "description": "the array"
         },
         "valueType": "EXPRESSION",
@@ -59,7 +59,7 @@
       },
       "val": {
         "metadata": {
-          "label": "val",
+          "label": "Val",
           "description": "member to search for"
         },
         "valueType": "EXPRESSION",
@@ -85,7 +85,7 @@
       },
       "startIndex": {
         "metadata": {
-          "label": "startIndex",
+          "label": "Start Index",
           "description": "index to start searching backwards from"
         },
         "valueType": "EXPRESSION",

@@ -33,7 +33,7 @@
     "properties": {
       "civilTime": {
         "metadata": {
-          "label": "civilTime",
+          "label": "Civil Time",
           "description": "`time:Civil` time"
         },
         "valueType": "EXPRESSION",

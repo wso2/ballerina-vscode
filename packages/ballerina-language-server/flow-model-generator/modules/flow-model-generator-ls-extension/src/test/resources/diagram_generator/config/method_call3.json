@@ -127,7 +127,7 @@
         "properties": {
           "$connection": {
             "metadata": {
-              "label": "connection",
+              "label": "Connection Type",
               "description": "Connection configurations of the Redis server. This can be either a single URI or a set of parameters"
             },
             "valueType": "EXPRESSION",
@@ -161,7 +161,7 @@
           },
           "connectionPooling": {
             "metadata": {
-              "label": "connectionPooling",
+              "label": "Connection Pooling Enabled",
               "description": "Flag to indicate whether connection pooling is enabled"
             },
             "valueType": "EXPRESSION",
@@ -188,7 +188,7 @@
           },
           "isClusterConnection": {
             "metadata": {
-              "label": "isClusterConnection",
+              "label": "Cluster Mode Enabled",
               "description": "Flag to indicate whether the connection is a cluster connection"
             },
             "valueType": "EXPRESSION",
@@ -215,7 +215,7 @@
           },
           "secureSocket": {
             "metadata": {
-              "label": "secureSocket",
+              "label": "Secure Socket Configurations",
               "description": "Configurations related to SSL/TLS encryption"
             },
             "valueType": "EXPRESSION",

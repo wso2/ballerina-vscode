@@ -539,7 +539,7 @@
         "properties": {
           "value": {
             "metadata": {
-              "label": "value",
+              "label": "Value",
               "description": "The `json` value to be prettified"
             },
             "valueType": "EXPRESSION",
@@ -566,7 +566,7 @@
           },
           "indentation": {
             "metadata": {
-              "label": "indentation",
+              "label": "Indentation",
               "description": "The number of spaces for an indentation"
             },
             "valueType": "EXPRESSION",
