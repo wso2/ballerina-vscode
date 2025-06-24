@@ -43,7 +43,7 @@
         "optional": false,
         "editable": false,
         "advanced": false,
-        "hidden": false
+        "hidden": true
       },
       "resourcePath": {
         "metadata": {
@@ -55,7 +55,7 @@
         "optional": false,
         "editable": false,
         "advanced": false,
-        "hidden": false,
+        "hidden": true,
         "codedata": {
           "originalName": "/v2/organizations/[organizationId]/accounts/[accountId]/groups"
         }
@@ -209,7 +209,7 @@
         "optional": false,
         "editable": false,
         "advanced": false,
-        "hidden": false,
+        "hidden": true,
         "codedata": {}
       },
       "variable": {

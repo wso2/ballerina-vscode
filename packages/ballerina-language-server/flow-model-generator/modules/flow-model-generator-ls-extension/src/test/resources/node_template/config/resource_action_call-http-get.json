@@ -44,7 +44,7 @@
         "optional": false,
         "editable": false,
         "advanced": false,
-        "hidden": false
+        "hidden": true
       },
       "resourcePath": {
         "metadata": {
@@ -60,24 +60,6 @@
         "codedata": {
           "originalName": "/path/to/subdirectory"
         }
-      },
-      "targetType": {
-        "metadata": {
-          "label": "Target Type",
-          "description": "HTTP response, `anydata` or stream of HTTP SSE, which is expected to be returned after data binding"
-        },
-        "valueType": "TYPE",
-        "valueTypeConstraint": "anydata",
-        "placeholder": "anydata",
-        "optional": false,
-        "editable": true,
-        "advanced": false,
-        "hidden": false,
-        "codedata": {
-          "kind": "PARAM_FOR_TYPE_INFER",
-          "originalName": "targetType"
-        },
-        "defaultValue": "anydata"
       },
       "headers": {
         "metadata": {
@@ -113,6 +95,24 @@
         ],
         "defaultValue": "()"
       },
+      "targetType": {
+        "metadata": {
+          "label": "Target Type",
+          "description": "HTTP response, `anydata` or stream of HTTP SSE, which is expected to be returned after data binding"
+        },
+        "valueType": "TYPE",
+        "valueTypeConstraint": "anydata",
+        "placeholder": "anydata",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false,
+        "codedata": {
+          "kind": "PARAM_FOR_TYPE_INFER",
+          "originalName": "targetType"
+        },
+        "defaultValue": "anydata"
+      },
       "additionalValues": {
         "metadata": {
           "label": "Additional Values",
@@ -142,7 +142,7 @@
         "optional": false,
         "editable": false,
         "advanced": false,
-        "hidden": false,
+        "hidden": true,
         "codedata": {}
       },
       "variable": {
