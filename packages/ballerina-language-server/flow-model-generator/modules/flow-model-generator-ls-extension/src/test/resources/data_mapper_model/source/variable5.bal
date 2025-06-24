@@ -23,7 +23,7 @@ service OASServiceType on new http:Listener(9090) {
 	resource function get pet() returns int|http:NotFound {
         do {
             UserInfo userInfo = {username: "un", password: "pw"};
-
+            Student student = {id: 1234, credentials: {username: userInfo.username, password: userInfo.password}, length: 0};
 		} on fail error e {
 			return http:NOT_FOUND;
 		}

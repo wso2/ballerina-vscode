@@ -28,7 +28,7 @@ service / on new http:Listener(9090) {
                 lastName: "",
                 stdAge: 0
             };
-            // Person var1909 = {name: std.firstName + std.lastName, age: std.stdAge};
+            Person var1909 = {name: std.firstName + std.lastName, age: std.stdAge};
             // Person tnfed = transform(std);
 
         } on fail error e {
