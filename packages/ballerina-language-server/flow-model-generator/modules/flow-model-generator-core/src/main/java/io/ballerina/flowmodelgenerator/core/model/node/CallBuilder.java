@@ -130,9 +130,10 @@ public abstract class CallBuilder extends NodeBuilder {
 
     public static void buildInferredTypeProperty(NodeBuilder nodeBuilder, ParameterData paramData, String value) {
         String unescapedParamName = ParamUtils.removeLeadingSingleQuote(paramData.name());
+        String label = paramData.label();
         nodeBuilder.properties().custom()
                 .metadata()
-                    .label(unescapedParamName)
+                    .label(label == null || label.isEmpty() ? unescapedParamName : label)
                     .description(paramData.description())
                     .stepOut()
                 .codedata()

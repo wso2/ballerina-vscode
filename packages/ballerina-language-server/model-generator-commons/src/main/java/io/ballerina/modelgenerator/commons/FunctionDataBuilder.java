@@ -686,9 +686,9 @@ public class FunctionDataBuilder {
                     placeholder = paramForTypeInfer.type();
                     defaultValue = paramForTypeInfer.type();
                     paramType = paramForTypeInfer.type();
-                    parameters.put(paramName,
-                            ParameterData.from(paramName, paramDescription, paramType, placeholder, defaultValue,
-                                    ParameterData.Kind.PARAM_FOR_TYPE_INFER, optional, importStatements));
+                    parameters.put(paramName, ParameterData.from(paramName, paramDescription,
+                            getLabel(paramSymbol.annotAttachments(), paramName), paramType, placeholder, defaultValue,
+                            ParameterData.Kind.PARAM_FOR_TYPE_INFER, optional, importStatements));
                     return parameters;
                 }
             }
