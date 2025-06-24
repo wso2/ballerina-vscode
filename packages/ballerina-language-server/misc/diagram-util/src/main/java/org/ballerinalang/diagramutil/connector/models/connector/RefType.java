@@ -326,8 +326,13 @@ public class RefType {
     private static RefType fromSemanticSymbol(Symbol symbol, Map<String, String> documentationMap,
                                               SemanticModel semanticModel) {
         Map<String, RefType> dependentTypes = new HashMap<>();
-        return  fromSemanticSymbol(symbol, documentationMap, semanticModel, dependentTypes, true);
 
+        RefType refType = fromSemanticSymbol(symbol, documentationMap, semanticModel, dependentTypes, true);
+        if (!dependentTypes.isEmpty()){
+            refType.dependentTypes = new HashMap<>();
+            refType.dependentTypes.putAll(dependentTypes);
+        }
+        return  refType;
     }
 
     private static RefType fromSemanticSymbol(Symbol symbol, Map<String, String> documentationMap,
@@ -339,34 +344,16 @@ public class RefType {
                     documentationMap, semanticModel, dependentTypes, isRoot);
         } else if (symbol instanceof RecordTypeSymbol recordTypeSymbol) {
             String typeName = String.valueOf(recordTypeSymbol.hashCode());
+
             RefVisitedType visitedType = getVisitedType(typeName);
             if (visitedType != null) {
                 return getAlreadyVisitedType(symbol, typeName, visitedType, false);
             } else {
                 if (typeName.contains("record {")) {
                     type = getRecordType(recordTypeSymbol, documentationMap, semanticModel, dependentTypes);
-                    if (!dependentTypes.isEmpty()) {
-                        Map<String, RefType> depTypes = new HashMap<>();
-                        dependentTypes.forEach((key, value) -> {
-                            if (value != null) {
-                                depTypes.put(key, value);
-                            }
-                        });
-                        type.dependentTypes = depTypes;
-                    }
                 } else {
                     visitedTypeMap.put(typeName, new RefVisitedType());
                     type = getRecordType(recordTypeSymbol, documentationMap, semanticModel, dependentTypes);
-                    if (!dependentTypes.isEmpty()) {
-                        Map<String, RefType> depTypes = new HashMap<>();
-                        dependentTypes.forEach((key, value) -> {
-                            if (value != null) {
-                                depTypes.put(key, value);
-                            }
-                        });
-                        type.dependentTypes = depTypes;
-                    }
-
                     completeVisitedTypeEntry(typeName, type, dependentTypes);
                 }
             }
@@ -562,6 +549,8 @@ public class RefType {
                 documentationMap.putAll(doc.parameterMap());
                 typeDocumentation.set(doc.description().orElse(null));
             });
+            //Set the module information
+            ModuleID moduleID = typeDefinitionSymbol.getModule().get().id();
             type = fromSemanticSymbol(typeDefinitionSymbol.typeDescriptor(), documentationMap, semanticModel);
             type.documentation = typeDocumentation.get();
         }
@@ -707,98 +696,100 @@ public class RefType {
             RefType subType = fromSemanticSymbol(field.typeDescriptor(),
                     documentationMap, semanticModel, dependentTypes, false);
             if (subType != null) {
-                if (subType instanceof RefPrimitiveType) {
-                    subType.setName(name);
-                    subType.setOptional(field.isOptional());
-                    subType.setDefaultable(field.hasDefaultValue());
-                    subType.setDocumentation(documentationMap.get(name));
-                    fields.add(subType);
-                } else if (subType instanceof RefRecordType) {
-                    RefType recordSubType = new RefType(name, subType.getName());
-                    TypeInfo typeInfo = subType.getTypeInfo();
-                    String hashCode = String.valueOf(
-                            (typeInfo.name + typeInfo.orgName + typeInfo.moduleName + typeInfo.version).hashCode());
-                    recordSubType.setHashCode(hashCode);
-                    fields.add(recordSubType);
-                    RefType depType = new RefRecordType((RefRecordType) subType, false);
-                    dependentTypes.put(hashCode, depType);
-                    if (subType.dependentTypes != null) {
-                        dependentTypes.putAll(subType.dependentTypes);
-                    }
-                } else if (subType instanceof RefArrayType) {
-                    RefArrayType arraySubType = new RefArrayType(((RefArrayType) subType).memberType);
 
-                    if (arraySubType.memberType instanceof RefRecordType) {
-                        TypeInfo typeInfo = ((RefArrayType) subType).memberType.getTypeInfo();
-                        String hashCode = String.valueOf(
-                                (typeInfo.name + typeInfo.orgName + typeInfo.moduleName + typeInfo.version).hashCode());
-                        arraySubType.memberType.setHashCode(hashCode);
-                        RefType recordSubType = new RefType(arraySubType.memberType.getName(),
-                                arraySubType.memberType.getTypeName());
-                        recordSubType.setHashCode(hashCode);
-                        RefArrayType arraySubTypeWithRecord = new RefArrayType(recordSubType, name);
-                        fields.add(arraySubTypeWithRecord);
-                        RefType depType = new RefRecordType((RefRecordType) (((RefArrayType) subType).memberType), false);
-                        dependentTypes.put(hashCode, depType);
-                        if (subType.dependentTypes != null) {
-                            dependentTypes.putAll(subType.dependentTypes);
-                        }
-                    } else {
-                        fields.add(arraySubType);
-                    }
-                } else if (subType instanceof RefUnionType) {
-                    RefUnionType unionSubType = new RefUnionType((RefUnionType) subType, false);
-                    TypeInfo typeInfo = subType.getTypeInfo();
-                    String hashCode = String.valueOf(
-                            (typeInfo.name + typeInfo.orgName + typeInfo.moduleName + typeInfo.version).hashCode());
-                    unionSubType.setHashCode(hashCode);
-                    fields.add(unionSubType);
-                    RefType depType = new RefUnionType((RefUnionType) subType, true);
-                    dependentTypes.put(hashCode, depType);
-                    if (subType.dependentTypes != null) {
-                        dependentTypes.putAll(subType.dependentTypes);
-                    }
-                } else if (subType instanceof RefEnumType) {
-                    RefEnumType enumSubType = new RefEnumType(((RefEnumType) subType), false);
-                    TypeInfo typeInfo = subType.getTypeInfo();
-                    String hashCode = String.valueOf(
-                            (typeInfo.name + typeInfo.orgName + typeInfo.moduleName + typeInfo.version).hashCode());
-                    enumSubType.setHashCode(hashCode);
-                    fields.add(enumSubType);
-                    RefType depType = new RefEnumType((RefEnumType) subType, true);
-                    dependentTypes.put(hashCode, depType);
-                    if (subType.dependentTypes != null) {
-                        dependentTypes.putAll(subType.dependentTypes);
-                    }
-                } else if (subType instanceof RefMapType) {
-                    RefMapType mapSubType = new RefMapType(((RefMapType) subType), true);
-                    TypeInfo typeInfo = (((RefMapType) subType).paramType).getTypeInfo();
-                    String hashCode = String.valueOf(
-                            (typeInfo.name + typeInfo.orgName + typeInfo.moduleName + typeInfo.version).hashCode());
-                    fields.add(mapSubType);
-                    RefType depType = new RefMapType((RefMapType) subType, true);
-                    dependentTypes.put(hashCode, depType);
-                    if (subType.dependentTypes != null) {
-                        dependentTypes.putAll(subType.dependentTypes);
-                    }
-                } else if (subType instanceof RefTableType) {
-                    RefTableType tableSubType = new RefTableType(((RefTableType) subType), true, false);
-                    TypeInfo typeInfo = (((RefTableType) subType).rowType).getTypeInfo();
-                    String hashCode = String.valueOf(
-                            (typeInfo.name + typeInfo.orgName + typeInfo.moduleName + typeInfo.version).hashCode());
-                    fields.add(tableSubType);
-                    RefType depType = new RefTableType((RefTableType) subType, true, true);
-                    dependentTypes.put(hashCode, depType);
-                    if (subType.dependentTypes != null) {
-                        dependentTypes.putAll(subType.dependentTypes);
-                    }
-                } else {
-                    subType.setName(name);
-                    subType.setOptional(field.isOptional());
-                    subType.setDefaultable(field.hasDefaultValue());
-                    subType.setDocumentation(documentationMap.get(name));
-                    fields.add(subType);
-                }
+
+//                if (subType instanceof RefPrimitiveType) {
+//                    subType.setName(name);
+//                    subType.setOptional(field.isOptional());
+//                    subType.setDefaultable(field.hasDefaultValue());
+//                    subType.setDocumentation(documentationMap.get(name));
+//                    fields.add(subType);
+//                } else if (subType instanceof RefRecordType) {
+//                    RefType recordSubType = new RefType(name, subType.getName());
+//                    TypeInfo typeInfo = subType.getTypeInfo();
+//                    String hashCode = String.valueOf(
+//                            (typeInfo.name + typeInfo.orgName + typeInfo.moduleName + typeInfo.version).hashCode());
+//                    recordSubType.setHashCode(hashCode);
+//                    fields.add(recordSubType);
+//                    RefType depType = new RefRecordType((RefRecordType) subType, false);
+//                    dependentTypes.put(hashCode, depType);
+//                    if (subType.dependentTypes != null) {
+//                        dependentTypes.putAll(subType.dependentTypes);
+//                    }
+//                } else if (subType instanceof RefArrayType) {
+//                    RefArrayType arraySubType = new RefArrayType(((RefArrayType) subType).memberType);
+//
+//                    if (arraySubType.memberType instanceof RefRecordType) {
+//                        TypeInfo typeInfo = ((RefArrayType) subType).memberType.getTypeInfo();
+//                        String hashCode = String.valueOf(
+//                                (typeInfo.name + typeInfo.orgName + typeInfo.moduleName + typeInfo.version).hashCode());
+//                        arraySubType.memberType.setHashCode(hashCode);
+//                        RefType recordSubType = new RefType(arraySubType.memberType.getName(),
+//                                arraySubType.memberType.getTypeName());
+//                        recordSubType.setHashCode(hashCode);
+//                        RefArrayType arraySubTypeWithRecord = new RefArrayType(recordSubType, name);
+//                        fields.add(arraySubTypeWithRecord);
+//                        RefType depType = new RefRecordType((RefRecordType) (((RefArrayType) subType).memberType), false);
+//                        dependentTypes.put(hashCode, depType);
+//                        if (subType.dependentTypes != null) {
+//                            dependentTypes.putAll(subType.dependentTypes);
+//                        }
+//                    } else {
+//                        fields.add(arraySubType);
+//                    }
+//                } else if (subType instanceof RefUnionType) {
+//                    RefUnionType unionSubType = new RefUnionType((RefUnionType) subType, false);
+//                    TypeInfo typeInfo = subType.getTypeInfo();
+//                    String hashCode = String.valueOf(
+//                            (typeInfo.name + typeInfo.orgName + typeInfo.moduleName + typeInfo.version).hashCode());
+//                    unionSubType.setHashCode(hashCode);
+//                    fields.add(unionSubType);
+//                    RefType depType = new RefUnionType((RefUnionType) subType, true);
+//                    dependentTypes.put(hashCode, depType);
+//                    if (subType.dependentTypes != null) {
+//                        dependentTypes.putAll(subType.dependentTypes);
+//                    }
+//                } else if (subType instanceof RefEnumType) {
+//                    RefEnumType enumSubType = new RefEnumType(((RefEnumType) subType), false);
+//                    TypeInfo typeInfo = subType.getTypeInfo();
+//                    String hashCode = String.valueOf(
+//                            (typeInfo.name + typeInfo.orgName + typeInfo.moduleName + typeInfo.version).hashCode());
+//                    enumSubType.setHashCode(hashCode);
+//                    fields.add(enumSubType);
+//                    RefType depType = new RefEnumType((RefEnumType) subType, true);
+//                    dependentTypes.put(hashCode, depType);
+//                    if (subType.dependentTypes != null) {
+//                        dependentTypes.putAll(subType.dependentTypes);
+//                    }
+//                } else if (subType instanceof RefMapType) {
+//                    RefMapType mapSubType = new RefMapType(((RefMapType) subType), true);
+//                    TypeInfo typeInfo = (((RefMapType) subType).paramType).getTypeInfo();
+//                    String hashCode = String.valueOf(
+//                            (typeInfo.name + typeInfo.orgName + typeInfo.moduleName + typeInfo.version).hashCode());
+//                    fields.add(mapSubType);
+//                    RefType depType = new RefMapType((RefMapType) subType, true);
+//                    dependentTypes.put(hashCode, depType);
+//                    if (subType.dependentTypes != null) {
+//                        dependentTypes.putAll(subType.dependentTypes);
+//                    }
+//                } else if (subType instanceof RefTableType) {
+//                    RefTableType tableSubType = new RefTableType(((RefTableType) subType), true, false);
+//                    TypeInfo typeInfo = (((RefTableType) subType).rowType).getTypeInfo();
+//                    String hashCode = String.valueOf(
+//                            (typeInfo.name + typeInfo.orgName + typeInfo.moduleName + typeInfo.version).hashCode());
+//                    fields.add(tableSubType);
+//                    RefType depType = new RefTableType((RefTableType) subType, true, true);
+//                    dependentTypes.put(hashCode, depType);
+//                    if (subType.dependentTypes != null) {
+//                        dependentTypes.putAll(subType.dependentTypes);
+//                    }
+//                } else {
+//                    subType.setName(name);
+//                    subType.setOptional(field.isOptional());
+//                    subType.setDefaultable(field.hasDefaultValue());
+//                    subType.setDocumentation(documentationMap.get(name));
+//                    fields.add(subType);
+//                }
             }
         });
         RefType restType = recordTypeSymbol.restTypeDescriptor().isPresent() ?

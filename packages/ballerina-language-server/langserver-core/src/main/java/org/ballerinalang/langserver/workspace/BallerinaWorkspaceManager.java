@@ -1464,7 +1464,7 @@ public class BallerinaWorkspaceManager implements WorkspaceManager {
         try {
             Project project;
             if (projectKind == ProjectKind.BUILD_PROJECT) {
-                project = BuildProject.load(projectRoot, buildOptions);
+                    project = BuildProject.load(projectRoot, buildOptions);
 
                 // TODO: Remove this once https://github.com/ballerina-platform/ballerina-lang/issues/43972 is resolved
                 // Save the dependencies.toml to resolve the inconsistencies issue in the subsequent builds

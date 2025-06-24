@@ -24,7 +24,9 @@ import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.compiler.api.symbols.Symbol;
 import io.ballerina.projects.ModuleId;
 import io.ballerina.projects.PackageCompilation;
+import io.ballerina.projects.Project;
 import io.ballerina.projects.directory.BuildProject;
+import io.ballerina.projects.directory.ProjectLoader;
 import org.ballerinalang.diagramutil.connector.models.connector.RefType;
 import org.ballerinalang.diagramutil.connector.models.connector.Type;
 import org.testng.Assert;
@@ -56,7 +58,7 @@ public class RefTypeTest {
     public Object[][] getConfigsList() {
         return new Object[][]{
                 new Object[]{
-                        TestUtil.RES_DIR.resolve("RefTypeTest/TestData/healthSample.json")
+                        TestUtil.RES_DIR.resolve("RefTypeTest/TestData/recordSample1.json")
                 }
         };
     }
@@ -71,7 +73,8 @@ public class RefTypeTest {
         Path balSourcePath = TestUtil.RES_DIR.resolve(sourcePath);
         Path inputFile = TestUtil.createTempProject(balSourcePath);
 
-        BuildProject project = BuildProject.load(inputFile);
+
+        Project project = ProjectLoader.loadProject(inputFile);
         Optional<ModuleId> optionalModuleId = project.currentPackage().moduleIds().stream().findFirst();
         if (optionalModuleId.isEmpty()) {
             Assert.fail("Failed to retrieve the module ID");
@@ -80,33 +83,32 @@ public class RefTypeTest {
         PackageCompilation packageCompilation = project.currentPackage().getCompilation();
         SemanticModel semanticModel = packageCompilation.getSemanticModel(moduleId);
 
-        Symbol typeSymbol = semanticModel.moduleSymbols().stream()
+            Symbol typeSymbol = semanticModel.moduleSymbols().stream()
                 .filter(symbol -> symbol.getName().isPresent() &&
                         symbol.getName().get().equals(typeSymbolName))
                 .findFirst()
                 .orElseThrow(() -> new RuntimeException("Type symbol '" + typeSymbolName + "' not found"));
 
-//        RefType refType = RefType.fromSemanticSymbol(typeSymbol);
-//        String refTypeJson = gson.toJson(refType).concat(System.lineSeparator());
-//        String expectedRefTypeJson = gson.toJson(jsonObject.get("refType")).concat(System.lineSeparator());
-//
-//        if (!refTypeJson.equals(expectedRefTypeJson)) {
-////            updateConfig(jsonPath, refTypeJson);
-//            Assert.fail(
-//                    String.format("Reference type JSON does not match.\n Expected : %s\n Received %s",
-//                            expectedRefTypeJson, refTypeJson));
-//        }
-
-        Type type = Type.fromSemanticSymbol(typeSymbol);
-        String typeJson = gson.toJson(type).concat(System.lineSeparator());
-        String expectedTypeJson = gson.toJson(jsonObject.get("type")).concat(System.lineSeparator());
-
-        if (!typeJson.equals(expectedTypeJson)) {
-//            updateConfig(jsonPath, typeJson);
+        RefType refType = RefType.fromSemanticSymbol(typeSymbol);
+        String refTypeJson = gson.toJson(refType).concat(System.lineSeparator());
+        String expectedRefTypeJson = gson.toJson(jsonObject.get("refType")).concat(System.lineSeparator());
+        if (!refTypeJson.equals(expectedRefTypeJson)) {
+//            updateConfig(jsonPath, refTypeJson);
             Assert.fail(
-                    String.format("Type JSON does not match.\n Expected : %s\n Received %s",
-                            expectedTypeJson, typeJson));
+                    String.format("Reference type JSON does not match.\n Expected : %s\n Received %s",
+                            expectedRefTypeJson, refTypeJson));
         }
+
+//        Type type = Type.fromSemanticSymbol(typeSymbol);
+//        String typeJson = gson.toJson(type).concat(System.lineSeparator());
+//        String expectedTypeJson = gson.toJson(jsonObject.get("type")).concat(System.lineSeparator());
+//
+//        if (!typeJson.equals(expectedTypeJson)) {
+////            updateConfig(jsonPath, typeJson);
+//            Assert.fail(
+//                    String.format("Type JSON does not match.\n Expected : %s\n Received %s",
+//                            expectedTypeJson, typeJson));
+//        }
     }
 
     protected void updateConfig(Path configJsonPath, String objString) throws IOException {
