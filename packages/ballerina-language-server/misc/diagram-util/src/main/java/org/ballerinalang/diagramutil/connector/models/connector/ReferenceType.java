@@ -17,8 +17,10 @@
  */
 package org.ballerinalang.diagramutil.connector.models.connector;
 
-import com.google.gson.annotations.Expose;
 import io.ballerina.compiler.api.symbols.*;
+import org.ballerinalang.diagramutil.connector.models.connector.reftypes.RefArrayType;
+import org.ballerinalang.diagramutil.connector.models.connector.reftypes.RefRecordType;
+import org.ballerinalang.diagramutil.connector.models.connector.reftypes.RefType;
 
 import java.util.*;
 
@@ -28,48 +30,12 @@ import java.util.*;
  * @since language-server 1.0.0
  */
 public class ReferenceType {
-    private static final Map<String, Type> visitedTypeMap = new HashMap<>();
-
-    public static class Type {
-        Set<String> dependentTypeHashes = new HashSet<>();
-        @Expose
-        public String hashCode;
-        @Expose
-        public String name;
-        @Expose
-        public String typeName;
-        @Expose
-        public Map<String, Type> dependentTypes;
-
-        public Type(String name) {
-            this.name = name;
-        }
+    private static final Map<String, RefType> visitedTypeMap = new HashMap<>();
+    
+    public record Field(String fieldName, RefType type, boolean optional, String defaultValue) {
     }
 
-    public static class RecordType extends Type {
-        @Expose
-        List<Field> fields = new ArrayList<>();
-
-        public RecordType(String name) {
-            super(name);
-            this.typeName = "record";
-        }
-    }
-
-    public static class ArrayType extends Type {
-        @Expose
-        Type elementType;
-
-        public ArrayType(String name) {
-            super(name);
-            this.typeName = "array";
-        }
-    }
-
-    public record Field(String fieldName, Type type, boolean optional, String defaultValue) {
-    }
-
-    public static Type fromSemanticSymbol(Symbol symbol) {
+    public static RefType fromSemanticSymbol(Symbol symbol) {
         SymbolKind kind = symbol.kind();
         TypeSymbol typeSymbol = null;
         if (kind == SymbolKind.TYPE_DEFINITION) {
@@ -91,10 +57,10 @@ public class ReferenceType {
         String moduleId = symbol.getModule().isPresent()
                 ? symbol.getModule().get().id().toString()
                 : null;
-        Type type = fromSemanticSymbol(typeSymbol, symbol.getName().orElseThrow(), moduleId);
+        RefType type = fromSemanticSymbol(typeSymbol, symbol.getName().orElseThrow(), moduleId);
 
         for (String dependentTypeHash : type.dependentTypeHashes) {
-            Type dependentType = visitedTypeMap.get(dependentTypeHash);
+            RefType dependentType = visitedTypeMap.get(dependentTypeHash);
             if (dependentType != null) {
                 if (type.dependentTypes == null) {
                     type.dependentTypes = new HashMap<>();
@@ -105,9 +71,9 @@ public class ReferenceType {
         return type;
     }
 
-    public static Type fromSemanticSymbol(TypeSymbol symbol, String name, String ModuleID) {
+    public static RefType fromSemanticSymbol(TypeSymbol symbol, String name, String ModuleID) {
         String hashCode = String.valueOf((ModuleID + name).hashCode());
-        Type type = visitedTypeMap.get(hashCode);
+        RefType type = visitedTypeMap.get(hashCode);
         if (type != null) {
             return type;
         }
@@ -115,7 +81,7 @@ public class ReferenceType {
         TypeDescKind kind = symbol.typeKind();
         if (kind == TypeDescKind.RECORD) {
             RecordTypeSymbol recordTypeSymbol = (RecordTypeSymbol) symbol;
-            RecordType recordType = new RecordType(name);
+            RefRecordType recordType = new RefRecordType(name);
             recordType.hashCode = hashCode;
             visitedTypeMap.put(hashCode, recordType);
 
@@ -126,10 +92,10 @@ public class ReferenceType {
                 String fieldModuleId = fieldTypeSymbol.getModule().isPresent()
                         ? fieldTypeSymbol.getModule().get().id().toString()
                         : null;
-                Type fieldType = fromSemanticSymbol(fieldTypeSymbol, fieldTypeName, fieldModuleId);
+                RefType fieldType = fromSemanticSymbol(fieldTypeSymbol, fieldTypeName, fieldModuleId);
                 if (fieldType.dependentTypeHashes == null || fieldType.dependentTypeHashes.isEmpty()) {
                     if (fieldType.hashCode != null) {
-                        Type t = new Type(fieldType.name);
+                        RefType t = new RefType(fieldType.name);
                         t.hashCode = fieldType.hashCode;
                         t.typeName = fieldType.typeName;
                         recordType.fields.add(new Field(fieldName, t, fieldSymbol.isOptional(), ""));
@@ -137,16 +103,11 @@ public class ReferenceType {
                         recordType.fields.add(new Field(fieldName, fieldType, fieldSymbol.isOptional(), ""));
                     }
                 } else {
-                    Type t = new Type(fieldType.name);
+                    RefType t = new RefType(fieldType.name);
                     t.hashCode = fieldType.hashCode;
                     t.typeName = fieldType.typeName;
                     recordType.dependentTypeHashes.addAll(fieldType.dependentTypeHashes);
-                    if (fieldType.typeName.equals("array")) {
-                        t.typeName = fieldType.typeName;
-                        recordType.fields.add(new Field(fieldName, t, fieldSymbol.isOptional(), ""));
-                    } else {
-                        recordType.fields.add(new Field(fieldName, t, fieldSymbol.isOptional(), ""));
-                    }
+                    recordType.fields.add(new Field(fieldName, t, fieldSymbol.isOptional(), ""));
                 }
                 if (fieldType.hashCode != null) {
                     recordType.dependentTypeHashes.add(fieldType.hashCode);
@@ -156,17 +117,17 @@ public class ReferenceType {
             return recordType;
         } else if (kind == TypeDescKind.ARRAY) {
             ArrayTypeSymbol arrayTypeSymbol = (ArrayTypeSymbol) symbol;
-            ArrayType arrayType = new ArrayType(name);
+            RefArrayType arrayType = new RefArrayType(name);
             arrayType.hashCode = hashCode;
             TypeSymbol elementTypeSymbol = arrayTypeSymbol.memberTypeDescriptor();
             String elementTypeName = elementTypeSymbol.getName().orElse("");
             String moduleId = elementTypeSymbol.getModule().isPresent()
                     ? elementTypeSymbol.getModule().get().id().toString()
                     : null;
-            Type elementType = fromSemanticSymbol(elementTypeSymbol, elementTypeName, moduleId);
+            RefType elementType = fromSemanticSymbol(elementTypeSymbol, elementTypeName, moduleId);
             if (elementType.dependentTypeHashes == null || elementType.dependentTypeHashes.isEmpty()) {
                 if (elementType.hashCode != null) {
-                    Type t = new Type(elementType.name);
+                    RefType t = new RefType(elementType.name);
                     t.hashCode = elementType.hashCode;
                     t.typeName = elementType.typeName;
                     arrayType.elementType = t;
@@ -174,7 +135,7 @@ public class ReferenceType {
                     arrayType.elementType = elementType;
                 }
             } else {
-                Type t = new Type(elementType.name);
+                RefType t = new RefType(elementType.name);
                 t.hashCode = elementType.hashCode;
                 t.typeName = elementType.typeName;
                 arrayType.dependentTypeHashes.addAll(elementType.dependentTypeHashes);
@@ -193,19 +154,19 @@ public class ReferenceType {
                     : null;
             return fromSemanticSymbol(typeSymbol, name, moduleId);
         } else if (kind == TypeDescKind.INT) {
-            return new Type("int");
+            return new RefType("int");
         } else if (kind == TypeDescKind.STRING) {
-            return new Type("string");
+            return new RefType("string");
         } else if (kind == TypeDescKind.FLOAT) {
-            return new Type("float");
+            return new RefType("float");
         } else if (kind == TypeDescKind.BOOLEAN) {
-            return new Type("boolean");
+            return new RefType("boolean");
         } else if (kind == TypeDescKind.NIL) {
-            return new Type("nil");
+            return new RefType("nil");
         } else if (kind == TypeDescKind.DECIMAL) {
-            return new Type("decimal");
+            return new RefType("decimal");
         } else if (kind == TypeDescKind.NEVER) {
-            return new Type("never");
+            return new RefType("never");
         }
         throw new UnsupportedOperationException(
                 "Unsupported type kind: " + kind + " for symbol: " + symbol.getName().orElse("unknown"));

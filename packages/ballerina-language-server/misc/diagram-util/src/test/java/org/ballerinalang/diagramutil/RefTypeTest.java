@@ -25,10 +25,9 @@ import io.ballerina.compiler.api.symbols.Symbol;
 import io.ballerina.projects.ModuleId;
 import io.ballerina.projects.PackageCompilation;
 import io.ballerina.projects.Project;
-import io.ballerina.projects.directory.BuildProject;
 import io.ballerina.projects.directory.ProjectLoader;
-import org.ballerinalang.diagramutil.connector.models.connector.RefType;
-import org.ballerinalang.diagramutil.connector.models.connector.Type;
+import org.ballerinalang.diagramutil.connector.models.connector.ReferenceType;
+import org.ballerinalang.diagramutil.connector.models.connector.reftypes.RefType;
 import org.testng.Assert;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -45,23 +44,15 @@ public class RefTypeTest {
 
     protected final Gson gson = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
 
-//    @DataProvider(name = "data-provider")
-//    public Object[][] getConfigsList() throws IOException {
-//        Path testDataDir = TestUtil.RES_DIR.resolve("RefTypeTest/TestData");
-//        return Files.list(testDataDir)
-//                .filter(path -> path.toString().endsWith(".json"))
-//                .map(path -> new Object[]{path})
-//                .toArray(Object[][]::new);
-//    }
-
     @DataProvider(name = "data-provider")
-    public Object[][] getConfigsList() {
-        return new Object[][]{
-                new Object[]{
-                        TestUtil.RES_DIR.resolve("RefTypeTest/TestData/recordSample1.json")
-                }
-        };
+    public Object[][] getConfigsList() throws IOException {
+        Path testDataDir = TestUtil.RES_DIR.resolve("RefTypeTest/TestData");
+        return Files.list(testDataDir)
+                .filter(path -> path.toString().endsWith(".json"))
+                .map(path -> new Object[]{path})
+                .toArray(Object[][]::new);
     }
+
 
     @Test(dataProvider = "data-provider")
     public void getRefTypeForSymbol(Path jsonPath) throws IOException {
@@ -89,7 +80,7 @@ public class RefTypeTest {
                 .findFirst()
                 .orElseThrow(() -> new RuntimeException("Type symbol '" + typeSymbolName + "' not found"));
 
-        RefType refType = RefType.fromSemanticSymbol(typeSymbol);
+        RefType refType = ReferenceType.fromSemanticSymbol(typeSymbol);
         String refTypeJson = gson.toJson(refType).concat(System.lineSeparator());
         String expectedRefTypeJson = gson.toJson(jsonObject.get("refType")).concat(System.lineSeparator());
         if (!refTypeJson.equals(expectedRefTypeJson)) {

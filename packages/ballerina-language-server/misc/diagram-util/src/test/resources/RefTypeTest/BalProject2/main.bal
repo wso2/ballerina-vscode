@@ -15,10 +15,17 @@ public type ProgressNote record {|
 
 ProgressNote[] progressNotes = [];
 
+type ProgressNoteArray ProgressNote[];
+
 public type FinalNote record {|
     string finalNote;
     SampleRecord sampleRecord;
     ProgressNote[] progressNotes;
+|};
+
+public type RecordType record {|
+    string name;
+    FinalNote[] finalNote;
 |};
 
 type unionSymbol SampleType|SampleRecord|ProgressNote|FinalNote|ProgressNote[];
@@ -27,3 +34,12 @@ public type unionMemberType record {|
     unionSymbol member;
     FinalNote finalNote;
 |};
+
+
+RecordType {
+    name:ProgressNote,
+    hashCode: 1234567890,
+    type:Record,
+
+    }
+}
