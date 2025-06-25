@@ -862,7 +862,7 @@ public class CodeAnalyzer extends NodeVisitor {
             final List<LinkedHashMap<String, String>> includedRecordRestArgs = new ArrayList<>();
             for (int i = 0; i < paramsList.size(); i++) {
                 ParameterSymbol parameterSymbol = paramsList.get(i);
-                String escapedParamName = parameterSymbol.getName().get();
+                String escapedParamName = CommonUtil.escapeReservedKeyword(parameterSymbol.getName().get());
                 ParameterData paramResult = funcParamMap.get(escapedParamName);
                 if (paramResult == null) {
                     continue;
