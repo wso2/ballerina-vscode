@@ -426,6 +426,7 @@ public class FormBuilder<T> extends FacetedBuilder<T> {
                     .codedata()
                         .originalName(path)
                         .stepOut()
+                    .hidden()
                     .value(path.replaceAll("\\\\", ""));
         }
         addProperty(Property.RESOURCE_PATH_KEY);
