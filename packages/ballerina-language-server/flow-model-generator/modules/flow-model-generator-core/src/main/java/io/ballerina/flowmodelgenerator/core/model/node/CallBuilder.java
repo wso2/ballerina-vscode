@@ -236,6 +236,7 @@ public abstract class CallBuilder extends NodeBuilder {
                 .typeConstraint(CommonUtils.getClassType(codedata.module(), codedata.object()))
                 .value(codedata.parentSymbol())
                 .type(Property.ValueType.EXPRESSION)
+                .hidden()
                 .stepOut()
                 .addProperty(Property.CONNECTION_KEY);
     }

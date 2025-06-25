@@ -43,7 +43,7 @@
         "optional": false,
         "editable": false,
         "advanced": false,
-        "hidden": false
+        "hidden": true
       },
       "resourcePath": {
         "metadata": {
@@ -55,7 +55,7 @@
         "optional": false,
         "editable": false,
         "advanced": false,
-        "hidden": false,
+        "hidden": true,
         "codedata": {
           "originalName": "/orgs/[org]/repos"
         }
@@ -294,7 +294,7 @@
         "optional": false,
         "editable": false,
         "advanced": false,
-        "hidden": false,
+        "hidden": true,
         "codedata": {}
       },
       "variable": {
