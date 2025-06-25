@@ -22,8 +22,7 @@ package io.ballerina.flowmodelgenerator.extension.request;
  * A request to edit tool's description.
  *
  * @param toolName    name of the tool
- * @param description new description
  * @param projectPath path of the project
  */
-public record EditToolRequest(String toolName, String description, String projectPath) {
+public record GetToolRequest(String toolName, String projectPath) {
 }

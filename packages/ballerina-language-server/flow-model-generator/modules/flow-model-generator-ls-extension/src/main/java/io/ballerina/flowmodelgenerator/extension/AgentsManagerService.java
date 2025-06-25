@@ -19,8 +19,9 @@
 package io.ballerina.flowmodelgenerator.extension;
 
 import io.ballerina.compiler.api.SemanticModel;
+import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
 import io.ballerina.flowmodelgenerator.core.AgentsGenerator;
-import io.ballerina.flowmodelgenerator.extension.request.EditToolRequest;
+import io.ballerina.flowmodelgenerator.extension.request.GetToolRequest;
 import io.ballerina.flowmodelgenerator.extension.request.GenToolRequest;
 import io.ballerina.flowmodelgenerator.extension.request.GetAllAgentsRequest;
 import io.ballerina.flowmodelgenerator.extension.request.GetAllMemoryManagersRequest;
@@ -28,7 +29,7 @@ import io.ballerina.flowmodelgenerator.extension.request.GetAllModelsRequest;
 import io.ballerina.flowmodelgenerator.extension.request.GetConnectorActionsRequest;
 import io.ballerina.flowmodelgenerator.extension.request.GetModelsRequest;
 import io.ballerina.flowmodelgenerator.extension.request.GetToolsRequest;
-import io.ballerina.flowmodelgenerator.extension.response.EditToolResponse;
+import io.ballerina.flowmodelgenerator.extension.response.GetToolResponse;
 import io.ballerina.flowmodelgenerator.extension.response.GenToolResponse;
 import io.ballerina.flowmodelgenerator.extension.response.GetAgentsResponse;
 import io.ballerina.flowmodelgenerator.extension.response.GetConnectorActionsResponse;
@@ -180,7 +181,8 @@ public class AgentsManagerService implements ExtendedLanguageServerService {
 
                 AgentsGenerator agentsGenerator = new AgentsGenerator(semanticModel.get());
                 response.setTextEdits(agentsGenerator.genTool(request.flowNode(), request.toolName(),
-                        request.connection(), request.description(), filePath, this.workspaceManager));
+                        request.toolParameters(), request.connection(), request.description(), filePath,
+                        this.workspaceManager));
             } catch (Throwable e) {
                 throw new RuntimeException(e);
             }
@@ -211,20 +213,29 @@ public class AgentsManagerService implements ExtendedLanguageServerService {
     }
 
     @JsonRequest
-    public CompletableFuture<EditToolResponse> editTool(EditToolRequest request) {
+    public CompletableFuture<GetToolResponse> getTool(GetToolRequest request) {
         return CompletableFuture.supplyAsync(() -> {
-            EditToolResponse response = new EditToolResponse();
+            GetToolResponse response = new GetToolResponse();
             try {
                 Path projectPath = Path.of(request.projectPath());
                 Path filePath = projectPath.resolve("agents.bal");
                 this.workspaceManager.loadProject(filePath);
                 Optional<SemanticModel> semanticModel = this.workspaceManager.semanticModel(filePath);
-                if (semanticModel.isEmpty()) {
+                Optional<Document> optDocument = this.workspaceManager.document(filePath);
+                Optional<Project> optProject = this.workspaceManager.project(projectPath);
+
+                if (semanticModel.isEmpty() || optDocument.isEmpty() || optProject.isEmpty()) {
                     return response;
                 }
 
                 AgentsGenerator agentsGenerator = new AgentsGenerator(semanticModel.get());
-                response.setTextEdits(agentsGenerator.editTool(request.toolName(), request.description(), projectPath));
+                Document document = optDocument.get();
+                FunctionDefinitionNode functionDefinitionNode = agentsGenerator.getToolFunction(request.toolName(),
+                        document);
+                response.setToolName(request.toolName());
+                response.setFlowNode(agentsGenerator.getToolFlowNode(functionDefinitionNode, document));
+                response.setMethodCallFlowNode(agentsGenerator.getMethodCallFlowNode(functionDefinitionNode,
+                        optProject.get(), document));
             } catch (Throwable e) {
                 throw new RuntimeException(e);
             }

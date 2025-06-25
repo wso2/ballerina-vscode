@@ -31,6 +31,6 @@ import com.google.gson.JsonElement;
  *                    
  * @since 2.0.0
  */
-public record GenToolRequest(String filePath, JsonElement flowNode, String toolName, String description,
-                             String connection) {
+public record GenToolRequest(String filePath, JsonElement flowNode, String toolName, JsonElement toolParameters,
+                             String description, String connection) {
 }
