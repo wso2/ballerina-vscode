@@ -46,6 +46,7 @@ service / on new http:Listener(9090) {
     resource function post getPerson(@http:Payload Person param) returns Person|http:InternalServerError {
         do {
             User user = check getUser("");
+            User u;
         } on fail error e {
             return http:INTERNAL_SERVER_ERROR;
         }
