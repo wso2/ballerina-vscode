@@ -309,6 +309,7 @@
       "node": "REMOTE_ACTION_CALL",
       "org": "ballerinax",
       "module": "redis",
+      "packageName": "redis",
       "object": "Client",
       "symbol": "set",
       "version": "3.1.0",
@@ -337,11 +338,11 @@
         "optional": false,
         "editable": false,
         "advanced": false,
-        "hidden": false
+        "hidden": true
       },
       "key": {
         "metadata": {
-          "label": "key",
+          "label": "Key",
           "description": "Key referring to a value"
         },
         "valueType": "EXPRESSION",
@@ -360,6 +361,7 @@
           {
             "type": "string",
             "packageInfo": "",
+            "packageName": "",
             "kind": "BASIC_TYPE",
             "selected": true
           }
@@ -367,7 +369,7 @@
       },
       "value": {
         "metadata": {
-          "label": "value",
+          "label": "Value",
           "description": "Values"
         },
         "valueType": "EXPRESSION",
@@ -386,6 +388,7 @@
           {
             "type": "string",
             "packageInfo": "",
+            "packageName": "",
             "kind": "BASIC_TYPE",
             "selected": true
           }
@@ -401,7 +404,7 @@
         "optional": false,
         "editable": true,
         "advanced": true,
-        "hidden": false
+        "hidden": true
       },
       "variable": {
         "metadata": {
@@ -439,7 +442,7 @@
         "optional": false,
         "editable": false,
         "advanced": false,
-        "hidden": false,
+        "hidden": true,
         "codedata": {}
       }
     },
