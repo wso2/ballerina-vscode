@@ -6,7 +6,7 @@ import org.ballerinalang.diagramutil.connector.models.connector.ReferenceType;
 import java.util.ArrayList;
 import java.util.List;
 
-public class RefRecordType extends RefType{
+public class RefRecordType extends RefType {
     @Expose
     public List<ReferenceType.Field> fields = new ArrayList<>();
 

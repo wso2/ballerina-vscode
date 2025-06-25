@@ -1,7 +1,6 @@
 package org.ballerinalang.diagramutil.connector.models.connector.reftypes;
 
 import com.google.gson.annotations.Expose;
-import org.ballerinalang.diagramutil.connector.models.connector.ReferenceType;
 
 import java.util.HashSet;
 import java.util.Map;

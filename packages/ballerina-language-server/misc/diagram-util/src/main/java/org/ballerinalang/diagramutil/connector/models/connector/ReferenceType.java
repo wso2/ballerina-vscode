@@ -17,13 +17,23 @@
  */
 package org.ballerinalang.diagramutil.connector.models.connector;
 
-import io.ballerina.compiler.api.symbols.*;
+import io.ballerina.compiler.api.symbols.ArrayTypeSymbol;
+import io.ballerina.compiler.api.symbols.ParameterSymbol;
+import io.ballerina.compiler.api.symbols.RecordFieldSymbol;
+import io.ballerina.compiler.api.symbols.RecordTypeSymbol;
+import io.ballerina.compiler.api.symbols.Symbol;
+import io.ballerina.compiler.api.symbols.SymbolKind;
+import io.ballerina.compiler.api.symbols.TypeDefinitionSymbol;
+import io.ballerina.compiler.api.symbols.TypeDescKind;
+import io.ballerina.compiler.api.symbols.TypeReferenceTypeSymbol;
+import io.ballerina.compiler.api.symbols.TypeSymbol;
+import io.ballerina.compiler.api.symbols.VariableSymbol;
 import org.ballerinalang.diagramutil.connector.models.connector.reftypes.RefArrayType;
 import org.ballerinalang.diagramutil.connector.models.connector.reftypes.RefRecordType;
 import org.ballerinalang.diagramutil.connector.models.connector.reftypes.RefType;
 
-import java.util.*;
-
+import java.util.HashMap;
+import java.util.Map;
 /**
  * Reference-based type model.
  *
@@ -71,8 +81,8 @@ public class ReferenceType {
         return type;
     }
 
-    public static RefType fromSemanticSymbol(TypeSymbol symbol, String name, String ModuleID) {
-        String hashCode = String.valueOf((ModuleID + name).hashCode());
+    public static RefType fromSemanticSymbol(TypeSymbol symbol, String name, String moduleID) {
+        String hashCode = String.valueOf((moduleID + name).hashCode());
         RefType type = visitedTypeMap.get(hashCode);
         if (type != null) {
             return type;

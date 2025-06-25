@@ -104,7 +104,6 @@ public class Type {
     public boolean selected = false;
 
     public Type() {
-
     }
 
     public Type(String name, String typeName, boolean optional, TypeInfo typeInfo, boolean defaultable,
@@ -452,7 +451,7 @@ public class Type {
         return type;
     }
 
-    public static Type getRecordType(RecordTypeSymbol recordTypeSymbol, Map<String, String> documentationMap,
+    private static Type getRecordType(RecordTypeSymbol recordTypeSymbol, Map<String, String> documentationMap,
                                       SemanticModel semanticModel) {
         Type type;
         List<Type> fields = new ArrayList<>();
@@ -497,7 +496,7 @@ public class Type {
         });
     }
 
-    public static Type getEnumType(TypeReferenceTypeSymbol typeReferenceTypeSymbol, Symbol symbol,
+    private static Type getEnumType(TypeReferenceTypeSymbol typeReferenceTypeSymbol, Symbol symbol,
                                     Map<String, String> documentationMap, SemanticModel semanticModel) {
         Type type;
         if (typeReferenceTypeSymbol.definition().kind().equals(SymbolKind.ENUM)) {
