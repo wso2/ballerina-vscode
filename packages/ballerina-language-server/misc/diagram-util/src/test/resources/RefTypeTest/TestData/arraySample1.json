@@ -17,7 +17,7 @@
         "fieldName": "sampleRecord",
         "type": {
           "dependentTypeHashes": [],
-          "hashCode": "-188584510",
+          "hashCode": "-514874692",
           "name": "SampleRecord",
           "typeName": "record"
         },
@@ -28,7 +28,7 @@
         "fieldName": "progressNotes",
         "type": {
           "dependentTypeHashes": [],
-          "hashCode": "458952422",
+          "hashCode": "132662240",
           "name": "",
           "typeName": "array"
         },
@@ -37,15 +37,15 @@
       }
     ],
     "dependentTypeHashes": [
-      "-188584510",
-      "458952422",
-      "-1644807957"
+      "-514874692",
+      "2086691941",
+      "132662240"
     ],
     "hashCode": "-690595321",
     "name": "FinalNote",
     "typeName": "record",
     "dependentTypes": {
-      "-188584510": {
+      "-514874692": {
         "fields": [
           {
             "fieldName": "sampleRecordName",
@@ -60,7 +60,7 @@
             "fieldName": "recordType1",
             "type": {
               "dependentTypeHashes": [],
-              "hashCode": "-1644807957",
+              "hashCode": "2086691941",
               "name": "SampleType",
               "typeName": "record"
             },
@@ -69,44 +69,13 @@
           }
         ],
         "dependentTypeHashes": [
-          "-1644807957"
+          "2086691941"
         ],
-        "hashCode": "-188584510",
+        "hashCode": "-514874692",
         "name": "SampleRecord",
         "typeName": "record"
       },
-      "458952422": {
-        "fields": [
-          {
-            "fieldName": "note",
-            "type": {
-              "dependentTypeHashes": [],
-              "name": "string"
-            },
-            "optional": false,
-            "defaultValue": ""
-          },
-          {
-            "fieldName": "sampleRecord1",
-            "type": {
-              "dependentTypeHashes": [],
-              "hashCode": "-188584510",
-              "name": "SampleRecord",
-              "typeName": "record"
-            },
-            "optional": false,
-            "defaultValue": ""
-          }
-        ],
-        "dependentTypeHashes": [
-          "-188584510",
-          "-1644807957"
-        ],
-        "hashCode": "458952422",
-        "name": "ProgressNote",
-        "typeName": "record"
-      },
-      "-1644807957": {
+      "2086691941": {
         "fields": [
           {
             "fieldName": "sampleTypeName",
@@ -128,8 +97,39 @@
           }
         ],
         "dependentTypeHashes": [],
-        "hashCode": "-1644807957",
+        "hashCode": "2086691941",
         "name": "SampleType",
+        "typeName": "record"
+      },
+      "132662240": {
+        "fields": [
+          {
+            "fieldName": "note",
+            "type": {
+              "dependentTypeHashes": [],
+              "name": "string"
+            },
+            "optional": false,
+            "defaultValue": ""
+          },
+          {
+            "fieldName": "sampleRecord1",
+            "type": {
+              "dependentTypeHashes": [],
+              "hashCode": "-514874692",
+              "name": "SampleRecord",
+              "typeName": "record"
+            },
+            "optional": false,
+            "defaultValue": ""
+          }
+        ],
+        "dependentTypeHashes": [
+          "-514874692",
+          "2086691941"
+        ],
+        "hashCode": "132662240",
+        "name": "ProgressNote",
         "typeName": "record"
       }
     }

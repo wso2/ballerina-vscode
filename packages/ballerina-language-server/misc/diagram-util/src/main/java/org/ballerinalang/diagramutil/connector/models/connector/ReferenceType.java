@@ -95,8 +95,8 @@ public class ReferenceType {
             fieldDescriptors.forEach((fieldName, fieldSymbol) -> {
                 TypeSymbol fieldTypeSymbol = fieldSymbol.typeDescriptor();
                 String fieldTypeName = fieldTypeSymbol.getName().orElse("");
-                String fieldModuleId = fieldTypeSymbol.getModule().isPresent()
-                        ? fieldTypeSymbol.getModule().get().id().toString()
+                String fieldModuleId = fieldSymbol.getModule().isPresent()
+                        ? fieldSymbol.getModule().get().id().toString()
                         : null;
                 RefType fieldType = fromSemanticSymbol(fieldTypeSymbol, fieldTypeName, fieldModuleId);
                 if (fieldType.dependentTypeHashes == null || fieldType.dependentTypeHashes.isEmpty()) {
@@ -155,8 +155,8 @@ public class ReferenceType {
         } else if (kind == TypeDescKind.TYPE_REFERENCE) {
             TypeReferenceTypeSymbol typeRefSymbol = (TypeReferenceTypeSymbol) symbol;
             TypeSymbol typeSymbol = typeRefSymbol.typeDescriptor();
-            String moduleId = typeSymbol.getModule().isPresent()
-                    ? typeSymbol.getModule().get().id().toString()
+            String moduleId = typeRefSymbol.getModule().isPresent()
+                    ? typeRefSymbol.getModule().get().id().toString()
                     : null;
             return fromSemanticSymbol(typeSymbol, name, moduleId);
         } else if (kind == TypeDescKind.INT) {

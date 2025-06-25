@@ -27,8 +27,8 @@
     ],
     "dependentTypeHashes": [
       "977134111",
-      "-188584510",
-      "-1644807957"
+      "329597179",
+      "733382244"
     ],
     "hashCode": "-180061144",
     "name": "FinalNote",
@@ -49,7 +49,7 @@
             "fieldName": "sampleRecord",
             "type": {
               "dependentTypeHashes": [],
-              "hashCode": "-188584510",
+              "hashCode": "329597179",
               "name": "SampleRecord",
               "typeName": "record"
             },
@@ -58,14 +58,14 @@
           }
         ],
         "dependentTypeHashes": [
-          "-188584510",
-          "-1644807957"
+          "329597179",
+          "733382244"
         ],
         "hashCode": "977134111",
         "name": "ProgressNote",
         "typeName": "record",
         "dependentTypes": {
-          "-188584510": {
+          "329597179": {
             "fields": [
               {
                 "fieldName": "sampleRecordName",
@@ -77,10 +77,10 @@
                 "defaultValue": ""
               },
               {
-                "fieldName": "recordType1",
+                "fieldName": "recordType",
                 "type": {
                   "dependentTypeHashes": [],
-                  "hashCode": "-1644807957",
+                  "hashCode": "733382244",
                   "name": "SampleType",
                   "typeName": "record"
                 },
@@ -89,13 +89,41 @@
               }
             ],
             "dependentTypeHashes": [
-              "-1644807957"
+              "733382244"
             ],
-            "hashCode": "-188584510",
+            "hashCode": "329597179",
             "name": "SampleRecord",
-            "typeName": "record"
+            "typeName": "record",
+            "dependentTypes": {
+              "733382244": {
+                "fields": [
+                  {
+                    "fieldName": "sampleTypeName",
+                    "type": {
+                      "dependentTypeHashes": [],
+                      "name": "string"
+                    },
+                    "optional": false,
+                    "defaultValue": ""
+                  },
+                  {
+                    "fieldName": "sampleTypeCode",
+                    "type": {
+                      "dependentTypeHashes": [],
+                      "name": "int"
+                    },
+                    "optional": false,
+                    "defaultValue": ""
+                  }
+                ],
+                "dependentTypeHashes": [],
+                "hashCode": "733382244",
+                "name": "SampleType",
+                "typeName": "record"
+              }
+            }
           },
-          "-1644807957": {
+          "733382244": {
             "fields": [
               {
                 "fieldName": "sampleTypeName",
@@ -117,13 +145,13 @@
               }
             ],
             "dependentTypeHashes": [],
-            "hashCode": "-1644807957",
+            "hashCode": "733382244",
             "name": "SampleType",
             "typeName": "record"
           }
         }
       },
-      "-188584510": {
+      "329597179": {
         "fields": [
           {
             "fieldName": "sampleRecordName",
@@ -135,10 +163,10 @@
             "defaultValue": ""
           },
           {
-            "fieldName": "recordType1",
+            "fieldName": "recordType",
             "type": {
               "dependentTypeHashes": [],
-              "hashCode": "-1644807957",
+              "hashCode": "733382244",
               "name": "SampleType",
               "typeName": "record"
             },
@@ -147,13 +175,41 @@
           }
         ],
         "dependentTypeHashes": [
-          "-1644807957"
+          "733382244"
         ],
-        "hashCode": "-188584510",
+        "hashCode": "329597179",
         "name": "SampleRecord",
-        "typeName": "record"
+        "typeName": "record",
+        "dependentTypes": {
+          "733382244": {
+            "fields": [
+              {
+                "fieldName": "sampleTypeName",
+                "type": {
+                  "dependentTypeHashes": [],
+                  "name": "string"
+                },
+                "optional": false,
+                "defaultValue": ""
+              },
+              {
+                "fieldName": "sampleTypeCode",
+                "type": {
+                  "dependentTypeHashes": [],
+                  "name": "int"
+                },
+                "optional": false,
+                "defaultValue": ""
+              }
+            ],
+            "dependentTypeHashes": [],
+            "hashCode": "733382244",
+            "name": "SampleType",
+            "typeName": "record"
+          }
+        }
       },
-      "-1644807957": {
+      "733382244": {
         "fields": [
           {
             "fieldName": "sampleTypeName",
@@ -175,7 +231,7 @@
           }
         ],
         "dependentTypeHashes": [],
-        "hashCode": "-1644807957",
+        "hashCode": "733382244",
         "name": "SampleType",
         "typeName": "record"
       }
