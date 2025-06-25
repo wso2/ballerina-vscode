@@ -89,17 +89,6 @@ public class RefTypeTest {
                     String.format("Reference type JSON does not match.\n Expected : %s\n Received %s",
                             expectedRefTypeJson, refTypeJson));
         }
-
-//        Type type = Type.fromSemanticSymbol(typeSymbol);
-//        String typeJson = gson.toJson(type).concat(System.lineSeparator());
-//        String expectedTypeJson = gson.toJson(jsonObject.get("type")).concat(System.lineSeparator());
-//
-//        if (!typeJson.equals(expectedTypeJson)) {
-////            updateConfig(jsonPath, typeJson);
-//            Assert.fail(
-//                    String.format("Type JSON does not match.\n Expected : %s\n Received %s",
-//                            expectedTypeJson, typeJson));
-//        }
     }
 
     protected void updateConfig(Path configJsonPath, String objString) throws IOException {

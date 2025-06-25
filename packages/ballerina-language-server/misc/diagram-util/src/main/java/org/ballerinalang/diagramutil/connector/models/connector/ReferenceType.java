@@ -34,11 +34,7 @@ import org.ballerinalang.diagramutil.connector.models.connector.reftypes.RefType
 
 import java.util.HashMap;
 import java.util.Map;
-/**
- * Reference-based type model.
- *
- * @since language-server 1.0.0
- */
+
 public class ReferenceType {
     private static final Map<String, RefType> visitedTypeMap = new HashMap<>();
     
