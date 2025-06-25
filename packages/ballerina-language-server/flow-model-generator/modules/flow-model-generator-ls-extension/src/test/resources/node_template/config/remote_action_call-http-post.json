@@ -19,8 +19,8 @@
     "id": "31",
     "metadata": {
       "label": "post",
-      "description": "The `Client.post()` function can be used to send HTTP POST requests to HTTP endpoints.\n",
-      "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.14.1.png"
+      "description": "Create a new resource or submit data to a resource for processing.\n",
+      "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.14.2.png"
     },
     "codedata": {
       "node": "REMOTE_ACTION_CALL",
@@ -47,24 +47,6 @@
         "editable": false,
         "advanced": false,
         "hidden": true
-      },
-      "targetType": {
-        "metadata": {
-          "label": "Target Type",
-          "description": "HTTP response, `anydata` or stream of HTTP SSE, which is expected to be returned after data binding"
-        },
-        "valueType": "TYPE",
-        "valueTypeConstraint": "anydata",
-        "placeholder": "anydata",
-        "optional": false,
-        "editable": true,
-        "advanced": false,
-        "hidden": false,
-        "codedata": {
-          "kind": "PARAM_FOR_TYPE_INFER",
-          "originalName": "targetType"
-        },
-        "defaultValue": "anydata"
       },
       "path": {
         "metadata": {
@@ -111,7 +93,7 @@
         "typeMembers": [
           {
             "type": "RequestMessage",
-            "packageInfo": "ballerina:http:2.14.1",
+            "packageInfo": "ballerina:http:2.14.2",
             "packageName": "http",
             "kind": "OTHER",
             "selected": false
@@ -185,6 +167,24 @@
           }
         ],
         "defaultValue": "()"
+      },
+      "targetType": {
+        "metadata": {
+          "label": "Target Type",
+          "description": "Expected return type (to be used for automatic data binding).\nSupported types:\n- Built-in subtypes of `anydata` (`string`, `byte[]`, `json|xml`, etc.)\n- Custom types (e.g., `User`, `Student?`, `Person[]`, etc.)\n- Full HTTP response with headers and status (`http:Response`)\n- Stream of Server-Sent Events (`stream<http:SseEvent, error?>`)"
+        },
+        "valueType": "TYPE",
+        "valueTypeConstraint": "anydata",
+        "placeholder": "anydata",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false,
+        "codedata": {
+          "kind": "PARAM_FOR_TYPE_INFER",
+          "originalName": "targetType"
+        },
+        "defaultValue": "anydata"
       },
       "type": {
         "metadata": {
