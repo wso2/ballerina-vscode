@@ -24,7 +24,7 @@ import java.util.Map;
 /**
  * Represents the return type of function.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class FunctionReturnType extends Value {
     private List<HttpResponse> responses;

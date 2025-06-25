@@ -31,7 +31,7 @@ import java.nio.file.Paths;
 /**
  * Test service component generation.
  *
- * @since 2201.3.1
+ * @since 1.0.0
  */
 public class ServiceGeneratorTests {
     private static final Path RES_DIR = Paths.get("src", "test", "resources").toAbsolutePath();

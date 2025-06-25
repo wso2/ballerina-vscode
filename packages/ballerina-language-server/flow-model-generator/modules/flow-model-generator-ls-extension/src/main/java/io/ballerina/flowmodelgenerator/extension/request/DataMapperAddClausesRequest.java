@@ -23,13 +23,15 @@ import com.google.gson.JsonElement;
 /**
  * Represents a request to get the data mapper model for types.
  *
- * @param filePath    file path of the source file
- * @param flowNode    flow node of form
- * @param query       query representation
+ * @param filePath    File path of the source file
+ * @param codedata    Position details of the node
+ * @param index       Index of the clause in the query expression
+ * @param clause      Clause representation
  * @param propertyKey The property that needs to consider to get the type
  * @param targetField The target field that needs to consider to get the type
- * @since 2.0.0
+ *
+ * @since 1.0.0
  */
-public record DataMapperAddClausesRequest(String filePath, JsonElement flowNode, JsonElement query, String propertyKey,
-                                          String targetField) {
+public record DataMapperAddClausesRequest(String filePath, JsonElement codedata, int index, JsonElement clause,
+                                          String propertyKey, String targetField) {
 }

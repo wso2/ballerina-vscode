@@ -9,6 +9,7 @@
     "node": "FUNCTION_CALL",
     "org": "ballerina",
     "module": "data.jsondata",
+    "packageName": "data.jsondata",
     "symbol": "parseString",
     "version": "1.1.0"
   },
@@ -23,6 +24,7 @@
       "node": "FUNCTION_CALL",
       "org": "ballerina",
       "module": "data.jsondata",
+      "packageName": "data.jsondata",
       "symbol": "parseString",
       "version": "1.1.0",
       "isNew": true,
@@ -32,7 +34,7 @@
     "properties": {
       "t": {
         "metadata": {
-          "label": "t",
+          "label": "T",
           "description": "Target type"
         },
         "valueType": "TYPE",
@@ -45,11 +47,12 @@
         "codedata": {
           "kind": "PARAM_FOR_TYPE_INFER",
           "originalName": "t"
-        }
+        },
+        "defaultValue": "anydata"
       },
       "s": {
         "metadata": {
-          "label": "s",
+          "label": "S",
           "description": "Source JSON string value or byte[] or byte-block-stream"
         },
         "valueType": "EXPRESSION",
@@ -67,6 +70,7 @@
           {
             "type": "string",
             "packageInfo": "",
+            "packageName": "",
             "kind": "BASIC_TYPE",
             "selected": false
           }
@@ -74,7 +78,7 @@
       },
       "options": {
         "metadata": {
-          "label": "options",
+          "label": "Options",
           "description": "Options to be used for filtering in the projection"
         },
         "valueType": "EXPRESSION",
@@ -92,10 +96,12 @@
           {
             "type": "Options",
             "packageInfo": "ballerina:data.jsondata:1.1.0",
+            "packageName": "data.jsondata",
             "kind": "RECORD_TYPE",
             "selected": false
           }
-        ]
+        ],
+        "defaultValue": "{}"
       },
       "type": {
         "metadata": {
@@ -113,8 +119,8 @@
       },
       "variable": {
         "metadata": {
-          "label": "Variable Name",
-          "description": "Name of the variable"
+          "label": "Result",
+          "description": "Name of the result variable"
         },
         "valueType": "IDENTIFIER",
         "value": "t",
@@ -133,7 +139,7 @@
         "optional": false,
         "editable": true,
         "advanced": true,
-        "hidden": false
+        "hidden": true
       }
     },
     "flags": 0

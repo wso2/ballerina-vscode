@@ -171,13 +171,12 @@ import java.util.Queue;
 import java.util.Stack;
 import java.util.stream.Collectors;
 
-
 /**
  * Analyzes the source code and generates the flow model.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
-class CodeAnalyzer extends NodeVisitor {
+public class CodeAnalyzer extends NodeVisitor {
 
     // Readonly fields
     private final Project project;
@@ -649,7 +648,8 @@ class CodeAnalyzer extends NodeVisitor {
                         .kind(paramResult.kind().name())
                         .originalName(paramResult.name())
                         .stepOut()
-                    .placeholder(paramResult.defaultValue())
+                    .placeholder(paramResult.placeholder())
+                    .defaultValue(paramResult.defaultValue())
                     .typeConstraint(paramResult.type())
                     .typeMembers(paramResult.typeMembers())
                     .imports(paramResult.importStatements())
@@ -725,7 +725,8 @@ class CodeAnalyzer extends NodeVisitor {
                             .kind(paramKind.name())
                             .originalName(paramResult.name())
                             .stepOut()
-                        .placeholder(paramResult.defaultValue())
+                        .placeholder(paramResult.placeholder())
+                        .defaultValue(paramResult.defaultValue())
                         .typeConstraint(paramResult.type())
                         .typeMembers(paramResult.typeMembers())
                         .imports(paramResult.importStatements())
@@ -807,7 +808,8 @@ class CodeAnalyzer extends NodeVisitor {
                             .typeMembers(paramResult.typeMembers(), selectedType)
                             .imports(paramResult.importStatements())
                             .value(value)
-                            .placeholder(paramResult.defaultValue())
+                            .placeholder(paramResult.placeholder())
+                            .defaultValue(paramResult.defaultValue())
                             .editable()
                             .defaultable(paramResult.optional())
                             .codedata()
@@ -837,7 +839,8 @@ class CodeAnalyzer extends NodeVisitor {
                         .typeMembers(restParamResult.typeMembers())
                         .imports(restParamResult.importStatements())
                         .value(restArgs)
-                        .placeholder(restParamResult.defaultValue())
+                        .placeholder(restParamResult.placeholder())
+                        .defaultValue(restParamResult.defaultValue())
                         .editable()
                         .defaultable(!hasOnlyRestParams)
                         .codedata()
@@ -906,7 +909,8 @@ class CodeAnalyzer extends NodeVisitor {
                                     .typeMembers(paramResult.typeMembers(), selectedType)
                                     .imports(paramResult.importStatements())
                                     .value(value)
-                                    .placeholder(paramResult.defaultValue())
+                                    .placeholder(paramResult.placeholder())
+                                    .defaultValue(paramResult.defaultValue())
                                     .editable()
                                     .defaultable(paramResult.optional())
                                     .codedata()
@@ -953,7 +957,8 @@ class CodeAnalyzer extends NodeVisitor {
                                         .typeMembers(paramResult.typeMembers(), selectedType)
                                         .imports(paramResult.importStatements())
                                         .value(value)
-                                        .placeholder(paramResult.defaultValue())
+                                        .placeholder(paramResult.placeholder())
+                                        .defaultValue(paramResult.defaultValue())
                                         .editable()
                                         .defaultable(paramResult.optional())
                                         .codedata()
@@ -995,7 +1000,8 @@ class CodeAnalyzer extends NodeVisitor {
                                     .typeMembers(paramResult.typeMembers(), selectedType)
                                     .imports(paramResult.importStatements())
                                     .value(value)
-                                    .placeholder(paramResult.defaultValue())
+                                    .placeholder(paramResult.placeholder())
+                                    .defaultValue(paramResult.defaultValue())
                                     .editable()
                                     .defaultable(paramResult.optional())
                                     .codedata()
@@ -1042,7 +1048,8 @@ class CodeAnalyzer extends NodeVisitor {
                         .typeMembers(paramResult.typeMembers(), selectedType)
                         .imports(paramResult.importStatements())
                         .value(value)
-                        .placeholder(paramResult.defaultValue())
+                        .placeholder(paramResult.placeholder())
+                        .defaultValue(paramResult.defaultValue())
                         .editable()
                         .defaultable(paramResult.optional())
                         .codedata()
@@ -1091,7 +1098,8 @@ class CodeAnalyzer extends NodeVisitor {
                         .typeMembers(paramResult.typeMembers(), selectedType)
                         .imports(paramResult.importStatements())
                         .value(value)
-                        .placeholder(paramResult.defaultValue())
+                        .placeholder(paramResult.placeholder())
+                        .defaultValue(paramResult.defaultValue())
                         .editable()
                         .defaultable(paramResult.optional())
                         .codedata()
@@ -1117,7 +1125,8 @@ class CodeAnalyzer extends NodeVisitor {
                         .typeMembers(includedRecordRest.typeMembers())
                         .imports(includedRecordRest.importStatements())
                         .value(includedRecordRestArgs)
-                        .placeholder(includedRecordRest.defaultValue())
+                        .placeholder(includedRecordRest.placeholder())
+                        .defaultValue(includedRecordRest.defaultValue())
                         .editable()
                         .defaultable(includedRecordRest.optional())
                         .codedata()
@@ -1378,12 +1387,15 @@ class CodeAnalyzer extends NodeVisitor {
         } else if (nodeBuilder instanceof NewConnectionBuilder) {
             nodeBuilder.properties()
                     .dataVariable(this.typedBindingPatternNode, NewConnectionBuilder.CONNECTION_NAME_LABEL,
-                            NewConnectionBuilder.CONNECTION_TYPE_LABEL, false, new HashSet<>());
-        } else if (nodeBuilder instanceof RemoteActionCallBuilder || nodeBuilder instanceof ResourceActionCallBuilder ||
-                nodeBuilder instanceof FunctionCall || nodeBuilder instanceof MethodCall) {
+                            NewConnectionBuilder.CONNECTION_TYPE_LABEL, false, new HashSet<>(), true);
+        } else if (nodeBuilder instanceof RemoteActionCallBuilder || nodeBuilder instanceof ResourceActionCallBuilder) {
             nodeBuilder.properties()
                     .dataVariable(this.typedBindingPatternNode, Property.VARIABLE_NAME, Property.TYPE_LABEL, false,
-                            new HashSet<>());
+                            new HashSet<>(), true);
+        } else if (nodeBuilder instanceof FunctionCall || nodeBuilder instanceof MethodCall) {
+            nodeBuilder.properties()
+                    .dataVariable(this.typedBindingPatternNode, Property.VARIABLE_NAME, Property.TYPE_LABEL, false,
+                            new HashSet<>(), false);
         } else {
             nodeBuilder.properties().dataVariable(this.typedBindingPatternNode, implicit, new HashSet<>());
         }
@@ -1582,17 +1594,28 @@ class CodeAnalyzer extends NodeVisitor {
         calculateFunctionArgs(namedArgValueMap, positionalArgs, arguments);
 
         Map<String, ParameterData> funcParamMap = new LinkedHashMap<>();
+        Map<String, ParameterData> typeInferParamMap = new LinkedHashMap<>();
         FunctionTypeSymbol functionTypeSymbol = functionSymbol.typeDescriptor();
+        
         functionData.parameters().forEach((key, paramResult) -> {
             if (paramResult.kind() == ParameterData.Kind.PATH_PARAM) {
                 // Skip if `path` param
                 return;
             }
 
-            if (paramResult.kind() != ParameterData.Kind.PARAM_FOR_TYPE_INFER) {
-                funcParamMap.put(key, paramResult);
+            if (paramResult.kind() == ParameterData.Kind.PARAM_FOR_TYPE_INFER) {
+                typeInferParamMap.put(key, paramResult);
                 return;
             }
+            
+            funcParamMap.put(key, paramResult);
+        });
+        
+        buildPropsFromFuncCallArgs(arguments, functionTypeSymbol, funcParamMap, positionalArgs, namedArgValueMap);
+        handleCheckFlag(callNode, functionTypeSymbol);
+        
+        // Process PARAM_FOR_TYPE_INFER parameters at the end
+        typeInferParamMap.forEach((key, paramResult) -> {
             String returnType = functionData.returnType();
 
             // Derive the value of the inferred type name
@@ -1603,7 +1626,7 @@ class CodeAnalyzer extends NodeVisitor {
                 inferredTypeName = node.toSourceCode();
             } else if (typedBindingPatternNode == null) {
                 // Get the default value if the variable is absent
-                inferredTypeName = paramResult.defaultValue();
+                inferredTypeName = paramResult.placeholder();
             } else {
                 // Derive the inferred type from the variable type
                 Optional<Symbol> symbol = semanticModel.symbol(typedBindingPatternNode);
@@ -1620,8 +1643,6 @@ class CodeAnalyzer extends NodeVisitor {
             nodeBuilder.codedata().inferredReturnType(functionData.returnError() ? returnType : null);
             CallBuilder.buildInferredTypeProperty(nodeBuilder, paramResult, inferredTypeName);
         });
-        buildPropsFromFuncCallArgs(arguments, functionTypeSymbol, funcParamMap, positionalArgs, namedArgValueMap);
-        handleCheckFlag(callNode, functionTypeSymbol);
     }
 
     private static String deriveInferredType(String variableType, String returnType, String key) {

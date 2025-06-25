@@ -33,7 +33,7 @@ import java.nio.file.Path;
 /**
  * Test cases for the service field flow node retrieving.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class ServiceFieldNodesTest extends AbstractLSTest {
 

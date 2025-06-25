@@ -18,7 +18,7 @@ package org.ballerinalang.langserver.extensions.ballerina.document;
 /**
  * Represents a Ballerina Syntax API Quote response.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class SyntaxApiCallsResponse {
     private String source;

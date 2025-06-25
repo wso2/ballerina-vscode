@@ -36,7 +36,7 @@ import java.util.Map;
 /**
  * Build service model based on a given Ballerina service.
  *
- * @since 2201.2.2
+ * @since 1.0.0
  */
 public class ServiceModelGenerator extends ModelGenerator {
 

@@ -53,6 +53,7 @@
           "node": "FUNCTION_CALL",
           "org": "$anon",
           "module": ".",
+          "packageName": ".",
           "symbol": "fn",
           "version": "0.0.0",
           "lineRange": {
@@ -280,6 +281,7 @@
           "node": "FUNCTION_CALL",
           "org": "$anon",
           "module": ".",
+          "packageName": ".",
           "symbol": "fn2",
           "version": "0.0.0",
           "lineRange": {
@@ -321,7 +323,7 @@
           },
           "s": {
             "metadata": {
-              "label": "s"
+              "label": "S"
             },
             "valueType": "EXPRESSION",
             "valueTypeConstraint": "string",
@@ -348,6 +350,7 @@
               {
                 "type": "string",
                 "packageInfo": "",
+                "packageName": "",
                 "kind": "BASIC_TYPE",
                 "selected": false
               }
@@ -355,7 +358,7 @@
           },
           "i": {
             "metadata": {
-              "label": "i"
+              "label": "I"
             },
             "valueType": "EXPRESSION",
             "valueTypeConstraint": "int",
@@ -382,6 +385,7 @@
               {
                 "type": "int",
                 "packageInfo": "",
+                "packageName": "",
                 "kind": "BASIC_TYPE",
                 "selected": false
               }
@@ -389,7 +393,7 @@
           },
           "b": {
             "metadata": {
-              "label": "b"
+              "label": "B"
             },
             "valueType": "EXPRESSION",
             "valueTypeConstraint": "boolean",
@@ -407,6 +411,7 @@
               {
                 "type": "boolean",
                 "packageInfo": "",
+                "packageName": "",
                 "kind": "BASIC_TYPE",
                 "selected": true
               }
@@ -414,7 +419,7 @@
           },
           "j": {
             "metadata": {
-              "label": "j"
+              "label": "J"
             },
             "valueType": "EXPRESSION",
             "valueTypeConstraint": "map<json>",
@@ -441,6 +446,7 @@
               {
                 "type": "map<json>",
                 "packageInfo": "",
+                "packageName": "",
                 "kind": "MAP_TYPE",
                 "selected": false
               }

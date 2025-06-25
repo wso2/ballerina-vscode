@@ -25,7 +25,7 @@ import java.util.Map;
 /**
  * Language server context holding the common utility instances of an associated language server instance.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class LanguageServerContextImpl implements LanguageServerContext {
     private final Map<LanguageServerContext.Key<?>, Object> props = new HashMap<>();

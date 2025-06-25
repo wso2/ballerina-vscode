@@ -39,7 +39,7 @@ import java.util.List;
  * Generic completion resolver for the nodes containing an object body block.
  *
  * @param <T> block node type
- * @since 2.0.0
+ * @since 1.0.0
  */
 public abstract class ObjectBodiedNodeContextProvider<T extends Node> extends AbstractCompletionProvider<T> {
     public ObjectBodiedNodeContextProvider(Class<T> attachmentPoint) {

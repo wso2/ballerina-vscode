@@ -18,7 +18,7 @@ package org.ballerinalang.langserver.commons.capability;
 /**
  * Represents the initialization options sent by the client to the language server.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public interface InitializationOptions {
 

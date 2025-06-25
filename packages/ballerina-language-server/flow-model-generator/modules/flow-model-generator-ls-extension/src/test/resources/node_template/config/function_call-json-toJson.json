@@ -9,6 +9,7 @@
     "node": "FUNCTION_CALL",
     "org": "ballerina",
     "module": "data.jsondata",
+    "packageName": "data.jsondata",
     "symbol": "toJson",
     "version": "1.1.0"
   },
@@ -23,6 +24,7 @@
       "node": "FUNCTION_CALL",
       "org": "ballerina",
       "module": "data.jsondata",
+      "packageName": "data.jsondata",
       "symbol": "toJson",
       "version": "1.1.0",
       "isNew": true
@@ -31,7 +33,7 @@
     "properties": {
       "v": {
         "metadata": {
-          "label": "v",
+          "label": "V",
           "description": "Source anydata value"
         },
         "valueType": "EXPRESSION",
@@ -49,6 +51,7 @@
           {
             "type": "anydata",
             "packageInfo": "",
+            "packageName": "",
             "kind": "OTHER",
             "selected": false
           }
@@ -70,8 +73,8 @@
       },
       "variable": {
         "metadata": {
-          "label": "Variable Name",
-          "description": "Name of the variable"
+          "label": "Result",
+          "description": "Name of the result variable"
         },
         "valueType": "IDENTIFIER",
         "value": "jsonResult",

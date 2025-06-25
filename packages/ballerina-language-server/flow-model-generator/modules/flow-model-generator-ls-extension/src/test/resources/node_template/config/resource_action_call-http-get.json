@@ -9,6 +9,7 @@
     "node": "RESOURCE_ACTION_CALL",
     "org": "ballerina",
     "module": "http",
+    "packageName": "http",
     "object": "Client",
     "symbol": "get",
     "version": "2.12.0",
@@ -20,7 +21,7 @@
     "metadata": {
       "label": "get",
       "description": "The client resource function to send HTTP GET requests to HTTP endpoints.\n",
-      "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.14.0.png"
+      "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.14.1.png"
     },
     "codedata": {
       "node": "RESOURCE_ACTION_CALL",
@@ -43,14 +44,14 @@
         "optional": false,
         "editable": false,
         "advanced": false,
-        "hidden": false
+        "hidden": true
       },
       "resourcePath": {
         "metadata": {
           "label": "Resource Path",
           "description": "Resource Path"
         },
-        "valueType": "EXPRESSION",
+        "valueType": "ACTION_PATH",
         "value": "/path/to/subdirectory",
         "optional": false,
         "editable": true,
@@ -60,26 +61,9 @@
           "originalName": "/path/to/subdirectory"
         }
       },
-      "targetType": {
-        "metadata": {
-          "label": "targetType",
-          "description": "HTTP response, `anydata` or stream of HTTP SSE, which is expected to be returned after data binding"
-        },
-        "valueType": "TYPE",
-        "valueTypeConstraint": "anydata",
-        "placeholder": "anydata",
-        "optional": false,
-        "editable": true,
-        "advanced": false,
-        "hidden": false,
-        "codedata": {
-          "kind": "PARAM_FOR_TYPE_INFER",
-          "originalName": "targetType"
-        }
-      },
       "headers": {
         "metadata": {
-          "label": "headers",
+          "label": "Headers",
           "description": "The entity headers"
         },
         "valueType": "EXPRESSION",
@@ -97,16 +81,37 @@
           {
             "type": "()",
             "packageInfo": "",
+            "packageName": "",
             "kind": "BASIC_TYPE",
             "selected": false
           },
           {
             "type": "map<string|string[]>",
             "packageInfo": "",
+            "packageName": "",
             "kind": "MAP_TYPE",
             "selected": false
           }
-        ]
+        ],
+        "defaultValue": "()"
+      },
+      "targetType": {
+        "metadata": {
+          "label": "Target Type",
+          "description": "HTTP response, `anydata` or stream of HTTP SSE, which is expected to be returned after data binding"
+        },
+        "valueType": "TYPE",
+        "valueTypeConstraint": "anydata",
+        "placeholder": "anydata",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false,
+        "codedata": {
+          "kind": "PARAM_FOR_TYPE_INFER",
+          "originalName": "targetType"
+        },
+        "defaultValue": "anydata"
       },
       "additionalValues": {
         "metadata": {
@@ -137,13 +142,13 @@
         "optional": false,
         "editable": false,
         "advanced": false,
-        "hidden": false,
+        "hidden": true,
         "codedata": {}
       },
       "variable": {
         "metadata": {
-          "label": "Variable Name",
-          "description": "Name of the variable"
+          "label": "Result",
+          "description": "Name of the result variable"
         },
         "valueType": "IDENTIFIER",
         "value": "var2",
@@ -162,7 +167,7 @@
         "optional": false,
         "editable": true,
         "advanced": true,
-        "hidden": false
+        "hidden": true
       }
     },
     "flags": 0

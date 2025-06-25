@@ -9,6 +9,7 @@
     "node": "REMOTE_ACTION_CALL",
     "org": "ballerinax",
     "module": "mysql",
+    "packageName": "mysql",
     "object": "Client",
     "symbol": "query",
     "version": "1.14.0",
@@ -27,6 +28,7 @@
       "node": "REMOTE_ACTION_CALL",
       "org": "ballerinax",
       "module": "mysql",
+      "packageName": "mysql",
       "object": "Client",
       "symbol": "query",
       "version": "1.14.0",
@@ -46,28 +48,11 @@
         "optional": false,
         "editable": false,
         "advanced": false,
-        "hidden": false
-      },
-      "rowType": {
-        "metadata": {
-          "label": "rowType",
-          "description": "The `typedesc` of the record to which the result needs to be returned"
-        },
-        "valueType": "TYPE",
-        "valueTypeConstraint": "record {|anydata...;|}",
-        "placeholder": "record {|anydata...;|}",
-        "optional": false,
-        "editable": true,
-        "advanced": false,
-        "hidden": false,
-        "codedata": {
-          "kind": "PARAM_FOR_TYPE_INFER",
-          "originalName": "rowType"
-        }
+        "hidden": true
       },
       "sqlQuery": {
         "metadata": {
-          "label": "sqlQuery",
+          "label": "SQL Query",
           "description": "The SQL query such as `` `SELECT * from Album WHERE name=${albumName}` ``"
         },
         "valueType": "EXPRESSION",
@@ -85,13 +70,36 @@
           {
             "type": "ParameterizedQuery",
             "packageInfo": "ballerina:sql:1.16.0",
+            "packageName": "sql",
             "kind": "OBJECT_TYPE",
             "selected": false
           }
         ],
         "imports": {
           "sql": "ballerina/sql"
-        }
+        },
+        "defaultValue": "``"
+      },
+      "rowType": {
+        "metadata": {
+          "label": "Row Type",
+          "description": "The `typedesc` of the record to which the result needs to be returned"
+        },
+        "valueType": "TYPE",
+        "valueTypeConstraint": "record {|anydata...;|}",
+        "placeholder": "record {|anydata...;|}",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false,
+        "codedata": {
+          "kind": "PARAM_FOR_TYPE_INFER",
+          "originalName": "rowType"
+        },
+        "imports": {
+          "sql": "ballerina/sql"
+        },
+        "defaultValue": "record {|anydata...;|}"
       },
       "type": {
         "metadata": {
@@ -112,8 +120,8 @@
       },
       "variable": {
         "metadata": {
-          "label": "Variable Name",
-          "description": "Name of the variable"
+          "label": "Result",
+          "description": "Name of the result variable"
         },
         "valueType": "IDENTIFIER",
         "value": "streamRowtypeSqlError",

@@ -28,7 +28,7 @@ import java.util.concurrent.CompletableFuture;
 /**
  * The extended service for the XMLToRecord endpoint.
  *
- * @since 2201.7.2
+ * @since 1.0.0
  */
 @JavaSPIService("org.ballerinalang.langserver.commons.service.spi.ExtendedLanguageServerService")
 @JsonSegment("xmlToRecord")

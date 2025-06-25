@@ -27,7 +27,7 @@ import java.util.Map;
 /**
  * Base representation of ballerina debug expression evaluator.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public abstract class Evaluator {
 

@@ -29,7 +29,7 @@ import java.util.Arrays;
  * @param errorMsg   error message if an error occurred
  * @param stacktrace stacktrace of the error
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public record GetTestFunctionResponse(TestFunction function, String errorMsg, String stacktrace) {
 

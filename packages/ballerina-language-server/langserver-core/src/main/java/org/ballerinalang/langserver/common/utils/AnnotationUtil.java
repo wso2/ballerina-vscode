@@ -55,7 +55,7 @@ import static org.ballerinalang.langserver.common.utils.ModuleUtil.getPackageNam
 /**
  * Contains the utilities to generate an Annotation Completion Item.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public final class AnnotationUtil {
 

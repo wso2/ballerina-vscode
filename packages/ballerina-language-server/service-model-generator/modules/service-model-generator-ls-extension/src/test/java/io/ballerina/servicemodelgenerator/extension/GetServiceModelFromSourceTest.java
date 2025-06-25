@@ -40,7 +40,7 @@ import java.nio.file.Path;
 /**
  * Assert the response returned by the getServiceFromSource.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class GetServiceModelFromSourceTest extends AbstractLSTest {
 

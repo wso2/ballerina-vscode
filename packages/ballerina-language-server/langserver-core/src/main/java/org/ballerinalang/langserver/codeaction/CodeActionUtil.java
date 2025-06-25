@@ -93,7 +93,7 @@ import static org.ballerinalang.langserver.common.utils.CommonUtil.LINE_SEPARATO
 /**
  * Code Action related Utils.
  *
- * @since 1.0.1
+ * @since 1.0.0
  */
 public final class CodeActionUtil {
 

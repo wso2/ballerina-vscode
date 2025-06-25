@@ -24,7 +24,7 @@ package io.ballerina.servicemodelgenerator.extension.request;
  * @param type type of the service
  * @param functionName name of the function
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public record FunctionModelRequest(String type, String functionName) {
 }

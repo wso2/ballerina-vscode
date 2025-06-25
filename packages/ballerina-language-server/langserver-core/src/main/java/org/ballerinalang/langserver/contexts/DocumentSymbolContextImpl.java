@@ -31,7 +31,7 @@ import java.util.Optional;
 /**
  * Document Symbol Context implementation.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class DocumentSymbolContextImpl extends AbstractDocumentServiceContext implements DocumentSymbolContext {
 
@@ -102,7 +102,7 @@ public class DocumentSymbolContextImpl extends AbstractDocumentServiceContext im
     /**
      * Represents Language server document symbol context Builder.
      *
-     * @since 2.0.0
+     * @since 1.0.0
      */
     protected static class DocumentSymbolContextBuilder extends AbstractContextBuilder<DocumentSymbolContextBuilder> {
 

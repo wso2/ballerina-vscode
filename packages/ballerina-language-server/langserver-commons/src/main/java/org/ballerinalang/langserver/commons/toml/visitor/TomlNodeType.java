@@ -20,7 +20,7 @@ package org.ballerinalang.langserver.commons.toml.visitor;
 /**
  * Toml node type.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public enum TomlNodeType {
     TABLE,

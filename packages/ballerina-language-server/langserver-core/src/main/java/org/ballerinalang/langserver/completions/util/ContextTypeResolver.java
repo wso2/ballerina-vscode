@@ -120,7 +120,7 @@ import javax.annotation.Nonnull;
  * For the above example the visible type is resolved by the return type of the function definition, which is
  * PersonRecord
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class ContextTypeResolver extends NodeTransformer<Optional<TypeSymbol>> {
 

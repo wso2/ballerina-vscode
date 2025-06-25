@@ -48,7 +48,7 @@ import static io.ballerina.graphqlmodelgenerator.core.model.DefaultIntrospection
 /**
  * Represents the model generator used for Interacted components of graphQL operations.
  *
- * @since 2201.5.0
+ * @since 1.0.0
  */
 public class InteractedComponentModelGenerator {
     private final Schema schemaObj;

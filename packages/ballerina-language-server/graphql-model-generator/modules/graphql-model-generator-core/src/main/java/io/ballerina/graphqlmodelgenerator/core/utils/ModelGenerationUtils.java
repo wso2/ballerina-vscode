@@ -41,7 +41,7 @@ import java.util.regex.Pattern;
 /**
  * Represents the util functions which is required in generating the graphQL model.
  *
- * @since 2201.5.0
+ * @since 1.0.0
  */
 public class ModelGenerationUtils {
     private static final String NON_NULL_FORMAT = "%s!";

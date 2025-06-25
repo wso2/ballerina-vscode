@@ -56,7 +56,7 @@ import java.util.stream.Collectors;
 /**
  * Code Action for extracting an expression to a local variable.
  *
- * @since 2201.2.1
+ * @since 1.0.0
  */
 @JavaSPIService("org.ballerinalang.langserver.commons.codeaction.spi.LSCodeActionProvider")
 public class ExtractToLocalVarCodeAction implements RangeBasedCodeActionProvider {

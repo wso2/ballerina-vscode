@@ -9,6 +9,7 @@
     "node": "CLASS_INIT",
     "org": "ballerinax",
     "module": "ai",
+    "packageName": "ai",
     "version": "1.0.1",
     "object": "OpenAiProvider",
     "symbol": "init"
@@ -24,6 +25,7 @@
       "node": "CLASS_INIT",
       "org": "ballerinax",
       "module": "ai",
+      "packageName": "ai",
       "object": "OpenAiProvider",
       "symbol": "init",
       "version": "1.0.1",
@@ -51,6 +53,7 @@
           {
             "type": "string",
             "packageInfo": "",
+            "packageName": "",
             "kind": "BASIC_TYPE",
             "selected": false
           }
@@ -106,6 +109,7 @@
           {
             "type": "OPEN_AI_MODEL_NAMES",
             "packageInfo": "ballerinax:ai:1.0.1",
+            "packageName": "ai",
             "kind": "BASIC_TYPE",
             "selected": false
           }
@@ -131,10 +135,12 @@
           {
             "type": "string",
             "packageInfo": "",
+            "packageName": "",
             "kind": "BASIC_TYPE",
             "selected": false
           }
-        ]
+        ],
+        "defaultValue": "\"\""
       },
       "maxTokens": {
         "metadata": {
@@ -156,10 +162,12 @@
           {
             "type": "int",
             "packageInfo": "",
+            "packageName": "",
             "kind": "BASIC_TYPE",
             "selected": false
           }
-        ]
+        ],
+        "defaultValue": "0"
       },
       "temperature": {
         "metadata": {
@@ -181,10 +189,12 @@
           {
             "type": "decimal",
             "packageInfo": "",
+            "packageName": "",
             "kind": "BASIC_TYPE",
             "selected": false
           }
-        ]
+        ],
+        "defaultValue": "0.0d"
       },
       "httpVersion": {
         "metadata": {
@@ -206,13 +216,15 @@
           {
             "type": "HttpVersion",
             "packageInfo": "ballerina:http:2.14.0",
+            "packageName": "http",
             "kind": "BASIC_TYPE",
             "selected": false
           }
         ],
         "imports": {
           "http": "ballerina/http"
-        }
+        },
+        "defaultValue": "\"2.0\""
       },
       "http1Settings": {
         "metadata": {
@@ -234,13 +246,15 @@
           {
             "type": "ClientHttp1Settings",
             "packageInfo": "ballerina:http:2.14.0",
+            "packageName": "http",
             "kind": "RECORD_TYPE",
             "selected": false
           }
         ],
         "imports": {
           "http": "ballerina/http"
-        }
+        },
+        "defaultValue": "{}"
       },
       "http2Settings": {
         "metadata": {
@@ -262,13 +276,15 @@
           {
             "type": "ClientHttp2Settings",
             "packageInfo": "ballerina:http:2.14.0",
+            "packageName": "http",
             "kind": "RECORD_TYPE",
             "selected": false
           }
         ],
         "imports": {
           "http": "ballerina/http"
-        }
+        },
+        "defaultValue": "{}"
       },
       "timeout": {
         "metadata": {
@@ -290,13 +306,15 @@
           {
             "type": "decimal",
             "packageInfo": "",
+            "packageName": "",
             "kind": "BASIC_TYPE",
             "selected": false
           }
         ],
         "imports": {
           "http": "ballerina/http"
-        }
+        },
+        "defaultValue": "0.0d"
       },
       "forwarded": {
         "metadata": {
@@ -318,13 +336,15 @@
           {
             "type": "string",
             "packageInfo": "",
+            "packageName": "",
             "kind": "BASIC_TYPE",
             "selected": false
           }
         ],
         "imports": {
           "http": "ballerina/http"
-        }
+        },
+        "defaultValue": "\"\""
       },
       "poolConfig": {
         "metadata": {
@@ -346,13 +366,15 @@
           {
             "type": "PoolConfiguration",
             "packageInfo": "ballerina:http:2.14.0",
+            "packageName": "http",
             "kind": "RECORD_TYPE",
             "selected": false
           }
         ],
         "imports": {
           "http": "ballerina/http"
-        }
+        },
+        "defaultValue": "{}"
       },
       "cache": {
         "metadata": {
@@ -374,13 +396,15 @@
           {
             "type": "CacheConfig",
             "packageInfo": "ballerina:http:2.14.0",
+            "packageName": "http",
             "kind": "RECORD_TYPE",
             "selected": false
           }
         ],
         "imports": {
           "http": "ballerina/http"
-        }
+        },
+        "defaultValue": "{}"
       },
       "compression": {
         "metadata": {
@@ -402,13 +426,15 @@
           {
             "type": "Compression",
             "packageInfo": "ballerina:http:2.14.0",
+            "packageName": "http",
             "kind": "BASIC_TYPE",
             "selected": false
           }
         ],
         "imports": {
           "http": "ballerina/http"
-        }
+        },
+        "defaultValue": "\"AUTO\""
       },
       "circuitBreaker": {
         "metadata": {
@@ -430,13 +456,15 @@
           {
             "type": "CircuitBreakerConfig",
             "packageInfo": "ballerina:http:2.14.0",
+            "packageName": "http",
             "kind": "RECORD_TYPE",
             "selected": false
           }
         ],
         "imports": {
           "http": "ballerina/http"
-        }
+        },
+        "defaultValue": "{}"
       },
       "retryConfig": {
         "metadata": {
@@ -458,13 +486,15 @@
           {
             "type": "RetryConfig",
             "packageInfo": "ballerina:http:2.14.0",
+            "packageName": "http",
             "kind": "RECORD_TYPE",
             "selected": false
           }
         ],
         "imports": {
           "http": "ballerina/http"
-        }
+        },
+        "defaultValue": "{}"
       },
       "responseLimits": {
         "metadata": {
@@ -486,13 +516,15 @@
           {
             "type": "ResponseLimitConfigs",
             "packageInfo": "ballerina:http:2.14.0",
+            "packageName": "http",
             "kind": "RECORD_TYPE",
             "selected": false
           }
         ],
         "imports": {
           "http": "ballerina/http"
-        }
+        },
+        "defaultValue": "{}"
       },
       "secureSocket": {
         "metadata": {
@@ -514,13 +546,15 @@
           {
             "type": "ClientSecureSocket",
             "packageInfo": "ballerina:http:2.14.0",
+            "packageName": "http",
             "kind": "RECORD_TYPE",
             "selected": false
           }
         ],
         "imports": {
           "http": "ballerina/http"
-        }
+        },
+        "defaultValue": "{}"
       },
       "proxy": {
         "metadata": {
@@ -542,13 +576,15 @@
           {
             "type": "ProxyConfig",
             "packageInfo": "ballerina:http:2.14.0",
+            "packageName": "http",
             "kind": "RECORD_TYPE",
             "selected": false
           }
         ],
         "imports": {
           "http": "ballerina/http"
-        }
+        },
+        "defaultValue": "{}"
       },
       "validation": {
         "metadata": {
@@ -570,13 +606,15 @@
           {
             "type": "boolean",
             "packageInfo": "",
+            "packageName": "",
             "kind": "BASIC_TYPE",
             "selected": false
           }
         ],
         "imports": {
           "http": "ballerina/http"
-        }
+        },
+        "defaultValue": "false"
       },
       "type": {
         "metadata": {
@@ -597,8 +635,8 @@
       },
       "variable": {
         "metadata": {
-          "label": "Variable Name",
-          "description": "Name of the variable"
+          "label": "Result",
+          "description": "Name of the result variable"
         },
         "valueType": "IDENTIFIER",
         "value": "aiOpenaiprovider",
@@ -620,7 +658,7 @@
         "optional": false,
         "editable": true,
         "advanced": true,
-        "hidden": false,
+        "hidden": true,
         "imports": {
           "http": "ballerina/http"
         }

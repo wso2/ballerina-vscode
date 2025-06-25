@@ -40,7 +40,7 @@ import java.util.Map;
 /**
  * Tests for the service model source generator updateFunction service.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class UpdateServiceClassTest extends AbstractLSTest {
 

@@ -120,7 +120,7 @@ import static io.ballerina.compiler.api.symbols.SymbolKind.XMLNS;
  * Interface for completion item providers.
  *
  * @param <T> Provider's node type
- * @since 0.995.0
+ * @since 1.0.0
  */
 public abstract class AbstractCompletionProvider<T extends Node> implements BallerinaCompletionProvider<T> {
 

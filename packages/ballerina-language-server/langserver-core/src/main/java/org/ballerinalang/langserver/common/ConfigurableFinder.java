@@ -39,7 +39,7 @@ import java.util.Optional;
 /**
  * Util used to find configurable variables defined in a module.
  *
- * @since 2201.10.0
+ * @since 1.0.0
  */
 public final class ConfigurableFinder {
 

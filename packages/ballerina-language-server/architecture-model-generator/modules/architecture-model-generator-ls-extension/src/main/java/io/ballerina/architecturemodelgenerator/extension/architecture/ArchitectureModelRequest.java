@@ -24,7 +24,7 @@ import java.util.List;
 /**
  * Request for Solution Architecture model generation.
  *
- * @since 2201.2.2
+ * @since 1.0.0
  */
 public class ArchitectureModelRequest {
 

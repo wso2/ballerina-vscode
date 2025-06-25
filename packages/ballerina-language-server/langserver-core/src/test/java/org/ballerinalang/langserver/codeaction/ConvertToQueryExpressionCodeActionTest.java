@@ -25,7 +25,7 @@ import java.io.IOException;
 /**
  * Tests the convert to query expression code action.
  *
- * @since 2201.2.1
+ * @since 1.0.0
  */
 public class ConvertToQueryExpressionCodeActionTest extends AbstractCodeActionTest {
 

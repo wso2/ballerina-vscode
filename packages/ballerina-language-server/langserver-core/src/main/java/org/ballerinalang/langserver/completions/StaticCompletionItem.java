@@ -25,7 +25,7 @@ import org.eclipse.lsp4j.CompletionItem;
  * Represents a static Completion Item.
  * Eg: Code Snippet
  *
- * @since 1.2.0
+ * @since 1.0.0
  */
 public class StaticCompletionItem extends AbstractLSCompletionItem {
     
@@ -43,7 +43,7 @@ public class StaticCompletionItem extends AbstractLSCompletionItem {
     /**
      * Static completion item Kind.
      * 
-     * @since 2.0.0
+     * @since 1.0.0
      */
     public enum Kind {
         LANG_LIB_MODULE,

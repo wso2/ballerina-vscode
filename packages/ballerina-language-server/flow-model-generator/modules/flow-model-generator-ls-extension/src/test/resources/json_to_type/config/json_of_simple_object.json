@@ -1,0 +1,10 @@
+{
+  "description": "Simple JSON object",
+  "filePath": "proj/types.bal",
+  "jsonString": "{\"name\":\"John Doe\",\"age\":30,\"active\":true}",
+  "typeName": "Person",
+  "prefix": "",
+  "allowAdditionalFields": false,
+  "asInline": false,
+  "expectedTypes": "\ntype Person record {|\n\tstring name;\n\tint age;\n\tboolean active;\n|};\n"
+}

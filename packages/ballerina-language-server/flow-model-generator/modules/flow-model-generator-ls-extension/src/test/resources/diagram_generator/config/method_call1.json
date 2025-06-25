@@ -198,6 +198,7 @@
           "node": "METHOD_CALL",
           "org": "$anon",
           "module": ".",
+          "packageName": ".",
           "object": "Calculator",
           "symbol": "add",
           "version": "0.0.0",
@@ -252,7 +253,7 @@
           },
           "value": {
             "metadata": {
-              "label": "value"
+              "label": "Value"
             },
             "valueType": "EXPRESSION",
             "valueTypeConstraint": "int",
@@ -270,6 +271,7 @@
               {
                 "type": "int",
                 "packageInfo": "",
+                "packageName": "",
                 "kind": "BASIC_TYPE",
                 "selected": true
               }
@@ -327,6 +329,7 @@
           "node": "METHOD_CALL",
           "org": "$anon",
           "module": ".",
+          "packageName": ".",
           "object": "Calculator",
           "symbol": "multiply",
           "version": "0.0.0",
@@ -381,7 +384,7 @@
           },
           "value": {
             "metadata": {
-              "label": "value"
+              "label": "Value"
             },
             "valueType": "EXPRESSION",
             "valueTypeConstraint": "int",
@@ -399,6 +402,7 @@
               {
                 "type": "int",
                 "packageInfo": "",
+                "packageName": "",
                 "kind": "BASIC_TYPE",
                 "selected": true
               }
@@ -456,6 +460,7 @@
           "node": "METHOD_CALL",
           "org": "$anon",
           "module": ".",
+          "packageName": ".",
           "object": "Calculator",
           "symbol": "getTotal",
           "version": "0.0.0",
@@ -560,6 +565,7 @@
           "node": "METHOD_CALL",
           "org": "$anon",
           "module": ".",
+          "packageName": ".",
           "object": "Calculator",
           "symbol": "clear",
           "version": "0.0.0",

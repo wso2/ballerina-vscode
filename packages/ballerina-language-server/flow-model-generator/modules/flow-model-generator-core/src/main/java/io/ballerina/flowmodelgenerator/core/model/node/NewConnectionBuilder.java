@@ -43,7 +43,7 @@ import java.util.Set;
 /**
  * Represents a new connection node in the flow model.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class NewConnectionBuilder extends CallBuilder {
 
@@ -53,7 +53,7 @@ public class NewConnectionBuilder extends CallBuilder {
     public static final String CHECK_ERROR_DOC = "Terminate on error";
     public static final String CONNECTION_NAME_LABEL = "Connection Name";
     public static final String CONNECTION_TYPE_LABEL = "Connection Type";
-
+    public static final String CONNECTION_NAME_DOC = "Name of the connection";
     private static final String CONNECTIONS_BAL = "connections.bal";
     private static final String DRIVER_SUB_PACKAGE = ".driver";
     public static final List<String> CONNECTION_DRIVERS = List.of(
@@ -127,8 +127,8 @@ public class NewConnectionBuilder extends CallBuilder {
         FunctionDataBuilder functionDataBuilder = new FunctionDataBuilder()
                 .parentSymbolType(codedata.object())
                 .name(codedata.symbol())
-                .moduleInfo(
-                        new ModuleInfo(codedata.org(), codedata.module(), codedata.module(), codedata.version()))
+                .moduleInfo(new ModuleInfo(codedata.org(), codedata.packageName(), codedata.module(),
+                        codedata.version()))
                 .lsClientLogger(context.lsClientLogger())
                 .functionResultKind(FunctionData.Kind.CONNECTOR)
                 .userModuleInfo(moduleInfo);
@@ -164,7 +164,8 @@ public class NewConnectionBuilder extends CallBuilder {
         codedata()
                 .node(NodeKind.NEW_CONNECTION)
                 .org(functionData.org())
-                .module(functionData.packageName())
+                .module(functionData.moduleName())
+                .packageName(functionData.packageName())
                 .object(functionData.name())
                 .version(functionData.version())
                 .symbol(INIT_SYMBOL)
@@ -173,7 +174,7 @@ public class NewConnectionBuilder extends CallBuilder {
         setParameterProperties(functionData);
 
         if (CommonUtils.hasReturn(functionData.returnType())) {
-            setReturnTypeProperties(functionData, context, CONNECTION_NAME_LABEL);
+            setReturnTypeProperties(functionData, context, CONNECTION_NAME_LABEL, CONNECTION_NAME_DOC, true);
         }
 
         properties()

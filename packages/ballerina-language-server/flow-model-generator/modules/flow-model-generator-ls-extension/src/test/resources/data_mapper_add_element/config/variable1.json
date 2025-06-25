@@ -1,67 +1,38 @@
 {
   "source": "variable1.bal",
   "description": "Sample diagram node",
-  "diagram": {
-    "id": "32874",
-    "metadata": {
-      "label": "Variable",
-      "description": "Assign a value to a variable"
-    },
-    "codedata": {
-      "node": "VARIABLE",
-      "lineRange": {
-        "fileName": "variable1.bal",
-        "startLine": {
-          "line": 0,
-          "offset": 0
-        },
-        "endLine": {
-          "line": 0,
-          "offset": 0
-        }
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "main.bal",
+      "startLine": {
+        "line": 18,
+        "offset": 12
       },
-      "sourceCode": ""
-    },
-    "returning": false,
-    "properties": {
-      "expression": {
-        "metadata": {
-          "label": "Expression",
-          "description": "Expression"
-        },
-        "valueType": "EXPRESSION",
-        "value": "[]",
-        "optional": false,
-        "editable": true
-      },
-      "variable": {
-        "metadata": {
-          "label": "Variable",
-          "description": "Name of the variable"
-        },
-        "valueType": "IDENTIFIER",
-        "value": "userInfo",
-        "optional": false,
-        "editable": true
-      },
-      "type": {
-        "metadata": {
-          "label": "Type",
-          "description": "Type of the variable"
-        },
-        "valueType": "TYPE",
-        "value": "UserInfo[]",
-        "optional": false,
-        "editable": true
+      "endLine": {
+        "line": 18,
+        "offset": 37
       }
     },
-    "flags": 0
+    "sourceCode": "UserInfo[] userInfo = [];"
   },
   "propertyKey": "expression",
-  "position": {
-    "line": 17,
-    "offset": 12
-  },
-  "output": "[{username: \"\", password: \"\"}]",
-  "targetField": "userInfo"
+  "targetField": "userInfo",
+  "output": {
+    "variable1.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 18,
+            "character": 35
+          },
+          "end": {
+            "line": 18,
+            "character": 35
+          }
+        },
+        "newText": "{username: \"\", password: \"\"}"
+      }
+    ]
+  }
 }

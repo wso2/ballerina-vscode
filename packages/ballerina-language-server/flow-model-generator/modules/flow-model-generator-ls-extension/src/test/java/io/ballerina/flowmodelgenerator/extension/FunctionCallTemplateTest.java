@@ -39,7 +39,7 @@ import java.util.List;
 /**
  * Tests for the function call template service.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class FunctionCallTemplateTest extends AbstractLSTest {
 

@@ -31,7 +31,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * Publishes the project update event.
  *
- * @since 2201.1.1
+ * @since 1.0.0
  */
 @JavaSPIService("org.ballerinalang.langserver.eventsync.EventPublisher")
 public class ProjectUpdateEventPublisher extends AbstractEventPublisher {

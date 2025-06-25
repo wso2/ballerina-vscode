@@ -74,7 +74,7 @@ import java.util.stream.Collectors;
 /**
  * Code Action for extracting a code segment to a function.
  *
- * @since 2201.2.1
+ * @since 1.0.0
  */
 @JavaSPIService("org.ballerinalang.langserver.commons.codeaction.spi.LSCodeActionProvider")
 public class ExtractToFunctionCodeAction implements RangeBasedCodeActionProvider {

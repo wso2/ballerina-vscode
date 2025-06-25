@@ -67,7 +67,7 @@ import java.util.concurrent.CompletableFuture;
 /**
  * Ballerina Symbol Service LS Extension.
  *
- * @since 0.981.2
+ * @since 1.0.0
  */
 @JavaSPIService("org.ballerinalang.langserver.commons.service.spi.ExtendedLanguageServerService")
 @JsonSegment("ballerinaSymbol")

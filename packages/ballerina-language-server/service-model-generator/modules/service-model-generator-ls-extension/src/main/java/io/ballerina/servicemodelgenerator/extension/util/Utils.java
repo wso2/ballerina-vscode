@@ -108,7 +108,7 @@ import static io.ballerina.servicemodelgenerator.extension.util.ServiceClassUtil
 /**
  * Common utility functions used in the project.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public final class Utils {
 

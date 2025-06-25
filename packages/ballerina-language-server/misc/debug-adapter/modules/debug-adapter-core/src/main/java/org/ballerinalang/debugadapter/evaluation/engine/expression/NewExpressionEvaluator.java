@@ -58,7 +58,7 @@ import static org.ballerinalang.debugadapter.evaluation.utils.EvaluationUtils.ge
 /**
  * Evaluator implementation for implicit/explicit new expressions.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class NewExpressionEvaluator extends Evaluator {
 

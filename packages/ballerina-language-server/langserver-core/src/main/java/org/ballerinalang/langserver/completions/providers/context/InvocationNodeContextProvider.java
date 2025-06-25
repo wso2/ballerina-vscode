@@ -55,7 +55,7 @@ import java.util.Optional;
  * Generic completion resolver for invocation nodes.
  *
  * @param <T> invocation node type.
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class InvocationNodeContextProvider<T extends Node> extends AbstractCompletionProvider<T> {
 

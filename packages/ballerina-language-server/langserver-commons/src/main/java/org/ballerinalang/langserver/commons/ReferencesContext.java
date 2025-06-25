@@ -20,7 +20,7 @@ package org.ballerinalang.langserver.commons;
 /**
  * Represents the Signature help operation context.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public interface ReferencesContext extends PositionedOperationContext {
 }

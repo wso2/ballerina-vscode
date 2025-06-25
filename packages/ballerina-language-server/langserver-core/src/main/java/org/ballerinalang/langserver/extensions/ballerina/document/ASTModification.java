@@ -23,7 +23,7 @@ import com.google.gson.JsonObject;
 /**
  * Pojo to modify AST.
  *
- * @since 1.3.0
+ * @since 1.0.0
  */
 public class ASTModification {
     private int startLine;

@@ -31,7 +31,7 @@ import static org.ballerinalang.debugadapter.evaluation.utils.EvaluationUtils.mo
  * Class resolver implementation for resolving visible Ballerina class definitions(object types) for a given source
  * location, using the semantic APIs.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class ClassDefinitionResolver {
 

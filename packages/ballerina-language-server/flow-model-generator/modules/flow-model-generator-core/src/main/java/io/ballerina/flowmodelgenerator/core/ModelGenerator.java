@@ -59,6 +59,7 @@ import io.ballerina.tools.text.LineRange;
 import io.ballerina.tools.text.TextDocument;
 import io.ballerina.tools.text.TextRange;
 import org.ballerinalang.langserver.common.utils.PositionUtil;
+import org.ballerinalang.langserver.commons.BallerinaCompilerApi;
 import org.eclipse.lsp4j.Position;
 
 import java.nio.file.Path;
@@ -75,7 +76,7 @@ import java.util.function.Function;
 /**
  * Generator for the flow model.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class ModelGenerator {
 
@@ -134,9 +135,10 @@ public class ModelGenerator {
         Map<String, LineRange> naturalFunctions = new HashMap<>();
         if (functionsDoc != null) {
             ModulePartNode functionsModulePartNode = functionsDoc.syntaxTree().rootNode();
-            for (ModuleMemberDeclarationNode member: functionsModulePartNode.members()) {
+            for (ModuleMemberDeclarationNode member : functionsModulePartNode.members()) {
                 if (member.kind() == SyntaxKind.FUNCTION_DEFINITION
-                        && CommonUtils.isNaturalExpressionBodiedFunction((FunctionDefinitionNode) member)) {
+                        && BallerinaCompilerApi.getInstance()
+                        .isNaturalExpressionBodiedFunction((FunctionDefinitionNode) member)) {
                     FunctionDefinitionNode functionDef = (FunctionDefinitionNode) member;
                     naturalFunctions.put(functionDef.functionName().text(), functionDef.lineRange());
                 }

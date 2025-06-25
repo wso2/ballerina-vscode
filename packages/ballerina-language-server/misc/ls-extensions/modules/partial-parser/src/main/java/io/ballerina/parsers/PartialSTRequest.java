@@ -20,7 +20,7 @@ package io.ballerina.parsers;
 /**
  * Request format for PartialParser endpoint.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class PartialSTRequest {
 

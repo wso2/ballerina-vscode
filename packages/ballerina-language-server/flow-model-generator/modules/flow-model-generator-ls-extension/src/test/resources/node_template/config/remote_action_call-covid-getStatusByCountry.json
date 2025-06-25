@@ -9,6 +9,7 @@
     "node": "REMOTE_ACTION_CALL",
     "org": "ballerinax",
     "module": "covid19",
+    "packageName": "covid19",
     "object": "Client",
     "version": "1.5.1",
     "symbol": "getStatusByCountry",
@@ -25,6 +26,7 @@
       "node": "REMOTE_ACTION_CALL",
       "org": "ballerinax",
       "module": "covid19",
+      "packageName": "covid19",
       "object": "Client",
       "symbol": "getStatusByCountry",
       "version": "1.5.1",
@@ -43,11 +45,11 @@
         "optional": false,
         "editable": false,
         "advanced": false,
-        "hidden": false
+        "hidden": true
       },
       "country": {
         "metadata": {
-          "label": "country",
+          "label": "Country",
           "description": "A country name, iso2, iso3, or country ID code "
         },
         "valueType": "EXPRESSION",
@@ -65,6 +67,7 @@
           {
             "type": "string",
             "packageInfo": "",
+            "packageName": "",
             "kind": "BASIC_TYPE",
             "selected": false
           }
@@ -72,7 +75,7 @@
       },
       "yesterday": {
         "metadata": {
-          "label": "yesterday",
+          "label": "Yesterday",
           "description": "Enter `true`(1) to receive data reported a day ago. Default is `false`(0) "
         },
         "valueType": "EXPRESSION",
@@ -90,20 +93,23 @@
           {
             "type": "()",
             "packageInfo": "",
+            "packageName": "",
             "kind": "BASIC_TYPE",
             "selected": false
           },
           {
             "type": "string",
             "packageInfo": "",
+            "packageName": "",
             "kind": "BASIC_TYPE",
             "selected": false
           }
-        ]
+        ],
+        "defaultValue": "()"
       },
       "twoDaysAgo": {
         "metadata": {
-          "label": "twoDaysAgo",
+          "label": "Two Days Ago",
           "description": "Enter `true`(1) to receive data reported two days ago. Default is `false`(0) "
         },
         "valueType": "EXPRESSION",
@@ -121,25 +127,28 @@
           {
             "type": "()",
             "packageInfo": "",
+            "packageName": "",
             "kind": "BASIC_TYPE",
             "selected": false
           },
           {
             "type": "string",
             "packageInfo": "",
+            "packageName": "",
             "kind": "BASIC_TYPE",
             "selected": false
           }
-        ]
+        ],
+        "defaultValue": "()"
       },
       "strict": {
         "metadata": {
-          "label": "strict",
+          "label": "Strict",
           "description": "Setting to false gives you the ability to fuzzy search countries (i.e. Oman vs. rOMANia) "
         },
         "valueType": "EXPRESSION",
         "valueTypeConstraint": "string",
-        "placeholder": "\"true\"",
+        "placeholder": "\"\"",
         "optional": true,
         "editable": true,
         "advanced": true,
@@ -152,14 +161,16 @@
           {
             "type": "string",
             "packageInfo": "",
+            "packageName": "",
             "kind": "BASIC_TYPE",
             "selected": false
           }
-        ]
+        ],
+        "defaultValue": "\"\""
       },
       "allowNull": {
         "metadata": {
-          "label": "allowNull",
+          "label": "Allow Null",
           "description": "By default, value is 0. Enter `1` to allow nulls to be returned "
         },
         "valueType": "EXPRESSION",
@@ -177,16 +188,19 @@
           {
             "type": "()",
             "packageInfo": "",
+            "packageName": "",
             "kind": "BASIC_TYPE",
             "selected": false
           },
           {
             "type": "string",
             "packageInfo": "",
+            "packageName": "",
             "kind": "BASIC_TYPE",
             "selected": false
           }
-        ]
+        ],
+        "defaultValue": "()"
       },
       "type": {
         "metadata": {
@@ -204,8 +218,8 @@
       },
       "variable": {
         "metadata": {
-          "label": "Variable Name",
-          "description": "Name of the variable"
+          "label": "Result",
+          "description": "Name of the result variable"
         },
         "valueType": "IDENTIFIER",
         "value": "covid19Covidcountry",
@@ -224,7 +238,7 @@
         "optional": false,
         "editable": true,
         "advanced": true,
-        "hidden": false
+        "hidden": true
       }
     },
     "flags": 0

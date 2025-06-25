@@ -49,7 +49,7 @@ import static io.ballerina.servicemodelgenerator.extension.ServiceModelGenerator
 /**
  * Util class for service class related operations.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class ServiceClassUtil {
 

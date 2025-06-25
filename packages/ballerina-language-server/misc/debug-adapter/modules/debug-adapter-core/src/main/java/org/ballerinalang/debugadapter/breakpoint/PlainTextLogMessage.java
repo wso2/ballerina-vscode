@@ -21,7 +21,7 @@ package org.ballerinalang.debugadapter.breakpoint;
 /**
  * Represents Ballerina logpoint messages with plain text.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class PlainTextLogMessage extends LogMessage {
 

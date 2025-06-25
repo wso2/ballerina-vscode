@@ -9,6 +9,7 @@
     "node": "FUNCTION_CALL",
     "org": "ballerina",
     "module": "time",
+    "packageName": "time",
     "symbol": "utcFromCivil",
     "version": "2.5.0"
   },
@@ -23,6 +24,7 @@
       "node": "FUNCTION_CALL",
       "org": "ballerina",
       "module": "time",
+      "packageName": "time",
       "symbol": "utcFromCivil",
       "version": "2.5.0",
       "isNew": true
@@ -31,7 +33,7 @@
     "properties": {
       "civilTime": {
         "metadata": {
-          "label": "civilTime",
+          "label": "Civil Time",
           "description": "`time:Civil` time"
         },
         "valueType": "EXPRESSION",
@@ -49,6 +51,7 @@
           {
             "type": "Civil",
             "packageInfo": "ballerina:time:2.7.0",
+            "packageName": "time",
             "kind": "RECORD_TYPE",
             "selected": false
           }
@@ -70,8 +73,8 @@
       },
       "variable": {
         "metadata": {
-          "label": "Variable Name",
-          "description": "Name of the variable"
+          "label": "Result",
+          "description": "Name of the result variable"
         },
         "valueType": "IDENTIFIER",
         "value": "timeUtc",
@@ -90,7 +93,7 @@
         "optional": false,
         "editable": true,
         "advanced": true,
-        "hidden": false
+        "hidden": true
       }
     },
     "flags": 0

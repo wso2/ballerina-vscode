@@ -585,6 +585,7 @@
           "node": "FUNCTION_CALL",
           "org": "ballerina",
           "module": "lang.int",
+          "packageName": "lang.int",
           "symbol": "fromString",
           "version": "0.0.0",
           "lineRange": {
@@ -604,7 +605,7 @@
         "properties": {
           "s": {
             "metadata": {
-              "label": "s",
+              "label": "S",
               "description": "string representation of a integer value"
             },
             "valueType": "EXPRESSION",
@@ -623,6 +624,7 @@
               {
                 "type": "string",
                 "packageInfo": "",
+                "packageName": "",
                 "kind": "BASIC_TYPE",
                 "selected": true
               }

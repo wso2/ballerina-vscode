@@ -85,7 +85,7 @@ import static io.ballerina.xmltorecordconverter.util.ConverterUtils.sortTypeDesc
 /**
  * APIs for conversion from XML to Ballerina records.
  *
- * @since 2201.7.2
+ * @since 1.0.0
  */
 public final class XMLToRecordConverter {
 

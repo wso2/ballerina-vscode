@@ -47,7 +47,7 @@ import java.util.stream.Stream;
 /**
  * Test class for inlay hints.
  *
- * @since 2201.6.0
+ * @since 1.0.0
  */
 public class InlayHintTest extends AbstractLSTest {
 

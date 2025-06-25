@@ -9,6 +9,7 @@
     "node": "RESOURCE_ACTION_CALL",
     "org": "ballerinax",
     "module": "github",
+    "packageName": "github",
     "object": "Client",
     "symbol": "get",
     "parentSymbol": "githubClient",
@@ -42,19 +43,19 @@
         "optional": false,
         "editable": false,
         "advanced": false,
-        "hidden": false
+        "hidden": true
       },
       "resourcePath": {
         "metadata": {
           "label": "Resource Path",
           "description": "Resource Path"
         },
-        "valueType": "EXPRESSION",
+        "valueType": "ACTION_PATH",
         "value": "/orgs/[org]/repos",
         "optional": false,
         "editable": false,
         "advanced": false,
-        "hidden": false,
+        "hidden": true,
         "codedata": {
           "originalName": "/orgs/[org]/repos"
         }
@@ -79,7 +80,7 @@
       },
       "$type": {
         "metadata": {
-          "label": "type",
+          "label": "Type",
           "description": "Specifies the types of repositories you want returned."
         },
         "valueType": "EXPRESSION",
@@ -97,44 +98,51 @@
           {
             "type": "\"all\"",
             "packageInfo": "",
+            "packageName": "",
             "kind": "BASIC_TYPE",
             "selected": false
           },
           {
             "type": "\"forks\"",
             "packageInfo": "",
+            "packageName": "",
             "kind": "BASIC_TYPE",
             "selected": false
           },
           {
             "type": "\"member\"",
             "packageInfo": "",
+            "packageName": "",
             "kind": "BASIC_TYPE",
             "selected": false
           },
           {
             "type": "\"private\"",
             "packageInfo": "",
+            "packageName": "",
             "kind": "BASIC_TYPE",
             "selected": false
           },
           {
             "type": "\"public\"",
             "packageInfo": "",
+            "packageName": "",
             "kind": "BASIC_TYPE",
             "selected": false
           },
           {
             "type": "\"sources\"",
             "packageInfo": "",
+            "packageName": "",
             "kind": "BASIC_TYPE",
             "selected": false
           }
-        ]
+        ],
+        "defaultValue": "\"all\""
       },
       "sort": {
         "metadata": {
-          "label": "sort",
+          "label": "Sort",
           "description": "The property to sort the results by."
         },
         "valueType": "EXPRESSION",
@@ -152,32 +160,37 @@
           {
             "type": "\"created\"",
             "packageInfo": "",
+            "packageName": "",
             "kind": "BASIC_TYPE",
             "selected": false
           },
           {
             "type": "\"full_name\"",
             "packageInfo": "",
+            "packageName": "",
             "kind": "BASIC_TYPE",
             "selected": false
           },
           {
             "type": "\"pushed\"",
             "packageInfo": "",
+            "packageName": "",
             "kind": "BASIC_TYPE",
             "selected": false
           },
           {
             "type": "\"updated\"",
             "packageInfo": "",
+            "packageName": "",
             "kind": "BASIC_TYPE",
             "selected": false
           }
-        ]
+        ],
+        "defaultValue": "\"created\""
       },
       "direction": {
         "metadata": {
-          "label": "direction",
+          "label": "Direction",
           "description": "The order to sort by. Default: `asc` when using `full_name`, otherwise `desc`."
         },
         "valueType": "EXPRESSION",
@@ -195,31 +208,35 @@
           {
             "type": "\"asc\"",
             "packageInfo": "",
+            "packageName": "",
             "kind": "BASIC_TYPE",
             "selected": false
           },
           {
             "type": "\"desc\"",
             "packageInfo": "",
+            "packageName": "",
             "kind": "BASIC_TYPE",
             "selected": false
           },
           {
             "type": "()",
             "packageInfo": "",
+            "packageName": "",
             "kind": "BASIC_TYPE",
             "selected": false
           }
-        ]
+        ],
+        "defaultValue": "()"
       },
       "per_page": {
         "metadata": {
-          "label": "per_page",
+          "label": "Per Page",
           "description": "The number of results per page (max 100)."
         },
         "valueType": "EXPRESSION",
         "valueTypeConstraint": "int",
-        "placeholder": "30",
+        "placeholder": "0",
         "optional": true,
         "editable": true,
         "advanced": true,
@@ -232,19 +249,21 @@
           {
             "type": "int",
             "packageInfo": "",
+            "packageName": "",
             "kind": "BASIC_TYPE",
             "selected": false
           }
-        ]
+        ],
+        "defaultValue": "0"
       },
       "page": {
         "metadata": {
-          "label": "page",
+          "label": "Page",
           "description": "Page number of the results to fetch."
         },
         "valueType": "EXPRESSION",
         "valueTypeConstraint": "int",
-        "placeholder": "1",
+        "placeholder": "0",
         "optional": true,
         "editable": true,
         "advanced": true,
@@ -257,10 +276,12 @@
           {
             "type": "int",
             "packageInfo": "",
+            "packageName": "",
             "kind": "BASIC_TYPE",
             "selected": false
           }
-        ]
+        ],
+        "defaultValue": "0"
       },
       "type": {
         "metadata": {
@@ -273,13 +294,13 @@
         "optional": false,
         "editable": false,
         "advanced": false,
-        "hidden": false,
+        "hidden": true,
         "codedata": {}
       },
       "variable": {
         "metadata": {
-          "label": "Variable Name",
-          "description": "Name of the variable"
+          "label": "Result",
+          "description": "Name of the result variable"
         },
         "valueType": "IDENTIFIER",
         "value": "githubMinimalrepository",
@@ -298,7 +319,7 @@
         "optional": false,
         "editable": true,
         "advanced": true,
-        "hidden": false
+        "hidden": true
       }
     },
     "flags": 0

@@ -44,6 +44,7 @@ import io.ballerina.compiler.syntax.tree.Token;
 import io.ballerina.compiler.syntax.tree.TypeDefinitionNode;
 import io.ballerina.compiler.syntax.tree.TypeDescriptorNode;
 import io.ballerina.modelgenerator.commons.CommonUtils;
+import org.ballerinalang.langserver.commons.BallerinaCompilerApi;
 
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -56,7 +57,7 @@ import java.util.stream.Collectors;
  * transforming nodes from a different module, as the semantic model context is specific to the module being processed.
  * </p>
  *
- * @since 2.3.0
+ * @since 1.0.0
  */
 public class ModuleNodeTransformer extends NodeTransformer<Optional<Artifact>> {
 
@@ -79,7 +80,8 @@ public class ModuleNodeTransformer extends NodeTransformer<Optional<Artifact>> {
                     .name(AUTOMATION_FUNCTION_NAME)
                     .type(Artifact.Type.AUTOMATION);
         } else if (functionDefinitionNode.functionBody().kind() == SyntaxKind.EXPRESSION_FUNCTION_BODY) {
-            if (isNaturalExpressionBody((ExpressionFunctionBodyNode) functionDefinitionNode.functionBody())) {
+            if (BallerinaCompilerApi.getInstance()
+                    .isNaturalExpressionBody((ExpressionFunctionBodyNode) functionDefinitionNode.functionBody())) {
                 functionBuilder
                         .name(functionName)
                         .type(Artifact.Type.NP_FUNCTION);
@@ -246,9 +248,5 @@ public class ModuleNodeTransformer extends NodeTransformer<Optional<Artifact>> {
 
     private static boolean hasQualifier(NodeList<Token> qualifierList, SyntaxKind kind) {
         return qualifierList.stream().anyMatch(qualifier -> qualifier.kind() == kind);
-    }
-
-    private boolean isNaturalExpressionBody(ExpressionFunctionBodyNode expressionFunctionBodyNode) {
-        return expressionFunctionBodyNode.expression().kind() == SyntaxKind.NATURAL_EXPRESSION;
     }
 }

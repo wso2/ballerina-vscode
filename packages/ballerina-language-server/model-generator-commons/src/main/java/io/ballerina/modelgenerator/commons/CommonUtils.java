@@ -41,8 +41,6 @@ import io.ballerina.compiler.syntax.tree.BindingPatternNode;
 import io.ballerina.compiler.syntax.tree.BuiltinSimpleNameReferenceNode;
 import io.ballerina.compiler.syntax.tree.ChildNodeList;
 import io.ballerina.compiler.syntax.tree.DoStatementNode;
-import io.ballerina.compiler.syntax.tree.ExpressionFunctionBodyNode;
-import io.ballerina.compiler.syntax.tree.FunctionBodyNode;
 import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
 import io.ballerina.compiler.syntax.tree.IdentifierToken;
 import io.ballerina.compiler.syntax.tree.ModulePartNode;
@@ -64,6 +62,7 @@ import io.ballerina.tools.text.LineRange;
 import io.ballerina.tools.text.TextDocument;
 import io.ballerina.tools.text.TextRange;
 import org.ballerinalang.langserver.common.utils.CommonUtil;
+import org.ballerinalang.langserver.commons.BallerinaCompilerApi;
 import org.ballerinalang.langserver.commons.workspace.WorkspaceManager;
 import org.ballerinalang.util.diagnostic.DiagnosticErrorCode;
 import org.eclipse.lsp4j.Diagnostic;
@@ -85,7 +84,7 @@ import java.util.stream.Collectors;
 /**
  * Common utility functions used in the project.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class CommonUtils {
 
@@ -811,13 +810,7 @@ public class CommonUtils {
             return false;
         }
         FunctionDefinitionNode functionDefNode = (FunctionDefinitionNode) node;
-        return isNaturalExpressionBodiedFunction(functionDefNode);
-    }
-
-    public static boolean isNaturalExpressionBodiedFunction(FunctionDefinitionNode functionDefNode) {
-        FunctionBodyNode functionBody = functionDefNode.functionBody();
-        return functionBody.kind() == SyntaxKind.EXPRESSION_FUNCTION_BODY
-                && ((ExpressionFunctionBodyNode) functionBody).expression().kind() == SyntaxKind.NATURAL_EXPRESSION;
+        return BallerinaCompilerApi.getInstance().isNaturalExpressionBodiedFunction(functionDefNode);
     }
 
     public static String getClassType(String packageName, String clientName) {
@@ -844,8 +837,8 @@ public class CommonUtils {
     }
 
     /**
-     * Extracts the default module prefix from a package name.
-     * The prefix is the last segment of the package name after splitting by dots.
+     * Extracts the default module prefix from a package name. The prefix is the last segment of the package name after
+     * splitting by dots.
      *
      * @param packageName The fully qualified package name to extract the prefix from
      * @return The last segment of the package name as the default module prefix
@@ -864,30 +857,30 @@ public class CommonUtils {
      */
     public static String constructModuleId(ModuleDescriptor descriptor) {
         StringBuilder idBuilder = new StringBuilder();
-        
+
         // Add organization
         idBuilder.append(descriptor.org().value()).append('/');
-        
+
         // Add package name
         idBuilder.append(descriptor.name().packageName().value());
-        
+
         // Add module name if it's not the default module
         String moduleNamePart = descriptor.name().moduleNamePart();
         if (moduleNamePart != null && !moduleNamePart.isEmpty()) {
             idBuilder.append('.').append(moduleNamePart);
         }
-        
+
         // Add version
         idBuilder.append(':').append(descriptor.version());
-        
+
         return idBuilder.toString();
     }
 
     /**
      * Checks whether the given import exists in the given module part node.
      *
-     * @param node module part node
-     * @param org organization name
+     * @param node   module part node
+     * @param org    organization name
      * @param module module name
      * @return true if the import exists, false otherwise
      */

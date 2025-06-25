@@ -9,6 +9,7 @@
     "node": "REMOTE_ACTION_CALL",
     "org": "ballerinax",
     "module": "redis",
+    "packageName": "redis",
     "object": "Client",
     "version": "3.0.2",
     "symbol": "set",
@@ -25,6 +26,7 @@
       "node": "REMOTE_ACTION_CALL",
       "org": "ballerinax",
       "module": "redis",
+      "packageName": "redis",
       "object": "Client",
       "symbol": "set",
       "version": "3.0.2",
@@ -43,11 +45,11 @@
         "optional": false,
         "editable": false,
         "advanced": false,
-        "hidden": false
+        "hidden": true
       },
       "key": {
         "metadata": {
-          "label": "key",
+          "label": "Key",
           "description": "Key referring to a value"
         },
         "valueType": "EXPRESSION",
@@ -65,6 +67,7 @@
           {
             "type": "string",
             "packageInfo": "",
+            "packageName": "",
             "kind": "BASIC_TYPE",
             "selected": false
           }
@@ -72,7 +75,7 @@
       },
       "value": {
         "metadata": {
-          "label": "value",
+          "label": "Value",
           "description": "Values"
         },
         "valueType": "EXPRESSION",
@@ -90,6 +93,7 @@
           {
             "type": "string",
             "packageInfo": "",
+            "packageName": "",
             "kind": "BASIC_TYPE",
             "selected": false
           }
@@ -111,8 +115,8 @@
       },
       "variable": {
         "metadata": {
-          "label": "Variable Name",
-          "description": "Name of the variable"
+          "label": "Result",
+          "description": "Name of the result variable"
         },
         "valueType": "IDENTIFIER",
         "value": "stringResult",
@@ -131,7 +135,7 @@
         "optional": false,
         "editable": true,
         "advanced": true,
-        "hidden": false
+        "hidden": true
       }
     },
     "flags": 0

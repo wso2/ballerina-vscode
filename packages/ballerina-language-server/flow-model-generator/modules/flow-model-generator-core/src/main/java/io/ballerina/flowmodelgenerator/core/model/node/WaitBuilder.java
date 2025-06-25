@@ -36,7 +36,7 @@ import java.util.Optional;
 /**
  * Represents the properties of a wait node.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class WaitBuilder extends NodeBuilder {
 

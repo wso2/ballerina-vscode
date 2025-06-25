@@ -30,7 +30,7 @@ import java.util.List;
 /**
  * Represents EntryPoint related information.
  *
- * @since 2201.4.2
+ * @since 1.0.0
  */
 public class FunctionEntryPoint extends ModelElement {
 

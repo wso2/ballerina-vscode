@@ -23,7 +23,7 @@ package io.ballerina.designmodelgenerator.extension.request;
  *
  * @param projectPath project path
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public record GetDesignModelRequest(String projectPath) {
 }

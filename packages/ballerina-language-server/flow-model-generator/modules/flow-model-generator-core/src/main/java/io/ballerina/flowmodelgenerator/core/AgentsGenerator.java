@@ -36,7 +36,6 @@ import io.ballerina.compiler.api.symbols.SymbolKind;
 import io.ballerina.compiler.api.symbols.TypeReferenceTypeSymbol;
 import io.ballerina.compiler.api.symbols.TypeSymbol;
 import io.ballerina.compiler.api.symbols.VariableSymbol;
-import io.ballerina.compiler.syntax.tree.ExpressionNode;
 import io.ballerina.compiler.syntax.tree.FunctionBodyBlockNode;
 import io.ballerina.compiler.syntax.tree.FunctionBodyNode;
 import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
@@ -46,7 +45,6 @@ import io.ballerina.compiler.syntax.tree.NonTerminalNode;
 import io.ballerina.compiler.syntax.tree.StatementNode;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.compiler.syntax.tree.Token;
-import io.ballerina.compiler.syntax.tree.VariableDeclarationNode;
 import io.ballerina.flowmodelgenerator.core.analyzers.function.ModuleNodeAnalyzer;
 import io.ballerina.flowmodelgenerator.core.model.Codedata;
 import io.ballerina.flowmodelgenerator.core.model.FlowNode;
@@ -81,7 +79,6 @@ import org.eclipse.lsp4j.TextEdit;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -92,7 +89,7 @@ import java.util.Set;
 /**
  * This class is responsible for managing agents.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class AgentsGenerator {
 
@@ -138,7 +135,8 @@ public class AgentsGenerator {
 
                 agents.add(new Codedata.Builder<>(null).node(NodeKind.AGENT)
                         .org(id.orgName())
-                        .module(id.packageName())
+                        .module(id.moduleName())
+                        .packageName(id.packageName())
                         .version(id.version())
                         .object(classSymbol.getName().orElse(AGENT))
                         .symbol(INIT)
@@ -176,7 +174,8 @@ public class AgentsGenerator {
             ModuleID id = optModule.get().id();
             models.add(new Codedata.Builder<>(null).node(NodeKind.CLASS_INIT)
                     .org(id.orgName())
-                    .module(id.packageName())
+                    .module(id.moduleName())
+                    .packageName(id.packageName())
                     .version(id.version())
                     .object(model.getName().orElse(MODEL))
                     .symbol(INIT)
@@ -210,7 +209,8 @@ public class AgentsGenerator {
             ModuleID id = optModule.get().id();
             models.add(new Codedata.Builder<>(null).node(NodeKind.CLASS_INIT)
                     .org(id.orgName())
-                    .module(id.packageName())
+                    .module(id.moduleName())
+                    .packageName(id.packageName())
                     .version(id.version())
                     .object(model.getName().orElse(MEMORY))
                     .symbol(INIT)
@@ -691,6 +691,7 @@ public class AgentsGenerator {
         for (FunctionData methodFunction : methodFunctionsData) {
             String org = methodFunction.org();
             String packageName = methodFunction.packageName();
+            String moduleName = methodFunction.moduleName();
             String version = methodFunction.version();
             boolean isHttpModule = org.equals(BALLERINA_ORG) && packageName.equals(HTTP_MODULE);
 
@@ -719,7 +720,8 @@ public class AgentsGenerator {
                     .stepOut()
                     .codedata()
                     .org(org)
-                    .module(packageName)
+                    .module(moduleName)
+                    .packageName(packageName)
                     .object(className)
                     .symbol(methodFunction.name())
                     .version(version)

@@ -83,7 +83,7 @@
           "editable": true,
           "value": "/graphql",
           "values": [],
-          "valueType": "IDENTIFIER",
+          "valueType": "SERVICE_PATH",
           "valueTypeConstraint": "string",
           "isType": false,
           "placeholder": "/graphql",

@@ -41,7 +41,7 @@ import java.util.concurrent.CompletableFuture;
 /**
  * Ballerina example service.
  *
- * @since 0.981.2
+ * @since 1.0.0
  */
 @JavaSPIService("org.ballerinalang.langserver.commons.service.spi.ExtendedLanguageServerService")
 @JsonSegment("ballerinaExample")

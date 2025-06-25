@@ -89,7 +89,7 @@ import java.util.Optional;
  * 4. Documentable node
  * 5. Enclosing documentable node of the cursor position
  *
- * @since 2201.1.2
+ * @since 1.0.0
  */
 public class CodeActionNodeAnalyzer extends NodeVisitor {
 

@@ -29,7 +29,7 @@ import java.util.List;
 /**
  * Represents a Ballerina remote function.
  *
- * @since 2201.2.2
+ * @since 1.0.0
  */
 public class RemoteFunction extends ModelElement {
 

@@ -59,7 +59,7 @@
           "value": "10",
           "optional": true,
           "editable": true,
-          "advanced": true,
+          "advanced": false,
           "hidden": false,
           "modified": false
         }
@@ -124,7 +124,7 @@
           "value": "12.4",
           "optional": true,
           "editable": true,
-          "advanced": true,
+          "advanced": false,
           "hidden": false,
           "modified": false,
           "diagnostics": {
@@ -201,7 +201,7 @@
           "value": "\"welcome\"",
           "optional": true,
           "editable": true,
-          "advanced": true,
+          "advanced": false,
           "hidden": false,
           "modified": false,
           "diagnostics": {
@@ -278,7 +278,7 @@
           "value": "23",
           "optional": true,
           "editable": true,
-          "advanced": true,
+          "advanced": false,
           "hidden": false,
           "modified": false,
           "diagnostics": {

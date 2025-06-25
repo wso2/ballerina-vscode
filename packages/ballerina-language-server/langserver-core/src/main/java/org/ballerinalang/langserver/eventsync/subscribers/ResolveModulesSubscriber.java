@@ -39,7 +39,7 @@ import java.util.Optional;
 /**
  * Publisher to popup notification and resolve the missing dependencies on project updates.
  *
- * @since 2201.12.3
+ * @since 1.0.0
  */
 @JavaSPIService("org.ballerinalang.langserver.commons.eventsync.spi.EventSubscriber")
 public class ResolveModulesSubscriber implements EventSubscriber {

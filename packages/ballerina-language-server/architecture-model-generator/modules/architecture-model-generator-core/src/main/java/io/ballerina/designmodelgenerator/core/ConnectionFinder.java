@@ -43,7 +43,7 @@ import java.util.Optional;
 /**
  * Find connections for the given symbol.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class ConnectionFinder {
 
@@ -63,6 +63,9 @@ public class ConnectionFinder {
     }
 
     public void findConnection(Symbol symbol, List<String> referenceLocations) {
+        if (symbol.getLocation().isEmpty()) {
+            return;
+        }
         String hashKey = String.valueOf(symbol.getLocation().get().hashCode());
         referenceLocations.add(hashKey);
         if (this.intermediateModel.connectionMap.containsKey(hashKey)) {

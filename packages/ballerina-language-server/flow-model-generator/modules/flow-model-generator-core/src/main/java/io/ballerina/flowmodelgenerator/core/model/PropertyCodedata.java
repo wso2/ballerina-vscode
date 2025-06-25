@@ -28,7 +28,7 @@ import io.ballerina.tools.text.LineRange;
  * @param originalName      The original name of the property
  * @param dependentProperty The property that is dependent for this property to be enabled
  * @param lineRange         The line range of the property
- * @since 2.0.0
+ * @since 1.0.0
  */
 public record PropertyCodedata(String kind, String originalName, String dependentProperty, LineRange lineRange) {
 

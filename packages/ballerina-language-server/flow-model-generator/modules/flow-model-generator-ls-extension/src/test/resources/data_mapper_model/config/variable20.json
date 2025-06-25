@@ -74,7 +74,7 @@
         "member": {
           "fields": [
             {
-              "id": "banks.name",
+              "id": "banks.0.name",
               "variableName": "name",
               "typeName": "string",
               "kind": "string"
@@ -83,35 +83,35 @@
               "member": {
                 "fields": [
                   {
-                    "id": "banks.userInfo.username",
+                    "id": "banks.0.userInfo.0.username",
                     "variableName": "username",
                     "typeName": "string",
                     "kind": "string"
                   },
                   {
-                    "id": "banks.userInfo.password",
+                    "id": "banks.0.userInfo.0.password",
                     "variableName": "password",
                     "typeName": "string",
                     "kind": "string"
                   },
                   {
-                    "id": "banks.userInfo.id",
+                    "id": "banks.0.userInfo.0.id",
                     "variableName": "id",
                     "typeName": "int",
                     "kind": "int"
                   }
                 ],
-                "id": "banks.userInfo",
+                "id": "banks.0.userInfo.0",
                 "typeName": "UserInfo",
                 "kind": "record"
               },
-              "id": "banks.userInfo",
+              "id": "banks.0.userInfo",
               "variableName": "userInfo",
               "typeName": "UserInfo[]",
               "kind": "array"
             }
           ],
-          "id": "banks",
+          "id": "banks.0",
           "typeName": "Bank",
           "kind": "record"
         },
@@ -125,25 +125,25 @@
         "member": {
           "fields": [
             {
-              "id": "userInfo.username",
+              "id": "userInfo.0.username",
               "variableName": "username",
               "typeName": "string",
               "kind": "string"
             },
             {
-              "id": "userInfo.password",
+              "id": "userInfo.0.password",
               "variableName": "password",
               "typeName": "string",
               "kind": "string"
             },
             {
-              "id": "userInfo.id",
+              "id": "userInfo.0.id",
               "variableName": "id",
               "typeName": "int",
               "kind": "int"
             }
           ],
-          "id": "userInfo",
+          "id": "userInfo.0",
           "typeName": "UserInfo",
           "kind": "record"
         },
@@ -181,24 +181,29 @@
       }
     ],
     "output": {
-      "fields": [
-        {
-          "id": "credentials.username",
-          "variableName": "username",
-          "typeName": "string",
-          "kind": "string"
-        },
-        {
-          "id": "credentials.password",
-          "variableName": "password",
-          "typeName": "string",
-          "kind": "string"
-        }
-      ],
+      "member": {
+        "fields": [
+          {
+            "id": "credentials.username",
+            "variableName": "username",
+            "typeName": "string",
+            "kind": "string"
+          },
+          {
+            "id": "credentials.password",
+            "variableName": "password",
+            "typeName": "string",
+            "kind": "string"
+          }
+        ],
+        "id": "credentials",
+        "typeName": "Credentials",
+        "kind": "record"
+      },
       "id": "credentials",
       "variableName": "credentials",
-      "typeName": "Credentials",
-      "kind": "record"
+      "typeName": "Credentials[]",
+      "kind": "array"
     },
     "mappings": [
       {

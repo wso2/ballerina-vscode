@@ -195,7 +195,7 @@
           "description": "Prompt for the function"
         },
         "valueType": "RAW_TEMPLATE",
-        "value": "    **Assumption**\n    Think yourself as a movie expert\n\n    **What to do**\n    Give rating for the movie ${movieName} out of 10 based on your opinion\n",
+        "value": "    **Assumption**\n    Think yourself as a movie expert\n\n    **What to do**\n    Give rating for the movie ${movieName} out of 10 based on your opinion",
         "optional": false,
         "editable": true,
         "advanced": false,

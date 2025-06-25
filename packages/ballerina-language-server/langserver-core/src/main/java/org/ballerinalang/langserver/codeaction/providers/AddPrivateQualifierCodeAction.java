@@ -45,7 +45,7 @@ import java.util.Optional;
 /**
  * Code Action for adding the private visibility qualifier ƒor an object field.
  *
- * @since 2201.9.0
+ * @since 1.0.0
  */
 @JavaSPIService("org.ballerinalang.langserver.commons.codeaction.spi.LSCodeActionProvider")
 public class AddPrivateQualifierCodeAction implements DiagnosticBasedCodeActionProvider {

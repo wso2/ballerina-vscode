@@ -25,7 +25,7 @@ import java.util.concurrent.ExecutionException;
 /**
  * getResult End point tests for errors and error handling.
  *
- * @since 2201.1.1
+ * @since 1.0.0
  */
 public class ErrorTests extends AbstractGetResultTest {
     @Test(description = "Test for parsing fails")

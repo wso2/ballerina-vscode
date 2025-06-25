@@ -33,7 +33,7 @@ import java.nio.file.Path;
 /**
  * Test cases for the flow model generator service.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class ModelGeneratorTest extends AbstractLSTest {
 
@@ -96,7 +96,7 @@ public class ModelGeneratorTest extends AbstractLSTest {
      * @param source      The source file
      * @param description The description of the test
      * @param diagram     The expected diagram for the given inputs
-     * @since 1.4.0
+     * @since 1.0.0
      */
     private record TestConfig(LinePosition start, LinePosition end, String source, String description,
                               JsonObject diagram) {

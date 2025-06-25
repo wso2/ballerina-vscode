@@ -199,6 +199,7 @@
           "node": "FUNCTION_CALL",
           "org": "$anon",
           "module": ".",
+          "packageName": ".",
           "symbol": "randomUuid",
           "version": "0.0.0",
           "lineRange": {
@@ -240,7 +241,7 @@
           },
           "randomNumber": {
             "metadata": {
-              "label": "randomNumber"
+              "label": "Random Number"
             },
             "valueType": "EXPRESSION",
             "valueTypeConstraint": "float",
@@ -258,6 +259,7 @@
               {
                 "type": "float",
                 "packageInfo": "",
+                "packageName": "",
                 "kind": "BASIC_TYPE",
                 "selected": true
               }
@@ -265,7 +267,7 @@
           },
           "id": {
             "metadata": {
-              "label": "id"
+              "label": "Id"
             },
             "valueType": "EXPRESSION",
             "valueTypeConstraint": "string",
@@ -283,6 +285,7 @@
               {
                 "type": "string",
                 "packageInfo": "",
+                "packageName": "",
                 "kind": "BASIC_TYPE",
                 "selected": true
               }

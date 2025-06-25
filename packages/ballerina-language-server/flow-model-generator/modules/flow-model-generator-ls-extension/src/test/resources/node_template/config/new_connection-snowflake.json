@@ -4,6 +4,7 @@
     "node": "NEW_CONNECTION",
     "org": "ballerinax",
     "module": "snowflake",
+    "packageName": "snowflake",
     "object": "Client",
     "symbol": "init"
   },
@@ -12,22 +13,23 @@
     "metadata": {
       "label": "New Connection",
       "description": "Represents a Snowflake database client.",
-      "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_snowflake_2.1.0.png"
+      "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_snowflake_2.2.0.png"
     },
     "codedata": {
       "node": "NEW_CONNECTION",
       "org": "ballerinax",
       "module": "snowflake",
+      "packageName": "snowflake",
       "object": "Client",
       "symbol": "init",
-      "version": "2.1.0",
+      "version": "2.2.0",
       "isNew": true
     },
     "returning": false,
     "properties": {
       "account_identifier": {
         "metadata": {
-          "label": "account_identifier",
+          "label": "Account Identifier",
           "description": "The Snowflake account identifier"
         },
         "valueType": "EXPRESSION",
@@ -45,6 +47,7 @@
           {
             "type": "string",
             "packageInfo": "",
+            "packageName": "",
             "kind": "BASIC_TYPE",
             "selected": false
           }
@@ -52,7 +55,7 @@
       },
       "user": {
         "metadata": {
-          "label": "user",
+          "label": "User",
           "description": "The username of the Snowflake account"
         },
         "valueType": "EXPRESSION",
@@ -70,6 +73,7 @@
           {
             "type": "string",
             "packageInfo": "",
+            "packageName": "",
             "kind": "BASIC_TYPE",
             "selected": false
           }
@@ -77,7 +81,7 @@
       },
       "password": {
         "metadata": {
-          "label": "password",
+          "label": "Password",
           "description": "The password of the Snowflake account"
         },
         "valueType": "EXPRESSION",
@@ -95,6 +99,7 @@
           {
             "type": "string",
             "packageInfo": "",
+            "packageName": "",
             "kind": "BASIC_TYPE",
             "selected": false
           }
@@ -102,7 +107,7 @@
       },
       "options": {
         "metadata": {
-          "label": "options",
+          "label": "Options",
           "description": "The Snowflake client properties"
         },
         "valueType": "EXPRESSION",
@@ -118,22 +123,25 @@
         },
         "typeMembers": [
           {
-            "type": "()",
-            "packageInfo": "",
-            "kind": "BASIC_TYPE",
+            "type": "Options",
+            "packageInfo": "ballerinax:snowflake:2.2.0",
+            "packageName": "snowflake",
+            "kind": "RECORD_TYPE",
             "selected": false
           },
           {
-            "type": "Options",
-            "packageInfo": "ballerinax:snowflake:2.1.0",
-            "kind": "RECORD_TYPE",
+            "type": "()",
+            "packageInfo": "",
+            "packageName": "",
+            "kind": "BASIC_TYPE",
             "selected": false
           }
-        ]
+        ],
+        "defaultValue": "()"
       },
       "connectionPool": {
         "metadata": {
-          "label": "connectionPool",
+          "label": "Connection Pool",
           "description": "The `sql:ConnectionPool` to be used for the connection. If there is no\n`connectionPool` provided, the global connection pool (shared by all clients) will be used"
         },
         "valueType": "EXPRESSION",
@@ -149,21 +157,24 @@
         },
         "typeMembers": [
           {
-            "type": "()",
-            "packageInfo": "",
-            "kind": "BASIC_TYPE",
+            "type": "ConnectionPool",
+            "packageInfo": "ballerina:sql:1.15.0",
+            "packageName": "sql",
+            "kind": "RECORD_TYPE",
             "selected": false
           },
           {
-            "type": "ConnectionPool",
-            "packageInfo": "ballerina:sql:1.15.0",
-            "kind": "RECORD_TYPE",
+            "type": "()",
+            "packageInfo": "",
+            "packageName": "",
+            "kind": "BASIC_TYPE",
             "selected": false
           }
         ],
         "imports": {
           "sql": "ballerina/sql"
-        }
+        },
+        "defaultValue": "()"
       },
       "type": {
         "metadata": {
@@ -176,7 +187,7 @@
         "optional": false,
         "editable": false,
         "advanced": false,
-        "hidden": false,
+        "hidden": true,
         "codedata": {},
         "imports": {
           "sql": "ballerina/sql"
@@ -185,7 +196,7 @@
       "variable": {
         "metadata": {
           "label": "Connection Name",
-          "description": "Name of the variable"
+          "description": "Name of the connection"
         },
         "valueType": "IDENTIFIER",
         "value": "snowflakeClient",
@@ -207,7 +218,7 @@
         "optional": false,
         "editable": true,
         "advanced": true,
-        "hidden": false,
+        "hidden": true,
         "imports": {
           "sql": "ballerina/sql"
         }
@@ -222,7 +233,7 @@
         "optional": false,
         "editable": false,
         "advanced": true,
-        "hidden": false,
+        "hidden": true,
         "imports": {
           "sql": "ballerina/sql"
         }

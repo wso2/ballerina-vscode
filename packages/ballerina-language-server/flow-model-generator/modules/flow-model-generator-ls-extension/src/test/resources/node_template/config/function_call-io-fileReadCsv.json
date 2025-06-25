@@ -9,6 +9,7 @@
     "node": "FUNCTION_CALL",
     "org": "ballerina",
     "module": "io",
+    "packageName": "io",
     "symbol": "fileReadCsv",
     "version": "1.8.0"
   },
@@ -23,6 +24,7 @@
       "node": "FUNCTION_CALL",
       "org": "ballerina",
       "module": "io",
+      "packageName": "io",
       "symbol": "fileReadCsv",
       "version": "1.8.0",
       "isNew": true,
@@ -32,7 +34,7 @@
     "properties": {
       "returnType": {
         "metadata": {
-          "label": "returnType",
+          "label": "Return Type",
           "description": "The type of the return value (string[] or a Ballerina record)"
         },
         "valueType": "TYPE",
@@ -45,11 +47,12 @@
         "codedata": {
           "kind": "PARAM_FOR_TYPE_INFER",
           "originalName": "returnType"
-        }
+        },
+        "defaultValue": "string[]|map<anydata>"
       },
       "path": {
         "metadata": {
-          "label": "path",
+          "label": "Path",
           "description": "The CSV file path"
         },
         "valueType": "EXPRESSION",
@@ -67,6 +70,7 @@
           {
             "type": "string",
             "packageInfo": "",
+            "packageName": "",
             "kind": "BASIC_TYPE",
             "selected": false
           }
@@ -74,7 +78,7 @@
       },
       "skipHeaders": {
         "metadata": {
-          "label": "skipHeaders",
+          "label": "Skip Headers",
           "description": "Number of headers, which should be skipped prior to reading records"
         },
         "valueType": "EXPRESSION",
@@ -92,10 +96,12 @@
           {
             "type": "int",
             "packageInfo": "",
+            "packageName": "",
             "kind": "BASIC_TYPE",
             "selected": false
           }
-        ]
+        ],
+        "defaultValue": "0"
       },
       "type": {
         "metadata": {
@@ -113,8 +119,8 @@
       },
       "variable": {
         "metadata": {
-          "label": "Variable Name",
-          "description": "Name of the variable"
+          "label": "Result",
+          "description": "Name of the result variable"
         },
         "valueType": "IDENTIFIER",
         "value": "returnType",
@@ -133,7 +139,7 @@
         "optional": false,
         "editable": true,
         "advanced": true,
-        "hidden": false
+        "hidden": true
       }
     },
     "flags": 0

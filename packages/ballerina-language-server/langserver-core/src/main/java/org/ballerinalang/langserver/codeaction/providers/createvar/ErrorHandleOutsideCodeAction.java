@@ -51,7 +51,7 @@ import java.util.stream.Collectors;
 /**
  * Code Action for error type handle.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 @JavaSPIService("org.ballerinalang.langserver.commons.codeaction.spi.LSCodeActionProvider")
 public class ErrorHandleOutsideCodeAction extends CreateVariableCodeAction {

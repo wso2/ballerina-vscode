@@ -9,7 +9,8 @@
     "node": "FUNCTION_CALL",
     "symbol": "fn",
     "org": "nipunaf",
-    "module": "new_connection1"
+    "module": "new_connection1",
+    "packageName": "new_connection1"
   },
   "output": {
     "id": "31",
@@ -22,6 +23,7 @@
       "node": "FUNCTION_CALL",
       "org": "nipunaf",
       "module": "new_connection1",
+      "packageName": "new_connection1",
       "symbol": "fn",
       "isNew": true
     },
@@ -29,7 +31,7 @@
     "properties": {
       "x": {
         "metadata": {
-          "label": "x"
+          "label": "X"
         },
         "valueType": "EXPRESSION",
         "valueTypeConstraint": "int",
@@ -46,6 +48,7 @@
           {
             "type": "int",
             "packageInfo": "",
+            "packageName": "",
             "kind": "BASIC_TYPE",
             "selected": false
           }
@@ -67,8 +70,8 @@
       },
       "variable": {
         "metadata": {
-          "label": "Variable Name",
-          "description": "Name of the variable"
+          "label": "Result",
+          "description": "Name of the result variable"
         },
         "valueType": "IDENTIFIER",
         "value": "intResult",

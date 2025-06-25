@@ -9,6 +9,7 @@
     "node": "NEW_CONNECTION",
     "org": "ballerina",
     "module": "grpc",
+    "packageName": "grpc",
     "object": "StreamingClient",
     "version": "1.13.2",
     "symbol": "init"
@@ -24,6 +25,7 @@
       "node": "NEW_CONNECTION",
       "org": "ballerina",
       "module": "grpc",
+      "packageName": "grpc",
       "object": "StreamingClient",
       "symbol": "init",
       "version": "1.13.2",
@@ -42,13 +44,13 @@
         "optional": false,
         "editable": false,
         "advanced": false,
-        "hidden": false,
+        "hidden": true,
         "codedata": {}
       },
       "variable": {
         "metadata": {
           "label": "Connection Name",
-          "description": "Name of the variable"
+          "description": "Name of the connection"
         },
         "valueType": "IDENTIFIER",
         "value": "grpcStreamingclient",
@@ -67,7 +69,7 @@
         "optional": false,
         "editable": true,
         "advanced": true,
-        "hidden": false
+        "hidden": true
       },
       "checkError": {
         "metadata": {
@@ -79,7 +81,7 @@
         "optional": false,
         "editable": false,
         "advanced": true,
-        "hidden": false
+        "hidden": true
       }
     },
     "flags": 0

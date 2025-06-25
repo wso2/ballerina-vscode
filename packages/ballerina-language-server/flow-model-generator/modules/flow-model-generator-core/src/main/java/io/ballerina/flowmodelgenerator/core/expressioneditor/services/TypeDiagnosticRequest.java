@@ -27,6 +27,7 @@ import io.ballerina.flowmodelgenerator.core.expressioneditor.ExpressionEditorCon
 import io.ballerina.modelgenerator.commons.CommonUtils;
 import io.ballerina.projects.Document;
 import io.ballerina.tools.diagnostics.DiagnosticSeverity;
+import org.ballerinalang.langserver.commons.BallerinaCompilerApi;
 import org.ballerinalang.util.diagnostic.DiagnosticErrorCode;
 import org.eclipse.lsp4j.Diagnostic;
 
@@ -38,7 +39,7 @@ import java.util.Set;
  * Handles diagnostic requests for type descriptor validation in the expression editor.
  *
  * @see DiagnosticsRequest
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class TypeDiagnosticRequest extends DiagnosticsRequest {
 
@@ -68,7 +69,8 @@ public class TypeDiagnosticRequest extends DiagnosticsRequest {
 
         // Check for undefined types
         Types types = semanticModel.get().types();
-        Optional<TypeSymbol> typeSymbol = types.getType(document.get(), inputExpression);
+        Optional<TypeSymbol> typeSymbol =
+                BallerinaCompilerApi.getInstance().getType(types, document.get(), inputExpression);
         if (typeSymbol.isEmpty()) {
             String message = String.format(UNDEFINED_TYPE, inputExpression);
             diagnostics.add(CommonUtils.createDiagnostic(message, context.getExpressionLineRange(),
@@ -81,7 +83,8 @@ public class TypeDiagnosticRequest extends DiagnosticsRequest {
         if (typeConstraint == null) {
             return diagnostics;
         }
-        Optional<TypeSymbol> typeConstraintTypeSymbol = types.getType(document.get(), typeConstraint);
+        Optional<TypeSymbol> typeConstraintTypeSymbol =
+                BallerinaCompilerApi.getInstance().getType(types, document.get(), typeConstraint);
         if (typeConstraintTypeSymbol.isPresent()) {
             if (!typeSymbol.get().subtypeOf(typeConstraintTypeSymbol.get())) {
                 String message = String.format(INVALID_SUBTYPE, typeConstraint, inputExpression);

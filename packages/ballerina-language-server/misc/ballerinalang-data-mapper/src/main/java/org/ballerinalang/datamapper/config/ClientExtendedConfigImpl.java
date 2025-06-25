@@ -20,7 +20,7 @@ import org.ballerinalang.langserver.config.LSClientConfig;
 /**
  * Extended Ballerina Client Configuration.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class ClientExtendedConfigImpl extends LSClientConfig {
     private final DataMapperConfig dataMapper;

@@ -28,7 +28,7 @@ import java.util.Set;
  * @param location location of the function
  * @param connections dependent connections of the function
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public record Function(String name, Location location, Set<String> connections) {
 

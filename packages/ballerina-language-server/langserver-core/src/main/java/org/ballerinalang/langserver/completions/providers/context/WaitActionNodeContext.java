@@ -49,7 +49,7 @@ import static io.ballerina.compiler.api.symbols.SymbolKind.WORKER;
 /**
  * Completion provider for {@link WaitActionNode} context.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 @JavaSPIService("org.ballerinalang.langserver.commons.completion.spi.BallerinaCompletionProvider")
 public class WaitActionNodeContext extends AbstractCompletionProvider<WaitActionNode> {

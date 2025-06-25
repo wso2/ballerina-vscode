@@ -46,7 +46,7 @@ import static org.ballerinalang.debugadapter.evaluation.utils.EvaluationUtils.ge
 /**
  * Invocation argument processor based on syntax tree nodes.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class NodeBasedArgProcessor extends InvocationArgProcessor {
 

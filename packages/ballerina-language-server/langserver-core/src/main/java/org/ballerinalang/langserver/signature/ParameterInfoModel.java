@@ -20,7 +20,7 @@ import io.ballerina.compiler.api.symbols.ParameterKind;
 /**
  * Parameter information model to hold the parameter information metadata.
  *
- * @since 2201.1.1
+ * @since 1.0.0
  */
 public class ParameterInfoModel {
 

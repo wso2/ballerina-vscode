@@ -31,7 +31,7 @@ import java.util.concurrent.CompletableFuture;
 /**
  * Central package descriptor holder.
  *
- * @since 2201.8.0
+ * @since 1.0.0
  */
 public class CentralPackageDescriptorLoader {
     public static final LanguageServerContext.Key<CentralPackageDescriptorLoader> CENTRAL_PACKAGE_HOLDER_KEY =

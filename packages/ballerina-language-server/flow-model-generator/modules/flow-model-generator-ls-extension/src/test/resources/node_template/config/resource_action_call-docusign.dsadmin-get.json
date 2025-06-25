@@ -9,6 +9,7 @@
     "node": "RESOURCE_ACTION_CALL",
     "org": "ballerinax",
     "module": "docusign.dsadmin",
+    "packageName": "docusign.dsadmin",
     "object": "Client",
     "symbol": "get",
     "parentSymbol": "dsAdminClient",
@@ -42,19 +43,19 @@
         "optional": false,
         "editable": false,
         "advanced": false,
-        "hidden": false
+        "hidden": true
       },
       "resourcePath": {
         "metadata": {
           "label": "Resource Path",
           "description": "Resource Path"
         },
-        "valueType": "EXPRESSION",
+        "valueType": "ACTION_PATH",
         "value": "/v2/organizations/[organizationId]/accounts/[accountId]/groups",
         "optional": false,
         "editable": false,
         "advanced": false,
-        "hidden": false,
+        "hidden": true,
         "codedata": {
           "originalName": "/v2/organizations/[organizationId]/accounts/[accountId]/groups"
         }
@@ -97,7 +98,7 @@
       },
       "start": {
         "metadata": {
-          "label": "start",
+          "label": "Start",
           "description": "Index of first item to include in the response. The default value is 0."
         },
         "valueType": "EXPRESSION",
@@ -115,20 +116,23 @@
           {
             "type": "()",
             "packageInfo": "",
+            "packageName": "",
             "kind": "BASIC_TYPE",
             "selected": false
           },
           {
             "type": "Signed32",
             "packageInfo": "ballerina:lang.int:0.0.0",
+            "packageName": "lang.int",
             "kind": "BASIC_TYPE",
             "selected": false
           }
-        ]
+        ],
+        "defaultValue": "()"
       },
       "take": {
         "metadata": {
-          "label": "take",
+          "label": "Take",
           "description": "Page size of the response. The default value is 20."
         },
         "valueType": "EXPRESSION",
@@ -146,20 +150,23 @@
           {
             "type": "()",
             "packageInfo": "",
+            "packageName": "",
             "kind": "BASIC_TYPE",
             "selected": false
           },
           {
             "type": "Signed32",
             "packageInfo": "ballerina:lang.int:0.0.0",
+            "packageName": "lang.int",
             "kind": "BASIC_TYPE",
             "selected": false
           }
-        ]
+        ],
+        "defaultValue": "()"
       },
       "end": {
         "metadata": {
-          "label": "end",
+          "label": "End",
           "description": "Index of the last item to include in the response. Ignored if `take` parameter is specified."
         },
         "valueType": "EXPRESSION",
@@ -177,16 +184,19 @@
           {
             "type": "()",
             "packageInfo": "",
+            "packageName": "",
             "kind": "BASIC_TYPE",
             "selected": false
           },
           {
             "type": "Signed32",
             "packageInfo": "ballerina:lang.int:0.0.0",
+            "packageName": "lang.int",
             "kind": "BASIC_TYPE",
             "selected": false
           }
-        ]
+        ],
+        "defaultValue": "()"
       },
       "type": {
         "metadata": {
@@ -199,13 +209,13 @@
         "optional": false,
         "editable": false,
         "advanced": false,
-        "hidden": false,
+        "hidden": true,
         "codedata": {}
       },
       "variable": {
         "metadata": {
-          "label": "Variable Name",
-          "description": "Name of the variable"
+          "label": "Result",
+          "description": "Name of the result variable"
         },
         "valueType": "IDENTIFIER",
         "value": "dsadminMembergroupsresponse",
@@ -224,7 +234,7 @@
         "optional": false,
         "editable": true,
         "advanced": true,
-        "hidden": false
+        "hidden": true
       }
     },
     "flags": 0

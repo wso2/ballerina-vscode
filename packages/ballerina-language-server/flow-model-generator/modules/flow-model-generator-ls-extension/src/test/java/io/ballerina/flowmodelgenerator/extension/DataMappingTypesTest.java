@@ -32,7 +32,7 @@ import java.nio.file.Path;
 /**
  * Tests for the data mapper types service.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class DataMappingTypesTest extends AbstractLSTest {
 

@@ -25,7 +25,7 @@ import org.ballerinalang.langserver.commons.registration.BallerinaClientCapabili
 /**
  * Client Capability setter for the {@link ArchitectureModelGeneratorService}.
  *
- * @since 2201.2.2
+ * @since 1.0.0
  */
 @JavaSPIService("org.ballerinalang.langserver.commons.registration.BallerinaClientCapabilitySetter")
 public class ArchitectureModelGeneratorClientCapabilitySetter extends

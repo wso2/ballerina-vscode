@@ -28,7 +28,7 @@ import java.util.List;
  * @param count   the total number of symbols
  * @param offset  the offset for pagination
  * @param limit   the limit for pagination
- * @since 2.0.0
+ * @since 1.0.0
  */
 public record SymbolResponse(
         List<Symbol> symbols,

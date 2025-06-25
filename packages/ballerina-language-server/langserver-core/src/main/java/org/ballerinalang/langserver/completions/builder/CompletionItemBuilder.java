@@ -7,7 +7,7 @@ import org.eclipse.lsp4j.CompletionItemKind;
 /**
  * Represents the base completion item builder.
  * 
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class CompletionItemBuilder {
     

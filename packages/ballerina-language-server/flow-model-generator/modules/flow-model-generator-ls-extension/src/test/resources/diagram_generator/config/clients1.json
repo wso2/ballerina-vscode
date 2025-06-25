@@ -49,6 +49,7 @@
           "node": "REMOTE_ACTION_CALL",
           "org": "ballerina",
           "module": "http",
+          "packageName": "http",
           "object": "Client",
           "symbol": "get",
           "version": "2.14.1",
@@ -78,11 +79,11 @@
             "optional": false,
             "editable": false,
             "advanced": false,
-            "hidden": false
+            "hidden": true
           },
           "targetType": {
             "metadata": {
-              "label": "targetType",
+              "label": "Target Type",
               "description": "HTTP response, `anydata` or stream of HTTP SSE, which is expected to be returned after data binding"
             },
             "valueType": "TYPE",
@@ -96,11 +97,12 @@
             "codedata": {
               "kind": "PARAM_FOR_TYPE_INFER",
               "originalName": "targetType"
-            }
+            },
+            "defaultValue": "anydata"
           },
           "path": {
             "metadata": {
-              "label": "path",
+              "label": "Path",
               "description": "Request path"
             },
             "valueType": "EXPRESSION",
@@ -119,6 +121,7 @@
               {
                 "type": "string",
                 "packageInfo": "",
+                "packageName": "",
                 "kind": "BASIC_TYPE",
                 "selected": true
               }
@@ -126,7 +129,7 @@
           },
           "headers": {
             "metadata": {
-              "label": "headers",
+              "label": "Headers",
               "description": "The entity headers"
             },
             "valueType": "EXPRESSION",
@@ -144,16 +147,19 @@
               {
                 "type": "()",
                 "packageInfo": "",
+                "packageName": "",
                 "kind": "BASIC_TYPE",
                 "selected": false
               },
               {
                 "type": "map<string|string[]>",
                 "packageInfo": "",
+                "packageName": "",
                 "kind": "MAP_TYPE",
                 "selected": false
               }
-            ]
+            ],
+            "defaultValue": "()"
           },
           "checkError": {
             "metadata": {
@@ -165,7 +171,7 @@
             "optional": false,
             "editable": true,
             "advanced": true,
-            "hidden": false
+            "hidden": true
           },
           "variable": {
             "metadata": {
@@ -203,7 +209,7 @@
             "optional": false,
             "editable": false,
             "advanced": false,
-            "hidden": false,
+            "hidden": true,
             "codedata": {}
           }
         },
@@ -219,6 +225,7 @@
           "node": "REMOTE_ACTION_CALL",
           "org": "$anon",
           "module": ".",
+          "packageName": ".",
           "object": "MyClient",
           "symbol": "myRemoteFn",
           "version": "0.0.0",
@@ -247,7 +254,7 @@
             "optional": false,
             "editable": false,
             "advanced": false,
-            "hidden": false
+            "hidden": true
           }
         },
         "flags": 0
@@ -282,7 +289,7 @@
         "properties": {
           "url": {
             "metadata": {
-              "label": "url",
+              "label": "Url",
               "description": "URL of the target service"
             },
             "valueType": "EXPRESSION",
@@ -301,6 +308,7 @@
               {
                 "type": "string",
                 "packageInfo": "",
+                "packageName": "",
                 "kind": "BASIC_TYPE",
                 "selected": true
               }
@@ -308,7 +316,7 @@
           },
           "config": {
             "metadata": {
-              "label": "config",
+              "label": "Config",
               "description": "The configurations to be used when initializing the `client`"
             },
             "valueType": "EXPRESSION",
@@ -327,6 +335,7 @@
               {
                 "type": "ClientConfiguration",
                 "packageInfo": "ballerina:http:2.14.1",
+                "packageName": "http",
                 "kind": "RECORD_TYPE",
                 "selected": true
               }
@@ -342,7 +351,7 @@
             "optional": false,
             "editable": false,
             "advanced": true,
-            "hidden": false
+            "hidden": true
           },
           "scope": {
             "metadata": {
@@ -354,7 +363,7 @@
             "optional": false,
             "editable": true,
             "advanced": true,
-            "hidden": false
+            "hidden": true
           },
           "variable": {
             "metadata": {
@@ -392,7 +401,7 @@
             "optional": false,
             "editable": false,
             "advanced": false,
-            "hidden": false,
+            "hidden": true,
             "codedata": {}
           }
         },
@@ -409,6 +418,7 @@
           "node": "REMOTE_ACTION_CALL",
           "org": "ballerina",
           "module": "http",
+          "packageName": "http",
           "object": "Client",
           "symbol": "get",
           "version": "2.14.1",
@@ -438,11 +448,11 @@
             "optional": false,
             "editable": false,
             "advanced": false,
-            "hidden": false
+            "hidden": true
           },
           "targetType": {
             "metadata": {
-              "label": "targetType",
+              "label": "Target Type",
               "description": "HTTP response, `anydata` or stream of HTTP SSE, which is expected to be returned after data binding"
             },
             "valueType": "TYPE",
@@ -456,11 +466,12 @@
             "codedata": {
               "kind": "PARAM_FOR_TYPE_INFER",
               "originalName": "targetType"
-            }
+            },
+            "defaultValue": "anydata"
           },
           "path": {
             "metadata": {
-              "label": "path",
+              "label": "Path",
               "description": "Request path"
             },
             "valueType": "EXPRESSION",
@@ -479,6 +490,7 @@
               {
                 "type": "string",
                 "packageInfo": "",
+                "packageName": "",
                 "kind": "BASIC_TYPE",
                 "selected": true
               }
@@ -486,7 +498,7 @@
           },
           "headers": {
             "metadata": {
-              "label": "headers",
+              "label": "Headers",
               "description": "The entity headers"
             },
             "valueType": "EXPRESSION",
@@ -504,16 +516,19 @@
               {
                 "type": "()",
                 "packageInfo": "",
+                "packageName": "",
                 "kind": "BASIC_TYPE",
                 "selected": false
               },
               {
                 "type": "map<string|string[]>",
                 "packageInfo": "",
+                "packageName": "",
                 "kind": "MAP_TYPE",
                 "selected": false
               }
-            ]
+            ],
+            "defaultValue": "()"
           },
           "checkError": {
             "metadata": {
@@ -525,7 +540,7 @@
             "optional": false,
             "editable": true,
             "advanced": true,
-            "hidden": false
+            "hidden": true
           },
           "variable": {
             "metadata": {
@@ -563,7 +578,7 @@
             "optional": false,
             "editable": false,
             "advanced": false,
-            "hidden": false,
+            "hidden": true,
             "codedata": {}
           }
         },
@@ -607,7 +622,7 @@
             "optional": false,
             "editable": true,
             "advanced": true,
-            "hidden": false
+            "hidden": true
           },
           "checkError": {
             "metadata": {
@@ -619,7 +634,7 @@
             "optional": false,
             "editable": false,
             "advanced": true,
-            "hidden": false
+            "hidden": true
           },
           "variable": {
             "metadata": {
@@ -657,7 +672,7 @@
             "optional": false,
             "editable": false,
             "advanced": false,
-            "hidden": false,
+            "hidden": true,
             "codedata": {}
           }
         },
@@ -673,6 +688,7 @@
           "node": "REMOTE_ACTION_CALL",
           "org": "$anon",
           "module": ".",
+          "packageName": ".",
           "object": "MyClient",
           "symbol": "myRemoteFn",
           "version": "0.0.0",
@@ -701,7 +717,7 @@
             "optional": false,
             "editable": false,
             "advanced": false,
-            "hidden": false
+            "hidden": true
           }
         },
         "flags": 0
@@ -776,7 +792,7 @@
         "properties": {
           "url": {
             "metadata": {
-              "label": "url",
+              "label": "Url",
               "description": "URL of the target service"
             },
             "valueType": "EXPRESSION",
@@ -795,6 +811,7 @@
               {
                 "type": "string",
                 "packageInfo": "",
+                "packageName": "",
                 "kind": "BASIC_TYPE",
                 "selected": true
               }
@@ -802,7 +819,7 @@
           },
           "config": {
             "metadata": {
-              "label": "config",
+              "label": "Config",
               "description": "The configurations to be used when initializing the `client`"
             },
             "valueType": "EXPRESSION",
@@ -821,6 +838,7 @@
               {
                 "type": "ClientConfiguration",
                 "packageInfo": "ballerina:http:2.14.1",
+                "packageName": "http",
                 "kind": "RECORD_TYPE",
                 "selected": true
               }
@@ -836,7 +854,7 @@
             "optional": false,
             "editable": false,
             "advanced": true,
-            "hidden": false
+            "hidden": true
           },
           "scope": {
             "metadata": {
@@ -848,7 +866,7 @@
             "optional": false,
             "editable": true,
             "advanced": true,
-            "hidden": false
+            "hidden": true
           },
           "variable": {
             "metadata": {
@@ -886,7 +904,7 @@
             "optional": false,
             "editable": false,
             "advanced": false,
-            "hidden": false,
+            "hidden": true,
             "codedata": {}
           }
         },
@@ -930,7 +948,7 @@
             "optional": false,
             "editable": true,
             "advanced": true,
-            "hidden": false
+            "hidden": true
           },
           "checkError": {
             "metadata": {
@@ -942,7 +960,7 @@
             "optional": false,
             "editable": false,
             "advanced": true,
-            "hidden": false
+            "hidden": true
           },
           "variable": {
             "metadata": {
@@ -980,7 +998,7 @@
             "optional": false,
             "editable": false,
             "advanced": false,
-            "hidden": false,
+            "hidden": true,
             "codedata": {}
           }
         },
@@ -1024,7 +1042,7 @@
             "optional": false,
             "editable": true,
             "advanced": true,
-            "hidden": false
+            "hidden": true
           },
           "checkError": {
             "metadata": {
@@ -1036,7 +1054,7 @@
             "optional": false,
             "editable": false,
             "advanced": true,
-            "hidden": false
+            "hidden": true
           },
           "variable": {
             "metadata": {
@@ -1074,7 +1092,7 @@
             "optional": false,
             "editable": false,
             "advanced": false,
-            "hidden": false,
+            "hidden": true,
             "codedata": {}
           }
         },

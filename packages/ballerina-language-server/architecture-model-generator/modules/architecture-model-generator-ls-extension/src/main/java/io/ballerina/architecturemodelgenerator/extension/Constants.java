@@ -21,7 +21,7 @@ package io.ballerina.architecturemodelgenerator.extension;
 /**
  * Lang Server Extension Constants.
  *
- * @since 2201.6.0
+ * @since 1.0.0
  */
 public class Constants {
 

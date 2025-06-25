@@ -35,7 +35,7 @@ import java.util.Map;
  * @param icon         The icon of the component
  * @param functionKind The kind of the function
  * @param data         The additional data
- * @since 2.0.0
+ * @since 1.0.0
  */
 public record Metadata(String label, String description, List<String> keywords, String icon, String functionKind,
                        Map<String, Object> data) {

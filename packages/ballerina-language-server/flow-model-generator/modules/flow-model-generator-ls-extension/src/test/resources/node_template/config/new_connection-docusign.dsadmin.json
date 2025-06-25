@@ -4,6 +4,7 @@
     "node": "NEW_CONNECTION",
     "org": "ballerinax",
     "module": "docusign.dsadmin",
+    "packageName": "docusign.dsadmin",
     "object": "Client",
     "symbol": "init"
   },
@@ -18,6 +19,7 @@
       "node": "NEW_CONNECTION",
       "org": "ballerinax",
       "module": "docusign.dsadmin",
+      "packageName": "docusign.dsadmin",
       "object": "Client",
       "symbol": "init",
       "version": "2.0.0",
@@ -27,7 +29,7 @@
     "properties": {
       "serviceUrl": {
         "metadata": {
-          "label": "serviceUrl",
+          "label": "Service Url",
           "description": "URL of the target service "
         },
         "valueType": "EXPRESSION",
@@ -45,6 +47,7 @@
           {
             "type": "string",
             "packageInfo": "",
+            "packageName": "",
             "kind": "BASIC_TYPE",
             "selected": false
           }
@@ -52,7 +55,7 @@
       },
       "auth": {
         "metadata": {
-          "label": "auth",
+          "label": "Auth",
           "description": "Configurations related to client authentication"
         },
         "valueType": "EXPRESSION",
@@ -70,28 +73,31 @@
           {
             "type": "BearerTokenConfig",
             "packageInfo": "ballerina:http:2.10.11",
+            "packageName": "http",
             "kind": "RECORD_TYPE",
             "selected": false
           },
           {
             "type": "OAuth2RefreshTokenGrantConfig",
             "packageInfo": "ballerinax:docusign.dsadmin:2.0.0",
+            "packageName": "docusign.dsadmin",
             "kind": "RECORD_TYPE",
             "selected": false
           }
         ],
         "imports": {
           "http": "ballerina/http"
-        }
+        },
+        "defaultValue": "{token: \"\"}"
       },
       "httpVersion": {
         "metadata": {
-          "label": "httpVersion",
+          "label": "HTTP Version",
           "description": "The HTTP version understood by the client"
         },
         "valueType": "EXPRESSION",
         "valueTypeConstraint": "http:HttpVersion",
-        "placeholder": "http:HTTP_2_0",
+        "placeholder": "\"2.0\"",
         "optional": true,
         "editable": true,
         "advanced": true,
@@ -104,17 +110,19 @@
           {
             "type": "HttpVersion",
             "packageInfo": "ballerina:http:2.10.11",
+            "packageName": "http",
             "kind": "BASIC_TYPE",
             "selected": false
           }
         ],
         "imports": {
           "http": "ballerina/http"
-        }
+        },
+        "defaultValue": "\"2.0\""
       },
       "http1Settings": {
         "metadata": {
-          "label": "http1Settings",
+          "label": "HTTP1 Settings",
           "description": "Configurations related to HTTP/1.x protocol"
         },
         "valueType": "EXPRESSION",
@@ -132,17 +140,19 @@
           {
             "type": "ClientHttp1Settings",
             "packageInfo": "ballerinax:docusign.dsadmin:2.0.0",
+            "packageName": "docusign.dsadmin",
             "kind": "RECORD_TYPE",
             "selected": false
           }
         ],
         "imports": {
           "http": "ballerina/http"
-        }
+        },
+        "defaultValue": "{}"
       },
       "http2Settings": {
         "metadata": {
-          "label": "http2Settings",
+          "label": "HTTP2 Settings",
           "description": "Configurations related to HTTP/2 protocol"
         },
         "valueType": "EXPRESSION",
@@ -160,22 +170,24 @@
           {
             "type": "ClientHttp2Settings",
             "packageInfo": "ballerina:http:2.10.11",
+            "packageName": "http",
             "kind": "RECORD_TYPE",
             "selected": false
           }
         ],
         "imports": {
           "http": "ballerina/http"
-        }
+        },
+        "defaultValue": "{}"
       },
       "timeout": {
         "metadata": {
-          "label": "timeout",
+          "label": "Timeout",
           "description": "The maximum time to wait (in seconds) for a response before closing the connection"
         },
         "valueType": "EXPRESSION",
         "valueTypeConstraint": "decimal",
-        "placeholder": "60",
+        "placeholder": "0.0d",
         "optional": true,
         "editable": true,
         "advanced": true,
@@ -188,22 +200,24 @@
           {
             "type": "decimal",
             "packageInfo": "",
+            "packageName": "",
             "kind": "BASIC_TYPE",
             "selected": false
           }
         ],
         "imports": {
           "http": "ballerina/http"
-        }
+        },
+        "defaultValue": "0.0d"
       },
       "forwarded": {
         "metadata": {
-          "label": "forwarded",
+          "label": "Forwarded",
           "description": "The choice of setting `forwarded`/`x-forwarded` header"
         },
         "valueType": "EXPRESSION",
         "valueTypeConstraint": "string",
-        "placeholder": "\"disable\"",
+        "placeholder": "\"\"",
         "optional": true,
         "editable": true,
         "advanced": true,
@@ -216,17 +230,19 @@
           {
             "type": "string",
             "packageInfo": "",
+            "packageName": "",
             "kind": "BASIC_TYPE",
             "selected": false
           }
         ],
         "imports": {
           "http": "ballerina/http"
-        }
+        },
+        "defaultValue": "\"\""
       },
       "poolConfig": {
         "metadata": {
-          "label": "poolConfig",
+          "label": "Pool Config",
           "description": "Configurations associated with request pooling"
         },
         "valueType": "EXPRESSION",
@@ -244,17 +260,19 @@
           {
             "type": "PoolConfiguration",
             "packageInfo": "ballerina:http:2.10.11",
+            "packageName": "http",
             "kind": "RECORD_TYPE",
             "selected": false
           }
         ],
         "imports": {
           "http": "ballerina/http"
-        }
+        },
+        "defaultValue": "{}"
       },
       "cache": {
         "metadata": {
-          "label": "cache",
+          "label": "Cache",
           "description": "HTTP caching related configurations"
         },
         "valueType": "EXPRESSION",
@@ -272,22 +290,24 @@
           {
             "type": "CacheConfig",
             "packageInfo": "ballerina:http:2.10.11",
+            "packageName": "http",
             "kind": "RECORD_TYPE",
             "selected": false
           }
         ],
         "imports": {
           "http": "ballerina/http"
-        }
+        },
+        "defaultValue": "{}"
       },
       "compression": {
         "metadata": {
-          "label": "compression",
+          "label": "Compression",
           "description": "Specifies the way of handling compression (`accept-encoding`) header"
         },
         "valueType": "EXPRESSION",
         "valueTypeConstraint": "http:Compression",
-        "placeholder": "http:COMPRESSION_AUTO",
+        "placeholder": "\"AUTO\"",
         "optional": true,
         "editable": true,
         "advanced": true,
@@ -300,17 +320,19 @@
           {
             "type": "Compression",
             "packageInfo": "ballerina:http:2.10.11",
+            "packageName": "http",
             "kind": "BASIC_TYPE",
             "selected": false
           }
         ],
         "imports": {
           "http": "ballerina/http"
-        }
+        },
+        "defaultValue": "\"AUTO\""
       },
       "circuitBreaker": {
         "metadata": {
-          "label": "circuitBreaker",
+          "label": "Circuit Breaker",
           "description": "Configurations associated with the behaviour of the Circuit Breaker"
         },
         "valueType": "EXPRESSION",
@@ -328,17 +350,19 @@
           {
             "type": "CircuitBreakerConfig",
             "packageInfo": "ballerina:http:2.10.11",
+            "packageName": "http",
             "kind": "RECORD_TYPE",
             "selected": false
           }
         ],
         "imports": {
           "http": "ballerina/http"
-        }
+        },
+        "defaultValue": "{}"
       },
       "retryConfig": {
         "metadata": {
-          "label": "retryConfig",
+          "label": "Retry Config",
           "description": "Configurations associated with retrying"
         },
         "valueType": "EXPRESSION",
@@ -356,17 +380,19 @@
           {
             "type": "RetryConfig",
             "packageInfo": "ballerina:http:2.10.11",
+            "packageName": "http",
             "kind": "RECORD_TYPE",
             "selected": false
           }
         ],
         "imports": {
           "http": "ballerina/http"
-        }
+        },
+        "defaultValue": "{}"
       },
       "responseLimits": {
         "metadata": {
-          "label": "responseLimits",
+          "label": "Response Limits",
           "description": "Configurations associated with inbound response size limits"
         },
         "valueType": "EXPRESSION",
@@ -384,17 +410,19 @@
           {
             "type": "ResponseLimitConfigs",
             "packageInfo": "ballerina:http:2.10.11",
+            "packageName": "http",
             "kind": "RECORD_TYPE",
             "selected": false
           }
         ],
         "imports": {
           "http": "ballerina/http"
-        }
+        },
+        "defaultValue": "{}"
       },
       "secureSocket": {
         "metadata": {
-          "label": "secureSocket",
+          "label": "Secure Socket",
           "description": "SSL/TLS-related options"
         },
         "valueType": "EXPRESSION",
@@ -412,17 +440,19 @@
           {
             "type": "ClientSecureSocket",
             "packageInfo": "ballerina:http:2.10.11",
+            "packageName": "http",
             "kind": "RECORD_TYPE",
             "selected": false
           }
         ],
         "imports": {
           "http": "ballerina/http"
-        }
+        },
+        "defaultValue": "{}"
       },
       "proxy": {
         "metadata": {
-          "label": "proxy",
+          "label": "Proxy",
           "description": "Proxy server related options"
         },
         "valueType": "EXPRESSION",
@@ -440,22 +470,24 @@
           {
             "type": "ProxyConfig",
             "packageInfo": "ballerina:http:2.10.11",
+            "packageName": "http",
             "kind": "RECORD_TYPE",
             "selected": false
           }
         ],
         "imports": {
           "http": "ballerina/http"
-        }
+        },
+        "defaultValue": "{}"
       },
       "validation": {
         "metadata": {
-          "label": "validation",
+          "label": "Validation",
           "description": "Enables the inbound payload validation functionality which provided by the constraint package. Enabled by default"
         },
         "valueType": "EXPRESSION",
         "valueTypeConstraint": "boolean",
-        "placeholder": "true",
+        "placeholder": "false",
         "optional": true,
         "editable": true,
         "advanced": true,
@@ -468,13 +500,15 @@
           {
             "type": "boolean",
             "packageInfo": "",
+            "packageName": "",
             "kind": "BASIC_TYPE",
             "selected": false
           }
         ],
         "imports": {
           "http": "ballerina/http"
-        }
+        },
+        "defaultValue": "false"
       },
       "type": {
         "metadata": {
@@ -487,7 +521,7 @@
         "optional": false,
         "editable": false,
         "advanced": false,
-        "hidden": false,
+        "hidden": true,
         "codedata": {},
         "imports": {
           "http": "ballerina/http"
@@ -496,7 +530,7 @@
       "variable": {
         "metadata": {
           "label": "Connection Name",
-          "description": "Name of the variable"
+          "description": "Name of the connection"
         },
         "valueType": "IDENTIFIER",
         "value": "dsadminClient",
@@ -518,7 +552,7 @@
         "optional": false,
         "editable": true,
         "advanced": true,
-        "hidden": false,
+        "hidden": true,
         "imports": {
           "http": "ballerina/http"
         }
@@ -533,7 +567,7 @@
         "optional": false,
         "editable": false,
         "advanced": true,
-        "hidden": false,
+        "hidden": true,
         "imports": {
           "http": "ballerina/http"
         }

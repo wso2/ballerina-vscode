@@ -22,7 +22,7 @@
     "metadata": {
       "label": "New Connection",
       "description": "",
-      "icon": "https://bcentral-packageicons.azureedge.net/images/oas_mod1_null.png"
+      "icon": "https://bcentral-packageicons.azureedge.net/images/oas_null_null.png"
     },
     "codedata": {
       "node": "NEW_CONNECTION",
@@ -37,7 +37,7 @@
     "properties": {
       "config": {
         "metadata": {
-          "label": "config",
+          "label": "Config",
           "description": "The configurations to be used when initializing the `connector` "
         },
         "valueType": "EXPRESSION",
@@ -55,15 +55,17 @@
           {
             "type": "ConnectionConfig",
             "packageInfo": "oas:client1.mod1:0.1.0",
+            "packageName": "client1",
             "kind": "RECORD_TYPE",
             "selected": false
           }
         ],
-        "imports": {}
+        "imports": {},
+        "defaultValue": "{}"
       },
       "serviceUrl": {
         "metadata": {
-          "label": "serviceUrl",
+          "label": "Service Url",
           "description": "URL of the target service "
         },
         "valueType": "EXPRESSION",
@@ -81,11 +83,13 @@
           {
             "type": "string",
             "packageInfo": "",
+            "packageName": "",
             "kind": "BASIC_TYPE",
             "selected": false
           }
         ],
-        "imports": {}
+        "imports": {},
+        "defaultValue": "\"\""
       },
       "type": {
         "metadata": {
@@ -98,14 +102,14 @@
         "optional": false,
         "editable": false,
         "advanced": false,
-        "hidden": false,
+        "hidden": true,
         "codedata": {},
         "imports": {}
       },
       "variable": {
         "metadata": {
           "label": "Connection Name",
-          "description": "Name of the variable"
+          "description": "Name of the connection"
         },
         "valueType": "IDENTIFIER",
         "value": "mod1Client",
@@ -125,7 +129,7 @@
         "optional": false,
         "editable": true,
         "advanced": true,
-        "hidden": false,
+        "hidden": true,
         "imports": {}
       },
       "checkError": {
@@ -138,7 +142,7 @@
         "optional": false,
         "editable": false,
         "advanced": true,
-        "hidden": false,
+        "hidden": true,
         "imports": {}
       }
     },

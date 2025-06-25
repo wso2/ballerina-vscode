@@ -25,7 +25,7 @@ import io.ballerina.tools.text.TextRange;
 /**
  * Represent the location of Architecture Model Diagnostic.
  *
- * @since 2201.7.0
+ * @since 1.0.0
  */
 public class DiagnosticLocation implements Location {
 

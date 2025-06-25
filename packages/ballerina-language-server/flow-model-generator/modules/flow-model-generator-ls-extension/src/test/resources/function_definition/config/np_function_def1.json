@@ -257,7 +257,7 @@
           "description": "Prompt for the function"
         },
         "valueType": "RAW_TEMPLATE",
-        "value": "    **Assumption**\n    Think yourself as a movie expert\n\n    **What to do**\n    Suggest a movie name matching to the genre given:\n    ${genre}\n",
+        "value": "    **Assumption**\n    Think yourself as a movie expert\n\n    **What to do**\n    Suggest a movie name matching to the genre given:\n    ${genre}",
         "optional": false,
         "editable": true,
         "advanced": false,

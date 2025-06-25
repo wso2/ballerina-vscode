@@ -26,7 +26,7 @@ import org.eclipse.lsp4j.CompletionItemKind;
 /**
  * This class is being used to build variable type completion item.
  *
- * @since 0.983.0
+ * @since 1.0.0
  */
 public final class VariableCompletionItemBuilder {
     private VariableCompletionItemBuilder() {

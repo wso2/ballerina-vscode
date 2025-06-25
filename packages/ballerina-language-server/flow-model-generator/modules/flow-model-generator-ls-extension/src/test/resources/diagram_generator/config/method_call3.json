@@ -49,6 +49,7 @@
           "node": "METHOD_CALL",
           "org": "ballerinax",
           "module": "redis",
+          "packageName": "redis",
           "object": "Client",
           "symbol": "close",
           "version": "3.1.0",
@@ -77,7 +78,7 @@
             "optional": false,
             "editable": false,
             "advanced": false,
-            "hidden": false
+            "hidden": true
           },
           "checkError": {
             "metadata": {
@@ -89,7 +90,7 @@
             "optional": false,
             "editable": true,
             "advanced": true,
-            "hidden": false
+            "hidden": true
           }
         },
         "flags": 1
@@ -142,18 +143,21 @@
             },
             "typeMembers": [
               {
-                "type": "ConnectionUri",
+                "type": "ConnectionParams",
                 "packageInfo": "ballerinax:redis:3.1.0",
-                "kind": "BASIC_TYPE",
+                "packageName": "redis",
+                "kind": "RECORD_TYPE",
                 "selected": false
               },
               {
-                "type": "ConnectionParams",
+                "type": "ConnectionUri",
                 "packageInfo": "ballerinax:redis:3.1.0",
-                "kind": "RECORD_TYPE",
+                "packageName": "redis",
+                "kind": "BASIC_TYPE",
                 "selected": false
               }
-            ]
+            ],
+            "defaultValue": "\"\""
           },
           "connectionPooling": {
             "metadata": {
@@ -175,10 +179,12 @@
               {
                 "type": "boolean",
                 "packageInfo": "",
+                "packageName": "",
                 "kind": "BASIC_TYPE",
                 "selected": false
               }
-            ]
+            ],
+            "defaultValue": "false"
           },
           "isClusterConnection": {
             "metadata": {
@@ -200,10 +206,12 @@
               {
                 "type": "boolean",
                 "packageInfo": "",
+                "packageName": "",
                 "kind": "BASIC_TYPE",
                 "selected": false
               }
-            ]
+            ],
+            "defaultValue": "false"
           },
           "secureSocket": {
             "metadata": {
@@ -225,10 +233,12 @@
               {
                 "type": "SecureSocket",
                 "packageInfo": "ballerinax:redis:3.1.0",
+                "packageName": "redis",
                 "kind": "RECORD_TYPE",
                 "selected": false
               }
-            ]
+            ],
+            "defaultValue": "{}"
           },
           "checkError": {
             "metadata": {
@@ -240,7 +250,7 @@
             "optional": false,
             "editable": false,
             "advanced": true,
-            "hidden": false
+            "hidden": true
           },
           "scope": {
             "metadata": {
@@ -252,7 +262,7 @@
             "optional": false,
             "editable": true,
             "advanced": true,
-            "hidden": false
+            "hidden": true
           },
           "variable": {
             "metadata": {
@@ -290,7 +300,7 @@
             "optional": false,
             "editable": false,
             "advanced": false,
-            "hidden": false,
+            "hidden": true,
             "codedata": {}
           }
         },

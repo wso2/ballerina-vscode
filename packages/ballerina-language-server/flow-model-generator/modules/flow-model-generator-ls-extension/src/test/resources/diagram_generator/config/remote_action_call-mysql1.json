@@ -49,6 +49,7 @@
           "node": "REMOTE_ACTION_CALL",
           "org": "ballerinax",
           "module": "mysql",
+          "packageName": "mysql",
           "object": "Client",
           "symbol": "query",
           "version": "1.15.0",
@@ -77,29 +78,11 @@
             "optional": false,
             "editable": false,
             "advanced": false,
-            "hidden": false
-          },
-          "rowType": {
-            "metadata": {
-              "label": "rowType",
-              "description": "The `typedesc` of the record to which the result needs to be returned"
-            },
-            "valueType": "TYPE",
-            "valueTypeConstraint": "record {|anydata...;|}",
-            "value": "Row",
-            "placeholder": "record {|anydata...;|}",
-            "optional": false,
-            "editable": true,
-            "advanced": false,
-            "hidden": false,
-            "codedata": {
-              "kind": "PARAM_FOR_TYPE_INFER",
-              "originalName": "rowType"
-            }
+            "hidden": true
           },
           "sqlQuery": {
             "metadata": {
-              "label": "sqlQuery",
+              "label": "SQL Query",
               "description": "The SQL query such as `` `SELECT * from Album WHERE name=${albumName}` ``"
             },
             "valueType": "RAW_TEMPLATE",
@@ -118,13 +101,37 @@
               {
                 "type": "ParameterizedQuery",
                 "packageInfo": "ballerina:sql:1.16.0",
+                "packageName": "sql",
                 "kind": "OBJECT_TYPE",
                 "selected": true
               }
             ],
             "imports": {
               "sql": "ballerina/sql"
-            }
+            },
+            "defaultValue": "``"
+          },
+          "rowType": {
+            "metadata": {
+              "label": "Row Type",
+              "description": "The `typedesc` of the record to which the result needs to be returned"
+            },
+            "valueType": "TYPE",
+            "valueTypeConstraint": "record {|anydata...;|}",
+            "value": "Row",
+            "placeholder": "record {|anydata...;|}",
+            "optional": false,
+            "editable": true,
+            "advanced": false,
+            "hidden": false,
+            "codedata": {
+              "kind": "PARAM_FOR_TYPE_INFER",
+              "originalName": "rowType"
+            },
+            "imports": {
+              "sql": "ballerina/sql"
+            },
+            "defaultValue": "record {|anydata...;|}"
           },
           "variable": {
             "metadata": {
@@ -165,7 +172,7 @@
             "optional": false,
             "editable": false,
             "advanced": false,
-            "hidden": false,
+            "hidden": true,
             "codedata": {},
             "imports": {
               "sql": "ballerina/sql"
@@ -185,6 +192,7 @@
           "node": "REMOTE_ACTION_CALL",
           "org": "ballerinax",
           "module": "mysql",
+          "packageName": "mysql",
           "object": "Client",
           "symbol": "query",
           "version": "1.15.0",
@@ -213,29 +221,11 @@
             "optional": false,
             "editable": false,
             "advanced": false,
-            "hidden": false
-          },
-          "rowType": {
-            "metadata": {
-              "label": "rowType",
-              "description": "The `typedesc` of the record to which the result needs to be returned"
-            },
-            "valueType": "TYPE",
-            "valueTypeConstraint": "record {|anydata...;|}",
-            "value": "record {|string id; int val;|}",
-            "placeholder": "record {|anydata...;|}",
-            "optional": false,
-            "editable": true,
-            "advanced": false,
-            "hidden": false,
-            "codedata": {
-              "kind": "PARAM_FOR_TYPE_INFER",
-              "originalName": "rowType"
-            }
+            "hidden": true
           },
           "sqlQuery": {
             "metadata": {
-              "label": "sqlQuery",
+              "label": "SQL Query",
               "description": "The SQL query such as `` `SELECT * from Album WHERE name=${albumName}` ``"
             },
             "valueType": "RAW_TEMPLATE",
@@ -254,13 +244,37 @@
               {
                 "type": "ParameterizedQuery",
                 "packageInfo": "ballerina:sql:1.16.0",
+                "packageName": "sql",
                 "kind": "OBJECT_TYPE",
                 "selected": true
               }
             ],
             "imports": {
               "sql": "ballerina/sql"
-            }
+            },
+            "defaultValue": "``"
+          },
+          "rowType": {
+            "metadata": {
+              "label": "Row Type",
+              "description": "The `typedesc` of the record to which the result needs to be returned"
+            },
+            "valueType": "TYPE",
+            "valueTypeConstraint": "record {|anydata...;|}",
+            "value": "record {|string id; int val;|}",
+            "placeholder": "record {|anydata...;|}",
+            "optional": false,
+            "editable": true,
+            "advanced": false,
+            "hidden": false,
+            "codedata": {
+              "kind": "PARAM_FOR_TYPE_INFER",
+              "originalName": "rowType"
+            },
+            "imports": {
+              "sql": "ballerina/sql"
+            },
+            "defaultValue": "record {|anydata...;|}"
           },
           "variable": {
             "metadata": {
@@ -301,7 +315,7 @@
             "optional": false,
             "editable": false,
             "advanced": false,
-            "hidden": false,
+            "hidden": true,
             "codedata": {},
             "imports": {
               "sql": "ballerina/sql"
@@ -342,7 +356,7 @@
         "properties": {
           "host": {
             "metadata": {
-              "label": "host",
+              "label": "Host",
               "description": "Hostname of the MySQL server"
             },
             "valueType": "EXPRESSION",
@@ -360,14 +374,16 @@
               {
                 "type": "string",
                 "packageInfo": "",
+                "packageName": "",
                 "kind": "BASIC_TYPE",
                 "selected": false
               }
-            ]
+            ],
+            "defaultValue": "\"\""
           },
           "user": {
             "metadata": {
-              "label": "user",
+              "label": "User",
               "description": "If the MySQL server is secured, the username"
             },
             "valueType": "EXPRESSION",
@@ -383,22 +399,25 @@
             },
             "typeMembers": [
               {
-                "type": "string",
+                "type": "()",
                 "packageInfo": "",
+                "packageName": "",
                 "kind": "BASIC_TYPE",
                 "selected": false
               },
               {
-                "type": "()",
+                "type": "string",
                 "packageInfo": "",
+                "packageName": "",
                 "kind": "BASIC_TYPE",
                 "selected": false
               }
-            ]
+            ],
+            "defaultValue": "()"
           },
           "password": {
             "metadata": {
-              "label": "password",
+              "label": "Password",
               "description": "The password of the MySQL server for the provided username"
             },
             "valueType": "EXPRESSION",
@@ -414,22 +433,25 @@
             },
             "typeMembers": [
               {
-                "type": "string",
+                "type": "()",
                 "packageInfo": "",
+                "packageName": "",
                 "kind": "BASIC_TYPE",
                 "selected": false
               },
               {
-                "type": "()",
+                "type": "string",
                 "packageInfo": "",
+                "packageName": "",
                 "kind": "BASIC_TYPE",
                 "selected": false
               }
-            ]
+            ],
+            "defaultValue": "()"
           },
           "database": {
             "metadata": {
-              "label": "database",
+              "label": "Database",
               "description": "The name of the database"
             },
             "valueType": "EXPRESSION",
@@ -445,22 +467,25 @@
             },
             "typeMembers": [
               {
-                "type": "string",
+                "type": "()",
                 "packageInfo": "",
+                "packageName": "",
                 "kind": "BASIC_TYPE",
                 "selected": false
               },
               {
-                "type": "()",
+                "type": "string",
                 "packageInfo": "",
+                "packageName": "",
                 "kind": "BASIC_TYPE",
                 "selected": false
               }
-            ]
+            ],
+            "defaultValue": "()"
           },
           "port": {
             "metadata": {
-              "label": "port",
+              "label": "Port",
               "description": "Port number of the MySQL server"
             },
             "valueType": "EXPRESSION",
@@ -478,14 +503,16 @@
               {
                 "type": "int",
                 "packageInfo": "",
+                "packageName": "",
                 "kind": "BASIC_TYPE",
                 "selected": false
               }
-            ]
+            ],
+            "defaultValue": "0"
           },
           "options": {
             "metadata": {
-              "label": "options",
+              "label": "Options",
               "description": "MySQL database options"
             },
             "valueType": "EXPRESSION",
@@ -501,22 +528,25 @@
             },
             "typeMembers": [
               {
-                "type": "Options",
-                "packageInfo": "ballerinax:mysql:1.15.0",
-                "kind": "RECORD_TYPE",
+                "type": "()",
+                "packageInfo": "",
+                "packageName": "",
+                "kind": "BASIC_TYPE",
                 "selected": false
               },
               {
-                "type": "()",
-                "packageInfo": "",
-                "kind": "BASIC_TYPE",
+                "type": "Options",
+                "packageInfo": "ballerinax:mysql:1.15.0",
+                "packageName": "mysql",
+                "kind": "RECORD_TYPE",
                 "selected": false
               }
-            ]
+            ],
+            "defaultValue": "()"
           },
           "connectionPool": {
             "metadata": {
-              "label": "connectionPool",
+              "label": "Connection Pool",
               "description": "The `sql:ConnectionPool` to be used for the connection. If there is no\n`connectionPool` provided, the global connection pool (shared by all clients) will be used"
             },
             "valueType": "EXPRESSION",
@@ -532,21 +562,24 @@
             },
             "typeMembers": [
               {
-                "type": "ConnectionPool",
-                "packageInfo": "ballerina:sql:1.16.0",
-                "kind": "RECORD_TYPE",
+                "type": "()",
+                "packageInfo": "",
+                "packageName": "",
+                "kind": "BASIC_TYPE",
                 "selected": false
               },
               {
-                "type": "()",
-                "packageInfo": "",
-                "kind": "BASIC_TYPE",
+                "type": "ConnectionPool",
+                "packageInfo": "ballerina:sql:1.16.0",
+                "packageName": "sql",
+                "kind": "RECORD_TYPE",
                 "selected": false
               }
             ],
             "imports": {
               "sql": "ballerina/sql"
-            }
+            },
+            "defaultValue": "()"
           },
           "checkError": {
             "metadata": {
@@ -558,7 +591,7 @@
             "optional": false,
             "editable": false,
             "advanced": true,
-            "hidden": false,
+            "hidden": true,
             "imports": {
               "sql": "ballerina/sql"
             }
@@ -573,7 +606,7 @@
             "optional": false,
             "editable": true,
             "advanced": true,
-            "hidden": false,
+            "hidden": true,
             "imports": {
               "sql": "ballerina/sql"
             }
@@ -617,7 +650,7 @@
             "optional": false,
             "editable": false,
             "advanced": false,
-            "hidden": false,
+            "hidden": true,
             "codedata": {},
             "imports": {
               "sql": "ballerina/sql"

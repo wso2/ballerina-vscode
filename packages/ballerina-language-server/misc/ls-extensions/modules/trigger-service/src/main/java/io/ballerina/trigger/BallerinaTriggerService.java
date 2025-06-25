@@ -64,7 +64,7 @@ import static io.ballerina.projects.util.ProjectUtils.initializeProxy;
  * This is being used to fetch the list of triggers from the Ballerina Central and
  * Get the details of a selected trigger
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 @JavaSPIService("org.ballerinalang.langserver.commons.service.spi.ExtendedLanguageServerService")
 @JsonSegment("ballerinaTrigger")

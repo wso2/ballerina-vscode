@@ -24,7 +24,7 @@ import io.ballerina.tools.text.LineRange;
 /**
  * Represents the request for GraphQL design view.
  *
- * @since 2201.5.0
+ * @since 1.0.0
  */
 public class GraphqlDesignServiceRequest {
     private final String filePath;

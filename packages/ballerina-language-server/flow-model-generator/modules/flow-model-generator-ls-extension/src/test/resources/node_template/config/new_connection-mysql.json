@@ -9,9 +9,10 @@
     "node": "NEW_CONNECTION",
     "org": "ballerinax",
     "module": "mysql",
+    "packageName": "mysql",
     "object": "Client",
     "symbol": "init",
-    "version": "1.13.1",
+    "version": "1.15.0",
     "isNew": true
   },
   "output": {
@@ -25,6 +26,7 @@
       "node": "NEW_CONNECTION",
       "org": "ballerinax",
       "module": "mysql",
+      "packageName": "mysql",
       "object": "Client",
       "symbol": "init",
       "version": "1.15.0",
@@ -34,12 +36,12 @@
     "properties": {
       "host": {
         "metadata": {
-          "label": "host",
+          "label": "Host",
           "description": "Hostname of the MySQL server"
         },
         "valueType": "EXPRESSION",
         "valueTypeConstraint": "string",
-        "placeholder": "\"localhost\"",
+        "placeholder": "\"\"",
         "optional": true,
         "editable": true,
         "advanced": true,
@@ -52,19 +54,21 @@
           {
             "type": "string",
             "packageInfo": "",
+            "packageName": "",
             "kind": "BASIC_TYPE",
             "selected": false
           }
-        ]
+        ],
+        "defaultValue": "\"\""
       },
       "user": {
         "metadata": {
-          "label": "user",
+          "label": "User",
           "description": "If the MySQL server is secured, the username"
         },
         "valueType": "EXPRESSION",
         "valueTypeConstraint": "string|()",
-        "placeholder": "\"root\"",
+        "placeholder": "()",
         "optional": true,
         "editable": true,
         "advanced": true,
@@ -75,22 +79,25 @@
         },
         "typeMembers": [
           {
-            "type": "()",
+            "type": "string",
             "packageInfo": "",
+            "packageName": "",
             "kind": "BASIC_TYPE",
             "selected": false
           },
           {
-            "type": "string",
+            "type": "()",
             "packageInfo": "",
+            "packageName": "",
             "kind": "BASIC_TYPE",
             "selected": false
           }
-        ]
+        ],
+        "defaultValue": "()"
       },
       "password": {
         "metadata": {
-          "label": "password",
+          "label": "Password",
           "description": "The password of the MySQL server for the provided username"
         },
         "valueType": "EXPRESSION",
@@ -106,22 +113,25 @@
         },
         "typeMembers": [
           {
-            "type": "()",
+            "type": "string",
             "packageInfo": "",
+            "packageName": "",
             "kind": "BASIC_TYPE",
             "selected": false
           },
           {
-            "type": "string",
+            "type": "()",
             "packageInfo": "",
+            "packageName": "",
             "kind": "BASIC_TYPE",
             "selected": false
           }
-        ]
+        ],
+        "defaultValue": "()"
       },
       "database": {
         "metadata": {
-          "label": "database",
+          "label": "Database",
           "description": "The name of the database"
         },
         "valueType": "EXPRESSION",
@@ -137,27 +147,30 @@
         },
         "typeMembers": [
           {
-            "type": "()",
+            "type": "string",
             "packageInfo": "",
+            "packageName": "",
             "kind": "BASIC_TYPE",
             "selected": false
           },
           {
-            "type": "string",
+            "type": "()",
             "packageInfo": "",
+            "packageName": "",
             "kind": "BASIC_TYPE",
             "selected": false
           }
-        ]
+        ],
+        "defaultValue": "()"
       },
       "port": {
         "metadata": {
-          "label": "port",
+          "label": "Port",
           "description": "Port number of the MySQL server"
         },
         "valueType": "EXPRESSION",
         "valueTypeConstraint": "int",
-        "placeholder": "3306",
+        "placeholder": "0",
         "optional": true,
         "editable": true,
         "advanced": true,
@@ -170,14 +183,16 @@
           {
             "type": "int",
             "packageInfo": "",
+            "packageName": "",
             "kind": "BASIC_TYPE",
             "selected": false
           }
-        ]
+        ],
+        "defaultValue": "0"
       },
       "options": {
         "metadata": {
-          "label": "options",
+          "label": "Options",
           "description": "MySQL database options"
         },
         "valueType": "EXPRESSION",
@@ -193,22 +208,25 @@
         },
         "typeMembers": [
           {
-            "type": "()",
-            "packageInfo": "",
-            "kind": "BASIC_TYPE",
+            "type": "Options",
+            "packageInfo": "ballerinax:mysql:1.15.0",
+            "packageName": "mysql",
+            "kind": "RECORD_TYPE",
             "selected": false
           },
           {
-            "type": "Options",
-            "packageInfo": "ballerinax:mysql:1.15.0",
-            "kind": "RECORD_TYPE",
+            "type": "()",
+            "packageInfo": "",
+            "packageName": "",
+            "kind": "BASIC_TYPE",
             "selected": false
           }
-        ]
+        ],
+        "defaultValue": "()"
       },
       "connectionPool": {
         "metadata": {
-          "label": "connectionPool",
+          "label": "Connection Pool",
           "description": "The `sql:ConnectionPool` to be used for the connection. If there is no\n`connectionPool` provided, the global connection pool (shared by all clients) will be used"
         },
         "valueType": "EXPRESSION",
@@ -224,21 +242,24 @@
         },
         "typeMembers": [
           {
-            "type": "()",
-            "packageInfo": "",
-            "kind": "BASIC_TYPE",
+            "type": "ConnectionPool",
+            "packageInfo": "ballerina:sql:1.16.0",
+            "packageName": "sql",
+            "kind": "RECORD_TYPE",
             "selected": false
           },
           {
-            "type": "ConnectionPool",
-            "packageInfo": "ballerina:sql:1.16.0",
-            "kind": "RECORD_TYPE",
+            "type": "()",
+            "packageInfo": "",
+            "packageName": "",
+            "kind": "BASIC_TYPE",
             "selected": false
           }
         ],
         "imports": {
           "sql": "ballerina/sql"
-        }
+        },
+        "defaultValue": "()"
       },
       "type": {
         "metadata": {
@@ -251,7 +272,7 @@
         "optional": false,
         "editable": false,
         "advanced": false,
-        "hidden": false,
+        "hidden": true,
         "codedata": {},
         "imports": {
           "sql": "ballerina/sql"
@@ -260,7 +281,7 @@
       "variable": {
         "metadata": {
           "label": "Connection Name",
-          "description": "Name of the variable"
+          "description": "Name of the connection"
         },
         "valueType": "IDENTIFIER",
         "value": "mysqlClient",
@@ -282,7 +303,7 @@
         "optional": false,
         "editable": true,
         "advanced": true,
-        "hidden": false,
+        "hidden": true,
         "imports": {
           "sql": "ballerina/sql"
         }
@@ -297,7 +318,7 @@
         "optional": false,
         "editable": false,
         "advanced": true,
-        "hidden": false,
+        "hidden": true,
         "imports": {
           "sql": "ballerina/sql"
         }

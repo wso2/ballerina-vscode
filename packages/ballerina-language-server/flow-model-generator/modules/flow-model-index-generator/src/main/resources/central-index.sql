@@ -9,7 +9,8 @@ DROP TABLE IF EXISTS ParameterMemberType;
 -- Create Package table
 CREATE TABLE Package (
     package_id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT NOT NULL,
+    package_name TEXT NOT NULL,
+    module_name TEXT NOT NULL,
     org TEXT NOT NULL,
     version TEXT,
     keywords TEXT
@@ -44,9 +45,11 @@ CREATE TABLE Parameter (
     parameter_id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL,
     description TEXT,
+    label TEXT,
     kind TEXT CHECK(kind IN ('REQUIRED', 'DEFAULTABLE', 'INCLUDED_RECORD', 'REST_PARAMETER',
     'INCLUDED_FIELD', 'INCLUDED_RECORD_REST', 'PARAM_FOR_TYPE_INFER', 'PATH_PARAM', 'PATH_REST_PARAM')),
     type JSON, -- JSON type for parameter type information
+    placeholder TEXT,
     default_value TEXT,
     optional INTEGER CHECK(optional IN (0, 1)),
     import_statements TEXT,
@@ -60,6 +63,7 @@ CREATE TABLE ParameterMemberType (
     type JSON, -- JSON type for parameter type information
     kind TEXT,
     parameter_id INTEGER,
-    package TEXT, -- format of the package is org:name:version
+    package_identifier TEXT, -- format of the package is org:name:version
+    package_name TEXT,
     FOREIGN KEY (parameter_id) REFERENCES Parameter(parameter_id) ON DELETE CASCADE
 );

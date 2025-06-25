@@ -21,7 +21,7 @@ package io.ballerina.flowmodelgenerator.extension.request;
 /**
  * Request format for XMLToRecord endpoint.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class XMLToRecordRequest {
 

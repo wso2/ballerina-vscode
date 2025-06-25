@@ -130,6 +130,7 @@
                   "node": "FUNCTION_CALL",
                   "org": "ballerina",
                   "module": "lang.runtime",
+                  "packageName": "lang.runtime",
                   "symbol": "sleep",
                   "version": "0.0.0",
                   "lineRange": {
@@ -149,7 +150,7 @@
                 "properties": {
                   "seconds": {
                     "metadata": {
-                      "label": "seconds",
+                      "label": "Seconds",
                       "description": "An amount of time to sleep in seconds"
                     },
                     "valueType": "EXPRESSION",
@@ -168,6 +169,7 @@
                       {
                         "type": "decimal",
                         "packageInfo": "",
+                        "packageName": "",
                         "kind": "BASIC_TYPE",
                         "selected": true
                       }
@@ -286,6 +288,7 @@
                   "node": "FUNCTION_CALL",
                   "org": "ballerina",
                   "module": "lang.runtime",
+                  "packageName": "lang.runtime",
                   "symbol": "sleep",
                   "version": "0.0.0",
                   "lineRange": {
@@ -305,7 +308,7 @@
                 "properties": {
                   "seconds": {
                     "metadata": {
-                      "label": "seconds",
+                      "label": "Seconds",
                       "description": "An amount of time to sleep in seconds"
                     },
                     "valueType": "EXPRESSION",
@@ -324,6 +327,7 @@
                       {
                         "type": "decimal",
                         "packageInfo": "",
+                        "packageName": "",
                         "kind": "BASIC_TYPE",
                         "selected": true
                       }
@@ -442,6 +446,7 @@
                   "node": "FUNCTION_CALL",
                   "org": "ballerina",
                   "module": "lang.runtime",
+                  "packageName": "lang.runtime",
                   "symbol": "sleep",
                   "version": "0.0.0",
                   "lineRange": {
@@ -461,7 +466,7 @@
                 "properties": {
                   "seconds": {
                     "metadata": {
-                      "label": "seconds",
+                      "label": "Seconds",
                       "description": "An amount of time to sleep in seconds"
                     },
                     "valueType": "EXPRESSION",
@@ -480,6 +485,7 @@
                       {
                         "type": "decimal",
                         "packageInfo": "",
+                        "packageName": "",
                         "kind": "BASIC_TYPE",
                         "selected": true
                       }

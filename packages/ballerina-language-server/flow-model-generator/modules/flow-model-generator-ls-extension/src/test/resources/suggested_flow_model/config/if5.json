@@ -323,6 +323,7 @@
                           "node": "FUNCTION_CALL",
                           "org": "$anon",
                           "module": ".",
+                          "packageName": ".",
                           "symbol": "print",
                           "version": "0.0.0",
                           "lineRange": {
@@ -364,7 +365,7 @@
                           },
                           "val": {
                             "metadata": {
-                              "label": "val"
+                              "label": "Val"
                             },
                             "valueType": "EXPRESSION",
                             "valueTypeConstraint": "string",
@@ -382,6 +383,7 @@
                               {
                                 "type": "string",
                                 "packageInfo": "",
+                                "packageName": "",
                                 "kind": "BASIC_TYPE",
                                 "selected": true
                               }
@@ -423,6 +425,7 @@
                           "node": "FUNCTION_CALL",
                           "org": "$anon",
                           "module": ".",
+                          "packageName": ".",
                           "symbol": "print",
                           "version": "0.0.0",
                           "lineRange": {
@@ -464,7 +467,7 @@
                           },
                           "val": {
                             "metadata": {
-                              "label": "val"
+                              "label": "Val"
                             },
                             "valueType": "EXPRESSION",
                             "valueTypeConstraint": "string",
@@ -482,6 +485,7 @@
                               {
                                 "type": "string",
                                 "packageInfo": "",
+                                "packageName": "",
                                 "kind": "BASIC_TYPE",
                                 "selected": true
                               }
@@ -507,6 +511,7 @@
                   "node": "FUNCTION_CALL",
                   "org": "$anon",
                   "module": ".",
+                  "packageName": ".",
                   "symbol": "print",
                   "version": "0.0.0",
                   "lineRange": {
@@ -548,7 +553,7 @@
                   },
                   "val": {
                     "metadata": {
-                      "label": "val"
+                      "label": "Val"
                     },
                     "valueType": "EXPRESSION",
                     "valueTypeConstraint": "string",
@@ -566,6 +571,7 @@
                       {
                         "type": "string",
                         "packageInfo": "",
+                        "packageName": "",
                         "kind": "BASIC_TYPE",
                         "selected": true
                       }
@@ -607,6 +613,7 @@
                   "node": "FUNCTION_CALL",
                   "org": "$anon",
                   "module": ".",
+                  "packageName": ".",
                   "symbol": "print",
                   "version": "0.0.0",
                   "lineRange": {
@@ -648,7 +655,7 @@
                   },
                   "val": {
                     "metadata": {
-                      "label": "val"
+                      "label": "Val"
                     },
                     "valueType": "EXPRESSION",
                     "valueTypeConstraint": "string",
@@ -666,6 +673,7 @@
                       {
                         "type": "string",
                         "packageInfo": "",
+                        "packageName": "",
                         "kind": "BASIC_TYPE",
                         "selected": true
                       }

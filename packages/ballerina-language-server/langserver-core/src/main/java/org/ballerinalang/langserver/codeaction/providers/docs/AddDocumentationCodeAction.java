@@ -40,7 +40,7 @@ import static org.ballerinalang.langserver.command.docs.DocumentationGenerator.h
 /**
  * Code Action for adding single documentation.
  *
- * @since 1.1.1
+ * @since 1.0.0
  */
 @JavaSPIService("org.ballerinalang.langserver.commons.codeaction.spi.LSCodeActionProvider")
 public class AddDocumentationCodeAction implements RangeBasedCodeActionProvider {

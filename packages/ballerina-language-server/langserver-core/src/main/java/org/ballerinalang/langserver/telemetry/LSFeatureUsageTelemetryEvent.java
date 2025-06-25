@@ -20,7 +20,7 @@ import org.ballerinalang.langserver.common.utils.CommonUtil;
 /**
  * Represents a telemetry event sent to gather feature usage statistics.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class LSFeatureUsageTelemetryEvent extends LSTelemetryEvent {
 

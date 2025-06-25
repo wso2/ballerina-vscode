@@ -39,7 +39,7 @@ import java.util.logging.Logger;
 /**
  * Manages database operations for retrieving information about external connectors and functions.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class ServiceDatabaseManager {
 
@@ -109,6 +109,7 @@ public class ServiceDatabaseManager {
                         rs.getString("listener_name"),
                         rs.getString("listener_description"),
                         null,
+                        rs.getString("package_name"),
                         rs.getString("package_name"),
                         rs.getString("org"),
                         rs.getString("version"),
@@ -186,7 +187,7 @@ public class ServiceDatabaseManager {
                 // Add member type if present
                 if (memberType != null) {
                     ParameterMemberTypeData memberData = new ParameterMemberTypeData(
-                            memberType, memberKind, memberPackage);
+                            memberType, memberKind, memberPackage, memberPackage);
                     builder.typeMembers.add(memberData);
                 }
             }
@@ -482,6 +483,7 @@ public class ServiceDatabaseManager {
                     type,
                     kind,
                     defaultValue,
+                    null,
                     description,
                     null,
                     optional,

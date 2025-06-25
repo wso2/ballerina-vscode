@@ -67,7 +67,7 @@ import static org.ballerinalang.debugadapter.variable.VariableUtils.UNKNOWN_VALU
 /**
  * Evaluator implementation for method call invocation expressions.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class MethodCallExpressionEvaluator extends Evaluator {
 

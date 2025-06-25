@@ -33,7 +33,7 @@ import java.util.Map;
  *
  * Only handles features supported by OpenAPI schema.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public final class SchemaGenerator {
 

@@ -54,7 +54,7 @@ import java.util.concurrent.CompletableFuture;
 /**
  * Represents the extended language server service for the test manager service.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 @JavaSPIService("org.ballerinalang.langserver.commons.service.spi.ExtendedLanguageServerService")
 @JsonSegment("testManagerService")

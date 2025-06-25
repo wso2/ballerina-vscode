@@ -47,7 +47,7 @@ import static org.ballerinalang.langserver.command.docs.DocumentationGenerator.g
  * An abstract class to perform add/update documentation operations to all the nodes. This will update the documentation
  * if already exists, add otherwise.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public abstract class AbstractDocumentationExecutor implements LSCommandExecutor {
 

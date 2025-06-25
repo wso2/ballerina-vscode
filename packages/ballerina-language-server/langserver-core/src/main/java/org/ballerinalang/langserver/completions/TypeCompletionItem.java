@@ -28,7 +28,7 @@ import javax.annotation.Nullable;
 /**
  * Represents a Type Descriptor Based Completion Item.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class TypeCompletionItem extends SymbolCompletionItem {
     private final TypeSymbol typeDescriptor;

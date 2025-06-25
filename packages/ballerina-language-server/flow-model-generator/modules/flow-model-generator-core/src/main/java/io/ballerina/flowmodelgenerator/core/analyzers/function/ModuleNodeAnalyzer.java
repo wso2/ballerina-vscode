@@ -55,6 +55,7 @@ import io.ballerina.modelgenerator.commons.CommonUtils;
 import io.ballerina.modelgenerator.commons.ModuleInfo;
 import io.ballerina.modelgenerator.commons.ParameterData;
 import io.ballerina.tools.text.LineRange;
+import org.ballerinalang.langserver.commons.BallerinaCompilerApi;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -63,7 +64,7 @@ import java.util.Optional;
 /**
  * Analyzes the module level functions and generates the flow model.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class ModuleNodeAnalyzer extends NodeVisitor {
 
@@ -96,7 +97,8 @@ public class ModuleNodeAnalyzer extends NodeVisitor {
 
     @Override
     public void visit(FunctionDefinitionNode functionDefinitionNode) {
-        boolean isNpFunction = CommonUtils.isNaturalExpressionBodiedFunction(functionDefinitionNode);
+        boolean isNpFunction =
+                BallerinaCompilerApi.getInstance().isNaturalExpressionBodiedFunction(functionDefinitionNode);
         NodeKind nodeKind;
         if (isNpFunction) {
             nodeKind = NodeKind.NP_FUNCTION_DEFINITION;
@@ -230,17 +232,20 @@ public class ModuleNodeAnalyzer extends NodeVisitor {
                                                      boolean isModelParamEnabled) {
         NodeList<Node> prompt = naturalExpression.prompt();
 
-        String promptContent;
+        String promptContent = "";
         LineRange startingNodeLineRange;
         LineRange endingNodeLineRange;
         if (prompt.isEmpty()) {
             startingNodeLineRange = naturalExpression.openBraceToken().lineRange();
             endingNodeLineRange = naturalExpression.closeBraceToken().lineRange();
-            promptContent = System.lineSeparator() + System.lineSeparator();    // "/n/n"
         } else {
             startingNodeLineRange = prompt.get(0).lineRange();
             endingNodeLineRange = prompt.get(prompt.size() - 1).lineRange();
-            promptContent = String.join("", prompt.stream().map(Node::toSourceCode).toList());
+            String stringContent = String.join("", prompt.stream().map(Node::toSourceCode).toList());
+            // Remove last newline character that are always present
+            promptContent = stringContent.endsWith(System.lineSeparator())
+                    ? stringContent.substring(0, stringContent.length() - System.lineSeparator().length())
+                    : stringContent;
         }
         LineRange promptLineRange = LineRange.from(startingNodeLineRange.fileName(), startingNodeLineRange.startLine(),
                 endingNodeLineRange.endLine());
@@ -360,8 +365,8 @@ public class ModuleNodeAnalyzer extends NodeVisitor {
                 nodeKind == SyntaxKind.MARKDOWN_DEPRECATION_DOCUMENTATION_LINE;
     }
 
-    private record FunctionDocumentation (String description, Map<String, String> parameterDescriptions,
-                                          String returnDescription) {
+    private record FunctionDocumentation(String description, Map<String, String> parameterDescriptions,
+                                         String returnDescription) {
 
     }
 }

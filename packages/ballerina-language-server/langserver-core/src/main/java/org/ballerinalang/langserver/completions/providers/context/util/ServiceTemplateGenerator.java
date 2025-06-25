@@ -68,7 +68,7 @@ import java.util.function.Predicate;
 /**
  * Generates Service Template Snippet completion items.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class ServiceTemplateGenerator {
 

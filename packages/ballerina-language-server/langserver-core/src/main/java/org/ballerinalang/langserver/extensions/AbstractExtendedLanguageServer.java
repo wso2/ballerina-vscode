@@ -19,6 +19,7 @@ import com.google.common.base.Objects;
 import com.google.common.collect.LinkedListMultimap;
 import com.google.common.collect.Multimap;
 import org.ballerinalang.langserver.LSClientLogger;
+import org.ballerinalang.langserver.commons.BallerinaCompilerApi;
 import org.ballerinalang.langserver.commons.LanguageServerContext;
 import org.ballerinalang.langserver.commons.service.spi.ExtendedLanguageServerService;
 import org.ballerinalang.langserver.commons.workspace.WorkspaceManager;
@@ -42,7 +43,7 @@ import java.util.concurrent.CompletableFuture;
  * Provides capabilities for the extended language server services.
  *
  * @see ExtendedLanguageServerService
- * @since 2.0.0
+ * @since 1.0.0
  */
 public abstract class AbstractExtendedLanguageServer implements LanguageServer, Endpoint, JsonRpcMethodProvider {
     protected List<ExtendedLanguageServerService> extendedServices = new ArrayList<>();
@@ -59,6 +60,7 @@ public abstract class AbstractExtendedLanguageServer implements LanguageServer, 
         for (ExtendedLanguageServerService service : serviceLoader) {
             extendedServices.add(service);
         }
+        BallerinaCompilerApi.initialize();
     }
 
     @Override

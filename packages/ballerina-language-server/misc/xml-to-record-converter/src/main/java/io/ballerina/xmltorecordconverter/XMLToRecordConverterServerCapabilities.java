@@ -23,7 +23,7 @@ import org.ballerinalang.langserver.commons.registration.BallerinaServerCapabili
 /**
  * Server capabilities for the XMLToRecord service.
  *
- * @since 2201.7.2
+ * @since 1.0.0
  */
 public class XMLToRecordConverterServerCapabilities extends BallerinaServerCapability {
 

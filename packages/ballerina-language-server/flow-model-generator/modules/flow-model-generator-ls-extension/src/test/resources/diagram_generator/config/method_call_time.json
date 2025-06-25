@@ -49,6 +49,7 @@
           "node": "FUNCTION_CALL",
           "org": "ballerina",
           "module": "time",
+          "packageName": "time",
           "symbol": "loadSystemZone",
           "version": "2.7.0",
           "lineRange": {
@@ -76,7 +77,7 @@
             "optional": false,
             "editable": true,
             "advanced": true,
-            "hidden": false
+            "hidden": true
           },
           "variable": {
             "metadata": {

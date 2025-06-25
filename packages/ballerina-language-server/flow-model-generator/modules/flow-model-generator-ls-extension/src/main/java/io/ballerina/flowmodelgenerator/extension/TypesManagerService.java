@@ -26,6 +26,7 @@ import io.ballerina.compiler.api.symbols.SymbolKind;
 import io.ballerina.compiler.api.symbols.TypeDescKind;
 import io.ballerina.compiler.api.symbols.TypeSymbol;
 import io.ballerina.flowmodelgenerator.core.TypesManager;
+import io.ballerina.flowmodelgenerator.core.converters.JsonToTypeMapper;
 import io.ballerina.flowmodelgenerator.core.model.Codedata;
 import io.ballerina.flowmodelgenerator.core.model.PropertyTypeMemberInfo;
 import io.ballerina.flowmodelgenerator.core.model.TypeData;
@@ -35,6 +36,7 @@ import io.ballerina.flowmodelgenerator.core.utils.FileSystemUtils;
 import io.ballerina.flowmodelgenerator.extension.request.FilePathRequest;
 import io.ballerina.flowmodelgenerator.extension.request.FindTypeRequest;
 import io.ballerina.flowmodelgenerator.extension.request.GetTypeRequest;
+import io.ballerina.flowmodelgenerator.extension.request.JsonToTypeRequest;
 import io.ballerina.flowmodelgenerator.extension.request.MultipleTypeUpdateRequest;
 import io.ballerina.flowmodelgenerator.extension.request.RecordConfigRequest;
 import io.ballerina.flowmodelgenerator.extension.request.RecordValueGenerateRequest;
@@ -46,6 +48,7 @@ import io.ballerina.flowmodelgenerator.extension.response.RecordValueGenerateRes
 import io.ballerina.flowmodelgenerator.extension.response.TypeListResponse;
 import io.ballerina.flowmodelgenerator.extension.response.TypeResponse;
 import io.ballerina.flowmodelgenerator.extension.response.TypeUpdateResponse;
+import io.ballerina.modelgenerator.commons.ModuleInfo;
 import io.ballerina.modelgenerator.commons.PackageUtil;
 import io.ballerina.projects.Document;
 import org.ballerinalang.annotation.JavaSPIService;
@@ -59,6 +62,7 @@ import org.eclipse.lsp4j.services.LanguageServer;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
@@ -86,6 +90,12 @@ public class TypesManagerService implements ExtendedLanguageServerService {
         return null;
     }
 
+    /**
+     * Get all the types in the project with references.
+     *
+     * @param request {@link FindTypeRequest}
+     * @return {@link TypeListResponse} all the types found in the project with references
+     */
     @JsonRequest
     public CompletableFuture<TypeListResponse> getTypes(FilePathRequest request) {
         return CompletableFuture.supplyAsync(() -> {
@@ -108,6 +118,12 @@ public class TypesManagerService implements ExtendedLanguageServerService {
         });
     }
 
+    /**
+     * Get the type information for a specific line position in a file.
+     *
+     * @param request {@link GetTypeRequest}
+     * @return {@link TypeResponse} the type information for the given line position
+     */
     @JsonRequest
     public CompletableFuture<TypeResponse> getType(GetTypeRequest request) {
         return CompletableFuture.supplyAsync(() -> {
@@ -134,6 +150,12 @@ public class TypesManagerService implements ExtendedLanguageServerService {
         });
     }
 
+    /**
+     * Get the GraphQL type information for a specific line position in a file.
+     *
+     * @param request {@link GetTypeRequest}
+     * @return {@link TypeResponse} the GraphQL type information for the given line position
+     */
     @JsonRequest
     public CompletableFuture<TypeResponse> getGraphqlType(GetTypeRequest request) {
         // TODO: Different implementation may be needed with future requirements
@@ -162,6 +184,12 @@ public class TypesManagerService implements ExtendedLanguageServerService {
         });
     }
 
+    /**
+     * Create a GraphQL class type in the specified file.
+     *
+     * @param request {@link TypeUpdateRequest}
+     * @return {@link TypeUpdateResponse} the response containing the text edits for creating the type
+     */
     @JsonRequest
     public CompletableFuture<TypeUpdateResponse> createGraphqlClassType(TypeUpdateRequest request) {
         return CompletableFuture.supplyAsync(() -> {
@@ -184,6 +212,12 @@ public class TypesManagerService implements ExtendedLanguageServerService {
         });
     }
 
+    /**
+     * Update an existing type in the specified file.
+     *
+     * @param request {@link TypeUpdateRequest}
+     * @return {@link TypeUpdateResponse} the response containing the text edits for updating the type
+     */
     @JsonRequest
     public CompletableFuture<TypeUpdateResponse> updateType(TypeUpdateRequest request) {
         return CompletableFuture.supplyAsync(() -> {
@@ -203,6 +237,12 @@ public class TypesManagerService implements ExtendedLanguageServerService {
         });
     }
 
+    /**
+     * Create multiple types in the specified file.
+     *
+     * @param request {@link MultipleTypeUpdateRequest}
+     * @return {@link MultipleTypeUpdateResponse} the response containing the text edits for creating multiple types
+     */
     @JsonRequest
     public CompletableFuture<MultipleTypeUpdateResponse> updateTypes(MultipleTypeUpdateRequest request) {
         return CompletableFuture.supplyAsync(() -> {
@@ -224,6 +264,12 @@ public class TypesManagerService implements ExtendedLanguageServerService {
         });
     }
 
+    /**
+     * Get the record configuration for a specific type.
+     *
+     * @param request {@link RecordConfigRequest}
+     * @return {@link RecordConfigResponse} the record configuration for the specified type
+     */
     @JsonRequest
     public CompletableFuture<RecordConfigResponse> recordConfig(RecordConfigRequest request) {
         return CompletableFuture.supplyAsync(() -> {
@@ -231,18 +277,15 @@ public class TypesManagerService implements ExtendedLanguageServerService {
             try {
                 Codedata codedata = request.codedata();
                 String orgName = codedata.org();
-                String packageName = codedata.module();
+                String packageName = Objects.isNull(codedata.packageName()) ?
+                        codedata.module() : codedata.packageName();
+                String moduleName = codedata.module();
                 String versionName = codedata.version();
                 Path filePath = Path.of(request.filePath());
 
-                PackageNameModulePartName packageNameModulePartName = PackageNameModulePartName.from(packageName);
-                // Find the semantic model
-                Optional<SemanticModel> semanticModel = PackageUtil.getSemanticModelIfMatched(workspaceManager,
-                        filePath, orgName, packageNameModulePartName.packageName(),
-                        packageNameModulePartName.modulePartName(), versionName);
-                if (semanticModel.isEmpty()) {
-                    semanticModel = PackageUtil.getSemanticModel(orgName, packageName, versionName);
-                }
+                Optional<SemanticModel> semanticModel = getCachedSemanticModel(orgName, packageName, moduleName,
+                        versionName, filePath);
+
                 if (semanticModel.isEmpty()) {
                     throw new IllegalArgumentException(
                             String.format("Package '%s/%s:%s' not found", orgName, packageName, versionName));
@@ -294,11 +337,10 @@ public class TypesManagerService implements ExtendedLanguageServerService {
             try {
                 FindTypeRequest.TypePackageInfo info = FindTypeRequest.TypePackageInfo.from(request.codedata());
                 SemanticModel semanticModel = findSemanticModel(info, request.filePath());
-                Optional<Symbol> typeSymbol = findTypeSymbolFromSemanticModel(semanticModel,
-                        request.typeConstraint());
+                Optional<Symbol> typeSymbol = findTypeSymbolFromSemanticModel(semanticModel, request.typeConstraint());
                 if (typeSymbol.isEmpty()) {
                     throw new IllegalArgumentException(String.format("Type '%s' not found in package '%s/%s:%s'",
-                            request.typeConstraint(), info.org(), info.module(), info.version()));
+                            request.typeConstraint(), info.org(), info.moduleName(), info.version()));
                 }
                 Type type  = TypeSymbolAnalyzerFromTypeModel.analyze(typeSymbol.get(), request.expr(), semanticModel);
                 response.setRecordConfig(type);
@@ -326,7 +368,7 @@ public class TypesManagerService implements ExtendedLanguageServerService {
                 for (PropertyTypeMemberInfo memberInfo : request.typeMembers()) {
                     try {
                         FindTypeRequest.TypePackageInfo info = FindTypeRequest.TypePackageInfo
-                                .from(memberInfo.packageInfo());
+                                .from(memberInfo.packageInfo(), memberInfo.packageName());
                         SemanticModel semanticModel = findSemanticModel(info, request.filePath());
                         Optional<Symbol> typeSymbol = findTypeSymbolFromSemanticModel(semanticModel,
                                 memberInfo.type());
@@ -352,21 +394,57 @@ public class TypesManagerService implements ExtendedLanguageServerService {
         });
     }
 
-    private Optional<SemanticModel> getCachedSemanticModel(String org, String packageName, String version,
-                                                           Path filePath) {
+    /**
+     * Convert a JSON string to a Ballerina type.
+     *
+     * @param request {@link JsonToTypeRequest}
+     * @return {@link TypeListResponse} the response containing the converted types
+     */
+    @JsonRequest
+    public CompletableFuture<TypeListResponse> jsonToType(JsonToTypeRequest request) {
+        return CompletableFuture.supplyAsync(() -> {
+            TypeListResponse response = new TypeListResponse();
+
+            String jsonString = request.jsonString();
+            String typeName = request.typeName();
+            String prefix = request.prefix();
+            boolean asInline = request.asInline();
+            boolean allowAdditionalFields = request.allowAdditionalFields();
+            boolean isNullAsOptional = request.nullAsOptional();
+
+            try {
+                Path filePath = Path.of(request.filePath());
+                FileSystemUtils.createFileIfNotExists(workspaceManager, filePath);
+
+                JsonToTypeMapper jsonToTypeMapper = new JsonToTypeMapper(
+                        allowAdditionalFields,
+                        asInline,
+                        prefix,
+                        workspaceManager,
+                        filePath
+                );
+                JsonElement converted = jsonToTypeMapper.convert(jsonString, typeName);
+                response.setTypes(converted);
+            } catch (Throwable e) {
+                throw new RuntimeException(e);
+            }
+            return response;
+        });
+    }
+
+    // Utility methods
+
+    private Optional<SemanticModel> getCachedSemanticModel(String org, String packageName, String moduleName,
+                                                           String version, Path filePath) {
         // Check cache with filePath
         CacheKey keyWithPath = new CacheKey(org, packageName, version);
         SemanticModel cachedModel = semanticModelCache.get(keyWithPath);
         if (cachedModel != null) {
             return Optional.of(cachedModel);
         }
-        PackageNameModulePartName packageNameModulePartName = PackageNameModulePartName.from(packageName);
         // Try to load via filePath-specific method
-        Optional<SemanticModel> model = PackageUtil.getSemanticModelIfMatched(
-                workspaceManager, filePath, org, packageNameModulePartName.packageName(),
-                packageNameModulePartName.modulePartName(),
-                version
-        );
+        Optional<SemanticModel> model = PackageUtil.getSemanticModelIfMatched(workspaceManager, filePath, org,
+                packageName, moduleName, version);
         if (model.isPresent()) {
             semanticModelCache.put(keyWithPath, model.get());
             return model;
@@ -379,20 +457,22 @@ public class TypesManagerService implements ExtendedLanguageServerService {
             return Optional.of(cachedModel);
         }
 
-        model = PackageUtil.getSemanticModel(org, packageName, version);
+        ModuleInfo moduleInfo = new ModuleInfo(org, packageName, moduleName, version);
+        model = PackageUtil.getSemanticModel(moduleInfo);
         model.ifPresent(m -> semanticModelCache.put(keyWithoutPath, m));
         return model;
     }
 
-    private SemanticModel findSemanticModel(FindTypeRequest.TypePackageInfo packageInfo,
-                                                          String path) {
+    private SemanticModel findSemanticModel(FindTypeRequest.TypePackageInfo packageInfo, String path) {
         String orgName = packageInfo.org();
-        String packageName = packageInfo.module();
+        String packageName = packageInfo.packageName();
+        String moduleName = packageInfo.moduleName();
         String versionName = packageInfo.version();
         Path filePath = Path.of(path);
 
         // Retrieve cached or load new semantic model
-        Optional<SemanticModel> semanticModel = getCachedSemanticModel(orgName, packageName, versionName, filePath);
+        Optional<SemanticModel> semanticModel = getCachedSemanticModel(orgName, packageName, moduleName, versionName,
+                filePath);
         if (semanticModel.isEmpty()) {
             throw new IllegalArgumentException(
                     String.format("Package '%s/%s:%s' not found", orgName, packageName, versionName)

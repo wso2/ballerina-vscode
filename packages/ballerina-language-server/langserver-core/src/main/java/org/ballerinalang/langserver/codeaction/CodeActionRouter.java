@@ -50,7 +50,7 @@ import static org.ballerinalang.langserver.codeaction.CodeActionUtil.computePosi
 /**
  * Represents the Code Action router.
  *
- * @since 1.1.1
+ * @since 1.0.0
  */
 public final class CodeActionRouter {
 

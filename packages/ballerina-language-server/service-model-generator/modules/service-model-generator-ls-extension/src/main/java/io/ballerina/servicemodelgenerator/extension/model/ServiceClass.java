@@ -32,7 +32,7 @@ import java.util.Map;
  * @param functions service class functions
  * @param fields service class fields
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public record ServiceClass(String id, String name, String type, Map<String, Value> properties,
                           Codedata codedata, List<Function> functions, List<Field> fields) {

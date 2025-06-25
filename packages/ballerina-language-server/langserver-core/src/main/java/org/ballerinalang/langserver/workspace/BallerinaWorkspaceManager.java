@@ -54,6 +54,7 @@ import org.ballerinalang.langserver.LSClientLogger;
 import org.ballerinalang.langserver.LSContextOperation;
 import org.ballerinalang.langserver.common.utils.CommonUtil;
 import org.ballerinalang.langserver.common.utils.PathUtil;
+import org.ballerinalang.langserver.commons.BallerinaCompilerApi;
 import org.ballerinalang.langserver.commons.DocumentServiceContext;
 import org.ballerinalang.langserver.commons.LanguageServerContext;
 import org.ballerinalang.langserver.commons.client.ExtendedLanguageClient;
@@ -114,7 +115,7 @@ import static io.ballerina.runtime.api.constants.RuntimeConstants.MODULE_INIT_CL
 /**
  * Contains a set of utility methods to manage projects.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class BallerinaWorkspaceManager implements WorkspaceManager {
 
@@ -1467,7 +1468,7 @@ public class BallerinaWorkspaceManager implements WorkspaceManager {
 
                 // TODO: Remove this once https://github.com/ballerina-platform/ballerina-lang/issues/43972 is resolved
                 // Save the dependencies.toml to resolve the inconsistencies issue in the subsequent builds
-                if (project.buildOptions().optimizeDependencyCompilation()) {
+                if (BallerinaCompilerApi.getInstance().hasOptimizedDependencyCompilation(project)) {
                     BuildOptions newOptions = BuildOptions.builder()
                             .setOffline(CommonUtil.COMPILE_OFFLINE)
                             .setSticky(false)

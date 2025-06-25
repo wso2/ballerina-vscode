@@ -64,7 +64,7 @@ import static io.ballerina.architecturemodelgenerator.core.Constants.LABEL;
 /**
  * Provide utils functions for component model generating.
  *
- * @since 2201.3.1
+ * @since 1.0.0
  */
 public class GeneratorUtils {
 

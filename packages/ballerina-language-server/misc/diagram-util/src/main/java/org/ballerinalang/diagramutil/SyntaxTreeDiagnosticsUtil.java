@@ -25,7 +25,7 @@ import io.ballerina.tools.diagnostics.DiagnosticInfo;
 /**
  * This is the SyntaxTreeDiagnosticsUtil class for diagnostics related utils used in the syntax tree generation.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 
 public final class SyntaxTreeDiagnosticsUtil {

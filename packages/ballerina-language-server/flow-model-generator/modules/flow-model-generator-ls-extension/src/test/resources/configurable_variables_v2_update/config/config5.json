@@ -1,12 +1,12 @@
 {
-  "description": "Remove the config value of a variable",
+  "description": "Rename a configurable variable having no Config.toml entry",
   "project": "config_update_test_project",
   "request": {
     "packageName": "config_tests/config_update_test_project",
     "moduleName": "",
     "configFilePath": "config.bal",
     "configVariable": {
-      "id": "31780",
+      "id": "32790",
       "metadata": {
         "label": "Config",
         "description": "Create a configurable variable"
@@ -16,12 +16,12 @@
         "lineRange": {
           "fileName": "config.bal",
           "startLine": {
-            "line": 0,
+            "line": 1,
             "offset": 0
           },
           "endLine": {
-            "line": 0,
-            "offset": 36
+            "line": 1,
+            "offset": 54
           }
         }
       },
@@ -34,11 +34,13 @@
           },
           "valueType": "IDENTIFIER",
           "valueTypeConstraint": "Global",
-          "value": "requiredConfig",
+          "value": "optionalConf",
+          "oldValue": "optionalConfig",
           "optional": false,
           "editable": true,
           "advanced": false,
-          "hidden": false
+          "hidden": false,
+          "modified": true
         },
         "type": {
           "metadata": {
@@ -46,12 +48,13 @@
             "description": "Type of the variable"
           },
           "valueType": "TYPE",
-          "value": "int",
+          "value": "string",
           "placeholder": "var",
           "optional": false,
           "editable": true,
           "advanced": false,
           "hidden": false,
+          "modified": false,
           "codedata": {}
         },
         "defaultValue": {
@@ -60,12 +63,12 @@
             "description": "Default value of the variable"
           },
           "valueType": "EXPRESSION",
+          "value": "\"defaultValue\"",
           "optional": true,
           "editable": true,
           "advanced": true,
           "hidden": false,
-          "modified": false,
-          "value": ""
+          "modified": false
         },
         "configValue": {
           "metadata": {
@@ -73,12 +76,12 @@
             "description": "Config value of the variable, to be used in Config.toml"
           },
           "valueType": "EXPRESSION",
-          "value": "",
           "optional": true,
           "editable": true,
           "advanced": false,
           "hidden": false,
-          "modified": true
+          "modified": false,
+          "value": ""
         },
         "documentation": {
           "metadata": {
@@ -99,19 +102,19 @@
   },
   "response": {
     "textEdits": {
-      "Config.toml": [
+      "config.bal": [
         {
           "range": {
             "start": {
-              "line": 2,
+              "line": 1,
               "character": 0
             },
             "end": {
-              "line": 2,
-              "character": 19
+              "line": 1,
+              "character": 54
             }
           },
-          "newText": ""
+          "newText": "configurable string optionalConf = \"defaultValue\";"
         }
       ]
     }

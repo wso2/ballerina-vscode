@@ -148,7 +148,7 @@ import static org.ballerinalang.debugadapter.evaluation.utils.EvaluationUtils.RE
  * <li> Remote method call action
  * </ul>
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class EvaluatorBuilder extends NodeVisitor {
 

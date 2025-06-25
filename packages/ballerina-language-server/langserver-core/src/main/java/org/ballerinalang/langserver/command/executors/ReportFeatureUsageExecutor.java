@@ -28,7 +28,7 @@ import java.util.Optional;
 /**
  * The executor used to send telemetry events for quickfix codeaction usages.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 @JavaSPIService("org.ballerinalang.langserver.commons.command.spi.LSCommandExecutor")
 public class ReportFeatureUsageExecutor implements LSCommandExecutor {

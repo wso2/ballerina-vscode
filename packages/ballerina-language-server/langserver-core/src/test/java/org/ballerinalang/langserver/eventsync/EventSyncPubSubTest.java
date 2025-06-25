@@ -37,7 +37,7 @@ import static org.awaitility.Awaitility.await;
 /**
  * Tests event sync publisher subscriber in Language Server.
  *
- * @since 2201.1.1
+ * @since 1.0.0
  */
 public class EventSyncPubSubTest {
 

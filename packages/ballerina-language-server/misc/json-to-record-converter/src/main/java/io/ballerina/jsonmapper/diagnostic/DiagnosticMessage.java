@@ -26,7 +26,7 @@ import java.util.Objects;
 /**
  * Contains diagnostic messages of the JSON to Record converter.
  *
- * @since 2201.2.0
+ * @since 1.0.0
  */
 public final class DiagnosticMessage {
 

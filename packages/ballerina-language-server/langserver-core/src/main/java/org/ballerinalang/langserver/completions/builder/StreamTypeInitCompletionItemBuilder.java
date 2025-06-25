@@ -37,7 +37,7 @@ import java.util.Optional;
  * Eg:
  * 1. TestStreamType test = new TestStreamType();
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public final class StreamTypeInitCompletionItemBuilder {
 

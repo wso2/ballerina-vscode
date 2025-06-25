@@ -27,7 +27,7 @@ import java.util.List;
  *
  * @param participants participants in the diagram
  * @param location     location of the root participant
- * @since 2.0.0
+ * @since 1.0.0
  */
 public record Diagram(List<Participant> participants, LineRange location) {
 

@@ -32,7 +32,7 @@ import java.util.List;
 /**
  * Language server context implementation.
  *
- * @since 1.2.0
+ * @since 1.0.0
  */
 public class ExecuteCommandContextImpl extends AbstractWorkspaceServiceContext implements ExecuteCommandContext {
 
@@ -76,7 +76,7 @@ public class ExecuteCommandContextImpl extends AbstractWorkspaceServiceContext i
     /**
      * Represents Language server completion context Builder.
      *
-     * @since 2.0.0
+     * @since 1.0.0
      */
     protected static class ExecuteCommandContextBuilder extends AbstractContextBuilder<ExecuteCommandContextBuilder> {
 

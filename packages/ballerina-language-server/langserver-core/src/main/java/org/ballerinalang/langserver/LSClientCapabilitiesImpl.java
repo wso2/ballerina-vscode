@@ -33,7 +33,7 @@ import static org.ballerinalang.langserver.Experimental.SHOW_TEXT_DOCUMENT;
 /**
  * This class holds the resolved capabilities for the language server.
  *
- * @since 1.2.0
+ * @since 1.0.0
  */
 public class LSClientCapabilitiesImpl implements LSClientCapabilities {
 

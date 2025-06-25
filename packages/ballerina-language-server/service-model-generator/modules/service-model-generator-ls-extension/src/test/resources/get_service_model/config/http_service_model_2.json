@@ -83,7 +83,7 @@
                   "enabled": true,
                   "editable": true,
                   "value": "/",
-                  "valueType": "IDENTIFIER",
+                  "valueType": "SERVICE_PATH",
                   "valueTypeConstraint": "string",
                   "isType": false,
                   "placeholder": "",

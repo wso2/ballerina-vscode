@@ -37,7 +37,7 @@ import java.util.stream.Collectors;
  * A utility class that generates a JSON file containing package metadata information from Ballerina Central. The
  * generated JSON file includes package information from both 'ballerina' and 'ballerinax' organizations.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 class SearchListGenerator {
 

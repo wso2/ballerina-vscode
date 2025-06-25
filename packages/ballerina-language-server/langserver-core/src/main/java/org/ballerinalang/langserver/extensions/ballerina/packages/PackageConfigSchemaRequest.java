@@ -24,7 +24,7 @@ import javax.annotation.Nonnull;
 /**
  * Request format for ConfigSchemaGenerator endpoint.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class PackageConfigSchemaRequest {
 

@@ -9,6 +9,7 @@
     "node": "NEW_CONNECTION",
     "org": "ballerinax",
     "module": "rabbitmq",
+    "packageName": "rabbitmq",
     "object": "Client",
     "symbol": "init",
     "version": "3.2.0"
@@ -24,6 +25,7 @@
       "node": "NEW_CONNECTION",
       "org": "ballerinax",
       "module": "rabbitmq",
+      "packageName": "rabbitmq",
       "object": "Client",
       "symbol": "init",
       "version": "3.2.0",
@@ -33,7 +35,7 @@
     "properties": {
       "host": {
         "metadata": {
-          "label": "host",
+          "label": "Host",
           "description": "The host used for establishing the connection"
         },
         "valueType": "EXPRESSION",
@@ -51,6 +53,7 @@
           {
             "type": "string",
             "packageInfo": "",
+            "packageName": "",
             "kind": "BASIC_TYPE",
             "selected": false
           }
@@ -58,7 +61,7 @@
       },
       "port": {
         "metadata": {
-          "label": "port",
+          "label": "Port",
           "description": "The port used for establishing the connection"
         },
         "valueType": "EXPRESSION",
@@ -76,6 +79,7 @@
           {
             "type": "int",
             "packageInfo": "",
+            "packageName": "",
             "kind": "BASIC_TYPE",
             "selected": false
           }
@@ -83,8 +87,8 @@
       },
       "username": {
         "metadata": {
-          "label": "username",
-          "description": ""
+          "label": "Username",
+          "description": "The username used for establishing the connection"
         },
         "valueType": "EXPRESSION",
         "valueTypeConstraint": "string",
@@ -101,15 +105,17 @@
           {
             "type": "string",
             "packageInfo": "",
+            "packageName": "",
             "kind": "BASIC_TYPE",
             "selected": false
           }
-        ]
+        ],
+        "defaultValue": "\"\""
       },
       "password": {
         "metadata": {
-          "label": "password",
-          "description": ""
+          "label": "Password",
+          "description": "The password used for establishing the connection"
         },
         "valueType": "EXPRESSION",
         "valueTypeConstraint": "string",
@@ -126,15 +132,17 @@
           {
             "type": "string",
             "packageInfo": "",
+            "packageName": "",
             "kind": "BASIC_TYPE",
             "selected": false
           }
-        ]
+        ],
+        "defaultValue": "\"\""
       },
       "virtualHost": {
         "metadata": {
-          "label": "virtualHost",
-          "description": ""
+          "label": "Virtual Host",
+          "description": "The virtual host to use when connecting to the broker"
         },
         "valueType": "EXPRESSION",
         "valueTypeConstraint": "string",
@@ -151,15 +159,17 @@
           {
             "type": "string",
             "packageInfo": "",
+            "packageName": "",
             "kind": "BASIC_TYPE",
             "selected": false
           }
-        ]
+        ],
+        "defaultValue": "\"\""
       },
       "connectionTimeout": {
         "metadata": {
-          "label": "connectionTimeout",
-          "description": ""
+          "label": "Connection Timeout",
+          "description": "Connection TCP establishment timeout in seconds and zero for infinite"
         },
         "valueType": "EXPRESSION",
         "valueTypeConstraint": "decimal",
@@ -176,15 +186,17 @@
           {
             "type": "decimal",
             "packageInfo": "",
+            "packageName": "",
             "kind": "BASIC_TYPE",
             "selected": false
           }
-        ]
+        ],
+        "defaultValue": "0.0d"
       },
       "handshakeTimeout": {
         "metadata": {
-          "label": "handshakeTimeout",
-          "description": ""
+          "label": "Handshake Timeout",
+          "description": "The AMQP 0-9-1 protocol handshake timeout in seconds"
         },
         "valueType": "EXPRESSION",
         "valueTypeConstraint": "decimal",
@@ -201,15 +213,17 @@
           {
             "type": "decimal",
             "packageInfo": "",
+            "packageName": "",
             "kind": "BASIC_TYPE",
             "selected": false
           }
-        ]
+        ],
+        "defaultValue": "0.0d"
       },
       "shutdownTimeout": {
         "metadata": {
-          "label": "shutdownTimeout",
-          "description": ""
+          "label": "Shutdown Timeout",
+          "description": "Shutdown timeout in seconds, zero for infinite, and the default value is 10. If the consumers exceed\nthis timeout, then any remaining queued deliveries (and other Consumer callbacks) will be lost"
         },
         "valueType": "EXPRESSION",
         "valueTypeConstraint": "decimal",
@@ -226,15 +240,17 @@
           {
             "type": "decimal",
             "packageInfo": "",
+            "packageName": "",
             "kind": "BASIC_TYPE",
             "selected": false
           }
-        ]
+        ],
+        "defaultValue": "0.0d"
       },
       "heartbeat": {
         "metadata": {
-          "label": "heartbeat",
-          "description": ""
+          "label": "Heartbeat",
+          "description": "The initially-requested heartbeat timeout in seconds and zero for none"
         },
         "valueType": "EXPRESSION",
         "valueTypeConstraint": "decimal",
@@ -251,19 +267,21 @@
           {
             "type": "decimal",
             "packageInfo": "",
+            "packageName": "",
             "kind": "BASIC_TYPE",
             "selected": false
           }
-        ]
+        ],
+        "defaultValue": "0.0d"
       },
       "validation": {
         "metadata": {
-          "label": "validation",
-          "description": ""
+          "label": "Validation",
+          "description": "Configuration related to constraint validation check"
         },
         "valueType": "EXPRESSION",
         "valueTypeConstraint": "boolean",
-        "placeholder": "true",
+        "placeholder": "false",
         "optional": true,
         "editable": true,
         "advanced": true,
@@ -276,15 +294,17 @@
           {
             "type": "boolean",
             "packageInfo": "",
+            "packageName": "",
             "kind": "BASIC_TYPE",
             "selected": false
           }
-        ]
+        ],
+        "defaultValue": "false"
       },
       "secureSocket": {
         "metadata": {
-          "label": "secureSocket",
-          "description": ""
+          "label": "Secure Socket",
+          "description": "Configurations for facilitating secure connections"
         },
         "valueType": "EXPRESSION",
         "valueTypeConstraint": "rabbitmq:SecureSocket",
@@ -301,15 +321,17 @@
           {
             "type": "SecureSocket",
             "packageInfo": "ballerinax:rabbitmq:3.2.0",
+            "packageName": "rabbitmq",
             "kind": "RECORD_TYPE",
             "selected": false
           }
-        ]
+        ],
+        "defaultValue": "{cert: {path: \"\", password: \"\"}}"
       },
       "auth": {
         "metadata": {
-          "label": "auth",
-          "description": ""
+          "label": "Auth",
+          "description": "Configurations related to authentication"
         },
         "valueType": "EXPRESSION",
         "valueTypeConstraint": "rabbitmq:Credentials",
@@ -326,10 +348,12 @@
           {
             "type": "Credentials",
             "packageInfo": "ballerinax:rabbitmq:3.2.0",
+            "packageName": "rabbitmq",
             "kind": "RECORD_TYPE",
             "selected": false
           }
-        ]
+        ],
+        "defaultValue": "{username: \"\", password: \"\"}"
       },
       "type": {
         "metadata": {
@@ -342,13 +366,13 @@
         "optional": false,
         "editable": false,
         "advanced": false,
-        "hidden": false,
+        "hidden": true,
         "codedata": {}
       },
       "variable": {
         "metadata": {
           "label": "Connection Name",
-          "description": "Name of the variable"
+          "description": "Name of the connection"
         },
         "valueType": "IDENTIFIER",
         "value": "rabbitmqClient",
@@ -367,7 +391,7 @@
         "optional": false,
         "editable": true,
         "advanced": true,
-        "hidden": false
+        "hidden": true
       },
       "checkError": {
         "metadata": {
@@ -379,7 +403,7 @@
         "optional": false,
         "editable": false,
         "advanced": true,
-        "hidden": false
+        "hidden": true
       }
     },
     "flags": 0

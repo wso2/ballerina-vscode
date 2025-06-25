@@ -45,7 +45,7 @@ import static io.ballerina.modelgenerator.commons.ParameterData.Kind.REQUIRED;
 /**
  * Represents the properties of a Natural programming function definition node.
  *
- * @since 2.0.0
+ * @since 1.0.0
  */
 public class NPFunctionDefinitionBuilder extends FunctionDefinitionBuilder {
 
@@ -59,12 +59,7 @@ public class NPFunctionDefinitionBuilder extends FunctionDefinitionBuilder {
     public static final String PARAMETERS_LABEL = "Parameters";
     public static final String PARAMETERS_DOC = "Function parameters";
 
-    private static final String BALLERINAX_ORG = "ballerinax";
-    private static final String NP_PACKAGE = "np";
-
     private static final String CALL_LLM_FUNCTION = "callLlm";
-
-    private static final String NP_NATURAL_FUNCTION_BODY = "@np:NaturalFunction external";
 
     private static final Gson gson = new Gson();
 
@@ -84,7 +79,11 @@ public class NPFunctionDefinitionBuilder extends FunctionDefinitionBuilder {
         FunctionDataBuilder functionDataBuilder = new FunctionDataBuilder()
                 .parentSymbolType(codedata.object())
                 .name(CALL_LLM_FUNCTION)
-                .moduleInfo(new ModuleInfo(NaturalFunctions.BALLERINA_ORG, NP_PACKAGE, NP_PACKAGE, null))
+                .moduleInfo(new ModuleInfo(
+                        NaturalFunctions.BALLERINA_ORG,
+                        NaturalFunctions.NP_PACKAGE,
+                        NaturalFunctions.NP_PACKAGE,
+                        null))
                 .lsClientLogger(context.lsClientLogger())
                 .functionResultKind(FunctionData.Kind.FUNCTION)
                 .userModuleInfo(moduleInfo);
