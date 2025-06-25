@@ -1,0 +1,31 @@
+{
+  "description": "A simple example of a reference-based type",
+  "source": "RefTypeTest/BalProject1",
+  "typeSymbolName": "SampleType",
+  "refType": {
+    "fields": [
+      {
+        "fieldName": "sampleTypeName",
+        "type": {
+          "dependentTypeHashes": [],
+          "name": "string"
+        },
+        "optional": false,
+        "defaultValue": ""
+      },
+      {
+        "fieldName": "sampleTypeCode",
+        "type": {
+          "dependentTypeHashes": [],
+          "name": "int"
+        },
+        "optional": false,
+        "defaultValue": ""
+      }
+    ],
+    "dependentTypeHashes": [],
+    "hashCode": "733382244",
+    "name": "SampleType",
+    "typeName": "record"
+  }
+}
