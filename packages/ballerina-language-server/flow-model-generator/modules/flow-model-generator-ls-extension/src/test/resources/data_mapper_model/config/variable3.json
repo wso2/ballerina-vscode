@@ -1,6 +1,21 @@
 {
   "source": "variable3.bal",
   "description": "Sample diagram node",
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "variable3.bal",
+      "startLine": {
+        "line": 19,
+        "offset": 12
+      },
+      "endLine": {
+        "line": 19,
+        "offset": 52
+      }
+    },
+    "sourceCode": ""
+  },
   "diagram": {
     "id": "32874",
     "metadata": {
