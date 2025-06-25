@@ -30,10 +30,10 @@ type SecondaryPhonesX record {|
 public function main() {
     User u = {info: {secondaryPhones: [], emails: [], addresses: []}};
     Person p = {
-        contactDetails: {
-                phoneNumbers: from var secondaryPhonesItem in u.info.secondaryPhones
-                    where secondaryPhonesItem.code == "123"
-                    select {code: secondaryPhonesItem.code, number: secondaryPhonesItem.number}
-            }
-    };
+                       contactDetails: {
+                           phoneNumbers: from var secondaryPhonesItem in u.info.secondaryPhones
+                  where secondaryPhonesItem.code == "123"
+                            select {code: secondaryPhonesItem.code, number: secondaryPhonesItem.number}
+                       }
+                   };
 }

@@ -23,7 +23,10 @@ service / on new http:Listener(9090) {
 
     resource function post greeting(Student std) returns json|http:InternalServerError {
         do {
-            // Person var1909 = {name: std.firstName + std.lastName, age: std.stdAge};
+            Person var1909 = {
+                                             city: std.lastName,
+                                             foo: {bar: {firstName: std.firstName}}
+                                         };
             // Person tnfed = transform(std);
         } on fail error e {
             log:printError("Error: ", 'error = e);
