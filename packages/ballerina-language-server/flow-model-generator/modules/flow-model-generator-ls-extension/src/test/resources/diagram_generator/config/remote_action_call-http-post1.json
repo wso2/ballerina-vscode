@@ -39,8 +39,8 @@
         "id": "58837",
         "metadata": {
           "label": "post",
-          "description": "The `Client.post()` function can be used to send HTTP POST requests to HTTP endpoints.\n",
-          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.14.1.png"
+          "description": "Create a new resource or submit data to a resource for processing.\n",
+          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.14.2.png"
         },
         "codedata": {
           "node": "REMOTE_ACTION_CALL",
@@ -49,7 +49,7 @@
           "packageName": "http",
           "object": "Client",
           "symbol": "post",
-          "version": "2.14.1",
+          "version": "2.14.2",
           "lineRange": {
             "fileName": "http_post_node.bal",
             "startLine": {
@@ -77,25 +77,6 @@
             "editable": false,
             "advanced": false,
             "hidden": true
-          },
-          "targetType": {
-            "metadata": {
-              "label": "Target Type",
-              "description": "HTTP response, `anydata` or stream of HTTP SSE, which is expected to be returned after data binding"
-            },
-            "valueType": "TYPE",
-            "valueTypeConstraint": "anydata",
-            "value": "json|error",
-            "placeholder": "anydata",
-            "optional": false,
-            "editable": true,
-            "advanced": false,
-            "hidden": false,
-            "codedata": {
-              "kind": "PARAM_FOR_TYPE_INFER",
-              "originalName": "targetType"
-            },
-            "defaultValue": "anydata"
           },
           "path": {
             "metadata": {
@@ -144,7 +125,7 @@
             "typeMembers": [
               {
                 "type": "RequestMessage",
-                "packageInfo": "ballerina:http:2.14.1",
+                "packageInfo": "ballerina:http:2.14.2",
                 "packageName": "http",
                 "kind": "OTHER",
                 "selected": false
@@ -219,6 +200,25 @@
             ],
             "defaultValue": "()"
           },
+          "targetType": {
+            "metadata": {
+              "label": "Target Type",
+              "description": "Expected return type (to be used for automatic data binding).\nSupported types:\n- Built-in subtypes of `anydata` (`string`, `byte[]`, `json|xml`, etc.)\n- Custom types (e.g., `User`, `Student?`, `Person[]`, etc.)\n- Full HTTP response with headers and status (`http:Response`)\n- Stream of Server-Sent Events (`stream<http:SseEvent, error?>`)"
+            },
+            "valueType": "TYPE",
+            "valueTypeConstraint": "anydata",
+            "value": "json|error",
+            "placeholder": "anydata",
+            "optional": false,
+            "editable": true,
+            "advanced": false,
+            "hidden": false,
+            "codedata": {
+              "kind": "PARAM_FOR_TYPE_INFER",
+              "originalName": "targetType"
+            },
+            "defaultValue": "anydata"
+          },
           "variable": {
             "metadata": {
               "label": "Variable Name",
@@ -266,7 +266,7 @@
         "metadata": {
           "label": "post",
           "description": "The client resource function to send HTTP POST requests to HTTP endpoints.\n",
-          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.14.1.png"
+          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.14.2.png"
         },
         "codedata": {
           "node": "RESOURCE_ACTION_CALL",
@@ -275,7 +275,7 @@
           "packageName": "http",
           "object": "Client",
           "symbol": "post",
-          "version": "2.14.1",
+          "version": "2.14.2",
           "lineRange": {
             "fileName": "http_post_node.bal",
             "startLine": {
@@ -345,25 +345,6 @@
               }
             }
           },
-          "targetType": {
-            "metadata": {
-              "label": "Target Type",
-              "description": "HTTP response, `anydata` or stream of HTTP SSE, which is expected to be returned after data binding"
-            },
-            "valueType": "TYPE",
-            "valueTypeConstraint": "anydata",
-            "value": "json|http:ClientError",
-            "placeholder": "anydata",
-            "optional": false,
-            "editable": true,
-            "advanced": false,
-            "hidden": false,
-            "codedata": {
-              "kind": "PARAM_FOR_TYPE_INFER",
-              "originalName": "targetType"
-            },
-            "defaultValue": "anydata"
-          },
           "message": {
             "metadata": {
               "label": "Message",
@@ -384,7 +365,7 @@
             "typeMembers": [
               {
                 "type": "RequestMessage",
-                "packageInfo": "ballerina:http:2.14.1",
+                "packageInfo": "ballerina:http:2.14.2",
                 "packageName": "http",
                 "kind": "OTHER",
                 "selected": false
@@ -478,6 +459,25 @@
             },
             "typeMembers": []
           },
+          "targetType": {
+            "metadata": {
+              "label": "Target Type",
+              "description": "Expected return type (to be used for automatic data binding).\nSupported types:\n- Built-in subtypes of `anydata` (`string`, `byte[]`, `json|xml`, etc.)\n- Custom types (e.g., `User`, `Student?`, `Person[]`, etc.)\n- Full HTTP response with headers and status (`http:Response`)\n- Stream of Server-Sent Events (`stream<http:SseEvent, error?>`)"
+            },
+            "valueType": "TYPE",
+            "valueTypeConstraint": "anydata",
+            "value": "json|http:ClientError",
+            "placeholder": "anydata",
+            "optional": false,
+            "editable": true,
+            "advanced": false,
+            "hidden": false,
+            "codedata": {
+              "kind": "PARAM_FOR_TYPE_INFER",
+              "originalName": "targetType"
+            },
+            "defaultValue": "anydata"
+          },
           "type": {
             "metadata": {
               "label": "Variable Type",
@@ -501,8 +501,8 @@
         "id": "33773",
         "metadata": {
           "label": "New Connection",
-          "description": "The HTTP client provides the capability for initiating contact with a remote HTTP service. The API it\nprovides includes the functions for the standard HTTP methods forwarding a received request and sending requests\nusing custom HTTP verbs.",
-          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.14.1.png"
+          "description": "The HTTP client provides functionality to connect to remote HTTP services and perform requests using standard HTTP methods like GET, POST, PUT, DELETE, etc.\n",
+          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.14.2.png"
         },
         "codedata": {
           "node": "NEW_CONNECTION",
@@ -555,7 +555,7 @@
           "httpVersion": {
             "metadata": {
               "label": "HTTP Version",
-              "description": "The HTTP version understood by the client"
+              "description": "HTTP protocol version supported by the client"
             },
             "valueType": "EXPRESSION",
             "valueTypeConstraint": "http:HttpVersion",
@@ -571,7 +571,7 @@
             "typeMembers": [
               {
                 "type": "HttpVersion",
-                "packageInfo": "ballerina:http:2.14.1",
+                "packageInfo": "ballerina:http:2.14.2",
                 "packageName": "http",
                 "kind": "BASIC_TYPE",
                 "selected": false
@@ -582,7 +582,7 @@
           "http1Settings": {
             "metadata": {
               "label": "HTTP1 Settings",
-              "description": "Configurations related to HTTP/1.x protocol"
+              "description": "HTTP/1.x specific settings"
             },
             "valueType": "EXPRESSION",
             "valueTypeConstraint": "http:ClientHttp1Settings",
@@ -598,7 +598,7 @@
             "typeMembers": [
               {
                 "type": "ClientHttp1Settings",
-                "packageInfo": "ballerina:http:2.14.1",
+                "packageInfo": "ballerina:http:2.14.2",
                 "packageName": "http",
                 "kind": "RECORD_TYPE",
                 "selected": false
@@ -609,7 +609,7 @@
           "http2Settings": {
             "metadata": {
               "label": "HTTP2 Settings",
-              "description": "Configurations related to HTTP/2 protocol"
+              "description": "HTTP/2 specific settings"
             },
             "valueType": "EXPRESSION",
             "valueTypeConstraint": "http:ClientHttp2Settings",
@@ -625,7 +625,7 @@
             "typeMembers": [
               {
                 "type": "ClientHttp2Settings",
-                "packageInfo": "ballerina:http:2.14.1",
+                "packageInfo": "ballerina:http:2.14.2",
                 "packageName": "http",
                 "kind": "RECORD_TYPE",
                 "selected": false
@@ -636,7 +636,7 @@
           "timeout": {
             "metadata": {
               "label": "Timeout",
-              "description": "The maximum time to wait (in seconds) for a response before closing the connection"
+              "description": "Maximum time(in seconds) to wait for a response before the request times out"
             },
             "valueType": "EXPRESSION",
             "valueTypeConstraint": "decimal",
@@ -663,7 +663,7 @@
           "forwarded": {
             "metadata": {
               "label": "Forwarded",
-              "description": "The choice of setting `forwarded`/`x-forwarded` header"
+              "description": "The choice of setting `Forwarded`/`X-Forwarded-For` header, when acting as a proxy"
             },
             "valueType": "EXPRESSION",
             "valueTypeConstraint": "string",
@@ -690,7 +690,7 @@
           "followRedirects": {
             "metadata": {
               "label": "Follow Redirects",
-              "description": "Configurations associated with Redirection"
+              "description": "HTTP redirect handling configurations (with 3xx status codes)"
             },
             "valueType": "EXPRESSION",
             "valueTypeConstraint": "http:FollowRedirects|()",
@@ -713,7 +713,7 @@
               },
               {
                 "type": "FollowRedirects",
-                "packageInfo": "ballerina:http:2.14.1",
+                "packageInfo": "ballerina:http:2.14.2",
                 "packageName": "http",
                 "kind": "RECORD_TYPE",
                 "selected": false
@@ -724,7 +724,7 @@
           "poolConfig": {
             "metadata": {
               "label": "Pool Config",
-              "description": "Configurations associated with request pooling"
+              "description": "Configurations associated with the request connection pool"
             },
             "valueType": "EXPRESSION",
             "valueTypeConstraint": "http:PoolConfiguration|()",
@@ -747,7 +747,7 @@
               },
               {
                 "type": "PoolConfiguration",
-                "packageInfo": "ballerina:http:2.14.1",
+                "packageInfo": "ballerina:http:2.14.2",
                 "packageName": "http",
                 "kind": "RECORD_TYPE",
                 "selected": false
@@ -758,7 +758,7 @@
           "cache": {
             "metadata": {
               "label": "Cache",
-              "description": "HTTP caching related configurations"
+              "description": "HTTP response caching related configurations"
             },
             "valueType": "EXPRESSION",
             "valueTypeConstraint": "http:CacheConfig",
@@ -774,7 +774,7 @@
             "typeMembers": [
               {
                 "type": "CacheConfig",
-                "packageInfo": "ballerina:http:2.14.1",
+                "packageInfo": "ballerina:http:2.14.2",
                 "packageName": "http",
                 "kind": "RECORD_TYPE",
                 "selected": false
@@ -785,7 +785,7 @@
           "compression": {
             "metadata": {
               "label": "Compression",
-              "description": "Specifies the way of handling compression (`accept-encoding`) header"
+              "description": "Enable request/response compression (using `accept-encoding` header)"
             },
             "valueType": "EXPRESSION",
             "valueTypeConstraint": "http:Compression",
@@ -801,7 +801,7 @@
             "typeMembers": [
               {
                 "type": "Compression",
-                "packageInfo": "ballerina:http:2.14.1",
+                "packageInfo": "ballerina:http:2.14.2",
                 "packageName": "http",
                 "kind": "BASIC_TYPE",
                 "selected": false
@@ -812,7 +812,7 @@
           "auth": {
             "metadata": {
               "label": "Auth",
-              "description": "Configurations related to client authentication"
+              "description": "Client authentication options (Basic, Bearer token, OAuth, etc.)"
             },
             "valueType": "EXPRESSION",
             "valueTypeConstraint": "http:CredentialsConfig|http:BearerTokenConfig|http:JwtIssuerConfig|http:OAuth2ClientCredentialsGrantConfig|http:OAuth2PasswordGrantConfig|http:OAuth2RefreshTokenGrantConfig|http:OAuth2JwtBearerGrantConfig|()",
@@ -835,49 +835,49 @@
               },
               {
                 "type": "BearerTokenConfig",
-                "packageInfo": "ballerina:http:2.14.1",
+                "packageInfo": "ballerina:http:2.14.2",
                 "packageName": "http",
                 "kind": "RECORD_TYPE",
                 "selected": false
               },
               {
                 "type": "CredentialsConfig",
-                "packageInfo": "ballerina:http:2.14.1",
+                "packageInfo": "ballerina:http:2.14.2",
                 "packageName": "http",
                 "kind": "RECORD_TYPE",
                 "selected": false
               },
               {
                 "type": "JwtIssuerConfig",
-                "packageInfo": "ballerina:http:2.14.1",
+                "packageInfo": "ballerina:http:2.14.2",
                 "packageName": "http",
                 "kind": "RECORD_TYPE",
                 "selected": false
               },
               {
                 "type": "OAuth2ClientCredentialsGrantConfig",
-                "packageInfo": "ballerina:http:2.14.1",
+                "packageInfo": "ballerina:http:2.14.2",
                 "packageName": "http",
                 "kind": "RECORD_TYPE",
                 "selected": false
               },
               {
                 "type": "OAuth2JwtBearerGrantConfig",
-                "packageInfo": "ballerina:http:2.14.1",
+                "packageInfo": "ballerina:http:2.14.2",
                 "packageName": "http",
                 "kind": "RECORD_TYPE",
                 "selected": false
               },
               {
                 "type": "OAuth2PasswordGrantConfig",
-                "packageInfo": "ballerina:http:2.14.1",
+                "packageInfo": "ballerina:http:2.14.2",
                 "packageName": "http",
                 "kind": "RECORD_TYPE",
                 "selected": false
               },
               {
                 "type": "OAuth2RefreshTokenGrantConfig",
-                "packageInfo": "ballerina:http:2.14.1",
+                "packageInfo": "ballerina:http:2.14.2",
                 "packageName": "http",
                 "kind": "RECORD_TYPE",
                 "selected": false
@@ -888,7 +888,7 @@
           "circuitBreaker": {
             "metadata": {
               "label": "Circuit Breaker",
-              "description": "Configurations associated with the behaviour of the Circuit Breaker"
+              "description": "Circuit breaker configurations to prevent cascading failures"
             },
             "valueType": "EXPRESSION",
             "valueTypeConstraint": "http:CircuitBreakerConfig|()",
@@ -911,7 +911,7 @@
               },
               {
                 "type": "CircuitBreakerConfig",
-                "packageInfo": "ballerina:http:2.14.1",
+                "packageInfo": "ballerina:http:2.14.2",
                 "packageName": "http",
                 "kind": "RECORD_TYPE",
                 "selected": false
@@ -922,7 +922,7 @@
           "retryConfig": {
             "metadata": {
               "label": "Retry Config",
-              "description": "Configurations associated with retrying"
+              "description": "Automatic retry settings for failed requests"
             },
             "valueType": "EXPRESSION",
             "valueTypeConstraint": "http:RetryConfig|()",
@@ -945,7 +945,7 @@
               },
               {
                 "type": "RetryConfig",
-                "packageInfo": "ballerina:http:2.14.1",
+                "packageInfo": "ballerina:http:2.14.2",
                 "packageName": "http",
                 "kind": "RECORD_TYPE",
                 "selected": false
@@ -956,7 +956,7 @@
           "cookieConfig": {
             "metadata": {
               "label": "Cookie Config",
-              "description": "Configurations associated with cookies"
+              "description": "Cookie handling settings for session management"
             },
             "valueType": "EXPRESSION",
             "valueTypeConstraint": "http:CookieConfig|()",
@@ -979,7 +979,7 @@
               },
               {
                 "type": "CookieConfig",
-                "packageInfo": "ballerina:http:2.14.1",
+                "packageInfo": "ballerina:http:2.14.2",
                 "packageName": "http",
                 "kind": "RECORD_TYPE",
                 "selected": false
@@ -990,7 +990,7 @@
           "responseLimits": {
             "metadata": {
               "label": "Response Limits",
-              "description": "Configurations associated with inbound response size limits"
+              "description": "Limits for response size and headers (to prevent memory issues)"
             },
             "valueType": "EXPRESSION",
             "valueTypeConstraint": "http:ResponseLimitConfigs",
@@ -1006,7 +1006,7 @@
             "typeMembers": [
               {
                 "type": "ResponseLimitConfigs",
-                "packageInfo": "ballerina:http:2.14.1",
+                "packageInfo": "ballerina:http:2.14.2",
                 "packageName": "http",
                 "kind": "RECORD_TYPE",
                 "selected": false
@@ -1017,7 +1017,7 @@
           "proxy": {
             "metadata": {
               "label": "Proxy",
-              "description": "Proxy server related options"
+              "description": "Proxy server settings if requests need to go through a proxy"
             },
             "valueType": "EXPRESSION",
             "valueTypeConstraint": "http:ProxyConfig|()",
@@ -1040,7 +1040,7 @@
               },
               {
                 "type": "ProxyConfig",
-                "packageInfo": "ballerina:http:2.14.1",
+                "packageInfo": "ballerina:http:2.14.2",
                 "packageName": "http",
                 "kind": "RECORD_TYPE",
                 "selected": false
@@ -1051,7 +1051,7 @@
           "validation": {
             "metadata": {
               "label": "Validation",
-              "description": "Enables the inbound payload validation functionalty which provided by the constraint package. Enabled by default"
+              "description": "Enable automatic payload validation for request/response data against constraints"
             },
             "valueType": "EXPRESSION",
             "valueTypeConstraint": "boolean",
@@ -1078,7 +1078,7 @@
           "socketConfig": {
             "metadata": {
               "label": "Socket Config",
-              "description": "Provides settings related to client socket configuration"
+              "description": "Low-level socket settings (timeouts, buffer sizes, etc.)"
             },
             "valueType": "EXPRESSION",
             "valueTypeConstraint": "http:ClientSocketConfig",
@@ -1094,7 +1094,7 @@
             "typeMembers": [
               {
                 "type": "ClientSocketConfig",
-                "packageInfo": "ballerina:http:2.14.1",
+                "packageInfo": "ballerina:http:2.14.2",
                 "packageName": "http",
                 "kind": "RECORD_TYPE",
                 "selected": false
@@ -1105,7 +1105,7 @@
           "laxDataBinding": {
             "metadata": {
               "label": "Lax Data Binding",
-              "description": "Enables or disables relaxed data binding on the client side. Disabled by default.\nWhen enabled, the JSON data will be projected to the Ballerina record type and\nduring the projection, nil values will be considered as optional fields and\nabsent fields will be considered for nilable types"
+              "description": "Enable relaxed data binding on the client side.\nWhen enabled:\n- `null` values in JSON are allowed to be mapped to optional fields\n- missing fields in JSON are allowed to be mapped as `null` values"
             },
             "valueType": "EXPRESSION",
             "valueTypeConstraint": "boolean",
@@ -1132,7 +1132,7 @@
           "secureSocket": {
             "metadata": {
               "label": "Secure Socket",
-              "description": "SSL/TLS-related options"
+              "description": "SSL/TLS security settings for HTTPS connections"
             },
             "valueType": "EXPRESSION",
             "valueTypeConstraint": "http:ClientSecureSocket|()",
@@ -1155,7 +1155,7 @@
               },
               {
                 "type": "ClientSecureSocket",
-                "packageInfo": "ballerina:http:2.14.1",
+                "packageInfo": "ballerina:http:2.14.2",
                 "packageName": "http",
                 "kind": "RECORD_TYPE",
                 "selected": false
