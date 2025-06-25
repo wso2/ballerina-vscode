@@ -165,21 +165,22 @@ public class DataMapManager {
                 .findAny();
     }
 
-    public JsonElement getMappings(JsonElement node, LinePosition position, String propertyKey, Path filePath,
-                                   String targetField, Project project) {
-        FlowNode flowNode = gson.fromJson(node, FlowNode.class);
-        SourceModification modification;
-        if (flowNode.codedata().node() == NodeKind.NEW_CONNECTION) {
-            modification = applyConnection(flowNode, project, filePath);
-        } else {
-            modification = applyNode(flowNode, project, filePath, position);
-        }
-        SemanticModel newSemanticModel = modification.semanticModel();
-        List<MappingPort> inputPorts = getInputPorts(newSemanticModel, modification.document(), position);
+    public JsonElement getMappings(SemanticModel semanticModel, JsonElement cd, LinePosition position,
+                                   String propertyKey, String targetField) {
+        Codedata codedata = gson.fromJson(cd, Codedata.class);
+
+        SyntaxTree syntaxTree = document.syntaxTree();
+        ModulePartNode modulePartNode = syntaxTree.rootNode();
+        TextDocument textDocument = syntaxTree.textDocument();
+        LineRange lineRange = codedata.lineRange();
+        int start = textDocument.textPositionFrom(lineRange.startLine());
+        int end = textDocument.textPositionFrom(lineRange.endLine());
+        NonTerminalNode node = modulePartNode.findNode(TextRange.from(start, end - start), true);
+
+        List<MappingPort> inputPorts = getInputPorts(semanticModel, this.document, position);
         inputPorts.sort(Comparator.comparing(mt -> mt.id));
 
-        TargetNode targetNode = getTargetNode(modification.stNode(), targetField, flowNode.codedata().node(),
-                propertyKey, newSemanticModel);
+        TargetNode targetNode = getTargetNode(node, targetField, codedata.node(), propertyKey, semanticModel);
         if (targetNode == null) {
             return null;
         }
@@ -200,7 +201,7 @@ public class DataMapManager {
             List<String> inputs = new ArrayList<>();
             ExpressionNode expression = fromClauseNode.expression();
             inputs.add(expression.toSourceCode().trim());
-            Optional<TypeSymbol> typeSymbol = newSemanticModel.typeOf(expression);
+            Optional<TypeSymbol> typeSymbol = semanticModel.typeOf(expression);
             String itemType = fromClauseNode.typedBindingPattern().typeDescriptor().toSourceCode().trim();
             String fromClauseVar = fromClauseNode.typedBindingPattern().bindingPattern().toSourceCode().trim();
             if (typeSymbol.isPresent() && typeSymbol.get().typeKind() == TypeDescKind.ARRAY) {
@@ -224,7 +225,7 @@ public class DataMapManager {
             LetExpressionNode letExpressionNode = (LetExpressionNode) expressionNode;
             subMappingPorts = new ArrayList<>();
             for (LetVariableDeclarationNode letVarDeclaration : letExpressionNode.letVarDeclarations()) {
-                Optional<Symbol> optSymbol = newSemanticModel.symbol(letVarDeclaration);
+                Optional<Symbol> optSymbol = semanticModel.symbol(letVarDeclaration);
                 if (optSymbol.isEmpty()) {
                     continue;
                 }
@@ -237,9 +238,9 @@ public class DataMapManager {
         List<Mapping> mappings = new ArrayList<>();
         TypeDescKind typeDescKind = CommonUtils.getRawType(targetNode.typeSymbol()).typeKind();
         if (typeDescKind == TypeDescKind.RECORD) {
-            generateRecordVariableDataMapping(expressionNode, mappings, name, newSemanticModel);
+            generateRecordVariableDataMapping(expressionNode, mappings, name, semanticModel);
         } else if (typeDescKind == TypeDescKind.ARRAY) {
-            generateArrayVariableDataMapping(expressionNode, mappings, name, newSemanticModel);
+            generateArrayVariableDataMapping(expressionNode, mappings, name, semanticModel);
         }
 
         return gson.toJsonTree(new Model(inputPorts, outputPort, subMappingPorts, mappings, query));

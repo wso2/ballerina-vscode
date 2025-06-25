@@ -1,61 +1,20 @@
 {
-  "source": "variable11.bal",
+  "source": "variable11_3.bal",
   "description": "Sample diagram node",
-  "diagram": {
-    "id": "32874",
-    "metadata": {
-      "label": "Variable",
-      "description": "Assign a value to a variable"
-    },
-    "codedata": {
-      "node": "VARIABLE",
-      "lineRange": {
-        "fileName": "variable11.bal",
-        "startLine": {
-          "line": 0,
-          "offset": 0
-        },
-        "endLine": {
-          "line": 0,
-          "offset": 0
-        }
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "variable11_3.bal",
+      "startLine": {
+        "line": 30,
+        "offset": 12
       },
-      "sourceCode": ""
-    },
-    "returning": false,
-    "properties": {
-      "expression": {
-        "metadata": {
-          "label": "Expression",
-          "description": "Expression"
-        },
-        "valueType": "EXPRESSION",
-        "value": "{\n                city: std.lastName,\n                foo: {bar: {firstName: std.firstName}}\n            }",
-        "optional": false,
-        "editable": true
-      },
-      "variable": {
-        "metadata": {
-          "label": "Variable",
-          "description": "Name of the variable"
-        },
-        "valueType": "IDENTIFIER",
-        "value": "var1909",
-        "optional": false,
-        "editable": true
-      },
-      "type": {
-        "metadata": {
-          "label": "Type",
-          "description": "Type of the variable"
-        },
-        "valueType": "TYPE",
-        "value": "Person",
-        "optional": false,
-        "editable": true
+      "endLine": {
+        "line": 33,
+        "offset": 43
       }
     },
-    "flags": 0
+    "sourceCode": ""
   },
   "propertyKey": "expression",
   "position": {
