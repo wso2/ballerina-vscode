@@ -78,6 +78,7 @@ import io.ballerina.servicemodelgenerator.extension.request.ServiceModifierReque
 import io.ballerina.servicemodelgenerator.extension.request.ServiceSourceRequest;
 import io.ballerina.servicemodelgenerator.extension.request.TriggerListRequest;
 import io.ballerina.servicemodelgenerator.extension.request.TriggerRequest;
+import io.ballerina.servicemodelgenerator.extension.request.TypesRequest;
 import io.ballerina.servicemodelgenerator.extension.response.AddOrGetDefaultListenerResponse;
 import io.ballerina.servicemodelgenerator.extension.response.CommonSourceResponse;
 import io.ballerina.servicemodelgenerator.extension.response.FunctionModelResponse;
@@ -89,6 +90,7 @@ import io.ballerina.servicemodelgenerator.extension.response.ServiceFromSourceRe
 import io.ballerina.servicemodelgenerator.extension.response.ServiceModelResponse;
 import io.ballerina.servicemodelgenerator.extension.response.TriggerListResponse;
 import io.ballerina.servicemodelgenerator.extension.response.TriggerResponse;
+import io.ballerina.servicemodelgenerator.extension.response.TypeResponse;
 import io.ballerina.servicemodelgenerator.extension.util.ListenerUtil;
 import io.ballerina.servicemodelgenerator.extension.util.ServiceClassUtil;
 import io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils;
@@ -1110,6 +1112,30 @@ public class ServiceModelGeneratorService implements ExtendedLanguageServerServi
                 return new CommonSourceResponse(Map.of(request.filePath(), edits));
             } catch (Throwable e) {
                 return new CommonSourceResponse(e);
+            }
+        });
+    }
+
+    /**
+     * Get the filtered list of types for a given protocol context.
+     *
+     * @param request Class field modifier request
+     * @return {@link CommonSourceResponse} of the common source response
+     */
+    @JsonRequest
+    public CompletableFuture<List<TypeResponse>> types(TypesRequest request) {
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                List<TypeResponse> typeResponses = new ArrayList<>();
+                Path filePath = Path.of(request.filePath());
+                this.workspaceManager.loadProject(filePath);
+                Optional<Document> document = this.workspaceManager.document(filePath);
+                if (document.isEmpty()) {
+                    return typeResponses;
+                }
+                return typeResponses;
+            } catch (Throwable e) {
+                return List.of();
             }
         });
     }
