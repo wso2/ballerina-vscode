@@ -22,12 +22,13 @@ import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.flowmodelgenerator.core.DataMapManager;
 import io.ballerina.flowmodelgenerator.extension.request.DataMapperAddClausesRequest;
 import io.ballerina.flowmodelgenerator.extension.request.DataMapperAddElementRequest;
+import io.ballerina.flowmodelgenerator.extension.request.DataMapperFieldPositionRequest;
 import io.ballerina.flowmodelgenerator.extension.request.DataMapperModelRequest;
 import io.ballerina.flowmodelgenerator.extension.request.DataMapperQueryConvertRequest;
 import io.ballerina.flowmodelgenerator.extension.request.DataMapperSourceRequest;
 import io.ballerina.flowmodelgenerator.extension.request.DataMapperTypesRequest;
 import io.ballerina.flowmodelgenerator.extension.request.DataMapperVisualizeRequest;
-import io.ballerina.flowmodelgenerator.extension.response.DataMapperAddClauseResponse;
+import io.ballerina.flowmodelgenerator.extension.response.DataMapperFieldPositionResponse;
 import io.ballerina.flowmodelgenerator.extension.response.DataMapperModelResponse;
 import io.ballerina.flowmodelgenerator.extension.response.DataMapperSourceResponse;
 import io.ballerina.flowmodelgenerator.extension.response.DataMapperTypesResponse;
@@ -90,15 +91,16 @@ public class DataMapperService implements ExtendedLanguageServerService {
             DataMapperModelResponse response = new DataMapperModelResponse();
             try {
                 Path filePath = Path.of(request.filePath());
-                Project project = this.workspaceManager.loadProject(filePath);
+                this.workspaceManager.loadProject(filePath);
+                Optional<SemanticModel> semanticModel = this.workspaceManager.semanticModel(filePath);
                 Optional<Document> document = this.workspaceManager.document(filePath);
-                if (document.isEmpty()) {
+                if (semanticModel.isEmpty() || document.isEmpty()) {
                     return response;
                 }
 
                 DataMapManager dataMapManager = new DataMapManager(this.workspaceManager, document.get());
-                response.setMappingsModel(dataMapManager.getMappings(request.flowNode(), request.position(),
-                        request.propertyKey(), Path.of(request.filePath()), request.targetField(), project));
+                response.setMappingsModel(dataMapManager.getMappings(semanticModel.get(), request.codedata(),
+                        request.position(), request.propertyKey(), request.targetField()));
             } catch (Throwable e) {
                 response.setError(e);
             }
@@ -151,20 +153,20 @@ public class DataMapperService implements ExtendedLanguageServerService {
     }
 
     @JsonRequest
-    public CompletableFuture<DataMapperAddClauseResponse> convertToQuery(DataMapperQueryConvertRequest request) {
+    public CompletableFuture<DataMapperSourceResponse> convertToQuery(DataMapperQueryConvertRequest request) {
         return CompletableFuture.supplyAsync(() -> {
-            DataMapperAddClauseResponse response = new DataMapperAddClauseResponse();
+            DataMapperSourceResponse response = new DataMapperSourceResponse();
             try {
                 Path filePath = Path.of(request.filePath());
-                Project project = this.workspaceManager.loadProject(filePath);
+                this.workspaceManager.loadProject(filePath);
                 Optional<SemanticModel> semanticModel = this.workspaceManager.semanticModel(filePath);
                 Optional<Document> document = this.workspaceManager.document(filePath);
                 if (semanticModel.isEmpty() || document.isEmpty()) {
                     return response;
                 }
                 DataMapManager dataMapManager = new DataMapManager(workspaceManager, document.get());
-                response.setSource(dataMapManager.getQuery(request.flowNode(), request.targetField(),
-                        Path.of(request.filePath()), request.position(), project));
+                response.setTextEdits(dataMapManager.getQuery(semanticModel.get(), request.codedata(),
+                        request.targetField(), Path.of(request.filePath())));
             } catch (Throwable e) {
                 response.setError(e);
             }
@@ -208,6 +210,28 @@ public class DataMapperService implements ExtendedLanguageServerService {
                 DataMapManager dataMapManager = new DataMapManager(workspaceManager, document.get());
                 response.setTextEdits(dataMapManager.addElement(semanticModel.get(), request.codedata(),
                         Path.of(request.filePath()), request.targetField()));
+            } catch (Throwable e) {
+                response.setError(e);
+            }
+            return response;
+        });
+    }
+
+    @JsonRequest
+    public CompletableFuture<DataMapperFieldPositionResponse> fieldPosition(DataMapperFieldPositionRequest request) {
+        return CompletableFuture.supplyAsync(() -> {
+            DataMapperFieldPositionResponse response = new DataMapperFieldPositionResponse();
+            try {
+                Path filePath = Path.of(request.filePath());
+                this.workspaceManager.loadProject(filePath);
+                Optional<SemanticModel> semanticModel = this.workspaceManager.semanticModel(filePath);
+                Optional<Document> document = this.workspaceManager.document(filePath);
+                if (semanticModel.isEmpty() || document.isEmpty()) {
+                    return response;
+                }
+                DataMapManager dataMapManager = new DataMapManager(workspaceManager, document.get());
+                response.setField(dataMapManager.getFieldPosition(request.codedata(), request.targetField(),
+                        request.fieldId(), Path.of(request.filePath())));
             } catch (Throwable e) {
                 response.setError(e);
             }

@@ -165,21 +165,22 @@ public class DataMapManager {
                 .findAny();
     }
 
-    public JsonElement getMappings(JsonElement node, LinePosition position, String propertyKey, Path filePath,
-                                   String targetField, Project project) {
-        FlowNode flowNode = gson.fromJson(node, FlowNode.class);
-        SourceModification modification;
-        if (flowNode.codedata().node() == NodeKind.NEW_CONNECTION) {
-            modification = applyConnection(flowNode, project, filePath);
-        } else {
-            modification = applyNode(flowNode, project, filePath, position);
-        }
-        SemanticModel newSemanticModel = modification.semanticModel();
-        List<MappingPort> inputPorts = getInputPorts(newSemanticModel, modification.document(), position);
+    public JsonElement getMappings(SemanticModel semanticModel, JsonElement cd, LinePosition position,
+                                   String propertyKey, String targetField) {
+        Codedata codedata = gson.fromJson(cd, Codedata.class);
+
+        SyntaxTree syntaxTree = document.syntaxTree();
+        ModulePartNode modulePartNode = syntaxTree.rootNode();
+        TextDocument textDocument = syntaxTree.textDocument();
+        LineRange lineRange = codedata.lineRange();
+        int start = textDocument.textPositionFrom(lineRange.startLine());
+        int end = textDocument.textPositionFrom(lineRange.endLine());
+        NonTerminalNode node = modulePartNode.findNode(TextRange.from(start, end - start), true);
+
+        List<MappingPort> inputPorts = getInputPorts(semanticModel, this.document, position);
         inputPorts.sort(Comparator.comparing(mt -> mt.id));
 
-        TargetNode targetNode = getTargetNode(modification.stNode(), targetField, flowNode.codedata().node(),
-                propertyKey, newSemanticModel);
+        TargetNode targetNode = getTargetNode(node, targetField, codedata.node(), propertyKey, semanticModel);
         if (targetNode == null) {
             return null;
         }
@@ -200,7 +201,7 @@ public class DataMapManager {
             List<String> inputs = new ArrayList<>();
             ExpressionNode expression = fromClauseNode.expression();
             inputs.add(expression.toSourceCode().trim());
-            Optional<TypeSymbol> typeSymbol = newSemanticModel.typeOf(expression);
+            Optional<TypeSymbol> typeSymbol = semanticModel.typeOf(expression);
             String itemType = fromClauseNode.typedBindingPattern().typeDescriptor().toSourceCode().trim();
             String fromClauseVar = fromClauseNode.typedBindingPattern().bindingPattern().toSourceCode().trim();
             if (typeSymbol.isPresent() && typeSymbol.get().typeKind() == TypeDescKind.ARRAY) {
@@ -224,7 +225,7 @@ public class DataMapManager {
             LetExpressionNode letExpressionNode = (LetExpressionNode) expressionNode;
             subMappingPorts = new ArrayList<>();
             for (LetVariableDeclarationNode letVarDeclaration : letExpressionNode.letVarDeclarations()) {
-                Optional<Symbol> optSymbol = newSemanticModel.symbol(letVarDeclaration);
+                Optional<Symbol> optSymbol = semanticModel.symbol(letVarDeclaration);
                 if (optSymbol.isEmpty()) {
                     continue;
                 }
@@ -237,9 +238,9 @@ public class DataMapManager {
         List<Mapping> mappings = new ArrayList<>();
         TypeDescKind typeDescKind = CommonUtils.getRawType(targetNode.typeSymbol()).typeKind();
         if (typeDescKind == TypeDescKind.RECORD) {
-            generateRecordVariableDataMapping(expressionNode, mappings, name, newSemanticModel);
+            generateRecordVariableDataMapping(expressionNode, mappings, name, semanticModel);
         } else if (typeDescKind == TypeDescKind.ARRAY) {
-            generateArrayVariableDataMapping(expressionNode, mappings, name, newSemanticModel);
+            generateArrayVariableDataMapping(expressionNode, mappings, name, semanticModel);
         }
 
         return gson.toJsonTree(new Model(inputPorts, outputPort, subMappingPorts, mappings, query));
@@ -920,40 +921,36 @@ public class DataMapManager {
         }
     }
 
-    public String getQuery(JsonElement fNode, String targetField, Path filePath, LinePosition position,
-                           Project project) {
-        FlowNode flowNode = gson.fromJson(fNode, FlowNode.class);
-        SourceModification modification = applyNode(flowNode, project, filePath, position);
+    public JsonElement getQuery(SemanticModel semanticModel, JsonElement cd, String targetField, Path filePath) {
+        Codedata codedata = gson.fromJson(cd, Codedata.class);
 
-        TargetNode targetNode = getTargetNode(modification.stNode(), targetField, flowNode.codedata().node(), null,
-                modification.semanticModel());
-        if (targetNode == null) {
-            return "";
+        SyntaxTree syntaxTree = document.syntaxTree();
+        ModulePartNode modulePartNode = syntaxTree.rootNode();
+        TextDocument textDocument = syntaxTree.textDocument();
+        LineRange lineRange = codedata.lineRange();
+        int start = textDocument.textPositionFrom(lineRange.startLine());
+        int end = textDocument.textPositionFrom(lineRange.endLine());
+        NonTerminalNode stNode = modulePartNode.findNode(TextRange.from(start, end - start), true);
+
+        Map<Path, List<TextEdit>> textEditsMap = new HashMap<>();
+        List<TextEdit> textEdits = new ArrayList<>();
+        textEditsMap.put(filePath, textEdits);
+
+        TargetNode targetNode = getTargetNode(stNode, targetField, codedata.node(), null, semanticModel);
+        if (targetNode != null) {
+            TypeSymbol targetTypeSymbol = CommonUtils.getRawType(targetNode.typeSymbol());
+            if (targetTypeSymbol.typeKind() == TypeDescKind.ARRAY) {
+                TypeSymbol typeSymbol =
+                        CommonUtils.getRawType(((ArrayTypeSymbol) targetTypeSymbol).memberTypeDescriptor());
+                if (typeSymbol.typeKind() == TypeDescKind.RECORD) {
+                    String query = getQuerySource(targetNode.expressionNode(), (RecordTypeSymbol) typeSymbol);
+                    textEdits.add(new TextEdit(CommonUtils.toRange(targetNode.expressionNode().lineRange()), query));
+                }
+
+            }
         }
 
-        TypeSymbol targetTypeSymbol = CommonUtils.getRawType(targetNode.typeSymbol());
-        if (targetTypeSymbol.typeKind() != TypeDescKind.ARRAY) {
-            return "";
-        }
-        TypeSymbol typeSymbol = CommonUtils.getRawType(((ArrayTypeSymbol) targetTypeSymbol).memberTypeDescriptor());
-        if (typeSymbol.typeKind() != TypeDescKind.RECORD) {
-            return "";
-        }
-
-        String query = getQuerySource(targetNode.expressionNode(), (RecordTypeSymbol) typeSymbol);
-        if (targetField == null) {
-            return query;
-        }
-        if (flowNode.codedata().node() != NodeKind.VARIABLE) {
-            return query;
-        }
-        Optional<Property> optProperty = flowNode.getProperty(Property.EXPRESSION_KEY);
-        if (optProperty.isEmpty()) {
-            return query;
-        }
-        Property property = optProperty.get();
-        String expr = property.toSourceCode();
-        return expr.replace(targetNode.expressionNode().toSourceCode(), query);
+        return gson.toJsonTree(textEditsMap);
     }
 
     private SourceModification applyNode(FlowNode flowNode, Project project, Path filePath, LinePosition position) {
@@ -1045,18 +1042,9 @@ public class DataMapManager {
             FieldAccessExpressionNode fieldAccessExpr = (FieldAccessExpressionNode) inputExpr;
             name = fieldAccessExpr.fieldName().toSourceCode() + "Item";
         }
-
-        StringBuilder sb = new StringBuilder("from var " + name + " in " + inputExpr.toSourceCode());
-        sb.append(" ").append(SyntaxKind.SELECT_KEYWORD.stringValue()).append(" ");
-        sb.append(SyntaxKind.OPEN_BRACE_TOKEN.stringValue());
-        List<String> keys = new ArrayList<>(recordTypeSymbol.fieldDescriptors().keySet());
-        int size = keys.size();
-        for (int i = 0; i < size - 1; i++) {
-            sb.append(keys.get(i)).append(": ").append(SyntaxKind.COMMA_TOKEN.stringValue());
-        }
-        sb.append(keys.get(size - 1)).append(": ");
-        sb.append(SyntaxKind.CLOSE_BRACE_TOKEN.stringValue());
-        return sb.toString();
+        return "from var " + name + " in " + inputExpr.toSourceCode() + " " +
+                SyntaxKind.SELECT_KEYWORD.stringValue() + " " +
+                DefaultValueGeneratorUtil.getDefaultValueForType(recordTypeSymbol);
     }
 
     public JsonElement getVisualizableProperties(JsonElement node, Project project, Path filePath,
@@ -1240,6 +1228,89 @@ public class DataMapManager {
             }
         }
         return targetType;
+    }
+
+    public JsonElement getFieldPosition(JsonElement cd, String targetField, String fieldId, Path filePath) {
+        Codedata codedata = gson.fromJson(cd, Codedata.class);
+        SyntaxTree syntaxTree = document.syntaxTree();
+        ModulePartNode modulePartNode = syntaxTree.rootNode();
+        TextDocument textDocument = syntaxTree.textDocument();
+        LineRange lineRange = codedata.lineRange();
+        int start = textDocument.textPositionFrom(lineRange.startLine());
+        int end = textDocument.textPositionFrom(lineRange.endLine());
+        NonTerminalNode stNode = modulePartNode.findNode(TextRange.from(start, end - start), true);
+        if (stNode.kind() != SyntaxKind.LOCAL_VAR_DECL) {
+            return null;
+        }
+
+        VariableDeclarationNode varDeclNode = (VariableDeclarationNode) stNode;
+        ExpressionNode initializer = varDeclNode.initializer().orElseThrow();
+        ExpressionNode expr = getMappingExpr(initializer, targetField);
+        if (expr == null || expr.kind() != SyntaxKind.MAPPING_CONSTRUCTOR) {
+            return null;
+        }
+
+        Map<Path, List<TextEdit>> textEditsMap = new HashMap<>();
+        List<TextEdit> textEdits = new ArrayList<>();
+        textEditsMap.put(filePath, textEdits);
+        LinePosition pos = getFieldPos(expr, fieldId.split("\\."), 1, new StringBuilder(), null, textEdits);
+        return gson.toJsonTree(new FieldPosition(textEditsMap, pos));
+    }
+
+    private LinePosition getFieldPos(ExpressionNode expr, String[] names, int idx, StringBuilder stringBuilder,
+                                     LinePosition position, List<TextEdit> textEdits) {
+        if (expr == null) {
+            String name = names[idx];
+            stringBuilder.append(name).append(": ");
+            for (int i = idx + 1; i < names.length; i++) {
+                stringBuilder.append("{").append(names[i]).append(": ");
+            }
+            int offset = stringBuilder.length();
+            for (int i = idx + 1; i < names.length; i++) {
+                stringBuilder.append("}");
+            }
+            textEdits.add(new TextEdit(CommonUtils.toRange(position), stringBuilder.toString()));
+            return LinePosition.from(position.line(), position.offset() + offset);
+        } else if (expr.kind() == SyntaxKind.MAPPING_CONSTRUCTOR) {
+            String name = names[idx];
+            MappingConstructorExpressionNode mappingCtrExpr = (MappingConstructorExpressionNode) expr;
+            Map<String, SpecificFieldNode> mappingFields = convertMappingFieldsToMap(mappingCtrExpr);
+            SpecificFieldNode mappingFieldNode = mappingFields.get(name);
+            if (mappingFieldNode == null) {
+                if (!mappingFields.isEmpty()) {
+                    stringBuilder.append(", ");
+                }
+                return getFieldPos(null, names, idx, stringBuilder,
+                        mappingCtrExpr.closeBrace().lineRange().startLine(), textEdits);
+            } else {
+                return getFieldPos(mappingFieldNode.valueExpr().orElseThrow(), names, idx + 1, stringBuilder,
+                        null, textEdits);
+            }
+        } else if (expr.kind() == SyntaxKind.LIST_CONSTRUCTOR) {
+            ListConstructorExpressionNode listCtrExpr = (ListConstructorExpressionNode) expr;
+            String name = names[idx];
+            if (name.matches("\\d+")) {
+                int index = Integer.parseInt(name);
+                if (index >= listCtrExpr.expressions().size()) {
+                    if (idx > 0) {
+                        stringBuilder.append(", ");
+                    }
+                    return getFieldPos(null, names, idx, stringBuilder,
+                            listCtrExpr.closeBracket().lineRange().startLine(), textEdits);
+                } else {
+                    return getFieldPos((ExpressionNode) listCtrExpr.expressions().get(index), names, idx + 1,
+                            stringBuilder, null, textEdits);
+                }
+            } else {
+                throw new IllegalArgumentException("Invalid field name: " + name);
+            }
+        } else {
+            return expr.lineRange().startLine();
+        }
+    }
+
+    private record FieldPosition(Map<Path, List<TextEdit>> textEdits, LinePosition position) {
+
     }
 
     private List<IntermediateClause> getQueryIntermediateClause(QueryPipelineNode queryPipelineNode) {

@@ -13,7 +13,7 @@
     "fileName": "log_source.bal",
     "nodes": [
       {
-        "id": "37980",
+        "id": "38011",
         "metadata": {
           "label": "ErrorHandler",
           "description": "Catch and handle errors"
@@ -27,11 +27,11 @@
               "offset": 4
             },
             "endLine": {
-              "line": 11,
+              "line": 12,
               "offset": 5
             }
           },
-          "sourceCode": "do {\n\n    } on fail error e {\n        log:printError(\"Error: \", 'error = e, key1=\"dadfa\", key2=123);\n        return e;\n    }"
+          "sourceCode": "do {\n\n    } on fail error e {\n        log:printError(\"Error: \", 'error = e, key1=\"dadfa\", key2=123);\n        log:printError(\"Error: \", e, e.stackTrace());\n        return e;\n    }"
         },
         "returning": false,
         "branches": [
@@ -68,11 +68,11 @@
                   "offset": 22
                 },
                 "endLine": {
-                  "line": 11,
+                  "line": 12,
                   "offset": 5
                 }
               },
-              "sourceCode": "{\n        log:printError(\"Error: \", 'error = e, key1=\"dadfa\", key2=123);\n        return e;\n    }"
+              "sourceCode": "{\n        log:printError(\"Error: \", 'error = e, key1=\"dadfa\", key2=123);\n        log:printError(\"Error: \", e, e.stackTrace());\n        return e;\n    }"
             },
             "repeatable": "ZERO_OR_ONE",
             "properties": {
@@ -147,7 +147,7 @@
                 "properties": {
                   "msg": {
                     "metadata": {
-                      "label": "msg",
+                      "label": "Msg",
                       "description": "The message to be logged"
                     },
                     "valueType": "EXPRESSION",
@@ -181,7 +181,7 @@
                   },
                   "error": {
                     "metadata": {
-                      "label": "error",
+                      "label": "Error",
                       "description": "The error struct to be logged"
                     },
                     "valueType": "EXPRESSION",
@@ -216,7 +216,7 @@
                   },
                   "stackTrace": {
                     "metadata": {
-                      "label": "stackTrace",
+                      "label": "Stack Trace",
                       "description": "The error stack trace to be logged"
                     },
                     "valueType": "EXPRESSION",
@@ -278,7 +278,162 @@
                 "flags": 0
               },
               {
-                "id": "41929",
+                "id": "41965",
+                "metadata": {
+                  "label": "printError",
+                  "description": "Prints error logs.\n```ballerina\nerror e = error(\"error occurred\");\nlog:printError(\"error log with cause\", 'error = e, id = 845315);\n```\n",
+                  "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_log_2.12.0.png"
+                },
+                "codedata": {
+                  "node": "FUNCTION_CALL",
+                  "org": "ballerina",
+                  "module": "log",
+                  "packageName": "log",
+                  "symbol": "printError",
+                  "version": "2.12.0",
+                  "lineRange": {
+                    "fileName": "log_source.bal",
+                    "startLine": {
+                      "line": 10,
+                      "offset": 8
+                    },
+                    "endLine": {
+                      "line": 10,
+                      "offset": 53
+                    }
+                  },
+                  "sourceCode": "log:printError(\"Error: \", e, e.stackTrace());"
+                },
+                "returning": false,
+                "properties": {
+                  "msg": {
+                    "metadata": {
+                      "label": "Msg",
+                      "description": "The message to be logged"
+                    },
+                    "valueType": "EXPRESSION",
+                    "valueTypeConstraint": "string|log:PrintableRawTemplate",
+                    "value": "\"Error: \"",
+                    "placeholder": "\"\"",
+                    "optional": false,
+                    "editable": true,
+                    "advanced": false,
+                    "hidden": false,
+                    "codedata": {
+                      "kind": "REQUIRED",
+                      "originalName": "msg"
+                    },
+                    "typeMembers": [
+                      {
+                        "type": "PrintableRawTemplate",
+                        "packageInfo": "ballerina:log:2.12.0",
+                        "packageName": "log",
+                        "kind": "OBJECT_TYPE",
+                        "selected": false
+                      },
+                      {
+                        "type": "string",
+                        "packageInfo": "",
+                        "packageName": "",
+                        "kind": "BASIC_TYPE",
+                        "selected": true
+                      }
+                    ]
+                  },
+                  "error": {
+                    "metadata": {
+                      "label": "Error",
+                      "description": "The error struct to be logged"
+                    },
+                    "valueType": "EXPRESSION",
+                    "valueTypeConstraint": "error|()",
+                    "value": "e",
+                    "placeholder": "()",
+                    "optional": true,
+                    "editable": true,
+                    "advanced": true,
+                    "hidden": false,
+                    "codedata": {
+                      "kind": "DEFAULTABLE",
+                      "originalName": "'error"
+                    },
+                    "typeMembers": [
+                      {
+                        "type": "()",
+                        "packageInfo": "",
+                        "packageName": "",
+                        "kind": "BASIC_TYPE",
+                        "selected": false
+                      },
+                      {
+                        "type": "error",
+                        "packageInfo": "ballerina:lang.annotations:0.0.0",
+                        "packageName": "lang.annotations",
+                        "kind": "ERROR_TYPE",
+                        "selected": true
+                      }
+                    ],
+                    "defaultValue": "()"
+                  },
+                  "stackTrace": {
+                    "metadata": {
+                      "label": "Stack Trace",
+                      "description": "The error stack trace to be logged"
+                    },
+                    "valueType": "EXPRESSION",
+                    "valueTypeConstraint": "error:StackFrame[]|()",
+                    "value": "e.stackTrace()",
+                    "placeholder": "()",
+                    "optional": true,
+                    "editable": true,
+                    "advanced": true,
+                    "hidden": false,
+                    "codedata": {
+                      "kind": "DEFAULTABLE",
+                      "originalName": "stackTrace"
+                    },
+                    "typeMembers": [
+                      {
+                        "type": "()",
+                        "packageInfo": "",
+                        "packageName": "",
+                        "kind": "BASIC_TYPE",
+                        "selected": false
+                      },
+                      {
+                        "type": "StackFrame",
+                        "packageInfo": "ballerina:lang.error:0.0.0",
+                        "packageName": "lang.error",
+                        "kind": "ARRAY_TYPE",
+                        "selected": false
+                      }
+                    ],
+                    "defaultValue": "()"
+                  },
+                  "additionalValues": {
+                    "metadata": {
+                      "label": "Additional Values",
+                      "description": "Capture key value pairs"
+                    },
+                    "valueType": "MAPPING_EXPRESSION_SET",
+                    "valueTypeConstraint": "log:Value",
+                    "value": [],
+                    "placeholder": "{}",
+                    "optional": true,
+                    "editable": true,
+                    "advanced": true,
+                    "hidden": false,
+                    "codedata": {
+                      "kind": "INCLUDED_RECORD_REST",
+                      "originalName": "Additional Values"
+                    },
+                    "typeMembers": []
+                  }
+                },
+                "flags": 0
+              },
+              {
+                "id": "42921",
                 "metadata": {
                   "label": "Return",
                   "description": "Value of 'e'"
@@ -288,11 +443,11 @@
                   "lineRange": {
                     "fileName": "log_source.bal",
                     "startLine": {
-                      "line": 10,
+                      "line": 11,
                       "offset": 8
                     },
                     "endLine": {
-                      "line": 10,
+                      "line": 11,
                       "offset": 17
                     }
                   },

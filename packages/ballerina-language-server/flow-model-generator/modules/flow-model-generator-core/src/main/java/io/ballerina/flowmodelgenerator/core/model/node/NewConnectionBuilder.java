@@ -53,7 +53,7 @@ public class NewConnectionBuilder extends CallBuilder {
     public static final String CHECK_ERROR_DOC = "Terminate on error";
     public static final String CONNECTION_NAME_LABEL = "Connection Name";
     public static final String CONNECTION_TYPE_LABEL = "Connection Type";
-
+    public static final String CONNECTION_NAME_DOC = "Name of the connection";
     private static final String CONNECTIONS_BAL = "connections.bal";
     private static final String DRIVER_SUB_PACKAGE = ".driver";
     public static final List<String> CONNECTION_DRIVERS = List.of(
@@ -174,7 +174,7 @@ public class NewConnectionBuilder extends CallBuilder {
         setParameterProperties(functionData);
 
         if (CommonUtils.hasReturn(functionData.returnType())) {
-            setReturnTypeProperties(functionData, context, CONNECTION_NAME_LABEL, true);
+            setReturnTypeProperties(functionData, context, CONNECTION_NAME_LABEL, CONNECTION_NAME_DOC, true);
         }
 
         properties()

@@ -43,7 +43,7 @@
         "optional": false,
         "editable": false,
         "advanced": false,
-        "hidden": false
+        "hidden": true
       },
       "resourcePath": {
         "metadata": {
@@ -55,7 +55,7 @@
         "optional": false,
         "editable": false,
         "advanced": false,
-        "hidden": false,
+        "hidden": true,
         "codedata": {
           "originalName": "/orgs/[org]/repos"
         }
@@ -80,7 +80,7 @@
       },
       "$type": {
         "metadata": {
-          "label": "type",
+          "label": "Type",
           "description": "Specifies the types of repositories you want returned."
         },
         "valueType": "EXPRESSION",
@@ -142,7 +142,7 @@
       },
       "sort": {
         "metadata": {
-          "label": "sort",
+          "label": "Sort",
           "description": "The property to sort the results by."
         },
         "valueType": "EXPRESSION",
@@ -190,7 +190,7 @@
       },
       "direction": {
         "metadata": {
-          "label": "direction",
+          "label": "Direction",
           "description": "The order to sort by. Default: `asc` when using `full_name`, otherwise `desc`."
         },
         "valueType": "EXPRESSION",
@@ -231,7 +231,7 @@
       },
       "per_page": {
         "metadata": {
-          "label": "per_page",
+          "label": "Per Page",
           "description": "The number of results per page (max 100)."
         },
         "valueType": "EXPRESSION",
@@ -258,7 +258,7 @@
       },
       "page": {
         "metadata": {
-          "label": "page",
+          "label": "Page",
           "description": "Page number of the results to fetch."
         },
         "valueType": "EXPRESSION",
@@ -294,13 +294,13 @@
         "optional": false,
         "editable": false,
         "advanced": false,
-        "hidden": false,
+        "hidden": true,
         "codedata": {}
       },
       "variable": {
         "metadata": {
-          "label": "Variable Name",
-          "description": "Name of the variable"
+          "label": "Result",
+          "description": "Name of the result variable"
         },
         "valueType": "IDENTIFIER",
         "value": "githubMinimalrepository",

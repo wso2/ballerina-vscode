@@ -19,8 +19,8 @@
     "id": "31",
     "metadata": {
       "label": "get",
-      "description": "The `Client.get()` function can be used to send HTTP GET requests to HTTP endpoints.\n",
-      "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.14.1.png"
+      "description": "Retrieve a representation of a specified resource from an HTTP endpoint.\n",
+      "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.14.2.png"
     },
     "codedata": {
       "node": "REMOTE_ACTION_CALL",
@@ -48,27 +48,9 @@
         "advanced": false,
         "hidden": true
       },
-      "targetType": {
-        "metadata": {
-          "label": "targetType",
-          "description": "HTTP response, `anydata` or stream of HTTP SSE, which is expected to be returned after data binding"
-        },
-        "valueType": "TYPE",
-        "valueTypeConstraint": "anydata",
-        "placeholder": "anydata",
-        "optional": false,
-        "editable": true,
-        "advanced": false,
-        "hidden": false,
-        "codedata": {
-          "kind": "PARAM_FOR_TYPE_INFER",
-          "originalName": "targetType"
-        },
-        "defaultValue": "anydata"
-      },
       "path": {
         "metadata": {
-          "label": "path",
+          "label": "Path",
           "description": "Request path"
         },
         "valueType": "EXPRESSION",
@@ -94,7 +76,7 @@
       },
       "headers": {
         "metadata": {
-          "label": "headers",
+          "label": "Headers",
           "description": "The entity headers"
         },
         "valueType": "EXPRESSION",
@@ -126,6 +108,24 @@
         ],
         "defaultValue": "()"
       },
+      "targetType": {
+        "metadata": {
+          "label": "Target Type",
+          "description": "Expected return type (to be used for automatic data binding).\nSupported types:\n- Built-in subtypes of `anydata` (`string`, `byte[]`, `json|xml`, etc.)\n- Custom types (e.g., `User`, `Student?`, `Person[]`, etc.)\n- Full HTTP response with headers and status (`http:Response`)\n- Stream of Server-Sent Events (`stream<http:SseEvent, error?>`)"
+        },
+        "valueType": "TYPE",
+        "valueTypeConstraint": "anydata",
+        "placeholder": "anydata",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false,
+        "codedata": {
+          "kind": "PARAM_FOR_TYPE_INFER",
+          "originalName": "targetType"
+        },
+        "defaultValue": "anydata"
+      },
       "type": {
         "metadata": {
           "label": "Variable Type",
@@ -142,8 +142,8 @@
       },
       "variable": {
         "metadata": {
-          "label": "Variable Name",
-          "description": "Name of the variable"
+          "label": "Result",
+          "description": "Name of the result variable"
         },
         "valueType": "IDENTIFIER",
         "value": "var2",

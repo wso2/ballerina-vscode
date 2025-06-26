@@ -2,7 +2,7 @@
   "ballerina": [
     {
       "name": "http",
-      "version": "2.14.1"
+      "version": "2.14.2"
     },
     {
       "name": "crypto",
@@ -324,11 +324,11 @@
     },
     {
       "name": "mssql",
-      "version": "1.15.0"
+      "version": "1.16.1"
     },
     {
       "name": "mysql",
-      "version": "1.15.0"
+      "version": "1.16.1"
     },
     {
       "name": "nats",

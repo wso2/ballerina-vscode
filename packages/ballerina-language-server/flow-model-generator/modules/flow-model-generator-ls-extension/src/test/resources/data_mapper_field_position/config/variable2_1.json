@@ -1,0 +1,29 @@
+{
+  "source": "variable2.bal",
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "variable2.bal",
+      "startLine": {
+        "line": 24,
+        "offset": 12
+      },
+      "endLine": {
+        "line": 24,
+        "offset": 86
+      }
+    },
+    "sourceCode": ""
+  },
+  "propertyKey": "expression",
+  "targetField": "department",
+  "fieldId": "department.students.0.username",
+  "output": {
+    "variable2.bal": []
+  },
+  "position": {
+    "line": 24,
+    "offset": 75
+  }
+}

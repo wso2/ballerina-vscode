@@ -43,7 +43,7 @@
         "optional": false,
         "editable": false,
         "advanced": false,
-        "hidden": false
+        "hidden": true
       },
       "resourcePath": {
         "metadata": {
@@ -55,7 +55,7 @@
         "optional": false,
         "editable": false,
         "advanced": false,
-        "hidden": false,
+        "hidden": true,
         "codedata": {
           "originalName": "/app\\-manifests/[code]/conversions"
         }
@@ -88,13 +88,13 @@
         "optional": false,
         "editable": false,
         "advanced": false,
-        "hidden": false,
+        "hidden": true,
         "codedata": {}
       },
       "variable": {
         "metadata": {
-          "label": "Variable Name",
-          "description": "Name of the variable"
+          "label": "Result",
+          "description": "Name of the result variable"
         },
         "valueType": "IDENTIFIER",
         "value": "githubManifestconversions",

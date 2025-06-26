@@ -42,8 +42,8 @@
         "id": "45807",
         "metadata": {
           "label": "get",
-          "description": "The `Client.get()` function can be used to send HTTP GET requests to HTTP endpoints.\n",
-          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.14.1.png"
+          "description": "Retrieve a representation of a specified resource from an HTTP endpoint.\n",
+          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.14.2.png"
         },
         "codedata": {
           "node": "REMOTE_ACTION_CALL",
@@ -52,7 +52,7 @@
           "packageName": "http",
           "object": "Client",
           "symbol": "get",
-          "version": "2.14.1",
+          "version": "2.14.2",
           "lineRange": {
             "fileName": "clients.bal",
             "startLine": {
@@ -81,28 +81,9 @@
             "advanced": false,
             "hidden": true
           },
-          "targetType": {
-            "metadata": {
-              "label": "targetType",
-              "description": "HTTP response, `anydata` or stream of HTTP SSE, which is expected to be returned after data binding"
-            },
-            "valueType": "TYPE",
-            "valueTypeConstraint": "anydata",
-            "value": "json",
-            "placeholder": "anydata",
-            "optional": false,
-            "editable": true,
-            "advanced": false,
-            "hidden": false,
-            "codedata": {
-              "kind": "PARAM_FOR_TYPE_INFER",
-              "originalName": "targetType"
-            },
-            "defaultValue": "anydata"
-          },
           "path": {
             "metadata": {
-              "label": "path",
+              "label": "Path",
               "description": "Request path"
             },
             "valueType": "EXPRESSION",
@@ -129,7 +110,7 @@
           },
           "headers": {
             "metadata": {
-              "label": "headers",
+              "label": "Headers",
               "description": "The entity headers"
             },
             "valueType": "EXPRESSION",
@@ -173,6 +154,25 @@
             "advanced": true,
             "hidden": true
           },
+          "targetType": {
+            "metadata": {
+              "label": "Target Type",
+              "description": "Expected return type (to be used for automatic data binding).\nSupported types:\n- Built-in subtypes of `anydata` (`string`, `byte[]`, `json|xml`, etc.)\n- Custom types (e.g., `User`, `Student?`, `Person[]`, etc.)\n- Full HTTP response with headers and status (`http:Response`)\n- Stream of Server-Sent Events (`stream<http:SseEvent, error?>`)"
+            },
+            "valueType": "TYPE",
+            "valueTypeConstraint": "anydata",
+            "value": "json",
+            "placeholder": "anydata",
+            "optional": false,
+            "editable": true,
+            "advanced": false,
+            "hidden": false,
+            "codedata": {
+              "kind": "PARAM_FOR_TYPE_INFER",
+              "originalName": "targetType"
+            },
+            "defaultValue": "anydata"
+          },
           "variable": {
             "metadata": {
               "label": "Variable Name",
@@ -209,7 +209,7 @@
             "optional": false,
             "editable": false,
             "advanced": false,
-            "hidden": false,
+            "hidden": true,
             "codedata": {}
           }
         },
@@ -263,8 +263,8 @@
         "id": "48798",
         "metadata": {
           "label": "New Connection",
-          "description": "The HTTP client provides the capability for initiating contact with a remote HTTP service. The API it\nprovides includes the functions for the standard HTTP methods forwarding a received request and sending requests\nusing custom HTTP verbs.",
-          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.14.1.png"
+          "description": "The HTTP client provides functionality to connect to remote HTTP services and perform requests using standard HTTP methods like GET, POST, PUT, DELETE, etc.\n",
+          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.14.2.png"
         },
         "codedata": {
           "node": "NEW_CONNECTION",
@@ -289,7 +289,7 @@
         "properties": {
           "url": {
             "metadata": {
-              "label": "url",
+              "label": "Url",
               "description": "URL of the target service"
             },
             "valueType": "EXPRESSION",
@@ -316,7 +316,7 @@
           },
           "config": {
             "metadata": {
-              "label": "config",
+              "label": "Config",
               "description": "The configurations to be used when initializing the `client`"
             },
             "valueType": "EXPRESSION",
@@ -334,7 +334,7 @@
             "typeMembers": [
               {
                 "type": "ClientConfiguration",
-                "packageInfo": "ballerina:http:2.14.1",
+                "packageInfo": "ballerina:http:2.14.2",
                 "packageName": "http",
                 "kind": "RECORD_TYPE",
                 "selected": true
@@ -411,8 +411,8 @@
         "id": "49773",
         "metadata": {
           "label": "get",
-          "description": "The `Client.get()` function can be used to send HTTP GET requests to HTTP endpoints.\n",
-          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.14.1.png"
+          "description": "Retrieve a representation of a specified resource from an HTTP endpoint.\n",
+          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.14.2.png"
         },
         "codedata": {
           "node": "REMOTE_ACTION_CALL",
@@ -421,7 +421,7 @@
           "packageName": "http",
           "object": "Client",
           "symbol": "get",
-          "version": "2.14.1",
+          "version": "2.14.2",
           "lineRange": {
             "fileName": "clients.bal",
             "startLine": {
@@ -450,28 +450,9 @@
             "advanced": false,
             "hidden": true
           },
-          "targetType": {
-            "metadata": {
-              "label": "targetType",
-              "description": "HTTP response, `anydata` or stream of HTTP SSE, which is expected to be returned after data binding"
-            },
-            "valueType": "TYPE",
-            "valueTypeConstraint": "anydata",
-            "value": "json",
-            "placeholder": "anydata",
-            "optional": false,
-            "editable": true,
-            "advanced": false,
-            "hidden": false,
-            "codedata": {
-              "kind": "PARAM_FOR_TYPE_INFER",
-              "originalName": "targetType"
-            },
-            "defaultValue": "anydata"
-          },
           "path": {
             "metadata": {
-              "label": "path",
+              "label": "Path",
               "description": "Request path"
             },
             "valueType": "EXPRESSION",
@@ -498,7 +479,7 @@
           },
           "headers": {
             "metadata": {
-              "label": "headers",
+              "label": "Headers",
               "description": "The entity headers"
             },
             "valueType": "EXPRESSION",
@@ -542,6 +523,25 @@
             "advanced": true,
             "hidden": true
           },
+          "targetType": {
+            "metadata": {
+              "label": "Target Type",
+              "description": "Expected return type (to be used for automatic data binding).\nSupported types:\n- Built-in subtypes of `anydata` (`string`, `byte[]`, `json|xml`, etc.)\n- Custom types (e.g., `User`, `Student?`, `Person[]`, etc.)\n- Full HTTP response with headers and status (`http:Response`)\n- Stream of Server-Sent Events (`stream<http:SseEvent, error?>`)"
+            },
+            "valueType": "TYPE",
+            "valueTypeConstraint": "anydata",
+            "value": "json",
+            "placeholder": "anydata",
+            "optional": false,
+            "editable": true,
+            "advanced": false,
+            "hidden": false,
+            "codedata": {
+              "kind": "PARAM_FOR_TYPE_INFER",
+              "originalName": "targetType"
+            },
+            "defaultValue": "anydata"
+          },
           "variable": {
             "metadata": {
               "label": "Variable Name",
@@ -578,7 +578,7 @@
             "optional": false,
             "editable": false,
             "advanced": false,
-            "hidden": false,
+            "hidden": true,
             "codedata": {}
           }
         },
@@ -766,8 +766,8 @@
         "id": "39743",
         "metadata": {
           "label": "New Connection",
-          "description": "The HTTP client provides the capability for initiating contact with a remote HTTP service. The API it\nprovides includes the functions for the standard HTTP methods forwarding a received request and sending requests\nusing custom HTTP verbs.",
-          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.14.1.png"
+          "description": "The HTTP client provides functionality to connect to remote HTTP services and perform requests using standard HTTP methods like GET, POST, PUT, DELETE, etc.\n",
+          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.14.2.png"
         },
         "codedata": {
           "node": "NEW_CONNECTION",
@@ -792,7 +792,7 @@
         "properties": {
           "url": {
             "metadata": {
-              "label": "url",
+              "label": "Url",
               "description": "URL of the target service"
             },
             "valueType": "EXPRESSION",
@@ -819,7 +819,7 @@
           },
           "config": {
             "metadata": {
-              "label": "config",
+              "label": "Config",
               "description": "The configurations to be used when initializing the `client`"
             },
             "valueType": "EXPRESSION",
@@ -837,7 +837,7 @@
             "typeMembers": [
               {
                 "type": "ClientConfiguration",
-                "packageInfo": "ballerina:http:2.14.1",
+                "packageInfo": "ballerina:http:2.14.2",
                 "packageName": "http",
                 "kind": "RECORD_TYPE",
                 "selected": true

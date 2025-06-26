@@ -96,7 +96,7 @@ public class ResourceActionCallBuilder extends CallBuilder {
 
         String returnTypeName = functionData.returnType();
         if (CommonUtils.hasReturn(returnTypeName)) {
-            setReturnTypeProperties(functionData, context, Property.VARIABLE_NAME, false);
+            setReturnTypeProperties(functionData, context, Property.RESULT_NAME, Property.RESULT_DOC, true);
         }
 
         if (functionData.returnError()) {

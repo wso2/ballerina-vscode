@@ -181,7 +181,7 @@ public class SourceBuilder {
                 String returnType = flowNode.codedata().inferredReturnType();
                 String inferredType = inferredParam.get().value().toString();
                 String inferredTypeDef = inferredParam.get()
-                        .metadata().label();
+                        .codedata().originalName();
                 typeName = returnType.replace(inferredTypeDef, inferredType);
             }
         }

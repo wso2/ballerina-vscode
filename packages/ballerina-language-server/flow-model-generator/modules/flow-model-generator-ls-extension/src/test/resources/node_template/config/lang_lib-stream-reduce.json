@@ -33,7 +33,7 @@
     "properties": {
       "stm": {
         "metadata": {
-          "label": "stm",
+          "label": "Stm",
           "description": "the stream"
         },
         "valueType": "EXPRESSION",
@@ -59,7 +59,7 @@
       },
       "func": {
         "metadata": {
-          "label": "func",
+          "label": "Func",
           "description": "combining function"
         },
         "valueType": "EXPRESSION",
@@ -85,7 +85,7 @@
       },
       "initial": {
         "metadata": {
-          "label": "initial",
+          "label": "Initial",
           "description": "initial value for the first argument of combining parameter `func`"
         },
         "valueType": "EXPRESSION",
@@ -125,8 +125,8 @@
       },
       "variable": {
         "metadata": {
-          "label": "Variable Name",
-          "description": "Name of the variable"
+          "label": "Result",
+          "description": "Name of the result variable"
         },
         "valueType": "IDENTIFIER",
         "value": "anyError",

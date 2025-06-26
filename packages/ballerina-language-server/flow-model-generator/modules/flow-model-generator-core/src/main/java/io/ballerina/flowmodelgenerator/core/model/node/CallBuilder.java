@@ -120,7 +120,7 @@ public abstract class CallBuilder extends NodeBuilder {
         setParameterProperties(functionData);
 
         if (CommonUtils.hasReturn(functionData.returnType())) {
-            setReturnTypeProperties(functionData, context, Property.VARIABLE_NAME, false);
+            setReturnTypeProperties(functionData, context, Property.RESULT_NAME, Property.RESULT_DOC, false);
         }
 
         if (functionData.returnError()) {
@@ -130,9 +130,10 @@ public abstract class CallBuilder extends NodeBuilder {
 
     public static void buildInferredTypeProperty(NodeBuilder nodeBuilder, ParameterData paramData, String value) {
         String unescapedParamName = ParamUtils.removeLeadingSingleQuote(paramData.name());
+        String label = paramData.label();
         nodeBuilder.properties().custom()
                 .metadata()
-                    .label(unescapedParamName)
+                    .label(label == null || label.isEmpty() ? unescapedParamName : label)
                     .description(paramData.description())
                     .stepOut()
                 .codedata()
@@ -219,6 +220,13 @@ public abstract class CallBuilder extends NodeBuilder {
                 .data(functionData.returnType(), context.getAllVisibleSymbolNames(), label);
     }
 
+    protected void setReturnTypeProperties(FunctionData functionData, TemplateContext context, String label, String doc,
+                                           boolean hidden) {
+        properties()
+                .type(functionData.returnType(), false, functionData.importStatements(), hidden)
+                .data(functionData.returnType(), context.getAllVisibleSymbolNames(), label, doc);
+    }
+
     protected void setExpressionProperty(Codedata codedata) {
         properties().custom()
                 .metadata()
@@ -228,6 +236,7 @@ public abstract class CallBuilder extends NodeBuilder {
                 .typeConstraint(CommonUtils.getClassType(codedata.module(), codedata.object()))
                 .value(codedata.parentSymbol())
                 .type(Property.ValueType.EXPRESSION)
+                .hidden()
                 .stepOut()
                 .addProperty(Property.CONNECTION_KEY);
     }
