@@ -1390,8 +1390,8 @@ public class CodeAnalyzer extends NodeVisitor {
                             NewConnectionBuilder.CONNECTION_TYPE_LABEL, false, new HashSet<>(), true);
         } else if (nodeBuilder instanceof RemoteActionCallBuilder || nodeBuilder instanceof ResourceActionCallBuilder) {
             nodeBuilder.properties()
-                    .dataVariable(this.typedBindingPatternNode, Property.VARIABLE_NAME, Property.TYPE_LABEL, false,
-                            new HashSet<>(), true);
+                    .dataVariable(this.typedBindingPatternNode, Property.RESULT_NAME, Property.TYPE_LABEL,
+                            Property.RESULT_DOC, false, new HashSet<>(), true);
         } else if (nodeBuilder instanceof FunctionCall || nodeBuilder instanceof MethodCall) {
             nodeBuilder.properties()
                     .dataVariable(this.typedBindingPatternNode, Property.VARIABLE_NAME, Property.TYPE_LABEL, false,
@@ -1596,7 +1596,7 @@ public class CodeAnalyzer extends NodeVisitor {
         Map<String, ParameterData> funcParamMap = new LinkedHashMap<>();
         Map<String, ParameterData> typeInferParamMap = new LinkedHashMap<>();
         FunctionTypeSymbol functionTypeSymbol = functionSymbol.typeDescriptor();
-        
+
         functionData.parameters().forEach((key, paramResult) -> {
             if (paramResult.kind() == ParameterData.Kind.PATH_PARAM) {
                 // Skip if `path` param
@@ -1607,13 +1607,13 @@ public class CodeAnalyzer extends NodeVisitor {
                 typeInferParamMap.put(key, paramResult);
                 return;
             }
-            
+
             funcParamMap.put(key, paramResult);
         });
-        
+
         buildPropsFromFuncCallArgs(arguments, functionTypeSymbol, funcParamMap, positionalArgs, namedArgValueMap);
         handleCheckFlag(callNode, functionTypeSymbol);
-        
+
         // Process PARAM_FOR_TYPE_INFER parameters at the end
         typeInferParamMap.forEach((key, paramResult) -> {
             String returnType = functionData.returnType();
