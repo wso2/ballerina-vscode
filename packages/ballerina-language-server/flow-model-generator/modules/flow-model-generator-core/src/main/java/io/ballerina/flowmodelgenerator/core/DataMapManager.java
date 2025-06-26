@@ -1257,6 +1257,42 @@ public class DataMapManager {
         return gson.toJsonTree(new FieldPosition(textEditsMap, pos));
     }
 
+    public JsonElement subMapping(JsonElement cd, String view) {
+        Codedata codedata = gson.fromJson(cd, Codedata.class);
+        SyntaxTree syntaxTree = document.syntaxTree();
+        ModulePartNode modulePartNode = syntaxTree.rootNode();
+        TextDocument textDocument = syntaxTree.textDocument();
+        LineRange lineRange = codedata.lineRange();
+        int start = textDocument.textPositionFrom(lineRange.startLine());
+        int end = textDocument.textPositionFrom(lineRange.endLine());
+        NonTerminalNode stNode = modulePartNode.findNode(TextRange.from(start, end - start), true);
+        if (stNode.kind() != SyntaxKind.LOCAL_VAR_DECL) {
+            return null;
+        }
+
+        VariableDeclarationNode varDeclNode = (VariableDeclarationNode) stNode;
+        Optional<ExpressionNode> optInitializer = varDeclNode.initializer();
+        if (optInitializer.isEmpty()) {
+            return null;
+        }
+
+        ExpressionNode initializer = optInitializer.get();
+        if (initializer.kind() != SyntaxKind.LET_EXPRESSION) {
+            return null;
+        }
+
+        for (LetVariableDeclarationNode letVarDeclNode : ((LetExpressionNode) initializer).letVarDeclarations()) {
+            TypedBindingPatternNode typedBindingPattern = letVarDeclNode.typedBindingPattern();
+            if (typedBindingPattern.bindingPattern().toSourceCode().trim().equals(view)) {
+                return gson.toJsonTree(new Codedata.Builder<>(null)
+                        .lineRange(letVarDeclNode.lineRange())
+                        .node(NodeKind.VARIABLE)
+                        .build());
+            }
+        }
+        return null;
+    }
+
     private LinePosition getFieldPos(ExpressionNode expr, String[] names, int idx, StringBuilder stringBuilder,
                                      LinePosition position, List<TextEdit> textEdits) {
         if (expr == null) {
