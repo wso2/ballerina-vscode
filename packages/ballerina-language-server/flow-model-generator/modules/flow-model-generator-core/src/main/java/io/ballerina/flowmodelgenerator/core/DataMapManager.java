@@ -1102,6 +1102,89 @@ public class DataMapManager {
         return targetType;
     }
 
+    public JsonElement getFieldPosition(JsonElement cd, String targetField, String fieldId, Path filePath) {
+        Codedata codedata = gson.fromJson(cd, Codedata.class);
+        SyntaxTree syntaxTree = document.syntaxTree();
+        ModulePartNode modulePartNode = syntaxTree.rootNode();
+        TextDocument textDocument = syntaxTree.textDocument();
+        LineRange lineRange = codedata.lineRange();
+        int start = textDocument.textPositionFrom(lineRange.startLine());
+        int end = textDocument.textPositionFrom(lineRange.endLine());
+        NonTerminalNode stNode = modulePartNode.findNode(TextRange.from(start, end - start), true);
+        if (stNode.kind() != SyntaxKind.LOCAL_VAR_DECL) {
+            return null;
+        }
+
+        VariableDeclarationNode varDeclNode = (VariableDeclarationNode) stNode;
+        ExpressionNode initializer = varDeclNode.initializer().orElseThrow();
+        ExpressionNode expr = getMappingExpr(initializer, targetField);
+        if (expr == null || expr.kind() != SyntaxKind.MAPPING_CONSTRUCTOR) {
+            return null;
+        }
+
+        Map<Path, List<TextEdit>> textEditsMap = new HashMap<>();
+        List<TextEdit> textEdits = new ArrayList<>();
+        textEditsMap.put(filePath, textEdits);
+        LinePosition pos = getFieldPos(expr, fieldId.split("\\."), 1, new StringBuilder(), null, textEdits);
+        return gson.toJsonTree(new FieldPosition(textEditsMap, pos));
+    }
+
+    private LinePosition getFieldPos(ExpressionNode expr, String[] names, int idx, StringBuilder stringBuilder,
+                                     LinePosition position, List<TextEdit> textEdits) {
+        if (expr == null) {
+            String name = names[idx];
+            stringBuilder.append(name).append(": ");
+            for (int i = idx + 1; i < names.length; i++) {
+                stringBuilder.append("{").append(names[i]).append(": ");
+            }
+            int offset = stringBuilder.length();
+            for (int i = idx + 1; i < names.length; i++) {
+                stringBuilder.append("}");
+            }
+            textEdits.add(new TextEdit(CommonUtils.toRange(position), stringBuilder.toString()));
+            return LinePosition.from(position.line(), position.offset() + offset);
+        } else if (expr.kind() == SyntaxKind.MAPPING_CONSTRUCTOR) {
+            String name = names[idx];
+            MappingConstructorExpressionNode mappingCtrExpr = (MappingConstructorExpressionNode) expr;
+            Map<String, SpecificFieldNode> mappingFields = convertMappingFieldsToMap(mappingCtrExpr);
+            SpecificFieldNode mappingFieldNode = mappingFields.get(name);
+            if (mappingFieldNode == null) {
+                if (!mappingFields.isEmpty()) {
+                    stringBuilder.append(", ");
+                }
+                return getFieldPos(null, names, idx, stringBuilder,
+                        mappingCtrExpr.closeBrace().lineRange().startLine(), textEdits);
+            } else {
+                return getFieldPos(mappingFieldNode.valueExpr().orElseThrow(), names, idx + 1, stringBuilder,
+                        null, textEdits);
+            }
+        } else if (expr.kind() == SyntaxKind.LIST_CONSTRUCTOR) {
+            ListConstructorExpressionNode listCtrExpr = (ListConstructorExpressionNode) expr;
+            String name = names[idx];
+            if (name.matches("\\d+")) {
+                int index = Integer.parseInt(name);
+                if (index >= listCtrExpr.expressions().size()) {
+                    if (idx > 0) {
+                        stringBuilder.append(", ");
+                    }
+                    return getFieldPos(null, names, idx, stringBuilder,
+                            listCtrExpr.closeBracket().lineRange().startLine(), textEdits);
+                } else {
+                    return getFieldPos((ExpressionNode) listCtrExpr.expressions().get(index), names, idx + 1,
+                            stringBuilder, null, textEdits);
+                }
+            } else {
+                throw new IllegalArgumentException("Invalid field name: " + name);
+            }
+        } else {
+            return expr.lineRange().startLine();
+        }
+    }
+
+    private record FieldPosition(Map<Path, List<TextEdit>> textEdits, LinePosition position) {
+
+    }
+
     private List<IntermediateClause> getQueryIntermediateClause(QueryPipelineNode queryPipelineNode) {
         List<IntermediateClause> intermediateClauses = new ArrayList<>();
         for (IntermediateClauseNode intermediateClause : queryPipelineNode.intermediateClauses()) {
