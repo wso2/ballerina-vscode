@@ -43,7 +43,7 @@
         "metadata": {
           "label": "queryRow",
           "description": "Executes a SQL query that is expected to return a single row or value as the result.\nIf the query returns no results, `sql:NoRowsError` is returned.\n",
-          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_mysql_1.16.1.png"
+          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_mysql_1.15.0.png"
         },
         "codedata": {
           "node": "REMOTE_ACTION_CALL",
@@ -52,7 +52,7 @@
           "packageName": "mysql",
           "object": "Client",
           "symbol": "queryRow",
-          "version": "1.16.1",
+          "version": "1.15.0",
           "lineRange": {
             "fileName": "mysql.bal",
             "startLine": {
@@ -151,8 +151,8 @@
           },
           "variable": {
             "metadata": {
-              "label": "Variable Name",
-              "description": "Name of the variable"
+              "label": "Result",
+              "description": "Name of the result variable"
             },
             "valueType": "IDENTIFIER",
             "value": "queryRow",

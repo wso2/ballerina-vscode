@@ -43,7 +43,7 @@
         "metadata": {
           "label": "query",
           "description": "Executes a SQL query and returns multiple results as a stream.\n",
-          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_mysql_1.16.1.png"
+          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_mysql_1.15.0.png"
         },
         "codedata": {
           "node": "REMOTE_ACTION_CALL",
@@ -52,7 +52,7 @@
           "packageName": "mysql",
           "object": "Client",
           "symbol": "query",
-          "version": "1.16.1",
+          "version": "1.15.0",
           "lineRange": {
             "fileName": "mysql.bal",
             "startLine": {
@@ -135,8 +135,8 @@
           },
           "variable": {
             "metadata": {
-              "label": "Variable Name",
-              "description": "Name of the variable"
+              "label": "Result",
+              "description": "Name of the result variable"
             },
             "valueType": "IDENTIFIER",
             "value": "res1",
@@ -186,7 +186,7 @@
         "metadata": {
           "label": "query",
           "description": "Executes a SQL query and returns multiple results as a stream.\n",
-          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_mysql_1.16.1.png"
+          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_mysql_1.15.0.png"
         },
         "codedata": {
           "node": "REMOTE_ACTION_CALL",
@@ -195,7 +195,7 @@
           "packageName": "mysql",
           "object": "Client",
           "symbol": "query",
-          "version": "1.16.1",
+          "version": "1.15.0",
           "lineRange": {
             "fileName": "mysql.bal",
             "startLine": {
@@ -278,8 +278,8 @@
           },
           "variable": {
             "metadata": {
-              "label": "Variable Name",
-              "description": "Name of the variable"
+              "label": "Result",
+              "description": "Name of the result variable"
             },
             "valueType": "IDENTIFIER",
             "value": "res2",
