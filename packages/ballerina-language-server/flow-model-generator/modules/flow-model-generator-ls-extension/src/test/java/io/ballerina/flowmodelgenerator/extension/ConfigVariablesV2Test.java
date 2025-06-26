@@ -32,6 +32,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -54,9 +55,13 @@ public class ConfigVariablesV2Test extends AbstractLSTest {
         ConfigVariableGetRequest request = new ConfigVariableGetRequest(projectPath, includeImports);
         ConfigVariableResponse actualResponse = gson.fromJson(getResponse(request), ConfigVariableResponse.class);
 
-        if (!actualResponse.configVariables().equals(testConfig.configVariables())) {
-//            updateConfig(configJsonPath, new ConfigVariablesTestConfig(testConfig.project(),
-//                    actualResponse.configVariables()));
+        if (!actualResponse.configVariables().equals(testConfig.configVariables())
+                || !Objects.equals(actualResponse.errorMsg(), testConfig.errorMsg())) {
+//            updateConfig(configJsonPath, new ConfigVariablesTestConfig(
+//                    testConfig.project(),
+//                    actualResponse.configVariables(),
+//                    actualResponse.errorMsg(),
+//                    actualResponse.stacktrace()));
             Assert.fail(String.format("Failed test: '%s'", configJsonPath));
         }
     }
@@ -88,7 +93,10 @@ public class ConfigVariablesV2Test extends AbstractLSTest {
         return "configEditorV2";
     }
 
-    private record ConfigVariablesTestConfig(String project, Map<String, Map<String, List<FlowNode>>> configVariables) {
+    private record ConfigVariablesTestConfig(String project,
+                                             Map<String, Map<String, List<FlowNode>>> configVariables,
+                                             String errorMsg,
+                                             String stacktrace) {
 
     }
 

@@ -33,6 +33,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -58,12 +59,13 @@ public class ConfigVariablesV2UpdateTest extends AbstractLSTest {
         ConfigVariableUpdateResponse actualResponse = gson.fromJson(getResponse(request),
                 ConfigVariableUpdateResponse.class);
 
-        if (!isEqual(testConfig.response().textEdits(), actualResponse.textEdits(), projectPath)) {
+        if (!isEqual(testConfig.response().textEdits(), actualResponse.textEdits(), projectPath)
+                || !Objects.equals(testConfig.response().errorMsg(), actualResponse.errorMsg())) {
 //            updateConfig(configJsonPath, new TestConfig(
 //                    testConfig.description(),
 //                    testConfig.project(),
 //                    testConfig.request(),
-//                    new Response(actualResponse.textEdits()))
+//                    new Response(actualResponse.textEdits(), actualResponse.errorMsg(), actualResponse.stacktrace()))
 //            );
             Assert.fail(String.format("Failed test: '%s'", configJsonPath));
         }
