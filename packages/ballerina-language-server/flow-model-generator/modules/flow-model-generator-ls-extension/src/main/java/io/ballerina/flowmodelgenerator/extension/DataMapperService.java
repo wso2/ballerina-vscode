@@ -248,12 +248,11 @@ public class DataMapperService implements ExtendedLanguageServerService {
             try {
                 Path filePath = Path.of(request.filePath());
                 this.workspaceManager.loadProject(filePath);
-                Optional<SemanticModel> semanticModel = this.workspaceManager.semanticModel(filePath);
                 Optional<Document> document = this.workspaceManager.document(filePath);
-                if (semanticModel.isEmpty() || document.isEmpty()) {
+                if (document.isEmpty()) {
                     return response;
                 }
-                DataMapManager dataMapManager = new DataMapManager(document.get());
+                DataMapManager dataMapManager = new DataMapManager(this.workspaceManager, document.get());
                 response.setCodedata(dataMapManager.subMapping(request.codedata(), request.view()));
             } catch (Throwable e) {
                 response.setError(e);

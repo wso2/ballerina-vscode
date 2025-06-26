@@ -20,23 +20,15 @@ package io.ballerina.flowmodelgenerator.extension;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.google.gson.reflect.TypeToken;
-import io.ballerina.flowmodelgenerator.extension.request.DataMapperAddElementRequest;
 import io.ballerina.flowmodelgenerator.extension.request.DataMapperSubMappingRequest;
 import io.ballerina.modelgenerator.commons.AbstractLSTest;
-import org.eclipse.lsp4j.TextEdit;
 import org.testng.Assert;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import java.io.IOException;
-import java.lang.reflect.Type;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 /**
  * Tests for the getting the codedata for sub mapping view.
