@@ -94,6 +94,7 @@ import io.ballerina.servicemodelgenerator.extension.response.TypeResponse;
 import io.ballerina.servicemodelgenerator.extension.util.ListenerUtil;
 import io.ballerina.servicemodelgenerator.extension.util.ServiceClassUtil;
 import io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils;
+import io.ballerina.servicemodelgenerator.extension.util.TypeCompletionGenerator;
 import io.ballerina.servicemodelgenerator.extension.util.Utils;
 import io.ballerina.tools.text.LinePosition;
 import io.ballerina.tools.text.LineRange;
@@ -1128,11 +1129,8 @@ public class ServiceModelGeneratorService implements ExtendedLanguageServerServi
             try {
                 List<TypeResponse> typeResponses = new ArrayList<>();
                 Path filePath = Path.of(request.filePath());
-                this.workspaceManager.loadProject(filePath);
-                Optional<Document> document = this.workspaceManager.document(filePath);
-                if (document.isEmpty()) {
-                    return typeResponses;
-                }
+                Project project = this.workspaceManager.loadProject(filePath);
+                TypeCompletionGenerator.getTypes(project, typeResponses);
                 return typeResponses;
             } catch (Throwable e) {
                 return List.of();

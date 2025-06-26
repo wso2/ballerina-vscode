@@ -19,7 +19,7 @@
 package io.ballerina.servicemodelgenerator.extension.request;
 
 /**
- * TypesRequest class to hold the
+ * TypesRequest class to hold the request parameters for getting types from a Ballerina file.
  *
  * @param filePath
  * @param context

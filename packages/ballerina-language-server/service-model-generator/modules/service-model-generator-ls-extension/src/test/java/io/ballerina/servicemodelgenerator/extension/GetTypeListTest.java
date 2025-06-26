@@ -21,7 +21,6 @@ package io.ballerina.servicemodelgenerator.extension;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import io.ballerina.modelgenerator.commons.AbstractLSTest;
-import io.ballerina.servicemodelgenerator.extension.request.ListenerModelRequest;
 import io.ballerina.servicemodelgenerator.extension.request.TypesRequest;
 import org.testng.Assert;
 import org.testng.annotations.Test;
@@ -47,7 +46,8 @@ public class GetTypeListTest extends AbstractLSTest {
                 GetTypeListTest.TestConfig.class);
         bufferedReader.close();
 
-        TypesRequest request = new TypesRequest(testConfig.filePath(), testConfig.context());
+        String filePath = sourceDir.resolve(testConfig.filePath()).toString();
+        TypesRequest request = new TypesRequest(filePath, testConfig.context());
         JsonObject jsonMap = getResponse(request);
 
         boolean assertTrue = testConfig.result().getAsJsonObject().equals(jsonMap);
@@ -85,10 +85,9 @@ public class GetTypeListTest extends AbstractLSTest {
      * Represents the test configuration.
      *
      * @param description description of the test
-     * @param orgName   organization name
-     * @param pkgName   package name
-     * @param moduleName module name
-     * @param response  expected response
+     * @param filePath    path to the file
+     * @param context    context of the request
+     * @param result     expected result of the request
      * @since 1.0.0
      */
     private record TestConfig(String filePath, String description, String context, JsonElement result) {
