@@ -35,6 +35,17 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-ballerina-
 
+      - name: Set up Ballerina
+        uses: ballerina-platform/setup-ballerina@v1.1.1
+        with:
+          version: 2201.12.3
+        
+      - name: Build with Gradle
+        env:
+          packageUser: ${{ github.actor }}
+          packagePAT: ${{ secrets.GITHUB_TOKEN }}
+        run: ./gradlew build
+
       - name: Set version env variable
         run: |
           # Extract BASE_VERSION from gradle.properties (strip any suffix after '-')
@@ -96,11 +107,6 @@ jobs:
         run: |
           ./gradlew -Pversion=${VERSION} release -Prelease.useAutomaticVersion=true -x test
 
-      - name: Set up Ballerina
-        uses: ballerina-platform/setup-ballerina@v1.1.1
-        with:
-          version: 2201.12.3
-
       - name: Publish the artifacts
         env:
           GITHUB_TOKEN: ${{ secrets.BALLERINA_BOT_TOKEN }}
@@ -108,7 +114,7 @@ jobs:
           packageUser: ${{ secrets.BALLERINA_BOT_USERNAME }}
           packagePAT: ${{ secrets.BALLERINA_BOT_TOKEN }}
         run: |
-          ./gradlew -Pversion=${VERSION} publish
+          ./gradlew -Pversion=${VERSION} publish -x check -x test
 
       - name: Generate release notes
         env:
