@@ -19,8 +19,11 @@
 package io.ballerina.flowmodelgenerator.extension;
 
 import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import io.ballerina.flowmodelgenerator.extension.request.ConfigVariableDeleteRequest;
 import io.ballerina.modelgenerator.commons.AbstractLSTest;
+import org.ballerinalang.langserver.util.TestUtil;
 import org.eclipse.lsp4j.TextEdit;
 import org.testng.Assert;
 import org.testng.annotations.Test;
@@ -30,6 +33,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * Test class for 'deleteConfigVariable()' API in config API V2.
@@ -89,6 +93,13 @@ public class ConfigVariablesV2DeleteTest extends AbstractLSTest {
     }
 
     @Override
+    protected JsonObject getResponse(Object request, String api) {
+        CompletableFuture<?> result = serviceEndpoint.request(api, request);
+        String response = TestUtil.getResponseString(result);
+        return JsonParser.parseString(response).getAsJsonObject().getAsJsonObject("result");
+    }
+
+    @Override
     protected String getResourceDir() {
         return "configurable_variables_v2_delete";
     }
@@ -108,7 +119,7 @@ public class ConfigVariablesV2DeleteTest extends AbstractLSTest {
         return "configEditorV2";
     }
 
-    private record ConfigVariableDeleteResponse(Map<String, TextEdit[]> textEdits) {
+    private record ConfigVariableDeleteResponse(Map<String, TextEdit[]> textEdits, String errorMsg, String stacktrace) {
 
     }
 
@@ -120,7 +131,7 @@ public class ConfigVariablesV2DeleteTest extends AbstractLSTest {
 
     }
 
-    private record Response(Map<String, TextEdit[]> textEdits) {
+    private record Response(Map<String, TextEdit[]> textEdits, String errorMsg, String stacktrace) {
 
     }
 }

@@ -45,6 +45,7 @@ import io.ballerina.flowmodelgenerator.extension.request.ConfigVariableDeleteReq
 import io.ballerina.flowmodelgenerator.extension.request.ConfigVariableGetRequest;
 import io.ballerina.flowmodelgenerator.extension.request.ConfigVariableNodeTemplateRequest;
 import io.ballerina.flowmodelgenerator.extension.request.ConfigVariableUpdateRequest;
+import io.ballerina.flowmodelgenerator.extension.response.AbstractFlowModelResponse;
 import io.ballerina.flowmodelgenerator.extension.response.ConfigVariableDeleteResponse;
 import io.ballerina.flowmodelgenerator.extension.response.ConfigVariableNodeTemplateResponse;
 import io.ballerina.flowmodelgenerator.extension.response.ConfigVariableUpdateResponse;
@@ -161,12 +162,8 @@ public class ConfigEditorV2Service implements ExtendedLanguageServerService {
                 Package rootPackage = project.currentPackage();
 
                 // Parse Config.toml if it exists.
-                Toml configTomlValues = null;
-                try {
-                    configTomlValues = parseConfigToml(project);
-                } catch (IllegalStateException e) {
-                    response.setError(e);
-                }
+                Toml configTomlValues = parseConfigToml(project);
+                handleConfigTomlErrors(configTomlValues, response);
 
                 configVarMap.putAll(extractVariablesFromProject(rootPackage, configTomlValues));
                 if (request.includeLibraries()) {
@@ -204,9 +201,11 @@ public class ConfigEditorV2Service implements ExtendedLanguageServerService {
                 }
                 // Text edits for Config.toml.
                 if (requireConfigTomlEdits(configVariable)) {
+                    Toml existingConfigToml = parseConfigToml(rootProject);
+                    handleConfigTomlErrors(existingConfigToml, response);
                     Path configTomlPath = rootProject.sourceRoot().resolve(CONFIG_TOML_FILENAME);
                     allTextEdits.putAll(constructConfigTomlTextEdits(rootProject, request.packageName(),
-                            request.moduleName(), configVariable, configTomlPath, false));
+                            request.moduleName(), configVariable, configTomlPath, existingConfigToml, false));
                 }
 
                 response.setTextEdits(gson.toJsonTree(allTextEdits));
@@ -239,9 +238,12 @@ public class ConfigEditorV2Service implements ExtendedLanguageServerService {
                 allTextEdits.putAll(constructSourceTextEdits(rootProject, configFilePath, configVariable, true));
 
                 // Text edits for Config.toml.
+
+                Toml existingConfigToml = parseConfigToml(rootProject);
+                handleConfigTomlErrors(existingConfigToml, response);
                 Path configTomlPath = rootProject.sourceRoot().resolve(CONFIG_TOML_FILENAME);
                 allTextEdits.putAll(constructConfigTomlTextEdits(rootProject, request.packageName(),
-                        request.moduleName(), configVariable, configTomlPath, true));
+                        request.moduleName(), configVariable, configTomlPath, existingConfigToml, true));
 
                 response.setTextEdits(gson.toJsonTree(allTextEdits));
             } catch (Exception e) {
@@ -352,20 +354,13 @@ public class ConfigEditorV2Service implements ExtendedLanguageServerService {
      * @return A {@link Toml} object representing the parsed Config.toml, or {@code null} if parsing fails
      * or the file doesn't exist.
      */
-    private Toml parseConfigToml(Project project) throws IllegalStateException {
+    private Toml parseConfigToml(Project project) {
         try {
             Path configTomlPath = project.sourceRoot().resolve(CONFIG_TOML_FILENAME);
             if (!Files.exists(configTomlPath)) {
                 return null;
             }
-            Toml toml = Toml.read(configTomlPath);
-            boolean hasErrors = toml.diagnostics().stream()
-                    .anyMatch(d -> d.diagnosticInfo().severity() == DiagnosticSeverity.ERROR);
-            if (hasErrors) {
-                throw new IllegalStateException("Config.toml file contains syntax errors. " +
-                        "Please fix them before proceeding.");
-            }
-            return toml;
+            return Toml.read(configTomlPath);
         } catch (Exception ignored) {
             return null;
         }
@@ -808,13 +803,14 @@ public class ConfigEditorV2Service implements ExtendedLanguageServerService {
      */
     private Map<Path, List<TextEdit>> constructConfigTomlTextEdits(Project project, String packageName,
                                                                    String moduleName, FlowNode configVariable,
-                                                                   Path configTomlPath, boolean isDelete) {
+                                                                   Path configTomlPath, Toml existingConfigToml,
+                                                                   boolean isDelete) {
         Map<Path, List<TextEdit>> textEditsMap = new HashMap<>();
         try {
             if (!configVariable.properties().containsKey(CONFIG_VALUE_KEY)) {
                 return textEditsMap;
             }
-            Toml existingConfigToml = parseConfigToml(project);
+
             Property nameProp = configVariable.properties().get(VARIABLE_KEY);
             String oldVariableName = isNameModified(nameProp) ? nameProp.oldValue().toString()
                     : nameProp.value().toString();
@@ -1029,5 +1025,15 @@ public class ConfigEditorV2Service implements ExtendedLanguageServerService {
         Property configValue = configVariable.properties().get(CONFIG_VALUE_KEY);
         return (variableName != null && Boolean.TRUE.equals(variableName.modified()))
                 || (configValue != null && Boolean.TRUE.equals(configValue.modified()));
+    }
+
+    private static void handleConfigTomlErrors(Toml configTomlValues, AbstractFlowModelResponse response) {
+        boolean hasErrors = configTomlValues != null && configTomlValues.diagnostics().stream()
+                .anyMatch(d -> d.diagnosticInfo().severity() == DiagnosticSeverity.ERROR);
+        if (hasErrors) {
+            IllegalStateException exception = new IllegalStateException("Config.toml file contains syntax " +
+                    "errors. Please fix them before proceeding.");
+            response.setError(exception);
+        }
     }
 }

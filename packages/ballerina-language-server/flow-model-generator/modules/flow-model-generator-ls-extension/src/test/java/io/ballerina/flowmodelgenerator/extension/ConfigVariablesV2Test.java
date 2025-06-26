@@ -18,9 +18,12 @@
 
 package io.ballerina.flowmodelgenerator.extension;
 
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import io.ballerina.flowmodelgenerator.core.model.FlowNode;
 import io.ballerina.flowmodelgenerator.extension.request.ConfigVariableGetRequest;
 import io.ballerina.modelgenerator.commons.AbstractLSTest;
+import org.ballerinalang.langserver.util.TestUtil;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
@@ -29,6 +32,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * Test class for 'getConfigVariables()' API in config API V2.
@@ -58,6 +62,13 @@ public class ConfigVariablesV2Test extends AbstractLSTest {
     }
 
     @Override
+    protected JsonObject getResponse(Object request, String api) {
+        CompletableFuture<?> result = serviceEndpoint.request(api, request);
+        String response = TestUtil.getResponseString(result);
+        return JsonParser.parseString(response).getAsJsonObject().getAsJsonObject("result");
+    }
+
+    @Override
     protected String getResourceDir() {
         return "configurable_variables_v2_get";
     }
@@ -81,7 +92,8 @@ public class ConfigVariablesV2Test extends AbstractLSTest {
 
     }
 
-    private record ConfigVariableResponse(Map<String, Map<String, List<FlowNode>>> configVariables) {
+    private record ConfigVariableResponse(Map<String, Map<String, List<FlowNode>>> configVariables, String errorMsg,
+                                          String stacktrace) {
 
     }
 }
