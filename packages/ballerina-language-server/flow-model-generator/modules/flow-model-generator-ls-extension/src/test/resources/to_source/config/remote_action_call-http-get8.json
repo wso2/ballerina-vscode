@@ -1,26 +1,12 @@
 {
-  "source": "data_mapper/main.bal",
-  "position": {
-    "line": 14,
-    "offset": 0
-  },
+  "source": "empty.bal",
   "description": "Sample diagram node",
-  "codedata": {
-    "node": "REMOTE_ACTION_CALL",
-    "org": "ballerina",
-    "module": "http",
-    "packageName": "http",
-    "object": "Client",
-    "symbol": "get",
-    "version": "2.12.0",
-    "parentSymbol": "httpClient"
-  },
-  "output": {
+  "diagram": {
     "id": "31",
     "metadata": {
       "label": "get",
-      "description": "Retrieve a representation of a specified resource from an HTTP endpoint.\n",
-      "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.14.2.png"
+      "description": "The `Client.get()` function can be used to send HTTP GET requests to HTTP endpoints.\n",
+      "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.14.1.png"
     },
     "codedata": {
       "node": "REMOTE_ACTION_CALL",
@@ -29,9 +15,19 @@
       "packageName": "http",
       "object": "Client",
       "symbol": "get",
-      "version": "2.12.0",
+      "version": "2.14.2",
       "isNew": true,
-      "inferredReturnType": "targetType"
+      "inferredReturnType": "targetType",
+      "lineRange": {
+        "startLine": {
+          "line": 8,
+          "offset": 51
+        },
+        "endLine": {
+          "line": 8,
+          "offset": 51
+        }
+      }
     },
     "returning": false,
     "properties": {
@@ -43,10 +39,11 @@
         "valueType": "EXPRESSION",
         "valueTypeConstraint": "http:Client",
         "value": "httpClient",
-        "optional": false,
+        "optional": true,
         "editable": false,
         "advanced": false,
-        "hidden": true
+        "hidden": true,
+        "modified": false
       },
       "path": {
         "metadata": {
@@ -72,7 +69,9 @@
             "kind": "BASIC_TYPE",
             "selected": false
           }
-        ]
+        ],
+        "value": "\"foo\"",
+        "modified": true
       },
       "headers": {
         "metadata": {
@@ -106,12 +105,14 @@
             "selected": false
           }
         ],
-        "defaultValue": "()"
+        "defaultValue": "()",
+        "value": "",
+        "modified": false
       },
       "targetType": {
         "metadata": {
           "label": "Target Type",
-          "description": "Expected return type (to be used for automatic data binding).\nSupported types:\n- Built-in subtypes of `anydata` (`string`, `byte[]`, `json|xml`, etc.)\n- Custom types (e.g., `User`, `Student?`, `Person[]`, etc.)\n- Full HTTP response with headers and status (`http:Response`)\n- Stream of Server-Sent Events (`stream<http:SseEvent, error?>`)"
+          "description": "HTTP response, `anydata` or stream of HTTP SSE, which is expected to be returned after data binding"
         },
         "valueType": "TYPE",
         "valueTypeConstraint": "anydata",
@@ -124,7 +125,9 @@
           "kind": "PARAM_FOR_TYPE_INFER",
           "originalName": "targetType"
         },
-        "defaultValue": "anydata"
+        "defaultValue": "anydata",
+        "value": "json",
+        "modified": true
       },
       "type": {
         "metadata": {
@@ -138,7 +141,8 @@
         "editable": false,
         "advanced": false,
         "hidden": false,
-        "codedata": {}
+        "codedata": {},
+        "modified": false
       },
       "variable": {
         "metadata": {
@@ -150,7 +154,8 @@
         "optional": false,
         "editable": true,
         "advanced": false,
-        "hidden": false
+        "hidden": false,
+        "modified": false
       },
       "checkError": {
         "metadata": {
@@ -162,9 +167,40 @@
         "optional": false,
         "editable": true,
         "advanced": true,
-        "hidden": true
+        "hidden": true,
+        "modified": false
       }
     },
     "flags": 0
+  },
+  "output": {
+    "empty.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 0,
+            "character": 0
+          },
+          "end": {
+            "line": 0,
+            "character": 0
+          }
+        },
+        "newText": "import ballerina/http;"
+      },
+      {
+        "range": {
+          "start": {
+            "line": 8,
+            "character": 51
+          },
+          "end": {
+            "line": 8,
+            "character": 51
+          }
+        },
+        "newText": "\njson var2 = check httpClient->get(\"foo\");"
+      }
+    ]
   }
 }
