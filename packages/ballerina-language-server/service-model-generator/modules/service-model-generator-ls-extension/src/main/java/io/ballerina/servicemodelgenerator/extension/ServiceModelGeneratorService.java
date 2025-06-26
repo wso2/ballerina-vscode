@@ -1124,16 +1124,16 @@ public class ServiceModelGeneratorService implements ExtendedLanguageServerServi
      * @return {@link CommonSourceResponse} of the common source response
      */
     @JsonRequest
-    public CompletableFuture<List<TypeResponse>> types(TypesRequest request) {
+    public CompletableFuture<TypeResponse> types(TypesRequest request) {
         return CompletableFuture.supplyAsync(() -> {
+            TypeResponse response = new TypeResponse(new ArrayList<>());
             try {
-                List<TypeResponse> typeResponses = new ArrayList<>();
                 Path filePath = Path.of(request.filePath());
                 Project project = this.workspaceManager.loadProject(filePath);
-                TypeCompletionGenerator.getTypes(project, typeResponses);
-                return typeResponses;
+                TypeCompletionGenerator.getTypes(project, response.completions());
+                return response;
             } catch (Throwable e) {
-                return List.of();
+                return response;
             }
         });
     }

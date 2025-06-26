@@ -18,14 +18,16 @@
 
 package io.ballerina.servicemodelgenerator.extension.response;
 
+import java.util.List;
+
 /**
  * Represents a response type in the service model generator.
  * This record holds information about the category, label, type, and status code of the response.
  *
- * @param category
- * @param label
- * @param type
- * @param statusCode
+ * @param completions A list of type completions, each containing details about a specific type.
  */
-public record TypeResponse(String category, String label, String type, String statusCode) {
+public record TypeResponse(List<TypeCompletion> completions) {
+
+    public record TypeCompletion(String category, String label, String type, String statusCode) {
+    }
 }

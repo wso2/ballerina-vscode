@@ -28,7 +28,7 @@ import io.ballerina.compiler.syntax.tree.TypeReferenceNode;
 import io.ballerina.projects.Document;
 import io.ballerina.projects.Module;
 import io.ballerina.projects.Project;
-import io.ballerina.servicemodelgenerator.extension.response.TypeResponse;
+import io.ballerina.servicemodelgenerator.extension.response.TypeResponse.TypeCompletion;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -41,137 +41,137 @@ import java.util.List;
  */
 public class TypeCompletionGenerator {
 
-    private static final List<TypeResponse> DEFAULT_HTTP_STATUS_RESPONSES;
+    private static final List<TypeCompletion> DEFAULT_HTTP_STATUS_RESPONSES;
     static {
-        List<TypeResponse> defaultResponses = new ArrayList<>();
-        defaultResponses.add(new TypeResponse(
+        List<TypeCompletion> defaultResponses = new ArrayList<>();
+        defaultResponses.add(new TypeCompletion(
                 "1XX", "Continue", "http:Continue", "100"));
-        defaultResponses.add(new TypeResponse(
+        defaultResponses.add(new TypeCompletion(
                 "1XX", "Switching Protocols", "http:SwitchingProtocols", "101"));
-        defaultResponses.add(new TypeResponse(
+        defaultResponses.add(new TypeCompletion(
                 "1XX", "Processing", "http:Processing", "102"));
-        defaultResponses.add(new TypeResponse(
+        defaultResponses.add(new TypeCompletion(
                 "1XX", "Early Hints", "http:EarlyHints", "103"));
-        defaultResponses.add(new TypeResponse(
+        defaultResponses.add(new TypeCompletion(
                 "2XX", "Ok", "http:Ok", "200"));
-        defaultResponses.add(new TypeResponse(
+        defaultResponses.add(new TypeCompletion(
                 "2XX", "Created", "http:Created", "201"));
-        defaultResponses.add(new TypeResponse(
+        defaultResponses.add(new TypeCompletion(
                 "2XX", "Accepted", "http:Accepted", "202"));
-        defaultResponses.add(new TypeResponse(
+        defaultResponses.add(new TypeCompletion(
                 "2XX", "Non Authoritative Information", "http:NonAuthoritativeInformation", "203"));
-        defaultResponses.add(new TypeResponse(
+        defaultResponses.add(new TypeCompletion(
                 "2XX", "No Content", "http:NoContent", "204"));
-        defaultResponses.add(new TypeResponse(
+        defaultResponses.add(new TypeCompletion(
                 "2XX", "Reset Content", "http:ResetContent", "205"));
-        defaultResponses.add(new TypeResponse(
+        defaultResponses.add(new TypeCompletion(
                 "2XX", "Partial Content", "http:PartialContent", "206"));
-        defaultResponses.add(new TypeResponse(
+        defaultResponses.add(new TypeCompletion(
                 "2XX", "Multi Status", "http:MultiStatus", "207"));
-        defaultResponses.add(new TypeResponse(
+        defaultResponses.add(new TypeCompletion(
                 "2XX", "Already Reported", "http:AlreadyReported", "208"));
-        defaultResponses.add(new TypeResponse(
+        defaultResponses.add(new TypeCompletion(
                 "2XX", "IM Used", "http:IMUsed", "226"));
-        defaultResponses.add(new TypeResponse(
+        defaultResponses.add(new TypeCompletion(
                 "3XX", "Multiple Choices", "http:MultipleChoices", "300"));
-        defaultResponses.add(new TypeResponse(
+        defaultResponses.add(new TypeCompletion(
                 "3XX", "Moved Permanently", "http:MovedPermanently", "301"));
-        defaultResponses.add(new TypeResponse(
+        defaultResponses.add(new TypeCompletion(
                 "3XX", "Found", "http:Found", "302"));
-        defaultResponses.add(new TypeResponse(
+        defaultResponses.add(new TypeCompletion(
                 "3XX", "See Other", "http:SeeOther", "303"));
-        defaultResponses.add(new TypeResponse(
+        defaultResponses.add(new TypeCompletion(
                 "3XX", "Not Modified", "http:NotModified", "304"));
-        defaultResponses.add(new TypeResponse(
+        defaultResponses.add(new TypeCompletion(
                 "3XX", "Use Proxy", "http:UseProxy", "305"));
-        defaultResponses.add(new TypeResponse(
+        defaultResponses.add(new TypeCompletion(
                 "3XX", "Temporary Redirect", "http:TemporaryRedirect", "307"));
-        defaultResponses.add(new TypeResponse(
+        defaultResponses.add(new TypeCompletion(
                 "3XX", "Permanent Redirect", "http:PermanentRedirect", "308"));
-        defaultResponses.add(new TypeResponse(
+        defaultResponses.add(new TypeCompletion(
                 "4XX", "Bad Request", "http:BadRequest", "400"));
-        defaultResponses.add(new TypeResponse(
+        defaultResponses.add(new TypeCompletion(
                 "4XX", "Unauthorized", "http:Unauthorized", "401"));
-        defaultResponses.add(new TypeResponse(
+        defaultResponses.add(new TypeCompletion(
                 "4XX", "Payment Required", "http:PaymentRequired", "402"));
-        defaultResponses.add(new TypeResponse(
+        defaultResponses.add(new TypeCompletion(
                 "4XX", "Forbidden", "http:Forbidden", "403"));
-        defaultResponses.add(new TypeResponse(
+        defaultResponses.add(new TypeCompletion(
                 "4XX", "Not Found", "http:NotFound", "404"));
-        defaultResponses.add(new TypeResponse(
+        defaultResponses.add(new TypeCompletion(
                 "4XX", "Method Not Allowed", "http:MethodNotAllowed", "405"));
-        defaultResponses.add(new TypeResponse(
+        defaultResponses.add(new TypeCompletion(
                 "4XX", "Not Acceptable", "http:NotAcceptable", "406"));
-        defaultResponses.add(new TypeResponse(
+        defaultResponses.add(new TypeCompletion(
                 "4XX", "Proxy Authentication Required", "http:ProxyAuthenticationRequired", "407"));
-        defaultResponses.add(new TypeResponse(
+        defaultResponses.add(new TypeCompletion(
                 "4XX", "Request Time Out", "http:RequestTimeOut", "408"));
-        defaultResponses.add(new TypeResponse(
+        defaultResponses.add(new TypeCompletion(
                 "4XX", "Conflict", "http:Conflict", "409"));
-        defaultResponses.add(new TypeResponse(
+        defaultResponses.add(new TypeCompletion(
                 "4XX", "Gone", "http:Gone", "410"));
-        defaultResponses.add(new TypeResponse(
+        defaultResponses.add(new TypeCompletion(
                 "4XX", "Length Required", "http:LengthRequired", "411"));
-        defaultResponses.add(new TypeResponse(
+        defaultResponses.add(new TypeCompletion(
                 "4XX", "Precondition Failed", "http:PreconditionFailed", "412"));
-        defaultResponses.add(new TypeResponse(
+        defaultResponses.add(new TypeCompletion(
                 "4XX", "Payload Too Large", "http:PayloadTooLarge", "413"));
-        defaultResponses.add(new TypeResponse(
+        defaultResponses.add(new TypeCompletion(
                 "4XX", "URI Too Long", "http:UriTooLong", "414"));
-        defaultResponses.add(new TypeResponse(
+        defaultResponses.add(new TypeCompletion(
                 "4XX", "Unsupported Media Type", "http:UnsupportedMediaType", "415"));
-        defaultResponses.add(new TypeResponse(
+        defaultResponses.add(new TypeCompletion(
                 "4XX", "Range Not Satisfiable", "http:RangeNotSatisfiable", "416"));
-        defaultResponses.add(new TypeResponse(
+        defaultResponses.add(new TypeCompletion(
                 "4XX", "Expectation Failed", "http:ExpectationFailed", "417"));
-        defaultResponses.add(new TypeResponse(
+        defaultResponses.add(new TypeCompletion(
                 "4XX", "Misdirected Request", "http:MisdirectedRequest", "421"));
-        defaultResponses.add(new TypeResponse(
+        defaultResponses.add(new TypeCompletion(
                 "4XX", "Unprocessable Entity", "http:UnprocessableEntity", "422"));
-        defaultResponses.add(new TypeResponse(
+        defaultResponses.add(new TypeCompletion(
                 "4XX", "Locked", "http:Locked", "423"));
-        defaultResponses.add(new TypeResponse(
+        defaultResponses.add(new TypeCompletion(
                 "4XX", "Failed Dependency", "http:FailedDependency", "424"));
-        defaultResponses.add(new TypeResponse(
+        defaultResponses.add(new TypeCompletion(
                 "4XX", "Too Early", "http:TooEarly", "425"));
-        defaultResponses.add(new TypeResponse(
+        defaultResponses.add(new TypeCompletion(
                 "4XX", "Upgrade Required", "http:UpgradeRequired", "426"));
-        defaultResponses.add(new TypeResponse(
+        defaultResponses.add(new TypeCompletion(
                 "4XX", "Precondition Required", "http:PreconditionRequired", "428"));
-        defaultResponses.add(new TypeResponse(
+        defaultResponses.add(new TypeCompletion(
                 "4XX", "Too Many Requests", "http:TooManyRequests", "429"));
-        defaultResponses.add(new TypeResponse(
+        defaultResponses.add(new TypeCompletion(
                 "4XX", "Request Header Fields Too Large", "http:RequestHeaderFieldsTooLarge", "431"));
-        defaultResponses.add(new TypeResponse(
+        defaultResponses.add(new TypeCompletion(
                 "4XX", "Unavailable Due to Legal Reasons", "http:UnavailableDueToLegalReasons", "451"));
-        defaultResponses.add(new TypeResponse(
+        defaultResponses.add(new TypeCompletion(
                 "5XX", "Internal Server Error", "http:InternalServerError", "500"));
-        defaultResponses.add(new TypeResponse(
+        defaultResponses.add(new TypeCompletion(
                 "5XX", "Not Implemented", "http:NotImplemented", "501"));
-        defaultResponses.add(new TypeResponse(
+        defaultResponses.add(new TypeCompletion(
                 "5XX", "Bad Gateway", "http:BadGateway", "502"));
-        defaultResponses.add(new TypeResponse(
+        defaultResponses.add(new TypeCompletion(
                 "5XX", "Service Unavailable", "http:ServiceUnavailable", "503"));
-        defaultResponses.add(new TypeResponse(
+        defaultResponses.add(new TypeCompletion(
                 "5XX", "Gateway Timeout", "http:GatewayTimeout", "504"));
-        defaultResponses.add(new TypeResponse(
+        defaultResponses.add(new TypeCompletion(
                 "5XX", "HTTP Version Not Supported", "http:HttpVersionNotSupported", "505"));
-        defaultResponses.add(new TypeResponse(
+        defaultResponses.add(new TypeCompletion(
                 "5XX", "Variant Also Negotiates", "http:VariantAlsoNegotiates", "506"));
-        defaultResponses.add(new TypeResponse(
+        defaultResponses.add(new TypeCompletion(
                 "5XX", "Insufficient Storage", "http:InsufficientStorage", "507"));
-        defaultResponses.add(new TypeResponse(
+        defaultResponses.add(new TypeCompletion(
                 "5XX", "Loop Detected", "http:LoopDetected", "508"));
-        defaultResponses.add(new TypeResponse(
+        defaultResponses.add(new TypeCompletion(
                 "5XX", "Not Extended", "http:NotExtended", "510"));
-        defaultResponses.add(new TypeResponse(
+        defaultResponses.add(new TypeCompletion(
                 "5XX", "Network Authentication Required", "http:NetworkAuthenticationRequired", "511"));
         DEFAULT_HTTP_STATUS_RESPONSES = Collections.unmodifiableList(defaultResponses);
     }
 
-    public static void getTypes(Project project, List<TypeResponse> typeResponses) {
+    public static void getTypes(Project project, List<TypeCompletion> TypeCompletions) {
          // Add the default http status code types
-        typeResponses.addAll(DEFAULT_HTTP_STATUS_RESPONSES);
+        TypeCompletions.addAll(DEFAULT_HTTP_STATUS_RESPONSES);
 
         // Add the http status code types from the project
         Module defaultModule = project.currentPackage().getDefaultModule();
@@ -193,7 +193,7 @@ public class TypeCompletionGenerator {
                                             String typeReferenceName = typeReference.substring(5).strip();
                                             String statusCode = HttpUtil.HTTP_CODES.get(typeReferenceName);
                                             String typeName = typeDef.typeName().text();
-                                            typeResponses.add(new TypeResponse(
+                                            TypeCompletions.add(new TypeCompletion(
                                                     "Custom", typeName, typeName, statusCode));
                                         }
                                     }
@@ -202,6 +202,6 @@ public class TypeCompletionGenerator {
                 });
 
         // Add the http:Response type
-        typeResponses.add(new TypeResponse("Dynamic", "Response", "http:Response", ""));
+        TypeCompletions.add(new TypeCompletion("Dynamic", "Response", "http:Response", ""));
     }
 }
