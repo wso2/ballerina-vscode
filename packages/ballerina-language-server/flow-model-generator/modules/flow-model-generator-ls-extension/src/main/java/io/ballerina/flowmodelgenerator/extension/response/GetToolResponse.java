@@ -26,19 +26,31 @@ import com.google.gson.JsonElement;
  * @since 2.0.0
  */
 public class GetToolResponse extends AbstractFlowModelResponse {
-    public String toolName;
-    public JsonElement flowNode;
-    public JsonElement methodCallFlowNode;
+    private String toolName;
+    private JsonElement flowNode;
+    private JsonElement methodCallFlowNode;
 
     public void setToolName(String toolName) {
         this.toolName = toolName;
+    }
+
+    public String toolName() {
+        return toolName;
     }
 
     public void setFlowNode(JsonElement flowNode) {
         this.flowNode = flowNode;
     }
 
+    public JsonElement flowNode() {
+        return flowNode;
+    }
+
     public void setMethodCallFlowNode(JsonElement methodCallFlowNode) {
         this.methodCallFlowNode = methodCallFlowNode;
+    }
+
+    public JsonElement methodCallFlowNode() {
+        return methodCallFlowNode;
     }
 }

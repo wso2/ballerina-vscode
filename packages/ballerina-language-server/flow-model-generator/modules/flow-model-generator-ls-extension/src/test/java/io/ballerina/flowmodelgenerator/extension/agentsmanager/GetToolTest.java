@@ -57,11 +57,11 @@ public class GetToolTest extends AbstractLSTest {
                         sourceDir.resolve(testConfig.source()).toAbsolutePath().toString());
         GetToolResponse response = gson.fromJson(getResponse(request), GetToolResponse.class);
 
-        if (!response.toolName.equals(testConfig.toolName()) || !response.flowNode.equals(testConfig.flowNode()) ||
-                !(response.methodCallFlowNode == null ? testConfig.methodCallFlowNode() == null :
-                        response.methodCallFlowNode.equals(testConfig.methodCallFlowNode()))) {
-            TestConfig updatedConfig = new TestConfig(testConfig.source(), response.toolName,
-                    response.flowNode, response.methodCallFlowNode);
+        if (!response.toolName().equals(testConfig.toolName()) || !response.flowNode().equals(testConfig.flowNode()) ||
+                !(response.methodCallFlowNode() == null ? testConfig.methodCallFlowNode() == null :
+                        response.methodCallFlowNode().equals(testConfig.methodCallFlowNode()))) {
+            TestConfig updatedConfig = new TestConfig(testConfig.source(), response.toolName(),
+                    response.flowNode(), response.methodCallFlowNode());
 //            updateConfig(configJsonPath, updatedConfig);
             Assert.fail("Test failed. Updated the expected output in " + configJsonPath);
         }
