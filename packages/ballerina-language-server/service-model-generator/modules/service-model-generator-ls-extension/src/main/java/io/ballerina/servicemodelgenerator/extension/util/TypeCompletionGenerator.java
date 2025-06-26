@@ -169,9 +169,9 @@ public class TypeCompletionGenerator {
         DEFAULT_HTTP_STATUS_RESPONSES = Collections.unmodifiableList(defaultResponses);
     }
 
-    public static void getTypes(Project project, List<TypeCompletion> TypeCompletions) {
+    public static void getTypes(Project project, List<TypeCompletion> typeCompletions) {
          // Add the default http status code types
-        TypeCompletions.addAll(DEFAULT_HTTP_STATUS_RESPONSES);
+        typeCompletions.addAll(DEFAULT_HTTP_STATUS_RESPONSES);
 
         // Add the http status code types from the project
         Module defaultModule = project.currentPackage().getDefaultModule();
@@ -193,7 +193,7 @@ public class TypeCompletionGenerator {
                                             String typeReferenceName = typeReference.substring(5).strip();
                                             String statusCode = HttpUtil.HTTP_CODES.get(typeReferenceName);
                                             String typeName = typeDef.typeName().text();
-                                            TypeCompletions.add(new TypeCompletion(
+                                            typeCompletions.add(new TypeCompletion(
                                                     "Custom", typeName, typeName, statusCode));
                                         }
                                     }
@@ -202,6 +202,6 @@ public class TypeCompletionGenerator {
                 });
 
         // Add the http:Response type
-        TypeCompletions.add(new TypeCompletion("Dynamic", "Response", "http:Response", ""));
+        typeCompletions.add(new TypeCompletion("Dynamic", "Response", "http:Response", ""));
     }
 }
