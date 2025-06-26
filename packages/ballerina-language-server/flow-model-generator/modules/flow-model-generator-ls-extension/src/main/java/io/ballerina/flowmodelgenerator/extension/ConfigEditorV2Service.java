@@ -161,7 +161,12 @@ public class ConfigEditorV2Service implements ExtendedLanguageServerService {
                 Package rootPackage = project.currentPackage();
 
                 // Parse Config.toml if it exists.
-                Toml configTomlValues = parseConfigToml(project);
+                Toml configTomlValues = null;
+                try {
+                    configTomlValues = parseConfigToml(project);
+                } catch (IllegalStateException e) {
+                    response.setError(e);
+                }
 
                 configVarMap.putAll(extractVariablesFromProject(rootPackage, configTomlValues));
                 if (request.includeLibraries()) {
@@ -347,17 +352,23 @@ public class ConfigEditorV2Service implements ExtendedLanguageServerService {
      * @return A {@link Toml} object representing the parsed Config.toml, or {@code null} if parsing fails
      * or the file doesn't exist.
      */
-    private Toml parseConfigToml(Project project) {
+    private Toml parseConfigToml(Project project) throws IllegalStateException {
         try {
             Path configTomlPath = project.sourceRoot().resolve(CONFIG_TOML_FILENAME);
             if (!Files.exists(configTomlPath)) {
                 return null;
             }
-            return Toml.read(configTomlPath);
-        } catch (Exception e) {
-            // TODO: add diagnostic handling
+            Toml toml = Toml.read(configTomlPath);
+            boolean hasErrors = toml.diagnostics().stream()
+                    .anyMatch(d -> d.diagnosticInfo().severity() == DiagnosticSeverity.ERROR);
+            if (hasErrors) {
+                throw new IllegalStateException("Config.toml file contains syntax errors. " +
+                        "Please fix them before proceeding.");
+            }
+            return toml;
+        } catch (Exception ignored) {
+            return null;
         }
-        return null;
     }
 
     /**
