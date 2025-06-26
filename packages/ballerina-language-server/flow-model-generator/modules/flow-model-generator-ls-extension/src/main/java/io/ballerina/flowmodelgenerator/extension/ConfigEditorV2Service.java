@@ -1031,8 +1031,8 @@ public class ConfigEditorV2Service implements ExtendedLanguageServerService {
         boolean hasErrors = configTomlValues != null && configTomlValues.diagnostics().stream()
                 .anyMatch(d -> d.diagnosticInfo().severity() == DiagnosticSeverity.ERROR);
         if (hasErrors) {
-            IllegalStateException exception = new IllegalStateException("Config.toml file contains syntax " +
-                    "errors. Please fix them before proceeding.");
+            IllegalStateException exception = new IllegalStateException("Config.toml contains syntax errors. " +
+                    "Value editing may not work correctly until they are fixed.");
             response.setError(exception);
         }
     }
