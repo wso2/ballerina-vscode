@@ -34,4 +34,20 @@ public class RefRecordType extends RefType {
         super(name);
         this.typeName = "record";
     }
+
+    @Override
+    public RefRecordType clone() {
+        RefRecordType copy = (RefRecordType) super.clone();
+        copy.fields = new ArrayList<>();
+        for (ReferenceType.Field field : this.fields) {
+            copy.fields.add(new ReferenceType.Field(
+                    field.fieldName(),
+                    field.type().clone(),
+                    field.optional(),
+                    field.defaultValue()
+            ));
+        }
+        return copy;
+    }
+
 }

@@ -22,11 +22,12 @@ package org.ballerinalang.diagramutil.connector.models.connector.reftypes;
  */
 import com.google.gson.annotations.Expose;
 
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-public class RefType {
+public class RefType  implements Cloneable {
     public Set<String> dependentTypeHashes = new HashSet<>();
     @Expose
     public String hashCode;
@@ -40,4 +41,24 @@ public class RefType {
     public RefType(String name) {
         this.name = name;
     }
+
+    @Override
+    public RefType clone() {
+        try {
+            RefType copy = (RefType) super.clone();
+            if (this.dependentTypeHashes != null) {
+                copy.dependentTypeHashes = new HashSet<>(this.dependentTypeHashes);
+            }
+            if (this.dependentTypes != null) {
+                copy.dependentTypes = new HashMap<>();
+                for (Map.Entry<String, RefType> entry : this.dependentTypes.entrySet()) {
+                    copy.dependentTypes.put(entry.getKey(), entry.getValue().clone());
+                }
+            }
+            return copy;
+        } catch (CloneNotSupportedException e) {
+            throw new AssertionError(e);
+        }
+    }
+
 }

@@ -68,12 +68,17 @@ public class ReferenceType {
         for (String dependentTypeHash : type.dependentTypeHashes) {
             RefType dependentType = visitedTypeMap.get(dependentTypeHash);
             if (dependentType != null) {
+                RefType clonedDependentType = dependentType.clone();
                 if (type.dependentTypes == null) {
                     type.dependentTypes = new HashMap<>();
                 }
-                type.dependentTypes.put(dependentTypeHash, dependentType);
+                clonedDependentType.dependentTypes = null;
+                if (type.dependentTypes != null) {
+                    type.dependentTypes.put(dependentTypeHash, clonedDependentType);
+                }
             }
         }
+
         return type;
     }
 

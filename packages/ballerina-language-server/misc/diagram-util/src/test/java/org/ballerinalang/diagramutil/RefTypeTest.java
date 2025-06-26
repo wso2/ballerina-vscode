@@ -53,7 +53,6 @@ public class RefTypeTest {
                 .toArray(Object[][]::new);
     }
 
-
     @Test(dataProvider = "data-provider")
     public void getRefTypeForSymbol(Path jsonPath) throws IOException {
 
