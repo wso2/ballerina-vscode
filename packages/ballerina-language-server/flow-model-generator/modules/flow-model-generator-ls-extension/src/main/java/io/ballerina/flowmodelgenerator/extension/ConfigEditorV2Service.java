@@ -67,6 +67,7 @@ import io.ballerina.toml.semantic.ast.TomlKeyValueNode;
 import io.ballerina.toml.semantic.ast.TomlNode;
 import io.ballerina.toml.semantic.ast.TomlTableNode;
 import io.ballerina.toml.semantic.ast.TomlValueNode;
+import io.ballerina.tools.diagnostics.DiagnosticSeverity;
 import io.ballerina.tools.text.LinePosition;
 import io.ballerina.tools.text.LineRange;
 import org.ballerinalang.annotation.JavaSPIService;
@@ -426,6 +427,13 @@ public class ConfigEditorV2Service implements ExtendedLanguageServerService {
      * Converts a {@link TomlNode} to its string representation.
      */
     private String getAsString(TomlNode tomlValueNode) {
+        // In case of syntax errors, return the original string representation of the value in the TOML file.
+        boolean hasSyntaxErrors = tomlValueNode.diagnostics().stream()
+                .anyMatch(diagnostic -> diagnostic.diagnosticInfo().severity() == DiagnosticSeverity.ERROR);
+        if (hasSyntaxErrors) {
+            return tomlValueNode.externalTreeNode().toSourceCode();
+        }
+
         switch (tomlValueNode.kind()) {
             case TABLE -> {
                 List<String> keyValuePairs = new LinkedList<>();
