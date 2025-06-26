@@ -22,11 +22,13 @@ import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.flowmodelgenerator.core.DataMapManager;
 import io.ballerina.flowmodelgenerator.extension.request.DataMapperAddClausesRequest;
 import io.ballerina.flowmodelgenerator.extension.request.DataMapperAddElementRequest;
+import io.ballerina.flowmodelgenerator.extension.request.DataMapperFieldPositionRequest;
 import io.ballerina.flowmodelgenerator.extension.request.DataMapperModelRequest;
 import io.ballerina.flowmodelgenerator.extension.request.DataMapperQueryConvertRequest;
 import io.ballerina.flowmodelgenerator.extension.request.DataMapperSourceRequest;
 import io.ballerina.flowmodelgenerator.extension.request.DataMapperTypesRequest;
 import io.ballerina.flowmodelgenerator.extension.request.DataMapperVisualizeRequest;
+import io.ballerina.flowmodelgenerator.extension.response.DataMapperFieldPositionResponse;
 import io.ballerina.flowmodelgenerator.extension.response.DataMapperModelResponse;
 import io.ballerina.flowmodelgenerator.extension.response.DataMapperSourceResponse;
 import io.ballerina.flowmodelgenerator.extension.response.DataMapperTypesResponse;
@@ -208,6 +210,28 @@ public class DataMapperService implements ExtendedLanguageServerService {
                 DataMapManager dataMapManager = new DataMapManager(workspaceManager, document.get());
                 response.setTextEdits(dataMapManager.addElement(semanticModel.get(), request.codedata(),
                         Path.of(request.filePath()), request.targetField()));
+            } catch (Throwable e) {
+                response.setError(e);
+            }
+            return response;
+        });
+    }
+
+    @JsonRequest
+    public CompletableFuture<DataMapperFieldPositionResponse> fieldPosition(DataMapperFieldPositionRequest request) {
+        return CompletableFuture.supplyAsync(() -> {
+            DataMapperFieldPositionResponse response = new DataMapperFieldPositionResponse();
+            try {
+                Path filePath = Path.of(request.filePath());
+                this.workspaceManager.loadProject(filePath);
+                Optional<SemanticModel> semanticModel = this.workspaceManager.semanticModel(filePath);
+                Optional<Document> document = this.workspaceManager.document(filePath);
+                if (semanticModel.isEmpty() || document.isEmpty()) {
+                    return response;
+                }
+                DataMapManager dataMapManager = new DataMapManager(workspaceManager, document.get());
+                response.setField(dataMapManager.getFieldPosition(request.codedata(), request.targetField(),
+                        request.fieldId(), Path.of(request.filePath())));
             } catch (Throwable e) {
                 response.setError(e);
             }
