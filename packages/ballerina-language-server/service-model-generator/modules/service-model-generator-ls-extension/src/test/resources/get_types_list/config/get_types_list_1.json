@@ -1,0 +1,7 @@
+{
+  "filePath": "sample1",
+  "description": "Get the list of http status code types",
+  "context": "HTTP_STATUS_CODE",
+  "result": {
+  }
+}
