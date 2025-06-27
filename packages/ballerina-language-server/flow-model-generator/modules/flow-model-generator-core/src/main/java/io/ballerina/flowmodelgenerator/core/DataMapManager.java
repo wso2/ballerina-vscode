@@ -746,7 +746,7 @@ public class DataMapManager {
         } else {
             // TODO: check to move this out of if-else and move up
             if (idx == names.length) {
-               textEdits.add(new TextEdit(CommonUtils.toRange(expr.lineRange()), mappingExpr));
+                textEdits.add(new TextEdit(CommonUtils.toRange(expr.lineRange()), mappingExpr));
             }
         }
     }
@@ -1291,6 +1291,40 @@ public class DataMapManager {
             }
         }
         return null;
+    }
+
+    public JsonElement nodePosition(JsonElement cd, String name) {
+        Codedata codedata = gson.fromJson(cd, Codedata.class);
+        SyntaxTree syntaxTree = document.syntaxTree();
+        LineRange lineRange = codedata.lineRange();
+        LinePosition startPos = lineRange.startLine();
+        LinePosition endPos = lineRange.endLine();
+
+        NonTerminalNode stNode = CommonUtil.findNode(new Range(new Position(startPos.line(), startPos.offset()),
+                new Position(endPos.line(), endPos.offset())), syntaxTree);
+        while (true) {
+            if (stNode == null) {
+                return null;
+            }
+            if (stNode.kind() == SyntaxKind.LOCAL_VAR_DECL) {
+                VariableDeclarationNode varDeclNode = (VariableDeclarationNode) stNode;
+                if (varDeclNode.typedBindingPattern().bindingPattern().toSourceCode().trim().equals(name)) {
+                    return gson.toJsonTree(new Codedata.Builder<>(null)
+                            .lineRange(varDeclNode.lineRange())
+                            .node(NodeKind.VARIABLE)
+                            .build());
+                }
+            } else if (stNode.kind() == SyntaxKind.MODULE_VAR_DECL) {
+                ModuleVariableDeclarationNode varDeclNode = (ModuleVariableDeclarationNode) stNode;
+                if (varDeclNode.typedBindingPattern().bindingPattern().toSourceCode().trim().equals(name)) {
+                    return gson.toJsonTree(new Codedata.Builder<>(null)
+                            .lineRange(varDeclNode.lineRange())
+                            .node(NodeKind.VARIABLE)
+                            .build());
+                }
+            }
+            stNode = stNode.parent();
+        }
     }
 
     private LinePosition getFieldPos(ExpressionNode expr, String[] names, int idx, StringBuilder stringBuilder,
