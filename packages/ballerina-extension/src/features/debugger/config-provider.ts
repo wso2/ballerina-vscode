@@ -695,30 +695,37 @@ class BIRunAdapter extends LoggingDebugSession {
             task: 'run'
         };
 
-        let buildCommand = 'bal run';
+        let runCommand = ballerinaExtInstance.getBallerinaCmd();
+        runCommand += ' run';
+
         const programArgs = (args as any).programArgs;
         if (programArgs && programArgs.length > 0) {
-            buildCommand = `${buildCommand} -- ${programArgs.join(' ')}`;
+            runCommand = `${runCommand} -- ${programArgs.join(' ')}`;
         }
 
         if (isSupportedSLVersion(ballerinaExtInstance, 2201130) && ballerinaExtInstance.enabledExperimentalFeatures()) {
-            buildCommand = `${buildCommand} --experimental`;
+            runCommand = `${runCommand} --experimental`;
         }
 
         // Get Ballerina home path from settings
         const config = workspace.getConfiguration('ballerina');
-        const ballerinaHome = config.get<string>('home');
+        const ballerinaHome = config.get<string>(BALLERINA_HOME);
         if (ballerinaHome) {
-            // Add ballerina home to build path only if it's configured
-            buildCommand = path.join(ballerinaHome, 'bin', buildCommand);
+            runCommand = path.join(ballerinaHome, 'bin', runCommand);
         }
 
-        const execution = new ShellExecution(buildCommand);
+        console.log(`Ballerina Home: ${ballerinaExtInstance.getBallerinaHome()}`);
+        console.log(`Executing command: ${runCommand}`);
+        const execution = new ShellExecution(runCommand, {
+            env: {
+                ...process.env
+            }
+        });
 
         const task = new Task(
             taskDefinition,
             workspace.workspaceFolders![0], // Assumes at least one workspace folder is open
-            'Ballerina Build',
+            'Ballerina Run',
             'ballerina',
             execution
         );
@@ -738,7 +745,7 @@ class BIRunAdapter extends LoggingDebugSession {
                 this.sendResponse(response);
             });
         } catch (error) {
-            window.showErrorMessage(`Failed to build Ballerina package: ${error}`);
+            window.showErrorMessage(`Failed to run Ballerina package: ${error}`);
         }
     }
 
