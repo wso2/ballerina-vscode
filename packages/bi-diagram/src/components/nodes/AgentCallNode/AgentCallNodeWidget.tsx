@@ -363,14 +363,26 @@ export function AgentCallNodeWidget(props: AgentCallNodeWidgetProps) {
     };
 
     const onToolClick = (tool: ToolData) => {
-        console.log(">>> onToolClick", tool);
-        agentNode?.onSelectTool && agentNode.onSelectTool(tool, model.node);
-        setAnchorEl(null);
+        console.log(">>> on Tool Click", tool);
+        if (tool.name.includes("MCP ToolKit")) {
+            tool.type = "MCP ToolKit";
+            agentNode?.onSelectMcpToolkit && agentNode.onSelectMcpToolkit(tool, model.node);
+            setAnchorEl(null);
+        } else {
+            agentNode?.onSelectTool && agentNode.onSelectTool(tool, model.node);
+            setAnchorEl(null);
+        }
     };
 
     const onAddToolClick = () => {
         console.log(">>> onAddToolClick", model.node);
         agentNode?.onAddTool && agentNode.onAddTool(model.node);
+        setAnchorEl(null);
+    };
+
+    const onAddMcpServerClick = () => {
+        console.log(">>> onAddMcpServerClick", model.node);
+        agentNode?.onAddMcpServer && agentNode.onAddMcpServer(model.node);
         setAnchorEl(null);
     };
 

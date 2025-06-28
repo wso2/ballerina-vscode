@@ -63,7 +63,9 @@ export interface DiagramProps {
     agentNode?: {
         onModelSelect: (node: FlowNode) => void;
         onAddTool: (node: FlowNode) => void;
+        onAddMcpServer: (node: FlowNode) => void;
         onSelectTool: (tool: ToolData, node: FlowNode) => void;
+        onSelectMcpToolkit: (tool: ToolData, node: FlowNode) => void;
         onDeleteTool: (tool: ToolData, node: FlowNode) => void;
         goToTool: (tool: ToolData, node: FlowNode) => void;
         onSelectMemoryManager: (node: FlowNode) => void;
