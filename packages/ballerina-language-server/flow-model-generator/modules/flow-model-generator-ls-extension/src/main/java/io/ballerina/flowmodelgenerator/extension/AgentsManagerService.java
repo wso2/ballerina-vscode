@@ -18,6 +18,7 @@
 
 package io.ballerina.flowmodelgenerator.extension;
 
+import com.google.gson.JsonArray;
 import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
 import io.ballerina.flowmodelgenerator.core.AgentsGenerator;
@@ -30,10 +31,13 @@ import io.ballerina.flowmodelgenerator.extension.request.GetConnectorActionsRequ
 import io.ballerina.flowmodelgenerator.extension.request.GetModelsRequest;
 import io.ballerina.flowmodelgenerator.extension.request.GetToolRequest;
 import io.ballerina.flowmodelgenerator.extension.request.GetToolsRequest;
+import io.ballerina.flowmodelgenerator.extension.request.McpToolsRequest;
+import io.ballerina.flowmodelgenerator.extension.response.EditToolResponse;
 import io.ballerina.flowmodelgenerator.extension.response.GenToolResponse;
 import io.ballerina.flowmodelgenerator.extension.response.GetAgentsResponse;
 import io.ballerina.flowmodelgenerator.extension.response.GetAiModuleOrgResponse;
 import io.ballerina.flowmodelgenerator.extension.response.GetConnectorActionsResponse;
+import io.ballerina.flowmodelgenerator.extension.response.GetMcpToolsResponse;
 import io.ballerina.flowmodelgenerator.extension.response.GetMemoryManagersResponse;
 import io.ballerina.flowmodelgenerator.extension.response.GetModelsResponse;
 import io.ballerina.flowmodelgenerator.extension.response.GetToolResponse;
@@ -191,6 +195,27 @@ public class AgentsManagerService implements ExtendedLanguageServerService {
             return response;
         });
     }
+
+    @JsonRequest
+    public CompletableFuture<GetMcpToolsResponse> getMcpTools(McpToolsRequest request) {
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                String sessionId = McpClient.sendInitializeRequest();
+                JsonArray toolsJsonArray;
+                if (sessionId != null) {
+                    toolsJsonArray = McpClient.sendToolsListRequest(request.serviceUrl(), sessionId);
+                    GetMcpToolsResponse response = new GetMcpToolsResponse();
+                    response.setTools(toolsJsonArray);
+                    return response;
+                } else {
+                    throw new RuntimeException("Failed to obtain session ID from MCP server");
+                }
+            } catch (Exception e) {
+                throw new RuntimeException("Failed to get MCP tools", e);
+            }
+        });
+    }
+
 
     @JsonRequest
     public CompletableFuture<GenToolResponse> genTool(GenToolRequest request) {
