@@ -1437,14 +1437,18 @@ export interface AIModelsRequest {
 
 export interface AIToolsRequest {
     filePath: string;
+    serviceUrl?: string;
+    configs?: Record<string, string>;
 }
+
 export interface AIToolsResponse {
     tools: string[];
 }
 
 export interface McpToolsRequest {
-    serviceUrl: string;
+    serviceUrl?: string;
     configs?: Record<string, string>;
+    filePath?: string;
 }
 
 export interface McpToolsResponse {
