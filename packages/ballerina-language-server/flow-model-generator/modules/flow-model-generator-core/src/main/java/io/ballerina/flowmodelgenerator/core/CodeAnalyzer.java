@@ -170,6 +170,8 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Queue;
 import java.util.Stack;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static io.ballerina.modelgenerator.commons.CommonUtils.isAiModelModule;
@@ -401,6 +403,18 @@ public class CodeAnalyzer extends NodeVisitor {
         }
     }
 
+
+    private static String extractMcpToolKitName(String sourceCode) {
+        Pattern pattern = Pattern.compile("name:\\s*\"([^\"]*)\"");
+
+        Matcher matcher = pattern.matcher(sourceCode);
+        String nameValue = "MCP ToolKit";
+        if (matcher.find()) {
+            nameValue = matcher.group(1);
+        }
+        return nameValue;
+    }
+
     private void genAgentData(ImplicitNewExpressionNode newExpressionNode, ClassSymbol classSymbol) {
         Optional<ParenthesizedArgList> argList = newExpressionNode.parenthesizedArgList();
         if (argList.isEmpty()) {
@@ -442,12 +456,18 @@ public class CodeAnalyzer extends NodeVisitor {
             List<ToolData> toolsData = new ArrayList<>();
             ListConstructorExpressionNode listCtrExprNode = (ListConstructorExpressionNode) toolsArg;
             for (Node node : listCtrExprNode.expressions()) {
+                if (node.kind() == SyntaxKind.CHECK_EXPRESSION) {
+                    String iconPath = "https://bcentral-packageicons.azureedge.net/images/ballerina_mcp_0.4.2.png";
+                    String toolName = extractMcpToolKitName(node.toSourceCode());
+                    toolsData.add(new ToolData(toolName, iconPath, getToolDescription(""), "MCP ToolKit"));
+                    continue;
+                }
                 if (node.kind() != SyntaxKind.SIMPLE_NAME_REFERENCE) {
                     continue;
                 }
                 SimpleNameReferenceNode simpleNameReferenceNode = (SimpleNameReferenceNode) node;
                 String toolName = simpleNameReferenceNode.name().text();
-                toolsData.add(new ToolData(toolName, getIcon(toolName), getToolDescription(toolName)));
+                toolsData.add(new ToolData(toolName, getIcon(toolName), getToolDescription(toolName), null));
             }
             nodeBuilder.metadata().addData("tools", toolsData);
         }
@@ -2229,7 +2249,7 @@ public class CodeAnalyzer extends NodeVisitor {
                 continue;
             }
             FunctionSymbol functionSymbol = (FunctionSymbol) symbol;
-            if (functionSymbol.getName().orElseThrow().equals(name)) {
+            if (functionSymbol.nameEquals(name)) {
                 for (AnnotationAttachmentSymbol annotAttachment : functionSymbol.annotAttachments()) {
                     if (annotAttachment.typeDescriptor().getName().orElseThrow().equals("display")) {
                         Optional<ConstantValue> optAttachmentValue = annotAttachment.attachmentValue();
@@ -2305,7 +2325,7 @@ public class CodeAnalyzer extends NodeVisitor {
 
     }
 
-    private record ToolData(String name, String path, String description) {
+    private record ToolData(String name, String path, String description, String type) {
 
     }
 
