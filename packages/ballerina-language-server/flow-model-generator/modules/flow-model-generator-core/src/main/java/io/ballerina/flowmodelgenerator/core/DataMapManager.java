@@ -32,6 +32,7 @@ import io.ballerina.compiler.api.symbols.RecordFieldSymbol;
 import io.ballerina.compiler.api.symbols.RecordTypeSymbol;
 import io.ballerina.compiler.api.symbols.Symbol;
 import io.ballerina.compiler.api.symbols.SymbolKind;
+import io.ballerina.compiler.api.symbols.TypeDefinitionSymbol;
 import io.ballerina.compiler.api.symbols.TypeDescKind;
 import io.ballerina.compiler.api.symbols.TypeSymbol;
 import io.ballerina.compiler.api.symbols.VariableSymbol;
@@ -52,7 +53,6 @@ import io.ballerina.compiler.syntax.tree.ListConstructorExpressionNode;
 import io.ballerina.compiler.syntax.tree.MappingConstructorExpressionNode;
 import io.ballerina.compiler.syntax.tree.MappingFieldNode;
 import io.ballerina.compiler.syntax.tree.MethodCallExpressionNode;
-import io.ballerina.compiler.syntax.tree.ModuleMemberDeclarationNode;
 import io.ballerina.compiler.syntax.tree.ModulePartNode;
 import io.ballerina.compiler.syntax.tree.ModuleVariableDeclarationNode;
 import io.ballerina.compiler.syntax.tree.NamedArgumentNode;
@@ -73,20 +73,15 @@ import io.ballerina.compiler.syntax.tree.VariableDeclarationNode;
 import io.ballerina.compiler.syntax.tree.WhereClauseNode;
 import io.ballerina.flowmodelgenerator.core.model.Codedata;
 import io.ballerina.flowmodelgenerator.core.model.FlowNode;
-import io.ballerina.flowmodelgenerator.core.model.NodeBuilder;
 import io.ballerina.flowmodelgenerator.core.model.NodeKind;
 import io.ballerina.flowmodelgenerator.core.model.Property;
-import io.ballerina.flowmodelgenerator.core.model.SourceBuilder;
 import io.ballerina.modelgenerator.commons.CommonUtils;
 import io.ballerina.modelgenerator.commons.DefaultValueGeneratorUtil;
-import io.ballerina.modelgenerator.commons.PackageUtil;
 import io.ballerina.projects.Document;
-import io.ballerina.projects.Project;
 import io.ballerina.tools.diagnostics.Diagnostic;
 import io.ballerina.tools.text.LinePosition;
 import io.ballerina.tools.text.LineRange;
 import io.ballerina.tools.text.TextDocument;
-import io.ballerina.tools.text.TextDocumentChange;
 import io.ballerina.tools.text.TextRange;
 import org.ballerinalang.diagramutil.connector.models.connector.Type;
 import org.ballerinalang.diagramutil.connector.models.connector.TypeInfo;
@@ -94,7 +89,6 @@ import org.ballerinalang.diagramutil.connector.models.connector.types.ArrayType;
 import org.ballerinalang.diagramutil.connector.models.connector.types.PrimitiveType;
 import org.ballerinalang.diagramutil.connector.models.connector.types.RecordType;
 import org.ballerinalang.langserver.common.utils.CommonUtil;
-import org.ballerinalang.langserver.commons.workspace.WorkspaceManager;
 import org.eclipse.lsp4j.Position;
 import org.eclipse.lsp4j.Range;
 import org.eclipse.lsp4j.TextEdit;
@@ -115,12 +109,10 @@ import java.util.Optional;
 public class DataMapManager {
 
     public static final String DOT = "\\.";
-    private final WorkspaceManager workspaceManager;
     private final Document document;
     private final Gson gson;
 
-    public DataMapManager(WorkspaceManager workspaceManager, Document document) {
-        this.workspaceManager = workspaceManager;
+    public DataMapManager(Document document) {
         this.document = document;
         this.gson = new Gson();
     }
@@ -355,15 +347,11 @@ public class DataMapManager {
             }
             Map<String, SpecificFieldNode> mappingFieldsMap =
                     convertMappingFieldsToMap((MappingConstructorExpressionNode) expr);
-            MappingFieldNode mappingFieldNode = mappingFieldsMap.get(split);
+            SpecificFieldNode mappingFieldNode = mappingFieldsMap.get(split);
             if (mappingFieldNode == null) {
                 break;
             }
-            if (mappingFieldNode.kind() != SyntaxKind.SPECIFIC_FIELD) {
-                break;
-            }
-            SpecificFieldNode specificFieldNode = (SpecificFieldNode) mappingFieldNode;
-            Optional<ExpressionNode> optValueExpr = specificFieldNode.valueExpr();
+            Optional<ExpressionNode> optValueExpr = mappingFieldNode.valueExpr();
             if (optValueExpr.isEmpty()) {
                 break;
             }
@@ -953,86 +941,6 @@ public class DataMapManager {
         return gson.toJsonTree(textEditsMap);
     }
 
-    private SourceModification applyNode(FlowNode flowNode, Project project, Path filePath, LinePosition position) {
-        SourceBuilder sourceBuilder = new SourceBuilder(flowNode, this.workspaceManager, filePath);
-        String source = NodeBuilder.getNodeFromKind(flowNode.codedata().node())
-                .toSource(sourceBuilder).entrySet().stream().iterator().next().getValue().get(0).getNewText();
-        TextDocument textDocument = document.textDocument();
-        int startTextPosition = textDocument.textPositionFrom(position);
-        io.ballerina.tools.text.TextEdit textEdit =
-                io.ballerina.tools.text.TextEdit.from(TextRange.from(startTextPosition,
-                        0), source);
-        io.ballerina.tools.text.TextEdit[] textEdits = {textEdit};
-        TextDocument modifiedTextDoc = textDocument.apply(TextDocumentChange.from(textEdits));
-        Document modifiedDoc =
-                project.duplicate().currentPackage().module(document.module().moduleId())
-                        .document(document.documentId()).modify().withContent(String.join(System.lineSeparator(),
-                                modifiedTextDoc.textLines())).apply();
-
-        SemanticModel newSemanticModel = PackageUtil.getCompilation(modifiedDoc.module().packageInstance())
-                .getSemanticModel(modifiedDoc.module().moduleId());
-        LinePosition startLine = modifiedTextDoc.linePositionFrom(startTextPosition);
-        LinePosition endLine = modifiedTextDoc.linePositionFrom(startTextPosition + source.length());
-        Range range = new Range(new Position(startLine.line(), startLine.offset()),
-                new Position(endLine.line(), endLine.offset()));
-        NonTerminalNode stNode = CommonUtil.findNode(range, modifiedDoc.syntaxTree());
-
-        return new SourceModification(source, modifiedDoc, newSemanticModel, stNode);
-    }
-
-    private SourceModification applyConnection(FlowNode flowNode, Project project, Path filePath) {
-        SourceBuilder sourceBuilder = new SourceBuilder(flowNode, this.workspaceManager, filePath);
-        Path connectionPath = workspaceManager.projectRoot(filePath).resolve("connections.bal");
-        List<TextEdit> connectionTextEdits =
-                NodeBuilder.getNodeFromKind(flowNode.codedata().node()).toSource(sourceBuilder).get(connectionPath);
-        Document document = workspaceManager.document(connectionPath).orElseThrow();
-        TextDocument textDocument = document.textDocument();
-        io.ballerina.tools.text.TextEdit[] textEdits = new io.ballerina.tools.text.TextEdit[connectionTextEdits.size()];
-        for (int i = 0; i < connectionTextEdits.size(); i++) {
-            TextEdit connectionTextEdit = connectionTextEdits.get(i);
-            Position start = connectionTextEdit.getRange().getStart();
-            int startTextPosition = textDocument.textPositionFrom(LinePosition.from(start.getLine(),
-                    start.getCharacter()));
-            Position end = connectionTextEdit.getRange().getEnd();
-            int endTextPosition = textDocument.textPositionFrom(LinePosition.from(end.getLine(), end.getCharacter()));
-            io.ballerina.tools.text.TextEdit textEdit =
-                    io.ballerina.tools.text.TextEdit.from(TextRange.from(startTextPosition,
-                            endTextPosition - startTextPosition), connectionTextEdit.getNewText());
-            textEdits[i] = textEdit;
-        }
-        TextDocument modifiedTextDoc = textDocument.apply(TextDocumentChange.from(textEdits));
-        Document modifiedDoc =
-                project.duplicate().currentPackage().module(document.module().moduleId())
-                        .document(document.documentId()).modify().withContent(String.join(System.lineSeparator(),
-                                modifiedTextDoc.textLines())).apply();
-
-        Optional<Property> optVariable = flowNode.getProperty("variable");
-        if (optVariable.isEmpty()) {
-            throw new IllegalStateException("Variable cannot be found for the connection");
-        }
-        SemanticModel newSemanticModel = PackageUtil.getCompilation(modifiedDoc.module().packageInstance())
-                .getSemanticModel(modifiedDoc.module().moduleId());
-        return new SourceModification("", modifiedDoc, newSemanticModel, connectionNode(modifiedDoc,
-                optVariable.get().toSourceCode()));
-    }
-
-    private Node connectionNode(Document document, String connectionName) {
-        ModulePartNode modulePartNode = document.syntaxTree().rootNode();
-        NodeList<ModuleMemberDeclarationNode> members = modulePartNode.members();
-        for (ModuleMemberDeclarationNode member : members) {
-            if (member.kind() == SyntaxKind.MODULE_VAR_DECL) {
-                ModuleVariableDeclarationNode varDecl = (ModuleVariableDeclarationNode) member;
-                if (varDecl.typedBindingPattern().bindingPattern().toSourceCode().trim().equals(connectionName)) {
-                    return varDecl;
-                }
-            }
-        }
-        return null;
-    }
-
-    private record SourceModification(String source, Document document, SemanticModel semanticModel, Node stNode) {
-    }
-
     private String getQuerySource(NonTerminalNode inputExpr, RecordTypeSymbol recordTypeSymbol) {
         String name = "item";
         SyntaxKind kind = inputExpr.kind();
@@ -1047,57 +955,24 @@ public class DataMapManager {
                 DefaultValueGeneratorUtil.getDefaultValueForType(recordTypeSymbol);
     }
 
-    public JsonElement getVisualizableProperties(JsonElement node, Project project, Path filePath,
-                                                 LinePosition position) {
+    public JsonElement getVisualizableProperties(SemanticModel semanticModel, JsonElement node) {
         FlowNode flowNode = gson.fromJson(node, FlowNode.class);
         List<String> visualizableProperties = new ArrayList<>();
         NodeKind nodeKind = flowNode.codedata().node();
         if (nodeKind == NodeKind.VARIABLE) {
-            SourceModification sourceModification = applyNode(flowNode, project, filePath, position);
-            Node stNode = sourceModification.stNode();
-            if (stNode.kind() != SyntaxKind.LOCAL_VAR_DECL) {
-                throw new IllegalStateException("Node is not a variable declaration");
+            Optional<Property> optType = flowNode.getProperty("type");
+            if (optType.isEmpty()) {
+                throw new IllegalStateException("Type property is not available for the variable");
             }
-            Optional<Symbol> optVarSymbol = sourceModification.semanticModel().symbol(stNode);
-            if (optVarSymbol.isEmpty()) {
-                throw new IllegalStateException("Symbol cannot be found for the variable declaration");
-            }
-            VariableSymbol variableSymbol = (VariableSymbol) optVarSymbol.get();
-            if (isEffectiveRecordType(variableSymbol.typeDescriptor())) {
-                visualizableProperties.add("expression");
-            }
-        } else if (nodeKind == NodeKind.NEW_CONNECTION) {
-            SourceModification sourceModification = applyConnection(flowNode, project, filePath);
-            Optional<Property> optVariable = flowNode.getProperty("variable");
-            if (optVariable.isEmpty()) {
-                throw new IllegalStateException("Variable cannot be found for the connection");
-            }
-            List<Symbol> symbols = sourceModification.semanticModel().moduleSymbols();
-            String variableName = optVariable.get().toSourceCode();
-            Optional<Symbol> optVariableSymbol = symbols.parallelStream()
-                    .filter(symbol -> symbol.getName().isPresent() && symbol.getName().get().equals(variableName))
-                    .findAny();
-            if (optVariableSymbol.isEmpty()) {
-                throw new IllegalStateException("Symbol cannot be found for the connection variable");
-            }
-
-            VariableSymbol variableSymbol = (VariableSymbol) optVariableSymbol.get();
-            TypeSymbol typeSymbol = CommonUtils.getRawType(variableSymbol.typeDescriptor());
-            if (typeSymbol.kind() != SymbolKind.CLASS) {
-                throw new IllegalStateException("Connection symbol is not a class symbol");
-            }
-            ClassSymbol classSymbol = (ClassSymbol) typeSymbol;
-            Optional<MethodSymbol> optInitMethodSymbol = classSymbol.initMethod();
-            if (optInitMethodSymbol.isEmpty()) {
-                throw new IllegalStateException("Init method cannot be found for the connection class");
-            }
-            MethodSymbol initMethodSymbol = optInitMethodSymbol.get();
-            Optional<List<ParameterSymbol>> optParams = initMethodSymbol.typeDescriptor().params();
-            if (optParams.isPresent()) {
-                List<ParameterSymbol> params = optParams.get();
-                for (ParameterSymbol param : params) {
-                    if (isEffectiveRecordType(param.typeDescriptor())) {
-                        visualizableProperties.add(param.getName().get());
+            String type = ((String) optType.get().value()).split("\\[")[0];
+            for (Symbol symbol : semanticModel.moduleSymbols()) {
+                if (symbol.kind() == SymbolKind.TYPE_DEFINITION) {
+                    if (symbol.getName().isEmpty() || !symbol.getName().get().equals(type)) {
+                        continue;
+                    }
+                    TypeDefinitionSymbol typeDefSymbol = (TypeDefinitionSymbol) symbol;
+                    if (isEffectiveRecordType(typeDefSymbol.typeDescriptor())) {
+                        visualizableProperties.add("expression");
                     }
                 }
             }
@@ -1510,12 +1385,12 @@ public class DataMapManager {
             super(id, variableName, typeName, kind);
         }
 
-        MappingPort getMember() {
-            return this.member;
-        }
-
         void setMember(MappingPort member) {
             this.member = member;
+        }
+
+        MappingPort getMember() {
+            return this.member;
         }
     }
 }
