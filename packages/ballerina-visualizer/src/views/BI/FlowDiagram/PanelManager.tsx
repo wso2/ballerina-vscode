@@ -27,6 +27,7 @@ import { ToolConfig } from "../AIChatAgent/ToolConfig";
 import { AgentConfig } from "../AIChatAgent/AgentConfig";
 import { NewAgent } from "../AIChatAgent/NewAgent";
 import { AddTool } from "../AIChatAgent/AddTool";
+import { AddMcpServer } from "../AIChatAgent/AddMcpServer";
 import { useEffect, useState } from "react";
 import { NewTool } from "../AIChatAgent/NewTool";
 import styled from "@emotion/styled";
@@ -47,6 +48,8 @@ export enum SidePanelView {
     NEW_AGENT = "NEW_AGENT",
     ADD_TOOL = "ADD_TOOL",
     NEW_TOOL = "NEW_TOOL",
+    ADD_MCP_SERVER = "ADD_MCP_SERVER",
+    EDIT_MCP_SERVER = "EDIT_MCP_SERVER",
     AGENT_TOOL = "AGENT_TOOL",
     AGENT_MODEL = "AGENT_MODEL",
     AGENT_MEMORY_MANAGER = "AGENT_MEMORY_MANAGER",
@@ -89,8 +92,10 @@ interface PanelManagerProps {
 
     // AI Agent handlers
     onSelectTool?: (tool: ToolData, node: FlowNode) => void;
+    onSelectMcpToolkit?: (tool: ToolData, node: FlowNode) => void;
     onDeleteTool?: (tool: ToolData, node: FlowNode) => void;
     onAddTool?: (node: FlowNode) => void;
+    onAddMcpServer?: (node: FlowNode) => void;
 }
 
 export function PanelManager(props: PanelManagerProps) {
@@ -133,6 +138,14 @@ export function PanelManager(props: PanelManagerProps) {
 
     const handleOnAddTool = () => {
         setPanelView(SidePanelView.NEW_TOOL);
+    };
+
+    const handleOnAddMcpServer = () => {
+        setPanelView(SidePanelView.ADD_MCP_SERVER);
+    };
+
+    const handleOnEditMcpServer = () => {
+        setPanelView(SidePanelView.EDIT_MCP_SERVER);
     };
 
     const handleOnBackToAddTool = () => {
@@ -189,6 +202,12 @@ export function PanelManager(props: PanelManagerProps) {
 
             case SidePanelView.ADD_TOOL:
                 return <AddTool agentCallNode={selectedNode} onAddNewTool={handleOnAddTool} onSave={onClose} />;
+
+            case SidePanelView.ADD_MCP_SERVER:
+                return <AddMcpServer agentCallNode={selectedNode} onAddMcpServer={handleOnAddMcpServer} onSave={onClose} />;
+
+            case SidePanelView.EDIT_MCP_SERVER:
+                return <AddMcpServer editMode={true} name={selectedClientName} agentCallNode={selectedNode} onAddMcpServer={handleOnEditMcpServer} onSave={onClose} />;
 
             case SidePanelView.NEW_TOOL:
                 return <NewTool agentCallNode={selectedNode} onSave={onClose} onBack={handleOnBackToAddTool} />;
