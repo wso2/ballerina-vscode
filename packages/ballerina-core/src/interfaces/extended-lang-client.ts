@@ -1444,8 +1444,9 @@ export interface AIToolsResponse {
 
 export interface McpToolsRequest {
     serviceUrl: string;
-    configs?: string;
+    configs?: Record<string, string>;
 }
+
 export interface McpToolsResponse {
     tools: Array<{
         name: string;
