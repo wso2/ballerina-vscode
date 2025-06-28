@@ -31,6 +31,8 @@ import {
     AgentTool,
     AgentToolRequest,
     FlowNode,
+    McpToolsRequest,
+    McpToolsResponse,
     MemoryManagersRequest,
     MemoryManagersResponse,
     NodePosition,
@@ -104,6 +106,18 @@ export class AiAgentRpcManager implements AIAgentAPI {
             const context = StateMachine.context();
             try {
                 const res: AIToolsResponse = await context.langClient.getTools(params);
+                resolve(res);
+            } catch (error) {
+                console.log(error);
+            }
+        });
+    }
+
+    async getMcpTools(params: McpToolsRequest): Promise<McpToolsResponse> {
+        return new Promise(async (resolve) => {
+            const context = StateMachine.context();
+            try {
+                const res: McpToolsResponse = await context.langClient.getMcpTools(params);
                 resolve(res);
             } catch (error) {
                 console.log(error);
