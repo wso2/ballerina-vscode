@@ -35,17 +35,6 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-ballerina-
 
-      - name: Set up Ballerina
-        uses: ballerina-platform/setup-ballerina@v1.1.1
-        with:
-          version: 2201.12.3
-        
-      - name: Build with Gradle
-        env:
-          packageUser: ${{ github.actor }}
-          packagePAT: ${{ secrets.GITHUB_TOKEN }}
-        run: ./gradlew build
-
       - name: Set version env variable
         run: |
           # Extract BASE_VERSION from gradle.properties (strip any suffix after '-')
@@ -56,10 +45,10 @@ jobs:
             # Pre release - determine the next RC number
             # Fetch all tags to check for existing RC tags
             git fetch --tags
-            
+          
             # Find the highest RC number for this base version
             HIGHEST_RC=$(git tag -l "v${BASE_VERSION}-rc.*" | sed "s/v${BASE_VERSION}-rc.//" | sort -n | tail -1)
-            
+          
             if [ -z "$HIGHEST_RC" ]; then
               # No RC tags found, start with rc1
               RC_NUMBER=1
@@ -67,7 +56,7 @@ jobs:
               # Increment the highest RC number
               RC_NUMBER=$((HIGHEST_RC + 1))
             fi
-            
+          
             echo VERSION=${BASE_VERSION}-rc.${RC_NUMBER} >> $GITHUB_ENV
             echo PRE_RELEASE=true >> $GITHUB_ENV
           else
@@ -106,6 +95,17 @@ jobs:
           packagePAT: ${{ secrets.BALLERINA_BOT_TOKEN }}
         run: |
           ./gradlew -Pversion=${VERSION} release -Prelease.useAutomaticVersion=true -x test
+
+      - name: Set up Ballerina
+        uses: ballerina-platform/setup-ballerina@v1.1.1
+        with:
+          version: 2201.12.3
+
+      - name: Build with Gradle
+        env:
+          packageUser: ${{ github.actor }}
+          packagePAT: ${{ secrets.GITHUB_TOKEN }}
+        run: ./gradlew build
 
       - name: Publish the artifacts
         env:
