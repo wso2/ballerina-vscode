@@ -531,8 +531,11 @@
             "enabled": true,
             "editable": true,
             "values": [
-              "string",
-              "int"
+              {
+                "name": "Content-Type",
+                "type": "string",
+                "optional": false
+              }
             ],
             "valueType": "EXPRESSION_SET",
             "isType": false,
@@ -654,6 +657,7 @@
     "enabled": true,
     "optional": false,
     "editable": true,
+    "canAddParameters": false,
     "codedata": {
       "lineRange": {
         "fileName": "main.bal",
@@ -746,7 +750,7 @@
             "character": 1
           }
         },
-        "newText": "\npublic type MyCustomHttpOK record {|\n\t*http:Ok;\tinternational401:Patient body;\n\tmap<string|int> headers;\n|};"
+        "newText": "\npublic type MyCustomHttpOK record {|\n\t*http:Ok;\tinternational401:Patient body;\n\trecord {|%n\t\tstring Content-Type;\n\t\t(string|int|boolean|string[]|int[]|boolean[])...;%n\t};%n headers;\n|};"
       }
     ]
   }
