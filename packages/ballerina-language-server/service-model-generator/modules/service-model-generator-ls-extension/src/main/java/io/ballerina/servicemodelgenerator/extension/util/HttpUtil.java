@@ -19,6 +19,7 @@
 package io.ballerina.servicemodelgenerator.extension.util;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonPrimitive;
 import com.google.gson.stream.JsonReader;
 import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.compiler.api.symbols.ModuleSymbol;
@@ -562,9 +563,37 @@ public final class HttpUtil {
             }
         }
         if (Objects.nonNull(headers) && headers.isEnabledWithValue()) {
-            template += "\tmap<%s> headers;%n".formatted(String.join("|", headers.getValues()));
+            List<Object> values = headers.getValuesAsObjects();
+            StringBuilder headersRecordDef = new StringBuilder("record {|%n");
+            if (Objects.nonNull(values) && !values.isEmpty()) {
+                for (Object value : values) {
+                    if (value instanceof Map<?, ?> header) {
+                        String headerName = getString(header.get("name"));
+                        String headerType = getString(header.get("type"));
+                        boolean optional = Objects.requireNonNull(getString(header.get("optional"))).contains("true");
+                        headerName = optional ? "%s?".formatted(headerName) : headerName;
+                        headersRecordDef.append("\t\t%s %s;%n".formatted(headerType, headerName));
+                    }
+                }
+            }
+            headersRecordDef.append("\t\t(string|int|boolean|string[]|int[]|boolean[])...;%n");
+            headersRecordDef.append("\t};%n");
+            template += "\t%s headers;%n".formatted(headersRecordDef);
         }
         template += "|};";
         return template;
+    }
+
+    private static String getString(Object value) {
+        if (Objects.isNull(value)) {
+            return null;
+        }
+        if (value instanceof String) {
+            return (String) value;
+        }
+        if (value instanceof JsonPrimitive jsonPrimitive) {
+            return jsonPrimitive.getAsString();
+        }
+        return value.toString();
     }
 }

@@ -182,6 +182,10 @@ public class Value {
         return null;
     }
 
+    public List<Object> getValuesAsObjects() {
+        return values;
+    }
+
     public void setValue(Object value) {
         this.value = value;
     }
