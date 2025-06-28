@@ -1179,24 +1179,26 @@ public class DataMapManager {
                 return null;
             }
             if (stNode.kind() == SyntaxKind.LOCAL_VAR_DECL) {
-                VariableDeclarationNode varDeclNode = (VariableDeclarationNode) stNode;
-                if (varDeclNode.typedBindingPattern().bindingPattern().toSourceCode().trim().equals(name)) {
-                    return gson.toJsonTree(new Codedata.Builder<>(null)
-                            .lineRange(varDeclNode.lineRange())
-                            .node(NodeKind.VARIABLE)
-                            .build());
-                }
+                return setPosition(((VariableDeclarationNode) stNode).typedBindingPattern(), stNode.lineRange(), name);
             } else if (stNode.kind() == SyntaxKind.MODULE_VAR_DECL) {
-                ModuleVariableDeclarationNode varDeclNode = (ModuleVariableDeclarationNode) stNode;
-                if (varDeclNode.typedBindingPattern().bindingPattern().toSourceCode().trim().equals(name)) {
-                    return gson.toJsonTree(new Codedata.Builder<>(null)
-                            .lineRange(varDeclNode.lineRange())
-                            .node(NodeKind.VARIABLE)
-                            .build());
-                }
+                return setPosition(((ModuleVariableDeclarationNode) stNode).typedBindingPattern(),
+                        stNode.lineRange(), name);
+            } else if (stNode.kind() == SyntaxKind.LET_VAR_DECL) {
+                return setPosition(((LetVariableDeclarationNode) stNode).typedBindingPattern(), stNode.lineRange(),
+                        name);
             }
             stNode = stNode.parent();
         }
+    }
+
+    private JsonElement setPosition(TypedBindingPatternNode bindingPattern, LineRange range, String name) {
+        if (bindingPattern.bindingPattern().toSourceCode().trim().equals(name)) {
+            return gson.toJsonTree(new Codedata.Builder<>(null)
+                    .lineRange(range)
+                    .node(NodeKind.VARIABLE)
+                    .build());
+        }
+        return null;
     }
 
     private LinePosition getFieldPos(ExpressionNode expr, String[] names, int idx, StringBuilder stringBuilder,
