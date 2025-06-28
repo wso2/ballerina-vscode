@@ -23,6 +23,7 @@ import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { Button, Codicon, ThemeColors } from "@wso2/ui-toolkit";
 import { RelativeLoader } from "../../../components/RelativeLoader";
 import { addToolToAgentNode, findAgentNodeFromAgentCallNode, getAgentFilePath } from "./utils";
+import { AddMcpServer } from "./AddMcpServer";
 
 const Container = styled.div`
     padding: 16px;
@@ -112,7 +113,6 @@ const Footer = styled.div`
     position: fixed;
     bottom: 0;
     left: 0;
-
     width: 100%;
     display: flex;
     justify-content: flex-end;
@@ -126,20 +126,22 @@ interface AddToolProps {
     agentCallNode: FlowNode;
     onAddNewTool: () => void;
     onSave?: () => void;
+    onBack?: () => void;
 }
 
 export function AddTool(props: AddToolProps): JSX.Element {
     const { agentCallNode, onAddNewTool, onSave } = props;
-    console.log(">>> AddTool props", props);
     const { rpcClient } = useRpcContext();
 
     const [agentNode, setAgentNode] = useState<FlowNode | null>(null);
     const [existingTools, setExistingTools] = useState<string[]>([]);
+    const [existingMcpToolkits, setExistingMcpToolkits] = useState<string[]>([]);
     const [selectedTool, setSelectedTool] = useState<string | null>(null);
 
     const [loading, setLoading] = useState<boolean>(false);
     const [savingForm, setSavingForm] = useState<boolean>(false);
-
+    
+    const [showAddMcpServer, setShowAddMcpServer] = useState<boolean>(false);
     const agentFilePath = useRef<string>("");
 
     useEffect(() => {
@@ -148,23 +150,47 @@ export function AddTool(props: AddToolProps): JSX.Element {
 
     const initPanel = async () => {
         setLoading(true);
-        // get agent file path
         agentFilePath.current = await getAgentFilePath(rpcClient);
-        // fetch tools and agent node
         await fetchExistingTools();
         await fetchAgentNode();
         setLoading(false);
     };
 
     const fetchAgentNode = async () => {
-        // get agent node
         const agentNode = await findAgentNodeFromAgentCallNode(agentCallNode, rpcClient);
         setAgentNode(agentNode);
+        
+        if (agentNode?.properties?.tools?.value) {
+            const toolsString = agentNode.properties.tools.value.toString();
+            const mcpToolkits = extractMcpToolkits(toolsString);
+            setExistingMcpToolkits(mcpToolkits);
+        }
+    };
+
+    const handleBack = () => {
+        if (showAddMcpServer) {
+            setShowAddMcpServer(false);
+        } else {
+            props.onBack?.();
+        }
+    };
+
+    const extractMcpToolkits = (toolsString: string): string[] => {
+        const mcpToolkits: string[] = [];
+        const regex = /check new ai:McpToolKit\([^)]*info\s*=\s*\{[^}]*name\s*:\s*"([^"]*)"[^}]*\}\)/g;
+        
+        let match;
+        while ((match = regex.exec(toolsString)) !== null) {
+            if (match[1]) {
+                mcpToolkits.push(match[1]);
+            }
+        }
+        
+        return mcpToolkits;
     };
 
     const fetchExistingTools = async () => {
         const existingTools = await rpcClient.getAIAgentRpcClient().getTools({ filePath: agentFilePath.current });
-        console.log(">>> existing tools", existingTools);
         setExistingTools(existingTools.tools);
     };
 
@@ -176,25 +202,39 @@ export function AddTool(props: AddToolProps): JSX.Element {
         onAddNewTool();
     };
 
+    const handleAddMcpServer = () => {
+        setShowAddMcpServer(true);
+    };
+
     const handleOnSave = async () => {
-        console.log(">>> save value", { selectedTool });
         setSavingForm(true);
-        // update the agent node
         const updatedAgentNode = await addToolToAgentNode(agentNode, selectedTool);
-        // generate the source code
-        const agentResponse = await rpcClient
+        await rpcClient
             .getBIDiagramRpcClient()
             .getSourceCode({ filePath: agentFilePath.current, flowNode: updatedAgentNode });
-        console.log(">>> response getSourceCode with template ", { agentResponse });
-
         onSave?.();
         setSavingForm(false);
     };
 
+    const handleMcpServerSave = () => {
+        setShowAddMcpServer(false);
+        onSave?.();
+    };
+
     const hasExistingTools = existingTools.length > 0;
+    const hasExistingMcpToolkits = existingMcpToolkits.length > 0;
     const isToolSelected = selectedTool !== null;
 
-    console.log(">>> rendering conditions", { hasExistingTools, isToolSelected });
+    if (showAddMcpServer) {
+        return (
+            <AddMcpServer 
+                agentCallNode={agentCallNode}
+                onSave={handleMcpServerSave}
+                onBack={handleBack}
+                onAddMcpServer={handleAddMcpServer}
+            />
+        );
+    }
 
     return (
         <Container>
@@ -203,23 +243,43 @@ export function AddTool(props: AddToolProps): JSX.Element {
                     <RelativeLoader />
                 </LoaderContainer>
             )}
-            {!loading && hasExistingTools && (
+            {!loading && (hasExistingTools || hasExistingMcpToolkits) && (
                 <>
                     <Column>
                         <Description>Choose a tool to add to the Agent or create a new one.</Description>
-                        <Row>
-                            <Title>Tools</Title>
-                            <Button appearance="icon" tooltip={"Create New Tool"} onClick={handleAddNewTool}>
+                        
+                        {hasExistingTools && (
+                            <>
+                                <Row>
+                                    <Title>Tools</Title>
+                                    <Button appearance="icon" tooltip="Create New Tool" onClick={handleAddNewTool}>
+                                        <Codicon name="add" />
+                                    </Button>
+                                </Row>
+                                {existingTools.map((tool) => (
+                                    <ToolItem
+                                        onClick={() => handleToolSelection(tool)}
+                                        key={tool}
+                                        isSelected={selectedTool === tool}
+                                    >
+                                        {tool}
+                                    </ToolItem>
+                                ))}
+                            </>
+                        )}
+
+                        <Row style={{ marginTop: hasExistingTools ? "16px" : "0" }}>
+                            <Title>MCP Tool Kits</Title>
+                            <Button appearance="icon" tooltip="Add New MCP Server" onClick={handleAddMcpServer}>
                                 <Codicon name="add" />
                             </Button>
                         </Row>
-                        {existingTools.map((tool) => (
+                        {existingMcpToolkits.map((mcpToolkit, index) => (
                             <ToolItem
-                                onClick={() => handleToolSelection(tool)}
-                                key={tool}
-                                isSelected={selectedTool === tool}
+                                key={`mcp-toolkit-${index}`}
+                                isSelected={selectedTool === mcpToolkit}
                             >
-                                {tool}
+                                {mcpToolkit}
                             </ToolItem>
                         ))}
                     </Column>
@@ -230,7 +290,7 @@ export function AddTool(props: AddToolProps): JSX.Element {
                     </Footer>
                 </>
             )}
-            {!loading && !hasExistingTools && !selectedTool && (
+            {!loading && !hasExistingTools && !hasExistingMcpToolkits && !selectedTool && (
                 <Column>
                     <Description>
                         No tools are currently available in your integration. Add a new tool to improve your agent's
@@ -239,6 +299,10 @@ export function AddTool(props: AddToolProps): JSX.Element {
                     <HighlightedButton onClick={handleAddNewTool}>
                         <Codicon name="add" iconSx={{ fontSize: 12 }} sx={{ display: "flex", alignItems: "center" }} />
                         Create New Tool
+                    </HighlightedButton>
+                    <HighlightedButton onClick={handleAddMcpServer}>
+                        <Codicon name="add" iconSx={{ fontSize: 12 }} sx={{ display: "flex", alignItems: "center" }} />
+                        Add New MCP Server
                     </HighlightedButton>
                 </Column>
             )}
