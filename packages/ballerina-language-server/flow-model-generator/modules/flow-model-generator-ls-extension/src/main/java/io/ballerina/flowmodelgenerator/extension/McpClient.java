@@ -28,20 +28,18 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 
 public class McpClient {
 
-    private static final String MCP_URL = "http://localhost:3000/mcp";
-
-    public static String sendInitializeRequest() throws IOException {
-        URL url = new URL(MCP_URL);
+    public static String sendInitializeRequest(String serviceUrl) throws IOException {
+        URL url = new URL(serviceUrl);
         HttpURLConnection conn = null;
 
         try {
             conn = (HttpURLConnection) url.openConnection();
-            // Configure request
             conn.setRequestMethod("POST");
             conn.setRequestProperty("Content-Type", "application/json");
             conn.setRequestProperty("Accept", "application/json, text/event-stream");
@@ -60,7 +58,7 @@ public class McpClient {
                         "protocolVersion":"2025-03-26",
                         "capabilities":{},
                         "clientInfo":{
-                          "name":"Greeting",
+                          "name":"MCP Client",
                           "version":""
                         }
                       }
@@ -68,7 +66,7 @@ public class McpClient {
                     """;
 
             try (OutputStream os = conn.getOutputStream()) {
-                os.write(body.getBytes("utf-8"));
+                os.write(body.getBytes(StandardCharsets.UTF_8));
             }
 
             Map<String, List<String>> headers = conn.getHeaderFields();
@@ -77,7 +75,8 @@ public class McpClient {
                 sessionId = headers.get("mcp-session-id").get(0);
             }
 
-            try (BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream()))) {
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream(),
+                                                            StandardCharsets.UTF_8))) {
                 String line;
                 while ((line = reader.readLine()) != null) {
                     if (line.startsWith("data: ")) {
@@ -116,13 +115,13 @@ public class McpClient {
                     """;
 
             try (OutputStream os = conn.getOutputStream()) {
-                os.write(body.getBytes("utf-8"));
+                os.write(body.getBytes(StandardCharsets.UTF_8));
             }
 
             JsonArray toolsArray = new JsonArray();
 
-            // Read response stream (SSE)
-            try (BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream()))) {
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream(),
+                                                            StandardCharsets.UTF_8))) {
                 String line;
                 while ((line = reader.readLine()) != null) {
                     if (line.startsWith("data: ")) {
@@ -135,7 +134,7 @@ public class McpClient {
                                 toolsArray = result.getAsJsonArray("tools");
                             }
                         }
-                        break; // Only process the first event
+                        break;
                     }
                 }
             }
@@ -146,6 +145,4 @@ public class McpClient {
             }
         }
     }
-
 }
-

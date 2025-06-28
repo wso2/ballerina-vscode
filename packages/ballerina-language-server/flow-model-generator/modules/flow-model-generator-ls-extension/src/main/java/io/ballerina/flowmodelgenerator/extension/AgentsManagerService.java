@@ -200,7 +200,7 @@ public class AgentsManagerService implements ExtendedLanguageServerService {
     public CompletableFuture<GetMcpToolsResponse> getMcpTools(McpToolsRequest request) {
         return CompletableFuture.supplyAsync(() -> {
             try {
-                String sessionId = McpClient.sendInitializeRequest();
+                String sessionId = McpClient.sendInitializeRequest(request.serviceUrl());
                 JsonArray toolsJsonArray;
                 if (sessionId != null) {
                     toolsJsonArray = McpClient.sendToolsListRequest(request.serviceUrl(), sessionId);
