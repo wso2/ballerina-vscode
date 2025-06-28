@@ -1442,6 +1442,18 @@ export interface AIToolsResponse {
     tools: string[];
 }
 
+export interface McpToolsRequest {
+    serviceUrl: string;
+    configs?: string;
+}
+export interface McpToolsResponse {
+    tools: Array<{
+        name: string;
+        description?: string;
+    }>;
+    error?: string;
+}
+
 export interface AIGentToolsRequest {
     filePath: string;
     flowNode: FlowNode;
@@ -1631,6 +1643,7 @@ export interface BIInterface extends BaseLangClientInterface {
     getAllModels: (params: AIModelsRequest) => Promise<AINodesResponse>;
     getModels: (params: AIModelsRequest) => Promise<AIModelsResponse>;
     getTools: (params: AIToolsRequest) => Promise<AIToolsResponse>;
+    getMcpTools: (params: AIToolsRequest) => Promise<AIToolsResponse>;
     genTool: (params: AIGentToolsRequest) => Promise<AIGentToolsResponse>;
 }
 
