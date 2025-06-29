@@ -98,7 +98,7 @@ export const addToolToAgentNode = async (agentNode: FlowNode, toolName: string) 
     const updatedAgentNode = cloneDeep(agentNode);
     let toolsValue = updatedAgentNode.properties.tools.value;
     // remove new lines and normalize whitespace from the tools value
-    toolsValue = toolsValue.toString().replace(/\s+/g, "");
+    // toolsValue = toolsValue.toString().replace(/\s+/g, "");
     if (typeof toolsValue === "string") {
         const toolsArray = parseToolsString(toolsValue);
         if (toolsArray.length > 0) {
@@ -141,21 +141,34 @@ export const updateMcpServerToAgentNode = async (
     if (typeof toolsValue === "string") {
         console.log(">>> Current tools string", toolsValue);
 
-        const toolsString = toolConfig.selectedTools.map(tool => `"${tool}"`).join(", ");
-        const newToolString = `check new ai:McpToolKit("${toolConfig.serviceUrl}", permittedTools = [${toolsString}], info = {name: "${toolConfig.name}", version: ""})`;
-        
-        const escapedOriginalName = originalToolName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-        
+        // Prepare the new tool string based on tool selection
+        let newToolString;
+        if (toolConfig.toolSelection.includes("Selected")) {
+            const toolsString = toolConfig.selectedTools.map(tool => `"${tool}"`).join(", ");
+            newToolString = `check new ai:McpToolKit("${toolConfig.serviceUrl}", permittedTools = [${toolsString}], info = {name: "${toolConfig.name}", version: ""})`;
+        } else {
+            newToolString = `check new ai:McpToolKit("${toolConfig.serviceUrl}", permittedTools = (), info = {name: "${toolConfig.name}", version: ""})`;
+        }
+
+        // Fixed regex pattern that matches only the specific McpToolKit with the target name
+        // Uses negated character classes to prevent crossing boundaries
         const pattern = new RegExp(
-            `(check new ai:McpToolKit\\([^)]*info\\s*=\\s*\\{[^}]*name:\\s*"${escapedOriginalName}[^"]*"[^}]*\\}[^)]*\\))`,
+            `check new ai:McpToolKit\\([^}]*name:\\s*"${toolConfig.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}"[^}]*\\}\\)`,
             'g'
         );
 
+        console.log(">>> Regex pattern:", pattern);
+        console.log(">>> Testing pattern against toolsValue:", pattern.test(toolsValue));
+        
+        // Reset the regex lastIndex since test() modifies it
+        pattern.lastIndex = 0;
+        
         if (pattern.test(toolsValue)) {
             console.log(">>> Found existing tool to replace");
+            // Reset lastIndex again before replace
+            pattern.lastIndex = 0;
             toolsValue = toolsValue.replace(pattern, newToolString);
         } else {
-            console.warn(">>> Could not find existing MCP toolkit to update, adding as new");
             const trimmedValue = toolsValue.trim();
             const isWrappedInBrackets = trimmedValue.startsWith('[') && trimmedValue.endsWith(']');
             const innerContent = isWrappedInBrackets 
@@ -170,7 +183,6 @@ export const updateMcpServerToAgentNode = async (
         return agentNode;
     }
 
-    // update the node
     updatedAgentNode.properties.tools.value = toolsValue;
     updatedAgentNode.codedata.isNew = false;
     
@@ -187,8 +199,10 @@ export const addMcpServerToAgentNode = async (agentNode: FlowNode, toolConfig: M
 
     console.log(">>> qwe tools", toolConfig);
     const toolsString = toolConfig.selectedTools.map(tool => `"${tool}"`).join(", ");
-    const toolString = `check new ai:McpToolKit("${toolConfig.serviceUrl}", permittedTools = [${toolsString}], info = {name: "${toolConfig.name}", version: ""})`;
-
+    let toolString = `check new ai:McpToolKit("${toolConfig.serviceUrl}", permittedTools = (), info = {name: "${toolConfig.name}", version: ""})`;
+    if (toolConfig.toolSelection.includes("Selected")) {
+        toolString = `check new ai:McpToolKit("${toolConfig.serviceUrl}", permittedTools = [${toolsString}], info = {name: "${toolConfig.name}", version: ""})`;
+    }
     if (typeof toolsValue === "string") {
         const toolsArray = parseToolsString(toolsValue);
         if (toolsArray.length > 0) {
