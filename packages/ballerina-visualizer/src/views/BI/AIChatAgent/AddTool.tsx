@@ -164,6 +164,7 @@ export function AddTool(props: AddToolProps): JSX.Element {
             const toolsString = agentNode.properties.tools.value.toString();
             const mcpToolkits = extractMcpToolkits(toolsString);
             setExistingMcpToolkits(mcpToolkits);
+            console.log("existingMcpToolkits", existingMcpToolkits);
         }
     };
 
@@ -175,15 +176,14 @@ export function AddTool(props: AddToolProps): JSX.Element {
         }
     };
 
+
     const extractMcpToolkits = (toolsString: string): string[] => {
         const mcpToolkits: string[] = [];
-        const regex = /check new ai:McpToolKit\([^)]*info\s*=\s*\{[^}]*name\s*:\s*"([^"]*)"[^}]*\}\)/g;
+        const regex = /check new ai:McpToolKit\([^}]*name:\s*"([^"]*)"[^}]*\}\)/g;
         
         let match;
         while ((match = regex.exec(toolsString)) !== null) {
-            if (match[1]) {
-                mcpToolkits.push(match[1]);
-            }
+            mcpToolkits.push(match[1]);
         }
         
         return mcpToolkits;
@@ -248,7 +248,7 @@ export function AddTool(props: AddToolProps): JSX.Element {
                     <Column>
                         <Description>Choose a tool to add to the Agent or create a new one.</Description>
                         
-                        {hasExistingTools && (
+                        {(
                             <>
                                 <Row>
                                     <Title>Tools</Title>
@@ -269,7 +269,7 @@ export function AddTool(props: AddToolProps): JSX.Element {
                         )}
 
                         <Row style={{ marginTop: hasExistingTools ? "16px" : "0" }}>
-                            <Title>MCP Tool Kits</Title>
+                            <Title>MCP Servers</Title>
                             <Button appearance="icon" tooltip="Add New MCP Server" onClick={handleAddMcpServer}>
                                 <Codicon name="add" />
                             </Button>

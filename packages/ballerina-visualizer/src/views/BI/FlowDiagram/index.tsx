@@ -966,7 +966,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
             const toolCategories: PanelCategory[] = [
                 {
                     title: "MCP Servers",
-                    description: "MCP ToolKit available for the agent",
+                    description: "MCP Servers available for the agent",
                     items: [
                         {
                             id: "web-search",
@@ -1032,7 +1032,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
             const toolCategories: PanelCategory[] = [
                 {
                     title: "MCP Servers",
-                    description: "MCP ToolKit available for the agent",
+                    description: "MCP Servers available for the agent",
                     items: [
                         {
                             id: "web-search",
@@ -1060,7 +1060,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
             const agentNode = await findAgentNodeFromAgentCallNode(node, rpcClient);
             const updatedAgentNode = await removeToolFromAgentNode(agentNode, tool.name);
             const agentFilePath = await getAgentFilePath(rpcClient);
-            if (tool.name.startsWith("MCP ToolKit")) {
+            if (tool.name.includes("MCP Server")) {
                 const updateAgentNode = removeMcpServerFromAgentNode(updatedAgentNode, tool.name);
 
                 const agentResponse = await rpcClient
