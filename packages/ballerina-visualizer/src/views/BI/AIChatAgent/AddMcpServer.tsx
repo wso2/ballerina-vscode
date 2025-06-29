@@ -304,7 +304,6 @@ export function AddMcpServer(props: AddToolProps): JSX.Element {
             setToolsStringList(toolsString);
 
             if (name.trim() !== "") {
-                // Add null checks for metadata and data
                 const tools = props.agentCallNode?.metadata?.data?.tools || [];
                 console.log(">>> tools", tools);
                 if (tools.length > 0) {
@@ -316,24 +315,30 @@ export function AddMcpServer(props: AddToolProps): JSX.Element {
                         // Escape special regex characters in the tool name
                         const escapedToolName = matchingTool.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
                         
-                        // Create dynamic regex pattern
-                        const mcpToolkitPattern = `McpToolKit\\("([^"]+)",\\s*permittedTools\\s*=\\s*\\[([^\\]]*)\\]\\s*,\\s*info\\s*=\\s*\\{[^}]*name:\\s*"${escapedToolName}[^"]*"`;
+                        // Improved regex pattern to capture URL and permittedTools
+                        const mcpToolkitPattern = `McpToolKit\\(\\s*"([^"]+)"\\s*,\\s*permittedTools\\s*=\\s*(\\([^)]*\\)|\\[[^\\]]*\\])\\s*,\\s*info\\s*=\\s*\\{[^}]*name:\\s*"${escapedToolName}[^"]*"`;
                         const mcpToolkitRegex = new RegExp(mcpToolkitPattern);
                         
                         const match = toolsString.match(mcpToolkitRegex);
+                        console.log(">>> regex match", match);
                         
                         if (match) {
                             // Extract the URL (first capture group)
                             const url = match[1];
                             setServiceUrl(url);
                             
-                            // Extract permittedTools (second capture group)
                             const permittedToolsStr = match[2];
-                            if (permittedToolsStr.trim() !== "") {
+                            if (permittedToolsStr && permittedToolsStr.trim() !== "()") {
                                 setToolSelection("Selected");
-                                // Parse and set selected tools
-                                const toolNames = permittedToolsStr.split(',').map(t => t.trim().replace(/"/g, ''));
+                                const toolNames = permittedToolsStr
+                                    .replace(/[\[\]()]/g, '')
+                                    .split(',')
+                                    .map(t => t.trim().replace(/"/g, ''))
+                                    .filter(t => t !== '');
                                 setSelectedMcpTools(new Set(toolNames));
+                            } else {
+                                setToolSelection("All");
+                                setSelectedMcpTools(new Set());
                             }
                         }
                     }
@@ -631,7 +636,7 @@ export function AddMcpServer(props: AddToolProps): JSX.Element {
                             items={[
                                 { id: "All", value: "All" },
                                 { id: "Selected", value: "Selected" },
-                                { id: "Except", value: "Except" },
+                                // { id: "Except", value: "Except" }, // not yet supported for now
                             ]}
                             onValueChange={(value) => setToolSelection(value)}
                         />
