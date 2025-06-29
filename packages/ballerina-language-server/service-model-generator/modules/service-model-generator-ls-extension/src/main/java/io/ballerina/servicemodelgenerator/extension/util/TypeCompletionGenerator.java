@@ -194,7 +194,7 @@ public class TypeCompletionGenerator {
                                             String statusCode = HttpUtil.HTTP_CODES.get(typeReferenceName);
                                             String typeName = typeDef.typeName().text();
                                             typeCompletions.add(new TypeCompletion(
-                                                    "Custom", typeName, typeName, statusCode));
+                                                    "User Defined", typeName, typeName, statusCode));
                                         }
                                     }
                                 }
@@ -203,5 +203,8 @@ public class TypeCompletionGenerator {
 
         // Add the http:Response type
         typeCompletions.add(new TypeCompletion("Dynamic", "Response", "http:Response", ""));
+
+        // Add the http:Response type
+        typeCompletions.add(new TypeCompletion("Error Type", "error", "error", ""));
     }
 }
