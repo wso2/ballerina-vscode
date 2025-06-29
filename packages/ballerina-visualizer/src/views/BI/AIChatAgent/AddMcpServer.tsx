@@ -362,7 +362,7 @@ export function AddMcpServer(props: AddToolProps): JSX.Element {
         const matches = toolsString.match(regex);
         
         if (matches) {
-            mcpToolkits.push(...Array(matches.length).fill("MCP ToolKit"));
+            mcpToolkits.push(...Array(matches.length).fill("MCP Server"));
         }
         
         return mcpToolkits;
@@ -438,7 +438,7 @@ export function AddMcpServer(props: AddToolProps): JSX.Element {
     const handleOnSave = async () => {
         console.log(">>> save value", { selectedTool, selectedMcpTools: Array.from(selectedMcpTools) });
         
-        let defaultName = "MCP ToolKit";
+        let defaultName = "MCP Server";
         if (mcpToolkitCount > 1) {
             defaultName += ` 0${mcpToolkitCount}`;
         }
