@@ -408,7 +408,7 @@ public class CodeAnalyzer extends NodeVisitor {
         Pattern pattern = Pattern.compile("name:\\s*\"([^\"]*)\"");
 
         Matcher matcher = pattern.matcher(sourceCode);
-        String nameValue = "MCP ToolKit";
+        String nameValue = "MCP Server";
         if (matcher.find()) {
             nameValue = matcher.group(1);
         }
@@ -459,7 +459,7 @@ public class CodeAnalyzer extends NodeVisitor {
                 if (node.kind() == SyntaxKind.CHECK_EXPRESSION) {
                     String iconPath = "https://bcentral-packageicons.azureedge.net/images/ballerina_mcp_0.4.2.png";
                     String toolName = extractMcpToolKitName(node.toSourceCode());
-                    toolsData.add(new ToolData(toolName, iconPath, getToolDescription(""), "MCP ToolKit"));
+                    toolsData.add(new ToolData(toolName, iconPath, getToolDescription(""), "MCP Server"));
                     continue;
                 }
                 if (node.kind() != SyntaxKind.SIMPLE_NAME_REFERENCE) {
