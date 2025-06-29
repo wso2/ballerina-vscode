@@ -246,7 +246,7 @@ export function AddTool(props: AddToolProps): JSX.Element {
             {!loading && (hasExistingTools || hasExistingMcpToolkits) && (
                 <>
                     <Column>
-                        <Description>Choose a tool to add to the Agent or create a new one.</Description>
+                        <Description>Choose a tool / MCP server to add to the Agent or create a new one.</Description>
                         
                         {(
                             <>
@@ -293,7 +293,7 @@ export function AddTool(props: AddToolProps): JSX.Element {
             {!loading && !hasExistingTools && !hasExistingMcpToolkits && !selectedTool && (
                 <Column>
                     <Description>
-                        No tools are currently available in your integration. Add a new tool to improve your agent's
+                        No tools / MCP servers are currently available in your integration. Add a new tool / MCP server to improve your agent's
                         capabilities.
                     </Description>
                     <HighlightedButton onClick={handleAddNewTool}>
