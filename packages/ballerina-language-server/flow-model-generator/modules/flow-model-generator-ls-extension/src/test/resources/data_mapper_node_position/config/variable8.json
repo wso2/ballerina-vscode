@@ -1,0 +1,34 @@
+{
+  "source": "variable1.bal",
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "variable1.bal",
+      "startLine": {
+        "line": 23,
+        "offset": 53
+      },
+      "endLine": {
+        "line": 23,
+        "offset": 66
+      }
+    },
+    "sourceCode": ""
+  },
+  "name": "y",
+  "output": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "variable1.bal",
+      "startLine": {
+        "line": 23,
+        "offset": 53
+      },
+      "endLine": {
+        "line": 23,
+        "offset": 71
+      }
+    }
+  }
+}
