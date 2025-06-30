@@ -1,0 +1,186 @@
+/**
+ * Copyright (c) 2025, WSO2 LLC. (https://www.wso2.com) All Rights Reserved.
+ *
+ * WSO2 LLC. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
+.header-amendment-options {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    margin-bottom: -10px;
+    margin-Top: -10px;
+
+    .amendment-option {
+        width: 35px;
+        text-align: center;
+        padding-right: 5px;
+
+        &:hover {
+            cursor: pointer;
+        }
+    }
+}
+
+.margin-top-5 {
+    margin-top: 5px;
+}
+
+
+.rectangle-menu {
+    z-index: 199;
+    height: 40px;
+    border-radius: 6px;
+    background-color: #FFFFFF;
+    box-shadow: inset 0 -1px 0 0 #D3D4DD, 0 5px 50px 0 rgba(102,103,133,0.27);
+    display: flex;
+    flex-direction: row;
+    margin-top: -30px;
+
+    .menu-option {
+        display: flex;
+        flex-direction: row;
+        width: 85px;
+        align-items: center;
+    
+
+        &:hover {
+            cursor: pointer;
+            
+        }
+
+        .icon {
+            padding-left: 15px;
+            padding-right: 8px;
+        }
+
+        .other {
+            height: 24px;
+            width: 33px;
+            color: #222228;
+            font-size: 13px;
+            letter-spacing: 0;
+            line-height: 24px;
+        }
+
+        .delete {
+            height: 24px;
+            width: 41px;
+            color: #EA4C4D;
+            font-size: 13px;
+            letter-spacing: 0;
+            line-height: 24px;
+        }
+
+        
+
+        .icon-adjust {
+            margin-top: 6px;;
+        }
+        
+    }
+
+    .line-vertical {
+        border-right: 1px solid #D3D4DD;
+    }
+
+    .left:hover {
+        box-shadow: 0.8px 0.8px 0.8px 0.8px #D3D4DD;
+        border-radius: 6px 0px 0px 6px;
+    }
+
+    .middle:hover {
+        box-shadow: 0.8px 0.8px 0.8px 0.8px #D3D4DD;
+    }
+
+    .right:hover {
+        box-shadow: 0.8px 0.8px 0.8px 0.8px #D3D4DD;
+        border-radius: 0px 6px 6px 0px;
+    }
+}
+
+.rectangle-menu-resource {
+    position: absolute;
+    z-index: 99;
+    height: 40px;
+    width: 170px;
+    border-radius: 6px;
+    background-color: #FFFFFF;
+    box-shadow: inset 0 -1px 0 0 #D3D4DD, 0 5px 50px 0 rgba(102,103,133,0.27);
+    display: flex;
+    flex-direction: row;
+    margin-top: -10px;
+    right: 70px;
+
+    .menu-option {
+        display: flex;
+        flex-direction: row;
+        width: 85px;
+        align-items: center;
+    
+
+        &:hover {
+            cursor: pointer;
+            
+        }
+
+        .icon {
+            padding-left: 15px;
+            padding-right: 8px;
+        }
+
+        .other {
+            height: 24px;
+            width: 33px;
+            color: #222228;
+            font-size: 13px;
+            letter-spacing: 0;
+            line-height: 24px;
+        }
+
+        .delete {
+            height: 24px;
+            width: 41px;
+            color: #EA4C4D;
+            font-size: 13px;
+            letter-spacing: 0;
+            line-height: 24px;
+        }
+
+
+        .icon-adjust {
+            margin-top: 6px;;
+        }
+        
+    }
+
+    .line-vertical {
+        border-right: 1px solid #D3D4DD;
+    }
+
+    .left:hover {
+        box-shadow: 0.8px 0.8px 0.8px 0.8px #D3D4DD;
+        border-radius: 6px 0px 0px 6px;
+    }
+
+    .middle:hover {
+        box-shadow: 0.8px 0.8px 0.8px 0.8px #D3D4DD;
+    }
+
+    .right:hover {
+        box-shadow: 0.8px 0.8px 0.8px 0.8px #D3D4DD;
+        border-radius: 0px 6px 6px 0px;
+    }
+}

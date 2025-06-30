@@ -1,0 +1,11 @@
+{
+    "name": "test project",
+    "entryPoints": [
+        {
+            "id": "entryPoint1",
+            "name": "Service 1",
+            "type": "service"
+        }
+    ],
+    "connections": []
+}

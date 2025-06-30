@@ -1,0 +1,120 @@
+/**
+ * Copyright (c) 2025, WSO2 LLC. (https://www.wso2.com) All Rights Reserved.
+ *
+ * WSO2 LLC. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
+.record-comp {
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+    height: auto;
+    width: 275px;
+    border: 1px solid #e6e7ec;
+    border-radius: 6px;
+    background-color: #fff;
+    font-family: inherit;
+    font-weight: 300;
+
+    .record-header {
+        display: flex;
+        flex-direction: row;
+        height: 49px;
+        width: 100%;
+
+        .record-content {
+            display: flex;
+            font-size: 13px;
+            align-content: center;
+            align-items: center;
+            width: 75%;
+            padding-left: 16px;
+
+            .record-icon {
+                height: 16px;
+                width: 10%;
+            }
+
+            .record-type {
+                color: #222228;
+                padding-left: 10px;
+            }
+
+            .record-name {
+                padding-left: 10px;
+                color: #8d91a3;
+                font-weight: normal;
+            }
+        }
+
+        .amendment-options {
+            display: flex;
+            flex-direction: row;
+            width: 25%;
+            align-items: center;
+
+            .edit-btn-wrapper,
+            .delete-btn-wrapper {
+                width: 25px;
+                text-align: center;
+                padding-right: 5px;
+
+                &:hover {
+                    cursor: pointer;
+                }
+            }
+        }
+    }
+
+    .record-separator {
+        height: 1px;
+        width: auto;
+        background-color: #e6e7ec;
+    }
+
+    .record-fields {
+        margin-left: 44.5px;
+
+        .record-field {
+            display: flex;
+            flex-direction: row;
+            /* stylelint-disable */
+            font-family: "Droid Sans Mono";
+            /* stylelint-enable */
+            font-size: 12px;
+            height: 38px;
+            align-items: center;
+
+            .record-field-type {
+                color: dodgerblue;
+            }
+
+            .record-field-name {
+                color: #1d2028;
+                margin-left: 12px;
+            }
+        }
+    }
+
+    .show-on-hover {
+        display: none;
+    }
+
+    &:hover {
+        .show-on-hover {
+            display: block;
+        }
+    }
+}

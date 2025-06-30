@@ -1,0 +1,56 @@
+{
+  "name": "@wso2/ballerina-core",
+  "version": "1.0.0",
+  "description": "Contains types related to the Ballerina extension",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "bin": {
+    "start-ws-lang-server": "command/index.js"
+  },
+  "scripts": {
+    "watch": "tsc --pretty --watch",
+    "build": "tsc --pretty",
+    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0"
+  },
+  "dependencies": {
+    "@wso2/syntax-tree": "workspace:*",
+    "vscode-languageserver-protocol": "^3.17.5",
+    "vscode-languageserver-types": "^3.17.5",
+    "vscode-messenger-common": "^0.5.1",
+    "vscode-ws-jsonrpc": "^3.4.0",
+    "isomorphic-ws": "^5.0.0",
+    "vscode-jsonrpc": "^8.2.1",
+    "@types/vscode-webview": "^1.57.3",
+    "handlebars": "~4.7.8",
+    "mousetrap": "^1.6.5",
+    "react": "18.2.0",
+    "tree-kill": "^1.2.2",
+    "vscode-uri": "^3.0.8",
+    "@types/mousetrap": "~1.6.11",
+    "@types/ws": "^8.2.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.21",
+    "@types/vscode": "^1.83.1",
+    "@typescript-eslint/eslint-plugin": "^8.32.1",
+    "@typescript-eslint/parser": "^8.32.1",
+    "@types/react": "18.2.0",
+    "copyfiles": "^2.4.1",
+    "eslint": "^9.26.0",
+    "typescript": "5.8.3"
+  },
+  "files": [
+    "lib/**/*"
+  ],
+  "author": "WSO2",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/wso2/ballerina-plugin-vscode.git"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com/"
+  },
+  "engines": {
+    "node": ">=0.10.3 <16"
+  }
+}

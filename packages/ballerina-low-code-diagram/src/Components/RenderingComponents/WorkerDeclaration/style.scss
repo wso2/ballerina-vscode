@@ -1,0 +1,35 @@
+.worker-start-container {
+    user-select: none;
+    font-family: inherit;
+
+    .modification-buttons {
+        display: none;
+    }
+
+    &:hover {
+        .modification-buttons {
+            display: block;
+        }
+    }
+
+    .start-button {
+        .start-button-rect {
+            rect {
+                fill: #d7dbfd;
+            }
+        }
+
+        .start-rect-fill {
+            stroke: #5567d5;
+            stroke-miterlimit: 10;
+            stroke-width: 1;
+        }
+
+        text .start-text {
+            fill: #5567d5;
+            letter-spacing: 0.5;
+            text-align: center;
+            text-anchor: middle;
+        }
+    }
+}

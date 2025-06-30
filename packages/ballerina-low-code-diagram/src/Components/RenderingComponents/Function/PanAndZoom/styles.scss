@@ -1,0 +1,20 @@
+.diagram-container-outer {
+    position: relative;
+    width: fit-content;
+    height: fit-content;
+    overflow: hidden;
+    user-select: none;
+    margin: 0;
+    padding: 0;
+
+    .diagram-container-inner {
+        display: flex;
+        flex-wrap: wrap;
+        width: fit-content;
+        height: fit-content;
+        margin: 0;
+        padding: 0;
+        transform-origin: 0% 0%;
+        transition: transform 0.1s ease;
+    }
+}

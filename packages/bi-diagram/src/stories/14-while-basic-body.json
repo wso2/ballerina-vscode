@@ -1,0 +1,297 @@
+{
+    "fileName": "/Users/dulaj/WSO2/MyBalProjects/eggplant-projects/Sample Project/Library.bal",
+    "nodes": [
+        {
+            "id": "35035",
+            "metadata": {
+                "label": "HTTP API"
+            },
+            "codedata": {
+                "node": "EVENT_START",
+                "lineRange": {
+                    "fileName": "Library.bal",
+                    "startLine": {
+                        "line": 3,
+                        "offset": 4
+                    },
+                    "endLine": {
+                        "line": 9,
+                        "offset": 5
+                    }
+                },
+                "sourceCode": "resource function get validate(boolean condition = true) returns json|http:InternalServerError|http:InternalServerError {\n        var x = 1;\n        while (condition && x < 10) {\n            x = x + 2;\n        }\n        return x;\n    }"
+            },
+            "returning": false,
+            "properties": {
+                "method": {
+                    "metadata": {
+                        "label": "Method",
+                        "description": "HTTP Method"
+                    },
+                    "valueType": "IDENTIFIER",
+                    "value": "get",
+                    "optional": false,
+                    "editable": true
+                },
+                "path": {
+                    "metadata": {
+                        "label": "Path",
+                        "description": "HTTP Path"
+                    },
+                    "valueType": "STRING",
+                    "value": "validate",
+                    "optional": false,
+                    "editable": true
+                }
+            },
+            "flags": 2048,
+            "viewState": {
+                "x": 1943.7,
+                "y": 200,
+                "w": 112.6,
+                "h": 36.6,
+                "cw": 112.6,
+                "ch": 36.6
+            }
+        },
+        {
+            "id": "35978",
+            "metadata": {
+                "label": "New Variable",
+                "description": "New variable 'x' with type 'var'"
+            },
+            "codedata": {
+                "node": "NEW_DATA",
+                "lineRange": {
+                    "fileName": "Library.bal",
+                    "startLine": {
+                        "line": 4,
+                        "offset": 8
+                    },
+                    "endLine": {
+                        "line": 4,
+                        "offset": 18
+                    }
+                },
+                "sourceCode": "var x = 1;"
+            },
+            "returning": false,
+            "properties": {
+                "expression": {
+                    "metadata": {
+                        "label": "Expression",
+                        "description": "Expression"
+                    },
+                    "valueType": "EXPRESSION",
+                    "value": "1",
+                    "optional": false,
+                    "editable": true
+                },
+                "variable": {
+                    "metadata": {
+                        "label": "Data variable",
+                        "description": "Name of the variable"
+                    },
+                    "valueType": "IDENTIFIER",
+                    "value": "x",
+                    "optional": false,
+                    "editable": true
+                },
+                "type": {
+                    "metadata": {
+                        "label": "Data type",
+                        "description": "Type of the variable"
+                    },
+                    "valueType": "TYPE",
+                    "value": "int",
+                    "optional": false,
+                    "editable": true
+                }
+            },
+            "flags": 0,
+            "viewState": {
+                "x": 1850.2,
+                "y": 296.6,
+                "w": 299.6,
+                "h": 73.6,
+                "cw": 299.6,
+                "ch": 73.6
+            }
+        },
+        {
+            "id": "37023",
+            "metadata": {
+                "label": "While",
+                "description": "Loop over a block of code."
+            },
+            "codedata": {
+                "node": "WHILE",
+                "lineRange": {
+                    "fileName": "Library.bal",
+                    "startLine": {
+                        "line": 5,
+                        "offset": 8
+                    },
+                    "endLine": {
+                        "line": 7,
+                        "offset": 9
+                    }
+                },
+                "sourceCode": "while (condition && x < 10) {\n            x = x + 2;\n        }"
+            },
+            "returning": false,
+            "branches": [
+                {
+                    "label": "Body",
+                    "kind": "BLOCK",
+                    "codedata": {
+                        "node": "CONDITIONAL",
+                        "lineRange": {
+                            "fileName": "Library.bal",
+                            "startLine": {
+                                "line": 5,
+                                "offset": 36
+                            },
+                            "endLine": {
+                                "line": 7,
+                                "offset": 9
+                            }
+                        },
+                        "sourceCode": "{\n            x = x + 2;\n        }"
+                    },
+                    "repeatable": "ONE",
+                    "children": [
+                        {
+                            "id": "38090",
+                            "metadata": {
+                                "label": "Update Variable",
+                                "description": "Update the value of the variable 'x'"
+                            },
+                            "codedata": {
+                                "node": "UPDATE_DATA",
+                                "lineRange": {
+                                    "fileName": "Library.bal",
+                                    "startLine": {
+                                        "line": 6,
+                                        "offset": 12
+                                    },
+                                    "endLine": {
+                                        "line": 6,
+                                        "offset": 22
+                                    }
+                                },
+                                "sourceCode": "x = x + 2;"
+                            },
+                            "returning": false,
+                            "properties": {
+                                "expression": {
+                                    "metadata": {
+                                        "label": "Expression",
+                                        "description": "Update variable"
+                                    },
+                                    "valueType": "EXPRESSION",
+                                    "value": "x + 2",
+                                    "optional": false,
+                                    "editable": true
+                                },
+                                "variable": {
+                                    "metadata": {
+                                        "label": "Variable",
+                                        "description": "Result Variable"
+                                    },
+                                    "valueType": "IDENTIFIER",
+                                    "value": "x",
+                                    "optional": false,
+                                    "editable": true
+                                }
+                            },
+                            "flags": 0,
+                            "viewState": {
+                                "x": 1850.2,
+                                "y": 560.2,
+                                "w": 299.6,
+                                "h": 73.6,
+                                "cw": 299.6,
+                                "ch": 73.6
+                            }
+                        }
+                    ],
+                    "viewState": {
+                        "x": 1850.2,
+                        "y": 560.2,
+                        "w": 299.6,
+                        "h": 73.6,
+                        "cw": 299.6,
+                        "ch": 73.6
+                    }
+                }
+            ],
+            "properties": {
+                "condition": {
+                    "metadata": {
+                        "label": "Condition",
+                        "description": "Boolean Condition"
+                    },
+                    "valueType": "EXPRESSION",
+                    "value": "(condition && x < 10) ",
+                    "optional": false,
+                    "editable": true
+                }
+            },
+            "flags": 0,
+            "viewState": {
+                "x": 1965,
+                "y": 430.20000000000005,
+                "w": 70,
+                "h": 70,
+                "cw": 299.6,
+                "ch": 243.6
+            }
+        },
+        {
+            "id": "39945",
+            "metadata": {
+                "label": "Return",
+                "description": "Value of 'x'"
+            },
+            "codedata": {
+                "node": "RETURN",
+                "lineRange": {
+                    "fileName": "Library.bal",
+                    "startLine": {
+                        "line": 8,
+                        "offset": 8
+                    },
+                    "endLine": {
+                        "line": 8,
+                        "offset": 17
+                    }
+                },
+                "sourceCode": "return x;"
+            },
+            "returning": true,
+            "properties": {
+                "expression": {
+                    "metadata": {
+                        "label": "Expression",
+                        "description": "Return value"
+                    },
+                    "valueType": "EXPRESSION",
+                    "value": "x",
+                    "optional": false,
+                    "editable": true
+                }
+            },
+            "flags": 0,
+            "viewState": {
+                "x": 1850.2,
+                "y": 733.8000000000001,
+                "w": 299.6,
+                "h": 53.6,
+                "cw": 299.6,
+                "ch": 53.6
+            }
+        }
+    ],
+    "connections": []
+}

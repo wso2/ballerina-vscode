@@ -1,0 +1,105 @@
+/**
+ * Copyright (c) 2025, WSO2 LLC. (https://www.wso2.com) All Rights Reserved.
+ *
+ * WSO2 LLC. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+.class-component {
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+    border: 1px solid #e6e7ec;
+    border-radius: 6px;
+    background-color: #fff;
+    font-family: inherit;
+    width: 275px;
+
+    .class-component-header {
+        display: flex;
+        flex-direction: row;
+        padding: 15px;
+        border-bottom: 1px #e6e7ec solid;
+        cursor: pointer;
+
+        .header-segement-container {
+            display: flex;
+            flex-direction: row;
+            flex-grow: 1;
+
+            .header-segment {
+                margin-right: 15px;
+            }
+
+            .header-segment-path {
+                margin-right: 4px;
+                font-weight: normal;
+                color: #8d91a3;
+            }
+
+            .header-segment-listener {
+                margin-right: 15px;
+                color: #8d91a3;
+                font-weight: normal;
+            }
+        }
+
+        .show-on-hover {
+            display: none;
+        }
+
+        &:hover {
+            .show-on-hover {
+                display: block;
+            }
+        }
+
+        .class-amendment-options {
+            display: flex;
+            align-items: right;
+
+            .class-component-edit,
+            .class-component-delete {
+                width: 25px;
+                text-align: center;
+                padding-right: 5px;
+
+                &:hover {
+                    cursor: pointer;
+                }
+            }
+        }
+    }
+
+    .content-container {
+        display: flex;
+        flex-direction: column;
+        overflow-y: auto;
+
+        .class-member {
+            margin: 5px 10px 5px 10px;
+
+            .plus-container {
+                margin-left: 0;
+            }
+        }
+
+        .class-member:nth-of-type(1) {
+            margin: 10px 10px 5px 10px;
+        }
+
+        .class-member:last-of-type {
+            margin: 5px 10px 10px 10px;
+        }
+    }
+}

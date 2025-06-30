@@ -1,0 +1,1 @@
+{"studentId":{"operation":"DIRECT","targetType":"string","parameters":["person.personId"]},"name":{"operation":"DIRECT","targetType":"string","parameters":["person.fullName"]},"credits":{"operation":"DIRECT","targetType":"int","parameters":["course.courseCredits"]},"courseName":{"operation":"DIRECT","targetType":"string","parameters":["course.courseTitle"]}}

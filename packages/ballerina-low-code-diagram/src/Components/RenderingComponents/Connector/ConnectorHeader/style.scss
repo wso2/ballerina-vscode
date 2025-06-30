@@ -1,0 +1,133 @@
+/**
+ * Copyright (c) 2025, WSO2 LLC. (https://www.wso2.com) All Rights Reserved.
+ *
+ * WSO2 LLC. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+.main-connector-wrapper {
+    &.active-connector {
+        .connector-group-active {
+            circle {
+                cursor: pointer;
+                stroke: #c0ceff8a;
+                stroke-miterlimit: 10;
+                stroke-width: 9px;
+                fill: url(#ConnectorLinearGradient) #fafafc;
+            }
+
+            .click-effect {
+                stroke-width: 1px !important;
+                stroke: #32324d !important;
+            }
+        }
+    }
+
+    &.connector-client {
+        .connector-group {
+            circle {
+                stroke: #32324d;
+                stroke-miterlimit: 10;
+                stroke-width: 1;
+                fill: url(#ConnectorLinearGradient) #fafafc;
+                filter: url(#ConnectorFilterDefault) #fafafc;
+            }
+
+            .connector-icon-1 {
+                fill: #5668d5;
+            }
+
+            .connector-icon-2 {
+                fill: #5668d5;
+                opacity: 0.3;
+            }
+        }
+
+        // :hover {
+        //     circle {
+        //         cursor: pointer;
+        //         stroke: #32324d;
+        //         stroke-miterlimit: 10;
+        //         stroke-width: 1;
+        //         fill: url(#ConnectorLinearGradient) #fafafc;
+        //         filter: url(#ConnectorFilterHover) #fafafc;
+        //     }
+
+        //     &:hover #DefaultIcon {
+        //         stroke-width: 0;
+        //         filter: none;
+        //         fill: #e6e7ec;
+        //     }
+        // }
+
+        // :active {
+        //     circle {
+        //         cursor: pointer;
+        //         stroke: #c0ceff8a;
+        //         stroke-miterlimit: 10;
+        //         stroke-width: 9px;
+        //         fill: url(#ConnectorLinearGradient) #fafafc;
+        //     }
+
+        //     &:active #DefaultIcon {
+        //         stroke-width: 0;
+        //         filter: none;
+        //         fill: #e6e7ec;
+        //     }
+
+        //     .click-effect {
+        //         stroke-width: 1px !important;
+        //         stroke: #32324d !important;
+        //     }
+        // }
+    }
+
+    .connector-options-wrapper {
+        fill: none;
+        display: none;
+        width: 100px;
+        height: 30px;
+
+        .disable {
+            opacity: 0.5;
+        }
+    }
+
+    // &:hover {
+    //     .connector-options-wrapper {
+    //         fill: #fff !important;
+    //         display: inline !important;
+    //     }
+
+    //     .connector-rect {
+    //         fill: #fafafc;
+    //         height: 26px;
+    //         width: 24px;
+    //     }
+
+    //     .connector-group-active {
+    //         circle {
+    //             cursor: pointer;
+    //             stroke: #c0ceff8a;
+    //             stroke-miterlimit: 10;
+    //             stroke-width: 9px;
+    //             fill: url(#ConnectorLinearGradient) #fafafc;
+    //         }
+
+    //         .click-effect {
+    //             stroke-width: 1px !important;
+    //             stroke: #5566d5 !important;
+    //         }
+    //     }
+    // }
+}

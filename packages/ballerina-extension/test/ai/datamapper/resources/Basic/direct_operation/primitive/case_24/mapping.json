@@ -1,0 +1,1 @@
+{"id":{"operation":"DIRECT","targetType":"string","parameters":["person.id"]},"name":{"operation":"DIRECT","targetType":"int","parameters":["person.age"]},"courseId":{"operation":"DIRECT","targetType":"string","parameters":["course.id"]},"courseTitle":{"operation":"DIRECT","targetType":"string","parameters":["course.title"]}}

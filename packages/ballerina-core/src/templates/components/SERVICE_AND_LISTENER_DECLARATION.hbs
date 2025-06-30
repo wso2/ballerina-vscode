@@ -1,0 +1,6 @@
+listener {{{ SERVICE_TYPE }}}:Listener {{{ LISTENER_NAME }}} = new ({{{ PORT }}});
+
+service /{{{ BASE_PATH }}} on {{{ LISTENER_NAME }}} {
+    resource function get .() returns error? {
+    }
+}

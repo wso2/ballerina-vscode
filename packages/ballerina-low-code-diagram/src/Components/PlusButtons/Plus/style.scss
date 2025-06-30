@@ -1,0 +1,221 @@
+.main-plus-wrapper {
+    .holder-hide {
+        stroke: none !important;
+        fill-opacity: 0;
+        stroke-width: 0 !important;
+        stroke-opacity: 0 !important;
+    }
+
+    .holder-show {
+        .disabled {
+            user-select: none;
+            pointer-events: none;
+
+            .collapse-dropdown-icon {
+                opacity: 0.5;
+            }
+
+            .collapse-strokebg {
+                opacity: 0.5;
+            }
+
+            &:hover {
+                display: none;
+            }
+        }
+
+        .show-container {
+            fill: #fff !important;
+            cursor: pointer;
+
+            .plus-holder {
+                .plus-icon {
+                    path {
+                        stroke: #05a26b;
+                        stroke-miterlimit: 10;
+                        stroke-width: 0.5;
+                        fill: url(#PlusLinearGradientDefault);
+                    }
+
+                    .plus-add-icon {
+                        fill: #05a26b;
+                        stroke-width: 0;
+                    }
+                }
+
+                &:hover {
+                    path {
+                        cursor: pointer;
+                        stroke: #05a26b;
+                        stroke-miterlimit: 10;
+                        stroke-width: 0.5;
+                        fill: url(#PlusLinearGradientHover) #36b475;
+                    }
+
+                    &:hover .plus-add-icon {
+                        fill: #fff;
+                        stroke-width: 0;
+                    }
+                }
+
+                &:active {
+                    path {
+                        cursor: pointer;
+                        stroke: #05a26b;
+                        stroke-miterlimit: 10;
+                        stroke-width: 0.5;
+                        fill: url(#PlusLinearGradientClick) #36b475;
+                    }
+
+                    &:active .plus-add-icon {
+                        fill: #006b46;
+                        stroke-width: 0;
+                    }
+                }
+            }
+
+            .collapse-holder {
+                .collapse-icon {
+                    path {
+                        stroke-miterlimit: 10;
+                        stroke-width: 1;
+                    }
+
+                    .collapse-dropdown-icon {
+                        fill: #36b475;
+                        stroke-width: 0;
+                    }
+                }
+
+                &:hover {
+                    path {
+                        cursor: pointer;
+                        stroke: #2fa86c;
+                        stroke-miterlimit: 10;
+                        stroke-width: 0.5;
+                        fill: #2fa86c;
+                    }
+
+                    &:hover .collapse-dropdown-icon {
+                        fill: #fff;
+                        stroke-width: 0;
+                    }
+                }
+
+                &:active {
+                    path {
+                        cursor: pointer;
+                        stroke: #2fa86c;
+                        stroke-miterlimit: 10;
+                        stroke-width: 0.5;
+                        fill: #2fa86c;
+                    }
+
+                    &:active .collapse-dropdown-icon {
+                        fill: #047049;
+                        stroke-width: 0;
+                    }
+                }
+            }
+
+            .collaspe {
+                .collaspe-btn {
+                    rect {
+                        stroke: #05a26b;
+                        stroke-miterlimit: 10;
+                        stroke-width: 0.5;
+                        fill: url(#CollapseLinearGradient);
+                    }
+
+                    .collaspe-btn-icon {
+                        fill: #05a26b;
+                        stroke-width: 0;
+                    }
+                }
+
+                &:hover {
+                    rect {
+                        cursor: pointer;
+                        stroke: #05a26b;
+                        stroke-miterlimit: 10;
+                        stroke-width: 0.5;
+                        fill: #36b475;
+                    }
+
+                    &:hover .collaspe-btn-icon {
+                        fill: #fff;
+                        stroke-width: 0;
+                    }
+                }
+
+                &:active {
+                    rect {
+                        cursor: pointer;
+                        stroke: #2fa86c;
+                        stroke-miterlimit: 10;
+                        stroke-width: 0.5;
+                        fill: #2fa86c;
+                    }
+
+                    &:active .collaspe-btn-icon {
+                        fill: #006b46;
+                        stroke-width: 0;
+                    }
+                }
+            }
+        }
+    }
+
+    .big-plus-btn {
+        .big-plus {
+            .plus-rect {
+                stroke: #05a26b;
+                stroke-miterlimit: 10;
+                stroke-width: 0.5;
+                fill: url(#BigPlusLinearGradientDefault);
+                filter: url(#BigPlusFilterDefault);
+            }
+
+            .plus_icon {
+                fill: #05a26b;
+                stroke-width: 0;
+            }
+        }
+
+        &:hover {
+            .plus-rect {
+                cursor: pointer;
+                stroke: #05a26b;
+                stroke-miterlimit: 10;
+                stroke-width: 0.5;
+                fill: #36b475;
+                filter: url(#BigPlusFilterHover) #36b475;
+            }
+
+            &:hover .plus_icon {
+                fill: #fff;
+                stroke-width: 0;
+            }
+        }
+
+        &:active {
+            .plus-rect {
+                cursor: pointer;
+                stroke: #2fa86c;
+                stroke-miterlimit: 10;
+                stroke-width: 0.5;
+                fill: #2fa86c;
+                filter: url(#BigPlusFilterClick) #36b475;
+            }
+
+            &:active .plus_icon {
+                fill: #006b46;
+                stroke-width: 0;
+            }
+        }
+    }
+
+    .big-plus-btn-none {
+        display: none;
+    }
+}

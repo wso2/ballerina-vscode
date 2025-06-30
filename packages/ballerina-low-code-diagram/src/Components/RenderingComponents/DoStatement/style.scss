@@ -1,0 +1,425 @@
+/**
+ * Copyright (c) 2025, WSO2 LLC. (https://www.wso2.com) All Rights Reserved.
+ *
+ * WSO2 LLC. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
+$default_color :#5567d5;
+$warning_color : #FF9D52;
+$error_color : #FE523C;
+$active_color : #c0ceff8a;
+$active-warning-color :#ffc1916c;
+$active_error_color : #e09f9667;
+
+.rectStyles{
+    stroke-miterlimit: 10;
+    stroke-width: 0.5;
+    fill: url(#do-statementLinearGradient) #fafafc;
+    filter: url(#do-statementFilterDefault) #fafafc;
+}
+
+.text-span-styles{
+    font-weight: 500;
+    fill: #40404b;
+    font-size: 12px;
+    font-family: inherit;
+    letter-spacing: 0.05em;
+    text-anchor: middle;
+    user-select: none;
+}
+
+.do-statement-polygon-hover{
+    cursor: pointer;
+    stroke-miterlimit: 10;
+    stroke-width: 9 !important;
+    fill: url(#ProcessLinearGradient) #fafafc;
+    filter: none;
+}
+
+.main-do-statement-wrapper{
+    .do-statement-block {
+
+        user-select: none;
+
+        .do-statement-polygon{
+            &:hover {
+                rect {
+                    @extend .do-statement-polygon-hover;
+                    stroke: $active_color;
+
+                }
+    
+                .click-effect {
+                    stroke-width: 1px !important;
+                    stroke: $default_color !important;
+                }
+            }
+        }
+    
+        .do-statement-rect {
+            stroke-width: 1;
+            stroke: $default_color;
+            fill: #f7f8fb;
+
+            :hover{
+                .click-effect {
+                    stroke-width: 12px !important;
+                    stroke: #40404b !important;
+                }
+            }
+        }
+    
+        .do-statement-group {
+            rect {
+                stroke:$default_color;
+                @extend .rectStyles
+            }
+    
+            :hover {
+                rect {
+                    cursor: pointer;
+                    stroke:$default_color;
+                    @extend .rectStyles
+                }
+            }
+    
+            :active {
+                rect {
+                    cursor: pointer;
+                    stroke:$active_color;
+                    @extend .rectStyles
+                }
+    
+                .click-effect {
+                    stroke-width: 1px !important;
+                    stroke: $default_color !important;
+                }
+            }
+        }
+    
+        .do-statement-polygon-wrapper {
+            .do-statement-options-wrapper {
+                fill: none;
+                display: none;
+                width: 100px;
+                height: 30px;
+    
+                .disable {
+                    pointer-events: none !important;
+                    opacity: 0.5;
+    
+                    &:hover {
+                        cursor: none !important;
+                    }
+                }
+            }
+    
+            &:hover {
+                .do-statement-group {
+                    rect {
+                        cursor: pointer;
+                        stroke:$active_color;
+                        @extend .rectStyles
+                    }
+    
+                    .click-effect {
+                        stroke-width: 1px !important;
+                        stroke: $default_color !important;
+                    }
+                }
+    
+                .do-statement-options-wrapper {
+                    fill: #fff !important;
+                    display: inline !important;
+                }
+    
+                .forech-rect {
+                    fill: #fafafc;
+                    height: 21px;
+                    width: 25px;
+                }
+            }
+        }
+    
+        .life-line {
+            stroke: #5567d5;
+            stroke-width: 1px;
+        }
+
+        .do-statement-icon {
+            .do-statement-rect-icon-shape-1{
+                fill:$default_color;
+            }
+            .do-statement-rect-icon-shape-2{
+                fill: #ccd1f2;
+            }
+        }
+    
+        .do-statement-text {
+            tspan {
+                @extend .text-span-styles
+            }
+        }
+    
+        .condition-assignment {
+            fill: $warning_color;
+            font-family: "Gilmer", sans-serif;
+        }
+    }
+    .do-statement-block-error {
+            user-select: none;
+            .do-statement-polygon{
+                &:hover {
+                    rect {
+                        @extend .do-statement-polygon-hover;
+                        stroke: $active_error_color;
+                    }
+                    .click-effect {
+                        stroke-width: 1px !important;
+                        stroke: $error_color !important;
+                    }
+                }
+            }
+        
+            .do-statement-rect {
+                stroke-width: 1px;
+                stroke:$error_color;
+                fill: #f7f8fb;
+            }
+        
+            .do-statement-group {
+                rect {
+                        stroke:$error_color;
+                        @extend .rectStyles
+                }
+        
+                :hover {
+                    rect {
+                            cursor: pointer;
+                            stroke:$error_color;
+                            @extend .rectStyles
+                    }
+                }
+        
+                :active {
+                    rect {
+                        cursor: pointer;
+                            stroke:$active_color;
+                            @extend .rectStyles
+                    }
+        
+                    .click-effect {
+                        stroke-width: 1px !important;
+                        stroke:$error_color !important;
+                    }
+                }
+            }
+        
+            .do-statement-polygon-wrapper {
+                .do-statement-options-wrapper {
+                    fill: none;
+                    display: none;
+                    width: 100px;
+                    height: 30px;
+        
+                    .disable {
+                        pointer-events: none !important;
+                        opacity: 0.5;
+        
+                        &:hover {
+                            cursor: none !important;
+                        }
+                    }
+                }
+        
+                &:hover {
+                    .do-statement-group {
+                        rect {
+                            cursor: pointer;
+                            stroke:$active_color;
+                            @extend .rectStyles
+                        }
+        
+                        .click-effect {
+                            stroke-width: 1px !important;
+                            stroke:$error_color !important;
+                        }
+                    }
+        
+                    .do-statement-options-wrapper {
+                        fill: #fff !important;
+                        display: inline !important;
+                    }
+        
+                    .forech-rect {
+                        fill: #fafafc;
+                        height: 21px;
+                        width: 25px;
+                    }
+                }
+            }
+        
+            .life-line {
+                stroke:$error_color !important;
+                stroke-width: 1px;
+            }
+        
+            .do-statement-text {
+                tspan {
+                    @extend .text-span-styles
+                }
+            }
+
+            .do-statement-icon {
+                fill: $error_color !important;
+                stroke-width: 1px !important;
+            }
+        
+            .condition-assignment {
+                fill: $error_color;
+                font-family: "Gilmer", sans-serif;
+            }
+        }
+    .do-statement-block-warning {
+            user-select: none;
+
+            .do-statement-polygon{
+                &:hover {
+                    rect {
+                        @extend .do-statement-polygon-hover;
+                        stroke: $active_warning_color;
+                    }
+        
+                    .click-effect {
+                        stroke-width: 1px !important;
+                        stroke: $warning_color !important;
+                    }
+                }
+            }
+
+            .do-statement-icon {
+                .do-statement-rect-icon-shape-1{
+                    fill:$warning_color;
+                }
+                .do-statement-rect-icon-shape-2{
+                    fill:$warning_color;
+                }
+            }
+        
+            .do-statement-rect {
+                stroke-width: 1;
+                stroke:$warning_color;
+                fill: #f7f8fb;
+
+                :hover{
+                    .click-effect {
+                        stroke-width: 12px !important;
+                        stroke: #40404b !important;
+                    }
+                }
+
+            }
+        
+            .do-statement-group {
+                rect {
+                    stroke:$warning_color;
+                    @extend .rectStyles
+                }
+        
+                :hover {
+                    rect {
+                        cursor: pointer;
+                        stroke:$warning_color;
+                        @extend .rectStyles
+                    }
+                }
+        
+                :active {
+                    rect {
+                        cursor: pointer;
+                        stroke:$active_color;
+                        @extend .rectStyles
+                    }
+        
+                    .click-effect {
+                        stroke-width: 1px !important;
+                        stroke: $warning_color !important;
+                    }
+                }
+            }
+        
+            .do-statement-polygon-wrapper {
+                .do-statement-options-wrapper {
+                    fill: none;
+                    display: none;
+                    width: 100px;
+                    height: 30px;
+        
+                    .disable {
+                        pointer-events: none !important;
+                        opacity: 0.5;
+        
+                        &:hover {
+                            cursor: none !important;
+                        }
+                    }
+                }
+        
+                &:hover {
+                    .do-statement-group {
+                        rect {
+                            cursor: pointer;
+                            stroke:$active_color;
+                            @extend .rectStyles
+                        }
+        
+                        .click-effect {
+                            stroke-width: 1px !important;
+                            stroke:$warning_color !important;
+                        }
+                    }
+        
+                    .do-statement-options-wrapper {
+                        fill: #fff !important;
+                        display: inline !important;
+                    }
+        
+                    .forech-rect {
+                        fill: #fafafc;
+                        height: 21px;
+                        width: 25px;
+                    }
+                }
+            }
+        
+            .life-line {
+                stroke:$warning_color;
+                stroke-width: 1px;
+            }
+        
+            .do-statement-text {
+                tspan {
+                    @extend .text-span-styles
+                }
+            }
+        
+            .condition-assignment {
+                fill:$warning_color;
+                font-family: "Gilmer", sans-serif;
+            }
+        }
+
+}
+

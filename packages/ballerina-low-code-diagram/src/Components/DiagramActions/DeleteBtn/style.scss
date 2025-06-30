@@ -1,0 +1,49 @@
+.delete-icon-show {
+    rect {
+        stroke: #ea4c4d;
+        stroke-miterlimit: 10;
+        stroke-width: 0;
+        fill: url(#DeleteLinearGradient);
+    }
+
+    .delete-circle {
+        rect {
+            stroke: #ea4c4d;
+            stroke-miterlimit: 10;
+            stroke-width: 0;
+            fill: url(#DeleteLinearGradient);
+        }
+
+        .delete-bin-icon {
+            fill: #ea4c4d;
+        }
+    }
+
+    &:hover {
+        rect {
+            cursor: pointer;
+            fill: #ea4c4d;
+            stroke: #ea4c4d;
+            stroke-miterlimit: 10;
+            stroke-width: 1;
+        }
+
+        &:hover .delete-bin-icon {
+            fill: #fff;
+        }
+    }
+
+    &:active {
+        rect {
+            cursor: pointer;
+            stroke: #ea4c4d;
+            stroke-miterlimit: 10;
+            stroke-width: 1;
+            fill: #ea4c4d;
+        }
+
+        &:active .delete-bin-icon {
+            fill: #8c2324;
+        }
+    }
+}

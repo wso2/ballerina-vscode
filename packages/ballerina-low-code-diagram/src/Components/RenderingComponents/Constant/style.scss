@@ -1,0 +1,80 @@
+/**
+ * Copyright (c) 2025, WSO2 LLC. (https://www.wso2.com) All Rights Reserved.
+ *
+ * WSO2 LLC. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+.const-container {
+    border: 1px solid #e6e7ec;
+    border-radius: 6px;
+    background-color: #fff;
+    width: 275px;
+    height: 49px;
+    display: flex;
+    flex-direction: row;
+    padding-left: 16px;
+
+    .const-wrapper {
+        display: flex;
+        flex-direction: row;
+        width: 75%;
+        align-content: center;
+        align-items: center;
+
+        .const-icon {
+            height: 18px;
+            width: 18px;
+        }
+        
+        .const-type-text {
+            font-family: inherit;
+            color: #222228;
+            padding-left: 10px;
+        }
+        
+        .const-name-text {
+            font-family: inherit;
+            color: #8d91a3;
+            padding-left: 10px;
+        }
+    }
+
+    .amendment-options {
+        display: flex;
+        flex-direction: row;
+        width: 25%;
+        align-items: center;
+
+        .edit-btn-wrapper,
+        .delete-btn-wrapper {
+            width: 25px;
+            text-align: center;
+            padding-right: 5px;
+
+            &:hover {
+                cursor: pointer;
+            }
+        }
+    }
+
+    .show-on-hover {
+        display: none;
+    }
+
+    &:hover {
+        .show-on-hover {
+            display: block;
+        }
+    }
+}

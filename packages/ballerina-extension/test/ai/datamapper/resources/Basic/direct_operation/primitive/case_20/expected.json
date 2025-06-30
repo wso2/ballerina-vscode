@@ -1,0 +1,1 @@
+{"id":"check int:fromString(person.id)","name":"person.name","age":"check (person.age).ensureType()","isActive":"(person.isActive).toString()","phoneNumber":"person.phone"}

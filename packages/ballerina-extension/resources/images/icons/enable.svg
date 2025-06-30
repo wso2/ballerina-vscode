@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+ ~ Copyright (c) 2025, WSO2 LLC. (https://www.wso2.com) All Rights Reserved.
+ ~
+ ~ WSO2 LLC. licenses this file to you under the Apache License,
+ ~ Version 2.0 (the "License"); you may not use this file except
+ ~ in compliance with the License.
+ ~ You may obtain a copy of the License at
+ ~
+ ~     http://www.apache.org/licenses/LICENSE-2.0
+ ~
+ ~ Unless required by applicable law or agreed to in writing,
+ ~ software distributed under the License is distributed on an
+ ~ "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ ~ KIND, either express or implied. See the License for the
+ ~ specific language governing permissions and limitations
+ ~ under the License.
+-->
+<svg width="14px" height="14px" viewBox="0 0 14 14" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <title>320DCFCF-9DFB-4226-B7FB-27972C7E9CEA</title>
+    <g id="Home" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="VSC-icons" transform="translate(-821.000000, -293.000000)" fill="#000000">
+            <path d="M822,293 L822,306 L835,306 L835,306.5 L834.5,307 L821.495702,307 L821,306.5 L821,293.5 L821.5,293 L822,293 Z M834.5,295 L835,295.5 L835,299 L834,299 L834,296.712 L830.473075,300.23914 L828.462,298.228 L823.865652,302.824125 L823.158545,302.117018 L828.461856,296.813707 L830.473,298.825 L833.297,296 L831,296 L831,295 L834.5,295 Z" id="Combined-Shape"></path>
+        </g>
+    </g>
+</svg>

@@ -1,0 +1,210 @@
+{
+    "participants": [
+        {
+            "id": "46656",
+            "name": "fn2",
+            "kind": "FUNCTION",
+            "moduleName": ".",
+            "nodes": [
+                {
+                    "kind": "RETURN",
+                    "branches": [],
+                    "properties": { "value": { "type": "int" } },
+                    "location": {
+                        "fileName": "if_node8.bal",
+                        "startLine": { "line": 15, "offset": 30 },
+                        "endLine": { "line": 15, "offset": 31 }
+                    }
+                }
+            ],
+            "location": {
+                "fileName": "if_node8.bal",
+                "startLine": { "line": 15, "offset": 0 },
+                "endLine": { "line": 15, "offset": 32 }
+            }
+        },
+        {
+            "id": "48640",
+            "name": "fn3",
+            "kind": "FUNCTION",
+            "moduleName": ".",
+            "nodes": [
+                {
+                    "kind": "RETURN",
+                    "branches": [],
+                    "properties": { "value": { "type": "int" } },
+                    "location": {
+                        "fileName": "if_node8.bal",
+                        "startLine": { "line": 17, "offset": 30 },
+                        "endLine": { "line": 17, "offset": 31 }
+                    }
+                }
+            ],
+            "location": {
+                "fileName": "if_node8.bal",
+                "startLine": { "line": 17, "offset": 0 },
+                "endLine": { "line": 17, "offset": 32 }
+            }
+        },
+        {
+            "id": "36953",
+            "name": "fn1",
+            "kind": "FUNCTION",
+            "moduleName": ".",
+            "nodes": [
+                {
+                    "interactionType": "FUNCTION_CALL",
+                    "targetId": "46656",
+                    "kind": "INTERACTION",
+                    "properties": {
+                        "name": { "type": "string", "value": "fn2" },
+                        "params": [],
+                        "value": { "type": "int", "value": "a" }
+                    },
+                    "location": {
+                        "fileName": "if_node8.bal",
+                        "startLine": { "line": 6, "offset": 12 },
+                        "endLine": { "line": 6, "offset": 17 }
+                    }
+                },
+                {
+                    "kind": "IF",
+                    "branches": [
+                        {
+                            "label": "Then",
+                            "children": [
+                                {
+                                    "interactionType": "FUNCTION_CALL",
+                                    "targetId": "46656",
+                                    "kind": "INTERACTION",
+                                    "properties": {
+                                        "name": { "type": "string", "value": "fn2" },
+                                        "params": [],
+                                        "value": { "type": "int", "value": "b" }
+                                    },
+                                    "location": {
+                                        "fileName": "if_node8.bal",
+                                        "startLine": { "line": 8, "offset": 16 },
+                                        "endLine": { "line": 8, "offset": 21 }
+                                    }
+                                }
+                            ]
+                        },
+                        {
+                            "label": "Else",
+                            "children": [
+                                {
+                                    "interactionType": "FUNCTION_CALL",
+                                    "targetId": "48640",
+                                    "kind": "INTERACTION",
+                                    "properties": {
+                                        "name": { "type": "string", "value": "fn3" },
+                                        "params": [],
+                                        "value": { "type": "int", "value": "c" }
+                                    },
+                                    "location": {
+                                        "fileName": "if_node8.bal",
+                                        "startLine": { "line": 10, "offset": 16 },
+                                        "endLine": { "line": 10, "offset": 21 }
+                                    }
+                                }
+                            ]
+                        }
+                    ],
+                    "properties": { "condition": { "type": "boolean", "value": "flag" } },
+                    "location": {
+                        "fileName": "if_node8.bal",
+                        "startLine": { "line": 7, "offset": 4 },
+                        "endLine": { "line": 11, "offset": 5 }
+                    }
+                },
+                {
+                    "kind": "RETURN",
+                    "branches": [],
+                    "properties": { "value": { "type": "int" } },
+                    "location": {
+                        "fileName": "if_node8.bal",
+                        "startLine": { "line": 12, "offset": 4 },
+                        "endLine": { "line": 12, "offset": 13 }
+                    }
+                }
+            ],
+            "location": {
+                "fileName": "if_node8.bal",
+                "startLine": { "line": 5, "offset": 0 },
+                "endLine": { "line": 13, "offset": 1 }
+            }
+        },
+        {
+            "id": "50630",
+            "name": "fn4",
+            "kind": "FUNCTION",
+            "moduleName": ".",
+            "nodes": [
+                {
+                    "kind": "RETURN",
+                    "branches": [],
+                    "properties": { "value": { "type": "string" } },
+                    "location": {
+                        "fileName": "if_node8.bal",
+                        "startLine": { "line": 19, "offset": 33 },
+                        "endLine": { "line": 19, "offset": 37 }
+                    }
+                }
+            ],
+            "location": {
+                "fileName": "if_node8.bal",
+                "startLine": { "line": 19, "offset": 0 },
+                "endLine": { "line": 19, "offset": 38 }
+            }
+        },
+        {
+            "id": "31838",
+            "name": "fn0",
+            "kind": "FUNCTION",
+            "moduleName": ".",
+            "nodes": [
+                {
+                    "interactionType": "FUNCTION_CALL",
+                    "targetId": "36953",
+                    "kind": "INTERACTION",
+                    "properties": {
+                        "name": { "type": "string", "value": "fn1" },
+                        "params": [{ "type": "boolean", "value": "true" }],
+                        "value": { "type": "int", "value": "a" }
+                    },
+                    "location": {
+                        "fileName": "if_node8.bal",
+                        "startLine": { "line": 1, "offset": 12 },
+                        "endLine": { "line": 1, "offset": 21 }
+                    }
+                },
+                {
+                    "interactionType": "FUNCTION_CALL",
+                    "targetId": "50630",
+                    "kind": "INTERACTION",
+                    "properties": {
+                        "name": { "type": "string", "value": "fn4" },
+                        "params": [],
+                        "value": { "type": "string", "value": "d" }
+                    },
+                    "location": {
+                        "fileName": "if_node8.bal",
+                        "startLine": { "line": 2, "offset": 15 },
+                        "endLine": { "line": 2, "offset": 20 }
+                    }
+                }
+            ],
+            "location": {
+                "fileName": "if_node8.bal",
+                "startLine": { "line": 0, "offset": 0 },
+                "endLine": { "line": 3, "offset": 1 }
+            }
+        }
+    ],
+    "location": {
+        "fileName": "/Users/gayanka/dev/wso2/ballerina-dev-tools/sequence-model-generator/modules/sequence-model-generator-ls-extension/src/test/resources/source/if_node8.bal",
+        "startLine": { "line": 0, "offset": 0 },
+        "endLine": { "line": 3, "offset": 1 }
+    }
+}

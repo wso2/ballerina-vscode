@@ -1,0 +1,49 @@
+/**
+ * Copyright (c) 2025, WSO2 LLC. (https://www.wso2.com) All Rights Reserved.
+ *
+ * WSO2 LLC. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
+.action-invocation {
+    .trigger-group {
+        .trigger-rect {
+            stroke: #32324d;
+            stroke-miterlimit: 10;
+            stroke-width: 1;
+            fill: url(#TriggerLinearGradient);
+        }
+    }
+
+    user-select: none;
+
+    .method-text {
+        fill: #32324d;
+        letter-spacing: 0.05em;
+        font-weight: 600;
+        font-size: 12px !important;
+        font-family: Droid Sans Mono, sans-serif;
+    }
+
+    .leftline {
+        stroke: #32324d !important;
+        stroke-width: 1;
+    }
+
+    .dashedLine {
+        stroke: #32324d !important;
+        stroke-width: 1;
+        stroke-dasharray: 5;
+    }
+}

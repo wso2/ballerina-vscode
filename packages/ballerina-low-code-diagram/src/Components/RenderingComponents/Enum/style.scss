@@ -1,0 +1,197 @@
+/**
+ * Copyright (c) 2025, WSO2 LLC. (https://www.wso2.com) All Rights Reserved.
+ *
+ * WSO2 LLC. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
+.enum-comp {
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+    height: auto;
+    width: 275px;
+    border: 1px solid #e6e7ec;
+    border-radius: 6px;
+    background-color: #fff;
+    font-family: "Gilmer", sans-serif;
+    font-weight: 300;
+
+    .enum-header {
+        display: flex;
+        flex-direction: row;
+        height: 49px;
+        width: 100%;
+
+        .enum-content {
+            display: flex;
+            font-size: 13px;
+            align-content: center;
+            align-items: center;
+            width: 75%;
+            padding-left: 16px;
+
+            .enum-icon {
+                height: 16px;
+                width: 10%;
+            }
+
+            .enum-type {
+                color: #222228;
+                padding-left: 10px;
+            }
+
+            .enum-name {
+                padding-left: 10px;
+                color: #8d91a3;
+            }
+        }
+
+        .enum-amendment-options {
+            display: flex;
+            width: 25%;
+            align-items: center;
+
+            .enum-edit,
+            .enum-delete,
+            .enum-expand {
+                width: 25px;
+                text-align: center;
+                padding-right: 5px;
+
+                &:hover {
+                    cursor: pointer;
+                }
+            }
+        }
+    }
+
+    .enum-separator {
+        height: 1px;
+        width: auto;
+        background-color: #e6e7ec;
+    }
+
+    .enum-fields {
+        margin-left: 44.5px;
+
+        .enum-field {
+            display: flex;
+            flex-direction: row;
+            /* stylelint-disable */
+            font-family: "Droid Sans Mono";
+            /* stylelint-enable */
+            font-size: 12px;
+            height: 38px;
+            align-items: center;
+
+            .enum-field-type {
+                color: dodgerblue;
+            }
+
+            .enum-field-name {
+                color: #1d2028;
+                margin-left: 12px;
+            }
+        }
+    }
+
+    .show-on-hover {
+        display: none;
+    }
+
+    &:hover {
+        .show-on-hover {
+            display: block;
+        }
+    }
+}
+
+.container-wrapper {
+    position: fixed;
+    top: calc(50vh - 70px);
+    left: calc(50vw - 110px);
+    z-index: 200;
+
+    .confirm-container {
+        height: 155px;
+        width: 227px !important;
+        border-radius: 6px;
+        background-color: #fff;
+        box-shadow: 0 5px 10px 0 rgba(102, 103, 133, 0.27);
+        padding: 22px;
+        color: #222228;
+        font-weight: 500;
+        font-size: 15px;
+        letter-spacing: 0;
+        line-height: 24px;
+        position: absolute !important;
+
+        .action-button-container {
+            text-align: right;
+        }
+
+        button {
+            margin-top: 5px;
+            font-size: 11px;
+            line-height: 13px;
+            text-align: center;
+            text-transform: capitalize;
+
+            &.confirmbtn {
+                height: 32px;
+                width: 76px;
+                border-radius: 5px;
+                background: #ec4a48;
+                color: #fff;
+                box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.1);
+                padding: 0;
+
+                &:hover {
+                    background: #e74946;
+                    cursor: pointer !important;
+                }
+
+                &:active {
+                    cursor: pointer !important;
+                    background: transparent linear-gradient(180deg, #00000017 0%, #0000 100%) 0% 0% no-repeat padding-box;
+                }
+            }
+
+            &.cancelbtn {
+                height: 32px;
+                width: 70px;
+                border-radius: 5px;
+                background: #f7f8fb;
+                box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.1);
+                color: #3c3d45;
+                margin-right: 8px;
+                padding: 0;
+
+                &:hover {
+                    background: #f2f3f6;
+                    cursor: pointer !important;
+                }
+
+                &:active {
+                    cursor: pointer !important;
+                    background:
+                        transparent linear-gradient(180deg,
+                            #00000017 0%,
+                            #0000 100%) 0% 0% no-repeat padding-box;
+                }
+            }
+        }
+    }
+}

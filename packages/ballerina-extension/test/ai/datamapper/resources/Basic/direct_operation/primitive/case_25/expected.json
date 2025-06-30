@@ -1,0 +1,1 @@
+{"id":"(person.id).toString()","firstName":"person.firstName","age":"check int:fromString(person.age)","weight":"check float:fromString(person.weight)","totalCredits":"check (person.totalCredits).ensureType()","isRegistered":"(person.isRegistered).toString()","course":"{\n id: (person.courseId).toString(),\nname: person.courseName \n}"}

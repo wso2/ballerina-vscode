@@ -1,0 +1,22 @@
+import ballerinax/{{moduleName}};
+{{#if httpBased }}import ballerina/http;{{/if}}
+
+{{#if (checkConfigurable listenerParams)}}
+configurable {{triggerType}}:ListenerConfig config = ?;
+{{/if}}
+
+{{#if httpBased }}listener http:Listener httpListener = new(8090);{{/if}}
+listener {{triggerType}}:Listener webhookListener =  new({{#if (checkConfigurable listenerParams)}}config{{/if}}{{#if (checkConfigurable listenerParams)}}{{#if httpBased }},{{/if}}{{/if}}{{#if httpBased }}httpListener{{/if}});
+
+{{#each serviceTypes}}
+service {{../triggerType}}:{{ this.name }} on webhookListener {
+  
+  {{#each this.functions}}
+    remote function {{ this.name }}({{#each this.parameters}}{{#if @index}}, {{/if}}{{#if this.defaultTypeName}}{{this.defaultTypeName}}{{else}}{{../../../triggerType}}:{{this.typeInfo.name}}{{/if}} {{this.name}} {{/each}}) returns error? {
+      //Not Implemented
+    }
+  {{/each}}
+}
+{{/each}}
+
+{{#if httpBased }}service /ignore on httpListener {}{{/if}}

@@ -1,0 +1,14 @@
+{
+    "name": "test project",
+    "entryPoints": [],
+    "connections": [
+        {
+            "id": "connection1",
+            "name": "Connection 1"
+        },
+        {
+            "id": "connection2",
+            "name": "Connection 2"
+        }
+    ]
+}

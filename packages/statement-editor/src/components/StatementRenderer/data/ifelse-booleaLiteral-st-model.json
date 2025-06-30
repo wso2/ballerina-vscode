@@ -1,0 +1,340 @@
+{
+  "kind": "IfElseStatement",
+  "ifKeyword": {
+    "kind": "IfKeyword",
+    "isToken": true,
+    "value": "if",
+    "isMissing": false,
+    "position": {
+      "startLine": 12,
+      "startColumn": 4,
+      "endLine": 12,
+      "endColumn": 6
+    },
+    "leadingMinutiae": [
+      {
+        "kind": "WHITESPACE_MINUTIAE",
+        "minutiae": "    ",
+        "isInvalid": false
+      }
+    ],
+    "trailingMinutiae": [
+      {
+        "kind": "WHITESPACE_MINUTIAE",
+        "minutiae": " ",
+        "isInvalid": false
+      }
+    ]
+  },
+  "condition": {
+    "kind": "BracedExpression",
+    "openParen": {
+      "kind": "OpenParenToken",
+      "isToken": true,
+      "value": "(",
+      "isMissing": false,
+      "position": {
+        "startLine": 12,
+        "startColumn": 7,
+        "endLine": 12,
+        "endColumn": 8
+      },
+      "leadingMinutiae": [],
+      "trailingMinutiae": []
+    },
+    "expression": {
+      "kind": "BooleanLiteral",
+      "literalToken": {
+        "kind": "TrueKeyword",
+        "isToken": true,
+        "value": "true",
+        "isMissing": false,
+        "position": {
+          "startLine": 12,
+          "startColumn": 8,
+          "endLine": 12,
+          "endColumn": 12
+        },
+        "leadingMinutiae": [],
+        "trailingMinutiae": []
+      },
+      "source": "true",
+      "syntaxDiagnostics": [],
+      "leadingMinutiae": [],
+      "trailingMinutiae": [],
+      "position": {
+        "startLine": 12,
+        "startColumn": 8,
+        "endLine": 12,
+        "endColumn": 12
+      },
+      "typeData": {
+        "typeSymbol": {
+          "typeKind": "boolean",
+          "kind": "TYPE",
+          "signature": "boolean"
+        },
+        "diagnostics": []
+      }
+    },
+    "closeParen": {
+      "kind": "CloseParenToken",
+      "isToken": true,
+      "value": ")",
+      "isMissing": false,
+      "position": {
+        "startLine": 12,
+        "startColumn": 12,
+        "endLine": 12,
+        "endColumn": 13
+      },
+      "leadingMinutiae": [],
+      "trailingMinutiae": [
+        {
+          "kind": "WHITESPACE_MINUTIAE",
+          "minutiae": " ",
+          "isInvalid": false
+        }
+      ]
+    },
+    "source": "(true) ",
+    "syntaxDiagnostics": [],
+    "leadingMinutiae": [],
+    "trailingMinutiae": [
+      {
+        "kind": "WHITESPACE_MINUTIAE",
+        "minutiae": " ",
+        "isInvalid": false
+      }
+    ],
+    "position": {
+      "startLine": 12,
+      "startColumn": 7,
+      "endLine": 12,
+      "endColumn": 13
+    },
+    "typeData": {
+      "typeSymbol": {
+        "typeKind": "boolean",
+        "kind": "TYPE",
+        "signature": "boolean"
+      },
+      "diagnostics": []
+    }
+  },
+  "ifBody": {
+    "kind": "BlockStatement",
+    "openBraceToken": {
+      "kind": "OpenBraceToken",
+      "isToken": true,
+      "value": "{",
+      "isMissing": false,
+      "position": {
+        "startLine": 12,
+        "startColumn": 14,
+        "endLine": 12,
+        "endColumn": 15
+      },
+      "leadingMinutiae": [],
+      "trailingMinutiae": [
+        {
+          "kind": "END_OF_LINE_MINUTIAE",
+          "minutiae": "\n",
+          "isInvalid": false
+        }
+      ]
+    },
+    "statements": [],
+    "closeBraceToken": {
+      "kind": "CloseBraceToken",
+      "isToken": true,
+      "value": "}",
+      "isMissing": false,
+      "position": {
+        "startLine": 14,
+        "startColumn": 4,
+        "endLine": 14,
+        "endColumn": 5
+      },
+      "leadingMinutiae": [
+        {
+          "kind": "END_OF_LINE_MINUTIAE",
+          "minutiae": "\n",
+          "isInvalid": false
+        },
+        {
+          "kind": "WHITESPACE_MINUTIAE",
+          "minutiae": "    ",
+          "isInvalid": false
+        }
+      ],
+      "trailingMinutiae": [
+        {
+          "kind": "WHITESPACE_MINUTIAE",
+          "minutiae": " ",
+          "isInvalid": false
+        }
+      ]
+    },
+    "source": "{\n\n    } ",
+    "syntaxDiagnostics": [],
+    "leadingMinutiae": [],
+    "trailingMinutiae": [
+      {
+        "kind": "WHITESPACE_MINUTIAE",
+        "minutiae": " ",
+        "isInvalid": false
+      }
+    ],
+    "position": {
+      "startLine": 12,
+      "startColumn": 14,
+      "endLine": 14,
+      "endColumn": 5
+    },
+    "typeData": {
+      "diagnostics": []
+    }
+  },
+  "elseBody": {
+    "kind": "ElseBlock",
+    "elseKeyword": {
+      "kind": "ElseKeyword",
+      "isToken": true,
+      "value": "else",
+      "isMissing": false,
+      "position": {
+        "startLine": 14,
+        "startColumn": 6,
+        "endLine": 14,
+        "endColumn": 10
+      },
+      "leadingMinutiae": [],
+      "trailingMinutiae": [
+        {
+          "kind": "WHITESPACE_MINUTIAE",
+          "minutiae": " ",
+          "isInvalid": false
+        }
+      ]
+    },
+    "elseBody": {
+      "kind": "BlockStatement",
+      "openBraceToken": {
+        "kind": "OpenBraceToken",
+        "isToken": true,
+        "value": "{",
+        "isMissing": false,
+        "position": {
+          "startLine": 14,
+          "startColumn": 11,
+          "endLine": 14,
+          "endColumn": 12
+        },
+        "leadingMinutiae": [],
+        "trailingMinutiae": [
+          {
+            "kind": "END_OF_LINE_MINUTIAE",
+            "minutiae": "\n",
+            "isInvalid": false
+          }
+        ]
+      },
+      "statements": [],
+      "closeBraceToken": {
+        "kind": "CloseBraceToken",
+        "isToken": true,
+        "value": "}",
+        "isMissing": false,
+        "position": {
+          "startLine": 16,
+          "startColumn": 4,
+          "endLine": 16,
+          "endColumn": 5
+        },
+        "leadingMinutiae": [
+          {
+            "kind": "END_OF_LINE_MINUTIAE",
+            "minutiae": "\n",
+            "isInvalid": false
+          },
+          {
+            "kind": "WHITESPACE_MINUTIAE",
+            "minutiae": "    ",
+            "isInvalid": false
+          }
+        ],
+        "trailingMinutiae": [
+          {
+            "kind": "END_OF_LINE_MINUTIAE",
+            "minutiae": "\n",
+            "isInvalid": false
+          }
+        ]
+      },
+      "source": "{\n\n    }\n",
+      "syntaxDiagnostics": [],
+      "leadingMinutiae": [],
+      "trailingMinutiae": [
+        {
+          "kind": "END_OF_LINE_MINUTIAE",
+          "minutiae": "\n",
+          "isInvalid": false
+        }
+      ],
+      "position": {
+        "startLine": 14,
+        "startColumn": 11,
+        "endLine": 16,
+        "endColumn": 5
+      },
+      "typeData": {
+        "diagnostics": []
+      }
+    },
+    "source": "else {\n\n    }\n",
+    "syntaxDiagnostics": [],
+    "leadingMinutiae": [],
+    "trailingMinutiae": [
+      {
+        "kind": "END_OF_LINE_MINUTIAE",
+        "minutiae": "\n",
+        "isInvalid": false
+      }
+    ],
+    "position": {
+      "startLine": 14,
+      "startColumn": 6,
+      "endLine": 16,
+      "endColumn": 5
+    },
+    "typeData": {
+      "diagnostics": []
+    }
+  },
+  "source": "    if (true) {\n\n    } else {\n\n    }\n",
+  "syntaxDiagnostics": [],
+  "leadingMinutiae": [
+    {
+      "kind": "WHITESPACE_MINUTIAE",
+      "minutiae": "    ",
+      "isInvalid": false
+    }
+  ],
+  "trailingMinutiae": [
+    {
+      "kind": "END_OF_LINE_MINUTIAE",
+      "minutiae": "\n",
+      "isInvalid": false
+    }
+  ],
+  "position": {
+    "startLine": 12,
+    "startColumn": 4,
+    "endLine": 16,
+    "endColumn": 5
+  },
+  "typeData": {
+    "diagnostics": []
+  }
+}

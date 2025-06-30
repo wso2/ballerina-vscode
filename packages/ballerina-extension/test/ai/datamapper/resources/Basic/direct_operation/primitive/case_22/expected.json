@@ -1,0 +1,1 @@
+{"id":"(person.id).toString()","age":"check (person.age).ensureType()","courseCredits":"check float:fromString(person.course.courseCredits)"}

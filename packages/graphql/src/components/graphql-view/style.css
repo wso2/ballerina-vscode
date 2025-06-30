@@ -1,0 +1,70 @@
+.graphiql-container {
+    height: 98vh;
+    width: 98vw;
+  }
+
+  .execute-button {
+    fill: #f7f8fb !important;
+    border: 1px solid #f7f8fb !important;
+    background: #5567d5 !important;
+    box-shadow: 0 1px 0 #ffffff !important;
+    transition-duration: 0.3s !important;
+}
+
+.topBarWrap .topBar {
+  height: unset;
+  padding: 8px;
+  background: #ffffff;
+  border: 1px solid #ccd1f2;
+}
+
+.topBarWrap .docExplorerShow {
+  color: #5567d5;
+  background: #ffffff;
+  border-left: none;
+  border-bottom: 1px solid #ccd1f2;
+}
+
+.topBarWrap .toolbar button {
+  color: #40404b;
+  height: 32px;
+  margin: 0 4px;
+  font-size: 12px;
+  font-family: Gilmer;
+  background: #fff;
+}
+
+.docExplorerWrap .variable-editor-title > select {
+  border: 1px solid #8d91a3;
+  margin: 0 8px;
+  padding: 4px 8px;
+  background-color: #fff;
+}
+
+
+.docExplorerWrap {
+  padding: 20px;
+}
+
+.doc-explorer-title-bar {
+  display: flex;
+  justify-content: space-between;
+}
+
+.doc-explorer-rhs {
+  display: none;
+}
+
+.graphiql-explorer-root {
+  height: 90vh;
+  overflow: auto;
+}
+
+/* Remove all the nested div overflows */
+.graphiql-explorer-root > div {
+  overflow: unset !important;
+}
+
+.graphiql-operation-title-bar {
+  display: none;
+}
