@@ -2295,18 +2295,18 @@ public class CodeAnalyzer extends NodeVisitor {
     }
 
     private String removeLeadingAndTrailingMinutiae(Node node, CommentProperty commentProperty) {
-        String sourceCode = node.toSourceCode();
+        String sourceCode = node.toSourceCode().strip();
         String leadingMinutiae = node.leadingMinutiae().toString();
         if (leadingMinutiae.contains("//")) {
             commentProperty.setLeadingComment(leadingMinutiae.substring(leadingMinutiae.indexOf("//")));
         }
-        sourceCode = sourceCode.replace(leadingMinutiae, "");
+        sourceCode = sourceCode.replace(leadingMinutiae.strip(), "");
 
         String trailingMinutiae = node.trailingMinutiae().toString();
         if (trailingMinutiae.contains("//")) {
             commentProperty.setTrailingComment(trailingMinutiae.substring(trailingMinutiae.indexOf("//")));
         }
-        sourceCode = sourceCode.replace(node.trailingMinutiae().toString(), "");
-        return sourceCode;
+        sourceCode = sourceCode.replace(trailingMinutiae.strip(), "");
+        return sourceCode.strip();
     }
 }

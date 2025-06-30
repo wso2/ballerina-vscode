@@ -21,8 +21,6 @@ package io.ballerina.flowmodelgenerator.core.model;
 /**
  * Represents leading and trailing comments attached to token node.
  *
- * @param leadingComment  The leading comment of a node.
- * @param trailingComment The trailing comment of a node.
  * @since 1.1.0
  */
 public class CommentProperty {

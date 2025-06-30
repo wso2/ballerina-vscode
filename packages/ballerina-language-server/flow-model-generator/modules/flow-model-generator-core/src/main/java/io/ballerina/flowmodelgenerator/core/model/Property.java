@@ -51,6 +51,7 @@ import java.util.Set;
  * @param typeMembers         member types of the type constrain
  * @param advancedValue       advanced value of the property
  * @param imports             import statements of the dependent types in the format prefix -> moduleId
+ * @param comment             leading and trailing comments of the property
  * @since 1.0.0
  */
 public record Property(Metadata metadata, String valueType, Object valueTypeConstraint, Object value, Object oldValue,
@@ -467,7 +468,6 @@ public record Property(Metadata metadata, String valueType, Object valueTypeCons
             this.typeMembers = null;
             this.advancedValue = null;
             this.defaultValue = null;
-            this.imports = null;
             this.commentProperty = null;
             return property;
         }
