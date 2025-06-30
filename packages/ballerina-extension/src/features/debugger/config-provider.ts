@@ -37,7 +37,7 @@ import {
     UNSUPPORTED_DEBUGGER_RUNINTERMINAL_KIND, INVALID_DEBUGGER_RUNINTERMINAL_KIND
 } from '../../core';
 import { ExtendedLangClient } from '../../core/extended-language-client';
-import { BALLERINA_HOME } from '../../core/preferences';
+import { BALLERINA_HOME, OVERRIDE_BALLERINA_HOME } from '../../core/preferences';
 import {
     TM_EVENT_START_DEBUG_SESSION, CMP_DEBUGGER, sendTelemetryEvent, sendTelemetryException,
     CMP_NOTEBOOK, TM_EVENT_START_NOTEBOOK_DEBUG
@@ -695,7 +695,16 @@ class BIRunAdapter extends LoggingDebugSession {
             task: 'run'
         };
 
-        let runCommand = ballerinaExtInstance.getBallerinaCmd();
+        const config = workspace.getConfiguration('ballerina');
+        const ballerinaHome = config.get<string>(BALLERINA_HOME);
+        const pluginDevModeEnabled = config.get<boolean>(OVERRIDE_BALLERINA_HOME);
+
+        let runCommand: string;
+        if (pluginDevModeEnabled && ballerinaHome) {
+            runCommand = path.join(ballerinaHome, 'bin', ballerinaExtInstance.getBallerinaCmd());
+        } else {
+            runCommand = ballerinaExtInstance.getBallerinaCmd();
+        }
         runCommand += ' run';
 
         const programArgs = (args as any).programArgs;
@@ -707,21 +716,7 @@ class BIRunAdapter extends LoggingDebugSession {
             runCommand = `${runCommand} --experimental`;
         }
 
-        // Get Ballerina home path from settings
-        const config = workspace.getConfiguration('ballerina');
-        const ballerinaHome = config.get<string>(BALLERINA_HOME);
-        if (ballerinaHome) {
-            runCommand = path.join(ballerinaHome, 'bin', runCommand);
-        }
-
-        console.log(`Ballerina Home: ${ballerinaExtInstance.getBallerinaHome()}`);
-        console.log(`Executing command: ${runCommand}`);
-        const execution = new ShellExecution(runCommand, {
-            env: {
-                ...process.env
-            }
-        });
-
+        const execution = new ShellExecution(runCommand);
         const task = new Task(
             taskDefinition,
             workspace.workspaceFolders![0], // Assumes at least one workspace folder is open
