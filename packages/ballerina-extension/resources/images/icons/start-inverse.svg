@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+ ~ Copyright (c) 2025, WSO2 LLC. (https://www.wso2.com) All Rights Reserved.
+ ~
+ ~ WSO2 LLC. licenses this file to you under the Apache License,
+ ~ Version 2.0 (the "License"); you may not use this file except
+ ~ in compliance with the License.
+ ~ You may obtain a copy of the License at
+ ~
+ ~     http://www.apache.org/licenses/LICENSE-2.0
+ ~
+ ~ Unless required by applicable law or agreed to in writing,
+ ~ software distributed under the License is distributed on an
+ ~ "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ ~ KIND, either express or implied. See the License for the
+ ~ specific language governing permissions and limitations
+ ~ under the License.
+-->
+<svg width="16px" height="16px" viewBox="0 0 16 16" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <title>Icon/Play</title>
+    <g id="Icon/Play" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <path d="M3.5,0.910836582 C2.94771525,0.910836582 2.5,1.35855183 2.5,1.91083658 L2.5,14.0891634 C2.5,14.2793474 2.55423337,14.465588 2.65633851,14.6260389 C2.95284666,15.0919803 3.57093412,15.2293331 4.03687549,14.9328249 L13.6055609,8.84366149 C13.7290417,8.7650828 13.8337682,8.66035629 13.9123469,8.53687549 C14.208855,8.07093412 14.0715022,7.45284666 13.6055609,7.15633851 L4.03687549,1.06717509 C3.90851474,0.985490982 3.76364865,0.934444802 3.61346243,0.917293694 L3.5,0.910836582 Z M3.5,14.0891634 L3.5,1.91083658 L13.067,8 L3.5,14.0891634 Z" id="Rectangle" fill="#36B475" fill-rule="nonzero"></path>
+    </g>
+</svg>

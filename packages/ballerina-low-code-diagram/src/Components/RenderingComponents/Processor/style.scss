@@ -1,0 +1,306 @@
+/**
+ * Copyright (c) 2025, WSO2 LLC. (https://www.wso2.com) All Rights Reserved.
+ *
+ * WSO2 LLC. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+$default_color :#5566d5;
+$warning_color : #FF9D52;
+$error_color : #FE523C;
+$active-warning-color :#ffc1916c;
+$active_error_color : #e09f9667;
+$active_color : #c0ceff8a;
+
+.process-rect-styles {
+    stroke-miterlimit: 10;
+    stroke-width: 1px !important;
+    fill: url(#ProcessLinearGradient) #fafafc;
+    filter: url(#ProcessFilterDefault) #fafafc;
+}
+
+.process-rect-active-styles {
+    stroke: $active_color;
+    stroke-miterlimit: 10;
+    stroke-width: 9;
+    fill: url(#ProcessLinearGradient) #fafafc;
+    filter: none;
+}
+
+.process-text-styles {
+    font-weight: 500;
+    fill: #40404b;
+    font-size: 12px;
+    font-family: inherit;
+    letter-spacing: 0.05em;
+    text-anchor: middle;
+    text-align: center;
+    user-select: none;
+}
+
+.process-icon-text-style {
+    height: 12px;
+    width: 24px;
+    font-family: inherit;
+    font-size: 12px;
+    letter-spacing: 0;
+    line-height: 12px;
+    font-weight: normal;
+}
+
+.click-effect-style {
+    stroke-width: 1px;
+    stroke: $default_color;
+}
+
+.main-process-wrapper {
+    &.data-processor {
+        .process-rect {
+            .data-processor {
+                rect {
+                    @extend .process-rect-styles;
+                    stroke: $default_color;
+                }
+
+                .process-text {
+                    tspan {
+                        @extend .process-text-styles;
+                    }
+                }
+
+                .process-icon {
+                    fill: $default_color;
+                }
+
+                .log-icon {
+                    .log-icon-dark-path{
+                        fill:$default_color
+                    }
+                    .log-icon-light-path{
+                        fill:#ccd1f2
+                    }
+                }
+                .call-icon {
+                    .call-icon-light-path{
+                        fill: #ccd1f2
+                    }
+                    .call-icon-dark-path{
+                        fill:$default_color
+                    }
+                }
+
+                .process-icon-text {
+                    @extend .process-icon-text-style;
+                    fill: $default_color;
+                }
+
+                &:hover {
+                    rect {
+                        cursor: pointer;
+                        stroke: $active_color;
+                        stroke-miterlimit: 10;
+                        stroke-width: 9 !important;
+                        fill: url(#ProcessLinearGradient) #fafafc;
+                        filter: none;
+                    }
+
+                    .click-effect {
+                        stroke-width: 1px !important;
+                        stroke: $default_color !important;
+                    }
+                }
+
+                &:active {
+                    rect {
+                        cursor: pointer;
+                        stroke: $active_color;
+                        stroke-width: 9 !important;
+                        @extend .process-rect-active-styles;
+                    }
+
+                    .click-effect {
+                        stroke-width: 1px !important;
+                        stroke: $default_color !important;
+                    }
+                }
+            }
+
+            .data-processor-error {
+                rect {
+                    @extend .process-rect-styles;
+                    stroke: $error_color;
+                }
+
+                .process-text {
+                    tspan {
+                        @extend .process-text-styles;
+                        fill:$error_color
+                    }
+                }
+
+                .process-icon {
+                    fill: $error_color;
+                }
+
+                .log-icon {
+                    .log-icon-dark-path{
+                        fill:$error_color
+                    }
+                    .log-icon-light-path{
+                        fill:$error_color
+                    }
+                }
+                .call-icon {
+                    .call-icon-light-path{
+                        fill: $error_color
+                    }
+                    .call-icon-dark-path{
+                        fill:$error_color
+                    }
+                }
+
+                .process-icon-text {
+                    @extend .process-icon-text-style;
+                    fill: $error_color;
+                }
+
+                &:hover {
+                    rect {
+                        cursor: pointer;
+                        stroke: $active_error_color;
+                        stroke-miterlimit: 10;
+                        stroke-width: 9 !important;
+                        fill: url(#ProcessLinearGradient) #fafafc;
+                        filter: none;
+                    }
+
+                    .click-effect {
+                        stroke-width: 1px !important;
+                        stroke: $error_color !important;
+                    }
+                }
+
+                &:active {
+                    rect {
+                        cursor: pointer;
+                        stroke: $active_error_color;
+                        stroke-width: 9 !important;
+                        @extend .process-rect-active-styles;
+                    }
+
+                    .click-effect {
+                        stroke-width: 1px !important;
+                        stroke: $error_color !important;
+                    }
+                }
+            }
+
+            .data-processor-warning {
+                rect {
+                    @extend .process-rect-styles;
+                    stroke: $warning_color;
+                }
+
+                .process-text {
+                    tspan {
+                        @extend .process-text-styles;
+                        fill:$warning_color
+                    }
+                }
+
+                .process-icon {
+                    fill: $warning_color
+                }
+
+                .log-icon {
+                    .log-icon-dark-path{
+                        fill:$warning_color
+                    }
+                    .log-icon-light-path{
+                        fill:$warning_color
+                    }
+                }
+                .call-icon {
+                    .call-icon-light-path{
+                        fill: $warning_color
+                    }
+                    .call-icon-dark-path{
+                        fill:$warning_color
+                    }
+                }
+
+                .process-icon-text {
+                    @extend .process-icon-text-style;
+                    fill: $warning_color;
+                }
+
+                &:hover {
+                    rect {
+                        cursor: pointer;
+                        stroke: $active_warning_color;
+                        stroke-miterlimit: 10;
+                        stroke-width: 9 !important;
+                        fill: url(#ProcessLinearGradient) #fafafc;
+                        filter: none;
+                    }
+
+                    .click-effect {
+                        stroke-width: 1px !important;
+                        stroke: $warning_color !important;
+                    }
+                }
+
+                &:active {
+                    rect {
+                        cursor: pointer;
+                        stroke: $active_warning_color;
+                        stroke-width: 9 !important;
+                        @extend .process-rect-active-styles;
+                    }
+
+                    .click-effect {
+                        stroke-width: 1px !important;
+                        stroke: $warning_color !important;
+                    }
+                }
+            }
+        }
+    }
+
+    //active-data-processor: when the process is in draft mode and active
+    &.active-data-processor {
+        .process-rect {
+            rect {
+                cursor: pointer;
+                stroke: $active_color;
+                stroke-width: 9 !important;
+                @extend .process-rect-active-styles;
+            }
+
+            .process-text {
+                tspan {
+                    @extend .process-text-styles;
+                }
+            }
+
+            .process-icon {
+                fill: $default_color;
+            }
+
+            .click-effect {
+                stroke-width: 1px !important;
+                stroke: $default_color !important;
+            }
+        }
+    }
+}

@@ -1,0 +1,227 @@
+{
+  "kind": "PanicStatement",
+  "panicKeyword": {
+    "kind": "PanicKeyword",
+    "isToken": true,
+    "value": "panic",
+    "isMissing": false,
+    "position": {
+      "startLine": 14,
+      "startColumn": 8,
+      "endLine": 14,
+      "endColumn": 13
+    },
+    "leadingMinutiae": [
+      {
+        "kind": "WHITESPACE_MINUTIAE",
+        "minutiae": "        ",
+        "isInvalid": false
+      }
+    ],
+    "trailingMinutiae": [
+      {
+        "kind": "WHITESPACE_MINUTIAE",
+        "minutiae": " ",
+        "isInvalid": false
+      }
+    ]
+  },
+  "expression": {
+    "kind": "ErrorConstructor",
+    "errorKeyword": {
+      "kind": "ErrorKeyword",
+      "isToken": true,
+      "value": "error",
+      "isMissing": false,
+      "position": {
+        "startLine": 14,
+        "startColumn": 14,
+        "endLine": 14,
+        "endColumn": 19
+      },
+      "leadingMinutiae": [],
+      "trailingMinutiae": []
+    },
+    "openParenToken": {
+      "kind": "OpenParenToken",
+      "isToken": true,
+      "value": "(",
+      "isMissing": false,
+      "position": {
+        "startLine": 14,
+        "startColumn": 19,
+        "endLine": 14,
+        "endColumn": 20
+      },
+      "leadingMinutiae": [],
+      "trailingMinutiae": []
+    },
+    "arguments": [
+      {
+        "kind": "PositionalArg",
+        "expression": {
+          "kind": "StringLiteral",
+          "literalToken": {
+            "kind": "StringLiteralToken",
+            "isToken": true,
+            "value": "\"division by 0\"",
+            "isMissing": false,
+            "position": {
+              "startLine": 14,
+              "startColumn": 20,
+              "endLine": 14,
+              "endColumn": 35
+            },
+            "leadingMinutiae": [],
+            "trailingMinutiae": []
+          },
+          "source": "\"division by 0\"",
+          "syntaxDiagnostics": [],
+          "leadingMinutiae": [],
+          "trailingMinutiae": [],
+          "position": {
+            "startLine": 14,
+            "startColumn": 20,
+            "endLine": 14,
+            "endColumn": 35
+          },
+          "typeData": {
+            "typeSymbol": {
+              "typeKind": "string",
+              "kind": "TYPE",
+              "signature": "string"
+            },
+            "diagnostics": []
+          }
+        },
+        "source": "\"division by 0\"",
+        "syntaxDiagnostics": [],
+        "leadingMinutiae": [],
+        "trailingMinutiae": [],
+        "position": {
+          "startLine": 14,
+          "startColumn": 20,
+          "endLine": 14,
+          "endColumn": 35
+        },
+        "typeData": {
+          "typeSymbol": {
+            "typeKind": "string",
+            "kind": "TYPE",
+            "signature": "string"
+          },
+          "diagnostics": []
+        }
+      }
+    ],
+    "closeParenToken": {
+      "kind": "CloseParenToken",
+      "isToken": true,
+      "value": ")",
+      "isMissing": false,
+      "position": {
+        "startLine": 14,
+        "startColumn": 35,
+        "endLine": 14,
+        "endColumn": 36
+      },
+      "leadingMinutiae": [],
+      "trailingMinutiae": []
+    },
+    "source": "error(\"division by 0\")",
+    "syntaxDiagnostics": [],
+    "leadingMinutiae": [],
+    "trailingMinutiae": [],
+    "position": {
+      "startLine": 14,
+      "startColumn": 14,
+      "endLine": 14,
+      "endColumn": 36
+    },
+    "typeData": {
+      "typeSymbol": {
+        "typeKind": "error",
+        "moduleID": {
+          "orgName": "ballerina",
+          "moduleName": "lang.annotations",
+          "version": "0.0.0"
+        },
+        "detailTypeDescriptor": {
+          "typeParam": {
+            "name": "Cloneable",
+            "moduleID": {
+              "orgName": "ballerina",
+              "moduleName": "lang.value",
+              "version": "0.0.0"
+            },
+            "definition": {
+              "deprecated": false,
+              "moduleID": {
+                "orgName": "ballerina",
+                "moduleName": "lang.value",
+                "version": "0.0.0"
+              },
+              "kind": "TYPE_DEFINITION",
+              "readonly": false,
+              "moduleQualifiedName": "value:Cloneable"
+            },
+            "kind": "TYPE",
+            "typeKind": "typeReference",
+            "signature": "ballerina/lang.value:0.0.0:Cloneable"
+          },
+          "typeKind": "map",
+          "kind": "TYPE",
+          "signature": "map<ballerina/lang.value:0.0.0:Cloneable>"
+        },
+        "kind": "TYPE",
+        "signature": "error"
+      },
+      "diagnostics": []
+    }
+  },
+  "semicolonToken": {
+    "kind": "SemicolonToken",
+    "isToken": true,
+    "value": ";",
+    "isMissing": false,
+    "position": {
+      "startLine": 14,
+      "startColumn": 36,
+      "endLine": 14,
+      "endColumn": 37
+    },
+    "leadingMinutiae": [],
+    "trailingMinutiae": [
+      {
+        "kind": "END_OF_LINE_MINUTIAE",
+        "minutiae": "\n",
+        "isInvalid": false
+      }
+    ]
+  },
+  "source": "        panic error(\"division by 0\");\n",
+  "syntaxDiagnostics": [],
+  "leadingMinutiae": [
+    {
+      "kind": "WHITESPACE_MINUTIAE",
+      "minutiae": "        ",
+      "isInvalid": false
+    }
+  ],
+  "trailingMinutiae": [
+    {
+      "kind": "END_OF_LINE_MINUTIAE",
+      "minutiae": "\n",
+      "isInvalid": false
+    }
+  ],
+  "position": {
+    "startLine": 14,
+    "startColumn": 8,
+    "endLine": 14,
+    "endColumn": 37
+  },
+  "typeData": {
+    "diagnostics": []
+  }
+}

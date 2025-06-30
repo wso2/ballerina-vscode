@@ -1,0 +1,40 @@
+{
+    "name": "@wso2/ballerina-side-panel",
+    "version": "1.0.0",
+    "description": "",
+    "files": [
+        "lib"
+    ],
+    "main": "lib/index.js",
+    "types": "lib/index.d.ts",
+    "scripts": {
+        "build": "tsc --pretty && npm run copy:assets",
+        "storybook": "start-storybook -p 6006",
+        "watch": "tsc --pretty --watch",
+        "build-storybook": "build-storybook",
+        "copy:assets": "copyfiles -u 1 \"src/**/*.svg\"  \"src/**/*.css\" \"src/resources/assets/font/*.*\" lib/"
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC",
+    "dependencies": {
+        "react": "18.2.0",
+        "react-dom": "18.2.0",
+        "@emotion/react": "^11.14.0",
+        "@emotion/styled": "^11.14.0",
+        "@wso2/ui-toolkit": "workspace:*",
+        "@wso2/ballerina-core": "workspace:*",
+        "@wso2/ballerina-rpc-client": "workspace:*",
+        "lodash": "~4.17.21",
+        "react-hook-form": "7.56.4",
+        "react-markdown": "~10.1.0"
+    },
+    "devDependencies": {
+        "@storybook/react": "^6.5.16",
+        "@types/react": "18.2.0",
+        "@types/react-dom": "18.2.0",
+        "typescript": "5.8.3",
+        "@types/lodash": "~4.17.16",
+        "copyfiles": "^2.4.1"
+    }
+}

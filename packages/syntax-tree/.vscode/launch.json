@@ -1,0 +1,19 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "env": { 
+                "BALLERINA_SDK_PATH": "/Users/marcus/Documents/ballerina/slp5/downloaded/ballerina-slp5",
+                "BALLERINA_REPO_PATH": "/Users/marcus/Documents/myGitRepos/ballerina",
+                "BBE_PATH": "/Users/marcus/Documents/myGitRepos/ballerina-distribution/examples"
+            },
+            "command": "npm run gen-models",
+            "name": "Run npm gen-models",
+            "request": "launch",
+            "type": "node-terminal"
+        }
+    ]
+}

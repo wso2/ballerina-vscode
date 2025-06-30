@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+ ~ Copyright (c) 2025, WSO2 LLC. (https://www.wso2.com) All Rights Reserved.
+ ~
+ ~ WSO2 LLC. licenses this file to you under the Apache License,
+ ~ Version 2.0 (the "License"); you may not use this file except
+ ~ in compliance with the License.
+ ~ You may obtain a copy of the License at
+ ~
+ ~     http://www.apache.org/licenses/LICENSE-2.0
+ ~
+ ~ Unless required by applicable law or agreed to in writing,
+ ~ software distributed under the License is distributed on an
+ ~ "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ ~ KIND, either express or implied. See the License for the
+ ~ specific language governing permissions and limitations
+ ~ under the License.
+-->
+<svg width="12px" height="15px" viewBox="0 0 12 15" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <title>0DF28389-B887-4F48-92E0-0D5BFE9E6FDF</title>
+    <g id="Home" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="VSC-icons" transform="translate(-102.000000, -293.000000)" fill="#000000" fill-rule="nonzero">
+            <path d="M108,300.5 C111.313694,300.5 113.999911,303.186277 113.999911,306.5 L113.999911,306.5 L113.5,306.99924 L103.766485,307.005054 L102.5,306.999139 L101.999911,306.5 C101.999911,303.261617 104.565557,300.622429 107.775061,300.504138 L107.775061,300.504138 Z M108,301.5 C105.456565,301.5 103.35664,303.399086 103.040925,305.856603 L103.040925,305.856603 L103.025,306.003 L109.781728,306.007011 L112.974,306.003 L112.958899,305.856595 C112.652223,303.469268 110.661931,301.608973 108.216888,301.504619 L108.216888,301.504619 Z M108,293.5 C109.932997,293.5 111.5,295.067003 111.5,297 C111.5,298.932997 109.932997,300.5 108,300.5 C106.067003,300.5 104.5,298.932997 104.5,297 C104.5,295.067003 106.067003,293.5 108,293.5 Z M108,294.5 C106.619288,294.5 105.5,295.619288 105.5,297 C105.5,298.380712 106.619288,299.5 108,299.5 C109.380712,299.5 110.5,298.380712 110.5,297 C110.5,295.619288 109.380712,294.5 108,294.5 Z" id="user"></path>
+        </g>
+    </g>
+</svg>

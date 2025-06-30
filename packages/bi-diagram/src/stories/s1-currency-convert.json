@@ -1,0 +1,1007 @@
+{
+    "fileName": "/Users/gayanka/dev/wso2/test/bi_currency_convert/currency.bal",
+    "nodes": [
+        {
+            "id": "47032",
+            "metadata": {
+                "label": "HTTP API"
+            },
+            "codedata": {
+                "node": "EVENT_START",
+                "lineRange": {
+                    "fileName": "currency.bal",
+                    "startLine": {
+                        "line": 14,
+                        "offset": 4
+                    },
+                    "endLine": {
+                        "line": 55,
+                        "offset": 5
+                    }
+                }
+            },
+            "returning": false,
+            "properties": {
+                "method": {
+                    "metadata": {
+                        "label": "Method",
+                        "description": "HTTP Method"
+                    },
+                    "value": "get",
+                    "optional": false,
+                    "editable": true
+                },
+                "path": {
+                    "metadata": {
+                        "label": "Path",
+                        "description": "HTTP Path"
+                    },
+                    "value": "converter",
+                    "optional": false,
+                    "editable": true
+                }
+            },
+            "flags": 2048
+        },
+        {
+            "id": "49051",
+            "metadata": {
+                "label": "ErrorHandler",
+                "description": "Catch and handle errors"
+            },
+            "codedata": {
+                "node": "ERROR_HANDLER",
+                "lineRange": {
+                    "fileName": "currency.bal",
+                    "startLine": {
+                        "line": 16,
+                        "offset": 8
+                    },
+                    "endLine": {
+                        "line": 54,
+                        "offset": 9
+                    }
+                }
+            },
+            "returning": false,
+            "branches": [
+                {
+                    "label": "Body",
+                    "kind": "BLOCK",
+                    "codedata": {
+                        "node": "BODY",
+                        "lineRange": {
+                            "fileName": "currency.bal",
+                            "startLine": {
+                                "line": 16,
+                                "offset": 11
+                            },
+                            "endLine": {
+                                "line": 49,
+                                "offset": 9
+                            }
+                        }
+                    },
+                    "repeatable": "ONE",
+                    "children": [
+                        {
+                            "id": "50014",
+                            "metadata": {
+                                "label": "New Variable",
+                                "description": "New variable 'key' with type 'string'"
+                            },
+                            "codedata": {
+                                "node": "NEW_DATA",
+                                "lineRange": {
+                                    "fileName": "currency.bal",
+                                    "startLine": {
+                                        "line": 18,
+                                        "offset": 12
+                                    },
+                                    "endLine": {
+                                        "line": 18,
+                                        "offset": 42
+                                    }
+                                }
+                            },
+                            "returning": false,
+                            "properties": {
+                                "expression": {
+                                    "metadata": {
+                                        "label": "Expression",
+                                        "description": "Expression"
+                                    },
+                                    "valueType": "string",
+                                    "value": "'from + \"-\" + to",
+                                    "optional": false,
+                                    "editable": true
+                                },
+                                "variable": {
+                                    "metadata": {
+                                        "label": "Data variable",
+                                        "description": "Name of the variable"
+                                    },
+                                    "value": "key",
+                                    "optional": false,
+                                    "editable": true
+                                },
+                                "type": {
+                                    "metadata": {
+                                        "label": "Data type",
+                                        "description": "Type of the variable"
+                                    },
+                                    "value": "string",
+                                    "optional": false,
+                                    "editable": true
+                                }
+                            },
+                            "flags": 0
+                        },
+                        {
+                            "id": "52017",
+                            "metadata": {
+                                "label": "get",
+                                "description": "Get value of key.\n\n",
+                                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.0.2.png"
+                            },
+                            "codedata": {
+                                "node": "REMOTE_ACTION_CALL",
+                                "org": "ballerinax",
+                                "module": "redis",
+                                "object": "Client",
+                                "symbol": "get",
+                                "lineRange": {
+                                    "fileName": "currency.bal",
+                                    "startLine": {
+                                        "line": 20,
+                                        "offset": 12
+                                    },
+                                    "endLine": {
+                                        "line": 20,
+                                        "offset": 61
+                                    }
+                                }
+                            },
+                            "returning": false,
+                            "properties": {
+                                "connection": {
+                                    "metadata": {
+                                        "label": "Connection",
+                                        "description": "Connection to use"
+                                    },
+                                    "valueType": "EXPRESSION",
+                                    "value": "redisClient",
+                                    "optional": false,
+                                    "editable": true
+                                },
+                                "variable": {
+                                    "metadata": {
+                                        "label": "Data variable",
+                                        "description": "Name of the variable"
+                                    },
+                                    "value": "cacheValue",
+                                    "optional": false,
+                                    "editable": true
+                                },
+                                "key": {
+                                    "metadata": {
+                                        "label": "key",
+                                        "description": "Key referring to a value\n"
+                                    },
+                                    "valueType": "EXPRESSION",
+                                    "value": "key",
+                                    "optional": false,
+                                    "editable": true
+                                },
+                                "type": {
+                                    "metadata": {
+                                        "label": "Data type",
+                                        "description": "Type of the variable"
+                                    },
+                                    "value": "string|()",
+                                    "optional": false,
+                                    "editable": true
+                                }
+                            },
+                            "flags": 1
+                        },
+                        {
+                            "id": "55720",
+                            "metadata": {
+                                "label": "If",
+                                "description": "Add conditional branch to the integration flow."
+                            },
+                            "codedata": {
+                                "node": "IF",
+                                "lineRange": {
+                                    "fileName": "currency.bal",
+                                    "startLine": {
+                                        "line": 23,
+                                        "offset": 12
+                                    },
+                                    "endLine": {
+                                        "line": 48,
+                                        "offset": 13
+                                    }
+                                }
+                            },
+                            "returning": false,
+                            "branches": [
+                                {
+                                    "label": "Then",
+                                    "kind": "BLOCK",
+                                    "codedata": {
+                                        "node": "CONDITIONAL",
+                                        "lineRange": {
+                                            "fileName": "currency.bal",
+                                            "startLine": {
+                                                "line": 23,
+                                                "offset": 36
+                                            },
+                                            "endLine": {
+                                                "line": 30,
+                                                "offset": 13
+                                            }
+                                        }
+                                    },
+                                    "repeatable": "ONE_OR_MORE",
+                                    "properties": {
+                                        "condition": {
+                                            "metadata": {
+                                                "label": "Condition",
+                                                "description": "Boolean Condition"
+                                            },
+                                            "valueType": "boolean",
+                                            "value": "cacheValue is string ",
+                                            "optional": false,
+                                            "editable": true
+                                        }
+                                    },
+                                    "children": [
+                                        {
+                                            "id": "57120",
+                                            "metadata": {
+                                                "label": "New Variable",
+                                                "description": "New variable 'newData' with type 'map'"
+                                            },
+                                            "codedata": {
+                                                "node": "NEW_DATA",
+                                                "lineRange": {
+                                                    "fileName": "currency.bal",
+                                                    "startLine": {
+                                                        "line": 25,
+                                                        "offset": 16
+                                                    },
+                                                    "endLine": {
+                                                        "line": 27,
+                                                        "offset": 18
+                                                    }
+                                                }
+                                            },
+                                            "returning": false,
+                                            "properties": {
+                                                "expression": {
+                                                    "metadata": {
+                                                        "label": "Expression",
+                                                        "description": "Expression"
+                                                    },
+                                                    "valueType": "map<json>",
+                                                    "value": "{\n                    value: check calculate(amount, cacheValue)\n                }",
+                                                    "optional": false,
+                                                    "editable": true
+                                                },
+                                                "variable": {
+                                                    "metadata": {
+                                                        "label": "Data variable",
+                                                        "description": "Name of the variable"
+                                                    },
+                                                    "value": "newData",
+                                                    "optional": false,
+                                                    "editable": true
+                                                },
+                                                "type": {
+                                                    "metadata": {
+                                                        "label": "Data type",
+                                                        "description": "Type of the variable"
+                                                    },
+                                                    "value": "json",
+                                                    "optional": false,
+                                                    "editable": true
+                                                }
+                                            },
+                                            "flags": 0
+                                        },
+                                        {
+                                            "id": "61039",
+                                            "metadata": {
+                                                "label": "Return",
+                                                "description": "Value of 'newData'"
+                                            },
+                                            "codedata": {
+                                                "node": "RETURN",
+                                                "lineRange": {
+                                                    "fileName": "currency.bal",
+                                                    "startLine": {
+                                                        "line": 29,
+                                                        "offset": 16
+                                                    },
+                                                    "endLine": {
+                                                        "line": 29,
+                                                        "offset": 31
+                                                    }
+                                                }
+                                            },
+                                            "returning": true,
+                                            "properties": {
+                                                "expression": {
+                                                    "metadata": {
+                                                        "label": "Expression",
+                                                        "description": "Return value"
+                                                    },
+                                                    "valueType": "json",
+                                                    "value": "newData",
+                                                    "optional": false,
+                                                    "editable": true
+                                                }
+                                            },
+                                            "flags": 0
+                                        }
+                                    ]
+                                },
+                                {
+                                    "label": "Else",
+                                    "kind": "BLOCK",
+                                    "codedata": {
+                                        "node": "ELSE",
+                                        "lineRange": {
+                                            "fileName": "currency.bal",
+                                            "startLine": {
+                                                "line": 30,
+                                                "offset": 14
+                                            },
+                                            "endLine": {
+                                                "line": 48,
+                                                "offset": 13
+                                            }
+                                        }
+                                    },
+                                    "repeatable": "ZERO_OR_ONE",
+                                    "children": [
+                                        {
+                                            "id": "64081",
+                                            "metadata": {
+                                                "label": "get",
+                                                "description": "The `Client.get()` function can be used to send HTTP GET requests to HTTP endpoints.\n\n",
+                                                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.11.3.png"
+                                            },
+                                            "codedata": {
+                                                "node": "REMOTE_ACTION_CALL",
+                                                "org": "ballerina",
+                                                "module": "http",
+                                                "object": "Client",
+                                                "symbol": "get",
+                                                "lineRange": {
+                                                    "fileName": "currency.bal",
+                                                    "startLine": {
+                                                        "line": 32,
+                                                        "offset": 16
+                                                    },
+                                                    "endLine": {
+                                                        "line": 32,
+                                                        "offset": 97
+                                                    }
+                                                }
+                                            },
+                                            "returning": false,
+                                            "properties": {
+                                                "connection": {
+                                                    "metadata": {
+                                                        "label": "Connection",
+                                                        "description": "Connection to use"
+                                                    },
+                                                    "valueType": "EXPRESSION",
+                                                    "value": "currencyClient",
+                                                    "optional": false,
+                                                    "editable": true
+                                                },
+                                                "variable": {
+                                                    "metadata": {
+                                                        "label": "Data variable",
+                                                        "description": "Name of the variable"
+                                                    },
+                                                    "value": "response",
+                                                    "optional": false,
+                                                    "editable": true
+                                                },
+                                                "path": {
+                                                    "metadata": {
+                                                        "label": "path",
+                                                        "description": "Request path\n"
+                                                    },
+                                                    "valueType": "EXPRESSION",
+                                                    "value": "\"/latest?base=\" + 'from + \"&to=\" + to",
+                                                    "optional": false,
+                                                    "editable": true
+                                                },
+                                                "headers": {
+                                                    "metadata": {
+                                                        "label": "headers",
+                                                        "description": "The entity headers\n"
+                                                    },
+                                                    "valueType": "EXPRESSION",
+                                                    "optional": true,
+                                                    "editable": true
+                                                },
+                                                "targetType": {
+                                                    "metadata": {
+                                                        "label": "targetType",
+                                                        "description": "HTTP response or `anydata`, which is expected to be returned after data binding\n"
+                                                    },
+                                                    "valueType": "EXPRESSION",
+                                                    "optional": true,
+                                                    "editable": true
+                                                },
+                                                "type": {
+                                                    "metadata": {
+                                                        "label": "Data type",
+                                                        "description": "Type of the variable"
+                                                    },
+                                                    "value": "json",
+                                                    "optional": false,
+                                                    "editable": true
+                                                }
+                                            },
+                                            "flags": 1
+                                        },
+                                        {
+                                            "id": "67013",
+                                            "metadata": {
+                                                "label": "Custom Expression",
+                                                "description": "Represents a custom Ballerina expression"
+                                            },
+                                            "codedata": {
+                                                "node": "EXPRESSION",
+                                                "lineRange": {
+                                                    "fileName": "currency.bal",
+                                                    "startLine": {
+                                                        "line": 35,
+                                                        "offset": 16
+                                                    },
+                                                    "endLine": {
+                                                        "line": 35,
+                                                        "offset": 53
+                                                    }
+                                                }
+                                            },
+                                            "returning": false,
+                                            "properties": {
+                                                "expression": {
+                                                    "metadata": {
+                                                        "label": "Expression",
+                                                        "description": "Expression"
+                                                    },
+                                                    "valueType": "decimal|annotations:error",
+                                                    "value": "response.value",
+                                                    "optional": false,
+                                                    "editable": true
+                                                },
+                                                "variable": {
+                                                    "metadata": {
+                                                        "label": "Data variable",
+                                                        "description": "Name of the variable"
+                                                    },
+                                                    "value": "value",
+                                                    "optional": false,
+                                                    "editable": true
+                                                },
+                                                "type": {
+                                                    "metadata": {
+                                                        "label": "Data type",
+                                                        "description": "Type of the variable"
+                                                    },
+                                                    "value": "decimal",
+                                                    "optional": false,
+                                                    "editable": true
+                                                }
+                                            },
+                                            "flags": 1
+                                        },
+                                        {
+                                            "id": "69028",
+                                            "metadata": {
+                                                "label": "Custom Expression",
+                                                "description": "Represents a custom Ballerina expression"
+                                            },
+                                            "codedata": {
+                                                "node": "EXPRESSION",
+                                                "lineRange": {
+                                                    "fileName": "currency.bal",
+                                                    "startLine": {
+                                                        "line": 37,
+                                                        "offset": 16
+                                                    },
+                                                    "endLine": {
+                                                        "line": 37,
+                                                        "offset": 84
+                                                    }
+                                                }
+                                            },
+                                            "returning": false,
+                                            "properties": {
+                                                "expression": {
+                                                    "metadata": {
+                                                        "label": "Expression",
+                                                        "description": "Expression"
+                                                    },
+                                                    "valueType": "decimal",
+                                                    "value": "calculate(amount, value.toString())",
+                                                    "optional": false,
+                                                    "editable": true
+                                                },
+                                                "variable": {
+                                                    "metadata": {
+                                                        "label": "Data variable",
+                                                        "description": "Name of the variable"
+                                                    },
+                                                    "value": "convertedAmount",
+                                                    "optional": false,
+                                                    "editable": true
+                                                },
+                                                "type": {
+                                                    "metadata": {
+                                                        "label": "Data type",
+                                                        "description": "Type of the variable"
+                                                    },
+                                                    "value": "decimal",
+                                                    "optional": false,
+                                                    "editable": true
+                                                }
+                                            },
+                                            "flags": 1
+                                        },
+                                        {
+                                            "id": "71996",
+                                            "metadata": {
+                                                "label": "set",
+                                                "description": "Set the value of a key.\n\n",
+                                                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.0.2.png"
+                                            },
+                                            "codedata": {
+                                                "node": "REMOTE_ACTION_CALL",
+                                                "org": "ballerinax",
+                                                "module": "redis",
+                                                "object": "Client",
+                                                "symbol": "set",
+                                                "lineRange": {
+                                                    "fileName": "currency.bal",
+                                                    "startLine": {
+                                                        "line": 40,
+                                                        "offset": 16
+                                                    },
+                                                    "endLine": {
+                                                        "line": 40,
+                                                        "offset": 76
+                                                    }
+                                                }
+                                            },
+                                            "returning": false,
+                                            "properties": {
+                                                "connection": {
+                                                    "metadata": {
+                                                        "label": "Connection",
+                                                        "description": "Connection to use"
+                                                    },
+                                                    "valueType": "EXPRESSION",
+                                                    "value": "redisClient",
+                                                    "optional": false,
+                                                    "editable": true
+                                                },
+                                                "key": {
+                                                    "metadata": {
+                                                        "label": "key",
+                                                        "description": "Key referring to a value\n"
+                                                    },
+                                                    "valueType": "EXPRESSION",
+                                                    "value": "key",
+                                                    "optional": false,
+                                                    "editable": true
+                                                },
+                                                "value": {
+                                                    "metadata": {
+                                                        "label": "value",
+                                                        "description": "Values\n"
+                                                    },
+                                                    "valueType": "EXPRESSION",
+                                                    "value": "convertedAmount.toString()",
+                                                    "optional": false,
+                                                    "editable": true
+                                                }
+                                            },
+                                            "flags": 1
+                                        },
+                                        {
+                                            "id": "74976",
+                                            "metadata": {
+                                                "label": "New Variable",
+                                                "description": "New variable 'newData' with type 'map'"
+                                            },
+                                            "codedata": {
+                                                "node": "NEW_DATA",
+                                                "lineRange": {
+                                                    "fileName": "currency.bal",
+                                                    "startLine": {
+                                                        "line": 43,
+                                                        "offset": 16
+                                                    },
+                                                    "endLine": {
+                                                        "line": 45,
+                                                        "offset": 18
+                                                    }
+                                                }
+                                            },
+                                            "returning": false,
+                                            "properties": {
+                                                "expression": {
+                                                    "metadata": {
+                                                        "label": "Expression",
+                                                        "description": "Expression"
+                                                    },
+                                                    "valueType": "map<json>",
+                                                    "value": "{\n                    value\n                }",
+                                                    "optional": false,
+                                                    "editable": true
+                                                },
+                                                "variable": {
+                                                    "metadata": {
+                                                        "label": "Data variable",
+                                                        "description": "Name of the variable"
+                                                    },
+                                                    "value": "newData",
+                                                    "optional": false,
+                                                    "editable": true
+                                                },
+                                                "type": {
+                                                    "metadata": {
+                                                        "label": "Data type",
+                                                        "description": "Type of the variable"
+                                                    },
+                                                    "value": "json",
+                                                    "optional": false,
+                                                    "editable": true
+                                                }
+                                            },
+                                            "flags": 0
+                                        },
+                                        {
+                                            "id": "78895",
+                                            "metadata": {
+                                                "label": "Return",
+                                                "description": "Value of 'newData'"
+                                            },
+                                            "codedata": {
+                                                "node": "RETURN",
+                                                "lineRange": {
+                                                    "fileName": "currency.bal",
+                                                    "startLine": {
+                                                        "line": 47,
+                                                        "offset": 16
+                                                    },
+                                                    "endLine": {
+                                                        "line": 47,
+                                                        "offset": 31
+                                                    }
+                                                }
+                                            },
+                                            "returning": true,
+                                            "properties": {
+                                                "expression": {
+                                                    "metadata": {
+                                                        "label": "Expression",
+                                                        "description": "Return value"
+                                                    },
+                                                    "valueType": "json",
+                                                    "value": "newData",
+                                                    "optional": false,
+                                                    "editable": true
+                                                }
+                                            },
+                                            "flags": 0
+                                        }
+                                    ]
+                                }
+                            ],
+                            "flags": 0
+                        }
+                    ]
+                },
+                {
+                    "label": "On Failure",
+                    "kind": "BLOCK",
+                    "codedata": {
+                        "node": "ON_FAILURE",
+                        "lineRange": {
+                            "fileName": "currency.bal",
+                            "startLine": {
+                                "line": 49,
+                                "offset": 26
+                            },
+                            "endLine": {
+                                "line": 54,
+                                "offset": 9
+                            }
+                        }
+                    },
+                    "repeatable": "ZERO_OR_ONE",
+                    "properties": {
+                        "ignore": {
+                            "metadata": {
+                                "label": "Ignore",
+                                "description": "Ignore the error value"
+                            },
+                            "value": "true",
+                            "optional": false,
+                            "editable": true
+                        },
+                        "errorVariable": {
+                            "metadata": {
+                                "label": "Error Variable",
+                                "description": "Name of the error variable"
+                            },
+                            "value": "e ",
+                            "optional": false,
+                            "editable": true
+                        },
+                        "errorType": {
+                            "metadata": {
+                                "label": "Error Type",
+                                "description": "Type of the error"
+                            },
+                            "value": "redis:Error|annotations:error|http:ClientError|annotations:error",
+                            "optional": false,
+                            "editable": true
+                        }
+                    },
+                    "children": [
+                        {
+                            "id": "82755",
+                            "metadata": {
+                                "label": "printError",
+                                "description": "Prints error logs.\n```ballerina\nerror e = error(\"error occurred\");\nlog:printError(\"error log with cause\", 'error = e, id = 845315);\n```\n\n",
+                                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_log_2.9.0.png"
+                            },
+                            "codedata": {
+                                "node": "FUNCTION_CALL",
+                                "org": "ballerina",
+                                "module": "log",
+                                "symbol": "printError",
+                                "lineRange": {
+                                    "fileName": "currency.bal",
+                                    "startLine": {
+                                        "line": 51,
+                                        "offset": 12
+                                    },
+                                    "endLine": {
+                                        "line": 51,
+                                        "offset": 47
+                                    }
+                                }
+                            },
+                            "returning": false,
+                            "properties": {
+                                "msg": {
+                                    "metadata": {
+                                        "label": "msg",
+                                        "description": "The message to be logged\n"
+                                    },
+                                    "valueType": "EXPRESSION",
+                                    "value": "\"error occured\"",
+                                    "optional": false,
+                                    "editable": true
+                                },
+                                "stackTrace": {
+                                    "metadata": {
+                                        "label": "stackTrace",
+                                        "description": "The error stack trace to be logged\n"
+                                    },
+                                    "valueType": "EXPRESSION",
+                                    "optional": true,
+                                    "editable": true
+                                },
+                                "keyValues": {
+                                    "metadata": {
+                                        "label": "keyValues",
+                                        "description": "The key-value pairs to be logged\n"
+                                    },
+                                    "valueType": "EXPRESSION",
+                                    "optional": false,
+                                    "editable": true
+                                }
+                            },
+                            "flags": 0
+                        },
+                        {
+                            "id": "84738",
+                            "metadata": {
+                                "label": "Return",
+                                "description": "Value of 'http:INTERNAL_SERVER_ERROR'"
+                            },
+                            "codedata": {
+                                "node": "RETURN",
+                                "lineRange": {
+                                    "fileName": "currency.bal",
+                                    "startLine": {
+                                        "line": 53,
+                                        "offset": 12
+                                    },
+                                    "endLine": {
+                                        "line": 53,
+                                        "offset": 46
+                                    }
+                                }
+                            },
+                            "returning": true,
+                            "properties": {
+                                "expression": {
+                                    "metadata": {
+                                        "label": "Expression",
+                                        "description": "Return value"
+                                    },
+                                    "valueType": "ballerina/http:2.11.3:InternalServerError & readonly",
+                                    "value": "http:INTERNAL_SERVER_ERROR",
+                                    "optional": false,
+                                    "editable": true
+                                }
+                            },
+                            "flags": 0
+                        }
+                    ]
+                }
+            ],
+            "flags": 0
+        }
+    ],
+    "connections": [
+        {
+            "id": "42750",
+            "metadata": {
+                "label": "New Connection",
+                "description": "Create a new connection"
+            },
+            "codedata": {
+                "node": "NEW_CONNECTION",
+                "org": "ballerina",
+                "module": "http",
+                "object": "Client",
+                "symbol": "init",
+                "lineRange": {
+                    "fileName": "currency.bal",
+                    "startLine": {
+                        "line": 11,
+                        "offset": 0
+                    },
+                    "endLine": {
+                        "line": 11,
+                        "offset": 94
+                    }
+                }
+            },
+            "returning": false,
+            "properties": {
+                "scope": {
+                    "metadata": {
+                        "label": "Connection Scope",
+                        "description": "Scope of the connection, Global or Local"
+                    },
+                    "valueType": "ENUM",
+                    "value": "Global",
+                    "optional": false,
+                    "editable": true
+                },
+                "url": {
+                    "metadata": {
+                        "label": "url",
+                        "description": "URL of the target service\n"
+                    },
+                    "valueType": "EXPRESSION",
+                    "value": "\"https://api.exchangeratesapi.io/latest\"",
+                    "optional": false,
+                    "editable": true
+                },
+                "config": {
+                    "metadata": {
+                        "label": "config",
+                        "description": "The configurations to be used when initializing the `client`\n"
+                    },
+                    "valueType": "EXPRESSION",
+                    "optional": false,
+                    "editable": true
+                },
+                "variable": {
+                    "metadata": {
+                        "label": "Data variable",
+                        "description": "Name of the variable"
+                    },
+                    "value": "currencyClient",
+                    "optional": false,
+                    "editable": true
+                },
+                "type": {
+                    "metadata": {
+                        "label": "Data type",
+                        "description": "Type of the variable"
+                    },
+                    "value": "http:Client",
+                    "optional": false,
+                    "editable": true
+                }
+            },
+            "flags": 1
+        },
+        {
+            "id": "36800",
+            "metadata": {
+                "label": "New Connection",
+                "description": "Create a new connection"
+            },
+            "codedata": {
+                "node": "NEW_CONNECTION",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "init",
+                "lineRange": {
+                    "fileName": "currency.bal",
+                    "startLine": {
+                        "line": 5,
+                        "offset": 0
+                    },
+                    "endLine": {
+                        "line": 8,
+                        "offset": 3
+                    }
+                }
+            },
+            "returning": false,
+            "properties": {
+                "scope": {
+                    "metadata": {
+                        "label": "Connection Scope",
+                        "description": "Scope of the connection, Global or Local"
+                    },
+                    "valueType": "ENUM",
+                    "value": "Global",
+                    "optional": false,
+                    "editable": true
+                },
+                "config": {
+                    "metadata": {
+                        "label": "config",
+                        "description": "configuration for the connector\n"
+                    },
+                    "valueType": "EXPRESSION",
+                    "optional": false,
+                    "editable": true
+                },
+                "variable": {
+                    "metadata": {
+                        "label": "Data variable",
+                        "description": "Name of the variable"
+                    },
+                    "value": "redisClient",
+                    "optional": false,
+                    "editable": true
+                },
+                "type": {
+                    "metadata": {
+                        "label": "Data type",
+                        "description": "Type of the variable"
+                    },
+                    "value": "redis:Client",
+                    "optional": false,
+                    "editable": true
+                }
+            },
+            "flags": 1
+        }
+    ]
+}

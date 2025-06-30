@@ -1,0 +1,348 @@
+{
+  "kind": "ForeachStatement",
+  "forEachKeyword": {
+    "kind": "ForeachKeyword",
+    "isToken": true,
+    "value": "foreach",
+    "isMissing": false,
+    "position": {
+      "startLine": 4,
+      "startColumn": 4,
+      "endLine": 4,
+      "endColumn": 11
+    },
+    "leadingMinutiae": [
+      {
+        "kind": "WHITESPACE_MINUTIAE",
+        "minutiae": "    ",
+        "isInvalid": false
+      }
+    ],
+    "trailingMinutiae": [
+      {
+        "kind": "WHITESPACE_MINUTIAE",
+        "minutiae": " ",
+        "isInvalid": false
+      }
+    ]
+  },
+  "typedBindingPattern": {
+    "kind": "TypedBindingPattern",
+    "typeDescriptor": {
+      "kind": "VarTypeDesc",
+      "name": {
+        "kind": "VarKeyword",
+        "isToken": true,
+        "value": "var",
+        "isMissing": false,
+        "position": {
+          "startLine": 4,
+          "startColumn": 12,
+          "endLine": 4,
+          "endColumn": 15
+        },
+        "leadingMinutiae": [],
+        "trailingMinutiae": [
+          {
+            "kind": "WHITESPACE_MINUTIAE",
+            "minutiae": " ",
+            "isInvalid": false
+          }
+        ]
+      },
+      "source": "var ",
+      "syntaxDiagnostics": [],
+      "leadingMinutiae": [],
+      "trailingMinutiae": [
+        {
+          "kind": "WHITESPACE_MINUTIAE",
+          "minutiae": " ",
+          "isInvalid": false
+        }
+      ],
+      "position": {
+        "startLine": 4,
+        "startColumn": 12,
+        "endLine": 4,
+        "endColumn": 15
+      },
+      "typeData": {
+        "typeSymbol": {
+          "typeKind": "string",
+          "kind": "TYPE",
+          "signature": "string"
+        },
+        "diagnostics": []
+      }
+    },
+    "bindingPattern": {
+      "kind": "CaptureBindingPattern",
+      "variableName": {
+        "kind": "IdentifierToken",
+        "isToken": true,
+        "value": "item",
+        "isMissing": false,
+        "position": {
+          "startLine": 4,
+          "startColumn": 16,
+          "endLine": 4,
+          "endColumn": 20
+        },
+        "leadingMinutiae": [],
+        "trailingMinutiae": [
+          {
+            "kind": "WHITESPACE_MINUTIAE",
+            "minutiae": " ",
+            "isInvalid": false
+          }
+        ]
+      },
+      "source": "item ",
+      "syntaxDiagnostics": [],
+      "leadingMinutiae": [],
+      "trailingMinutiae": [
+        {
+          "kind": "WHITESPACE_MINUTIAE",
+          "minutiae": " ",
+          "isInvalid": false
+        }
+      ],
+      "position": {
+        "startLine": 4,
+        "startColumn": 16,
+        "endLine": 4,
+        "endColumn": 20
+      },
+      "typeData": {
+        "typeSymbol": {
+          "typeKind": "string",
+          "kind": "TYPE",
+          "signature": "string"
+        },
+        "symbol": {
+          "deprecated": false,
+          "moduleID": {
+            "orgName": "laughinghorsejqdaa",
+            "moduleName": "ls_check",
+            "version": "0.1.0"
+          },
+          "kind": "VARIABLE"
+        },
+        "diagnostics": []
+      }
+    },
+    "source": "var item ",
+    "syntaxDiagnostics": [],
+    "leadingMinutiae": [],
+    "trailingMinutiae": [
+      {
+        "kind": "WHITESPACE_MINUTIAE",
+        "minutiae": " ",
+        "isInvalid": false
+      }
+    ],
+    "position": {
+      "startLine": 4,
+      "startColumn": 12,
+      "endLine": 4,
+      "endColumn": 20
+    },
+    "typeData": {
+      "typeSymbol": {
+        "typeKind": "string",
+        "kind": "TYPE",
+        "signature": "string"
+      },
+      "symbol": {
+        "deprecated": false,
+        "moduleID": {
+          "orgName": "laughinghorsejqdaa",
+          "moduleName": "ls_check",
+          "version": "0.1.0"
+        },
+        "kind": "VARIABLE"
+      },
+      "diagnostics": []
+    }
+  },
+  "inKeyword": {
+    "kind": "InKeyword",
+    "isToken": true,
+    "value": "in",
+    "isMissing": false,
+    "position": {
+      "startLine": 4,
+      "startColumn": 21,
+      "endLine": 4,
+      "endColumn": 23
+    },
+    "leadingMinutiae": [],
+    "trailingMinutiae": [
+      {
+        "kind": "WHITESPACE_MINUTIAE",
+        "minutiae": " ",
+        "isInvalid": false
+      }
+    ]
+  },
+  "actionOrExpressionNode": {
+    "kind": "SimpleNameReference",
+    "name": {
+      "kind": "IdentifierToken",
+      "isToken": true,
+      "value": "expression",
+      "isMissing": false,
+      "position": {
+        "startLine": 4,
+        "startColumn": 24,
+        "endLine": 4,
+        "endColumn": 30
+      },
+      "leadingMinutiae": [],
+      "trailingMinutiae": [
+        {
+          "kind": "WHITESPACE_MINUTIAE",
+          "minutiae": " ",
+          "isInvalid": false
+        }
+      ]
+    },
+    "source": "array1 ",
+    "syntaxDiagnostics": [],
+    "leadingMinutiae": [],
+    "trailingMinutiae": [
+      {
+        "kind": "WHITESPACE_MINUTIAE",
+        "minutiae": " ",
+        "isInvalid": false
+      }
+    ],
+    "position": {
+      "startLine": 4,
+      "startColumn": 24,
+      "endLine": 4,
+      "endColumn": 30
+    },
+    "typeData": {
+      "typeSymbol": {
+        "memberTypeDescriptor": {
+          "typeKind": "string",
+          "kind": "TYPE",
+          "signature": "string"
+        },
+        "typeKind": "array",
+        "kind": "TYPE",
+        "signature": "string[]"
+      },
+      "symbol": {
+        "deprecated": false,
+        "moduleID": {
+          "orgName": "laughinghorsejqdaa",
+          "moduleName": "ls_check",
+          "version": "0.1.0"
+        },
+        "kind": "VARIABLE"
+      },
+      "diagnostics": []
+    }
+  },
+  "blockStatement": {
+    "kind": "BlockStatement",
+    "openBraceToken": {
+      "kind": "OpenBraceToken",
+      "isToken": true,
+      "value": "{",
+      "isMissing": false,
+      "position": {
+        "startLine": 4,
+        "startColumn": 31,
+        "endLine": 4,
+        "endColumn": 32
+      },
+      "leadingMinutiae": [],
+      "trailingMinutiae": [
+        {
+          "kind": "END_OF_LINE_MINUTIAE",
+          "minutiae": "\n",
+          "isInvalid": false
+        }
+      ]
+    },
+    "statements": [],
+    "closeBraceToken": {
+      "kind": "CloseBraceToken",
+      "isToken": true,
+      "value": "}",
+      "isMissing": false,
+      "position": {
+        "startLine": 6,
+        "startColumn": 4,
+        "endLine": 6,
+        "endColumn": 5
+      },
+      "leadingMinutiae": [
+        {
+          "kind": "END_OF_LINE_MINUTIAE",
+          "minutiae": "\n",
+          "isInvalid": false
+        },
+        {
+          "kind": "WHITESPACE_MINUTIAE",
+          "minutiae": "    ",
+          "isInvalid": false
+        }
+      ],
+      "trailingMinutiae": [
+        {
+          "kind": "END_OF_LINE_MINUTIAE",
+          "minutiae": "\n",
+          "isInvalid": false
+        }
+      ]
+    },
+    "source": "{\n\n    }\n",
+    "syntaxDiagnostics": [],
+    "leadingMinutiae": [],
+    "trailingMinutiae": [
+      {
+        "kind": "END_OF_LINE_MINUTIAE",
+        "minutiae": "\n",
+        "isInvalid": false
+      }
+    ],
+    "position": {
+      "startLine": 4,
+      "startColumn": 31,
+      "endLine": 6,
+      "endColumn": 5
+    },
+    "typeData": {
+      "diagnostics": []
+    }
+  },
+  "source": "    foreach var item in expression {\n\n    }\n",
+  "syntaxDiagnostics": [],
+  "leadingMinutiae": [
+    {
+      "kind": "WHITESPACE_MINUTIAE",
+      "minutiae": "    ",
+      "isInvalid": false
+    }
+  ],
+  "trailingMinutiae": [
+    {
+      "kind": "END_OF_LINE_MINUTIAE",
+      "minutiae": "\n",
+      "isInvalid": false
+    }
+  ],
+  "position": {
+    "startLine": 4,
+    "startColumn": 4,
+    "endLine": 6,
+    "endColumn": 5
+  },
+  "typeData": {
+    "diagnostics": []
+  }
+}

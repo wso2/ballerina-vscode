@@ -1,0 +1,649 @@
+{
+    "fileName": "/Users/gayanka/dev/wso2/test/bi_28/petstore.bal",
+    "nodes": [
+        {
+            "id": "39437",
+            "metadata": {
+                "label": "HTTP API"
+            },
+            "codedata": {
+                "node": "EVENT_START",
+                "lineRange": {
+                    "fileName": "petstore.bal",
+                    "startLine": {
+                        "line": 7,
+                        "offset": 4
+                    },
+                    "endLine": {
+                        "line": 27,
+                        "offset": 5
+                    }
+                },
+                "sourceCode": "resource function get greeting() returns json|http:InternalServerError {\n        do {\n\n            json response = {};\n            if true {\n                var item2 = 0;\n            }\n            else {\n                var item3 = 1;\n                if true {\n                    var item4 = 0;\n                }\n                else {\n                }\n            }\n            return response;\n\n        } on fail error e {\n            return http:INTERNAL_SERVER_ERROR;\n        }\n    }"
+            },
+            "returning": false,
+            "properties": {
+                "method": {
+                    "metadata": {
+                        "label": "Method",
+                        "description": "HTTP Method"
+                    },
+                    "valueType": "IDENTIFIER",
+                    "value": "get",
+                    "optional": false,
+                    "editable": true
+                },
+                "path": {
+                    "metadata": {
+                        "label": "Path",
+                        "description": "HTTP Path"
+                    },
+                    "valueType": "STRING",
+                    "value": "greeting",
+                    "optional": false,
+                    "editable": true
+                }
+            }
+        },
+        {
+            "id": "40495",
+            "metadata": {
+                "label": "ErrorHandler",
+                "description": "Catch and handle errors"
+            },
+            "codedata": {
+                "node": "ERROR_HANDLER",
+                "lineRange": {
+                    "fileName": "petstore.bal",
+                    "startLine": {
+                        "line": 8,
+                        "offset": 8
+                    },
+                    "endLine": {
+                        "line": 26,
+                        "offset": 9
+                    }
+                },
+                "sourceCode": "do {\n\n            json response = {};\n            if true {\n                var item2 = 0;\n            }\n            else {\n                var item3 = 1;\n                if true {\n                    var item4 = 0;\n                }\n                else {\n                }\n            }\n            return response;\n\n        } on fail error e {\n            return http:INTERNAL_SERVER_ERROR;\n        }"
+            },
+            "returning": false,
+            "branches": [
+                {
+                    "label": "Body",
+                    "kind": "BLOCK",
+                    "codedata": {
+                        "node": "BODY",
+                        "lineRange": {
+                            "fileName": "petstore.bal",
+                            "startLine": {
+                                "line": 8,
+                                "offset": 11
+                            },
+                            "endLine": {
+                                "line": 24,
+                                "offset": 9
+                            }
+                        },
+                        "sourceCode": "{\n\n            json response = {};\n            if true {\n                var item2 = 0;\n            }\n            else {\n                var item3 = 1;\n                if true {\n                    var item4 = 0;\n                }\n                else {\n                }\n            }\n            return response;\n\n        }"
+                    },
+                    "repeatable": "ONE",
+                    "children": [
+                        {
+                            "id": "42067",
+                            "metadata": {
+                                "label": "New Variable",
+                                "description": "New variable 'response' with type 'map'"
+                            },
+                            "codedata": {
+                                "node": "NEW_DATA",
+                                "lineRange": {
+                                    "fileName": "petstore.bal",
+                                    "startLine": {
+                                        "line": 10,
+                                        "offset": 12
+                                    },
+                                    "endLine": {
+                                        "line": 10,
+                                        "offset": 31
+                                    }
+                                },
+                                "sourceCode": "json response = {};"
+                            },
+                            "returning": false,
+                            "properties": {
+                                "expression": {
+                                    "metadata": {
+                                        "label": "Expression",
+                                        "description": "Expression"
+                                    },
+                                    "valueType": "EXPRESSION",
+                                    "value": "{}",
+                                    "optional": false,
+                                    "editable": true
+                                },
+                                "variable": {
+                                    "metadata": {
+                                        "label": "Data variable",
+                                        "description": "Name of the variable"
+                                    },
+                                    "valueType": "IDENTIFIER",
+                                    "value": "response",
+                                    "optional": false,
+                                    "editable": true
+                                },
+                                "type": {
+                                    "metadata": {
+                                        "label": "Data type",
+                                        "description": "Type of the variable"
+                                    },
+                                    "valueType": "TYPE",
+                                    "value": "json",
+                                    "optional": false,
+                                    "editable": true
+                                }
+                            },
+                            "flags": 0
+                        },
+                        {
+                            "id": "43351",
+                            "metadata": {
+                                "label": "If",
+                                "description": "Add conditional branch to the integration flow."
+                            },
+                            "codedata": {
+                                "node": "IF",
+                                "lineRange": {
+                                    "fileName": "petstore.bal",
+                                    "startLine": {
+                                        "line": 11,
+                                        "offset": 12
+                                    },
+                                    "endLine": {
+                                        "line": 21,
+                                        "offset": 13
+                                    }
+                                },
+                                "sourceCode": "if true {\n                var item2 = 0;\n            }\n            else {\n                var item3 = 1;\n                if true {\n                    var item4 = 0;\n                }\n                else {\n                }\n            }"
+                            },
+                            "returning": false,
+                            "branches": [
+                                {
+                                    "label": "Then",
+                                    "kind": "BLOCK",
+                                    "codedata": {
+                                        "node": "CONDITIONAL",
+                                        "lineRange": {
+                                            "fileName": "petstore.bal",
+                                            "startLine": {
+                                                "line": 11,
+                                                "offset": 20
+                                            },
+                                            "endLine": {
+                                                "line": 13,
+                                                "offset": 13
+                                            }
+                                        },
+                                        "sourceCode": "{\n                var item2 = 0;\n            }"
+                                    },
+                                    "repeatable": "ONE_OR_MORE",
+                                    "properties": {
+                                        "condition": {
+                                            "metadata": {
+                                                "label": "Condition",
+                                                "description": "Boolean Condition"
+                                            },
+                                            "valueType": "EXPRESSION",
+                                            "value": "true ",
+                                            "optional": false,
+                                            "editable": true
+                                        }
+                                    },
+                                    "children": [
+                                        {
+                                            "id": "44174",
+                                            "metadata": {
+                                                "label": "New Variable",
+                                                "description": "New variable 'item2' with type 'var'"
+                                            },
+                                            "codedata": {
+                                                "node": "NEW_DATA",
+                                                "lineRange": {
+                                                    "fileName": "petstore.bal",
+                                                    "startLine": {
+                                                        "line": 12,
+                                                        "offset": 16
+                                                    },
+                                                    "endLine": {
+                                                        "line": 12,
+                                                        "offset": 30
+                                                    }
+                                                },
+                                                "sourceCode": "var item2 = 0;"
+                                            },
+                                            "returning": false,
+                                            "properties": {
+                                                "expression": {
+                                                    "metadata": {
+                                                        "label": "Expression",
+                                                        "description": "Expression"
+                                                    },
+                                                    "valueType": "EXPRESSION",
+                                                    "value": "0",
+                                                    "optional": false,
+                                                    "editable": true
+                                                },
+                                                "variable": {
+                                                    "metadata": {
+                                                        "label": "Data variable",
+                                                        "description": "Name of the variable"
+                                                    },
+                                                    "valueType": "IDENTIFIER",
+                                                    "value": "item2",
+                                                    "optional": false,
+                                                    "editable": true
+                                                },
+                                                "type": {
+                                                    "metadata": {
+                                                        "label": "Data type",
+                                                        "description": "Type of the variable"
+                                                    },
+                                                    "valueType": "TYPE",
+                                                    "value": "int",
+                                                    "optional": false,
+                                                    "editable": true
+                                                }
+                                            },
+                                            "flags": 0
+                                        }
+                                    ]
+                                },
+                                {
+                                    "label": "Else",
+                                    "kind": "BLOCK",
+                                    "codedata": {
+                                        "node": "ELSE",
+                                        "lineRange": {
+                                            "fileName": "petstore.bal",
+                                            "startLine": {
+                                                "line": 14,
+                                                "offset": 12
+                                            },
+                                            "endLine": {
+                                                "line": 21,
+                                                "offset": 13
+                                            }
+                                        },
+                                        "sourceCode": "else {\n                var item3 = 1;\n                if true {\n                    var item4 = 0;\n                }\n                else {\n                }\n            }"
+                                    },
+                                    "repeatable": "ZERO_OR_ONE",
+                                    "children": [
+                                        {
+                                            "id": "47150",
+                                            "metadata": {
+                                                "label": "New Variable",
+                                                "description": "New variable 'item3' with type 'var'"
+                                            },
+                                            "codedata": {
+                                                "node": "NEW_DATA",
+                                                "lineRange": {
+                                                    "fileName": "petstore.bal",
+                                                    "startLine": {
+                                                        "line": 15,
+                                                        "offset": 16
+                                                    },
+                                                    "endLine": {
+                                                        "line": 15,
+                                                        "offset": 30
+                                                    }
+                                                },
+                                                "sourceCode": "var item3 = 1;"
+                                            },
+                                            "returning": false,
+                                            "properties": {
+                                                "expression": {
+                                                    "metadata": {
+                                                        "label": "Expression",
+                                                        "description": "Expression"
+                                                    },
+                                                    "valueType": "EXPRESSION",
+                                                    "value": "1",
+                                                    "optional": false,
+                                                    "editable": true
+                                                },
+                                                "variable": {
+                                                    "metadata": {
+                                                        "label": "Data variable",
+                                                        "description": "Name of the variable"
+                                                    },
+                                                    "valueType": "IDENTIFIER",
+                                                    "value": "item3",
+                                                    "optional": false,
+                                                    "editable": true
+                                                },
+                                                "type": {
+                                                    "metadata": {
+                                                        "label": "Data type",
+                                                        "description": "Type of the variable"
+                                                    },
+                                                    "valueType": "TYPE",
+                                                    "value": "int",
+                                                    "optional": false,
+                                                    "editable": true
+                                                }
+                                            },
+                                            "flags": 0
+                                        },
+                                        {
+                                            "id": "48253",
+                                            "metadata": {
+                                                "label": "If",
+                                                "description": "Add conditional branch to the integration flow."
+                                            },
+                                            "codedata": {
+                                                "node": "IF",
+                                                "lineRange": {
+                                                    "fileName": "petstore.bal",
+                                                    "startLine": {
+                                                        "line": 16,
+                                                        "offset": 16
+                                                    },
+                                                    "endLine": {
+                                                        "line": 20,
+                                                        "offset": 17
+                                                    }
+                                                },
+                                                "sourceCode": "if true {\n                    var item4 = 0;\n                }\n                else {\n                }"
+                                            },
+                                            "returning": false,
+                                            "branches": [
+                                                {
+                                                    "label": "Then",
+                                                    "kind": "BLOCK",
+                                                    "codedata": {
+                                                        "node": "CONDITIONAL",
+                                                        "lineRange": {
+                                                            "fileName": "petstore.bal",
+                                                            "startLine": {
+                                                                "line": 16,
+                                                                "offset": 24
+                                                            },
+                                                            "endLine": {
+                                                                "line": 18,
+                                                                "offset": 17
+                                                            }
+                                                        },
+                                                        "sourceCode": "{\n                    var item4 = 0;\n                }"
+                                                    },
+                                                    "repeatable": "ONE_OR_MORE",
+                                                    "properties": {
+                                                        "condition": {
+                                                            "metadata": {
+                                                                "label": "Condition",
+                                                                "description": "Boolean Condition"
+                                                            },
+                                                            "valueType": "EXPRESSION",
+                                                            "value": "true ",
+                                                            "optional": false,
+                                                            "editable": true
+                                                        }
+                                                    },
+                                                    "children": [
+                                                        {
+                                                            "id": "49262",
+                                                            "metadata": {
+                                                                "label": "New Variable",
+                                                                "description": "New variable 'item4' with type 'var'"
+                                                            },
+                                                            "codedata": {
+                                                                "node": "NEW_DATA",
+                                                                "lineRange": {
+                                                                    "fileName": "petstore.bal",
+                                                                    "startLine": {
+                                                                        "line": 17,
+                                                                        "offset": 20
+                                                                    },
+                                                                    "endLine": {
+                                                                        "line": 17,
+                                                                        "offset": 34
+                                                                    }
+                                                                },
+                                                                "sourceCode": "var item4 = 0;"
+                                                            },
+                                                            "returning": false,
+                                                            "properties": {
+                                                                "expression": {
+                                                                    "metadata": {
+                                                                        "label": "Expression",
+                                                                        "description": "Expression"
+                                                                    },
+                                                                    "valueType": "EXPRESSION",
+                                                                    "value": "0",
+                                                                    "optional": false,
+                                                                    "editable": true
+                                                                },
+                                                                "variable": {
+                                                                    "metadata": {
+                                                                        "label": "Data variable",
+                                                                        "description": "Name of the variable"
+                                                                    },
+                                                                    "valueType": "IDENTIFIER",
+                                                                    "value": "item4",
+                                                                    "optional": false,
+                                                                    "editable": true
+                                                                },
+                                                                "type": {
+                                                                    "metadata": {
+                                                                        "label": "Data type",
+                                                                        "description": "Type of the variable"
+                                                                    },
+                                                                    "valueType": "TYPE",
+                                                                    "value": "int",
+                                                                    "optional": false,
+                                                                    "editable": true
+                                                                }
+                                                            },
+                                                            "flags": 0
+                                                        }
+                                                    ]
+                                                },
+                                                {
+                                                    "label": "Else",
+                                                    "kind": "BLOCK",
+                                                    "codedata": {
+                                                        "node": "ELSE",
+                                                        "lineRange": {
+                                                            "fileName": "petstore.bal",
+                                                            "startLine": {
+                                                                "line": 19,
+                                                                "offset": 16
+                                                            },
+                                                            "endLine": {
+                                                                "line": 20,
+                                                                "offset": 17
+                                                            }
+                                                        },
+                                                        "sourceCode": "else {\n                }"
+                                                    },
+                                                    "repeatable": "ZERO_OR_ONE",
+                                                    "children": [
+                                                        {
+                                                            "id": "48253-Else-branch",
+                                                            "codedata": {
+                                                                "node": "EMPTY"
+                                                            },
+                                                            "returning": false,
+                                                            "metadata": {
+                                                                "label": "",
+                                                                "description": ""
+                                                            },
+                                                            "branches": []
+                                                        }
+                                                    ]
+                                                }
+                                            ],
+                                            "flags": 0
+                                        }
+                                    ]
+                                }
+                            ],
+                            "flags": 0
+                        },
+                        {
+                            "id": "53968",
+                            "metadata": {
+                                "label": "Return",
+                                "description": "Value of 'response'"
+                            },
+                            "codedata": {
+                                "node": "RETURN",
+                                "lineRange": {
+                                    "fileName": "petstore.bal",
+                                    "startLine": {
+                                        "line": 22,
+                                        "offset": 12
+                                    },
+                                    "endLine": {
+                                        "line": 22,
+                                        "offset": 28
+                                    }
+                                },
+                                "sourceCode": "return response;"
+                            },
+                            "returning": true,
+                            "properties": {
+                                "expression": {
+                                    "metadata": {
+                                        "label": "Expression",
+                                        "description": "Return value"
+                                    },
+                                    "valueType": "EXPRESSION",
+                                    "value": "response",
+                                    "optional": false,
+                                    "editable": true
+                                }
+                            },
+                            "flags": 0
+                        }
+                    ]
+                },
+                {
+                    "label": "On Failure",
+                    "kind": "BLOCK",
+                    "codedata": {
+                        "node": "ON_FAILURE",
+                        "lineRange": {
+                            "fileName": "petstore.bal",
+                            "startLine": {
+                                "line": 24,
+                                "offset": 26
+                            },
+                            "endLine": {
+                                "line": 26,
+                                "offset": 9
+                            }
+                        },
+                        "sourceCode": "{\n            return http:INTERNAL_SERVER_ERROR;\n        }"
+                    },
+                    "repeatable": "ZERO_OR_ONE",
+                    "properties": {
+                        "ignore": {
+                            "metadata": {
+                                "label": "Ignore",
+                                "description": "Ignore the error value"
+                            },
+                            "valueType": "EXPRESSION",
+                            "value": "true",
+                            "optional": false,
+                            "editable": true
+                        },
+                        "errorVariable": {
+                            "metadata": {
+                                "label": "Error Variable",
+                                "description": "Name of the error variable"
+                            },
+                            "valueType": "IDENTIFIER",
+                            "value": "e ",
+                            "optional": false,
+                            "editable": true
+                        },
+                        "errorType": {
+                            "metadata": {
+                                "label": "Error Type",
+                                "description": "Type of the error"
+                            },
+                            "valueType": "TYPE",
+                            "value": "error",
+                            "optional": false,
+                            "editable": true
+                        }
+                    },
+                    "children": [
+                        {
+                            "id": "56962",
+                            "metadata": {
+                                "label": "Return",
+                                "description": "Value of 'http:INTERNAL_SERVER_ERROR'"
+                            },
+                            "codedata": {
+                                "node": "RETURN",
+                                "lineRange": {
+                                    "fileName": "petstore.bal",
+                                    "startLine": {
+                                        "line": 25,
+                                        "offset": 12
+                                    },
+                                    "endLine": {
+                                        "line": 25,
+                                        "offset": 46
+                                    }
+                                },
+                                "sourceCode": "return http:INTERNAL_SERVER_ERROR;"
+                            },
+                            "returning": true,
+                            "properties": {
+                                "expression": {
+                                    "metadata": {
+                                        "label": "Expression",
+                                        "description": "Return value"
+                                    },
+                                    "valueType": "EXPRESSION",
+                                    "value": "http:INTERNAL_SERVER_ERROR",
+                                    "optional": false,
+                                    "editable": true
+                                }
+                            },
+                            "flags": 0
+                        }
+                    ]
+                }
+            ],
+            "flags": 0
+        }
+    ],
+    "connections": [
+        {
+            "id": "35872",
+            "metadata": {
+                "label": "Custom Expression",
+                "description": "Represents a custom Ballerina expression"
+            },
+            "codedata": {
+                "node": "EXPRESSION",
+                "lineRange": {
+                    "fileName": "petstore.bal",
+                    "startLine": {
+                        "line": 4,
+                        "offset": 4
+                    },
+                    "endLine": {
+                        "line": 5,
+                        "offset": 5
+                    }
+                },
+                "sourceCode": "function init() returns error? {\n    }"
+            },
+            "returning": false,
+            "flags": 0
+        }
+    ]
+}

@@ -1,0 +1,1 @@
+{"id":"(person.id).toString()","age":"check int:fromString(person.age)","name":"person.name","course":"{\n id: person.course.id,\ntitle: person.course.title \n}"}

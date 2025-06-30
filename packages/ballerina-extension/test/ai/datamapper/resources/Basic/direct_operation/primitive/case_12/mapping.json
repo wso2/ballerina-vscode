@@ -1,0 +1,1 @@
+{"studentId":{"operation":"DIRECT","targetType":"string","parameters":["person.personId"]},"name":{"operation":"DIRECT","targetType":"string","parameters":["person.fullName"]},"currentYear":{"operation":"DIRECT","targetType":"int","parameters":["person.age"]}}

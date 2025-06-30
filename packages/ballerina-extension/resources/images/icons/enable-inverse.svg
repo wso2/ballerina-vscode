@@ -1,0 +1,41 @@
+<?xml version="1.0" standalone="no"?>
+<!--
+ ~ Copyright (c) 2025, WSO2 LLC. (https://www.wso2.com) All Rights Reserved.
+ ~
+ ~ WSO2 LLC. licenses this file to you under the Apache License,
+ ~ Version 2.0 (the "License"); you may not use this file except
+ ~ in compliance with the License.
+ ~ You may obtain a copy of the License at
+ ~
+ ~     http://www.apache.org/licenses/LICENSE-2.0
+ ~
+ ~ Unless required by applicable law or agreed to in writing,
+ ~ software distributed under the License is distributed on an
+ ~ "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ ~ KIND, either express or implied. See the License for the
+ ~ specific language governing permissions and limitations
+ ~ under the License.
+-->
+<svg version="1.0" xmlns="http://www.w3.org/2000/svg"
+ width="980.000000pt" height="980.000000pt" viewBox="0 0 980.000000 980.000000"
+ preserveAspectRatio="xMidYMid meet">
+    <g transform="translate(0.000000,980.000000) scale(0.100000,-0.100000)"
+    fill="#C5C5C5" stroke="none">
+        <path d="M4625 9794 c-657 -49 -1164 -169 -1700 -404 -754 -330 -1423 -857
+        -1929 -1519 -497 -650 -828 -1439 -945 -2257 -38 -264 -46 -384 -45 -709 0
+        -453 38 -773 140 -1185 180 -724 513 -1378 1002 -1970 121 -147 463 -488 612
+        -612 620 -513 1304 -850 2076 -1022 605 -135 1260 -151 1884 -45 724 122 1443
+        425 2040 858 394 286 763 650 1054 1036 967 1284 1243 2962 736 4485 -192 578
+        -487 1106 -891 1595 -107 129 -475 497 -604 604 -780 645 -1667 1019 -2665
+        1126 -136 15 -652 28 -765 19z m743 -888 c62 -8 165 -25 230 -36 1221 -218
+        2279 -1011 2841 -2130 216 -429 336 -823 406 -1330 22 -158 31 -643 16 -834
+        -66 -814 -371 -1579 -887 -2226 -138 -173 -431 -466 -604 -604 -639 -510
+        -1366 -800 -2175 -867 -174 -14 -616 -6 -773 15 -760 101 -1403 373 -1995 845
+        -256 203 -584 556 -770 826 -415 604 -648 1247 -718 1985 -6 69 -12 231 -12
+        360 0 247 11 397 44 620 191 1284 995 2403 2144 2980 433 218 890 354 1340
+        399 61 6 124 13 140 15 76 10 666 -3 773 -18z"/>
+        <path d="M5738 5253 l-1418 -1418 -863 863 -862 862 -340 -340 -340 -340 1205
+        -1205 1205 -1205 1762 1762 1763 1763 -337 337 c-186 186 -342 338 -348 338
+        -5 0 -648 -638 -1427 -1417z"/>
+    </g>
+</svg>

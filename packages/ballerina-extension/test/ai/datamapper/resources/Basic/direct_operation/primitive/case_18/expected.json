@@ -1,0 +1,1 @@
+{"age":"check (person.age).ensureType()","salary":"check (person.salary).ensureType()","isActive":"(person.isActive).toString()"}

@@ -1,0 +1,350 @@
+{
+    "fileName": "/Users/gayanka/dev/wso2/test/bi_31/currency.bal",
+    "nodes": [
+        {
+            "id": "39127",
+            "metadata": {
+                "label": "HTTP API"
+            },
+            "codedata": {
+                "node": "EVENT_START",
+                "lineRange": {
+                    "fileName": "currency.bal",
+                    "startLine": {
+                        "line": 7,
+                        "offset": 4
+                    },
+                    "endLine": {
+                        "line": 17,
+                        "offset": 5
+                    }
+                },
+                "sourceCode": "resource function get greeting() returns json|http:InternalServerError {\n        do {\n            if true {\n            } else {\n                var item0 = 0;\n            }\n\n        } on fail error e {\n            return http:INTERNAL_SERVER_ERROR;\n        }\n    }"
+            },
+            "returning": false,
+            "properties": {
+                "method": {
+                    "metadata": {
+                        "label": "Method",
+                        "description": "HTTP Method"
+                    },
+                    "valueType": "IDENTIFIER",
+                    "value": "get",
+                    "optional": false,
+                    "editable": true
+                },
+                "path": {
+                    "metadata": {
+                        "label": "Path",
+                        "description": "HTTP Path"
+                    },
+                    "valueType": "STRING",
+                    "value": "greeting",
+                    "optional": false,
+                    "editable": true
+                }
+            },
+            "flags": 2048
+        },
+        {
+            "id": "40185",
+            "metadata": {
+                "label": "ErrorHandler",
+                "description": "Catch and handle errors"
+            },
+            "codedata": {
+                "node": "ERROR_HANDLER",
+                "lineRange": {
+                    "fileName": "currency.bal",
+                    "startLine": {
+                        "line": 8,
+                        "offset": 8
+                    },
+                    "endLine": {
+                        "line": 16,
+                        "offset": 9
+                    }
+                },
+                "sourceCode": "do {\n            if true {\n            } else {\n                var item0 = 0;\n            }\n\n        } on fail error e {\n            return http:INTERNAL_SERVER_ERROR;\n        }"
+            },
+            "returning": false,
+            "branches": [
+                {
+                    "label": "Body",
+                    "kind": "BLOCK",
+                    "codedata": {
+                        "node": "BODY",
+                        "lineRange": {
+                            "fileName": "currency.bal",
+                            "startLine": {
+                                "line": 8,
+                                "offset": 11
+                            },
+                            "endLine": {
+                                "line": 14,
+                                "offset": 9
+                            }
+                        },
+                        "sourceCode": "{\n            if true {\n            } else {\n                var item0 = 0;\n            }\n\n        }"
+                    },
+                    "repeatable": "ONE",
+                    "children": [
+                        {
+                            "id": "41150",
+                            "metadata": {
+                                "label": "If",
+                                "description": "Add conditional branch to the integration flow."
+                            },
+                            "codedata": {
+                                "node": "IF",
+                                "lineRange": {
+                                    "fileName": "currency.bal",
+                                    "startLine": {
+                                        "line": 9,
+                                        "offset": 12
+                                    },
+                                    "endLine": {
+                                        "line": 12,
+                                        "offset": 13
+                                    }
+                                },
+                                "sourceCode": "if true {\n            } else {\n                var item0 = 0;\n            }"
+                            },
+                            "returning": false,
+                            "branches": [
+                                {
+                                    "label": "Then",
+                                    "kind": "BLOCK",
+                                    "codedata": {
+                                        "node": "CONDITIONAL",
+                                        "lineRange": {
+                                            "fileName": "currency.bal",
+                                            "startLine": {
+                                                "line": 9,
+                                                "offset": 20
+                                            },
+                                            "endLine": {
+                                                "line": 10,
+                                                "offset": 13
+                                            }
+                                        },
+                                        "sourceCode": "{\n            }"
+                                    },
+                                    "repeatable": "ONE_OR_MORE",
+                                    "properties": {
+                                        "condition": {
+                                            "metadata": {
+                                                "label": "Condition",
+                                                "description": "Boolean Condition"
+                                            },
+                                            "valueType": "EXPRESSION",
+                                            "value": "true ",
+                                            "optional": false,
+                                            "editable": true
+                                        }
+                                    },
+                                    "children": [
+                                        {
+                                            "id": "draft",
+                                            "metadata": {
+                                                "label": "Draft",
+                                                "description": "Draft Node"
+                                            },
+                                            "codedata": {
+                                                "node": "DRAFT",
+                                                "lineRange": {
+                                                    "fileName": "/Users/gayanka/dev/wso2/test/bi_31/currency.bal",
+                                                    "startLine": {
+                                                        "line": 9,
+                                                        "offset": 21
+                                                    },
+                                                    "endLine": {
+                                                        "line": 9,
+                                                        "offset": 21
+                                                    }
+                                                }
+                                            },
+                                            "branches": [],
+                                            "returning": false
+                                        }
+                                    ]
+                                },
+                                {
+                                    "label": "Else",
+                                    "kind": "BLOCK",
+                                    "codedata": {
+                                        "node": "ELSE",
+                                        "lineRange": {
+                                            "fileName": "currency.bal",
+                                            "startLine": {
+                                                "line": 10,
+                                                "offset": 14
+                                            },
+                                            "endLine": {
+                                                "line": 12,
+                                                "offset": 13
+                                            }
+                                        },
+                                        "sourceCode": "else {\n                var item0 = 0;\n            }"
+                                    },
+                                    "repeatable": "ZERO_OR_ONE",
+                                    "children": [
+                                        {
+                                            "id": "43182",
+                                            "metadata": {
+                                                "label": "New Variable",
+                                                "description": "New variable 'item0' with type 'var'"
+                                            },
+                                            "codedata": {
+                                                "node": "NEW_DATA",
+                                                "lineRange": {
+                                                    "fileName": "currency.bal",
+                                                    "startLine": {
+                                                        "line": 11,
+                                                        "offset": 16
+                                                    },
+                                                    "endLine": {
+                                                        "line": 11,
+                                                        "offset": 30
+                                                    }
+                                                },
+                                                "sourceCode": "var item0 = 0;"
+                                            },
+                                            "returning": false,
+                                            "properties": {
+                                                "expression": {
+                                                    "metadata": {
+                                                        "label": "Expression",
+                                                        "description": "Expression"
+                                                    },
+                                                    "valueType": "EXPRESSION",
+                                                    "value": "0",
+                                                    "optional": false,
+                                                    "editable": true
+                                                },
+                                                "variable": {
+                                                    "metadata": {
+                                                        "label": "Data variable",
+                                                        "description": "Name of the variable"
+                                                    },
+                                                    "valueType": "IDENTIFIER",
+                                                    "value": "item0",
+                                                    "optional": false,
+                                                    "editable": true
+                                                },
+                                                "type": {
+                                                    "metadata": {
+                                                        "label": "Data type",
+                                                        "description": "Type of the variable"
+                                                    },
+                                                    "valueType": "TYPE",
+                                                    "value": "int",
+                                                    "optional": false,
+                                                    "editable": true
+                                                }
+                                            },
+                                            "flags": 0
+                                        }
+                                    ]
+                                }
+                            ],
+                            "flags": 0
+                        }
+                    ]
+                },
+                {
+                    "label": "On Failure",
+                    "kind": "BLOCK",
+                    "codedata": {
+                        "node": "ON_FAILURE",
+                        "lineRange": {
+                            "fileName": "currency.bal",
+                            "startLine": {
+                                "line": 14,
+                                "offset": 26
+                            },
+                            "endLine": {
+                                "line": 16,
+                                "offset": 9
+                            }
+                        },
+                        "sourceCode": "{\n            return http:INTERNAL_SERVER_ERROR;\n        }"
+                    },
+                    "repeatable": "ZERO_OR_ONE",
+                    "properties": {
+                        "ignore": {
+                            "metadata": {
+                                "label": "Ignore",
+                                "description": "Ignore the error value"
+                            },
+                            "valueType": "EXPRESSION",
+                            "value": "false",
+                            "optional": false,
+                            "editable": true
+                        },
+                        "errorVariable": {
+                            "metadata": {
+                                "label": "Error Variable",
+                                "description": "Name of the error variable"
+                            },
+                            "valueType": "IDENTIFIER",
+                            "value": "e ",
+                            "optional": false,
+                            "editable": true
+                        },
+                        "errorType": {
+                            "metadata": {
+                                "label": "Error Type",
+                                "description": "Type of the error"
+                            },
+                            "valueType": "TYPE",
+                            "value": "error",
+                            "optional": false,
+                            "editable": true
+                        }
+                    },
+                    "children": [
+                        {
+                            "id": "47042",
+                            "metadata": {
+                                "label": "Return",
+                                "description": "Value of 'http:INTERNAL_SERVER_ERROR'"
+                            },
+                            "codedata": {
+                                "node": "RETURN",
+                                "lineRange": {
+                                    "fileName": "currency.bal",
+                                    "startLine": {
+                                        "line": 15,
+                                        "offset": 12
+                                    },
+                                    "endLine": {
+                                        "line": 15,
+                                        "offset": 46
+                                    }
+                                },
+                                "sourceCode": "return http:INTERNAL_SERVER_ERROR;"
+                            },
+                            "returning": true,
+                            "properties": {
+                                "expression": {
+                                    "metadata": {
+                                        "label": "Expression",
+                                        "description": "Return value"
+                                    },
+                                    "valueType": "EXPRESSION",
+                                    "value": "http:INTERNAL_SERVER_ERROR",
+                                    "optional": false,
+                                    "editable": true
+                                }
+                            },
+                            "flags": 0
+                        }
+                    ]
+                }
+            ],
+            "flags": 0
+        }
+    ],
+    "connections": []
+}

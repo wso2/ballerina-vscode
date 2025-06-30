@@ -1,0 +1,1 @@
+{"studentId":"person.personId","name":"person.fullName","course":"{\n courseTitle: person.courseName \n}"}

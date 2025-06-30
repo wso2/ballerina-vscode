@@ -1,0 +1,1 @@
+{"id":"student.id","bio":"{\n name: student.studentName?:\"\",\ngender: student.gender,\nage: student.age \n}","academicRecord":"{\n major: student.academicMajor?:\"\",\nsemesterGPA: check (student.semesterGPA).cloneWithType() \n}","accommodationDetails":"{\n numberOfRoomates: (student.roommates?:[]).length(),\naddress: student.address \n}"}

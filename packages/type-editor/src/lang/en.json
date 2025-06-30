@@ -1,0 +1,21 @@
+{
+    "lowcode.develop.configForms.recordEditor.saveButton.text": "Save",
+    "lowcode.develop.configForms.recordEditor.cancelButton.text": "Cancel",
+    "lowcode.develop.configForms.recordEditor.codePanel.title": "Record",
+    "lowcode.develop.configForms.recordEditor.option.createNew": "Create New",
+    "lowcode.develop.configForms.recordEditor.option.importJson": "Import a JSON",
+    "lowcode.develop.configForms.recordEditor.addButton.text": "Add",
+    "lowcode.develop.configForms.recordEditor.jsonButton.text": "Import JSON",
+    "lowcode.develop.configForms.recordEditor.updateButton.text": "Update",
+    "lowcode.develop.configForms.recordEditor.editField.EditTitle": "Edit Field",
+    "lowcode.develop.configForms.recordEditor.editField.updateTitle": "Update Field",
+    "lowcode.develop.configForms.recordEditor.fieldName.text": "Field name",
+    "lowcode.develop.configForms.recordEditor.type.label": "Type",
+    "lowcode.develop.configForms.recordEditor.type.placeholder": "Select Type",
+    "lowcode.develop.configForms.recordEditor.defaultVal.text": "Default Value",
+    "lowcode.develop.configForms.recordEditor.editRecord.title": "Edit Record",
+    "lowcode.develop.configForms.recordEditor.editRecord.nameText": "Record name",
+    "lowcode.develop.configForms.recordEditor.editRecord.namePlaceholder": "Enter record name",
+    "lowcode.develop.configForms.recordEditor.editRecord.visibilityText": "Visibility",
+    "lowcode.develop.configForms.recordEditor.editRecord.sampleBtnText": "Update from Sample"
+}

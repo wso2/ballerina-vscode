@@ -1,0 +1,53 @@
+{
+  "name": "@wso2/syntax-tree",
+  "version": "3.4.2",
+  "description": "syntax-tree",
+  "files": [
+    "lib"
+  ],
+  "main": "lib/index.js",
+  "typings": "lib/index.d.ts",
+  "scripts": {
+    "prebuild": "pnpm run clean",
+    "clean": "rimraf lib && rimraf coverage && rimraf build",
+    "lint": "tslint -t stylish --project .",
+    "build": "tsc --pretty",
+    "watch": "tsc --pretty --watch",
+    "format": "prettier --config .prettierrc 'src/**/*.ts' --write"
+  },
+  "lint-staged": {
+    "src/**/*.ts": [
+      "prettier --config .prettierrc 'src/**/*.ts' --write",
+      "git add"
+    ]
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged"
+    }
+  },
+  "devDependencies": {
+    "husky": "^9.1.7",
+    "lint-staged": "^16.0.0",
+    "prettier": "^3.5.3",
+    "rimraf": "^6.0.1",
+    "tslint": "^6.1.3",
+    "typescript": "5.8.3"
+  },
+  "engines": {
+    "node": ">=6.0.0"
+  },
+  "jest": {
+    "testRegex": "(/tests/.*|\\.(test|spec))\\.js$",
+    "testEnvironment": "node"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/wso2/ballerina-plugin-vscode.git"
+  },
+  "author": "wso2",
+  "license": "UNLICENSED",
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com/"
+  }
+}

@@ -1,0 +1,239 @@
+{
+    "fileName": "/Users/dulaj/WSO2/MyBalProjects/eggplant-projects/Sample Project/Library.bal",
+    "nodes": [
+        {
+            "id": "34973",
+            "metadata": {
+                "label": "HTTP API"
+            },
+            "codedata": {
+                "node": "EVENT_START",
+                "lineRange": {
+                    "fileName": "Library.bal",
+                    "startLine": {
+                        "line": 3,
+                        "offset": 4
+                    },
+                    "endLine": {
+                        "line": 7,
+                        "offset": 5
+                    }
+                },
+                "sourceCode": "resource function get validate(boolean condition = true) returns json|http:InternalServerError|http:InternalServerError {\n        while condition {\n        }\n        string a = \"A\";\n    }"
+            },
+            "returning": false,
+            "properties": {
+                "method": {
+                    "metadata": {
+                        "label": "Method",
+                        "description": "HTTP Method"
+                    },
+                    "valueType": "IDENTIFIER",
+                    "value": "get",
+                    "optional": false,
+                    "editable": true
+                },
+                "path": {
+                    "metadata": {
+                        "label": "Path",
+                        "description": "HTTP Path"
+                    },
+                    "valueType": "STRING",
+                    "value": "validate",
+                    "optional": false,
+                    "editable": true
+                }
+            },
+            "flags": 2048,
+            "viewState": {
+                "x": 1943.7,
+                "y": 200,
+                "w": 112.6,
+                "h": 36.6,
+                "cw": 112.6,
+                "ch": 36.6
+            }
+        },
+        {
+            "id": "36000",
+            "metadata": {
+                "label": "While",
+                "description": "Loop over a block of code."
+            },
+            "codedata": {
+                "node": "WHILE",
+                "lineRange": {
+                    "fileName": "Library.bal",
+                    "startLine": {
+                        "line": 4,
+                        "offset": 8
+                    },
+                    "endLine": {
+                        "line": 5,
+                        "offset": 9
+                    }
+                },
+                "sourceCode": "while condition {\n        }"
+            },
+            "returning": false,
+            "branches": [
+                {
+                    "label": "Body",
+                    "kind": "BLOCK",
+                    "codedata": {
+                        "node": "CONDITIONAL",
+                        "lineRange": {
+                            "fileName": "Library.bal",
+                            "startLine": {
+                                "line": 4,
+                                "offset": 24
+                            },
+                            "endLine": {
+                                "line": 5,
+                                "offset": 9
+                            }
+                        },
+                        "sourceCode": "{\n        }"
+                    },
+                    "repeatable": "ONE",
+                    "children": [
+                        {
+                            "id": "36000-Body-branch",
+                            "codedata": {
+                                "node": "EMPTY"
+                            },
+                            "returning": false,
+                            "metadata": {
+                                "label": "",
+                                "description": ""
+                            },
+                            "branches": [],
+                            "viewState": {
+                                "x": 1992,
+                                "y": 426.6,
+                                "w": 16,
+                                "h": 16,
+                                "cw": 140,
+                                "ch": 50
+                            }
+                        }
+                    ],
+                    "viewState": {
+                        "x": 1930,
+                        "y": 426.6,
+                        "w": 140,
+                        "h": 50,
+                        "cw": 140,
+                        "ch": 50
+                    }
+                }
+            ],
+            "properties": {
+                "condition": {
+                    "metadata": {
+                        "label": "Condition",
+                        "description": "Boolean Condition"
+                    },
+                    "valueType": "EXPRESSION",
+                    "value": "condition ",
+                    "optional": false,
+                    "editable": true
+                }
+            },
+            "flags": 0,
+            "viewState": {
+                "x": 1965,
+                "y": 296.6,
+                "w": 70,
+                "h": 70,
+                "cw": 140,
+                "ch": 220
+            }
+        },
+        {
+            "id": "37967",
+            "metadata": {
+                "label": "New Variable",
+                "description": "New variable 'a' with type 'string'"
+            },
+            "codedata": {
+                "node": "NEW_DATA",
+                "lineRange": {
+                    "fileName": "Library.bal",
+                    "startLine": {
+                        "line": 6,
+                        "offset": 8
+                    },
+                    "endLine": {
+                        "line": 6,
+                        "offset": 23
+                    }
+                },
+                "sourceCode": "string a = \"A\";"
+            },
+            "returning": false,
+            "properties": {
+                "expression": {
+                    "metadata": {
+                        "label": "Expression",
+                        "description": "Expression"
+                    },
+                    "valueType": "EXPRESSION",
+                    "value": "\"A\"",
+                    "optional": false,
+                    "editable": true
+                },
+                "variable": {
+                    "metadata": {
+                        "label": "Data variable",
+                        "description": "Name of the variable"
+                    },
+                    "valueType": "IDENTIFIER",
+                    "value": "a",
+                    "optional": false,
+                    "editable": true
+                },
+                "type": {
+                    "metadata": {
+                        "label": "Data type",
+                        "description": "Type of the variable"
+                    },
+                    "valueType": "TYPE",
+                    "value": "string",
+                    "optional": false,
+                    "editable": true
+                }
+            },
+            "flags": 0,
+            "viewState": {
+                "x": 1850.2,
+                "y": 576.6,
+                "w": 299.6,
+                "h": 73.6,
+                "cw": 299.6,
+                "ch": 73.6
+            }
+        },
+        {
+            "id": "37967-last",
+            "codedata": {
+                "node": "EMPTY"
+            },
+            "returning": false,
+            "metadata": {
+                "label": "",
+                "description": ""
+            },
+            "branches": [],
+            "viewState": {
+                "x": 1982,
+                "y": 710.2,
+                "w": 16,
+                "h": 16,
+                "cw": 140,
+                "ch": 50
+            }
+        }
+    ],
+    "connections": []
+}
