@@ -1,0 +1,466 @@
+{
+  "project": "default_module_projects/simple_type_configs_with_errors",
+  "configVariables": {
+    "config_tests/simpleconfigs_errors": {
+      "": [
+        {
+          "id": "32796",
+          "metadata": {
+            "label": "Config",
+            "description": "Create a configurable variable"
+          },
+          "codedata": {
+            "node": "CONFIG_VARIABLE",
+            "lineRange": {
+              "fileName": "main.bal",
+              "startLine": {
+                "line": 1,
+                "offset": 0
+              },
+              "endLine": {
+                "line": 2,
+                "offset": 29
+              }
+            }
+          },
+          "returning": false,
+          "properties": {
+            "variable": {
+              "metadata": {
+                "label": "Variable Name",
+                "description": "Name of the variable"
+              },
+              "valueType": "IDENTIFIER",
+              "valueTypeConstraint": "Global",
+              "value": "intVar",
+              "optional": false,
+              "editable": true,
+              "advanced": false,
+              "hidden": false
+            },
+            "type": {
+              "metadata": {
+                "label": "Variable Type",
+                "description": "Type of the variable"
+              },
+              "valueType": "TYPE",
+              "value": "int",
+              "placeholder": "var",
+              "optional": false,
+              "editable": true,
+              "advanced": false,
+              "hidden": false,
+              "codedata": {}
+            },
+            "defaultValue": {
+              "metadata": {
+                "label": "Default Value",
+                "description": "Default value of the variable"
+              },
+              "valueType": "EXPRESSION",
+              "value": "42",
+              "optional": true,
+              "editable": true,
+              "advanced": false,
+              "hidden": false,
+              "modified": false
+            },
+            "configValue": {
+              "metadata": {
+                "label": "Config Value",
+                "description": "Config value of the variable, to be used in Config.toml"
+              },
+              "valueType": "EXPRESSION",
+              "value": "int\n",
+              "optional": true,
+              "editable": true,
+              "advanced": false,
+              "hidden": true,
+              "modified": false
+            },
+            "documentation": {
+              "metadata": {
+                "label": "Documentation",
+                "description": "Variable documentation in Markdown format"
+              },
+              "valueType": "STRING",
+              "value": "Configurable variable with integer value.",
+              "optional": true,
+              "editable": true,
+              "advanced": false,
+              "hidden": false,
+              "modified": false
+            }
+          },
+          "flags": 0
+        },
+        {
+          "id": "34758",
+          "metadata": {
+            "label": "Config",
+            "description": "Create a configurable variable"
+          },
+          "codedata": {
+            "node": "CONFIG_VARIABLE",
+            "lineRange": {
+              "fileName": "main.bal",
+              "startLine": {
+                "line": 3,
+                "offset": 0
+              },
+              "endLine": {
+                "line": 3,
+                "offset": 38
+              }
+            }
+          },
+          "returning": false,
+          "properties": {
+            "variable": {
+              "metadata": {
+                "label": "Variable Name",
+                "description": "Name of the variable"
+              },
+              "valueType": "IDENTIFIER",
+              "valueTypeConstraint": "Global",
+              "value": "stringVar",
+              "optional": false,
+              "editable": true,
+              "advanced": false,
+              "hidden": false
+            },
+            "type": {
+              "metadata": {
+                "label": "Variable Type",
+                "description": "Type of the variable"
+              },
+              "valueType": "TYPE",
+              "value": "string",
+              "placeholder": "var",
+              "optional": false,
+              "editable": true,
+              "advanced": false,
+              "hidden": false,
+              "codedata": {}
+            },
+            "defaultValue": {
+              "metadata": {
+                "label": "Default Value",
+                "description": "Default value of the variable"
+              },
+              "valueType": "EXPRESSION",
+              "value": "\"foo\"",
+              "optional": true,
+              "editable": true,
+              "advanced": false,
+              "hidden": false,
+              "modified": false
+            },
+            "configValue": {
+              "metadata": {
+                "label": "Config Value",
+                "description": "Config value of the variable, to be used in Config.toml"
+              },
+              "valueType": "EXPRESSION",
+              "value": "\"test\n",
+              "optional": true,
+              "editable": true,
+              "advanced": false,
+              "hidden": true,
+              "modified": false
+            },
+            "documentation": {
+              "metadata": {
+                "label": "Documentation",
+                "description": "Variable documentation in Markdown format"
+              },
+              "valueType": "STRING",
+              "value": "",
+              "optional": true,
+              "editable": true,
+              "advanced": false,
+              "hidden": false,
+              "modified": false
+            }
+          },
+          "flags": 0
+        },
+        {
+          "id": "36789",
+          "metadata": {
+            "label": "Config",
+            "description": "Create a configurable variable"
+          },
+          "codedata": {
+            "node": "CONFIG_VARIABLE",
+            "lineRange": {
+              "fileName": "main.bal",
+              "startLine": {
+                "line": 5,
+                "offset": 0
+              },
+              "endLine": {
+                "line": 6,
+                "offset": 54
+              }
+            }
+          },
+          "returning": false,
+          "properties": {
+            "variable": {
+              "metadata": {
+                "label": "Variable Name",
+                "description": "Name of the variable"
+              },
+              "valueType": "IDENTIFIER",
+              "valueTypeConstraint": "Global",
+              "value": "stringArrayVar",
+              "optional": false,
+              "editable": true,
+              "advanced": false,
+              "hidden": false
+            },
+            "type": {
+              "metadata": {
+                "label": "Variable Type",
+                "description": "Type of the variable"
+              },
+              "valueType": "TYPE",
+              "value": "string[]",
+              "placeholder": "var",
+              "optional": false,
+              "editable": true,
+              "advanced": false,
+              "hidden": false,
+              "codedata": {}
+            },
+            "defaultValue": {
+              "metadata": {
+                "label": "Default Value",
+                "description": "Default value of the variable"
+              },
+              "valueType": "EXPRESSION",
+              "value": "[\"bar\", \"baz\"]",
+              "optional": true,
+              "editable": true,
+              "advanced": false,
+              "hidden": false,
+              "modified": false
+            },
+            "configValue": {
+              "metadata": {
+                "label": "Config Value",
+                "description": "Config value of the variable, to be used in Config.toml"
+              },
+              "valueType": "EXPRESSION",
+              "value": "[\"apple\" \"banana\", \"cherry\"]\n",
+              "optional": true,
+              "editable": true,
+              "advanced": false,
+              "hidden": true,
+              "modified": false
+            },
+            "documentation": {
+              "metadata": {
+                "label": "Documentation",
+                "description": "Variable documentation in Markdown format"
+              },
+              "valueType": "STRING",
+              "value": "Configurable variable with array value.",
+              "optional": true,
+              "editable": true,
+              "advanced": false,
+              "hidden": false,
+              "modified": false
+            }
+          },
+          "flags": 0
+        },
+        {
+          "id": "39837",
+          "metadata": {
+            "label": "Config",
+            "description": "Create a configurable variable"
+          },
+          "codedata": {
+            "node": "CONFIG_VARIABLE",
+            "lineRange": {
+              "fileName": "main.bal",
+              "startLine": {
+                "line": 8,
+                "offset": 0
+              },
+              "endLine": {
+                "line": 13,
+                "offset": 2
+              }
+            }
+          },
+          "returning": false,
+          "properties": {
+            "variable": {
+              "metadata": {
+                "label": "Variable Name",
+                "description": "Name of the variable"
+              },
+              "valueType": "IDENTIFIER",
+              "valueTypeConstraint": "Global",
+              "value": "recordVar1",
+              "optional": false,
+              "editable": true,
+              "advanced": false,
+              "hidden": false
+            },
+            "type": {
+              "metadata": {
+                "label": "Variable Type",
+                "description": "Type of the variable"
+              },
+              "valueType": "TYPE",
+              "value": "Student",
+              "placeholder": "var",
+              "optional": false,
+              "editable": true,
+              "advanced": false,
+              "hidden": false,
+              "codedata": {}
+            },
+            "defaultValue": {
+              "metadata": {
+                "label": "Default Value",
+                "description": "Default value of the variable"
+              },
+              "valueType": "EXPRESSION",
+              "value": "{\n    name: \"John Doe\",\n    age: 20,\n    grade: \"A\"\n}",
+              "optional": true,
+              "editable": true,
+              "advanced": false,
+              "hidden": false,
+              "modified": false
+            },
+            "configValue": {
+              "metadata": {
+                "label": "Config Value",
+                "description": "Config value of the variable, to be used in Config.toml"
+              },
+              "valueType": "EXPRESSION",
+              "value": "recordVar1 = { name \"Jane Smith\", age = 22, grade = \"A\" }\n",
+              "optional": true,
+              "editable": true,
+              "advanced": false,
+              "hidden": true,
+              "modified": false
+            },
+            "documentation": {
+              "metadata": {
+                "label": "Documentation",
+                "description": "Variable documentation in Markdown format"
+              },
+              "valueType": "STRING",
+              "value": "Configurable variable with record value.",
+              "optional": true,
+              "editable": true,
+              "advanced": false,
+              "hidden": false,
+              "modified": false
+            }
+          },
+          "flags": 0
+        },
+        {
+          "id": "45668",
+          "metadata": {
+            "label": "Config",
+            "description": "Create a configurable variable"
+          },
+          "codedata": {
+            "node": "CONFIG_VARIABLE",
+            "lineRange": {
+              "fileName": "main.bal",
+              "startLine": {
+                "line": 14,
+                "offset": 0
+              },
+              "endLine": {
+                "line": 14,
+                "offset": 36
+              }
+            }
+          },
+          "returning": false,
+          "properties": {
+            "variable": {
+              "metadata": {
+                "label": "Variable Name",
+                "description": "Name of the variable"
+              },
+              "valueType": "IDENTIFIER",
+              "valueTypeConstraint": "Global",
+              "value": "recordVar2",
+              "optional": false,
+              "editable": true,
+              "advanced": false,
+              "hidden": false
+            },
+            "type": {
+              "metadata": {
+                "label": "Variable Type",
+                "description": "Type of the variable"
+              },
+              "valueType": "TYPE",
+              "value": "Student",
+              "placeholder": "var",
+              "optional": false,
+              "editable": true,
+              "advanced": false,
+              "hidden": false,
+              "codedata": {}
+            },
+            "defaultValue": {
+              "metadata": {
+                "label": "Default Value",
+                "description": "Default value of the variable"
+              },
+              "valueType": "EXPRESSION",
+              "value": "",
+              "optional": true,
+              "editable": true,
+              "advanced": false,
+              "hidden": false,
+              "modified": false
+            },
+            "configValue": {
+              "metadata": {
+                "label": "Config Value",
+                "description": "Config value of the variable, to be used in Config.toml"
+              },
+              "valueType": "EXPRESSION",
+              "value": "\n[config_tests.simpleconfigs_errors.recordVar2]\nname = \"John\"\nage = 30\ngrade = B\n",
+              "optional": true,
+              "editable": true,
+              "advanced": false,
+              "hidden": true,
+              "modified": false
+            },
+            "documentation": {
+              "metadata": {
+                "label": "Documentation",
+                "description": "Variable documentation in Markdown format"
+              },
+              "valueType": "STRING",
+              "value": "",
+              "optional": true,
+              "editable": true,
+              "advanced": false,
+              "hidden": false,
+              "modified": false
+            }
+          },
+          "flags": 0
+        }
+      ]
+    }
+  },
+  "errorMsg": "Config.toml contains syntax errors. Features like config editing, local run, and debugging may not function properly until the file is manually fixed.",
+  "stacktrace": "[io.ballerina.flowmodelgenerator.extension.ConfigEditorV2Service.handleConfigTomlErrors(ConfigEditorV2Service.java:1034), io.ballerina.flowmodelgenerator.extension.ConfigEditorV2Service.lambda$getConfigVariables$0(ConfigEditorV2Service.java:166), java.base/java.util.concurrent.CompletableFuture$AsyncSupply.run(CompletableFuture.java:1768), java.base/java.util.concurrent.CompletableFuture$AsyncSupply.exec(CompletableFuture.java:1760), java.base/java.util.concurrent.ForkJoinTask.doExec(ForkJoinTask.java:387), java.base/java.util.concurrent.ForkJoinPool$WorkQueue.topLevelExec(ForkJoinPool.java:1312), java.base/java.util.concurrent.ForkJoinPool.scan(ForkJoinPool.java:1843), java.base/java.util.concurrent.ForkJoinPool.runWorker(ForkJoinPool.java:1808), java.base/java.util.concurrent.ForkJoinWorkerThread.run(ForkJoinWorkerThread.java:188)]"
+}
