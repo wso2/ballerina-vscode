@@ -119,6 +119,7 @@ import io.ballerina.compiler.syntax.tree.WaitFieldNode;
 import io.ballerina.compiler.syntax.tree.WaitFieldsListNode;
 import io.ballerina.compiler.syntax.tree.WhileStatementNode;
 import io.ballerina.flowmodelgenerator.core.model.Branch;
+import io.ballerina.flowmodelgenerator.core.model.CommentProperty;
 import io.ballerina.flowmodelgenerator.core.model.FlowNode;
 import io.ballerina.flowmodelgenerator.core.model.FormBuilder;
 import io.ballerina.flowmodelgenerator.core.model.NodeBuilder;
@@ -1993,16 +1994,18 @@ public class CodeAnalyzer extends NodeVisitor {
         NodeList<MatchClauseNode> matchClauseNodes = matchStatementNode.matchClauses();
         for (MatchClauseNode matchClauseNode : matchClauseNodes) {
             Optional<MatchGuardNode> matchGuardNode = matchClauseNode.matchGuard();
-            String label = matchClauseNode.matchPatterns().stream()
-                    .map(node -> node.toSourceCode().strip())
+            CommentProperty commentProperty = new CommentProperty();
+            String pattern = matchClauseNode.matchPatterns().stream()
+                    .map(p -> removeLeadingAndTrailingMinutiae(p, commentProperty))
                     .collect(Collectors.joining("|"));
+            String label = pattern;
             if (matchGuardNode.isPresent()) {
-                label += " " + matchGuardNode.get().toSourceCode().strip();
+                label +=  " " + matchGuardNode.get().toSourceCode().strip();
             }
 
             Branch.Builder branchBuilder = startBranch(label, NodeKind.CONDITIONAL, Branch.BranchKind.BLOCK,
                     Branch.Repeatable.ONE_OR_MORE)
-                    .properties().patterns(matchClauseNode.matchPatterns()).stepOut();
+                    .properties().patterns(matchClauseNode, pattern, commentProperty).stepOut();
 
             matchGuardNode.ifPresent(guard -> branchBuilder.properties()
                     .expression(guard.expression(), Property.GUARD_KEY, Property.GUARD_DOC));
@@ -2289,5 +2292,21 @@ public class CodeAnalyzer extends NodeVisitor {
     // TODO: Update data based on requirements
     private record MemoryManagerData(String type, String size) {
 
+    }
+
+    private String removeLeadingAndTrailingMinutiae(Node node, CommentProperty commentProperty) {
+        String sourceCode = node.toSourceCode();
+        String leadingMinutiae = node.leadingMinutiae().toString();
+        if (leadingMinutiae.contains("//")) {
+            commentProperty.setLeadingComment(leadingMinutiae.substring(leadingMinutiae.indexOf("//")));
+        }
+        sourceCode = sourceCode.replace(leadingMinutiae, "");
+
+        String trailingMinutiae = node.trailingMinutiae().toString();
+        if (trailingMinutiae.contains("//")) {
+            commentProperty.setTrailingComment(trailingMinutiae.substring(trailingMinutiae.indexOf("//")));
+        }
+        sourceCode = sourceCode.replace(node.trailingMinutiae().toString(), "");
+        return sourceCode;
     }
 }

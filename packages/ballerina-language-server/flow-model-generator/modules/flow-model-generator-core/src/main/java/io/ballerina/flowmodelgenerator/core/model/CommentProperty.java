@@ -25,30 +25,32 @@ package io.ballerina.flowmodelgenerator.core.model;
  * @param trailingComment The trailing comment of a node.
  * @since 1.1.0
  */
-public record CommentProperty(String leadingComment,
-                              String trailingComment) {
+public class CommentProperty {
 
-    public static class Builder<T> extends FacetedBuilder<T> {
+    private String leadingComment;
+    private String trailingComment;
 
-        private String leadingComment;
-        private String trailingComment;
+    public CommentProperty() {
+    }
 
-        public Builder(T parentBuilder) {
-            super(parentBuilder);
-        }
+    public CommentProperty(String leadingComment, String trailingComment) {
+        this.leadingComment = leadingComment;
+        this.trailingComment = trailingComment;
+    }
 
-        public Builder<T> leadingComment(String leadingComment) {
-            this.leadingComment = leadingComment;
-            return this;
-        }
+    public String getLeadingComment() {
+        return leadingComment;
+    }
 
-        public Builder<T> trailingComment(String trailingComment) {
-            this.trailingComment = trailingComment;
-            return this;
-        }
+    public void setLeadingComment(String leadingComment) {
+        this.leadingComment = leadingComment;
+    }
 
-        public CommentProperty build() {
-            return new CommentProperty(leadingComment, trailingComment);
-        }
+    public String getTrailingComment() {
+        return trailingComment;
+    }
+
+    public void setTrailingComment(String trailingComment) {
+        this.trailingComment = trailingComment;
     }
 }
