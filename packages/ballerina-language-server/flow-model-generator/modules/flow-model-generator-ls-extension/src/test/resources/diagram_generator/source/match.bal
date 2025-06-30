@@ -255,3 +255,25 @@ service /market on new http:Listener(9090) {
         }
     }
 }
+
+public function getMusicMood(int weatherCode) returns string {
+    match weatherCode {
+        // Clear and Sunny conditions
+        1000|1009 => {
+            return "Energetic and Euphoric";
+        }
+        1003 => {
+            return "Light and Cheerful";
+        }
+
+        // Cloudy variations
+        1006 => {
+            return "Calm and Contemplative";
+        }
+
+        // Default for any other conditions
+        _ => {
+            return "Neutral and Balanced";
+        }
+    }
+}
