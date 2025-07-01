@@ -37,7 +37,6 @@ import {
     UNSUPPORTED_DEBUGGER_RUNINTERMINAL_KIND, INVALID_DEBUGGER_RUNINTERMINAL_KIND
 } from '../../core';
 import { ExtendedLangClient } from '../../core/extended-language-client';
-import { BALLERINA_HOME, OVERRIDE_BALLERINA_HOME } from '../../core/preferences';
 import {
     TM_EVENT_START_DEBUG_SESSION, CMP_DEBUGGER, sendTelemetryEvent, sendTelemetryException,
     CMP_NOTEBOOK, TM_EVENT_START_NOTEBOOK_DEBUG
@@ -695,9 +694,8 @@ class BIRunAdapter extends LoggingDebugSession {
             task: 'run'
         };
 
-        const config = workspace.getConfiguration('ballerina');
-        const ballerinaHome = config.get<string>(BALLERINA_HOME);
-        const pluginDevModeEnabled = config.get<boolean>(OVERRIDE_BALLERINA_HOME);
+        const ballerinaHome = ballerinaExtInstance.getConfiguredBallerinaHome();
+        const pluginDevModeEnabled = ballerinaExtInstance.overrideBallerinaHome();
 
         let runCommand: string;
         if (pluginDevModeEnabled && ballerinaHome) {
