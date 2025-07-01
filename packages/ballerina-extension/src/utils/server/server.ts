@@ -326,7 +326,7 @@ function getServerOptionsUsingJava(extension: BallerinaExtension): ServerOptions
     // Add custom JVM arguments from environment variable ( Example: LS_CUSTOM_ARGS="-arg1 -arg2=value")
     if (process.env.LS_CUSTOM_ARGS) {
         debug(`LS_CUSTOM_ARGS: ${process.env.LS_CUSTOM_ARGS}`);
-        args.push(...process.env.LS_CUSTOM_ARGS.split(' '));
+        args.unshift(...process.env.LS_CUSTOM_ARGS.split(' '));
     }
     
     const serverOptions = {
