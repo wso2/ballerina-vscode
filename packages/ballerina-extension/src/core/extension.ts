@@ -154,7 +154,7 @@ export class BallerinaExtension {
     private ballerinaConfigPath: string;
     private isOpenedOnce: boolean;
     private ballerinaUserHome: string;
-    private ballerinaUserHomeName; string;
+    private ballerinaUserHomeName: string;
     private ballerinaIntegratorVersion: string;
     private ballerinaIntegratorReleaseUrl: string;
     private ballerinaHomeCustomDirName: string;
