@@ -27,7 +27,6 @@ import { clientManager, findRunningBallerinaProcesses, handleError, HTTPYAC_CONF
 import { BIDesignModelResponse, OpenAPISpec } from "@wso2/ballerina-core";
 import { startDebugging } from "../editor-support/codelens-provider";
 import { v4 as uuidv4 } from "uuid";
-import { StateMachine } from "../../stateMachine";
 import { createGraphqlView } from "../../views/graphql";
 
 // File constants
@@ -273,11 +272,9 @@ async function getAvailableServices(projectDir: string): Promise<ServiceInfo[]> 
                         .join(','),
                 };
 
-
-
                 return {
                     name,
-                    basePath: trimmedPath,
+                    basePath: trimmedPath ? trimmedPath : '/',
                     filePath: location.filePath,
                     type: serviceType,
                     listener,
