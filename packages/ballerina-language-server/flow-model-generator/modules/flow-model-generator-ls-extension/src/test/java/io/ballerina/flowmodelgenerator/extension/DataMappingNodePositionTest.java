@@ -79,7 +79,7 @@ public class DataMappingNodePositionTest extends AbstractLSTest {
 
     @Override
     protected Class<? extends AbstractLSTest> clazz() {
-        return DataMappingTypesTest.class;
+        return DataMappingNodePositionTest.class;
     }
 
     @Override

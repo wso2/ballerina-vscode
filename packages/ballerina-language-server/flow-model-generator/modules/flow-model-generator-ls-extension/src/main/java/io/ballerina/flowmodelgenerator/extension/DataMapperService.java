@@ -275,7 +275,7 @@ public class DataMapperService implements ExtendedLanguageServerService {
                 if (document.isEmpty()) {
                     return response;
                 }
-                DataMapManager dataMapManager = new DataMapManager(this.workspaceManager, document.get());
+                DataMapManager dataMapManager = new DataMapManager(document.get());
                 response.setCodedata(dataMapManager.nodePosition(request.codedata(), request.name()));
             } catch (Throwable e) {
                 response.setError(e);
