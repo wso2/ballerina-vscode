@@ -160,7 +160,13 @@ public class Value {
     public String getValue() {
         List<Object> values = this.values;
         if (Objects.nonNull(values) && !values.isEmpty()) {
-            return String.join(", ", values.stream().map(Object::toString).toList());
+            if (values.getFirst() instanceof String) {
+                return String.join(", ", values.stream().map(v -> (String) v).toList());
+            }
+            if (values.getFirst() instanceof JsonPrimitive) {
+                return String.join(", ", values.stream().map(v -> (JsonPrimitive) v)
+                        .map(JsonPrimitive::getAsString).toList());
+            }
         }
         if (value instanceof String) {
             return (String) value;
