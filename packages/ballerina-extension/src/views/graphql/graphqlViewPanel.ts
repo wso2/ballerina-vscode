@@ -19,7 +19,7 @@
 import { ViewColumn, window, WebviewPanel, Uri } from "vscode";
 import { getCommonWebViewOptions } from '../../utils';
 import { render } from './render';
-import { ballerinaExtInstance, ExtendedLangClient } from "../../core";
+import { ballerinaExtInstance } from "../../core";
 import { SwaggerServer } from "./server";
 import { CMP_TRYIT_GRAPHQL_VIEW, sendTelemetryEvent, TM_EVENT_GRAPHQL_RUN } from "../../features/telemetry";
 import path from "path";
