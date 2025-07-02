@@ -43,9 +43,9 @@ export function activateTryItCommand(ballerinaExtInstance: BallerinaExtension) {
         clientManager.setClient(ballerinaExtInstance.langClient);
 
         // Register try it command handler
-        const disposable = commands.registerCommand(PALETTE_COMMANDS.TRY_IT, async (withNotice: boolean = false, resourceMetadata?: ResourceMetadata, serviceMetadata?: ServiceMetadata) => {
+        const disposable = commands.registerCommand(PALETTE_COMMANDS.TRY_IT, async (withNotice: boolean = false, resourceMetadata?: ResourceMetadata, serviceMetadata?: ServiceMetadata, filePath?: string) => {
             try {
-                await openTryItView(withNotice, resourceMetadata, serviceMetadata);
+                await openTryItView(withNotice, resourceMetadata, serviceMetadata, filePath);
             } catch (error) {
                 handleError(error, "Opening Try It view failed");
             }
@@ -59,7 +59,7 @@ export function activateTryItCommand(ballerinaExtInstance: BallerinaExtension) {
     }
 }
 
-async function openTryItView(withNotice: boolean = false, resourceMetadata?: ResourceMetadata, serviceMetadata?: ServiceMetadata) {
+async function openTryItView(withNotice: boolean = false, resourceMetadata?: ResourceMetadata, serviceMetadata?: ServiceMetadata, filePath?: string): Promise<void> {
     try {
         if (!clientManager.hasClient()) {
             throw new Error('Ballerina Language Server is not connected');
@@ -70,7 +70,14 @@ async function openTryItView(withNotice: boolean = false, resourceMetadata?: Res
             throw new Error('Please open a workspace first');
         }
 
-        const services: ServiceInfo[] = await getAvailableServices(workspaceRoot);
+        let services: ServiceInfo[] = await getAvailableServices(workspaceRoot);
+
+        // if the getDesignModel() LS API is unavailable, create a ServiceInfo from ServiceMetadata to support Try It functionality. (a fallback logic for Ballerina versions prior to 2201.12.x)
+        if (services == null && serviceMetadata && filePath) {
+            const service = createServiceInfoFromMetadata(serviceMetadata, workspaceRoot, filePath);
+            services = [service];
+        }
+
         if (!services || services.length === 0) {
             vscode.window.showInformationMessage('No services found in the project');
             return;
@@ -131,6 +138,12 @@ async function openTryItView(withNotice: boolean = false, resourceMetadata?: Res
             }
         } else {
             selectedService = services[0];
+        }
+
+        // Safety check to ensure we have a selected service
+        if (!selectedService) {
+            vscode.window.showErrorMessage('Failed to select a service for Try It');
+            return;
         }
 
         const targetDir = path.join(workspaceRoot, 'target');
@@ -283,8 +296,7 @@ async function getAvailableServices(projectDir: string): Promise<ServiceInfo[]> 
 
         return services || [];
     } catch (error) {
-        handleError(error, "Getting available services", false);
-        return [];
+        return null;
     }
 }
 
@@ -341,7 +353,7 @@ async function generateTryItFileContent(targetDir: string, openapiSpec: OAISpec,
             ...openapiSpec,
             port: service.port.toString(),
             basePath: service.basePath === '/' ? '' : sanitizePath(service.basePath), // to avoid double slashes in the URL
-            serviceName: service.name || 'Default',
+            serviceName: service.name || '/',
             isResourceMode: isResourceMode,
             resourceMethod: isResourceMode ? resourceMetadata?.methodValue.toUpperCase() : '',
             resourcePath: resourcePath,
@@ -1016,4 +1028,34 @@ interface ResourceMetadata {
 interface ServiceMetadata {
     basePath: string;
     listener: string;
+}
+
+function createServiceInfoFromMetadata(serviceMetadata: ServiceMetadata, workspaceRoot: string, filepath?: string): ServiceInfo {
+    let listenerPort: string | undefined;
+    let listenerName = serviceMetadata.listener;
+
+    // Check if it's an anonymous listener format like 'new http:Listener(9090)'
+    const anonymousListenerMatch = serviceMetadata.listener.match(/new http:Listener\((\d+)\)/);
+    if (anonymousListenerMatch) {
+        listenerPort = anonymousListenerMatch[1];
+        listenerName = serviceMetadata.listener;
+    }
+
+    // Determine service type - default to HTTP for now since we don't have type info in metadata
+    // This could be enhanced to detect other types based on listener or basePath patterns
+    const serviceType = ServiceType.HTTP;
+
+    // Generate a service name from the basePath
+    const serviceName = serviceMetadata.basePath === '/' ? '/' : serviceMetadata.basePath.replace(/^\/+|\/+$/g, '').replace(/\//g, '_') || 'Service';
+
+    return {
+        name: serviceName,
+        basePath: serviceMetadata.basePath,
+        filePath: filepath ? filepath : workspaceRoot,
+        type: serviceType,
+        listener: {
+            name: listenerName,
+            port: listenerPort
+        }
+    };
 }
