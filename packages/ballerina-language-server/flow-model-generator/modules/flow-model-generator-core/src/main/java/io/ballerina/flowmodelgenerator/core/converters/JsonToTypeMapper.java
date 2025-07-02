@@ -473,7 +473,7 @@ public class JsonToTypeMapper {
                             .type(toTypeData(null, field.type))
                             .name(field.fieldName)
                             .refs(List.of())
-                            .optional(field.type instanceof NilTypeDesc && isNullAsOptional || field.isOptional)
+                            .optional((field.type instanceof NilTypeDesc && isNullAsOptional) || field.isOptional)
                             .build());
                 }
 
