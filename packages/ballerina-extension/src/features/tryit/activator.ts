@@ -70,7 +70,7 @@ async function openTryItView(withNotice: boolean = false, resourceMetadata?: Res
             throw new Error('Please open a workspace first');
         }
 
-        let services: ServiceInfo[] = await getAvailableServices(workspaceRoot);
+        let services: ServiceInfo[] | null = await getAvailableServices(workspaceRoot);
 
         // if the getDesignModel() LS API is unavailable, create a ServiceInfo from ServiceMetadata to support Try It functionality. (a fallback logic for Ballerina versions prior to 2201.12.x)
         if (services == null && serviceMetadata && filePath) {
@@ -255,7 +255,7 @@ async function findServiceForResource(services: ServiceInfo[], resourceMetadata:
     }
 }
 
-async function getAvailableServices(projectDir: string): Promise<ServiceInfo[]> {
+async function getAvailableServices(projectDir: string): Promise<ServiceInfo[] | null> {
     try {
         const langClient = clientManager.getClient();
 
