@@ -18,26 +18,13 @@
   },
   "propertyKey": "expression",
   "targetField": "department",
-  "fieldId": "department.name.students.address.street",
-  "output": {
-    "variable3.bal": [
-      {
-        "range": {
-          "start": {
-            "line": 24,
-            "character": 37
-          },
-          "end": {
-            "line": 24,
-            "character": 37
-          }
-        },
-        "newText": "name: {students: {address: {street: }}}"
-      }
-    ]
-  },
-  "position": {
-    "line": 24,
-    "offset": 73
+  "fieldId": "department.students.address.street",
+  "property": {
+    "valueType": "EXPRESSION",
+    "valueTypeConstraint": "string",
+    "optional": false,
+    "editable": false,
+    "advanced": false,
+    "hidden": false
   }
 }

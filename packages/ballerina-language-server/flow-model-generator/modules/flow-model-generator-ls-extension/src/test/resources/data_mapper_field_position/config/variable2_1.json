@@ -19,11 +19,12 @@
   "propertyKey": "expression",
   "targetField": "department",
   "fieldId": "department.students.0.username",
-  "output": {
-    "variable2.bal": []
-  },
-  "position": {
-    "line": 24,
-    "offset": 75
+  "property": {
+    "valueType": "EXPRESSION",
+    "valueTypeConstraint": "string",
+    "optional": false,
+    "editable": false,
+    "advanced": false,
+    "hidden": false
   }
 }
