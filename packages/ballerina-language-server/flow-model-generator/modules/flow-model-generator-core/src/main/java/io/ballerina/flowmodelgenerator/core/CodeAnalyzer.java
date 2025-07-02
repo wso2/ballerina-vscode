@@ -825,8 +825,12 @@ public class CodeAnalyzer extends NodeVisitor {
                 }
                 Property.Builder<FormBuilder<NodeBuilder>> customPropBuilder =
                         nodeBuilder.properties().custom();
-                String escapedParamName = CommonUtil.escapeReservedKeyword(restParamSymbol.getName().get());
+                String escapedParamName = restParamSymbol.getName().get();
                 ParameterData restParamResult = funcParamMap.get(escapedParamName);
+                if (restParamResult == null) {
+                    restParamResult = funcParamMap.get(CommonUtil.escapeReservedKeyword(
+                            restParamSymbol.getName().get()));
+                }
                 funcParamMap.remove(restParamSymbol.getName().get());
                 String unescapedParamName = ParamUtils.removeLeadingSingleQuote(restParamResult.name());
                 customPropBuilder
@@ -862,12 +866,14 @@ public class CodeAnalyzer extends NodeVisitor {
             final List<LinkedHashMap<String, String>> includedRecordRestArgs = new ArrayList<>();
             for (int i = 0; i < paramsList.size(); i++) {
                 ParameterSymbol parameterSymbol = paramsList.get(i);
-                String escapedParamName = CommonUtil.escapeReservedKeyword(parameterSymbol.getName().get());
-                ParameterData paramResult = funcParamMap.get(escapedParamName);
-                if (paramResult == null) {
-                    continue;
+                String escapedParamName = parameterSymbol.getName().get();
+                if (!funcParamMap.containsKey(escapedParamName)) {
+                    escapedParamName = CommonUtil.escapeReservedKeyword(escapedParamName);
+                    if (!funcParamMap.containsKey(escapedParamName)) {
+                        continue;
+                    }
                 }
-                paramResult = funcParamMap.get(escapedParamName);
+                ParameterData paramResult = funcParamMap.get(escapedParamName);
                 Node paramValue;
                 if (i < argCount) {
                     paramValue = positionalArgs.poll();
