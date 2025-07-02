@@ -58,7 +58,7 @@ public class JsonToTypeTest extends AbstractLSTest {
                 testConfig.prefix(),
                 testConfig.allowAdditionalFields(),
                 testConfig.asInline(),
-                false, // nullAsOptional is not used in this context
+                testConfig.isNullAsOptional(), // nullAsOptional is not used in this context
                 sourceFile);
         JsonArray types = getResponse(request).getAsJsonArray("types");
 
@@ -81,8 +81,8 @@ public class JsonToTypeTest extends AbstractLSTest {
         if (!generatedRecords.equals(expectedRecords)) {
             TestConfig updatedConfig = new TestConfig(
                     testConfig.description(), testConfig.filePath(), testConfig.jsonString(), testConfig.typeName(),
-                    testConfig.prefix(), testConfig.allowAdditionalFields(), testConfig.asInline(),
-                    sb.toString()
+                    testConfig.prefix(), testConfig.isNullAsOptional(), testConfig.allowAdditionalFields(),
+                    testConfig.asInline(), sb.toString()
             );
 //            updateConfig(configJsonPath, updatedConfig);
             Assert.fail(String.format("Failed test: '%s' (%s)", testConfig.filePath(), configJsonPath));
@@ -110,7 +110,7 @@ public class JsonToTypeTest extends AbstractLSTest {
     }
 
     private record TestConfig(String description, String filePath, String jsonString,
-                              String typeName, String prefix, boolean allowAdditionalFields,
+                              String typeName, String prefix, boolean isNullAsOptional,  boolean allowAdditionalFields,
                               boolean asInline,
                               String expectedTypes) {
     }
