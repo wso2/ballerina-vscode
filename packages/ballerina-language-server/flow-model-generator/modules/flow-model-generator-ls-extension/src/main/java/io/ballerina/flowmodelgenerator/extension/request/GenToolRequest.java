@@ -26,11 +26,12 @@ import com.google.gson.JsonElement;
  * @param filePath    path of the file
  * @param flowNode    diagram node
  * @param toolName    name of the tool
+ * @param toolParameters tool function parameters property node
  * @param description description of the tool
  * @param connection  name of the connection
  *                    
  * @since 1.0.0
  */
-public record GenToolRequest(String filePath, JsonElement flowNode, String toolName, String description,
-                             String connection) {
+public record GenToolRequest(String filePath, JsonElement flowNode, String toolName, JsonElement toolParameters,
+                             String description, String connection) {
 }

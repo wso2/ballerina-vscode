@@ -1,6 +1,123 @@
 {
   "source": "agent_1/agents.bal",
   "name": "toolFunc",
+  "toolParameters": {
+    "metadata": {
+      "label": "Parameters",
+      "description": "Function parameters"
+    },
+    "valueType": "REPEATABLE_PROPERTY",
+    "valueTypeConstraint": {
+      "metadata": {
+        "label": "Parameter",
+        "description": "Function parameter"
+      },
+      "valueType": "FIXED_PROPERTY",
+      "value": {
+        "type": {
+          "metadata": {
+            "label": "Variable Type",
+            "description": "Type of the variable"
+          },
+          "valueType": "TYPE",
+          "valueTypeConstraint": "anydata",
+          "value": "",
+          "optional": false,
+          "editable": true,
+          "advanced": false
+        },
+        "variable": {
+          "metadata": {
+            "label": "Variable Name",
+            "description": "Name of the variable"
+          },
+          "valueType": "IDENTIFIER",
+          "value": "",
+          "optional": false,
+          "editable": true,
+          "advanced": false
+        }
+      },
+      "optional": false,
+      "editable": false,
+      "advanced": false
+    },
+    "value": {
+      "foo": {
+        "metadata": {
+          "label": "Parameter",
+          "description": "Function parameter"
+        },
+        "valueType": "FIXED_PROPERTY",
+        "value": {
+          "type": {
+            "metadata": {
+              "label": "Variable Type",
+              "description": "Type of the variable"
+            },
+            "valueType": "TYPE",
+            "valueTypeConstraint": "anydata",
+            "value": "string",
+            "optional": false,
+            "editable": true,
+            "advanced": false
+          },
+          "variable": {
+            "metadata": {
+              "label": "Variable Name",
+              "description": "Name of the variable"
+            },
+            "valueType": "IDENTIFIER",
+            "value": "foo",
+            "optional": false,
+            "editable": true,
+            "advanced": false
+          }
+        },
+        "optional": false,
+        "editable": false,
+        "advanced": false
+      },
+      "bar": {
+        "metadata": {
+          "label": "Parameter",
+          "description": "Function parameter"
+        },
+        "valueType": "FIXED_PROPERTY",
+        "value": {
+          "type": {
+            "metadata": {
+              "label": "Variable Type",
+              "description": "Type of the variable"
+            },
+            "valueType": "TYPE",
+            "valueTypeConstraint": "anydata",
+            "value": "int...",
+            "optional": false,
+            "editable": true,
+            "advanced": false
+          },
+          "variable": {
+            "metadata": {
+              "label": "Variable Name",
+              "description": "Name of the variable"
+            },
+            "valueType": "IDENTIFIER",
+            "value": "bar",
+            "optional": false,
+            "editable": true,
+            "advanced": false
+          }
+        },
+        "optional": false,
+        "editable": false,
+        "advanced": false
+      }
+    },
+    "optional": false,
+    "editable": false,
+    "advanced": false
+  },
   "connection": "gmailClient",
   "description": "Sample diagram node",
   "toolDescription": "",
@@ -498,7 +615,7 @@
             "character": 0
           }
         },
-        "newText": "# Lists all labels in the user's mailbox.\n# + userId - The user's email address. The special value `me` can be used to indicate the authenticated user.\n@ai:AgentTool\n@display {label: \"\",iconPath: \"https://bcentral-packageicons.azureedge.net/images/ballerinax_googleapis.gmail_4.1.0.png\"}\nisolated function toolFunc( string userId) returns gmail:ListLabelsResponse| error { gmail:ListLabelsResponse gmailListlabelsresponse = check gmailClient-> /users/[userId]/labels. get( ) ;\nreturn gmailListlabelsresponse;\n}"
+        "newText": "# Lists all labels in the user's mailbox.\n@ai:AgentTool\n@display {label: \"\",iconPath: \"https://bcentral-packageicons.azureedge.net/images/ballerinax_googleapis.gmail_4.1.0.png\"}\nisolated function toolFunc( string foo, int... bar) returns gmail:ListLabelsResponse| error { gmail:ListLabelsResponse gmailListlabelsresponse = check gmailClient-> /users/[userId]/labels. get( ) ;\nreturn gmailListlabelsresponse;\n}"
       }
     ]
   }
