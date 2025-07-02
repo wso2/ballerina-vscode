@@ -22,7 +22,7 @@ import styled from '@emotion/styled';
 import { FileSelect } from '../style';
 import { FileSelector } from '../components/FileSelector';
 import { BallerinaRpcClient } from '@wso2/ballerina-rpc-client';
-import { Type, TypeDataWithReferences, UpdateTypesResponse } from '@wso2/ballerina-core';
+import { JsonToTypeResponse, Type, TypeDataWithReferences, UpdateTypesResponse } from '@wso2/ballerina-core';
 
 interface RecordFromJsonProps {
     name: string;
@@ -84,18 +84,16 @@ export const RecordFromJson = (props: RecordFromJsonProps) => {
 
     const importJsonAsRecord = async () => {
         setIsSaving(true);
-        const resp: TypeDataWithReferences = await rpcClient.getRecordCreatorRpcClient().convertJsonToRecordType({
+
+        const typesFromJson: JsonToTypeResponse = await rpcClient.getBIDiagramRpcClient().getTypeFromJson({
             jsonString: json,
-            recordName: name,
-            isClosed,
-            isRecordTypeDesc: false, // by default, we will create separate definitions
-            prefix: ""
+            typeName: name
         });
 
         //  find the record with the name
-        const record = resp.types.find((t) => t.type.name === name);
+        const record = typesFromJson.types.find((t) => t.type.name === name);
         // if there are other records than the matching name, get the types
-        const otherRecords = resp.types
+        const otherRecords = typesFromJson.types
             .filter((t) => t.type.name !== name)
             .map((t) => t.type);
 
