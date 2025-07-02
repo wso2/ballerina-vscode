@@ -122,7 +122,7 @@ export const RecordFromJson = (props: RecordFromJsonProps) => {
                 <FileSelector label="Select JSON file" extension="json" onReadFile={onJsonUpload} />
             </FileSelect>
             <TextArea
-                rows={10}
+                rows={15}
                 value={json}
                 onChange={onJsonChange}
                 errorMsg={error}
