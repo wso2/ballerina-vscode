@@ -35,10 +35,8 @@ function checkExistingJar() {
 function httpsRequest(url, options = {}) {
     return new Promise((resolve, reject) => {
         const authHeader = {};
-        if (process.env.GITHUB_PAT) {
-            authHeader['Authorization'] = `Bearer ${process.env.GITHUB_PAT}`;
-        } else if (process.env.BALLERINA_BOT_TOKEN) {
-            authHeader['Authorization'] = `Bearer ${process.env.BALLERINA_BOT_TOKEN}`;
+        if (process.env.GITHUB_TOKEN) {
+            authHeader['Authorization'] = `Bearer ${process.env.GITHUB_TOKEN}`;
         }
 
         const req = https.request(url, {
@@ -53,7 +51,7 @@ function httpsRequest(url, options = {}) {
             // Handle HTTP 403 errors specifically
             if (res.statusCode === 403) {
             console.error('HTTP 403: Forbidden. This may be due to GitHub API rate limiting.');
-            console.error('Set GITHUB_PAT environment variable with a personal access token to increase rate limits.');
+            console.error('Set GITHUB_TOKEN environment variable with a personal access token to increase rate limits.');
             
             // Log rate limit info if available
             if (res.headers['x-ratelimit-limit']) {
