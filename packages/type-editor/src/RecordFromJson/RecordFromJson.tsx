@@ -23,6 +23,7 @@ import { FileSelect } from '../style';
 import { FileSelector } from '../components/FileSelector';
 import { BallerinaRpcClient } from '@wso2/ballerina-rpc-client';
 import { JsonToTypeResponse, Type } from '@wso2/ballerina-core';
+import { set } from 'lodash';
 
 interface RecordFromJsonProps {
     name: string;
@@ -111,7 +112,6 @@ export const RecordFromJson = (props: RecordFromJsonProps) => {
         } catch (err) {
             setError("Failed to import JSON.");
             console.error("Error importing JSON:", err);
-        } finally {
             setIsSaving(false);
         }
     }
