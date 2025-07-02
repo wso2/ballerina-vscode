@@ -17,6 +17,7 @@
     "sourceCode": ""
   },
   "propertyKey": "expression",
+  "targetField": "student",
   "position": {
     "line": 24,
     "offset": 65
