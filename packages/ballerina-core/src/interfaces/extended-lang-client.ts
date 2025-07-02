@@ -1258,6 +1258,23 @@ export interface GetTypeResponse {
     type: Type;
 }
 
+export interface JsonToTypeRequest {
+    jsonString: string;
+    typeName: string;
+    prefix?: string;
+    allowAdditionalFields?: boolean;
+    asInline?: boolean;
+    nullAsOptional?: boolean;
+    filePath?: string;
+}
+
+export interface JsonToTypeResponse {
+    types: {
+        type: Type;
+        refs: string[];
+    }[];
+}
+
 export interface GetRecordConfigRequest {
     filePath: string;
     codedata: {

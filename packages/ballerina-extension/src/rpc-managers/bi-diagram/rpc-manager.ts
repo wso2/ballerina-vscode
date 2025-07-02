@@ -84,6 +84,8 @@ import {
     GetTypesResponse,
     ImportStatement,
     ImportStatements,
+    JsonToTypeRequest,
+    JsonToTypeResponse,
     LinePosition,
     ModelFromCodeRequest,
     NodeKind,
@@ -1685,6 +1687,22 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
                 console.log(">>> error getting openapi generated modules", error);
                 reject(error);
             });
+        });
+    }
+
+    async getTypeFromJson(params: JsonToTypeRequest): Promise<JsonToTypeResponse> {
+        return new Promise((resolve, reject) => {
+            const projectUri = StateMachine.context().projectUri;
+            const filePath = path.join(projectUri, 'types.bal');
+            StateMachine.langClient().getTypeFromJson({ ...params, filePath })
+                .then((response) => {
+                    console.log(">>> type from json response", response);
+                    resolve(response);
+                })
+                .catch((error) => {
+                    console.log(">>> error getting type from json", error);
+                    reject(error);
+                });
         });
     }
 }
