@@ -279,8 +279,8 @@
           },
           "variable": {
             "metadata": {
-              "label": "Variable Name",
-              "description": "Name of the variable"
+              "label": "Result",
+              "description": "Name of the result variable"
             },
             "valueType": "IDENTIFIER",
             "value": "result1",
@@ -410,8 +410,8 @@
           },
           "variable": {
             "metadata": {
-              "label": "Variable Name",
-              "description": "Name of the variable"
+              "label": "Result",
+              "description": "Name of the result variable"
             },
             "valueType": "IDENTIFIER",
             "value": "result2",
@@ -515,8 +515,8 @@
           },
           "variable": {
             "metadata": {
-              "label": "Variable Name",
-              "description": "Name of the variable"
+              "label": "Result",
+              "description": "Name of the result variable"
             },
             "valueType": "IDENTIFIER",
             "value": "total",

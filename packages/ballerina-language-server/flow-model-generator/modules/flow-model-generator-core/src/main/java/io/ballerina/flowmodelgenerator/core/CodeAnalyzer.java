@@ -1400,8 +1400,8 @@ public class CodeAnalyzer extends NodeVisitor {
                             Property.RESULT_DOC, false, new HashSet<>(), true);
         } else if (nodeBuilder instanceof FunctionCall || nodeBuilder instanceof MethodCall) {
             nodeBuilder.properties()
-                    .dataVariable(this.typedBindingPatternNode, Property.VARIABLE_NAME, Property.TYPE_LABEL, false,
-                            new HashSet<>(), false);
+                    .dataVariable(this.typedBindingPatternNode, Property.RESULT_NAME, Property.TYPE_LABEL,
+                            Property.RESULT_DOC, false, new HashSet<>(), false);
         } else {
             nodeBuilder.properties().dataVariable(this.typedBindingPatternNode, implicit, new HashSet<>());
         }

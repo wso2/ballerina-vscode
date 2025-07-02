@@ -113,8 +113,8 @@
           },
           "variable": {
             "metadata": {
-              "label": "Variable Name",
-              "description": "Name of the variable"
+              "label": "Result",
+              "description": "Name of the result variable"
             },
             "valueType": "IDENTIFIER",
             "value": "greeting",
@@ -257,8 +257,8 @@
           },
           "variable": {
             "metadata": {
-              "label": "Variable Name",
-              "description": "Name of the variable"
+              "label": "Result",
+              "description": "Name of the result variable"
             },
             "valueType": "IDENTIFIER",
             "value": "squared",
@@ -402,8 +402,8 @@
           },
           "variable": {
             "metadata": {
-              "label": "Variable Name",
-              "description": "Name of the variable"
+              "label": "Result",
+              "description": "Name of the result variable"
             },
             "valueType": "IDENTIFIER",
             "value": "cubed",
@@ -590,8 +590,8 @@
           },
           "variable": {
             "metadata": {
-              "label": "Variable Name",
-              "description": "Name of the variable"
+              "label": "Result",
+              "description": "Name of the result variable"
             },
             "valueType": "IDENTIFIER",
             "value": "total",
@@ -760,8 +760,8 @@
           },
           "variable": {
             "metadata": {
-              "label": "Variable Name",
-              "description": "Name of the variable"
+              "label": "Result",
+              "description": "Name of the result variable"
             },
             "valueType": "IDENTIFIER",
             "value": "result",
