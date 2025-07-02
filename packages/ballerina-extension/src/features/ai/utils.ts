@@ -26,7 +26,7 @@ const config = workspace.getConfiguration('ballerina');
 export const BACKEND_URL : string = config.get('rootUrl') || process.env.BALLERINA_ROOT_URL;
 export const AUTH_ORG : string = config.get('authOrg') || process.env.BALLERINA_AUTH_ORG;
 export const AUTH_CLIENT_ID : string = config.get('authClientID') || process.env.BALLERINA_AUTH_CLIENT_ID;
-export const AUTH_REDIRECT_URL : string = config.get('authRedirectURL') || process.env.AUTH_REDIRECT_URL;
+export const AUTH_REDIRECT_URL : string = config.get('authRedirectURL') || process.env.BALLERINA_AUTH_REDIRECT_URL;
 
 export async function closeAllBallerinaFiles(dirPath: string): Promise<void> {
     // Check if the directory exists
