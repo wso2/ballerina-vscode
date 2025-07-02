@@ -24,6 +24,7 @@ import { FileSelector } from '../components/FileSelector';
 import { NOT_SUPPORTED_TYPE, Type, TypeDataWithReferences } from '@wso2/ballerina-core';
 import { XMLToRecord } from '@wso2/ballerina-core';
 import styled from '@emotion/styled';
+import { set } from 'lodash';
 
 interface RecordFromXmlProps {
     onImport: (types: Type[]) => void;
@@ -109,7 +110,6 @@ export const RecordFromXml = (props: RecordFromXmlProps) => {
         } catch (err) {
             setError("Failed to import XML.");
             console.error("Error importing XML:", err);
-        } finally {
             setIsSaving(false);
         }
     }
