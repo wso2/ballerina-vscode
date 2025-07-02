@@ -1,0 +1,11 @@
+{
+  "description": "JSON object with mixed typed fields (arrays of different object types)",
+  "filePath": "proj/types.bal",
+  "jsonString": "{\n  \"id\": 101,\n  \"name\": \"Alice Perera\",\n  \"email\": \"alice.perera@example.com\",\n  \"date_of_birth\": \"1992-05-16\",\n  \"is_active\": true,\n  \"age\": null,\n  \"roles\": [\"user\", \"editor\"]\n}",
+  "typeName": "Person",
+  "prefix": "",
+  "isNullAsOptional": true,
+  "allowAdditionalFields": false,
+  "asInline": false,
+  "expectedTypes": "\ntype Roles string[];\n\ntype Person record {|\n\tint id;\n\tstring name;\n\tstring email;\n\tstring date_of_birth;\n\tboolean is_active;\n\t() age?;\n\tRoles roles;\n|};\n"
+}

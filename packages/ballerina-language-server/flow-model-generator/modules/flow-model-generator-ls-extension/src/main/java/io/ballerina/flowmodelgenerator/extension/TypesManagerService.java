@@ -419,6 +419,7 @@ public class TypesManagerService implements ExtendedLanguageServerService {
                 JsonToTypeMapper jsonToTypeMapper = new JsonToTypeMapper(
                         allowAdditionalFields,
                         asInline,
+                        isNullAsOptional,
                         prefix,
                         workspaceManager,
                         filePath

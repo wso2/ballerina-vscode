@@ -1,0 +1,10 @@
+{
+  "description": "JSON object with mixed typed fields (arrays of different object types)",
+  "filePath": "proj/types.bal",
+  "jsonString": "{\n  \"id\": 101,\n  \"name\": \"Alice Perera\",\n  \"email\": \"alice.perera@example.com\",\n  \"parent\": {\n\t\"id\": 91,\n\t\"name\": \"James Perera\",\n\t\"email\": \"perera@example.com\",\n\t\"parent\": {\n\t\t\"id\": 83,\n\t\t\"name\": \"Rock Perera\",\n\t\t\"email\": null,\n\t\t\"parent\": {\n\t\t\t\"id\": 74,\n\t\t\t\"name\": \"Perera\"\n\t\t}\n\t}\n  }\n}",
+  "typeName": "Person",
+  "prefix": "",
+  "allowAdditionalFields": false,
+  "asInline": false,
+  "expectedTypes": "\ntype Parent record {|\n\tint id;\n\tstring name;\n\tstring? email?;\n\tParent parent?;\n|};\n\ntype Person record {|\n\tint id;\n\tstring name;\n\tstring email;\n\tParent parent;\n|};\n"
+}

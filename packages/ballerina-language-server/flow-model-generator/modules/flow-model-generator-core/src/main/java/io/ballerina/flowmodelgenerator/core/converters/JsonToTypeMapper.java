@@ -78,11 +78,13 @@ public class JsonToTypeMapper {
     private final String typePrefix;
     private final boolean allowAdditionalFields;
     private final boolean asInlineType;
+    private final boolean isNullAsOptional;
 
-    public JsonToTypeMapper(boolean allowAdditionalFields, boolean asInlineType, String typePrefix,
-                            WorkspaceManager workspaceManager, Path filePath) {
+    public JsonToTypeMapper(boolean allowAdditionalFields, boolean asInlineType, boolean isNullAsOptional,
+                            String typePrefix, WorkspaceManager workspaceManager, Path filePath) {
         this.allowAdditionalFields = allowAdditionalFields;
         this.asInlineType = asInlineType;
+        this.isNullAsOptional = isNullAsOptional;
         this.typePrefix = typePrefix;
 
         List<String> existingNames = getExistingTypeNames(workspaceManager, filePath);
@@ -241,6 +243,8 @@ public class JsonToTypeMapper {
                     typeName, false, new ArrayList<>(existingFieldNamesSet), updatedFieldNames
             );
             return new RecordField(fieldName, new ReferenceTypeDesc(updatedTypeName), isOptional);
+        } else if (element.isJsonNull()) {
+            return new RecordField(fieldName, new NilTypeDesc(), isOptional);
         } else if (element.isJsonArray()) {
             String typeName = escapeIdentifier(getRecordName(fieldName.trim()));
             String updatedTypeName = getAndUpdateFieldNames(
@@ -362,9 +366,33 @@ public class JsonToTypeMapper {
                     continue;
                 }
 
+                if (f1Type instanceof NilTypeDesc || f2Type instanceof NilTypeDesc) {
+                    TypeDesc nonNilType = f1Type instanceof NilTypeDesc ? f2Type : f1Type;
+                    if (isNullAsOptional) {
+                        // If null is treated as optional, we add the field as an optional field with the non-nil type.
+                        updatedRecordFields.add(new RecordField(fieldName, nonNilType, true));
+                        continue;
+                    }
+                    OptionalTypeDesc optionalNonNilType = new OptionalTypeDesc(nonNilType);
+                    updatedRecordFields.add(new RecordField(fieldName, optionalNonNilType, isOptional));
+                    continue;
+                }
+
                 UnionTypeDesc unionTypeDesc = new UnionTypeDesc(List.of(f1Type, f2Type));
                 OptionalTypeDesc optionalTypeDesc = new OptionalTypeDesc(unionTypeDesc);
                 updatedRecordFields.add(new RecordField(fieldName, optionalTypeDesc, isOptional));
+                continue;
+            }
+
+            if (f1.type instanceof NilTypeDesc || f2.type instanceof NilTypeDesc) {
+                TypeDesc nonNilType = f1.type instanceof NilTypeDesc ? f2.type : f1.type;
+                if (isNullAsOptional) {
+                    // If null is treated as optional, we add the field as an optional field with the non-nil type.
+                    updatedRecordFields.add(new RecordField(fieldName, nonNilType, true));
+                    continue;
+                }
+                OptionalTypeDesc optionalNonNilType = new OptionalTypeDesc(nonNilType);
+                updatedRecordFields.add(new RecordField(fieldName, optionalNonNilType, isOptional));
                 continue;
             }
 
@@ -445,7 +473,7 @@ public class JsonToTypeMapper {
                             .type(toTypeData(null, field.type))
                             .name(field.fieldName)
                             .refs(List.of())
-                            .optional(field.isOptional)
+                            .optional((field.type instanceof NilTypeDesc && isNullAsOptional) || field.isOptional)
                             .build());
                 }
 
@@ -674,6 +702,13 @@ public class JsonToTypeMapper {
         @Override
         public String toString() {
             return this.typeName;
+        }
+    }
+
+    private static final class NilTypeDesc extends TypeDesc {
+        @Override
+        public String toString() {
+            return "()";
         }
     }
 
