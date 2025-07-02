@@ -42,8 +42,8 @@
         {
           "metadata": {
             "label": "HTTP",
-            "description": "The HTTP client provides the capability for initiating contact with a remote HTTP service. The API it\nprovides includes the functions for the standard HTTP methods forwarding a received request and sending requests\nusing custom HTTP verbs.",
-            "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.14.1.png",
+            "description": "The HTTP client provides functionality to connect to remote HTTP services and perform requests using standard HTTP methods like GET, POST, PUT, DELETE, etc.\n",
+            "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.14.2.png",
             "data": {
               "isAgentSupport": false
             }
@@ -55,7 +55,7 @@
             "packageName": "http",
             "object": "Client",
             "symbol": "init",
-            "version": "2.14.1",
+            "version": "2.14.2",
             "isGenerated": false
           },
           "enabled": true
@@ -175,8 +175,8 @@
         {
           "metadata": {
             "label": "MySQL",
-            "description": "Represents a MySQL database client.",
-            "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_mysql_1.15.0.png",
+            "description": "MySQL database client that enables interaction with MySQL servers and supports standard SQL operations.",
+            "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_mysql_1.16.1.png",
             "data": {
               "isAgentSupport": false
             }
@@ -188,7 +188,7 @@
             "packageName": "mysql",
             "object": "Client",
             "symbol": "init",
-            "version": "1.15.0",
+            "version": "1.16.1",
             "isGenerated": false
           },
           "enabled": true
@@ -218,7 +218,7 @@
           "metadata": {
             "label": "PostgreSQL",
             "description": "Represents a PostgreSQL database client.",
-            "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_postgresql_1.15.0.png",
+            "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_postgresql_1.16.1.png",
             "data": {
               "isAgentSupport": false
             }
@@ -230,7 +230,7 @@
             "packageName": "postgresql",
             "object": "Client",
             "symbol": "init",
-            "version": "1.15.0",
+            "version": "1.16.1",
             "isGenerated": false
           },
           "enabled": true
@@ -238,8 +238,8 @@
         {
           "metadata": {
             "label": "MS SQL",
-            "description": "Represents an MSSQL database client.",
-            "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_mssql_1.15.0.png",
+            "description": "MSSQL (Microsoft SQL) client that enables interaction with MSSQL servers and supports standard SQL operations.",
+            "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_mssql_1.16.1.png",
             "data": {
               "isAgentSupport": false
             }
@@ -251,7 +251,7 @@
             "packageName": "mssql",
             "object": "Client",
             "symbol": "init",
-            "version": "1.15.0",
+            "version": "1.16.1",
             "isGenerated": false
           },
           "enabled": true
@@ -330,7 +330,7 @@
           "metadata": {
             "label": "RabbitMQ",
             "description": "The Ballerina interface to provide AMQP Channel related functionality.",
-            "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_rabbitmq_3.2.0.png",
+            "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_rabbitmq_3.2.1.png",
             "data": {
               "isAgentSupport": false
             }
@@ -342,7 +342,7 @@
             "packageName": "rabbitmq",
             "object": "Client",
             "symbol": "init",
-            "version": "3.2.0",
+            "version": "3.2.1",
             "isGenerated": false
           },
           "enabled": true
