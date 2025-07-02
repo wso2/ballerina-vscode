@@ -18,6 +18,8 @@
 
 package io.ballerina.servicemodelgenerator.extension.model;
 
+import java.util.Objects;
+
 /**
  * Represents a HTTP response.
  *
@@ -63,12 +65,12 @@ public class HttpResponse {
         this.headers = new Value("", "MULTIPLE_SELECT", true);
     }
 
-    public HttpResponse(String statusCode, String type, boolean editable) {
-        this.statusCode = new Value(statusCode, "SINGLE_SELECT", true);
-        this.body = new Value("", "TYPE", true);
-        this.name = new Value("", "IDENTIFIER", true);
-        this.type = new Value(type, "TYPE", true);
-        this.headers = new Value("", "MULTIPLE_SELECT", true);
+    public HttpResponse(String statusCode, String type, String body, Object headers, boolean editable) {
+        this.statusCode = new Value(statusCode, "SINGLE_SELECT", true, editable);
+        this.body = new Value(body, "TYPE", true, editable);
+        this.name = new Value(type, "IDENTIFIER", true, editable);
+        this.type = new Value(type, "TYPE", true, editable);
+        this.headers = new Value(headers, "HEADER_SET", true, editable);
         this.editable = editable;
     }
 

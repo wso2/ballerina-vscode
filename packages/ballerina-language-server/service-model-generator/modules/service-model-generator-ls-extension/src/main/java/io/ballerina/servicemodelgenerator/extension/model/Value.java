@@ -58,12 +58,17 @@ public class Value {
                 null, null, null, new HashMap<>());
     }
 
-    public Value(String value, String valueType, boolean isEnabled) {
+    public Value(Object value, String valueType, boolean isEnabled) {
         this(null, isEnabled, true, value, valueType, null, false, null,
                 false, false, null, null, null, new HashMap<>());
     }
 
-    public Value(MetaData metadata, boolean enabled, boolean editable, String value, String valueType,
+    public Value(Object value, String valueType, boolean isEnabled, boolean editable) {
+        this(null, isEnabled, editable, value, valueType, null, false, null,
+                false, false, null, null, null, new HashMap<>());
+    }
+
+    public Value(MetaData metadata, boolean enabled, boolean editable, Object value, String valueType,
                  String valueTypeConstraint, boolean isType, String placeholder, boolean optional,
                  boolean advanced, Map<String, Value> properties, List<Object> items, Codedata codedata,
                  Map<String, String> imports) {

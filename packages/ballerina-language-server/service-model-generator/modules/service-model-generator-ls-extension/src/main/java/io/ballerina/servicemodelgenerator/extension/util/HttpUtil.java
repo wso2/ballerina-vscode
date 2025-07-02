@@ -23,9 +23,12 @@ import com.google.gson.JsonPrimitive;
 import com.google.gson.stream.JsonReader;
 import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.compiler.api.symbols.ModuleSymbol;
+import io.ballerina.compiler.api.symbols.RecordFieldSymbol;
+import io.ballerina.compiler.api.symbols.RecordTypeSymbol;
 import io.ballerina.compiler.api.symbols.ResourceMethodSymbol;
 import io.ballerina.compiler.api.symbols.Symbol;
 import io.ballerina.compiler.api.symbols.TypeDefinitionSymbol;
+import io.ballerina.compiler.api.symbols.TypeDescKind;
 import io.ballerina.compiler.api.symbols.TypeReferenceTypeSymbol;
 import io.ballerina.compiler.api.symbols.TypeSymbol;
 import io.ballerina.compiler.api.symbols.UnionTypeSymbol;
@@ -37,6 +40,7 @@ import io.ballerina.compiler.syntax.tree.ServiceDeclarationNode;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.compiler.syntax.tree.TypeDefinitionNode;
 import io.ballerina.modelgenerator.commons.Annotation;
+import io.ballerina.modelgenerator.commons.CommonUtils;
 import io.ballerina.modelgenerator.commons.ServiceDatabaseManager;
 import io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants;
 import io.ballerina.servicemodelgenerator.extension.model.Codedata;
@@ -46,6 +50,7 @@ import io.ballerina.servicemodelgenerator.extension.model.HttpResponse;
 import io.ballerina.servicemodelgenerator.extension.model.Parameter;
 import io.ballerina.servicemodelgenerator.extension.model.Service;
 import io.ballerina.servicemodelgenerator.extension.model.Value;
+import org.ballerinalang.langserver.common.utils.CommonUtil;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -467,7 +472,30 @@ public final class HttpUtil {
             return HttpResponse.getAnonResponse(statusCode, "record {|...|}");
         }
         boolean addEditButton = typeName.startsWith(currentModuleName + ":");
-        return new HttpResponse(statusCode, typeName, addEditButton);
+        String body = addHeadersAndGetBodyType(statusCodeResponseType, currentModuleName, new ArrayList<>());
+        return new HttpResponse(statusCode, typeName, body, new ArrayList<>(), addEditButton);
+    }
+
+    private static String addHeadersAndGetBodyType(TypeSymbol typeSymbol, String currentModuleName,
+                                                   List<Object> headers) {
+        TypeSymbol rawType = CommonUtils.getRawType(typeSymbol);
+        if (rawType.typeKind() != TypeDescKind.RECORD) {
+            return "anydata";
+        }
+        RecordTypeSymbol recordTypeSymbol = (RecordTypeSymbol) rawType;
+        Map<String, RecordFieldSymbol> fieldSymbolMap = recordTypeSymbol.fieldDescriptors();
+        TypeSymbol headersFieldType = CommonUtils.getRawType(fieldSymbolMap.get("headers").typeDescriptor());
+        if (headersFieldType instanceof RecordTypeSymbol headersRecordType) {
+            headersRecordType.fieldDescriptors().forEach((name, field) -> {
+                    headers.add(Map.of("name", name, "type",
+                            getTypeName(field.typeDescriptor(), currentModuleName),
+                            "optional", field.isOptional()));
+            });
+        }
+        if (fieldSymbolMap.containsKey("body")) {
+            return getTypeName(fieldSymbolMap.get("body").typeDescriptor(), currentModuleName);
+        }
+        return "anydata";
     }
 
     public static boolean isSubTypeOfHttpStatusCodeResponse(TypeSymbol typeSymbol, SemanticModel semanticModel) {
