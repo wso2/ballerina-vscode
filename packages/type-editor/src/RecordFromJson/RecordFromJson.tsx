@@ -17,12 +17,12 @@
  */
 
 import React, { useState } from 'react';
-import { Button, SidePanelBody, TextArea, CheckBox, Typography } from '@wso2/ui-toolkit';
+import { Button, SidePanelBody, TextArea, Typography } from '@wso2/ui-toolkit';
 import styled from '@emotion/styled';
 import { FileSelect } from '../style';
 import { FileSelector } from '../components/FileSelector';
 import { BallerinaRpcClient } from '@wso2/ballerina-rpc-client';
-import { JsonToTypeResponse, Type, TypeDataWithReferences, UpdateTypesResponse } from '@wso2/ballerina-core';
+import { JsonToTypeResponse, Type } from '@wso2/ballerina-core';
 
 interface RecordFromJsonProps {
     name: string;
@@ -55,8 +55,6 @@ export const RecordFromJson = (props: RecordFromJsonProps) => {
     const { name, onImport, rpcClient, isTypeNameValid, isSaving, setIsSaving } = props;
     const [json, setJson] = useState<string>("");
     const [error, setError] = useState<string>("");
-    const [isClosed, setIsClosed] = useState<boolean>(false);
-    const [isSeparateDefinitions, setIsSeparateDefinitions] = useState<boolean>(false);
 
     const validateJson = (jsonString: string) => {
         try {
@@ -84,29 +82,37 @@ export const RecordFromJson = (props: RecordFromJsonProps) => {
 
     const importJsonAsRecord = async () => {
         setIsSaving(true);
+        setError("");
 
-        const typesFromJson: JsonToTypeResponse = await rpcClient.getBIDiagramRpcClient().getTypeFromJson({
-            jsonString: json,
-            typeName: name
-        });
-
-        //  find the record with the name
-        const record = typesFromJson.types.find((t) => t.type.name === name);
-        // if there are other records than the matching name, get the types
-        const otherRecords = typesFromJson.types
-            .filter((t) => t.type.name !== name)
-            .map((t) => t.type);
-
-
-        if (otherRecords.length > 0) {
-            await rpcClient.getBIDiagramRpcClient().updateTypes({
-                filePath: 'types.bal',
-                types: otherRecords
+        try {
+            const typesFromJson: JsonToTypeResponse = await rpcClient.getBIDiagramRpcClient().getTypeFromJson({
+                jsonString: json,
+                typeName: name
             });
-        }
 
-        if (record) {
-            onImport([record.type]);
+            //  find the record with the name
+            const record = typesFromJson.types.find((t) => t.type.name === name);
+            // if there are other records than the matching name, get the types
+            const otherRecords = typesFromJson.types
+                .filter((t) => t.type.name !== name)
+                .map((t) => t.type);
+
+
+            if (otherRecords.length > 0) {
+                await rpcClient.getBIDiagramRpcClient().updateTypes({
+                    filePath: 'types.bal',
+                    types: otherRecords
+                });
+            }
+
+            if (record) {
+                onImport([record.type]);
+            }
+        } catch (err) {
+            setError("Failed to import JSON.");
+            console.error("Error importing JSON:", err);
+        } finally {
+            setIsSaving(false);
         }
     }
 
@@ -122,8 +128,6 @@ export const RecordFromJson = (props: RecordFromJsonProps) => {
                 errorMsg={error}
                 placeholder="Paste your JSON here..."
             />
-            {/* <CheckBox label="Is Closed" checked={isClosed} onChange={setIsClosed} />
-            <CheckBox label="Is Separate Definitions" checked={isSeparateDefinitions} onChange={setIsSeparateDefinitions} /> */}
             <S.Footer>
                 <Button onClick={importJsonAsRecord} disabled={!!error || !json.trim() || !isTypeNameValid || isSaving}>
                     {isSaving ? <Typography variant="progress">Importing...</Typography> : "Import"}
