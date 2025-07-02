@@ -81,27 +81,36 @@ export const RecordFromXml = (props: RecordFromXmlProps) => {
 
     const importXmlAsRecord = async () => {
         setIsSaving(true);
-        const resp: TypeDataWithReferences = await rpcClient.getRecordCreatorRpcClient().convertXmlToRecordType({
-            xmlValue: xml,
-            prefix: ""
-        });
+        setError("");
 
-        // get the last record
-        const lastRecord = resp.types[resp.types.length - 1];
-        // get a list  of the records except for the last record
-        const otherRecords = resp.types
-            .filter((t) => t.type.name !== lastRecord.type.name)
-            .map((t) => t.type);
-
-        if (otherRecords.length > 0) {
-            await rpcClient.getBIDiagramRpcClient().updateTypes({
-                filePath: 'types.bal',
-                types: otherRecords
+        try {
+            const resp: TypeDataWithReferences = await rpcClient.getRecordCreatorRpcClient().convertXmlToRecordType({
+                xmlValue: xml,
+                prefix: ""
             });
-        }
 
-        if (lastRecord) {
-            onImport([lastRecord.type]);
+            // get the last record
+            const lastRecord = resp.types[resp.types.length - 1];
+            // get a list  of the records except for the last record
+            const otherRecords = resp.types
+                .filter((t) => t.type.name !== lastRecord.type.name)
+                .map((t) => t.type);
+
+            if (otherRecords.length > 0) {
+                await rpcClient.getBIDiagramRpcClient().updateTypes({
+                    filePath: 'types.bal',
+                    types: otherRecords
+                });
+            }
+
+            if (lastRecord) {
+                onImport([lastRecord.type]);
+            }
+        } catch (err) {
+            setError("Failed to import XML.");
+            console.error("Error importing XML:", err);
+        } finally {
+            setIsSaving(false);
         }
     }
 
