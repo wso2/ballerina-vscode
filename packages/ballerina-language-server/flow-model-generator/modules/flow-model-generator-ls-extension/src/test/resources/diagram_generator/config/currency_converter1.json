@@ -326,6 +326,7 @@
                     },
                     "valueType": "EXPRESSION",
                     "valueTypeConstraint": "string",
+                    "value": "key",
                     "placeholder": "\"\"",
                     "optional": false,
                     "editable": true,
@@ -341,7 +342,7 @@
                         "packageInfo": "",
                         "packageName": "",
                         "kind": "BASIC_TYPE",
-                        "selected": false
+                        "selected": true
                       }
                     ]
                   },
@@ -1312,6 +1313,33 @@
                             "advanced": false,
                             "hidden": true
                           },
+                          "key": {
+                            "metadata": {
+                              "label": "Key",
+                              "description": "Key referring to a value"
+                            },
+                            "valueType": "EXPRESSION",
+                            "valueTypeConstraint": "string",
+                            "value": "key",
+                            "placeholder": "\"\"",
+                            "optional": false,
+                            "editable": true,
+                            "advanced": false,
+                            "hidden": false,
+                            "codedata": {
+                              "kind": "REQUIRED",
+                              "originalName": "key"
+                            },
+                            "typeMembers": [
+                              {
+                                "type": "string",
+                                "packageInfo": "",
+                                "packageName": "",
+                                "kind": "BASIC_TYPE",
+                                "selected": true
+                              }
+                            ]
+                          },
                           "value": {
                             "metadata": {
                               "label": "Value",
@@ -1319,7 +1347,7 @@
                             },
                             "valueType": "EXPRESSION",
                             "valueTypeConstraint": "string",
-                            "value": "key",
+                            "value": "convertedAmount.toString()",
                             "placeholder": "\"\"",
                             "optional": false,
                             "editable": true,
@@ -1336,32 +1364,6 @@
                                 "packageName": "",
                                 "kind": "BASIC_TYPE",
                                 "selected": true
-                              }
-                            ]
-                          },
-                          "key": {
-                            "metadata": {
-                              "label": "Key",
-                              "description": "Key referring to a value"
-                            },
-                            "valueType": "EXPRESSION",
-                            "valueTypeConstraint": "string",
-                            "placeholder": "\"\"",
-                            "optional": false,
-                            "editable": true,
-                            "advanced": false,
-                            "hidden": false,
-                            "codedata": {
-                              "kind": "REQUIRED",
-                              "originalName": "key"
-                            },
-                            "typeMembers": [
-                              {
-                                "type": "string",
-                                "packageInfo": "",
-                                "packageName": "",
-                                "kind": "BASIC_TYPE",
-                                "selected": false
                               }
                             ]
                           },
