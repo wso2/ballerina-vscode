@@ -108,8 +108,8 @@ export const RecordFromXml = (props: RecordFromXmlProps) => {
                 onImport([lastRecord.type]);
             }
         } catch (err) {
-            setError("Failed to import XML.");
-            console.error("Error importing XML:", err);
+            setError("Failed to import XML as type.");
+            console.error("Error importing XML as type:", err);
             setIsSaving(false);
         }
     }

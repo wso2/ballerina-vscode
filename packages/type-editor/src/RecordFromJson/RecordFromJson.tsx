@@ -110,8 +110,8 @@ export const RecordFromJson = (props: RecordFromJsonProps) => {
                 onImport([record.type]);
             }
         } catch (err) {
-            setError("Failed to import JSON.");
-            console.error("Error importing JSON:", err);
+            setError("Could not import JSON as type.");
+            console.error("Error importing JSON as type:", err);
             setIsSaving(false);
         }
     }
