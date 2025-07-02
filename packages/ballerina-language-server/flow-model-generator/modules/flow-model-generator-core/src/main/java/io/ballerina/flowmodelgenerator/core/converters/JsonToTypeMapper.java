@@ -244,7 +244,7 @@ public class JsonToTypeMapper {
             );
             return new RecordField(fieldName, new ReferenceTypeDesc(updatedTypeName), isOptional);
         } else if (element.isJsonNull()) {
-            return new RecordField(fieldName, new NilTypeDesc());
+            return new RecordField(fieldName, new NilTypeDesc(), isOptional);
         } else if (element.isJsonArray()) {
             String typeName = escapeIdentifier(getRecordName(fieldName.trim()));
             String updatedTypeName = getAndUpdateFieldNames(
