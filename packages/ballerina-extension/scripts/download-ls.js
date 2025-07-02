@@ -37,6 +37,8 @@ function httpsRequest(url, options = {}) {
         const authHeader = {};
         if (process.env.GITHUB_TOKEN) {
             authHeader['Authorization'] = `Bearer ${process.env.GITHUB_TOKEN}`;
+        } else if (process.env.GITHUB_BOT_TOKEN) {
+            authHeader['Authorization'] = `Bearer ${process.env.GITHUB_BOT_TOKEN}`;
         }
 
         const req = https.request(url, {
