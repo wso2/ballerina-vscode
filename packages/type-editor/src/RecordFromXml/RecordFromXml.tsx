@@ -120,7 +120,7 @@ export const RecordFromXml = (props: RecordFromXmlProps) => {
                 <FileSelector label="Select XML file" extension="xml" onReadFile={onXmlUpload} />
             </FileSelect>
             <TextArea
-                rows={10}
+                rows={15}
                 value={xml}
                 onChange={onXmlChange}
                 errorMsg={error}
