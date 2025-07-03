@@ -669,7 +669,7 @@
             "character": 1
           }
         },
-        "newText": "\npublic type MyCustomHttpOK record {|\n\t*http:Ok;\tinternational401:Patient body;\n\trecord {|%n\t\tstring Content-Type;\n\t\t(string|int|boolean|string[]|int[]|boolean[])...;%n\t};%n headers;\n|};"
+        "newText": "\npublic type MyCustomHttpOK record {|\n\t*http:Ok;\tinternational401:Patient body;\n\trecord {|\n\t\tstring Content-Type;\n\t\t(string|int|boolean|string[]|int[]|boolean[])...;\n\t|} headers;\n|};"
       }
     ]
   }

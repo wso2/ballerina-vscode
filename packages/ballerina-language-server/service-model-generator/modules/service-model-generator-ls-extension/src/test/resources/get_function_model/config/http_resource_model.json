@@ -434,7 +434,7 @@
             "enabled": true,
             "editable": true,
             "value": "",
-            "valueType": "EXPRESSION_SET",
+            "valueType": "HEADER_SET",
             "isType": false,
             "optional": false,
             "advanced": false,
@@ -489,7 +489,7 @@
             "valueType": "TYPE",
             "isType": false,
             "optional": true,
-            "advanced": false,
+            "advanced": true,
             "addNewButton": false,
             "imports": {}
           },
@@ -504,7 +504,7 @@
             "valueType": "IDENTIFIER",
             "isType": false,
             "optional": true,
-            "advanced": false,
+            "advanced": true,
             "addNewButton": false,
             "imports": {}
           },
@@ -519,7 +519,7 @@
             "valueType": "TYPE",
             "isType": false,
             "optional": false,
-            "advanced": false,
+            "advanced": true,
             "addNewButton": false,
             "imports": {}
           },
@@ -531,10 +531,10 @@
             "enabled": true,
             "editable": true,
             "value": "",
-            "valueType": "MULTIPLE_SELECT",
+            "valueType": "HEADER_SET",
             "isType": false,
             "optional": true,
-            "advanced": false,
+            "advanced": true,
             "addNewButton": false,
             "imports": {}
           },

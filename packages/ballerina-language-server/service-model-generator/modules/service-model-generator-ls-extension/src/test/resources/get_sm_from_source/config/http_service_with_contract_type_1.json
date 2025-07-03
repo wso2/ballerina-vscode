@@ -580,7 +580,7 @@
                 "valueType": "TYPE",
                 "isType": false,
                 "optional": true,
-                "advanced": false,
+                "advanced": true,
                 "addNewButton": false,
                 "imports": {}
               },
@@ -595,7 +595,7 @@
                 "valueType": "IDENTIFIER",
                 "isType": false,
                 "optional": true,
-                "advanced": false,
+                "advanced": true,
                 "addNewButton": false,
                 "imports": {}
               },
@@ -610,7 +610,7 @@
                 "valueType": "TYPE",
                 "isType": false,
                 "optional": false,
-                "advanced": false,
+                "advanced": true,
                 "addNewButton": false,
                 "imports": {}
               },
@@ -622,10 +622,10 @@
                 "enabled": true,
                 "editable": true,
                 "value": "",
-                "valueType": "MULTIPLE_SELECT",
+                "valueType": "HEADER_SET",
                 "isType": false,
                 "optional": true,
-                "advanced": false,
+                "advanced": true,
                 "addNewButton": false,
                 "imports": {}
               },
@@ -1251,7 +1251,7 @@
                 "valueType": "TYPE",
                 "isType": false,
                 "optional": true,
-                "advanced": false,
+                "advanced": true,
                 "addNewButton": false,
                 "imports": {}
               },
@@ -1266,7 +1266,7 @@
                 "valueType": "IDENTIFIER",
                 "isType": false,
                 "optional": true,
-                "advanced": false,
+                "advanced": true,
                 "addNewButton": false,
                 "imports": {}
               },
@@ -1281,7 +1281,7 @@
                 "valueType": "TYPE",
                 "isType": false,
                 "optional": false,
-                "advanced": false,
+                "advanced": true,
                 "addNewButton": false,
                 "imports": {}
               },
@@ -1293,10 +1293,10 @@
                 "enabled": true,
                 "editable": true,
                 "value": "",
-                "valueType": "MULTIPLE_SELECT",
+                "valueType": "HEADER_SET",
                 "isType": false,
                 "optional": true,
-                "advanced": false,
+                "advanced": true,
                 "addNewButton": false,
                 "imports": {}
               },
@@ -1805,7 +1805,7 @@
                   "description": ""
                 },
                 "enabled": true,
-                "editable": false,
+                "editable": true,
                 "value": "400",
                 "valueType": "SINGLE_SELECT",
                 "isType": false,
@@ -1820,8 +1820,8 @@
                   "description": ""
                 },
                 "enabled": true,
-                "editable": false,
-                "value": "anydata",
+                "editable": true,
+                "value": "",
                 "valueType": "TYPE",
                 "isType": false,
                 "optional": false,
@@ -1835,8 +1835,8 @@
                   "description": ""
                 },
                 "enabled": true,
-                "editable": false,
-                "value": "http:BadRequest",
+                "editable": true,
+                "value": "",
                 "valueType": "IDENTIFIER",
                 "isType": false,
                 "optional": false,
@@ -1850,7 +1850,7 @@
                   "description": ""
                 },
                 "enabled": true,
-                "editable": false,
+                "editable": true,
                 "value": "http:BadRequest",
                 "valueType": "TYPE",
                 "isType": false,
@@ -1865,8 +1865,8 @@
                   "description": ""
                 },
                 "enabled": true,
-                "editable": false,
-                "value": [],
+                "editable": true,
+                "value": "",
                 "valueType": "HEADER_SET",
                 "isType": false,
                 "optional": false,
@@ -1875,7 +1875,7 @@
                 "imports": {}
               },
               "enabled": true,
-              "editable": false,
+              "editable": true,
               "advanced": false,
               "isHttpResponseType": false
             },
@@ -2003,7 +2003,7 @@
                 "valueType": "TYPE",
                 "isType": false,
                 "optional": true,
-                "advanced": false,
+                "advanced": true,
                 "addNewButton": false,
                 "imports": {}
               },
@@ -2018,7 +2018,7 @@
                 "valueType": "IDENTIFIER",
                 "isType": false,
                 "optional": true,
-                "advanced": false,
+                "advanced": true,
                 "addNewButton": false,
                 "imports": {}
               },
@@ -2033,7 +2033,7 @@
                 "valueType": "TYPE",
                 "isType": false,
                 "optional": false,
-                "advanced": false,
+                "advanced": true,
                 "addNewButton": false,
                 "imports": {}
               },
@@ -2045,10 +2045,10 @@
                 "enabled": true,
                 "editable": true,
                 "value": "",
-                "valueType": "MULTIPLE_SELECT",
+                "valueType": "HEADER_SET",
                 "isType": false,
                 "optional": true,
-                "advanced": false,
+                "advanced": true,
                 "addNewButton": false,
                 "imports": {}
               },
@@ -2501,7 +2501,7 @@
                   "description": ""
                 },
                 "enabled": true,
-                "editable": false,
+                "editable": true,
                 "value": "404",
                 "valueType": "SINGLE_SELECT",
                 "isType": false,
@@ -2516,8 +2516,8 @@
                   "description": ""
                 },
                 "enabled": true,
-                "editable": false,
-                "value": "anydata",
+                "editable": true,
+                "value": "",
                 "valueType": "TYPE",
                 "isType": false,
                 "optional": false,
@@ -2531,8 +2531,8 @@
                   "description": ""
                 },
                 "enabled": true,
-                "editable": false,
-                "value": "http:NotFound",
+                "editable": true,
+                "value": "",
                 "valueType": "IDENTIFIER",
                 "isType": false,
                 "optional": false,
@@ -2546,7 +2546,7 @@
                   "description": ""
                 },
                 "enabled": true,
-                "editable": false,
+                "editable": true,
                 "value": "http:NotFound",
                 "valueType": "TYPE",
                 "isType": false,
@@ -2561,8 +2561,8 @@
                   "description": ""
                 },
                 "enabled": true,
-                "editable": false,
-                "value": [],
+                "editable": true,
+                "value": "",
                 "valueType": "HEADER_SET",
                 "isType": false,
                 "optional": false,
@@ -2571,7 +2571,7 @@
                 "imports": {}
               },
               "enabled": true,
-              "editable": false,
+              "editable": true,
               "advanced": false,
               "isHttpResponseType": false
             },
@@ -2699,7 +2699,7 @@
                 "valueType": "TYPE",
                 "isType": false,
                 "optional": true,
-                "advanced": false,
+                "advanced": true,
                 "addNewButton": false,
                 "imports": {}
               },
@@ -2714,7 +2714,7 @@
                 "valueType": "IDENTIFIER",
                 "isType": false,
                 "optional": true,
-                "advanced": false,
+                "advanced": true,
                 "addNewButton": false,
                 "imports": {}
               },
@@ -2729,7 +2729,7 @@
                 "valueType": "TYPE",
                 "isType": false,
                 "optional": false,
-                "advanced": false,
+                "advanced": true,
                 "addNewButton": false,
                 "imports": {}
               },
@@ -2741,10 +2741,10 @@
                 "enabled": true,
                 "editable": true,
                 "value": "",
-                "valueType": "MULTIPLE_SELECT",
+                "valueType": "HEADER_SET",
                 "isType": false,
                 "optional": true,
-                "advanced": false,
+                "advanced": true,
                 "addNewButton": false,
                 "imports": {}
               },
@@ -3253,7 +3253,7 @@
                   "description": ""
                 },
                 "enabled": true,
-                "editable": false,
+                "editable": true,
                 "value": "200",
                 "valueType": "SINGLE_SELECT",
                 "isType": false,
@@ -3268,8 +3268,8 @@
                   "description": ""
                 },
                 "enabled": true,
-                "editable": false,
-                "value": "anydata",
+                "editable": true,
+                "value": "",
                 "valueType": "TYPE",
                 "isType": false,
                 "optional": false,
@@ -3283,8 +3283,8 @@
                   "description": ""
                 },
                 "enabled": true,
-                "editable": false,
-                "value": "http:Ok",
+                "editable": true,
+                "value": "",
                 "valueType": "IDENTIFIER",
                 "isType": false,
                 "optional": false,
@@ -3298,7 +3298,7 @@
                   "description": ""
                 },
                 "enabled": true,
-                "editable": false,
+                "editable": true,
                 "value": "http:Ok",
                 "valueType": "TYPE",
                 "isType": false,
@@ -3313,8 +3313,8 @@
                   "description": ""
                 },
                 "enabled": true,
-                "editable": false,
-                "value": [],
+                "editable": true,
+                "value": "",
                 "valueType": "HEADER_SET",
                 "isType": false,
                 "optional": false,
@@ -3323,7 +3323,7 @@
                 "imports": {}
               },
               "enabled": true,
-              "editable": false,
+              "editable": true,
               "advanced": false,
               "isHttpResponseType": false
             },
@@ -3334,7 +3334,7 @@
                   "description": ""
                 },
                 "enabled": true,
-                "editable": false,
+                "editable": true,
                 "value": "400",
                 "valueType": "SINGLE_SELECT",
                 "isType": false,
@@ -3349,8 +3349,8 @@
                   "description": ""
                 },
                 "enabled": true,
-                "editable": false,
-                "value": "anydata",
+                "editable": true,
+                "value": "",
                 "valueType": "TYPE",
                 "isType": false,
                 "optional": false,
@@ -3364,8 +3364,8 @@
                   "description": ""
                 },
                 "enabled": true,
-                "editable": false,
-                "value": "http:BadRequest",
+                "editable": true,
+                "value": "",
                 "valueType": "IDENTIFIER",
                 "isType": false,
                 "optional": false,
@@ -3379,7 +3379,7 @@
                   "description": ""
                 },
                 "enabled": true,
-                "editable": false,
+                "editable": true,
                 "value": "http:BadRequest",
                 "valueType": "TYPE",
                 "isType": false,
@@ -3394,8 +3394,8 @@
                   "description": ""
                 },
                 "enabled": true,
-                "editable": false,
-                "value": [],
+                "editable": true,
+                "value": "",
                 "valueType": "HEADER_SET",
                 "isType": false,
                 "optional": false,
@@ -3404,7 +3404,7 @@
                 "imports": {}
               },
               "enabled": true,
-              "editable": false,
+              "editable": true,
               "advanced": false,
               "isHttpResponseType": false
             }
@@ -3451,7 +3451,7 @@
                 "valueType": "TYPE",
                 "isType": false,
                 "optional": true,
-                "advanced": false,
+                "advanced": true,
                 "addNewButton": false,
                 "imports": {}
               },
@@ -3466,7 +3466,7 @@
                 "valueType": "IDENTIFIER",
                 "isType": false,
                 "optional": true,
-                "advanced": false,
+                "advanced": true,
                 "addNewButton": false,
                 "imports": {}
               },
@@ -3481,7 +3481,7 @@
                 "valueType": "TYPE",
                 "isType": false,
                 "optional": false,
-                "advanced": false,
+                "advanced": true,
                 "addNewButton": false,
                 "imports": {}
               },
@@ -3493,10 +3493,10 @@
                 "enabled": true,
                 "editable": true,
                 "value": "",
-                "valueType": "MULTIPLE_SELECT",
+                "valueType": "HEADER_SET",
                 "isType": false,
                 "optional": true,
-                "advanced": false,
+                "advanced": true,
                 "addNewButton": false,
                 "imports": {}
               },
