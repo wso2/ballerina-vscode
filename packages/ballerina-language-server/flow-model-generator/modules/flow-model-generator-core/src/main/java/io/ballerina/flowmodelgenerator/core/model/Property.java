@@ -118,6 +118,7 @@ public record Property(Metadata metadata, String valueType, Object valueTypeCons
 
     public static final String TYPE_KEY = "type";
     public static final String TYPE_LABEL = "Variable Type";
+    public static final String RESULT_TYPE_LABEL = "Result Type";
     public static final String PARAMETER_TYPE_DOC = "Type of the parameter";
     public static final String IMPLICIT_TYPE_LABEL = "Type";
     public static final String DESCRIPTION_LABEL = "Description";

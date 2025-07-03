@@ -1396,12 +1396,12 @@ public class CodeAnalyzer extends NodeVisitor {
                             NewConnectionBuilder.CONNECTION_TYPE_LABEL, false, new HashSet<>(), true);
         } else if (nodeBuilder instanceof RemoteActionCallBuilder || nodeBuilder instanceof ResourceActionCallBuilder) {
             nodeBuilder.properties()
-                    .dataVariable(this.typedBindingPatternNode, Property.RESULT_NAME, Property.TYPE_LABEL,
+                    .dataVariable(this.typedBindingPatternNode, Property.RESULT_NAME, Property.RESULT_TYPE_LABEL,
                             Property.RESULT_DOC, false, new HashSet<>(), true);
         } else if (nodeBuilder instanceof FunctionCall || nodeBuilder instanceof MethodCall) {
             nodeBuilder.properties()
-                    .dataVariable(this.typedBindingPatternNode, Property.VARIABLE_NAME, Property.TYPE_LABEL, false,
-                            new HashSet<>(), false);
+                    .dataVariable(this.typedBindingPatternNode, Property.RESULT_NAME, Property.RESULT_TYPE_LABEL,
+                            Property.RESULT_DOC, false, new HashSet<>(), false);
         } else {
             nodeBuilder.properties().dataVariable(this.typedBindingPatternNode, implicit, new HashSet<>());
         }
