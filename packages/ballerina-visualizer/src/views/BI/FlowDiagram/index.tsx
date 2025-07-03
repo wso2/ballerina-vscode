@@ -1060,13 +1060,14 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
             const agentNode = await findAgentNodeFromAgentCallNode(node, rpcClient);
             const updatedAgentNode = await removeToolFromAgentNode(agentNode, tool.name);
             const agentFilePath = await getAgentFilePath(rpcClient);
-            if (tool.name.includes("MCP Server")) {
+            const toolType = tool.type ?? "";
+            if (toolType.includes("MCP Server")) {
                 const updateAgentNode = removeMcpServerFromAgentNode(updatedAgentNode, tool.name);
-
                 const agentResponse = await rpcClient
                     .getBIDiagramRpcClient()
                     .getSourceCode({ filePath: agentFilePath, flowNode: updateAgentNode });
                 onSave?.();
+                console.log(">>> response getSourceCode after tool deletion", { agentResponse });
             } else {
                 const agentResponse = await rpcClient
                     .getBIDiagramRpcClient()
