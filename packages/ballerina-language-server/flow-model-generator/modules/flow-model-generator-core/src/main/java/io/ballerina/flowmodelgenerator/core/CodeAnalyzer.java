@@ -181,8 +181,6 @@ import static io.ballerina.modelgenerator.commons.CommonUtils.isAgentClass;
  * @since 1.0.0
  */
 public class CodeAnalyzer extends NodeVisitor {
-
-    public static final String NAME = "name";
     // Readonly fields
     private final Project project;
     private final SemanticModel semanticModel;
@@ -201,6 +199,8 @@ public class CodeAnalyzer extends NodeVisitor {
     private TypedBindingPatternNode typedBindingPatternNode;
     private static final String AI_AGENT = "ai";
     private static final String DEFAULT_MCP_SERVER_NAME = "MCP Server";
+    public static final String NAME = "name";
+    public static final String ICON_PATH = "https://bcentral-packageicons.azureedge.net/images/ballerina_mcp_0.4.2.png";
 
     public CodeAnalyzer(Project project, SemanticModel semanticModel, String connectionScope,
                         Map<String, LineRange> dataMappings, Map<String, LineRange> naturalFunctions,
@@ -407,7 +407,6 @@ public class CodeAnalyzer extends NodeVisitor {
         if (expressionNode == null) {
             return DEFAULT_MCP_SERVER_NAME;
         }
-
         if (expressionNode.kind() == SyntaxKind.MAPPING_CONSTRUCTOR) {
             return extractNameFromMappingConstructor((MappingConstructorExpressionNode) expressionNode);
         } else if (expressionNode.kind() == SyntaxKind.IMPLICIT_NEW_EXPRESSION) {
@@ -426,16 +425,17 @@ public class CodeAnalyzer extends NodeVisitor {
 
     private String extractNameFromMappingConstructor(MappingConstructorExpressionNode mappingConstructor) {
         SeparatedNodeList<MappingFieldNode> fields = mappingConstructor.fields();
-
         for (MappingFieldNode field : fields) {
-            if (field.kind() == SyntaxKind.SPECIFIC_FIELD) {
-                SpecificFieldNode specificField = (SpecificFieldNode) field;
-                if (isNameField(specificField)) {
-                    Optional<ExpressionNode> optValueExpr = specificField.valueExpr();
-                    if (optValueExpr.isPresent()) {
-                        return extractStringValue(optValueExpr.get());
-                    }
-                }
+            if (field.kind() != SyntaxKind.SPECIFIC_FIELD) {
+                continue;
+            }
+            SpecificFieldNode specificField = (SpecificFieldNode) field;
+            if (!isNameField(specificField)) {
+                continue;
+            }
+            Optional<ExpressionNode> optValueExpr = specificField.valueExpr();
+            if (optValueExpr.isPresent()) {
+                return extractStringValue(optValueExpr.get());
             }
         }
         return DEFAULT_MCP_SERVER_NAME;
@@ -465,7 +465,6 @@ public class CodeAnalyzer extends NodeVisitor {
 
     private boolean isNameField(SpecificFieldNode specificField) {
         Node fieldName = specificField.fieldName();
-
         if (fieldName.kind() == SyntaxKind.SIMPLE_NAME_REFERENCE) {
             SimpleNameReferenceNode nameRef = (SimpleNameReferenceNode) fieldName;
             return nameRef.name().text().equals(NAME);
@@ -473,7 +472,6 @@ public class CodeAnalyzer extends NodeVisitor {
             QualifiedNameReferenceNode qualifiedNameRef = (QualifiedNameReferenceNode) fieldName;
             return qualifiedNameRef.identifier().text().equals(NAME);
         }
-
         return false;
     }
 
@@ -533,9 +531,8 @@ public class CodeAnalyzer extends NodeVisitor {
             ListConstructorExpressionNode listCtrExprNode = (ListConstructorExpressionNode) toolsArg;
             for (Node node : listCtrExprNode.expressions()) {
                 if (node.kind() == SyntaxKind.CHECK_EXPRESSION) {
-                    String iconPath = "https://bcentral-packageicons.azureedge.net/images/ballerina_mcp_0.4.2.png";
                     String toolName = extractMcpToolKitName(node);
-                    toolsData.add(new ToolData(toolName, iconPath, getToolDescription(""), "MCP Server"));
+                    toolsData.add(new ToolData(toolName, ICON_PATH, getToolDescription(""), "MCP Server"));
                     continue;
                 }
                 if (node.kind() != SyntaxKind.SIMPLE_NAME_REFERENCE) {

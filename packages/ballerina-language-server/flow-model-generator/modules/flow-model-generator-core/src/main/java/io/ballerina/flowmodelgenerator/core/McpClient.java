@@ -32,6 +32,11 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Client for sending requests to the MCP service.
+ *
+ * @since 1.1.0
+ */
 public class McpClient {
 
     public static String sendInitializeRequest(String serviceUrl) throws IOException {
