@@ -19,6 +19,7 @@
 package io.ballerina.servicemodelgenerator.extension.util;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import com.google.gson.stream.JsonReader;
 import io.ballerina.compiler.api.SemanticModel;
@@ -472,8 +473,15 @@ public final class HttpUtil {
             return HttpResponse.getAnonResponse(statusCode, "record {|...|}");
         }
         boolean addEditButton = typeName.startsWith(currentModuleName + ":");
-        String body = addHeadersAndGetBodyType(statusCodeResponseType, currentModuleName, new ArrayList<>());
-        return new HttpResponse(statusCode, typeName, body, new ArrayList<>(), addEditButton);
+        if (typeName.startsWith("http:")) {
+            String type = HTTP_CODES_DES.get(statusCode);
+            if (Objects.nonNull(type) && "http:%s".formatted(type).equals(typeName)) {
+                return new HttpResponse(statusCode, typeName, true);
+            }
+        }
+        List<Object> headers = new ArrayList<>();
+        String body = addHeadersAndGetBodyType(statusCodeResponseType, currentModuleName, headers);
+        return new HttpResponse(statusCode, typeName, body, headers, addEditButton);
     }
 
     private static String addHeadersAndGetBodyType(TypeSymbol typeSymbol, String currentModuleName,
@@ -592,7 +600,7 @@ public final class HttpUtil {
         }
         if (Objects.nonNull(headers) && headers.isEnabledWithValue()) {
             List<Object> values = headers.getValuesAsObjects();
-            StringBuilder headersRecordDef = new StringBuilder("record {|%n");
+            StringBuilder headersRecordDef = new StringBuilder("record {|%n".formatted());
             if (Objects.nonNull(values) && !values.isEmpty()) {
                 for (Object value : values) {
                     if (value instanceof Map<?, ?> header) {
@@ -602,10 +610,17 @@ public final class HttpUtil {
                         headerName = optional ? "%s?".formatted(headerName) : headerName;
                         headersRecordDef.append("\t\t%s %s;%n".formatted(headerType, headerName));
                     }
+                    if (value instanceof JsonObject header) {
+                        String headerName = getString(header.get("name"));
+                        String headerType = getString(header.get("type"));
+                        boolean optional = Objects.requireNonNull(getString(header.get("optional"))).contains("true");
+                        headerName = optional ? "%s?".formatted(headerName) : headerName;
+                        headersRecordDef.append("\t\t%s %s;%n".formatted(headerType, headerName));
+                    }
                 }
             }
-            headersRecordDef.append("\t\t(string|int|boolean|string[]|int[]|boolean[])...;%n");
-            headersRecordDef.append("\t};%n");
+            headersRecordDef.append("\t\t(string|int|boolean|string[]|int[]|boolean[])...;%n".formatted());
+            headersRecordDef.append("\t|}");
             template += "\t%s headers;%n".formatted(headersRecordDef);
         }
         template += "|};";

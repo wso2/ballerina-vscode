@@ -410,7 +410,7 @@
           "valueType": "TYPE",
           "isType": false,
           "optional": true,
-          "advanced": false,
+          "advanced": true,
           "addNewButton": false
         },
         "name": {
@@ -424,7 +424,7 @@
           "valueType": "IDENTIFIER",
           "isType": false,
           "optional": true,
-          "advanced": false,
+          "advanced": true,
           "addNewButton": false
         },
         "type": {
@@ -438,7 +438,7 @@
           "valueType": "TYPE",
           "isType": false,
           "optional": false,
-          "advanced": false,
+          "advanced": true,
           "addNewButton": false
         },
         "headers": {
@@ -452,7 +452,7 @@
           "valueType": "HEADER_SET",
           "isType": false,
           "optional": true,
-          "advanced": false,
+          "advanced": true,
           "addNewButton": false,
           "isHttpResponseType": true
         }

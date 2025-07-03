@@ -73,6 +73,15 @@ public class HttpResponse {
         this.editable = editable;
     }
 
+    public HttpResponse(String statusCode, String type, boolean editable) {
+        this.statusCode = new Value(statusCode, "SINGLE_SELECT", true, editable);
+        this.body = new Value("", "TYPE", true, editable);
+        this.name = new Value("", "IDENTIFIER", true, editable);
+        this.type = new Value(type, "TYPE", true, editable);
+        this.headers = new Value("", "HEADER_SET", true, editable);
+        this.editable = editable;
+    }
+
     public static HttpResponse getAnonResponse(String code, String typeStr) {
         Value statusCode = new Value(code, "SINGLE_SELECT", true);
         Value body = new Value("", "EXPRESSION", true);
