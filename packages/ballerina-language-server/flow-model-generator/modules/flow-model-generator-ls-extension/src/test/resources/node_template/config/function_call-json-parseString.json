@@ -32,24 +32,6 @@
     },
     "returning": false,
     "properties": {
-      "t": {
-        "metadata": {
-          "label": "T",
-          "description": "Target type"
-        },
-        "valueType": "TYPE",
-        "valueTypeConstraint": "anydata",
-        "placeholder": "anydata",
-        "optional": false,
-        "editable": true,
-        "advanced": false,
-        "hidden": false,
-        "codedata": {
-          "kind": "PARAM_FOR_TYPE_INFER",
-          "originalName": "t"
-        },
-        "defaultValue": "anydata"
-      },
       "s": {
         "metadata": {
           "label": "S",
@@ -103,9 +85,27 @@
         ],
         "defaultValue": "{}"
       },
+      "t": {
+        "metadata": {
+          "label": "T",
+          "description": "Target type"
+        },
+        "valueType": "TYPE",
+        "valueTypeConstraint": "anydata",
+        "placeholder": "anydata",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false,
+        "codedata": {
+          "kind": "PARAM_FOR_TYPE_INFER",
+          "originalName": "t"
+        },
+        "defaultValue": "anydata"
+      },
       "type": {
         "metadata": {
-          "label": "Variable Type",
+          "label": "Return Type",
           "description": "Type of the variable"
         },
         "valueType": "TYPE",

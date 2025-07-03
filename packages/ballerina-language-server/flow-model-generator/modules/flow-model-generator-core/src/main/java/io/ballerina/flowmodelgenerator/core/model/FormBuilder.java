@@ -198,6 +198,11 @@ public class FormBuilder<T> extends FacetedBuilder<T> {
         return type(typeName, Property.TYPE_LABEL, editable, null, null, importStatements, hidden);
     }
 
+    public FormBuilder<T> type(String typeName, boolean editable, String importStatements, boolean hidden,
+                               String label) {
+        return type(typeName, label, editable, null, null, importStatements, hidden);
+    }
+
     public FormBuilder<T> type(String typeName, String label, boolean editable, Boolean modified, LineRange lineRange,
                                boolean hidden) {
         return type(typeName, label, editable, modified, lineRange, null, hidden);
