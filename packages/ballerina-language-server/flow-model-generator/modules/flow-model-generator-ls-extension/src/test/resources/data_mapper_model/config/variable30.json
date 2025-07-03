@@ -16,11 +16,11 @@
     },
     "sourceCode": ""
   },
-  "propertyKey": "expression",
   "position": {
     "line": 23,
     "offset": 12
   },
+  "propertyKey": "expression",
   "model": {
     "inputs": [
       {
@@ -63,6 +63,7 @@
               }
             ],
             "id": "var3.contacts",
+            "variableName": "contactsItem",
             "typeName": "Contact",
             "kind": "record"
           },
