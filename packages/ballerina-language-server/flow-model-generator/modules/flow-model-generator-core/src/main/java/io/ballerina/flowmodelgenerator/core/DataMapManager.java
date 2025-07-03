@@ -993,7 +993,8 @@ public class DataMapManager {
 
     private boolean isEffectiveRecordType(TypeDescKind kind, TypeSymbol rawTypeSymbol) {
         if (kind == TypeDescKind.ARRAY) {
-            return isEffectiveRecordType(kind, ((ArrayTypeSymbol) rawTypeSymbol).memberTypeDescriptor());
+            TypeDescKind memberKind = ((ArrayTypeSymbol) rawTypeSymbol).memberTypeDescriptor().typeKind();
+            return isEffectiveRecordType(memberKind, ((ArrayTypeSymbol) rawTypeSymbol).memberTypeDescriptor());
         }
         return kind == TypeDescKind.RECORD;
     }
