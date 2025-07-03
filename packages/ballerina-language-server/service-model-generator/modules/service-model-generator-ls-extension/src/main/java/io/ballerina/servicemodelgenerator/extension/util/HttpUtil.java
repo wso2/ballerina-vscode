@@ -549,7 +549,7 @@ public final class HttpUtil {
     public static String getStatusCodeResponse(HttpResponse response, List<String> statusCodeResponses,
                                                Map<String, String> imports) {
         Value name = response.getName();
-        if (Objects.nonNull(name) && name.isEnabledWithValue()) {
+        if (Objects.nonNull(name) && name.isEnabledWithValue() && name.isEditable()) {
             String statusCode = response.getStatusCode().getValue();
             String statusCodeRes = HTTP_CODES_DES.get(statusCode);
             if (Objects.isNull(statusCodeRes)) {
