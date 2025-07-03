@@ -556,8 +556,8 @@ public class DataMapManager {
             return new MappingPort(id, type.getName(), type.getTypeName(), type.getTypeName());
         } else if (type.getTypeName().equals("array")) {
             ArrayType arrayType = (ArrayType) type;
-            MappingPort memberPort = getMappingPort(isInputPort ? id + ".0" : id, null, arrayType.memberType,
-                    isInputPort);
+            MappingPort memberPort = getMappingPort(isInputPort ? id + ".0" : id, getItemName(id),
+                    arrayType.memberType, isInputPort);
             MappingArrayPort arrayPort = new MappingArrayPort(id, name, memberPort == null ? "record" :
                     memberPort.typeName + "[]", type.getTypeName());
             arrayPort.setMember(memberPort);
@@ -565,6 +565,11 @@ public class DataMapManager {
         } else {
             return null;
         }
+    }
+
+    private String getItemName(String id) {
+        String[] splits = id.split("\\.");
+        return splits[splits.length - 1] + "Item";
     }
 
     public JsonElement getSource(Path filePath, JsonElement cd, JsonElement mp, String targetField) {

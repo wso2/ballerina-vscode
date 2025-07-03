@@ -16,11 +16,12 @@
     },
     "sourceCode": ""
   },
-  "propertyKey": "expression",
   "position": {
     "line": 31,
     "offset": 4
   },
+  "propertyKey": "expression",
+  "targetField": "p.contactDetails.phoneNumbers",
   "model": {
     "inputs": [
       {
@@ -44,6 +45,7 @@
                     }
                   ],
                   "id": "u.info.secondaryPhones.0",
+                  "variableName": "secondaryPhonesItem",
                   "typeName": "SecondaryPhones",
                   "kind": "record"
                 },
@@ -71,6 +73,7 @@
                     "kind": "string"
                   },
                   "id": "u.info.addresses.0",
+                  "variableName": "addressesItem",
                   "typeName": "string[]",
                   "kind": "array"
                 },
@@ -130,6 +133,7 @@
           }
         ],
         "id": "phoneNumbers",
+        "variableName": "phoneNumbersItem",
         "typeName": "SecondaryPhonesX",
         "kind": "record"
       },
@@ -178,6 +182,5 @@
       ],
       "resultClause": "{code: secondaryPhonesItem.code, number: secondaryPhonesItem.number}"
     }
-  },
-  "targetField": "p.contactDetails.phoneNumbers"
+  }
 }
