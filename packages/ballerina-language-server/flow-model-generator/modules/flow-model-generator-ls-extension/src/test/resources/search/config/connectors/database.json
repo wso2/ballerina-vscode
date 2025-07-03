@@ -50,69 +50,6 @@
     },
     {
       "metadata": {
-        "label": "MySQL",
-        "description": "Represents a MySQL database client.",
-        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_mysql_1.15.0.png",
-        "data": {
-          "isAgentSupport": false
-        }
-      },
-      "codedata": {
-        "node": "NEW_CONNECTION",
-        "org": "ballerinax",
-        "module": "mysql",
-        "packageName": "mysql",
-        "object": "Client",
-        "symbol": "init",
-        "version": "1.15.0",
-        "isGenerated": false
-      },
-      "enabled": true
-    },
-    {
-      "metadata": {
-        "label": "PostgreSQL",
-        "description": "Represents a PostgreSQL database client.",
-        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_postgresql_1.15.0.png",
-        "data": {
-          "isAgentSupport": false
-        }
-      },
-      "codedata": {
-        "node": "NEW_CONNECTION",
-        "org": "ballerinax",
-        "module": "postgresql",
-        "packageName": "postgresql",
-        "object": "Client",
-        "symbol": "init",
-        "version": "1.15.0",
-        "isGenerated": false
-      },
-      "enabled": true
-    },
-    {
-      "metadata": {
-        "label": "MS SQL",
-        "description": "Represents an MSSQL database client.",
-        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_mssql_1.15.0.png",
-        "data": {
-          "isAgentSupport": false
-        }
-      },
-      "codedata": {
-        "node": "NEW_CONNECTION",
-        "org": "ballerinax",
-        "module": "mssql",
-        "packageName": "mssql",
-        "object": "Client",
-        "symbol": "init",
-        "version": "1.15.0",
-        "isGenerated": false
-      },
-      "enabled": true
-    },
-    {
-      "metadata": {
         "label": "Snowflake Advanced",
         "description": "Represents a Snowflake database client.",
         "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_snowflake_2.2.0.png",
@@ -149,6 +86,27 @@
         "object": "Client",
         "symbol": "init",
         "version": "2.2.0",
+        "isGenerated": false
+      },
+      "enabled": true
+    },
+    {
+      "metadata": {
+        "label": "PostgreSQL",
+        "description": "Represents a PostgreSQL database client.",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_postgresql_1.16.1.png",
+        "data": {
+          "isAgentSupport": false
+        }
+      },
+      "codedata": {
+        "node": "NEW_CONNECTION",
+        "org": "ballerinax",
+        "module": "postgresql",
+        "packageName": "postgresql",
+        "object": "Client",
+        "symbol": "init",
+        "version": "1.16.1",
         "isGenerated": false
       },
       "enabled": true
@@ -212,6 +170,27 @@
         "object": "Client",
         "symbol": "init",
         "version": "1.0.2",
+        "isGenerated": false
+      },
+      "enabled": true
+    },
+    {
+      "metadata": {
+        "label": "MySQL",
+        "description": "MySQL database client that enables interaction with MySQL servers and supports standard SQL operations.",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_mysql_1.16.1.png",
+        "data": {
+          "isAgentSupport": false
+        }
+      },
+      "codedata": {
+        "node": "NEW_CONNECTION",
+        "org": "ballerinax",
+        "module": "mysql",
+        "packageName": "mysql",
+        "object": "Client",
+        "symbol": "init",
+        "version": "1.16.1",
         "isGenerated": false
       },
       "enabled": true
@@ -422,6 +401,27 @@
         "object": "Client",
         "symbol": "init",
         "version": "1.2.0",
+        "isGenerated": false
+      },
+      "enabled": true
+    },
+    {
+      "metadata": {
+        "label": "Notion",
+        "description": "This is a generated connector for [Notion API v1](https://developers.notion.com/reference/intro) OpenAPI Specification. \nNotion API provides capability to access all-in-one workspace where you can write, plan, collaborate and get organized. it has components such as notes, databases, kanban boards, wikis, calendars, and reminders. You can connect these  components to take notes, add tasks, manage projects & more. Notion provides the building blocks and you can  create your own layouts and toolkit to get work done. This ballerina connector allows you to connect Notion through its [REST API](https://developers.notion.com/docs).",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_notion_1.5.1.png",
+        "data": {
+          "isAgentSupport": false
+        }
+      },
+      "codedata": {
+        "node": "NEW_CONNECTION",
+        "org": "ballerinax",
+        "module": "notion",
+        "packageName": "notion",
+        "object": "Client",
+        "symbol": "init",
+        "version": "1.5.1",
         "isGenerated": false
       },
       "enabled": true

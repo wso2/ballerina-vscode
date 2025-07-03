@@ -9,8 +9,8 @@
     {
       "metadata": {
         "label": "HTTP",
-        "description": "The HTTP client provides the capability for initiating contact with a remote HTTP service. The API it\nprovides includes the functions for the standard HTTP methods forwarding a received request and sending requests\nusing custom HTTP verbs.",
-        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.14.1.png",
+        "description": "The HTTP client provides functionality to connect to remote HTTP services and perform requests using standard HTTP methods like GET, POST, PUT, DELETE, etc.\n",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.14.2.png",
         "data": {
           "isAgentSupport": false
         }
@@ -22,7 +22,7 @@
         "packageName": "http",
         "object": "Client",
         "symbol": "init",
-        "version": "2.14.1",
+        "version": "2.14.2",
         "isGenerated": false
       },
       "enabled": true
@@ -197,9 +197,9 @@
     },
     {
       "metadata": {
-        "label": "Elmah",
-        "description": "This is a generated connector for [Elmah.io REST API v3](https://elmah.io) OpenAPI Specification.\nThe public REST API for elmah.io. All of the integrations communicates with elmah.io through this API.\nFor additional help getting started with the API, visit the following help articles:\n<ul><li>[Using the REST API](https://docs.elmah.io/using-the-rest-api/)</li><li>[Where is my API key?](https://docs.elmah.io/where-is-my-api-key/)</li><li>[Where is my log ID?](https://docs.elmah.io/where-is-my-log-id/)</li><li>[How to configure API key permissions](https://docs.elmah.io/how-to-configure-api-key-permissions/)</li></ul>",
-        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_elmah_1.5.1.png",
+        "label": "Mistral",
+        "description": "Our Chat Completion and Embeddings APIs specification. Create your account on [La Plateforme](https://console.mistral.ai) to get access and read the [docs](https://docs.mistral.ai) to learn how to use it.",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_mistral_1.0.0.png",
         "data": {
           "isAgentSupport": false
         }
@@ -207,11 +207,11 @@
       "codedata": {
         "node": "NEW_CONNECTION",
         "org": "ballerinax",
-        "module": "elmah",
-        "packageName": "elmah",
+        "module": "mistral",
+        "packageName": "mistral",
         "object": "Client",
         "symbol": "init",
-        "version": "1.5.1",
+        "version": "1.0.0",
         "isGenerated": false
       },
       "enabled": true
@@ -233,6 +233,27 @@
         "object": "Client",
         "symbol": "init",
         "version": "2.0.0",
+        "isGenerated": false
+      },
+      "enabled": true
+    },
+    {
+      "metadata": {
+        "label": "Elmah",
+        "description": "This is a generated connector for [Elmah.io REST API v3](https://elmah.io) OpenAPI Specification.\nThe public REST API for elmah.io. All of the integrations communicates with elmah.io through this API.\nFor additional help getting started with the API, visit the following help articles:\n<ul><li>[Using the REST API](https://docs.elmah.io/using-the-rest-api/)</li><li>[Where is my API key?](https://docs.elmah.io/where-is-my-api-key/)</li><li>[Where is my log ID?](https://docs.elmah.io/where-is-my-log-id/)</li><li>[How to configure API key permissions](https://docs.elmah.io/how-to-configure-api-key-permissions/)</li></ul>",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_elmah_1.5.1.png",
+        "data": {
+          "isAgentSupport": false
+        }
+      },
+      "codedata": {
+        "node": "NEW_CONNECTION",
+        "org": "ballerinax",
+        "module": "elmah",
+        "packageName": "elmah",
+        "object": "Client",
+        "symbol": "init",
+        "version": "1.5.1",
         "isGenerated": false
       },
       "enabled": true
@@ -401,27 +422,6 @@
         "object": "Client",
         "symbol": "init",
         "version": "1.5.1",
-        "isGenerated": false
-      },
-      "enabled": true
-    },
-    {
-      "metadata": {
-        "label": "Auditlog",
-        "description": "This is a generated connector for [Commercetools API v1](https://docs.commercetools.com/api/) OpenAPI specification. \nThe commercetools Platform HTTP API(Audit Log) offers an interface for programmatic access to tracks creations, deletions, and updates of platform resources.",
-        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_commercetools.auditlog_1.4.1.png",
-        "data": {
-          "isAgentSupport": false
-        }
-      },
-      "codedata": {
-        "node": "NEW_CONNECTION",
-        "org": "ballerinax",
-        "module": "commercetools.auditlog",
-        "packageName": "commercetools.auditlog",
-        "object": "Client",
-        "symbol": "init",
-        "version": "1.4.1",
         "isGenerated": false
       },
       "enabled": true
