@@ -16,7 +16,7 @@
  *  under the License.
  */
 
-package io.ballerina.flowmodelgenerator.extension;
+package io.ballerina.flowmodelgenerator.core;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -74,21 +74,84 @@ public class McpClient {
             if (headers.containsKey("mcp-session-id")) {
                 sessionId = headers.get("mcp-session-id").get(0);
             }
-
-            try (BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream(),
-                                                            StandardCharsets.UTF_8))) {
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    if (line.startsWith("data: ")) {
-                        break; // only wait for 1 event for simplicity
-                    }
-                }
-            }
             return sessionId;
         } finally {
             if (conn != null) {
                 conn.disconnect();
             }
+        }
+    }
+
+    public static String getMcpServerName(String serviceUrl) throws IOException {
+        URL url = new URL(serviceUrl);
+        HttpURLConnection conn = null;
+        try {
+            conn = (HttpURLConnection) url.openConnection();
+            conn.setRequestMethod("POST");
+            conn.setRequestProperty("Content-Type", "application/json");
+            conn.setRequestProperty("Accept", "application/json, text/event-stream");
+            conn.setRequestProperty("User-Agent", "ballerina");
+
+            if (!serviceUrl.toLowerCase().startsWith("https://")) {
+                conn.setRequestProperty("Upgrade", "h2c");
+                conn.setRequestProperty("Connection", "keep-alive, Upgrade, HTTP2-Settings");
+                conn.setRequestProperty("HTTP2-Settings", "AAEAABAAAAIAAAABAAN_____AAQAAP__AAUAAEAAAAYAACAA");
+            }
+
+            conn.setDoOutput(true);
+
+            String body = """
+                {
+                  "jsonrpc":"2.0",
+                  "id":1,
+                  "method":"initialize",
+                  "params":{
+                    "protocolVersion":"2025-03-26",
+                    "capabilities":{},
+                    "clientInfo":{
+                      "name":"MCP Client",
+                      "version":"1.0.0"
+                    }
+                  }
+                }
+                """;
+
+            try (OutputStream os = conn.getOutputStream()) {
+                os.write(body.getBytes(StandardCharsets.UTF_8));
+            }
+
+            int responseCode = conn.getResponseCode();
+            if (responseCode == HttpURLConnection.HTTP_MOVED_TEMP) {
+                throw new IOException("Temporary redirect (307) detected. Location: "
+                        + conn.getHeaderField("Location"));
+            }
+
+            if (responseCode < 200 || responseCode >= 300) {
+                throw new IOException("HTTP error: " + responseCode + " - " + conn.getResponseMessage());
+            }
+
+            try (BufferedReader reader = new BufferedReader(
+                    new InputStreamReader(conn.getInputStream(), StandardCharsets.UTF_8))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    if (line.startsWith("data: ")) {
+                        JsonObject response = JsonParser.parseString(line.substring(6)).getAsJsonObject();
+                        if (response.has("result")) {
+                            JsonObject result = response.getAsJsonObject("result");
+                            if (result.has("serverInfo")) {
+                                JsonObject serverInfo = result.getAsJsonObject("serverInfo");
+                                if (serverInfo.has("name")) {
+                                    return serverInfo.get("name").getAsString();
+                                }
+                            }
+                        }
+                        break;
+                    }
+                }
+            }
+            throw new IOException("Server name not found in response");
+        } finally {
+            if (conn != null) conn.disconnect();
         }
     }
 

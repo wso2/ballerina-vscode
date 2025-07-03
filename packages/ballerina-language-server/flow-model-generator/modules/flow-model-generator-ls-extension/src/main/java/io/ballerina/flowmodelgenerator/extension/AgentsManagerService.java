@@ -22,6 +22,8 @@ import com.google.gson.JsonArray;
 import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
 import io.ballerina.flowmodelgenerator.core.AgentsGenerator;
+import io.ballerina.flowmodelgenerator.core.McpClient;
+import io.ballerina.flowmodelgenerator.extension.request.EditToolRequest;
 import io.ballerina.flowmodelgenerator.extension.request.GenToolRequest;
 import io.ballerina.flowmodelgenerator.extension.request.GetAiModuleOrgRequest;
 import io.ballerina.flowmodelgenerator.extension.request.GetAllAgentsRequest;
