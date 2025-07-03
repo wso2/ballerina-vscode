@@ -9,20 +9,12 @@
 
 import { useEffect, useRef, useState } from "react";
 import styled from "@emotion/styled";
-import { FlowNode, ToolData, BINodeTemplateResponse } from "@wso2-enterprise/ballerina-core";
-import { useRpcContext } from "@wso2-enterprise/ballerina-rpc-client";
-import { ActionButtons, Button, Codicon, ThemeColors, Dropdown } from "@wso2-enterprise/ui-toolkit";
+import { FlowNode } from "@wso2/ballerina-core";
+import { useRpcContext } from "@wso2/ballerina-rpc-client";
+import { ActionButtons, Button, Codicon, ThemeColors, Dropdown } from "@wso2/ui-toolkit";
 import { RelativeLoader } from "../../../components/RelativeLoader";
 import { addMcpServerToAgentNode, updateMcpServerToAgentNode, findAgentNodeFromAgentCallNode, getAgentFilePath } from "./utils";
-import { TextField, Typography, CheckBox, CheckBoxGroup } from '@wso2-enterprise/ui-toolkit';
-import { PropertyModel } from '@wso2-enterprise/ballerina-core';
-import { ReadonlyField } from '../../../views/BI/ServiceDesigner/components/ReadonlyField';
-import { FormGenerator } from "../../../views/BI/Forms/FormGenerator";
-import { FormImports } from "@wso2-enterprise/ballerina-side-panel";
-import { ConfigVariable } from '@wso2-enterprise/ballerina-core';
-import { PanelContainer, Form, FormField, FormValues } from '@wso2-enterprise/ballerina-side-panel';
-import { pad } from "lodash";
-import AddConnectionWizard from "../../../views/BI/Connection/AddConnectionWizard";
+import { TextField, CheckBox } from '@wso2/ui-toolkit';
 
 const NameContainer = styled.div`
     display: flex;
