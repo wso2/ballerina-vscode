@@ -28,7 +28,7 @@ import { prepareAndGenerateConfig } from '../../config-generator/configGenerator
 function activateRunCmdCommand() {
 
     commands.registerCommand(PALETTE_COMMANDS.RUN, async (filePath: Uri) => {
-        prepareAndGenerateConfig(ballerinaExtInstance, filePath ? filePath.toString() : "");
+        prepareAndGenerateConfig(ballerinaExtInstance, filePath?.fsPath);
     });
 
     // register ballerina run handler
