@@ -194,13 +194,16 @@ public class DataMapManager {
                 itemType = memberTypeSymbol.signature().trim();
             }
 
-            FromClause fromClause = new FromClause(itemType, fromClauseVar, expression.toSourceCode().trim());
-            String resultClause;
+            Clause fromClause = new Clause("from", new Properties(itemType, fromClauseVar,
+                    expression.toSourceCode().trim(), null));
             ClauseNode clauseNode = queryExpressionNode.resultClause();
+            Clause resultClause;
             if (clauseNode.kind() == SyntaxKind.SELECT_CLAUSE) {
-                resultClause = ((SelectClauseNode) clauseNode).expression().toSourceCode().trim();
+                resultClause = new Clause("select", new DataMapManager.Properties(null, null,
+                        ((SelectClauseNode) clauseNode).expression().toSourceCode().trim(), null));
             } else {
-                resultClause = ((CollectClauseNode) clauseNode).expression().toSourceCode().trim();
+                resultClause = new Clause("collect", new DataMapManager.Properties(null, null,
+                        ((CollectClauseNode) clauseNode).expression().toSourceCode().trim(), null));
             }
             query = new Query(targetField, inputs, fromClause,
                     getQueryIntermediateClause(queryExpressionNode.queryPipeline()), resultClause);
@@ -1201,23 +1204,24 @@ public class DataMapManager {
 
     }
 
-    private List<IntermediateClause> getQueryIntermediateClause(QueryPipelineNode queryPipelineNode) {
-        List<IntermediateClause> intermediateClauses = new ArrayList<>();
+    private List<Clause> getQueryIntermediateClause(QueryPipelineNode queryPipelineNode) {
+        List<Clause> intermediateClauses = new ArrayList<>();
         for (IntermediateClauseNode intermediateClause : queryPipelineNode.intermediateClauses()) {
             SyntaxKind kind = intermediateClause.kind();
             switch (kind) {
                 case FROM_CLAUSE -> {
                     FromClauseNode fromClauseNode = (FromClauseNode) intermediateClause;
                     TypedBindingPatternNode typedBindingPattern = fromClauseNode.typedBindingPattern();
-                    FromClause fromClause = new FromClause(typedBindingPattern.typeDescriptor().toSourceCode().trim(),
-                            typedBindingPattern.bindingPattern().toSourceCode().trim(),
-                            fromClauseNode.expression().toSourceCode().trim());
-                    intermediateClauses.add(new IntermediateClause("from", fromClause));
+                    intermediateClauses.add(new Clause("from",
+                            new DataMapManager.Properties(typedBindingPattern.bindingPattern().toSourceCode().trim(),
+                                    typedBindingPattern.typeDescriptor().toSourceCode().trim(),
+                                    fromClauseNode.expression().toSourceCode().trim(), null)));
                 }
                 case WHERE_CLAUSE -> {
                     WhereClauseNode whereClauseNode = (WhereClauseNode) intermediateClause;
                     ExpressionNode expression = whereClauseNode.expression();
-                    intermediateClauses.add(new IntermediateClause("where", expression.toSourceCode().trim()));
+                    intermediateClauses.add(new Clause("where",
+                            new Properties(null, null, expression.toSourceCode().trim(), null)));
                 }
                 default -> {
                 }
@@ -1251,16 +1255,8 @@ public class DataMapManager {
         }
     }
 
-    private record Query(String output, List<String> inputs, FromClause fromClause,
-                         List<IntermediateClause> intermediateClauses, String resultClause) {
-
-    }
-
-    private record FromClause(String type, String name, String expression) {
-
-    }
-
-    private record IntermediateClause(String type, Object clause) {
+    private record Query(String output, List<String> inputs, Clause fromClause,
+                         List<Clause> intermediateClauses, Clause resultClause) {
 
     }
 

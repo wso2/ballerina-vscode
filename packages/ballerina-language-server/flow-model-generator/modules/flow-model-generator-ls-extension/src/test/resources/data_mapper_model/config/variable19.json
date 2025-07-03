@@ -16,11 +16,11 @@
     },
     "sourceCode": ""
   },
-  "propertyKey": "expression",
   "position": {
     "line": 19,
     "offset": 119
   },
+  "propertyKey": "expression",
   "model": {
     "inputs": [
       {
@@ -140,12 +140,20 @@
         "userInfo"
       ],
       "fromClause": {
-        "type": "UserInfo",
-        "name": "item",
-        "expression": "userInfo"
+        "type": "from",
+        "properties": {
+          "name": "UserInfo",
+          "type": "item",
+          "expression": "userInfo"
+        }
       },
       "intermediateClauses": [],
-      "resultClause": "{username: item.username, password: item.password}"
+      "resultClause": {
+        "type": "select",
+        "properties": {
+          "expression": "{username: item.username, password: item.password}"
+        }
+      }
     }
   }
 }

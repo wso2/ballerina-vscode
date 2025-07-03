@@ -16,11 +16,12 @@
     },
     "sourceCode": ""
   },
-  "propertyKey": "expression",
   "position": {
     "line": 21,
     "offset": 4
   },
+  "propertyKey": "expression",
+  "targetField": "p.contactDetails.phoneNumbers",
   "model": {
     "inputs": [
       {
@@ -113,13 +114,20 @@
         "u.info.secondaryPhones"
       ],
       "fromClause": {
-        "type": "string",
-        "name": "secondaryPhonesItem",
-        "expression": "u.info.secondaryPhones"
+        "type": "from",
+        "properties": {
+          "name": "string",
+          "type": "secondaryPhonesItem",
+          "expression": "u.info.secondaryPhones"
+        }
       },
       "intermediateClauses": [],
-      "resultClause": "secondaryPhonesItem"
+      "resultClause": {
+        "type": "select",
+        "properties": {
+          "expression": "secondaryPhonesItem"
+        }
+      }
     }
-  },
-  "targetField": "p.contactDetails.phoneNumbers"
+  }
 }

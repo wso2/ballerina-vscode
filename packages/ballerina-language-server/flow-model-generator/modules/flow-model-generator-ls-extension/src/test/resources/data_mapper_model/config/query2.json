@@ -16,11 +16,12 @@
     },
     "sourceCode": ""
   },
-  "propertyKey": "expression",
   "position": {
     "line": 31,
     "offset": 4
   },
+  "propertyKey": "expression",
+  "targetField": "p.contactDetails.phoneNumbers",
   "model": {
     "inputs": [
       {
@@ -166,13 +167,20 @@
         "u.info.secondaryPhones"
       ],
       "fromClause": {
-        "type": "SecondaryPhones",
-        "name": "secondaryPhonesItem",
-        "expression": "u.info.secondaryPhones"
+        "type": "from",
+        "properties": {
+          "name": "SecondaryPhones",
+          "type": "secondaryPhonesItem",
+          "expression": "u.info.secondaryPhones"
+        }
       },
       "intermediateClauses": [],
-      "resultClause": "{code: secondaryPhonesItem.code, number: secondaryPhonesItem.number}"
+      "resultClause": {
+        "type": "select",
+        "properties": {
+          "expression": "{code: secondaryPhonesItem.code, number: secondaryPhonesItem.number}"
+        }
+      }
     }
-  },
-  "targetField": "p.contactDetails.phoneNumbers"
+  }
 }
