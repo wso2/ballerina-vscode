@@ -9,14 +9,20 @@
 
 import { useEffect, useRef, useState } from "react";
 import styled from "@emotion/styled";
-import { FlowNode, ToolData } from "@wso2-enterprise/ballerina-core";
+import { FlowNode, ToolData, BINodeTemplateResponse } from "@wso2-enterprise/ballerina-core";
 import { useRpcContext } from "@wso2-enterprise/ballerina-rpc-client";
 import { ActionButtons, Button, Codicon, ThemeColors, Dropdown } from "@wso2-enterprise/ui-toolkit";
 import { RelativeLoader } from "../../../components/RelativeLoader";
 import { addMcpServerToAgentNode, updateMcpServerToAgentNode, findAgentNodeFromAgentCallNode, getAgentFilePath } from "./utils";
-import { TextField, Typography } from '@wso2-enterprise/ui-toolkit';
+import { TextField, Typography, CheckBox, CheckBoxGroup } from '@wso2-enterprise/ui-toolkit';
 import { PropertyModel } from '@wso2-enterprise/ballerina-core';
 import { ReadonlyField } from '../../../views/BI/ServiceDesigner/components/ReadonlyField';
+import { FormGenerator } from "../../../views/BI/Forms/FormGenerator";
+import { FormImports } from "@wso2-enterprise/ballerina-side-panel";
+import { ConfigVariable } from '@wso2-enterprise/ballerina-core';
+import { PanelContainer, Form, FormField, FormValues } from '@wso2-enterprise/ballerina-side-panel';
+import { pad } from "lodash";
+import AddConnectionWizard from "../../../views/BI/Connection/AddConnectionWizard";
 
 const NameContainer = styled.div`
     display: flex;
@@ -181,29 +187,6 @@ const LoadingMessage = styled.div`
     gap: 8px;
 `;
 
-const CustomCheckbox = styled.div<{ checked: boolean; disabled?: boolean }>`
-    width: 16px;
-    height: 16px;
-    border: 2px solid ${props => props.checked ? ThemeColors.PRIMARY : ThemeColors.OUTLINE_VARIANT};
-    border-radius: 2px;
-    background-color: ${props => props.checked ? ThemeColors.PRIMARY : 'transparent'};
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: ${props => props.disabled ? 'not-allowed' : 'pointer'};
-    opacity: ${props => props.disabled ? 0.5 : 1};
-    transition: all 0.2s ease;
-    position: relative;
-    
-    &:hover {
-        border-color: ${props => props.disabled ? ThemeColors.OUTLINE_VARIANT : ThemeColors.PRIMARY};
-        background-color: ${props => {
-            if (props.disabled) return props.checked ? ThemeColors.PRIMARY : 'transparent';
-            return props.checked ? ThemeColors.PRIMARY : ThemeColors.PRIMARY_CONTAINER;
-        }};
-    }
-`;
-
 const CheckboxIcon = styled.div<{ visible: boolean }>`
     width: 10px;
     height: 10px;
@@ -248,8 +231,12 @@ export function AddMcpServer(props: AddToolProps): JSX.Element {
     const [existingTools, setExistingTools] = useState<string[]>([]);
     const [toolsStringList, setToolsStringList] = useState<string>("");
     const [selectedTool, setSelectedTool] = useState<string | null>(null);
+    const [urlError, setUrlError] = useState<string>("");
+    const [nameError, setNameError] = useState<string>("");
+    const [mcpToolResponse, setMcpToolResponse] = useState<FlowNode>(null);
 
     const [serviceUrl, setServiceUrl] = useState("");
+    const [errorInputs, setErrorInputs] = useState(false);
     const [configs, setConfigs] = useState({});
     const [toolSelection, setToolSelection] = useState("All");
     const [name, setName] = useState(props.name || "");
@@ -292,7 +279,24 @@ export function AddMcpServer(props: AddToolProps): JSX.Element {
     const fetchAgentNode = async () => {
         const agentNode = await findAgentNodeFromAgentCallNode(agentCallNode, rpcClient);
         setAgentNode(agentNode);
-        
+
+        const mcpToolResponse = await rpcClient
+            .getBIDiagramRpcClient()
+            .getNodeTemplate({
+                position: { line: 0, offset: 0 },
+                filePath: agentFilePath.current,
+                id: {
+                    node: "NEW_CONNECTION",
+                    org: "ballerina",
+                    module: "mcp",
+                    "packageName": "mcp",
+                    version: "0.4.2",
+                    symbol: "init",
+                    object: "Client"
+                }
+            });
+        setMcpToolResponse(mcpToolResponse.flowNode)
+        console.log(">>> response getSourceCode with template ", { mcpToolResponse });
         if (agentNode?.properties?.tools?.value) {
             const toolsString = agentNode.properties.tools.value.toString();
             const mcpToolkits = extractMcpToolkits(toolsString);
@@ -430,6 +434,88 @@ export function AddMcpServer(props: AddToolProps): JSX.Element {
         setSelectedMcpTools(newSelectedTools);
     };
 
+    const validateUrl = (url: string): string => {
+        if (!url.trim()) {
+            return '';
+        }
+
+        try {
+            const urlObj = new URL(url);
+            // Check if protocol is http or https
+            if (!['http:', 'https:'].includes(urlObj.protocol)) {
+                return 'URL must use HTTP or HTTPS protocol';
+            }
+            return '';
+        } catch (error) {
+            return 'Please enter a valid URL (e.g., http://example.com)';
+        }
+    };
+
+    const handleServiceUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const newUrl = e.target.value;
+        setServiceUrl(newUrl);
+        const errorMessage = validateUrl(newUrl);
+        if (errorMessage == '') {
+            setErrorInputs(false);
+            setUrlError('');
+        } else {
+            setErrorInputs(true);
+            setUrlError(errorMessage);
+        }
+    };
+
+    const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const newName = e.target.value;
+        setName(newName);
+        const errorMessage = validateName(newName);
+        if (errorMessage == '') {
+            setErrorInputs(false);
+            setNameError('');
+        } else {
+            setErrorInputs(true);
+            setNameError(errorMessage);
+        }
+    };
+
+    const validateName = (name: string): string => {
+        if (!name.trim()) {
+            return '';
+        }
+
+        // Extract existing MCP toolkit names from the tools string
+        const existingMcpToolkits = extractMcpToolkitNames(toolsStringList);
+        
+        // Check if the name already exists (case-insensitive comparison)
+        const nameExists = existingMcpToolkits.some(
+            existingName => existingName.toLowerCase() === name.trim().toLowerCase()
+        );
+        
+        if (nameExists && !editMode) {
+            return 'An MCP server with this name already exists';
+        }
+        
+        // In edit mode, allow the current name but not other existing names
+        if (nameExists && editMode && props.name && name.trim().toLowerCase() !== props.name.toLowerCase()) {
+            return 'An MCP server with this name already exists';
+        }
+        
+        return '';
+    };
+
+    const extractMcpToolkitNames = (toolsString: string): string[] => {
+        const names: string[] = [];
+        
+        // Regex to match McpToolKit with name in info object
+        const mcpToolkitPattern = /McpToolKit\([^}]*info\s*=\s*\{[^}]*name:\s*"([^"]+)"/g;
+        let match;
+        
+        while ((match = mcpToolkitPattern.exec(toolsString)) !== null) {
+            names.push(match[1]);
+        }
+        
+        return names;
+    };
+
     const handleSelectAllTools = () => {
         if (selectedMcpTools.size === mcpTools.length) {
             // Deselect all
@@ -558,13 +644,13 @@ export function AddMcpServer(props: AddToolProps): JSX.Element {
                     <ToolCheckboxContainer>
                         {mcpTools.map((tool) => (
                             <ToolCheckboxItem key={tool.name}>
-                                <CustomCheckbox
+                                <CheckBox
+                                    label=""
                                     checked={selectedMcpTools.has(tool.name)}
                                     disabled={loadingMcpTools}
-                                    onClick={() => !loadingMcpTools && handleToolSelectionChange(tool.name, !selectedMcpTools.has(tool.name))}
+                                    onChange={() => !loadingMcpTools && handleToolSelectionChange(tool.name, !selectedMcpTools.has(tool.name))}
                                 >
-                                    <CheckboxIcon visible={selectedMcpTools.has(tool.name)} />
-                                </CustomCheckbox>
+                                </CheckBox>
                                 <div>
                                     <div style={{ fontWeight: 'bold' }}>{tool.name}</div>
                                     {tool.description && (
@@ -586,9 +672,15 @@ export function AddMcpServer(props: AddToolProps): JSX.Element {
             </ToolsContainer>
         );
     };
+    console.log(">>> agentNode", agentCallNode);
+
+    const DropdownContainer = styled.div`
+    width: 100%;
+`;
 
     return (
         <Container>
+            
             {loading && (
                 <LoaderContainer>
                     <RelativeLoader />
@@ -600,15 +692,15 @@ export function AddMcpServer(props: AddToolProps): JSX.Element {
                     <Description>
                         {editMode ? "Edit MCP server configuration." : "Add an MCP server to provide tools to the Agent."}
                     </Description>
-
+                    
                     <NameContainer>
                         <TextField
-                            sx={{ flexGrow: 1 }}
+                            sx={{ flexGrow: 1, marginTop: 15 }}
                             disabled={false}
-                            errorMsg=""
+                            errorMsg={urlError}
                             label="Service URL"
                             size={70}
-                            onChange={(e) => setServiceUrl(e.target.value)}
+                            onChange={handleServiceUrlChange}
                             placeholder="Enter MCP server URL"
                             value={serviceUrl}
                         />
@@ -616,9 +708,8 @@ export function AddMcpServer(props: AddToolProps): JSX.Element {
 
                     <NameContainer>
                         <TextField
-                            sx={{ flexGrow: 1 }}
+                            sx={{ flexGrow: 1, marginTop: 15 }}
                             disabled={false}
-                            errorMsg=""
                             label="Configs"
                             size={70}
                             onChange={(e) => setConfigs(e.target.value)}
@@ -628,29 +719,40 @@ export function AddMcpServer(props: AddToolProps): JSX.Element {
                     </NameContainer>
 
                     <NameContainer>
-                        <Dropdown
-                            id="tool-selection"
-                            label="Tools to include"
-                            value={toolSelection}
-                            containerSx={{ width: "30%" }}
-                            items={[
-                                { id: "All", value: "All" },
-                                { id: "Selected", value: "Selected" },
-                                // { id: "Except", value: "Except" }, // not yet supported for now
-                            ]}
-                            onValueChange={(value) => setToolSelection(value)}
+                        <TextField
+                            sx={{ flexGrow: 1, marginTop: 15 }}
+                            disabled={false}
+                            label="Name"
+                            size={70}
+                            errorMsg={nameError}
+                            onChange={handleNameChange}
+                            placeholder="Enter name for the MCP Tool Kit"
+                            value={name != "" ? name : mcpToolkitCount > 1 ? `MCP Server 0${mcpToolkitCount}` : "MCP Server"}
                         />
                     </NameContainer>
 
+                    <NameContainer style={{ marginTop: 15 }}>
+                        <DropdownContainer>
+                            <Dropdown
+                                id="tool-selection"
+                                label="Tools to Include"
+                                value={toolSelection}
+                                items={[
+                                    { id: "All", value: "All" },
+                                    { id: "Selected", value: "Selected" },
+                                ]}
+                                onValueChange={(value) => setToolSelection(value)}
+                            />
+                        </DropdownContainer>
+                    </NameContainer>
                     {renderToolsSelection()}
                 </Column>
-
                 <Footer>
                     {editMode ? (
                         // Edit mode: Show only Save button
                         <PrimaryButton 
                             onClick={handleOnEdit} 
-                            disabled={savingForm || !canSave || loadingMcpTools}
+                            disabled={savingForm || !canSave || loadingMcpTools || errorInputs}
                         >
                             {savingForm ? "Saving..." : "Save"}
                         </PrimaryButton>
@@ -662,7 +764,7 @@ export function AddMcpServer(props: AddToolProps): JSX.Element {
                             </Button>
                             <PrimaryButton 
                                 onClick={handleOnSave} 
-                                disabled={savingForm || !canSave || loadingMcpTools}
+                                disabled={savingForm || !canSave || loadingMcpTools || errorInputs}
                             >
                                 {savingForm ? "Adding..." : "Add to Agent"}
                             </PrimaryButton>

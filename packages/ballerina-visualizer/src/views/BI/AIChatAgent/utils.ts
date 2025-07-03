@@ -153,7 +153,7 @@ export const updateMcpServerToAgentNode = async (
         // Fixed regex pattern that matches only the specific McpToolKit with the target name
         // Uses negated character classes to prevent crossing boundaries
         const pattern = new RegExp(
-            `check new ai:McpToolKit\\([^}]*name:\\s*"${toolConfig.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}"[^}]*\\}\\)`,
+            `check new ai:McpToolKit\\([^}]*name:\\s*"${originalToolName}"[^}]*\\}\\)`,
             'g'
         );
 
@@ -197,7 +197,7 @@ export const addMcpServerToAgentNode = async (agentNode: FlowNode, toolConfig: M
     let toolsValue = updatedAgentNode.properties.tools.value;
     // remove new lines and normalize whitespace from the tools value
 
-    console.log(">>> qwe tools", toolConfig);
+    console.log(">>> add tools", toolConfig);
     const toolsString = toolConfig.selectedTools.map(tool => `"${tool}"`).join(", ");
     let toolString = `check new ai:McpToolKit("${toolConfig.serviceUrl}", permittedTools = (), info = {name: "${toolConfig.name}", version: ""})`;
     if (toolConfig.toolSelection.includes("Selected")) {
