@@ -18,8 +18,8 @@
 
 package io.ballerina.flowmodelgenerator.extension;
 
-import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import io.ballerina.flowmodelgenerator.extension.request.DataMapperVisualizeRequest;
 import io.ballerina.modelgenerator.commons.AbstractLSTest;
 import io.ballerina.tools.text.LinePosition;
@@ -63,7 +63,7 @@ public class DataMappingVisualizeTest extends AbstractLSTest {
         DataMapperVisualizeRequest request =
                 new DataMapperVisualizeRequest(sourceDir.resolve(testConfig.source()).toAbsolutePath().toString(),
                         testConfig.diagram(), testConfig.position());
-        JsonArray model = getResponse(endpoint, request).getAsJsonArray("visualizableProperties");
+        JsonObject model = getResponse(endpoint, request).getAsJsonObject("visualizableProperties");
 
         if (!model.equals(testConfig.visualizableProperties())) {
             TestConfig updateConfig = new TestConfig(testConfig.source(), testConfig.description(),

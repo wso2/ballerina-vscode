@@ -45,6 +45,7 @@
                     }
                   ],
                   "id": "u.info.secondaryPhones.0",
+                  "variableName": "secondaryPhonesItem",
                   "typeName": "SecondaryPhones",
                   "kind": "record"
                 },
@@ -72,6 +73,7 @@
                     "kind": "string"
                   },
                   "id": "u.info.addresses.0",
+                  "variableName": "addressesItem",
                   "typeName": "string[]",
                   "kind": "array"
                 },
@@ -131,6 +133,7 @@
           }
         ],
         "id": "phoneNumbers",
+        "variableName": "phoneNumbersItem",
         "typeName": "SecondaryPhonesX",
         "kind": "record"
       },

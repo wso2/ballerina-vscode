@@ -62,6 +62,7 @@
                   }
                 ],
                 "id": "banks.0.userInfo.0",
+                "variableName": "userInfoItem",
                 "typeName": "UserInfo",
                 "kind": "record"
               },
@@ -72,6 +73,7 @@
             }
           ],
           "id": "banks.0",
+          "variableName": "banksItem",
           "typeName": "Bank",
           "kind": "record"
         },
@@ -104,6 +106,7 @@
             }
           ],
           "id": "userInfo.0",
+          "variableName": "userInfoItem",
           "typeName": "UserInfo",
           "kind": "record"
         },
@@ -157,6 +160,7 @@
           }
         ],
         "id": "credentials",
+        "variableName": "credentialsItem",
         "typeName": "Credentials",
         "kind": "record"
       },

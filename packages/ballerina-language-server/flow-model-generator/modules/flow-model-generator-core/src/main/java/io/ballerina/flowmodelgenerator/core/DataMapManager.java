@@ -34,7 +34,39 @@ import io.ballerina.compiler.api.symbols.TypeDefinitionSymbol;
 import io.ballerina.compiler.api.symbols.TypeDescKind;
 import io.ballerina.compiler.api.symbols.TypeSymbol;
 import io.ballerina.compiler.api.symbols.VariableSymbol;
-import io.ballerina.compiler.syntax.tree.*;
+import io.ballerina.compiler.syntax.tree.BinaryExpressionNode;
+import io.ballerina.compiler.syntax.tree.ClauseNode;
+import io.ballerina.compiler.syntax.tree.CollectClauseNode;
+import io.ballerina.compiler.syntax.tree.ExpressionNode;
+import io.ballerina.compiler.syntax.tree.FieldAccessExpressionNode;
+import io.ballerina.compiler.syntax.tree.FromClauseNode;
+import io.ballerina.compiler.syntax.tree.IntermediateClauseNode;
+import io.ballerina.compiler.syntax.tree.LetClauseNode;
+import io.ballerina.compiler.syntax.tree.LetExpressionNode;
+import io.ballerina.compiler.syntax.tree.LetVariableDeclarationNode;
+import io.ballerina.compiler.syntax.tree.LimitClauseNode;
+import io.ballerina.compiler.syntax.tree.ListConstructorExpressionNode;
+import io.ballerina.compiler.syntax.tree.MappingConstructorExpressionNode;
+import io.ballerina.compiler.syntax.tree.MappingFieldNode;
+import io.ballerina.compiler.syntax.tree.MethodCallExpressionNode;
+import io.ballerina.compiler.syntax.tree.ModulePartNode;
+import io.ballerina.compiler.syntax.tree.ModuleVariableDeclarationNode;
+import io.ballerina.compiler.syntax.tree.Node;
+import io.ballerina.compiler.syntax.tree.NodeList;
+import io.ballerina.compiler.syntax.tree.NonTerminalNode;
+import io.ballerina.compiler.syntax.tree.OrderByClauseNode;
+import io.ballerina.compiler.syntax.tree.OrderKeyNode;
+import io.ballerina.compiler.syntax.tree.QueryExpressionNode;
+import io.ballerina.compiler.syntax.tree.QueryPipelineNode;
+import io.ballerina.compiler.syntax.tree.SelectClauseNode;
+import io.ballerina.compiler.syntax.tree.SeparatedNodeList;
+import io.ballerina.compiler.syntax.tree.SpecificFieldNode;
+import io.ballerina.compiler.syntax.tree.SyntaxKind;
+import io.ballerina.compiler.syntax.tree.SyntaxTree;
+import io.ballerina.compiler.syntax.tree.Token;
+import io.ballerina.compiler.syntax.tree.TypedBindingPatternNode;
+import io.ballerina.compiler.syntax.tree.VariableDeclarationNode;
+import io.ballerina.compiler.syntax.tree.WhereClauseNode;
 import io.ballerina.flowmodelgenerator.core.model.Codedata;
 import io.ballerina.flowmodelgenerator.core.model.FlowNode;
 import io.ballerina.flowmodelgenerator.core.model.NodeKind;
@@ -536,8 +568,8 @@ public class DataMapManager {
             return new MappingPort(id, type.getName(), type.getTypeName(), type.getTypeName());
         } else if (type.getTypeName().equals("array")) {
             ArrayType arrayType = (ArrayType) type;
-            MappingPort memberPort = getMappingPort(isInputPort ? id + ".0" : id, null, arrayType.memberType,
-                    isInputPort);
+            MappingPort memberPort = getMappingPort(isInputPort ? id + ".0" : id, getItemName(id),
+                    arrayType.memberType, isInputPort);
             MappingArrayPort arrayPort = new MappingArrayPort(id, name, memberPort == null ? "record" :
                     memberPort.typeName + "[]", type.getTypeName());
             arrayPort.setMember(memberPort);
@@ -545,6 +577,11 @@ public class DataMapManager {
         } else {
             return null;
         }
+    }
+
+    private String getItemName(String id) {
+        String[] splits = id.split("\\.");
+        return splits[splits.length - 1] + "Item";
     }
 
     public JsonElement getSource(Path filePath, JsonElement cd, JsonElement mp, String targetField) {
@@ -857,36 +894,46 @@ public class DataMapManager {
                 DefaultValueGeneratorUtil.getDefaultValueForType(recordTypeSymbol);
     }
 
-    public JsonElement getVisualizableProperties(SemanticModel semanticModel, JsonElement node) {
+    public Map<String, String> getVisualizableProperties(SemanticModel semanticModel, JsonElement node) {
         FlowNode flowNode = gson.fromJson(node, FlowNode.class);
-        List<String> visualizableProperties = new ArrayList<>();
+        Map<String, String> visualizableProperties = new HashMap<>();
         NodeKind nodeKind = flowNode.codedata().node();
         if (nodeKind == NodeKind.VARIABLE) {
             Optional<Property> optType = flowNode.getProperty("type");
             if (optType.isEmpty()) {
                 throw new IllegalStateException("Type property is not available for the variable");
             }
-            String type = ((String) optType.get().value()).split("\\[")[0];
+            String[] typeParts = ((String) optType.get().value()).split("\\[", 2);
+            String type = typeParts[0];
+            boolean isArray = (typeParts.length > 1 ? "[" + typeParts[1] : "").startsWith("[");
             for (Symbol symbol : semanticModel.moduleSymbols()) {
                 if (symbol.kind() == SymbolKind.TYPE_DEFINITION) {
                     if (symbol.getName().isEmpty() || !symbol.getName().get().equals(type)) {
                         continue;
                     }
                     TypeDefinitionSymbol typeDefSymbol = (TypeDefinitionSymbol) symbol;
-                    if (isEffectiveRecordType(typeDefSymbol.typeDescriptor())) {
-                        visualizableProperties.add("expression");
+                    TypeSymbol typeSymbol = typeDefSymbol.typeDescriptor();
+                    TypeSymbol rawTypeSymbol = CommonUtils.getRawType(typeSymbol);
+                    TypeDescKind kind = rawTypeSymbol.typeKind();
+                    if (isEffectiveRecordType(kind, rawTypeSymbol)) {
+                        if (kind == TypeDescKind.ARRAY || isArray) {
+                            visualizableProperties.put("expression", "[]");
+                        } else if (kind == TypeDescKind.RECORD) {
+                            visualizableProperties.put("expression", "{}");
+                        } else {
+                            throw new IllegalStateException("Unsupported type for visualizable properties: " + kind);
+                        }
                     }
                 }
             }
         }
-        return gson.toJsonTree(visualizableProperties);
+        return visualizableProperties;
     }
 
-    private boolean isEffectiveRecordType(TypeSymbol typeSymbol) {
-        TypeSymbol rawTypeSymbol = CommonUtils.getRawType(typeSymbol);
-        TypeDescKind kind = rawTypeSymbol.typeKind();
+    private boolean isEffectiveRecordType(TypeDescKind kind, TypeSymbol rawTypeSymbol) {
         if (kind == TypeDescKind.ARRAY) {
-            return isEffectiveRecordType(((ArrayTypeSymbol) rawTypeSymbol).memberTypeDescriptor());
+            TypeDescKind memberKind = ((ArrayTypeSymbol) rawTypeSymbol).memberTypeDescriptor().typeKind();
+            return isEffectiveRecordType(memberKind, ((ArrayTypeSymbol) rawTypeSymbol).memberTypeDescriptor());
         }
         return kind == TypeDescKind.RECORD;
     }
@@ -1123,58 +1170,6 @@ public class DataMapManager {
                     .build());
         }
         return null;
-    }
-
-    private LinePosition getFieldPos(ExpressionNode expr, String[] names, int idx, StringBuilder stringBuilder,
-                                     LinePosition position, List<TextEdit> textEdits) {
-        if (expr == null) {
-            String name = names[idx];
-            stringBuilder.append(name).append(": ");
-            for (int i = idx + 1; i < names.length; i++) {
-                stringBuilder.append("{").append(names[i]).append(": ");
-            }
-            int offset = stringBuilder.length();
-            for (int i = idx + 1; i < names.length; i++) {
-                stringBuilder.append("}");
-            }
-            textEdits.add(new TextEdit(CommonUtils.toRange(position), stringBuilder.toString()));
-            return LinePosition.from(position.line(), position.offset() + offset);
-        } else if (expr.kind() == SyntaxKind.MAPPING_CONSTRUCTOR) {
-            String name = names[idx];
-            MappingConstructorExpressionNode mappingCtrExpr = (MappingConstructorExpressionNode) expr;
-            Map<String, SpecificFieldNode> mappingFields = convertMappingFieldsToMap(mappingCtrExpr);
-            SpecificFieldNode mappingFieldNode = mappingFields.get(name);
-            if (mappingFieldNode == null) {
-                if (!mappingFields.isEmpty()) {
-                    stringBuilder.append(", ");
-                }
-                return getFieldPos(null, names, idx, stringBuilder,
-                        mappingCtrExpr.closeBrace().lineRange().startLine(), textEdits);
-            } else {
-                return getFieldPos(mappingFieldNode.valueExpr().orElseThrow(), names, idx + 1, stringBuilder,
-                        null, textEdits);
-            }
-        } else if (expr.kind() == SyntaxKind.LIST_CONSTRUCTOR) {
-            ListConstructorExpressionNode listCtrExpr = (ListConstructorExpressionNode) expr;
-            String name = names[idx];
-            if (name.matches("\\d+")) {
-                int index = Integer.parseInt(name);
-                if (index >= listCtrExpr.expressions().size()) {
-                    if (idx > 0) {
-                        stringBuilder.append(", ");
-                    }
-                    return getFieldPos(null, names, idx, stringBuilder,
-                            listCtrExpr.closeBracket().lineRange().startLine(), textEdits);
-                } else {
-                    return getFieldPos((ExpressionNode) listCtrExpr.expressions().get(index), names, idx + 1,
-                            stringBuilder, null, textEdits);
-                }
-            } else {
-                throw new IllegalArgumentException("Invalid field name: " + name);
-            }
-        } else {
-            return expr.lineRange().startLine();
-        }
     }
 
     private List<Clause> getQueryIntermediateClause(QueryPipelineNode queryPipelineNode) {

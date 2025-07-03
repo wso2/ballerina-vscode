@@ -58,6 +58,7 @@
                     "kind": "string"
                   },
                   "id": "u.info.addresses.0",
+                  "variableName": "addressesItem",
                   "typeName": "string[]",
                   "kind": "array"
                 },
