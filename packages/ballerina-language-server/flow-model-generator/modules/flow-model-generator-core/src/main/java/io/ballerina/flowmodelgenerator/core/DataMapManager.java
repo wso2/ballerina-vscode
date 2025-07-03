@@ -877,36 +877,46 @@ public class DataMapManager {
                 DefaultValueGeneratorUtil.getDefaultValueForType(recordTypeSymbol);
     }
 
-    public JsonElement getVisualizableProperties(SemanticModel semanticModel, JsonElement node) {
+    public Map<String, String> getVisualizableProperties(SemanticModel semanticModel, JsonElement node) {
         FlowNode flowNode = gson.fromJson(node, FlowNode.class);
-        List<String> visualizableProperties = new ArrayList<>();
+        Map<String, String> visualizableProperties = new HashMap<>();
         NodeKind nodeKind = flowNode.codedata().node();
         if (nodeKind == NodeKind.VARIABLE) {
             Optional<Property> optType = flowNode.getProperty("type");
             if (optType.isEmpty()) {
                 throw new IllegalStateException("Type property is not available for the variable");
             }
-            String type = ((String) optType.get().value()).split("\\[")[0];
+            String[] typeParts = ((String) optType.get().value()).split("\\[", 2);
+            String type = typeParts[0];
+            boolean isArray = (typeParts.length > 1 ? "[" + typeParts[1] : "").startsWith("[");
             for (Symbol symbol : semanticModel.moduleSymbols()) {
                 if (symbol.kind() == SymbolKind.TYPE_DEFINITION) {
                     if (symbol.getName().isEmpty() || !symbol.getName().get().equals(type)) {
                         continue;
                     }
                     TypeDefinitionSymbol typeDefSymbol = (TypeDefinitionSymbol) symbol;
-                    if (isEffectiveRecordType(typeDefSymbol.typeDescriptor())) {
-                        visualizableProperties.add("expression");
+                    TypeSymbol typeSymbol = typeDefSymbol.typeDescriptor();
+                    TypeSymbol rawTypeSymbol = CommonUtils.getRawType(typeSymbol);
+                    TypeDescKind kind = rawTypeSymbol.typeKind();
+                    if (isEffectiveRecordType(kind, rawTypeSymbol)) {
+                        if (kind == TypeDescKind.ARRAY || isArray) {
+                            visualizableProperties.put("expression", "[]");
+                        } else if (kind == TypeDescKind.RECORD) {
+                            visualizableProperties.put("expression", "{}");
+                        } else {
+                            throw new IllegalStateException("Unsupported type for visualizable properties: " + kind);
+                        }
                     }
                 }
             }
         }
-        return gson.toJsonTree(visualizableProperties);
+        return visualizableProperties;
     }
 
-    private boolean isEffectiveRecordType(TypeSymbol typeSymbol) {
-        TypeSymbol rawTypeSymbol = CommonUtils.getRawType(typeSymbol);
-        TypeDescKind kind = rawTypeSymbol.typeKind();
+    private boolean isEffectiveRecordType(TypeDescKind kind, TypeSymbol rawTypeSymbol) {
         if (kind == TypeDescKind.ARRAY) {
-            return isEffectiveRecordType(((ArrayTypeSymbol) rawTypeSymbol).memberTypeDescriptor());
+            TypeDescKind memberKind = ((ArrayTypeSymbol) rawTypeSymbol).memberTypeDescriptor().typeKind();
+            return isEffectiveRecordType(memberKind, ((ArrayTypeSymbol) rawTypeSymbol).memberTypeDescriptor());
         }
         return kind == TypeDescKind.RECORD;
     }
