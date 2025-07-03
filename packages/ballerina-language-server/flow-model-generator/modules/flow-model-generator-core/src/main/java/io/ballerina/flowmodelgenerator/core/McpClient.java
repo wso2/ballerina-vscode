@@ -151,7 +151,9 @@ public class McpClient {
             }
             throw new IOException("Server name not found in response");
         } finally {
-            if (conn != null) conn.disconnect();
+            if (conn != null) {
+                conn.disconnect();
+            }
         }
     }
 
