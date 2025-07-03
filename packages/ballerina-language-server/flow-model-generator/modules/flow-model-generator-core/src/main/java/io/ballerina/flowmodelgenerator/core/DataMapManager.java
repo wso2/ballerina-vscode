@@ -41,8 +41,10 @@ import io.ballerina.compiler.syntax.tree.ExpressionNode;
 import io.ballerina.compiler.syntax.tree.FieldAccessExpressionNode;
 import io.ballerina.compiler.syntax.tree.FromClauseNode;
 import io.ballerina.compiler.syntax.tree.IntermediateClauseNode;
+import io.ballerina.compiler.syntax.tree.LetClauseNode;
 import io.ballerina.compiler.syntax.tree.LetExpressionNode;
 import io.ballerina.compiler.syntax.tree.LetVariableDeclarationNode;
+import io.ballerina.compiler.syntax.tree.LimitClauseNode;
 import io.ballerina.compiler.syntax.tree.ListConstructorExpressionNode;
 import io.ballerina.compiler.syntax.tree.MappingConstructorExpressionNode;
 import io.ballerina.compiler.syntax.tree.MappingFieldNode;
@@ -52,6 +54,8 @@ import io.ballerina.compiler.syntax.tree.ModuleVariableDeclarationNode;
 import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.compiler.syntax.tree.NodeList;
 import io.ballerina.compiler.syntax.tree.NonTerminalNode;
+import io.ballerina.compiler.syntax.tree.OrderByClauseNode;
+import io.ballerina.compiler.syntax.tree.OrderKeyNode;
 import io.ballerina.compiler.syntax.tree.QueryExpressionNode;
 import io.ballerina.compiler.syntax.tree.QueryPipelineNode;
 import io.ballerina.compiler.syntax.tree.SelectClauseNode;
@@ -59,6 +63,7 @@ import io.ballerina.compiler.syntax.tree.SeparatedNodeList;
 import io.ballerina.compiler.syntax.tree.SpecificFieldNode;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.compiler.syntax.tree.SyntaxTree;
+import io.ballerina.compiler.syntax.tree.Token;
 import io.ballerina.compiler.syntax.tree.TypedBindingPatternNode;
 import io.ballerina.compiler.syntax.tree.VariableDeclarationNode;
 import io.ballerina.compiler.syntax.tree.WhereClauseNode;
@@ -100,6 +105,10 @@ import java.util.Optional;
 public class DataMapManager {
 
     public static final String DOT = "\\.";
+    public static final String FROM = "from";
+    public static final String WHERE = "where";
+    public static final String LIMIT = "limit";
+    public static final String ORDER_BY = "order-by";
     private final Document document;
     private final Gson gson;
 
@@ -194,13 +203,16 @@ public class DataMapManager {
                 itemType = memberTypeSymbol.signature().trim();
             }
 
-            FromClause fromClause = new FromClause(itemType, fromClauseVar, expression.toSourceCode().trim());
-            String resultClause;
+            Clause fromClause = new Clause(FROM, new Properties(itemType, fromClauseVar,
+                    expression.toSourceCode().trim(), null));
             ClauseNode clauseNode = queryExpressionNode.resultClause();
+            Clause resultClause;
             if (clauseNode.kind() == SyntaxKind.SELECT_CLAUSE) {
-                resultClause = ((SelectClauseNode) clauseNode).expression().toSourceCode().trim();
+                resultClause = new Clause("select", new DataMapManager.Properties(null, null,
+                        ((SelectClauseNode) clauseNode).expression().toSourceCode().trim(), null));
             } else {
-                resultClause = ((CollectClauseNode) clauseNode).expression().toSourceCode().trim();
+                resultClause = new Clause("collect", new DataMapManager.Properties(null, null,
+                        ((CollectClauseNode) clauseNode).expression().toSourceCode().trim(), null));
             }
             query = new Query(targetField, inputs, fromClause,
                     getQueryIntermediateClause(queryExpressionNode.queryPipeline()), resultClause);
@@ -804,14 +816,14 @@ public class DataMapManager {
         String type = clause.type();
         Properties properties = clause.properties();
         switch (type) {
-            case "from": {
+            case FROM: {
                 return "from " + properties.type() + " " + properties.name() +
                         " in " + properties.expression();
             }
-            case "where": {
+            case WHERE: {
                 return "where " + properties.expression();
             }
-            case "order-by": {
+            case ORDER_BY: {
                 String orderBy = "order by " + properties.expression();
                 if (properties.order() != null) {
                     orderBy += " " + properties.order();
@@ -822,7 +834,7 @@ public class DataMapManager {
                 return "let " + properties.type() + " " + properties.name() +
                         " = " + properties.expression();
             }
-            case "limit": {
+            case LIMIT: {
                 return "limit " + properties.expression();
             }
             case "select": {
@@ -1160,79 +1172,51 @@ public class DataMapManager {
         return null;
     }
 
-    private LinePosition getFieldPos(ExpressionNode expr, String[] names, int idx, StringBuilder stringBuilder,
-                                     LinePosition position, List<TextEdit> textEdits) {
-        if (expr == null) {
-            String name = names[idx];
-            stringBuilder.append(name).append(": ");
-            for (int i = idx + 1; i < names.length; i++) {
-                stringBuilder.append("{").append(names[i]).append(": ");
-            }
-            int offset = stringBuilder.length();
-            for (int i = idx + 1; i < names.length; i++) {
-                stringBuilder.append("}");
-            }
-            textEdits.add(new TextEdit(CommonUtils.toRange(position), stringBuilder.toString()));
-            return LinePosition.from(position.line(), position.offset() + offset);
-        } else if (expr.kind() == SyntaxKind.MAPPING_CONSTRUCTOR) {
-            String name = names[idx];
-            MappingConstructorExpressionNode mappingCtrExpr = (MappingConstructorExpressionNode) expr;
-            Map<String, SpecificFieldNode> mappingFields = convertMappingFieldsToMap(mappingCtrExpr);
-            SpecificFieldNode mappingFieldNode = mappingFields.get(name);
-            if (mappingFieldNode == null) {
-                if (!mappingFields.isEmpty()) {
-                    stringBuilder.append(", ");
-                }
-                return getFieldPos(null, names, idx, stringBuilder,
-                        mappingCtrExpr.closeBrace().lineRange().startLine(), textEdits);
-            } else {
-                return getFieldPos(mappingFieldNode.valueExpr().orElseThrow(), names, idx + 1, stringBuilder,
-                        null, textEdits);
-            }
-        } else if (expr.kind() == SyntaxKind.LIST_CONSTRUCTOR) {
-            ListConstructorExpressionNode listCtrExpr = (ListConstructorExpressionNode) expr;
-            String name = names[idx];
-            if (name.matches("\\d+")) {
-                int index = Integer.parseInt(name);
-                if (index >= listCtrExpr.expressions().size()) {
-                    if (idx > 0) {
-                        stringBuilder.append(", ");
-                    }
-                    return getFieldPos(null, names, idx, stringBuilder,
-                            listCtrExpr.closeBracket().lineRange().startLine(), textEdits);
-                } else {
-                    return getFieldPos((ExpressionNode) listCtrExpr.expressions().get(index), names, idx + 1,
-                            stringBuilder, null, textEdits);
-                }
-            } else {
-                throw new IllegalArgumentException("Invalid field name: " + name);
-            }
-        } else {
-            return expr.lineRange().startLine();
-        }
-    }
-
-    private record FieldPosition(Map<Path, List<TextEdit>> textEdits, LinePosition position) {
-
-    }
-
-    private List<IntermediateClause> getQueryIntermediateClause(QueryPipelineNode queryPipelineNode) {
-        List<IntermediateClause> intermediateClauses = new ArrayList<>();
+    private List<Clause> getQueryIntermediateClause(QueryPipelineNode queryPipelineNode) {
+        List<Clause> intermediateClauses = new ArrayList<>();
         for (IntermediateClauseNode intermediateClause : queryPipelineNode.intermediateClauses()) {
             SyntaxKind kind = intermediateClause.kind();
             switch (kind) {
                 case FROM_CLAUSE -> {
                     FromClauseNode fromClauseNode = (FromClauseNode) intermediateClause;
                     TypedBindingPatternNode typedBindingPattern = fromClauseNode.typedBindingPattern();
-                    FromClause fromClause = new FromClause(typedBindingPattern.typeDescriptor().toSourceCode().trim(),
-                            typedBindingPattern.bindingPattern().toSourceCode().trim(),
-                            fromClauseNode.expression().toSourceCode().trim());
-                    intermediateClauses.add(new IntermediateClause("from", fromClause));
+                    intermediateClauses.add(new Clause(FROM,
+                            new DataMapManager.Properties(typedBindingPattern.bindingPattern().toSourceCode().trim(),
+                                    typedBindingPattern.typeDescriptor().toSourceCode().trim(),
+                                    fromClauseNode.expression().toSourceCode().trim(), null)));
                 }
                 case WHERE_CLAUSE -> {
                     WhereClauseNode whereClauseNode = (WhereClauseNode) intermediateClause;
                     ExpressionNode expression = whereClauseNode.expression();
-                    intermediateClauses.add(new IntermediateClause("where", expression.toSourceCode().trim()));
+                    intermediateClauses.add(new Clause(WHERE,
+                            new Properties(null, null, expression.toSourceCode().trim(), null)));
+                }
+                case LET_CLAUSE -> {
+                    LetClauseNode letClauseNode = (LetClauseNode) intermediateClause;
+                    SeparatedNodeList<LetVariableDeclarationNode> letVars = letClauseNode.letVarDeclarations();
+                    LetVariableDeclarationNode letVar = letVars.get(0);
+                    TypedBindingPatternNode typedBindingPattern = letVar.typedBindingPattern();
+                    intermediateClauses.add(new Clause(LIMIT,
+                            new Properties(typedBindingPattern.bindingPattern().toSourceCode().trim(),
+                                    typedBindingPattern.typeDescriptor().toSourceCode().trim(),
+                                    letVar.expression().toSourceCode().trim(), null)));
+                }
+                case ORDER_BY_CLAUSE -> {
+                    OrderByClauseNode order = (OrderByClauseNode) intermediateClause;
+                    SeparatedNodeList<OrderKeyNode> orderKeyNodes = order.orderKey();
+                    OrderKeyNode orderKey = orderKeyNodes.get(0);
+                    String direction = null;
+                    Optional<Token> token = orderKey.orderDirection();
+                    if (token.isPresent()) {
+                        direction = token.get().text();
+                    }
+                    intermediateClauses.add(new Clause(ORDER_BY,
+                            new Properties(null, null, orderKey.expression().toSourceCode().trim(), direction)));
+                }
+                case LIMIT_CLAUSE -> {
+                    LimitClauseNode limitClause = (LimitClauseNode) intermediateClause;
+                    intermediateClauses.add(new Clause("limit", new Properties(null, null,
+                            limitClause.expression().toSourceCode().trim(), null)));
                 }
                 default -> {
                 }
@@ -1266,16 +1250,8 @@ public class DataMapManager {
         }
     }
 
-    private record Query(String output, List<String> inputs, FromClause fromClause,
-                         List<IntermediateClause> intermediateClauses, String resultClause) {
-
-    }
-
-    private record FromClause(String type, String name, String expression) {
-
-    }
-
-    private record IntermediateClause(String type, Object clause) {
+    private record Query(String output, List<String> inputs, Clause fromClause,
+                         List<Clause> intermediateClauses, Clause resultClause) {
 
     }
 

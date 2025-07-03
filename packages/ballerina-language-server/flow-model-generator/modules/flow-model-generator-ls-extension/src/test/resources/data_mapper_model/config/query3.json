@@ -170,17 +170,27 @@
         "u.info.secondaryPhones"
       ],
       "fromClause": {
-        "type": "SecondaryPhones",
-        "name": "secondaryPhonesItem",
-        "expression": "u.info.secondaryPhones"
+        "type": "from",
+        "properties": {
+          "name": "SecondaryPhones",
+          "type": "secondaryPhonesItem",
+          "expression": "u.info.secondaryPhones"
+        }
       },
       "intermediateClauses": [
         {
           "type": "where",
-          "clause": "secondaryPhonesItem.code == \"123\""
+          "properties": {
+            "expression": "secondaryPhonesItem.code == \"123\""
+          }
         }
       ],
-      "resultClause": "{code: secondaryPhonesItem.code, number: secondaryPhonesItem.number}"
+      "resultClause": {
+        "type": "select",
+        "properties": {
+          "expression": "{code: secondaryPhonesItem.code, number: secondaryPhonesItem.number}"
+        }
+      }
     }
   }
 }
