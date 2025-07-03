@@ -217,7 +217,7 @@ public abstract class CallBuilder extends NodeBuilder {
                                            boolean hidden) {
         properties()
                 .type(functionData.returnType(), false, functionData.importStatements(), hidden,
-                        Property.RETURN_TYPE_LABEL)
+                        Property.RESULT_TYPE_LABEL)
                 .data(functionData.returnType(), context.getAllVisibleSymbolNames(), label, doc);
     }
 
