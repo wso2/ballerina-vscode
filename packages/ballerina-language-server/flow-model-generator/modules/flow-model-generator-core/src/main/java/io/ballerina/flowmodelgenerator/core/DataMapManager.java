@@ -34,34 +34,7 @@ import io.ballerina.compiler.api.symbols.TypeDefinitionSymbol;
 import io.ballerina.compiler.api.symbols.TypeDescKind;
 import io.ballerina.compiler.api.symbols.TypeSymbol;
 import io.ballerina.compiler.api.symbols.VariableSymbol;
-import io.ballerina.compiler.syntax.tree.BinaryExpressionNode;
-import io.ballerina.compiler.syntax.tree.ClauseNode;
-import io.ballerina.compiler.syntax.tree.CollectClauseNode;
-import io.ballerina.compiler.syntax.tree.ExpressionNode;
-import io.ballerina.compiler.syntax.tree.FieldAccessExpressionNode;
-import io.ballerina.compiler.syntax.tree.FromClauseNode;
-import io.ballerina.compiler.syntax.tree.IntermediateClauseNode;
-import io.ballerina.compiler.syntax.tree.LetExpressionNode;
-import io.ballerina.compiler.syntax.tree.LetVariableDeclarationNode;
-import io.ballerina.compiler.syntax.tree.ListConstructorExpressionNode;
-import io.ballerina.compiler.syntax.tree.MappingConstructorExpressionNode;
-import io.ballerina.compiler.syntax.tree.MappingFieldNode;
-import io.ballerina.compiler.syntax.tree.MethodCallExpressionNode;
-import io.ballerina.compiler.syntax.tree.ModulePartNode;
-import io.ballerina.compiler.syntax.tree.ModuleVariableDeclarationNode;
-import io.ballerina.compiler.syntax.tree.Node;
-import io.ballerina.compiler.syntax.tree.NodeList;
-import io.ballerina.compiler.syntax.tree.NonTerminalNode;
-import io.ballerina.compiler.syntax.tree.QueryExpressionNode;
-import io.ballerina.compiler.syntax.tree.QueryPipelineNode;
-import io.ballerina.compiler.syntax.tree.SelectClauseNode;
-import io.ballerina.compiler.syntax.tree.SeparatedNodeList;
-import io.ballerina.compiler.syntax.tree.SpecificFieldNode;
-import io.ballerina.compiler.syntax.tree.SyntaxKind;
-import io.ballerina.compiler.syntax.tree.SyntaxTree;
-import io.ballerina.compiler.syntax.tree.TypedBindingPatternNode;
-import io.ballerina.compiler.syntax.tree.VariableDeclarationNode;
-import io.ballerina.compiler.syntax.tree.WhereClauseNode;
+import io.ballerina.compiler.syntax.tree.*;
 import io.ballerina.flowmodelgenerator.core.model.Codedata;
 import io.ballerina.flowmodelgenerator.core.model.FlowNode;
 import io.ballerina.flowmodelgenerator.core.model.NodeKind;
@@ -100,6 +73,10 @@ import java.util.Optional;
 public class DataMapManager {
 
     public static final String DOT = "\\.";
+    public static final String FROM = "from";
+    public static final String WHERE = "where";
+    public static final String LIMIT = "limit";
+    public static final String ORDER_BY = "order-by";
     private final Document document;
     private final Gson gson;
 
@@ -194,7 +171,7 @@ public class DataMapManager {
                 itemType = memberTypeSymbol.signature().trim();
             }
 
-            Clause fromClause = new Clause("from", new Properties(itemType, fromClauseVar,
+            Clause fromClause = new Clause(FROM, new Properties(itemType, fromClauseVar,
                     expression.toSourceCode().trim(), null));
             ClauseNode clauseNode = queryExpressionNode.resultClause();
             Clause resultClause;
@@ -802,14 +779,14 @@ public class DataMapManager {
         String type = clause.type();
         Properties properties = clause.properties();
         switch (type) {
-            case "from": {
+            case FROM: {
                 return "from " + properties.type() + " " + properties.name() +
                         " in " + properties.expression();
             }
-            case "where": {
+            case WHERE: {
                 return "where " + properties.expression();
             }
-            case "order-by": {
+            case ORDER_BY: {
                 String orderBy = "order by " + properties.expression();
                 if (properties.order() != null) {
                     orderBy += " " + properties.order();
@@ -820,7 +797,7 @@ public class DataMapManager {
                 return "let " + properties.type() + " " + properties.name() +
                         " = " + properties.expression();
             }
-            case "limit": {
+            case LIMIT: {
                 return "limit " + properties.expression();
             }
             case "select": {
@@ -1200,10 +1177,6 @@ public class DataMapManager {
         }
     }
 
-    private record FieldPosition(Map<Path, List<TextEdit>> textEdits, LinePosition position) {
-
-    }
-
     private List<Clause> getQueryIntermediateClause(QueryPipelineNode queryPipelineNode) {
         List<Clause> intermediateClauses = new ArrayList<>();
         for (IntermediateClauseNode intermediateClause : queryPipelineNode.intermediateClauses()) {
@@ -1212,7 +1185,7 @@ public class DataMapManager {
                 case FROM_CLAUSE -> {
                     FromClauseNode fromClauseNode = (FromClauseNode) intermediateClause;
                     TypedBindingPatternNode typedBindingPattern = fromClauseNode.typedBindingPattern();
-                    intermediateClauses.add(new Clause("from",
+                    intermediateClauses.add(new Clause(FROM,
                             new DataMapManager.Properties(typedBindingPattern.bindingPattern().toSourceCode().trim(),
                                     typedBindingPattern.typeDescriptor().toSourceCode().trim(),
                                     fromClauseNode.expression().toSourceCode().trim(), null)));
@@ -1220,8 +1193,35 @@ public class DataMapManager {
                 case WHERE_CLAUSE -> {
                     WhereClauseNode whereClauseNode = (WhereClauseNode) intermediateClause;
                     ExpressionNode expression = whereClauseNode.expression();
-                    intermediateClauses.add(new Clause("where",
+                    intermediateClauses.add(new Clause(WHERE,
                             new Properties(null, null, expression.toSourceCode().trim(), null)));
+                }
+                case LET_CLAUSE -> {
+                    LetClauseNode letClauseNode = (LetClauseNode) intermediateClause;
+                    SeparatedNodeList<LetVariableDeclarationNode> letVars = letClauseNode.letVarDeclarations();
+                    LetVariableDeclarationNode letVar = letVars.get(0);
+                    TypedBindingPatternNode typedBindingPattern = letVar.typedBindingPattern();
+                    intermediateClauses.add(new Clause(LIMIT,
+                            new Properties(typedBindingPattern.bindingPattern().toSourceCode().trim(),
+                                    typedBindingPattern.typeDescriptor().toSourceCode().trim(),
+                                    letVar.expression().toSourceCode().trim(), null)));
+                }
+                case ORDER_BY_CLAUSE -> {
+                    OrderByClauseNode order = (OrderByClauseNode) intermediateClause;
+                    SeparatedNodeList<OrderKeyNode> orderKeyNodes = order.orderKey();
+                    OrderKeyNode orderKey = orderKeyNodes.get(0);
+                    String direction = null;
+                    Optional<Token> token = orderKey.orderDirection();
+                    if (token.isPresent()) {
+                        direction = token.get().text();
+                    }
+                    intermediateClauses.add(new Clause(ORDER_BY,
+                            new Properties(null, null, orderKey.expression().toSourceCode().trim(), direction)));
+                }
+                case LIMIT_CLAUSE -> {
+                    LimitClauseNode limitClause = (LimitClauseNode) intermediateClause;
+                    intermediateClauses.add(new Clause("limit", new Properties(null, null,
+                            limitClause.expression().toSourceCode().trim(), null)));
                 }
                 default -> {
                 }
