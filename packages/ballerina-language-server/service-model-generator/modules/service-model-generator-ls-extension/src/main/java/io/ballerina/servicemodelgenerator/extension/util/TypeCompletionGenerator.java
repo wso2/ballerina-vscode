@@ -201,10 +201,9 @@ public class TypeCompletionGenerator {
                             });
                 });
 
-        // Add the http:Response type
-        typeCompletions.add(new TypeCompletion("Dynamic", "Response", "http:Response", ""));
+        typeCompletions.add(new TypeCompletion("Dynamic", "Response", "http:Response", "Dynamic"));
 
         // Add the http:Response type
-        typeCompletions.add(new TypeCompletion("Error Type", "error", "error", ""));
+        typeCompletions.add(new TypeCompletion("Error Type", "error", "error", "500"));
     }
 }

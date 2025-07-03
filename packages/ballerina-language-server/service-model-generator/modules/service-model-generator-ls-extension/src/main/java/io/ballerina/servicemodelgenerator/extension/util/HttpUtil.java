@@ -426,13 +426,14 @@ public final class HttpUtil {
                     }
                 });
         List<HttpResponse> responses = new ArrayList<>();
-        HttpResponse normalResponse = new HttpResponse(String.valueOf(defaultStatusCode), "http:Response");
-        normalResponse.setAdvanced(true);
-        normalResponse.setEditable(true);
-        normalResponse.setEnabled(hasHttpResponse.get());
-        normalResponse.setHttpResponseType(true);
 
-        responses.add(normalResponse);
+        if (hasHttpResponse.get()) {
+            HttpResponse dynamicStatusRes = new HttpResponse(String.valueOf(defaultStatusCode), "http:Response");
+            dynamicStatusRes.setEditable(true);
+            dynamicStatusRes.setEnabled(hasHttpResponse.get());
+            dynamicStatusRes.setHttpResponseType(true);
+            responses.add(dynamicStatusRes);
+        }
 
         statusCodeResponses.stream()
                 .map(statusCodeResponse -> getHttpResponse(statusCodeResponse, String.valueOf(defaultStatusCode),
