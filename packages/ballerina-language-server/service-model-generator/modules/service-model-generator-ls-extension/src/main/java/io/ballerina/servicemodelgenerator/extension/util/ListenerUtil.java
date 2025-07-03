@@ -127,7 +127,7 @@ public class ListenerUtil {
                     Path path = project.sourceRoot().resolve(location.lineRange().fileName());
                     DocumentId documentId = project.documentId(path);
                     Document document = project.currentPackage().getDefaultModule().document(documentId);
-                    if (document != null) {
+                    if (!isHttpDefaultListenerDefined && document != null) {
                         ModulePartNode node = document.syntaxTree().rootNode();
                         TextRange range = TextRange.from(location.textRange().startOffset(),
                                 location.textRange().length());
