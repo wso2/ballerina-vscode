@@ -371,7 +371,7 @@
         "statusCode": "511"
       },
       {
-        "category": "Custom",
+        "category": "User Defined",
         "label": "Json202Accepted",
         "type": "Json202Accepted",
         "statusCode": "202"
@@ -380,7 +380,13 @@
         "category": "Dynamic",
         "label": "Response",
         "type": "http:Response",
-        "statusCode": ""
+        "statusCode": "Dynamic"
+      },
+      {
+        "category": "Error Type",
+        "label": "error",
+        "type": "error",
+        "statusCode": "500"
       }
     ]
   }

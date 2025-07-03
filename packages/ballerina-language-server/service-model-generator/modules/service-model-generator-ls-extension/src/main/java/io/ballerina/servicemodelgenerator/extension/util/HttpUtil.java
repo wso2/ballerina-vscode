@@ -50,7 +50,6 @@ import io.ballerina.servicemodelgenerator.extension.model.HttpResponse;
 import io.ballerina.servicemodelgenerator.extension.model.Parameter;
 import io.ballerina.servicemodelgenerator.extension.model.Service;
 import io.ballerina.servicemodelgenerator.extension.model.Value;
-import org.ballerinalang.langserver.common.utils.CommonUtil;
 
 import java.io.IOException;
 import java.io.InputStream;

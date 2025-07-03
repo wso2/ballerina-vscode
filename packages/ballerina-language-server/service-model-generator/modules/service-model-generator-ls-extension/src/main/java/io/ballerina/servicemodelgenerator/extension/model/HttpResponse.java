@@ -18,7 +18,6 @@
 
 package io.ballerina.servicemodelgenerator.extension.model;
 
-import java.util.Objects;
 
 /**
  * Represents a HTTP response.
