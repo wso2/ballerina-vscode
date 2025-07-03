@@ -16,11 +16,12 @@
     },
     "sourceCode": "Student student = {};"
   },
-  "propertyKey": "expression",
   "position": {
     "line": 17,
     "offset": 12
   },
+  "propertyKey": "expression",
+  "targetField": "student",
   "model": {
     "inputs": [
       {
