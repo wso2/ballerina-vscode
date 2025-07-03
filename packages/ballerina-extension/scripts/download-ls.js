@@ -35,31 +35,31 @@ function checkExistingJar() {
 function httpsRequest(url, options = {}) {
     return new Promise((resolve, reject) => {
         const authHeader = {};
-        if (process.env.GITHUB_TOKEN) {
-            authHeader['Authorization'] = `Bearer ${process.env.GITHUB_TOKEN}`;
-        } else if (process.env.CHOREO_BOT_TOKEN) {
+        if (process.env.CHOREO_BOT_TOKEN) {
             authHeader['Authorization'] = `Bearer ${process.env.CHOREO_BOT_TOKEN}`;
+        } else if (process.env.GITHUB_TOKEN) {
+            authHeader['Authorization'] = `Bearer ${process.env.GITHUB_TOKEN}`;
         }
 
         const req = https.request(url, {
             ...options,
             headers: {
-            'User-Agent': 'Ballerina-LS-Downloader',
-            'Accept': 'application/vnd.github.v3+json',
-            ...authHeader,
-            ...options.headers
+                'User-Agent': 'Ballerina-LS-Downloader',
+                'Accept': 'application/vnd.github.v3+json',
+                ...authHeader,
+                ...options.headers
             }
         }, (res) => {
             // Handle HTTP 403 errors specifically
             if (res.statusCode === 403) {
-            console.error('HTTP 403: Forbidden. This may be due to GitHub API rate limiting.');
-            console.error('Set GITHUB_TOKEN environment variable with a personal access token to increase rate limits.');
-            
-            // Log rate limit info if available
-            if (res.headers['x-ratelimit-limit']) {
-                console.error(`Rate limit: ${res.headers['x-ratelimit-remaining']}/${res.headers['x-ratelimit-limit']}`);
-                console.error(`Rate limit resets at: ${new Date(res.headers['x-ratelimit-reset'] * 1000).toLocaleString()}`);
-            }
+                console.error('HTTP 403: Forbidden. This may be due to GitHub API rate limiting.');
+                console.error('Set GITHUB_TOKEN environment variable with a personal access token to increase rate limits.');
+
+                // Log rate limit info if available
+                if (res.headers['x-ratelimit-limit']) {
+                    console.error(`Rate limit: ${res.headers['x-ratelimit-remaining']}/${res.headers['x-ratelimit-limit']}`);
+                    console.error(`Rate limit resets at: ${new Date(res.headers['x-ratelimit-reset'] * 1000).toLocaleString()}`);
+                }
             }
             let data = '';
 
