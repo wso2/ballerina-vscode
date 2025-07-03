@@ -201,8 +201,8 @@
       "fromClause": {
         "type": "from",
         "properties": {
-          "name": "UserInfo",
-          "type": "info",
+          "name": "info",
+          "type": "UserInfo",
           "expression": "bank.userInfo"
         }
       },
