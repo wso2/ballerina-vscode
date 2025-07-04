@@ -164,7 +164,6 @@ public class Value {
     }
 
     public String getValue() {
-        List<Object> values = this.values;
         if (Objects.nonNull(values) && !values.isEmpty()) {
             if (values.getFirst() instanceof String) {
                 return String.join(", ", values.stream().map(v -> (String) v).toList());

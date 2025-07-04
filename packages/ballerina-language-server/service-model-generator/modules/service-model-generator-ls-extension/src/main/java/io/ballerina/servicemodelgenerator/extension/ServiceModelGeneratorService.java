@@ -115,6 +115,7 @@ import java.lang.reflect.Type;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -1126,14 +1127,12 @@ public class ServiceModelGeneratorService implements ExtendedLanguageServerServi
     @JsonRequest
     public CompletableFuture<TypeResponse> types(TypesRequest request) {
         return CompletableFuture.supplyAsync(() -> {
-            TypeResponse response = new TypeResponse(new ArrayList<>());
             try {
                 Path filePath = Path.of(request.filePath());
                 Project project = this.workspaceManager.loadProject(filePath);
-                TypeCompletionGenerator.getTypes(project, response.completions());
-                return response;
+                return new TypeResponse(TypeCompletionGenerator.getTypes(project));
             } catch (Throwable e) {
-                return response;
+                return new TypeResponse(Collections.emptyList());
             }
         });
     }

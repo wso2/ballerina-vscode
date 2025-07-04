@@ -37,7 +37,7 @@ import java.util.List;
 /**
  * Generate type completions for different service model related forms.
  *
- * @since 1.1.0
+ * @since 1.0.0
  */
 public class TypeCompletionGenerator {
 
@@ -169,13 +169,13 @@ public class TypeCompletionGenerator {
         DEFAULT_HTTP_STATUS_RESPONSES = Collections.unmodifiableList(defaultResponses);
     }
 
-    public static void getTypes(Project project, List<TypeCompletion> typeCompletions) {
-         // Add the default http status code types
-        typeCompletions.addAll(DEFAULT_HTTP_STATUS_RESPONSES);
+    public static List<TypeCompletion> getTypes(Project project) {
+        // Add the default http status code types
+        List<TypeCompletion> typeCompletions = new ArrayList<>(DEFAULT_HTTP_STATUS_RESPONSES);
 
         // Add the http status code types from the project
         Module defaultModule = project.currentPackage().getDefaultModule();
-        defaultModule.documentIds().stream().forEach(
+        defaultModule.documentIds().forEach(
                 documentId -> {
                     Document document = defaultModule.document(documentId);
                     ModulePartNode modulePartNode = document.syntaxTree().rootNode();
@@ -205,5 +205,7 @@ public class TypeCompletionGenerator {
 
         // Add the http:Response type
         typeCompletions.add(new TypeCompletion("Error Type", "error", "error", "500"));
+
+        return typeCompletions;
     }
 }
