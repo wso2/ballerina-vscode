@@ -61,7 +61,7 @@
     "line": 17,
     "offset": 12
   },
-  "visualizableProperties": {
-    "expression": "[]"
-  }
+  "visualizableProperties": [
+    "expression"
+  ]
 }
