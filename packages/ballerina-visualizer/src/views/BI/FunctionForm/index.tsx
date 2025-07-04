@@ -408,6 +408,7 @@ export function FunctionForm(props: FunctionFormProps) {
                                 onSubmit={handleFormSubmit}
                                 submitText={saving ? (functionName ? "Saving..." : "Creating...") : (functionName ? "Save" : "Create")}
                                 selectedNode={functionNode?.codedata?.node}
+                                preserveFieldOrder={true}
                             />
                         }
                     </FormContainer>

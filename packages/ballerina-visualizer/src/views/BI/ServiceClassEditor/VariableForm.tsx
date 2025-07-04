@@ -114,6 +114,7 @@ export function VariableForm(props: VariableFormProps) {
                     submitText={isSaving ? "Saving..." : "Save"}
                     isGraphqlEditor={isGraphqlEditor}
                     helperPaneSide="left"
+                    preserveFieldOrder={true}
                 />
             )}
         </>
