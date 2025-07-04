@@ -115,20 +115,12 @@
         "u.info.secondaryPhones"
       ],
       "fromClause": {
-        "type": "from",
-        "properties": {
-          "name": "string",
-          "type": "secondaryPhonesItem",
-          "expression": "u.info.secondaryPhones"
-        }
+        "type": "string",
+        "name": "secondaryPhonesItem",
+        "expression": "u.info.secondaryPhones"
       },
       "intermediateClauses": [],
-      "resultClause": {
-        "type": "select",
-        "properties": {
-          "expression": "secondaryPhonesItem"
-        }
-      }
+      "resultClause": "secondaryPhonesItem"
     }
   }
 }

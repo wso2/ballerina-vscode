@@ -142,20 +142,12 @@
         "userInfo"
       ],
       "fromClause": {
-        "type": "from",
-        "properties": {
-          "name": "UserInfo",
-          "type": "item",
-          "expression": "userInfo"
-        }
+        "type": "UserInfo",
+        "name": "item",
+        "expression": "userInfo"
       },
       "intermediateClauses": [],
-      "resultClause": {
-        "type": "select",
-        "properties": {
-          "expression": "{username: item.username, password: item.password}"
-        }
-      }
+      "resultClause": "{username: item.username, password: item.password}"
     }
   }
 }
