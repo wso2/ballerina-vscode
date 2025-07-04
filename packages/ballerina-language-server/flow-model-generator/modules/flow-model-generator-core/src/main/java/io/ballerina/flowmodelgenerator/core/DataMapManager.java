@@ -23,7 +23,9 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.compiler.api.symbols.ArrayTypeSymbol;
+import io.ballerina.compiler.api.symbols.ClassSymbol;
 import io.ballerina.compiler.api.symbols.FunctionSymbol;
+import io.ballerina.compiler.api.symbols.MethodSymbol;
 import io.ballerina.compiler.api.symbols.ParameterSymbol;
 import io.ballerina.compiler.api.symbols.Qualifier;
 import io.ballerina.compiler.api.symbols.RecordFieldSymbol;
@@ -35,11 +37,15 @@ import io.ballerina.compiler.api.symbols.TypeDescKind;
 import io.ballerina.compiler.api.symbols.TypeSymbol;
 import io.ballerina.compiler.api.symbols.VariableSymbol;
 import io.ballerina.compiler.syntax.tree.BinaryExpressionNode;
+import io.ballerina.compiler.syntax.tree.CheckExpressionNode;
 import io.ballerina.compiler.syntax.tree.ClauseNode;
 import io.ballerina.compiler.syntax.tree.CollectClauseNode;
 import io.ballerina.compiler.syntax.tree.ExpressionNode;
 import io.ballerina.compiler.syntax.tree.FieldAccessExpressionNode;
 import io.ballerina.compiler.syntax.tree.FromClauseNode;
+import io.ballerina.compiler.syntax.tree.FunctionArgumentNode;
+import io.ballerina.compiler.syntax.tree.FunctionCallExpressionNode;
+import io.ballerina.compiler.syntax.tree.ImplicitNewExpressionNode;
 import io.ballerina.compiler.syntax.tree.IntermediateClauseNode;
 import io.ballerina.compiler.syntax.tree.LetExpressionNode;
 import io.ballerina.compiler.syntax.tree.LetVariableDeclarationNode;
@@ -49,9 +55,12 @@ import io.ballerina.compiler.syntax.tree.MappingFieldNode;
 import io.ballerina.compiler.syntax.tree.MethodCallExpressionNode;
 import io.ballerina.compiler.syntax.tree.ModulePartNode;
 import io.ballerina.compiler.syntax.tree.ModuleVariableDeclarationNode;
+import io.ballerina.compiler.syntax.tree.NamedArgumentNode;
 import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.compiler.syntax.tree.NodeList;
 import io.ballerina.compiler.syntax.tree.NonTerminalNode;
+import io.ballerina.compiler.syntax.tree.ParenthesizedArgList;
+import io.ballerina.compiler.syntax.tree.PositionalArgumentNode;
 import io.ballerina.compiler.syntax.tree.QueryExpressionNode;
 import io.ballerina.compiler.syntax.tree.QueryPipelineNode;
 import io.ballerina.compiler.syntax.tree.SelectClauseNode;
@@ -149,7 +158,7 @@ public class DataMapManager {
     }
 
     public JsonElement getMappings(SemanticModel semanticModel, JsonElement cd, LinePosition position,
-                                   String targetField) {
+                                   String propertyKey, String targetField) {
         Codedata codedata = gson.fromJson(cd, Codedata.class);
 
         SyntaxTree syntaxTree = document.syntaxTree();
@@ -163,7 +172,7 @@ public class DataMapManager {
         List<MappingPort> inputPorts = getInputPorts(semanticModel, this.document, position);
         inputPorts.sort(Comparator.comparing(mt -> mt.id));
 
-        TargetNode targetNode = getTargetNode(node, targetField, semanticModel);
+        TargetNode targetNode = getTargetNode(node, targetField, codedata.node(), propertyKey, semanticModel);
         if (targetNode == null) {
             return null;
         }
@@ -229,15 +238,19 @@ public class DataMapManager {
         return gson.toJsonTree(new Model(inputPorts, outputPort, subMappingPorts, mappings, query));
     }
 
-    private TargetNode getTargetNode(Node parentNode, String targetField, SemanticModel semanticModel) {
+    private TargetNode getTargetNode(Node parentNode, String targetField, NodeKind nodeKind, String propertyKey,
+                                     SemanticModel semanticModel) {
         SyntaxKind kind = parentNode.kind();
         Optional<ExpressionNode> optInitializer;
+        TypedBindingPatternNode typedBindingPattern;
         if (kind == SyntaxKind.LOCAL_VAR_DECL) {
             VariableDeclarationNode varDeclNode = (VariableDeclarationNode) parentNode;
             optInitializer = varDeclNode.initializer();
+            typedBindingPattern = varDeclNode.typedBindingPattern();
         } else if (kind == SyntaxKind.MODULE_VAR_DECL) {
             ModuleVariableDeclarationNode moduleVarDeclNode = (ModuleVariableDeclarationNode) parentNode;
             optInitializer = moduleVarDeclNode.initializer();
+            typedBindingPattern = moduleVarDeclNode.typedBindingPattern();
         } else {
             return null;
         }
@@ -256,88 +269,153 @@ public class DataMapManager {
         if (optInitializer.isEmpty()) {
             return new TargetNode(typeSymbol, variableSymbol.getName().get(), null);
         }
-
         ExpressionNode initializer = optInitializer.get();
+        if (initializer.kind() == SyntaxKind.FUNCTION_CALL && nodeKind == NodeKind.FUNCTION_CALL) {
+            FunctionCallExpressionNode funcCallExprNode = (FunctionCallExpressionNode) initializer;
+            Optional<Symbol> optFunctionSymbol = semanticModel.symbol(funcCallExprNode);
+            if (optFunctionSymbol.isEmpty() || optFunctionSymbol.get().kind() != SymbolKind.FUNCTION) {
+                return null;
+            }
+            FunctionSymbol functionSymbol = (FunctionSymbol) optFunctionSymbol.get();
+            Optional<List<ParameterSymbol>> optParams = functionSymbol.typeDescriptor().params();
+            if (optParams.isEmpty()) {
+                return null;
+            }
+            return getTargetNodeForFunctionParam(optParams.get(), propertyKey, funcCallExprNode.arguments());
+        } else if (initializer.kind() == SyntaxKind.CHECK_EXPRESSION && nodeKind == NodeKind.NEW_CONNECTION) {
+            ExpressionNode expressionNode = ((CheckExpressionNode) initializer).expression();
+            if (expressionNode.kind() != SyntaxKind.IMPLICIT_NEW_EXPRESSION) {
+                return null;
+            }
+            TypeSymbol rawType = CommonUtils.getRawType(typeSymbol);
+            if (rawType.kind() != SymbolKind.CLASS) {
+                return null;
+            }
+            ClassSymbol classSymbol = (ClassSymbol) rawType;
+            Optional<MethodSymbol> optInitMethodSymbol = classSymbol.initMethod();
+            if (optInitMethodSymbol.isEmpty()) {
+                return null;
+            }
+            MethodSymbol initMethodSymbol = optInitMethodSymbol.get();
+            Optional<List<ParameterSymbol>> optParams = initMethodSymbol.typeDescriptor().params();
+            if (optParams.isEmpty()) {
+                return null;
+            }
+            ImplicitNewExpressionNode implicitNewExprNode = (ImplicitNewExpressionNode) expressionNode;
+            Optional<ParenthesizedArgList> optParenthesizedArgList = implicitNewExprNode.parenthesizedArgList();
+            if (optParenthesizedArgList.isEmpty()) {
+                return new TargetNode(optParams.get().getFirst().typeDescriptor(), propertyKey, null);
+            }
+            return getTargetNodeForFunctionParam(optParams.get(), propertyKey,
+                    optParenthesizedArgList.get().arguments());
+        }
+
         if (targetField == null) {
             return new TargetNode(typeSymbol, variableSymbol.getName().get(), initializer);
         }
 
-        String[] fieldSplits = targetField.split("\\.");
-        for (int i = 1; i < fieldSplits.length; i++) {
-            String field = fieldSplits[i];
-            typeSymbol = CommonUtils.getRawType(typeSymbol);
-            TypeDescKind typeDescKind = typeSymbol.typeKind();
-            if (typeDescKind == TypeDescKind.ARRAY) {
-                typeSymbol = CommonUtils.getRawType(((ArrayTypeSymbol) typeSymbol).memberTypeDescriptor());
-            }
-            if (field.matches("\\d+")) {
-                continue;
-            }
-            typeDescKind = typeSymbol.typeKind();
-            if (typeDescKind == TypeDescKind.RECORD) {
-                Map<String, RecordFieldSymbol> fieldSymbols = ((RecordTypeSymbol) typeSymbol).fieldDescriptors();
-                RecordFieldSymbol recordFieldSymbol = fieldSymbols.get(field);
-                if (recordFieldSymbol == null) {
-                    return null;
-                }
-                typeSymbol = recordFieldSymbol.typeDescriptor();
-            } else {
-                break;
-            }
-        }
-
-        ExpressionNode expr = initializer;
-        if (expr.kind() == SyntaxKind.QUERY_EXPRESSION) {
-            ClauseNode clauseNode = ((QueryExpressionNode) expr).resultClause();
-            if (clauseNode.kind() == SyntaxKind.SELECT_CLAUSE) {
-                expr = ((SelectClauseNode) clauseNode).expression();
-            } else {
+        if (initializer.kind() == SyntaxKind.QUERY_EXPRESSION) {
+            if (typeSymbol.typeKind() != TypeDescKind.ARRAY) {
                 return null;
             }
+            typeSymbol = ((ArrayTypeSymbol) typeSymbol).memberTypeDescriptor();
+            initializer = ((SelectClauseNode) ((QueryExpressionNode) initializer).resultClause()).expression();
         }
-        for (int i = 1; i < fieldSplits.length; i++) {
-            String field = fieldSplits[i];
-            if (expr.kind() == SyntaxKind.QUERY_EXPRESSION) {
-                ClauseNode clauseNode = ((QueryExpressionNode) expr).resultClause();
-                if (expr.kind() == SyntaxKind.SELECT_CLAUSE) {
-                    expr = ((SelectClauseNode) clauseNode).expression();
-                } else {
-                    break;
-                }
+
+        if (initializer.kind() != SyntaxKind.MAPPING_CONSTRUCTOR) {
+            return null;
+        }
+        typeSymbol = CommonUtils.getRawType(typeSymbol);
+        if (typeSymbol.typeKind() != TypeDescKind.RECORD) {
+            return null;
+        }
+
+        RecordTypeSymbol recordTypeSymbol = (RecordTypeSymbol) typeSymbol;
+        MappingConstructorExpressionNode mappingCtrExprNode = (MappingConstructorExpressionNode) initializer;
+
+        String[] splits = targetField.split(DOT);
+        if (!splits[0].equals(typedBindingPattern.bindingPattern().toSourceCode().trim())) {
+            return null;
+        }
+
+        ExpressionNode expr = mappingCtrExprNode;
+        ExpressionNode lastExpr = null;
+        for (int i = 1; i < splits.length; i++) {
+            String split = splits[i];
+            if (expr.kind() != SyntaxKind.MAPPING_CONSTRUCTOR) {
+                return null;
             }
-            if (field.matches("\\d+")) {
-                int index = Integer.parseInt(field);
-                if (expr.kind() != SyntaxKind.LIST_CONSTRUCTOR) {
-                    return null;
-                }
-                ListConstructorExpressionNode listCtrExpressionNode = (ListConstructorExpressionNode) expr;
-                SeparatedNodeList<Node> expressions = listCtrExpressionNode.expressions();
-                if (index >= expressions.size()) {
-                    return null;
-                }
-                expr = (ExpressionNode) expressions.get(index);
-            } else {
-                if (expr.kind() != SyntaxKind.MAPPING_CONSTRUCTOR) {
-                    return null;
-                }
-                Map<String, SpecificFieldNode> mappingFieldsMap =
-                        convertMappingFieldsToMap((MappingConstructorExpressionNode) expr);
-                SpecificFieldNode mappingFieldNode = mappingFieldsMap.get(field);
-                if (mappingFieldNode == null) {
-                    return null;
-                }
-                Optional<ExpressionNode> optValueExpr = mappingFieldNode.valueExpr();
-                if (optValueExpr.isEmpty()) {
-                    return null;
-                }
-                expr = optValueExpr.get();
+            Map<String, SpecificFieldNode> mappingFieldsMap =
+                    convertMappingFieldsToMap((MappingConstructorExpressionNode) expr);
+            SpecificFieldNode mappingFieldNode = mappingFieldsMap.get(split);
+            if (mappingFieldNode == null) {
+                break;
+            }
+            Optional<ExpressionNode> optValueExpr = mappingFieldNode.valueExpr();
+            if (optValueExpr.isEmpty()) {
+                break;
+            }
+            expr = optValueExpr.get();
+            if (i == splits.length - 1) {
+                lastExpr = expr;
             }
         }
 
-        return new TargetNode(typeSymbol, fieldSplits[fieldSplits.length - 1], expr);
+        TypeSymbol ts = recordTypeSymbol;
+        TypeSymbol lastTypeSymbol = null;
+        for (int i = 1; i < splits.length; i++) {
+            String split = splits[i];
+            if (ts.typeKind() != TypeDescKind.RECORD) {
+                break;
+            }
+            RecordTypeSymbol rts = (RecordTypeSymbol) ts;
+            RecordFieldSymbol recordFieldSymbol = rts.fieldDescriptors().get(split);
+            if (recordFieldSymbol == null) {
+                break;
+            }
+            ts = CommonUtils.getRawType(recordFieldSymbol.typeDescriptor());
+            if (i == splits.length - 1) {
+                lastTypeSymbol = ts;
+            }
+        }
+        if (lastTypeSymbol != null && lastTypeSymbol.typeKind() == TypeDescKind.ARRAY
+                && lastExpr != null &&
+                (lastExpr.kind() == SyntaxKind.QUERY_EXPRESSION || lastExpr.kind() == SyntaxKind.FIELD_ACCESS)) {
+            return new TargetNode(lastTypeSymbol, splits[splits.length - 1], lastExpr);
+        }
+        return null;
     }
 
     private record TargetNode(TypeSymbol typeSymbol, String name, ExpressionNode expressionNode) {
+    }
+
+    private TargetNode getTargetNodeForFunctionParam(List<ParameterSymbol> paramSymbols, String propertyKey,
+                                                     SeparatedNodeList<FunctionArgumentNode> args) {
+        for (int i = 0; i < paramSymbols.size(); i++) {
+            ParameterSymbol paramSymbol = paramSymbols.get(i);
+            if (paramSymbol.getName().get().equals(propertyKey)) {
+                return new TargetNode(paramSymbol.typeDescriptor(), propertyKey, getArgForParam(propertyKey, i, args));
+            }
+        }
+        throw new IllegalStateException("Parameter is not available for : " + propertyKey);
+    }
+
+    private ExpressionNode getArgForParam(String param, int index, SeparatedNodeList<FunctionArgumentNode> args) {
+        for (int i = 0; i < args.size(); i++) {
+            FunctionArgumentNode arg = args.get(i);
+            SyntaxKind kind = arg.kind();
+            if (kind == SyntaxKind.POSITIONAL_ARG) {
+                if (index == i) {
+                    return ((PositionalArgumentNode) arg).expression();
+                }
+            } else if (kind == SyntaxKind.NAMED_ARG) {
+                NamedArgumentNode namedArgumentNode = (NamedArgumentNode) arg;
+                if (namedArgumentNode.argumentName().toSourceCode().equals(param)) {
+                    return namedArgumentNode.expression();
+                }
+            }
+        }
+        return null;
     }
 
     private Map<String, SpecificFieldNode> convertMappingFieldsToMap(MappingConstructorExpressionNode mappingCtrExpr) {
@@ -846,7 +924,7 @@ public class DataMapManager {
         List<TextEdit> textEdits = new ArrayList<>();
         textEditsMap.put(filePath, textEdits);
 
-        TargetNode targetNode = getTargetNode(stNode, targetField, semanticModel);
+        TargetNode targetNode = getTargetNode(stNode, targetField, codedata.node(), null, semanticModel);
         if (targetNode != null) {
             TypeSymbol targetTypeSymbol = CommonUtils.getRawType(targetNode.typeSymbol());
             if (targetTypeSymbol.typeKind() == TypeDescKind.ARRAY) {
@@ -1041,7 +1119,14 @@ public class DataMapManager {
             return null;
         }
 
-        TargetNode expression = getTargetNode(stNode, targetField, semanticModel);
+        String[] targetFieldSplits = targetField.split("\\.");
+        TargetNode expression;
+        if (targetFieldSplits.length == 1) {
+            expression = getTargetNode(stNode, null, NodeKind.VARIABLE, "expression", semanticModel);
+        } else {
+            expression = getTargetNode(stNode, targetField, NodeKind.VARIABLE, "expression", semanticModel);
+        }
+
         if (expression == null) {
             return null;
         }
