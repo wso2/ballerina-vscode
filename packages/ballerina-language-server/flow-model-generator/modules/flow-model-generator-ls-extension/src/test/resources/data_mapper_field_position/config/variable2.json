@@ -19,12 +19,25 @@
   "propertyKey": "expression",
   "targetField": "department",
   "fieldId": "department.students.0.username",
-  "property": {
-    "valueType": "EXPRESSION",
-    "valueTypeConstraint": "string",
-    "optional": false,
-    "editable": false,
-    "advanced": false,
-    "hidden": false
+  "output": {
+    "variable2.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 23,
+            "character": 64
+          },
+          "end": {
+            "line": 23,
+            "character": 64
+          }
+        },
+        "newText": "username: "
+      }
+    ]
+  },
+  "position": {
+    "line": 23,
+    "offset": 74
   }
 }

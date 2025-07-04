@@ -1105,8 +1105,7 @@ public class DataMapManager {
         return targetType;
     }
 
-    public JsonElement getFieldPosition(SemanticModel semanticModel, JsonElement cd, String targetField,
-                                        String fieldId) {
+    public JsonElement getFieldPosition(JsonElement cd, String targetField, String fieldId, Path filePath) {
         Codedata codedata = gson.fromJson(cd, Codedata.class);
         SyntaxTree syntaxTree = document.syntaxTree();
         ModulePartNode modulePartNode = syntaxTree.rootNode();
@@ -1119,43 +1118,18 @@ public class DataMapManager {
             return null;
         }
 
-        String[] targetFieldSplits = targetField.split("\\.");
-        TargetNode expression;
-        if (targetFieldSplits.length == 1) {
-            expression = getTargetNode(stNode, null, NodeKind.VARIABLE, "expression", semanticModel);
-        } else {
-            expression = getTargetNode(stNode, targetField, NodeKind.VARIABLE, "expression", semanticModel);
-        }
-
-        if (expression == null) {
+        VariableDeclarationNode varDeclNode = (VariableDeclarationNode) stNode;
+        ExpressionNode initializer = varDeclNode.initializer().orElseThrow();
+        ExpressionNode expr = getMappingExpr(initializer, targetField);
+        if (expr == null || expr.kind() != SyntaxKind.MAPPING_CONSTRUCTOR) {
             return null;
         }
-        TypeSymbol typeSymbol = CommonUtils.getRawType(expression.typeSymbol());
-        String[] splits = fieldId.split("\\.");
-        for (int i = 1; i < splits.length; i++) {
-            String split = splits[i];
-            TypeDescKind typeDescKind = typeSymbol.typeKind();
-            if (split.matches("\\d+")) {
-                if (typeDescKind != TypeDescKind.ARRAY) {
-                    return null;
-                }
-                typeSymbol = CommonUtils.getRawType(((ArrayTypeSymbol) typeSymbol).memberTypeDescriptor());
-            } else {
-                if (typeDescKind != TypeDescKind.RECORD) {
-                    return null;
-                }
-                RecordTypeSymbol recordTypeSymbol = (RecordTypeSymbol) typeSymbol;
-                RecordFieldSymbol recordFieldSymbol = recordTypeSymbol.fieldDescriptors().get(split);
-                typeSymbol = CommonUtils.getRawType(recordFieldSymbol.typeDescriptor());
-            }
-        }
 
-        Property.Builder<DataMapManager> dataMapManagerBuilder = new Property.Builder<>(this);
-        Property build = dataMapManagerBuilder
-                .type(Property.ValueType.EXPRESSION)
-                .typeConstraint(CommonUtils.getTypeSignature(semanticModel, typeSymbol, false))
-                .build();
-        return gson.toJsonTree(build);
+        Map<Path, List<TextEdit>> textEditsMap = new HashMap<>();
+        List<TextEdit> textEdits = new ArrayList<>();
+        textEditsMap.put(filePath, textEdits);
+        LinePosition pos = getFieldPos(expr, fieldId.split("\\."), 1, new StringBuilder(), null, textEdits);
+        return gson.toJsonTree(new FieldPosition(textEditsMap, pos));
     }
 
     public JsonElement subMapping(JsonElement cd, String view) {
