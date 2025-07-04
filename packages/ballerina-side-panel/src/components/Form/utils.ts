@@ -61,9 +61,7 @@ export function hasRequiredParameters(formFields: FormField[], selectedNode?: No
         !field.hidden
     );
 
-    return parameterFields.some((field) => !field.optional) ||
-           selectedNode === "VARIABLE" ||
-           selectedNode === "CONFIG_VARIABLE";
+    return parameterFields.some((field) => !field.optional);
 }
 
 export function hasOptionalParameters(formFields: FormField[]): boolean {
