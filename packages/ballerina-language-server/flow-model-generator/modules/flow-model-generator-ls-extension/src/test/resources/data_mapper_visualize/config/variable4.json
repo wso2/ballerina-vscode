@@ -135,5 +135,6 @@
     "offset": 12
   },
   "visualizableProperties": [
+    "config"
   ]
 }

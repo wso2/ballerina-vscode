@@ -19,17 +19,19 @@
 package io.ballerina.flowmodelgenerator.extension.request;
 
 import com.google.gson.JsonElement;
+import io.ballerina.tools.text.LinePosition;
 
 /**
  * Represents a request to get the data mapper model for types.
  *
- * @param filePath    File path of the source file
- * @param codedata    Details of the node
+ * @param filePath    file path of the source file
+ * @param flowNode    flow node of form
+ * @param position    position of the cursor
  * @param propertyKey The property that needs to consider to get the type
  * @param targetField The target field that needs to consider to get the type
  *
  * @since 1.0.0
  */
-public record DataMapperQueryConvertRequest(String filePath, JsonElement codedata, String propertyKey,
-                                            String targetField) {
+public record DataMapperQueryConvertRequest(String filePath, JsonElement flowNode, LinePosition position,
+                                            String propertyKey, String targetField) {
 }

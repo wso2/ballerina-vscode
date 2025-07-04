@@ -24,14 +24,14 @@ import io.ballerina.tools.text.LinePosition;
 /**
  * Represents a request to get the data mapper model for types.
  *
- * @param filePath    The file path of the source file
- * @param codedata    The details of the node
- * @param position    The position of the end of previous statement
+ * @param filePath    file path of the source file
+ * @param flowNode    diagram node
+ * @param position    position of the end of previous statement
  * @param propertyKey The property that needs to consider to get the type
  * @param targetField The target field that needs to consider to get the type
  *
  * @since 1.0.0
  */
-public record DataMapperModelRequest(String filePath, JsonElement codedata, LinePosition position, String propertyKey,
+public record DataMapperModelRequest(String filePath, JsonElement flowNode, LinePosition position, String propertyKey,
                                      String targetField) {
 }

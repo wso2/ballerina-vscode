@@ -48,7 +48,7 @@ service / on new http:Listener(9090) {
 
     resource function post getPerson(@http:Payload User user) returns Person|http:InternalServerError {
         do {
-            User4[] users4 = [{users6: [{balance: 0, banks: [{bankInfo: [{bankName: user.name}]}], account: user.name}], user5: {u: [user.name, user.name]}}];
+            // User4[] users4 = [{users6: [{balance: 0, banks: [{bankInfo: [{bankName: user.name}]}], account: user.name}], user5: {u: [user.name, user.name]}}]
         } on fail error e {
             return http:INTERNAL_SERVER_ERROR;
         }
