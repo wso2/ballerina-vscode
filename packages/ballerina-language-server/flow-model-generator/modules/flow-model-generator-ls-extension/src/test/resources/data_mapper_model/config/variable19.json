@@ -144,8 +144,8 @@
       "fromClause": {
         "type": "from",
         "properties": {
-          "name": "item",
-          "type": "UserInfo",
+          "name": "UserInfo",
+          "type": "item",
           "expression": "userInfo"
         }
       },
