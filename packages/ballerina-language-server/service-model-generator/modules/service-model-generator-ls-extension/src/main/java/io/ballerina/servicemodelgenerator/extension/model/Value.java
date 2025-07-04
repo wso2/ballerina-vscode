@@ -146,7 +146,8 @@ public class Value {
     }
 
     public boolean isEnabledWithValue() {
-        return enabled && ((value != null && value instanceof String && !((String) value).isEmpty())
+        return enabled && ((value != null && ((value instanceof String && !((String) value).isEmpty())
+                || (value instanceof JsonPrimitive jsonPrimitive && !jsonPrimitive.getAsString().isEmpty())))
                 || (values != null && !values.isEmpty()));
     }
 
