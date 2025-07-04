@@ -88,9 +88,6 @@ import org.ballerinalang.diagramutil.connector.models.connector.TypeInfo;
 import org.ballerinalang.diagramutil.connector.models.connector.types.ArrayType;
 import org.ballerinalang.diagramutil.connector.models.connector.types.PrimitiveType;
 import org.ballerinalang.diagramutil.connector.models.connector.types.RecordType;
-import org.ballerinalang.langserver.common.utils.CommonUtil;
-import org.eclipse.lsp4j.Position;
-import org.eclipse.lsp4j.Range;
 import org.eclipse.lsp4j.TextEdit;
 
 import java.nio.file.Path;
@@ -734,7 +731,7 @@ public class DataMapManager {
         } else {
             // TODO: check to move this out of if-else and move up
             if (idx == names.length) {
-                textEdits.add(new TextEdit(CommonUtils.toRange(expr.lineRange()), mappingExpr));
+               textEdits.add(new TextEdit(CommonUtils.toRange(expr.lineRange()), mappingExpr));
             }
         }
     }
@@ -1164,42 +1161,6 @@ public class DataMapManager {
                         .node(NodeKind.VARIABLE)
                         .build());
             }
-        }
-        return null;
-    }
-
-    public JsonElement nodePosition(JsonElement cd, String name) {
-        Codedata codedata = gson.fromJson(cd, Codedata.class);
-        SyntaxTree syntaxTree = document.syntaxTree();
-        LineRange lineRange = codedata.lineRange();
-        LinePosition startPos = lineRange.startLine();
-        LinePosition endPos = lineRange.endLine();
-
-        NonTerminalNode stNode = CommonUtil.findNode(new Range(new Position(startPos.line(), startPos.offset()),
-                new Position(endPos.line(), endPos.offset())), syntaxTree);
-        while (true) {
-            if (stNode == null) {
-                return null;
-            }
-            if (stNode.kind() == SyntaxKind.LOCAL_VAR_DECL) {
-                return setPosition(((VariableDeclarationNode) stNode).typedBindingPattern(), stNode.lineRange(), name);
-            } else if (stNode.kind() == SyntaxKind.MODULE_VAR_DECL) {
-                return setPosition(((ModuleVariableDeclarationNode) stNode).typedBindingPattern(),
-                        stNode.lineRange(), name);
-            } else if (stNode.kind() == SyntaxKind.LET_VAR_DECL) {
-                return setPosition(((LetVariableDeclarationNode) stNode).typedBindingPattern(), stNode.lineRange(),
-                        name);
-            }
-            stNode = stNode.parent();
-        }
-    }
-
-    private JsonElement setPosition(TypedBindingPatternNode bindingPattern, LineRange range, String name) {
-        if (bindingPattern.bindingPattern().toSourceCode().trim().equals(name)) {
-            return gson.toJsonTree(new Codedata.Builder<>(null)
-                    .lineRange(range)
-                    .node(NodeKind.VARIABLE)
-                    .build());
         }
         return null;
     }
