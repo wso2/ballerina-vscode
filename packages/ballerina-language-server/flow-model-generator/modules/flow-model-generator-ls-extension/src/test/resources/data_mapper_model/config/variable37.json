@@ -16,11 +16,11 @@
     },
     "sourceCode": ""
   },
+  "propertyKey": "expression",
   "position": {
     "line": 40,
     "offset": 12
   },
-  "propertyKey": "expression",
   "model": {
     "inputs": [
       {
@@ -78,7 +78,6 @@
                 }
               ],
               "id": "users4.users6",
-              "variableName": "users6Item",
               "typeName": "User6",
               "kind": "record"
             },
@@ -89,7 +88,6 @@
           }
         ],
         "id": "users4",
-        "variableName": "users4Item",
         "typeName": "User4",
         "kind": "record"
       },

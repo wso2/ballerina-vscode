@@ -16,11 +16,11 @@
     },
     "sourceCode": ""
   },
+  "propertyKey": "expression",
   "position": {
     "line": 18,
     "offset": 12
   },
-  "propertyKey": "expression",
   "model": {
     "inputs": [
       {
@@ -54,7 +54,6 @@
               "kind": "string"
             },
             "id": "td.values",
-            "variableName": "valuesItem",
             "typeName": "string[]",
             "kind": "array"
           },

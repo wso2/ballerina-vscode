@@ -16,11 +16,11 @@
     },
     "sourceCode": ""
   },
+  "propertyKey": "expression",
   "position": {
     "line": 24,
     "offset": 32
   },
-  "propertyKey": "expression",
   "model": {
     "inputs": [
       {
@@ -88,7 +88,6 @@
               }
             ],
             "id": "var3.contacts",
-            "variableName": "contactsItem",
             "typeName": "Temp",
             "kind": "record"
           },
@@ -107,7 +106,7 @@
       {
         "output": "var3.contacts",
         "inputs": [],
-        "expression": "[\n                                               {\n                                                   primaryPhone: \"\",\n                                                   secondaryPhones: [\n                                                       \"1\",\n                                                       user.phoneNumber[0]\n                                                   ]\n                                               }\n                                           ]\n",
+        "expression": "[\n        {\n            primaryPhone: \"\",\n            secondaryPhones: [\n                \"1\",\n                user.phoneNumber[0]\n            ]\n        }\n    ]\n",
         "diagnostics": [],
         "elements": [
           {
@@ -123,7 +122,7 @@
               {
                 "output": "var3.contacts.0.secondaryPhones",
                 "inputs": [],
-                "expression": "[\n                                                       \"1\",\n                                                       user.phoneNumber[0]\n                                                   ]\n",
+                "expression": "[\n                \"1\",\n                user.phoneNumber[0]\n            ]\n",
                 "diagnostics": [],
                 "elements": [
                   {
@@ -131,7 +130,7 @@
                       {
                         "output": "var3.contacts.0.secondaryPhones.0",
                         "inputs": [],
-                        "expression": "                                                       \"1\"",
+                        "expression": "                \"1\"",
                         "diagnostics": [],
                         "elements": [],
                         "isQueryExpression": false
@@ -145,7 +144,7 @@
                         "inputs": [
                           "user.phoneNumber.0"
                         ],
-                        "expression": "                                                       user.phoneNumber[0]\n",
+                        "expression": "                user.phoneNumber[0]\n",
                         "diagnostics": [],
                         "elements": [],
                         "isQueryExpression": false

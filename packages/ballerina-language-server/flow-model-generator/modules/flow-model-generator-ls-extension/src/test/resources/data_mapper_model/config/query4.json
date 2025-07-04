@@ -68,7 +68,6 @@
           }
         ],
         "id": "phoneNumbers",
-        "variableName": "phoneNumbersItem",
         "typeName": "SecondaryPhonesX",
         "kind": "record"
       },

@@ -16,11 +16,11 @@
     },
     "sourceCode": ""
   },
+  "propertyKey": "expression",
   "position": {
     "line": 49,
     "offset": 12
   },
-  "propertyKey": "expression",
   "model": {
     "inputs": [
       {
@@ -90,7 +90,6 @@
                             }
                           ],
                           "id": "users4.users6.banks.bankInfo",
-                          "variableName": "bankInfoItem",
                           "typeName": "BankInfo",
                           "kind": "record"
                         },
@@ -101,7 +100,6 @@
                       }
                     ],
                     "id": "users4.users6.banks",
-                    "variableName": "banksItem",
                     "typeName": "Bank",
                     "kind": "record"
                   },
@@ -112,7 +110,6 @@
                 }
               ],
               "id": "users4.users6",
-              "variableName": "users6Item",
               "typeName": "User6",
               "kind": "record"
             },
@@ -123,7 +120,6 @@
           }
         ],
         "id": "users4",
-        "variableName": "users4Item",
         "typeName": "User4",
         "kind": "record"
       },
