@@ -416,7 +416,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
     const updateCurrentArtifactLocation = async (artifacts: UpdatedArtifactsResponse) => {
         // Get the updated component and update the location
         const currentIdentifier = (await rpcClient.getVisualizerLocation()).identifier;
-        // Find the correct currentArtifact by currentIdentifier (id)
+        // Find the correct artifact by currentIdentifier (id)
         let currentArtifact = artifacts.artifacts.at(0);
         artifacts.artifacts.forEach((artifact) => {
             if (artifact.id === currentIdentifier) {
