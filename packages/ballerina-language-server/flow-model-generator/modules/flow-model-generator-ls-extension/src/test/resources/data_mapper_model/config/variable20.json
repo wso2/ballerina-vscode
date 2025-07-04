@@ -199,20 +199,12 @@
         "bank.userInfo"
       ],
       "fromClause": {
-        "type": "from",
-        "properties": {
-          "name": "UserInfo",
-          "type": "info",
-          "expression": "bank.userInfo"
-        }
+        "type": "UserInfo",
+        "name": "info",
+        "expression": "bank.userInfo"
       },
       "intermediateClauses": [],
-      "resultClause": {
-        "type": "select",
-        "properties": {
-          "expression": "{\n                           password: ,\n                           username: info.username\n                       }"
-        }
-      }
+      "resultClause": "{\n                           password: ,\n                           username: info.username\n                       }"
     }
   }
 }
