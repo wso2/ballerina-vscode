@@ -1,11 +1,11 @@
 {
   "start": {
-    "line": 10,
-    "offset": 4
+    "line": 258,
+    "offset": 0
   },
   "end": {
-    "line": 22,
-    "offset": 5
+    "line": 278,
+    "offset": 1
   },
   "source": "match.bal",
   "description": "Tests a simple diagram flow",
@@ -13,12 +13,12 @@
     "fileName": "match.bal",
     "nodes": [
       {
-        "id": "43963",
+        "id": "290192",
         "metadata": {
           "label": "Start",
           "data": {
             "parameters": [
-              "string color"
+              "int weatherCode"
             ],
             "return": "string"
           }
@@ -28,21 +28,21 @@
           "lineRange": {
             "fileName": "match.bal",
             "startLine": {
-              "line": 10,
-              "offset": 62
+              "line": 258,
+              "offset": 61
             },
             "endLine": {
-              "line": 22,
-              "offset": 5
+              "line": 278,
+              "offset": 1
             }
           },
-          "sourceCode": "resource function get apples(string color) returns string {\n        match color {\n            \"red\"|\"blue\" => {\n                return \"sweet\";\n            }\n            \"green\" => {\n                return \"sour\";\n            }\n            _ => {\n                return \"unknown\";\n            }\n        }\n    }"
+          "sourceCode": "public function getMusicMood(int weatherCode) returns string {\n    match weatherCode {\n        // Clear and Sunny conditions\n        1000|1009 => {\n            return \"Energetic and Euphoric\";\n        }\n        1003 => {\n            return \"Light and Cheerful\";\n        }\n\n        // Cloudy variations\n        1006 => {\n            return \"Calm and Contemplative\";\n        }\n\n        // Default for any other conditions\n        _ => {\n            return \"Neutral and Balanced\";\n        }\n    }\n}"
         },
         "returning": false,
         "flags": 0
       },
       {
-        "id": "43223",
+        "id": "289359",
         "metadata": {
           "label": "Match",
           "description": "Switches the data flow based on the value of an expression."
@@ -52,35 +52,35 @@
           "lineRange": {
             "fileName": "match.bal",
             "startLine": {
-              "line": 11,
-              "offset": 8
+              "line": 259,
+              "offset": 4
             },
             "endLine": {
-              "line": 21,
-              "offset": 9
+              "line": 277,
+              "offset": 5
             }
           },
-          "sourceCode": "match color {\n            \"red\"|\"blue\" => {\n                return \"sweet\";\n            }\n            \"green\" => {\n                return \"sour\";\n            }\n            _ => {\n                return \"unknown\";\n            }\n        }"
+          "sourceCode": "match weatherCode {\n        // Clear and Sunny conditions\n        1000|1009 => {\n            return \"Energetic and Euphoric\";\n        }\n        1003 => {\n            return \"Light and Cheerful\";\n        }\n\n        // Cloudy variations\n        1006 => {\n            return \"Calm and Contemplative\";\n        }\n\n        // Default for any other conditions\n        _ => {\n            return \"Neutral and Balanced\";\n        }\n    }"
         },
         "returning": false,
         "branches": [
           {
-            "label": "\"red\"|\"blue\"",
+            "label": "1000|1009",
             "kind": "BLOCK",
             "codedata": {
               "node": "CONDITIONAL",
               "lineRange": {
                 "fileName": "match.bal",
                 "startLine": {
-                  "line": 12,
-                  "offset": 28
+                  "line": 261,
+                  "offset": 21
                 },
                 "endLine": {
-                  "line": 14,
-                  "offset": 13
+                  "line": 263,
+                  "offset": 9
                 }
               },
-              "sourceCode": "{\n                return \"sweet\";\n            }"
+              "sourceCode": "{\n            return \"Energetic and Euphoric\";\n        }"
             },
             "repeatable": "ONE_OR_MORE",
             "properties": {
@@ -97,12 +97,14 @@
                       "description": "Binding pattern"
                     },
                     "valueType": "EXPRESSION",
-                    "value": "\"red\"|\"blue\"",
+                    "value": "1000|1009",
                     "optional": false,
                     "editable": true,
                     "advanced": false,
                     "hidden": false,
-                    "comment": {}
+                    "comment": {
+                      "leadingComment": "// Clear and Sunny conditions\n        "
+                    }
                   }
                 ],
                 "optional": false,
@@ -113,25 +115,25 @@
             },
             "children": [
               {
-                "id": "45167",
+                "id": "292064",
                 "metadata": {
                   "label": "Return",
-                  "description": "Value of '\"sweet\"'"
+                  "description": "Value of '\"Energetic and Euphoric\"'"
                 },
                 "codedata": {
                   "node": "RETURN",
                   "lineRange": {
                     "fileName": "match.bal",
                     "startLine": {
-                      "line": 13,
-                      "offset": 16
+                      "line": 262,
+                      "offset": 12
                     },
                     "endLine": {
-                      "line": 13,
-                      "offset": 31
+                      "line": 262,
+                      "offset": 44
                     }
                   },
-                  "sourceCode": "return \"sweet\";"
+                  "sourceCode": "return \"Energetic and Euphoric\";"
                 },
                 "returning": true,
                 "properties": {
@@ -141,7 +143,7 @@
                       "description": "Return value"
                     },
                     "valueType": "ACTION_OR_EXPRESSION",
-                    "value": "\"sweet\"",
+                    "value": "\"Energetic and Euphoric\"",
                     "optional": false,
                     "editable": true,
                     "advanced": false,
@@ -153,22 +155,22 @@
             ]
           },
           {
-            "label": "\"green\"",
+            "label": "1003",
             "kind": "BLOCK",
             "codedata": {
               "node": "CONDITIONAL",
               "lineRange": {
                 "fileName": "match.bal",
                 "startLine": {
-                  "line": 15,
-                  "offset": 23
+                  "line": 264,
+                  "offset": 16
                 },
                 "endLine": {
-                  "line": 17,
-                  "offset": 13
+                  "line": 266,
+                  "offset": 9
                 }
               },
-              "sourceCode": "{\n                return \"sour\";\n            }"
+              "sourceCode": "{\n            return \"Light and Cheerful\";\n        }"
             },
             "repeatable": "ONE_OR_MORE",
             "properties": {
@@ -185,7 +187,7 @@
                       "description": "Binding pattern"
                     },
                     "valueType": "EXPRESSION",
-                    "value": "\"green\"",
+                    "value": "1003",
                     "optional": false,
                     "editable": true,
                     "advanced": false,
@@ -201,25 +203,25 @@
             },
             "children": [
               {
-                "id": "48142",
+                "id": "295036",
                 "metadata": {
                   "label": "Return",
-                  "description": "Value of '\"sour\"'"
+                  "description": "Value of '\"Light and Cheerful\"'"
                 },
                 "codedata": {
                   "node": "RETURN",
                   "lineRange": {
                     "fileName": "match.bal",
                     "startLine": {
-                      "line": 16,
-                      "offset": 16
+                      "line": 265,
+                      "offset": 12
                     },
                     "endLine": {
-                      "line": 16,
-                      "offset": 30
+                      "line": 265,
+                      "offset": 40
                     }
                   },
-                  "sourceCode": "return \"sour\";"
+                  "sourceCode": "return \"Light and Cheerful\";"
                 },
                 "returning": true,
                 "properties": {
@@ -229,7 +231,97 @@
                       "description": "Return value"
                     },
                     "valueType": "ACTION_OR_EXPRESSION",
-                    "value": "\"sour\"",
+                    "value": "\"Light and Cheerful\"",
+                    "optional": false,
+                    "editable": true,
+                    "advanced": false,
+                    "hidden": false
+                  }
+                },
+                "flags": 0
+              }
+            ]
+          },
+          {
+            "label": "1006",
+            "kind": "BLOCK",
+            "codedata": {
+              "node": "CONDITIONAL",
+              "lineRange": {
+                "fileName": "match.bal",
+                "startLine": {
+                  "line": 269,
+                  "offset": 16
+                },
+                "endLine": {
+                  "line": 271,
+                  "offset": 9
+                }
+              },
+              "sourceCode": "{\n            return \"Calm and Contemplative\";\n        }"
+            },
+            "repeatable": "ONE_OR_MORE",
+            "properties": {
+              "patterns": {
+                "metadata": {
+                  "label": "Patterns",
+                  "description": "List of binding patterns"
+                },
+                "valueType": "SINGLE_SELECT",
+                "value": [
+                  {
+                    "metadata": {
+                      "label": "Pattern",
+                      "description": "Binding pattern"
+                    },
+                    "valueType": "EXPRESSION",
+                    "value": "1006",
+                    "optional": false,
+                    "editable": true,
+                    "advanced": false,
+                    "hidden": false,
+                    "comment": {
+                      "leadingComment": "// Cloudy variations\n        "
+                    }
+                  }
+                ],
+                "optional": false,
+                "editable": true,
+                "advanced": false,
+                "hidden": false
+              }
+            },
+            "children": [
+              {
+                "id": "300000",
+                "metadata": {
+                  "label": "Return",
+                  "description": "Value of '\"Calm and Contemplative\"'"
+                },
+                "codedata": {
+                  "node": "RETURN",
+                  "lineRange": {
+                    "fileName": "match.bal",
+                    "startLine": {
+                      "line": 270,
+                      "offset": 12
+                    },
+                    "endLine": {
+                      "line": 270,
+                      "offset": 44
+                    }
+                  },
+                  "sourceCode": "return \"Calm and Contemplative\";"
+                },
+                "returning": true,
+                "properties": {
+                  "expression": {
+                    "metadata": {
+                      "label": "Expression",
+                      "description": "Return value"
+                    },
+                    "valueType": "ACTION_OR_EXPRESSION",
+                    "value": "\"Calm and Contemplative\"",
                     "optional": false,
                     "editable": true,
                     "advanced": false,
@@ -248,15 +340,15 @@
               "lineRange": {
                 "fileName": "match.bal",
                 "startLine": {
-                  "line": 18,
-                  "offset": 17
+                  "line": 274,
+                  "offset": 13
                 },
                 "endLine": {
-                  "line": 20,
-                  "offset": 13
+                  "line": 276,
+                  "offset": 9
                 }
               },
-              "sourceCode": "{\n                return \"unknown\";\n            }"
+              "sourceCode": "{\n            return \"Neutral and Balanced\";\n        }"
             },
             "repeatable": "ONE_OR_MORE",
             "properties": {
@@ -278,7 +370,9 @@
                     "editable": true,
                     "advanced": false,
                     "hidden": false,
-                    "comment": {}
+                    "comment": {
+                      "leadingComment": "// Default for any other conditions\n        "
+                    }
                   }
                 ],
                 "optional": false,
@@ -289,25 +383,25 @@
             },
             "children": [
               {
-                "id": "51121",
+                "id": "304958",
                 "metadata": {
                   "label": "Return",
-                  "description": "Value of '\"unknown\"'"
+                  "description": "Value of '\"Neutral and Balanced\"'"
                 },
                 "codedata": {
                   "node": "RETURN",
                   "lineRange": {
                     "fileName": "match.bal",
                     "startLine": {
-                      "line": 19,
-                      "offset": 16
+                      "line": 275,
+                      "offset": 12
                     },
                     "endLine": {
-                      "line": 19,
-                      "offset": 33
+                      "line": 275,
+                      "offset": 42
                     }
                   },
-                  "sourceCode": "return \"unknown\";"
+                  "sourceCode": "return \"Neutral and Balanced\";"
                 },
                 "returning": true,
                 "properties": {
@@ -317,7 +411,7 @@
                       "description": "Return value"
                     },
                     "valueType": "ACTION_OR_EXPRESSION",
-                    "value": "\"unknown\"",
+                    "value": "\"Neutral and Balanced\"",
                     "optional": false,
                     "editable": true,
                     "advanced": false,
@@ -336,7 +430,7 @@
               "description": "Boolean Condition"
             },
             "valueType": "EXPRESSION",
-            "value": "color ",
+            "value": "weatherCode ",
             "placeholder": "true",
             "optional": false,
             "editable": true,

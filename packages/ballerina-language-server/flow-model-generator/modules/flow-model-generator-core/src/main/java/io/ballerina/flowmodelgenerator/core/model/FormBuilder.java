@@ -28,6 +28,7 @@ import io.ballerina.compiler.syntax.tree.ExpressionNode;
 import io.ballerina.compiler.syntax.tree.FunctionArgumentNode;
 import io.ballerina.compiler.syntax.tree.IdentifierToken;
 import io.ballerina.compiler.syntax.tree.MarkdownDocumentationNode;
+import io.ballerina.compiler.syntax.tree.MatchClauseNode;
 import io.ballerina.compiler.syntax.tree.NamedArgumentNode;
 import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.compiler.syntax.tree.NodeList;
@@ -379,6 +380,36 @@ public class FormBuilder<T> extends FacetedBuilder<T> {
                     .label(Property.PATTERNS_LABEL)
                     .description(Property.PATTERNS_DOC)
                     .stepOut()
+                .value(properties)
+                .type(Property.ValueType.SINGLE_SELECT)
+                .editable();
+        addProperty(Property.PATTERNS_KEY);
+
+        return this;
+    }
+
+    public FormBuilder<T> patterns(MatchClauseNode matchClauseNode, String pattern, CommentProperty commentProperty) {
+        List<Property> properties = new ArrayList<>();
+
+        if (!matchClauseNode.matchPatterns().isEmpty()) {
+            Property property = propertyBuilder
+                    .metadata()
+                    .label(Property.PATTERN_LABEL)
+                    .description(Property.PATTERN_DOC)
+                    .stepOut()
+                    .value(pattern)
+                    .comment(commentProperty)
+                    .type(Property.ValueType.EXPRESSION)
+                    .editable()
+                    .build();
+            properties.add(property);
+        }
+
+        propertyBuilder
+                .metadata()
+                .label(Property.PATTERNS_LABEL)
+                .description(Property.PATTERNS_DOC)
+                .stepOut()
                 .value(properties)
                 .type(Property.ValueType.SINGLE_SELECT)
                 .editable();
