@@ -183,6 +183,7 @@ export function OperationForm(props: OperationFormProps) {
                     isGraphqlEditor={isGraphqlView}
                     helperPaneSide="left"
                     isSaving={isSaving}
+                    preserveFieldOrder={true}
                 />
             )}
         </>

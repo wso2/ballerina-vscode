@@ -75,16 +75,10 @@ export async function exchangeAuthCode(authCode: string) {
         try {
             console.log("Exchanging auth code to token...");
             const response = await exchangeAuthCodeNew(authCode);
-            console.log("Access token: " + response.accessToken);
-            console.log("Refresh token: " + response.refreshToken);
-            console.log("Login time: " + response.loginTime);
-            console.log("Expiration time: " + response.expirationTime);
             let token = await extension.context.secrets.get('BallerinaAIUser');
-            console.log("Token before exchange: " + token);
             await extension.context.secrets.store('BallerinaAIUser', response.accessToken);
             await extension.context.secrets.store('BallerinaAIRefreshToken', response.refreshToken ?? '');
             token = await extension.context.secrets.get('BallerinaAIUser');
-            console.log("Token after exchange: " + token);
 
             AIStateMachine.sendEvent(AIMachineEventType.LOGIN_SUCCESS);
         } catch (error: any) {

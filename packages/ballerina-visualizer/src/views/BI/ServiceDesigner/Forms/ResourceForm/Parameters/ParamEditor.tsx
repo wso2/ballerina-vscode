@@ -193,6 +193,7 @@ export function ParamEditor(props: ParamProps) {
                         submitText={param.type.value ? "Save" : "Add"}
                         nestedForm={true}
                         helperPaneSide='left'
+                        preserveFieldOrder={true}
                     />
                 }
 

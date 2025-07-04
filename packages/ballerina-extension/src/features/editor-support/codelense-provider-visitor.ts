@@ -137,7 +137,7 @@ export class CodeLensProviderVisitor implements Visitor {
             title: "Try it",
             tooltip: "Try running this service",
             command: PALETTE_COMMANDS.TRY_IT,
-            arguments: [false, undefined, { basePath, listener }]
+            arguments: [false, undefined, { basePath, listener }, this.activeEditorUri.fsPath]
         };
         this.codeLenses.push(codeLens);
     }

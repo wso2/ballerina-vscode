@@ -14,6 +14,8 @@
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations
  * under the License.
+ * 
+ * THIS FILE INCLUDES AUTO GENERATED CODE
  */
 import { ProjectStructureResponse, UpdatedArtifactsResponse } from "../../interfaces/bi";
 import { LinePosition } from "../../interfaces/common";
@@ -85,7 +87,9 @@ import {
     GetConfigVariableNodeTemplateRequest,
     UpdateConfigVariableResponseV2,
     DeleteConfigVariableRequestV2,
-    DeleteConfigVariableResponseV2
+    DeleteConfigVariableResponseV2,
+    JsonToTypeRequest,
+    JsonToTypeResponse
 } from "../../interfaces/extended-lang-client";
 import {
     ProjectRequest,
@@ -156,6 +160,7 @@ export const getTypes: RequestType<GetTypesRequest, GetTypesResponse> = { method
 export const getType: RequestType<GetTypeRequest, GetTypeResponse> = { method: `${_preFix}/getType` };
 export const updateType: RequestType<UpdateTypeRequest, UpdateTypeResponse> = { method: `${_preFix}/updateType` };
 export const updateTypes: RequestType<UpdateTypesRequest, UpdateTypesResponse> = { method: `${_preFix}/updateTypes` };
+export const getTypeFromJson: RequestType<JsonToTypeRequest, JsonToTypeResponse> = { method: `${_preFix}/getTypeFromJson` };
 export const getServiceClassModel: RequestType<ModelFromCodeRequest, ServiceClassModelResponse> = { method: `${_preFix}/getServiceClassModel` };
 export const updateClassField: RequestType<ClassFieldModifierRequest, SourceEditResponse> = { method: `${_preFix}/updateClassField` };
 export const addClassField: RequestType<AddFieldRequest, SourceEditResponse> = { method: `${_preFix}/addClassField` };

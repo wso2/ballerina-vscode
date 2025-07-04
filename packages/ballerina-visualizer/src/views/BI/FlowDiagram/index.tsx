@@ -39,6 +39,7 @@ import {
     BISearchRequest,
     ToolData,
     DIRECTORY_MAP,
+    UpdatedArtifactsResponse,
 } from "@wso2/ballerina-core";
 
 import {
@@ -412,6 +413,26 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
             });
     };
 
+    const updateCurrentArtifactLocation = async (artifacts: UpdatedArtifactsResponse) => {
+        // Get the updated component and update the location
+        const currentIdentifier = (await rpcClient.getVisualizerLocation()).identifier;
+        // Find the correct artifact by currentIdentifier (id)
+        let currentArtifact = artifacts.artifacts.at(0);
+        artifacts.artifacts.forEach((artifact) => {
+            if (artifact.id === currentIdentifier) {
+                currentArtifact = artifact;
+            }
+            // Check if artifact has resources and find within those
+            if (artifact.resources && artifact.resources.length > 0) {
+                const resource = artifact.resources.find((resource) => resource.id === currentIdentifier);
+                if (resource) {
+                    currentArtifact = resource;
+                }
+            }
+        });
+        await rpcClient.getVisualizerRpcClient().openView({ type: EVENT_TYPE.UPDATE_PROJECT_LOCATION, location: { documentUri: currentArtifact.path, position: currentArtifact.position, identifier: currentIdentifier } });
+    }
+
     const handleOnSelectNode = (nodeId: string, metadata?: any, fileName?: string) => {
         selectedNodeMetadata.current = { nodeId, metadata, fileName: model?.fileName || fileName };
         const { node, category } = metadata as { node: AvailableNode; category?: string };
@@ -537,10 +558,11 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 flowNode: updatedNode,
                 isFunctionNodeUpdate: isDataMapperFormUpdate,
             })
-            .then((response) => {
+            .then(async (response) => {
                 console.log(">>> Updated source code", response);
                 if (response.artifacts.length > 0) {
                     selectedNodeRef.current = undefined;
+                    await updateCurrentArtifactLocation(response);
                     handleOnCloseSidePanel();
                 } else {
                     console.error(">>> Error updating source code", response);
@@ -572,9 +594,8 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 return;
             }
         }
-        // Get the updated component and update the location
-        const artifact = deleteNodeResponse.artifacts.at(0);
-        await rpcClient.getVisualizerRpcClient().openView({ type: EVENT_TYPE.UPDATE_PROJECT_LOCATION, location: { documentUri: artifact.path, position: artifact.position } });
+
+        await updateCurrentArtifactLocation(deleteNodeResponse);
 
         selectedNodeRef.current = undefined;
         handleOnCloseSidePanel();
@@ -620,9 +641,10 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 filePath: model.fileName,
                 flowNode: updatedNode,
             })
-            .then((response) => {
+            .then(async (response) => {
                 if (response.artifacts.length > 0) {
                     selectedNodeRef.current = undefined;
+                    await updateCurrentArtifactLocation(response);
                     handleOnCloseSidePanel();
                 } else {
                     console.error(">>> Error updating source code", response);

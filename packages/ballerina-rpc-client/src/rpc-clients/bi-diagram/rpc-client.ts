@@ -14,6 +14,8 @@
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations
  * under the License.
+ * 
+ * THIS FILE INCLUDES AUTO GENERATED CODE
  */
 import {
     AIChatRequest,
@@ -69,6 +71,8 @@ import {
     GetTypeResponse,
     GetTypesRequest,
     GetTypesResponse,
+    JsonToTypeRequest,
+    JsonToTypeResponse,
     LinePosition,
     ModelFromCodeRequest,
     OpenAPIClientDeleteRequest,
@@ -152,6 +156,7 @@ import {
     getSignatureHelp,
     getSourceCode,
     getType,
+    getTypeFromJson,
     getTypes,
     getVisibleTypes,
     getVisibleVariableTypes,
@@ -363,6 +368,10 @@ export class BiDiagramRpcClient implements BIDiagramAPI {
 
     updateTypes(params: UpdateTypesRequest): Promise<UpdateTypesResponse> {
         return this._messenger.sendRequest(updateTypes, HOST_EXTENSION, params);
+    }
+
+    getTypeFromJson(params: JsonToTypeRequest): Promise<JsonToTypeResponse> {
+        return this._messenger.sendRequest(getTypeFromJson, HOST_EXTENSION, params);
     }
 
     getServiceClassModel(params: ModelFromCodeRequest): Promise<ServiceClassModelResponse> {

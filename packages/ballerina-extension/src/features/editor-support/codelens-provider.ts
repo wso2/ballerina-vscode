@@ -158,13 +158,15 @@ export class ExecutorCodeLensProvider implements CodeLensProvider {
         const endLine = execPosition.range.endLine.line;
         const endColumn = execPosition.range.endLine.offset;
         const codeLens = new CodeLens(new Range(startLine, startColumn, endLine, endColumn));
+        const textDocument = window.activeTextEditor!.document;
+        this.activeTextEditorUri = textDocument.uri;
         codeLens.command = {
             title: execType.toString(),
             tooltip: `${execType.toString()} ${execPosition.name}`,
             command: execPosition.kind === EXEC_POSITION_TYPE.SOURCE ? (execType === EXEC_TYPE.RUN ?
                 PALETTE_COMMANDS.RUN : SOURCE_DEBUG_COMMAND) : (execType === EXEC_TYPE.RUN ? PALETTE_COMMANDS.TEST :
                     TEST_DEBUG_COMMAND),
-            arguments: execPosition.kind === EXEC_POSITION_TYPE.SOURCE ? [] : (execType === EXEC_TYPE.RUN ?
+            arguments: execPosition.kind === EXEC_POSITION_TYPE.SOURCE ? [textDocument.uri] : (execType === EXEC_TYPE.RUN ?
                 [EXEC_ARG.TESTS, execPosition.name] : [execPosition.name])
         };
         return codeLens;

@@ -199,26 +199,6 @@
                     "type": "boolean",
                     "default": false,
                     "description": "Use Ballerina distribution language server instead of bundled language server. Note: This will be automatically enabled for Ballerina versions older than 2201.12.3."
-                },
-                "ballerina.rootUrl": {
-                    "type": "string",
-                    "default": "",
-                    "description": "Root backend URL for Ballerina AI features."
-                },
-                "ballerina.authOrg": {
-                    "type": "string",
-                    "default": "",
-                    "description": "Auth organization for Ballerina AI features."
-                },
-                "ballerina.authClientID": {
-                    "type": "string",
-                    "default": "",
-                    "description": "Auth client ID for Ballerina AI features."
-                },
-                "ballerina.authRedirectURL": {
-                    "type": "string",
-                    "default": "",
-                    "description": "Auth redirect URL for Ballerina AI features."
                 }
             }
         },

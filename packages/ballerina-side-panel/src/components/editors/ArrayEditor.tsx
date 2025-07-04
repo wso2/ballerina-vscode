@@ -105,7 +105,7 @@ export function ArrayEditor(props: ArrayEditorProps) {
             if (updatedValue === undefined) {
                 // Use the initial array value if available
                 updatedValue = Array.isArray(field.value) ? field.value[index] : "";
-                setValue(`${field.key}-${index}`, updatedValue);
+                setValue(`${field.key}-${index}`, updatedValue ?? "");
             }
 
             return updatedValue;

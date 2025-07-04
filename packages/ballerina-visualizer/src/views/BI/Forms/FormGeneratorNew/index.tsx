@@ -93,6 +93,7 @@ interface FormProps {
     concertMessage?: string;
     concertRequired?: boolean;
     description?: string;
+    preserveFieldOrder?: boolean;
 }
 
 export function FormGeneratorNew(props: FormProps) {
@@ -118,7 +119,8 @@ export function FormGeneratorNew(props: FormProps) {
         disableSaveButton = false,
         concertMessage,
         concertRequired,
-        description
+        description,
+        preserveFieldOrder
     } = props;
 
     const { rpcClient } = useRpcContext();
@@ -692,6 +694,7 @@ export function FormGeneratorNew(props: FormProps) {
                     concertRequired={concertRequired}
                     infoLabel={description}
                     formImports={formImports}
+                    preserveOrder={preserveFieldOrder}
                 />
             )}
             {typeEditorState.isOpen && (

@@ -144,8 +144,12 @@ export async function activateBallerina(): Promise<BallerinaExtension> {
         //Enable BI Feature
         activateBIFeatures(ballerinaExtInstance);
 
-        // Enable Ballerina Testing Explorer
-        activateBITesting(ballerinaExtInstance);
+        // Enable ballerina test explorer
+        if (ballerinaExtInstance.biSupported) {
+            activateBITesting(ballerinaExtInstance);
+        } else {
+            activateTesting(ballerinaExtInstance);
+        }
 
         // Enable Ballerina Notebook
         activateNotebook(ballerinaExtInstance);

@@ -85,7 +85,6 @@ export async function refreshGithubCopilotToken() {
             },
         });
         const copilot_resp_body: any = await copilot_resp.json();
-        console.log(copilot_resp_body);
         const copilot_token = copilot_resp_body.token;
         await extension.context.secrets.store('GITHUB_COPILOT_TOKEN', copilot_token);
     } catch (error) {

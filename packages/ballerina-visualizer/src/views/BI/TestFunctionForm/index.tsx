@@ -423,6 +423,7 @@ export function TestFunctionForm(props: TestFunctionDefProps) {
                                 fields={formFields}
                                 targetLineRange={targetLineRange}
                                 onSubmit={onFormSubmit}
+                                preserveFieldOrder={true}
                             />
                         )}
                     </FormContainer>
