@@ -2138,7 +2138,6 @@ export async function fetchWithToken(url: string, options: RequestInit) {
     if (response.status === 401) {
         console.log("Token expired. Refreshing token...");
         const newToken = await getRefreshedAccessToken();
-        console.log("refreshed token : " + newToken);
         if (newToken) {
             options.headers = {
                 ...options.headers,

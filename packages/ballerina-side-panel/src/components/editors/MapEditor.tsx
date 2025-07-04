@@ -111,8 +111,8 @@ export function MapEditor(props: MapEditorProps) {
             field.value.forEach((item, index) => {
                 const key = Object.keys(item)[0];
                 const value = Object.values(item)[0];
-                setValue(`${field.key}-${index}-key`, key);
-                setValue(`${field.key}-${index}-value`, value);
+                setValue(`${field.key}-${index}-key`, key ?? "");
+                setValue(`${field.key}-${index}-value`, value ?? "");
             });
         }
     }, [field.value, field.key, setValue]);

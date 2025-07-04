@@ -27,7 +27,7 @@ const SuggestionsListContainer = styled.ul`
     position: absolute;
     bottom: 100%;
     left: 0;
-    background-color: var(--vscode-dropdown-listBackground);
+    background-color: var(--vscode-quickInput-background);
     border: 1px solid var(--vscode-editorWidget-border);
     border-radius: 4px;
     list-style: none;
@@ -51,13 +51,13 @@ const SuggestionItem = styled.li<SuggestionItemProps>`
     padding: 6px 12px;
     cursor: pointer;
     background-color: ${(props: SuggestionItemProps) =>
-        props.active ? "var(--vscode-editorActionList-focusBackground)" : "var(--vscode-editorActionList-background)"};
+        props.active ? "var(--vscode-quickInputList-focusBackground)" : "var(--vscode-quickInput-background)"};
     color: ${(props: SuggestionItemProps) =>
-        props.active ? "var(--vscode-editorActionList-focusForeground)" : "var(--vscode-editorActionList-foreground)"};
+        props.active ? "var(--vscode-quickInputList-focusForeground)" : "var(--vscode-quickInput-foreground)"};
 
     &:hover {
         background-color: ${(props: SuggestionItemProps) =>
-            props.active ? "var(--vscode-editorActionList-focusBackground)" : "var(--vscode-list-hoverBackground)"};
+            props.active ? "var(--vscode-quickInputList-focusBackground)" : "var(--vscode-list-hoverBackground)"};
     }
 `;
 

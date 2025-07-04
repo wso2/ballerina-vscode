@@ -406,6 +406,12 @@ async function traverseUpdatedComponents(publishedArtifacts: Artifacts, currentP
     // Wait for all additions and updates to complete
     const results = await Promise.all(promises);
 
+    for (const key of Object.keys(currentProjectStructure.directoryMap)) {
+        if (currentProjectStructure.directoryMap[key]) {
+            currentProjectStructure.directoryMap[key].sort((a, b) => a.name.localeCompare(b.name));
+        }
+    }
+
     // Populate addition entry locations
     for (const result of results) {
         if (result) {

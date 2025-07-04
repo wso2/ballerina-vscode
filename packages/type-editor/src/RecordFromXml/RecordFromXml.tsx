@@ -24,6 +24,7 @@ import { FileSelector } from '../components/FileSelector';
 import { NOT_SUPPORTED_TYPE, Type, TypeDataWithReferences } from '@wso2/ballerina-core';
 import { XMLToRecord } from '@wso2/ballerina-core';
 import styled from '@emotion/styled';
+import { set } from 'lodash';
 
 interface RecordFromXmlProps {
     onImport: (types: Type[]) => void;
@@ -81,27 +82,35 @@ export const RecordFromXml = (props: RecordFromXmlProps) => {
 
     const importXmlAsRecord = async () => {
         setIsSaving(true);
-        const resp: TypeDataWithReferences = await rpcClient.getRecordCreatorRpcClient().convertXmlToRecordType({
-            xmlValue: xml,
-            prefix: ""
-        });
+        setError("");
 
-        // get the last record
-        const lastRecord = resp.types[resp.types.length - 1];
-        // get a list  of the records except for the last record
-        const otherRecords = resp.types
-            .filter((t) => t.type.name !== lastRecord.type.name)
-            .map((t) => t.type);
-
-        if (otherRecords.length > 0) {
-            await rpcClient.getBIDiagramRpcClient().updateTypes({
-                filePath: 'types.bal',
-                types: otherRecords
+        try {
+            const resp: TypeDataWithReferences = await rpcClient.getRecordCreatorRpcClient().convertXmlToRecordType({
+                xmlValue: xml,
+                prefix: ""
             });
-        }
 
-        if (lastRecord) {
-            onImport([lastRecord.type]);
+            // get the last record
+            const lastRecord = resp.types[resp.types.length - 1];
+            // get a list  of the records except for the last record
+            const otherRecords = resp.types
+                .filter((t) => t.type.name !== lastRecord.type.name)
+                .map((t) => t.type);
+
+            if (otherRecords.length > 0) {
+                await rpcClient.getBIDiagramRpcClient().updateTypes({
+                    filePath: 'types.bal',
+                    types: otherRecords
+                });
+            }
+
+            if (lastRecord) {
+                onImport([lastRecord.type]);
+            }
+        } catch (err) {
+            setError("Failed to import XML as type.");
+            console.error("Error importing XML as type:", err);
+            setIsSaving(false);
         }
     }
 
@@ -111,7 +120,7 @@ export const RecordFromXml = (props: RecordFromXmlProps) => {
                 <FileSelector label="Select XML file" extension="xml" onReadFile={onXmlUpload} />
             </FileSelect>
             <TextArea
-                rows={10}
+                rows={15}
                 value={xml}
                 onChange={onXmlChange}
                 errorMsg={error}

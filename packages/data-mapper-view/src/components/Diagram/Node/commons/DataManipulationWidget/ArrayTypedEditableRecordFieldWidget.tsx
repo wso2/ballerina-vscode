@@ -126,8 +126,8 @@ export function ArrayTypedEditableRecordFieldWidget(props: ArrayTypedEditableRec
         indentation += 24;
     }
 
-    let isDisabled = portIn.descendantHasValue;
-    if (!isDisabled) {
+    let isDisabled = portIn?.descendantHasValue;
+    if (portIn && !isDisabled) {
         const hasElements = listConstructor && listConstructor.expressions.length > 0;
         if (listConstructor && hasElements && expanded && portIn.parentModel) {
             portIn.setDescendantHasValue();

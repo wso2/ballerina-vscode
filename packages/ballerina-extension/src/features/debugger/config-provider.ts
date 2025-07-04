@@ -37,7 +37,6 @@ import {
     UNSUPPORTED_DEBUGGER_RUNINTERMINAL_KIND, INVALID_DEBUGGER_RUNINTERMINAL_KIND
 } from '../../core';
 import { ExtendedLangClient } from '../../core/extended-language-client';
-import { BALLERINA_HOME } from '../../core/preferences';
 import {
     TM_EVENT_START_DEBUG_SESSION, CMP_DEBUGGER, sendTelemetryEvent, sendTelemetryException,
     CMP_NOTEBOOK, TM_EVENT_START_NOTEBOOK_DEBUG
@@ -695,30 +694,31 @@ class BIRunAdapter extends LoggingDebugSession {
             task: 'run'
         };
 
-        let buildCommand = 'bal run';
+        const ballerinaHome = ballerinaExtInstance.getConfiguredBallerinaHome();
+        const pluginDevModeEnabled = ballerinaExtInstance.overrideBallerinaHome();
+
+        let runCommand: string;
+        if (pluginDevModeEnabled && ballerinaHome) {
+            runCommand = path.join(ballerinaHome, 'bin', ballerinaExtInstance.getBallerinaCmd());
+        } else {
+            runCommand = ballerinaExtInstance.getBallerinaCmd();
+        }
+        runCommand += ' run';
+
         const programArgs = (args as any).programArgs;
         if (programArgs && programArgs.length > 0) {
-            buildCommand = `${buildCommand} -- ${programArgs.join(' ')}`;
+            runCommand = `${runCommand} -- ${programArgs.join(' ')}`;
         }
 
         if (isSupportedSLVersion(ballerinaExtInstance, 2201130) && ballerinaExtInstance.enabledExperimentalFeatures()) {
-            buildCommand = `${buildCommand} --experimental`;
+            runCommand = `${runCommand} --experimental`;
         }
 
-        // Get Ballerina home path from settings
-        const config = workspace.getConfiguration('ballerina');
-        const ballerinaHome = config.get<string>('home');
-        if (ballerinaHome) {
-            // Add ballerina home to build path only if it's configured
-            buildCommand = path.join(ballerinaHome, 'bin', buildCommand);
-        }
-
-        const execution = new ShellExecution(buildCommand);
-
+        const execution = new ShellExecution(runCommand);
         const task = new Task(
             taskDefinition,
             workspace.workspaceFolders![0], // Assumes at least one workspace folder is open
-            'Ballerina Build',
+            'Ballerina Run',
             'ballerina',
             execution
         );
@@ -738,7 +738,7 @@ class BIRunAdapter extends LoggingDebugSession {
                 this.sendResponse(response);
             });
         } catch (error) {
-            window.showErrorMessage(`Failed to build Ballerina package: ${error}`);
+            window.showErrorMessage(`Failed to run Ballerina package: ${error}`);
         }
     }
 

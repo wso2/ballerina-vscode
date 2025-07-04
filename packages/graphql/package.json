@@ -35,7 +35,7 @@
     "webpack-cli": "^4.10.0"
   },
   "dependencies": {
-    "graphiql": "4.1.0",
+    "graphiql": "3.7.0",
     "graphiql-explorer": "^0.9.0",
     "react": "18.2.0",
     "react-dom": "18.2.0",

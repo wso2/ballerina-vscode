@@ -825,6 +825,7 @@ export function FormGenerator(props: FormProps) {
                     recordTypeFields={recordTypeFields}
                     isInferredReturnType={!!node.codedata?.inferredReturnType}
                     formImports={formImports}
+                    preserveOrder={node.codedata.node === "VARIABLE" || node.codedata.node === "CONFIG_VARIABLE"}
                 />
             )}
             {typeEditorState.isOpen && (

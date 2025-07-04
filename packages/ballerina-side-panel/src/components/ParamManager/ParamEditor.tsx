@@ -126,6 +126,7 @@ export function ParamEditor(props: ParamProps) {
                 }}
                 submitText={parameter.key ? 'Save' : 'Add'}
                 nestedForm={true}
+                preserveOrder={true}
             />
         </EditorContainer >
     );

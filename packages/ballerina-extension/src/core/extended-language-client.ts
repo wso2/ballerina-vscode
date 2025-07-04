@@ -222,7 +222,9 @@ import {
     GetConfigVariableNodeTemplateRequest,
     UpdateConfigVariableResponseV2,
     DeleteConfigVariableRequestV2,
-    DeleteConfigVariableResponseV2
+    DeleteConfigVariableResponseV2,
+    JsonToTypeRequest,
+    JsonToTypeResponse
 } from "@wso2/ballerina-core";
 import { BallerinaExtension } from "./index";
 import { debug, handlePullModuleProgress } from "../utils";
@@ -252,6 +254,7 @@ enum EXTENDED_APIS {
     PACKAGE_CONFIG_SCHEMA = 'ballerinaPackage/configSchema',
     JSON_TO_RECORD_CONVERT = 'jsonToRecord/convert',
     XML_TO_RECORD_CONVERT = 'xmlToRecord/convert',
+    JSON_TO_TYPE_CONVERT = 'typesManager/jsonToType',
     JSON_TO_RECORD_TYPE_CONVERT = 'jsonToRecordTypes/convert',
     XML_TO_RECORD_TYPE_CONVERT = 'xmlToRecordTypes/convert',
     PARTIAL_PARSE_SINGLE_STATEMENT = 'partialParser/getSTForSingleStatement',
@@ -789,6 +792,10 @@ export class ExtendedLangClient extends LanguageClient implements ExtendedLangCl
 
     async convertXmlToRecordType(params: XMLToRecordParams): Promise<TypeDataWithReferences> {
         return this.sendRequest(EXTENDED_APIS.XML_TO_RECORD_TYPE_CONVERT, params);
+    }
+
+    async getTypeFromJson(params: JsonToTypeRequest): Promise<JsonToTypeResponse> {
+        return this.sendRequest(EXTENDED_APIS.JSON_TO_TYPE_CONVERT, params);
     }
 
     async getBalShellResult(params: NoteBookCellOutputParams): Promise<NoteBookCellOutput | NOT_SUPPORTED_TYPE> {

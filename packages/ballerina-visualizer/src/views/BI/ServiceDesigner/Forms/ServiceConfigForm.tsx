@@ -207,6 +207,7 @@ export function ServiceConfigForm(props: ServiceConfigFormProps) {
                                     onSubmit={handleServiceSubmit}
                                     submitText={formSubmitText}
                                     recordTypeFields={recordTypeFields}
+                                    preserveFieldOrder={true}
                                 />
                             }
                         </FormContainer>

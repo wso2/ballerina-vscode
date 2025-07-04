@@ -59,7 +59,7 @@ import FormDescription from "./FormDescription";
 import TypeHelperText from "./TypeHelperText";
 
 namespace S {
-    export const Container = styled(SidePanelBody)<{ nestedForm?: boolean; compact?: boolean }>`
+    export const Container = styled(SidePanelBody) <{ nestedForm?: boolean; compact?: boolean }>`
         display: flex;
         flex-direction: column;
         gap: ${({ compact }) => (compact ? "8px" : "20px")};
@@ -344,6 +344,7 @@ export interface FormProps {
     concertRequired?: boolean;
     concertMessage?: string;
     formImports?: FormImports;
+    preserveOrder?: boolean;
 }
 
 export const Form = forwardRef((props: FormProps, ref) => {
@@ -378,6 +379,7 @@ export const Form = forwardRef((props: FormProps, ref) => {
         concertRequired = true,
         concertMessage,
         formImports,
+        preserveOrder = false,
     } = props;
 
     const {
@@ -579,11 +581,7 @@ export const Form = forwardRef((props: FormProps, ref) => {
     const typeField = formFields.find((field) => field.key === "type");
     const targetTypeField = formFields.find((field) => field.codedata?.kind === "PARAM_FOR_TYPE_INFER");
     const dataMapperField = formFields.find((field) => field.label.includes("Data mapper"));
-    const prioritizedNodes = ["VARIABLE", "CONFIG_VARIABLE"]; // these node type form fields will rearrange based on priority
-    const formHasPriorityFields = (variableField || typeField || targetTypeField) && !dataMapperField && (prioritizedNodes.includes(selectedNode));
     const hasParameters = hasRequiredParameters(formFields, selectedNode) || hasOptionalParameters(formFields);
-    const regularNodes = ["PARAM_FOR_TYPE_INFER"]; // these node type form fields won't rearrange based on priority
-    const isRegularNode = regularNodes.includes(selectedNode);
 
     const contextValue: FormContext = {
         form: {
@@ -693,50 +691,92 @@ export const Form = forwardRef((props: FormProps, ref) => {
                         )}
                     </S.MarkdownWrapper>
                 )}
-                <FormDescription formFields={formFields} selectedNode={selectedNode} />
-                {formHasPriorityFields && (variableField || typeField) && (
-                    <S.CategoryRow bottomBorder={!compact}>
-                        {variableField && (
-                            <EditorFactory
-                                field={variableField}
-                                handleOnFieldFocus={handleOnFieldFocus}
-                                autoFocus={firstEditableFieldIndex === formFields.indexOf(variableField)}
-                                visualizableFields={visualizableFields}
-                                recordTypeFields={recordTypeFields}
-                                onIdentifierEditingStateChange={handleIdentifierEditingStateChange}
-                            />
-                        )}
-                        {typeField && !isInferredReturnType && (
-                            <EditorFactory
-                                field={typeField}
-                                openRecordEditor={
-                                    openRecordEditor && ((open: boolean) => handleOpenRecordEditor(open, typeField))
-                                }
-                                openSubPanel={handleOpenSubPanel}
-                                handleOnFieldFocus={handleOnFieldFocus}
-                                handleOnTypeChange={handleOnTypeChange}
-                                visualizableFields={visualizableFields}
-                                recordTypeFields={recordTypeFields}
-                                onIdentifierEditingStateChange={handleIdentifierEditingStateChange}
-                            />
-                        )}
-                    </S.CategoryRow>
+                {!preserveOrder && (
+                    <FormDescription formFields={formFields} selectedNode={selectedNode} />
                 )}
-                {hasParameters && (
-                    <S.CategoryRow bottomBorder={false}>
-                        {formFields
-                            .sort((a, b) => b.groupNo - a.groupNo)
-                            .filter((field) => field.type !== "VIEW")
-                            .map((field) => {
-                                if (!isRegularNode && (isPrioritizedField(field) || field.advanced || field.hidden)) {
-                                    return;
-                                }
+
+                {/* 
+                 * Two rendering modes based on preserveOrder prop:
+                 * 
+                 * 1. preserveOrder = true: Render all fields in original order from formFields array
+                 * 2. preserveOrder = false: Render name and type fields at the bottom, and rest at top
+                 */}
+                <S.CategoryRow bottomBorder={false}>
+                    {formFields
+                        .sort((a, b) => b.groupNo - a.groupNo)
+                        .filter((field) => field.type !== "VIEW")
+                        .map((field) => {
+                            if (field.advanced || field.hidden) {
+                                return null;
+                            }
+                            // When preserveOrder is false, skip prioritized fields (they'll be rendered at bottom)
+                            if (!preserveOrder && isPrioritizedField(field)) {
+                                return null;
+                            }
+
+                            const updatedField = updateFormFieldWithImports(field, formImports);
+                            return (
+                                <S.Row key={updatedField.key}>
+                                    <EditorFactory
+                                        field={updatedField}
+                                        selectedNode={selectedNode}
+                                        openRecordEditor={
+                                            openRecordEditor &&
+                                            ((open: boolean) => handleOpenRecordEditor(open, updatedField))
+                                        }
+                                        openSubPanel={handleOpenSubPanel}
+                                        subPanelView={subPanelView}
+                                        handleOnFieldFocus={handleOnFieldFocus}
+                                        autoFocus={firstEditableFieldIndex === formFields.indexOf(updatedField)}
+                                        visualizableFields={visualizableFields}
+                                        recordTypeFields={recordTypeFields}
+                                        onIdentifierEditingStateChange={handleIdentifierEditingStateChange}
+                                    />
+                                </S.Row>
+                            );
+                        })}
+                    {hasAdvanceFields && (
+                        <S.Row>
+                            Optional Configurations
+                            <S.ButtonContainer>
+                                {!showAdvancedOptions && (
+                                    <LinkButton
+                                        onClick={handleOnShowAdvancedOptions}
+                                        sx={{ fontSize: 12, padding: 8, color: ThemeColors.PRIMARY, gap: 4 }}
+                                    >
+                                        <Codicon
+                                            name={"chevron-down"}
+                                            iconSx={{ fontSize: 12 }}
+                                            sx={{ height: 12 }}
+                                        />
+                                        Expand
+                                    </LinkButton>
+                                )}
+                                {showAdvancedOptions && (
+                                    <LinkButton
+                                        onClick={handleOnHideAdvancedOptions}
+                                        sx={{ fontSize: 12, padding: 8, color: ThemeColors.PRIMARY, gap: 4 }}
+                                    >
+                                        <Codicon
+                                            name={"chevron-up"}
+                                            iconSx={{ fontSize: 12 }}
+                                            sx={{ height: 12 }}
+                                        />
+                                        Collapsed
+                                    </LinkButton>
+                                )}
+                            </S.ButtonContainer>
+                        </S.Row>
+                    )}
+                    {hasAdvanceFields &&
+                        showAdvancedOptions &&
+                        formFields.map((field) => {
+                            if (field.advanced) {
                                 const updatedField = updateFormFieldWithImports(field, formImports);
                                 return (
                                     <S.Row key={updatedField.key}>
                                         <EditorFactory
                                             field={updatedField}
-                                            selectedNode={selectedNode}
                                             openRecordEditor={
                                                 openRecordEditor &&
                                                 ((open: boolean) => handleOpenRecordEditor(open, updatedField))
@@ -744,74 +784,18 @@ export const Form = forwardRef((props: FormProps, ref) => {
                                             openSubPanel={handleOpenSubPanel}
                                             subPanelView={subPanelView}
                                             handleOnFieldFocus={handleOnFieldFocus}
-                                            autoFocus={firstEditableFieldIndex === formFields.indexOf(updatedField)}
                                             visualizableFields={visualizableFields}
                                             recordTypeFields={recordTypeFields}
                                             onIdentifierEditingStateChange={handleIdentifierEditingStateChange}
                                         />
                                     </S.Row>
                                 );
-                            })}
-                        {hasAdvanceFields && (
-                            <S.Row>
-                                Optional Configurations
-                                <S.ButtonContainer>
-                                    {!showAdvancedOptions && (
-                                        <LinkButton
-                                            onClick={handleOnShowAdvancedOptions}
-                                            sx={{ fontSize: 12, padding: 8, color: ThemeColors.PRIMARY, gap: 4 }}
-                                        >
-                                            <Codicon
-                                                name={"chevron-down"}
-                                                iconSx={{ fontSize: 12 }}
-                                                sx={{ height: 12 }}
-                                            />
-                                            Expand
-                                        </LinkButton>
-                                    )}
-                                    {showAdvancedOptions && (
-                                        <LinkButton
-                                            onClick={handleOnHideAdvancedOptions}
-                                            sx={{ fontSize: 12, padding: 8, color: ThemeColors.PRIMARY, gap: 4 }}
-                                        >
-                                            <Codicon
-                                                name={"chevron-up"}
-                                                iconSx={{ fontSize: 12 }}
-                                                sx={{ height: 12 }}
-                                            />
-                                            Collapsed
-                                        </LinkButton>
-                                    )}
-                                </S.ButtonContainer>
-                            </S.Row>
-                        )}
-                        {hasAdvanceFields &&
-                            showAdvancedOptions &&
-                            formFields.map((field) => {
-                                if (field.advanced) {
-                                    const updatedField = updateFormFieldWithImports(field, formImports);
-                                    return (
-                                        <S.Row key={updatedField.key}>
-                                            <EditorFactory
-                                                field={updatedField}
-                                                openRecordEditor={
-                                                    openRecordEditor &&
-                                                    ((open: boolean) => handleOpenRecordEditor(open, updatedField))
-                                                }
-                                                openSubPanel={handleOpenSubPanel}
-                                                subPanelView={subPanelView}
-                                                handleOnFieldFocus={handleOnFieldFocus}
-                                                visualizableFields={visualizableFields}
-                                                recordTypeFields={recordTypeFields}
-                                                onIdentifierEditingStateChange={handleIdentifierEditingStateChange}
-                                            />
-                                        </S.Row>
-                                    );
-                                }
-                            })}
-                    </S.CategoryRow>
-                )}
-                {!formHasPriorityFields && (variableField || typeField) && (
+                            }
+                            return null;
+                        })}
+                </S.CategoryRow>
+
+                {!preserveOrder && (variableField || typeField || targetTypeField) && (
                     <S.CategoryRow topBorder={!compact && hasParameters}>
                         {variableField && (
                             <EditorFactory
