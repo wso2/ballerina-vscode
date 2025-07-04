@@ -104,15 +104,15 @@ public class DataMappingModelTest extends AbstractLSTest {
 
         DataMapperModelRequest request =
                 new DataMapperModelRequest(sourceDir.resolve(testConfig.source()).toAbsolutePath().toString(),
-                        testConfig.codedata(), testConfig.position(), testConfig.propertyKey(),
+                        testConfig.diagram(), testConfig.position(), testConfig.propertyKey(),
                         testConfig.targetField());
         JsonObject model = getResponse(endpoint, request).getAsJsonObject("mappingsModel");
         String actual = model.toString().replace(" ", "");
         String expected = testConfig.model().toString().replace(" ", "");
         if (!actual.equals(expected)) {
             TestConfig updateConfig = new TestConfig(testConfig.source(), testConfig.description(),
-                    testConfig.codedata(), testConfig.position(), testConfig.propertyKey(), testConfig.targetField(),
-                    model);
+                    testConfig.diagram(), testConfig.propertyKey(), testConfig.position(), model,
+                    testConfig.targetField());
 //            updateConfig(configJsonPath, updateConfig);
             compareJsonElements(model, testConfig.model());
             Assert.fail(String.format("Failed test: '%s' (%s)", testConfig.description(), configJsonPath));
@@ -144,14 +144,14 @@ public class DataMappingModelTest extends AbstractLSTest {
      *
      * @param source      The source file name
      * @param description The description of the test
-     * @param codedata    The details of the node
-     * @param position    position of the end of previous statement
+     * @param diagram     The diagram to generate the source code
      * @param propertyKey The property that needs to consider to get the type
+     * @param position    position of the end of previous statement
      * @param model       The expected data mapping model
      * @param targetField The target field to add the element
      */
-    private record TestConfig(String source, String description, JsonElement codedata, LinePosition position,
-                              String propertyKey, String targetField, JsonElement model) {
+    private record TestConfig(String source, String description, JsonElement diagram, String propertyKey,
+                              LinePosition position, JsonElement model, String targetField) {
 
         public String description() {
             return description == null ? "" : description;

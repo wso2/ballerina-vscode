@@ -38,7 +38,7 @@ service / on new http:Listener(9090) {
 
     resource function post getPerson(@http:Payload User user) returns Person|http:InternalServerError {
         do {
-            User1 user1 = {user2: {user3: {i3: user.length(), user4: {user5: {u: [user.name, user.name]},users6: [{balance: 0.0, account: user.name}, {balance: 1.0, account: user.name}]}}}, s1: user.name}
+            // User1 user1 = {user2: {user3: {i3: user.length(), user4: {user5: {u: [user.name, user.name]},users6: [{balance: 0.0, account: user.name}, {balance: 1.0, account: user.name}]}}}, s1: user.name}
         } on fail error e {
             return http:INTERNAL_SERVER_ERROR;
         }

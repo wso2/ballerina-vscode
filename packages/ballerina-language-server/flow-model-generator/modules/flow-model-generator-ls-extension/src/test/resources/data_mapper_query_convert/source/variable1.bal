@@ -29,7 +29,7 @@ service OASServiceType on new http:Listener(9090) {
         do {
             UserInfo[] userInfo = [{username: "un", password: "pw", id: 3}, {username: "un1", password: "pw1", id: 5}];
             Bank[] banks = [{name: "Alis", userInfo: userInfo}];
-            Store[] stores = banks;
+            // Store[] stores = banks;
 		} on fail error e {
 			return http:NOT_FOUND;
 		}

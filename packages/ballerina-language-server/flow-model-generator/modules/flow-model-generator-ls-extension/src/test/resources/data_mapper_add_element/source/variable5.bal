@@ -10,7 +10,7 @@ service OASServiceType on new http:Listener(9090) {
 
 	resource function get pet() returns int|http:NotFound {
         do {
-            Studentsss var1 = {names: [[["1", "2", ""]], [["3"]]]};
+            // Studentsss var1 = {names: [[["1", "2"]], [["3"]]]};
 		} on fail error e {
 			return http:NOT_FOUND;
 		}

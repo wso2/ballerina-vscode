@@ -19,23 +19,15 @@
 package io.ballerina.flowmodelgenerator.extension;
 
 import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.reflect.TypeToken;
 import io.ballerina.flowmodelgenerator.extension.request.DataMapperAddClausesRequest;
 import io.ballerina.modelgenerator.commons.AbstractLSTest;
-import org.eclipse.lsp4j.TextEdit;
 import org.testng.Assert;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import java.io.IOException;
-import java.lang.reflect.Type;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 /**
  * Tests for the generation of data mapper source.
@@ -43,8 +35,6 @@ import java.util.Map;
  * @since 1.0.0
  */
 public class DataMappingAddClausesTest extends AbstractLSTest {
-
-    private static final Type textEditListType = new TypeToken<Map<String, List<TextEdit>>>() { }.getType();
 
     @DataProvider(name = "data-provider")
     @Override
@@ -63,40 +53,14 @@ public class DataMappingAddClausesTest extends AbstractLSTest {
 
         DataMapperAddClausesRequest request =
                 new DataMapperAddClausesRequest(sourceDir.resolve(testConfig.source()).toAbsolutePath().toString(),
-                        testConfig.codedata(), testConfig.index(), testConfig.clause(), testConfig.propertyKey,
-                        testConfig.targetField());
-        JsonObject jsonMap = getResponse(request).getAsJsonObject("textEdits");
+                        testConfig.diagram(), testConfig.query(), testConfig.propertyKey(), testConfig.targetField());
+        String source = getResponse(request).getAsJsonPrimitive("source").getAsString();
 
-        Map<String, List<TextEdit>> actualTextEdits = gson.fromJson(jsonMap, textEditListType);
-
-        boolean assertFailure = false;
-
-        if (actualTextEdits.size() != testConfig.output().size()) {
-            log.info("The number of text edits does not match the expected output.");
-            assertFailure = true;
-        }
-
-        Map<String, List<TextEdit>> newMap = new HashMap<>();
-        for (Map.Entry<String, List<TextEdit>> entry : actualTextEdits.entrySet()) {
-            Path fullPath = Paths.get(entry.getKey());
-            String relativePath = sourceDir.relativize(fullPath).toString();
-
-            List<TextEdit> textEdits = testConfig.output().get(relativePath.replace("\\", "/"));
-            if (textEdits == null) {
-                log.info("No text edits found for the file: " + relativePath);
-                assertFailure = true;
-            } else if (!assertArray("text edits", entry.getValue(), textEdits)) {
-                assertFailure = true;
-            }
-
-            newMap.put(relativePath, entry.getValue());
-        }
-
-        if (assertFailure) {
-            TestConfig updatedConfig = new TestConfig(testConfig.source(), testConfig.description(),
-                    testConfig.codedata(), testConfig.propertyKey(), testConfig.index(), testConfig.clause(),
-                    testConfig.targetField(), newMap);
-//            updateConfig(configJsonPath, updatedConfig);
+        if (!source.equals(testConfig.output())) {
+            TestConfig updateConfig = new TestConfig(testConfig.source(), testConfig.description(),
+                    testConfig.diagram(), testConfig.propertyKey(), testConfig.query(), testConfig.targetField(),
+                    source);
+            updateConfig(configJsonPath, updateConfig);
             Assert.fail(String.format("Failed test: '%s' (%s)", testConfig.description(), configJsonPath));
         }
     }
@@ -126,15 +90,14 @@ public class DataMappingAddClausesTest extends AbstractLSTest {
      *
      * @param source      The source file name
      * @param description The description of the test
-     * @param codedata    The Details of the node
+     * @param diagram     The diagram to generate the source code
      * @param propertyKey The property key to generate the source code
-     * @param index       The index of the property key
-     * @param clause      The clause to add
+     * @param query       The representation of query
      * @param targetField The target field to generate the source code
      * @param output      The expected source
      */
-    private record TestConfig(String source, String description, JsonElement codedata, String propertyKey, int index,
-                              JsonElement clause, String targetField, Map<String, List<TextEdit>> output) {
+    private record TestConfig(String source, String description, JsonElement diagram, String propertyKey,
+                              JsonElement query, String targetField, String output) {
 
         public String description() {
             return description == null ? "" : description;

@@ -39,7 +39,7 @@
           "description": "Type of the variable"
         },
         "valueType": "TYPE",
-        "value": "Students",
+        "value": "Studentss",
         "placeholder": "var",
         "optional": false,
         "editable": true,
@@ -68,7 +68,7 @@
     {
       "output": "var1.names",
       "inputs": [],
-      "expression": "[[\"1\", \"6\"], [\"10\", \"60\"], [\"10\", \"61\"]]",
+      "expression": "[[\"1\", \"6\"], [\"10\", \"60\", \"70\"]]",
       "diagnostics": [],
       "elements": [
         {
@@ -100,35 +100,9 @@
               ]
             },
             {
-              "output": "var1.names.1",
-              "inputs": [],
-              "expression": "[\"10\", \"60\"]",
-              "diagnostics": [],
-              "elements": [
-                {
-                  "mappings": [
-                    {
-                      "output": "var1.names.1.0",
-                      "inputs": [],
-                      "expression": "\"10\"",
-                      "diagnostics": [],
-                      "elements": []
-                    },
-                    {
-                      "output": "var1.names.1.1",
-                      "inputs": [],
-                      "expression": "\"60\"",
-                      "diagnostics": [],
-                      "elements": []
-                    }
-                  ]
-                }
-              ]
-            },
-            {
               "output": "var1.names.2",
               "inputs": [],
-              "expression": "[\"10\", \"61\"]",
+              "expression": "[\"10\", \"60\", \"70\"]",
               "diagnostics": [],
               "elements": [
                 {
@@ -143,7 +117,14 @@
                     {
                       "output": "var1.names.2.1",
                       "inputs": [],
-                      "expression": "\"61\"",
+                      "expression": "\"60\"",
+                      "diagnostics": [],
+                      "elements": []
+                    },
+                    {
+                      "output": "var1.names.2.2",
+                      "inputs": [],
+                      "expression": "\"70\"",
                       "diagnostics": [],
                       "elements": []
                     }
@@ -156,5 +137,5 @@
       ]
     }
   ],
-  "output": "{names:[[\"1\", \"6\"],[\"10\", \"60\"],[\"10\", \"61\"]]}"
+  "output": "{names:[[\"1\", \"6\"],[\"10\", \"60\", \"70\"]]}"
 }

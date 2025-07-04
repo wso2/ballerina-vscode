@@ -8,6 +8,12 @@ type Person record {
     string[] contacts;
 };
 
+type Account record {
+    string accountNumber;
+    int balance;
+    string lastTransaction;
+};
+
 import ballerina/http;
 
 service / on new http:Listener(9090) {
@@ -18,12 +24,7 @@ service / on new http:Listener(9090) {
     resource function post getPerson(@http:Payload User user) returns Person|http:InternalServerError {
         do {
             User u1 = getUser();
-            // Person var1 = {
-            //                   contacts: [user.phoneNumber[0], user.phoneNumber[0]]
-            //               };
-            Person var3 = {
-                                          contacts: ["123", "456"]
-                                      };
+            // Account[] var6 = [{accountNumber: u1.phoneNumber[0]}];
         } on fail error e {
             return http:INTERNAL_SERVER_ERROR;
         }

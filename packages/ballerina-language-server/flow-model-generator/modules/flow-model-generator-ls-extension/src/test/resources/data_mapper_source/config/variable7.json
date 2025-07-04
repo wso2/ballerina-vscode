@@ -1,5 +1,5 @@
 {
-  "source": "variable9.bal",
+  "source": "variable5.bal",
   "description": "Sample diagram node",
   "diagram": {
     "id": "32874",
@@ -10,7 +10,7 @@
     "codedata": {
       "node": "VARIABLE",
       "lineRange": {
-        "fileName": "variable9.bal",
+        "fileName": "variable14.bal",
         "startLine": {
           "line": 0,
           "offset": 0
@@ -30,7 +30,7 @@
           "description": "Expression"
         },
         "valueType": "EXPRESSION",
-        "value": "{user2: {user3: {i3: user.name.length(), user4: {user5: {u: [user.name, user.name]}}}}, s1: user.name}",
+        "value": "{contacts: [user.phoneNumber[0], user.phoneNumber[1], user.phoneNumber[2]]}",
         "optional": false,
         "editable": true
       },
@@ -40,7 +40,7 @@
           "description": "Name of the variable"
         },
         "valueType": "IDENTIFIER",
-        "value": "user1",
+        "value": "u",
         "optional": false,
         "editable": true
       },
@@ -50,7 +50,7 @@
           "description": "Type of the variable"
         },
         "valueType": "TYPE",
-        "value": "User1",
+        "value": "Person",
         "optional": false,
         "editable": true
       }
@@ -59,31 +59,24 @@
   },
   "propertyKey": "expression",
   "position": {
-    "line": 34,
-    "offset": 12
+    "line": 19,
+    "offset": 32
   },
   "mappings": [
     {
-      "output": "user1.user2.user3.i3",
+      "output": "u.contacts",
       "inputs": [],
-      "expression": "0",
-      "diagnostics": [],
-      "elements": []
-    },
-    {
-      "output": "user1.user2.user3.user4.user5.u",
-      "inputs": [],
-      "expression": "[user.name, user.name]",
+      "expression": "[user.phoneNumber[0], user.phoneNumber[1], user.phoneNumber[2]]",
       "diagnostics": [],
       "elements": [
         {
           "mappings": [
             {
-              "output": "user1.user2.user3.user4.user5.u.0",
+              "output": "u.contacts.0",
               "inputs": [
-                "user.name"
+                "user.phoneNumber.0"
               ],
-              "expression": "user.name",
+              "expression": "user.phoneNumber[0]",
               "diagnostics": [],
               "elements": []
             }
@@ -92,27 +85,31 @@
         {
           "mappings": [
             {
-              "output": "user1.user2.user3.user4.user5.u.1",
+              "output": "u.contacts.1",
               "inputs": [
-                "user.name"
+                "user.phoneNumber.1"
               ],
-              "expression": "user.name",
+              "expression": "user.phoneNumber[1]",
+              "diagnostics": [],
+              "elements": []
+            }
+          ]
+        },
+        {
+          "mappings": [
+            {
+              "output": "u.contacts.2",
+              "inputs": [
+                "user.phoneNumber.2"
+              ],
+              "expression": "user.phoneNumber[2]",
               "diagnostics": [],
               "elements": []
             }
           ]
         }
       ]
-    },
-    {
-      "output": "user1.s1",
-      "inputs": [
-        "user.name"
-      ],
-      "expression": "user.name",
-      "diagnostics": [],
-      "elements": []
     }
   ],
-  "output": "{user2:{user3:{i3:0,user4:{user5:{u:[user.name,user.name]}}}},s1:user.name}"
+  "output": "{contacts:[user.phoneNumber[0],user.phoneNumber[1],user.phoneNumber[2]]}"
 }
