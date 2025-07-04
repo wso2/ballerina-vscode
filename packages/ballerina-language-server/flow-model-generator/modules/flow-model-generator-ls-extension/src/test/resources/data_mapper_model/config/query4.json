@@ -117,8 +117,8 @@
       "fromClause": {
         "type": "from",
         "properties": {
-          "name": "secondaryPhonesItem",
-          "type": "SecondaryPhones",
+          "name": "SecondaryPhones",
+          "type": "secondaryPhonesItem",
           "expression": "u.info.secondaryPhones"
         }
       },

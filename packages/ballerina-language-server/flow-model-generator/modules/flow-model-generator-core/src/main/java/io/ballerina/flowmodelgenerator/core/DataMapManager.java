@@ -203,7 +203,7 @@ public class DataMapManager {
                 itemType = memberTypeSymbol.signature().trim();
             }
 
-            Clause fromClause = new Clause(FROM, new Properties(fromClauseVar, itemType,
+            Clause fromClause = new Clause(FROM, new Properties(itemType, fromClauseVar,
                     expression.toSourceCode().trim(), null));
             ClauseNode clauseNode = queryExpressionNode.resultClause();
             Clause resultClause;
