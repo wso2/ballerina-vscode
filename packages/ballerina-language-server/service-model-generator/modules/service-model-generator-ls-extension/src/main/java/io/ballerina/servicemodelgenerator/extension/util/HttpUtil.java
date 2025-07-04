@@ -458,6 +458,13 @@ public final class HttpUtil {
                     responses.add(response);
                 });
 
+        // sort the responses based on status code
+        responses.sort((r1, r2) -> {
+            String code1 = r1.getStatusCode().getValue();
+            String code2 = r2.getStatusCode().getValue();
+            return code1.compareTo(code2);
+        });
+
         return responses;
     }
 

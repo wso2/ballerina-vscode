@@ -1806,87 +1806,6 @@
                 },
                 "enabled": true,
                 "editable": true,
-                "value": "400",
-                "valueType": "SINGLE_SELECT",
-                "isType": false,
-                "optional": false,
-                "advanced": false,
-                "addNewButton": false,
-                "imports": {}
-              },
-              "body": {
-                "metadata": {
-                  "label": "",
-                  "description": ""
-                },
-                "enabled": true,
-                "editable": true,
-                "value": "",
-                "valueType": "TYPE",
-                "isType": false,
-                "optional": false,
-                "advanced": false,
-                "addNewButton": false,
-                "imports": {}
-              },
-              "name": {
-                "metadata": {
-                  "label": "",
-                  "description": ""
-                },
-                "enabled": true,
-                "editable": true,
-                "value": "",
-                "valueType": "IDENTIFIER",
-                "isType": false,
-                "optional": false,
-                "advanced": false,
-                "addNewButton": false,
-                "imports": {}
-              },
-              "type": {
-                "metadata": {
-                  "label": "",
-                  "description": ""
-                },
-                "enabled": true,
-                "editable": true,
-                "value": "http:BadRequest",
-                "valueType": "TYPE",
-                "isType": false,
-                "optional": false,
-                "advanced": false,
-                "addNewButton": false,
-                "imports": {}
-              },
-              "headers": {
-                "metadata": {
-                  "label": "",
-                  "description": ""
-                },
-                "enabled": true,
-                "editable": true,
-                "value": "",
-                "valueType": "HEADER_SET",
-                "isType": false,
-                "optional": false,
-                "advanced": false,
-                "addNewButton": false,
-                "imports": {}
-              },
-              "enabled": true,
-              "editable": true,
-              "advanced": false,
-              "isHttpResponseType": false
-            },
-            {
-              "statusCode": {
-                "metadata": {
-                  "label": "",
-                  "description": ""
-                },
-                "enabled": true,
-                "editable": true,
                 "value": "201",
                 "valueType": "SINGLE_SELECT",
                 "isType": false,
@@ -1933,6 +1852,87 @@
                 "enabled": true,
                 "editable": true,
                 "value": "Order",
+                "valueType": "TYPE",
+                "isType": false,
+                "optional": false,
+                "advanced": false,
+                "addNewButton": false,
+                "imports": {}
+              },
+              "headers": {
+                "metadata": {
+                  "label": "",
+                  "description": ""
+                },
+                "enabled": true,
+                "editable": true,
+                "value": "",
+                "valueType": "HEADER_SET",
+                "isType": false,
+                "optional": false,
+                "advanced": false,
+                "addNewButton": false,
+                "imports": {}
+              },
+              "enabled": true,
+              "editable": true,
+              "advanced": false,
+              "isHttpResponseType": false
+            },
+            {
+              "statusCode": {
+                "metadata": {
+                  "label": "",
+                  "description": ""
+                },
+                "enabled": true,
+                "editable": true,
+                "value": "400",
+                "valueType": "SINGLE_SELECT",
+                "isType": false,
+                "optional": false,
+                "advanced": false,
+                "addNewButton": false,
+                "imports": {}
+              },
+              "body": {
+                "metadata": {
+                  "label": "",
+                  "description": ""
+                },
+                "enabled": true,
+                "editable": true,
+                "value": "",
+                "valueType": "TYPE",
+                "isType": false,
+                "optional": false,
+                "advanced": false,
+                "addNewButton": false,
+                "imports": {}
+              },
+              "name": {
+                "metadata": {
+                  "label": "",
+                  "description": ""
+                },
+                "enabled": true,
+                "editable": true,
+                "value": "",
+                "valueType": "IDENTIFIER",
+                "isType": false,
+                "optional": false,
+                "advanced": false,
+                "addNewButton": false,
+                "imports": {}
+              },
+              "type": {
+                "metadata": {
+                  "label": "",
+                  "description": ""
+                },
+                "enabled": true,
+                "editable": true,
+                "value": "http:BadRequest",
                 "valueType": "TYPE",
                 "isType": false,
                 "optional": false,
@@ -2502,87 +2502,6 @@
                 },
                 "enabled": true,
                 "editable": true,
-                "value": "404",
-                "valueType": "SINGLE_SELECT",
-                "isType": false,
-                "optional": false,
-                "advanced": false,
-                "addNewButton": false,
-                "imports": {}
-              },
-              "body": {
-                "metadata": {
-                  "label": "",
-                  "description": ""
-                },
-                "enabled": true,
-                "editable": true,
-                "value": "",
-                "valueType": "TYPE",
-                "isType": false,
-                "optional": false,
-                "advanced": false,
-                "addNewButton": false,
-                "imports": {}
-              },
-              "name": {
-                "metadata": {
-                  "label": "",
-                  "description": ""
-                },
-                "enabled": true,
-                "editable": true,
-                "value": "",
-                "valueType": "IDENTIFIER",
-                "isType": false,
-                "optional": false,
-                "advanced": false,
-                "addNewButton": false,
-                "imports": {}
-              },
-              "type": {
-                "metadata": {
-                  "label": "",
-                  "description": ""
-                },
-                "enabled": true,
-                "editable": true,
-                "value": "http:NotFound",
-                "valueType": "TYPE",
-                "isType": false,
-                "optional": false,
-                "advanced": false,
-                "addNewButton": false,
-                "imports": {}
-              },
-              "headers": {
-                "metadata": {
-                  "label": "",
-                  "description": ""
-                },
-                "enabled": true,
-                "editable": true,
-                "value": "",
-                "valueType": "HEADER_SET",
-                "isType": false,
-                "optional": false,
-                "advanced": false,
-                "addNewButton": false,
-                "imports": {}
-              },
-              "enabled": true,
-              "editable": true,
-              "advanced": false,
-              "isHttpResponseType": false
-            },
-            {
-              "statusCode": {
-                "metadata": {
-                  "label": "",
-                  "description": ""
-                },
-                "enabled": true,
-                "editable": true,
                 "value": "200",
                 "valueType": "SINGLE_SELECT",
                 "isType": false,
@@ -2629,6 +2548,87 @@
                 "enabled": true,
                 "editable": true,
                 "value": "Order",
+                "valueType": "TYPE",
+                "isType": false,
+                "optional": false,
+                "advanced": false,
+                "addNewButton": false,
+                "imports": {}
+              },
+              "headers": {
+                "metadata": {
+                  "label": "",
+                  "description": ""
+                },
+                "enabled": true,
+                "editable": true,
+                "value": "",
+                "valueType": "HEADER_SET",
+                "isType": false,
+                "optional": false,
+                "advanced": false,
+                "addNewButton": false,
+                "imports": {}
+              },
+              "enabled": true,
+              "editable": true,
+              "advanced": false,
+              "isHttpResponseType": false
+            },
+            {
+              "statusCode": {
+                "metadata": {
+                  "label": "",
+                  "description": ""
+                },
+                "enabled": true,
+                "editable": true,
+                "value": "404",
+                "valueType": "SINGLE_SELECT",
+                "isType": false,
+                "optional": false,
+                "advanced": false,
+                "addNewButton": false,
+                "imports": {}
+              },
+              "body": {
+                "metadata": {
+                  "label": "",
+                  "description": ""
+                },
+                "enabled": true,
+                "editable": true,
+                "value": "",
+                "valueType": "TYPE",
+                "isType": false,
+                "optional": false,
+                "advanced": false,
+                "addNewButton": false,
+                "imports": {}
+              },
+              "name": {
+                "metadata": {
+                  "label": "",
+                  "description": ""
+                },
+                "enabled": true,
+                "editable": true,
+                "value": "",
+                "valueType": "IDENTIFIER",
+                "isType": false,
+                "optional": false,
+                "advanced": false,
+                "addNewButton": false,
+                "imports": {}
+              },
+              "type": {
+                "metadata": {
+                  "label": "",
+                  "description": ""
+                },
+                "enabled": true,
+                "editable": true,
+                "value": "http:NotFound",
                 "valueType": "TYPE",
                 "isType": false,
                 "optional": false,
