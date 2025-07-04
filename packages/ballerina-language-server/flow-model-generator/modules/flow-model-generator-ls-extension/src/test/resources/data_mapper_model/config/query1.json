@@ -16,12 +16,11 @@
     },
     "sourceCode": ""
   },
+  "propertyKey": "expression",
   "position": {
     "line": 21,
     "offset": 4
   },
-  "propertyKey": "expression",
-  "targetField": "p.contactDetails.phoneNumbers",
   "model": {
     "inputs": [
       {
@@ -58,7 +57,6 @@
                     "kind": "string"
                   },
                   "id": "u.info.addresses.0",
-                  "variableName": "addressesItem",
                   "typeName": "string[]",
                   "kind": "array"
                 },
@@ -122,5 +120,6 @@
       "intermediateClauses": [],
       "resultClause": "secondaryPhonesItem"
     }
-  }
+  },
+  "targetField": "p.contactDetails.phoneNumbers"
 }

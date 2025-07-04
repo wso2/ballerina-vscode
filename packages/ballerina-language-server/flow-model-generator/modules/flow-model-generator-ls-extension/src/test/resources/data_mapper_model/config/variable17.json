@@ -16,11 +16,11 @@
     },
     "sourceCode": ""
   },
+  "propertyKey": "expression",
   "position": {
     "line": 25,
     "offset": 107
   },
-  "propertyKey": "expression",
   "model": {
     "inputs": [
       {
@@ -46,7 +46,6 @@
             }
           ],
           "id": "credentials.0",
-          "variableName": "credentialsItem",
           "typeName": "Credentials",
           "kind": "record"
         },
@@ -73,7 +72,6 @@
             }
           ],
           "id": "userInfo.0",
-          "variableName": "userInfoItem",
           "typeName": "UserInfo",
           "kind": "record"
         },
@@ -109,7 +107,6 @@
               }
             ],
             "id": "student.credentials",
-            "variableName": "credentialsItem",
             "typeName": "Credentials",
             "kind": "record"
           },
