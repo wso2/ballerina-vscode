@@ -6,29 +6,19 @@ const path = require('path');
 const MergeIntoSingleFile = require('webpack-merge-and-include-globally');
 const dotenv = require('dotenv');
 const webpack = require('webpack');
+const { createEnvDefinePlugin } = require('../../../common/scripts/env-webpack-helper');
 
 const envPath = path.resolve(__dirname, '.env');
 const env = dotenv.config({ path: envPath }).parsed;
 
-function shouldSkipEnvVar(key) {
-  const pathVariables = ['PATH', 'Path'];
-  return pathVariables.includes(key);
+let envKeys;
+try {
+  envKeys = createEnvDefinePlugin(env);
+} catch (error) {
+  console.error('\n❌ Environment Variable Configuration Error:');
+  console.error(error.message);
+  process.exit(1);
 }
-
-const filteredProcessEnv = Object.fromEntries(
-  Object.entries(process.env).filter(([key, value]) => !shouldSkipEnvVar(key))
-);
-
-const mergedEnv = { ...env, ...filteredProcessEnv };
-
-const envKeys = Object.fromEntries(
-  Object.entries(mergedEnv)
-    .filter(([key, value]) => key && value !== undefined && value !== '')
-    .map(([key, value]) => [
-      `process.env.${key}`,
-      JSON.stringify(value),
-    ])
-);
 
 /** @type {import('webpack').Configuration} */
 module.exports = {
