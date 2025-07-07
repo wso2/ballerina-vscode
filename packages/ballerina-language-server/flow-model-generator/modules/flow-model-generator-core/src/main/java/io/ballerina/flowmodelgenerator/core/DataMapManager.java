@@ -72,16 +72,14 @@ import io.ballerina.flowmodelgenerator.core.model.Codedata;
 import io.ballerina.flowmodelgenerator.core.model.FlowNode;
 import io.ballerina.flowmodelgenerator.core.model.NodeKind;
 import io.ballerina.flowmodelgenerator.core.model.Property;
-<<<<<<< HEAD
 import io.ballerina.flowmodelgenerator.core.model.SourceBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.VariableBuilder;
-=======
->>>>>>> 75d2f29251 (Fix checkstyle violations)
 import io.ballerina.modelgenerator.commons.CommonUtils;
 import io.ballerina.modelgenerator.commons.DefaultValueGeneratorUtil;
 import io.ballerina.modelgenerator.commons.ModuleInfo;
 import io.ballerina.modelgenerator.commons.PackageUtil;
 import io.ballerina.projects.Document;
+import io.ballerina.projects.Module;
 import io.ballerina.projects.ModuleDescriptor;
 import io.ballerina.tools.diagnostics.Diagnostic;
 import io.ballerina.tools.text.LinePosition;
@@ -223,12 +221,8 @@ public class DataMapManager {
             String fromClauseVar = fromClauseNode.typedBindingPattern().bindingPattern().toSourceCode().trim();
             if (typeSymbol.isPresent() && typeSymbol.get().typeKind() == TypeDescKind.ARRAY) {
                 TypeSymbol memberTypeSymbol = ((ArrayTypeSymbol) typeSymbol.get()).memberTypeDescriptor();
-<<<<<<< HEAD
-                MappingPort mappingPort = getMappingPort(fromClauseVar, fromClauseVar, Type.fromSemanticSymbol(memberTypeSymbol));
-=======
                 MappingPort mappingPort = getMappingPort(fromClauseVar, fromClauseVar,
-                        Type.fromSemanticSymbol(memberTypeSymbol), true);
->>>>>>> 75d2f29251 (Fix checkstyle violations)
+                        Type.fromSemanticSymbol(memberTypeSymbol));
                 if (mappingPort != null) {
                     mappingPort.setIsFocused(true);
                     setFocusIdForExpression(inputPorts, expression.toString().trim(), mappingPort.id);
