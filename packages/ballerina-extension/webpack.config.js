@@ -15,9 +15,10 @@ let envKeys;
 try {
   envKeys = createEnvDefinePlugin(env);
 } catch (error) {
-  console.error('\n❌ Environment Variable Configuration Error:');
-  console.error(error.message);
-  process.exit(1);
+  console.warn('\n⚠️  Environment Variable Configuration Warning:');
+  console.warn(error.message);
+  console.warn('Continuing build with empty environment variables...');
+  envKeys = {};
 }
 
 /** @type {import('webpack').Configuration} */
