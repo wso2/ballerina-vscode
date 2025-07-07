@@ -204,7 +204,6 @@ public class TypeTransformer {
         String typeName = getTypeName(typeDef);
         typeDataBuilder
                 .name(typeName)
-                .editable()
                 .metadata()
                     .label(typeName)
                     .stepOut()
@@ -220,6 +219,10 @@ public class TypeTransformer {
             typeDataBuilder
                     .metadata().description(doc).stepOut()
                     .properties().description(doc, false, true, false);
+        }
+
+        if (CommonUtils.isWithinPackage(typeDef, moduleInfo)) {
+            typeDataBuilder.editable();
         }
 
         return transform(typeDef.typeDescriptor(), typeDataBuilder);
