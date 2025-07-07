@@ -17,17 +17,29 @@
  */
 import {
     AddArrayElementRequest,
+    ConvertToQueryRequest,
+    AddClausesRequest,
     InlineDataMapperModelRequest,
     InlineDataMapperModelResponse,
     InlineDataMapperSourceRequest,
     InlineDataMapperSourceResponse,
     VisualizableFieldsRequest,
-    VisualizableFieldsResponse
+    VisualizableFieldsResponse,
+    InitialIDMSourceResponse,
+    InitialIDMSourceRequest,
+    GetInlineDataMapperCodedataRequest,
+    GetInlineDataMapperCodedataResponse,
+    GetSubMappingCodedataRequest
 } from "../../interfaces/extended-lang-client";
 
 export interface InlineDataMapperAPI {
+    getInitialIDMSource: (params: InitialIDMSourceRequest) => Promise<InitialIDMSourceResponse>;
     getDataMapperModel: (params: InlineDataMapperModelRequest) => Promise<InlineDataMapperModelResponse>;
     getDataMapperSource: (params: InlineDataMapperSourceRequest) => Promise<InlineDataMapperSourceResponse>;
     getVisualizableFields: (params: VisualizableFieldsRequest) => Promise<VisualizableFieldsResponse>;
     addNewArrayElement: (params: AddArrayElementRequest) => Promise<InlineDataMapperSourceResponse>;
+    convertToQuery: (params: ConvertToQueryRequest) => Promise<InlineDataMapperSourceResponse>;
+    addClauses: (params: AddClausesRequest) => Promise<InlineDataMapperSourceResponse>;
+    getDataMapperCodedata: (params: GetInlineDataMapperCodedataRequest) => Promise<GetInlineDataMapperCodedataResponse>;
+    getSubMappingCodedata: (params: GetSubMappingCodedataRequest) => Promise<GetInlineDataMapperCodedataResponse>;
 }

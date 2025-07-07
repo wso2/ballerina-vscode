@@ -16,6 +16,9 @@
  * under the License.
  */
 
+import { CodeData } from "./bi";
+import { LineRange } from "./common";
+
 export enum TypeKind {
     Record = "record",
     Array = "array",
@@ -24,13 +27,23 @@ export enum TypeKind {
     Float = "float",
     Decimal = "decimal",
     Boolean = "boolean",
+    Enum = "enum",
     Unknown = "unknown"
 }
 
 export enum InputCategory {
     Const = "const",
     ModuleVariable = "moduleVariable",
-    Configurable = "configurable"
+    Configurable = "configurable",
+    Enum = "enum"
+}
+
+export enum IntermediateClauseType {
+    LET = "let",
+    WHERE = "where",
+    FROM = "from",
+    ORDER_BY = "order by",
+    LIMIT = "limit"
 }
 
 export interface IDMDiagnostic {
@@ -56,28 +69,145 @@ export interface IOType {
     variableName?: string;
     fields?: IOType[];
     member?: IOType;
+    members?: EnumMember[];
     defaultValue?: unknown;
     optional?: boolean;
 }
 
 export interface Mapping {
     output: string,
-    inputs: string[];
+    inputs?: string[];
     expression: string;
     elements?: MappingElement[];
     diagnostics?: IDMDiagnostic[];
     isComplex?: boolean;
     isFunctionCall?: boolean;
+    isQueryExpression?: boolean;
 }
 
-export interface IDMModel {
+export interface ExpandedDMModel {
     inputs: IOType[];
     output: IOType;
+    subMappings?: IOType[];
     mappings: Mapping[];
     source: string;
     view: string;
+    query?: Query;
+}
+
+export interface DMModel {
+    inputs: IORoot[];
+    output: IORoot;
+    subMappings?: IORoot[];
+    types: Record<string, RecordType | EnumType>;
+    mappings: Mapping[];
+    view: string;
+    query?: Query;
+}
+
+export interface ModelState {
+    model: ExpandedDMModel;
+    hasInputsOutputsChanged?: boolean;
+    hasSubMappingsChanged?: boolean;
+}
+
+export interface IORoot extends IOTypeField {
+    id: string;
+    category?: InputCategory;
+}
+
+export interface RecordType {
+    fields: IOTypeField[];
+}
+
+export interface EnumType {
+    members?: EnumMember[];
+}
+
+export interface IOTypeField {
+    typeName?: string;
+    kind: TypeKind;
+    fieldName?: string;
+    member?: IOTypeField;
+    defaultValue?: unknown;
+    optional?: boolean;
+    ref?: string;
+}
+
+export interface EnumMember {
+    id: string;
+    value: string;
 }
 
 export interface MappingElement {
     mappings: Mapping[];
+}
+
+export interface Query {
+    output: string,
+    inputs: string[];
+    diagnostics?: IDMDiagnostic[];
+    fromClause: FromClause;
+    intermediateClauses?: IntermediateClause[];
+    resultClause: string;
+}
+
+export interface FromClause {
+    name: string;
+    type: string;
+    expression: string;
+}
+
+export interface IntermediateClauseProps {
+    name?: string;
+    type?: string;
+    expression: string;
+    order?: "ascending" | "descending";
+}
+
+export interface IntermediateClause {
+    type: IntermediateClauseType;
+    properties: IntermediateClauseProps;
+}
+
+export interface ResultClause {
+    type: string;
+    properties: {
+        expression: string;
+    };
+    query?: Query;
+}
+
+export interface IDMFormProps {
+    targetLineRange: LineRange;
+    fields: IDMFormField[];
+    submitText?: string;
+    cancelText?: string;
+    nestedForm?: boolean;
+    onSubmit: (data: IDMFormFieldValues) => void;
+    onCancel?: () => void;
+    isSaving?: boolean;
+    helperPaneSide?: 'right' | 'left';
+}
+
+export interface IDMFormField {
+    key: string;
+    label: string;
+    type: null | string;
+    optional: boolean;
+    editable: boolean;
+    documentation: string;
+    value: string | any[];
+    valueTypeConstraint: string;
+    enabled: boolean;
+    items?: string[];
+}
+
+export interface IDMFormFieldValues {
+    [key: string]: any;
+}
+
+export interface IDMViewState {
+    viewId: string;
+    codedata?: CodeData;
 }

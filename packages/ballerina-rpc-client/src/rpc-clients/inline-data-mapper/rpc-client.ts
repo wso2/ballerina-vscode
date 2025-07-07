@@ -19,6 +19,13 @@
  */
 import {
     AddArrayElementRequest,
+    AddClausesRequest,
+    ConvertToQueryRequest,
+    GetInlineDataMapperCodedataRequest,
+    GetInlineDataMapperCodedataResponse,
+    GetSubMappingCodedataRequest,
+    InitialIDMSourceRequest,
+    InitialIDMSourceResponse,
     InlineDataMapperAPI,
     InlineDataMapperModelRequest,
     InlineDataMapperModelResponse,
@@ -26,9 +33,14 @@ import {
     InlineDataMapperSourceResponse,
     VisualizableFieldsRequest,
     VisualizableFieldsResponse,
+    addClauses,
     addNewArrayElement,
+    convertToQuery,
+    getDataMapperCodedata,
     getDataMapperModel,
     getDataMapperSource,
+    getInitialIDMSource,
+    getSubMappingCodedata,
     getVisualizableFields
 } from "@wso2/ballerina-core";
 import { HOST_EXTENSION } from "vscode-messenger-common";
@@ -39,6 +51,10 @@ export class InlineDataMapperRpcClient implements InlineDataMapperAPI {
 
     constructor(messenger: Messenger) {
         this._messenger = messenger;
+    }
+
+    getInitialIDMSource(params: InitialIDMSourceRequest): Promise<InitialIDMSourceResponse> {
+        return this._messenger.sendRequest(getInitialIDMSource, HOST_EXTENSION, params);
     }
 
     getDataMapperModel(params: InlineDataMapperModelRequest): Promise<InlineDataMapperModelResponse> {
@@ -55,5 +71,21 @@ export class InlineDataMapperRpcClient implements InlineDataMapperAPI {
 
     addNewArrayElement(params: AddArrayElementRequest): Promise<InlineDataMapperSourceResponse> {
         return this._messenger.sendRequest(addNewArrayElement, HOST_EXTENSION, params);
+    }
+
+    convertToQuery(params: ConvertToQueryRequest): Promise<InlineDataMapperSourceResponse> {
+        return this._messenger.sendRequest(convertToQuery, HOST_EXTENSION, params);
+    }
+
+    addClauses(params: AddClausesRequest): Promise<InlineDataMapperSourceResponse> {
+        return this._messenger.sendRequest(addClauses, HOST_EXTENSION, params);
+    }
+
+    getDataMapperCodedata(params: GetInlineDataMapperCodedataRequest): Promise<GetInlineDataMapperCodedataResponse> {
+        return this._messenger.sendRequest(getDataMapperCodedata, HOST_EXTENSION, params);
+    }
+
+    getSubMappingCodedata(params: GetSubMappingCodedataRequest): Promise<GetInlineDataMapperCodedataResponse> {
+        return this._messenger.sendRequest(getSubMappingCodedata, HOST_EXTENSION, params);
     }
 }
