@@ -319,7 +319,7 @@
           "value": "json",
           "valueType": "TYPE",
           "isType": false,
-          "optional": false,
+          "optional": true,
           "advanced": false,
           "addNewButton": false
         },
@@ -333,7 +333,7 @@
           "value": "",
           "valueType": "IDENTIFIER",
           "isType": false,
-          "optional": false,
+          "optional": true,
           "advanced": false,
           "addNewButton": false
         },
@@ -361,7 +361,7 @@
           "value": "",
           "valueType": "HEADER_SET",
           "isType": false,
-          "optional": false,
+          "optional": true,
           "advanced": false,
           "addNewButton": false
         },
@@ -437,7 +437,7 @@
           "value": "",
           "valueType": "TYPE",
           "isType": false,
-          "optional": false,
+          "optional": true,
           "advanced": true,
           "addNewButton": false
         },

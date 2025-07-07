@@ -594,7 +594,7 @@
                 "value": "json",
                 "valueType": "TYPE",
                 "isType": false,
-                "optional": false,
+                "optional": true,
                 "advanced": false,
                 "addNewButton": false,
                 "imports": {}
@@ -609,7 +609,7 @@
                 "value": "",
                 "valueType": "IDENTIFIER",
                 "isType": false,
-                "optional": false,
+                "optional": true,
                 "advanced": false,
                 "addNewButton": false,
                 "imports": {}
@@ -639,7 +639,7 @@
                 "value": "",
                 "valueType": "HEADER_SET",
                 "isType": false,
-                "optional": false,
+                "optional": true,
                 "advanced": false,
                 "addNewButton": false,
                 "imports": {}
@@ -721,7 +721,7 @@
                 "value": "",
                 "valueType": "TYPE",
                 "isType": false,
-                "optional": false,
+                "optional": true,
                 "advanced": true,
                 "addNewButton": false,
                 "imports": {}

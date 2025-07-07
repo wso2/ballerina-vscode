@@ -738,7 +738,7 @@
                 "value": "",
                 "valueType": "TYPE",
                 "isType": false,
-                "optional": false,
+                "optional": true,
                 "advanced": true,
                 "addNewButton": false,
                 "imports": {}
