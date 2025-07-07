@@ -1,17 +1,17 @@
 {
-  "source": "variable2_1.bal",
+  "source": "variable24.bal",
   "description": "Sample diagram node",
   "codedata": {
     "node": "VARIABLE",
     "lineRange": {
-      "fileName": "variable2_1.bal",
+      "fileName": "variable24.bal",
       "startLine": {
         "line": 19,
         "offset": 12
       },
       "endLine": {
         "line": 19,
-        "offset": 123
+        "offset": 65
       }
     },
     "sourceCode": ""
@@ -73,38 +73,18 @@
     },
     "subMappings": [
       {
-        "fields": [
-          {
-            "id": "s.username",
-            "variableName": "username",
-            "typeName": "string",
-            "kind": "string"
-          },
-          {
-            "id": "s.password",
-            "variableName": "password",
-            "typeName": "string",
-            "kind": "string"
-          }
-        ],
-        "id": "s",
-        "variableName": "s",
-        "typeName": "Student",
-        "kind": "record"
-      },
-      {
         "id": "x",
-        "typeName": "int",
-        "kind": "int"
+        "typeName": "string",
+        "kind": "string"
       }
     ],
     "mappings": [
       {
         "output": "student.username",
         "inputs": [
-          "userInfo.username"
+          "x"
         ],
-        "expression": "userInfo.username",
+        "expression": "x",
         "diagnostics": [],
         "elements": [],
         "isQueryExpression": false

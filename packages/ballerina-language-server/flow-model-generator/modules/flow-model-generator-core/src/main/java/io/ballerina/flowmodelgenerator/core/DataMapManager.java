@@ -368,6 +368,9 @@ public class DataMapManager {
         SyntaxKind exprKind = expressionNode.kind();
         if (exprKind == SyntaxKind.MAPPING_CONSTRUCTOR) {
             genMapping((MappingConstructorExpressionNode) expressionNode, mappings, name, semanticModel);
+        } else if (exprKind == SyntaxKind.LET_EXPRESSION) {
+            generateRecordVariableDataMapping(((LetExpressionNode) expressionNode).expression(), mappings, name,
+                    semanticModel);
         } else {
             List<String> inputs = new ArrayList<>();
             genInputs(expressionNode, inputs);
