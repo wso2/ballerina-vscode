@@ -57,7 +57,7 @@
           "description": "Type of the return value"
         },
         "valueType": "TYPE",
-        "valueTypeConstraint": "json",
+        "valueTypeConstraint": "anydata",
         "value": "nats:AnydataMessage",
         "optional": false,
         "editable": true,
@@ -83,7 +83,7 @@
                 "description": "Type of the parameter"
               },
               "valueType": "TYPE",
-              "valueTypeConstraint": "json",
+              "valueTypeConstraint": "anydata",
               "value": "",
               "optional": false,
               "editable": true,
@@ -122,7 +122,7 @@
                   "description": "Type of the parameter"
                 },
                 "valueType": "TYPE",
-                "valueTypeConstraint": "json",
+                "valueTypeConstraint": "anydata",
                 "value": "string",
                 "optional": false,
                 "editable": true,
@@ -173,7 +173,7 @@
                   "description": "Type of the parameter"
                 },
                 "valueType": "TYPE",
-                "valueTypeConstraint": "json",
+                "valueTypeConstraint": "anydata",
                 "value": "int",
                 "optional": false,
                 "editable": true,
