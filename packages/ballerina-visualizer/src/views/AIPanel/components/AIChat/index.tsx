@@ -529,6 +529,12 @@ const AIChat: React.FC = () => {
                 case Command.DataMap: {
                     switch (parsedInput.templateId) {
                         case "mappings-for-records":
+                            // TODO: Update this to use the LS API for validating function names
+                            const invalidPattern = /[<>\/\(\)\{\}\[\]\\!@#$%^&*+=|;:'",.?`~]/;
+                            if (invalidPattern.test(parsedInput.placeholderValues.functionName)) {
+                                throw new Error("Please provide a valid function name without special characters.");
+                            }
+
                             await processMappingParameters(
                                 inputText,
                                 {
@@ -1564,12 +1570,6 @@ const AIChat: React.FC = () => {
         setIsLoading(true);
 
         const functionName = parameters.functionName;
-
-        const invalidPattern = /[<>\/\(\)\{\}\[\]\\!@#$%^&*_+=|;:'",.?`~]/;
-
-        if (invalidPattern.test(functionName)) {
-            throw new Error("Please provide a valid function name without special characters.");
-        }
 
         const projectImports = await rpcClient.getBIDiagramRpcClient().getAllImports();
         const activeFile = await rpcClient.getAiPanelRpcClient().getActiveFile();
