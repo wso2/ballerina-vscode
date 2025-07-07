@@ -20,7 +20,7 @@ import { NotificationType, RequestType } from "vscode-messenger-common";
 import { NodePosition, STNode } from "@wso2/syntax-tree";
 import { LinePosition } from "./interfaces/common";
 import { Type } from "./interfaces/extended-lang-client";
-import { DIRECTORY_MAP, ProjectStructureArtifactResponse, ProjectStructureResponse } from "./interfaces/bi";
+import { CodeData, DIRECTORY_MAP, ProjectStructureArtifactResponse, ProjectStructureResponse } from "./interfaces/bi";
 
 export type MachineStateValue =
     | 'initialize'
@@ -66,6 +66,7 @@ export enum MACHINE_VIEW {
     ServiceDesigner = "Service Designer",
     ERDiagram = "ER Diagram",
     DataMapper = "Data Mapper",
+    InlineDataMapper = "Inline Data Mapper",
     GraphQLDiagram = "GraphQL Diagram",
     TypeDiagram = "Type Diagram",
     SetupView = "Setup View",
@@ -126,6 +127,7 @@ export interface VisualizerLocation {
     projectStructure?: ProjectStructureResponse;
     org?: string;
     package?: string;
+    dataMapperMetadata?: DataMapperMetadata;
 }
 
 export interface ArtifactData {
@@ -139,6 +141,11 @@ export interface VisualizerMetadata {
     recordFilePath?: string;
     enableSequenceDiagram?: boolean; // Enable sequence diagram view
     target?: LinePosition;
+}
+
+export interface DataMapperMetadata {
+    name: string;
+    codeData: CodeData;
 }
 
 export interface PopupVisualizerLocation extends VisualizerLocation {
