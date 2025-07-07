@@ -32,6 +32,8 @@ import {
     ListenerSourceCodeRequest,
     ListenersRequest,
     ListenersResponse,
+    ResourceReturnTypesRequest,
+    ResourceReturnTypesResponse,
     ServiceDesignerAPI,
     ServiceModelFromCodeRequest,
     ServiceModelFromCodeResponse,
@@ -51,6 +53,7 @@ import {
     getListenerModel,
     getListenerModelFromCode,
     getListeners,
+    getResourceReturnTypes,
     getServiceModel,
     getServiceModelFromCode,
     getTriggerModels,
@@ -118,6 +121,10 @@ export class ServiceDesignerRpcClient implements ServiceDesignerAPI {
 
     getHttpResourceModel(params: HttpResourceModelRequest): Promise<HttpResourceModelResponse> {
         return this._messenger.sendRequest(getHttpResourceModel, HOST_EXTENSION, params);
+    }
+
+    getResourceReturnTypes(params: ResourceReturnTypesRequest): Promise<ResourceReturnTypesResponse> {
+        return this._messenger.sendRequest(getResourceReturnTypes, HOST_EXTENSION, params);
     }
 
     addResourceSourceCode(params: FunctionSourceCodeRequest): Promise<UpdatedArtifactsResponse> {
