@@ -30,7 +30,8 @@ export class DataMapperLinkModel extends DefaultLinkModel {
 		public value?: string,
 		public diagnostics: IDMDiagnostic[] = [],
 		public isActualLink: boolean = false,
-		public notContainsLabel?: boolean
+		public notContainsLabel?: boolean,
+		public isDashLink?: boolean
 	) {
 		super({
 			type: LINK_TYPE_ID,

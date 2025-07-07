@@ -76,6 +76,7 @@ interface FormProps {
     submitText?: string;
     cancelText?: string;
     onBack?: () => void;
+    onCancel?: () => void;
     editForm?: boolean;
     isGraphqlEditor?: boolean;
     onSubmit: (data: FormValues, formImports?: FormImports) => void;
@@ -105,6 +106,7 @@ export function FormGeneratorNew(props: FormProps) {
         submitText,
         cancelText,
         onBack,
+        onCancel,
         onSubmit,
         isSaving,
         isGraphqlEditor,
@@ -674,7 +676,7 @@ export function FormGeneratorNew(props: FormProps) {
                     formFields={fieldsValues}
                     projectPath={projectPath}
                     openRecordEditor={handleOpenTypeEditor}
-                    onCancelForm={onBack}
+                    onCancelForm={onBack || onCancel}
                     submitText={submitText}
                     cancelText={cancelText}
                     onSubmit={handleSubmit}

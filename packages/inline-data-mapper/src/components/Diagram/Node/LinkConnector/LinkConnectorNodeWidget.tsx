@@ -21,6 +21,7 @@ import React, { useState } from "react";
 import { DiagramEngine } from '@projectstorm/react-diagrams';
 import { ProgressRing } from '@wso2/ui-toolkit';
 import classnames from "classnames";
+import { useShallow } from "zustand/react/shallow";
 
 import { LinkConnectorNode } from './LinkConnectorNode';
 import { useIntermediateNodeStyles } from '../../../styles';
@@ -28,7 +29,7 @@ import { DiagnosticWidget } from '../../Diagnostic/DiagnosticWidget';
 import { renderDeleteButton, renderEditButton, renderPortWidget } from './LinkConnectorWidgetComponents';
 import { useDMExpressionBarStore } from "../../../../store/store";
 import { InputOutputPortModel } from "../../Port";
-import { useShallow } from "zustand/react/shallow";
+
 
 export interface LinkConnectorNodeWidgetProps {
     node: LinkConnectorNode;
@@ -39,7 +40,6 @@ export function LinkConnectorNodeWidget(props: LinkConnectorNodeWidgetProps) {
     const { node, engine } = props;
 
     const classes = useIntermediateNodeStyles();
-    const setExprBarFocusedPort = useDMExpressionBarStore(state => state.setFocusedPort);
 
     const diagnostic = node.hasError() ? node.diagnostics[0] : null;
     const value = node.value;
@@ -47,8 +47,7 @@ export function LinkConnectorNodeWidget(props: LinkConnectorNodeWidgetProps) {
     const [deleteInProgress, setDeleteInProgress] = useState(false);
 
     const onClickEdit = () => {
-        const targetPort = node.targetMappedPort;
-        setExprBarFocusedPort(targetPort as InputOutputPortModel);
+        // TODO: Focus the expression editor
     };
 
     const onClickDelete = async () => {

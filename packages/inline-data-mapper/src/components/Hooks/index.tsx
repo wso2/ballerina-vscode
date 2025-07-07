@@ -27,17 +27,27 @@ import { getIONodeHeight } from '../Diagram/utils/diagram-utils';
 import { OverlayLayerModel } from '../Diagram/OverlayLayer/OverlayLayerModel';
 import { ErrorNodeKind } from '../DataMapper/Error/RenderingError';
 import { useDMCollapsedFieldsStore, useDMExpandedFieldsStore, useDMSearchStore } from '../../store/store';
-import { ArrayOutputNode, EmptyInputsNode, InputNode, ObjectOutputNode } from '../Diagram/Node';
-import { GAP_BETWEEN_INPUT_NODES, OFFSETS } from '../Diagram/utils/constants';
+import {
+    ArrayOutputNode,
+    EmptyInputsNode,
+    InputNode,
+    LinkConnectorNode,
+    ObjectOutputNode,
+    PrimitiveOutputNode,
+    QueryExprConnectorNode,
+    QueryOutputNode,
+    SubMappingNode
+} from '../Diagram/Node';
+import { GAP_BETWEEN_INPUT_NODES, IO_NODE_DEFAULT_WIDTH, OFFSETS } from '../Diagram/utils/constants';
 import { InputDataImportNodeModel, OutputDataImportNodeModel } from '../Diagram/Node/DataImport/DataImportNode';
-import { getErrorKind } from '../Diagram/utils/common-utils';
+import { excludeEmptyInputNodes, getErrorKind } from '../Diagram/utils/common-utils';
 
 export const useRepositionedNodes = (
     nodes: DataMapperNodeModel[],
     zoomLevel: number,
     diagramModel: DiagramModel
 ) => {
-    const nodesClone = [...nodes];
+    const nodesClone = [...excludeEmptyInputNodes(nodes)];
     const prevNodes = diagramModel.getNodes() as DataMapperNodeModel[];
     const filtersUnchanged = false;
 
@@ -48,14 +58,17 @@ export const useRepositionedNodes = (
 
         if (node instanceof ObjectOutputNode
             || node instanceof ArrayOutputNode
+            || node instanceof PrimitiveOutputNode
+            || node instanceof QueryOutputNode
             || node instanceof OutputDataImportNodeModel
         ) {
-            const x = OFFSETS.TARGET_NODE.X;
+            const x = (window.innerWidth) * (100 / zoomLevel) - IO_NODE_DEFAULT_WIDTH;
             const y = exisitingNode && exisitingNode.getY() !== 0 ? exisitingNode.getY() : 0;
             node.setPosition(x, y);
         }
         if (node instanceof InputNode
             || node instanceof EmptyInputsNode
+            || node instanceof SubMappingNode
             || node instanceof InputDataImportNodeModel
         ) {
             const x = OFFSETS.SOURCE_NODE.X;
@@ -88,6 +101,7 @@ export const useDiagramModel = (
     const noOfNodes = nodes.length;
     const context = nodes.find(node => node.context)?.context;
     const { model } = context ?? {};
+    const mappings = model.mappings.map(mapping => mapping.expression).toString();
     const collapsedFields = useDMCollapsedFieldsStore(state => state.fields); // Subscribe to collapsedFields
     const expandedFields = useDMExpandedFieldsStore(state => state.fields); // Subscribe to expandedFields
     const { inputSearch, outputSearch } = useDMSearchStore();
@@ -102,11 +116,20 @@ export const useDiagramModel = (
         const newModel = new DiagramModel();
         newModel.setZoomLevel(zoomLevel);
         newModel.setOffset(offSetX, offSetY);
+
         newModel.addAll(...nodes);
+
         for (const node of nodes) {
             try {
+                if (node instanceof InputNode && node.hasNoMatchingFields && !node.context) {
+                    // Placeholder node for input search no result found
+                    continue;
+                }
                 node.setModel(newModel);
                 await node.initPorts();
+                if (node instanceof LinkConnectorNode || node instanceof QueryExprConnectorNode) {
+                    continue;
+                }
                 node.initLinks();
             } catch (e) {
                 const errorNodeKind = getErrorKind(node);
@@ -125,7 +148,7 @@ export const useDiagramModel = (
         isError,
         refetch,
     } = useQuery({
-        queryKey: ['diagramModel', noOfNodes, zoomLevel, collapsedFields, expandedFields, inputSearch, outputSearch],
+        queryKey: ['diagramModel', noOfNodes, zoomLevel, collapsedFields, expandedFields, inputSearch, outputSearch, mappings],
         queryFn: genModel,
         networkMode: 'always',
     });

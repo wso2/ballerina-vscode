@@ -24,7 +24,7 @@ import type {} from "@projectstorm/react-diagrams-core";
 import type {} from "@projectstorm/react-diagrams";
 import { css, Global } from '@emotion/react';
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { IDMModel, Mapping } from "@wso2/ballerina-core";
+import { IDMFormProps, IDMViewState, ModelState, IntermediateClause } from "@wso2/ballerina-core";
 import { ErrorBoundary } from "@wso2/ui-toolkit";
 
 import { InlineDataMapper } from "./components/DataMapper/DataMapper";
@@ -49,15 +49,20 @@ const globalStyles = css`
 `;
 
 export interface DataMapperViewProps {
-    model: IDMModel;
-    applyModifications: (mappings: Mapping[]) => Promise<void>;
-    addArrayElement: (targetField: string) => Promise<void>;
+    modelState: ModelState;
+    name: string;
+    applyModifications: (outputId: string, expression: string, viewId: string, name: string) => Promise<void>;
+    addArrayElement: (outputId: string, viewId: string, name: string) => Promise<void>;
+    generateForm: (formProps: IDMFormProps) => JSX.Element;
+    convertToQuery: (outputId: string, viewId: string, name: string) => Promise<void>;
+    addClauses: (clause: IntermediateClause, targetField: string, isNew: boolean, index?:number) => Promise<void>;
     onClose: () => void;
+    handleView: (viewId: string, isSubMapping?: boolean) => void;
 }
 
 export function DataMapperView(props: DataMapperViewProps) {
     return (
-        <ErrorBoundary errorMsg="An error occurred while redering the Inline Data Mapper">
+        <ErrorBoundary errorMsg="An error occurred while rendering the Inline Data Mapper">
             <QueryClientProvider client={queryClient}>
                 <Global styles={globalStyles} />
                 <InlineDataMapper {...props}/>

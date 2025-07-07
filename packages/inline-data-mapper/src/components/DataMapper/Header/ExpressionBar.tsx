@@ -126,7 +126,7 @@ export default function ExpressionBarWrapper(props: ExpressionBarProps) {
                     }
                     // Update the expression text when an input port is selected
                     const cursorPosition = textFieldRef.current.shadowRoot.querySelector('textarea').selectionStart;
-                    const inputAccessExpr = buildInputAccessExpr(inputPort.fieldFQN);
+                    const inputAccessExpr = buildInputAccessExpr(inputPort.attributes.fieldFQN);
                     const updatedText =
                         textFieldValue.substring(0, cursorPosition) +
                         inputAccessExpr +

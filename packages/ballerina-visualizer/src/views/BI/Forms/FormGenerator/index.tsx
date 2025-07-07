@@ -101,7 +101,7 @@ interface FormProps {
     editForm?: boolean;
     isGraphql?: boolean;
     submitText?: string;
-    onSubmit: (node?: FlowNode, isDataMapper?: boolean, formImports?: FormImports) => void;
+    onSubmit: (node?: FlowNode, openInDataMapper?: boolean, formImports?: FormImports) => void;
     showProgressIndicator?: boolean;
     subPanelView?: SubPanelView;
     openSubPanel?: (subPanel: SubPanel) => void;
@@ -165,7 +165,7 @@ export function FormGenerator(props: FormProps) {
     const [fields, setFields] = useState<FormField[]>([]);
     const [formImports, setFormImports] = useState<FormImports>({});
     const [typeEditorState, setTypeEditorState] = useState<TypeEditorState>({ isOpen: false, newTypeValue: "" });
-    const [visualizableFields, setVisualizableFields] = useState<string[]>([]);
+    const [visualizableFields, setVisualizableFields] = useState<{ [key: string]: string; }>();
     const [recordTypeFields, setRecordTypeFields] = useState<RecordTypeField[]>([]);
 
     /* Expression editor related state and ref variables */
@@ -288,8 +288,8 @@ export function FormGenerator(props: FormProps) {
             const updatedNode = mergeFormDataWithFlowNode(data, targetLineRange, dirtyFields);
             console.log(">>> Updated node", updatedNode);
 
-            const isDataMapperFormUpdate = data["isDataMapperFormUpdate"];
-            onSubmit(updatedNode, isDataMapperFormUpdate, formImports);
+            const openInDataMapper = data["openInDataMapper"];
+            onSubmit(updatedNode, openInDataMapper, formImports);
         }
     };
 

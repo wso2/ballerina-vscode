@@ -36,6 +36,7 @@ import FieldActionWrapper from "../commons/FieldActionWrapper";
 import { ValueConfigMenu, ValueConfigMenuItem, ValueConfigOption } from "../commons/ValueConfigButton";
 import { DiagnosticTooltip } from "../../Diagnostic/DiagnosticTooltip";
 import { OutputBeforeInputNotification } from "../commons/OutputBeforeInputNotification";
+import { DataMapperLinkModel } from "../../Link";
 
 export interface ObjectOutputFieldWidgetProps {
     parentId: string;
@@ -83,7 +84,7 @@ export function ObjectOutputFieldWidget(props: ObjectOutputFieldWidgetProps) {
     let fieldName = field?.variableName || '';
     let portName = updatedParentId !== '' ? fieldName !== '' ? `${updatedParentId}.${fieldName}` : updatedParentId : fieldName;
     const portIn = getPort(portName + ".IN");
-    const mapping = portIn && portIn.value;
+    const mapping = portIn && portIn.attributes.value;
     const { inputs, expression, diagnostics } = mapping || {};
     const connectedViaLink = inputs?.length > 0;
     const hasDefaultValue = expression && getDefaultValue(field.kind) === expression.trim();
@@ -139,18 +140,20 @@ export function ObjectOutputFieldWidget(props: ObjectOutputFieldWidgetProps) {
         setIsHovered(false);
     };
 
-    let isDisabled = portIn?.descendantHasValue;
+    let isDisabled = portIn?.attributes.descendantHasValue;
 
     if (!isDisabled) {
-        if (portIn?.parentModel
-            && (Object.entries(portIn?.parentModel.links).length > 0 || portIn?.parentModel.ancestorHasValue)
+        if (portIn?.attributes.parentModel && (
+            Object.values(portIn?.attributes.parentModel.links)
+            .filter((link)=> !(link as DataMapperLinkModel).isDashLink).length > 0 ||
+                portIn?.attributes.parentModel.attributes.ancestorHasValue)
         ) {
-            portIn.ancestorHasValue = true;
+            portIn.attributes.ancestorHasValue = true;
             isDisabled = true;
         }
     }
 
-    if (portIn && portIn.collapsed) {
+    if (portIn && portIn.attributes.collapsed) {
         expanded = false;
     }
 
@@ -172,11 +175,10 @@ export function ObjectOutputFieldWidget(props: ObjectOutputFieldWidgetProps) {
             >
                 <OutputSearchHighlight>{fieldName}</OutputSearchHighlight>
                 {!field?.optional && <span className={classes.requiredMark}>*</span>}
-                {typeName && ":"}
             </span>
             {typeName && (
                 <span
-                    className={classnames(classes.outputTypeLabel,
+                    className={classnames(classes.typeLabel,
                         isDisabled && !hasHoveredParent ? classes.labelDisabled : ""
                     )}
                 >

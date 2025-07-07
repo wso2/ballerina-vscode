@@ -19,14 +19,14 @@
 import React, { useState } from "react";
 
 import { DiagramEngine } from "@projectstorm/react-diagrams-core";
-import { Button, Codicon } from "@wso2/ui-toolkit";
+import { Button, Codicon, Tooltip } from "@wso2/ui-toolkit";
 import { IOType, TypeKind } from "@wso2/ballerina-core";
 import classnames from "classnames";
 
 import { DataMapperPortWidget, PortState, InputOutputPortModel } from "../../Port";
 import { InputSearchHighlight } from "../commons/Search";
 import { useIONodesStyles } from "../../../styles";
-import { useDMCollapsedFieldsStore } from '../../../../store/store';
+import { useDMCollapsedFieldsStore, useDMExpandedFieldsStore } from '../../../../store/store';
 import { getTypeName } from "../../utils/type-utils";
 
 
@@ -37,14 +37,16 @@ export interface InputNodeTreeItemWidgetProps {
     getPort: (portId: string) => InputOutputPortModel;
     treeDepth?: number;
     hasHoveredParent?: boolean;
+    focusedInputs?: string[];
 }
 
 export function InputNodeTreeItemWidget(props: InputNodeTreeItemWidgetProps) {
-    const { parentId, dmType, getPort, engine, treeDepth = 0, hasHoveredParent } = props;
+    const { parentId, dmType, getPort, engine, treeDepth = 0, hasHoveredParent, focusedInputs } = props;
 
     const [ portState, setPortState ] = useState<PortState>(PortState.Unselected);
     const [isHovered, setIsHovered] = useState(false);
     const collapsedFieldsStore = useDMCollapsedFieldsStore();
+    const expandedFieldsStore = useDMExpandedFieldsStore();
 
     const fieldName = dmType.variableName;
     const typeName = getTypeName(dmType);
@@ -57,24 +59,25 @@ export function InputNodeTreeItemWidget(props: InputNodeTreeItemWidgetProps) {
 
     if (dmType.kind === TypeKind.Record) {
         fields = dmType.fields;
+    } else if (dmType.kind === TypeKind.Array) {
+        fields = [ dmType.member ];
     }
 
     let expanded = true;
-    if (portOut && portOut.collapsed) {
+    if (portOut && portOut.attributes.collapsed) {
         expanded = false;
     }
 
     const indentation = fields ? 0 : ((treeDepth + 1) * 16) + 8;
 
     const label = (
-        <span style={{ marginRight: "auto" }}>
+        <span style={{ marginRight: "auto", opacity: portOut?.attributes.isPreview ? 0.5 : 1 }}>
             <span className={classes.valueLabel} style={{ marginLeft: indentation }}>
                 <InputSearchHighlight>{fieldName}</InputSearchHighlight>
                 {dmType.optional && "?"}
-                {typeName && ":"}
             </span>
             {typeName && (
-                <span className={classes.inputTypeLabel}>
+                <span className={classes.typeLabel}>
                     {typeName}
                 </span>
             )}
@@ -83,11 +86,20 @@ export function InputNodeTreeItemWidget(props: InputNodeTreeItemWidgetProps) {
     );
 
     const handleExpand = () => {
-        const collapsedFields = collapsedFieldsStore.fields;
-        if (!expanded) {
-            collapsedFieldsStore.setFields(collapsedFields.filter((element) => element !== fieldId));
+        if (dmType.kind === TypeKind.Array) {
+            const expandedFields = expandedFieldsStore.fields;
+            if (expanded) {
+                expandedFieldsStore.setFields(expandedFields.filter((element) => element !== fieldId));
+            } else {
+                expandedFieldsStore.setFields([...expandedFields, fieldId]);
+            }
         } else {
-            collapsedFieldsStore.setFields([...collapsedFields, fieldId]);
+            const collapsedFields = collapsedFieldsStore.fields;
+            if (!expanded) {
+                collapsedFieldsStore.setFields(collapsedFields.filter((element) => element !== fieldId));
+            } else {
+                collapsedFieldsStore.setFields([...collapsedFields, fieldId]);
+            }
         }
     };
 
@@ -103,9 +115,8 @@ export function InputNodeTreeItemWidget(props: InputNodeTreeItemWidgetProps) {
         setIsHovered(false);
     };
 
-    return (
-        <>
-            <div
+    const treeItemHeader = (
+        <div
                 id={"recordfield-" + fieldId}
                 className={classnames(classes.treeLabel,
                     (portState !== PortState.Unselected) ? classes.treeLabelPortSelected : "",
@@ -127,11 +138,24 @@ export function InputNodeTreeItemWidget(props: InputNodeTreeItemWidgetProps) {
                     {label}
                 </span>
                 <span className={classes.outPort}>
-                    {portOut &&
+                    {portOut && !portOut.attributes.isPreview &&
                         <DataMapperPortWidget engine={engine} port={portOut} handlePortState={handlePortState} />
                     }
                 </span>
             </div>
+    );
+
+    return (
+        <>
+            {!portOut?.attributes.isPreview ? treeItemHeader : (
+                <Tooltip
+                    content={(<span>Please map parent field first</span>)}
+                    sx={{ fontSize: "12px" }}
+                    containerSx={{ width: "100%" }}
+                >
+                    {treeItemHeader}
+                </Tooltip>
+            )}
             {fields && expanded &&
                 fields.map((subField, index) => {
                     return (
@@ -143,6 +167,7 @@ export function InputNodeTreeItemWidget(props: InputNodeTreeItemWidgetProps) {
                             parentId={fieldId}
                             treeDepth={treeDepth + 1}
                             hasHoveredParent={isHovered || hasHoveredParent}
+                            focusedInputs={focusedInputs}
                         />
                     );
                 })

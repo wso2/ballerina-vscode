@@ -71,6 +71,7 @@ import { ServiceClassConfig } from "./views/BI/ServiceClassEditor/ServiceClassCo
 import { AIAgentDesigner } from "./views/BI/AIChatAgent";
 import { AIChatAgentWizard } from "./views/BI/AIChatAgent/AIChatAgentWizard";
 import { BallerinaUpdateView } from "./views/BI/BallerinaUpdateView";
+import { InlineDataMapper } from "./views/InlineDataMapper";
 
 const globalStyles = css`
     *,
@@ -220,6 +221,15 @@ const MainPanel = () => {
                                 model={value?.syntaxTree as FunctionDefinition}
                                 functionName={value?.identifier}
                                 applyModifications={applyModifications}
+                            />
+                        );
+                        break;
+                    case MACHINE_VIEW.InlineDataMapper:
+                        setViewComponent(
+                            <InlineDataMapper
+                                filePath={value.documentUri}
+                                codedata={value?.dataMapperMetadata?.codeData}
+                                varName={value?.dataMapperMetadata?.name}
                             />
                         );
                         break;

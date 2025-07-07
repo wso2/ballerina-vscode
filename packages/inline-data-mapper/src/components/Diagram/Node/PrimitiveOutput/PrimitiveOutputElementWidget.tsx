@@ -71,22 +71,21 @@ export function PrimitiveOutputElementWidget(props: PrimitiveOutputElementWidget
     const [portState, setPortState] = useState<PortState>(PortState.Unselected);
     const [hasOutputBeforeInput, setHasOutputBeforeInput] = useState(false);
 
-    const typeName = field.kind;
-    const fieldName = field?.variableName || '';
+    const fieldName = field?.id || '';
 
     let portName = parentId;
 
     if (fieldIndex !== undefined) {
         portName = `${parentId}.${fieldIndex}${fieldName !== '' ? `.${fieldName}` : ''}`;
     } else if (fieldName) {
-        portName = `${parentId}.${typeName}.${fieldName}`;
+        portName = `${parentId}.${fieldName}`;
     } else {
-        portName = `${parentId}.${typeName}`;
+        portName = parentId;
     }
 
     const portIn = getPort(`${portName}.IN`);
     const isExprBarFocused = exprBarFocusedPort?.getName() === portIn?.getName();
-    const mapping = portIn && portIn.value;
+    const mapping = portIn && portIn.attributes.value;
     const { expression, diagnostics } = mapping || {};
 
     const handleEditValue = () => {

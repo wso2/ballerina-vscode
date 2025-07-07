@@ -17,6 +17,9 @@
  */
 export const OBJECT_OUTPUT_TARGET_PORT_PREFIX = "objectOutput";
 export const ARRAY_OUTPUT_TARGET_PORT_PREFIX = "arrayOutput";
+export const PRIMITIVE_OUTPUT_TARGET_PORT_PREFIX = "primitiveOutput";
+export const QUERY_OUTPUT_TARGET_PORT_PREFIX = "queryOutput";
+export const SUB_MAPPING_INPUT_SOURCE_PORT_PREFIX = "subMappingInput";
 
 export const defaultModelOptions = { zoom: 90 };
 export const VISUALIZER_PADDING = 0;
@@ -26,7 +29,7 @@ export const IO_NODE_HEADER_HEIGHT = 40;
 export const IO_NODE_FIELD_HEIGHT = 35;
 export const GAP_BETWEEN_INPUT_NODES = 10;
 export const GAP_BETWEEN_FILTER_NODE_AND_INPUT_NODE = 50;
-export const GAP_BETWEEN_NODE_HEADER_AND_BODY = 10;
+export const GAP_BETWEEN_NODE_HEADER_AND_BODY = 4;
 export const GAP_BETWEEN_FIELDS = 1;
 
 export const ISSUES_URL = "https://github.com/wso2/product-ballerina-integrator/issues";
@@ -47,6 +50,12 @@ export const OFFSETS = {
         X: 750
     },
     LINK_CONNECTOR_NODE_WITH_ERROR: {
+        X: 718
+    },
+    QUERY_EXPR_CONNECTOR_NODE: {
+        X: 750
+    },
+    QUERY_EXPR_CONNECTOR_NODE_WITH_ERROR: {
         X: 718
     },
     INTERMEDIATE_CLAUSE_HEIGHT: 80

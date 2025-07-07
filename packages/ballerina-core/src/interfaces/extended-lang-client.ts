@@ -28,7 +28,7 @@ import { ConnectorRequest, ConnectorResponse } from "../rpc-types/connector-wiza
 import { SqFlow } from "../rpc-types/sequence-diagram/interfaces";
 import { FieldType, FunctionModel, ListenerModel, ServiceClassModel, ServiceModel } from "./service";
 import { CDModel } from "./component-diagram";
-import { IDMModel, Mapping } from "./inline-data-mapper";
+import { DMModel, ExpandedDMModel, IntermediateClause, Mapping, Query } from "./inline-data-mapper";
 import { SCOPE } from "../state-machine-types";
 
 export interface DidOpenParams {
@@ -279,15 +279,30 @@ export interface TypeWithIdentifier {
     type: TypeField;
 }
 
-export interface InlineDataMapperModelRequest {
+export interface InitialIDMSourceRequest {
     filePath: string;
     flowNode: FlowNode;
-    propertyKey: string;
-    position: LinePosition;
 }
 
-export interface InlineDataMapperSourceRequest extends InlineDataMapperModelRequest {
-    mappings: Mapping[];
+export interface InitialIDMSourceResponse {
+    textEdits: {
+        [key: string]: TextEdit[];
+    };
+}
+
+export interface InlineDataMapperModelRequest {
+    filePath: string;
+    codedata: CodeData;
+    position: LinePosition;
+    targetField?: string;
+}
+
+export interface InlineDataMapperSourceRequest {
+    filePath: string;
+    codedata: CodeData;
+    varName?: string;
+    targetField?: string;
+    mapping: Mapping;
 }
 
 export interface VisualizableFieldsRequest {
@@ -297,23 +312,61 @@ export interface VisualizableFieldsRequest {
 }
 
 export interface InlineDataMapperModelResponse {
-    mappingsModel: IDMModel;
+    mappingsModel: ExpandedDMModel | DMModel;
 }
 
 export interface InlineDataMapperSourceResponse {
-    source: string;
+    textEdits: {
+        [key: string]: TextEdit[];
+    };
 }
 
 export interface VisualizableFieldsResponse {
-    visualizableProperties: string[];
+    visualizableProperties: {
+        [key: string]: string;
+    };
 }
 
 export interface AddArrayElementRequest {
     filePath: string;
-    flowNode: FlowNode;
-    position: LinePosition;
-    propertyKey: string;
+    codedata: CodeData;
+    varName?: string;
+    targetField?: string;
+    propertyKey?: string;
+}
+
+export interface ConvertToQueryRequest{
+    filePath: string;
+    codedata: CodeData;
+    varName?: string;
+    targetField?: string;
+    propertyKey?: string;
+}
+
+export interface AddClausesRequest {
+    filePath: string;
+    codedata: CodeData;
+    index: number;
+    clause: IntermediateClause;
+    varName?: string;
     targetField: string;
+    propertyKey?: string;
+}
+
+export interface GetInlineDataMapperCodedataRequest {
+    filePath: string;
+    codedata: CodeData;
+    name: string;
+}
+
+export interface GetSubMappingCodedataRequest {
+    filePath: string;
+    codedata: CodeData;
+    view: string;
+}
+
+export interface GetInlineDataMapperCodedataResponse {
+    codedata: CodeData;
 }
 
 export interface GraphqlDesignServiceParams {

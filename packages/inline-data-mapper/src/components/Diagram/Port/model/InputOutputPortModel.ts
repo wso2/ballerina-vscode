@@ -20,9 +20,8 @@ import { IOType, Mapping } from "@wso2/ballerina-core";
 
 import { DataMapperLinkModel } from "../../Link";
 import { IntermediatePortModel } from "../IntermediatePort";
-import { createNewMapping, updateExistingMapping } from "../../utils/modification-utils";
+import { createNewMapping } from "../../utils/modification-utils";
 import { getMappingType } from "../../utils/common-utils";
-import { getValueType } from "../../utils/common-utils";
 
 export interface InputOutputPortModelGenerics {
 	PORT: InputOutputPortModel;
@@ -42,29 +41,33 @@ export enum MappingType {
 	Default = undefined // This is for non-array mappings currently
 }
 
+export interface PortAttributes {
+	field: IOType;
+	portName: string;
+	portType: "IN" | "OUT";
+	value?: Mapping;
+	index?: number;
+	fieldFQN?: string; // Field FQN with optional included, ie. person?.name?.firstName
+	optionalOmittedFieldFQN?: string; // Field FQN without optional, ie. person.name.firstName
+	parentModel?: InputOutputPortModel;
+	collapsed?: boolean;
+	hidden?: boolean;
+	descendantHasValue?: boolean;
+	ancestorHasValue?: boolean;
+	isPreview?: boolean;
+};
+
 export class InputOutputPortModel extends PortModel<PortModelGenerics & InputOutputPortModelGenerics> {
 
 	public linkedPorts: PortModel[];
+	public attributes: PortAttributes;
 
-	constructor(
-		public field: IOType,
-		public portName: string,
-		public portType: "IN" | "OUT",
-		public value?: Mapping,
-		public index?: number,
-		public fieldFQN?: string, // Field FQN with optional included, ie. person?.name?.firstName
-		public optionalOmittedFieldFQN?: string, // Field FQN without optional, ie. person.name.firstName
-		public parentModel?: InputOutputPortModel,
-		public collapsed?: boolean,
-		public hidden?: boolean,
-		public descendantHasValue?: boolean,
-		public ancestorHasValue?: boolean,
-		public isWithinMapFunction?: boolean,
-	) {
+	constructor(public portAttributes: PortAttributes) {
 		super({
 			type: INPUT_OUTPUT_PORT,
-			name: `${portName}.${portType}`
+			name: `${portAttributes.portName}.${portAttributes.portType}`
 		});
+		this.attributes = portAttributes;
 		this.linkedPorts = [];
 	}
 	
@@ -78,18 +81,11 @@ export class InputOutputPortModel extends PortModel<PortModelGenerics & InputOut
 				const mappingType = getMappingType(sourcePort, targetPort);
 				if (mappingType === MappingType.ArrayToArray) {
 					// Source update behavior is determined by the user when connecting arrays.
-					return;
+					// Only convert to query is available atm so commented return
+					//return;
 				}
 
-                const targetPortHasLinks = Object.values(targetPort.links)
-                    ?.some(link => link instanceof DataMapperLinkModel && link.isActualLink);
-                const valueType = getValueType(lm);
-
-				if (targetPortHasLinks || valueType === ValueType.NonEmpty) {
-					await updateExistingMapping(lm);
-				} else {
-					await createNewMapping(lm);
-				}
+				await createNewMapping(lm);
 			})
 		});
 
@@ -97,8 +93,8 @@ export class InputOutputPortModel extends PortModel<PortModelGenerics & InputOut
 	}
 
 	addLink(link: LinkModel<LinkModelGenerics>): void {
-		if (this.portType === 'IN'){
-			this.parentModel?.setDescendantHasValue();
+		if (this.attributes.portType === 'IN'){
+			this.attributes.parentModel?.setDescendantHasValue();
 		}
 		super.addLink(link);
 	}
@@ -108,24 +104,24 @@ export class InputOutputPortModel extends PortModel<PortModelGenerics & InputOut
 	}
 
 	setDescendantHasValue(): void {
-		this.descendantHasValue = true;
-		if (this.parentModel){
-			this.parentModel.setDescendantHasValue();
+		this.attributes.descendantHasValue = true;
+		if (this.attributes.parentModel){
+			this.attributes.parentModel.setDescendantHasValue();
 		}
 	}
 
 	isDisabled(): boolean {
-		return this.ancestorHasValue || this.descendantHasValue
+		return (this.attributes.ancestorHasValue || this.attributes.descendantHasValue) && !this.attributes.isPreview
 	}
 
 	canLinkToPort(port: InputOutputPortModel): boolean {
 		let isLinkExists = false;
-		if (port.portType === "IN") {
+		if (port.attributes.portType === "IN") {
 			isLinkExists = this.linkedPorts.some((linkedPort) => {
 				return port.getID() === linkedPort.getID()
 			})
 		}
-		return this.portType !== port.portType && !isLinkExists
+		return this.attributes.portType !== port.attributes.portType && !isLinkExists
 				&& ((port instanceof IntermediatePortModel) || (!port.isDisabled()));
 	}
 }
