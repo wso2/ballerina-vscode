@@ -40,6 +40,7 @@ import io.ballerina.compiler.syntax.tree.CollectClauseNode;
 import io.ballerina.compiler.syntax.tree.ExpressionNode;
 import io.ballerina.compiler.syntax.tree.FieldAccessExpressionNode;
 import io.ballerina.compiler.syntax.tree.FromClauseNode;
+import io.ballerina.compiler.syntax.tree.ImportDeclarationNode;
 import io.ballerina.compiler.syntax.tree.IntermediateClauseNode;
 import io.ballerina.compiler.syntax.tree.LetClauseNode;
 import io.ballerina.compiler.syntax.tree.LetExpressionNode;
@@ -71,9 +72,12 @@ import io.ballerina.flowmodelgenerator.core.model.Codedata;
 import io.ballerina.flowmodelgenerator.core.model.FlowNode;
 import io.ballerina.flowmodelgenerator.core.model.NodeKind;
 import io.ballerina.flowmodelgenerator.core.model.Property;
+import io.ballerina.flowmodelgenerator.core.model.SourceBuilder;
 import io.ballerina.modelgenerator.commons.CommonUtils;
 import io.ballerina.modelgenerator.commons.DefaultValueGeneratorUtil;
 import io.ballerina.projects.Document;
+import io.ballerina.projects.Module;
+import io.ballerina.projects.ModuleDescriptor;
 import io.ballerina.tools.diagnostics.Diagnostic;
 import io.ballerina.tools.text.LinePosition;
 import io.ballerina.tools.text.LineRange;
@@ -618,6 +622,8 @@ public class DataMapManager {
             StringBuilder sb = new StringBuilder();
             genSource(expr, splits, 1, sb, mapping.expression(), null, textEdits);
         }
+
+        setImportStatements(mapping.imports(), textEdits);
         return gson.toJsonTree(textEditsMap);
     }
 
@@ -677,6 +683,38 @@ public class DataMapManager {
             // TODO: check to move this out of if-else and move up
             if (idx == names.length) {
                 textEdits.add(new TextEdit(CommonUtils.toRange(expr.lineRange()), mappingExpr));
+            }
+        }
+    }
+
+    private void setImportStatements(Map<String, String> importStatements, List<TextEdit> textEdits) {
+        if (importStatements == null) {
+            return;
+        }
+
+        ModulePartNode modulePartNode = document.syntaxTree().rootNode();
+        List<ImportDeclarationNode> importDeclNodes = modulePartNode.imports().stream().toList();
+
+        for (String importStatement : importStatements.values()) {
+            Module module = document.module();
+            ModuleDescriptor descriptor = module.descriptor();
+            if (CommonUtils.getImportStatement(descriptor.org().toString(), descriptor.packageName().value(),
+                    descriptor.name().toString()).equals(importStatement)) {
+                continue;
+            }
+
+            boolean importExists = importDeclNodes.stream().anyMatch(importDeclarationNode -> {
+                String importText = importDeclarationNode.toSourceCode().trim();
+                return importText.startsWith("import " + importStatement) && importText.endsWith(";");
+            });
+
+            if (!importExists) {
+                String stmt = new SourceBuilder.TokenBuilder(null)
+                        .keyword(SyntaxKind.IMPORT_KEYWORD)
+                        .name(importStatement)
+                        .endOfStatement()
+                        .build(SourceBuilder.SourceKind.IMPORT);
+                textEdits.add(new TextEdit(CommonUtils.toRange(0, 0), stmt + System.lineSeparator()));
             }
         }
     }
@@ -1245,11 +1283,16 @@ public class DataMapManager {
     }
 
     private record Mapping(String output, List<String> inputs, String expression, List<String> diagnostics,
-                           List<MappingElements> elements, Boolean isQueryExpression) {
+                           List<MappingElements> elements, Boolean isQueryExpression, Map<String, String> imports) {
 
         private Mapping(String output, List<String> inputs, String expression, List<String> diagnostics,
                         List<MappingElements> elements) {
-            this(output, inputs, expression, diagnostics, elements, null);
+            this(output, inputs, expression, diagnostics, elements, null, null);
+        }
+
+        private Mapping(String output, List<String> inputs, String expression, List<String> diagnostics,
+                        List<MappingElements> elements, Boolean isQueryExpression) {
+            this(output, inputs, expression, diagnostics, elements, isQueryExpression, null);
         }
     }
 
