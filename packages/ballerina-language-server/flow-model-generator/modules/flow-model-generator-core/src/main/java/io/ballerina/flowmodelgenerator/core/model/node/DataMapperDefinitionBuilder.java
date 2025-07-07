@@ -54,8 +54,8 @@ public class DataMapperDefinitionBuilder extends NodeBuilder {
 
     private static final Gson gson = new Gson();
 
-    public static final String RETURN_TYPE = TypeKind.JSON.typeName();
-    public static final String PARAMETER_TYPE = TypeKind.JSON.typeName();
+    public static final String RETURN_TYPE = TypeKind.ANYDATA.typeName();
+    public static final String PARAMETER_TYPE = TypeKind.ANYDATA.typeName();
 
     @Override
     public void setConcreteConstData() {
