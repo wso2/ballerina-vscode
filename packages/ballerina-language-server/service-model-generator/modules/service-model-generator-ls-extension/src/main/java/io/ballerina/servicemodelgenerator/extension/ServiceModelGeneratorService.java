@@ -229,8 +229,10 @@ public class ServiceModelGeneratorService implements ExtendedLanguageServerServi
     public CompletableFuture<ListenerModelResponse> getListenerModel(ListenerModelRequest request) {
         return CompletableFuture.supplyAsync(() -> {
             try {
-                return ListenerUtil.getListenerModelByName(request.moduleName())
-                        .map(ListenerModelResponse::new)
+                Path projectPath = Path.of(request.projectPath());
+                Project project = this.workspaceManager.loadProject(projectPath);
+                return ListenerUtil.getListenerModelByName(project.currentPackage(),
+                                request.moduleName()).map(ListenerModelResponse::new)
                         .orElseGet(ListenerModelResponse::new);
             } catch (Throwable e) {
                 return new ListenerModelResponse(e);
@@ -656,7 +658,8 @@ public class ServiceModelGeneratorService implements ExtendedLanguageServerServi
                 if (!(node instanceof ListenerDeclarationNode listenerNode)) {
                     return new ListenerFromSourceResponse();
                 }
-                Optional<Listener> listenerModelOp = ListenerUtil.getListenerFromSource(listenerNode, semanticModel);
+                Optional<Listener> listenerModelOp = ListenerUtil.getListenerFromSource(listenerNode, currentPackage,
+                        semanticModel);
                 if (listenerModelOp.isEmpty()) {
                     return new ListenerFromSourceResponse();
                 }

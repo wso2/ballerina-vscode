@@ -146,7 +146,8 @@ public class ServiceModelAPITests {
 
     @Test
     public void testGetHttpListenerModel() throws ExecutionException, InterruptedException {
-        ListenerModelRequest request = new ListenerModelRequest("ballerina", "http");
+        ListenerModelRequest request = new ListenerModelRequest("ballerina", "http",
+                resDir.resolve("sample1").toAbsolutePath().toString());
         CompletableFuture<?> result = serviceEndpoint.request("serviceDesign/getListenerModel", request);
         ListenerModelResponse response = (ListenerModelResponse) result.get();
         Assert.assertTrue(Objects.nonNull(response.listener()));
@@ -154,7 +155,8 @@ public class ServiceModelAPITests {
 
     @Test
     public void testAddHttpListener() throws ExecutionException, InterruptedException {
-        ListenerModelRequest modelRequest = new ListenerModelRequest("ballerina", "http");
+        ListenerModelRequest modelRequest = new ListenerModelRequest("ballerina", "http",
+                resDir.resolve("sample1").toAbsolutePath().toString());
         CompletableFuture<?> modelResult = serviceEndpoint.request("serviceDesign/getListenerModel", modelRequest);
         ListenerModelResponse modelResponse = (ListenerModelResponse) modelResult.get();
         Listener listener = modelResponse.listener();
@@ -391,7 +393,8 @@ public class ServiceModelAPITests {
 
     @Test
     public void testAddTriggerListener() throws ExecutionException, InterruptedException {
-        ListenerModelRequest modelRequest = new ListenerModelRequest("ballerinax", "trigger.github");
+        ListenerModelRequest modelRequest = new ListenerModelRequest("ballerinax", "trigger.github",
+                resDir.resolve("sample1").toAbsolutePath().toString());
         CompletableFuture<?> modelResult = serviceEndpoint.request("serviceDesign/getListenerModel", modelRequest);
         ListenerModelResponse modelResponse = (ListenerModelResponse) modelResult.get();
         Listener listener = modelResponse.listener();

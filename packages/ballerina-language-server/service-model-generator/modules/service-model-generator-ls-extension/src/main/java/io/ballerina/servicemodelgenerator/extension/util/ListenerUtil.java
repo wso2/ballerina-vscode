@@ -43,6 +43,7 @@ import io.ballerina.modelgenerator.commons.ParameterData;
 import io.ballerina.modelgenerator.commons.ServiceDatabaseManager;
 import io.ballerina.projects.Document;
 import io.ballerina.projects.DocumentId;
+import io.ballerina.projects.Package;
 import io.ballerina.projects.Project;
 import io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants;
 import io.ballerina.servicemodelgenerator.extension.model.Codedata;
@@ -304,9 +305,9 @@ public class ListenerUtil {
         return split[split.length - 1];
     }
 
-    public static Optional<Listener> getListenerModelByName(String moduleName) {
+    public static Optional<Listener> getListenerModelByName(Package currentPackage, String moduleName) {
         ServiceDatabaseManager dbManager = ServiceDatabaseManager.getInstance();
-        Optional<FunctionData> optFunctionResult = dbManager.getListener(moduleName);
+        Optional<FunctionData> optFunctionResult = dbManager.getListener(currentPackage, moduleName);
         if (optFunctionResult.isEmpty()) {
             return Optional.empty();
         }
@@ -320,9 +321,10 @@ public class ListenerUtil {
         return Optional.of(listener);
     }
 
-    public static Optional<Listener> getDefaultListenerModel(ListenerDeclarationNode listenerNode) {
+    public static Optional<Listener> getDefaultListenerModel(Package currentPackage,
+                                                             ListenerDeclarationNode listenerNode) {
         ServiceDatabaseManager dbManager = ServiceDatabaseManager.getInstance();
-        Optional<FunctionData> optFunctionResult = dbManager.getListener("http");
+        Optional<FunctionData> optFunctionResult = dbManager.getListener(currentPackage, "http");
         if (optFunctionResult.isEmpty()) {
             return Optional.empty();
         }
@@ -384,9 +386,9 @@ public class ListenerUtil {
     }
 
     public static Optional<Listener> getListenerFromSource(ListenerDeclarationNode listenerDeclarationNode,
-                                                           SemanticModel semanticModel) {
+                                                           Package currentPackage, SemanticModel semanticModel) {
         if (ListenerUtil.isHttpDefaultListener(listenerDeclarationNode)) {
-            return ListenerUtil.getDefaultListenerModel(listenerDeclarationNode);
+            return ListenerUtil.getDefaultListenerModel(currentPackage, listenerDeclarationNode);
         }
         Optional<Symbol> symbol = semanticModel.symbol(listenerDeclarationNode.typeDescriptor().get());
         if (symbol.isEmpty() || !(symbol.get() instanceof TypeSymbol typeSymbol) || typeSymbol.getModule().isEmpty()) {
@@ -395,7 +397,7 @@ public class ListenerUtil {
 
         String moduleName = typeSymbol.getModule().get().id().moduleName();
         ServiceDatabaseManager dbManager = ServiceDatabaseManager.getInstance();
-        Optional<FunctionData> optFunctionResult = dbManager.getListener(moduleName);
+        Optional<FunctionData> optFunctionResult = dbManager.getListener(currentPackage, moduleName);
         if (optFunctionResult.isEmpty()) {
             return Optional.empty();
         }

@@ -47,14 +47,14 @@ public class GetListenerModelTest extends AbstractLSTest {
         bufferedReader.close();
 
         ListenerModelRequest request = new ListenerModelRequest(testConfig.orgName(), testConfig.pkgName(),
-                testConfig.moduleName());
+                testConfig.moduleName(), sourceDir.resolve(testConfig.source()).toAbsolutePath().toString());
         JsonObject jsonMap = getResponse(request);
 
         boolean assertTrue = testConfig.response().getAsJsonObject().equals(jsonMap);
         if (!assertTrue) {
             GetListenerModelTest.TestConfig updatedConfig =
                     new GetListenerModelTest.TestConfig(testConfig.description(), testConfig.orgName(),
-                            testConfig.pkgName(), testConfig.moduleName(), jsonMap);
+                            testConfig.pkgName(), testConfig.moduleName(), testConfig.source(), jsonMap);
 //            updateConfig(configJsonPath, updatedConfig);
             Assert.fail(String.format("Failed test: '%s' (%s)", testConfig.description(), configJsonPath));
         }
@@ -88,10 +88,11 @@ public class GetListenerModelTest extends AbstractLSTest {
      * @param orgName   organization name
      * @param pkgName   package name
      * @param moduleName module name
+     * @param source    source file name
      * @param response  expected response
      * @since 1.0.0
      */
-    private record TestConfig(String description,  String orgName, String pkgName, String moduleName,
+    private record TestConfig(String description,  String orgName, String pkgName, String moduleName, String source,
                               JsonElement response) {
         public String description() {
             return description == null ? "" : description;

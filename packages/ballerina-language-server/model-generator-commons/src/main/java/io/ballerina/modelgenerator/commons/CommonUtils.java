@@ -69,6 +69,7 @@ import org.eclipse.lsp4j.Diagnostic;
 import org.eclipse.lsp4j.DiagnosticSeverity;
 import org.eclipse.lsp4j.Position;
 import org.eclipse.lsp4j.Range;
+import org.wso2.ballerinalang.compiler.tree.BLangPackage;
 
 import java.net.URI;
 import java.nio.file.Path;
@@ -893,5 +894,21 @@ public class CommonUtils {
                     org.equals(importDeclarationNode.orgName().get().orgName().text()) &&
                     module.equals(moduleName);
         });
+    }
+
+    /**
+     * Checks whether the given import exists in the given blangPackage.
+     *
+     * @param blangPackage blangPackage
+     * @param org    organization name
+     * @param module module name
+     * @return true if the import exists, false otherwise
+     */
+    public static boolean importExists(BLangPackage blangPackage, String org, String module) {
+        return blangPackage.imports.stream().anyMatch(importDeclarationNode ->
+                org.equals(importDeclarationNode.orgName.value) &&
+                        module.equals(importDeclarationNode.pkgNameComps.stream()
+                                .map(identifierNode -> identifierNode.value)
+                                .collect(Collectors.joining("."))));
     }
 }

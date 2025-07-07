@@ -18,9 +18,9 @@
 
 package io.ballerina.servicemodelgenerator.extension.request;
 
-public record ListenerModelRequest(String orgName, String pkgName, String moduleName) {
+public record ListenerModelRequest(String orgName, String pkgName, String moduleName, String projectPath) {
 
-    public ListenerModelRequest(String orgName, String moduleName) {
-        this(orgName, moduleName, moduleName);
+    public ListenerModelRequest(String orgName, String moduleName, String projectPath) {
+        this(orgName, moduleName, moduleName, projectPath);
     }
 }
