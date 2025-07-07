@@ -17,22 +17,41 @@
  */
 // tslint:disable: jsx-no-multiline-js
 import React, { useCallback, useEffect, useReducer, useState } from "react";
-
 import { css } from "@emotion/css";
+import { ExpandedDMModel } from "@wso2/ballerina-core";
 
 import { DataMapperContext } from "../../utils/DataMapperContext/DataMapperContext";
 import DataMapperDiagram from "../Diagram/Diagram";
 import { DataMapperHeader } from "./Header/DataMapperHeader";
 import { DataMapperNodeModel } from "../Diagram/Node/commons/DataMapperNode";
-import { NodeInitVisitor } from "../../visitors/NodeInitVisitor";
+import { IONodeInitVisitor } from "../../visitors/IONodeInitVisitor";
 import { DataMapperErrorBoundary } from "./ErrorBoundary";
 import { traverseNode } from "../../utils/model-utils";
 import { View } from "./Views/DataMapperView";
-import { useDMCollapsedFieldsStore, useDMExpandedFieldsStore, useDMSearchStore } from "../../store/store";
+import {
+    useDMCollapsedFieldsStore,
+    useDMExpandedFieldsStore,
+    useDMSearchStore,
+    useDMSubMappingConfigPanelStore
+} from "../../store/store";
 import { KeyboardNavigationManager } from "../../utils/keyboard-navigation-manager";
 import { DataMapperViewProps } from "../../index";
 import { ErrorNodeKind } from "./Error/RenderingError";
 import { IOErrorComponent } from "./Error/DataMapperError";
+import { IntermediateNodeInitVisitor } from "../../visitors/IntermediateNodeInitVisitor";
+import {
+    ArrayOutputNode,
+    InputNode,
+    ObjectOutputNode,
+    LinkConnectorNode,
+    QueryExprConnectorNode,
+    QueryOutputNode,
+    SubMappingNode,
+    EmptyInputsNode
+} from "../Diagram/Node";
+import { SubMappingNodeInitVisitor } from "../../visitors/SubMappingNodeInitVisitor";
+import { SubMappingConfigForm } from "./SidePanel/SubMappingConfig/SubMappingConfigForm";
+import { ClausesPanel } from "./SidePanel/QueryClauses/ClausesPanel";
 
 const classes = {
     root: css({
@@ -70,17 +89,34 @@ function viewsReducer(state: View[], action: ViewAction) {
 }
 
 export function InlineDataMapper(props: DataMapperViewProps) {
-    const { model, applyModifications, onClose, addArrayElement } = props;
+    const {
+        modelState,
+        name,
+        applyModifications,
+        onClose,
+        addArrayElement,
+        handleView,
+        convertToQuery,
+        generateForm,
+        addClauses
+    } = props;
+    const {
+        model,
+        hasInputsOutputsChanged = false,
+        hasSubMappingsChanged = false,
+    } = modelState;
 
     const initialView = [{
-        label: 'Root', // TODO: Pick a better label
-        model: model
+        label: model.output.variableName,
+        targetField: name
     }];
 
     const [views, dispatch] = useReducer(viewsReducer, initialView);
     const [nodes, setNodes] = useState<DataMapperNodeModel[]>([]);
     const [errorKind, setErrorKind] = useState<ErrorNodeKind>();
     const [hasInternalError, setHasInternalError] = useState(false);
+
+    const { isSMConfigPanelOpen } = useDMSubMappingConfigPanelStore((state) => state.subMappingConfig);
 
     const { resetSearchStore } = useDMSearchStore();
 
@@ -100,28 +136,88 @@ export function InlineDataMapper(props: DataMapperViewProps) {
     }, [resetSearchStore]);
 
     useEffect(() => {
-        generateNodes();
+        const lastView = views[views.length - 1];
+        handleView(lastView.targetField, !!lastView?.subMappingInfo);
         setupKeyboardShortcuts();
 
         return () => {
             KeyboardNavigationManager.getClient().resetMouseTrapInstance();
         };
-    }, [model, views]);
+    }, [views]);
+
+    useEffect(() => {
+        generateNodes(model);
+    }, [model]);
 
     useEffect(() => {
         return () => {
-            // Cleanup on close
-            handleOnClose();
+            // Cleanup on unmount
+            cleanupStores();
         }
     }, []);
 
-    const generateNodes = () => {
+    const generateNodes = (model: ExpandedDMModel) => {
         try {
-            const context = new DataMapperContext(model, views, addView, applyModifications, addArrayElement);
-            const nodeInitVisitor = new NodeInitVisitor(context);
-            traverseNode(model, nodeInitVisitor);
-            setNodes(nodeInitVisitor.getNodes());
+            const context = new DataMapperContext(
+                model, 
+                views, 
+                addView, 
+                applyModifications, 
+                addArrayElement,
+                hasInputsOutputsChanged,
+                convertToQuery
+            );
+
+            // Only regenerate IO nodes if inputs/outputs have changed
+            let ioNodes: DataMapperNodeModel[] = [];
+            if (hasInputsOutputsChanged || nodes.length === 0) {
+                const ioNodeInitVisitor = new IONodeInitVisitor(context);
+                traverseNode(model, ioNodeInitVisitor);
+                ioNodes = ioNodeInitVisitor.getNodes();
+            } else {
+                // Reuse existing IO nodes but update their context
+                ioNodes = nodes
+                    .filter(node => 
+                        node instanceof InputNode || 
+                        node instanceof ArrayOutputNode || 
+                        node instanceof ObjectOutputNode ||
+                        node instanceof QueryOutputNode
+                    )
+                    .map(node => {
+                        node.context = context;
+                        return node;
+                    });
+            }
+
+            // Only regenerate sub mappiing node if sub mappings have changed
+            const hasInputNodes = !ioNodes.some(node => node instanceof EmptyInputsNode);
+            let subMappingNode: DataMapperNodeModel;
+            if (hasInputNodes) {
+                if (hasSubMappingsChanged) {
+                    const subMappingNodeInitVisitor = new SubMappingNodeInitVisitor(context);
+                    traverseNode(model, subMappingNodeInitVisitor);
+                    subMappingNode = subMappingNodeInitVisitor.getNode();
+                } else {
+                    // Reuse existing sub mapping node
+                    subMappingNode = nodes.find(node => node instanceof SubMappingNode) as SubMappingNode;
+                }
+            }
+
+            // Always regenerate intermediate nodes as they depend on mappings
+            const intermediateNodeInitVisitor = new IntermediateNodeInitVisitor(
+                context,
+                nodes.filter(node => node instanceof LinkConnectorNode || node instanceof QueryExprConnectorNode)
+            );
+            traverseNode(model, intermediateNodeInitVisitor);
+
+            // Only add subMappingNode if it is defined
+            setNodes([
+                ...ioNodes,
+                ...(subMappingNode ? [subMappingNode] : []),
+                ...intermediateNodeInitVisitor.getNodes()
+            ]);
         } catch (error) {
+            console.error("Error generating nodes:", error);
             setHasInternalError(true);
         }
     };
@@ -132,10 +228,14 @@ export function InlineDataMapper(props: DataMapperViewProps) {
         mouseTrapClient.bindNewKey(['command+shift+z', 'ctrl+y'], async () => handleVersionChange('dmRedo'));
     };
 
-    const handleOnClose = () => {
+    const cleanupStores = () => {
         useDMSearchStore.getState().resetSearchStore();
         useDMCollapsedFieldsStore.getState().resetFields();
         useDMExpandedFieldsStore.getState().resetFields();
+    }
+
+    const handleOnClose = () => {
+        cleanupStores();
         onClose();
     };
 
@@ -152,17 +252,33 @@ export function InlineDataMapper(props: DataMapperViewProps) {
             <div className={classes.root}>
                 {model && (
                     <DataMapperHeader
+                        views={views}
+                        switchView={switchView}
                         hasEditDisabled={false}
                         onClose={handleOnClose}
                     />
                 )}
                 {errorKind && <IOErrorComponent errorKind={errorKind} classes={classes} />}
                 {nodes.length > 0 && (
-                    <DataMapperDiagram
-                        nodes={nodes}
-                        onError={handleErrors}
-                    />
+                    <>
+                        <DataMapperDiagram
+                            nodes={nodes}
+                            onError={handleErrors}
+                        />
+                        {isSMConfigPanelOpen && (
+                            <SubMappingConfigForm
+                                views={views}
+                                updateView={editView}
+                                applyModifications={applyModifications}
+                            />
+                        )}
+                    </>
                 )}
+                <ClausesPanel
+                    query={model.query}
+                    targetField={views[views.length - 1].targetField}
+                    addClauses={addClauses}
+                    generateForm={generateForm} />
             </div>
         </DataMapperErrorBoundary>
     )

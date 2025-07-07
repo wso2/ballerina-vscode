@@ -24,6 +24,8 @@ import { ExpressionLabelModel } from "../Label";
 import { InputOutputPortModel } from '../Port/model/InputOutputPortModel';
 import { isInputNode, isLinkModel, isOutputNode } from '../Actions/utils';
 import { DataMapperLinkModel } from '../Link/DataMapperLink';
+import { DataMapperNodeModel } from '../Node/commons/DataMapperNode';
+import { handleExpand } from '../utils/common-utils';
 /**
  * This state is controlling the creation of a link.
  */
@@ -68,7 +70,12 @@ export class CreateLinkState extends State<DiagramEngine> {
 							if (recordFieldElement) {
 								const fieldId = (recordFieldElement.id.split("-"))[1] + ".OUT";
 								const portModel = (element as any).getPort(fieldId) as InputOutputPortModel;
-								if (portModel) {
+								if (portModel.attributes.portType === "OUT" &&
+									!portModel.attributes?.parentModel &&
+									portModel.attributes?.collapsed
+								) {
+									handleExpand(portModel.attributes.fieldFQN, false);
+								} else if (portModel) {
 									element = portModel;
 								}
 							}
@@ -83,7 +90,7 @@ export class CreateLinkState extends State<DiagramEngine> {
 
 					if (element instanceof PortModel && !this.sourcePort) {
 						if (element instanceof InputOutputPortModel) {
-							if (element.portType === "OUT") {
+							if (element.attributes.portType === "OUT") {
 								this.sourcePort = element;
 								element.fireEvent({}, "mappingStartedFrom");
 								element.linkedPorts.forEach((linkedPort) => {
@@ -93,7 +100,7 @@ export class CreateLinkState extends State<DiagramEngine> {
 								link.setSourcePort(this.sourcePort);
 								link.addLabel(new ExpressionLabelModel({
 									value: undefined,
-									context: undefined
+									context: (element.getNode() as DataMapperNodeModel).context
 								}));
 								this.link = link;
 							} else if (!isValueConfig) {
@@ -104,7 +111,7 @@ export class CreateLinkState extends State<DiagramEngine> {
 						}
 					} else if (element instanceof PortModel && this.sourcePort && element !== this.sourcePort) {
 						if ((element instanceof InputOutputPortModel)) {
-							if (element.portType === "IN") {
+							if (element.attributes.portType === "IN") {
 								let isDisabled = false;
 								if (element instanceof InputOutputPortModel) {
 								isDisabled = element.isDisabled();

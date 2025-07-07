@@ -55,7 +55,7 @@ export function PrimitiveTypeInputWidget(props: PrimitiveTypeItemWidgetProps) {
                 {typeName && ":"}
             </span>
             {typeName && (
-                <span className={classes.inputTypeLabel}>
+                <span className={classes.typeLabel}>
                     {typeName}
                 </span>
             )}

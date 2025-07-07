@@ -85,7 +85,7 @@ export function ArrayOutputWidget(props: ArrayOutputWidgetProps) {
 	const portIn = getPort(`${id}.IN`);
 
 	let expanded = true;
-	if ((portIn && portIn.collapsed)) {
+	if ((portIn && portIn.attributes.collapsed)) {
 		expanded = false;
 	}
 
@@ -93,7 +93,7 @@ export function ArrayOutputWidget(props: ArrayOutputWidgetProps) {
 	const shouldPortVisible = !hasValue || !expanded || !isBodyArrayLitExpr || elements.length === 0;
 	const hasElementConnectedViaLink = elements.some(expr => expr.mappings.some(m => m.inputs.length > 0));
 
-	let isDisabled = portIn?.descendantHasValue;
+	let isDisabled = portIn?.attributes.descendantHasValue;
 	if (expanded && !isDisabled && elements.length > 0) {
 		portIn.setDescendantHasValue();
 		isDisabled = true;
@@ -150,12 +150,11 @@ export function ArrayOutputWidget(props: ArrayOutputWidgetProps) {
 	const label = (
 		<span style={{ marginRight: "auto" }}>
 			{valueLabel && (
-				<span className={classes.valueLabel}>
+				<span className={classes.valueLabelHeader}>
 					<OutputSearchHighlight>{valueLabel}</OutputSearchHighlight>
-					{typeName && ":"}
 				</span>
 			)}
-			<span className={classnames(classes.outputTypeLabel, isDisabled ? classes.labelDisabled : "")}>
+			<span className={classnames(classes.typeLabel, isDisabled ? classes.labelDisabled : "")}>
 				{typeName || ''}
 			</span>
 		</span>

@@ -28,7 +28,7 @@ import { ExpressionLabelModel } from './ExpressionLabelModel';
 import { isSourcePortArray, isTargetPortArray } from '../utils/link-utils';
 import { DataMapperLinkModel } from '../Link';
 import { CodeActionWidget } from '../CodeAction/CodeAction';
-import { set } from 'lodash';
+import { InputOutputPortModel } from '../Port';
 
 export interface ExpressionLabelWidgetProps {
     model: ExpressionLabelModel;
@@ -118,7 +118,9 @@ export function ExpressionLabelWidget(props: ExpressionLabelWidgetProps) {
     const [deleteInProgress, setDeleteInProgress] = useState(false);
 
     const classes = useStyles();
-    const { link, value, deleteLink } = props.model;
+    const { link, value, deleteLink, context } = props.model;
+    const { convertToQuery } = context;
+    const targetPort = link?.getTargetPort() as InputOutputPortModel;
     const diagnostic = link && link.hasError() ? link.diagnostics[0] || link.diagnostics[0] : null;
 
     const handleLinkStatus = (isSelected: boolean) => {
@@ -197,19 +199,17 @@ export function ExpressionLabelWidget(props: ExpressionLabelWidgetProps) {
         ),
     ];
 
-    const onClickMapViaArrayFn = async () => {
-        // TODO: Implement
+    const onClickMapWithQuery = async () => {
+        const varName = context.views[0].targetField;
+        const viewId = context.views[context.views.length - 1].targetField;
+        await convertToQuery(`${targetPort.attributes.value.output}`, `${viewId}`, `${varName}`);
     };
-
-    const applyArrayFunction = async (linkModel: DataMapperLinkModel, targetType: IDMType) => {
-        // TODO: Implement
-    };
-
+   
     const codeActions = [];
     if (arrayMappingType === ArrayMappingType.ArrayToArray) {
         codeActions.push({
-            title: "Map with array function",
-            onClick: onClickMapViaArrayFn
+            title: "Map with query expression",
+            onClick: onClickMapWithQuery
         });
     } else if (arrayMappingType === ArrayMappingType.ArrayToSingleton) {
         // TODO: Add impl

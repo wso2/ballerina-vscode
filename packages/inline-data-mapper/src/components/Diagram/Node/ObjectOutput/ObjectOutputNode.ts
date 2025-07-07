@@ -18,13 +18,12 @@
 import { Point } from "@projectstorm/geometry";
 import { IOType, Mapping, TypeKind } from "@wso2/ballerina-core";
 
-import { useDMCollapsedFieldsStore, useDMSearchStore } from "../../../../store/store";
+import { useDMCollapsedFieldsStore, useDMExpandedFieldsStore, useDMSearchStore } from "../../../../store/store";
 import { IDataMapperContext } from "../../../../utils/DataMapperContext/DataMapperContext";
 import { DataMapperNodeModel } from "../commons/DataMapperNode";
 import { getFilteredMappings, getSearchFilteredOutput, hasNoOutputMatchFound } from "../../utils/search-utils";
 import { getTypeName } from "../../utils/type-utils";
 import { OBJECT_OUTPUT_TARGET_PORT_PREFIX } from "../../utils/constants";
-import { STNode } from "@wso2/syntax-tree";
 import { findInputNode } from "../../utils/node-utils";
 import { InputOutputPortModel } from "../../Port";
 import { DataMapperLinkModel } from "../../Link";
@@ -37,7 +36,7 @@ const NODE_ID = "object-output-node";
 
 export class ObjectOutputNode extends DataMapperNodeModel {
     public filteredOutputType: IOType;
-    public filterdMappings: Mapping[];
+    public filteredMappings: Mapping[];
     public typeName: string;
     public rootName: string;
     public hasNoMatchingFields: boolean;
@@ -63,23 +62,36 @@ export class ObjectOutputNode extends DataMapperNodeModel {
             this.rootName = this.filteredOutputType?.id;
 
             const collapsedFields = useDMCollapsedFieldsStore.getState().fields;
+            const expandedFields = useDMExpandedFieldsStore.getState().fields;
             this.typeName = getTypeName(this.filteredOutputType);
 
             this.hasNoMatchingFields = hasNoOutputMatchFound(this.outputType, this.filteredOutputType);
     
-            const parentPort = this.addPortsForHeader(
-                this.filteredOutputType, this.rootName, "IN", OBJECT_OUTPUT_TARGET_PORT_PREFIX,
-                this.context.model.mappings, this.isMapFn
-            );
+            const parentPort = this.addPortsForHeader({
+                dmType: this.filteredOutputType,
+                name: this.rootName,
+                portType: "IN",
+                portPrefix: OBJECT_OUTPUT_TARGET_PORT_PREFIX,
+                mappings: this.context.model.mappings,
+                collapsedFields,
+                expandedFields
+            });
     
             if (this.filteredOutputType.kind === TypeKind.Record) {
                 if (this.filteredOutputType.fields.length) {
                     this.filteredOutputType.fields.forEach(field => {
                         if (!field) return;
-                        this.addPortsForOutputField(
-                            field, "IN", this.rootName, this.context.model.mappings, OBJECT_OUTPUT_TARGET_PORT_PREFIX,
-                            parentPort, collapsedFields, parentPort.collapsed
-                        );
+                        this.addPortsForOutputField({
+                            field,
+                            type: "IN",
+                            parentId: this.rootName,
+                            mappings: this.context.model.mappings,
+                            portPrefix: OBJECT_OUTPUT_TARGET_PORT_PREFIX,
+                            parent: parentPort,
+                            collapsedFields,
+                            expandedFields,
+                            hidden: parentPort.attributes.collapsed
+                        });
                     });
                 }
             }
@@ -87,15 +99,16 @@ export class ObjectOutputNode extends DataMapperNodeModel {
     }
 
     initLinks(): void {
-        const searchValue = useDMSearchStore.getState().outputSearch;
-        this.filterdMappings = getFilteredMappings(this.context.model.mappings, searchValue);
-        this.createLinks(this.filterdMappings);
+        const inputSearch = useDMSearchStore.getState().inputSearch;
+        const outputSearch = useDMSearchStore.getState().outputSearch;
+        this.filteredMappings = getFilteredMappings(this.context.model.mappings, inputSearch, outputSearch);
+        this.createLinks(this.filteredMappings);
     }
 
     private createLinks(mappings: Mapping[]) {
         mappings.forEach((mapping) => {    
-            const { isComplex, inputs, output, expression, diagnostics } = mapping;
-            if (isComplex || inputs.length !== 1) {
+            const { isComplex, isQueryExpression, inputs, output, expression, diagnostics } = mapping;
+            if (isComplex || isQueryExpression || inputs.length !== 1) {
                 // Complex mappings are handled in the LinkConnectorNode
                 return;
             }
@@ -118,6 +131,7 @@ export class ObjectOutputNode extends DataMapperNodeModel {
                     new ExpressionLabelModel({
                         value: expression,
                         link: lm,
+                        context: this.context,
                         deleteLink: () => this.deleteField(output),
                     }
                 ));

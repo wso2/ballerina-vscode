@@ -78,10 +78,10 @@ export function ObjectOutputWidget(props: ObjectOutputWidgetProps) {
 	const portIn = getPort(`${id}.IN`);
 
 	let expanded = true;
-	if ((portIn && portIn.collapsed)) {
+	if ((portIn && portIn.attributes.collapsed)) {
 		expanded = false;
 	}
-	const isDisabled = portIn?.descendantHasValue;
+	const isDisabled = portIn?.attributes.descendantHasValue;
 
 	const indentation = (portIn && (!hasFields || !expanded)) ? 0 : 24;
 
@@ -113,12 +113,11 @@ export function ObjectOutputWidget(props: ObjectOutputWidgetProps) {
 	const label = (
 		<span style={{ marginRight: "auto" }}>
 			{valueLabel && (
-				<span className={classes.valueLabel}>
+				<span className={classes.valueLabelHeader}>
 					<OutputSearchHighlight>{valueLabel}</OutputSearchHighlight>
-					{typeName && ":"}
 				</span>
 			)}
-			<span className={classes.outputTypeLabel}>
+			<span className={classes.typeLabel}>
 				{typeName || ''}
 			</span>
 		</span>

@@ -24,7 +24,6 @@ import ConnectionConfigView from "../ConnectionConfigView";
 import { getFormProperties } from "../../../../utils/bi";
 import { ExpressionFormField, PanelContainer } from "@wso2/ballerina-side-panel";
 import { ProgressRing, ThemeColors } from "@wso2/ui-toolkit";
-import { InlineDataMapper } from "../../../InlineDataMapper";
 import { HelperView } from "../../HelperView";
 
 const Container = styled.div`
@@ -136,14 +135,6 @@ export function EditConnectionWizard(props: EditConnectionWizardProps) {
 
     const findSubPanelComponent = (subPanel: SubPanel) => {
         switch (subPanel.view) {
-            case SubPanelView.INLINE_DATA_MAPPER:
-                return (
-                    <InlineDataMapper
-                        onClosePanel={handleSubPanel}
-                        updateFormField={updateExpressionField}
-                        {...subPanel.props?.inlineDataMapper}
-                    />
-                );
             case SubPanelView.HELPER_PANEL:
                 return (
                     <HelperView

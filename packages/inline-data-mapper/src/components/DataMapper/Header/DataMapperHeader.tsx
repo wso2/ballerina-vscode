@@ -18,61 +18,111 @@
 // tslint:disable: jsx-no-multiline-js
 import React from "react";
 import styled from "@emotion/styled";
-import { Button, Codicon } from "@wso2/ui-toolkit";
+import { Codicon, Icon } from "@wso2/ui-toolkit";
 
 import HeaderSearchBox from "./HeaderSearchBox";
+import HeaderBreadcrumb from "./HeaderBreadcrumb";
+import { View } from "../Views/DataMapperView";
+import { VSCodeButton } from "@vscode/webview-ui-toolkit/react";
+import AutoMapButton from "./AutoMapButton";
+import EditButton from "./EditButton";
 
 export interface DataMapperHeaderProps {
+    views: View[];
+    switchView: (index: number) => void;
     hasEditDisabled: boolean;
     onClose: () => void;
 }
 
 export function DataMapperHeader(props: DataMapperHeaderProps) {
-    const { hasEditDisabled, onClose } = props;
+    const { views, switchView, hasEditDisabled, onClose } = props;
 
     return (
         <HeaderContainer>
-            <Title>Data Mapper</Title>
-            <RightSection>
+            <IconButton onClick={onClose}>
+                <Icon name="bi-arrow-back" iconSx={{ fontSize: "24px", color: "var(--vscode-foreground)" }} />
+            </IconButton>
+            <BreadCrumb>
+                <Title>Data Mapper</Title>
                 {!hasEditDisabled && (
-                    <IOFilterBar>
-                        <HeaderSearchBox />
-                    </IOFilterBar>
+                    <HeaderBreadcrumb
+                        views={views}
+                        switchView={switchView}
+                    />
                 )}
-                <Button appearance="icon" onClick={onClose}>
-                    <Codicon name="close" />
-                </Button>
-            </RightSection>
+            </BreadCrumb>
+            <RightContainer isClickable={!hasEditDisabled}>
+                <FilterBar>
+                    <HeaderSearchBox />
+                </FilterBar>
+                {/* TODO: Implement auto map and edit */}
+                <AutoMapButton onClick={undefined} disabled={true} />
+                <EditButton onClick={undefined} disabled={true} />
+            </RightContainer>
+            <VSCodeButton
+                appearance="icon"
+                onClick={onClose}
+                style={{ marginLeft: "15px" }}
+            >
+                <Codicon name="chrome-close" />
+            </VSCodeButton>
         </HeaderContainer>
     );
 }
 
 const HeaderContainer = styled.div`
     height: 56px;
-    width: 100%;
     display: flex;
-    flex-direction: row;
-    align-items: center;
-    padding: 0 12px;
+    padding: 15px;
     background-color: var(--vscode-editorWidget-background);
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    border-bottom: 1px solid rgba(102,103,133,0.15);
 `;
 
-const Title = styled.h3`
+const Title = styled.h2`
     margin: 0;
+    font-size: 20px;
+    font-weight: 600;
     color: var(--vscode-foreground);
-    font-size: var(--vscode-font-size);
 `;
 
-const RightSection = styled.div`
+const RightContainer = styled.div<{ isClickable: boolean }>`
     display: flex;
     align-items: center;
     gap: 12px;
-    margin-left: auto;
+    pointer-events: ${({ isClickable }) => (isClickable ? 'auto' : 'none')};
+    opacity: ${({ isClickable }) => (isClickable ? 1 : 0.5)};
 `;
 
-const IOFilterBar = styled.div`
+const BreadCrumb = styled.div`
+    width: 60%;
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    margin-left: 12px;
+`;
+
+const FilterBar = styled.div`
+    flex: 3;
     display: flex;
     align-items: center;
-    max-width: 300px;
-    min-width: 200px;
+    justify-content: flex-end;
+`;
+
+const IconButton = styled.div`
+    padding: 4px;
+    cursor: pointer;
+    border-radius: 4px;
+
+    &:hover {
+        background-color: var(--vscode-toolbar-hoverBackground);
+    }
+
+    & > div:first-child {
+        width: 24px;
+        height: 24px;
+        font-size: 24px;
+    }
 `;

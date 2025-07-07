@@ -20,8 +20,22 @@ import {
     GAP_BETWEEN_NODE_HEADER_AND_BODY,
     IO_NODE_FIELD_HEIGHT,
     IO_NODE_HEADER_HEIGHT,
+    OFFSETS,
     defaultModelOptions
 } from "./constants";
+
+export function calculateZoomLevel(screenWidth: number) {
+    const minWidth = 200;
+    const maxWidth = 850; // After this width, the max zoom level is reached
+    const minZoom = 20;
+    const maxZoom = defaultModelOptions.zoom;
+
+	// Ensure the max zoom level is not exceeded
+	const boundedScreenWidth = Math.min(screenWidth, maxWidth);
+    const normalizedWidth = (boundedScreenWidth - minWidth) / (maxWidth - minWidth);
+    const zoomLevel = minZoom + normalizedWidth * (maxZoom - minZoom);
+    return Math.max(minZoom, Math.min(maxZoom, zoomLevel));
+}
 
 export function getIONodeHeight(noOfFields: number) {
 	return noOfFields * IO_NODE_FIELD_HEIGHT
@@ -33,8 +47,8 @@ export function getIONodeHeight(noOfFields: number) {
 export function calculateControlPointOffset(screenWidth: number) {
     const minWidth = 850;
     const maxWidth = 1500;
-    const minOffset = 5;
-    const maxOffset = 30;
+    const minOffset = 15;
+    const maxOffset = 90;
 
     const clampedWidth = Math.min(Math.max(screenWidth, minWidth), maxWidth);
     const interpolationFactor = (clampedWidth - minWidth) / (maxWidth - minWidth);
