@@ -142,6 +142,7 @@ export function ProjectForm() {
                     value={name}
                     label="Integration Name"
                     placeholder="Enter a integration name"
+                    autoFocus={true}
                 />
                 <PreviewContainer>
                     <PreviewIcon name="project" iconSx={{ fontSize: 14, color: "var(--vscode-descriptionForeground)" }} />
