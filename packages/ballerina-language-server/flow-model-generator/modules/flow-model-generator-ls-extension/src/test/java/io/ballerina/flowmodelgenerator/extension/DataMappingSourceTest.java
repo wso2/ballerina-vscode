@@ -56,6 +56,7 @@ public class DataMappingSourceTest extends AbstractLSTest {
                 {Path.of("variable2_2.json")},
                 {Path.of("variable3.json")},
                 {Path.of("variable3_1.json")},
+                {Path.of("variable3_2.json")},
                 {Path.of("variable5_array0.json")},
                 {Path.of("variable5_array1.json")},
                 {Path.of("variable5_array2.json")},
@@ -136,7 +137,7 @@ public class DataMappingSourceTest extends AbstractLSTest {
             TestConfig updatedConfig = new TestConfig(testConfig.source(), testConfig.description(),
                     testConfig.codedata(), testConfig.propertyKey(), testConfig.position(), testConfig.mapping(),
                     testConfig.targetField(), newMap);
-            updateConfig(configJsonPath, updatedConfig);
+//            updateConfig(configJsonPath, updatedConfig);
             Assert.fail(String.format("Failed test: '%s' (%s)", testConfig.description(), configJsonPath));
         }
     }

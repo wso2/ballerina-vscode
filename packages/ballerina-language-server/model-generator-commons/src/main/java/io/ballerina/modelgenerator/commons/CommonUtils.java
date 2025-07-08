@@ -255,6 +255,17 @@ public class CommonUtils {
     }
 
     /**
+     * Convert the syntax-node line range into a lsp4j range.
+     *
+     * @param line   start line
+     * @param offset character offset
+     * @return {@link Range} converted range
+     */
+    public static Range toRange(int line, int offset) {
+        return toRange(LinePosition.from(line, offset));
+    }
+
+    /**
      * Converts syntax-node line position into a lsp4j position.
      *
      * @param position line position

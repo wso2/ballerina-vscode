@@ -25,7 +25,8 @@
     "output": "credentials.username",
     "expression": "item.username.id",
     "imports": {
-      "http": "ballerina/regex"
+      "http": "ballerina/regex",
+      "io": "ballerina/io"
     }
   },
   "targetField": "credentials",
@@ -56,6 +57,19 @@
           }
         },
         "newText": "import ballerina/regex;\n"
+      },
+      {
+        "range": {
+          "start": {
+            "line": 0,
+            "character": 0
+          },
+          "end": {
+            "line": 0,
+            "character": 0
+          }
+        },
+        "newText": "import ballerina/io;\n"
       }
     ]
   }
