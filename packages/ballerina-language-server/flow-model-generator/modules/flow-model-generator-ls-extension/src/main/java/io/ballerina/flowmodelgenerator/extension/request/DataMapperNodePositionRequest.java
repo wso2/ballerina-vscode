@@ -21,17 +21,12 @@ package io.ballerina.flowmodelgenerator.extension.request;
 import com.google.gson.JsonElement;
 
 /**
- * A request to retrieve tools of the agent.
+ * Represents a request to get the data mapper model for types.
  *
- * @param filePath    path of the file
- * @param flowNode    diagram node
- * @param toolName    name of the tool
- * @param toolParameters tool function parameters property node
- * @param description description of the tool
- * @param connection  name of the connection
- *                    
+ * @param filePath The file path of the source file
+ * @param codedata The details of the node
+ * @param name     The name of the node to get the position
  * @since 1.0.0
  */
-public record GenToolRequest(String filePath, JsonElement flowNode, String toolName, JsonElement toolParameters,
-                             String description, String connection) {
+public record DataMapperNodePositionRequest(String filePath, JsonElement codedata, String name) {
 }

@@ -90,11 +90,12 @@ public function main() returns error? {
 # The `Client.get()` function can be used to send HTTP GET requests to HTTP endpoints.
 # + path - Request path
 # + headers - The entity headers
+# + key - The key to be used for the request
 @ai:AgentTool
 @display {
     iconPath: "/path/icon.png"
 }
 isolated function set(string key, string value) returns string|error? {
-    string item = check redisCl->set(key, value);
+    string item = check redisClient->set(key, value);
     return item;
 }

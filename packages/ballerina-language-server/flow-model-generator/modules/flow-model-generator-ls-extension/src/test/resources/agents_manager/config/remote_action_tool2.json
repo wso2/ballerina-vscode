@@ -1,6 +1,123 @@
 {
   "source": "agent_1/agents.bal",
   "name": "toolFunc",
+  "toolParameters": {
+    "metadata": {
+      "label": "Parameters",
+      "description": "Function parameters"
+    },
+    "valueType": "REPEATABLE_PROPERTY",
+    "valueTypeConstraint": {
+      "metadata": {
+        "label": "Parameter",
+        "description": "Function parameter"
+      },
+      "valueType": "FIXED_PROPERTY",
+      "value": {
+        "type": {
+          "metadata": {
+            "label": "Variable Type",
+            "description": "Type of the variable"
+          },
+          "valueType": "TYPE",
+          "valueTypeConstraint": "anydata",
+          "value": "",
+          "optional": false,
+          "editable": true,
+          "advanced": false
+        },
+        "variable": {
+          "metadata": {
+            "label": "Variable Name",
+            "description": "Name of the variable"
+          },
+          "valueType": "IDENTIFIER",
+          "value": "",
+          "optional": false,
+          "editable": true,
+          "advanced": false
+        }
+      },
+      "optional": false,
+      "editable": false,
+      "advanced": false
+    },
+    "value": {
+      "foo": {
+        "metadata": {
+          "label": "Parameter",
+          "description": "Function parameter"
+        },
+        "valueType": "FIXED_PROPERTY",
+        "value": {
+          "type": {
+            "metadata": {
+              "label": "Variable Type",
+              "description": "Type of the variable"
+            },
+            "valueType": "TYPE",
+            "valueTypeConstraint": "anydata",
+            "value": "string",
+            "optional": false,
+            "editable": true,
+            "advanced": false
+          },
+          "variable": {
+            "metadata": {
+              "label": "Variable Name",
+              "description": "Name of the variable"
+            },
+            "valueType": "IDENTIFIER",
+            "value": "foo",
+            "optional": false,
+            "editable": true,
+            "advanced": false
+          }
+        },
+        "optional": false,
+        "editable": false,
+        "advanced": false
+      },
+      "bar": {
+        "metadata": {
+          "label": "Parameter",
+          "description": "Function parameter"
+        },
+        "valueType": "FIXED_PROPERTY",
+        "value": {
+          "type": {
+            "metadata": {
+              "label": "Variable Type",
+              "description": "Type of the variable"
+            },
+            "valueType": "TYPE",
+            "valueTypeConstraint": "anydata",
+            "value": "int...",
+            "optional": false,
+            "editable": true,
+            "advanced": false
+          },
+          "variable": {
+            "metadata": {
+              "label": "Variable Name",
+              "description": "Name of the variable"
+            },
+            "valueType": "IDENTIFIER",
+            "value": "bar",
+            "optional": false,
+            "editable": true,
+            "advanced": false
+          }
+        },
+        "optional": false,
+        "editable": false,
+        "advanced": false
+      }
+    },
+    "optional": false,
+    "editable": false,
+    "advanced": false
+  },
   "connection": "redisClientx",
   "description": "Sample diagram node",
   "toolDescription": "The Client connection for redis",
@@ -146,7 +263,7 @@
             "character": 0
           }
         },
-        "newText": "# The Client connection for redis\n# + destination - Result key of the operation\n# + keys - Input keys to perform AND between\n# + return - Type of the variable\n@ai:AgentTool\n@display {label: \"\",iconPath: \"https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.0.2.png\"}\nisolated function toolFunc( string destination, string[] keys) returns int| error { int intResult = check redisClientx-> bitOpAnd( destination, keys) ;\nreturn intResult;\n}"
+        "newText": "# The Client connection for redis\n# + return - Type of the variable\n@ai:AgentTool\n@display {label: \"\",iconPath: \"https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.0.2.png\"}\nisolated function toolFunc( string foo, int... bar) returns int| error { int intResult = check redisClientx-> bitOpAnd( destination, keys) ;\nreturn intResult;\n}"
       }
     ]
   }

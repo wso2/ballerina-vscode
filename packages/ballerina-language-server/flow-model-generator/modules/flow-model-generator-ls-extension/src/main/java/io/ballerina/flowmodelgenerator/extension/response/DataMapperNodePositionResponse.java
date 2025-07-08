@@ -16,14 +16,24 @@
  *  under the License.
  */
 
-package io.ballerina.flowmodelgenerator.extension.request;
+package io.ballerina.flowmodelgenerator.extension.response;
+
+import com.google.gson.JsonElement;
 
 /**
- * A request to edit tool's description.
+ * Represents the response containing data mapper sub mapping data.
  *
- * @param toolName    name of the tool
- * @param description new description
- * @param projectPath path of the project
+ * @since 1.0.0
  */
-public record EditToolRequest(String toolName, String description, String projectPath) {
+public class DataMapperNodePositionResponse extends AbstractFlowModelResponse {
+
+    private JsonElement codedata;
+
+    public void setCodedata(JsonElement codedata) {
+        this.codedata = codedata;
+    }
+
+    public JsonElement getCodedata() {
+        return this.codedata;
+    }
 }

@@ -18,20 +18,11 @@
 
 package io.ballerina.flowmodelgenerator.extension.request;
 
-import com.google.gson.JsonElement;
-
 /**
- * A request to retrieve tools of the agent.
+ * A request to edit tool's description.
  *
- * @param filePath    path of the file
- * @param flowNode    diagram node
  * @param toolName    name of the tool
- * @param toolParameters tool function parameters property node
- * @param description description of the tool
- * @param connection  name of the connection
- *                    
- * @since 1.0.0
+ * @param projectPath path of the project
  */
-public record GenToolRequest(String filePath, JsonElement flowNode, String toolName, JsonElement toolParameters,
-                             String description, String connection) {
+public record GetToolRequest(String toolName, String projectPath) {
 }
