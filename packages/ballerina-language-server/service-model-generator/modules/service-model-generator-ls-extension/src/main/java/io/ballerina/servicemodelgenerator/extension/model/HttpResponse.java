@@ -75,10 +75,10 @@ public class HttpResponse {
 
     public HttpResponse(String statusCode, String type, boolean editable) {
         this.statusCode = new Value(statusCode, "SINGLE_SELECT", true, editable);
-        this.body = new Value("", "TYPE", true, editable);
-        this.name = new Value("", "IDENTIFIER", true, editable);
-        this.type = new Value(type, "TYPE", true, editable);
-        this.headers = new Value("", "HEADER_SET", true, editable);
+        this.body = new Value("", "TYPE", true, editable, true);
+        this.name = new Value("", "IDENTIFIER", true, editable, true);
+        this.type = new Value(type, "TYPE", true, editable, true);
+        this.headers = new Value("", "HEADER_SET", true, editable, true);
         this.editable = editable;
     }
 

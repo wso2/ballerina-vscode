@@ -68,6 +68,11 @@ public class Value {
                 false, false, null, null, null, new HashMap<>());
     }
 
+    public Value(Object value, String valueType, boolean isEnabled, boolean editable, boolean optional) {
+        this(null, isEnabled, editable, value, valueType, null, false, null,
+                optional, false, null, null, null, new HashMap<>());
+    }
+
     public Value(MetaData metadata, boolean enabled, boolean editable, Object value, String valueType,
                  String valueTypeConstraint, boolean isType, String placeholder, boolean optional,
                  boolean advanced, Map<String, Value> properties, List<Object> items, Codedata codedata,
