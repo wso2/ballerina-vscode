@@ -205,7 +205,7 @@ export interface IDMFormField {
     optional: boolean;
     editable: boolean;
     documentation: string;
-    value: string | any[];
+    value: any;
     valueTypeConstraint: string;
     enabled: boolean;
     items?: string[];
