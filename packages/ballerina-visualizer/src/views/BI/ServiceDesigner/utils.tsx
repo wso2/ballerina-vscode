@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import { responseCodes } from '@wso2/ballerina-core';
+import { ResponseCode } from '@wso2/ballerina-core';
 
 export enum HTTP_METHOD {
     "GET" = "GET",
@@ -26,24 +26,40 @@ export enum HTTP_METHOD {
     "PATCH" = "PATCH"
 }
 
-export function getDefaultResponse(httpMethod: HTTP_METHOD): number {
+export function getDefaultResponse(httpMethod: HTTP_METHOD): string {
     switch (httpMethod.toUpperCase()) {
         case HTTP_METHOD.GET:
-            return 200;
+            return "200";
         case HTTP_METHOD.PUT:
-            return 200;
+            return "200";
         case HTTP_METHOD.POST:
-            return 201;
+            return "201";
         case HTTP_METHOD.DELETE:
-            return 200;
+            return "200";
         case HTTP_METHOD.PATCH:
-            return 200;
+            return "200";
         default:
-            return 200;
+            return "200";
     }
 }
 
-export function getTitleFromResponseCode(code: number): string {
-    const response = responseCodes.find((response) => response.code === code);
-    return response ? response.title : "";
+export function getTitleFromStatusCodeAndType(responseCodes: ResponseCode[], statusCode: string, type: string): string {
+    let responseCode: ResponseCode | undefined;
+
+    if (statusCode && type) {
+        // If both statusCode and type are provided, find by both
+        responseCode = responseCodes.find(res => res.statusCode === statusCode && res.type === type);
+        // If not found with both, fallback to statusCode only
+        if (!responseCode) {
+            responseCode = responseCodes.find(res => res.statusCode === statusCode);
+        }
+    } else if (statusCode) {
+        // If only statusCode is provided, find by statusCode only
+        responseCode = responseCodes.find(res => res.statusCode === statusCode);
+    } else if (type) {
+        // If only type is provided, find by type only
+        responseCode = responseCodes.find(res => res.type === type);
+    }
+
+    return responseCode ? `${responseCode.statusCode} - ${responseCode.label}` : "";
 }

@@ -40,6 +40,7 @@ import { ReadonlyField } from "./ReadonlyField";
 import { ContextAwareRawExpressionEditor } from "./RawExpressionEditor";
 import { IdentifierField } from "./IdentifierField";
 import { PathEditor } from "./PathEditor";
+import { HeaderSetEditor } from "./HeaderSetEditor";
 
 interface FormFieldEditorProps {
     field: FormField;
@@ -73,6 +74,8 @@ export const EditorFactory = (props: FormFieldEditorProps) => {
         return <></>;
     } else if (field.type === "MULTIPLE_SELECT") {
         return <MultiSelectEditor field={field} label={"Attach Another"} openSubPanel={openSubPanel} />;
+    } else if (field.type === "HEADER_SET") {
+        return <HeaderSetEditor field={field} />;
     } else if (field.type === "CHOICE") {
         return <ChoiceForm field={field} recordTypeFields={recordTypeFields} />;
     } else if (field.type === "DROPDOWN_CHOICE") {
