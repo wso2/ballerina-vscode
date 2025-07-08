@@ -201,21 +201,16 @@ public class AgentsManagerService implements ExtendedLanguageServerService {
         return CompletableFuture.supplyAsync(() -> {
             try {
                 String sessionId = McpClient.sendInitializeRequest(request.serviceUrl());
-                JsonArray toolsJsonArray;
-                if (sessionId != null) {
-                    toolsJsonArray = McpClient.sendToolsListRequest(request.serviceUrl(), sessionId);
-                    GetMcpToolsResponse response = new GetMcpToolsResponse();
-                    response.setTools(toolsJsonArray);
-                    return response;
-                } else {
-                    throw new RuntimeException("Failed to obtain session ID from MCP server");
-                }
+                JsonArray toolsJsonArray = McpClient.sendToolsListRequest(request.serviceUrl(), sessionId);
+
+                GetMcpToolsResponse response = new GetMcpToolsResponse();
+                response.setTools(toolsJsonArray);
+                return response;
             } catch (Exception e) {
                 throw new RuntimeException("Failed to get MCP tools", e);
             }
         });
     }
-
 
     @JsonRequest
     public CompletableFuture<GenToolResponse> genTool(GenToolRequest request) {
