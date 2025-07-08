@@ -270,6 +270,7 @@ export function InlineDataMapper(props: DataMapperViewProps) {
                                 views={views}
                                 updateView={editView}
                                 applyModifications={applyModifications}
+                                generateForm={generateForm}
                             />
                         )}
                     </>
