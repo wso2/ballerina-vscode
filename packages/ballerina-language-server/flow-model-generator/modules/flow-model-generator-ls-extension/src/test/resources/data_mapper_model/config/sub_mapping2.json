@@ -1,0 +1,112 @@
+{
+  "source": "variable2_1.bal",
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "variable2_1.bal",
+      "startLine": {
+        "line": 19,
+        "offset": 80
+      },
+      "endLine": {
+        "line": 19,
+        "offset": 89
+      }
+    },
+    "sourceCode": ""
+  },
+  "position": {
+    "line": 19,
+    "offset": 80
+  },
+  "propertyKey": "expression",
+  "model": {
+    "inputs": [
+      {
+        "id": "CONST",
+        "typeName": "CONST",
+        "kind": "CONST",
+        "category": "constant"
+      },
+      {
+        "fields": [
+          {
+            "id": "s.username",
+            "variableName": "username",
+            "typeName": "string",
+            "kind": "string"
+          },
+          {
+            "id": "s.password",
+            "variableName": "password",
+            "typeName": "string",
+            "kind": "string"
+          }
+        ],
+        "id": "s",
+        "variableName": "s",
+        "typeName": "Student",
+        "kind": "record",
+        "category": "variable"
+      },
+      {
+        "fields": [
+          {
+            "id": "student.username",
+            "variableName": "username",
+            "typeName": "string",
+            "kind": "string"
+          },
+          {
+            "id": "student.password",
+            "variableName": "password",
+            "typeName": "string",
+            "kind": "string"
+          }
+        ],
+        "id": "student",
+        "variableName": "student",
+        "typeName": "Student",
+        "kind": "record",
+        "category": "variable"
+      },
+      {
+        "fields": [
+          {
+            "id": "userInfo.username",
+            "variableName": "username",
+            "typeName": "string",
+            "kind": "string"
+          },
+          {
+            "id": "userInfo.password",
+            "variableName": "password",
+            "typeName": "string",
+            "kind": "string"
+          }
+        ],
+        "id": "userInfo",
+        "variableName": "userInfo",
+        "typeName": "UserInfo",
+        "kind": "record",
+        "category": "variable"
+      }
+    ],
+    "output": {
+      "id": "x",
+      "typeName": "int",
+      "kind": "int"
+    },
+    "mappings": [
+      {
+        "output": "x",
+        "inputs": [],
+        "expression": "2 ",
+        "diagnostics": [],
+        "elements": [],
+        "isQueryExpression": false
+      }
+    ]
+  }
+}

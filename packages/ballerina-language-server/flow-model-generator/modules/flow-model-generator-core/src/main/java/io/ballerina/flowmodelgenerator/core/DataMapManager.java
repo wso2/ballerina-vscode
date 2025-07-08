@@ -236,6 +236,8 @@ public class DataMapManager {
             generateRecordVariableDataMapping(expressionNode, mappings, name, semanticModel);
         } else if (typeDescKind == TypeDescKind.ARRAY) {
             generateArrayVariableDataMapping(expressionNode, mappings, name, semanticModel);
+        } else {
+            genMapping(expressionNode, name, mappings, semanticModel);
         }
 
         return gson.toJsonTree(new Model(inputPorts, outputPort, subMappingPorts, mappings, query));
@@ -250,6 +252,9 @@ public class DataMapManager {
         } else if (kind == SyntaxKind.MODULE_VAR_DECL) {
             ModuleVariableDeclarationNode moduleVarDeclNode = (ModuleVariableDeclarationNode) parentNode;
             optInitializer = moduleVarDeclNode.initializer();
+        } else if (kind == SyntaxKind.LET_VAR_DECL) {
+            LetVariableDeclarationNode letVariableDeclNode = (LetVariableDeclarationNode) parentNode;
+            optInitializer = Optional.of(letVariableDeclNode.expression());
         } else {
             return null;
         }
