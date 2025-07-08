@@ -79,7 +79,6 @@ import io.ballerina.modelgenerator.commons.DefaultValueGeneratorUtil;
 import io.ballerina.modelgenerator.commons.ModuleInfo;
 import io.ballerina.modelgenerator.commons.PackageUtil;
 import io.ballerina.projects.Document;
-import io.ballerina.projects.Module;
 import io.ballerina.projects.ModuleDescriptor;
 import io.ballerina.tools.diagnostics.Diagnostic;
 import io.ballerina.tools.text.LinePosition;
