@@ -51,13 +51,7 @@ export function SubMappingConfigForm(props: SubMappingConfigFormProps) {
         resetSubMappingConfig,
         subMappingConfigFormData,
         setSubMappingConfigFormData
-    } = useDMSubMappingConfigPanelStore(state => ({
-        subMappingConfig: state.subMappingConfig,
-        resetSubMappingConfig: state.resetSubMappingConfig,
-        subMappingConfigFormData: state.subMappingConfigFormData,
-        setSubMappingConfigFormData: state.setSubMappingConfigFormData
-    })
-    );
+    } = useDMSubMappingConfigPanelStore();
 
     let defaultValues: { mappingName: string; mappingType: string ; };
     if (subMappingConfigFormData) {
@@ -123,7 +117,8 @@ export function SubMappingConfigForm(props: SubMappingConfigFormProps) {
         targetLineRange:{ startLine: { line: 0, offset: 0 }, endLine: { line: 0, offset: 0 } },
         fields: [mappingNameField, mappingTypeField],
         submitText: isEdit ? "Save" : "Add",
-        onSubmit
+        onSubmit,
+        helperPaneSide: 'left'
     }
 
     return (
