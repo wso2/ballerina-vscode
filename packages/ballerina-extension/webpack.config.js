@@ -10,15 +10,14 @@ const { createEnvDefinePlugin } = require('../../../common/scripts/env-webpack-h
 
 const envPath = path.resolve(__dirname, '.env');
 const env = dotenv.config({ path: envPath }).parsed;
-
-let envKeys;
-try {
-  envKeys = createEnvDefinePlugin(env);
-} catch (error) {
-  console.warn('\n⚠️  Environment Variable Configuration Warning:');
-  console.warn(error.message);
-  console.warn('Continuing build with empty environment variables...');
-  envKeys = {};
+console.log("Fetching values for environment variables...");
+const { envKeys, missingVars } = createEnvDefinePlugin(env);
+if (missingVars.length > 0) {
+  console.warn(
+    '\n⚠️  Environment Variable Configuration Warning:\n' +
+    `Missing required environment variables: ${missingVars.join(', ')}\n` +
+    `Please provide values in either .env file or runtime environment.\n`
+  );
 }
 
 /** @type {import('webpack').Configuration} */
