@@ -74,11 +74,23 @@ public class McpClient {
                 os.write(body.getBytes(StandardCharsets.UTF_8));
             }
 
+            int responseCode = conn.getResponseCode();
+            if (responseCode != HttpURLConnection.HTTP_OK) {
+                throw new IOException("HTTP Error: " + responseCode + " - " + conn.getResponseMessage());
+            }
+
             Map<String, List<String>> headers = conn.getHeaderFields();
             String sessionId = null;
-            if (headers.containsKey("mcp-session-id")) {
-                sessionId = headers.get("mcp-session-id").get(0);
+
+            for (Map.Entry<String, List<String>> entry : headers.entrySet()) {
+                if (entry.getKey() != null && entry.getKey().equalsIgnoreCase("mcp-session-id")) {
+                    if (!entry.getValue().isEmpty()) {
+                        sessionId = entry.getValue().getFirst();
+                        break;
+                    }
+                }
             }
+
             return sessionId;
         } finally {
             if (conn != null) {
@@ -98,7 +110,10 @@ public class McpClient {
             conn.setRequestProperty("Accept", "application/json, text/event-stream");
             conn.setRequestProperty("User-Agent", "ballerina");
             conn.setRequestProperty("Connection", "keep-alive");
-            conn.setRequestProperty("mcp-session-id", sessionId);
+
+            if (sessionId != null && !sessionId.trim().isEmpty()) {
+                conn.setRequestProperty("mcp-session-id", sessionId);
+            }
             conn.setDoOutput(true);
 
             String body = """
@@ -113,31 +128,51 @@ public class McpClient {
                 os.write(body.getBytes(StandardCharsets.UTF_8));
             }
 
-            JsonArray toolsArray = new JsonArray();
-
-            try (BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream(),
-                                                            StandardCharsets.UTF_8))) {
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    if (line.startsWith("data: ")) {
-                        String json = line.substring(6);
-                        JsonObject response = JsonParser.parseString(json).getAsJsonObject();
-
-                        if (response.has("result")) {
-                            JsonObject result = response.getAsJsonObject("result");
-                            if (result.has("tools") && result.get("tools").isJsonArray()) {
-                                toolsArray = result.getAsJsonArray("tools");
-                            }
-                        }
-                        break;
-                    }
-                }
+            int responseCode = conn.getResponseCode();
+            if (responseCode != HttpURLConnection.HTTP_OK) {
+                throw new IOException("HTTP Error: " + responseCode + " - " + conn.getResponseMessage());
             }
-            return toolsArray;
+
+            return extractToolsArrayFromResponse(conn);
         } finally {
             if (conn != null) {
                 conn.disconnect();
             }
         }
+    }
+
+    private static JsonArray extractToolsArrayFromResponse(HttpURLConnection conn) throws IOException {
+        String contentType = conn.getContentType();
+        try (BufferedReader reader = new BufferedReader(
+                new InputStreamReader(conn.getInputStream(), StandardCharsets.UTF_8))) {
+
+            if (contentType != null && contentType.contains("text/event-stream")) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    if (line.startsWith("data: ")) {
+                        return parseToolsFromJson(line.substring(6));
+                    }
+                }
+            } else {
+                StringBuilder fullResponse = new StringBuilder();
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    fullResponse.append(line);
+                }
+                return parseToolsFromJson(fullResponse.toString());
+            }
+        }
+        return new JsonArray();
+    }
+
+    private static JsonArray parseToolsFromJson(String json) {
+        JsonObject response = JsonParser.parseString(json).getAsJsonObject();
+        if (response.has("result")) {
+            JsonObject result = response.getAsJsonObject("result");
+            if (result.has("tools") && result.get("tools").isJsonArray()) {
+                return result.getAsJsonArray("tools");
+            }
+        }
+        return new JsonArray();
     }
 }
