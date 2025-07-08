@@ -76,7 +76,6 @@ import io.ballerina.flowmodelgenerator.core.model.SourceBuilder;
 import io.ballerina.modelgenerator.commons.CommonUtils;
 import io.ballerina.modelgenerator.commons.DefaultValueGeneratorUtil;
 import io.ballerina.projects.Document;
-import io.ballerina.projects.Module;
 import io.ballerina.projects.ModuleDescriptor;
 import io.ballerina.tools.diagnostics.Diagnostic;
 import io.ballerina.tools.text.LinePosition;
@@ -696,8 +695,7 @@ public class DataMapManager {
         List<ImportDeclarationNode> importDeclNodes = modulePartNode.imports().stream().toList();
 
         for (String importStatement : importStatements.values()) {
-            Module module = document.module();
-            ModuleDescriptor descriptor = module.descriptor();
+            ModuleDescriptor descriptor = document.module().descriptor();
             if (CommonUtils.getImportStatement(descriptor.org().toString(), descriptor.packageName().value(),
                     descriptor.name().toString()).equals(importStatement)) {
                 continue;
