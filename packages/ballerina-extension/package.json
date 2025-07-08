@@ -207,6 +207,11 @@
                     "tags": [
                         "experimental"
                     ]
+                },
+                "ballerina.enableAiSuggestions": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Enable AI suggestions in the Flow Diagram View."
                 }
             }
         },
