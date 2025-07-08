@@ -50,7 +50,7 @@ export function InputNodeTreeItemWidget(props: InputNodeTreeItemWidgetProps) {
 
     const fieldName = dmType.variableName;
     const typeName = getTypeName(dmType);
-    const fieldId = `${parentId}.${fieldName}`;
+    const fieldId = dmType.isFocused ? fieldName : `${parentId}.${fieldName}`;
     const portOut = getPort(`${fieldId}.OUT`);
 
     const classes = useIONodesStyles();

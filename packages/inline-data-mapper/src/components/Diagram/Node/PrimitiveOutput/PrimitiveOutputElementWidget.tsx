@@ -77,10 +77,6 @@ export function PrimitiveOutputElementWidget(props: PrimitiveOutputElementWidget
 
     if (fieldIndex !== undefined) {
         portName = `${parentId}.${fieldIndex}${fieldName !== '' ? `.${fieldName}` : ''}`;
-    } else if (fieldName) {
-        portName = `${parentId}.${fieldName}`;
-    } else {
-        portName = parentId;
     }
 
     const portIn = getPort(`${portName}.IN`);

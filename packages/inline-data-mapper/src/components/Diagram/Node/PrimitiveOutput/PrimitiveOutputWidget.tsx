@@ -65,7 +65,7 @@ export function PrimitiveOutputWidget(props: PrimitiveOutputWidgetProps) {
 		setIsSchemaOverridden: state.setIsSchemaOverridden
 	}));
 
-	const portIn = getPort(`${id}.IN`);
+	const portIn = getPort(`${id}.HEADER.IN`);
 
 	let expanded = true;
 	if ((portIn && portIn.attributes.collapsed)) {

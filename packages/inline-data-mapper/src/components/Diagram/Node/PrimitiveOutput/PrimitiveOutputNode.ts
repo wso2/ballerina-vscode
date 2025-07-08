@@ -68,16 +68,27 @@ export class PrimitiveOutputNode extends DataMapperNodeModel {
     
             const parentPort = this.addPortsForHeader({
                 dmType: this.outputType,
-                name: "",
+                name: `${this.rootName}.HEADER`,
                 portType: "IN",
                 portPrefix: PRIMITIVE_OUTPUT_TARGET_PORT_PREFIX,
-                mappings: this.context.model.mappings
+                mappings: this.context.model.mappings,
+                collapsedFields,
+                expandedFields,
+                isPreview: true
             });
+
+            function getParentId(input: string): string {
+                const lastDotIndex = input.lastIndexOf(".");
+                if (lastDotIndex === -1) {
+                  return "";
+                }
+                return input.substring(0, lastDotIndex);
+            }
     
             this.addPortsForOutputField({
                 field: this.outputType,
                 type: "IN",
-                parentId: this.rootName,
+                parentId: getParentId(this.rootName),
                 mappings: this.context.model.mappings,
                 portPrefix: PRIMITIVE_OUTPUT_TARGET_PORT_PREFIX,
                 parent: parentPort,
@@ -96,6 +107,10 @@ export class PrimitiveOutputNode extends DataMapperNodeModel {
     }
 
     private createLinks(mappings: Mapping[]) {
+
+        const query = this.context.model.query;
+        const { inputs: queryInputs, output: queryOutput} = query;
+
         mappings.forEach((mapping) => {    
             const { isComplex, isQueryExpression, inputs, output, expression, diagnostics } = mapping;
             if (isComplex || isQueryExpression || inputs.length !== 1) {
@@ -122,6 +137,7 @@ export class PrimitiveOutputNode extends DataMapperNodeModel {
                         value: expression,
                         link: lm,
                         deleteLink: () => this.deleteField(output),
+                        ...(queryOutput === output && {collectClauseFn: query.resultClause.properties.func})
                     }
                 ));
 
@@ -140,6 +156,30 @@ export class PrimitiveOutputNode extends DataMapperNodeModel {
                 this.getModel().addAll(lm as any);
             }
         });
+
+
+        const inputNode = findInputNode(queryInputs[0], this);
+        let inPort: InputOutputPortModel;
+        if (inputNode) {
+            inPort = getInputPort(inputNode, queryInputs[0].replace(/\.\d+/g, ''));
+        }
+
+        const [_, mappedOutPort] = getOutputPort(this, `${queryOutput}.HEADER`);
+
+        if (inPort && mappedOutPort) {
+            const lm = new DataMapperLinkModel(undefined, undefined, true, undefined, true);
+
+            lm.setTargetPort(mappedOutPort);
+            lm.setSourcePort(inPort);
+            inPort.addLinkedPort(mappedOutPort);
+
+            lm.addLabel(new ExpressionLabelModel({
+                isQuery: true
+            }));
+
+            this.getModel().addAll(lm as any);
+        }
+
     }
 
     async deleteField(field: string) {

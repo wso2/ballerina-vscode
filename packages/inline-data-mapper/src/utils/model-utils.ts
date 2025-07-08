@@ -25,6 +25,7 @@ export function traverseNode(model: ExpandedDMModel, visitor: BaseVisitor) {
     // Visit input types
     if (model.inputs.length > 0) {
         for (const inputType of model.inputs) {
+            if (inputType.isFocused) continue;
             traverseInputType(inputType, model, visitor);
         }
     }

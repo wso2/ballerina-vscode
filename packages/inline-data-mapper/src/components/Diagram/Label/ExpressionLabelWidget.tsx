@@ -118,8 +118,8 @@ export function ExpressionLabelWidget(props: ExpressionLabelWidgetProps) {
     const [deleteInProgress, setDeleteInProgress] = useState(false);
 
     const classes = useStyles();
-    const { link, value, deleteLink, context } = props.model;
-    const { convertToQuery } = context;
+    const { link, value, deleteLink, context, collectClauseFn } = props.model;
+    const { convertToQuery } = context || {};
     const targetPort = link?.getTargetPort() as InputOutputPortModel;
     const diagnostic = link && link.hasError() ? link.diagnostics[0] || link.diagnostics[0] : null;
 
@@ -164,6 +164,12 @@ export function ExpressionLabelWidget(props: ExpressionLabelWidgetProps) {
         // TODO: Implement
     };
 
+    const collectClauseFns = ["sum", "avg", "min", "max", "count"];
+  
+    const onClickChangeCollectClauseFn = ( collectClauseFn: string) => {
+
+    }
+
     const loadingScreen = (
         <ProgressRing sx={{ height: '16px', width: '16px' }} />
     );
@@ -182,6 +188,21 @@ export function ExpressionLabelWidget(props: ExpressionLabelWidgetProps) {
                 >
                     <Codicon name="code" iconSx={{ color: "var(--vscode-input-placeholderForeground)" }} />
                 </Button>
+                {collectClauseFn && (
+                    <>
+                        <div className={classes.separator} />
+                        <CodeActionWidget
+                            key={`expression-label-code-action-collect-clause-fn`}
+                            codeActions={collectClauseFns.map((fn) => ({
+                                title: fn,
+                                onClick: () => onClickChangeCollectClauseFn(fn)
+                            }))}
+                            collectClauseFn={collectClauseFn}
+                            sx={{ padding: "5px", color: "var(--vscode-button-foreground)"}}
+                        />
+                    </>
+                )}
+
                 <div className={classes.separator}/>
                 {deleteInProgress ? (
                     loadingScreen
@@ -204,7 +225,7 @@ export function ExpressionLabelWidget(props: ExpressionLabelWidgetProps) {
         const viewId = context.views[context.views.length - 1].targetField;
         await convertToQuery(`${targetPort.attributes.value.output}`, `${viewId}`, `${varName}`);
     };
-   
+
     const codeActions = [];
     if (arrayMappingType === ArrayMappingType.ArrayToArray) {
         codeActions.push({
@@ -221,7 +242,7 @@ export function ExpressionLabelWidget(props: ExpressionLabelWidgetProps) {
             <CodeActionWidget
                 key={`expression-label-code-action-${value}`}
                 codeActions={codeActions}
-                btnSx={{ margin: "0 2px" }}
+                sx={{ margin: "0 2px" }}
             />
         );
     }
@@ -239,6 +260,8 @@ export function ExpressionLabelWidget(props: ExpressionLabelWidgetProps) {
             />
         );
     }
+
+  
 
     const source = link?.getSourcePort();
     const target = link?.getTargetPort();
@@ -260,7 +283,7 @@ export function ExpressionLabelWidget(props: ExpressionLabelWidgetProps) {
                 data-testid={`expression-label-for-${link?.getSourcePort()?.getName()}-to-${link?.getTargetPort()?.getName()}`}
                 className={classNames(
                     classes.container,
-                    !isLinkSelected && !deleteInProgress && classes.containerHidden
+                    !isLinkSelected && !deleteInProgress && !collectClauseFn && classes.containerHidden
                 )}
             >
                 {elements}

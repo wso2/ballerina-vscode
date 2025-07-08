@@ -112,8 +112,8 @@ export abstract class DataMapperNodeModel extends NodeModel<NodeModelGenerics & 
 
 		const fieldName = field.variableName;
 		const isArray = this.isArrayTypedField(field);
-		const fieldFQN = this.getInputFieldFQN(parentId, fieldName, isOptional);
-		const unsafeFieldFQN = this.getUnsafeFieldFQN(unsafeParentId, fieldName);
+		const fieldFQN = this.getInputFieldFQN(field.isFocused ? "" : parentId, fieldName, isOptional);
+		const unsafeFieldFQN = this.getUnsafeFieldFQN(field.isFocused ? "" : unsafeParentId, fieldName);
 		const portName = this.getPortName(portPrefix, unsafeFieldFQN);
 		const isFocused = this.isFocusedField(focusedFieldFQNs, portName);
 		const isPreview = parent.attributes.isPreview || this.isPreviewPort(focusedFieldFQNs, parent.attributes.field);
@@ -313,6 +313,7 @@ export abstract class DataMapperNodeModel extends NodeModel<NodeModelGenerics & 
 		const isHidden = attributes.hidden || attributes.collapsed;
 		let numberOfFields = 1;
 
+
 		if (attributes.field.kind === TypeKind.Record) {
 			const fields = attributes.field?.fields;
 			if (fields && fields.length) {
@@ -326,9 +327,17 @@ export abstract class DataMapperNodeModel extends NodeModel<NodeModelGenerics & 
 				});
 			}
 		} else if (attributes.field.kind === TypeKind.Array) {
+			let memberField: IOType = attributes.field.member;
+			const memberFieldFocusedId = memberField.focusedId;
+
+			if (memberFieldFocusedId) {
+				const focusedField = this.context.model.inputs.find(input => input.id === memberFieldFocusedId);
+				if (focusedField) {
+					attributes.field.member = focusedField;
+				}
+			}
 			numberOfFields += this.addPortsForInputField({
 				...attributes,
-				hidden: isHidden,
 				field: attributes.field.member
 			});
 		}
