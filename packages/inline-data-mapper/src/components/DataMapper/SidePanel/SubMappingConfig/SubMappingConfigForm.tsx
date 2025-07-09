@@ -117,8 +117,7 @@ export function SubMappingConfigForm(props: SubMappingConfigFormProps) {
         targetLineRange:{ startLine: { line: 0, offset: 0 }, endLine: { line: 0, offset: 0 } },
         fields: [mappingNameField, mappingTypeField],
         submitText: isEdit ? "Save" : "Add",
-        onSubmit,
-        helperPaneSide: 'left'
+        onSubmit
     }
 
     return (
