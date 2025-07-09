@@ -83,7 +83,7 @@ const PopupPanel = (props: PopupPanelProps) => {
                         setViewComponent(
                             <>
                                 <EditConnectionWizard
-                                    fileName={location.documentUri || location.projectUri}
+                                    projectUri={location.projectUri}
                                     connectionName={machineState?.identifier}
                                     onClose={onClose}
                                 />

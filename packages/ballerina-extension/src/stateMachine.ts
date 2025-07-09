@@ -1,5 +1,5 @@
 
-import { ExtendedLangClient } from './core';
+import { ballerinaExtInstance, ExtendedLangClient } from './core';
 import { createMachine, assign, interpret } from 'xstate';
 import { activateBallerina } from './extension';
 import { EVENT_TYPE, SyntaxTree, History, HistoryEntry, MachineStateValue, STByRangeRequest, SyntaxTreeResponse, UndoRedoManager, VisualizerLocation, webviewReady, MACHINE_VIEW, DIRECTORY_MAP, SCOPE, ProjectStructureResponse, ArtifactData, ProjectStructureArtifactResponse, CodeData } from "@wso2/ballerina-core";
@@ -67,7 +67,7 @@ const stateMachine = createMachine<MachineContext>(
                 invoke: {
                     src: checkForProjects,
                     onDone: {
-                        target: "activateLS",
+                        target: "renderInitialView",
                         actions: assign({
                             isBI: (context, event) => event.data.isBI,
                             projectUri: (context, event) => event.data.projectPath,
@@ -75,6 +75,17 @@ const stateMachine = createMachine<MachineContext>(
                             org: (context, event) => event.data.orgName,
                             package: (context, event) => event.data.packageName,
                         })
+                    },
+                    onError: {
+                        target: "renderInitialView"
+                    }
+                }
+            },
+            renderInitialView: {
+                invoke: {
+                    src: 'openWebView',
+                    onDone: {
+                        target: "activateLS"
                     },
                     onError: {
                         target: "activateLS"
@@ -260,6 +271,7 @@ const stateMachine = createMachine<MachineContext>(
             // Get context values from the project storage so that we can restore the earlier state when user reopens vscode
             return new Promise((resolve, reject) => {
                 if (!VisualizerWebview.currentPanel) {
+                    ballerinaExtInstance.setContext(extension.context);
                     VisualizerWebview.currentPanel = new VisualizerWebview();
                     RPCLayer._messenger.onNotification(webviewReady, () => {
                         history = new History();

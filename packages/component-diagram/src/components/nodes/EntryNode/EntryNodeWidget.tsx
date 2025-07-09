@@ -185,20 +185,24 @@ export interface NodeWidgetProps extends Omit<EntryNodeWidgetProps, "children"> 
 export function EntryNodeWidget(props: EntryNodeWidgetProps) {
     const { model, engine } = props;
     const [isHovered, setIsHovered] = React.useState(false);
-    const { 
-        onServiceSelect, 
-        onAutomationSelect, 
-        onDeleteComponent, 
-        onFunctionSelect, 
+    const {
+        onServiceSelect,
+        onAutomationSelect,
+        onDeleteComponent,
+        onFunctionSelect,
         expandedNodes,
-        onToggleNodeExpansion 
+        onToggleNodeExpansion
     } = useDiagramContext();
     const [menuAnchorEl, setMenuAnchorEl] = useState<HTMLElement | SVGSVGElement>(null);
     const isMenuOpen = Boolean(menuAnchorEl);
 
     const handleOnClick = () => {
         if (model.type === "service") {
-            onServiceSelect(model.node as CDService);
+            if ((model.node as CDService).type === "ai:Service") {
+                onFunctionSelect(serviceFunctions[0]);
+            } else {
+                onServiceSelect(model.node as CDService);
+            }
         } else {
             onAutomationSelect(model.node as CDAutomation);
         }
@@ -270,7 +274,7 @@ export function EntryNodeWidget(props: EntryNodeWidgetProps) {
 
     const isExpanded = expandedNodes.has(model.node.uuid);
     const hasMoreFunctions = serviceFunctions.length > 3;
-    
+
     let visibleFunctions;
     if (serviceFunctions.length <= 3 || isExpanded) {
         // Show all functions if ≤3 total or if expanded
