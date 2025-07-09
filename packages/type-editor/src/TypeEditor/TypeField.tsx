@@ -224,6 +224,7 @@ export const TypeField = forwardRef<HTMLInputElement, TypeFieldProps>((props, re
         <>
             <TextField
                 ref={typeFieldRef}
+                data-testid="type-field"
                 placeholder={placeholder}
                 sx={sx}
                 value={memberName}

@@ -143,7 +143,7 @@ export function EntityHeadWidget(props: ServiceHeadProps) {
         <CtrlClickGo2Source node={node.entityObject}>
             <EntityHead
                 isSelected={isSelected}
-                data-testid={`entity-head-${displayName}`}
+                data-testid={`type-node-${displayName}`}
             >
                 <EntityPortWidget
                     port={node.getPort(`left-${node.getID()}`)}
