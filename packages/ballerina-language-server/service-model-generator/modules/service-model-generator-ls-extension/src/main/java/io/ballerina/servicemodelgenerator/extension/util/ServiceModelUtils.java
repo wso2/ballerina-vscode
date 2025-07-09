@@ -210,15 +210,16 @@ public class ServiceModelUtils {
     /**
      * Get the service model of the given module without the function list.
      *
+     * @param orgName org name
      * @param moduleName module name
      * @return {@link Optional<Service>} service model
      */
-    public static Optional<Service> getEmptyServiceModel(String moduleName) {
+    public static Optional<Service> getEmptyServiceModel(String orgName, String moduleName) {
         if (moduleName.equals("http")) {
             return getHttpService();
         }
         Optional<ServiceDeclaration> serviceDeclaration = ServiceDatabaseManager.getInstance()
-                .getServiceDeclaration(moduleName);
+                .getServiceDeclaration(orgName, moduleName);
         if (serviceDeclaration.isEmpty()) {
             return Optional.empty();
         }
@@ -281,12 +282,14 @@ public class ServiceModelUtils {
     /**
      * Get the service model for a give service type including its functions.
      *
+     * @param orgName org name
      * @param moduleName module name
      * @param serviceType service type
      * @return {@link Optional<Service>} service model
      */
-    public static Optional<Service> getServiceModelWithFunctions(String moduleName, String serviceType) {
-        Optional<Service> serviceOptional = getEmptyServiceModel(moduleName);
+    public static Optional<Service> getServiceModelWithFunctions(String orgName, String moduleName,
+                                                                 String serviceType) {
+        Optional<Service> serviceOptional = getEmptyServiceModel(orgName, moduleName);
         if (serviceOptional.isEmpty() || serviceOptional.get().getPackageName().equals("http")) {
             return serviceOptional;
         }

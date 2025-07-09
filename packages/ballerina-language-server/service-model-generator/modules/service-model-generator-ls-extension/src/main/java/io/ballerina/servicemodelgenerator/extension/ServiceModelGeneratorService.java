@@ -229,9 +229,7 @@ public class ServiceModelGeneratorService implements ExtendedLanguageServerServi
     public CompletableFuture<ListenerModelResponse> getListenerModel(ListenerModelRequest request) {
         return CompletableFuture.supplyAsync(() -> {
             try {
-                Path projectPath = Path.of(request.projectPath());
-                Project project = this.workspaceManager.loadProject(projectPath);
-                return ListenerUtil.getListenerModelByName(project.currentPackage(),
+                return ListenerUtil.getListenerModelByName(request.orgName(),
                                 request.moduleName()).map(ListenerModelResponse::new)
                         .orElseGet(ListenerModelResponse::new);
             } catch (Throwable e) {
@@ -334,7 +332,8 @@ public class ServiceModelGeneratorService implements ExtendedLanguageServerServi
     public CompletableFuture<ServiceModelResponse> getServiceModel(ServiceModelRequest request) {
         return CompletableFuture.supplyAsync(() -> {
             try {
-                Optional<Service> service = ServiceModelUtils.getEmptyServiceModel(request.moduleName());
+                Optional<Service> service = ServiceModelUtils.getEmptyServiceModel(request.orgName(),
+                        request.moduleName());
                 if (service.isEmpty()) {
                     return new ServiceModelResponse();
                 }
@@ -457,7 +456,7 @@ public class ServiceModelGeneratorService implements ExtendedLanguageServerServi
         return CompletableFuture.supplyAsync(() -> {
             List<TriggerBasicInfo> triggerBasicInfoList = triggerProperties.values().stream()
                     .filter(triggerProperty -> filterTriggers(triggerProperty, request))
-                    .map(trigger -> getTriggerBasicInfoByName(trigger.name()))
+                    .map(trigger -> getTriggerBasicInfoByName(trigger.orgName(), trigger.name()))
                     .flatMap(Optional::stream)
                     .toList();
             return new TriggerListResponse(triggerBasicInfoList);
@@ -614,7 +613,8 @@ public class ServiceModelGeneratorService implements ExtendedLanguageServerServi
                 return new ServiceFromSourceResponse(serviceModel);
             }
             String serviceType = serviceTypeWithoutPrefix(moduleAndServiceType);
-            Optional<Service> service = ServiceModelUtils.getServiceModelWithFunctions(moduleName, serviceType);
+            Optional<Service> service = ServiceModelUtils.getServiceModelWithFunctions(request.codedata().getOrgName(),
+                    moduleName, serviceType);
             if (service.isEmpty()) {
                 return new ServiceFromSourceResponse();
             }
@@ -658,8 +658,8 @@ public class ServiceModelGeneratorService implements ExtendedLanguageServerServi
                 if (!(node instanceof ListenerDeclarationNode listenerNode)) {
                     return new ListenerFromSourceResponse();
                 }
-                Optional<Listener> listenerModelOp = ListenerUtil.getListenerFromSource(listenerNode, currentPackage,
-                        semanticModel);
+                Optional<Listener> listenerModelOp = ListenerUtil.getListenerFromSource(listenerNode,
+                        request.codedata().getOrgName(), semanticModel);
                 if (listenerModelOp.isEmpty()) {
                     return new ListenerFromSourceResponse();
                 }
@@ -681,14 +681,16 @@ public class ServiceModelGeneratorService implements ExtendedLanguageServerServi
     public CompletableFuture<TriggerResponse> getTriggerModel(TriggerRequest request) {
         return CompletableFuture.supplyAsync(() -> {
             if (expectsTriggerByName(request)) {
-                return new TriggerResponse(getTriggerBasicInfoByName(request.packageName()).orElse(null));
+                return new TriggerResponse(getTriggerBasicInfoByName(request.organization(),
+                        request.packageName()).orElse(null));
             }
 
             TriggerProperty triggerProperty = triggerProperties.get(request.id());
             if (triggerProperty == null) {
                 return new TriggerResponse();
             }
-            return new TriggerResponse(getTriggerBasicInfoByName(triggerProperty.name()).orElse(null));
+            return new TriggerResponse(getTriggerBasicInfoByName(triggerProperty.orgName(),
+                    triggerProperty.name()).orElse(null));
         });
     }
 
@@ -1160,9 +1162,9 @@ public class ServiceModelGeneratorService implements ExtendedLanguageServerServi
     public record ModuleAndServiceType(String moduleName, String serviceType) {
     }
 
-    private Optional<TriggerBasicInfo> getTriggerBasicInfoByName(String name) {
+    private Optional<TriggerBasicInfo> getTriggerBasicInfoByName(String orgName, String name) {
         Optional<ServiceDeclaration> serviceDeclaration = ServiceDatabaseManager.getInstance()
-                .getServiceDeclaration(name); // TODO: improve this to use a single query
+                .getServiceDeclaration(orgName, name); // TODO: improve this to use a single query
 
         if (serviceDeclaration.isEmpty()) {
             return Optional.empty();

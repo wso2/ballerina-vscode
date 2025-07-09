@@ -126,7 +126,7 @@ public class AgentsGenerator {
                 continue;
             }
             ClassSymbol classSymbol = (ClassSymbol) symbol;
-            if (classSymbol.qualifiers().contains(Qualifier.CLIENT) && classSymbol.getName().orElse("").equals(AGENT)) {
+            if (classSymbol.getName().orElse("").equals(AGENT)) {
                 Optional<ModuleSymbol> optModule = classSymbol.getModule();
                 if (optModule.isEmpty()) {
                     throw new IllegalStateException("Agent module id not found");

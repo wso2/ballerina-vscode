@@ -40,7 +40,8 @@ public class GetAllAgentsTest extends AbstractLSTest {
     @Override
     protected Object[] getConfigsList() {
         return new Object[][]{
-                {Path.of("get_all_agents.json")}
+//                {Path.of("get_all_ballerinax_agents.json")},
+                {Path.of("get_all_ballerina_agents.json")}
         };
     }
 
@@ -52,12 +53,13 @@ public class GetAllAgentsTest extends AbstractLSTest {
 
         String filePath =
                 testConfig.source() == null ? "" : sourceDir.resolve(testConfig.source()).toAbsolutePath().toString();
-        GetAllAgentsRequest request = new GetAllAgentsRequest(filePath);
+        GetAllAgentsRequest request = new GetAllAgentsRequest(testConfig.orgName, filePath);
         JsonArray agents = getResponse(request).getAsJsonArray("agents");
 
         if (!agents.equals(testConfig.agents())) {
-            TestConfig updatedConfig = new TestConfig(testConfig.source(), testConfig.description(), agents);
-//            updateConfig(configJsonPath, updatedConfig);
+            TestConfig updatedConfig = new TestConfig(testConfig.source(), testConfig.description(),
+                    testConfig.orgName(), agents);
+            updateConfig(configJsonPath, updatedConfig);
             Assert.fail("Test failed. Updated the expected output in " + configJsonPath);
         }
     }
@@ -89,7 +91,7 @@ public class GetAllAgentsTest extends AbstractLSTest {
      * @param description The description of the test
      * @param agents      List of all available agents
      */
-    private record TestConfig(String source, String description, JsonArray agents) {
+    private record TestConfig(String source, String description, String orgName, JsonArray agents) {
 
         public String description() {
             return description == null ? "" : description;

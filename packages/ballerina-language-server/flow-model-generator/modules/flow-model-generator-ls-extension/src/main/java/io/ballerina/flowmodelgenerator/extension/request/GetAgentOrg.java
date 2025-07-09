@@ -16,11 +16,13 @@
  *  under the License.
  */
 
-package io.ballerina.servicemodelgenerator.extension.request;
+package io.ballerina.flowmodelgenerator.extension.request;
 
-public record ListenerModelRequest(String orgName, String pkgName, String moduleName) {
+/**
+ * A request to retrieve all available agents.
+ *
+ * @param projectPath project path
 
-    public ListenerModelRequest(String orgName, String moduleName) {
-        this(orgName, moduleName, moduleName);
-    }
+ */
+public record GetAgentOrg(String projectPath) {
 }

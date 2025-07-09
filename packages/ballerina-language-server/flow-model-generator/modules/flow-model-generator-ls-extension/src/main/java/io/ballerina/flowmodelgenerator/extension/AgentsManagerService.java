@@ -22,6 +22,7 @@ import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
 import io.ballerina.flowmodelgenerator.core.AgentsGenerator;
 import io.ballerina.flowmodelgenerator.extension.request.GenToolRequest;
+import io.ballerina.flowmodelgenerator.extension.request.GetAgentOrg;
 import io.ballerina.flowmodelgenerator.extension.request.GetAllAgentsRequest;
 import io.ballerina.flowmodelgenerator.extension.request.GetAllMemoryManagersRequest;
 import io.ballerina.flowmodelgenerator.extension.request.GetAllModelsRequest;
@@ -30,6 +31,7 @@ import io.ballerina.flowmodelgenerator.extension.request.GetModelsRequest;
 import io.ballerina.flowmodelgenerator.extension.request.GetToolRequest;
 import io.ballerina.flowmodelgenerator.extension.request.GetToolsRequest;
 import io.ballerina.flowmodelgenerator.extension.response.GenToolResponse;
+import io.ballerina.flowmodelgenerator.extension.response.GetAgentOrgResponse;
 import io.ballerina.flowmodelgenerator.extension.response.GetAgentsResponse;
 import io.ballerina.flowmodelgenerator.extension.response.GetConnectorActionsResponse;
 import io.ballerina.flowmodelgenerator.extension.response.GetMemoryManagersResponse;
@@ -45,16 +47,20 @@ import org.ballerinalang.langserver.commons.workspace.WorkspaceManager;
 import org.eclipse.lsp4j.jsonrpc.services.JsonRequest;
 import org.eclipse.lsp4j.jsonrpc.services.JsonSegment;
 import org.eclipse.lsp4j.services.LanguageServer;
+import org.wso2.ballerinalang.compiler.tree.BLangPackage;
 
 import java.nio.file.Path;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+
+import static io.ballerina.modelgenerator.commons.CommonUtils.importExists;
 
 @JavaSPIService("org.ballerinalang.langserver.commons.service.spi.ExtendedLanguageServerService")
 @JsonSegment("agentManager")
 public class AgentsManagerService implements ExtendedLanguageServerService {
     private WorkspaceManager workspaceManager;
     private static final String BALLERINAX = "ballerinax";
+    private static final String BALLERINA = "ballerina";
     private static final String AI_AGENT = "ai";
 
     @Override
@@ -68,11 +74,28 @@ public class AgentsManagerService implements ExtendedLanguageServerService {
     }
 
     @JsonRequest
+    public CompletableFuture<GetAgentOrgResponse> getAgentOrg(GetAgentOrg request) {
+        return CompletableFuture.supplyAsync(() -> {
+            GetAgentOrgResponse response = new GetAgentOrgResponse();
+            try {
+                Path projectPath = Path.of(request.projectPath());
+                Project project = this.workspaceManager.loadProject(projectPath);
+                BLangPackage bLangPackage =
+                        PackageUtil.getCompilation(project.currentPackage()).defaultModuleBLangPackage();
+                response.setOrg(importExists(bLangPackage, BALLERINAX, AI_AGENT) ? BALLERINAX : BALLERINA);
+            } catch (Throwable e) {
+                throw new RuntimeException(e);
+            }
+            return response;
+        });
+    }
+
+    @JsonRequest
     public CompletableFuture<GetAgentsResponse> getAllAgents(GetAllAgentsRequest request) {
         return CompletableFuture.supplyAsync(() -> {
             GetAgentsResponse response = new GetAgentsResponse();
             try {
-                Optional<SemanticModel> semanticModel = PackageUtil.getSemanticModel(BALLERINAX, AI_AGENT);
+                Optional<SemanticModel> semanticModel = PackageUtil.getSemanticModel(request.orgName(), AI_AGENT);
                 if (semanticModel.isEmpty()) {
                     return response;
                 }

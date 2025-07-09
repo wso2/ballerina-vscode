@@ -16,11 +16,22 @@
  *  under the License.
  */
 
-package io.ballerina.servicemodelgenerator.extension.request;
+package io.ballerina.flowmodelgenerator.extension.response;
 
-public record ListenerModelRequest(String orgName, String pkgName, String moduleName) {
+import com.google.gson.JsonArray;
 
-    public ListenerModelRequest(String orgName, String moduleName) {
-        this(orgName, moduleName, moduleName);
+/**
+ * Represents the response for available agents.
+ *
+ * @since 1.0.0
+ */
+public class GetAgentOrgResponse extends AbstractFlowModelResponse {
+    private String org;
+
+    public GetAgentOrgResponse() {
+    }
+
+    public void setOrg(String org) {
+        this.org = org;
     }
 }

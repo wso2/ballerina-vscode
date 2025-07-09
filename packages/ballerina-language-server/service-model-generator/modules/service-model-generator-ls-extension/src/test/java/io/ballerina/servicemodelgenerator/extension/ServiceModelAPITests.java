@@ -182,7 +182,7 @@ public class ServiceModelAPITests {
     public void testGetServiceModelWithoutListener() throws ExecutionException, InterruptedException {
         Path filePath = resDir.resolve("sample1/main.bal");
         ServiceModelRequest request = new ServiceModelRequest(filePath.toAbsolutePath().toString(), "ballerina", 
-                "http", null);
+                "ai", null);
         CompletableFuture<?> result = serviceEndpoint.request("serviceDesign/getServiceModel", request);
         ServiceModelResponse response = (ServiceModelResponse) result.get();
         Assert.assertTrue(Objects.nonNull(response.service()));
