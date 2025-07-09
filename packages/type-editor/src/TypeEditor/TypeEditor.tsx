@@ -140,7 +140,7 @@ export function TypeEditor(props: TypeEditorProps) {
                                 icon: <Icon
                                     name="bi-import"
                                     sx={{ marginRight: '5px' }}
-                                    iconSx={{ fontSize: '14px', display: 'flex', alignItems: 'center', paddingTop: '2px' }}
+                                    iconSx={{ fontSize: '15px', display: 'flex', alignItems: 'center', paddingTop: '2px' }}
                                 />
                             }
                         ]}

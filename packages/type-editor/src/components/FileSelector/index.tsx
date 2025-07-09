@@ -52,13 +52,13 @@ export function FileSelector(props: FileSelectorProps) {
             <Button onClick={handleClick} appearance="icon">
                 <Icon
                     name="bi-import"
-                    sx={{ height: "18px", width: "18px", marginRight: "4px" }}
-                    iconSx={{ fontSize: "18px", color: "var(--vscode-charts-purple)" }}
+                    sx={{ marginRight: "5px" }}
+                    iconSx={{ fontSize: "15px", color: "var(--vscode-charts-purple)" }}
                 />
                 <Typography
                     variant="body3"
                     sx={{ color: "var(--vscode-charts-purple)" }}
-                >{`Upload ${extension.toUpperCase()} File`}</Typography>
+                >{`Import ${extension.toUpperCase()} File`}</Typography>
             </Button>
         </React.Fragment>
     );
