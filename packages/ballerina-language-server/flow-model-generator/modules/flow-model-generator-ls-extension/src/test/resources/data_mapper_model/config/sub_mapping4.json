@@ -72,10 +72,52 @@
           "typeName": "UserInfo",
           "kind": "record"
         },
+        "focusedMemberId": "user",
         "id": "userInfo",
         "variableName": "userInfo",
         "typeName": "UserInfo[]",
         "kind": "array",
+        "category": "variable"
+      },
+      {
+        "fields": [
+          {
+            "id": "s.school",
+            "variableName": "school",
+            "typeName": "string",
+            "kind": "string"
+          },
+          {
+            "member": {
+              "fields": [
+                {
+                  "id": "s.students.0.username",
+                  "variableName": "username",
+                  "typeName": "string",
+                  "kind": "string"
+                },
+                {
+                  "id": "s.students.0.password",
+                  "variableName": "password",
+                  "typeName": "string",
+                  "kind": "string"
+                }
+              ],
+              "id": "s.students.0",
+              "variableName": "studentsItem",
+              "typeName": "Student",
+              "kind": "record"
+            },
+            "id": "s.students",
+            "variableName": "students",
+            "typeName": "Student[]",
+            "kind": "array"
+          }
+        ],
+        "id": "s",
+        "variableName": "s",
+        "typeName": "Students",
+        "kind": "record",
         "category": "variable"
       },
       {
@@ -96,7 +138,8 @@
         "id": "user",
         "variableName": "user",
         "typeName": "UserInfo",
-        "kind": "record"
+        "kind": "record",
+        "isFocused": true
       }
     ],
     "output": {
