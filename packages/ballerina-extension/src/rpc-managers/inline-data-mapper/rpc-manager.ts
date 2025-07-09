@@ -27,6 +27,8 @@ import {
     GetSubMappingCodedataRequest,
     InitialIDMSourceRequest,
     InitialIDMSourceResponse,
+    PropertyRequest,
+    PropertyResponse,
     InlineDataMapperAPI,
     InlineDataMapperModelRequest,
     InlineDataMapperModelResponse,
@@ -181,6 +183,13 @@ export class InlineDataMapperRpcManager implements InlineDataMapperAPI {
                 .getSubMappingCodedata(params) as GetInlineDataMapperCodedataResponse;
 
             resolve(dataMapperCodedata);
+        });
+    }
+
+    async getProperty(params: PropertyRequest): Promise<PropertyResponse> {
+        return new Promise(async (resolve) => {
+            const property = await StateMachine.langClient().getProperty(params) as PropertyResponse;
+            resolve(property);
         });
     }
 }

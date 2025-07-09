@@ -35,7 +35,6 @@ import { addValue, removeMapping } from "../../utils/modification-utils";
 import FieldActionWrapper from "../commons/FieldActionWrapper";
 import { ValueConfigMenu, ValueConfigMenuItem, ValueConfigOption } from "../commons/ValueConfigButton";
 import { DiagnosticTooltip } from "../../Diagnostic/DiagnosticTooltip";
-import { OutputBeforeInputNotification } from "../commons/OutputBeforeInputNotification";
 import { DataMapperLinkModel } from "../../Link";
 
 export interface ObjectOutputFieldWidgetProps {
@@ -65,7 +64,6 @@ export function ObjectOutputFieldWidget(props: ObjectOutputFieldWidgetProps) {
 
     const [isHovered, setIsHovered] = useState(false);
     const [portState, setPortState] = useState<PortState>(PortState.Unselected);
-    const [hasOutputBeforeInput, setHasOutputBeforeInput] = useState(false);
 
     const collapsedFieldsStore = useDMCollapsedFieldsStore();
 
@@ -104,10 +102,6 @@ export function ObjectOutputFieldWidget(props: ObjectOutputFieldWidgetProps) {
     const handlePortState = (state: PortState) => {
         setPortState(state)
     };
-
-	const handlePortSelection = (outputBeforeInput: boolean) => {
-		setHasOutputBeforeInput(outputBeforeInput);
-	};
 
     const handleAddValue = async () => {
         setLoading(true);
@@ -256,7 +250,6 @@ export function ObjectOutputFieldWidget(props: ObjectOutputFieldWidgetProps) {
                                 port={portIn}
                                 disable={isDisabled && expanded}
                                 handlePortState={handlePortState}
-                                hasFirstSelectOutput={handlePortSelection}
                             />
                         )}
                     </span>
@@ -285,7 +278,6 @@ export function ObjectOutputFieldWidget(props: ObjectOutputFieldWidgetProps) {
                             />
                         </FieldActionWrapper>
                     ))}
-                    {hasOutputBeforeInput && <OutputBeforeInputNotification />}
                 </div>
             )}
             {isArray && (

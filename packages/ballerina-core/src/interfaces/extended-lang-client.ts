@@ -369,6 +369,18 @@ export interface GetInlineDataMapperCodedataResponse {
     codedata: CodeData;
 }
 
+export interface PropertyRequest {
+    filePath: string;
+    codedata: CodeData;
+    propertyKey: string,
+    targetField: string;
+    fieldId: string;
+}
+
+export interface PropertyResponse {
+    property: Property;
+}
+
 export interface GraphqlDesignServiceParams {
     filePath: string;
     startLine: LinePosition;
