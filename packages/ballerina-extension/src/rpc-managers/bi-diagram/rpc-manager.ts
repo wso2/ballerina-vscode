@@ -666,7 +666,7 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
         return new Promise(async (resolve) => {
             const currentProject: BallerinaProject | undefined = await getCurrentBIProject(params.filePath);
 
-            const configFilePath = path.join(StateMachine.context().projectUri, "config.toml");
+            const configFilePath = path.join(StateMachine.context().projectUri, "Config.toml");
             const ignoreFile = path.join(StateMachine.context().projectUri, ".gitignore");
             const docLink = "https://ballerina.io/learn/provide-values-to-configurable-variables/#provide-via-toml-syntax";
             const uri = Uri.file(configFilePath);
