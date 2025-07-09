@@ -36,16 +36,16 @@ function activateConfigRunCommand() {
 
     commands.registerCommand(PALETTE_COMMANDS.CONFIG_CREATE_COMMAND, async () => {
         try {
-            // Get opened workspace path
-            let projectPath: string | undefined;
+            // Open current config.toml or create a new config.toml if it does not exist
+            let projectPath: string;
             if (window.activeTextEditor) {
                 projectPath = window.activeTextEditor.document.uri.fsPath;
             } else if (workspace.workspaceFolders && workspace.workspaceFolders.length > 0) {
                 projectPath = workspace.workspaceFolders[0].uri.fsPath;
             }
-            
+
             const biDiagramRpcManager = new BiDiagramRpcManager();
-            await biDiagramRpcManager.openConfigToml({filePath: projectPath});
+            await biDiagramRpcManager.openConfigToml({ filePath: projectPath });
             return;
         } catch (error) {
             throw new Error("Unable to create Config.toml file. Try again with a valid Ballerina file open in the editor.");
