@@ -1289,24 +1289,26 @@ public class FormBuilder<T> extends FacetedBuilder<T> {
         return endNestedProperty(valueType, key, label, doc, null, false, false);
     }
 
-    public final void addProperty(String key, Node node) {
+    public final FormBuilder<T> addProperty(String key, Node node) {
         if (node != null && diagnosticHandler != null) {
             diagnosticHandler.handle(propertyBuilder, node.lineRange(), true);
         }
         Property property = propertyBuilder.build();
         this.nodeProperties.put(key, property);
+        return this;
     }
 
-    public final void addProperty(String key) {
-        addProperty(key, (Node) null);
+    public final FormBuilder<T> addProperty(String key) {
+        return addProperty(key, (Node) null);
     }
 
-    public final void addProperty(String key, LineRange lineRange) {
+    public final FormBuilder<T> addProperty(String key, LineRange lineRange) {
         if (lineRange != null && diagnosticHandler != null) {
             diagnosticHandler.handle(propertyBuilder, lineRange, true);
         }
         Property property = propertyBuilder.build();
         this.nodeProperties.put(key, property);
+        return this;
     }
 
     public Map<String, Property> build() {
