@@ -81,6 +81,9 @@ import { QueryParentFindingVisitor } from "./QueryParentFindingVisitor"
 import { QueryExprFindingVisitorByPosition } from "./QueryExprFindingVisitorByPosition";
 import { DefaultPortModel } from "@projectstorm/react-diagrams";
 
+const INNER_FROM_CLAUSE_ERROR_MESSAGE = `Your mapping contains a query expression with one or more inner 'from' clauses, which are currently not supported.
+To proceed, please refactor your mapping to remove any nested 'from' clauses and try again.`;
+
 export class NodeInitVisitor implements Visitor {
 
     private inputParamNodes: DataMapperNodeModel[] = [];
@@ -134,6 +137,12 @@ export class NodeInitVisitor implements Visitor {
                     );
                 } else if (STKindChecker.isQueryExpression(bodyExpr)) {
                     const { queryPipeline: { fromClause, intermediateClauses } } = bodyExpr;
+
+                    const hasInnerFromClauses = intermediateClauses.some(clause => STKindChecker.isFromClause(clause));
+                    if (hasInnerFromClauses) {
+                        throw new Error(INNER_FROM_CLAUSE_ERROR_MESSAGE);
+                    }
+
                     if (this.context.selection.selectedST.fieldPath === FUNCTION_BODY_QUERY) {
                         isFnBodyQueryExpr = true;
                         const selectClause = bodyExpr?.selectClause || bodyExpr?.resultClause;
@@ -527,6 +536,12 @@ export class NodeInitVisitor implements Visitor {
 
         if (isSelectedExpr) {
             const { fromClause, intermediateClauses } = node.queryPipeline;
+
+            const hasInnerFromClauses = intermediateClauses.some(clause => STKindChecker.isFromClause(clause));
+            if (hasInnerFromClauses) {
+                throw new Error(INNER_FROM_CLAUSE_ERROR_MESSAGE);
+            }
+
             if (parentIdentifier) {
                 const intermediateClausesHeight = 100 + intermediateClauses.length * OFFSETS.INTERMEDIATE_CLAUSE_HEIGHT;
                 // create output node
