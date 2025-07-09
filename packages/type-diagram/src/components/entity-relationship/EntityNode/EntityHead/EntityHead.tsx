@@ -24,7 +24,7 @@ import { EntityHead, EntityName } from '../styles';
 import { CtrlClickGo2Source } from '../../../common/CtrlClickHandler/CtrlClickGo2Source';
 import { DiagramContext } from '../../../common';
 import styled from '@emotion/styled';
-import { Button, Item, Menu, MenuItem, Popover } from '@wso2/ui-toolkit';
+import { Button, Item, Menu, MenuItem, Popover, ThemeColors } from '@wso2/ui-toolkit';
 import { MoreVertIcon } from '../../../../resources';
 import { GraphQLIcon } from '../../../../resources/assets/icons/GraphqlIcon';
 
@@ -68,11 +68,25 @@ const HeaderWrapper = styled.div`
     width: 100%;
 `;
 
+const ImportedLabel = styled.span`
+    background-color: ${ThemeColors.SURFACE_CONTAINER};
+    border-radius: 3px;
+    color: ${ThemeColors.ON_SURFACE_VARIANT};
+    font-family: GilmerRegular;
+    font-size: 10px;
+    height: 20px;
+    line-height: 20px;
+    padding: 0 6px;
+    margin-left: 8px;
+    white-space: nowrap;
+`;
+
 export function EntityHeadWidget(props: ServiceHeadProps) {
     const { engine, node, isSelected } = props;
     const { setFocusedNodeId, onEditNode, goToSource } = useContext(DiagramContext);
 
     const displayName: string = node.getID()?.slice(node.getID()?.lastIndexOf(':') + 1);
+    const isImported = !node?.entityObject?.editable;
 
     const [anchorEl, setAnchorEl] = useState<HTMLElement | SVGSVGElement>(null);
     const isMenuOpen = Boolean(anchorEl);
@@ -82,7 +96,7 @@ export function EntityHeadWidget(props: ServiceHeadProps) {
     };
 
     const onNodeEdit = () => {
-        if (onEditNode) {
+        if (onEditNode && node?.entityObject?.editable) {
             if (node.isGraphqlRoot) {
                 onEditNode(node.getID(), true);
             } else {
@@ -103,13 +117,23 @@ export function EntityHeadWidget(props: ServiceHeadProps) {
     }
 
     const menuItems: Item[] = [
+        ...(node?.entityObject?.editable ? [
+            {
+                id: "edit",
+                label: "Edit",
+                onClick: () => onNodeEdit(),
+            },
+            {
+                id: "goToSource", 
+                label: "Source", 
+                onClick: () => onGoToSource()
+            }
+        ] : []),
         {
-            id: "edit",
-            label: "Edit",
-            onClick: () => onNodeEdit(),
-        },
-        { id: "goToSource", label: "Source", onClick: () => onGoToSource() },
-        { id: "focusView", label: "Focused View", onClick: () => onFocusedView() }
+            id: "focusView", 
+            label: "Focused View", 
+            onClick: () => onFocusedView()
+        }
     ];
 
     const isClickable = true;
@@ -133,12 +157,17 @@ export function EntityHeadWidget(props: ServiceHeadProps) {
                             </div>
                         )}
                         <EntityName
-                            isClickable={isClickable}
+                            isClickable={isClickable && !isImported}
                             onClick={onNodeEdit}
                             onDoubleClick={onFocusedView}
                         >
                             {displayName}
                         </EntityName>
+                        {isImported && (
+                            <ImportedLabel>
+                                Imported Type
+                            </ImportedLabel>
+                        )}
                     </EntityNameContainer>
                     <HeaderButtonsContainer>
                         {/* {selectedNodeId === node.getID() && (

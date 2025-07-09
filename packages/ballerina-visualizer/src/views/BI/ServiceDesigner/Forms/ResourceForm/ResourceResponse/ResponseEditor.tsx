@@ -19,15 +19,14 @@
 
 import { useEffect, useState } from 'react';
 
-import { CheckBox, Divider, Tabs, Typography } from '@wso2/ui-toolkit';
+import { Divider, OptionProps, Typography } from '@wso2/ui-toolkit';
 import { EditorContainer, EditorContent } from '../../../styles';
-import { LineRange, PropertyModel, StatusCodeResponse, responseCodes } from '@wso2/ballerina-core';
-import { getDefaultResponse, getTitleFromResponseCode, HTTP_METHOD } from '../../../utils';
+import { LineRange, PropertyModel, ResponseCode, StatusCodeResponse } from '@wso2/ballerina-core';
+import { getDefaultResponse, getTitleFromStatusCodeAndType, HTTP_METHOD } from '../../../utils';
 import { FormField, FormImports, FormValues } from '@wso2/ballerina-side-panel';
 import FormGeneratorNew from '../../../../Forms/FormGeneratorNew';
 import { useRpcContext } from '@wso2/ballerina-rpc-client';
 import { URI, Utils } from 'vscode-uri';
-import { VSCodeCheckbox } from '@vscode/webview-ui-toolkit/react';
 import { getImportsForProperty } from '../../../../../../utils/bi';
 
 
@@ -51,21 +50,25 @@ export function ResponseEditor(props: ParamProps) {
     const { rpcClient } = useRpcContext();
 
     const [filePath, setFilePath] = useState<string>('');
-    const [currentView, setCurrentView] = useState(response.type.value ? Views.EXISTING : Views.NEW);
+    const [responseCodes, setResponseCodes] = useState<ResponseCode[]>([]);
 
     const [targetLineRange, setTargetLineRange] = useState<LineRange>();
 
     const [newFields, setNewFields] = useState<FormField[]>([]);
 
     useEffect(() => {
-        rpcClient.getVisualizerLocation().then(res => { setFilePath(Utils.joinPath(URI.file(res.projectUri), 'main.bal').fsPath) });
+        rpcClient.getServiceDesignerRpcClient().getResourceReturnTypes({ filePath: undefined, context: undefined }).then((res) => {
+            console.log("Resource Return Types: ", res);
+            setResponseCodes(res.completions);
+            rpcClient.getVisualizerLocation().then(res => { setFilePath(Utils.joinPath(URI.file(res.projectUri), 'main.bal').fsPath) });
+        });
     }, []);
 
     const handleOnCancel = () => {
         onCancel(index);
     };
 
-    const convertPropertyToFormField = (property: PropertyModel, isArray?: boolean, items?: string[]) => {
+    const convertPropertyToFormField = (property: PropertyModel, items?: string[]) => {
         const converted: FormField = {
             key: "",
             label: property.metadata.label,
@@ -73,8 +76,9 @@ export function ResponseEditor(props: ParamProps) {
             optional: property.optional,
             editable: property.editable,
             enabled: property.enabled,
+            advanced: property.advanced,
             documentation: property.metadata.description,
-            value: isArray ? property.values || [] : property.value,
+            value: property.value,
             items: property.items || items,
             diagnostics: property.diagnostics,
             valueTypeConstraint: property.valueTypeConstraint,
@@ -82,7 +86,8 @@ export function ResponseEditor(props: ParamProps) {
         return converted;
     }
 
-    const updateNewFields = (res: StatusCodeResponse) => {
+    const updateNewFields = (res: StatusCodeResponse, hasBody: boolean = true) => {
+        const NO_BODY_TYPES = ["http:Response", "http:NoContent", "error"];
         const defaultItems = [
             "",
             "string",
@@ -92,32 +97,59 @@ export function ResponseEditor(props: ParamProps) {
             "int[]",
             "boolean[]"
         ];
-        const fields = [
+
+        // Special Condition to check http:Response to re-direct to Dynamic Status code
+        if (NO_BODY_TYPES.includes(res.type.value)) {
+            res.statusCode.value = "";
+            // Handle the error type to set the default status code to 500
+            if (res.type.value === "error") {
+                res.statusCode.value = "500";
+            }
+            hasBody = false;
+        }
+
+        const fields: FormField[] = [
             {
                 ...convertPropertyToFormField(res.statusCode),
                 key: `statusCode`,
-                value: getTitleFromResponseCode(Number(res.statusCode.value)),
-                items: responseCodes.map(code => code.title),
-            },
-            {
-                ...convertPropertyToFormField(res.body),
-                key: `body`,
-            },
-            {
-                ...convertPropertyToFormField(res.name),
-                key: `name`,
-            },
-            {
-                ...convertPropertyToFormField(res.headers, true, defaultItems),
-                key: `headers`,
+                value: getTitleFromStatusCodeAndType(responseCodes, res.statusCode.value, res.type.value),
+                itemOptions: getCategorizedOptions(responseCodes),
+                onValueChange: (value: string) => {
+                    const responseCodeData = responseCodes.find(code => getTitleFromStatusCodeAndType(responseCodes, code.statusCode, code.type) === value);
+                    res.statusCode.value = responseCodeData.statusCode;
+                    res.type.value = responseCodeData.type;
+                    if (NO_BODY_TYPES.includes(responseCodeData.type)) {
+                        updateNewFields(res, false);
+                    } else {
+                        updateNewFields(res, true);
+                    }
+                }
             }
         ];
+
+        if (hasBody) {
+            fields.push({
+                ...convertPropertyToFormField(res.body),
+                key: `body`,
+            });
+            fields.push({
+                ...convertPropertyToFormField(res.name),
+                key: `name`,
+            },);
+            fields.push({
+                ...convertPropertyToFormField(res.headers, defaultItems),
+                key: `headers`,
+            });
+        }
+
         setNewFields(fields);
     };
 
     useEffect(() => {
-        updateNewFields(response);
-    }, [response]);
+        if (responseCodes.length > 0) {
+            updateNewFields(response);
+        }
+    }, [response, responseCodes]);
 
 
     const existingFields: FormField[] = [
@@ -132,7 +164,7 @@ export function ResponseEditor(props: ParamProps) {
         if (dataValues['name']) {
             return true;
         }
-        const code = responseCodes.find(code => code.title === dataValues['statusCode']).code;
+        const code = responseCodes.find(code => getTitleFromStatusCodeAndType(responseCodes, code.statusCode, code.type) === dataValues['statusCode']).statusCode;
         const defaultCode = getDefaultResponse(method);
 
         // Set optional false for the response name
@@ -166,7 +198,7 @@ export function ResponseEditor(props: ParamProps) {
         console.log("Add New Response: ", dataValues);
         if (isValidResponse(dataValues)) {
             // Set the values
-            const code = responseCodes.find(code => code.title === dataValues['statusCode']).code;
+            const code = responseCodes.find(code => getTitleFromStatusCodeAndType(responseCodes, code.statusCode, code.type) === dataValues['statusCode']).statusCode;
             response.statusCode.value = String(code);
             response.body.value = dataValues['body'];
             response.name.value = dataValues['name'];
@@ -174,17 +206,6 @@ export function ResponseEditor(props: ParamProps) {
             response.body.imports = getImportsForProperty('body', formImports);
             onSave(response, index);
         }
-    }
-
-    const handleOnExistingSubmit = (dataValues: FormValues, formImports: FormImports) => {
-        console.log("Add Existing Type: ", dataValues);
-        response.type.value = dataValues['type'];
-        response.type.imports = getImportsForProperty('type', formImports);
-        response.statusCode.value = '';
-        response.body.value = '';
-        response.name.value = '';
-        response.headers.values = [];
-        onSave(response, index);
     }
 
     useEffect(() => {
@@ -201,24 +222,79 @@ export function ResponseEditor(props: ParamProps) {
         }
     }, [filePath, rpcClient]);
 
-    const handleCheckChange = (view: string) => {
-        if (currentView === Views.EXISTING) {
-            setCurrentView(Views.NEW);
-        } else {
-            setCurrentView(Views.EXISTING);
+    // Helper to create a header option (non-selectable)
+    const createHeaderOption = (label: string, marginBlockEnd: number = 3): OptionProps => ({
+        id: `header-${label}`,
+        content: (
+            <Typography sx={{ marginBlockEnd, marginTop: marginBlockEnd === 0 ? 0 : 16 }} variant="caption">{label}</Typography>
+        ),
+        value: `header-${label}`,
+        disabled: true, // Make header non-selectable
+    });
+
+    // Helper to create a regular option
+    const createOption = (item: ResponseCode): OptionProps => ({
+        id: `${item.statusCode}-${item.type}`,
+        content: (
+            <span style={{ padding: "4px" }}>
+                {item.statusCode !== "Dynamic" ? `${item.statusCode} ` : "Dynamic"} - {item.label}
+            </span>
+        ),
+        value: `${item.statusCode} - ${item.label}`,
+    });
+
+    // Main function to categorize and flatten the list
+    function getCategorizedOptions(responseCodes: ResponseCode[]): OptionProps[] {
+        const dynamic = responseCodes.filter(i => i.type === "http:Response");
+        const error = responseCodes.filter(i => i.type === "error");
+        const userDefined = responseCodes.filter(i => i.category === "User Defined");
+        const preBuilt = responseCodes.filter(i =>
+            ["1XX", "2XX", "3XX", "4XX", "5XX"].includes(i.category)
+        );
+        let options: OptionProps[] = [];
+
+        if (userDefined.length) {
+            options.push(createHeaderOption("User Defined Responses", 0));
+            options = options.concat(userDefined.map(createOption));
         }
-    };
+        if (preBuilt.filter(i => i.category === "2XX").length > 0) {
+            options.push(createHeaderOption("2XX - Success", userDefined.length > 0 ? 3 : 0));
+            options = options.concat(preBuilt.filter(i => i.category === "2XX").map(createOption));
+        }
+        if (preBuilt.filter(i => i.category === "1XX").length > 0) {
+            options.push(createHeaderOption("1XX - Informational"));
+            options = options.concat(preBuilt.filter(i => i.category === "1XX").map(createOption));
+        }
+        if (preBuilt.filter(i => i.category === "3XX").length > 0) {
+            options.push(createHeaderOption("3XX - Redirection"));
+            options = options.concat(preBuilt.filter(i => i.category === "3XX").map(createOption));
+        }
+        if (preBuilt.filter(i => i.category === "4XX").length > 0) {
+            options.push(createHeaderOption("4XX - Client Error"));
+            options = options.concat(preBuilt.filter(i => i.category === "4XX").map(createOption));
+        }
+        if (preBuilt.filter(i => i.category === "5XX").length > 0) {
+            options.push(createHeaderOption("5XX - Server Error"));
+            options = options.concat(preBuilt.filter(i => i.category === "5XX").map(createOption));
+        }
+        if (error.length) {
+            options.push(createHeaderOption("Error Response"));
+            options = options.concat(error.map(createOption));
+        }
+        if (dynamic.length) {
+            options.push(createHeaderOption("Infer from Response"));
+            options = options.concat(dynamic.map(createOption));
+        }
+        return options;
+    }
 
     return (
         <EditorContainer>
             <EditorContent>
                 <Typography sx={{ marginBlockEnd: 10 }} variant="h4">Response Configuration</Typography>
-                <VSCodeCheckbox checked={currentView === Views.EXISTING} onChange={handleCheckChange} id="is-req-checkbox">
-                    Use Existing
-                </VSCodeCheckbox>
             </EditorContent>
             <Divider />
-            {currentView === Views.NEW && filePath && targetLineRange &&
+            {filePath && targetLineRange &&
                 <div>
                     <FormGeneratorNew
                         fileName={filePath}
@@ -226,19 +302,6 @@ export function ResponseEditor(props: ParamProps) {
                         fields={newFields}
                         onBack={handleOnCancel}
                         onSubmit={handleOnNewSubmit}
-                        submitText={isEdit ? "Save" : "Add"}
-                        nestedForm={true}
-                        helperPaneSide='left'
-                    />
-                </div>}
-            {currentView === Views.EXISTING && filePath && targetLineRange &&
-                <div>
-                    <FormGeneratorNew
-                        fileName={filePath}
-                        targetLineRange={targetLineRange}
-                        fields={existingFields}
-                        onBack={handleOnCancel}
-                        onSubmit={handleOnExistingSubmit}
                         submitText={isEdit ? "Save" : "Add"}
                         nestedForm={true}
                         helperPaneSide='left'

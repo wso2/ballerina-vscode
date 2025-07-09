@@ -225,6 +225,8 @@ import {
     UpdateConfigVariableResponseV2,
     DeleteConfigVariableRequestV2,
     DeleteConfigVariableResponseV2,
+    ResourceReturnTypesRequest,
+    ResourceReturnTypesResponse,
     JsonToTypeRequest,
     JsonToTypeResponse,
     GetInlineDataMapperCodedataRequest,
@@ -353,6 +355,7 @@ enum EXTENDED_APIS {
     BI_SERVICE_GET_SERVICE_SOURCE = 'serviceDesign/getServiceFromSource',
     BI_SERVICE_UPDATE_SERVICE_CLASS = 'serviceDesign/updateServiceClass',
     BI_SERVICE_GET_RESOURCE = 'serviceDesign/getFunctionModel',
+    BI_SERVICE_GET_RESOURCE_RETURN_TYPES = 'serviceDesign/types',
     BI_SERVICE_ADD_RESOURCE = 'serviceDesign/addResource',
     BI_SERVICE_ADD_FUNCTION = 'serviceDesign/addFunction',
     BI_SERVICE_UPDATE_RESOURCE = 'serviceDesign/updateFunction',
@@ -1047,6 +1050,10 @@ export class ExtendedLangClient extends LanguageClient implements ExtendedLangCl
 
     async getHttpResourceModel(params: HttpResourceModelRequest): Promise<HttpResourceModelResponse> {
         return this.sendRequest<HttpResourceModelResponse>(EXTENDED_APIS.BI_SERVICE_GET_RESOURCE, params);
+    }
+
+    async getResourceReturnTypes(params: ResourceReturnTypesRequest): Promise<ResourceReturnTypesResponse> {
+        return this.sendRequest<ResourceReturnTypesResponse>(EXTENDED_APIS.BI_SERVICE_GET_RESOURCE_RETURN_TYPES, params);
     }
 
     async addResourceSourceCode(params: FunctionSourceCodeRequest): Promise<ResourceSourceCodeResponse> {

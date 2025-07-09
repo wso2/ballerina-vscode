@@ -17,7 +17,7 @@
  */
 
 import { RefObject } from "react";
-import { DiagnosticMessage, FormDiagnostics, TextEdit, PropertyModel, LinePosition, LineRange, ExpressionProperty, Metadata, RecordTypeField, Imports  } from "@wso2/ballerina-core";
+import { DiagnosticMessage, FormDiagnostics, TextEdit, PropertyModel, LinePosition, LineRange, ExpressionProperty, Metadata, RecordTypeField, Imports } from "@wso2/ballerina-core";
 import { ParamConfig } from "../ParamManager/ParamManager";
 import { CompletionItem, FormExpressionEditorRef, HelperPaneHeight, HelperPaneOrigin, OptionProps } from "@wso2/ui-toolkit";
 
@@ -53,8 +53,9 @@ export type FormField = {
     enabled: boolean;
     lineRange?: LineRange;
     metadata?: Metadata;
-    codedata?: {[key: string]: any};
-    imports?: {[key: string]: string};
+    codedata?: { [key: string]: any };
+    imports?: { [key: string]: string };
+    onValueChange?: (value: string) => void;
 };
 
 export type ParameterValue = {

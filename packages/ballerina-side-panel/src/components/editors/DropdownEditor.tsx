@@ -43,12 +43,16 @@ export function DropdownEditor(props: DropdownEditorProps) {
     return (
         <Dropdown
             id={field.key}
+            description={field.documentation}
             {...register(field.key, { required: !field.optional, value: getValueForDropdown(field) })}
             label={capitalize(field.label)}
             items={field.itemOptions ? field.itemOptions : field.items?.map((item) => ({ id: item, content: item, value: item }))}
             required={!field.optional}
             disabled={!field.editable}
-            onChange={(e) => setValue(field.key, e.target.value)}
+            onChange={(e) => {
+                setValue(field.key, e.target.value);
+                field.onValueChange?.(e.target.value);
+            }}
             sx={{ width: "100%" }}
             containerSx={{ width: "100%" }}
             addNewBtnClick={field.addNewButton ? () => openSubPanel({ view: SubPanelView.ADD_NEW_FORM }) : undefined}
