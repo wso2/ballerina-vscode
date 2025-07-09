@@ -219,6 +219,8 @@ import {
     MemoryManagersResponse,
     ArtifactsNotification,
     AddClausesRequest,
+    PropertyRequest,
+    PropertyResponse,
     OpenConfigTomlRequest,
     UpdateConfigVariableRequestV2,
     GetConfigVariableNodeTemplateRequest,
@@ -309,6 +311,7 @@ enum EXTENDED_APIS {
     DATA_MAPPER_ADD_CLAUSES = 'dataMapper/addClauses',
     DATA_MAPPER_CODEDATA = 'dataMapper/nodePosition',
     DATA_MAPPER_SUB_MAPPING_CODEDATA = 'dataMapper/subMapping',
+    DATA_MAPPER_PROPERTY = 'dataMapper/fieldPosition',
     VIEW_CONFIG_VARIABLES = 'configEditor/getConfigVariables',
     UPDATE_CONFIG_VARIABLES = 'configEditor/updateConfigVariables',
     VIEW_CONFIG_VARIABLES_V2 = 'configEditorV2/getConfigVariables',
@@ -691,6 +694,10 @@ export class ExtendedLangClient extends LanguageClient implements ExtendedLangCl
 
     async getSubMappingCodedata(params: GetSubMappingCodedataRequest): Promise<GetInlineDataMapperCodedataResponse> {
         return this.sendRequest<GetInlineDataMapperCodedataResponse>(EXTENDED_APIS.DATA_MAPPER_SUB_MAPPING_CODEDATA, params);
+    }
+
+    async getProperty(params: PropertyRequest): Promise<PropertyResponse | NOT_SUPPORTED_TYPE> {
+        return this.sendRequest<PropertyResponse>(EXTENDED_APIS.DATA_MAPPER_PROPERTY, params);
     }
 
     async getGraphqlModel(params: GraphqlDesignServiceParams): Promise<GraphqlDesignService | NOT_SUPPORTED_TYPE> {
