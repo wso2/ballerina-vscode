@@ -72,8 +72,11 @@ import io.ballerina.flowmodelgenerator.core.model.Codedata;
 import io.ballerina.flowmodelgenerator.core.model.FlowNode;
 import io.ballerina.flowmodelgenerator.core.model.NodeKind;
 import io.ballerina.flowmodelgenerator.core.model.Property;
+<<<<<<< HEAD
 import io.ballerina.flowmodelgenerator.core.model.SourceBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.VariableBuilder;
+=======
+>>>>>>> 75d2f29251 (Fix checkstyle violations)
 import io.ballerina.modelgenerator.commons.CommonUtils;
 import io.ballerina.modelgenerator.commons.DefaultValueGeneratorUtil;
 import io.ballerina.modelgenerator.commons.ModuleInfo;
@@ -220,23 +223,30 @@ public class DataMapManager {
             String fromClauseVar = fromClauseNode.typedBindingPattern().bindingPattern().toSourceCode().trim();
             if (typeSymbol.isPresent() && typeSymbol.get().typeKind() == TypeDescKind.ARRAY) {
                 TypeSymbol memberTypeSymbol = ((ArrayTypeSymbol) typeSymbol.get()).memberTypeDescriptor();
+<<<<<<< HEAD
                 MappingPort mappingPort = getMappingPort(fromClauseVar, fromClauseVar, Type.fromSemanticSymbol(memberTypeSymbol));
+=======
+                MappingPort mappingPort = getMappingPort(fromClauseVar, fromClauseVar,
+                        Type.fromSemanticSymbol(memberTypeSymbol), true);
+>>>>>>> 75d2f29251 (Fix checkstyle violations)
                 if (mappingPort != null) {
                     mappingPort.setIsFocused(true);
                     setFocusIdForExpression(inputPorts, expression.toString().trim(), mappingPort.id);
                     NonTerminalNode parent = expressionNode.parent();
                     SyntaxKind parentKind = parent.kind();
-                    while (parentKind != SyntaxKind.LOCAL_VAR_DECL) {
+                    while (parentKind != SyntaxKind.LOCAL_VAR_DECL && parentKind != SyntaxKind.MODULE_VAR_DECL)  {
                         if (parentKind == SyntaxKind.QUERY_EXPRESSION) {
                             QueryExpressionNode parentQueryExpr = (QueryExpressionNode) parent;
                             FromClauseNode parentFromClause = parentQueryExpr.queryPipeline().fromClause();
                             ExpressionNode parentExpression = parentFromClause.expression();
-                            String parentFromClauseVar = parentFromClause.typedBindingPattern().bindingPattern().toSourceCode().trim();
+                            String parentFromClauseVar = parentFromClause.typedBindingPattern().bindingPattern()
+                                    .toSourceCode().trim();
                             Optional<TypeSymbol> expressionTypeSymbol = semanticModel.typeOf(parentExpression);
-                            if (expressionTypeSymbol.isPresent() && expressionTypeSymbol.get().typeKind() == TypeDescKind.ARRAY) {
-                                TypeSymbol parentMemberTypeSymbol = ((ArrayTypeSymbol) typeSymbol.get()).memberTypeDescriptor();
+                            if (expressionTypeSymbol.isPresent() &&
+                                    expressionTypeSymbol.get().typeKind() == TypeDescKind.ARRAY) {
                                 setIsFocusedForInputPort(inputPorts, parentFromClauseVar);
-                                setFocusIdForExpression(inputPorts, parentExpression.toString().trim(), parentFromClauseVar.toString());
+                                setFocusIdForExpression(inputPorts, parentExpression.toString().trim(),
+                                        parentFromClauseVar);
                             }
                         }
                         parent = parent.parent();
@@ -1489,6 +1499,10 @@ public class DataMapManager {
         void setIsFocused(Boolean isFocused) {
             this.isFocused = isFocused;
         }
+
+        Boolean getIsFocused() {
+            return this.isFocused;
+        }
     }
 
     private static class MappingRecordPort extends MappingPort {
@@ -1513,6 +1527,14 @@ public class DataMapManager {
 
         MappingPort getMember() {
             return this.member;
+        }
+
+        void setFocusedMemberId(String focusedMemberId) {
+            this.focusedMemberId = focusedMemberId;
+        }
+
+        String getFocusedMemberId() {
+            return this.focusedMemberId;
         }
     }
 }
