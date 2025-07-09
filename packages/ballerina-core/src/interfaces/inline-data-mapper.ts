@@ -195,7 +195,6 @@ export interface IDMFormProps {
     onSubmit: (data: IDMFormFieldValues) => void;
     onCancel?: () => void;
     isSaving?: boolean;
-    helperPaneSide?: 'right' | 'left';
 }
 
 export interface IDMFormField {
