@@ -220,8 +220,30 @@ public class DataMapManager {
             String fromClauseVar = fromClauseNode.typedBindingPattern().bindingPattern().toSourceCode().trim();
             if (typeSymbol.isPresent() && typeSymbol.get().typeKind() == TypeDescKind.ARRAY) {
                 TypeSymbol memberTypeSymbol = ((ArrayTypeSymbol) typeSymbol.get()).memberTypeDescriptor();
-                inputPorts.add(
-                        getMappingPort(fromClauseVar, fromClauseVar, Type.fromSemanticSymbol(memberTypeSymbol)));
+                MappingPort mappingPort = getMappingPort(fromClauseVar, fromClauseVar, Type.fromSemanticSymbol(memberTypeSymbol));
+                if (mappingPort != null) {
+                    mappingPort.setIsFocused(true);
+                    setFocusIdForExpression(inputPorts, expression.toString().trim(), mappingPort.id);
+                    NonTerminalNode parent = expressionNode.parent();
+                    SyntaxKind parentKind = parent.kind();
+                    while (parentKind != SyntaxKind.LOCAL_VAR_DECL) {
+                        if (parentKind == SyntaxKind.QUERY_EXPRESSION) {
+                            QueryExpressionNode parentQueryExpr = (QueryExpressionNode) parent;
+                            FromClauseNode parentFromClause = parentQueryExpr.queryPipeline().fromClause();
+                            ExpressionNode parentExpression = parentFromClause.expression();
+                            String parentFromClauseVar = parentFromClause.typedBindingPattern().bindingPattern().toSourceCode().trim();
+                            Optional<TypeSymbol> expressionTypeSymbol = semanticModel.typeOf(parentExpression);
+                            if (expressionTypeSymbol.isPresent() && expressionTypeSymbol.get().typeKind() == TypeDescKind.ARRAY) {
+                                TypeSymbol parentMemberTypeSymbol = ((ArrayTypeSymbol) typeSymbol.get()).memberTypeDescriptor();
+                                setIsFocusedForInputPort(inputPorts, parentFromClauseVar);
+                                setFocusIdForExpression(inputPorts, parentExpression.toString().trim(), parentFromClauseVar.toString());
+                            }
+                        }
+                        parent = parent.parent();
+                        parentKind = parent.kind();
+                    }
+                }
+                inputPorts.add(mappingPort);
                 itemType = memberTypeSymbol.signature().trim();
             }
 
@@ -263,6 +285,31 @@ public class DataMapManager {
         }
 
         return gson.toJsonTree(new Model(inputPorts, outputPort, subMappingPorts, mappings, query));
+    }
+
+    private void setFocusIdForExpression(List<MappingPort> ports, String expression, String focusId) {
+        for (MappingPort port : ports) {
+            if (expression.equals(port.id)) {
+                if (port instanceof DataMapManager.MappingArrayPort arrayPort) {
+                    arrayPort.focusedMemberId = focusId;
+                }
+            }
+            if (port instanceof DataMapManager.MappingRecordPort recordPort) {
+                setFocusIdForExpression(recordPort.fields, expression, focusId);
+            }
+            if (port instanceof DataMapManager.MappingArrayPort arrayPort && arrayPort.member != null) {
+                setFocusIdForExpression(List.of(arrayPort.member), expression, focusId);
+            }
+        }
+    }
+
+    private void setIsFocusedForInputPort(List<MappingPort> inputPorts, String id) {
+        for (MappingPort port : inputPorts) {
+            if (port.id.equals(id)) {
+                port.setIsFocused(true);
+                return;
+            }
+        }
     }
 
     private TargetNode getTargetNode(Node parentNode, String targetField, SemanticModel semanticModel) {
@@ -1410,7 +1457,7 @@ public class DataMapManager {
         String typeName;
         String kind;
         String category;
-        String focusId;
+        Boolean isFocused;
 
         MappingPort(String id, String variableName, String typeName, String kind) {
             this.id = id;
@@ -1438,6 +1485,10 @@ public class DataMapManager {
         void setVariableName(String variableName) {
             this.variableName = variableName;
         }
+
+        void setIsFocused(Boolean isFocused) {
+            this.isFocused = isFocused;
+        }
     }
 
     private static class MappingRecordPort extends MappingPort {
@@ -1450,6 +1501,7 @@ public class DataMapManager {
 
     private static class MappingArrayPort extends MappingPort {
         MappingPort member;
+        String focusedMemberId;
 
         MappingArrayPort(String id, String variableName, String typeName, String kind) {
             super(id, variableName, typeName, kind);
