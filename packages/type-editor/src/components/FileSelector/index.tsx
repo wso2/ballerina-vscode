@@ -16,7 +16,7 @@
  * under the License.
  */
 import React from "react";
-import { Button, Icon, Typography } from "@wso2/ui-toolkit";
+import { LinkButton, Icon, Typography } from "@wso2/ui-toolkit";
 
 export interface FileSelectorProps {
     label: string;
@@ -49,17 +49,18 @@ export function FileSelector(props: FileSelectorProps) {
     return (
         <React.Fragment>
             <input hidden={true} accept={`.${extension}`} type="file" onChange={showFile} ref={hiddenFileInput} />
-            <Button onClick={handleClick} appearance="icon">
+            <LinkButton onClick={handleClick} sx={{ padding: "3px" }}>
                 <Icon
                     name="bi-import"
-                    sx={{ marginRight: "5px" }}
-                    iconSx={{ fontSize: "15px", color: "var(--vscode-charts-purple)" }}
+                    iconSx={{ fontSize: "15px" }}
+                    sx={{ paddingTop: "2px" }}
                 />
                 <Typography
                     variant="body3"
-                    sx={{ color: "var(--vscode-charts-purple)" }}
-                >{`Import ${extension.toUpperCase()} File`}</Typography>
-            </Button>
+                >
+                    {`Import ${extension.toUpperCase()} File`}
+                </Typography>
+            </LinkButton>
         </React.Fragment>
     );
 }
