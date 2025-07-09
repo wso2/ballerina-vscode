@@ -81,8 +81,8 @@ import { QueryParentFindingVisitor } from "./QueryParentFindingVisitor"
 import { QueryExprFindingVisitorByPosition } from "./QueryExprFindingVisitorByPosition";
 import { DefaultPortModel } from "@projectstorm/react-diagrams";
 
-const INNER_FROM_CLAUSE_ERROR_MESSAGE = `Your mapping contains a query expression with one or more inner 'from' clauses, which are currently not supported.
-To proceed, please refactor your mapping to remove any nested 'from' clauses and try again.`;
+const INNER_FROM_CLAUSE_ERROR_MESSAGE = `This mapping contains a query expression with inner 'from' clauses, which are not currently supported in the visual data mapper.
+Please switch to the code editor to continue working with this mapping.`;
 
 export class NodeInitVisitor implements Visitor {
 
