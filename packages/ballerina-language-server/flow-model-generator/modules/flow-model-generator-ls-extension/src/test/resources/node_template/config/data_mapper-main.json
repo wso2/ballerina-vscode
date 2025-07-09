@@ -35,12 +35,11 @@
       },
       "type": {
         "metadata": {
-          "label": "Return Type",
-          "description": "Type of the return value"
+          "label": "Output",
+          "description": "Output type of the data mapper"
         },
         "valueType": "TYPE",
         "valueTypeConstraint": "anydata",
-        "value": "",
         "optional": false,
         "editable": true,
         "advanced": false,
@@ -49,7 +48,7 @@
       "parameters": {
         "metadata": {
           "label": "Inputs",
-          "description": "Input variables of the data mapper function"
+          "description": "Input variables of the data mapper"
         },
         "valueType": "REPEATABLE_PROPERTY",
         "valueTypeConstraint": {
