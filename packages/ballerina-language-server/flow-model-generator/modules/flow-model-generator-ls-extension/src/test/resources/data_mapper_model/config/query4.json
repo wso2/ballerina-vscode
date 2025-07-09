@@ -27,6 +27,78 @@
       {
         "fields": [
           {
+            "fields": [
+              {
+                "member": {
+                  "fields": [
+                    {
+                      "id": "u.info.secondaryPhones.0.code",
+                      "variableName": "code",
+                      "typeName": "string",
+                      "kind": "string"
+                    },
+                    {
+                      "id": "u.info.secondaryPhones.0.number",
+                      "variableName": "number",
+                      "typeName": "string",
+                      "kind": "string"
+                    }
+                  ],
+                  "id": "u.info.secondaryPhones.0",
+                  "variableName": "secondaryPhonesItem",
+                  "typeName": "SecondaryPhones",
+                  "kind": "record"
+                },
+                "focusedMemberId": "secondaryPhonesItem",
+                "id": "u.info.secondaryPhones",
+                "variableName": "secondaryPhones",
+                "typeName": "SecondaryPhones[]",
+                "kind": "array"
+              },
+              {
+                "member": {
+                  "id": "u.info.emails.0",
+                  "typeName": "string",
+                  "kind": "string"
+                },
+                "id": "u.info.emails",
+                "variableName": "emails",
+                "typeName": "string[]",
+                "kind": "array"
+              },
+              {
+                "member": {
+                  "member": {
+                    "id": "u.info.addresses.0.0",
+                    "typeName": "string",
+                    "kind": "string"
+                  },
+                  "id": "u.info.addresses.0",
+                  "variableName": "addressesItem",
+                  "typeName": "string[]",
+                  "kind": "array"
+                },
+                "id": "u.info.addresses",
+                "variableName": "addresses",
+                "typeName": "string[][]",
+                "kind": "array"
+              }
+            ],
+            "id": "u.info",
+            "variableName": "info",
+            "typeName": "Info",
+            "kind": "record"
+          }
+        ],
+        "id": "u",
+        "variableName": "u",
+        "typeName": "User",
+        "kind": "record",
+        "category": "variable"
+      },
+      {
+        "fields": [
+          {
             "id": "secondaryPhonesItem.code",
             "variableName": "code",
             "typeName": "string",
@@ -42,7 +114,8 @@
         "id": "secondaryPhonesItem",
         "variableName": "secondaryPhonesItem",
         "typeName": "SecondaryPhones",
-        "kind": "record"
+        "kind": "record",
+        "isFocused": true
       }
     ],
     "output": {

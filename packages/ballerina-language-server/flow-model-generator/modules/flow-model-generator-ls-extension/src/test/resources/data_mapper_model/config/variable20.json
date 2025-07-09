@@ -77,6 +77,7 @@
           "typeName": "Bank",
           "kind": "record"
         },
+        "focusedMemberId": "bank",
         "id": "banks",
         "variableName": "banks",
         "typeName": "Bank[]",
@@ -119,6 +120,55 @@
       {
         "fields": [
           {
+            "id": "bank.name",
+            "variableName": "name",
+            "typeName": "string",
+            "kind": "string"
+          },
+          {
+            "member": {
+              "fields": [
+                {
+                  "id": "bank.userInfo.0.username",
+                  "variableName": "username",
+                  "typeName": "string",
+                  "kind": "string"
+                },
+                {
+                  "id": "bank.userInfo.0.password",
+                  "variableName": "password",
+                  "typeName": "string",
+                  "kind": "string"
+                },
+                {
+                  "id": "bank.userInfo.0.id",
+                  "variableName": "id",
+                  "typeName": "int",
+                  "kind": "int"
+                }
+              ],
+              "id": "bank.userInfo.0",
+              "variableName": "userInfoItem",
+              "typeName": "UserInfo",
+              "kind": "record"
+            },
+            "focusedMemberId": "info",
+            "id": "bank.userInfo",
+            "variableName": "userInfo",
+            "typeName": "UserInfo[]",
+            "kind": "array"
+          }
+        ],
+        "id": "bank",
+        "variableName": "bank",
+        "typeName": "Bank",
+        "kind": "record",
+        "category": "variable",
+        "isFocused": true
+      },
+      {
+        "fields": [
+          {
             "id": "info.username",
             "variableName": "username",
             "typeName": "string",
@@ -140,7 +190,8 @@
         "id": "info",
         "variableName": "info",
         "typeName": "UserInfo",
-        "kind": "record"
+        "kind": "record",
+        "isFocused": true
       }
     ],
     "output": {
