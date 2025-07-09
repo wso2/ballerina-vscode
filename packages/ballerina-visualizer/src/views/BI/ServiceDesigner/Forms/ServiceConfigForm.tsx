@@ -233,7 +233,7 @@ function convertConfig(listener: ServiceModel): FormField[] {
             editable: true,
             enabled: expression.enabled ?? true,
             optional: expression.optional,
-            value: expression.valueType === "MULTIPLE_SELECT" ? (expression.value ? [expression.value] : [expression.items[0]]) : expression.value,
+            value: expression.valueType === "MULTIPLE_SELECT" ? (expression.values && expression.values.length > 0 ? expression.values : (expression.value ? [expression.value] : [expression.items[0]])) : expression.value,
             valueTypeConstraint: expression.valueTypeConstraint,
             advanced: expression.advanced,
             diagnostics: [],

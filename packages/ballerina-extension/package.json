@@ -199,6 +199,19 @@
                     "type": "boolean",
                     "default": false,
                     "description": "Use Ballerina distribution language server instead of bundled language server. Note: This will be automatically enabled for Ballerina versions older than 2201.12.3."
+                },
+                "ballerina.enableSequenceDiagramView":{
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Enable the experimental Sequence Diagram View.",
+                    "tags": [
+                        "experimental"
+                    ]
+                },
+                "ballerina.enableAiSuggestions": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Enable AI suggestions in the Flow Diagram View."
                 }
             }
         },

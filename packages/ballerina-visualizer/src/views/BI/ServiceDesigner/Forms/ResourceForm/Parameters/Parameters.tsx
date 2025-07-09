@@ -19,7 +19,7 @@
 
 import React, { useState } from 'react';
 
-import { Codicon, Divider, LinkButton, Typography } from '@wso2/ui-toolkit';
+import { Codicon, Divider, LinkButton, Typography, CheckBox, CheckBoxGroup } from '@wso2/ui-toolkit';
 import styled from '@emotion/styled';
 import { ParamEditor } from './ParamEditor';
 import { ParamItem } from './ParamItem';
@@ -53,6 +53,7 @@ export function Parameters(props: ParametersProps) {
     const payloadParameters = parameters.filter(param => param.httpParamType && param.httpParamType === "PAYLOAD");
     const advancedDisabledParameters = parameters.filter(param => !param.httpParamType && !param.enabled);
     const advancedEnabledParameters = parameters.filter(param => !param.httpParamType && param.enabled);
+    const advancedAllParameters = parameters.filter(param => !param.httpParamType).sort((a, b) => b.metadata.label.localeCompare(a.metadata.label));
 
 
     const [editModel, setEditModel] = useState<ParameterModel>(undefined);
@@ -102,6 +103,13 @@ export function Parameters(props: ParametersProps) {
 
     const onAdvanceSaveParam = (param: ParameterModel) => {
         param.enabled = true;
+        onChange(parameters.map(p => p.metadata.label === param.metadata.label ? param : p));
+        setEditModel(undefined);
+    };
+
+    const onAdvancedChecked = (param: ParameterModel, checked: boolean) => {
+        param.enabled = checked;
+        param.name.value = param.metadata.label.toLowerCase().replace(/ /g, "_");
         onChange(parameters.map(p => p.metadata.label === param.metadata.label ? param : p));
         setEditModel(undefined);
     };
@@ -191,7 +199,8 @@ export function Parameters(props: ParametersProps) {
 
             {/* <-------------------- Advanced Parameters Start --------------------> */}
 
-            <AdvancedParamTitleWrapper>
+            {/* TODO: REMOVE THE OLD ADVANCED PARAMETERS */}
+            {/* <AdvancedParamTitleWrapper>
                 <Typography sx={{ marginBlockEnd: 10 }} variant="h4">Advanced Parameters</Typography>
                 <LinkButton sx={{ marginTop: 12, marginLeft: 8 }} onClick={handleAdvanceParamToggle}> {showAdvanced ? "Hide" : "Show"} </LinkButton>
             </AdvancedParamTitleWrapper>
@@ -224,8 +233,30 @@ export function Parameters(props: ParametersProps) {
                     onCancel={onParamEditCancel}
                 />
             }
-            <Divider />
+            <Divider /> */}
             {/* <-------------------- Advanced Parameters End --------------------> */}
+
+            {/* <-------------------- Advanced Parameters Checkbox Start --------------------> */}
+
+            <>
+                <AdvancedParamTitleWrapper>
+                    <Typography sx={{ marginBlockEnd: 10 }} variant="h4">Advanced Parameters</Typography>
+                </AdvancedParamTitleWrapper>
+                <CheckBoxGroup direction="vertical">
+                    {
+                        advancedAllParameters.map((param: ParameterModel, index) => (
+                            <CheckBox
+                                key={index}
+                                label={param.metadata.label.charAt(0).toUpperCase() + param.metadata.label.slice(1)}
+                                checked={param.enabled}
+                                onChange={(checked) => onAdvancedChecked(param, checked)}
+                            />
+                        ))
+                    }
+                </CheckBoxGroup>
+                <Divider />
+            </>
+            {/* <-------------------- Advanced Parameters Checkbox End --------------------> */}
 
         </div >
     );
