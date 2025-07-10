@@ -24,5 +24,5 @@ package io.ballerina.flowmodelgenerator.extension.request;
  * @param projectPath project path
 
  */
-public record GetAgentOrg(String projectPath) {
+public record GetAgentOrgRequest(String projectPath) {
 }

@@ -1,9 +1,8 @@
 {
   "description": "Test getting kafka listener model",
-  "orgName": "ballerina",
+  "orgName": "ballerinax",
   "pkgName": "kafka",
   "moduleName": "kafka",
-  "source": "sample1",
   "response": {
     "listener": {
       "id": "10",

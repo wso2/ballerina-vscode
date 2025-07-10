@@ -18,8 +18,7 @@
 
 package io.ballerina.flowmodelgenerator.extension.agentsmanager;
 
-import com.google.gson.JsonArray;
-import io.ballerina.flowmodelgenerator.extension.request.GetAllAgentsRequest;
+import io.ballerina.flowmodelgenerator.extension.request.GetAgentOrgRequest;
 import io.ballerina.modelgenerator.commons.AbstractLSTest;
 import org.testng.Assert;
 import org.testng.annotations.DataProvider;
@@ -30,18 +29,19 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 /**
- * Tests for get all agents.
+ * Tests for get agent org.
  *
  * @since 1.0.0
  */
-public class GetAllAgentsTest extends AbstractLSTest {
+public class GetAgentOrgTest extends AbstractLSTest {
 
     @DataProvider(name = "data-provider")
     @Override
     protected Object[] getConfigsList() {
         return new Object[][]{
-                {Path.of("get_all_ballerinax_agents.json")},
-                {Path.of("get_all_ballerina_agents.json")}
+                {Path.of("ballerina_ai_listener_model.json")},
+                {Path.of("ballerina_ai_listener_model_no_ai_imports.json")},
+                {Path.of("ballerinax_ai_listener_model.json")}
         };
     }
 
@@ -51,15 +51,13 @@ public class GetAllAgentsTest extends AbstractLSTest {
         Path configJsonPath = configDir.resolve(config);
         TestConfig testConfig = gson.fromJson(Files.newBufferedReader(configJsonPath), TestConfig.class);
 
-        String filePath =
-                testConfig.source() == null ? "" : sourceDir.resolve(testConfig.source()).toAbsolutePath().toString();
-        GetAllAgentsRequest request = new GetAllAgentsRequest(testConfig.orgName, filePath);
-        JsonArray agents = getResponse(request).getAsJsonArray("agents");
+        String filePath = sourceDir.resolve(testConfig.source()).toAbsolutePath().toString();
+        GetAgentOrgRequest request = new GetAgentOrgRequest(filePath);
+        String org = getResponse(request).get("org").getAsString();
 
-        if (!agents.equals(testConfig.agents())) {
-            TestConfig updatedConfig = new TestConfig(testConfig.source(), testConfig.description(),
-                    testConfig.orgName(), agents);
-//            updateConfig(configJsonPath, updatedConfig);
+        if (!org.equals(testConfig.orgName())) {
+            TestConfig updatedConfig = new TestConfig(testConfig.source(), org);
+            updateConfig(configJsonPath, updatedConfig);
             Assert.fail("Test failed. Updated the expected output in " + configJsonPath);
         }
     }
@@ -71,12 +69,12 @@ public class GetAllAgentsTest extends AbstractLSTest {
 
     @Override
     protected Class<? extends AbstractLSTest> clazz() {
-        return GetAllAgentsTest.class;
+        return GetAgentOrgTest.class;
     }
 
     @Override
     protected String getApiName() {
-        return "getAllAgents";
+        return "getAgentOrg";
     }
 
     @Override
@@ -88,13 +86,8 @@ public class GetAllAgentsTest extends AbstractLSTest {
      * Represents the test configuration for the flow model getNodeTemplate API.
      *
      * @param source      The source file path
-     * @param description The description of the test
-     * @param agents      List of all available agents
+     * @param orgName     Expected organization name
      */
-    private record TestConfig(String source, String description, String orgName, JsonArray agents) {
-
-        public String description() {
-            return description == null ? "" : description;
-        }
+    private record TestConfig(String source, String orgName) {
     }
 }

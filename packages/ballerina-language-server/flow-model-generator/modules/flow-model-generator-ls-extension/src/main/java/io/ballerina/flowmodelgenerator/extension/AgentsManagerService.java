@@ -22,7 +22,7 @@ import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
 import io.ballerina.flowmodelgenerator.core.AgentsGenerator;
 import io.ballerina.flowmodelgenerator.extension.request.GenToolRequest;
-import io.ballerina.flowmodelgenerator.extension.request.GetAgentOrg;
+import io.ballerina.flowmodelgenerator.extension.request.GetAgentOrgRequest;
 import io.ballerina.flowmodelgenerator.extension.request.GetAllAgentsRequest;
 import io.ballerina.flowmodelgenerator.extension.request.GetAllMemoryManagersRequest;
 import io.ballerina.flowmodelgenerator.extension.request.GetAllModelsRequest;
@@ -74,7 +74,7 @@ public class AgentsManagerService implements ExtendedLanguageServerService {
     }
 
     @JsonRequest
-    public CompletableFuture<GetAgentOrgResponse> getAgentOrg(GetAgentOrg request) {
+    public CompletableFuture<GetAgentOrgResponse> getAgentOrg(GetAgentOrgRequest request) {
         return CompletableFuture.supplyAsync(() -> {
             GetAgentOrgResponse response = new GetAgentOrgResponse();
             try {
@@ -95,7 +95,8 @@ public class AgentsManagerService implements ExtendedLanguageServerService {
         return CompletableFuture.supplyAsync(() -> {
             GetAgentsResponse response = new GetAgentsResponse();
             try {
-                Optional<SemanticModel> semanticModel = PackageUtil.getSemanticModel(request.orgName(), AI_AGENT);
+                String orgName = request.orgName() != null ? request.orgName() : BALLERINAX;
+                Optional<SemanticModel> semanticModel = PackageUtil.getSemanticModel(orgName, AI_AGENT);
                 if (semanticModel.isEmpty()) {
                     return response;
                 }
