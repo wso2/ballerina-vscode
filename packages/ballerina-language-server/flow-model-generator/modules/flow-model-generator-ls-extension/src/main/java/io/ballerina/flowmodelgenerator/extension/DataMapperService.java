@@ -28,6 +28,7 @@ import io.ballerina.flowmodelgenerator.extension.request.DataMapperNodePositionR
 import io.ballerina.flowmodelgenerator.extension.request.DataMapperQueryConvertRequest;
 import io.ballerina.flowmodelgenerator.extension.request.DataMapperSourceRequest;
 import io.ballerina.flowmodelgenerator.extension.request.DataMapperSubMappingRequest;
+import io.ballerina.flowmodelgenerator.extension.request.DataMapperSubMappingSourceRequest;
 import io.ballerina.flowmodelgenerator.extension.request.DataMapperTypesRequest;
 import io.ballerina.flowmodelgenerator.extension.request.DataMapperVisualizeRequest;
 import io.ballerina.flowmodelgenerator.extension.response.DataMapperFieldPositionResponse;
@@ -38,7 +39,6 @@ import io.ballerina.flowmodelgenerator.extension.response.DataMapperSubMappingRe
 import io.ballerina.flowmodelgenerator.extension.response.DataMapperTypesResponse;
 import io.ballerina.flowmodelgenerator.extension.response.DataMapperVisualizeResponse;
 import io.ballerina.projects.Document;
-import io.ballerina.projects.Project;
 import org.ballerinalang.annotation.JavaSPIService;
 import org.ballerinalang.langserver.commons.LanguageServerContext;
 import org.ballerinalang.langserver.commons.service.spi.ExtendedLanguageServerService;
@@ -209,7 +209,7 @@ public class DataMapperService implements ExtendedLanguageServerService {
             DataMapperSourceResponse response = new DataMapperSourceResponse();
             try {
                 Path filePath = Path.of(request.filePath());
-                Project project = this.workspaceManager.loadProject(filePath);
+                this.workspaceManager.loadProject(filePath);
                 Optional<SemanticModel> semanticModel = this.workspaceManager.semanticModel(filePath);
                 Optional<Document> document = this.workspaceManager.document(filePath);
                 if (semanticModel.isEmpty() || document.isEmpty()) {
@@ -280,6 +280,28 @@ public class DataMapperService implements ExtendedLanguageServerService {
                 }
                 DataMapManager dataMapManager = new DataMapManager(document.get());
                 response.setCodedata(dataMapManager.nodePosition(request.codedata(), request.name()));
+            } catch (Throwable e) {
+                response.setError(e);
+            }
+            return response;
+        });
+    }
+
+    @JsonRequest
+    public CompletableFuture<DataMapperSourceResponse> addSubMapping(DataMapperSubMappingSourceRequest request) {
+        return CompletableFuture.supplyAsync(() -> {
+            DataMapperSourceResponse response = new DataMapperSourceResponse();
+            try {
+                Path filePath = Path.of(request.filePath());
+                this.workspaceManager.loadProject(filePath);
+                Optional<SemanticModel> semanticModel = this.workspaceManager.semanticModel(filePath);
+                Optional<Document> document = this.workspaceManager.document(filePath);
+                if (semanticModel.isEmpty() || document.isEmpty()) {
+                    return response;
+                }
+                DataMapManager dataMapManager = new DataMapManager(document.get());
+                response.setTextEdits(dataMapManager.getSubMapping(this.workspaceManager, filePath,
+                        request.codedata(), request.flowNode(), request.index()));
             } catch (Throwable e) {
                 response.setError(e);
             }
