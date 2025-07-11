@@ -148,7 +148,7 @@
       }
     ],
     "query": {
-      "output": "s.students",
+      "output": "students",
       "inputs": [
         "userInfo"
       ],

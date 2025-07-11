@@ -194,7 +194,7 @@
       }
     ],
     "query": {
-      "output": "stores.credentials",
+      "output": "credentials",
       "inputs": [
         "bank.userInfo"
       ],

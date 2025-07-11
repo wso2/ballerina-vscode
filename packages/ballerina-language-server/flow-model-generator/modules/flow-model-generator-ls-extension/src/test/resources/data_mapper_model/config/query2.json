@@ -165,7 +165,7 @@
       }
     ],
     "query": {
-      "output": "p.contactDetails.phoneNumbers",
+      "output": "phoneNumbers",
       "inputs": [
         "u.info.secondaryPhones"
       ],

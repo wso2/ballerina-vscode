@@ -213,7 +213,7 @@ public class DataMapManager {
                 resultClause = new Clause("collect", new DataMapManager.Properties(null, null,
                         ((CollectClauseNode) clauseNode).expression().toSourceCode().trim(), null));
             }
-            query = new Query(targetField, inputs, fromClause,
+            query = new Query(name, inputs, fromClause,
                     getQueryIntermediateClause(queryExpressionNode.queryPipeline()), resultClause);
         } else if (expressionNode.kind() == SyntaxKind.LET_EXPRESSION) {
             LetExpressionNode letExpressionNode = (LetExpressionNode) expressionNode;

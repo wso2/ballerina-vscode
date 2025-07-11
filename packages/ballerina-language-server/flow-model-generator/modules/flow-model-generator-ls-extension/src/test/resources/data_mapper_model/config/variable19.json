@@ -138,6 +138,7 @@
       }
     ],
     "query": {
+      "output": "credentials",
       "inputs": [
         "userInfo"
       ],
