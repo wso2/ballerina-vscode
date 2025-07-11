@@ -184,7 +184,7 @@ export function EntityHeadWidget(props: ServiceHeadProps) {
                                 </Button>
                             </EditIconContainer>
                         )} */}
-                        <MenuButton appearance="icon" onClick={handleOnMenuClick}>
+                        <MenuButton appearance="icon" onClick={handleOnMenuClick} data-testid={`type-node-${displayName}-menu`}>
                             <MoreVertIcon />
                         </MenuButton>
                     </HeaderButtonsContainer>
