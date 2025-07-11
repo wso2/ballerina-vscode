@@ -143,7 +143,7 @@ export function EntityHeadWidget(props: ServiceHeadProps) {
         <CtrlClickGo2Source node={node.entityObject}>
             <EntityHead
                 isSelected={isSelected}
-                data-testid={`entity-head-${displayName}`}
+                data-testid={`type-node-${displayName}`}
             >
                 <EntityPortWidget
                     port={node.getPort(`left-${node.getID()}`)}
@@ -184,7 +184,7 @@ export function EntityHeadWidget(props: ServiceHeadProps) {
                                 </Button>
                             </EditIconContainer>
                         )} */}
-                        <MenuButton appearance="icon" onClick={handleOnMenuClick}>
+                        <MenuButton appearance="icon" onClick={handleOnMenuClick} data-testid={`type-node-${displayName}-menu`}>
                             <MoreVertIcon />
                         </MenuButton>
                     </HeaderButtonsContainer>
