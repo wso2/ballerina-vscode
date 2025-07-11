@@ -178,7 +178,7 @@ public class DataMapManager {
 
         Type type = Type.fromSemanticSymbol(targetNode.typeSymbol());
         String name = targetNode.name();
-        MappingPort outputPort = getMappingPort(name, name, type, false);
+        MappingPort outputPort = getMappingPort(name, name, type);
         ExpressionNode expressionNode = targetNode.expressionNode();
         if (expressionNode == null) {
             return gson.toJsonTree(new Model(inputPorts, outputPort, new ArrayList<>(), null));
@@ -198,7 +198,7 @@ public class DataMapManager {
             if (typeSymbol.isPresent() && typeSymbol.get().typeKind() == TypeDescKind.ARRAY) {
                 TypeSymbol memberTypeSymbol = ((ArrayTypeSymbol) typeSymbol.get()).memberTypeDescriptor();
                 inputPorts.add(
-                        getMappingPort(fromClauseVar, fromClauseVar, Type.fromSemanticSymbol(memberTypeSymbol), true));
+                        getMappingPort(fromClauseVar, fromClauseVar, Type.fromSemanticSymbol(memberTypeSymbol)));
                 itemType = memberTypeSymbol.signature().trim();
             }
 
@@ -225,7 +225,7 @@ public class DataMapManager {
                 }
                 Symbol symbol = optSymbol.get();
                 String letVarName = symbol.getName().orElseThrow();
-                subMappingPorts.add(getMappingPort(letVarName, letVarName, Type.fromSemanticSymbol(symbol), false));
+                subMappingPorts.add(getMappingPort(letVarName, letVarName, Type.fromSemanticSymbol(symbol)));
             }
         }
 
@@ -525,7 +525,7 @@ public class DataMapManager {
                     continue;
                 }
                 Type type = Type.fromSemanticSymbol(symbol);
-                MappingPort mappingPort = getMappingPort(optName.get(), optName.get(), type, true);
+                MappingPort mappingPort = getMappingPort(optName.get(), optName.get(), type);
                 if (mappingPort == null) {
                     continue;
                 }
@@ -542,7 +542,7 @@ public class DataMapManager {
                     continue;
                 }
                 Type type = Type.fromSemanticSymbol(symbol);
-                MappingPort mappingPort = getMappingPort(optName.get(), optName.get(), type, true);
+                MappingPort mappingPort = getMappingPort(optName.get(), optName.get(), type);
                 if (mappingPort == null) {
                     continue;
                 }
@@ -550,7 +550,7 @@ public class DataMapManager {
                 mappingPorts.add(mappingPort);
             } else if (kind == SymbolKind.CONSTANT) {
                 Type type = Type.fromSemanticSymbol(symbol);
-                MappingPort mappingPort = getMappingPort(type.getTypeName(), type.getTypeName(), type, true);
+                MappingPort mappingPort = getMappingPort(type.getTypeName(), type.getTypeName(), type);
                 if (mappingPort == null) {
                     continue;
                 }
@@ -561,22 +561,22 @@ public class DataMapManager {
         return mappingPorts;
     }
 
-    private MappingPort getMappingPort(String id, String name, Type type, boolean isInputPort) {
+    private MappingPort getMappingPort(String id, String name, Type type) {
         if (type.getTypeName().equals("record")) {
             RecordType recordType = (RecordType) type;
             TypeInfo typeInfo = type.getTypeInfo();
             MappingRecordPort recordPort = new MappingRecordPort(id, name, typeInfo != null ?
                     typeInfo.name : type.getTypeName(), type.getTypeName());
             for (Type field : recordType.fields) {
-                recordPort.fields.add(getMappingPort(id + "." + field.getName(), field.getName(), field, isInputPort));
+                recordPort.fields.add(getMappingPort(id + "." + field.getName(), field.getName(), field));
             }
             return recordPort;
         } else if (type instanceof PrimitiveType) {
             return new MappingPort(id, type.getName(), type.getTypeName(), type.getTypeName());
         } else if (type.getTypeName().equals("array")) {
             ArrayType arrayType = (ArrayType) type;
-            MappingPort memberPort = getMappingPort(isInputPort ? id + ".0" : id, getItemName(id),
-                    arrayType.memberType, isInputPort);
+            MappingPort memberPort = getMappingPort(id + ".0", getItemName(id),
+                    arrayType.memberType);
             MappingArrayPort arrayPort = new MappingArrayPort(id, name, memberPort == null ? "record" :
                     memberPort.typeName + "[]", type.getTypeName());
             arrayPort.setMember(memberPort);

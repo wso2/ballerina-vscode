@@ -70,24 +70,24 @@
           "member": {
             "fields": [
               {
-                "id": "var3.contacts.primaryPhone",
+                "id": "var3.contacts.0.primaryPhone",
                 "variableName": "primaryPhone",
                 "typeName": "string",
                 "kind": "string"
               },
               {
                 "member": {
-                  "id": "var3.contacts.secondaryPhones",
+                  "id": "var3.contacts.0.secondaryPhones.0",
                   "typeName": "string",
                   "kind": "string"
                 },
-                "id": "var3.contacts.secondaryPhones",
+                "id": "var3.contacts.0.secondaryPhones",
                 "variableName": "secondaryPhones",
                 "typeName": "string[]",
                 "kind": "array"
               }
             ],
-            "id": "var3.contacts",
+            "id": "var3.contacts.0",
             "variableName": "contactsItem",
             "typeName": "Temp",
             "kind": "record"

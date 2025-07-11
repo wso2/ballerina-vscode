@@ -16,11 +16,11 @@
     },
     "sourceCode": ""
   },
-  "propertyKey": "expression",
   "position": {
     "line": 34,
     "offset": 12
   },
+  "propertyKey": "expression",
   "model": {
     "inputs": [
       {
@@ -51,7 +51,7 @@
                       "fields": [
                         {
                           "member": {
-                            "id": "user1.user2.user3.user4.user5.u",
+                            "id": "user1.user2.user3.user4.user5.u.0",
                             "typeName": "string",
                             "kind": "string"
                           },

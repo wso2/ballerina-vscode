@@ -46,17 +46,17 @@
             "fields": [
               {
                 "member": {
-                  "id": "users4.user5.u",
+                  "id": "users4.0.user5.u.0",
                   "typeName": "string",
                   "kind": "string"
                 },
-                "id": "users4.user5.u",
+                "id": "users4.0.user5.u",
                 "variableName": "u",
                 "typeName": "string[]",
                 "kind": "array"
               }
             ],
-            "id": "users4.user5",
+            "id": "users4.0.user5",
             "variableName": "user5",
             "typeName": "User5",
             "kind": "record"
@@ -65,13 +65,13 @@
             "member": {
               "fields": [
                 {
-                  "id": "users4.users6.account",
+                  "id": "users4.0.users6.0.account",
                   "variableName": "account",
                   "typeName": "string",
                   "kind": "string"
                 },
                 {
-                  "id": "users4.users6.balance",
+                  "id": "users4.0.users6.0.balance",
                   "variableName": "balance",
                   "typeName": "decimal",
                   "kind": "decimal"
@@ -83,46 +83,46 @@
                         "member": {
                           "fields": [
                             {
-                              "id": "users4.users6.banks.bankInfo.bankName",
+                              "id": "users4.0.users6.0.banks.0.bankInfo.0.bankName",
                               "variableName": "bankName",
                               "typeName": "string",
                               "kind": "string"
                             }
                           ],
-                          "id": "users4.users6.banks.bankInfo",
+                          "id": "users4.0.users6.0.banks.0.bankInfo.0",
                           "variableName": "bankInfoItem",
                           "typeName": "BankInfo",
                           "kind": "record"
                         },
-                        "id": "users4.users6.banks.bankInfo",
+                        "id": "users4.0.users6.0.banks.0.bankInfo",
                         "variableName": "bankInfo",
                         "typeName": "BankInfo[]",
                         "kind": "array"
                       }
                     ],
-                    "id": "users4.users6.banks",
+                    "id": "users4.0.users6.0.banks.0",
                     "variableName": "banksItem",
                     "typeName": "Bank",
                     "kind": "record"
                   },
-                  "id": "users4.users6.banks",
+                  "id": "users4.0.users6.0.banks",
                   "variableName": "banks",
                   "typeName": "Bank[]",
                   "kind": "array"
                 }
               ],
-              "id": "users4.users6",
+              "id": "users4.0.users6.0",
               "variableName": "users6Item",
               "typeName": "User6",
               "kind": "record"
             },
-            "id": "users4.users6",
+            "id": "users4.0.users6",
             "variableName": "users6",
             "typeName": "User6[]",
             "kind": "array"
           }
         ],
-        "id": "users4",
+        "id": "users4.0",
         "variableName": "users4Item",
         "typeName": "User4",
         "kind": "record"

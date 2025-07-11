@@ -49,25 +49,25 @@
       "member": {
         "fields": [
           {
-            "id": "phoneNumbers.code",
+            "id": "phoneNumbers.0.code",
             "variableName": "code",
             "typeName": "string",
             "kind": "string"
           },
           {
-            "id": "phoneNumbers.number",
+            "id": "phoneNumbers.0.number",
             "variableName": "number",
             "typeName": "string",
             "kind": "string"
           },
           {
-            "id": "phoneNumbers.email",
+            "id": "phoneNumbers.0.email",
             "variableName": "email",
             "typeName": "string",
             "kind": "string"
           }
         ],
-        "id": "phoneNumbers",
+        "id": "phoneNumbers.0",
         "variableName": "phoneNumbersItem",
         "typeName": "SecondaryPhonesX",
         "kind": "record"

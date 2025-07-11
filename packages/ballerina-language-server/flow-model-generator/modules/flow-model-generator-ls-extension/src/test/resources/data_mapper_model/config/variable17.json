@@ -96,19 +96,19 @@
           "member": {
             "fields": [
               {
-                "id": "student.credentials.username",
+                "id": "student.credentials.0.username",
                 "variableName": "username",
                 "typeName": "string",
                 "kind": "string"
               },
               {
-                "id": "student.credentials.password",
+                "id": "student.credentials.0.password",
                 "variableName": "password",
                 "typeName": "string",
                 "kind": "string"
               }
             ],
-            "id": "student.credentials",
+            "id": "student.credentials.0",
             "variableName": "credentialsItem",
             "typeName": "Credentials",
             "kind": "record"

@@ -16,11 +16,11 @@
     },
     "sourceCode": ""
   },
-  "propertyKey": "expression",
   "position": {
     "line": 19,
     "offset": 32
   },
+  "propertyKey": "expression",
   "model": {
     "inputs": [
       {
@@ -68,7 +68,7 @@
       "fields": [
         {
           "member": {
-            "id": "u.contacts",
+            "id": "u.contacts.0",
             "typeName": "string",
             "kind": "string"
           },

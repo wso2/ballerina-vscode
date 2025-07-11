@@ -46,17 +46,17 @@
             "fields": [
               {
                 "member": {
-                  "id": "users4.user5.u",
+                  "id": "users4.0.user5.u.0",
                   "typeName": "string",
                   "kind": "string"
                 },
-                "id": "users4.user5.u",
+                "id": "users4.0.user5.u",
                 "variableName": "u",
                 "typeName": "string[]",
                 "kind": "array"
               }
             ],
-            "id": "users4.user5",
+            "id": "users4.0.user5",
             "variableName": "user5",
             "typeName": "User5",
             "kind": "record"
@@ -65,30 +65,30 @@
             "member": {
               "fields": [
                 {
-                  "id": "users4.users6.account",
+                  "id": "users4.0.users6.0.account",
                   "variableName": "account",
                   "typeName": "string",
                   "kind": "string"
                 },
                 {
-                  "id": "users4.users6.balance",
+                  "id": "users4.0.users6.0.balance",
                   "variableName": "balance",
                   "typeName": "decimal",
                   "kind": "decimal"
                 }
               ],
-              "id": "users4.users6",
+              "id": "users4.0.users6.0",
               "variableName": "users6Item",
               "typeName": "User6",
               "kind": "record"
             },
-            "id": "users4.users6",
+            "id": "users4.0.users6",
             "variableName": "users6",
             "typeName": "User6[]",
             "kind": "array"
           }
         ],
-        "id": "users4",
+        "id": "users4.0",
         "variableName": "users4Item",
         "typeName": "User4",
         "kind": "record"
