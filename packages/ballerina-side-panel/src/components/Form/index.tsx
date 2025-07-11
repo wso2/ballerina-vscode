@@ -745,6 +745,7 @@ export const Form = forwardRef((props: FormProps, ref) => {
                                         autoFocus={firstEditableFieldIndex === formFields.indexOf(updatedField)}
                                         recordTypeFields={recordTypeFields}
                                         onIdentifierEditingStateChange={handleIdentifierEditingStateChange}
+                                        handleOnTypeChange={handleOnTypeChange}
                                     />
                                 </S.Row>
                             );
@@ -799,6 +800,7 @@ export const Form = forwardRef((props: FormProps, ref) => {
                                             handleOnFieldFocus={handleOnFieldFocus}
                                             recordTypeFields={recordTypeFields}
                                             onIdentifierEditingStateChange={handleIdentifierEditingStateChange}
+                                            handleOnTypeChange={handleOnTypeChange}
                                         />
                                     </S.Row>
                                 );
@@ -837,6 +839,7 @@ export const Form = forwardRef((props: FormProps, ref) => {
                                     handleOnFieldFocus={handleOnFieldFocus}
                                     recordTypeFields={recordTypeFields}
                                     onIdentifierEditingStateChange={handleIdentifierEditingStateChange}
+                                    handleOnTypeChange={handleOnTypeChange}
                                 />
                                 {typeField && (
                                     <TypeHelperText
