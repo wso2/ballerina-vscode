@@ -34,9 +34,11 @@ export async function fetchDataMapperCodeData(
     codedata: CodeData,
     varName: string
 ): Promise<CodeData> {
+    // TODO: Remove this modification once the server supports code shrinking scenarios
+    const modifiedCodeData = { ...codedata, lineRange : { ...codedata.lineRange, endLine: codedata.lineRange.startLine } };
     const response = await StateMachine
         .langClient()
-        .getDataMapperCodedata({ filePath, codedata, name: varName });
+        .getDataMapperCodedata({ filePath, codedata: modifiedCodeData, name: varName });
     return response.codedata;
 }
 
@@ -50,6 +52,17 @@ export async function updateAndRefreshDataMapper(
     varName: string
 ) {
     await applyTextEdits(textEdits);
+    await refreshDataMapper(filePath, codedata, varName);
+}
+
+/**
+ * Refreshes the data mapper view with the latest code data.
+ */
+export async function refreshDataMapper(
+    filePath: string,
+    codedata: CodeData,
+    varName: string
+) {
     const newCodeData = await fetchDataMapperCodeData(filePath, codedata, varName);
 
     // Hack to update the codedata with the new source code
@@ -59,5 +72,5 @@ export async function updateAndRefreshDataMapper(
         newCodeData.sourceCode = newSrc;
     }
 
-    updateInlineDataMapperView(newCodeData);
+    updateInlineDataMapperView(newCodeData, varName);
 }
