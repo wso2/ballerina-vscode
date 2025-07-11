@@ -121,6 +121,9 @@ export const useDiagramModel = (
         if (prevScreenWidth.current !== screenWidth && diagramModel.getNodes().length > 0) {
             const diagModelNodes = diagramModel.getNodes() as DataMapperNodeModel[];
             diagModelNodes.forEach(diagModelNode => {
+                if (diagModelNode instanceof LinkConnectorNode || diagModelNode instanceof QueryExpressionNode) {
+                    diagModelNode.setHasScreenWidthChanged(true);
+                }
                 const repositionedNode = nodes.find(newNode => isOutputNode(newNode) && newNode.id === diagModelNode.id);
                 if (repositionedNode) {
                     diagModelNode.setPosition(repositionedNode.getX(), repositionedNode.getY());
@@ -159,6 +162,7 @@ export const useDiagramModel = (
                 node.setModel(newModel);
                 await node.initPorts();
                 if (node instanceof LinkConnectorNode || node instanceof QueryExpressionNode) {
+                    node.setHasScreenWidthChanged(false);
                     continue;
                 }
                 node.initLinks();
