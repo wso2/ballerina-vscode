@@ -220,6 +220,6 @@ export class QueryExprConnectorNode extends DataMapperNodeModel {
     }
 
     public hasError(): boolean {
-        return this.diagnostics.length > 0;
+        return this.diagnostics?.length > 0;
     }
 }

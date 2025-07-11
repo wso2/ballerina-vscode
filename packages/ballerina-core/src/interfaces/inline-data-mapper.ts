@@ -46,6 +46,11 @@ export enum IntermediateClauseType {
     LIMIT = "limit"
 }
 
+export enum ResultClauseType {
+    SELECT = "select",
+    COLLECT = "collect"
+}
+
 export interface IDMDiagnostic {
     kind: string;
     message: string;
@@ -72,6 +77,8 @@ export interface IOType {
     members?: EnumMember[];
     defaultValue?: unknown;
     optional?: boolean;
+    focusedId?: string;
+    isFocused?: boolean;
 }
 
 export interface Mapping {
@@ -149,7 +156,7 @@ export interface Query {
     diagnostics?: IDMDiagnostic[];
     fromClause: FromClause;
     intermediateClauses?: IntermediateClause[];
-    resultClause: string;
+    resultClause: ResultClause;
 }
 
 export interface FromClause {
@@ -171,9 +178,10 @@ export interface IntermediateClause {
 }
 
 export interface ResultClause {
-    type: string;
+    type: ResultClauseType;
     properties: {
         expression: string;
+        func?: string;
     };
     query?: Query;
 }

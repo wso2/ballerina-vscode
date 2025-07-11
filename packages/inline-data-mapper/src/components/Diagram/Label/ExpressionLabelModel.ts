@@ -29,6 +29,7 @@ export interface ExpressionLabelOptions extends BaseModelOptions {
 	field?: Node;
 	editorLabel?: string;
 	isQuery?: boolean;
+	collectClauseFn?: string;
 	deleteLink?: () => void;
 }
 
@@ -37,6 +38,7 @@ export class ExpressionLabelModel extends LabelModel {
 	link?: DataMapperLinkModel;
 	value?: string;
 	isQuery?: boolean;
+	collectClauseFn?: string;
 	deleteLink?: () => void;
 
 	constructor(options: ExpressionLabelOptions = {}) {
@@ -48,6 +50,7 @@ export class ExpressionLabelModel extends LabelModel {
 		this.link = options.link;
 		this.value = options.value || '';
 		this.isQuery = options.isQuery;
+		this.collectClauseFn = options.collectClauseFn;
 		this.updateSource = this.updateSource.bind(this);
 		this.deleteLink = options.deleteLink;
 	}
