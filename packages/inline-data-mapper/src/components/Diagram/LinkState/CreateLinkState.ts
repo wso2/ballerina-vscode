@@ -28,6 +28,7 @@ import { DataMapperNodeModel } from '../Node/commons/DataMapperNode';
 import { handleExpand } from '../utils/common-utils';
 import { getMappingType, isPendingMappingRequired } from '../utils/common-utils';
 import { removePendingMappingTempLinkIfExists } from '../utils/link-utils';
+import { useDMExpressionBarStore } from '../../../store/store';
 /**
  * This state is controlling the creation of a link.
  */
@@ -50,6 +51,9 @@ export class CreateLinkState extends State<DiagramEngine> {
 					let element = this.engine.getActionEventBus().getModelForEvent(actionEvent);
 					const isValueConfig = (actionEvent.event.target as Element)
 						.closest('div[id^="value-config"]');
+
+					const { focusedPort, focusedFilter } = useDMExpressionBarStore.getState();
+					const isExprBarFocused = focusedPort || focusedFilter;
 
 					if (element === null) {
 						this.clearState();
@@ -96,7 +100,11 @@ export class CreateLinkState extends State<DiagramEngine> {
 						this.temporaryLink = undefined;
 					}
 
-					if (element instanceof PortModel && !this.sourcePort) {
+					if (isExprBarFocused && element instanceof InputOutputPortModel && element.attributes.portType === "OUT") {
+						element.fireEvent({}, "addToExpression");
+						this.clearState();
+						this.eject();
+					} else if (element instanceof PortModel && !this.sourcePort) {
 						if (element instanceof InputOutputPortModel) {
 							if (element.attributes.portType === "OUT") {
 								this.sourcePort = element;
@@ -113,7 +121,7 @@ export class CreateLinkState extends State<DiagramEngine> {
 								}));
 								this.link = link;
 							} else if (!isValueConfig) {
-								element.fireEvent({}, "firstClickedOnOutput");
+								element.fireEvent({}, "expressionBarFocused");
 								this.clearState();
 								this.eject();
 							}

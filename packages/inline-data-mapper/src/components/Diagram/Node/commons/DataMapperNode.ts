@@ -159,7 +159,7 @@ export abstract class DataMapperNodeModel extends NodeModel<NodeModelGenerics & 
 
 		const isArray = this.isArrayTypedField(field);
 		const newParentId = this.getNewParentId(parentId, elementIndex);
-		const fieldFQN = this.getOutputFieldFQN(newParentId, field);
+		const fieldFQN = this.getOutputFieldFQN(newParentId, field, elementIndex);
 		const portName = this.getPortName(portPrefix, fieldFQN);
 		const mapping = findMappingByOutput(mappings, fieldFQN);
 		const isCollapsed = this.isOutputPortCollapsed(hidden, collapsedFields, expandedFields, 
@@ -250,7 +250,10 @@ export abstract class DataMapperNodeModel extends NodeModel<NodeModelGenerics & 
 		return elementIndex !== undefined ? `${parentId}.${elementIndex}` : parentId;
 	}
 
-	private getOutputFieldFQN(newParentId: string, field: IOType): string {
+	private getOutputFieldFQN(newParentId: string, field: IOType, elementIndex?: number): string {
+		if (elementIndex !== undefined) {
+			return newParentId;
+		}
 		const fieldName = field?.variableName || '';
 		return newParentId !== '' ? fieldName !== '' ? `${newParentId}.${fieldName}` : newParentId : fieldName;
 	}
