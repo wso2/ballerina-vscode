@@ -1185,10 +1185,11 @@ public class DataMapManager {
         SyntaxTree syntaxTree = document.syntaxTree();
         LineRange lineRange = codedata.lineRange();
         LinePosition startPos = lineRange.startLine();
-        LinePosition endPos = lineRange.endLine();
+        int line = startPos.line();
+        int offset = startPos.offset();
+        NonTerminalNode stNode = CommonUtil.findNode(
+                new Range(new Position(line, offset), new Position(line, offset + 1)), syntaxTree);
 
-        NonTerminalNode stNode = CommonUtil.findNode(new Range(new Position(startPos.line(), startPos.offset()),
-                new Position(endPos.line(), endPos.offset())), syntaxTree);
         while (true) {
             if (stNode == null) {
                 return null;
