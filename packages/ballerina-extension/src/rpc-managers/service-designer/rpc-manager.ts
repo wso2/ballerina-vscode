@@ -18,6 +18,7 @@
  * THIS FILE INCLUDES AUTO GENERATED CODE
  */
 import {
+    DIRECTORY_MAP,
     ExportOASRequest,
     ExportOASResponse,
     FunctionModelRequest,
@@ -34,29 +35,26 @@ import {
     ListenersRequest,
     ListenersResponse,
     OpenAPISpec,
+    ResourceReturnTypesRequest,
+    ResourceReturnTypesResponse,
     ResourceSourceCodeResponse,
-    STModification,
     ServiceDesignerAPI,
     ServiceModelFromCodeRequest,
     ServiceModelFromCodeResponse,
     ServiceModelRequest,
     ServiceModelResponse,
     ServiceSourceCodeRequest,
-    UpdatedArtifactsResponse,
-    SyntaxTree,
     TriggerModelsRequest,
     TriggerModelsResponse,
-    DIRECTORY_MAP
+    UpdatedArtifactsResponse
 } from "@wso2/ballerina-core";
 import { NodePosition } from "@wso2/syntax-tree";
 import * as fs from 'fs';
-import { existsSync, writeFileSync } from "fs";
 import * as yaml from 'js-yaml';
 import * as path from 'path';
-import * as vscode from "vscode";
-import { Uri, window, workspace } from "vscode";
-import { StateMachine } from "../../stateMachine";
+import { window, workspace } from "vscode";
 import { extension } from "../../BalExtensionContext";
+import { StateMachine } from "../../stateMachine";
 import { updateSourceCode } from "../../utils/source-utils";
 
 export class ServiceDesignerRpcManager implements ServiceDesignerAPI {
@@ -387,5 +385,19 @@ export class ServiceDesignerRpcManager implements ServiceDesignerAPI {
             fs.writeFileSync(targetFile, "");
             console.log(`>>> Created file at ${targetFile}`);
         }
+    }
+
+    async getResourceReturnTypes(params: ResourceReturnTypesRequest): Promise<ResourceReturnTypesResponse> {
+        return new Promise(async (resolve) => {
+            const context = StateMachine.context();
+            params.filePath = StateMachine.context().projectUri;
+            params.context = "HTTP_STATUS_CODE";
+            try {
+                const res: ResourceReturnTypesResponse = await context.langClient.getResourceReturnTypes(params);
+                resolve(res);
+            } catch (error) {
+                console.log(">>> error fetching resource return types", error);
+            }
+        });
     }
 }

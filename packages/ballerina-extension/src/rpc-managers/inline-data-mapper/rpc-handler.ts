@@ -31,6 +31,8 @@ import {
     addNewArrayElement,
     convertToQuery,
     getDataMapperCodedata,
+    getProperty,
+    PropertyRequest,
     getDataMapperModel,
     getDataMapperSource,
     getInitialIDMSource,
@@ -51,4 +53,5 @@ export function registerInlineDataMapperRpcHandlers(messenger: Messenger) {
     messenger.onRequest(addClauses, (args: AddClausesRequest) => rpcManger.addClauses(args));
     messenger.onRequest(getDataMapperCodedata, (args: GetInlineDataMapperCodedataRequest) => rpcManger.getDataMapperCodedata(args));
     messenger.onRequest(getSubMappingCodedata, (args: GetSubMappingCodedataRequest) => rpcManger.getSubMappingCodedata(args));
+    messenger.onRequest(getProperty, (args: PropertyRequest) => rpcManger.getProperty(args));
 }
