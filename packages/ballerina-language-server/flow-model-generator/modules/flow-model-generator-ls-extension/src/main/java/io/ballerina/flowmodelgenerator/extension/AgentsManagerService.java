@@ -134,7 +134,8 @@ public class AgentsManagerService implements ExtendedLanguageServerService {
         return CompletableFuture.supplyAsync(() -> {
             GetMemoryManagersResponse response = new GetMemoryManagersResponse();
             try {
-                Optional<SemanticModel> semanticModel = PackageUtil.getSemanticModel(BALLERINAX, AI_AGENT);
+                String orgName = request.orgName() != null ? request.orgName() : BALLERINAX;
+                Optional<SemanticModel> semanticModel = PackageUtil.getSemanticModel(orgName, AI_AGENT);
                 if (semanticModel.isEmpty()) {
                     return response;
                 }

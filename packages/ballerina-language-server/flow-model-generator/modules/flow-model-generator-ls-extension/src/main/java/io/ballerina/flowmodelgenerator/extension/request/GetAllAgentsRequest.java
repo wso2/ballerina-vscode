@@ -21,7 +21,7 @@ package io.ballerina.flowmodelgenerator.extension.request;
 /**
  * A request to retrieve all available agents.
  *
- * @param orgName organization to lookup the agents
+ * @param orgName organization to look up the agents
  * @param filePath a file path of the project
  */
 public record GetAllAgentsRequest(String orgName, String filePath) {

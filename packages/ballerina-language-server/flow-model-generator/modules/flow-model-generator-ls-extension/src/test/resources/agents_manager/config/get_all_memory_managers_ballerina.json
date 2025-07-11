@@ -1,16 +1,16 @@
 {
   "source": "agent_1/agents.bal",
-  "orgName": "ballerinax",
+  "orgName": "ballerina",
   "agent": "FunctionCallAgent",
   "models": [
     {
       "node": "CLASS_INIT",
-      "org": "ballerinax",
+      "org": "ballerina",
       "module": "ai",
       "packageName": "ai",
       "object": "MessageWindowChatMemory",
       "symbol": "init",
-      "version": "1.0.1"
+      "version": "1.0.0"
     }
   ]
 }
