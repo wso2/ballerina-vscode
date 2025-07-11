@@ -25,6 +25,8 @@ import { WebViewOptions, getComposerWebViewOptions, getLibraryWebViewContent } f
 import { extension } from "../../BalExtensionContext";
 import { StateMachine, updateView } from "../../stateMachine";
 import { LANGUAGE } from "../../core";
+import { CodeData, MACHINE_VIEW } from "@wso2/ballerina-core";
+import { refreshDataMapper } from "../../rpc-managers/inline-data-mapper/utils";
 
 export class VisualizerWebview {
     public static currentPanel: VisualizerWebview | undefined;
@@ -47,6 +49,10 @@ export class VisualizerWebview {
             }
         }, 500);
 
+        const debouncedRefreshDataMapper = debounce(async (documentUri: string, codedata: CodeData, name: string) => {
+            await refreshDataMapper(documentUri, codedata, name);
+        }, 500);
+
         vscode.workspace.onDidChangeTextDocument(async (document) => {
             await document.document.save();
             const state = StateMachine.state();
@@ -57,6 +63,17 @@ export class VisualizerWebview {
                 vscode.window.visibleTextEditors.some(editor => editor.document.fileName === document.document.fileName)){
                 sendUpdateNotificationToWebview(true);
             }
+
+            if (StateMachine.context().view === MACHINE_VIEW.InlineDataMapper
+                && document.document.fileName === StateMachine.context().documentUri) {
+                const stateMachineContext = StateMachine.context();
+                debouncedRefreshDataMapper(
+                    stateMachineContext.documentUri,
+                    stateMachineContext.dataMapperMetadata.codeData,
+                    stateMachineContext.dataMapperMetadata.name
+                );
+            }
+
         }, extension.context);
 
         vscode.workspace.onDidDeleteFiles(() => {
@@ -109,7 +126,16 @@ export class VisualizerWebview {
     private getWebviewContent(webView: Webview) {
         const body = `<div class="container" id="webview-container">
                 <div class="loader-wrapper">
-                    <div class="loader" /></div>
+                    <div class="welcome-content">
+                        <div class="logo-container">
+                            <div class="loader"></div>
+                        </div>
+                        <h1 class="welcome-title">Welcome to WSO2 Integrator: BI</h1>
+                        <p class="welcome-subtitle">Setting up your workspace and tools</p>
+                        <div class="loading-text">
+                            <span class="loading-dots">Loading</span>
+                        </div>
+                    </div>
                 </div>
             </div>`;
         const bodyCss = ``;
@@ -123,9 +149,10 @@ export class VisualizerWebview {
             .loader-wrapper {
                 display: flex;
                 justify-content: center;
-                align-items: center;
+                align-items: flex-start;
                 height: 100%;
                 width: 100%;
+                padding-top: 30vh;
             }
             .loader {
                 width: 32px;
@@ -150,6 +177,56 @@ export class VisualizerWebview {
                 49.99%{transform:scaleY(1)  rotate(135deg)}
                 50%   {transform:scaleY(-1) rotate(0deg)}
                 100%  {transform:scaleY(-1) rotate(-135deg)}
+            }
+            /* New welcome view styles */
+            .welcome-content {
+                text-align: center;
+                max-width: 500px;
+                padding: 2rem;
+                animation: fadeIn 1s ease-in-out;
+                font-family: var(--vscode-font-family);
+            }
+            .logo-container {
+                margin-bottom: 2rem;
+                display: flex;
+                justify-content: center;
+            }
+            .welcome-title {
+                color: var(--vscode-foreground);
+                margin: 0 0 0.5rem 0;
+                letter-spacing: -0.02em;
+                font-size: 1.5em;
+                font-weight: 400;
+                line-height: normal;
+            }
+            .welcome-subtitle {
+                color: var(--vscode-descriptionForeground);
+                font-size: 13px;
+                margin: 0 0 2rem 0;
+                opacity: 0.8;
+            }
+            .loading-text {
+                color: var(--vscode-foreground);
+                font-size: 13px;
+                font-weight: 500;
+            }
+            .loading-dots::after {
+                content: '';
+                animation: dots 1.5s infinite;
+            }
+            @keyframes fadeIn {
+                0% { 
+                    opacity: 0;
+                }
+                100% { 
+                    opacity: 1;
+                }
+            }
+            @keyframes dots {
+                0%, 20% { content: ''; }
+                40% { content: '.'; }
+                60% { content: '..'; }
+                80%, 100% { content: '...'; }
             }
         `;
         const scripts = `

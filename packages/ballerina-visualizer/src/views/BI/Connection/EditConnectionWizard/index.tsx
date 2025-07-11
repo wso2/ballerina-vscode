@@ -25,6 +25,7 @@ import { getFormProperties } from "../../../../utils/bi";
 import { ExpressionFormField, PanelContainer } from "@wso2/ballerina-side-panel";
 import { ProgressRing, ThemeColors } from "@wso2/ui-toolkit";
 import { HelperView } from "../../HelperView";
+import { URI, Utils } from "vscode-uri";
 
 const Container = styled.div`
     width: 100%;
@@ -39,19 +40,20 @@ const SpinnerContainer = styled.div`
 `;
 
 interface EditConnectionWizardProps {
-    fileName: string; // file path of `connection.bal`
+    projectUri: string;
     connectionName: string;
     onClose?: () => void;
 }
 
 export function EditConnectionWizard(props: EditConnectionWizardProps) {
-    const { fileName, connectionName, onClose } = props;
+    const { projectUri, connectionName, onClose } = props;
     const { rpcClient } = useRpcContext();
 
     const [connection, setConnection] = useState<FlowNode>();
     const [subPanel, setSubPanel] = useState<SubPanel>({ view: SubPanelView.UNDEFINED });
     const [showSubPanel, setShowSubPanel] = useState(false);
     const [updatingContent, setUpdatingContent] = useState(false);
+    const [filePath, setFilePath] = useState("");
     const [updatedExpressionField, setUpdatedExpressionField] = useState<ExpressionFormField>(undefined);
 
     useEffect(() => {
@@ -71,6 +73,10 @@ export function EditConnectionWizard(props: EditConnectionWizardProps) {
                     onClose?.();
                     return;
                 }
+                const connectionFile = connector.codedata.lineRange.fileName;
+                let connectionFilePath = Utils.joinPath(URI.file(projectUri), connectionFile).fsPath;
+                setFilePath(connectionFilePath);
+
                 setConnection(connector);
                 const formProperties = getFormProperties(connector);
                 console.log(">>> Connector form properties", formProperties);
@@ -82,7 +88,7 @@ export function EditConnectionWizard(props: EditConnectionWizardProps) {
         if (connection) {
             setUpdatingContent(true);
 
-            if (fileName === "") {
+            if (filePath === "") {
                 console.error(">>> Error updating source code. No source file found");
                 setUpdatingContent(false);
                 return;
@@ -91,7 +97,7 @@ export function EditConnectionWizard(props: EditConnectionWizardProps) {
             rpcClient
                 .getBIDiagramRpcClient()
                 .getSourceCode({
-                    filePath: fileName,
+                    filePath: filePath,
                     flowNode: node,
                     isConnector: true,
                 })
@@ -174,7 +180,7 @@ export function EditConnectionWizard(props: EditConnectionWizardProps) {
                 >
                     <ConnectionConfigView
                         submitText={updatingContent ? "Saving..." : "Save"}
-                        fileName={fileName}
+                        fileName={filePath}
                         selectedNode={connection}
                         onSubmit={handleOnFormSubmit}
                         updatedExpressionField={updatedExpressionField}
