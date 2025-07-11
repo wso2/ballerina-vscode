@@ -82,7 +82,7 @@ export function ObjectOutputFieldWidget(props: ObjectOutputFieldWidgetProps) {
         updatedParentId = `${parentId}.${fieldIndex}`
     }
     let fieldName = field?.variableName || '';
-    let portName = updatedParentId !== '' ? fieldName !== '' ? `${updatedParentId}.${fieldName}` : updatedParentId : fieldName;
+    let portName = updatedParentId !== '' ? fieldName !== '' && fieldIndex === undefined ? `${updatedParentId}.${fieldName}` : updatedParentId : fieldName;
     const portIn = getPort(portName + ".IN");
     const mapping = portIn && portIn.attributes.value;
     const { inputs, expression, diagnostics } = mapping || {};
