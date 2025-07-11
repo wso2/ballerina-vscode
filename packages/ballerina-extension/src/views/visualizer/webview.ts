@@ -25,6 +25,8 @@ import { WebViewOptions, getComposerWebViewOptions, getLibraryWebViewContent } f
 import { extension } from "../../BalExtensionContext";
 import { StateMachine, updateView } from "../../stateMachine";
 import { LANGUAGE } from "../../core";
+import { CodeData, MACHINE_VIEW } from "@wso2/ballerina-core";
+import { refreshDataMapper } from "../../rpc-managers/inline-data-mapper/utils";
 
 export class VisualizerWebview {
     public static currentPanel: VisualizerWebview | undefined;
@@ -47,6 +49,10 @@ export class VisualizerWebview {
             }
         }, 500);
 
+        const debouncedRefreshDataMapper = debounce(async (documentUri: string, codedata: CodeData, name: string) => {
+            await refreshDataMapper(documentUri, codedata, name);
+        }, 500);
+
         vscode.workspace.onDidChangeTextDocument(async (document) => {
             await document.document.save();
             const state = StateMachine.state();
@@ -57,6 +63,17 @@ export class VisualizerWebview {
                 vscode.window.visibleTextEditors.some(editor => editor.document.fileName === document.document.fileName)){
                 sendUpdateNotificationToWebview(true);
             }
+
+            if (StateMachine.context().view === MACHINE_VIEW.InlineDataMapper
+                && document.document.fileName === StateMachine.context().documentUri) {
+                const stateMachineContext = StateMachine.context();
+                debouncedRefreshDataMapper(
+                    stateMachineContext.documentUri,
+                    stateMachineContext.dataMapperMetadata.codeData,
+                    stateMachineContext.dataMapperMetadata.name
+                );
+            }
+
         }, extension.context);
 
         vscode.workspace.onDidDeleteFiles(() => {
