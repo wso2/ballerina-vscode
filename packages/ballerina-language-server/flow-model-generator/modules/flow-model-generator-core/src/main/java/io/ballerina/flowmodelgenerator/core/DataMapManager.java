@@ -76,6 +76,8 @@ import io.ballerina.flowmodelgenerator.core.model.SourceBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.VariableBuilder;
 import io.ballerina.modelgenerator.commons.CommonUtils;
 import io.ballerina.modelgenerator.commons.DefaultValueGeneratorUtil;
+import io.ballerina.modelgenerator.commons.ModuleInfo;
+import io.ballerina.modelgenerator.commons.PackageUtil;
 import io.ballerina.projects.Document;
 import io.ballerina.projects.ModuleDescriptor;
 import io.ballerina.tools.diagnostics.Diagnostic;
@@ -115,11 +117,10 @@ public class DataMapManager {
     public static final String LIMIT = "limit";
     public static final String ORDER_BY = "order-by";
     private final Document document;
-    private final Gson gson;
+    private final Gson gson = new Gson();
 
     public DataMapManager(Document document) {
         this.document = document;
-        this.gson = new Gson();
     }
 
     public JsonElement getTypes(JsonElement node, String propertyKey, SemanticModel semanticModel) {
@@ -912,40 +913,45 @@ public class DataMapManager {
                 DefaultValueGeneratorUtil.getDefaultValueForType(recordTypeSymbol);
     }
 
-    public Map<String, String> getVisualizableProperties(SemanticModel semanticModel, JsonElement node) {
-        FlowNode flowNode = gson.fromJson(node, FlowNode.class);
-        Map<String, String> visualizableProperties = new HashMap<>();
-        NodeKind nodeKind = flowNode.codedata().node();
-        if (nodeKind == NodeKind.VARIABLE) {
-            Optional<Property> optType = flowNode.getProperty("type");
-            if (optType.isEmpty()) {
-                throw new IllegalStateException("Type property is not available for the variable");
+    public Map<String, String> getVisualizableProperties(SemanticModel sm, JsonElement node) {
+        Codedata codedata = gson.fromJson(node, Codedata.class);
+        String org = codedata.org();
+        SemanticModel semanticModel;
+        if (org == null || org.isEmpty()) {
+            semanticModel = sm;
+        } else {
+            ModuleInfo moduleInfo = new ModuleInfo(org, codedata.packageName(), codedata.module(), codedata.version());
+            Optional<SemanticModel> optSemanticModel = PackageUtil.getSemanticModel(moduleInfo);
+            if (optSemanticModel.isEmpty()) {
+                throw new IllegalStateException("Semantic model cannot be found for the module: " + moduleInfo);
             }
-            String[] typeParts = ((String) optType.get().value()).split("\\[", 2);
-            String type = typeParts[0];
-            boolean isArray = (typeParts.length > 1 ? "[" + typeParts[1] : "").startsWith("[");
-            for (Symbol symbol : semanticModel.moduleSymbols()) {
-                if (symbol.kind() == SymbolKind.TYPE_DEFINITION) {
-                    if (symbol.getName().isEmpty() || !symbol.getName().get().equals(type)) {
-                        continue;
-                    }
-                    TypeDefinitionSymbol typeDefSymbol = (TypeDefinitionSymbol) symbol;
-                    TypeSymbol typeSymbol = typeDefSymbol.typeDescriptor();
-                    TypeSymbol rawTypeSymbol = CommonUtils.getRawType(typeSymbol);
-                    TypeDescKind kind = rawTypeSymbol.typeKind();
-                    if (isEffectiveRecordType(kind, rawTypeSymbol)) {
-                        if (kind == TypeDescKind.ARRAY || isArray) {
-                            visualizableProperties.put("expression", "[]");
-                        } else if (kind == TypeDescKind.RECORD) {
-                            visualizableProperties.put("expression", "{}");
-                        } else {
-                            throw new IllegalStateException("Unsupported type for visualizable properties: " + kind);
-                        }
-                    }
+            semanticModel = optSemanticModel.get();
+        }
+
+        String[] typeParts = codedata.symbol().split("\\[", 2);
+        String type = typeParts[0];
+        boolean isArray = (typeParts.length > 1 ? "[" + typeParts[1] : "").startsWith("[");
+        for (Symbol symbol : semanticModel.moduleSymbols()) {
+            if (symbol.kind() != SymbolKind.TYPE_DEFINITION) {
+                continue;
+            }
+            if (symbol.getName().isEmpty() || !symbol.getName().get().equals(type)) {
+                continue;
+            }
+            TypeDefinitionSymbol typeDefSymbol = (TypeDefinitionSymbol) symbol;
+            TypeSymbol typeSymbol = typeDefSymbol.typeDescriptor();
+            TypeSymbol rawTypeSymbol = CommonUtils.getRawType(typeSymbol);
+            TypeDescKind kind = rawTypeSymbol.typeKind();
+            if (isEffectiveRecordType(kind, rawTypeSymbol)) {
+                if (kind == TypeDescKind.ARRAY || isArray) {
+                    return Map.of("expression", "[]");
+                } else if (kind == TypeDescKind.RECORD) {
+                    return Map.of("expression", "{}");
                 }
             }
+            throw new IllegalStateException("Unsupported type for visualizable properties: " + kind);
         }
-        return visualizableProperties;
+        return Map.of();
     }
 
     private boolean isEffectiveRecordType(TypeDescKind kind, TypeSymbol rawTypeSymbol) {
