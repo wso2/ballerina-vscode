@@ -177,8 +177,12 @@ public class DataMapManager {
             ModuleVariableDeclarationNode moduleVariableDeclarationNode = (ModuleVariableDeclarationNode) node;
             targetFieldName = moduleVariableDeclarationNode.typedBindingPattern().bindingPattern()
                     .toSourceCode().trim();
+        } else if (node.kind() == SyntaxKind.LET_VAR_DECL) {
+            LetVariableDeclarationNode letVariableDeclarationNode = (LetVariableDeclarationNode) node;
+            targetFieldName = letVariableDeclarationNode.typedBindingPattern().bindingPattern()
+                    .toSourceCode().trim();
         } else {
-            targetFieldName = null;
+            throw new IllegalStateException("Unsupported node kind: " + node.kind());
         }
         List<MappingPort> inputPorts = getInputPorts(semanticModel, this.document, position);
         inputPorts.sort(Comparator.comparing(mt -> mt.id));
