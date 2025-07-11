@@ -55,9 +55,7 @@ export async function updateAndRefreshDataMapper(
     // Hack to update the codedata with the new source code
     // TODO: Remove this once the lang server is updated to return the new source code
     if (newCodeData) {
-        const newSrc = Array.isArray(Object.values(textEdits))
-            ? Object.values(textEdits)[0][0].newText
-            : Math.random().toString(36).substring(2) + Date.now().toString(36);
+        const newSrc = Math.random().toString(36).substring(2) + Date.now().toString(36);
         newCodeData.sourceCode = newSrc;
     }
 
