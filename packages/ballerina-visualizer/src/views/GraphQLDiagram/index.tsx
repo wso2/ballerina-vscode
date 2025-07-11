@@ -227,7 +227,7 @@ export function GraphQLDiagram(props: GraphQLDiagramProps) {
                             </SubTitleWrapper>
                         }
                         actions={
-                            <ActionButton appearance="secondary" onClick={handleServiceEdit}>
+                            <ActionButton appearance="secondary" onClick={handleServiceEdit} data-testid="edit-service-btn">
                                 <Icon name="bi-edit" sx={{ marginRight: 5, width: 16, height: 16, fontSize: 14 }} />
                                 Edit
                             </ActionButton>
