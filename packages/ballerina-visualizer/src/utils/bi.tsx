@@ -988,7 +988,7 @@ export function getFlowNodeForNaturalFunction(node: FunctionNode): FlowNode {
  * @param expression
  * @returns { lineOffset: number, charOffset: number }
  */
-export function getInfoFromExpressionValue(
+export function calculateExpressionOffsets(
     expression: string,
     cursorPosition: number
 ): { lineOffset: number, charOffset: number } {

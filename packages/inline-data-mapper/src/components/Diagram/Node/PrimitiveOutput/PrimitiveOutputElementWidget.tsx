@@ -24,7 +24,7 @@ import { Button, Icon, ProgressRing } from "@wso2/ui-toolkit";
 
 import { IDataMapperContext } from "../../../../utils/DataMapperContext/DataMapperContext";
 import { DataMapperPortWidget, PortState, InputOutputPortModel } from "../../Port";
-import { fieldFQNFromPortName, findMappingByOutput, getDefaultValue } from "../../utils/common-utils";
+import { fieldFQNFromPortName, getDefaultValue } from "../../utils/common-utils";
 import { OutputSearchHighlight } from "../commons/Search";
 import { ValueConfigMenu, ValueConfigOption } from "../commons/ValueConfigButton";
 import { useIONodesStyles } from "../../../styles";
@@ -33,7 +33,6 @@ import { DiagnosticTooltip } from "../../Diagnostic/DiagnosticTooltip";
 import FieldActionWrapper from "../commons/FieldActionWrapper";
 import { IOType } from "@wso2/ballerina-core";
 import { removeMapping } from "../../utils/modification-utils";
-import { OutputBeforeInputNotification } from "../commons/OutputBeforeInputNotification";
 import { useShallow } from "zustand/react/shallow";
 
 export interface PrimitiveOutputElementWidgetWidgetProps {
@@ -69,14 +68,17 @@ export function PrimitiveOutputElementWidget(props: PrimitiveOutputElementWidget
 
     const [isLoading, setLoading] = useState(false);
     const [portState, setPortState] = useState<PortState>(PortState.Unselected);
-    const [hasOutputBeforeInput, setHasOutputBeforeInput] = useState(false);
 
     const fieldName = field?.id || '';
 
     let portName = parentId;
 
     if (fieldIndex !== undefined) {
-        portName = `${parentId}.${fieldIndex}${fieldName !== '' ? `.${fieldName}` : ''}`;
+        portName = `${parentId}.${fieldIndex}`;
+    } else if (fieldName) {
+        portName = `${parentId}.${fieldName}`;
+    } else {
+        portName = parentId;
     }
 
     const portIn = getPort(`${portName}.IN`);
@@ -123,10 +125,6 @@ export function PrimitiveOutputElementWidget(props: PrimitiveOutputElementWidget
     const handlePortState = (state: PortState) => {
         setPortState(state)
     };
-
-    const handlePortSelection = (outputBeforeInput: boolean) => {
-		setHasOutputBeforeInput(outputBeforeInput);
-	};
 
     const label = (
         <span style={{ marginRight: "auto" }} data-testid={`primitive-array-element-${portIn?.getName()}`}>
@@ -180,7 +178,6 @@ export function PrimitiveOutputElementWidget(props: PrimitiveOutputElementWidget
                                 engine={engine}
                                 port={portIn}
                                 handlePortState={handlePortState}
-                                hasFirstSelectOutput={handlePortSelection}
                             />
                         }
                     </span>
@@ -195,7 +192,6 @@ export function PrimitiveOutputElementWidget(props: PrimitiveOutputElementWidget
                             />
                         </FieldActionWrapper>
                     )}
-                    {hasOutputBeforeInput && <OutputBeforeInputNotification />}
                 </div>
             )}
         </>

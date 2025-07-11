@@ -39,7 +39,6 @@ import { getTypeName } from "../../utils/type-utils";
 import FieldActionWrapper from "../commons/FieldActionWrapper";
 import { addValue, removeMapping } from "../../utils/modification-utils";
 import { PrimitiveOutputElementWidget } from "../PrimitiveOutput/PrimitiveOutputElementWidget";
-import { OutputBeforeInputNotification } from "../commons/OutputBeforeInputNotification";
 import { OutputFieldPreviewWidget } from "./OutputFieldPreviewWidget";
 
 export interface ArrayOutputFieldWidgetProps {
@@ -71,7 +70,6 @@ export function ArrayOutputFieldWidget(props: ArrayOutputFieldWidgetProps) {
     const [isLoading, setLoading] = useState(false);
     const [isHovered, setIsHovered] = useState(false);
     const [portState, setPortState] = useState<PortState>(PortState.Unselected);
-    const [hasOutputBeforeInput, setHasOutputBeforeInput] = useState(false);
     const [isAddingElement, setIsAddingElement] = useState(false);
     const collapsedFieldsStore = useDMCollapsedFieldsStore();
     const expandedFieldsStore = useDMExpandedFieldsStore();
@@ -123,10 +121,6 @@ export function ArrayOutputFieldWidget(props: ArrayOutputFieldWidgetProps) {
     const handlePortState = (state: PortState) => {
         setPortState(state)
     };
-
-	const handlePortSelection = (outputBeforeInput: boolean) => {
-		setHasOutputBeforeInput(outputBeforeInput);
-	};
 
     const handleEditValue = () => {
         if (portIn)
@@ -350,7 +344,6 @@ export function ArrayOutputFieldWidget(props: ArrayOutputFieldWidgetProps) {
                                 port={portIn}
                                 disable={isDisabled && expanded}
                                 handlePortState={handlePortState}
-                                hasFirstSelectOutput={handlePortSelection}
                                 dataTestId={`array-type-editable-record-field-${portIn.getName()}`}
                             />
                         )}
@@ -381,7 +374,6 @@ export function ArrayOutputFieldWidget(props: ArrayOutputFieldWidgetProps) {
                             />
                         </FieldActionWrapper>
                     ))}
-                    {hasOutputBeforeInput && <OutputBeforeInputNotification />}
                 </div>
             )}
             {(expanded && !connectedViaLink && !!elements?.length) && (
