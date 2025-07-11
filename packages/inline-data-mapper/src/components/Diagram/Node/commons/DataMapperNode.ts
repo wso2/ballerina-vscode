@@ -327,15 +327,15 @@ export abstract class DataMapperNodeModel extends NodeModel<NodeModelGenerics & 
 				});
 			}
 		} else if (attributes.field.kind === TypeKind.Array) {
-			let memberField: IOType = attributes.field.member;
-			const memberFieldFocusedId = memberField.focusedId;
 
-			if (memberFieldFocusedId) {
-				const focusedField = this.context.model.inputs.find(input => input.id === memberFieldFocusedId);
-				if (focusedField) {
-					attributes.field.member = focusedField;
+			const focusedMemberId = attributes.field.focusedMemberId;
+			if (focusedMemberId) {
+				const focusedMemberField = this.context.model.inputs.find(input => input.id === focusedMemberId);
+				if (focusedMemberField) {
+					attributes.field.member = focusedMemberField;
 				}
 			}
+
 			numberOfFields += this.addPortsForInputField({
 				...attributes,
 				field: attributes.field.member

@@ -77,7 +77,7 @@ export interface IOType {
     members?: EnumMember[];
     defaultValue?: unknown;
     optional?: boolean;
-    focusedId?: string;
+    focusedMemberId?: string;
     isFocused?: boolean;
 }
 
