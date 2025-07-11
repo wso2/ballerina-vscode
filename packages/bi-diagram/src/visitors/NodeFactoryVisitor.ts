@@ -51,22 +51,32 @@ export class NodeFactoryVisitor implements BaseVisitor {
     private skipChildrenVisit = false;
     private lastNodeModel: NodeModel | undefined; // last visited flow node
     private hasSuggestedNode = false;
+    private linkCounter = 0;
+    private visibleBtnCounter = 0;
 
     constructor() {
         // console.log(">>> node factory visitor started");
+    }
+
+    private createNodeLinkWithCounter(sourceNode: NodeModel, targetNode: NodeModel, options?: NodeLinkModelOptions): NodeLinkModel {
+        options = {
+            ...options,
+            linkCounter: this.linkCounter++,
+        };
+        return createNodesLink(sourceNode, targetNode, options);
     }
 
     private updateNodeLinks(node: FlowNode, nodeModel: NodeModel, options?: NodeLinkModelOptions): void {
         if (node.viewState?.startNodeId) {
             // new sub flow start
             const startNode = this.nodes.find((n) => n.getID() === node.viewState.startNodeId);
-            const link = createNodesLink(startNode, nodeModel, options);
+            const link = this.createNodeLinkWithCounter(startNode, nodeModel, options);
             if (link) {
                 this.links.push(link);
             }
             this.lastNodeModel = undefined;
         } else if (this.lastNodeModel) {
-            const link = createNodesLink(this.lastNodeModel, nodeModel, options);
+            const link = this.createNodeLinkWithCounter(this.lastNodeModel, nodeModel, options);
             if (link) {
                 this.links.push(link);
             }
@@ -93,7 +103,7 @@ export class NodeFactoryVisitor implements BaseVisitor {
     }
 
     private createEmptyNode(id: string, x: number, y: number, visible = true, showButton = false): EmptyNodeModel {
-        const nodeModel = new EmptyNodeModel(id, visible, showButton);
+        const nodeModel = new EmptyNodeModel(id, visible, showButton, this.visibleBtnCounter++);
         nodeModel.setPosition(x, y);
         this.nodes.push(nodeModel);
         return nodeModel;
@@ -214,7 +224,7 @@ export class NodeFactoryVisitor implements BaseVisitor {
                 return;
             }
 
-            const link = createNodesLink(ifNodeModel, firstChildNodeModel, {
+            const link = this.createNodeLinkWithCounter(ifNodeModel, firstChildNodeModel, {
                 id: getBranchInLinkId(node.id, branch.label, index),
                 label: getBranchLabel(branch),
             });
@@ -262,13 +272,13 @@ export class NodeFactoryVisitor implements BaseVisitor {
                     branchEmptyNodeModel.metadata?.draft ? false : true // else branch is draft
                 );
                 const noElseBranch = branchEmptyNodeModel.metadata?.draft;
-                const linkIn = createNodesLink(ifNodeModel, branchEmptyNode, {
+                const linkIn = this.createNodeLinkWithCounter(ifNodeModel, branchEmptyNode, {
                     id: getBranchInLinkId(node.id, branch.label, index),
                     label: noElseBranch ? "" : getBranchLabel(branch),
                     brokenLine: noElseBranch,
                     showAddButton: false,
                 });
-                const linkOut = createNodesLink(branchEmptyNode, endIfEmptyNode, {
+                const linkOut = this.createNodeLinkWithCounter(branchEmptyNode, endIfEmptyNode, {
                     brokenLine: true,
                     showAddButton: false,
                     alignBottom: true,
@@ -286,7 +296,7 @@ export class NodeFactoryVisitor implements BaseVisitor {
                 return;
             }
 
-            const link = createNodesLink(lastChildNodeModel, endIfEmptyNode, {
+            const link = this.createNodeLinkWithCounter(lastChildNodeModel, endIfEmptyNode, {
                 alignBottom: true,
                 brokenLine: lastNode.returning,
                 showAddButton: !lastNode.returning,
@@ -351,7 +361,7 @@ export class NodeFactoryVisitor implements BaseVisitor {
         if (branch.children && branch.children.length > 0) {
             const firstChildNodeModel = this.getBranchStartNode(branch);
             if (firstChildNodeModel) {
-                const link = createNodesLink(containerNodeModel, firstChildNodeModel);
+                const link = this.createNodeLinkWithCounter(containerNodeModel, firstChildNodeModel);
                 if (link) {
                     this.links.push(link);
                 }
@@ -381,10 +391,10 @@ export class NodeFactoryVisitor implements BaseVisitor {
                 true,
                 true
             );
-            const linkIn = createNodesLink(containerNodeModel, branchEmptyNode, {
+            const linkIn = this.createNodeLinkWithCounter(containerNodeModel, branchEmptyNode, {
                 showAddButton: false,
             });
-            const linkOut = createNodesLink(branchEmptyNode, endContainerEmptyNode, {
+            const linkOut = this.createNodeLinkWithCounter(branchEmptyNode, endContainerEmptyNode, {
                 showAddButton: false,
                 alignBottom: true,
             });
@@ -401,7 +411,7 @@ export class NodeFactoryVisitor implements BaseVisitor {
             return;
         }
 
-        const endLink = createNodesLink(lastChildNodeModel, endContainerEmptyNode, {
+        const endLink = this.createNodeLinkWithCounter(lastChildNodeModel, endContainerEmptyNode, {
             alignBottom: true,
             showAddButton: !lastNode.returning,
         });
@@ -457,7 +467,7 @@ export class NodeFactoryVisitor implements BaseVisitor {
         containerStartEmptyNode.setParentFlowNode(node);
 
         this.nodes.push(containerStartEmptyNode);
-        this.updateNodeLinks(node, containerStartEmptyNode);
+        // this.updateNodeLinks(node, containerStartEmptyNode);
         this.addSuggestionsButton(node);
         this.lastNodeModel = undefined;
     }
@@ -486,7 +496,7 @@ export class NodeFactoryVisitor implements BaseVisitor {
         if (bodyBranch.children && bodyBranch.children.length > 0) {
             const firstChildNodeModel = this.getBranchStartNode(bodyBranch);
             if (firstChildNodeModel) {
-                const link = createNodesLink(containerStartEmptyNodeModel, firstChildNodeModel);
+                const link = this.createNodeLinkWithCounter(containerStartEmptyNodeModel, firstChildNodeModel);
                 if (link) {
                     this.links.push(link);
                 }
@@ -501,7 +511,7 @@ export class NodeFactoryVisitor implements BaseVisitor {
         //     // link last node of body branch to container node model
         //     const lastNodeModel = this.getBranchEndNode(bodyBranch);
         //     if (lastNodeModel) {
-        //         const link = createNodesLink(lastNodeModel, containerNodeModel);
+        //         const link = this.createNodeLinkWithCounter(lastNodeModel, containerNodeModel);
         //         if (link) {
         //             this.links.push(link);
         //         }
@@ -538,7 +548,7 @@ export class NodeFactoryVisitor implements BaseVisitor {
                 true
             );
             branchEmptyNode.setParentFlowNode(node);
-            const linkIn = createNodesLink(containerStartEmptyNodeModel, branchEmptyNode, {
+            const linkIn = this.createNodeLinkWithCounter(containerStartEmptyNodeModel, branchEmptyNode, {
                 showAddButton: false,
             });
             if (linkIn) {
@@ -548,7 +558,7 @@ export class NodeFactoryVisitor implements BaseVisitor {
 
         const lastNodeModel = this.getBranchEndNode(bodyBranch);
         if (lastNodeModel) {
-            const linkOut = createNodesLink(lastNodeModel, containerNodeModel, {
+            const linkOut = this.createNodeLinkWithCounter(lastNodeModel, containerNodeModel, {
                 showAddButton: lastNodeModel.getID() !== getCustomNodeId(node.id, bodyBranch.label),
                 showArrow: false,
             });

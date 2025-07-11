@@ -66,6 +66,7 @@ export function DiagramCanvas(props: DiagramCanvasProps) {
             <Global styles={DiagramStyles.Expand} />
             <DiagramStyles.Container
                 id="bi-diagram-canvas"
+                data-testid="bi-diagram-canvas"
                 background={background || ThemeColors.SURFACE_BRIGHT}
                 color={color || ThemeColors.ON_SURFACE}
                 locked={lockCanvas}
