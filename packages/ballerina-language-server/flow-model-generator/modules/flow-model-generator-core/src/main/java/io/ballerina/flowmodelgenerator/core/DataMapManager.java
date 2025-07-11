@@ -73,6 +73,7 @@ import io.ballerina.flowmodelgenerator.core.model.FlowNode;
 import io.ballerina.flowmodelgenerator.core.model.NodeKind;
 import io.ballerina.flowmodelgenerator.core.model.Property;
 import io.ballerina.flowmodelgenerator.core.model.SourceBuilder;
+import io.ballerina.flowmodelgenerator.core.model.node.VariableBuilder;
 import io.ballerina.modelgenerator.commons.CommonUtils;
 import io.ballerina.modelgenerator.commons.DefaultValueGeneratorUtil;
 import io.ballerina.projects.Document;
@@ -88,6 +89,7 @@ import org.ballerinalang.diagramutil.connector.models.connector.types.ArrayType;
 import org.ballerinalang.diagramutil.connector.models.connector.types.PrimitiveType;
 import org.ballerinalang.diagramutil.connector.models.connector.types.RecordType;
 import org.ballerinalang.langserver.common.utils.CommonUtil;
+import org.ballerinalang.langserver.commons.workspace.WorkspaceManager;
 import org.eclipse.lsp4j.Position;
 import org.eclipse.lsp4j.Range;
 import org.eclipse.lsp4j.TextEdit;
@@ -163,14 +165,7 @@ public class DataMapManager {
     public JsonElement getMappings(SemanticModel semanticModel, JsonElement cd, LinePosition position,
                                    String targetField) {
         Codedata codedata = gson.fromJson(cd, Codedata.class);
-
-        SyntaxTree syntaxTree = document.syntaxTree();
-        ModulePartNode modulePartNode = syntaxTree.rootNode();
-        TextDocument textDocument = syntaxTree.textDocument();
-        LineRange lineRange = codedata.lineRange();
-        int start = textDocument.textPositionFrom(lineRange.startLine());
-        int end = textDocument.textPositionFrom(lineRange.endLine());
-        NonTerminalNode node = modulePartNode.findNode(TextRange.from(start, end - start), true);
+        NonTerminalNode node = getNode(codedata.lineRange());
 
         List<MappingPort> inputPorts = getInputPorts(semanticModel, this.document, position);
         inputPorts.sort(Comparator.comparing(mt -> mt.id));
@@ -598,14 +593,7 @@ public class DataMapManager {
     public JsonElement getSource(Path filePath, JsonElement cd, JsonElement mp, String targetField) {
         Codedata codedata = gson.fromJson(cd, Codedata.class);
         Mapping mapping = gson.fromJson(mp, Mapping.class);
-
-        SyntaxTree syntaxTree = document.syntaxTree();
-        ModulePartNode modulePartNode = syntaxTree.rootNode();
-        TextDocument textDocument = syntaxTree.textDocument();
-        LineRange lineRange = codedata.lineRange();
-        int start = textDocument.textPositionFrom(lineRange.startLine());
-        int end = textDocument.textPositionFrom(lineRange.endLine());
-        NonTerminalNode node = modulePartNode.findNode(TextRange.from(start, end - start), true);
+        NonTerminalNode node = getNode(codedata.lineRange());
 
         Map<Path, List<TextEdit>> textEditsMap = new HashMap<>();
         List<TextEdit> textEdits = new ArrayList<>();
@@ -774,14 +762,7 @@ public class DataMapManager {
         if (codedata.node() != NodeKind.VARIABLE) {
             return null;
         }
-
-        SyntaxTree syntaxTree = document.syntaxTree();
-        ModulePartNode modulePartNode = syntaxTree.rootNode();
-        TextDocument textDocument = syntaxTree.textDocument();
-        LineRange lineRange = codedata.lineRange();
-        int start = textDocument.textPositionFrom(lineRange.startLine());
-        int end = textDocument.textPositionFrom(lineRange.endLine());
-        NonTerminalNode node = modulePartNode.findNode(TextRange.from(start, end - start), true);
+        NonTerminalNode node = getNode(codedata.lineRange());
 
         Map<Path, List<TextEdit>> textEditsMap = new HashMap<>();
         List<TextEdit> textEdits = new ArrayList<>();
@@ -894,14 +875,7 @@ public class DataMapManager {
 
     public JsonElement getQuery(SemanticModel semanticModel, JsonElement cd, String targetField, Path filePath) {
         Codedata codedata = gson.fromJson(cd, Codedata.class);
-
-        SyntaxTree syntaxTree = document.syntaxTree();
-        ModulePartNode modulePartNode = syntaxTree.rootNode();
-        TextDocument textDocument = syntaxTree.textDocument();
-        LineRange lineRange = codedata.lineRange();
-        int start = textDocument.textPositionFrom(lineRange.startLine());
-        int end = textDocument.textPositionFrom(lineRange.endLine());
-        NonTerminalNode stNode = modulePartNode.findNode(TextRange.from(start, end - start), true);
+        NonTerminalNode stNode = getNode(codedata.lineRange());
 
         Map<Path, List<TextEdit>> textEditsMap = new HashMap<>();
         List<TextEdit> textEdits = new ArrayList<>();
@@ -984,14 +958,7 @@ public class DataMapManager {
 
     public JsonElement addElement(SemanticModel semanticModel, JsonElement cd, Path filePath, String targetField) {
         Codedata codedata = gson.fromJson(cd, Codedata.class);
-
-        SyntaxTree syntaxTree = document.syntaxTree();
-        ModulePartNode modulePartNode = syntaxTree.rootNode();
-        TextDocument textDocument = syntaxTree.textDocument();
-        LineRange lineRange = codedata.lineRange();
-        int start = textDocument.textPositionFrom(lineRange.startLine());
-        int end = textDocument.textPositionFrom(lineRange.endLine());
-        NonTerminalNode stNode = modulePartNode.findNode(TextRange.from(start, end - start), true);
+        NonTerminalNode stNode = getNode(codedata.lineRange());
 
         Map<Path, List<TextEdit>> textEditsMap = new HashMap<>();
         List<TextEdit> textEdits = new ArrayList<>();
@@ -1101,13 +1068,7 @@ public class DataMapManager {
     public JsonElement getFieldPosition(SemanticModel semanticModel, JsonElement cd, String targetField,
                                         String fieldId) {
         Codedata codedata = gson.fromJson(cd, Codedata.class);
-        SyntaxTree syntaxTree = document.syntaxTree();
-        ModulePartNode modulePartNode = syntaxTree.rootNode();
-        TextDocument textDocument = syntaxTree.textDocument();
-        LineRange lineRange = codedata.lineRange();
-        int start = textDocument.textPositionFrom(lineRange.startLine());
-        int end = textDocument.textPositionFrom(lineRange.endLine());
-        NonTerminalNode stNode = modulePartNode.findNode(TextRange.from(start, end - start), true);
+        NonTerminalNode stNode = getNode(codedata.lineRange());
         if (stNode.kind() != SyntaxKind.LOCAL_VAR_DECL) {
             return null;
         }
@@ -1146,13 +1107,7 @@ public class DataMapManager {
 
     public JsonElement subMapping(JsonElement cd, String view) {
         Codedata codedata = gson.fromJson(cd, Codedata.class);
-        SyntaxTree syntaxTree = document.syntaxTree();
-        ModulePartNode modulePartNode = syntaxTree.rootNode();
-        TextDocument textDocument = syntaxTree.textDocument();
-        LineRange lineRange = codedata.lineRange();
-        int start = textDocument.textPositionFrom(lineRange.startLine());
-        int end = textDocument.textPositionFrom(lineRange.endLine());
-        NonTerminalNode stNode = modulePartNode.findNode(TextRange.from(start, end - start), true);
+        NonTerminalNode stNode = getNode(codedata.lineRange());
         if (stNode.kind() != SyntaxKind.LOCAL_VAR_DECL) {
             return null;
         }
@@ -1268,6 +1223,63 @@ public class DataMapManager {
             }
         }
         return intermediateClauses;
+    }
+
+    public JsonElement getSubMapping(WorkspaceManager workspaceManager, Path filePath, JsonElement cd, JsonElement fn,
+                                     int index) {
+        Codedata codedata = gson.fromJson(cd, Codedata.class);
+        NonTerminalNode node = getNode(codedata.lineRange());
+        if (node.kind() != SyntaxKind.LOCAL_VAR_DECL) {
+            return null;
+        }
+
+        VariableDeclarationNode varDeclNode = (VariableDeclarationNode) node;
+        Optional<ExpressionNode> optInitializer = varDeclNode.initializer();
+        if (optInitializer.isEmpty()) {
+            return null;
+        }
+        ExpressionNode initializer = optInitializer.get();
+
+        FlowNode flowNode = gson.fromJson(fn, FlowNode.class);
+        SourceBuilder sourceBuilder = new SourceBuilder(flowNode, workspaceManager, filePath);
+        Map<Path, List<TextEdit>> source = (new VariableBuilder()).toSource(sourceBuilder);
+        List<TextEdit> tes = source.get(filePath);
+        boolean found = false;
+        for (TextEdit te : tes) {
+            String newText = te.getNewText();
+            if (newText.startsWith("import ") || found) {
+                continue;
+            }
+
+            newText = newText.split(";")[0];
+            LinePosition pos;
+            if (initializer.kind() == SyntaxKind.LET_EXPRESSION) {
+                newText = ", " + newText;
+                LetExpressionNode letExpr = (LetExpressionNode) initializer;
+                SeparatedNodeList<LetVariableDeclarationNode> letVarDecls = letExpr.letVarDeclarations();
+                if (index >= letVarDecls.size()) {
+                    pos = letVarDecls.get(letVarDecls.size() - 1).lineRange().endLine();
+                } else {
+                    pos = letVarDecls.get(index).lineRange().endLine();
+                }
+            } else {
+                newText = "let " + newText.split(";")[0] + " in ";
+                pos = initializer.lineRange().startLine();
+            }
+            te.setNewText(newText);
+            te.setRange(CommonUtils.toRange(pos));
+            found = true;
+        }
+        return gson.toJsonTree(source);
+    }
+
+    private NonTerminalNode getNode(LineRange lineRange) {
+        SyntaxTree syntaxTree = document.syntaxTree();
+        ModulePartNode modulePartNode = syntaxTree.rootNode();
+        TextDocument textDocument = syntaxTree.textDocument();
+        int start = textDocument.textPositionFrom(lineRange.startLine());
+        int end = textDocument.textPositionFrom(lineRange.endLine());
+        return modulePartNode.findNode(TextRange.from(start, end - start), true);
     }
 
     private record Model(List<MappingPort> inputs, MappingPort output, List<MappingPort> subMappings,
