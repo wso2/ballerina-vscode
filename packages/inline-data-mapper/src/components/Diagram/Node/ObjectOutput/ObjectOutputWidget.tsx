@@ -29,7 +29,6 @@ import { ObjectOutputFieldWidget } from "./ObjectOutputFieldWidget";
 import { useIONodesStyles } from '../../../styles';
 import { useDMCollapsedFieldsStore, useDMIOConfigPanelStore } from '../../../../store/store';
 import { OutputSearchHighlight } from '../commons/Search';
-import { OutputBeforeInputNotification } from '../commons/OutputBeforeInputNotification';
 import { useShallow } from 'zustand/react/shallow';
 
 export interface ObjectOutputWidgetProps {
@@ -60,7 +59,6 @@ export function ObjectOutputWidget(props: ObjectOutputWidgetProps) {
 
 	const [portState, setPortState] = useState<PortState>(PortState.Unselected);
 	const [isHovered, setIsHovered] = useState(false);
-	const [hasOutputBeforeInput, setHasOutputBeforeInput] = useState(false);
 
 	const collapsedFieldsStore = useDMCollapsedFieldsStore();
 
@@ -96,10 +94,6 @@ export function ObjectOutputWidget(props: ObjectOutputWidgetProps) {
 
 	const handlePortState = (state: PortState) => {
 		setPortState(state)
-	};
-
-	const handlePortSelection = (outputBeforeInput: boolean) => {
-		setHasOutputBeforeInput(outputBeforeInput);
 	};
 
 	const onMouseEnter = () => {
@@ -145,7 +139,6 @@ export function ObjectOutputWidget(props: ObjectOutputWidgetProps) {
 								engine={engine}
 								port={portIn}
 								handlePortState={handlePortState}
-								hasFirstSelectOutput={handlePortSelection}
 								disable={isDisabled && !expanded}
 							/>)
 						}
@@ -163,7 +156,6 @@ export function ObjectOutputWidget(props: ObjectOutputWidgetProps) {
 						</Button>
 						{label}
 					</span>
-                    {hasOutputBeforeInput && <OutputBeforeInputNotification />}
 				</TreeHeader>
 				{(expanded && fields) && (
 					<TreeBody>

@@ -49,7 +49,7 @@ import {
     convertBalCompletion,
     convertBICategoriesToSidePanelCategories,
     getFlowNodeForNaturalFunction,
-    getInfoFromExpressionValue,
+    calculateExpressionOffsets,
     isNaturalFunction,
     updateLineRange,
 } from "../../../utils/bi";
@@ -432,7 +432,7 @@ export function BIFocusFlowDiagram(props: BIFocusFlowDiagramProps) {
                         })
                         .sort((a, b) => a.sortText.localeCompare(b.sortText));
                 } else {
-                    const { lineOffset, charOffset } = getInfoFromExpressionValue(value, offset);
+                    const { lineOffset, charOffset } = calculateExpressionOffsets(value, offset);
                     let completions = await rpcClient.getBIDiagramRpcClient().getExpressionCompletions({
                         filePath: filePath,
                         context: {
