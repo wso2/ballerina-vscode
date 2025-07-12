@@ -88,7 +88,7 @@
     ],
     "output": {
       "member": {
-        "id": "phoneNumbers",
+        "id": "phoneNumbers.0",
         "typeName": "string",
         "kind": "string"
       },
@@ -110,7 +110,7 @@
       }
     ],
     "query": {
-      "output": "p.contactDetails.phoneNumbers",
+      "output": "phoneNumbers",
       "inputs": [
         "u.info.secondaryPhones"
       ],
