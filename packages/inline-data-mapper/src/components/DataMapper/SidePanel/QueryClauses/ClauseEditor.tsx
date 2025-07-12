@@ -120,8 +120,7 @@ export function ClauseEditor(props: ClauseEditorProps) {
         nestedForm: true,
         onSubmit: handleSubmit,
         onCancel,
-        isSaving,
-        helperPaneSide: 'left'
+        isSaving
     }
 
     return (
