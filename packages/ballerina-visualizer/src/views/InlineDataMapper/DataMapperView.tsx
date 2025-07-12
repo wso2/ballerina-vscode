@@ -203,6 +203,8 @@ export function InlineDataMapperView(props: InlineDataMapperProps) {
         return (
             <FormGeneratorNew
                 fileName={filePath}
+                preserveFieldOrder={true}
+                helperPaneSide="left"
                 {...formProps}
             />
         )

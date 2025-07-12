@@ -77,7 +77,7 @@ export interface IOType {
     members?: EnumMember[];
     defaultValue?: unknown;
     optional?: boolean;
-    focusedId?: string;
+    focusedMemberId?: string;
     isFocused?: boolean;
 }
 
@@ -195,7 +195,6 @@ export interface IDMFormProps {
     onSubmit: (data: IDMFormFieldValues) => void;
     onCancel?: () => void;
     isSaving?: boolean;
-    helperPaneSide?: 'right' | 'left';
 }
 
 export interface IDMFormField {
@@ -205,7 +204,7 @@ export interface IDMFormField {
     optional: boolean;
     editable: boolean;
     documentation: string;
-    value: string | any[];
+    value: any;
     valueTypeConstraint: string;
     enabled: boolean;
     items?: string[];
