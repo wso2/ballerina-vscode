@@ -170,6 +170,7 @@ export function EmptyNodeWidget(props: EmptyNodeWidgetProps) {
                             />
                         </svg>
                         <svg
+                            data-testid={`empty-node-add-button-${node.visibleBtnCounter}`}
                             xmlns="http://www.w3.org/2000/svg"
                             width="20"
                             height="20"

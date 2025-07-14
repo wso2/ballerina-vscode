@@ -973,7 +973,7 @@ export function getOutputPortForField(fields: STNode[],
 	}
 
 	const outputSearchValue = useDMSearchStore.getState().outputSearch;
-	const memberAccessRegex = /\.\d+$/;
+	const memberAccessRegex = /(.+\.\d+(?:\.[a-zA-Z]+)*)/;
 	const isMemberAccessPattern = memberAccessRegex.test(portIdBuffer);
 	const lastPortIdSegment = portIdBuffer.split('.').slice(-1)[0];
 	if (outputSearchValue !== ''
@@ -1725,11 +1725,30 @@ export function getFnDefForFnCall(node: FunctionCall): FnDefInfo {
 export function getFilteredMappings(mappings: FieldAccessToSpecificFied[], searchValue: string) {
 	return mappings.filter(mapping => {
 		if (mapping) {
+			if (searchValue === "") {
+				return true;
+			}
+
 			const lastField = mapping.fields[mapping.fields.length - 1];
 			const fieldName = STKindChecker.isSpecificField(lastField)
 				? lastField.fieldName?.value || lastField.fieldName.source
 				: lastField.source;
-			return searchValue === "" || fieldName.toLowerCase().includes(searchValue.toLowerCase());
+			const isFieldMatch = fieldName.toLowerCase().includes(searchValue.toLowerCase());
+			if (isFieldMatch) {
+				return true;
+			}
+
+			const elementsBeforeListConstructors = getElementsBeforeListConstructors(mapping.fields);
+			if (elementsBeforeListConstructors) {
+				for (const element of elementsBeforeListConstructors) {
+					const fieldName = STKindChecker.isSpecificField(element)
+						? element.fieldName?.value || element.fieldName.source
+						: element.source;
+					if (fieldName.toLowerCase().includes(searchValue.toLowerCase())) {
+						return true;
+					}
+				}
+			}			
 		}
 	});
 }
@@ -2212,4 +2231,27 @@ export const getSearchFilteredOutput = (type: TypeField) => {
 		}
 	}
 	return  null;
+}
+
+/**
+ * Returns an array of STNodes(fields) that appear before each ListConstructor in the fields array.
+ * @param fields - Array of STNodes to search through
+ * @returns Array of STNodes that appear before each ListConstructor
+ */
+export function getElementsBeforeListConstructors(fields: STNode[]): STNode[] {
+    if (!fields || fields.length < 2) {
+        return [];
+    }
+
+    const elementsBeforeListConstructors: STNode[] = [];
+    
+    // Find all indices where ListConstructors occur and collect elements before them
+    fields.forEach((field, index) => {
+        if (STKindChecker.isListConstructor(field) && index > 0) {
+            // Add the element before this ListConstructor
+            elementsBeforeListConstructors.push(fields[index - 1]);
+        }
+    });
+
+    return elementsBeforeListConstructors;
 }
