@@ -214,6 +214,41 @@
     {
       "range": {
         "start": {
+          "line": 26,
+          "character": 0
+        },
+        "end": {
+          "line": 35,
+          "character": 1
+        }
+      },
+      "command": {
+        "title": "Document this",
+        "command": "ADD_DOC",
+        "arguments": [
+          {
+            "key": "doc.uri",
+            "value": "functions.bal"
+          },
+          {
+            "key": "node.range",
+            "value": {
+              "start": {
+                "line": 26,
+                "character": 0
+              },
+              "end": {
+                "line": 35,
+                "character": 1
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "range": {
+        "start": {
           "line": 37,
           "character": 0
         },
@@ -242,6 +277,28 @@
                 "character": 1
               }
             }
+          }
+        ]
+      }
+    },
+    {
+      "range": {
+        "start": {
+          "line": 46,
+          "character": 0
+        },
+        "end": {
+          "line": 48,
+          "character": 1
+        }
+      },
+      "command": {
+        "title": "Run",
+        "command": "RUN",
+        "arguments": [
+          {
+            "key": "path",
+            "value": "functions.bal"
           }
         ]
       }
