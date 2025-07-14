@@ -103,6 +103,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Generates types of the data mapper model.
@@ -167,7 +169,13 @@ public class DataMapManager {
                                    String targetField) {
         Codedata codedata = gson.fromJson(cd, Codedata.class);
         NonTerminalNode node = getNode(codedata.lineRange());
-
+        String targetFieldName;
+        if (node.kind() == SyntaxKind.LOCAL_VAR_DECL || node.kind() == SyntaxKind.MODULE_VAR_DECL) {
+            VariableDeclarationNode variableDeclarationNode = (VariableDeclarationNode) node;
+            targetFieldName = variableDeclarationNode.typedBindingPattern().bindingPattern().toSourceCode().trim();
+        } else {
+            targetFieldName = null;
+        }
         List<MappingPort> inputPorts = getInputPorts(semanticModel, this.document, position);
         inputPorts.sort(Comparator.comparing(mt -> mt.id));
 
@@ -189,6 +197,21 @@ public class DataMapManager {
         if (expressionNode.kind() == SyntaxKind.QUERY_EXPRESSION) {
             QueryExpressionNode queryExpressionNode = (QueryExpressionNode) targetNode.expressionNode();
             FromClauseNode fromClauseNode = queryExpressionNode.queryPipeline().fromClause();
+            LinePosition fromClausePosition = fromClauseNode.lineRange().startLine();
+            List<Symbol> symbols = semanticModel.visibleSymbols(document, fromClausePosition);
+            symbols = symbols.stream()
+                    .filter(symbol -> !symbol.getName().orElse("").equals(targetFieldName))
+                    .collect(Collectors.toList());
+            List<MappingPort> queryInputPorts = getQueryInputPorts(symbols);
+            queryInputPorts.sort(Comparator.comparing(mt -> mt.id));
+            Set<String> existingIds = inputPorts.stream()
+                    .map(port -> port.id)
+                    .collect(Collectors.toSet());
+
+            queryInputPorts.stream()
+                    .filter(port -> !existingIds.contains(port.id))
+                    .forEach(inputPorts::add);
+
             List<String> inputs = new ArrayList<>();
             ExpressionNode expression = fromClauseNode.expression();
             inputs.add(expression.toSourceCode().trim());
@@ -315,7 +338,7 @@ public class DataMapManager {
             String field = fieldSplits[i];
             if (expr.kind() == SyntaxKind.QUERY_EXPRESSION) {
                 ClauseNode clauseNode = ((QueryExpressionNode) expr).resultClause();
-                if (expr.kind() == SyntaxKind.SELECT_CLAUSE) {
+                if (clauseNode.kind() == SyntaxKind.SELECT_CLAUSE) {
                     expr = ((SelectClauseNode) clauseNode).expression();
                 } else {
                     break;
@@ -518,6 +541,52 @@ public class DataMapManager {
 
         List<Symbol> symbols = semanticModel.visibleSymbols(document, position);
         for (Symbol symbol : symbols) {
+            SymbolKind kind = symbol.kind();
+            if (kind == SymbolKind.VARIABLE) {
+                Optional<String> optName = symbol.getName();
+                if (optName.isEmpty()) {
+                    continue;
+                }
+                Type type = Type.fromSemanticSymbol(symbol);
+                MappingPort mappingPort = getMappingPort(optName.get(), optName.get(), type);
+                if (mappingPort == null) {
+                    continue;
+                }
+                VariableSymbol varSymbol = (VariableSymbol) symbol;
+                if (varSymbol.qualifiers().contains(Qualifier.CONFIGURABLE)) {
+                    mappingPort.category = "configurable";
+                } else {
+                    mappingPort.category = "variable";
+                }
+                mappingPorts.add(mappingPort);
+            } else if (kind == SymbolKind.PARAMETER) {
+                Optional<String> optName = symbol.getName();
+                if (optName.isEmpty()) {
+                    continue;
+                }
+                Type type = Type.fromSemanticSymbol(symbol);
+                MappingPort mappingPort = getMappingPort(optName.get(), optName.get(), type);
+                if (mappingPort == null) {
+                    continue;
+                }
+                mappingPort.category = "parameter";
+                mappingPorts.add(mappingPort);
+            } else if (kind == SymbolKind.CONSTANT) {
+                Type type = Type.fromSemanticSymbol(symbol);
+                MappingPort mappingPort = getMappingPort(type.getTypeName(), type.getTypeName(), type);
+                if (mappingPort == null) {
+                    continue;
+                }
+                mappingPort.category = "constant";
+                mappingPorts.add(mappingPort);
+            }
+        }
+        return mappingPorts;
+    }
+
+    private List<MappingPort> getQueryInputPorts(List<Symbol> visibleSymbols) {
+        List<MappingPort> mappingPorts = new ArrayList<>();
+        for (Symbol symbol : visibleSymbols) {
             SymbolKind kind = symbol.kind();
             if (kind == SymbolKind.VARIABLE) {
                 Optional<String> optName = symbol.getName();
@@ -1341,6 +1410,7 @@ public class DataMapManager {
         String typeName;
         String kind;
         String category;
+        String focusId;
 
         MappingPort(String id, String variableName, String typeName, String kind) {
             this.id = id;
