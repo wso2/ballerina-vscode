@@ -8,7 +8,7 @@ All notable changes to the "Ballerina" extension will be documented in this file
 
 - **Bundled Language Server**: Ballerina Language Server is now bundled with the extension, eliminating separate installation requirements and improving startup performance
 - **Configurable Editor v2**: Complete redesign of the configuration editor with enhanced UI/UX and improved functionality
-- **Type Editor Revamp**: Comprehensive overhaul of the type editor with modern UI components and a better user experience
+- **Type Editor Revamp**: A redesign of the type editor to improve feature discoverability and deliver a better user experience
 
 ### Added
 
