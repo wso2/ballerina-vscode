@@ -56,6 +56,7 @@
           "typeName": "UserInfo",
           "kind": "record"
         },
+        "focusedMemberId": "item",
         "id": "userInfo",
         "variableName": "userInfo",
         "typeName": "UserInfo[]",
@@ -86,7 +87,8 @@
         "id": "item",
         "variableName": "item",
         "typeName": "UserInfo",
-        "kind": "record"
+        "kind": "record",
+        "isFocused": true
       }
     ],
     "output": {

@@ -1,16 +1,16 @@
 {
-  "source": "query3.bal",
+  "source": "query2_2.bal",
   "description": "Sample diagram node",
   "codedata": {
     "node": "VARIABLE",
     "lineRange": {
-      "fileName": "main.bal",
+      "fileName": "query2_2.bal",
       "startLine": {
         "line": 31,
         "offset": 4
       },
       "endLine": {
-        "line": 37,
+        "line": 36,
         "offset": 21
       }
     },
@@ -27,72 +27,64 @@
       {
         "fields": [
           {
-            "fields": [
-              {
-                "member": {
-                  "fields": [
-                    {
-                      "id": "u.info.secondaryPhones.0.code",
-                      "variableName": "code",
-                      "typeName": "string",
-                      "kind": "string"
-                    },
-                    {
-                      "id": "u.info.secondaryPhones.0.number",
-                      "variableName": "number",
-                      "typeName": "string",
-                      "kind": "string"
-                    }
-                  ],
-                  "id": "u.info.secondaryPhones.0",
-                  "variableName": "secondaryPhonesItem",
-                  "typeName": "SecondaryPhones",
-                  "kind": "record"
-                },
-                "focusedMemberId": "secondaryPhonesItem",
-                "id": "u.info.secondaryPhones",
-                "variableName": "secondaryPhones",
-                "typeName": "SecondaryPhones[]",
-                "kind": "array"
-              },
-              {
-                "member": {
-                  "id": "u.info.emails.0",
+            "member": {
+              "fields": [
+                {
+                  "id": "info.secondaryPhones.0.code",
+                  "variableName": "code",
                   "typeName": "string",
                   "kind": "string"
                 },
-                "id": "u.info.emails",
-                "variableName": "emails",
-                "typeName": "string[]",
-                "kind": "array"
+                {
+                  "id": "info.secondaryPhones.0.number",
+                  "variableName": "number",
+                  "typeName": "string",
+                  "kind": "string"
+                }
+              ],
+              "id": "info.secondaryPhones.0",
+              "variableName": "secondaryPhonesItem",
+              "typeName": "SecondaryPhones",
+              "kind": "record"
+            },
+            "focusedMemberId": "secondaryPhonesItem",
+            "id": "info.secondaryPhones",
+            "variableName": "secondaryPhones",
+            "typeName": "SecondaryPhones[]",
+            "kind": "array"
+          },
+          {
+            "member": {
+              "id": "info.emails.0",
+              "typeName": "string",
+              "kind": "string"
+            },
+            "id": "info.emails",
+            "variableName": "emails",
+            "typeName": "string[]",
+            "kind": "array"
+          },
+          {
+            "member": {
+              "member": {
+                "id": "info.addresses.0.0",
+                "typeName": "string",
+                "kind": "string"
               },
-              {
-                "member": {
-                  "member": {
-                    "id": "u.info.addresses.0.0",
-                    "typeName": "string",
-                    "kind": "string"
-                  },
-                  "id": "u.info.addresses.0",
-                  "variableName": "addressesItem",
-                  "typeName": "string[]",
-                  "kind": "array"
-                },
-                "id": "u.info.addresses",
-                "variableName": "addresses",
-                "typeName": "string[][]",
-                "kind": "array"
-              }
-            ],
-            "id": "u.info",
-            "variableName": "info",
-            "typeName": "Info",
-            "kind": "record"
+              "id": "info.addresses.0",
+              "variableName": "addressesItem",
+              "typeName": "string[]",
+              "kind": "array"
+            },
+            "id": "info.addresses",
+            "variableName": "addresses",
+            "typeName": "string[][]",
+            "kind": "array"
           }
         ],
-        "id": "u",
-        "variableName": "u",
-        "typeName": "User",
+        "id": "info",
+        "variableName": "info",
+        "typeName": "Info",
         "kind": "record",
         "category": "variable"
       },
@@ -169,24 +161,17 @@
     "query": {
       "output": "phoneNumbers",
       "inputs": [
-        "u.info.secondaryPhones"
+        "info.secondaryPhones"
       ],
       "fromClause": {
         "type": "from",
         "properties": {
           "name": "secondaryPhonesItem",
           "type": "SecondaryPhones",
-          "expression": "u.info.secondaryPhones"
+          "expression": "info.secondaryPhones"
         }
       },
-      "intermediateClauses": [
-        {
-          "type": "where",
-          "properties": {
-            "expression": "secondaryPhonesItem.code == \"123\""
-          }
-        }
-      ],
+      "intermediateClauses": [],
       "resultClause": {
         "type": "select",
         "properties": {

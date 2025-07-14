@@ -49,6 +49,7 @@
                   "typeName": "SecondaryPhones",
                   "kind": "record"
                 },
+                "focusedMemberId": "secondaryPhonesItem",
                 "id": "u.info.secondaryPhones",
                 "variableName": "secondaryPhones",
                 "typeName": "SecondaryPhones[]",
@@ -113,7 +114,8 @@
         "id": "secondaryPhonesItem",
         "variableName": "secondaryPhonesItem",
         "typeName": "SecondaryPhones",
-        "kind": "record"
+        "kind": "record",
+        "isFocused": true
       }
     ],
     "output": {

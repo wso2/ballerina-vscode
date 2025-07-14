@@ -34,6 +34,7 @@
                   "typeName": "string",
                   "kind": "string"
                 },
+                "focusedMemberId": "secondaryPhonesItem",
                 "id": "u.info.secondaryPhones",
                 "variableName": "secondaryPhones",
                 "typeName": "string[]",
@@ -83,7 +84,8 @@
       {
         "id": "secondaryPhonesItem",
         "typeName": "string",
-        "kind": "string"
+        "kind": "string",
+        "isFocused": true
       }
     ],
     "output": {

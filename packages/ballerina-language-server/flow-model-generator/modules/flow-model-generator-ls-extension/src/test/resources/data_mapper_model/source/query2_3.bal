@@ -28,11 +28,12 @@ type SecondaryPhonesX record {|
 |};
 
 public function main() {
-    User u = {info: {secondaryPhones: [], emails: [], addresses: []}};
+    Info info = {secondaryPhones: [], emails: [], addresses: []};
+    SecondaryPhones[] newSecondaryPhones = info.secondaryPhones;
     Person p = {
-                       contactDetails: {
-                           phoneNumbers: from var secondaryPhonesItem in u.info.secondaryPhones
-                               select {code: secondaryPhonesItem.code, number: secondaryPhonesItem.number}
-                       }
-                   };
+           contactDetails: {
+               phoneNumbers: from var secondaryPhonesItem in newSecondaryPhones
+                   select {code: secondaryPhonesItem.code, number: secondaryPhonesItem.number}
+           }
+       };
 }
