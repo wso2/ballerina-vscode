@@ -657,6 +657,7 @@ public class ServiceModelGeneratorService implements ExtendedLanguageServerServi
             if (!(node instanceof FunctionDefinitionNode functionDefinitionNode)) {
                 return new FunctionFromSourceResponse();
             }
+            // TODO: Handle service type functions other than http
             Function function = getFunctionFromFunctionDef(functionDefinitionNode, semanticModelOp.get());
             return new FunctionFromSourceResponse(function);
         });
