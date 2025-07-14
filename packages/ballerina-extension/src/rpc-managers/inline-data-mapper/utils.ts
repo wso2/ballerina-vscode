@@ -52,7 +52,6 @@ export async function updateAndRefreshDataMapper(
     varName: string
 ) {
     await applyTextEdits(textEdits);
-    await refreshDataMapper(filePath, codedata, varName);
 }
 
 /**
