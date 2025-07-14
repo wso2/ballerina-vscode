@@ -27,6 +27,49 @@
       {
         "fields": [
           {
+            "id": "l2Item.l3",
+            "variableName": "l3",
+            "typeName": "int",
+            "kind": "int"
+          },
+          {
+            "member": {
+              "fields": [
+                {
+                  "id": "l2Item.l3Arr.0.l4_1",
+                  "variableName": "l4_1",
+                  "typeName": "int",
+                  "kind": "int"
+                },
+                {
+                  "id": "l2Item.l3Arr.0.l4_2",
+                  "variableName": "l4_2",
+                  "typeName": "string",
+                  "kind": "string"
+                }
+              ],
+              "id": "l2Item.l3Arr.0",
+              "variableName": "l3ArrItem",
+              "typeName": "record",
+              "kind": "record"
+            },
+            "focusedMemberId": "l3ArrItem",
+            "id": "l2Item.l3Arr",
+            "variableName": "l3Arr",
+            "typeName": "record[]",
+            "kind": "array"
+          }
+        ],
+        "id": "l2Item",
+        "variableName": "l2Item",
+        "typeName": "record",
+        "kind": "record",
+        "category": "variable",
+        "isFocused": true
+      },
+      {
+        "fields": [
+          {
             "fields": [
               {
                 "member": {
@@ -87,49 +130,6 @@
         "typeName": "MyType4",
         "kind": "record",
         "category": "variable"
-      },
-      {
-        "fields": [
-          {
-            "id": "l2Item.l3",
-            "variableName": "l3",
-            "typeName": "int",
-            "kind": "int"
-          },
-          {
-            "member": {
-              "fields": [
-                {
-                  "id": "l2Item.l3Arr.0.l4_1",
-                  "variableName": "l4_1",
-                  "typeName": "int",
-                  "kind": "int"
-                },
-                {
-                  "id": "l2Item.l3Arr.0.l4_2",
-                  "variableName": "l4_2",
-                  "typeName": "string",
-                  "kind": "string"
-                }
-              ],
-              "id": "l2Item.l3Arr.0",
-              "variableName": "l3ArrItem",
-              "typeName": "record",
-              "kind": "record"
-            },
-            "focusedMemberId": "l3ArrItem",
-            "id": "l2Item.l3Arr",
-            "variableName": "l3Arr",
-            "typeName": "record[]",
-            "kind": "array"
-          }
-        ],
-        "id": "l2Item",
-        "variableName": "l2Item",
-        "typeName": "record",
-        "kind": "record",
-        "category": "variable",
-        "isFocused": true
       },
       {
         "fields": [

@@ -31,6 +31,55 @@
         "category": "constant"
       },
       {
+        "fields": [
+          {
+            "id": "bank.name",
+            "variableName": "name",
+            "typeName": "string",
+            "kind": "string"
+          },
+          {
+            "member": {
+              "fields": [
+                {
+                  "id": "bank.userInfo.0.username",
+                  "variableName": "username",
+                  "typeName": "string",
+                  "kind": "string"
+                },
+                {
+                  "id": "bank.userInfo.0.password",
+                  "variableName": "password",
+                  "typeName": "string",
+                  "kind": "string"
+                },
+                {
+                  "id": "bank.userInfo.0.id",
+                  "variableName": "id",
+                  "typeName": "int",
+                  "kind": "int"
+                }
+              ],
+              "id": "bank.userInfo.0",
+              "variableName": "userInfoItem",
+              "typeName": "UserInfo",
+              "kind": "record"
+            },
+            "focusedMemberId": "info",
+            "id": "bank.userInfo",
+            "variableName": "userInfo",
+            "typeName": "UserInfo[]",
+            "kind": "array"
+          }
+        ],
+        "id": "bank",
+        "variableName": "bank",
+        "typeName": "Bank",
+        "kind": "record",
+        "category": "variable",
+        "isFocused": true
+      },
+      {
         "member": {
           "fields": [
             {
@@ -116,55 +165,6 @@
         "typeName": "UserInfo[]",
         "kind": "array",
         "category": "variable"
-      },
-      {
-        "fields": [
-          {
-            "id": "bank.name",
-            "variableName": "name",
-            "typeName": "string",
-            "kind": "string"
-          },
-          {
-            "member": {
-              "fields": [
-                {
-                  "id": "bank.userInfo.0.username",
-                  "variableName": "username",
-                  "typeName": "string",
-                  "kind": "string"
-                },
-                {
-                  "id": "bank.userInfo.0.password",
-                  "variableName": "password",
-                  "typeName": "string",
-                  "kind": "string"
-                },
-                {
-                  "id": "bank.userInfo.0.id",
-                  "variableName": "id",
-                  "typeName": "int",
-                  "kind": "int"
-                }
-              ],
-              "id": "bank.userInfo.0",
-              "variableName": "userInfoItem",
-              "typeName": "UserInfo",
-              "kind": "record"
-            },
-            "focusedMemberId": "info",
-            "id": "bank.userInfo",
-            "variableName": "userInfo",
-            "typeName": "UserInfo[]",
-            "kind": "array"
-          }
-        ],
-        "id": "bank",
-        "variableName": "bank",
-        "typeName": "Bank",
-        "kind": "record",
-        "category": "variable",
-        "isFocused": true
       },
       {
         "fields": [

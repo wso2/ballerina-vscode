@@ -1,23 +1,23 @@
 {
-  "source": "query2_2.bal",
+  "source": "query2_3.bal",
   "description": "Sample diagram node",
   "codedata": {
     "node": "VARIABLE",
     "lineRange": {
-      "fileName": "query2_2.bal",
+      "fileName": "query2_3.bal",
       "startLine": {
-        "line": 31,
+        "line": 32,
         "offset": 4
       },
       "endLine": {
-        "line": 36,
-        "offset": 21
+        "line": 37,
+        "offset": 9
       }
     },
     "sourceCode": ""
   },
   "position": {
-    "line": 31,
+    "line": 32,
     "offset": 4
   },
   "propertyKey": "expression",
@@ -47,7 +47,6 @@
               "typeName": "SecondaryPhones",
               "kind": "record"
             },
-            "focusedMemberId": "secondaryPhonesItem",
             "id": "info.secondaryPhones",
             "variableName": "secondaryPhones",
             "typeName": "SecondaryPhones[]",
@@ -86,6 +85,34 @@
         "variableName": "info",
         "typeName": "Info",
         "kind": "record",
+        "category": "variable"
+      },
+      {
+        "member": {
+          "fields": [
+            {
+              "id": "newSecondaryPhones.0.code",
+              "variableName": "code",
+              "typeName": "string",
+              "kind": "string"
+            },
+            {
+              "id": "newSecondaryPhones.0.number",
+              "variableName": "number",
+              "typeName": "string",
+              "kind": "string"
+            }
+          ],
+          "id": "newSecondaryPhones.0",
+          "variableName": "newSecondaryPhonesItem",
+          "typeName": "SecondaryPhones",
+          "kind": "record"
+        },
+        "focusedMemberId": "secondaryPhonesItem",
+        "id": "newSecondaryPhones",
+        "variableName": "newSecondaryPhones",
+        "typeName": "SecondaryPhones[]",
+        "kind": "array",
         "category": "variable"
       },
       {
@@ -161,14 +188,14 @@
     "query": {
       "output": "p.contactDetails.phoneNumbers",
       "inputs": [
-        "info.secondaryPhones"
+        "newSecondaryPhones"
       ],
       "fromClause": {
         "type": "from",
         "properties": {
           "name": "secondaryPhonesItem",
           "type": "SecondaryPhones",
-          "expression": "info.secondaryPhones"
+          "expression": "newSecondaryPhones"
         }
       },
       "intermediateClauses": [],

@@ -187,6 +187,7 @@ public class DataMapManager {
         List<MappingPort> inputPorts = getInputPorts(semanticModel, this.document, position);
         inputPorts.sort(Comparator.comparing(mt -> mt.id));
 
+
         TargetNode targetNode = getTargetNode(node, targetField, semanticModel);
         if (targetNode == null) {
             return null;
@@ -196,13 +197,16 @@ public class DataMapManager {
         String name = targetNode.name();
         MappingPort outputPort = getMappingPort(name, name, type);
         ExpressionNode expressionNode = targetNode.expressionNode();
-        if (expressionNode == null) {
-            return gson.toJsonTree(new Model(inputPorts, outputPort, new ArrayList<>(), null));
-        }
 
         Query query = null;
+        List<MappingPort> inputPorts;
         List<MappingPort> subMappingPorts = null;
-        if (expressionNode.kind() == SyntaxKind.QUERY_EXPRESSION) {
+
+        if (expressionNode == null) {
+            inputPorts = getInputPorts(semanticModel, this.document, position);
+            inputPorts.sort(Comparator.comparing(mt -> mt.id));
+            return gson.toJsonTree(new Model(inputPorts, outputPort, new ArrayList<>(), null));
+        } else if (expressionNode.kind() == SyntaxKind.QUERY_EXPRESSION) {
             QueryExpressionNode queryExpressionNode = (QueryExpressionNode) targetNode.expressionNode();
             FromClauseNode fromClauseNode = queryExpressionNode.queryPipeline().fromClause();
             LinePosition fromClausePosition = fromClauseNode.lineRange().startLine();
@@ -210,15 +214,8 @@ public class DataMapManager {
             symbols = symbols.stream()
                     .filter(symbol -> !symbol.getName().orElse("").equals(targetFieldName))
                     .collect(Collectors.toList());
-            List<MappingPort> queryInputPorts = getQueryInputPorts(symbols);
-            queryInputPorts.sort(Comparator.comparing(mt -> mt.id));
-            Set<String> existingIds = inputPorts.stream()
-                    .map(port -> port.id)
-                    .collect(Collectors.toSet());
-
-            queryInputPorts.stream()
-                    .filter(port -> !existingIds.contains(port.id))
-                    .forEach(inputPorts::add);
+            inputPorts = getQueryInputPorts(symbols);
+            inputPorts.sort(Comparator.comparing(mt -> mt.id));
 
             List<String> inputs = new ArrayList<>();
             ExpressionNode expression = fromClauseNode.expression();
@@ -272,6 +269,8 @@ public class DataMapManager {
             query = new Query(name, inputs, fromClause,
                     getQueryIntermediateClause(queryExpressionNode.queryPipeline()), resultClause);
         } else if (expressionNode.kind() == SyntaxKind.LET_EXPRESSION) {
+            inputPorts = getInputPorts(semanticModel, this.document, position);
+            inputPorts.sort(Comparator.comparing(mt -> mt.id));
             LetExpressionNode letExpressionNode = (LetExpressionNode) expressionNode;
             subMappingPorts = new ArrayList<>();
             for (LetVariableDeclarationNode letVarDeclaration : letExpressionNode.letVarDeclarations()) {
@@ -283,6 +282,9 @@ public class DataMapManager {
                 String letVarName = symbol.getName().orElseThrow();
                 subMappingPorts.add(getMappingPort(letVarName, letVarName, Type.fromSemanticSymbol(symbol)));
             }
+        } else {
+            inputPorts = getInputPorts(semanticModel, this.document, position);
+            inputPorts.sort(Comparator.comparing(mt -> mt.id));
         }
 
         List<Mapping> mappings = new ArrayList<>();
