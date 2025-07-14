@@ -18,10 +18,8 @@
 
 package io.ballerina.servicemodelgenerator.extension.util;
 
-import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import com.google.gson.stream.JsonReader;
 import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.compiler.api.symbols.ModuleSymbol;
 import io.ballerina.compiler.api.symbols.RecordFieldSymbol;
@@ -34,28 +32,19 @@ import io.ballerina.compiler.api.symbols.TypeReferenceTypeSymbol;
 import io.ballerina.compiler.api.symbols.TypeSymbol;
 import io.ballerina.compiler.api.symbols.UnionTypeSymbol;
 import io.ballerina.compiler.syntax.tree.AnnotationNode;
-import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
 import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.compiler.syntax.tree.NodeList;
 import io.ballerina.compiler.syntax.tree.ServiceDeclarationNode;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.compiler.syntax.tree.TypeDefinitionNode;
-import io.ballerina.modelgenerator.commons.Annotation;
 import io.ballerina.modelgenerator.commons.CommonUtils;
-import io.ballerina.modelgenerator.commons.ServiceDatabaseManager;
 import io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants;
 import io.ballerina.servicemodelgenerator.extension.model.Codedata;
-import io.ballerina.servicemodelgenerator.extension.model.Function;
 import io.ballerina.servicemodelgenerator.extension.model.FunctionReturnType;
 import io.ballerina.servicemodelgenerator.extension.model.HttpResponse;
-import io.ballerina.servicemodelgenerator.extension.model.Parameter;
 import io.ballerina.servicemodelgenerator.extension.model.Service;
 import io.ballerina.servicemodelgenerator.extension.model.Value;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -66,8 +55,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.KIND_RESOURCE;
-import static io.ballerina.servicemodelgenerator.extension.util.Utils.getFunctionModel;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.getPath;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.populateListenerInfo;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.populateRequiredFuncsDesignApproachAndServiceType;
@@ -240,18 +227,16 @@ public final class HttpUtil {
     }
 
     public static void updateHttpServiceContractModel(Service serviceModel, TypeDefinitionNode serviceTypeNode,
-                                                      ServiceDeclarationNode serviceDeclaration,
-                                                      SemanticModel semanticModel) {
-        Service commonSvcModel = fromHttpServiceWithContract(serviceTypeNode, serviceDeclaration, semanticModel);
+                                                      ServiceDeclarationNode serviceDeclaration) {
+        Service commonSvcModel = fromHttpServiceWithContract(serviceTypeNode);
         enableContractFirstApproach(serviceModel);
         updateServiceInfo(serviceModel, commonSvcModel);
         serviceModel.setCodedata(new Codedata(serviceDeclaration.lineRange()));
         populateListenerInfo(serviceModel, serviceDeclaration);
     }
 
-    public static void updateHttpServiceModel(Service serviceModel, ServiceDeclarationNode serviceNode,
-                                              SemanticModel semanticModel) {
-        Service commonSvcModel = getServiceModel(serviceNode, semanticModel);
+    public static void updateHttpServiceModel(Service serviceModel, ServiceDeclarationNode serviceNode) {
+        Service commonSvcModel = Service.getEmptyServiceModel();
         updateServiceInfo(serviceModel, commonSvcModel);
         serviceModel.setCodedata(new Codedata(serviceNode.lineRange()));
         populateListenerInfo(serviceModel, serviceNode);
@@ -272,32 +257,9 @@ public final class HttpUtil {
     private static void updateServiceInfo(Service serviceModel, Service commonSvcModel) {
         populateRequiredFuncsDesignApproachAndServiceType(serviceModel);
         updateValue(serviceModel.getServiceContractTypeNameValue(), commonSvcModel.getServiceContractTypeNameValue());
-
-        // functions contains in source but not enforced using the service contract type
-        commonSvcModel.getFunctions().forEach(functionModel -> {
-            if (functionModel.getKind().equals(KIND_RESOURCE)) {
-                getResourceFunctionModel().ifPresentOrElse(
-                        resourceFunction -> {
-                            // remove the default json response from the resource function
-                            if (resourceFunction.getReturnType().getResponses().size() > 1) {
-                                resourceFunction.getReturnType().getResponses().remove(1);
-                            }
-                            updateFunctionInfo(resourceFunction, functionModel);
-                            serviceModel.addFunction(resourceFunction);
-                        },
-                        () -> serviceModel.addFunction(functionModel)
-                );
-            } else {
-                functionModel.setAnnotations(null);
-                functionModel.getAccessor().setEnabled(false);
-                serviceModel.addFunction(functionModel);
-            }
-        });
     }
 
-    public static Service fromHttpServiceWithContract(TypeDefinitionNode serviceTypeNode,
-                                                      ServiceDeclarationNode serviceDeclarationNode,
-                                                      SemanticModel semanticModel) {
+    public static Service fromHttpServiceWithContract(TypeDefinitionNode serviceTypeNode) {
         Service serviceModel = Service.getEmptyServiceModel();
         Value serviceContractType = new Value.ValueBuilder()
                 .enabled(true)
@@ -305,14 +267,6 @@ public final class HttpUtil {
                 .value(serviceTypeNode.typeName().text().trim())
                 .build();
         serviceModel.setServiceContractTypeName(serviceContractType);
-        serviceDeclarationNode.members().forEach(member -> {
-            if (member instanceof FunctionDefinitionNode functionDefinitionNode) {
-                Function functionModel = getFunctionModel(functionDefinitionNode, semanticModel, true,
-                        false, Map.of());
-                serviceModel.getFunctions().add(functionModel);
-            }
-        });
-
         return serviceModel;
     }
 
@@ -332,37 +286,6 @@ public final class HttpUtil {
         return Optional.empty();
     }
 
-    private static Service getServiceModel(ServiceDeclarationNode serviceDeclarationNode, SemanticModel semanticModel) {
-        ServiceDatabaseManager databaseManager = ServiceDatabaseManager.getInstance();
-        List<Annotation> annotationAttachments = databaseManager.
-                getAnnotationAttachments("ballerina", "http", "OBJECT_METHOD");
-        Map<String, Value> annotations = Function.createAnnotationsMap(annotationAttachments);
-        Service serviceModel = Service.getEmptyServiceModel();
-        serviceDeclarationNode.members().forEach(member -> {
-            if (member instanceof FunctionDefinitionNode functionDefinitionNode) {
-                Function functionModel = getFunctionModel(functionDefinitionNode, semanticModel, true, false,
-                        annotations);
-                functionModel.setEditable(true);
-                serviceModel.getFunctions().add(functionModel);
-            }
-        });
-        return serviceModel;
-    }
-
-    private static Optional<Function> getResourceFunctionModel() {
-        InputStream resourceStream = Utils.class.getClassLoader()
-                .getResourceAsStream("functions/http_resource.json");
-        if (resourceStream == null) {
-            return Optional.empty();
-        }
-
-        try (JsonReader reader = new JsonReader(new InputStreamReader(resourceStream, StandardCharsets.UTF_8))) {
-            return Optional.of(new Gson().fromJson(reader, Function.class));
-        } catch (IOException e) {
-            return Optional.empty();
-        }
-    }
-
     private static void enableContractFirstApproach(Service service) {
         Value designApproach = service.getDesignApproach();
         if (Objects.nonNull(designApproach) && Objects.nonNull(designApproach.getChoices())
@@ -376,21 +299,6 @@ public final class HttpUtil {
                         approach.getProperties().remove("spec");
                     });
         }
-    }
-
-    private static void updateFunctionInfo(Function functionModel, Function commonFunction) {
-        functionModel.setEditable(commonFunction.isEditable());
-        functionModel.setEnabled(true);
-        functionModel.setKind(commonFunction.getKind());
-        functionModel.setCodedata(commonFunction.getCodedata());
-        updateValue(functionModel.getAccessor(), commonFunction.getAccessor());
-        updateValue(functionModel.getName(), commonFunction.getName());
-        updateValue(functionModel.getReturnType(), commonFunction.getReturnType());
-        List<Parameter> parameters = functionModel.getParameters();
-        parameters.removeIf(parameter -> commonFunction.getParameters().stream()
-                .anyMatch(newParameter -> newParameter.getType().getValue()
-                        .equals(parameter.getType().getValue())));
-        commonFunction.getParameters().forEach(functionModel::addParameter);
     }
 
     private static List<HttpResponse> getHttpResponses(TypeSymbol returnTypeSymbol, int defaultStatusCode,

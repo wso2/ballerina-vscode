@@ -601,15 +601,14 @@ public class ServiceModelGeneratorService implements ExtendedLanguageServerServi
                                     .findFirst();
                             if (serviceContractType.isPresent()) {
                                 serviceContractExists = true;
-                                updateHttpServiceContractModel(serviceModel, serviceContractType.get(), serviceNode,
-                                        semanticModel);
+                                updateHttpServiceContractModel(serviceModel, serviceContractType.get(), serviceNode);
                             }
                         }
                     }
                 }
 
                 if (!serviceContractExists) {
-                    updateHttpServiceModel(serviceModel, serviceNode, semanticModel);
+                    updateHttpServiceModel(serviceModel, serviceNode);
                 }
 
                 updateListenerItems(moduleName, semanticModel, project, serviceModel);
