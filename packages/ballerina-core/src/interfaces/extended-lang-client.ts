@@ -307,8 +307,7 @@ export interface InlineDataMapperSourceRequest {
 
 export interface VisualizableFieldsRequest {
     filePath: string;
-    flowNode: FlowNode;
-    position: LinePosition;
+    codedata: CodeData;
 }
 
 export interface InlineDataMapperModelResponse {
