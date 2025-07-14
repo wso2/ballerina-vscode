@@ -21,12 +21,9 @@ package org.ballerinalang.langserver.codelenses.providers;
 import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
 import io.ballerina.compiler.syntax.tree.Node;
 import org.ballerinalang.annotation.JavaSPIService;
-import org.ballerinalang.langserver.command.executors.RunExecutor;
-import org.ballerinalang.langserver.common.constants.CommandConstants;
 import org.ballerinalang.langserver.common.utils.PositionUtil;
 import org.ballerinalang.langserver.commons.DocumentServiceContext;
 import org.ballerinalang.langserver.commons.LanguageServerContext;
-import org.ballerinalang.langserver.commons.command.CommandArgument;
 import org.eclipse.lsp4j.CodeLens;
 import org.eclipse.lsp4j.Command;
 import org.eclipse.lsp4j.Range;
@@ -41,6 +38,9 @@ import java.util.List;
  */
 @JavaSPIService("org.ballerinalang.langserver.commons.codelenses.spi.LSCodeLensesProvider")
 public class RunCodeLensProvider extends AbstractCodeLensesProvider {
+
+    private static final String BALLERINA_RUN_COMMAND = "ballerina.run";
+    private static final String BALLERINA_RUN_TITLE = "Run";
 
     public RunCodeLensProvider() {
         super("run.CodeLenses");
@@ -62,9 +62,8 @@ public class RunCodeLensProvider extends AbstractCodeLensesProvider {
     @Override
     public CodeLens getLens(DocumentServiceContext context, Node node) {
         Range range = PositionUtil.toRange(node.lineRange());
-        CommandArgument pathArg = CommandArgument.from(CommandConstants.ARG_KEY_PATH, context.fileUri());
-        List<Object> args = Collections.singletonList(pathArg);
-        Command command = new Command("Run", RunExecutor.RUN_COMMAND, args);
+        List<Object> args = Collections.singletonList(context.fileUri());
+        Command command = new Command(BALLERINA_RUN_TITLE, BALLERINA_RUN_COMMAND, args);
         return new CodeLens(range, command, null);
     }
 }

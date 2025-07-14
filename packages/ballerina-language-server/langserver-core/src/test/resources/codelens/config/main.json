@@ -1,0 +1,29 @@
+{
+  "source": "main.bal",
+  "result": [
+
+    {
+      "range": {
+        "start": {
+          "line": 2,
+          "character": 0
+        },
+        "end": {
+          "line": 4,
+          "character": 1
+        }
+      },
+      "command": {
+        "title": "Run",
+        "command": "ballerina.run",
+        "arguments": [
+          "main.bal"
+        ]
+      }
+    }
+  ],
+  "id": {
+    "left": "324"
+  },
+  "jsonrpc": "2.0"
+}

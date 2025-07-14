@@ -294,18 +294,11 @@
       },
       "command": {
         "title": "Run",
-        "command": "RUN",
+        "command": "ballerina.run",
         "arguments": [
-          {
-            "key": "path",
-            "value": "functions.bal"
-          }
+          "functions.bal"
         ]
       }
     }
-  ],
-  "id": {
-    "left": "324"
-  },
-  "jsonrpc": "2.0"
+  ]
 }

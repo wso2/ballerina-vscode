@@ -96,6 +96,7 @@ public class CodeLensTest {
     public Object[][] getCodeLensConfigurations() {
         return new Object[][]{
                 {"functions.json"},
+                {"main.json"}
         };
     }
 
@@ -163,7 +164,7 @@ public class CodeLensTest {
         config.add("result", resultArray);
 
         // Write back to the expected file
-        Path expectedFilePath = BASE_PATH.resolve("expected").resolve(configFileName);
+        Path expectedFilePath = BASE_PATH.resolve("config").resolve(configFileName);
         String prettyJson = GSON.newBuilder().setPrettyPrinting().create().toJson(config);
         Files.write(expectedFilePath, prettyJson.getBytes());
 
@@ -176,12 +177,19 @@ public class CodeLensTest {
      * @param jsonArray the JSON array to normalize
      */
     private void normalizeFilePaths(JsonArray jsonArray) {
-        jsonArray.forEach(element -> {
-            if (element.isJsonObject()) {
-                JsonObject obj = element.getAsJsonObject();
+        for (int i = 0; i < jsonArray.size(); i++) {
+            if (jsonArray.get(i).isJsonObject()) {
+                JsonObject obj = jsonArray.get(i).getAsJsonObject();
                 normalizeFilePathsInObject(obj);
+            } else if (jsonArray.get(i).isJsonPrimitive() && jsonArray.get(i).getAsJsonPrimitive().isString()) {
+                String normalizedValue = normalizePrimitiveFilePath(jsonArray.get(i).getAsString());
+                if (normalizedValue != null) {
+                    jsonArray.set(i, GSON.toJsonTree(normalizedValue));
+                }
+            } else if (jsonArray.get(i).isJsonArray()) {
+                normalizeFilePaths(jsonArray.get(i).getAsJsonArray());
             }
-        });
+        }
     }
 
     /**
@@ -192,11 +200,9 @@ public class CodeLensTest {
     private void normalizeFilePathsInObject(JsonObject obj) {
         obj.entrySet().forEach(entry -> {
             if (entry.getValue().isJsonPrimitive() && entry.getValue().getAsJsonPrimitive().isString()) {
-                String value = entry.getValue().getAsString();
-                if (value.startsWith("file://") && value.contains("/")) {
-                    // Extract just the filename from the full path
-                    String filename = value.substring(value.lastIndexOf("/") + 1);
-                    entry.setValue(GSON.toJsonTree(filename));
+                String normalizedValue = normalizePrimitiveFilePath(entry.getValue().getAsString());
+                if (normalizedValue != null) {
+                    entry.setValue(GSON.toJsonTree(normalizedValue));
                 }
             } else if (entry.getValue().isJsonObject()) {
                 normalizeFilePathsInObject(entry.getValue().getAsJsonObject());
@@ -204,5 +210,19 @@ public class CodeLensTest {
                 normalizeFilePaths(entry.getValue().getAsJsonArray());
             }
         });
+    }
+
+    /**
+     * Normalize a primitive string value if it contains a file path.
+     *
+     * @param value the string value to normalize
+     * @return the normalized filename if it was a file path, null otherwise
+     */
+    private String normalizePrimitiveFilePath(String value) {
+        if (value.startsWith("file://") && value.contains("/")) {
+            // Extract just the filename from the full path
+            return value.substring(value.lastIndexOf("/") + 1);
+        }
+        return null;
     }
 }
