@@ -341,6 +341,7 @@ export abstract class DataMapperNodeModel extends NodeModel<NodeModelGenerics & 
 
 			numberOfFields += this.addPortsForInputField({
 				...attributes,
+				hidden: isHidden,
 				field: attributes.field.member
 			});
 		}
