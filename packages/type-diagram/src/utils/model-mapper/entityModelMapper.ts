@@ -61,8 +61,8 @@ function createEntityLinks(entityNodes: Map<string, EntityModel>): EntityLinkMod
                             let sourcePort = sourceNode.getPort(`right-${sourceNode.getID()}/${member.name}`);
                             let targetPort = targetNode.getPort(`left-${ref}`);
 
-                            const linkId = `entity-link-${sourceNode.getID()}-${ref}`;
-                            let link = new EntityLinkModel(undefined, linkId); // REMOVE cardinalities
+                            const linkTestID = `node-link-${sourceNode.getID()}/${member.name}-${ref}`;
+                            let link = new EntityLinkModel(undefined, linkTestID); // REMOVE cardinalities
                             entityLinks.push(createLinks(sourcePort, targetPort, link));
                         }
                     });
