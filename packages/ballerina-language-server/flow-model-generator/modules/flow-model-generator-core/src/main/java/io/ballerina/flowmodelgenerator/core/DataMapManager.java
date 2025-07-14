@@ -300,6 +300,9 @@ public class DataMapManager {
         return gson.toJsonTree(new Model(inputPorts, outputPort, subMappingPorts, mappings, query));
     }
 
+
+
+
     private void setFocusIdForExpression(List<MappingPort> ports, String expression, String focusId) {
         for (MappingPort port : ports) {
             if (expression.equals(port.id)) {
@@ -743,6 +746,35 @@ public class DataMapManager {
             ExpressionNode expr = getMappingExpr(moduleVarDecl.initializer().orElseThrow(), targetField);
             StringBuilder sb = new StringBuilder();
             genSource(expr, splits, 1, sb, mapping.expression(), null, textEdits);
+        }
+
+        setImportStatements(mapping.imports(), textEdits);
+        return gson.toJsonTree(textEditsMap);
+    }
+
+    public JsonElement deleteMapping(Path filePath, JsonElement codeData, JsonElement mappingId) {
+        Codedata codedata = gson.fromJson(codeData, Codedata.class);
+        Mapping mapping = gson.fromJson(mappingId, Mapping.class);
+        NonTerminalNode node = getNode(codedata.lineRange());
+
+        Map<Path, List<TextEdit>> textEditsMap = new HashMap<>();
+        List<TextEdit> textEdits = new ArrayList<>();
+        textEditsMap.put(filePath, textEdits);
+
+        if (node.kind() == SyntaxKind.LOCAL_VAR_DECL) {
+            VariableDeclarationNode varDecl = (VariableDeclarationNode) node;
+            String output = mapping.output();
+            String[] splits = output.split(DOT);
+            ExpressionNode expr = getMappingExpr(varDecl.initializer().orElseThrow(), null);
+            StringBuilder sb = new StringBuilder();
+            genSource(expr, splits, 1, sb, "", null, textEdits);
+        } else if (node.kind() == SyntaxKind.MODULE_VAR_DECL) {
+            ModuleVariableDeclarationNode moduleVarDecl = (ModuleVariableDeclarationNode) node;
+            String output = mapping.output();
+            String[] splits = output.split(DOT);
+            ExpressionNode expr = getMappingExpr(moduleVarDecl.initializer().orElseThrow(), null);
+            StringBuilder sb = new StringBuilder();
+            genSource(expr, splits, 1, sb, "", null, textEdits);
         }
 
         setImportStatements(mapping.imports(), textEdits);

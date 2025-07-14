@@ -24,6 +24,8 @@ import io.ballerina.flowmodelgenerator.core.expressioneditor.DocumentContext;
 import io.ballerina.flowmodelgenerator.extension.request.DataMapperAddClausesRequest;
 import io.ballerina.flowmodelgenerator.extension.request.DataMapperAddElementRequest;
 import io.ballerina.flowmodelgenerator.extension.request.DataMapperCustomFunctionRequest;
+import io.ballerina.flowmodelgenerator.extension.response.DataMappingDeleteResponse;
+import io.ballerina.flowmodelgenerator.extension.request.DataMappingDeleteRequest;
 import io.ballerina.flowmodelgenerator.extension.request.DataMapperFieldPositionRequest;
 import io.ballerina.flowmodelgenerator.extension.request.DataMapperModelRequest;
 import io.ballerina.flowmodelgenerator.extension.request.DataMapperNodePositionRequest;
@@ -139,6 +141,28 @@ public class DataMapperService implements ExtendedLanguageServerService {
             }
             return response;
         });
+    }
+
+    @JsonRequest
+    public CompletableFuture<DataMappingDeleteResponse> deleteMapping(DataMappingDeleteRequest request) {
+        return CompletableFuture.supplyAsync(() -> {
+            DataMappingDeleteResponse response = new DataMappingDeleteResponse();
+            try {
+                Path filePath = Path.of(request.filePath());
+                this.workspaceManager.loadProject(filePath);
+                Optional<Document> document = this.workspaceManager.document(filePath);
+                if (document.isEmpty()) {
+                    return response;
+                }
+
+                DataMapManager dataMapManager = new DataMapManager(document.get());
+                response.setTextEdits(dataMapManager.deleteMapping(filePath, request.codedata(), request.mapping()));
+            } catch (Throwable e) {
+                response.setError(e);
+            }
+            return response;
+        });
+
     }
 
     @JsonRequest

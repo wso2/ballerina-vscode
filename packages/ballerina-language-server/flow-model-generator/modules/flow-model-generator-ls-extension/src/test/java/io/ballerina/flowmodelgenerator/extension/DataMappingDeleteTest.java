@@ -21,7 +21,7 @@ package io.ballerina.flowmodelgenerator.extension;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
-import io.ballerina.flowmodelgenerator.extension.request.DataMapperSourceRequest;
+import io.ballerina.flowmodelgenerator.extension.request.DataMappingDeleteRequest;
 import io.ballerina.modelgenerator.commons.AbstractLSTest;
 import org.eclipse.lsp4j.TextEdit;
 import org.testng.Assert;
@@ -38,11 +38,11 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Tests for the generation of data mapper source.
+ * Tests for deleting data-mappings
  *
  * @since 1.0.0
  */
-public class DataMappingSourceTest extends AbstractLSTest {
+public class DataMappingDeleteTest extends AbstractLSTest {
 
     private static final Type textEditListType = new TypeToken<Map<String, List<TextEdit>>>() { }.getType();
 
@@ -99,13 +99,11 @@ public class DataMappingSourceTest extends AbstractLSTest {
     @Override
     @Test(dataProvider = "data-provider")
     public void test(Path config) throws IOException {
-        // TODO: check the delete operation
         Path configJsonPath = configDir.resolve(config);
         TestConfig testConfig = gson.fromJson(Files.newBufferedReader(configJsonPath), TestConfig.class);
 
-        DataMapperSourceRequest request =
-                new DataMapperSourceRequest(sourceDir.resolve(testConfig.source()).toAbsolutePath().toString(),
-                        testConfig.codedata(), testConfig.mapping(), "", testConfig.targetField());
+        DataMappingDeleteRequest request = new DataMappingDeleteRequest(
+                sourceDir.resolve(testConfig.source()).toAbsolutePath().toString(), testConfig.codedata(), testConfig.mapping());
         JsonObject jsonMap = getResponse(request).getAsJsonObject("textEdits");
 
         Map<String, List<TextEdit>> actualTextEdits = gson.fromJson(jsonMap, textEditListType);
@@ -137,14 +135,14 @@ public class DataMappingSourceTest extends AbstractLSTest {
             TestConfig updatedConfig = new TestConfig(testConfig.source(), testConfig.description(),
                     testConfig.codedata(), testConfig.propertyKey(), testConfig.position(), testConfig.mapping(),
                     testConfig.targetField(), newMap);
-//            updateConfig(configJsonPath, updatedConfig);
+            updateConfig(configJsonPath, updatedConfig);
             Assert.fail(String.format("Failed test: '%s' (%s)", testConfig.description(), configJsonPath));
         }
     }
 
     @Override
     protected String getResourceDir() {
-        return "data_mapper_source";
+        return "delete_mapping";
     }
 
     @Override
@@ -154,7 +152,7 @@ public class DataMappingSourceTest extends AbstractLSTest {
 
     @Override
     protected String getApiName() {
-        return "getSource";
+        return "deleteMapping";
     }
 
     @Override
