@@ -44,8 +44,6 @@ import java.util.List;
 @JavaSPIService("org.ballerinalang.langserver.commons.codelenses.spi.LSCodeLensesProvider")
 public class DocsCodeLensesProvider extends AbstractCodeLensesProvider {
 
-    private static final String AUTOMATION_FUNCTION = "main";
-
     public DocsCodeLensesProvider() {
         super("docs.CodeLenses");
     }

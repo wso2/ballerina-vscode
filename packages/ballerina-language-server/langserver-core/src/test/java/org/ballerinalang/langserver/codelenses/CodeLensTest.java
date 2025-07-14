@@ -19,6 +19,7 @@ package org.ballerinalang.langserver.codelenses;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import org.ballerinalang.langserver.util.FileUtils;
 import org.ballerinalang.langserver.util.TestUtil;
@@ -43,7 +44,8 @@ import java.util.List;
  * Test code lens feature in language server.
  */
 public class CodeLensTest {
-    private final Path functionsBalPath = FileUtils.RES_DIR.resolve("codelens").resolve("functions.bal");
+
+    private static final Path BASE_PATH = FileUtils.RES_DIR.resolve("codelens");
     private Endpoint serviceEndpoint;
     private static final Logger log = LoggerFactory.getLogger(CodeLensTest.class);
     private static final Gson GSON = new Gson();
@@ -51,13 +53,19 @@ public class CodeLensTest {
     @BeforeClass
     public void loadLangServer() throws IOException {
         serviceEndpoint = TestUtil.initializeLanguageSever();
-        TestUtil.openDocument(serviceEndpoint, functionsBalPath);
     }
 
-    @Test(description = "Test Code Lenses for functions", dataProvider = "codeLensFunctionPositions")
-    public void codeLensForBuiltInFunctionTest(String expectedConfigName) throws IOException {
-        String response = TestUtil.getCodeLensesResponse(functionsBalPath.toString(), serviceEndpoint);
-        testCodeLenses(expectedConfigName, response);
+    @Test(description = "Test Code Lenses", dataProvider = "codeLensConfigurations")
+    public void codeLensTest(String configFileName) throws IOException {
+        String configContent = getExpectedValue(configFileName);
+        JsonObject config = JsonParser.parseString(configContent).getAsJsonObject();
+        String source = config.get("source").getAsString();
+        Path sourceFilePath = BASE_PATH.resolve(source);
+
+        TestUtil.openDocument(serviceEndpoint, sourceFilePath);
+        String response = TestUtil.getCodeLensesResponse(sourceFilePath.toString(), serviceEndpoint);
+        testCodeLenses(configFileName, response);
+        TestUtil.closeDocument(serviceEndpoint, sourceFilePath);
     }
 
     private void testCodeLenses(String expectedConfigName, String response) throws IOException {
@@ -68,6 +76,9 @@ public class CodeLensTest {
         List<CodeLens> responseItemList = getFlattenItemList(
                 JsonParser.parseString(response).getAsJsonObject().getAsJsonArray("result"));
 
+        boolean isSameSize = expectedItemList.size() == responseItemList.size();
+        Assert.assertTrue(isSameSize, "Code lens size mismatch for " + expectedConfigName);
+
         boolean isSubList = getStringListForEvaluation(responseItemList).containsAll(
                 getStringListForEvaluation(expectedItemList));
         Assert.assertTrue(isSubList, "Did not match the codelens content for " + expectedConfigName);
@@ -75,24 +86,14 @@ public class CodeLensTest {
 
     @AfterClass
     public void shutDownLanguageServer() {
-        TestUtil.closeDocument(this.serviceEndpoint, functionsBalPath);
         TestUtil.shutdownLanguageServer(this.serviceEndpoint);
         this.serviceEndpoint = null;
     }
 
-    @DataProvider(name = "codeLensFunctionPositions")
-    public Object[][] getCodeLensFunctionPositions() {
-        log.info("Test textDocument/codeLens for functions");
+    @DataProvider(name = "codeLensConfigurations")
+    public Object[][] getCodeLensConfigurations() {
         return new Object[][]{
                 {"functions.json"},
-        };
-    }
-
-    @DataProvider(name = "codeLensServicesPositions")
-    public Object[][] getCodeLensServicesPositions() {
-        log.info("Test textDocument/codeLens for services");
-        return new Object[][]{
-                {"services.json"}
         };
     }
 
@@ -103,7 +104,7 @@ public class CodeLensTest {
      * @return string content read from the json file.
      */
     private String getExpectedValue(String expectedFile) throws IOException {
-        Path expectedFilePath = FileUtils.RES_DIR.resolve("codelens").resolve("expected").resolve(expectedFile);
+        Path expectedFilePath = BASE_PATH.resolve("expected").resolve(expectedFile);
         byte[] expectedByte = Files.readAllBytes(expectedFilePath);
         return new String(expectedByte);
     }

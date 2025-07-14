@@ -25,6 +25,9 @@ import org.ballerinalang.langserver.commons.codelenses.spi.LSCodeLensesProvider;
  * @since 1.0.0
  */
 public abstract class AbstractCodeLensesProvider implements LSCodeLensesProvider {
+
+    protected static final String AUTOMATION_FUNCTION = "main";
+
     /**
      * To track codelens provider is enabled or not.
      */
