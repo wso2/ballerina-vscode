@@ -18,7 +18,7 @@ All notable changes to the "Ballerina" extension will be documented in this file
 
 ### Changed
 
-- **Project Management**: Refactored artifacts management and navigation system for better organization
+- **Integration Management**: Refactored artifacts management and navigation
 - **UI Components**: 
   - Type Diagram and GraphQL designer with improved visual presentation
 - **Developer Experience**:
