@@ -60,7 +60,7 @@ public class CodeLensTest {
         String configContent = getExpectedValue(configFileName);
         JsonObject config = JsonParser.parseString(configContent).getAsJsonObject();
         String source = config.get("source").getAsString();
-        Path sourceFilePath = BASE_PATH.resolve(source);
+        Path sourceFilePath = BASE_PATH.resolve("source").resolve(source);
 
         TestUtil.openDocument(serviceEndpoint, sourceFilePath);
         String response = TestUtil.getCodeLensesResponse(sourceFilePath.toString(), serviceEndpoint);
@@ -106,7 +106,7 @@ public class CodeLensTest {
      * @return string content read from the json file.
      */
     private String getExpectedValue(String expectedFile) throws IOException {
-        Path expectedFilePath = BASE_PATH.resolve("expected").resolve(expectedFile);
+        Path expectedFilePath = BASE_PATH.resolve("config").resolve(expectedFile);
         byte[] expectedByte = Files.readAllBytes(expectedFilePath);
         return new String(expectedByte);
     }
