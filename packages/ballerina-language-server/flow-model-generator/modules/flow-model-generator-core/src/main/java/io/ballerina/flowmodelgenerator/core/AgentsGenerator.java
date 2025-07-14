@@ -21,6 +21,7 @@ package io.ballerina.flowmodelgenerator.core;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import io.ballerina.compiler.api.ModuleID;
 import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.compiler.api.symbols.AnnotationAttachmentSymbol;
@@ -108,6 +109,15 @@ public class AgentsGenerator {
     private static final String HTTP_MODULE = "http";
     private static final List<String> HTTP_REMOTE_METHOD_SKIP_LIST = List.of("get", "put", "post", "head",
             "delete", "patch", "options");
+    private static final String AI_OPENAI = "ai.openai";
+    private static final String AI_ANTHROPIC = "ai.anthropic";
+    private static final String AI_DEEPSEEK = "ai.deepseek";
+    private static final String AI_MISTRAL = "ai.mistral";
+    private static final String AI_OLLAMA = "ai.ollama";
+    private static final String AI_AZURE = "ai.azure";
+    private static final String OPENAI_MODEL_PROVIDER = "OpenAiModelProvider";
+    private static final String CLASS_INIT = "CLASS_INIT";
+
 
     public AgentsGenerator() {
         this.gson = new Gson();
@@ -146,7 +156,34 @@ public class AgentsGenerator {
         return gson.toJsonTree(agents).getAsJsonArray();
     }
 
-    public JsonArray getAllModels(SemanticModel agentSymbol) {
+    public JsonArray getAllBallerinaModels() {
+        JsonArray models = new JsonArray();
+        models.add(createModelObject(AI_OPENAI));
+        models.add(createModelObject(AI_ANTHROPIC));
+        models.add(createModelObject(AI_DEEPSEEK));
+        models.add(createModelObject(AI_MISTRAL));
+        models.add(createModelObject(AI_OLLAMA));
+        models.add(createModelObject(AI_AZURE, OPENAI_MODEL_PROVIDER));
+        return models;
+    }
+
+    private JsonObject createModelObject(String moduleName) {
+        return createModelObject(moduleName, MODEL);
+    }
+
+    private JsonObject createModelObject(String moduleName, String objectName) {
+        JsonObject model = new JsonObject();
+        model.addProperty("node", CLASS_INIT);
+        model.addProperty("org", BALLERINA_ORG);
+        model.addProperty("module", moduleName);
+        model.addProperty("packageName", moduleName);
+        model.addProperty("object", objectName);
+        model.addProperty("symbol", INIT);
+        model.addProperty("version", "1.0.0");
+        return model;
+    }
+
+    public JsonArray getAllBallerinaxModels(SemanticModel agentSymbol) {
         List<ClassSymbol> modelSymbols = new ArrayList<>();
         for (Symbol symbol : agentSymbol.moduleSymbols()) {
             if (symbol.kind() != SymbolKind.CLASS) {

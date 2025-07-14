@@ -53,7 +53,7 @@ public class GetAgentOrgTest extends AbstractLSTest {
 
         String filePath = sourceDir.resolve(testConfig.source()).toAbsolutePath().toString();
         GetAgentOrgRequest request = new GetAgentOrgRequest(filePath);
-        String org = getResponse(request).get("org").getAsString();
+        String org = getResponse(request).get("orgName").getAsString();
 
         if (!org.equals(testConfig.orgName())) {
             TestConfig updatedConfig = new TestConfig(testConfig.source(), org);

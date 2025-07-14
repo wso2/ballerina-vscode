@@ -28,6 +28,7 @@ import org.eclipse.lsp4j.TextEdit;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -38,12 +39,14 @@ import java.util.Set;
 public class AgentBuilder extends CallBuilder {
 
     private static final String AGENT_LABEL = "Agent";
+    private static FunctionData.Kind functionKind = FunctionData.Kind.CONNECTOR;
     public static final String PARAMS_TO_HIDE = "paramsToHide";
     public static final String MODEL = "model";
     public static final String TYPE = "type";
     public static final String TOOLS = "tools";
     public static final String LABEL = "Agent";
     public static final String DESCRIPTION = "Create new agent";
+    public static final String BALLERINA = "ballerina";
 
     @Override
     protected NodeKind getFunctionNodeKind() {
@@ -52,7 +55,7 @@ public class AgentBuilder extends CallBuilder {
 
     @Override
     protected FunctionData.Kind getFunctionResultKind() {
-        return FunctionData.Kind.CONNECTOR;
+        return functionKind;
     }
 
     @Override
@@ -79,6 +82,10 @@ public class AgentBuilder extends CallBuilder {
 
     @Override
     public void setConcreteTemplateData(TemplateContext context) {
+        if (context == null || context.codedata() == null) {
+            throw new IllegalArgumentException("Context or codedata cannot be null");
+        }
+        if (context.codedata().org().equals(BALLERINA)) functionKind = FunctionData.Kind.CLASS_INIT;
         super.setConcreteTemplateData(context);
 
         metadata().addData(PARAMS_TO_HIDE, List.of(MODEL, TOOLS, TYPE));

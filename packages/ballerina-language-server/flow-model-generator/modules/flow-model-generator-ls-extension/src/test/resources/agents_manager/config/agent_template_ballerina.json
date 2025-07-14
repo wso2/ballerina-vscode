@@ -7,19 +7,19 @@
   "description": "",
   "codedata": {
     "node": "AGENT",
-    "org": "ballerinax",
+    "org": "ballerina",
     "module": "ai",
     "packageName": "ai",
     "object": "Agent",
     "symbol": "init",
-    "version": "1.0.1"
+    "version": "1.0.0"
   },
   "output": {
     "id": "31",
     "metadata": {
       "label": "Agent",
-      "description": "Represents an agent.",
-      "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_ai_1.0.1.png",
+      "description": "Initialize an Agent.\n",
+      "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.0.0.png",
       "data": {
         "paramsToHide": [
           "model",
@@ -30,12 +30,12 @@
     },
     "codedata": {
       "node": "AGENT",
-      "org": "ballerinax",
+      "org": "ballerina",
       "module": "ai",
       "packageName": "ai",
       "object": "Agent",
       "symbol": "init",
-      "version": "1.0.1",
+      "version": "1.0.0",
       "isNew": true
     },
     "returning": false,
@@ -59,7 +59,7 @@
         "typeMembers": [
           {
             "type": "SystemPrompt",
-            "packageInfo": "ballerinax:ai:1.0.1",
+            "packageInfo": "ballerina:ai:1.0.0",
             "packageName": "ai",
             "kind": "RECORD_TYPE",
             "selected": false
@@ -86,7 +86,7 @@
         "typeMembers": [
           {
             "type": "ModelProvider",
-            "packageInfo": "ballerinax:ai:1.0.1",
+            "packageInfo": "ballerina:ai:1.0.0",
             "packageName": "ai",
             "kind": "OBJECT_TYPE",
             "selected": false
@@ -121,41 +121,14 @@
         ],
         "defaultValue": "[]"
       },
-      "agentType": {
-        "metadata": {
-          "label": "Agent Type",
-          "description": "Type of the agent"
-        },
-        "valueType": "EXPRESSION",
-        "valueTypeConstraint": "ai:AgentType",
-        "placeholder": "\"FUNCTION_CALL_AGENT\"",
-        "optional": true,
-        "editable": true,
-        "advanced": true,
-        "hidden": false,
-        "codedata": {
-          "kind": "INCLUDED_FIELD",
-          "originalName": "agentType"
-        },
-        "typeMembers": [
-          {
-            "type": "AgentType",
-            "packageInfo": "ballerinax:ai:1.0.1",
-            "packageName": "ai",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          }
-        ],
-        "defaultValue": "\"FUNCTION_CALL_AGENT\""
-      },
       "maxIter": {
         "metadata": {
           "label": "Maximum Iterations",
-          "description": "The maximum number of iterations the agent performs to complete the task"
+          "description": "The maximum number of iterations the agent performs to complete the task.\nBy default, it is set to the number of tools + 1."
         },
         "valueType": "EXPRESSION",
-        "valueTypeConstraint": "int",
-        "placeholder": "0",
+        "valueTypeConstraint": "\"INFER_TOOL_COUNT\"|int",
+        "placeholder": "\"INFER_TOOL_COUNT\"",
         "optional": true,
         "editable": true,
         "advanced": true,
@@ -166,6 +139,13 @@
         },
         "typeMembers": [
           {
+            "type": "\"INFER_TOOL_COUNT\"",
+            "packageInfo": "",
+            "packageName": "",
+            "kind": "BASIC_TYPE",
+            "selected": false
+          },
+          {
             "type": "int",
             "packageInfo": "",
             "packageName": "",
@@ -173,7 +153,7 @@
             "selected": false
           }
         ],
-        "defaultValue": "0"
+        "defaultValue": "\"INFER_TOOL_COUNT\""
       },
       "verbose": {
         "metadata": {
@@ -221,7 +201,7 @@
         "typeMembers": [
           {
             "type": "Memory",
-            "packageInfo": "ballerinax:ai:1.0.1",
+            "packageInfo": "ballerina:ai:1.0.0",
             "packageName": "ai",
             "kind": "OBJECT_TYPE",
             "selected": false

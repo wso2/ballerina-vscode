@@ -1,0 +1,62 @@
+{
+  "source": "agent_1/agents.bal",
+  "description": "Sample diagram node",
+  "orgName": "ballerina",
+  "agent": "FunctionCallAgent",
+  "models": [
+    {
+      "node": "CLASS_INIT",
+      "org": "ballerina",
+      "module": "ai.openai",
+      "packageName": "ai.openai",
+      "object": "ModelProvider",
+      "symbol": "init",
+      "version": "1.0.0"
+    },
+    {
+      "node": "CLASS_INIT",
+      "org": "ballerina",
+      "module": "ai.anthropic",
+      "packageName": "ai.anthropic",
+      "object": "ModelProvider",
+      "symbol": "init",
+      "version": "1.0.0"
+    },
+    {
+      "node": "CLASS_INIT",
+      "org": "ballerina",
+      "module": "ai.deepseek",
+      "packageName": "ai.deepseek",
+      "object": "ModelProvider",
+      "symbol": "init",
+      "version": "1.0.0"
+    },
+    {
+      "node": "CLASS_INIT",
+      "org": "ballerina",
+      "module": "ai.mistral",
+      "packageName": "ai.mistral",
+      "object": "ModelProvider",
+      "symbol": "init",
+      "version": "1.0.0"
+    },
+    {
+      "node": "CLASS_INIT",
+      "org": "ballerina",
+      "module": "ai.ollama",
+      "packageName": "ai.ollama",
+      "object": "ModelProvider",
+      "symbol": "init",
+      "version": "1.0.0"
+    },
+    {
+      "node": "CLASS_INIT",
+      "org": "ballerina",
+      "module": "ai.azure",
+      "packageName": "ai.azure",
+      "object": "OpenAiModelProvider",
+      "symbol": "init",
+      "version": "1.0.0"
+    }
+  ]
+}

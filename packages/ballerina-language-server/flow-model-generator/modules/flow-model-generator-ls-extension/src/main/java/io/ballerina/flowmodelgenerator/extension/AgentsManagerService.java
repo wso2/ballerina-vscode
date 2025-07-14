@@ -115,13 +115,13 @@ public class AgentsManagerService implements ExtendedLanguageServerService {
         return CompletableFuture.supplyAsync(() -> {
             GetModelsResponse response = new GetModelsResponse();
             try {
-                Optional<SemanticModel> semanticModel = PackageUtil.getSemanticModel(BALLERINAX, AI_AGENT);
-                if (semanticModel.isEmpty()) {
-                    return response;
-                }
-
                 AgentsGenerator agentsGenerator  = new AgentsGenerator();
-                response.setModels(agentsGenerator.getAllModels(semanticModel.get()));
+                if (BALLERINA.equals(request.orgName())) {
+                    response.setModels(agentsGenerator.getAllBallerinaModels());
+                } else {
+                    Optional<SemanticModel> semanticModel = PackageUtil.getSemanticModel(BALLERINAX, AI_AGENT);
+                    semanticModel.ifPresent(model -> response.setModels(agentsGenerator.getAllBallerinaxModels(model)));
+                }
             } catch (Throwable e) {
                 throw new RuntimeException(e);
             }

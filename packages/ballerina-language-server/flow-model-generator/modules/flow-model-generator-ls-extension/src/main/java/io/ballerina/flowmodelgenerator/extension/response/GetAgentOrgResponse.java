@@ -26,12 +26,12 @@ import com.google.gson.JsonArray;
  * @since 1.0.0
  */
 public class GetAgentOrgResponse extends AbstractFlowModelResponse {
-    private String org;
+    private String orgName;
 
     public GetAgentOrgResponse() {
     }
 
-    public void setOrg(String org) {
-        this.org = org;
+    public void setOrg(String orgName) {
+        this.orgName = orgName;
     }
 }

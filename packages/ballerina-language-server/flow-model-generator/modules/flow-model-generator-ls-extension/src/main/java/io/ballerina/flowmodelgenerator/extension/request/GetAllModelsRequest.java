@@ -22,7 +22,8 @@ package io.ballerina.flowmodelgenerator.extension.request;
  * A request to retrieve initialized models.
  *
  * @param agent name of the agent
+ * @param orgName organization to look up the models
  * @param filePath a file path of the project
  */
-public record GetAllModelsRequest(String agent, String filePath) {
+public record GetAllModelsRequest(String agent, String orgName, String filePath) {
 }
