@@ -15,8 +15,6 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import React from 'react';
-
 import { useQuery } from '@tanstack/react-query';
 import { useRpcContext } from '@wso2/ballerina-rpc-client';
 import { IDMViewState } from '@wso2/ballerina-core';
