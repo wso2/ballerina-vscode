@@ -81,6 +81,7 @@ import io.ballerina.servicemodelgenerator.extension.request.TriggerRequest;
 import io.ballerina.servicemodelgenerator.extension.request.TypesRequest;
 import io.ballerina.servicemodelgenerator.extension.response.AddOrGetDefaultListenerResponse;
 import io.ballerina.servicemodelgenerator.extension.response.CommonSourceResponse;
+import io.ballerina.servicemodelgenerator.extension.response.FunctionFromSourceResponse;
 import io.ballerina.servicemodelgenerator.extension.response.FunctionModelResponse;
 import io.ballerina.servicemodelgenerator.extension.response.ListenerDiscoveryResponse;
 import io.ballerina.servicemodelgenerator.extension.response.ListenerFromSourceResponse;
@@ -623,6 +624,21 @@ public class ServiceModelGeneratorService implements ExtendedLanguageServerServi
             updateGenericServiceModel(serviceModel, serviceNode, semanticModel);
             updateListenerItems(moduleName, semanticModel, project, serviceModel);
             return new ServiceFromSourceResponse(serviceModel);
+        });
+    }
+
+    /**
+     * Get the function model for the given line range.
+     *
+     * @param request Common model from source request
+     * @return {@link ServiceFromSourceResponse} of the service from source response
+     */
+    @JsonRequest
+    public CompletableFuture<FunctionFromSourceResponse> getFunctionFromSource(CommonModelFromSourceRequest request) {
+        return CompletableFuture.supplyAsync(() -> {
+            FunctionFromSourceResponse response = new FunctionFromSourceResponse();
+
+            return response;
         });
     }
 
