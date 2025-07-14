@@ -597,7 +597,7 @@ public class ServiceModelAPITests {
         ServiceFromSourceResponse sourceResponse = (ServiceFromSourceResponse) sourceResult.get();
         Service service = sourceResponse.service();
         Assert.assertTrue(Objects.nonNull(service));
-        Assert.assertTrue(service.getFunctions().size() > 1);
+        Assert.assertTrue(service.getFunctions().isEmpty());
         Function function = service.getFunctions().get(1);
         function.getAccessor().setValue("put");
         function.getReturnType().setValue("");
