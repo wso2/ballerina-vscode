@@ -97,7 +97,8 @@ public class CodeLensTest {
         return new Object[][]{
                 {"test.json"},
                 {"main.json"},
-                {"functions.json"}
+                {"functions.json"},
+                {"visualize.json"}
         };
     }
 

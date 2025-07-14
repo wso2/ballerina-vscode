@@ -39,6 +39,35 @@
     {
       "range": {
         "start": {
+          "line": 2,
+          "character": 0
+        },
+        "end": {
+          "line": 4,
+          "character": 1
+        }
+      },
+      "command": {
+        "title": "Visualize",
+        "command": "ballerina.showVisualizer",
+        "arguments": [
+          "functions.bal",
+          {
+            "start": {
+              "line": 2,
+              "character": 0
+            },
+            "end": {
+              "line": 4,
+              "character": 1
+            }
+          }
+        ]
+      }
+    },
+    {
+      "range": {
+        "start": {
           "line": 6,
           "character": 0
         },
@@ -66,6 +95,35 @@
                 "line": 8,
                 "character": 2
               }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "range": {
+        "start": {
+          "line": 6,
+          "character": 0
+        },
+        "end": {
+          "line": 8,
+          "character": 2
+        }
+      },
+      "command": {
+        "title": "Visualize",
+        "command": "ballerina.showVisualizer",
+        "arguments": [
+          "functions.bal",
+          {
+            "start": {
+              "line": 6,
+              "character": 0
+            },
+            "end": {
+              "line": 8,
+              "character": 2
             }
           }
         ]
@@ -109,6 +167,35 @@
     {
       "range": {
         "start": {
+          "line": 10,
+          "character": 0
+        },
+        "end": {
+          "line": 12,
+          "character": 2
+        }
+      },
+      "command": {
+        "title": "Visualize",
+        "command": "ballerina.showVisualizer",
+        "arguments": [
+          "functions.bal",
+          {
+            "start": {
+              "line": 10,
+              "character": 0
+            },
+            "end": {
+              "line": 12,
+              "character": 2
+            }
+          }
+        ]
+      }
+    },
+    {
+      "range": {
+        "start": {
           "line": 14,
           "character": 0
         },
@@ -136,6 +223,35 @@
                 "line": 16,
                 "character": 1
               }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "range": {
+        "start": {
+          "line": 14,
+          "character": 0
+        },
+        "end": {
+          "line": 16,
+          "character": 1
+        }
+      },
+      "command": {
+        "title": "Visualize",
+        "command": "ballerina.showVisualizer",
+        "arguments": [
+          "functions.bal",
+          {
+            "start": {
+              "line": 14,
+              "character": 0
+            },
+            "end": {
+              "line": 16,
+              "character": 1
             }
           }
         ]
@@ -179,6 +295,35 @@
     {
       "range": {
         "start": {
+          "line": 18,
+          "character": 0
+        },
+        "end": {
+          "line": 20,
+          "character": 1
+        }
+      },
+      "command": {
+        "title": "Visualize",
+        "command": "ballerina.showVisualizer",
+        "arguments": [
+          "functions.bal",
+          {
+            "start": {
+              "line": 18,
+              "character": 0
+            },
+            "end": {
+              "line": 20,
+              "character": 1
+            }
+          }
+        ]
+      }
+    },
+    {
+      "range": {
+        "start": {
           "line": 22,
           "character": 0
         },
@@ -206,6 +351,35 @@
                 "line": 24,
                 "character": 1
               }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "range": {
+        "start": {
+          "line": 22,
+          "character": 0
+        },
+        "end": {
+          "line": 24,
+          "character": 1
+        }
+      },
+      "command": {
+        "title": "Visualize",
+        "command": "ballerina.showVisualizer",
+        "arguments": [
+          "functions.bal",
+          {
+            "start": {
+              "line": 22,
+              "character": 0
+            },
+            "end": {
+              "line": 24,
+              "character": 1
             }
           }
         ]
@@ -249,6 +423,35 @@
     {
       "range": {
         "start": {
+          "line": 26,
+          "character": 0
+        },
+        "end": {
+          "line": 35,
+          "character": 1
+        }
+      },
+      "command": {
+        "title": "Visualize",
+        "command": "ballerina.showVisualizer",
+        "arguments": [
+          "functions.bal",
+          {
+            "start": {
+              "line": 26,
+              "character": 0
+            },
+            "end": {
+              "line": 35,
+              "character": 1
+            }
+          }
+        ]
+      }
+    },
+    {
+      "range": {
+        "start": {
           "line": 37,
           "character": 0
         },
@@ -276,6 +479,64 @@
                 "line": 39,
                 "character": 1
               }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "range": {
+        "start": {
+          "line": 37,
+          "character": 0
+        },
+        "end": {
+          "line": 39,
+          "character": 1
+        }
+      },
+      "command": {
+        "title": "Visualize",
+        "command": "ballerina.showVisualizer",
+        "arguments": [
+          "functions.bal",
+          {
+            "start": {
+              "line": 37,
+              "character": 0
+            },
+            "end": {
+              "line": 39,
+              "character": 1
+            }
+          }
+        ]
+      }
+    },
+    {
+      "range": {
+        "start": {
+          "line": 41,
+          "character": 0
+        },
+        "end": {
+          "line": 44,
+          "character": 1
+        }
+      },
+      "command": {
+        "title": "Visualize",
+        "command": "ballerina.showVisualizer",
+        "arguments": [
+          "functions.bal",
+          {
+            "start": {
+              "line": 41,
+              "character": 0
+            },
+            "end": {
+              "line": 44,
+              "character": 1
             }
           }
         ]
@@ -316,6 +577,35 @@
         "command": "ballerina.source.debug",
         "arguments": [
           "functions.bal"
+        ]
+      }
+    },
+    {
+      "range": {
+        "start": {
+          "line": 46,
+          "character": 0
+        },
+        "end": {
+          "line": 48,
+          "character": 1
+        }
+      },
+      "command": {
+        "title": "Visualize",
+        "command": "ballerina.showVisualizer",
+        "arguments": [
+          "functions.bal",
+          {
+            "start": {
+              "line": 46,
+              "character": 0
+            },
+            "end": {
+              "line": 48,
+              "character": 1
+            }
+          }
         ]
       }
     }

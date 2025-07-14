@@ -3,3 +3,4 @@ org.ballerinalang.langserver.codelenses.providers.MainRunCodeLensProvider
 org.ballerinalang.langserver.codelenses.providers.MainDebugCodeLensProvider
 org.ballerinalang.langserver.codelenses.providers.TestRunCodeLensProvider
 org.ballerinalang.langserver.codelenses.providers.TestDebugCodeLensProvider
+org.ballerinalang.langserver.codelenses.providers.VisualizeCodeLensProvider

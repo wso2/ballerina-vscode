@@ -18,7 +18,9 @@ package org.ballerinalang.langserver.codelenses;
 
 import io.ballerina.compiler.syntax.tree.ModuleMemberDeclarationNode;
 import io.ballerina.compiler.syntax.tree.ModulePartNode;
+import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.compiler.syntax.tree.NodeList;
+import io.ballerina.compiler.syntax.tree.ServiceDeclarationNode;
 import io.ballerina.compiler.syntax.tree.SyntaxTree;
 import org.ballerinalang.langserver.commons.DocumentServiceContext;
 import org.ballerinalang.langserver.commons.codelenses.spi.LSCodeLensesProvider;
@@ -71,17 +73,28 @@ public final class CodeLensUtil {
         for (ModuleMemberDeclarationNode member : members) {
             codeLensContext.checkCancelled();
 
-            // Validate the node with all the providers
-            for (LSCodeLensesProvider provider : providers) {
-                if (provider.validate(member)) {
-                    CodeLens lens = provider.getLens(codeLensContext, member);
-                    if (lens != null) {
-                        lenses.add(lens);
-                    }
+            if (member instanceof ServiceDeclarationNode serviceDeclarationNode) {
+                for (Node serviceMember : serviceDeclarationNode.members()) {
+                    traverseCodeLensProviders(codeLensContext, serviceMember, providers, lenses);
                 }
             }
+
+            // Validate the node with all the providers
+            traverseCodeLensProviders(codeLensContext, member, providers, lenses);
         }
 
         return lenses;
+    }
+
+    private static void traverseCodeLensProviders(DocumentServiceContext codeLensContext, Node member,
+                                                  List<LSCodeLensesProvider> providers, List<CodeLens> lenses) {
+        for (LSCodeLensesProvider provider : providers) {
+            if (provider.validate(member)) {
+                CodeLens lens = provider.getLens(codeLensContext, member);
+                if (lens != null) {
+                    lenses.add(lens);
+                }
+            }
+        }
     }
 }
