@@ -95,8 +95,9 @@ public class CodeLensTest {
     @DataProvider(name = "codeLensConfigurations")
     public Object[][] getCodeLensConfigurations() {
         return new Object[][]{
-                {"functions.json"},
-                {"main.json"}
+                {"test.json"},
+                {"main.json"},
+                {"functions.json"}
         };
     }
 

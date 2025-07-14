@@ -24,6 +24,25 @@
     {
       "range": {
         "start": {
+          "line": 2,
+          "character": 0
+        },
+        "end": {
+          "line": 4,
+          "character": 1
+        }
+      },
+      "command": {
+        "title": "Debug",
+        "command": "ballerina.test.debug",
+        "arguments": [
+          "testFunction1"
+        ]
+      }
+    },
+    {
+      "range": {
+        "start": {
           "line": 6,
           "character": 0
         },
@@ -37,6 +56,25 @@
         "command": "ballerina.test",
         "arguments": [
           "--tests",
+          "testFunction2"
+        ]
+      }
+    },
+    {
+      "range": {
+        "start": {
+          "line": 6,
+          "character": 0
+        },
+        "end": {
+          "line": 8,
+          "character": 1
+        }
+      },
+      "command": {
+        "title": "Debug",
+        "command": "ballerina.test.debug",
+        "arguments": [
           "testFunction2"
         ]
       }

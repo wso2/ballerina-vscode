@@ -1,7 +1,6 @@
 {
   "source": "main.bal",
   "result": [
-
     {
       "range": {
         "start": {
@@ -16,6 +15,25 @@
       "command": {
         "title": "Run",
         "command": "ballerina.run",
+        "arguments": [
+          "main.bal"
+        ]
+      }
+    },
+    {
+      "range": {
+        "start": {
+          "line": 2,
+          "character": 0
+        },
+        "end": {
+          "line": 4,
+          "character": 1
+        }
+      },
+      "command": {
+        "title": "Debug",
+        "command": "ballerina.source.debug",
         "arguments": [
           "main.bal"
         ]

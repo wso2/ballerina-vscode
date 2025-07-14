@@ -299,6 +299,25 @@
           "functions.bal"
         ]
       }
+    },
+    {
+      "range": {
+        "start": {
+          "line": 46,
+          "character": 0
+        },
+        "end": {
+          "line": 48,
+          "character": 1
+        }
+      },
+      "command": {
+        "title": "Debug",
+        "command": "ballerina.source.debug",
+        "arguments": [
+          "functions.bal"
+        ]
+      }
     }
   ]
 }
