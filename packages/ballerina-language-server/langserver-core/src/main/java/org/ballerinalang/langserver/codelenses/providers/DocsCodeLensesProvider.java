@@ -19,12 +19,12 @@ import io.ballerina.compiler.syntax.tree.ClassDefinitionNode;
 import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
 import io.ballerina.compiler.syntax.tree.ModuleMemberDeclarationNode;
 import io.ballerina.compiler.syntax.tree.ModulePartNode;
+import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.compiler.syntax.tree.SyntaxTree;
 import io.ballerina.compiler.syntax.tree.Token;
 import io.ballerina.compiler.syntax.tree.TypeDefinitionNode;
 import org.ballerinalang.annotation.JavaSPIService;
-import org.ballerinalang.langserver.command.docs.DocumentationGenerator;
 import org.ballerinalang.langserver.command.executors.AddDocumentationExecutor;
 import org.ballerinalang.langserver.common.constants.CommandConstants;
 import org.ballerinalang.langserver.common.utils.PositionUtil;
@@ -48,6 +48,7 @@ import java.util.Optional;
  */
 @JavaSPIService("org.ballerinalang.langserver.commons.codelenses.spi.LSCodeLensesProvider")
 public class DocsCodeLensesProvider extends AbstractCodeLensesProvider {
+
     public DocsCodeLensesProvider() {
         super("docs.CodeLenses");
     }
@@ -55,6 +56,11 @@ public class DocsCodeLensesProvider extends AbstractCodeLensesProvider {
     @Override
     public boolean isEnabled(LanguageServerContext serverContext) {
         return LSClientConfigHolder.getInstance(serverContext).getConfig().getCodeLens().getDocs().isEnabled();
+    }
+
+    @Override
+    public boolean validate(Node node) {
+        return true;
     }
 
     /**
@@ -70,7 +76,7 @@ public class DocsCodeLensesProvider extends AbstractCodeLensesProvider {
             return lenses;
         }
         for (ModuleMemberDeclarationNode member : ((ModulePartNode) syntaxTree.get().rootNode()).members()) {
-            if (DocumentationGenerator.hasDocs(member)) {
+            if (!validate(member)) {
                 continue;
             }
             Range nodeRange = null;

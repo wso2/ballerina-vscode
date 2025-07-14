@@ -15,6 +15,7 @@
  */
 package org.ballerinalang.langserver.commons.codelenses.spi;
 
+import io.ballerina.compiler.syntax.tree.Node;
 import org.ballerinalang.langserver.commons.DocumentServiceContext;
 import org.ballerinalang.langserver.commons.LanguageServerContext;
 import org.eclipse.lsp4j.CodeLens;
@@ -33,6 +34,14 @@ public interface LSCodeLensesProvider {
      * @return name
      */
     String getName();
+
+    /**
+     * Checks if the code lens is applicable for the given node.
+     *
+     * @param node Syntax tree node
+     * @return True if enabled, false otherwise
+     */
+    boolean validate(Node node);
 
     /**
      * Execute the Command.
