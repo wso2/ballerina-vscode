@@ -2,7 +2,7 @@
 
 All notable changes to the "Ballerina" extension will be documented in this file.
 
-## **5.2.0** (2025-07-12)
+## **5.2.0** (2025-07-14)
 
 ### Major Features
 
@@ -30,7 +30,6 @@ All notable changes to the "Ballerina" extension will be documented in this file
 
 - **Extension Stability**:
   - Resolved extension startup and activation issues for reliable performance
-  - Improved compatibility across different development environments
 - **Data Mapping & Visualization**:
   - Fixed issues when working with complex data types from imported modules
   - Improved visualization of array types and nested data structures
@@ -47,7 +46,6 @@ All notable changes to the "Ballerina" extension will be documented in this file
   - Improved file path handling across different operating systems
 - **User Interface**:
   - Fixed theme-related display issues in command interfaces
-  - Enhanced project artifact management and navigation
 
 ## **5.1.3** (2025-05-28)
 
