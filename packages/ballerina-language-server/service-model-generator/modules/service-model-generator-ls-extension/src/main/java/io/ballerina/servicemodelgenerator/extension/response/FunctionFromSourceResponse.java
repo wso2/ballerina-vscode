@@ -19,12 +19,15 @@
 package io.ballerina.servicemodelgenerator.extension.response;
 
 import io.ballerina.servicemodelgenerator.extension.model.Function;
-import io.ballerina.servicemodelgenerator.extension.model.Service;
 
 import java.util.Arrays;
 
 /**
  * Represents the response containing a function generated from source code.
+ *
+ * @param function The function model generated from the source code.
+ * @param errorMsg  The error message if the function details could not be retrieved.
+ * @param stacktrace The stack trace of the error if applicable.
  *
  * @since 2201.1.1
  */
