@@ -37,13 +37,10 @@ import java.util.List;
  * @since 1.0.1
  */
 @JavaSPIService("org.ballerinalang.langserver.commons.codelenses.spi.LSCodeLensesProvider")
-public class RunCodeLensProvider extends AbstractCodeLensesProvider {
+public class MainRunCodeLensProvider extends AbstractCodeLensesProvider {
 
-    private static final String BALLERINA_RUN_COMMAND = "ballerina.run";
-    private static final String BALLERINA_RUN_TITLE = "Run";
-
-    public RunCodeLensProvider() {
-        super("run.CodeLenses");
+    public MainRunCodeLensProvider() {
+        super("main.run.CodeLenses");
     }
 
     @Override
@@ -61,9 +58,10 @@ public class RunCodeLensProvider extends AbstractCodeLensesProvider {
 
     @Override
     public CodeLens getLens(DocumentServiceContext context, Node node) {
-        Range range = PositionUtil.toRange(node.lineRange());
         List<Object> args = Collections.singletonList(context.fileUri());
-        Command command = new Command(BALLERINA_RUN_TITLE, BALLERINA_RUN_COMMAND, args);
+        Command command = new Command("Run", "ballerina.run", args);
+        Range range = PositionUtil.toRange(node.lineRange());
         return new CodeLens(range, command, null);
     }
 }
+

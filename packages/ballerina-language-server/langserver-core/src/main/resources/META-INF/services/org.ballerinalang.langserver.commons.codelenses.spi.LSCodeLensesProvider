@@ -1,2 +1,3 @@
 org.ballerinalang.langserver.codelenses.providers.DocsCodeLensesProvider
-org.ballerinalang.langserver.codelenses.providers.RunCodeLensProvider
+org.ballerinalang.langserver.codelenses.providers.MainRunCodeLensProvider
+org.ballerinalang.langserver.codelenses.providers.TestRunCodeLensProvider
