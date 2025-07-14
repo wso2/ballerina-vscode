@@ -74,7 +74,10 @@ public final class CodeLensUtil {
             // Validate the node with all the providers
             for (LSCodeLensesProvider provider : providers) {
                 if (provider.validate(member)) {
-                    lenses.addAll(provider.getLenses(codeLensContext));
+                    CodeLens lens = provider.getLens(codeLensContext, member);
+                    if (lens != null) {
+                        lenses.add(lens);
+                    }
                 }
             }
         }

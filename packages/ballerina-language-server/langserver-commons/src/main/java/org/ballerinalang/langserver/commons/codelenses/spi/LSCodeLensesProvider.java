@@ -24,10 +24,11 @@ import java.util.List;
 
 /**
  * Represents the SPI interface for the Language Server Code Lenses Provider.
- * 
+ *
  * @since 1.0.0
  */
 public interface LSCodeLensesProvider {
+
     /**
      * Returns name of the code lenses provider.
      *
@@ -44,12 +45,13 @@ public interface LSCodeLensesProvider {
     boolean validate(Node node);
 
     /**
-     * Execute the Command.
+     * Returns the code lens for a given node.
      *
-     * @param context           Language Server Context
-     * @return {@link List}     List of code lenses
+     * @param context Language Server Context
+     * @param node    Node to get the code lens
+     * @return {@link CodeLens} Code lens for the node
      */
-    List<CodeLens> getLenses(DocumentServiceContext context);
+    CodeLens getLens(DocumentServiceContext context, Node node);
 
     /**
      * Mark code lenses provider is enabled or not.

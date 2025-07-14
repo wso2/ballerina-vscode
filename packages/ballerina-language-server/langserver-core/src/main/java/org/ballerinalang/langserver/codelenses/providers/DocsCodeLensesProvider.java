@@ -17,12 +17,8 @@ package org.ballerinalang.langserver.codelenses.providers;
 
 import io.ballerina.compiler.syntax.tree.ClassDefinitionNode;
 import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
-import io.ballerina.compiler.syntax.tree.ModuleMemberDeclarationNode;
-import io.ballerina.compiler.syntax.tree.ModulePartNode;
 import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
-import io.ballerina.compiler.syntax.tree.SyntaxTree;
-import io.ballerina.compiler.syntax.tree.Token;
 import io.ballerina.compiler.syntax.tree.TypeDefinitionNode;
 import org.ballerinalang.annotation.JavaSPIService;
 import org.ballerinalang.langserver.command.executors.AddDocumentationExecutor;
@@ -39,7 +35,6 @@ import org.eclipse.lsp4j.Range;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 
 /**
  * Code lenses provider for adding all documentation for top level items.
@@ -48,6 +43,8 @@ import java.util.Optional;
  */
 @JavaSPIService("org.ballerinalang.langserver.commons.codelenses.spi.LSCodeLensesProvider")
 public class DocsCodeLensesProvider extends AbstractCodeLensesProvider {
+
+    private static final String AUTOMATION_FUNCTION = "main";
 
     public DocsCodeLensesProvider() {
         super("docs.CodeLenses");
@@ -60,68 +57,43 @@ public class DocsCodeLensesProvider extends AbstractCodeLensesProvider {
 
     @Override
     public boolean validate(Node node) {
-        return true;
+        if (node == null) {
+            return false;
+        }
+        return switch (node.kind()) {
+            case FUNCTION_DEFINITION -> {
+                FunctionDefinitionNode funcDef = (FunctionDefinitionNode) node;
+                String nodeName = funcDef.functionName().text();
+                boolean isPublic = funcDef.qualifierList().stream()
+                        .anyMatch(qualifier -> qualifier.kind() == SyntaxKind.PUBLIC_KEYWORD);
+                yield isPublic && !AUTOMATION_FUNCTION.equals(nodeName);
+            }
+            case TYPE_DEFINITION -> {
+                TypeDefinitionNode typeDef = (TypeDefinitionNode) node;
+                yield typeDef.visibilityQualifier()
+                        .map(s -> s.kind() == SyntaxKind.PUBLIC_KEYWORD)
+                        .orElse(false);
+            }
+            case CLASS_DEFINITION -> {
+                ClassDefinitionNode classDef = (ClassDefinitionNode) node;
+                yield classDef.visibilityQualifier()
+                        .map(s -> s.kind() == SyntaxKind.PUBLIC_KEYWORD)
+                        .orElse(false);
+            }
+            default -> false;
+        };
     }
 
-    /**
-     * {@inheritDoc}
-     *
-     * @param context
-     */
     @Override
-    public List<CodeLens> getLenses(DocumentServiceContext context) {
-        List<CodeLens> lenses = new ArrayList<>();
-        Optional<SyntaxTree> syntaxTree = context.currentSyntaxTree();
-        if (syntaxTree.isEmpty()) {
-            return lenses;
-        }
-        for (ModuleMemberDeclarationNode member : ((ModulePartNode) syntaxTree.get().rootNode()).members()) {
-            if (!validate(member)) {
-                continue;
-            }
-            Range nodeRange = null;
-            boolean showLens = false;
-            switch (member.kind()) {
-                case FUNCTION_DEFINITION:
-                    FunctionDefinitionNode funcDef = (FunctionDefinitionNode) member;
-                    String nodeName = funcDef.functionName().text();
-                    for (Token qualifier : funcDef.qualifierList()) {
-                        if (qualifier.kind() == SyntaxKind.PUBLIC_KEYWORD && !"main".equals(nodeName)) {
-                            showLens = true;
-                            break;
-                        }
-                    }
-                    nodeRange = PositionUtil.toRange(funcDef.lineRange());
-                    break;
-                case TYPE_DEFINITION:
-                    TypeDefinitionNode typeDef = (TypeDefinitionNode) member;
-                    showLens = typeDef.visibilityQualifier()
-                            .map(s -> s.kind() == SyntaxKind.PUBLIC_KEYWORD)
-                            .orElse(false);
-                    nodeRange = PositionUtil.toRange(typeDef.lineRange());
-                    break;
-                case CLASS_DEFINITION:
-                    ClassDefinitionNode classDef = (ClassDefinitionNode) member;
-                    showLens = classDef.visibilityQualifier()
-                            .map(s -> s.kind() == SyntaxKind.PUBLIC_KEYWORD)
-                            .orElse(false);
-                    nodeRange = PositionUtil.toRange(classDef.lineRange());
-                    break;
-                default:
-                    break;
-            }
-            if (showLens) {
-                String documentUri = context.fileUri();
-                CommandArgument docUriArg = CommandArgument.from(CommandConstants.ARG_KEY_DOC_URI, documentUri);
-                CommandArgument lineStart = CommandArgument.from(CommandConstants.ARG_KEY_NODE_RANGE,
-                        nodeRange);
-                List<Object> args = new ArrayList<>(Arrays.asList(docUriArg, lineStart));
-                Command command = new Command(CommandConstants.ADD_DOCUMENTATION_TITLE,
-                        AddDocumentationExecutor.COMMAND, args);
-                lenses.add(new CodeLens(nodeRange, command, null));
-            }
-        }
-
-        return lenses;
+    public CodeLens getLens(DocumentServiceContext context, Node node) {
+        Range nodeRange = PositionUtil.toRange(node.lineRange());
+        String documentUri = context.fileUri();
+        CommandArgument docUriArg = CommandArgument.from(CommandConstants.ARG_KEY_DOC_URI, documentUri);
+        CommandArgument lineStart = CommandArgument.from(CommandConstants.ARG_KEY_NODE_RANGE,
+                nodeRange);
+        List<Object> args = new ArrayList<>(Arrays.asList(docUriArg, lineStart));
+        Command command = new Command(CommandConstants.ADD_DOCUMENTATION_TITLE,
+                AddDocumentationExecutor.COMMAND, args);
+        return new CodeLens(nodeRange, command, null);
     }
 }
