@@ -119,7 +119,7 @@ export function TypeEditor(props: TypeEditorProps) {
 
     return (
         <TypeHelperContext.Provider value={props.typeHelper}>
-            <S.Container>
+            <S.Container data-testid="type-editor-container">
                 {!type ? (
                     <ProgressRing />
                 ) : newType ? (
@@ -148,7 +148,7 @@ export function TypeEditor(props: TypeEditorProps) {
                         onViewChange={handleTabChange}
                         childrenSx={{ padding: '10px' }}
                     >
-                        <div id="create-from-scratch">
+                        <div id="create-from-scratch" data-testid="create-from-scratch-tab">                           
                             <TypeCreatorTab
                                 onTypeChange={props.onTypeChange}
                                 editingType={type}
@@ -160,7 +160,7 @@ export function TypeEditor(props: TypeEditorProps) {
                                 setIsSaving={setIsSaving}
                             />
                         </div>
-                        <div id="import">
+                        <div id="import" data-testid="import-tab">                            
                             <ImportTab
                                 type={type}
                                 onTypeSave={onTypeSave}
@@ -170,7 +170,7 @@ export function TypeEditor(props: TypeEditorProps) {
                         </div>
                     </TabPanel>
                 ) : (
-                    <div style={{ padding: '10px' }}>
+                    <div style={{ padding: '10px' }} data-testid="type-editor-content">                        
                         <TypeCreatorTab
                             onTypeChange={props.onTypeChange}
                             editingType={type}
