@@ -113,7 +113,7 @@ export class VisualizerWebview {
                         <div class="logo-container">
                             <div class="loader"></div>
                         </div>
-                        <h1 class="welcome-title">Welcome to WSO2 Integrator: BI</h1>
+                        <h1 class="welcome-title">WSO2 Integrator: BI</h1>
                         <p class="welcome-subtitle">Setting up your workspace and tools</p>
                         <div class="loading-text">
                             <span class="loading-dots">Loading</span>
