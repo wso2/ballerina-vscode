@@ -157,19 +157,19 @@
       "member": {
         "fields": [
           {
-            "id": "l3Arr.l4_1",
+            "id": "l3Arr.0.l4_1",
             "variableName": "l4_1",
             "typeName": "int",
             "kind": "int"
           },
           {
-            "id": "l3Arr.l4_2",
+            "id": "l3Arr.0.l4_2",
             "variableName": "l4_2",
             "typeName": "string",
             "kind": "string"
           }
         ],
-        "id": "l3Arr",
+        "id": "l3Arr.0",
         "variableName": "l3ArrItem",
         "typeName": "record",
         "kind": "record"
@@ -198,7 +198,7 @@
       }
     ],
     "query": {
-      "output": "var2.l1.l2.l3Arr",
+      "output": "l3Arr",
       "inputs": [
         "l2Item.l3Arr"
       ],

@@ -184,9 +184,6 @@ public class DataMapManager {
         } else {
             throw new IllegalStateException("Unsupported node kind: " + node.kind());
         }
-        List<MappingPort> inputPorts = getInputPorts(semanticModel, this.document, position);
-        inputPorts.sort(Comparator.comparing(mt -> mt.id));
-
 
         TargetNode targetNode = getTargetNode(node, targetField, semanticModel);
         if (targetNode == null) {
