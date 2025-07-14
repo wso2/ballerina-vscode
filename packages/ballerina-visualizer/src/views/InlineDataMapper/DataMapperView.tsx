@@ -17,7 +17,8 @@
  */
 
 
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useCallback } from "react";
+import debounce from "lodash/debounce";
 
 import {
     AddArrayElementRequest,
@@ -28,9 +29,11 @@ import {
     ModelState,
     AddClausesRequest,
     IDMViewState,
-    IntermediateClause
+    IntermediateClause,
+    TriggerCharacter,
+    TRIGGER_CHARACTERS
 } from "@wso2/ballerina-core";
-import { ProgressIndicator } from "@wso2/ui-toolkit";
+import { CompletionItem, ProgressIndicator } from "@wso2/ui-toolkit";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { DataMapperView } from "@wso2/ballerina-inline-data-mapper";
 
@@ -38,6 +41,8 @@ import { useInlineDataMapperModel } from "../../Hooks";
 import { expandDMModel } from "./modelProcessor";
 import FormGeneratorNew from "../BI/Forms/FormGeneratorNew";
 import { InlineDataMapperProps } from ".";
+import { EXPRESSION_EXTRACTION_REGEX } from "../../constants";
+import { calculateExpressionOffsets, convertBalCompletion, updateLineRange } from "../../utils/bi";
 
 // Types for model comparison
 interface ModelSignature {
@@ -59,6 +64,12 @@ export function InlineDataMapperView(props: InlineDataMapperProps) {
         viewId: varName,
         codedata: codedata
     });
+
+    /* Completions related */
+    const [completions, setCompletions] = useState<CompletionItem[]>([]);
+    const prevCompletionFetchText = useRef<string>("");
+    const [filteredCompletions, setFilteredCompletions] = useState<CompletionItem[]>([]);
+    const expressionOffsetRef = useRef<number>(0); // To track the expression offset on adding import statements
     
     // Keep track of previous inputs/outputs and sub mappings for comparison
     const prevSignatureRef = useRef<string>(null);
@@ -192,6 +203,8 @@ export function InlineDataMapperView(props: InlineDataMapperProps) {
         return (
             <FormGeneratorNew
                 fileName={filePath}
+                preserveFieldOrder={true}
+                helperPaneSide="left"
                 {...formProps}
             />
         )
@@ -249,6 +262,88 @@ export function InlineDataMapperView(props: InlineDataMapperProps) {
         } 
     }, [isError]);
 
+    const retrieveCompeletions = useCallback(
+        debounce(async (outputId: string, viewId: string, value: string, cursorPosition?: number) => {
+            let expressionCompletions: CompletionItem[] = [];
+            const { parentContent, lastCompletionTrigger, currentContent } =
+                value.slice(0, cursorPosition).match(EXPRESSION_EXTRACTION_REGEX)?.groups ?? {};
+            const lastTriggerCharacter = TRIGGER_CHARACTERS.find(c => c === lastCompletionTrigger);
+            const triggerCharacter = lastTriggerCharacter && parentContent !== prevCompletionFetchText.current ?
+                lastTriggerCharacter : undefined;
+            if (completions.length > 0 && parentContent === prevCompletionFetchText.current) {
+                expressionCompletions = completions
+                    .filter((completion) => {
+                        const lowerCaseText = currentContent.toLowerCase();
+                        const lowerCaseLabel = completion.label.toLowerCase();
+
+                        return lowerCaseLabel.includes(lowerCaseText);
+                    })
+                    .sort((a, b) => a.sortText.localeCompare(b.sortText));
+            } else {
+                const { property } = await rpcClient.getInlineDataMapperRpcClient().getProperty({
+                    filePath: filePath,
+                    codedata: codedata,
+                    propertyKey: "expression", // TODO: Remove this once the API is updated
+                    targetField: viewId,
+                    fieldId: outputId,
+                })
+                const { lineOffset, charOffset } = calculateExpressionOffsets(value, cursorPosition);
+                let completions = await rpcClient.getBIDiagramRpcClient().getExpressionCompletions({
+                    filePath,
+                    context: {
+                        expression: value,
+                        startLine: updateLineRange(codedata.lineRange, expressionOffsetRef.current).startLine,
+                        lineOffset: lineOffset,
+                        offset: charOffset,
+                        codedata: codedata,
+                        property: property,
+                    },
+                    completionContext: {
+                        triggerKind: triggerCharacter ? 2 : 1,
+                        triggerCharacter: triggerCharacter as TriggerCharacter
+                    }
+                });
+
+                // Convert completions to the ExpressionEditor format
+                let convertedCompletions: CompletionItem[] = [];
+                completions?.forEach((completion) => {
+                    if (completion.detail) {
+                        // HACK: Currently, completion with additional edits apart from imports are not supported
+                        // Completions that modify the expression itself (ex: member access)
+                        convertedCompletions.push(convertBalCompletion(completion));
+                    }
+                });
+                setCompletions(convertedCompletions);
+
+                if (triggerCharacter) {
+                    expressionCompletions = convertedCompletions;
+                } else {
+                    expressionCompletions = convertedCompletions
+                        .filter((completion) => {
+                            const lowerCaseText = currentContent.toLowerCase();
+                            const lowerCaseLabel = completion.label.toLowerCase();
+
+                            return lowerCaseLabel.includes(lowerCaseText);
+                        })
+                        .sort((a, b) => a.sortText.localeCompare(b.sortText));
+                }
+                prevCompletionFetchText.current = parentContent ?? "";
+                setFilteredCompletions(expressionCompletions);
+            }
+        }, 150),
+        [filePath, codedata, varName, completions]
+    );
+
+    const handleCompletionSelect = (value: string) => {
+        // TODO: Implement handling imports
+    };
+
+    const handleExpressionCancel = () => {
+        retrieveCompeletions.cancel();
+        setCompletions([]);
+        setFilteredCompletions([]);
+    }
+
     return (
         <>
             {isFetching && (
@@ -265,6 +360,13 @@ export function InlineDataMapperView(props: InlineDataMapperProps) {
                     generateForm={generateForm}
                     convertToQuery={convertToQuery}
                     addClauses={addClauses}
+                    expressionBar={{
+                        completions: filteredCompletions,
+                        triggerCompletions: retrieveCompeletions,
+                        onCompletionSelect: handleCompletionSelect,
+                        onSave: updateExpression,
+                        onCancel: handleExpressionCancel,
+                    }}
                 />
             )}
         </>

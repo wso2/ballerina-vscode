@@ -17,8 +17,10 @@
  */
 import { PortModel } from "@projectstorm/react-diagrams-core";
 
-import { InputOutputPortModel, MappingType, ValueType } from "../Port";
+import { InputOutputPortModel, ValueType } from "../Port";
 import { getDMTypeDim, getTypeName } from "./type-utils";
+import { DataMapperLinkModel, MappingType } from "../Link";
+
 import { IOType, Mapping, TypeKind } from "@wso2/ballerina-core";
 import { DataMapperNodeModel } from "../Node/commons/DataMapperNode";
 import { ErrorNodeKind } from "../../../components/DataMapper/Error/RenderingError";
@@ -28,7 +30,8 @@ import {
     INPUT_NODE_TYPE,
     InputNode,
     OBJECT_OUTPUT_NODE_TYPE,
-    PRIMITIVE_OUTPUT_NODE_TYPE
+    PRIMITIVE_OUTPUT_NODE_TYPE,
+    PrimitiveOutputNode
 } from "../Node";
 import { IDataMapperContext } from "../../../utils/DataMapperContext/DataMapperContext";
 import { View } from "../../../components/DataMapper/Views/DataMapperView";
@@ -43,6 +46,8 @@ export function getMappingType(sourcePort: PortModel, targetPort: PortModel): Ma
     if (sourcePort instanceof InputOutputPortModel
         && targetPort instanceof InputOutputPortModel
         && targetPort.attributes.field && sourcePort.attributes.field) {
+
+        if (targetPort.getParent() instanceof PrimitiveOutputNode) return MappingType.ArrayToSingletonWithCollect;
             
         const sourceDim = getDMTypeDim(sourcePort.attributes.field);
         const targetDim = getDMTypeDim(targetPort.attributes.field);
@@ -55,6 +60,21 @@ export function getMappingType(sourcePort: PortModel, targetPort: PortModel): Ma
     }
 
     return MappingType.Default;
+}
+
+export function getValueType(lm: DataMapperLinkModel): ValueType {
+    const { attributes: { field, value } } = lm.getTargetPort() as InputOutputPortModel;
+
+    if (value !== undefined) {
+        return isDefaultValue(field, value.expression) ? ValueType.Default : ValueType.NonEmpty;
+    }
+
+    return ValueType.Empty;
+}
+
+
+export function isPendingMappingRequired(mappingType: MappingType): boolean {
+    return mappingType === MappingType.ArrayToSingleton || mappingType === MappingType.ArrayToSingletonWithCollect;
 }
 
 export function genArrayElementAccessSuffix(sourcePort: PortModel, targetPort: PortModel) {

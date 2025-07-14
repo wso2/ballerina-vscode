@@ -30,7 +30,6 @@ import { ObjectOutputFieldWidget } from "../ObjectOutput/ObjectOutputFieldWidget
 import { useIONodesStyles } from '../../../styles';
 import { useDMCollapsedFieldsStore, useDMIOConfigPanelStore } from '../../../../store/store';
 import { OutputSearchHighlight } from '../commons/Search';
-import { OutputBeforeInputNotification } from '../commons/OutputBeforeInputNotification';
 
 export interface QueryOutputWidgetProps {
 	id: string; // this will be the root ID used to prepend for UUIDs of nested fields
@@ -60,7 +59,6 @@ export function QueryOutputWidget(props: QueryOutputWidgetProps) {
 
 	const [portState, setPortState] = useState<PortState>(PortState.Unselected);
 	const [isHovered, setIsHovered] = useState(false);
-	const [hasOutputBeforeInput, setHasOutputBeforeInput] = useState(false);
 
 	const collapsedFieldsStore = useDMCollapsedFieldsStore();
 
@@ -96,10 +94,6 @@ export function QueryOutputWidget(props: QueryOutputWidgetProps) {
 
 	const handlePortState = (state: PortState) => {
 		setPortState(state)
-	};
-
-	const handlePortSelection = (outputBeforeInput: boolean) => {
-		setHasOutputBeforeInput(outputBeforeInput);
 	};
 
 	const onMouseEnter = () => {
@@ -146,7 +140,6 @@ export function QueryOutputWidget(props: QueryOutputWidgetProps) {
 								engine={engine}
 								port={portIn}
 								handlePortState={handlePortState}
-								hasFirstSelectOutput={handlePortSelection}
 								disable={isDisabled && !expanded}
 							/>)
 						}
@@ -164,7 +157,6 @@ export function QueryOutputWidget(props: QueryOutputWidgetProps) {
 						</Button>
 						{label}
 					</span>
-                    {hasOutputBeforeInput && <OutputBeforeInputNotification />}
 				</TreeHeader>
 				{(expanded && fields) && (
 					<TreeBody>

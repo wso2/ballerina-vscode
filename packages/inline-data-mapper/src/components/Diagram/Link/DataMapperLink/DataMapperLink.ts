@@ -24,7 +24,15 @@ import { IDMDiagnostic } from "@wso2/ballerina-core";
 
 export const LINK_TYPE_ID = "datamapper-link";
 
+export enum MappingType {
+	ArrayToArray = "array-array",
+	ArrayToSingleton = "array-singleton",
+	ArrayToSingletonWithCollect = "array-singleton-collect",
+	Default = undefined // This is for non-array mappings currently
+}
+
 export class DataMapperLinkModel extends DefaultLinkModel {
+	public pendingMappingType: MappingType = MappingType.Default
 
 	constructor(
 		public value?: string,

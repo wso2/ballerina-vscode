@@ -35,7 +35,7 @@ import {
     useDMSubMappingConfigPanelStore
 } from "../../store/store";
 import { KeyboardNavigationManager } from "../../utils/keyboard-navigation-manager";
-import { DataMapperViewProps } from "../../index";
+import { InlineDataMapperProps } from "../../index";
 import { ErrorNodeKind } from "./Error/RenderingError";
 import { IOErrorComponent } from "./Error/DataMapperError";
 import { IntermediateNodeInitVisitor } from "../../visitors/IntermediateNodeInitVisitor";
@@ -88,7 +88,7 @@ function viewsReducer(state: View[], action: ViewAction) {
     }
 }
 
-export function InlineDataMapper(props: DataMapperViewProps) {
+export function InlineDataMapper(props: InlineDataMapperProps) {
     const {
         modelState,
         name,
@@ -270,6 +270,7 @@ export function InlineDataMapper(props: DataMapperViewProps) {
                                 views={views}
                                 updateView={editView}
                                 applyModifications={applyModifications}
+                                generateForm={generateForm}
                             />
                         )}
                     </>

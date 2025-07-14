@@ -65,7 +65,7 @@ import {
     filterUnsupportedDiagnostics,
     getFormProperties,
     getImportsForFormFields,
-    getInfoFromExpressionValue,
+    calculateExpressionOffsets,
     injectHighlightTheme,
     removeDuplicateDiagnostics,
     updateLineRange,
@@ -382,7 +382,7 @@ export function FormGenerator(props: FormProps) {
                         })
                         .sort((a, b) => a.sortText.localeCompare(b.sortText));
                 } else {
-                    const { lineOffset, charOffset } = getInfoFromExpressionValue(value, offset);
+                    const { lineOffset, charOffset } = calculateExpressionOffsets(value, offset);
                     let completions = await rpcClient.getBIDiagramRpcClient().getExpressionCompletions({
                         filePath: fileName,
                         context: {
@@ -493,7 +493,7 @@ export function FormGenerator(props: FormProps) {
     );
 
     const extractArgsFromFunction = async (value: string, property: ExpressionProperty, cursorPosition: number) => {
-        const { lineOffset, charOffset } = getInfoFromExpressionValue(value, cursorPosition);
+        const { lineOffset, charOffset } = calculateExpressionOffsets(value, cursorPosition);
         const signatureHelp = await rpcClient.getBIDiagramRpcClient().getSignatureHelp({
             filePath: fileName,
             context: {

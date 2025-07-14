@@ -20,7 +20,7 @@ import React, { useState } from 'react';
 
 import { DiagramEngine } from '@projectstorm/react-diagrams';
 import { Button, Codicon } from '@wso2/ui-toolkit';
-import { IOType, Mapping } from '@wso2/ballerina-core';
+import { IOType } from '@wso2/ballerina-core';
 
 import { IDataMapperContext } from "../../../../utils/DataMapperContext/DataMapperContext";
 import { DataMapperPortWidget, PortState, InputOutputPortModel } from '../../Port';
@@ -29,7 +29,6 @@ import { PrimitiveOutputElementWidget } from "./PrimitiveOutputElementWidget";
 import { useIONodesStyles } from '../../../styles';
 import { useDMCollapsedFieldsStore, useDMIOConfigPanelStore } from '../../../../store/store';
 import { OutputSearchHighlight } from '../commons/Search';
-import { OutputBeforeInputNotification } from '../commons/OutputBeforeInputNotification';
 
 export interface PrimitiveOutputWidgetProps {
 	id: string;
@@ -55,7 +54,6 @@ export function PrimitiveOutputWidget(props: PrimitiveOutputWidgetProps) {
 
 	const [portState, setPortState] = useState<PortState>(PortState.Unselected);
 	const [isHovered, setIsHovered] = useState(false);
-	const [hasOutputBeforeInput, setHasOutputBeforeInput] = useState(false);
 
 	const collapsedFieldsStore = useDMCollapsedFieldsStore();
 
@@ -65,7 +63,7 @@ export function PrimitiveOutputWidget(props: PrimitiveOutputWidgetProps) {
 		setIsSchemaOverridden: state.setIsSchemaOverridden
 	}));
 
-	const portIn = getPort(`${id}.IN`);
+	const portIn = getPort(`${id}.HEADER.IN`);
 
 	let expanded = true;
 	if ((portIn && portIn.attributes.collapsed)) {
@@ -86,10 +84,6 @@ export function PrimitiveOutputWidget(props: PrimitiveOutputWidgetProps) {
 
 	const handlePortState = (state: PortState) => {
 		setPortState(state)
-	};
-
-	const handlePortSelection = (outputBeforeInput: boolean) => {
-		setHasOutputBeforeInput(outputBeforeInput);
 	};
 
 	const onMouseEnter = () => {
@@ -135,7 +129,6 @@ export function PrimitiveOutputWidget(props: PrimitiveOutputWidgetProps) {
 								engine={engine}
 								port={portIn}
 								handlePortState={handlePortState}
-								hasFirstSelectOutput={handlePortSelection}
 								disable={isDisabled && !expanded}
 							/>)
 						}
@@ -153,7 +146,6 @@ export function PrimitiveOutputWidget(props: PrimitiveOutputWidgetProps) {
 						</Button>
 						{label}
 					</span>
-                    {hasOutputBeforeInput && <OutputBeforeInputNotification />}
 				</TreeHeader>
 				{(expanded && outputType) && (
 					<TreeBody>
