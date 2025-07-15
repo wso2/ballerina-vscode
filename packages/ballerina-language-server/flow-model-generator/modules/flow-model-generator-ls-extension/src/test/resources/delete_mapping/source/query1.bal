@@ -32,7 +32,7 @@ public function main() {
     Person p = {
         contactDetails: {
                 phoneNumbers: from var secondaryPhonesItem in u.info.secondaryPhones
-                    select {x:hello, code: secondaryPhonesItem.code, number: secondaryPhonesItem.number}
+                    select {code: secondaryPhonesItem.code, number: secondaryPhonesItem.number}
             }
     };
 }
