@@ -89,6 +89,7 @@ public class GetAllAgentsTest extends AbstractLSTest {
      *
      * @param source      The source file path
      * @param description The description of the test
+     * @param orgName     Organization name of the agents
      * @param agents      List of all available agents
      */
     private record TestConfig(String source, String description, String orgName, JsonArray agents) {

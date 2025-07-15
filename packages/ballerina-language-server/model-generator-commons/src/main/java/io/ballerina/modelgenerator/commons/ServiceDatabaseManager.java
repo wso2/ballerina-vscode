@@ -96,12 +96,16 @@ public class ServiceDatabaseManager {
         sql.append("FROM Listener l ");
         sql.append("JOIN Package p ON l.package_id = p.package_id ");
         sql.append("WHERE p.name = ? ");
-        if (orgName != null) sql.append(" AND p.org = ?");
+        if (orgName != null) {
+            sql.append(" AND p.org = ?");
+        }
 
         try (Connection conn = DriverManager.getConnection(dbPath);
              PreparedStatement stmt = conn.prepareStatement(sql.toString())) {
             stmt.setString(1, module);
-            if (orgName != null) stmt.setString(2, orgName);
+            if (orgName != null) {
+                stmt.setString(2, orgName);
+            }
 
             ResultSet rs = stmt.executeQuery();
             if (rs.next()) {
@@ -232,12 +236,16 @@ public class ServiceDatabaseManager {
         sql.append("FROM ServiceDeclaration s ");
         sql.append("JOIN Package p ON s.package_id = p.package_id ");
         sql.append("WHERE p.name = ?");
-        if (orgName != null) sql.append(" AND p.org = ?");
+        if (orgName != null) {
+            sql.append(" AND p.org = ?");
+        }
 
         try (Connection conn = DriverManager.getConnection(dbPath);
              PreparedStatement stmt = conn.prepareStatement(sql.toString())) {
             stmt.setString(1, moduleName);
-            if (orgName != null) stmt.setString(2, orgName);
+            if (orgName != null) {
+                stmt.setString(2, orgName);
+            }
 
             ResultSet rs = stmt.executeQuery();
             if (rs.next()) {

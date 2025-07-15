@@ -43,7 +43,6 @@ import io.ballerina.modelgenerator.commons.ParameterData;
 import io.ballerina.modelgenerator.commons.ServiceDatabaseManager;
 import io.ballerina.projects.Document;
 import io.ballerina.projects.DocumentId;
-import io.ballerina.projects.Package;
 import io.ballerina.projects.Project;
 import io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants;
 import io.ballerina.servicemodelgenerator.extension.model.Codedata;

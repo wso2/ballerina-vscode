@@ -18,8 +18,6 @@
 
 package io.ballerina.flowmodelgenerator.extension.response;
 
-import com.google.gson.JsonArray;
-
 /**
  * Represents the response for available agents.
  *
@@ -33,5 +31,9 @@ public class GetAgentOrgResponse extends AbstractFlowModelResponse {
 
     public void setOrg(String orgName) {
         this.orgName = orgName;
+    }
+
+    public String getOrg() {
+        return orgName;
     }
 }
