@@ -1,10 +1,12 @@
 import { createAnthropic } from "@ai-sdk/anthropic";
 
 export const anthropic = createAnthropic({
-    baseURL: "http://localhost:9090/intel/claude/v2",
+    baseURL: "https://e95488c8-8511-4882-967f-ec3ae2a0f86f-prod.e1-us-east-azure.choreoapis.dev/ballerina-copilot/intelligence-api/v1.0/claude",
     apiKey: "xx", //TODO: Gives error without this. see if we can remove,
 });
 
+export const ANTHROPIC_HAIKU = "claude-3-5-haiku-20241022";
+export const ANTHROPIC_SONNET_4 = "claude-sonnet-4-20250514";
 
 //Components
 //TODO: Move libs into lang server API. - done

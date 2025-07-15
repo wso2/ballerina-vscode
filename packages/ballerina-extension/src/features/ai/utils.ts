@@ -29,7 +29,7 @@ export const AUTH_CLIENT_ID : string = config.get('authClientID') || process.env
 export const AUTH_REDIRECT_URL : string = config.get('authRedirectURL') || process.env.BALLERINA_AUTH_REDIRECT_URL;
 
 // Add new config exports for other services
-export const LIBS_URL : string = "https://e95488c8-8511-4882-967f-ec3ae2a0f86f-dev.e1-us-east-azure.choreoapis.dev/ballerina-copilot/libs-api/v1.0";
+export const LIBS_URL : string = "https://e95488c8-8511-4882-967f-ec3ae2a0f86f-prod.e1-us-east-azure.choreoapis.dev/ballerina-copilot/ballerina-learn-docs-api/v1.0";
 
 export async function closeAllBallerinaFiles(dirPath: string): Promise<void> {
     // Check if the directory exists

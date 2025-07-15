@@ -4,9 +4,10 @@ import { MinifiedLibrary, RelevantLibrariesAndFunctionsRequest, RelevantLibrarie
 import { BACKEND_URL } from "../../utils";
 import { Library } from "./libs_types";
 import { selectRequiredFunctions } from "./funcs";
-import { anthropic } from "../connection";
+import { anthropic, ANTHROPIC_HAIKU } from "../connection";
 import { langClient } from "../../activator";
 import { getGenerationMode } from "../utils";
+import { AIPanelAbortController } from "../../../../../src/rpc-managers/ai-panel/utils";
 
 interface LibraryListResponse {
     libraries: string[];
@@ -46,11 +47,12 @@ export async function getSelectedLibraries(prompt: string, generationType: Gener
     ];
     //TODO: Add thinking and test with claude haiku
     const { object } = await generateObject({
-        model: anthropic("claude-3-5-haiku-20241022"),
+        model: anthropic(ANTHROPIC_HAIKU),
         maxTokens: 4096,
         temperature: 0,
         messages: messages,
-        schema: LibraryListSchema
+        schema: LibraryListSchema,
+        abortSignal: AIPanelAbortController.getInstance().signal
     });
 
     console.log("Selected libraries:", object.libraries);

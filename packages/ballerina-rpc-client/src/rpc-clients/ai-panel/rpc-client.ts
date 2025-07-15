@@ -14,6 +14,8 @@
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations
  * under the License.
+ * 
+ * THIS FILE INCLUDES AUTO GENERATED CODE
  */
 import {
     AIChatSummary,
@@ -51,6 +53,7 @@ import {
     TestGenerationResponse,
     TestGeneratorIntermediaryState,
     TestPlanGenerationRequest,
+    abortAIGeneration,
     abortTestGeneration,
     addChatSummary,
     addToProject,
@@ -335,5 +338,9 @@ export class AiPanelRpcClient implements AIPanelAPI {
 
     generateHealthcareCode(params: GenerateCodeRequest): void {
         return this._messenger.sendNotification(generateHealthcareCode, HOST_EXTENSION, params);
+    }
+
+    abortAIGeneration(): void {
+        return this._messenger.sendNotification(abortAIGeneration, HOST_EXTENSION);
     }
 }

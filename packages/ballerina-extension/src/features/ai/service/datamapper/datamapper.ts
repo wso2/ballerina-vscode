@@ -45,7 +45,7 @@
 
 import { generateText, CoreMessage, generateObject } from "ai";
 import { getDataMappingPrompt } from "./prompt";
-import { anthropic } from "../connection";
+import { anthropic, ANTHROPIC_SONNET_4 } from "../connection";
 import {
     Payload,
     DatamapperResponse,
@@ -65,6 +65,7 @@ import {
     ChatResponse,
 } from "./types";
 import {  DataMappingSchema } from "./schema";
+import { AIPanelAbortController } from "../../../../../src/rpc-managers/ai-panel/utils";
 
 // =============================================================================
 // OPERATION TYPE CONSTANTS
@@ -321,11 +322,12 @@ async function getAutoMappings(
 
     try {
         const { object } = await generateObject({
-            model: anthropic("claude-3-5-sonnet-20241022"),
+            model: anthropic(ANTHROPIC_SONNET_4),
             maxTokens: 4096,
             temperature: 0,
             messages: messages,
-            schema: DataMappingSchema
+            schema: DataMappingSchema,
+            abortSignal: AIPanelAbortController.getInstance().signal,
         });
 
         const generatedMappings = object as AIDataMappings;

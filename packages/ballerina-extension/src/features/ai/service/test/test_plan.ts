@@ -1,11 +1,12 @@
 import { CoreMessage, streamText } from "ai";
-import { anthropic } from "../connection";
+import { anthropic, ANTHROPIC_SONNET_4 } from "../connection";
 import { getErrorMessage } from "../utils";
 import { TestGenerationTarget, TestPlanGenerationRequest } from "@wso2/ballerina-core";
 import { generateTest, getDiagnostics } from "../../testGenerator";
 import { getBallerinaProjectRoot } from "../../../../rpc-managers/ai-panel/rpc-manager";
 import { BACKEND_URL } from "../../utils";
 import { CopilotEventHandler, createWebviewEventHandler } from "../event";
+import { AIPanelAbortController } from "../../../../../src/rpc-managers/ai-panel/utils";
 
 export interface TestPlanResponse {
     testPlan: string;
@@ -29,31 +30,31 @@ class TestPlanBuffer {
         if (text === "") {
             return { shouldEmit: false, textToEmit: "" };
         }
-        
+
         this.buffer += text;
-        
+
         const fullScenarioMatch = this.fullScenarioRegex.exec(this.buffer);
         const partialScenarioMatch = this.partialScenarioRegex.exec(this.buffer);
         const actualFullScenarioMatch = this.scenarioOpenTagRegex.exec(this.buffer);
-        
+
         // If no partial match, emit entire buffer
         if (!partialScenarioMatch) {
             const textToEmit = this.buffer;
             this.buffer = "";
             return { shouldEmit: true, textToEmit };
         }
-        
+
         // If partial match is at the end of buffer, wait for more content
         if (partialScenarioMatch.index + partialScenarioMatch[0].length === this.buffer.length) {
             return { shouldEmit: false, textToEmit: "" };
         }
-        
+
         // If we have a complete <scenario> opening tag but no full scenario
         if (actualFullScenarioMatch && !fullScenarioMatch) {
             // Continue waiting for the complete scenario
             return { shouldEmit: false, textToEmit: "" };
         }
-        
+
         // If we have a complete scenario tag (full <scenario>...</scenario>)
         if (fullScenarioMatch) {
             const endIndex = fullScenarioMatch.index + fullScenarioMatch[0].length;
@@ -61,13 +62,13 @@ class TestPlanBuffer {
             this.buffer = this.buffer.substring(endIndex);
             return { shouldEmit: true, textToEmit };
         }
-        
+
         // Partial match not at end, emit everything before the partial match
         const textToEmit = this.buffer;
         this.buffer = "";
         return { shouldEmit: true, textToEmit };
     }
-    
+
     /**
      * Flushes remaining buffer content
      */
@@ -79,7 +80,10 @@ class TestPlanBuffer {
 }
 
 // Core test plan generation function that emits events
-export async function generateTestPlanCore(params: TestPlanGenerationRequest, eventHandler: CopilotEventHandler): Promise<void> {
+export async function generateTestPlanCore(
+    params: TestPlanGenerationRequest,
+    eventHandler: CopilotEventHandler
+): Promise<void> {
     const { targetType, targetSource, target } = params;
     let systemPrompt: string;
     let userPrompt: string;
@@ -102,99 +106,126 @@ export async function generateTestPlanCore(params: TestPlanGenerationRequest, ev
             content: userPrompt,
         },
     ];
+    const { fullStream } = streamText({
+        model: anthropic(ANTHROPIC_SONNET_4),
+        maxTokens: 8192,
+        temperature: 0,
+        messages: allMessages,
+        abortSignal: AIPanelAbortController.getInstance().signal,
+    });
 
-    try {
-        const { fullStream } = streamText({
-            model: anthropic("claude-3-5-sonnet-20241022"),
-            maxTokens: 4096,
-            temperature: 0,
-            messages: allMessages,
-        });
+    eventHandler({ type: "start" });
+    const buffer = new TestPlanBuffer();
+    let assistantResponse: string = "";
 
-        eventHandler({ type: 'start' });
-        const buffer = new TestPlanBuffer();
-        let assistantResponse: string = "";
+    for await (const part of fullStream) {
+        switch (part.type) {
+            case "text-delta": {
+                const textPart = part.textDelta;
+                assistantResponse += textPart;
 
-        for await (const part of fullStream) {
-            switch (part.type) {
-                case "text-delta": {
-                    const textPart = part.textDelta;
-                    assistantResponse += textPart;
-                    
-                    // Process through buffer for scenario tag detection
-                    const result = buffer.processText(textPart);
-                    
-                    if (result.shouldEmit && result.textToEmit) {
-                        eventHandler({ type: 'content_block', content: result.textToEmit });
-                    }
-                    break;
+                // Process through buffer for scenario tag detection
+                const result = buffer.processText(textPart);
+
+                if (result.shouldEmit && result.textToEmit) {
+                    eventHandler({ type: "content_block", content: result.textToEmit });
                 }
-                case "error": {
-                    const error = part.error;
-                    console.error("Error during test plan generation:", error);
-                    eventHandler({ type: 'error', content: getErrorMessage(error) });
-                    break;
+                break;
+            }
+            case "error": {
+                const error = part.error;
+                console.error("Error during test plan generation:", error);
+                eventHandler({ type: "error", content: getErrorMessage(error) });
+                break;
+            }
+            case "finish": {
+                // Flush any remaining buffer content
+                const remainingText = buffer.flush();
+                if (remainingText) {
+                    eventHandler({ type: "content_block", content: remainingText });
                 }
-                case "finish": {
-                    // Flush any remaining buffer content
-                    const remainingText = buffer.flush();
-                    if (remainingText) {
-                        eventHandler({ type: 'content_block', content: remainingText });
-                    }
-                    if (targetType === "service") {
-                        eventHandler({ type: 'content_block', content: `\n\n**Initiating test generation for the ${target} service, following the _outlined test plan_. Please wait...**` });
-                        eventHandler({ type: 'content_block', content: `\n\n<progress>Generating tests for the ${target} service. This may take a moment.</progress>` });
-                        const projectRoot = await getBallerinaProjectRoot();
-                        const testResp = await generateTest(projectRoot, {
+                if (targetType === "service") {
+                    eventHandler({
+                        type: "content_block",
+                        content: `\n\n**Initiating test generation for the ${target} service, following the _outlined test plan_. Please wait...**`,
+                    });
+                    eventHandler({
+                        type: "content_block",
+                        content: `\n\n<progress>Generating tests for the ${target} service. This may take a moment.</progress>`,
+                    });
+                    const projectRoot = await getBallerinaProjectRoot();
+                    const testResp = await generateTest(projectRoot, {
+                        backendUri: BACKEND_URL,
+                        targetType: TestGenerationTarget.Service,
+                        targetIdentifier: target,
+                        testPlan: assistantResponse,
+                    });
+                    eventHandler({
+                        type: "content_block",
+                        content: `\n<progress>Analyzing generated tests for potential issues.</progress>`,
+                    });
+                    const diagnostics = await getDiagnostics(projectRoot, testResp);
+                    let testCode = testResp.testSource;
+                    const testConfig = testResp.testConfig;
+                    if (diagnostics.diagnostics.length > 0) {
+                        eventHandler({
+                            type: "content_block",
+                            content: `\n<progress>Refining tests based on feedback to ensure accuracy and reliability.</progress>`,
+                        });
+                        const fixedCode = await generateTest(projectRoot, {
                             backendUri: BACKEND_URL,
                             targetType: TestGenerationTarget.Service,
                             targetIdentifier: target,
-                            testPlan: assistantResponse
+                            testPlan: assistantResponse,
+                            diagnostics: diagnostics,
+                            existingTests: testResp.testSource,
                         });
-                        eventHandler({ type: 'content_block', content: `\n<progress>Analyzing generated tests for potential issues.</progress>` });
-                        const diagnostics = await getDiagnostics(projectRoot, testResp);
-                        let testCode = testResp.testSource;
-                        const testConfig = testResp.testConfig;
-                        if (diagnostics.diagnostics.length > 0) {
-                            eventHandler({ type: 'content_block', content: `\n<progress>Refining tests based on feedback to ensure accuracy and reliability.</progress>` });
-                            const fixedCode = await generateTest(projectRoot, {
-                                backendUri: BACKEND_URL,
-                                targetType: TestGenerationTarget.Service,
-                                targetIdentifier: target,
-                                testPlan: assistantResponse,
-                                diagnostics: diagnostics,
-                                existingTests: testResp.testSource,
-                            });
-                            testCode = fixedCode.testSource;
-                        }
+                        testCode = fixedCode.testSource;
+                    }
 
-                        eventHandler({ type: 'content_block', content: `\n\nTest generation completed. Displaying the generated tests for the ${target} service below:` });
-                        eventHandler({ type: 'content_block', content: `\n\n<code filename="tests/test.bal" type="test">\n\`\`\`ballerina\n${testCode}\n\`\`\`\n</code>` });
-                        if (testConfig) {
-                            eventHandler({ type: 'content_block', content: `\n\n<code filename="tests/Config.toml" type="test">\n\`\`\`ballerina\n${testConfig}\n\`\`\`\n</code>` });
-                        }
-                        eventHandler({ type: 'stop' });
-                    } else {
-                        eventHandler({ type: 'content_block', content: `\n\n<button type="generate_test_group">Generate Tests</button>` });
-                        eventHandler({ type: 'intermediary_state', state: {
+                    eventHandler({
+                        type: "content_block",
+                        content: `\n\nTest generation completed. Displaying the generated tests for the ${target} service below:`,
+                    });
+                    eventHandler({
+                        type: "content_block",
+                        content: `\n\n<code filename="tests/test.bal" type="test">\n\`\`\`ballerina\n${testCode}\n\`\`\`\n</code>`,
+                    });
+                    if (testConfig) {
+                        eventHandler({
+                            type: "content_block",
+                            content: `\n\n<code filename="tests/Config.toml" type="test">\n\`\`\`ballerina\n${testConfig}\n\`\`\`\n</code>`,
+                        });
+                    }
+                    eventHandler({ type: "stop" });
+                } else {
+                    eventHandler({
+                        type: "content_block",
+                        content: `\n\n<button type="generate_test_group">Generate Tests</button>`,
+                    });
+                    eventHandler({
+                        type: "intermediary_state",
+                        state: {
                             resourceFunction: target,
                             testPlan: assistantResponse,
-                        }});
-                    }
-                    break;
+                        },
+                    });
                 }
+                break;
             }
         }
-    } catch (error) {
-        console.error("Error during test plan generation:", error);
-        eventHandler({ type: 'error', content: getErrorMessage(error) });
     }
 }
 
 // Main public function that uses the default event handler
 export async function generateTestPlan(params: TestPlanGenerationRequest): Promise<void> {
     const eventHandler = createWebviewEventHandler();
-    await generateTestPlanCore(params, eventHandler);
+    try {
+        await generateTestPlanCore(params, eventHandler);
+    } catch (error) {
+        console.error("Error during test plan generation:", error);
+        eventHandler({ type: "error", content: getErrorMessage(error) });
+    }
 }
 
 function getServiceSystemPrompt(): string {

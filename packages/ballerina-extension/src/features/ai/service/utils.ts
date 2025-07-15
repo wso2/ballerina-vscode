@@ -164,6 +164,9 @@ export function getErrorMessage(error: unknown): string {
         if (error.name === "AI_RetryError") {
             return "An error occured connecting with the AI service. Please try again later.";
         }
+        if (error.name === "AbortError") {
+            return "Generation stopped by the user.";
+        }
 
         return error.message;
     }

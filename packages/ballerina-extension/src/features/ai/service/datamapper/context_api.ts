@@ -33,7 +33,8 @@
  */
 
 import { generateText, CoreMessage } from "ai";
-import { anthropic } from "../connection";
+import { anthropic, ANTHROPIC_SONNET_4 } from "../connection";
+import { AIPanelAbortController } from "../../../../../src/rpc-managers/ai-panel/utils";
 
 // Types
 export type FileData = {
@@ -442,10 +443,11 @@ async function extractionUsingClaude({ pdfData, processType }: { pdfData: string
     ];
 
     const { text } = await generateText({
-        model: anthropic("claude-3-5-sonnet-20241022"),
+        model: anthropic(ANTHROPIC_SONNET_4),
         maxTokens: 8192,
         temperature: 0,
-        messages: messages
+        messages: messages,
+        abortSignal: AIPanelAbortController.getInstance().signal
     });
 
     return text;
@@ -483,10 +485,11 @@ async function imageExtractionUsingClaude({
     ];
 
     const { text } = await generateText({
-        model: anthropic("claude-3-5-sonnet-20241022"),
+        model: anthropic(ANTHROPIC_SONNET_4),
         maxTokens: 8192,
         temperature: 0,
-        messages: messages
+        messages: messages,
+        abortSignal: AIPanelAbortController.getInstance().signal
     });
 
     return text;
@@ -509,10 +512,11 @@ async function textExtractionUsingClaude({
     ];
 
     const { text } = await generateText({
-        model: anthropic("claude-3-5-sonnet-20241022"),
+        model: anthropic(ANTHROPIC_SONNET_4),
         maxTokens: 8192,
         temperature: 0,
-        messages: messages
+        messages: messages,
+        abortSignal: AIPanelAbortController.getInstance().signal
     });
 
     return text;
