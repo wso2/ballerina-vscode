@@ -773,7 +773,7 @@ public class DataMapManager {
             String output = mapping.output();
             String[] splits = output.split(DOT);
             ExpressionNode expr = getMappingExpr(moduleVarDecl.initializer().orElseThrow(), targetField);
-            genDeleteMappingSource(expr, splits, 1,  textEdits);
+            genDeleteMappingSource(expr, splits, 1, textEdits);
         }
 
         return gson.toJsonTree(textEditsMap);
@@ -852,7 +852,7 @@ public class DataMapManager {
                 return;
             } else {
                 genDeleteMappingSource(mappingFieldNode.valueExpr().orElseThrow(), names, idx + 1,
-                         textEdits);
+                        textEdits);
             }
         } else if (expr.kind() == SyntaxKind.LIST_CONSTRUCTOR) {
             ListConstructorExpressionNode listCtrExpr = (ListConstructorExpressionNode) expr;
@@ -864,7 +864,7 @@ public class DataMapManager {
                     int index = Integer.parseInt(name);
                     if (index < listCtrExpr.expressions().size()) {
                         genDeleteMappingSource((ExpressionNode) listCtrExpr.expressions().get(index),
-                                names, idx + 1,  textEdits);
+                                names, idx + 1, textEdits);
                     }
                 }
             }
