@@ -1,0 +1,49 @@
+{
+  "source": "array.bal",
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "array.bal",
+      "startLine": {
+        "line": 26,
+        "offset": 12
+      },
+      "endLine": {
+        "line": 26,
+        "offset": 71
+      }
+    },
+    "sourceCode": "Student student = {id: 1234, credentials: [{}], length: 0};"
+  },
+  "position": {
+    "line": 25,
+    "offset": 107
+  },
+  "mapping": {
+    "output": "student.credentials.0.username",
+    "inputs": [
+      "userInfo"
+    ],
+    "expression": "userInfo[0].username",
+    "diagnostics": [],
+    "elements": []
+  },
+  "output": {
+    "array.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 26,
+            "character": 56
+          },
+          "end": {
+            "line": 26,
+            "character": 86
+          }
+        },
+        "newText": ""
+      }
+    ]
+  }
+}

@@ -107,6 +107,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -739,6 +740,7 @@ public class DataMapManager {
             ExpressionNode expr = getMappingExpr(varDecl.initializer().orElseThrow(), targetField);
             StringBuilder sb = new StringBuilder();
             genSource(expr, splits, 1, sb, mapping.expression(), null, textEdits);
+
         } else if (node.kind() == SyntaxKind.MODULE_VAR_DECL) {
             ModuleVariableDeclarationNode moduleVarDecl = (ModuleVariableDeclarationNode) node;
             String output = mapping.output();
@@ -766,20 +768,18 @@ public class DataMapManager {
             String output = mapping.output();
             String[] splits = output.split(DOT);
             ExpressionNode expr = getMappingExpr(varDecl.initializer().orElseThrow(), targetField);
-            StringBuilder sb = new StringBuilder();
-            genSource(expr, splits, 1, sb, "", null, textEdits);
+            genDeleteMappingSource(expr, splits, 1, textEdits);
         } else if (node.kind() == SyntaxKind.MODULE_VAR_DECL) {
             ModuleVariableDeclarationNode moduleVarDecl = (ModuleVariableDeclarationNode) node;
             String output = mapping.output();
             String[] splits = output.split(DOT);
             ExpressionNode expr = getMappingExpr(moduleVarDecl.initializer().orElseThrow(), targetField);
-            StringBuilder sb = new StringBuilder();
-            genSource(expr, splits, 1, sb, "", null, textEdits);
+            genDeleteMappingSource(expr, splits, 1,  textEdits);
         }
 
-        setImportStatements(mapping.imports(), textEdits);
         return gson.toJsonTree(textEditsMap);
     }
+
 
     private void genSource(ExpressionNode expr, String[] names, int idx, StringBuilder stringBuilder,
                            String mappingExpr, LinePosition position, List<TextEdit> textEdits) {
@@ -840,6 +840,146 @@ public class DataMapManager {
             }
         }
     }
+
+    private void genDeleteMappingSource(ExpressionNode expr, String[] names, int idx, List<TextEdit> textEdits) {
+        if (expr == null) {
+            return;
+        } else if (expr.kind() == SyntaxKind.MAPPING_CONSTRUCTOR) {
+            String name = names[idx];
+            MappingConstructorExpressionNode mappingCtrExpr = (MappingConstructorExpressionNode) expr;
+            Map<String, SpecificFieldNode> mappingFields = convertMappingFieldsToMap(mappingCtrExpr);
+            SpecificFieldNode mappingFieldNode = mappingFields.get(name);
+            if (mappingFieldNode == null) {
+                // Field not found in this mapping constructor
+                return;
+            } else {
+                genDeleteMappingSource(mappingFieldNode.valueExpr().orElseThrow(), names, idx + 1,
+                         textEdits);
+            }
+        } else if (expr.kind() == SyntaxKind.LIST_CONSTRUCTOR) {
+            ListConstructorExpressionNode listCtrExpr = (ListConstructorExpressionNode) expr;
+            if (idx == names.length) {
+                textEdits.add(new TextEdit(CommonUtils.toRange(expr.lineRange()), ""));
+            } else {
+                String name = names[idx];
+                if (name.matches("\\d+")) {
+                    int index = Integer.parseInt(name);
+                    if (index < listCtrExpr.expressions().size()) {
+                        genDeleteMappingSource((ExpressionNode) listCtrExpr.expressions().get(index),
+                                names, idx + 1,  textEdits);
+                    }
+                }
+            }
+        } else {
+            if (idx == names.length) {
+                // Find the top-most mapping constructor that would be empty after removal
+                NonTerminalNode currentNode = expr;
+                NonTerminalNode highestEmptyField = null;
+
+                // Traverse up to find all parent mapping constructors that would be empty
+                while (true) {
+                    NonTerminalNode parentNode = currentNode.parent();
+
+                    // If we've reached the root, stop
+                    if (parentNode == null) {
+                        break;
+                    }
+
+                    // Check if parent is a specific field inside a mapping constructor
+                    if (parentNode.kind() == SyntaxKind.SPECIFIC_FIELD) {
+                        SpecificFieldNode specificField = (SpecificFieldNode) parentNode;
+                        NonTerminalNode grandParent = parentNode.parent();
+
+                        if (grandParent != null && grandParent.kind() == SyntaxKind.MAPPING_CONSTRUCTOR) {
+                            MappingConstructorExpressionNode mappingCtr = (MappingConstructorExpressionNode) grandParent;
+
+                            // Check if this is the only field in the mapping constructor
+                            if (mappingCtr.fields().size() == 1) {
+                                // This mapping would be empty after removal, so track this field
+                                highestEmptyField = specificField;
+                                currentNode = grandParent;
+                                continue;
+                            }
+                        }
+                    }
+                    break;
+                }
+
+                // If we found a parent field that would create an empty mapping constructor
+                if (highestEmptyField != null) {
+                    textEdits.add(new TextEdit(CommonUtils.toRange(highestEmptyField.lineRange()), ""));
+                } else {
+                    // Just remove the current expression together with the leading and trailing commas
+                    SpecificFieldNode specificField = (SpecificFieldNode) expr.parent();
+
+                    MappingConstructorExpressionNode mappingCtr = (MappingConstructorExpressionNode) specificField.parent();
+                    SeparatedNodeList<MappingFieldNode> fields = mappingCtr.fields();
+                    int fieldCount = fields.size();
+
+                    if (fieldCount > 1) {
+                        // Find position of the current field
+                        int fieldIndex = -1;
+                        for (int i = 0; i < fieldCount; i++) {
+                            if (fields.get(i) == specificField) {
+                                fieldIndex = i;
+                                break;
+                            }
+                        }
+
+                        if (fieldIndex >= 0) {
+                            TextRange deleteRange;
+
+                            if (fieldIndex == fieldCount - 1) {
+                                // Last field - remove preceding comma and field
+                                TextRange fieldRange = specificField.textRange();
+                                // Get the separator (comma) before the field
+                                Node separator = fields.getSeparator(fieldIndex - 1);
+                                if (separator != null) {
+                                    // Include the comma before this field
+                                    deleteRange = TextRange.from(
+                                            separator.textRange().startOffset(),
+                                            fieldRange.endOffset() - separator.textRange().startOffset()
+                                    );
+                                } else {
+                                    deleteRange = fieldRange;
+                                }
+                            } else {
+                                // First or Middle field - just remove the field itself and the trailing comma
+                                TextRange fieldRange = specificField.textRange();
+                                // Get the separator (comma) after the field
+                                Node separator = fields.getSeparator(fieldIndex);
+                                if (separator != null) {
+                                    // Include the comma and any whitespace until next field
+                                    deleteRange = TextRange.from(
+                                            fieldRange.startOffset(),
+                                            fields.get(fieldIndex + 1).textRange().startOffset() - fieldRange.startOffset()
+                                    );
+                                } else {
+                                    deleteRange = fieldRange;
+                                }
+                            }
+
+                            String fileName = document.name(); // or null if not needed
+                            LinePosition startPos = document.syntaxTree().textDocument().linePositionFrom(deleteRange.startOffset());
+                            LinePosition endPos = document.syntaxTree().textDocument().linePositionFrom(deleteRange.endOffset());
+
+                            // Create the LineRange with three arguments
+                            LineRange lineRangeToDelete = LineRange.from(fileName, startPos, endPos);
+
+                            textEdits.add(new TextEdit(CommonUtils.toRange(lineRangeToDelete), ""));
+                        } else {
+                            // Fallback to original behavior if we can't find the field
+                            textEdits.add(new TextEdit(CommonUtils.toRange(specificField.lineRange()), ""));
+                        }
+                    } else {
+                        // Only one field in mapping - just remove the field
+                        textEdits.add(new TextEdit(CommonUtils.toRange(specificField.lineRange()), ""));
+                    }
+                }
+            }
+        }
+    }
+
 
     private void setImportStatements(Map<String, String> importStatements, List<TextEdit> textEdits) {
         if (importStatements == null) {
