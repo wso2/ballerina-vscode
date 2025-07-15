@@ -51,48 +51,8 @@ public class DataMappingDeleteTest extends AbstractLSTest {
     protected Object[] getConfigsList() {
         return new Object[][]{
                 {Path.of("variable1.json")},
-//                {Path.of("variable2.json")},
-//                {Path.of("variable2_1.json")},
-//                {Path.of("variable2_2.json")},
-//                {Path.of("variable3.json")},
-//                {Path.of("variable3_1.json")},
-//                {Path.of("variable3_2.json")},
-//                {Path.of("variable5_array0.json")},
-//                {Path.of("variable5_array1.json")},
-//                {Path.of("variable5_array2.json")},
-//                {Path.of("variable5_array3.json")},
-//                {Path.of("variable6.json")},
-//                {Path.of("variable7_new.json")},
-//                {Path.of("variable7_new1.json")},
-//                {Path.of("variable8_new.json")},
-//                {Path.of("variable8_new1.json")},
-//                {Path.of("variable9.json")},
-//                {Path.of("variable9_new.json")},
-//                {Path.of("variable9_new1.json")},
-//                {Path.of("variable10.json")},
-//                {Path.of("variable10_new.json")},
-//                {Path.of("variable11.json")},
-//                {Path.of("variable11_new.json")},
-//                {Path.of("variable12.json")},
-//                {Path.of("variable12_new1.json")},
-//                {Path.of("variable12_new2.json")},
-//                {Path.of("variable13.json")},
-//                {Path.of("variable13_new1.json")},
-//                {Path.of("variable13_new2.json")},
-//                {Path.of("variable13_new3.json")},
-//                {Path.of("variable13_new4.json")},
-//                {Path.of("variable13_new5.json")},
-//                {Path.of("variable13_new6.json")},
-//                {Path.of("variable13_new7.json")},
-//                {Path.of("variable14.json")},
-//                {Path.of("variable15.json")},
-//                {Path.of("variable15_new.json")},
-//                {Path.of("variable16.json")},
-//                {Path.of("variable16_new.json")},
-//                {Path.of("variable16_new1.json")},
-//                {Path.of("query1.json")},
-//                {Path.of("query2.json")},
-//                {Path.of("query3.json")},
+                {Path.of("query1.json")},
+                {Path.of("array.json")}
         };
     }
 
@@ -103,7 +63,7 @@ public class DataMappingDeleteTest extends AbstractLSTest {
         TestConfig testConfig = gson.fromJson(Files.newBufferedReader(configJsonPath), TestConfig.class);
 
         DataMappingDeleteRequest request = new DataMappingDeleteRequest(
-                sourceDir.resolve(testConfig.source()).toAbsolutePath().toString(), testConfig.codedata(), testConfig.mapping());
+                sourceDir.resolve(testConfig.source()).toAbsolutePath().toString(), testConfig.codedata(), testConfig.mapping(), testConfig.targetField());
         JsonObject jsonMap = getResponse(request).getAsJsonObject("textEdits");
 
         Map<String, List<TextEdit>> actualTextEdits = gson.fromJson(jsonMap, textEditListType);
@@ -135,7 +95,7 @@ public class DataMappingDeleteTest extends AbstractLSTest {
             TestConfig updatedConfig = new TestConfig(testConfig.source(), testConfig.description(),
                     testConfig.codedata(), testConfig.propertyKey(), testConfig.position(), testConfig.mapping(),
                     testConfig.targetField(), newMap);
-            updateConfig(configJsonPath, updatedConfig);
+//            updateConfig(configJsonPath, updatedConfig);
             Assert.fail(String.format("Failed test: '%s' (%s)", testConfig.description(), configJsonPath));
         }
     }

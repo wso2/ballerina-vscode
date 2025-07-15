@@ -850,7 +850,6 @@ public class DataMapManager {
             Map<String, SpecificFieldNode> mappingFields = convertMappingFieldsToMap(mappingCtrExpr);
             SpecificFieldNode mappingFieldNode = mappingFields.get(name);
             if (mappingFieldNode == null) {
-                // Field not found in this mapping constructor
                 return;
             } else {
                 genDeleteMappingSource(mappingFieldNode.valueExpr().orElseThrow(), names, idx + 1,
@@ -872,20 +871,14 @@ public class DataMapManager {
             }
         } else {
             if (idx == names.length) {
-                // Find the top-most mapping constructor that would be empty after removal
                 NonTerminalNode currentNode = expr;
                 NonTerminalNode highestEmptyField = null;
 
-                // Traverse up to find all parent mapping constructors that would be empty
                 while (true) {
                     NonTerminalNode parentNode = currentNode.parent();
-
-                    // If we've reached the root, stop
                     if (parentNode == null) {
                         break;
                     }
-
-                    // Check if parent is a specific field inside a mapping constructor
                     if (parentNode.kind() == SyntaxKind.SPECIFIC_FIELD) {
                         SpecificFieldNode specificField = (SpecificFieldNode) parentNode;
                         NonTerminalNode grandParent = parentNode.parent();
@@ -893,9 +886,7 @@ public class DataMapManager {
                         if (grandParent != null && grandParent.kind() == SyntaxKind.MAPPING_CONSTRUCTOR) {
                             MappingConstructorExpressionNode mappingCtr = (MappingConstructorExpressionNode) grandParent;
 
-                            // Check if this is the only field in the mapping constructor
                             if (mappingCtr.fields().size() == 1) {
-                                // This mapping would be empty after removal, so track this field
                                 highestEmptyField = specificField;
                                 currentNode = grandParent;
                                 continue;
@@ -905,19 +896,15 @@ public class DataMapManager {
                     break;
                 }
 
-                // If we found a parent field that would create an empty mapping constructor
                 if (highestEmptyField != null) {
                     textEdits.add(new TextEdit(CommonUtils.toRange(highestEmptyField.lineRange()), ""));
                 } else {
-                    // Just remove the current expression together with the leading and trailing commas
                     SpecificFieldNode specificField = (SpecificFieldNode) expr.parent();
-
                     MappingConstructorExpressionNode mappingCtr = (MappingConstructorExpressionNode) specificField.parent();
                     SeparatedNodeList<MappingFieldNode> fields = mappingCtr.fields();
                     int fieldCount = fields.size();
 
                     if (fieldCount > 1) {
-                        // Find position of the current field
                         int fieldIndex = -1;
                         for (int i = 0; i < fieldCount; i++) {
                             if (fields.get(i) == specificField) {
@@ -925,17 +912,12 @@ public class DataMapManager {
                                 break;
                             }
                         }
-
                         if (fieldIndex >= 0) {
                             TextRange deleteRange;
-
                             if (fieldIndex == fieldCount - 1) {
-                                // Last field - remove preceding comma and field
                                 TextRange fieldRange = specificField.textRange();
-                                // Get the separator (comma) before the field
                                 Node separator = fields.getSeparator(fieldIndex - 1);
                                 if (separator != null) {
-                                    // Include the comma before this field
                                     deleteRange = TextRange.from(
                                             separator.textRange().startOffset(),
                                             fieldRange.endOffset() - separator.textRange().startOffset()
@@ -944,12 +926,9 @@ public class DataMapManager {
                                     deleteRange = fieldRange;
                                 }
                             } else {
-                                // First or Middle field - just remove the field itself and the trailing comma
                                 TextRange fieldRange = specificField.textRange();
-                                // Get the separator (comma) after the field
                                 Node separator = fields.getSeparator(fieldIndex);
                                 if (separator != null) {
-                                    // Include the comma and any whitespace until next field
                                     deleteRange = TextRange.from(
                                             fieldRange.startOffset(),
                                             fields.get(fieldIndex + 1).textRange().startOffset() - fieldRange.startOffset()
@@ -959,20 +938,16 @@ public class DataMapManager {
                                 }
                             }
 
-                            String fileName = document.name(); // or null if not needed
+                            String fileName = document.name();
                             LinePosition startPos = document.syntaxTree().textDocument().linePositionFrom(deleteRange.startOffset());
                             LinePosition endPos = document.syntaxTree().textDocument().linePositionFrom(deleteRange.endOffset());
 
-                            // Create the LineRange with three arguments
                             LineRange lineRangeToDelete = LineRange.from(fileName, startPos, endPos);
-
                             textEdits.add(new TextEdit(CommonUtils.toRange(lineRangeToDelete), ""));
                         } else {
-                            // Fallback to original behavior if we can't find the field
                             textEdits.add(new TextEdit(CommonUtils.toRange(specificField.lineRange()), ""));
                         }
                     } else {
-                        // Only one field in mapping - just remove the field
                         textEdits.add(new TextEdit(CommonUtils.toRange(specificField.lineRange()), ""));
                     }
                 }
