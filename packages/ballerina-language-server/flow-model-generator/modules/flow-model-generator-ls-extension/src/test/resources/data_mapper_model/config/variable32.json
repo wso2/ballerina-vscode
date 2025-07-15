@@ -68,7 +68,7 @@
       "fields": [
         {
           "member": {
-            "id": "var3.contacts.0",
+            "id": "var3.contacts",
             "typeName": "string",
             "kind": "string"
           },

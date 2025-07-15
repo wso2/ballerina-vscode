@@ -49,7 +49,7 @@
                 }
               ],
               "id": "l2Item.l3Arr.0",
-              "variableName": "l3ArrItem",
+              "variableName": "<l3ArrItem>",
               "typeName": "record",
               "kind": "record"
             },
@@ -97,7 +97,7 @@
                           }
                         ],
                         "id": "var1.l1.l2.0.l3Arr.0",
-                        "variableName": "l3ArrItem",
+                        "variableName": "<l3ArrItem>",
                         "typeName": "record",
                         "kind": "record"
                       },
@@ -108,7 +108,7 @@
                     }
                   ],
                   "id": "var1.l1.l2.0",
-                  "variableName": "l2Item",
+                  "variableName": "<l2Item>",
                   "typeName": "record",
                   "kind": "record"
                 },
@@ -157,20 +157,20 @@
       "member": {
         "fields": [
           {
-            "id": "l3Arr.0.l4_1",
+            "id": "l3Arr.l4_1",
             "variableName": "l4_1",
             "typeName": "int",
             "kind": "int"
           },
           {
-            "id": "l3Arr.0.l4_2",
+            "id": "l3Arr.l4_2",
             "variableName": "l4_2",
             "typeName": "string",
             "kind": "string"
           }
         ],
-        "id": "l3Arr.0",
-        "variableName": "l3ArrItem",
+        "id": "l3Arr",
+        "variableName": "<l3ArrItem>",
         "typeName": "record",
         "kind": "record"
       },

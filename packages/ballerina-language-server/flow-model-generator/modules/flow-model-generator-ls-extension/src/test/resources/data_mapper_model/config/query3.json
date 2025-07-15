@@ -45,7 +45,7 @@
                     }
                   ],
                   "id": "u.info.secondaryPhones.0",
-                  "variableName": "secondaryPhonesItem",
+                  "variableName": "<secondaryPhonesItem>",
                   "typeName": "SecondaryPhones",
                   "kind": "record"
                 },
@@ -74,7 +74,7 @@
                     "kind": "string"
                   },
                   "id": "u.info.addresses.0",
-                  "variableName": "addressesItem",
+                  "variableName": "<addressesItem>",
                   "typeName": "string[]",
                   "kind": "array"
                 },
@@ -122,20 +122,20 @@
       "member": {
         "fields": [
           {
-            "id": "phoneNumbers.0.code",
+            "id": "phoneNumbers.code",
             "variableName": "code",
             "typeName": "string",
             "kind": "string"
           },
           {
-            "id": "phoneNumbers.0.number",
+            "id": "phoneNumbers.number",
             "variableName": "number",
             "typeName": "string",
             "kind": "string"
           }
         ],
-        "id": "phoneNumbers.0",
-        "variableName": "phoneNumbersItem",
+        "id": "phoneNumbers",
+        "variableName": "<phoneNumbersItem>",
         "typeName": "SecondaryPhonesX",
         "kind": "record"
       },

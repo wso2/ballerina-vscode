@@ -49,12 +49,12 @@
         {
           "member": {
             "member": {
-              "id": "td.values.0.0",
+              "id": "td.values",
               "typeName": "string",
               "kind": "string"
             },
-            "id": "td.values.0",
-            "variableName": "valuesItem",
+            "id": "td.values",
+            "variableName": "<valuesItem>",
             "typeName": "string[]",
             "kind": "array"
           },

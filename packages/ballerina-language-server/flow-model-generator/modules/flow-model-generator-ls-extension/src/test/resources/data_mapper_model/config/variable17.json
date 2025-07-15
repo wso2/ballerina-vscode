@@ -46,7 +46,7 @@
             }
           ],
           "id": "credentials.0",
-          "variableName": "credentialsItem",
+          "variableName": "<credentialsItem>",
           "typeName": "Credentials",
           "kind": "record"
         },
@@ -73,7 +73,7 @@
             }
           ],
           "id": "userInfo.0",
-          "variableName": "userInfoItem",
+          "variableName": "<userInfoItem>",
           "typeName": "UserInfo",
           "kind": "record"
         },
@@ -96,20 +96,20 @@
           "member": {
             "fields": [
               {
-                "id": "student.credentials.0.username",
+                "id": "student.credentials.username",
                 "variableName": "username",
                 "typeName": "string",
                 "kind": "string"
               },
               {
-                "id": "student.credentials.0.password",
+                "id": "student.credentials.password",
                 "variableName": "password",
                 "typeName": "string",
                 "kind": "string"
               }
             ],
-            "id": "student.credentials.0",
-            "variableName": "credentialsItem",
+            "id": "student.credentials",
+            "variableName": "<credentialsItem>",
             "typeName": "Credentials",
             "kind": "record"
           },

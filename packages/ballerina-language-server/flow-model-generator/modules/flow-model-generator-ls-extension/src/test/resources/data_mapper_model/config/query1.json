@@ -59,7 +59,7 @@
                     "kind": "string"
                   },
                   "id": "u.info.addresses.0",
-                  "variableName": "addressesItem",
+                  "variableName": "<addressesItem>",
                   "typeName": "string[]",
                   "kind": "array"
                 },
@@ -90,7 +90,7 @@
     ],
     "output": {
       "member": {
-        "id": "phoneNumbers.0",
+        "id": "phoneNumbers",
         "typeName": "string",
         "kind": "string"
       },
