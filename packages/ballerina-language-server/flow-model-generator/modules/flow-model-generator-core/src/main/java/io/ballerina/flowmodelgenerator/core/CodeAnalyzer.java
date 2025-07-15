@@ -476,7 +476,7 @@ public class CodeAnalyzer extends NodeVisitor {
                         && typeSymbol.getModule().isPresent()
                         && (typeSymbol.getName().get().equals(MCP_TOOL_KIT))
                         && (typeSymbol.getModule().get().id().moduleName().equals(AI_AGENT))) {
-                    String toolName = simpleNameReferenceNode.name().text();
+                    String toolName = simpleNameReferenceNode.name().text().replace("\\", "");
                     toolsData.add(new ToolData(toolName, ICON_PATH, getToolDescription(""), MCP_SERVER));
                     continue;
                 }
