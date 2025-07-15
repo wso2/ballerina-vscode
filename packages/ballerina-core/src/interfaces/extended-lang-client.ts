@@ -357,6 +357,8 @@ export interface AddSubMappingRequest {
     codedata: CodeData;
     index: number;
     flowNode: FlowNode;
+    varName?: string;
+    targetField: string;
 }
 
 export interface GetInlineDataMapperCodedataRequest {

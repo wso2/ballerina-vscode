@@ -31,7 +31,8 @@ import {
     IDMViewState,
     IntermediateClause,
     TriggerCharacter,
-    TRIGGER_CHARACTERS
+    TRIGGER_CHARACTERS,
+    AddSubMappingRequest
 } from "@wso2/ballerina-core";
 import { CompletionItem, ProgressIndicator } from "@wso2/ui-toolkit";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
@@ -253,6 +254,68 @@ export function InlineDataMapperView(props: InlineDataMapperProps) {
         }
     }
 
+    const addSubMapping = async (subMappingName: string, type: string, index: number, targetField: string) => {
+        try {
+            const addSubMappingRequest: AddSubMappingRequest = {
+                filePath,
+                codedata,
+                index,
+                targetField,
+                flowNode: {
+                    id: subMappingName,
+                    returning: false,
+                    metadata: {
+                        label: "",
+                        description: ""
+                    },
+                    codedata: codedata,
+                    branches: [],
+                    properties: {
+                        expression: {
+                            metadata: {
+                                label: "",
+                                description: ""
+                            },
+                            valueType: "EXPRESSION",
+                            value: "$DEFAULT_VALUE",
+                            optional: true,
+                            editable: true
+                        },
+                        variable: {
+                            metadata: {
+                                label: "",
+                                description: ""
+                            },
+                            valueType: "IDENTIFIER",
+                            value: subMappingName,
+                            optional: false,
+                            editable: true
+                        },
+                        type: {
+                            metadata: {
+                                label: "",
+                                description: ""
+                            },
+                            valueType: "TYPE",
+                            value: type,
+                            optional: false,
+                            editable: true
+                        }
+                    }
+                }
+            };
+            console.log(">>> [Inline Data Mapper] addSubMapping request:", addSubMappingRequest);
+
+            const resp = await rpcClient
+                .getInlineDataMapperRpcClient()
+                .addSubMapping(addSubMappingRequest);
+            console.log(">>> [Inline Data Mapper] addSubMapping response:", resp);
+        } catch (error) {
+            console.error(error);
+            setIsFileUpdateError(true);
+        }
+    }
+
     useEffect(() => {
         // Hack to hit the error boundary
         if (isError) {
@@ -360,6 +423,7 @@ export function InlineDataMapperView(props: InlineDataMapperProps) {
                     generateForm={generateForm}
                     convertToQuery={convertToQuery}
                     addClauses={addClauses}
+                    addSubMapping={addSubMapping}
                     expressionBar={{
                         completions: filteredCompletions,
                         triggerCompletions: retrieveCompeletions,
