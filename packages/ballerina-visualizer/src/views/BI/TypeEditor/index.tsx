@@ -97,7 +97,6 @@ export const FormTypeEditor = (props: FormTypeEditorProps) => {
                                 line: targetLineRange.startLine.line,
                                 offset: targetLineRange.startLine.offset
                             },
-                            typeConstraint: "anydata"
                         })
                         .then((types) => {
                             setBasicTypes(getTypes(types));
