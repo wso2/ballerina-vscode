@@ -326,7 +326,29 @@ const stateMachine = createMachine<MachineContext>(
                     return resolve({ ...selectedEntry.location, view: selectedEntry.location.view ? selectedEntry.location.view : MACHINE_VIEW.Overview });
                 }
 
-                if (selectedEntry && selectedEntry.location.view === MACHINE_VIEW.ERDiagram) {
+                if (selectedEntry && (selectedEntry.location.view === MACHINE_VIEW.ERDiagram || selectedEntry.location.view === MACHINE_VIEW.ServiceDesigner || selectedEntry.location.identifier?.includes("#"))) { // TODO: This is a temp fix to avoid the st request for the service designer
+                    // Get the ST from resources only
+                    if (selectedEntry.location.identifier?.includes("#")) {
+                        const fnSTByRange = await StateMachine.langClient().getSTByRange(
+                            {
+                                lineRange: {
+                                    start: {
+                                        line: selectedEntry.location.position.startLine,
+                                        character: selectedEntry.location.position.startColumn
+                                    },
+                                    end: {
+                                        line: selectedEntry.location.position.endLine,
+                                        character: selectedEntry.location.position.endColumn
+                                    }
+                                },
+                                documentIdentifier: {
+                                    uri: Uri.file(context.documentUri).toString()
+                                }
+                            }
+                        ) as SyntaxTree;
+                        console.log(fnSTByRange);
+                        selectedEntry.location.syntaxTree = fnSTByRange.syntaxTree;
+                    }
                     return resolve(selectedEntry.location);
                 }
 
@@ -547,7 +569,7 @@ async function handleSingleWorkspace(workspaceURI: any) {
         console.error("No BI enabled workspace found");
     }
 
-    return { isBI, projectPath, scope, orgName, packageName  };
+    return { isBI, projectPath, scope, orgName, packageName };
 }
 
 function setBIContext(isBI: boolean) {
