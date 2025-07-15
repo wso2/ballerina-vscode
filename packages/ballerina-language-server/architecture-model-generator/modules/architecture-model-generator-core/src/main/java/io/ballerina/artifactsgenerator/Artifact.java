@@ -88,6 +88,7 @@ public record Artifact(String id, LineRange location, String type, String name, 
             Map.entry("kafka", "Kafka Event Handler"),
             Map.entry("salesforce", "Salesforce Event Handler"),
             Map.entry("github", "GitHub Event Handler"),
+            Map.entry("twilio", "Twilio Event Handler"),
             Map.entry("ai", "AI Agent Services")
     );
 

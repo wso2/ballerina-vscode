@@ -29,6 +29,7 @@ import io.ballerina.projects.Project;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -123,6 +124,14 @@ public class ArtifactsGenerator {
                         idMap.computeIfAbsent(category, k -> new ArrayList<>()).add(artifactId);
                     });
             documentMap.put(document.name(), idMap);
+        });
+
+        artifactMap.forEach((category, artifacts) -> {
+            Map<String, Artifact> sortedArtifacts = new LinkedHashMap<>();
+            artifacts.entrySet().stream()
+                    .sorted(Map.Entry.comparingByKey())
+                    .forEach(entry -> sortedArtifacts.put(entry.getKey(), entry.getValue()));
+            artifactMap.put(category, sortedArtifacts);
         });
 
         ArtifactsCache.getInstance().initializeProject(project.sourceRoot().toString(), documentMap);

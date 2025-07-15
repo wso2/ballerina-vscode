@@ -19,8 +19,11 @@
 package io.ballerina.flowmodelgenerator.extension;
 
 import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import io.ballerina.flowmodelgenerator.extension.request.ConfigVariableUpdateRequest;
 import io.ballerina.modelgenerator.commons.AbstractLSTest;
+import org.ballerinalang.langserver.util.TestUtil;
 import org.eclipse.lsp4j.TextEdit;
 import org.testng.Assert;
 import org.testng.annotations.Test;
@@ -30,6 +33,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Map;
+import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * Test class for 'updateConfigVariable()' API in config API V2.
@@ -54,12 +59,13 @@ public class ConfigVariablesV2UpdateTest extends AbstractLSTest {
         ConfigVariableUpdateResponse actualResponse = gson.fromJson(getResponse(request),
                 ConfigVariableUpdateResponse.class);
 
-        if (!isEqual(testConfig.response().textEdits(), actualResponse.textEdits(), projectPath)) {
+        if (!isEqual(testConfig.response().textEdits(), actualResponse.textEdits(), projectPath)
+                || !Objects.equals(testConfig.response().errorMsg(), actualResponse.errorMsg())) {
 //            updateConfig(configJsonPath, new TestConfig(
 //                    testConfig.description(),
 //                    testConfig.project(),
 //                    testConfig.request(),
-//                    new Response(actualResponse.textEdits()))
+//                    new Response(actualResponse.textEdits(), actualResponse.errorMsg(), actualResponse.stacktrace()))
 //            );
             Assert.fail(String.format("Failed test: '%s'", configJsonPath));
         }
@@ -89,6 +95,13 @@ public class ConfigVariablesV2UpdateTest extends AbstractLSTest {
     }
 
     @Override
+    protected JsonObject getResponse(Object request, String api) {
+        CompletableFuture<?> result = serviceEndpoint.request(api, request);
+        String response = TestUtil.getResponseString(result);
+        return JsonParser.parseString(response).getAsJsonObject().getAsJsonObject("result");
+    }
+
+    @Override
     protected String getResourceDir() {
         return "configurable_variables_v2_update";
     }
@@ -108,7 +121,7 @@ public class ConfigVariablesV2UpdateTest extends AbstractLSTest {
         return "configEditorV2";
     }
 
-    private record ConfigVariableUpdateResponse(Map<String, TextEdit[]> textEdits) {
+    private record ConfigVariableUpdateResponse(Map<String, TextEdit[]> textEdits, String errorMsg, String stacktrace) {
 
     }
 
@@ -120,7 +133,7 @@ public class ConfigVariablesV2UpdateTest extends AbstractLSTest {
 
     }
 
-    private record Response(Map<String, TextEdit[]> textEdits) {
+    private record Response(Map<String, TextEdit[]> textEdits, String errorMsg, String stacktrace) {
 
     }
 }

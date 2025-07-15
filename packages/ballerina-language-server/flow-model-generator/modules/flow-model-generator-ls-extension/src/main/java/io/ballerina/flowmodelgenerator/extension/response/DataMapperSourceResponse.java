@@ -18,8 +18,6 @@
 
 package io.ballerina.flowmodelgenerator.extension.response;
 
-import com.google.gson.JsonElement;
-
 /**
  * Represents the response containing data mapper model data mapping.
  *
@@ -27,13 +25,18 @@ import com.google.gson.JsonElement;
  */
 public class DataMapperSourceResponse extends AbstractFlowModelResponse {
 
-    private JsonElement textEdits;
+    // TODO: Add diagram and mappings
+    private String source;
 
-    public void setTextEdits(JsonElement textEdits) {
-        this.textEdits = textEdits;
+    public DataMapperSourceResponse() {
+
     }
 
-    public JsonElement textEdits() {
-        return textEdits;
+    public void setSource(String source) {
+        this.source = source;
+    }
+
+    public String getSource() {
+        return this.source;
     }
 }

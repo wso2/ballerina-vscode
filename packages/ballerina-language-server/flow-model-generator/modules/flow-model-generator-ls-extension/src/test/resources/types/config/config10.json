@@ -7,22 +7,13 @@
   },
   "completions": [
     {
-      "label": "map<Person>",
+      "label": "string|int",
       "labelDetails": {
         "detail": "Used Variable Types",
-        "description": "Map"
+        "description": "Union"
       },
-      "kind": "TypeParameter",
-      "insertText": "map<Person>"
-    },
-    {
-      "label": "Person",
-      "labelDetails": {
-        "detail": "User-Defined",
-        "description": "Record"
-      },
-      "kind": "Struct",
-      "insertText": "Person"
+      "kind": "Enum",
+      "insertText": "string|int"
     },
     {
       "label": "string[]",
@@ -43,13 +34,130 @@
       "insertText": "Person[]"
     },
     {
-      "label": "string|int",
+      "label": "Employee",
+      "labelDetails": {
+        "detail": "User-Defined",
+        "description": "Record"
+      },
+      "kind": "Struct",
+      "insertText": "Employee"
+    },
+    {
+      "label": "Person",
+      "labelDetails": {
+        "detail": "User-Defined",
+        "description": "Record"
+      },
+      "kind": "Struct",
+      "insertText": "Person"
+    },
+    {
+      "label": "map<Person>",
       "labelDetails": {
         "detail": "Used Variable Types",
-        "description": "Union"
+        "description": "Map"
       },
-      "kind": "Enum",
-      "insertText": "string|int"
+      "kind": "TypeParameter",
+      "insertText": "map<Person>"
+    },
+    {
+      "label": "any",
+      "labelDetails": {
+        "detail": "Other Types",
+        "description": "Any"
+      },
+      "kind": "TypeParameter",
+      "insertText": "any"
+    },
+    {
+      "label": "readonly",
+      "labelDetails": {
+        "detail": "Other Types",
+        "description": "Readonly"
+      },
+      "kind": "TypeParameter",
+      "insertText": "readonly"
+    },
+    {
+      "label": "json",
+      "labelDetails": {
+        "detail": "Data Types",
+        "description": "Json"
+      },
+      "kind": "TypeParameter",
+      "insertText": "json"
+    },
+    {
+      "label": "xml",
+      "labelDetails": {
+        "detail": "Data Types",
+        "description": "Xml"
+      },
+      "kind": "TypeParameter",
+      "insertText": "xml"
+    },
+    {
+      "label": "anydata",
+      "labelDetails": {
+        "detail": "Data Types",
+        "description": "Anydata"
+      },
+      "kind": "TypeParameter",
+      "insertText": "anydata"
+    },
+    {
+      "label": "error",
+      "labelDetails": {
+        "detail": "Error Types",
+        "description": "Error"
+      },
+      "kind": "Event",
+      "insertText": "error"
+    },
+    {
+      "label": "function",
+      "labelDetails": {
+        "detail": "Behaviour Types",
+        "description": "Function"
+      },
+      "kind": "TypeParameter",
+      "insertText": "function"
+    },
+    {
+      "label": "future",
+      "labelDetails": {
+        "detail": "Behaviour Types",
+        "description": "Future"
+      },
+      "kind": "TypeParameter",
+      "insertText": "future"
+    },
+    {
+      "label": "typedesc",
+      "labelDetails": {
+        "detail": "Behaviour Types",
+        "description": "Typedesc"
+      },
+      "kind": "TypeParameter",
+      "insertText": "typedesc"
+    },
+    {
+      "label": "handle",
+      "labelDetails": {
+        "detail": "Behaviour Types",
+        "description": "Handle"
+      },
+      "kind": "TypeParameter",
+      "insertText": "handle"
+    },
+    {
+      "label": "stream",
+      "labelDetails": {
+        "detail": "Behaviour Types",
+        "description": "Stream"
+      },
+      "kind": "TypeParameter",
+      "insertText": "stream"
     },
     {
       "label": "byte[]",
@@ -104,105 +212,6 @@
       },
       "kind": "Struct",
       "insertText": "record"
-    },
-    {
-      "label": "function",
-      "labelDetails": {
-        "detail": "Behaviour Types",
-        "description": "Function"
-      },
-      "kind": "TypeParameter",
-      "insertText": "function"
-    },
-    {
-      "label": "future",
-      "labelDetails": {
-        "detail": "Behaviour Types",
-        "description": "Future"
-      },
-      "kind": "TypeParameter",
-      "insertText": "future"
-    },
-    {
-      "label": "typedesc",
-      "labelDetails": {
-        "detail": "Behaviour Types",
-        "description": "Typedesc"
-      },
-      "kind": "TypeParameter",
-      "insertText": "typedesc"
-    },
-    {
-      "label": "handle",
-      "labelDetails": {
-        "detail": "Behaviour Types",
-        "description": "Handle"
-      },
-      "kind": "TypeParameter",
-      "insertText": "handle"
-    },
-    {
-      "label": "stream",
-      "labelDetails": {
-        "detail": "Behaviour Types",
-        "description": "Stream"
-      },
-      "kind": "TypeParameter",
-      "insertText": "stream"
-    },
-    {
-      "label": "error",
-      "labelDetails": {
-        "detail": "Error Types",
-        "description": "Error"
-      },
-      "kind": "Event",
-      "insertText": "error"
-    },
-    {
-      "label": "json",
-      "labelDetails": {
-        "detail": "Data Types",
-        "description": "Json"
-      },
-      "kind": "TypeParameter",
-      "insertText": "json"
-    },
-    {
-      "label": "xml",
-      "labelDetails": {
-        "detail": "Data Types",
-        "description": "Xml"
-      },
-      "kind": "TypeParameter",
-      "insertText": "xml"
-    },
-    {
-      "label": "anydata",
-      "labelDetails": {
-        "detail": "Data Types",
-        "description": "Anydata"
-      },
-      "kind": "TypeParameter",
-      "insertText": "anydata"
-    },
-    {
-      "label": "any",
-      "labelDetails": {
-        "detail": "Other Types",
-        "description": "Any"
-      },
-      "kind": "TypeParameter",
-      "insertText": "any"
-    },
-    {
-      "label": "readonly",
-      "labelDetails": {
-        "detail": "Other Types",
-        "description": "Readonly"
-      },
-      "kind": "TypeParameter",
-      "insertText": "readonly"
     },
     {
       "label": "string",

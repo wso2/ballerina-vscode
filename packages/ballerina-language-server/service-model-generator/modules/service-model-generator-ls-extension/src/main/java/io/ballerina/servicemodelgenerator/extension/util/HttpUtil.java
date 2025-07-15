@@ -19,12 +19,17 @@
 package io.ballerina.servicemodelgenerator.extension.util;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 import com.google.gson.stream.JsonReader;
 import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.compiler.api.symbols.ModuleSymbol;
+import io.ballerina.compiler.api.symbols.RecordFieldSymbol;
+import io.ballerina.compiler.api.symbols.RecordTypeSymbol;
 import io.ballerina.compiler.api.symbols.ResourceMethodSymbol;
 import io.ballerina.compiler.api.symbols.Symbol;
 import io.ballerina.compiler.api.symbols.TypeDefinitionSymbol;
+import io.ballerina.compiler.api.symbols.TypeDescKind;
 import io.ballerina.compiler.api.symbols.TypeReferenceTypeSymbol;
 import io.ballerina.compiler.api.symbols.TypeSymbol;
 import io.ballerina.compiler.api.symbols.UnionTypeSymbol;
@@ -36,6 +41,7 @@ import io.ballerina.compiler.syntax.tree.ServiceDeclarationNode;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.compiler.syntax.tree.TypeDefinitionNode;
 import io.ballerina.modelgenerator.commons.Annotation;
+import io.ballerina.modelgenerator.commons.CommonUtils;
 import io.ballerina.modelgenerator.commons.ServiceDatabaseManager;
 import io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants;
 import io.ballerina.servicemodelgenerator.extension.model.Codedata;
@@ -420,13 +426,14 @@ public final class HttpUtil {
                     }
                 });
         List<HttpResponse> responses = new ArrayList<>();
-        HttpResponse normalResponse = new HttpResponse(String.valueOf(defaultStatusCode), "http:Response");
-        normalResponse.setAdvanced(true);
-        normalResponse.setEditable(true);
-        normalResponse.setEnabled(hasHttpResponse.get());
-        normalResponse.setHttpResponseType(true);
 
-        responses.add(normalResponse);
+        if (hasHttpResponse.get()) {
+            HttpResponse dynamicStatusRes = new HttpResponse(String.valueOf(defaultStatusCode), "http:Response");
+            dynamicStatusRes.setEditable(true);
+            dynamicStatusRes.setEnabled(hasHttpResponse.get());
+            dynamicStatusRes.setHttpResponseType(true);
+            responses.add(dynamicStatusRes);
+        }
 
         statusCodeResponses.stream()
                 .map(statusCodeResponse -> getHttpResponse(statusCodeResponse, String.valueOf(defaultStatusCode),
@@ -451,6 +458,13 @@ public final class HttpUtil {
                     responses.add(response);
                 });
 
+        // sort the responses based on status code
+        responses.sort((r1, r2) -> {
+            String code1 = r1.getStatusCode().getValue();
+            String code2 = r2.getStatusCode().getValue();
+            return code1.compareTo(code2);
+        });
+
         return responses;
     }
 
@@ -466,7 +480,37 @@ public final class HttpUtil {
             return HttpResponse.getAnonResponse(statusCode, "record {|...|}");
         }
         boolean addEditButton = typeName.startsWith(currentModuleName + ":");
-        return new HttpResponse(statusCode, typeName, addEditButton);
+        if (typeName.startsWith("http:")) {
+            String type = HTTP_CODES_DES.get(statusCode);
+            if (Objects.nonNull(type) && "http:%s".formatted(type).equals(typeName)) {
+                return new HttpResponse(statusCode, typeName, true);
+            }
+        }
+        List<Object> headers = new ArrayList<>();
+        String body = addHeadersAndGetBodyType(statusCodeResponseType, currentModuleName, headers);
+        return new HttpResponse(statusCode, typeName, body, headers, addEditButton);
+    }
+
+    private static String addHeadersAndGetBodyType(TypeSymbol typeSymbol, String currentModuleName,
+                                                   List<Object> headers) {
+        TypeSymbol rawType = CommonUtils.getRawType(typeSymbol);
+        if (rawType.typeKind() != TypeDescKind.RECORD) {
+            return "anydata";
+        }
+        RecordTypeSymbol recordTypeSymbol = (RecordTypeSymbol) rawType;
+        Map<String, RecordFieldSymbol> fieldSymbolMap = recordTypeSymbol.fieldDescriptors();
+        TypeSymbol headersFieldType = CommonUtils.getRawType(fieldSymbolMap.get("headers").typeDescriptor());
+        if (headersFieldType instanceof RecordTypeSymbol headersRecordType) {
+            headersRecordType.fieldDescriptors().forEach((name, field) -> {
+                    headers.add(Map.of("name", name, "type",
+                            getTypeName(field.typeDescriptor(), currentModuleName),
+                            "optional", field.isOptional()));
+            });
+        }
+        if (fieldSymbolMap.containsKey("body")) {
+            return getTypeName(fieldSymbolMap.get("body").typeDescriptor(), currentModuleName);
+        }
+        return "anydata";
     }
 
     public static boolean isSubTypeOfHttpStatusCodeResponse(TypeSymbol typeSymbol, SemanticModel semanticModel) {
@@ -520,7 +564,7 @@ public final class HttpUtil {
     public static String getStatusCodeResponse(HttpResponse response, List<String> statusCodeResponses,
                                                Map<String, String> imports) {
         Value name = response.getName();
-        if (Objects.nonNull(name) && name.isEnabledWithValue()) {
+        if (Objects.nonNull(name) && name.isEnabledWithValue() && name.isEditable()) {
             String statusCode = response.getStatusCode().getValue();
             String statusCodeRes = HTTP_CODES_DES.get(statusCode);
             if (Objects.isNull(statusCodeRes)) {
@@ -562,9 +606,44 @@ public final class HttpUtil {
             }
         }
         if (Objects.nonNull(headers) && headers.isEnabledWithValue()) {
-            template += "\tmap<%s> headers;%n".formatted(String.join("|", headers.getValues()));
+            List<Object> values = headers.getValuesAsObjects();
+            StringBuilder headersRecordDef = new StringBuilder("record {|%n".formatted());
+            if (Objects.nonNull(values) && !values.isEmpty()) {
+                for (Object value : values) {
+                    if (value instanceof Map<?, ?> header) {
+                        String headerName = getString(header.get("name"));
+                        String headerType = getString(header.get("type"));
+                        boolean optional = Objects.requireNonNull(getString(header.get("optional"))).contains("true");
+                        headerName = optional ? "%s?".formatted(headerName) : headerName;
+                        headersRecordDef.append("\t\t%s %s;%n".formatted(headerType, headerName));
+                    }
+                    if (value instanceof JsonObject header) {
+                        String headerName = getString(header.get("name"));
+                        String headerType = getString(header.get("type"));
+                        boolean optional = Objects.requireNonNull(getString(header.get("optional"))).contains("true");
+                        headerName = optional ? "%s?".formatted(headerName) : headerName;
+                        headersRecordDef.append("\t\t%s %s;%n".formatted(headerType, headerName));
+                    }
+                }
+            }
+            headersRecordDef.append("\t\t(string|int|boolean|string[]|int[]|boolean[])...;%n".formatted());
+            headersRecordDef.append("\t|}");
+            template += "\t%s headers;%n".formatted(headersRecordDef);
         }
         template += "|};";
         return template;
+    }
+
+    private static String getString(Object value) {
+        if (Objects.isNull(value)) {
+            return null;
+        }
+        if (value instanceof String) {
+            return (String) value;
+        }
+        if (value instanceof JsonPrimitive jsonPrimitive) {
+            return jsonPrimitive.getAsString();
+        }
+        return value.toString();
     }
 }

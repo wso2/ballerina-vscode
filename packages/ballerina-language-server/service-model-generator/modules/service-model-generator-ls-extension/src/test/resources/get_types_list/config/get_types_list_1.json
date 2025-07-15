@@ -1,0 +1,393 @@
+{
+  "filePath": "sample1",
+  "description": "Get the list of http status code types",
+  "context": "HTTP_STATUS_CODE",
+  "result": {
+    "completions": [
+      {
+        "category": "1XX",
+        "label": "Continue",
+        "type": "http:Continue",
+        "statusCode": "100"
+      },
+      {
+        "category": "1XX",
+        "label": "Switching Protocols",
+        "type": "http:SwitchingProtocols",
+        "statusCode": "101"
+      },
+      {
+        "category": "1XX",
+        "label": "Processing",
+        "type": "http:Processing",
+        "statusCode": "102"
+      },
+      {
+        "category": "1XX",
+        "label": "Early Hints",
+        "type": "http:EarlyHints",
+        "statusCode": "103"
+      },
+      {
+        "category": "2XX",
+        "label": "Ok",
+        "type": "http:Ok",
+        "statusCode": "200"
+      },
+      {
+        "category": "2XX",
+        "label": "Created",
+        "type": "http:Created",
+        "statusCode": "201"
+      },
+      {
+        "category": "2XX",
+        "label": "Accepted",
+        "type": "http:Accepted",
+        "statusCode": "202"
+      },
+      {
+        "category": "2XX",
+        "label": "Non Authoritative Information",
+        "type": "http:NonAuthoritativeInformation",
+        "statusCode": "203"
+      },
+      {
+        "category": "2XX",
+        "label": "No Content",
+        "type": "http:NoContent",
+        "statusCode": "204"
+      },
+      {
+        "category": "2XX",
+        "label": "Reset Content",
+        "type": "http:ResetContent",
+        "statusCode": "205"
+      },
+      {
+        "category": "2XX",
+        "label": "Partial Content",
+        "type": "http:PartialContent",
+        "statusCode": "206"
+      },
+      {
+        "category": "2XX",
+        "label": "Multi Status",
+        "type": "http:MultiStatus",
+        "statusCode": "207"
+      },
+      {
+        "category": "2XX",
+        "label": "Already Reported",
+        "type": "http:AlreadyReported",
+        "statusCode": "208"
+      },
+      {
+        "category": "2XX",
+        "label": "IM Used",
+        "type": "http:IMUsed",
+        "statusCode": "226"
+      },
+      {
+        "category": "3XX",
+        "label": "Multiple Choices",
+        "type": "http:MultipleChoices",
+        "statusCode": "300"
+      },
+      {
+        "category": "3XX",
+        "label": "Moved Permanently",
+        "type": "http:MovedPermanently",
+        "statusCode": "301"
+      },
+      {
+        "category": "3XX",
+        "label": "Found",
+        "type": "http:Found",
+        "statusCode": "302"
+      },
+      {
+        "category": "3XX",
+        "label": "See Other",
+        "type": "http:SeeOther",
+        "statusCode": "303"
+      },
+      {
+        "category": "3XX",
+        "label": "Not Modified",
+        "type": "http:NotModified",
+        "statusCode": "304"
+      },
+      {
+        "category": "3XX",
+        "label": "Use Proxy",
+        "type": "http:UseProxy",
+        "statusCode": "305"
+      },
+      {
+        "category": "3XX",
+        "label": "Temporary Redirect",
+        "type": "http:TemporaryRedirect",
+        "statusCode": "307"
+      },
+      {
+        "category": "3XX",
+        "label": "Permanent Redirect",
+        "type": "http:PermanentRedirect",
+        "statusCode": "308"
+      },
+      {
+        "category": "4XX",
+        "label": "Bad Request",
+        "type": "http:BadRequest",
+        "statusCode": "400"
+      },
+      {
+        "category": "4XX",
+        "label": "Unauthorized",
+        "type": "http:Unauthorized",
+        "statusCode": "401"
+      },
+      {
+        "category": "4XX",
+        "label": "Payment Required",
+        "type": "http:PaymentRequired",
+        "statusCode": "402"
+      },
+      {
+        "category": "4XX",
+        "label": "Forbidden",
+        "type": "http:Forbidden",
+        "statusCode": "403"
+      },
+      {
+        "category": "4XX",
+        "label": "Not Found",
+        "type": "http:NotFound",
+        "statusCode": "404"
+      },
+      {
+        "category": "4XX",
+        "label": "Method Not Allowed",
+        "type": "http:MethodNotAllowed",
+        "statusCode": "405"
+      },
+      {
+        "category": "4XX",
+        "label": "Not Acceptable",
+        "type": "http:NotAcceptable",
+        "statusCode": "406"
+      },
+      {
+        "category": "4XX",
+        "label": "Proxy Authentication Required",
+        "type": "http:ProxyAuthenticationRequired",
+        "statusCode": "407"
+      },
+      {
+        "category": "4XX",
+        "label": "Request Time Out",
+        "type": "http:RequestTimeOut",
+        "statusCode": "408"
+      },
+      {
+        "category": "4XX",
+        "label": "Conflict",
+        "type": "http:Conflict",
+        "statusCode": "409"
+      },
+      {
+        "category": "4XX",
+        "label": "Gone",
+        "type": "http:Gone",
+        "statusCode": "410"
+      },
+      {
+        "category": "4XX",
+        "label": "Length Required",
+        "type": "http:LengthRequired",
+        "statusCode": "411"
+      },
+      {
+        "category": "4XX",
+        "label": "Precondition Failed",
+        "type": "http:PreconditionFailed",
+        "statusCode": "412"
+      },
+      {
+        "category": "4XX",
+        "label": "Payload Too Large",
+        "type": "http:PayloadTooLarge",
+        "statusCode": "413"
+      },
+      {
+        "category": "4XX",
+        "label": "URI Too Long",
+        "type": "http:UriTooLong",
+        "statusCode": "414"
+      },
+      {
+        "category": "4XX",
+        "label": "Unsupported Media Type",
+        "type": "http:UnsupportedMediaType",
+        "statusCode": "415"
+      },
+      {
+        "category": "4XX",
+        "label": "Range Not Satisfiable",
+        "type": "http:RangeNotSatisfiable",
+        "statusCode": "416"
+      },
+      {
+        "category": "4XX",
+        "label": "Expectation Failed",
+        "type": "http:ExpectationFailed",
+        "statusCode": "417"
+      },
+      {
+        "category": "4XX",
+        "label": "Misdirected Request",
+        "type": "http:MisdirectedRequest",
+        "statusCode": "421"
+      },
+      {
+        "category": "4XX",
+        "label": "Unprocessable Entity",
+        "type": "http:UnprocessableEntity",
+        "statusCode": "422"
+      },
+      {
+        "category": "4XX",
+        "label": "Locked",
+        "type": "http:Locked",
+        "statusCode": "423"
+      },
+      {
+        "category": "4XX",
+        "label": "Failed Dependency",
+        "type": "http:FailedDependency",
+        "statusCode": "424"
+      },
+      {
+        "category": "4XX",
+        "label": "Too Early",
+        "type": "http:TooEarly",
+        "statusCode": "425"
+      },
+      {
+        "category": "4XX",
+        "label": "Upgrade Required",
+        "type": "http:UpgradeRequired",
+        "statusCode": "426"
+      },
+      {
+        "category": "4XX",
+        "label": "Precondition Required",
+        "type": "http:PreconditionRequired",
+        "statusCode": "428"
+      },
+      {
+        "category": "4XX",
+        "label": "Too Many Requests",
+        "type": "http:TooManyRequests",
+        "statusCode": "429"
+      },
+      {
+        "category": "4XX",
+        "label": "Request Header Fields Too Large",
+        "type": "http:RequestHeaderFieldsTooLarge",
+        "statusCode": "431"
+      },
+      {
+        "category": "4XX",
+        "label": "Unavailable Due to Legal Reasons",
+        "type": "http:UnavailableDueToLegalReasons",
+        "statusCode": "451"
+      },
+      {
+        "category": "5XX",
+        "label": "Internal Server Error",
+        "type": "http:InternalServerError",
+        "statusCode": "500"
+      },
+      {
+        "category": "5XX",
+        "label": "Not Implemented",
+        "type": "http:NotImplemented",
+        "statusCode": "501"
+      },
+      {
+        "category": "5XX",
+        "label": "Bad Gateway",
+        "type": "http:BadGateway",
+        "statusCode": "502"
+      },
+      {
+        "category": "5XX",
+        "label": "Service Unavailable",
+        "type": "http:ServiceUnavailable",
+        "statusCode": "503"
+      },
+      {
+        "category": "5XX",
+        "label": "Gateway Timeout",
+        "type": "http:GatewayTimeout",
+        "statusCode": "504"
+      },
+      {
+        "category": "5XX",
+        "label": "HTTP Version Not Supported",
+        "type": "http:HttpVersionNotSupported",
+        "statusCode": "505"
+      },
+      {
+        "category": "5XX",
+        "label": "Variant Also Negotiates",
+        "type": "http:VariantAlsoNegotiates",
+        "statusCode": "506"
+      },
+      {
+        "category": "5XX",
+        "label": "Insufficient Storage",
+        "type": "http:InsufficientStorage",
+        "statusCode": "507"
+      },
+      {
+        "category": "5XX",
+        "label": "Loop Detected",
+        "type": "http:LoopDetected",
+        "statusCode": "508"
+      },
+      {
+        "category": "5XX",
+        "label": "Not Extended",
+        "type": "http:NotExtended",
+        "statusCode": "510"
+      },
+      {
+        "category": "5XX",
+        "label": "Network Authentication Required",
+        "type": "http:NetworkAuthenticationRequired",
+        "statusCode": "511"
+      },
+      {
+        "category": "User Defined",
+        "label": "Json202Accepted",
+        "type": "Json202Accepted",
+        "statusCode": "202"
+      },
+      {
+        "category": "Dynamic",
+        "label": "Response",
+        "type": "http:Response",
+        "statusCode": "Dynamic"
+      },
+      {
+        "category": "Error Type",
+        "label": "error",
+        "type": "error",
+        "statusCode": "500"
+      }
+    ]
+  }
+}

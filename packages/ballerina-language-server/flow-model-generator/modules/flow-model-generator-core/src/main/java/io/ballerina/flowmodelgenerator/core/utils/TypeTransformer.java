@@ -94,7 +94,6 @@ public class TypeTransformer {
         List<String> qualifiers = serviceDeclarationSymbol.qualifiers().stream().map(Qualifier::getValue).toList();
         typeDataBuilder
                 .name(attachPoint)
-                .editable()
                 .metadata()
                     .label(attachPoint)
                     .description(getDocumentString(serviceDeclarationSymbol))
@@ -109,6 +108,10 @@ public class TypeTransformer {
                     .isReadOnly(qualifiers.contains(Qualifier.READONLY.getValue()), true, true, false)
                     .isArray("false", true, true, true)
                     .arraySize("", false, false, false);
+
+        if (CommonUtils.isWithinPackage(serviceDeclarationSymbol, moduleInfo)) {
+            typeDataBuilder.editable();
+        }
 
         // class fields
         List<Member> fieldMembers = new ArrayList<>();
@@ -132,7 +135,6 @@ public class TypeTransformer {
                 "service" : (qualifiers.contains(Qualifier.CLIENT) ? "client" : "");
         typeDataBuilder
                 .name(typeName)
-                .editable()
                 .metadata()
                     .label(typeName)
                     .description(getDocumentString(classSymbol))
@@ -151,6 +153,10 @@ public class TypeTransformer {
                     .isIsolated(qualifiers.contains(Qualifier.ISOLATED), true, true, false)
                     .isReadOnly(qualifiers.contains(Qualifier.READONLY), true, true, false)
                     .networkQualifier(networkQualifier, true, true, false);
+
+        if (CommonUtils.isWithinPackage(classSymbol, moduleInfo)) {
+            typeDataBuilder.editable();
+        }
 
         // inclusions
         List<String> includes = new ArrayList<>();
@@ -209,7 +215,6 @@ public class TypeTransformer {
         String typeName = getTypeName(typeDef);
         typeDataBuilder
                 .name(typeName)
-                .editable()
                 .metadata()
                     .label(typeName)
                     .stepOut()
@@ -225,6 +230,10 @@ public class TypeTransformer {
             typeDataBuilder
                     .metadata().description(doc).stepOut()
                     .properties().description(doc, false, true, false);
+        }
+
+        if (CommonUtils.isWithinPackage(typeDef, moduleInfo)) {
+            typeDataBuilder.editable();
         }
 
         // Special case for intersection types to get readonly types

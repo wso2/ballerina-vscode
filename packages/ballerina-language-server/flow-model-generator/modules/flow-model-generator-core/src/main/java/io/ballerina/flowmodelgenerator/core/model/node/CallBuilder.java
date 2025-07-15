@@ -213,17 +213,11 @@ public abstract class CallBuilder extends NodeBuilder {
         }
     }
 
-    protected void setReturnTypeProperties(FunctionData functionData, TemplateContext context, String label,
-                                           boolean hidden) {
-        properties()
-                .type(functionData.returnType(), false, functionData.importStatements(), hidden)
-                .data(functionData.returnType(), context.getAllVisibleSymbolNames(), label);
-    }
-
     protected void setReturnTypeProperties(FunctionData functionData, TemplateContext context, String label, String doc,
                                            boolean hidden) {
         properties()
-                .type(functionData.returnType(), false, functionData.importStatements(), hidden)
+                .type(functionData.returnType(), false, functionData.importStatements(), hidden,
+                        Property.RESULT_TYPE_LABEL)
                 .data(functionData.returnType(), context.getAllVisibleSymbolNames(), label, doc);
     }
 

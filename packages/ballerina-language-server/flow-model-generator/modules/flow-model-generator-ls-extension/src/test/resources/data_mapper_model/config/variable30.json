@@ -1,20 +1,61 @@
 {
   "source": "variable16.bal",
   "description": "Sample diagram node",
-  "codedata": {
-    "node": "VARIABLE",
-    "lineRange": {
-      "fileName": "variable16.bal",
-      "startLine": {
-        "line": 24,
-        "offset": 12
+  "diagram": {
+    "id": "32874",
+    "metadata": {
+      "label": "Variable",
+      "description": "Assign a value to a variable"
+    },
+    "codedata": {
+      "node": "VARIABLE",
+      "lineRange": {
+        "fileName": "variable16.bal",
+        "startLine": {
+          "line": 0,
+          "offset": 0
+        },
+        "endLine": {
+          "line": 0,
+          "offset": 0
+        }
       },
-      "endLine": {
-        "line": 24,
-        "offset": 187
+      "sourceCode": ""
+    },
+    "returning": false,
+    "properties": {
+      "expression": {
+        "metadata": {
+          "label": "Expression",
+          "description": "Expression"
+        },
+        "valueType": "EXPRESSION",
+        "value": "{contacts: [{primaryPhone: user.phoneNumber[0], secondaryPhone: user.phoneNumber[1]}, {primaryPhone: user.phoneNumber[2], secondaryPhone: user.phoneNumber[3]}]}",
+        "optional": false,
+        "editable": true
+      },
+      "variable": {
+        "metadata": {
+          "label": "Variable",
+          "description": "Name of the variable"
+        },
+        "valueType": "IDENTIFIER",
+        "value": "var3",
+        "optional": false,
+        "editable": true
+      },
+      "type": {
+        "metadata": {
+          "label": "Type",
+          "description": "Type of the variable"
+        },
+        "valueType": "TYPE",
+        "value": "Person",
+        "optional": false,
+        "editable": true
       }
     },
-    "sourceCode": ""
+    "flags": 0
   },
   "propertyKey": "expression",
   "position": {
@@ -27,7 +68,7 @@
         "fields": [
           {
             "member": {
-              "id": "user.phoneNumber.0",
+              "id": "user.phoneNumber",
               "typeName": "string",
               "kind": "string"
             },

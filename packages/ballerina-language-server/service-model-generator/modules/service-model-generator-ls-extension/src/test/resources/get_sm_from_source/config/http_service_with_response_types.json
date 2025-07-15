@@ -557,7 +557,7 @@
                 "enabled": true,
                 "editable": true,
                 "value": "",
-                "valueType": "MULTIPLE_SELECT",
+                "valueType": "HEADER_SET",
                 "isType": false,
                 "optional": false,
                 "advanced": false,
@@ -566,7 +566,7 @@
               },
               "enabled": true,
               "editable": true,
-              "advanced": true,
+              "advanced": false,
               "isHttpResponseType": true
             }
           ],
@@ -574,16 +574,16 @@
             "statusCodeResponse": {
               "statusCode": {
                 "metadata": {
-                  "label": "Status Code",
-                  "description": "The status code"
+                  "label": "Status Code Type",
+                  "description": "Select the http status code type"
                 },
                 "enabled": true,
                 "editable": true,
                 "value": "",
                 "valueType": "SINGLE_SELECT",
-                "valueTypeConstraint": "http:StatusCode",
+                "valueTypeConstraint": "",
                 "isType": false,
-                "placeholder": "200",
+                "placeholder": "",
                 "optional": false,
                 "advanced": false,
                 "items": [
@@ -603,8 +603,8 @@
               },
               "body": {
                 "metadata": {
-                  "label": "Body",
-                  "description": "Response Body"
+                  "label": "Message Body Type",
+                  "description": "Format of the response body"
                 },
                 "enabled": true,
                 "editable": true,
@@ -612,14 +612,14 @@
                 "valueType": "TYPE",
                 "isType": false,
                 "optional": true,
-                "advanced": false,
+                "advanced": true,
                 "addNewButton": false,
                 "imports": {}
               },
               "name": {
                 "metadata": {
-                  "label": "Name of the response",
-                  "description": "Create a new response type"
+                  "label": "Wrapped Type Name",
+                  "description": "Name to reference the response type"
                 },
                 "enabled": true,
                 "editable": true,
@@ -627,7 +627,7 @@
                 "valueType": "IDENTIFIER",
                 "isType": false,
                 "optional": true,
-                "advanced": false,
+                "advanced": true,
                 "addNewButton": false,
                 "imports": {}
               },
@@ -641,32 +641,23 @@
                 "value": "",
                 "valueType": "TYPE",
                 "isType": false,
-                "optional": false,
-                "advanced": false,
+                "optional": true,
+                "advanced": true,
                 "addNewButton": false,
                 "imports": {}
               },
               "headers": {
                 "metadata": {
-                  "label": "Header types",
-                  "description": "Response header types"
+                  "label": "Headers",
+                  "description": "Add mandatory or optional headers to the response"
                 },
                 "enabled": true,
                 "editable": true,
                 "value": "",
-                "valueType": "MULTIPLE_SELECT",
+                "valueType": "HEADER_SET",
                 "isType": false,
                 "optional": true,
-                "advanced": false,
-                "items": [
-                  "",
-                  "string",
-                  "int",
-                  "boolean",
-                  "string[]",
-                  "int[]",
-                  "boolean[]"
-                ],
+                "advanced": true,
                 "addNewButton": false,
                 "imports": {}
               },
@@ -1135,87 +1126,6 @@
                 },
                 "enabled": true,
                 "editable": true,
-                "value": "http:Response",
-                "valueType": "TYPE",
-                "isType": false,
-                "optional": false,
-                "advanced": false,
-                "addNewButton": false,
-                "imports": {}
-              },
-              "name": {
-                "metadata": {
-                  "label": "",
-                  "description": ""
-                },
-                "enabled": true,
-                "editable": true,
-                "value": "",
-                "valueType": "IDENTIFIER",
-                "isType": false,
-                "optional": false,
-                "advanced": false,
-                "addNewButton": false,
-                "imports": {}
-              },
-              "type": {
-                "metadata": {
-                  "label": "",
-                  "description": ""
-                },
-                "enabled": true,
-                "editable": true,
-                "value": "http:Response",
-                "valueType": "TYPE",
-                "isType": false,
-                "optional": false,
-                "advanced": false,
-                "addNewButton": false,
-                "imports": {}
-              },
-              "headers": {
-                "metadata": {
-                  "label": "",
-                  "description": ""
-                },
-                "enabled": true,
-                "editable": true,
-                "value": "",
-                "valueType": "MULTIPLE_SELECT",
-                "isType": false,
-                "optional": false,
-                "advanced": false,
-                "addNewButton": false,
-                "imports": {}
-              },
-              "enabled": false,
-              "editable": true,
-              "advanced": true,
-              "isHttpResponseType": true
-            },
-            {
-              "statusCode": {
-                "metadata": {
-                  "label": "",
-                  "description": ""
-                },
-                "enabled": true,
-                "editable": true,
-                "value": "200",
-                "valueType": "SINGLE_SELECT",
-                "isType": false,
-                "optional": false,
-                "advanced": false,
-                "addNewButton": false,
-                "imports": {}
-              },
-              "body": {
-                "metadata": {
-                  "label": "",
-                  "description": ""
-                },
-                "enabled": true,
-                "editable": true,
                 "value": "int",
                 "valueType": "TYPE",
                 "isType": false,
@@ -1262,7 +1172,7 @@
                 "enabled": true,
                 "editable": true,
                 "value": "",
-                "valueType": "MULTIPLE_SELECT",
+                "valueType": "HEADER_SET",
                 "isType": false,
                 "optional": false,
                 "advanced": false,
@@ -1279,16 +1189,16 @@
             "statusCodeResponse": {
               "statusCode": {
                 "metadata": {
-                  "label": "Status Code",
-                  "description": "The status code"
+                  "label": "Status Code Type",
+                  "description": "Select the http status code type"
                 },
                 "enabled": true,
                 "editable": true,
                 "value": "",
                 "valueType": "SINGLE_SELECT",
-                "valueTypeConstraint": "http:StatusCode",
+                "valueTypeConstraint": "",
                 "isType": false,
-                "placeholder": "200",
+                "placeholder": "",
                 "optional": false,
                 "advanced": false,
                 "items": [
@@ -1308,8 +1218,8 @@
               },
               "body": {
                 "metadata": {
-                  "label": "Body",
-                  "description": "Response Body"
+                  "label": "Message Body Type",
+                  "description": "Format of the response body"
                 },
                 "enabled": true,
                 "editable": true,
@@ -1317,14 +1227,14 @@
                 "valueType": "TYPE",
                 "isType": false,
                 "optional": true,
-                "advanced": false,
+                "advanced": true,
                 "addNewButton": false,
                 "imports": {}
               },
               "name": {
                 "metadata": {
-                  "label": "Name of the response",
-                  "description": "Create a new response type"
+                  "label": "Wrapped Type Name",
+                  "description": "Name to reference the response type"
                 },
                 "enabled": true,
                 "editable": true,
@@ -1332,7 +1242,7 @@
                 "valueType": "IDENTIFIER",
                 "isType": false,
                 "optional": true,
-                "advanced": false,
+                "advanced": true,
                 "addNewButton": false,
                 "imports": {}
               },
@@ -1346,32 +1256,23 @@
                 "value": "",
                 "valueType": "TYPE",
                 "isType": false,
-                "optional": false,
-                "advanced": false,
+                "optional": true,
+                "advanced": true,
                 "addNewButton": false,
                 "imports": {}
               },
               "headers": {
                 "metadata": {
-                  "label": "Header types",
-                  "description": "Response header types"
+                  "label": "Headers",
+                  "description": "Add mandatory or optional headers to the response"
                 },
                 "enabled": true,
                 "editable": true,
                 "value": "",
-                "valueType": "MULTIPLE_SELECT",
+                "valueType": "HEADER_SET",
                 "isType": false,
                 "optional": true,
-                "advanced": false,
-                "items": [
-                  "",
-                  "string",
-                  "int",
-                  "boolean",
-                  "string[]",
-                  "int[]",
-                  "boolean[]"
-                ],
+                "advanced": true,
                 "addNewButton": false,
                 "imports": {}
               },
@@ -1840,10 +1741,10 @@
                 },
                 "enabled": true,
                 "editable": true,
-                "value": "http:Response",
+                "value": "",
                 "valueType": "TYPE",
                 "isType": false,
-                "optional": false,
+                "optional": true,
                 "advanced": false,
                 "addNewButton": false,
                 "imports": {}
@@ -1858,88 +1759,7 @@
                 "value": "",
                 "valueType": "IDENTIFIER",
                 "isType": false,
-                "optional": false,
-                "advanced": false,
-                "addNewButton": false,
-                "imports": {}
-              },
-              "type": {
-                "metadata": {
-                  "label": "",
-                  "description": ""
-                },
-                "enabled": true,
-                "editable": true,
-                "value": "http:Response",
-                "valueType": "TYPE",
-                "isType": false,
-                "optional": false,
-                "advanced": false,
-                "addNewButton": false,
-                "imports": {}
-              },
-              "headers": {
-                "metadata": {
-                  "label": "",
-                  "description": ""
-                },
-                "enabled": true,
-                "editable": true,
-                "value": "",
-                "valueType": "MULTIPLE_SELECT",
-                "isType": false,
-                "optional": false,
-                "advanced": false,
-                "addNewButton": false,
-                "imports": {}
-              },
-              "enabled": false,
-              "editable": true,
-              "advanced": true,
-              "isHttpResponseType": true
-            },
-            {
-              "statusCode": {
-                "metadata": {
-                  "label": "",
-                  "description": ""
-                },
-                "enabled": true,
-                "editable": true,
-                "value": "200",
-                "valueType": "SINGLE_SELECT",
-                "isType": false,
-                "optional": false,
-                "advanced": false,
-                "addNewButton": false,
-                "imports": {}
-              },
-              "body": {
-                "metadata": {
-                  "label": "",
-                  "description": ""
-                },
-                "enabled": true,
-                "editable": true,
-                "value": "",
-                "valueType": "TYPE",
-                "isType": false,
-                "optional": false,
-                "advanced": false,
-                "addNewButton": false,
-                "imports": {}
-              },
-              "name": {
-                "metadata": {
-                  "label": "",
-                  "description": ""
-                },
-                "enabled": true,
-                "editable": true,
-                "value": "",
-                "valueType": "IDENTIFIER",
-                "isType": false,
-                "optional": false,
+                "optional": true,
                 "advanced": false,
                 "addNewButton": false,
                 "imports": {}
@@ -1954,7 +1774,7 @@
                 "value": "http:Ok",
                 "valueType": "TYPE",
                 "isType": false,
-                "optional": false,
+                "optional": true,
                 "advanced": false,
                 "addNewButton": false,
                 "imports": {}
@@ -1967,15 +1787,15 @@
                 "enabled": true,
                 "editable": true,
                 "value": "",
-                "valueType": "MULTIPLE_SELECT",
+                "valueType": "HEADER_SET",
                 "isType": false,
-                "optional": false,
+                "optional": true,
                 "advanced": false,
                 "addNewButton": false,
                 "imports": {}
               },
               "enabled": true,
-              "editable": false,
+              "editable": true,
               "advanced": false,
               "isHttpResponseType": false
             }
@@ -1984,16 +1804,16 @@
             "statusCodeResponse": {
               "statusCode": {
                 "metadata": {
-                  "label": "Status Code",
-                  "description": "The status code"
+                  "label": "Status Code Type",
+                  "description": "Select the http status code type"
                 },
                 "enabled": true,
                 "editable": true,
                 "value": "",
                 "valueType": "SINGLE_SELECT",
-                "valueTypeConstraint": "http:StatusCode",
+                "valueTypeConstraint": "",
                 "isType": false,
-                "placeholder": "200",
+                "placeholder": "",
                 "optional": false,
                 "advanced": false,
                 "items": [
@@ -2013,8 +1833,8 @@
               },
               "body": {
                 "metadata": {
-                  "label": "Body",
-                  "description": "Response Body"
+                  "label": "Message Body Type",
+                  "description": "Format of the response body"
                 },
                 "enabled": true,
                 "editable": true,
@@ -2022,14 +1842,14 @@
                 "valueType": "TYPE",
                 "isType": false,
                 "optional": true,
-                "advanced": false,
+                "advanced": true,
                 "addNewButton": false,
                 "imports": {}
               },
               "name": {
                 "metadata": {
-                  "label": "Name of the response",
-                  "description": "Create a new response type"
+                  "label": "Wrapped Type Name",
+                  "description": "Name to reference the response type"
                 },
                 "enabled": true,
                 "editable": true,
@@ -2037,7 +1857,7 @@
                 "valueType": "IDENTIFIER",
                 "isType": false,
                 "optional": true,
-                "advanced": false,
+                "advanced": true,
                 "addNewButton": false,
                 "imports": {}
               },
@@ -2051,32 +1871,23 @@
                 "value": "",
                 "valueType": "TYPE",
                 "isType": false,
-                "optional": false,
-                "advanced": false,
+                "optional": true,
+                "advanced": true,
                 "addNewButton": false,
                 "imports": {}
               },
               "headers": {
                 "metadata": {
-                  "label": "Header types",
-                  "description": "Response header types"
+                  "label": "Headers",
+                  "description": "Add mandatory or optional headers to the response"
                 },
                 "enabled": true,
                 "editable": true,
                 "value": "",
-                "valueType": "MULTIPLE_SELECT",
+                "valueType": "HEADER_SET",
                 "isType": false,
                 "optional": true,
-                "advanced": false,
-                "items": [
-                  "",
-                  "string",
-                  "int",
-                  "boolean",
-                  "string[]",
-                  "int[]",
-                  "boolean[]"
-                ],
+                "advanced": true,
                 "addNewButton": false,
                 "imports": {}
               },
@@ -2529,7 +2340,7 @@
                   "description": ""
                 },
                 "enabled": true,
-                "editable": true,
+                "editable": false,
                 "value": "200",
                 "valueType": "SINGLE_SELECT",
                 "isType": false,
@@ -2544,8 +2355,8 @@
                   "description": ""
                 },
                 "enabled": true,
-                "editable": true,
-                "value": "http:Response",
+                "editable": false,
+                "value": "int",
                 "valueType": "TYPE",
                 "isType": false,
                 "optional": false,
@@ -2559,8 +2370,8 @@
                   "description": ""
                 },
                 "enabled": true,
-                "editable": true,
-                "value": "",
+                "editable": false,
+                "value": "HttpOk",
                 "valueType": "IDENTIFIER",
                 "isType": false,
                 "optional": false,
@@ -2574,88 +2385,7 @@
                   "description": ""
                 },
                 "enabled": true,
-                "editable": true,
-                "value": "http:Response",
-                "valueType": "TYPE",
-                "isType": false,
-                "optional": false,
-                "advanced": false,
-                "addNewButton": false,
-                "imports": {}
-              },
-              "headers": {
-                "metadata": {
-                  "label": "",
-                  "description": ""
-                },
-                "enabled": true,
-                "editable": true,
-                "value": "",
-                "valueType": "MULTIPLE_SELECT",
-                "isType": false,
-                "optional": false,
-                "advanced": false,
-                "addNewButton": false,
-                "imports": {}
-              },
-              "enabled": false,
-              "editable": true,
-              "advanced": true,
-              "isHttpResponseType": true
-            },
-            {
-              "statusCode": {
-                "metadata": {
-                  "label": "",
-                  "description": ""
-                },
-                "enabled": true,
-                "editable": true,
-                "value": "200",
-                "valueType": "SINGLE_SELECT",
-                "isType": false,
-                "optional": false,
-                "advanced": false,
-                "addNewButton": false,
-                "imports": {}
-              },
-              "body": {
-                "metadata": {
-                  "label": "",
-                  "description": ""
-                },
-                "enabled": true,
-                "editable": true,
-                "value": "",
-                "valueType": "TYPE",
-                "isType": false,
-                "optional": false,
-                "advanced": false,
-                "addNewButton": false,
-                "imports": {}
-              },
-              "name": {
-                "metadata": {
-                  "label": "",
-                  "description": ""
-                },
-                "enabled": true,
-                "editable": true,
-                "value": "",
-                "valueType": "IDENTIFIER",
-                "isType": false,
-                "optional": false,
-                "advanced": false,
-                "addNewButton": false,
-                "imports": {}
-              },
-              "type": {
-                "metadata": {
-                  "label": "",
-                  "description": ""
-                },
-                "enabled": true,
-                "editable": true,
+                "editable": false,
                 "value": "HttpOk",
                 "valueType": "TYPE",
                 "isType": false,
@@ -2670,9 +2400,9 @@
                   "description": ""
                 },
                 "enabled": true,
-                "editable": true,
-                "value": "",
-                "valueType": "MULTIPLE_SELECT",
+                "editable": false,
+                "value": [],
+                "valueType": "HEADER_SET",
                 "isType": false,
                 "optional": false,
                 "advanced": false,
@@ -2689,16 +2419,16 @@
             "statusCodeResponse": {
               "statusCode": {
                 "metadata": {
-                  "label": "Status Code",
-                  "description": "The status code"
+                  "label": "Status Code Type",
+                  "description": "Select the http status code type"
                 },
                 "enabled": true,
                 "editable": true,
                 "value": "",
                 "valueType": "SINGLE_SELECT",
-                "valueTypeConstraint": "http:StatusCode",
+                "valueTypeConstraint": "",
                 "isType": false,
-                "placeholder": "200",
+                "placeholder": "",
                 "optional": false,
                 "advanced": false,
                 "items": [
@@ -2718,8 +2448,8 @@
               },
               "body": {
                 "metadata": {
-                  "label": "Body",
-                  "description": "Response Body"
+                  "label": "Message Body Type",
+                  "description": "Format of the response body"
                 },
                 "enabled": true,
                 "editable": true,
@@ -2727,14 +2457,14 @@
                 "valueType": "TYPE",
                 "isType": false,
                 "optional": true,
-                "advanced": false,
+                "advanced": true,
                 "addNewButton": false,
                 "imports": {}
               },
               "name": {
                 "metadata": {
-                  "label": "Name of the response",
-                  "description": "Create a new response type"
+                  "label": "Wrapped Type Name",
+                  "description": "Name to reference the response type"
                 },
                 "enabled": true,
                 "editable": true,
@@ -2742,7 +2472,7 @@
                 "valueType": "IDENTIFIER",
                 "isType": false,
                 "optional": true,
-                "advanced": false,
+                "advanced": true,
                 "addNewButton": false,
                 "imports": {}
               },
@@ -2756,32 +2486,23 @@
                 "value": "",
                 "valueType": "TYPE",
                 "isType": false,
-                "optional": false,
-                "advanced": false,
+                "optional": true,
+                "advanced": true,
                 "addNewButton": false,
                 "imports": {}
               },
               "headers": {
                 "metadata": {
-                  "label": "Header types",
-                  "description": "Response header types"
+                  "label": "Headers",
+                  "description": "Add mandatory or optional headers to the response"
                 },
                 "enabled": true,
                 "editable": true,
                 "value": "",
-                "valueType": "MULTIPLE_SELECT",
+                "valueType": "HEADER_SET",
                 "isType": false,
                 "optional": true,
-                "advanced": false,
-                "items": [
-                  "",
-                  "string",
-                  "int",
-                  "boolean",
-                  "string[]",
-                  "int[]",
-                  "boolean[]"
-                ],
+                "advanced": true,
                 "addNewButton": false,
                 "imports": {}
               },
@@ -3250,87 +2971,6 @@
                 },
                 "enabled": true,
                 "editable": true,
-                "value": "http:Response",
-                "valueType": "TYPE",
-                "isType": false,
-                "optional": false,
-                "advanced": false,
-                "addNewButton": false,
-                "imports": {}
-              },
-              "name": {
-                "metadata": {
-                  "label": "",
-                  "description": ""
-                },
-                "enabled": true,
-                "editable": true,
-                "value": "",
-                "valueType": "IDENTIFIER",
-                "isType": false,
-                "optional": false,
-                "advanced": false,
-                "addNewButton": false,
-                "imports": {}
-              },
-              "type": {
-                "metadata": {
-                  "label": "",
-                  "description": ""
-                },
-                "enabled": true,
-                "editable": true,
-                "value": "http:Response",
-                "valueType": "TYPE",
-                "isType": false,
-                "optional": false,
-                "advanced": false,
-                "addNewButton": false,
-                "imports": {}
-              },
-              "headers": {
-                "metadata": {
-                  "label": "",
-                  "description": ""
-                },
-                "enabled": true,
-                "editable": true,
-                "value": "",
-                "valueType": "MULTIPLE_SELECT",
-                "isType": false,
-                "optional": false,
-                "advanced": false,
-                "addNewButton": false,
-                "imports": {}
-              },
-              "enabled": false,
-              "editable": true,
-              "advanced": true,
-              "isHttpResponseType": true
-            },
-            {
-              "statusCode": {
-                "metadata": {
-                  "label": "",
-                  "description": ""
-                },
-                "enabled": true,
-                "editable": true,
-                "value": "200",
-                "valueType": "SINGLE_SELECT",
-                "isType": false,
-                "optional": false,
-                "advanced": false,
-                "addNewButton": false,
-                "imports": {}
-              },
-              "body": {
-                "metadata": {
-                  "label": "",
-                  "description": ""
-                },
-                "enabled": true,
-                "editable": true,
                 "value": "",
                 "valueType": "EXPRESSION",
                 "isType": false,
@@ -3377,7 +3017,7 @@
                 "enabled": true,
                 "editable": true,
                 "value": "",
-                "valueType": "MULTIPLE_SELECT",
+                "valueType": "HEADER_SET",
                 "isType": false,
                 "optional": false,
                 "advanced": false,
@@ -3394,16 +3034,16 @@
             "statusCodeResponse": {
               "statusCode": {
                 "metadata": {
-                  "label": "Status Code",
-                  "description": "The status code"
+                  "label": "Status Code Type",
+                  "description": "Select the http status code type"
                 },
                 "enabled": true,
                 "editable": true,
                 "value": "",
                 "valueType": "SINGLE_SELECT",
-                "valueTypeConstraint": "http:StatusCode",
+                "valueTypeConstraint": "",
                 "isType": false,
-                "placeholder": "200",
+                "placeholder": "",
                 "optional": false,
                 "advanced": false,
                 "items": [
@@ -3423,8 +3063,8 @@
               },
               "body": {
                 "metadata": {
-                  "label": "Body",
-                  "description": "Response Body"
+                  "label": "Message Body Type",
+                  "description": "Format of the response body"
                 },
                 "enabled": true,
                 "editable": true,
@@ -3432,14 +3072,14 @@
                 "valueType": "TYPE",
                 "isType": false,
                 "optional": true,
-                "advanced": false,
+                "advanced": true,
                 "addNewButton": false,
                 "imports": {}
               },
               "name": {
                 "metadata": {
-                  "label": "Name of the response",
-                  "description": "Create a new response type"
+                  "label": "Wrapped Type Name",
+                  "description": "Name to reference the response type"
                 },
                 "enabled": true,
                 "editable": true,
@@ -3447,7 +3087,7 @@
                 "valueType": "IDENTIFIER",
                 "isType": false,
                 "optional": true,
-                "advanced": false,
+                "advanced": true,
                 "addNewButton": false,
                 "imports": {}
               },
@@ -3461,32 +3101,23 @@
                 "value": "",
                 "valueType": "TYPE",
                 "isType": false,
-                "optional": false,
-                "advanced": false,
+                "optional": true,
+                "advanced": true,
                 "addNewButton": false,
                 "imports": {}
               },
               "headers": {
                 "metadata": {
-                  "label": "Header types",
-                  "description": "Response header types"
+                  "label": "Headers",
+                  "description": "Add mandatory or optional headers to the response"
                 },
                 "enabled": true,
                 "editable": true,
                 "value": "",
-                "valueType": "MULTIPLE_SELECT",
+                "valueType": "HEADER_SET",
                 "isType": false,
                 "optional": true,
-                "advanced": false,
-                "items": [
-                  "",
-                  "string",
-                  "int",
-                  "boolean",
-                  "string[]",
-                  "int[]",
-                  "boolean[]"
-                ],
+                "advanced": true,
                 "addNewButton": false,
                 "imports": {}
               },
@@ -4001,7 +3632,7 @@
                 "enabled": true,
                 "editable": true,
                 "value": "",
-                "valueType": "MULTIPLE_SELECT",
+                "valueType": "HEADER_SET",
                 "isType": false,
                 "optional": false,
                 "advanced": false,
@@ -4010,7 +3641,7 @@
               },
               "enabled": true,
               "editable": true,
-              "advanced": true,
+              "advanced": false,
               "isHttpResponseType": true
             },
             {
@@ -4039,7 +3670,7 @@
                 "value": "",
                 "valueType": "TYPE",
                 "isType": false,
-                "optional": false,
+                "optional": true,
                 "advanced": false,
                 "addNewButton": false,
                 "imports": {}
@@ -4054,7 +3685,7 @@
                 "value": "",
                 "valueType": "IDENTIFIER",
                 "isType": false,
-                "optional": false,
+                "optional": true,
                 "advanced": false,
                 "addNewButton": false,
                 "imports": {}
@@ -4069,7 +3700,7 @@
                 "value": "http:Ok",
                 "valueType": "TYPE",
                 "isType": false,
-                "optional": false,
+                "optional": true,
                 "advanced": false,
                 "addNewButton": false,
                 "imports": {}
@@ -4082,15 +3713,15 @@
                 "enabled": true,
                 "editable": true,
                 "value": "",
-                "valueType": "MULTIPLE_SELECT",
+                "valueType": "HEADER_SET",
                 "isType": false,
-                "optional": false,
+                "optional": true,
                 "advanced": false,
                 "addNewButton": false,
                 "imports": {}
               },
               "enabled": true,
-              "editable": false,
+              "editable": true,
               "advanced": false,
               "isHttpResponseType": false
             },
@@ -4101,7 +3732,7 @@
                   "description": ""
                 },
                 "enabled": true,
-                "editable": true,
+                "editable": false,
                 "value": "200",
                 "valueType": "SINGLE_SELECT",
                 "isType": false,
@@ -4116,8 +3747,8 @@
                   "description": ""
                 },
                 "enabled": true,
-                "editable": true,
-                "value": "",
+                "editable": false,
+                "value": "int",
                 "valueType": "TYPE",
                 "isType": false,
                 "optional": false,
@@ -4131,8 +3762,8 @@
                   "description": ""
                 },
                 "enabled": true,
-                "editable": true,
-                "value": "",
+                "editable": false,
+                "value": "HttpOk",
                 "valueType": "IDENTIFIER",
                 "isType": false,
                 "optional": false,
@@ -4146,7 +3777,7 @@
                   "description": ""
                 },
                 "enabled": true,
-                "editable": true,
+                "editable": false,
                 "value": "HttpOk",
                 "valueType": "TYPE",
                 "isType": false,
@@ -4161,9 +3792,9 @@
                   "description": ""
                 },
                 "enabled": true,
-                "editable": true,
-                "value": "",
-                "valueType": "MULTIPLE_SELECT",
+                "editable": false,
+                "value": [],
+                "valueType": "HEADER_SET",
                 "isType": false,
                 "optional": false,
                 "advanced": false,
@@ -4244,7 +3875,7 @@
                 "enabled": true,
                 "editable": true,
                 "value": "",
-                "valueType": "MULTIPLE_SELECT",
+                "valueType": "HEADER_SET",
                 "isType": false,
                 "optional": false,
                 "advanced": false,
@@ -4325,7 +3956,7 @@
                 "enabled": true,
                 "editable": true,
                 "value": "",
-                "valueType": "MULTIPLE_SELECT",
+                "valueType": "HEADER_SET",
                 "isType": false,
                 "optional": false,
                 "advanced": false,
@@ -4342,16 +3973,16 @@
             "statusCodeResponse": {
               "statusCode": {
                 "metadata": {
-                  "label": "Status Code",
-                  "description": "The status code"
+                  "label": "Status Code Type",
+                  "description": "Select the http status code type"
                 },
                 "enabled": true,
                 "editable": true,
                 "value": "",
                 "valueType": "SINGLE_SELECT",
-                "valueTypeConstraint": "http:StatusCode",
+                "valueTypeConstraint": "",
                 "isType": false,
-                "placeholder": "200",
+                "placeholder": "",
                 "optional": false,
                 "advanced": false,
                 "items": [
@@ -4371,8 +4002,8 @@
               },
               "body": {
                 "metadata": {
-                  "label": "Body",
-                  "description": "Response Body"
+                  "label": "Message Body Type",
+                  "description": "Format of the response body"
                 },
                 "enabled": true,
                 "editable": true,
@@ -4380,14 +4011,14 @@
                 "valueType": "TYPE",
                 "isType": false,
                 "optional": true,
-                "advanced": false,
+                "advanced": true,
                 "addNewButton": false,
                 "imports": {}
               },
               "name": {
                 "metadata": {
-                  "label": "Name of the response",
-                  "description": "Create a new response type"
+                  "label": "Wrapped Type Name",
+                  "description": "Name to reference the response type"
                 },
                 "enabled": true,
                 "editable": true,
@@ -4395,7 +4026,7 @@
                 "valueType": "IDENTIFIER",
                 "isType": false,
                 "optional": true,
-                "advanced": false,
+                "advanced": true,
                 "addNewButton": false,
                 "imports": {}
               },
@@ -4409,32 +4040,23 @@
                 "value": "",
                 "valueType": "TYPE",
                 "isType": false,
-                "optional": false,
-                "advanced": false,
+                "optional": true,
+                "advanced": true,
                 "addNewButton": false,
                 "imports": {}
               },
               "headers": {
                 "metadata": {
-                  "label": "Header types",
-                  "description": "Response header types"
+                  "label": "Headers",
+                  "description": "Add mandatory or optional headers to the response"
                 },
                 "enabled": true,
                 "editable": true,
                 "value": "",
-                "valueType": "MULTIPLE_SELECT",
+                "valueType": "HEADER_SET",
                 "isType": false,
                 "optional": true,
-                "advanced": false,
-                "items": [
-                  "",
-                  "string",
-                  "int",
-                  "boolean",
-                  "string[]",
-                  "int[]",
-                  "boolean[]"
-                ],
+                "advanced": true,
                 "addNewButton": false,
                 "imports": {}
               },
@@ -4903,10 +4525,10 @@
                 },
                 "enabled": true,
                 "editable": true,
-                "value": "http:Response",
+                "value": "json",
                 "valueType": "TYPE",
                 "isType": false,
-                "optional": false,
+                "optional": true,
                 "advanced": false,
                 "addNewButton": false,
                 "imports": {}
@@ -4921,7 +4543,7 @@
                 "value": "",
                 "valueType": "IDENTIFIER",
                 "isType": false,
-                "optional": false,
+                "optional": true,
                 "advanced": false,
                 "addNewButton": false,
                 "imports": {}
@@ -4933,7 +4555,7 @@
                 },
                 "enabled": true,
                 "editable": true,
-                "value": "http:Response",
+                "value": "json",
                 "valueType": "TYPE",
                 "isType": false,
                 "optional": false,
@@ -4949,33 +4571,33 @@
                 "enabled": true,
                 "editable": true,
                 "value": "",
-                "valueType": "EXPRESSION_SET",
+                "valueType": "HEADER_SET",
                 "isType": false,
-                "optional": false,
+                "optional": true,
                 "advanced": false,
                 "addNewButton": false,
                 "imports": {}
               },
-              "enabled": false,
+              "enabled": true,
               "editable": true,
               "advanced": true,
-              "isHttpResponseType": true
+              "isHttpResponseType": false
             }
           ],
           "schema": {
             "statusCodeResponse": {
               "statusCode": {
                 "metadata": {
-                  "label": "Status Code",
-                  "description": "The status code"
+                  "label": "Status Code Type",
+                  "description": "Select the http status code type"
                 },
                 "enabled": true,
                 "editable": true,
                 "value": "",
                 "valueType": "SINGLE_SELECT",
-                "valueTypeConstraint": "http:StatusCode",
+                "valueTypeConstraint": "",
                 "isType": false,
-                "placeholder": "200",
+                "placeholder": "",
                 "optional": false,
                 "advanced": false,
                 "items": [
@@ -4995,8 +4617,8 @@
               },
               "body": {
                 "metadata": {
-                  "label": "Body",
-                  "description": "Response Body"
+                  "label": "Message Body Type",
+                  "description": "Format of the response body"
                 },
                 "enabled": true,
                 "editable": true,
@@ -5004,14 +4626,14 @@
                 "valueType": "TYPE",
                 "isType": false,
                 "optional": true,
-                "advanced": false,
+                "advanced": true,
                 "addNewButton": false,
                 "imports": {}
               },
               "name": {
                 "metadata": {
-                  "label": "Name of the response",
-                  "description": "Create a new response type"
+                  "label": "Wrapped Type Name",
+                  "description": "Name to reference the response type"
                 },
                 "enabled": true,
                 "editable": true,
@@ -5019,7 +4641,7 @@
                 "valueType": "IDENTIFIER",
                 "isType": false,
                 "optional": true,
-                "advanced": false,
+                "advanced": true,
                 "addNewButton": false,
                 "imports": {}
               },
@@ -5033,32 +4655,23 @@
                 "value": "",
                 "valueType": "TYPE",
                 "isType": false,
-                "optional": false,
-                "advanced": false,
+                "optional": true,
+                "advanced": true,
                 "addNewButton": false,
                 "imports": {}
               },
               "headers": {
                 "metadata": {
-                  "label": "Header types",
-                  "description": "Response header types"
+                  "label": "Headers",
+                  "description": "Add mandatory or optional headers to the response"
                 },
                 "enabled": true,
                 "editable": true,
                 "value": "",
-                "valueType": "MULTIPLE_SELECT",
+                "valueType": "HEADER_SET",
                 "isType": false,
                 "optional": true,
-                "advanced": false,
-                "items": [
-                  "",
-                  "string",
-                  "int",
-                  "boolean",
-                  "string[]",
-                  "int[]",
-                  "boolean[]"
-                ],
+                "advanced": true,
                 "addNewButton": false,
                 "imports": {}
               },
