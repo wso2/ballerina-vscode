@@ -198,9 +198,11 @@ public class CodeAnalyzer extends NodeVisitor {
     private final Stack<NodeBuilder> flowNodeBuilderStack;
     private TypedBindingPatternNode typedBindingPatternNode;
     private static final String AI_AGENT = "ai";
-    private static final String DEFAULT_MCP_SERVER_NAME = "MCP Server";
-    public static final String NAME = "name";
+    private static final String BALLERINAX = "ballerinax";
     public static final String ICON_PATH = "https://bcentral-packageicons.azureedge.net/images/ballerina_mcp_0.4.2.png";
+    public static final String MCP_TOOL_KIT = "McpToolKit";
+    public static final String MCP_SERVER = "MCP Server";
+    public static final String NAME = "name";
 
     public CodeAnalyzer(Project project, SemanticModel semanticModel, String connectionScope,
                         Map<String, LineRange> dataMappings, Map<String, LineRange> naturalFunctions,
@@ -457,14 +459,27 @@ public class CodeAnalyzer extends NodeVisitor {
             ListConstructorExpressionNode listCtrExprNode = (ListConstructorExpressionNode) toolsArg;
             for (Node node : listCtrExprNode.expressions()) {
                 if (node.kind() == SyntaxKind.CHECK_EXPRESSION) {
-                    String toolName = extractMcpToolKitName(node);
-                    toolsData.add(new ToolData(toolName, ICON_PATH, getToolDescription(""), "MCP Server"));
+                    String toolName = generateToolKitName(toolsData);
+                    toolsData.add(new ToolData(toolName, ICON_PATH, getToolDescription(""), MCP_SERVER));
                     continue;
                 }
                 if (node.kind() != SyntaxKind.SIMPLE_NAME_REFERENCE) {
                     continue;
                 }
                 SimpleNameReferenceNode simpleNameReferenceNode = (SimpleNameReferenceNode) node;
+                Symbol symbol = semanticModel.symbol(node).orElseThrow();
+                if (symbol.kind() != SymbolKind.VARIABLE) {
+                    continue;
+                }
+                TypeSymbol typeSymbol = ((VariableSymbol) symbol).typeDescriptor();
+                if (typeSymbol.getName().isPresent()
+                        && typeSymbol.getModule().isPresent()
+                        && (typeSymbol.getName().get().equals(MCP_TOOL_KIT))
+                        && (typeSymbol.getModule().get().id().moduleName().equals(AI_AGENT))) {
+                    String toolName = simpleNameReferenceNode.name().text();
+                    toolsData.add(new ToolData(toolName, ICON_PATH, getToolDescription(""), MCP_SERVER));
+                    continue;
+                }
                 String toolName = simpleNameReferenceNode.name().text();
                 toolsData.add(new ToolData(toolName, getIcon(toolName), getToolDescription(toolName), null));
             }
