@@ -20,29 +20,31 @@
 import {
     AddArrayElementRequest,
     AddClausesRequest,
+    AddSubMappingRequest,
     ConvertToQueryRequest,
     GetInlineDataMapperCodedataRequest,
     GetInlineDataMapperCodedataResponse,
     GetSubMappingCodedataRequest,
     InitialIDMSourceRequest,
     InitialIDMSourceResponse,
-    PropertyRequest,
-    PropertyResponse,
     InlineDataMapperAPI,
     InlineDataMapperModelRequest,
     InlineDataMapperModelResponse,
     InlineDataMapperSourceRequest,
     InlineDataMapperSourceResponse,
+    PropertyRequest,
+    PropertyResponse,
     VisualizableFieldsRequest,
     VisualizableFieldsResponse,
     addClauses,
     addNewArrayElement,
+    addSubMapping,
     convertToQuery,
     getDataMapperCodedata,
-    getProperty,
     getDataMapperModel,
     getDataMapperSource,
     getInitialIDMSource,
+    getProperty,
     getSubMappingCodedata,
     getVisualizableFields
 } from "@wso2/ballerina-core";
@@ -82,6 +84,10 @@ export class InlineDataMapperRpcClient implements InlineDataMapperAPI {
 
     addClauses(params: AddClausesRequest): Promise<InlineDataMapperSourceResponse> {
         return this._messenger.sendRequest(addClauses, HOST_EXTENSION, params);
+    }
+
+    addSubMapping(params: AddSubMappingRequest): Promise<InlineDataMapperSourceResponse> {
+        return this._messenger.sendRequest(addSubMapping, HOST_EXTENSION, params);
     }
 
     getDataMapperCodedata(params: GetInlineDataMapperCodedataRequest): Promise<GetInlineDataMapperCodedataResponse> {

@@ -20,6 +20,7 @@
 import {
     AddArrayElementRequest,
     AddClausesRequest,
+    AddSubMappingRequest,
     ConvertToQueryRequest,
     EVENT_TYPE,
     GetInlineDataMapperCodedataRequest,
@@ -27,14 +28,14 @@ import {
     GetSubMappingCodedataRequest,
     InitialIDMSourceRequest,
     InitialIDMSourceResponse,
-    PropertyRequest,
-    PropertyResponse,
     InlineDataMapperAPI,
     InlineDataMapperModelRequest,
     InlineDataMapperModelResponse,
     InlineDataMapperSourceRequest,
     InlineDataMapperSourceResponse,
     MACHINE_VIEW,
+    PropertyRequest,
+    PropertyResponse,
     VisualizableFieldsRequest,
     VisualizableFieldsResponse
 } from "@wso2/ballerina-core";
@@ -191,5 +192,10 @@ export class InlineDataMapperRpcManager implements InlineDataMapperAPI {
             const property = await StateMachine.langClient().getProperty(params) as PropertyResponse;
             resolve(property);
         });
+    }
+
+    async addSubMapping(params: AddSubMappingRequest): Promise<InlineDataMapperSourceResponse> {
+        // ADD YOUR IMPLEMENTATION HERE
+        throw new Error('Not implemented');
     }
 }
