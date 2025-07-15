@@ -24,7 +24,6 @@ import { DataMapperNodeModel } from "../commons/DataMapperNode";
 import { getFilteredMappings, getSearchFilteredOutput, hasNoOutputMatchFound } from "../../utils/search-utils";
 import { getTypeName } from "../../utils/type-utils";
 import { OBJECT_OUTPUT_TARGET_PORT_PREFIX } from "../../utils/constants";
-import { STNode } from "@wso2/syntax-tree";
 import { findInputNode } from "../../utils/node-utils";
 import { InputOutputPortModel } from "../../Port";
 import { DataMapperLinkModel } from "../../Link";

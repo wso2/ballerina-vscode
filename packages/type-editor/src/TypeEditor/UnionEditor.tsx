@@ -212,7 +212,7 @@ export function UnionEditor({ type, onChange, rpcClient, onValidationError }: Un
         <S.Container>
             <S.Header>
                 <S.SectionTitle>Members</S.SectionTitle>
-                <div style={{ display: 'flex', gap: '8px' }}>
+                <div style={{ display: 'flex', gap: '8px' }}  data-testid="add-member-button">
                     <Button appearance="icon" onClick={addMember}><Codicon name="add" /></Button>
                 </div>
             </S.Header>
@@ -231,6 +231,7 @@ export function UnionEditor({ type, onChange, rpcClient, onValidationError }: Un
                     />
                     <Button
                         appearance="icon"
+                        data-testid={`delete-member-${index}`}
                         onClick={() => deleteMember(index)}
                         disabled={type.members.length <= 2}
                         tooltip={type.members.length <= 2 ? "Union must have at least two members" : "Remove member"}

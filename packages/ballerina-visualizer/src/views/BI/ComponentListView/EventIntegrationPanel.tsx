@@ -61,7 +61,7 @@ export function EventIntegrationPanel(props: EventIntegrationPanelProps) {
                         .map((item, index) => {
                             return (
                                 <ButtonCard
-                                    id={`trigger-${item.moduleName}`}
+                                    id={`trigger-${item.moduleName.replace(/\./g, '-')}`}
                                     key={item.id}
                                     title={item.name}
                                     icon={getEntryNodeIcon(item)}
