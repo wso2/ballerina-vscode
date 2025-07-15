@@ -24,7 +24,6 @@ import io.ballerina.flowmodelgenerator.extension.request.GetTypeRequest;
 import io.ballerina.modelgenerator.commons.AbstractLSTest;
 import io.ballerina.tools.text.LinePosition;
 import org.testng.Assert;
-import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import java.io.IOException;
@@ -58,21 +57,9 @@ public class GetGraphqlTypeTest extends AbstractLSTest {
         }
     }
 
-    @DataProvider(name = "data-provider")
-    @Override
-    protected Object[] getConfigsList() {
-        return new Object[][]{
-                {Path.of("get_service_class1.json")},
-                {Path.of("get_service_class2.json")},
-                {Path.of("get_service_class3.json")},
-                {Path.of("get_gql_service_class_with_annotation.json")},
-                {Path.of("get_gql_service_class1.json")}
-        };
-    }
-
     @Override
     protected String getResourceDir() {
-        return "types_manager";
+        return "types_manager/get_graphql_type";
     }
 
     @Override
