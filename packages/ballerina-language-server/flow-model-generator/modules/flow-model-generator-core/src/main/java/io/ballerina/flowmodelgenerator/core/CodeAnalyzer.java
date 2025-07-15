@@ -403,90 +403,16 @@ public class CodeAnalyzer extends NodeVisitor {
         }
     }
 
-    private String extractMcpToolKitName(Node expressionNode) {
-        if (expressionNode == null) {
-            return DEFAULT_MCP_SERVER_NAME;
-        }
-        if (expressionNode.kind() == SyntaxKind.MAPPING_CONSTRUCTOR) {
-            return extractNameFromMappingConstructor((MappingConstructorExpressionNode) expressionNode);
-        } else if (expressionNode.kind() == SyntaxKind.IMPLICIT_NEW_EXPRESSION) {
-            ImplicitNewExpressionNode implicitNewExpr = (ImplicitNewExpressionNode) expressionNode;
-            Optional<ParenthesizedArgList> optArgList = implicitNewExpr.parenthesizedArgList();
-            if (optArgList.isPresent()) {
-                return extractNameFromArguments(optArgList.get());
-            }
-        } else if (expressionNode.kind() == SyntaxKind.EXPLICIT_NEW_EXPRESSION) {
-            ExplicitNewExpressionNode explicitNewExpr = (ExplicitNewExpressionNode) expressionNode;
-            return extractNameFromArguments(explicitNewExpr.parenthesizedArgList());
-        }
-
-        return DEFAULT_MCP_SERVER_NAME;
-    }
-
-    private String extractNameFromMappingConstructor(MappingConstructorExpressionNode mappingConstructor) {
-        SeparatedNodeList<MappingFieldNode> fields = mappingConstructor.fields();
-        for (MappingFieldNode field : fields) {
-            if (field.kind() != SyntaxKind.SPECIFIC_FIELD) {
-                continue;
-            }
-            SpecificFieldNode specificField = (SpecificFieldNode) field;
-            if (!isNameField(specificField)) {
-                continue;
-            }
-            Optional<ExpressionNode> optValueExpr = specificField.valueExpr();
-            if (optValueExpr.isPresent()) {
-                return extractStringValue(optValueExpr.get());
+    private String generateToolKitName(List<ToolData> toolsData) {
+        String name = MCP_SERVER;
+        int index = 2;
+        for (ToolData toolData : toolsData) {
+            if (toolData.name.equals(name)) {
+                name = MCP_SERVER + " 0" + index;
+                index++;
             }
         }
-        return DEFAULT_MCP_SERVER_NAME;
-    }
-
-    private String extractNameFromArguments(ParenthesizedArgList argList) {
-        SeparatedNodeList<FunctionArgumentNode> args = argList.arguments();
-        for (FunctionArgumentNode arg : args) {
-            if (arg.kind() == SyntaxKind.NAMED_ARG) {
-                NamedArgumentNode namedArg = (NamedArgumentNode) arg;
-                if (namedArg.argumentName().name().text().equals(NAME)) {
-                    return extractStringValue(namedArg.expression());
-                }
-            } else if (arg.kind() == SyntaxKind.POSITIONAL_ARG) {
-                PositionalArgumentNode positionalArg = (PositionalArgumentNode) arg;
-                if (positionalArg.expression().kind() == SyntaxKind.MAPPING_CONSTRUCTOR) {
-                    String name = extractNameFromMappingConstructor(
-                            (MappingConstructorExpressionNode) positionalArg.expression());
-                    if (!name.equals(DEFAULT_MCP_SERVER_NAME)) {
-                        return name;
-                    }
-                }
-            }
-        }
-        return DEFAULT_MCP_SERVER_NAME;
-    }
-
-    private boolean isNameField(SpecificFieldNode specificField) {
-        Node fieldName = specificField.fieldName();
-        if (fieldName.kind() == SyntaxKind.SIMPLE_NAME_REFERENCE) {
-            SimpleNameReferenceNode nameRef = (SimpleNameReferenceNode) fieldName;
-            return nameRef.name().text().equals(NAME);
-        } else if (fieldName.kind() == SyntaxKind.QUALIFIED_NAME_REFERENCE) {
-            QualifiedNameReferenceNode qualifiedNameRef = (QualifiedNameReferenceNode) fieldName;
-            return qualifiedNameRef.identifier().text().equals(NAME);
-        }
-        return false;
-    }
-
-    private String extractStringValue(ExpressionNode expression) {
-        if (expression == null) {
-            return DEFAULT_MCP_SERVER_NAME;
-        }
-        if (expression.kind() == SyntaxKind.STRING_LITERAL) {
-            String rawValue = expression.toSourceCode().trim();
-            if (rawValue.length() >= 2 && rawValue.startsWith("\"") && rawValue.endsWith("\"")) {
-                return rawValue.substring(1, rawValue.length() - 1);
-            }
-            return rawValue;
-        }
-        return DEFAULT_MCP_SERVER_NAME;
+        return name;
     }
 
     private void genAgentData(ImplicitNewExpressionNode newExpressionNode, ClassSymbol classSymbol) {
