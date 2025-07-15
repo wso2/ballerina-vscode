@@ -346,7 +346,6 @@ const stateMachine = createMachine<MachineContext>(
                                 }
                             }
                         ) as SyntaxTree;
-                        console.log(fnSTByRange);
                         selectedEntry.location.syntaxTree = fnSTByRange.syntaxTree;
                     }
                     return resolve(selectedEntry.location);
