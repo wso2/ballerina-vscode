@@ -592,6 +592,14 @@
       "sortText": "BN",
       "insertText": "typedesc",
       "insertTextFormat": "Snippet"
+    },
+    {
+      "label": "natural",
+      "kind": "Unit",
+      "detail": "type",
+      "sortText": "BR",
+      "insertText": "natural",
+      "insertTextFormat": "Snippet"
     }
   ]
 }
