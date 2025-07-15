@@ -101,7 +101,7 @@ public class AgentsGenerator {
     private final Gson gson;
     private final SemanticModel semanticModel;
     private static final String BALLERINAX = "ballerinax";
-    private static final String AI_AGENT = "ai";
+    private static final String AI = "ai";
     private static final String INIT = "init";
     private static final String AGENT_FILE = "agents.bal";
     public static final String AGENT = "Agent";
@@ -116,7 +116,7 @@ public class AgentsGenerator {
     private static final String AI_OLLAMA = "ai.ollama";
     private static final String AI_AZURE = "ai.azure";
     private static final String OPENAI_MODEL_PROVIDER = "OpenAiModelProvider";
-    private static final String CLASS_INIT = "CLASS_INIT";
+    private static final String DEFAULT_MODEL_PROVIDER = "getDefaultModelProvider";
 
 
     public AgentsGenerator() {
@@ -156,29 +156,34 @@ public class AgentsGenerator {
         return gson.toJsonTree(agents).getAsJsonArray();
     }
 
-    public JsonArray getAllBallerinaModels() {
+    public JsonArray getNewBallerinaxModels() {
         JsonArray models = new JsonArray();
         models.add(createModelObject(AI_OPENAI));
         models.add(createModelObject(AI_ANTHROPIC));
         models.add(createModelObject(AI_DEEPSEEK));
         models.add(createModelObject(AI_MISTRAL));
         models.add(createModelObject(AI_OLLAMA));
-        models.add(createModelObject(AI_AZURE, OPENAI_MODEL_PROVIDER));
+        models.add(createModelObject(NodeKind.CLASS_INIT, AI_AZURE, OPENAI_MODEL_PROVIDER));
+        models.add(createModelObject(NodeKind.FUNCTION_CALL, AI, DEFAULT_MODEL_PROVIDER));
         return models;
     }
 
     private JsonObject createModelObject(String moduleName) {
-        return createModelObject(moduleName, MODEL);
+        return createModelObject(NodeKind.CLASS_INIT, moduleName, MODEL);
     }
 
-    private JsonObject createModelObject(String moduleName, String objectName) {
+    private JsonObject createModelObject(NodeKind nodeKind, String moduleName, String objectOrFuncName) {
         JsonObject model = new JsonObject();
-        model.addProperty("node", CLASS_INIT);
-        model.addProperty("org", BALLERINA_ORG);
+        model.addProperty("node", nodeKind.toString());
+        model.addProperty("org", nodeKind.equals(NodeKind.CLASS_INIT) ? BALLERINAX : BALLERINA_ORG);
         model.addProperty("module", moduleName);
         model.addProperty("packageName", moduleName);
-        model.addProperty("object", objectName);
-        model.addProperty("symbol", INIT);
+        if (nodeKind.equals(NodeKind.CLASS_INIT)) {
+            model.addProperty("object", objectOrFuncName);
+            model.addProperty("symbol", INIT);
+        } else {
+            model.addProperty("symbol", objectOrFuncName);
+        }
         model.addProperty("version", "1.0.0");
         return model;
     }
@@ -632,7 +637,7 @@ public class AgentsGenerator {
                 continue;
             }
             ModuleID id = optModule.get().id();
-            if (!(id.orgName().equals(BALLERINAX) && id.packageName().equals(AI_AGENT))) {
+            if (!(id.orgName().equals(BALLERINAX) && id.packageName().equals(AI))) {
                 continue;
             }
             Optional<String> optName = annotationSymbol.getName();

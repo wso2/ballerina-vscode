@@ -6,7 +6,7 @@
   "models": [
     {
       "node": "CLASS_INIT",
-      "org": "ballerina",
+      "org": "ballerinax",
       "module": "ai.openai",
       "packageName": "ai.openai",
       "object": "ModelProvider",
@@ -15,7 +15,7 @@
     },
     {
       "node": "CLASS_INIT",
-      "org": "ballerina",
+      "org": "ballerinax",
       "module": "ai.anthropic",
       "packageName": "ai.anthropic",
       "object": "ModelProvider",
@@ -24,7 +24,7 @@
     },
     {
       "node": "CLASS_INIT",
-      "org": "ballerina",
+      "org": "ballerinax",
       "module": "ai.deepseek",
       "packageName": "ai.deepseek",
       "object": "ModelProvider",
@@ -33,7 +33,7 @@
     },
     {
       "node": "CLASS_INIT",
-      "org": "ballerina",
+      "org": "ballerinax",
       "module": "ai.mistral",
       "packageName": "ai.mistral",
       "object": "ModelProvider",
@@ -42,7 +42,7 @@
     },
     {
       "node": "CLASS_INIT",
-      "org": "ballerina",
+      "org": "ballerinax",
       "module": "ai.ollama",
       "packageName": "ai.ollama",
       "object": "ModelProvider",
@@ -51,11 +51,19 @@
     },
     {
       "node": "CLASS_INIT",
-      "org": "ballerina",
+      "org": "ballerinax",
       "module": "ai.azure",
       "packageName": "ai.azure",
       "object": "OpenAiModelProvider",
       "symbol": "init",
+      "version": "1.0.0"
+    },
+    {
+      "node": "FUNCTION_CALL",
+      "org": "ballerina",
+      "module": "ai",
+      "packageName": "ai",
+      "symbol": "getDefaultModelProvider",
       "version": "1.0.0"
     }
   ]

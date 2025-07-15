@@ -117,7 +117,7 @@ public class AgentsManagerService implements ExtendedLanguageServerService {
             try {
                 AgentsGenerator agentsGenerator  = new AgentsGenerator();
                 if (BALLERINA.equals(request.orgName())) {
-                    response.setModels(agentsGenerator.getAllBallerinaModels());
+                    response.setModels(agentsGenerator.getNewBallerinaxModels());
                 } else {
                     Optional<SemanticModel> semanticModel = PackageUtil.getSemanticModel(BALLERINAX, AI_AGENT);
                     semanticModel.ifPresent(model -> response.setModels(agentsGenerator.getAllBallerinaxModels(model)));
