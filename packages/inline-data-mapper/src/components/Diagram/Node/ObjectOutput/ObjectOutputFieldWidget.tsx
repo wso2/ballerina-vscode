@@ -76,6 +76,9 @@ export function ObjectOutputFieldWidget(props: ObjectOutputFieldWidgetProps) {
     const isRecord = typeKind === TypeKind.Record;
 
     let updatedParentId = parentId;
+    if (updatedParentId.endsWith('>')) {
+        updatedParentId = updatedParentId.split('.').slice(0, -1).join('.');
+    }
     if (fieldIndex !== undefined) {
         updatedParentId = `${parentId}.${fieldIndex}`
     }

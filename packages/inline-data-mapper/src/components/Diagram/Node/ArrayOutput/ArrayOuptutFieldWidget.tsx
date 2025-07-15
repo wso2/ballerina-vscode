@@ -78,9 +78,14 @@ export function ArrayOutputFieldWidget(props: ArrayOutputFieldWidgetProps) {
     const arrayField = field.member;
     const typeName = getTypeName(field);
 
-    let portName = parentId;
+    let updatedParentId = parentId;
+    if (updatedParentId.endsWith('>')) {
+        updatedParentId = updatedParentId.split('.').slice(0, -1).join('.');
+    }
+
+    let portName = updatedParentId;
     if (fieldIndex !== undefined) {
-        portName = `${parentId}.${fieldIndex}`
+        portName = `${updatedParentId}.${fieldIndex}`
     }
     const fieldName = field?.variableName || '';
 
@@ -390,7 +395,7 @@ export function ArrayOutputFieldWidget(props: ArrayOutputFieldWidgetProps) {
                 <OutputFieldPreviewWidget
                     key={`arr-output--preview-field-${portName}`}
                     engine={engine}
-                    field={{...arrayField, variableName: `${fieldName}Item`}}
+                    field={arrayField}
                     getPort={getPort}
                     parentId={portName}
                     context={context}

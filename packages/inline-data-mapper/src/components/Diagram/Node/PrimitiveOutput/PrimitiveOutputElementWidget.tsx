@@ -71,14 +71,19 @@ export function PrimitiveOutputElementWidget(props: PrimitiveOutputElementWidget
 
     const fieldName = field?.id || '';
 
-    let portName = parentId;
+    let updatedParentId = parentId;
+    if (updatedParentId.endsWith('>')) {
+        updatedParentId = updatedParentId.split('.').slice(0, -1).join('.');
+    }
+
+    let portName = updatedParentId;
 
     if (fieldIndex !== undefined) {
-        portName = `${parentId}.${fieldIndex}`;
+        portName = `${updatedParentId}.${fieldIndex}`;
     } else if (fieldName) {
-        portName = `${parentId}.${fieldName}`;
+        portName = `${updatedParentId}.${fieldName}`;
     } else {
-        portName = parentId;
+        portName = updatedParentId;
     }
 
     const portIn = getPort(`${portName}.IN`);
