@@ -48,6 +48,7 @@ public class NodeTemplateTest extends AbstractLSTest {
                 {Path.of("agent_call_template_ballerina.json")},
                 {Path.of("model_template.json")},
                 {Path.of("model_template_ballerina.json")},
+                {Path.of("model_template_default.json")},
                 {Path.of("memory_manager_template.json")},
                 {Path.of("memory_manager_template_ballerina.json")}
         };

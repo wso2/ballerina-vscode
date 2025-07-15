@@ -101,7 +101,8 @@ public class SourceBuilder {
             if (filePath.endsWith(AGENTS_BAL) && (nodeKind == NodeKind.FUNCTION_DEFINITION
                     || nodeKind == NodeKind.CLASS_INIT
                     || nodeKind == NodeKind.RESOURCE_ACTION_CALL
-                    || nodeKind == NodeKind.REMOTE_ACTION_CALL)) {
+                    || nodeKind == NodeKind.REMOTE_ACTION_CALL
+                    || nodeKind == NodeKind.FUNCTION_CALL)) {
                 nodeKind = NodeKind.AGENT;
             }
             this.filePath = resolvePath(filePath, nodeKind, codedata.lineRange(), codedata.isNew());
