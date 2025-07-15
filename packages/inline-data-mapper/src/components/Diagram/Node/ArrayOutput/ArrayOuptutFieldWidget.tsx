@@ -102,9 +102,9 @@ export function ArrayOutputFieldWidget(props: ArrayOutputFieldWidgetProps) {
     }
 
     const hasDefaultValue = expression && getDefaultValue(field.kind) === expression.trim();
-    let isDisabled = portIn.attributes.descendantHasValue;
+    let isDisabled = portIn?.attributes.descendantHasValue;
 
-    if (!isDisabled && !hasDefaultValue) {
+    if (!isDisabled && !hasDefaultValue && portIn) {
         if (hasElements && expanded && portIn.attributes.parentModel) {
             portIn.setDescendantHasValue();
             isDisabled = true;
