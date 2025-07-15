@@ -20,8 +20,6 @@ package io.ballerina.flowmodelgenerator.extension.request;
 
 import com.google.gson.JsonElement;
 
-import java.nio.file.Path;
-
 /**
  * Represents a request to get the text edits for a data-mapping deletion.
  *

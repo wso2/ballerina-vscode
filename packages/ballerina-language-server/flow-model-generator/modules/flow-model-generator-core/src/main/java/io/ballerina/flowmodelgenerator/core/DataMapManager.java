@@ -107,7 +107,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -884,7 +883,8 @@ public class DataMapManager {
                         NonTerminalNode grandParent = parentNode.parent();
 
                         if (grandParent != null && grandParent.kind() == SyntaxKind.MAPPING_CONSTRUCTOR) {
-                            MappingConstructorExpressionNode mappingCtr = (MappingConstructorExpressionNode) grandParent;
+                            MappingConstructorExpressionNode mappingCtr = (MappingConstructorExpressionNode)
+                                    grandParent;
 
                             if (mappingCtr.fields().size() == 1) {
                                 highestEmptyField = specificField;
@@ -900,7 +900,8 @@ public class DataMapManager {
                     textEdits.add(new TextEdit(CommonUtils.toRange(highestEmptyField.lineRange()), ""));
                 } else {
                     SpecificFieldNode specificField = (SpecificFieldNode) expr.parent();
-                    MappingConstructorExpressionNode mappingCtr = (MappingConstructorExpressionNode) specificField.parent();
+                    MappingConstructorExpressionNode mappingCtr = (MappingConstructorExpressionNode)
+                            specificField.parent();
                     SeparatedNodeList<MappingFieldNode> fields = mappingCtr.fields();
                     int fieldCount = fields.size();
 
@@ -931,7 +932,8 @@ public class DataMapManager {
                                 if (separator != null) {
                                     deleteRange = TextRange.from(
                                             fieldRange.startOffset(),
-                                            fields.get(fieldIndex + 1).textRange().startOffset() - fieldRange.startOffset()
+                                            fields.get(fieldIndex + 1).
+                                                    textRange().startOffset() - fieldRange.startOffset()
                                     );
                                 } else {
                                     deleteRange = fieldRange;
@@ -939,8 +941,10 @@ public class DataMapManager {
                             }
 
                             String fileName = document.name();
-                            LinePosition startPos = document.syntaxTree().textDocument().linePositionFrom(deleteRange.startOffset());
-                            LinePosition endPos = document.syntaxTree().textDocument().linePositionFrom(deleteRange.endOffset());
+                            LinePosition startPos = document.syntaxTree().
+                                    textDocument().linePositionFrom(deleteRange.startOffset());
+                            LinePosition endPos = document.syntaxTree().
+                                    textDocument().linePositionFrom(deleteRange.endOffset());
 
                             LineRange lineRangeToDelete = LineRange.from(fileName, startPos, endPos);
                             textEdits.add(new TextEdit(CommonUtils.toRange(lineRangeToDelete), ""));
@@ -982,7 +986,8 @@ public class DataMapManager {
                         .name(importStatement)
                         .endOfStatement()
                         .build(SourceBuilder.SourceKind.IMPORT);
-                textEdits.add(new TextEdit(CommonUtils.toRange(0, 0), stmt + System.lineSeparator()));
+                textEdits.add(new TextEdit(CommonUtils.toRange(0, 0),
+                        stmt + System.lineSeparator()));
             }
         }
     }

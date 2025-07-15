@@ -38,7 +38,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Tests for deleting data-mappings
+ * Tests for deleting data-mappings.
  *
  * @since 1.0.0
  */
@@ -63,7 +63,8 @@ public class DataMappingDeleteTest extends AbstractLSTest {
         TestConfig testConfig = gson.fromJson(Files.newBufferedReader(configJsonPath), TestConfig.class);
 
         DataMappingDeleteRequest request = new DataMappingDeleteRequest(
-                sourceDir.resolve(testConfig.source()).toAbsolutePath().toString(), testConfig.codedata(), testConfig.mapping(), testConfig.targetField());
+                sourceDir.resolve(testConfig.source()).toAbsolutePath().toString(), testConfig.codedata(),
+                testConfig.mapping(), testConfig.targetField());
         JsonObject jsonMap = getResponse(request).getAsJsonObject("textEdits");
 
         Map<String, List<TextEdit>> actualTextEdits = gson.fromJson(jsonMap, textEditListType);
