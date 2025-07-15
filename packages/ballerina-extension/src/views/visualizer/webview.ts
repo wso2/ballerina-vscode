@@ -50,7 +50,7 @@ export class VisualizerWebview {
         vscode.workspace.onDidChangeTextDocument(async (document) => {
             const state = StateMachine.state();
             const machineReady = typeof state === 'object' && 'viewActive' in state && state.viewActive === "viewReady";
-            // Save the document only if it is not already opened in a visible editor
+            // Save the document only if it is not already opened in a visible editor or the webview is active
             const isOpened = vscode.window.visibleTextEditors.some(editor => editor.document.uri.toString() === document.document.uri.toString());
             if (!isOpened || this._panel?.active) {
                 await document.document.save();
