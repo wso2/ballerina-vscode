@@ -60,7 +60,7 @@ export function ResponseItem(props: ParamItemProps) {
                         <Icon name="header" />
                     </IconWrapper>
                     <OptionLabel>
-                        {getFormattedResponse(response, method)}
+                        {response.type.value === "http:Response" ? "Dynamic" : getFormattedResponse(response, method)}
                     </OptionLabel>
                 </IconTextWrapper>
             }
@@ -70,7 +70,7 @@ export function ResponseItem(props: ParamItemProps) {
                     className={readonly ? disabledHeaderLabel : headerLabelStyles}
                     onClick={handleEdit}
                 >
-                    {response.body.value || response.type.value}
+                    {response.type.value || response.body.value || "anydata"}
                 </div>
                 {!readonly && (
                     <ActionIconWrapper>

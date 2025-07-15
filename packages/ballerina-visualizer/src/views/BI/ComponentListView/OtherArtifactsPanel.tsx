@@ -93,6 +93,7 @@ export function OtherArtifactsPanel(props: OtherArtifactsPanelProps) {
             </TitleWrapper>
             <CardGrid>
                 <ButtonCard
+                    id="bi-function"
                     data-testid="function"
                     icon={<Icon name="bi-function" />}
                     title="Function"
@@ -100,6 +101,7 @@ export function OtherArtifactsPanel(props: OtherArtifactsPanelProps) {
                 />
                 {isNPSupported &&
                     <ButtonCard
+                        id="bi-ai-function"
                         icon={<Icon name="bi-ai-function" />}
                         title="Natural Function"
                         onClick={() => handleClick(DIRECTORY_MAP.NP_FUNCTION)}

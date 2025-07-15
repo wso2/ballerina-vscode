@@ -463,6 +463,7 @@ export function TypeCreatorTab(props: TypeCreatorTabProps) {
                 {isNewType && (
                     <Dropdown
                         id="type-selector"
+                        data-testid="type-kind-dropdown"
                         label="Kind"
                         value={getTypeKindLabel(selectedTypeKind, isGraphql)}
                         items={getAvailableTypeKinds(isGraphql, selectedTypeKind).map((kind) => ({
@@ -477,6 +478,7 @@ export function TypeCreatorTab(props: TypeCreatorTabProps) {
                         <TextFieldWrapper>
                             <TextField
                                 id={type.name}
+                                data-testid="type-name-display"
                                 name={type.name}
                                 value={type.name}
                                 label={type?.properties["name"]?.metadata?.label}
@@ -555,6 +557,7 @@ export function TypeCreatorTab(props: TypeCreatorTabProps) {
             {renderEditor()}
             <Footer>
                 <Button
+                    data-testid="type-create-save"
                     onClick={() => onTypeSave(type)}
                     disabled={onValidationError || !isTypeNameValid || isEditing || isSaving}>
                     {isSaving ? <Typography variant="progress">Saving...</Typography> : "Save"}
