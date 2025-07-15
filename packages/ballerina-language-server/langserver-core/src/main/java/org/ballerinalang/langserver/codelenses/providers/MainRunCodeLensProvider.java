@@ -21,12 +21,11 @@ package org.ballerinalang.langserver.codelenses.providers;
 import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
 import io.ballerina.compiler.syntax.tree.Node;
 import org.ballerinalang.annotation.JavaSPIService;
-import org.ballerinalang.langserver.common.utils.PositionUtil;
+import org.ballerinalang.langserver.codelenses.CodeLensUtil;
 import org.ballerinalang.langserver.commons.DocumentServiceContext;
 import org.ballerinalang.langserver.commons.LanguageServerContext;
 import org.eclipse.lsp4j.CodeLens;
 import org.eclipse.lsp4j.Command;
-import org.eclipse.lsp4j.Range;
 
 import java.util.Collections;
 import java.util.List;
@@ -60,8 +59,7 @@ public class MainRunCodeLensProvider extends AbstractCodeLensesProvider {
     public CodeLens getLens(DocumentServiceContext context, Node node) {
         List<Object> args = Collections.singletonList(context.fileUri());
         Command command = new Command("Run", "ballerina.run", args);
-        Range range = PositionUtil.toRange(node.lineRange());
-        return new CodeLens(range, command, null);
+        return CodeLensUtil.getCodeLens(command, node);
     }
 }
 

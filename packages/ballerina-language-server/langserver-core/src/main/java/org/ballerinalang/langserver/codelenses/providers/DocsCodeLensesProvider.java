@@ -21,6 +21,7 @@ import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.compiler.syntax.tree.TypeDefinitionNode;
 import org.ballerinalang.annotation.JavaSPIService;
+import org.ballerinalang.langserver.codelenses.CodeLensUtil;
 import org.ballerinalang.langserver.command.executors.AddDocumentationExecutor;
 import org.ballerinalang.langserver.common.constants.CommandConstants;
 import org.ballerinalang.langserver.common.utils.PositionUtil;
@@ -92,6 +93,6 @@ public class DocsCodeLensesProvider extends AbstractCodeLensesProvider {
         List<Object> args = new ArrayList<>(Arrays.asList(docUriArg, lineStart));
         Command command = new Command(CommandConstants.ADD_DOCUMENTATION_TITLE,
                 AddDocumentationExecutor.COMMAND, args);
-        return new CodeLens(nodeRange, command, null);
+        return CodeLensUtil.getCodeLens(command, node);
     }
 }

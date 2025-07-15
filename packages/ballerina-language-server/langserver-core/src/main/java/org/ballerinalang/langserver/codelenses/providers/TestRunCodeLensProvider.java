@@ -20,15 +20,12 @@ package org.ballerinalang.langserver.codelenses.providers;
 
 import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
 import io.ballerina.compiler.syntax.tree.Node;
-import io.ballerina.compiler.syntax.tree.QualifiedNameReferenceNode;
-import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import org.ballerinalang.annotation.JavaSPIService;
-import org.ballerinalang.langserver.common.utils.PositionUtil;
+import org.ballerinalang.langserver.codelenses.CodeLensUtil;
 import org.ballerinalang.langserver.commons.DocumentServiceContext;
 import org.ballerinalang.langserver.commons.LanguageServerContext;
 import org.eclipse.lsp4j.CodeLens;
 import org.eclipse.lsp4j.Command;
-import org.eclipse.lsp4j.Range;
 
 import java.util.Arrays;
 import java.util.List;
@@ -55,24 +52,13 @@ public class TestRunCodeLensProvider extends AbstractCodeLensesProvider {
         if (!(node instanceof FunctionDefinitionNode functionDefinitionNode)) {
             return false;
         }
-        return functionDefinitionNode.metadata().map(metadataNode ->
-                metadataNode.annotations().stream().anyMatch(annotationNode -> {
-                    Node annotReference = annotationNode.annotReference();
-                    if (annotReference.kind() == SyntaxKind.QUALIFIED_NAME_REFERENCE) {
-                        QualifiedNameReferenceNode qualifiedNameRef = (QualifiedNameReferenceNode) annotReference;
-                        return "test".equals(qualifiedNameRef.modulePrefix().text()) &&
-                                "Config".equals(qualifiedNameRef.identifier().text());
-                    }
-                    return false;
-                })
-        ).orElse(false);
+        return CodeLensUtil.isTestFunction(functionDefinitionNode);
     }
 
     @Override
     public CodeLens getLens(DocumentServiceContext context, Node node) {
         List<Object> args = Arrays.asList("--tests", ((FunctionDefinitionNode) node).functionName().text());
         Command command = new Command("Run", "ballerina.test", args);
-        Range range = PositionUtil.toRange(node.lineRange());
-        return new CodeLens(range, command, null);
+        return CodeLensUtil.getCodeLens(command, node);
     }
 }

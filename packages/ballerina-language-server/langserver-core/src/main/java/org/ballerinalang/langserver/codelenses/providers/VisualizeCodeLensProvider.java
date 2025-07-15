@@ -20,6 +20,7 @@ package org.ballerinalang.langserver.codelenses.providers;
 
 import io.ballerina.compiler.syntax.tree.Node;
 import org.ballerinalang.annotation.JavaSPIService;
+import org.ballerinalang.langserver.codelenses.CodeLensUtil;
 import org.ballerinalang.langserver.common.utils.PositionUtil;
 import org.ballerinalang.langserver.commons.DocumentServiceContext;
 import org.ballerinalang.langserver.commons.LanguageServerContext;
@@ -65,6 +66,6 @@ public class VisualizeCodeLensProvider extends AbstractCodeLensesProvider {
         Range range = PositionUtil.toRange(node.lineRange());
         List<Object> args = Arrays.asList(context.fileUri(), range);
         Command command = new Command("Visualize", "ballerina.showVisualizer", args);
-        return new CodeLens(range, command, null);
+        return CodeLensUtil.getCodeLens(command, node);
     }
 }
