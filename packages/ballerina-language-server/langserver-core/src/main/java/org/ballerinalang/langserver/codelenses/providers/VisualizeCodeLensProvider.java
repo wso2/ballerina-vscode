@@ -32,7 +32,7 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * Code lens provider for visualizing module-level constructs such as functions, services, classes,
+ * Code lens provider for visualizing module-level constructs such as functions, services, classes.
  *
  * @since 1.0.1
  */
@@ -65,7 +65,7 @@ public class VisualizeCodeLensProvider extends AbstractCodeLensesProvider {
     public CodeLens getLens(DocumentServiceContext context, Node node) {
         Range range = PositionUtil.toRange(node.lineRange());
         List<Object> args = Arrays.asList(context.fileUri(), range);
-        Command command = new Command("Visualize", "ballerina.showVisualizer", args);
+        Command command = new Command(CodeLensUtil.VISUALIZE_CODELENS, "ballerina.showVisualizer", args);
         return CodeLensUtil.getCodeLens(command, node);
     }
 }

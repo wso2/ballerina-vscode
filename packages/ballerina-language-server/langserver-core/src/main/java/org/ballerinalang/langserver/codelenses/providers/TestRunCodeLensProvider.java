@@ -58,7 +58,7 @@ public class TestRunCodeLensProvider extends AbstractCodeLensesProvider {
     @Override
     public CodeLens getLens(DocumentServiceContext context, Node node) {
         List<Object> args = Arrays.asList("--tests", ((FunctionDefinitionNode) node).functionName().text());
-        Command command = new Command("Run", "ballerina.test", args);
+        Command command = new Command(CodeLensUtil.RUN_CODELENS, "ballerina.test", args);
         return CodeLensUtil.getCodeLens(command, node);
     }
 }

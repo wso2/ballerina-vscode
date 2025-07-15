@@ -43,6 +43,10 @@ import java.util.Optional;
  */
 public final class CodeLensUtil {
 
+    public static final String RUN_CODELENS = "Run";
+    public static final String DEBUG_CODELENS = "Debug";
+    public static final String VISUALIZE_CODELENS = "Visualize";
+
     private CodeLensUtil() {
     }
 

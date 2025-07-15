@@ -20,8 +20,6 @@ import org.ballerinalang.langserver.commons.DocumentServiceContext;
 import org.ballerinalang.langserver.commons.LanguageServerContext;
 import org.eclipse.lsp4j.CodeLens;
 
-import java.util.List;
-
 /**
  * Represents the SPI interface for the Language Server Code Lenses Provider.
  *

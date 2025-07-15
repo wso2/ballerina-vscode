@@ -58,7 +58,7 @@ public class MainRunCodeLensProvider extends AbstractCodeLensesProvider {
     @Override
     public CodeLens getLens(DocumentServiceContext context, Node node) {
         List<Object> args = Collections.singletonList(context.fileUri());
-        Command command = new Command("Run", "ballerina.run", args);
+        Command command = new Command(CodeLensUtil.RUN_CODELENS, "ballerina.run", args);
         return CodeLensUtil.getCodeLens(command, node);
     }
 }

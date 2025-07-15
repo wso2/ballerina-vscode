@@ -58,7 +58,7 @@ public class TestDebugCodeLensProvider extends AbstractCodeLensesProvider {
     @Override
     public CodeLens getLens(DocumentServiceContext context, Node node) {
         List<Object> args = Collections.singletonList(((FunctionDefinitionNode) node).functionName().text());
-        Command command = new Command("Debug", "ballerina.test.debug", args);
+        Command command = new Command(CodeLensUtil.DEBUG_CODELENS, "ballerina.test.debug", args);
         return CodeLensUtil.getCodeLens(command, node);
     }
 }
