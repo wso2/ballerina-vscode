@@ -63,7 +63,7 @@ export function TypeDiagram(props: TypeDiagramProps) {
 
     const drawDiagram = (focusedNode?: string) => {
         let diagramModel;
-        
+
         // Create diagram model based on type
         if (isGraphql && rootService) {
             console.log("Modeling  graphql diagram");
@@ -72,24 +72,24 @@ export function TypeDiagram(props: TypeDiagramProps) {
             console.log("Modeling entity diagram");
             diagramModel = entityModeller(typeModel, focusedNode);
         }
-    
+
         if (diagramModel) {
             // Setup initial model
             diagramModel.addLayer(new OverlayLayerModel());
             diagramEngine.setModel(diagramModel);
             setDiagramModel(diagramModel);
-    
+
             // Layout and focus handling
             setTimeout(() => {
                 dagreEngine.redistribute(diagramEngine.getModel());
-    
+
                 if (selectedNodeId) {
                     const selectedModel = diagramEngine.getModel().getNode(selectedNodeId);
                     focusToNode(selectedModel, diagramEngine.getModel().getZoomLevel(), diagramEngine);
                 } else if (diagramEngine?.getCanvas()?.getBoundingClientRect) {
                     diagramEngine.zoomToFitNodes({ margin: 10, maxZoom: 1 });
                 }
-    
+
                 // Cleanup and refresh
                 diagramEngine.getModel().removeLayer(
                     diagramEngine.getModel().getLayers().find(layer => layer instanceof OverlayLayerModel)
@@ -133,7 +133,7 @@ export function TypeDiagram(props: TypeDiagramProps) {
         <DesignDiagramContext {...ctx}>
             {diagramEngine?.getModel() && diagramModel ?
                 <div style={{ width: '100%', height: '100%', overflow: 'hidden' }}>
-                    <DiagramContainer>
+                    <DiagramContainer data-testid="type-diagram">
                         <NavigationWrapperCanvasWidget
                             diagramEngine={diagramEngine}
                             className={styles.canvas}

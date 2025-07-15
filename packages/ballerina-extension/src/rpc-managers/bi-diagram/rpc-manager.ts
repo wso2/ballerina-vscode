@@ -661,7 +661,7 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
     }
 
 
-    // Function to open config toml
+    // Function to open Config.toml
     async openConfigToml(params: OpenConfigTomlRequest): Promise<void> {
         return new Promise(async (resolve) => {
             const currentProject: BallerinaProject | undefined = await getCurrentBIProject(params.filePath);
@@ -694,8 +694,8 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
                 if (fs.existsSync(ignoreFile)) {
                     const ignoreUri = Uri.file(ignoreFile);
                     let ignoreContent: string = fs.readFileSync(ignoreUri.fsPath, 'utf8');
-                    if (!ignoreContent.includes("config.toml")) {
-                        ignoreContent += `\n${"config.toml"}\n`;
+                    if (!ignoreContent.includes("Config.toml")) {
+                        ignoreContent += `\n${"Config.toml"}\n`;
                         fs.writeFile(ignoreUri.fsPath, ignoreContent, function (error) {
                             if (error) {
                                 return window.showErrorMessage('Unable to update the .gitIgnore file: ' + error);
