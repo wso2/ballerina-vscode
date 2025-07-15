@@ -23,13 +23,14 @@ import com.google.gson.JsonElement;
 import java.nio.file.Path;
 
 /**
- * Represents a request to get the data mapper model for types.
+ * Represents a request to get the text edits for a data-mapping deletion.
  *
  * @param filePath    File path of the source file
  * @param codedata    Position details of the node
  * @param mapping     Data mapping
+ * @param targetField The target field that needs to consider to get the type
  *
  * @since 1.0.0
  */
-public record DataMappingDeleteRequest(String filePath, JsonElement codedata, JsonElement mapping) {
+public record DataMappingDeleteRequest(String filePath, JsonElement codedata, JsonElement mapping, String targetField) {
 }

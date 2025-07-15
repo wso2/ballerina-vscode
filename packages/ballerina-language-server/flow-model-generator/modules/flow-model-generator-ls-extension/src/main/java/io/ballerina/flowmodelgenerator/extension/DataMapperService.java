@@ -156,13 +156,12 @@ public class DataMapperService implements ExtendedLanguageServerService {
                 }
 
                 DataMapManager dataMapManager = new DataMapManager(document.get());
-                response.setTextEdits(dataMapManager.deleteMapping(filePath, request.codedata(), request.mapping()));
+                response.setTextEdits(dataMapManager.deleteMapping(filePath, request.codedata(), request.mapping(), request.targetField()));
             } catch (Throwable e) {
                 response.setError(e);
             }
             return response;
         });
-
     }
 
     @JsonRequest

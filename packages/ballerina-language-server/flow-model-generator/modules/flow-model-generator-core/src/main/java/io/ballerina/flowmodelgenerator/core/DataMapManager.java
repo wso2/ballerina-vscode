@@ -752,7 +752,7 @@ public class DataMapManager {
         return gson.toJsonTree(textEditsMap);
     }
 
-    public JsonElement deleteMapping(Path filePath, JsonElement codeData, JsonElement mappingId) {
+    public JsonElement deleteMapping(Path filePath, JsonElement codeData, JsonElement mappingId, String targetField) {
         Codedata codedata = gson.fromJson(codeData, Codedata.class);
         Mapping mapping = gson.fromJson(mappingId, Mapping.class);
         NonTerminalNode node = getNode(codedata.lineRange());
@@ -765,14 +765,14 @@ public class DataMapManager {
             VariableDeclarationNode varDecl = (VariableDeclarationNode) node;
             String output = mapping.output();
             String[] splits = output.split(DOT);
-            ExpressionNode expr = getMappingExpr(varDecl.initializer().orElseThrow(), null);
+            ExpressionNode expr = getMappingExpr(varDecl.initializer().orElseThrow(), targetField);
             StringBuilder sb = new StringBuilder();
             genSource(expr, splits, 1, sb, "", null, textEdits);
         } else if (node.kind() == SyntaxKind.MODULE_VAR_DECL) {
             ModuleVariableDeclarationNode moduleVarDecl = (ModuleVariableDeclarationNode) node;
             String output = mapping.output();
             String[] splits = output.split(DOT);
-            ExpressionNode expr = getMappingExpr(moduleVarDecl.initializer().orElseThrow(), null);
+            ExpressionNode expr = getMappingExpr(moduleVarDecl.initializer().orElseThrow(), targetField);
             StringBuilder sb = new StringBuilder();
             genSource(expr, splits, 1, sb, "", null, textEdits);
         }
