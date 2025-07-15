@@ -101,14 +101,18 @@ export class QueryOutputNode extends DataMapperNodeModel {
     }
 
     private createLinks(mappings: Mapping[]) {
+
+        const views = this.context.views;
+        const sourceField = views[views.length - 1].sourceField;
+
         mappings.forEach((mapping) => {    
             const { isComplex, isQueryExpression, inputs, output, expression, diagnostics } = mapping;
             if (isComplex || isQueryExpression || inputs.length !== 1) {
                 // Complex mappings are handled in the LinkConnectorNode
                 return;
             }
-
-            const inputNode = findInputNode(inputs[0], this);
+            
+            const inputNode = findInputNode(inputs[0], this, sourceField);
             let inPort: InputOutputPortModel;
             if (inputNode) {
                 inPort = getInputPort(inputNode, inputs[0].replace(/\.\d+/g, ''));

@@ -143,13 +143,14 @@ export function getErrorKind(node: DataMapperNodeModel): ErrorNodeKind {
 	}
 }
 
-export function expandArrayFn(context: IDataMapperContext, targetField: string){
+export function expandArrayFn(context: IDataMapperContext, sourceField: string, targetField: string){
 
     const { addView } = context;
 
     const newView: View = {
         label: targetField,
-        targetField: targetField
+        sourceField,
+        targetField
     };
 
     addView(newView);
