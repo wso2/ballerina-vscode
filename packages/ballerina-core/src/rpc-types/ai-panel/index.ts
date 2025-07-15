@@ -78,4 +78,5 @@ export interface AIPanelAPI {
     generateTestPlan: (params: TestPlanGenerationRequest) => void;
     generateFunctionTests: (params: TestGeneratorIntermediaryState) => void;
     generateHealthcareCode: (params: GenerateCodeRequest) => void;
+    abortAIGeneration: () => void;
 }

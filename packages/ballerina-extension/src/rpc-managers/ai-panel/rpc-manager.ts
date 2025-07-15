@@ -61,7 +61,7 @@ import {
     TestGenerationRequest,
     TestGenerationResponse,
     TestGeneratorIntermediaryState,
-    TestPlanGenerationRequest
+    TestPlanGenerationRequest,
 } from "@wso2/ballerina-core";
 import { STKindChecker, STNode } from "@wso2/syntax-tree";
 import * as crypto from 'crypto';
@@ -79,6 +79,7 @@ import { extension } from "../../BalExtensionContext";
 import { NOT_SUPPORTED } from "../../core";
 import { generateDataMapping, generateTypeCreation } from "../../features/ai/dataMapping";
 import { generateCode, triggerGeneratedCodeRepair } from "../../features/ai/service/code/code";
+import { generateHealthcareCode } from "../../features/ai/service/healthcare/healthcare";
 import { selectRequiredFunctions } from "../../features/ai/service/libs/funcs";
 import { GenerationType, getSelectedLibraries } from "../../features/ai/service/libs/libs";
 import { Library } from "../../features/ai/service/libs/libs_types";
@@ -100,15 +101,14 @@ import {
     REQ_KEY, TEST_DIR_NAME
 } from "./constants";
 import { attemptRepairProject, checkProjectDiagnostics } from "./repair-utils";
-import { cleanDiagnosticMessages, handleStop, isErrorCode, requirementsSpecification, searchDocumentation } from "./utils";
+import { AIPanelAbortController, cleanDiagnosticMessages, handleStop, isErrorCode, requirementsSpecification, searchDocumentation } from "./utils";
 import { fetchData } from "./utils/fetch-data-utils";
-import { generateHealthcareCode } from "../../features/ai/service/healthcare/healthcare";
 
 export let hasStopped: boolean = false;
 
 export class AiPanelRpcManager implements AIPanelAPI {
 
-    private testGenAbortController: AbortController | null = null;
+    private abortController: AbortController;
 
     // ==================================
     // General Functions
@@ -415,11 +415,11 @@ export class AiPanelRpcManager implements AIPanelAPI {
             try {
                 const projectRoot = await getBallerinaProjectRoot();
 
-                if (this.testGenAbortController) {
-                    this.testGenAbortController.abort();
-                }
-                this.testGenAbortController = new AbortController();
-                const generatedTests = await generateTest(projectRoot, params, this.testGenAbortController);
+                // if (this.abortController) {
+                //     this.abortController.abort();
+                // }
+                // this.abortController = new AbortController();
+                const generatedTests = await generateTest(projectRoot, params, this.abortController);
                 resolve(generatedTests);
             } catch (error) {
                 reject(error);
@@ -492,10 +492,10 @@ export class AiPanelRpcManager implements AIPanelAPI {
     }
 
     async abortTestGeneration(): Promise<void> {
-        if (this.testGenAbortController) {
-            this.testGenAbortController.abort();
-            this.testGenAbortController = null;
-        }
+        // if (this.abortController) {
+            this.abortController.abort();
+            // this.abortController = null;
+        // }
     }
 
     async getMappingsFromRecord(params: GenerateMappingsFromRecordRequest): Promise<GenerateMappingFromRecordResponse> {
@@ -788,6 +788,10 @@ export class AiPanelRpcManager implements AIPanelAPI {
 
     async generateHealthcareCode(params: GenerateCodeRequest): Promise<void> {
         await generateHealthcareCode(params);
+    }
+
+    async abortAIGeneration(): Promise<void> {
+        AIPanelAbortController.getInstance().abort();
     }
 }
 

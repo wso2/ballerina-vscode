@@ -1,5 +1,5 @@
 import { CoreMessage, generateText, streamText } from "ai";
-import { anthropic } from "../connection";
+import { anthropic, ANTHROPIC_SONNET_4 } from "../connection";
 import { GenerationType, getRelevantLibrariesAndFunctions } from "../libs/libs";
 import { getReadmeQuery, populateHistory, transformProjectSource, getErrorMessage } from "../utils";
 import { getMaximizedSelectedLibs, selectRequiredFunctions, toMaximizedLibrariesFromLibJson } from "./../libs/funcs";
@@ -21,6 +21,7 @@ import {
 } from "@wso2/ballerina-core";
 import { getProjectSource, postProcess } from "../../../../rpc-managers/ai-panel/rpc-manager";
 import { CopilotEventHandler, createWebviewEventHandler } from "../event";
+import { AIPanelAbortController } from "../../../../../src/rpc-managers/ai-panel/utils";
 
 // Core code generation function that emits events
 export async function generateCodeCore(params: GenerateCodeRequest, eventHandler: CopilotEventHandler): Promise<void> {
@@ -57,10 +58,11 @@ export async function generateCodeCore(params: GenerateCodeRequest, eventHandler
     ];
 
     const { fullStream } = streamText({
-        model: anthropic("claude-3-5-sonnet-20241022"),
-        maxTokens: 4096,
+        model: anthropic(ANTHROPIC_SONNET_4),
+        maxTokens: 4096*4,
         temperature: 0,
         messages: allMessages,
+        abortSignal: AIPanelAbortController.getInstance().signal,
     });
 
     eventHandler({ type: "start" });
@@ -263,25 +265,23 @@ ${fileInstructions}
 }
 
 export async function triggerGeneratedCodeRepair(params: RepairParams): Promise<RepairResponse> {
-    console.log("Triggering code repair with params: ", params);
     const eventHandler = createWebviewEventHandler();
-    return await repairCodeCore(params, eventHandler);
+    try {
+        return await repairCodeCore(params, eventHandler);
+    } catch (error) {
+        console.error("Error during code repair:", error);
+        eventHandler({ type: "error", content: getErrorMessage(error) });
+    }
 }
 
 // Core repair function that emits events
 export async function repairCodeCore(params: RepairParams, eventHandler: CopilotEventHandler): Promise<RepairResponse> {
-    try {
-        eventHandler({ type: "start" });
-        const resp = await repairCode(params);
-        eventHandler({ type: "content_replace", content: resp.repairResponse });
-        eventHandler({ type: "diagnostics", diagnostics: resp.diagnostics });
-        eventHandler({ type: "stop" });
-        return resp;
-    } catch (error) {
-        console.error("Error during code repair:", error);
-        eventHandler({ type: "error", content: getErrorMessage(error) });
-        throw error;
-    }
+    eventHandler({ type: "start" });
+    const resp = await repairCode(params);
+    eventHandler({ type: "content_replace", content: resp.repairResponse });
+    eventHandler({ type: "diagnostics", diagnostics: resp.diagnostics });
+    eventHandler({ type: "stop" });
+    return resp;
 }
 
 export async function repairCode(params: RepairParams): Promise<RepairResponse> {
@@ -300,10 +300,12 @@ export async function repairCode(params: RepairParams): Promise<RepairResponse> 
     ];
 
     const { text } = await generateText({
-        model: anthropic("claude-3-5-sonnet-20241022"),
-        maxTokens: 4096,
+        model: anthropic(ANTHROPIC_SONNET_4),
+        maxTokens: 4096 * 4,
         temperature: 0,
         messages: allMessages,
+        abortSignal: AIPanelAbortController.getInstance().signal
+
     });
 
     // replace original response with new code blocks

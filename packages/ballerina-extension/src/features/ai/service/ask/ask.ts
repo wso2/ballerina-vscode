@@ -19,9 +19,10 @@ import { LIBS_URL } from "../../utils";
 import { selectRequiredFunctions } from "../libs/funcs";
 import { GenerationType, getSelectedLibraries } from "../libs/libs";
 import { Library, LibraryWithUrl } from "../libs/libs_types";
-import { anthropic } from "../connection";
+import { anthropic, ANTHROPIC_HAIKU } from "../connection";
 import { z } from 'zod';
 import { tool } from 'ai';
+import { AIPanelAbortController } from "../../../../../src/rpc-managers/ai-panel/utils";
 
 interface Document {
     document: string;
@@ -218,7 +219,7 @@ export async function getAskResponse(question: string): Promise<ResponseSchema> 
 
 async function getToolCallsFromClaude(question: string): Promise<ToolCall[]> {
     const { text, toolCalls } = await generateText({
-        model: anthropic("claude-3-5-haiku-20241022"),
+        model: anthropic(ANTHROPIC_HAIKU),
         maxTokens: 8192,
         tools: tools,
         messages: [
@@ -228,6 +229,7 @@ async function getToolCallsFromClaude(question: string): Promise<ToolCall[]> {
             }
         ],
         maxSteps: 1, // Limit to one step to get tool calls only
+        abortSignal: AIPanelAbortController.getInstance().signal
     });
     
     if (toolCalls && toolCalls.length > 0) {
@@ -242,7 +244,7 @@ async function getToolCallsFromClaude(question: string): Promise<ToolCall[]> {
 
 async function getFinalResponseFromClaude(systemMessage: string, question: string): Promise<string> {
     const { text } = await generateText({
-        model: anthropic("claude-3-5-haiku-20241022"),
+        model: anthropic(ANTHROPIC_HAIKU),
         maxTokens: 8192,
         system: systemMessage,
         messages: [
@@ -250,7 +252,8 @@ async function getFinalResponseFromClaude(systemMessage: string, question: strin
                 role: "user",
                 content: question
             }
-        ]
+        ],
+        abortSignal: AIPanelAbortController.getInstance().signal
     });
     
     return text;

@@ -13,6 +13,7 @@ import {
 } from "./utils";
 import { CopilotEventHandler, createWebviewEventHandler } from "../event";
 import { getErrorMessage } from "../utils";
+import { AIPanelAbortController } from "../../../../../src/rpc-managers/ai-panel/utils";
 
 // Core test generation function that emits events
 export async function generateTestFromLLMCore(request: TestGenerationRequest1, eventHandler: CopilotEventHandler): Promise<TestGenerationResponse> {
@@ -88,8 +89,10 @@ async function getStreamedTestResponse(request: TestGenerationRequest1): Promise
     const { text } = await generateText({
         model: anthropic("claude-sonnet-4-20250514"),
         maxTokens: 16384,
+        temperature: 0,
         system: systemPrompt,
-        messages: messages
+        messages: messages,
+        abortSignal: AIPanelAbortController.getInstance().signal
     });
 
     return text;

@@ -4,69 +4,72 @@ import { BACKEND_URL } from "../../utils";
 import { RPCLayer } from "../../../../../src/RPCLayer";
 import { AiPanelWebview } from "../../../../views/ai-panel/webview";
 import { CoreMessage, generateText, streamText } from "ai";
-import { anthropic } from "../connection";
+import { anthropic, ANTHROPIC_HAIKU } from "../connection";
 import { getErrorMessage, populateHistory } from "../utils";
 import { CopilotEventHandler, createWebviewEventHandler } from "../event";
+import { AIPanelAbortController } from "../../../../../src/rpc-managers/ai-panel/utils";
 
 // Core OpenAPI generation function that emits events
-export async function generateOpenAPISpecCore(params: GenerateOpenAPIRequest, eventHandler: CopilotEventHandler): Promise<void> {
+export async function generateOpenAPISpecCore(
+    params: GenerateOpenAPIRequest,
+    eventHandler: CopilotEventHandler
+): Promise<void> {
     // Populate chat history and add user message
     const historyMessages = populateHistory(params.chatHistory);
-    
-    try {
-        const { fullStream } = streamText({
-            model: anthropic("claude-3-5-haiku-20241022"),
-            maxTokens: 8192,
-            temperature: 0,
-            messages: [
-                {
-                    role: "system",
-                    content: getSystemPrompt(),
-                    providerOptions: {
-                        anthropic: { cacheControl: { type: "ephemeral" } },
-                    },
+    const { fullStream } = streamText({
+        model: anthropic(ANTHROPIC_HAIKU),
+        maxTokens: 8192,
+        temperature: 0,
+        messages: [
+            {
+                role: "system",
+                content: getSystemPrompt(),
+                providerOptions: {
+                    anthropic: { cacheControl: { type: "ephemeral" } },
                 },
-                ...historyMessages,
-                {
-                    role: "user",
-                    content: getUserPrompt(params.query),
-                },
-            ],
-        });
+            },
+            ...historyMessages,
+            {
+                role: "user",
+                content: getUserPrompt(params.query),
+            },
+        ],
+        abortSignal: AIPanelAbortController.getInstance().signal,
+    });
 
-        eventHandler({ type: 'start' });
+    eventHandler({ type: "start" });
 
-        for await (const part of fullStream) {
-            switch (part.type) {
-                case "text-delta": {
-                    const textPart = part.textDelta;
-                    eventHandler({ type: 'content_block', content: textPart });
-                    break;
-                }
-                case "error": {
-                    const error = part.error;
-                    console.error("Error during OpenAPI generation:", error);
-                    eventHandler({ type: 'error', content:getErrorMessage(error) });
-                    break;
-                }
-                case "finish": {
-                    const finishReason = part.finishReason;
-                    eventHandler({ type: 'stop'});
-                    break;
-                }
+    for await (const part of fullStream) {
+        switch (part.type) {
+            case "text-delta": {
+                const textPart = part.textDelta;
+                eventHandler({ type: "content_block", content: textPart });
+                break;
+            }
+            case "error": {
+                const error = part.error;
+                console.error("Error during OpenAPI generation:", error);
+                eventHandler({ type: "error", content: getErrorMessage(error) });
+                break;
+            }
+            case "finish": {
+                const finishReason = part.finishReason;
+                eventHandler({ type: "stop" });
+                break;
             }
         }
-    } catch (error) {
-        console.log("Error during OpenAPI generation:", error);
-        eventHandler({ type: 'error', content: getErrorMessage(error) });
     }
 }
-
 
 // Main public function that uses the default event handler
 export async function generateOpenAPISpec(params: GenerateOpenAPIRequest): Promise<void> {
     const eventHandler = createWebviewEventHandler();
-    await generateOpenAPISpecCore(params, eventHandler);
+    try {
+        await generateOpenAPISpecCore(params, eventHandler);
+    } catch (error) {
+        console.error("Error during openapi generation:", error);
+        eventHandler({ type: "error", content: getErrorMessage(error) });
+    }
 }
 
 function getSystemPrompt() {
@@ -98,5 +101,3 @@ function getUserPrompt(query: string): string {
     return `User Scenario:
 ${query}`;
 }
-
-

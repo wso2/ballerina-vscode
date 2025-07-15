@@ -14,8 +14,11 @@
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations
  * under the License.
+ * 
+ * THIS FILE INCLUDES AUTO GENERATED CODE
  */
 import {
+    abortAIGeneration,
     abortTestGeneration,
     addChatSummary,
     addToProject,
@@ -155,4 +158,5 @@ export function registerAiPanelRpcHandlers(messenger: Messenger) {
     messenger.onNotification(generateTestPlan, (args: TestPlanGenerationRequest) => rpcManger.generateTestPlan(args));
     messenger.onNotification(generateFunctionTests, (args: TestGeneratorIntermediaryState) => rpcManger.generateFunctionTests(args));
     messenger.onNotification(generateHealthcareCode, (args: GenerateCodeRequest) => rpcManger.generateHealthcareCode(args));
+    messenger.onNotification(abortAIGeneration, () => rpcManger.abortAIGeneration());
 }

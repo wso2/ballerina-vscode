@@ -1,93 +1,125 @@
 import { CoreMessage, generateObject, generateText, streamText } from "ai";
-import { anthropic } from "../connection";
+import { anthropic, ANTHROPIC_HAIKU, ANTHROPIC_SONNET_4 } from "../connection";
 import { GenerationType, getRelevantLibrariesAndFunctions } from "../libs/libs";
 import { getReadmeQuery, populateHistory, transformProjectSource, getErrorMessage } from "../utils";
-import { getMaximizedSelectedLibs, libraryContains, selectRequiredFunctions, toMaximizedLibrariesFromLibJson } from "../libs/funcs";
+import {
+    getMaximizedSelectedLibs,
+    libraryContains,
+    selectRequiredFunctions,
+    toMaximizedLibrariesFromLibJson,
+} from "../libs/funcs";
 import { GetFunctionResponse, GetFunctionsRequest, getFunctionsResponseSchema } from "../libs/funcs_inter_types";
 import { LANGLIBS } from "../libs/langlibs";
-import { GetTypeResponse, GetTypesRequest, GetTypesResponse, getTypesResponseSchema, Library, MiniType, TypeDefinition } from "../libs/libs_types";
-import { ChatNotify, DiagnosticEntry, FileAttatchment, GenerateCodeRequest, onChatNotify, PostProcessResponse, ProjectDiagnostics, ProjectSource, RepairParams, RepairResponse, SourceFiles } from "@wso2/ballerina-core";
+import {
+    GetTypeResponse,
+    GetTypesRequest,
+    GetTypesResponse,
+    getTypesResponseSchema,
+    Library,
+    MiniType,
+    TypeDefinition,
+} from "../libs/libs_types";
+import {
+    ChatNotify,
+    DiagnosticEntry,
+    FileAttatchment,
+    GenerateCodeRequest,
+    onChatNotify,
+    PostProcessResponse,
+    ProjectDiagnostics,
+    ProjectSource,
+    RepairParams,
+    RepairResponse,
+    SourceFiles,
+} from "@wso2/ballerina-core";
 import { getProjectSource, postProcess } from "../../../../rpc-managers/ai-panel/rpc-manager";
 import { CopilotEventHandler, createWebviewEventHandler } from "../event";
+import { AIPanelAbortController } from "../../../../../src/rpc-managers/ai-panel/utils";
 
 // Core healthcare code generation function that emits events
-export async function generateHealthcareCodeCore(params: GenerateCodeRequest, eventHandler: CopilotEventHandler): Promise<void> {
+export async function generateHealthcareCodeCore(
+    params: GenerateCodeRequest,
+    eventHandler: CopilotEventHandler
+): Promise<void> {
     const project: ProjectSource = await getProjectSource("CODE_GENERATION");
     const sourceFiles: SourceFiles[] = transformProjectSource(project);
     const prompt = getReadmeQuery(params, sourceFiles);
-    const relevantTrimmedFuncs: Library[] = (await getRelevantLibrariesAndFunctions({query:prompt}, GenerationType.HEALTHCARE_GENERATION)).libraries;
+    const relevantTrimmedFuncs: Library[] = (
+        await getRelevantLibrariesAndFunctions({ query: prompt }, GenerationType.HEALTHCARE_GENERATION)
+    ).libraries;
 
     const historyMessages = populateHistory(params.chatHistory);
 
     const allMessages: CoreMessage[] = [
-            {
-                role: "system",
-                content: getSystemPromptPrefix(relevantTrimmedFuncs),
+        {
+            role: "system",
+            content: getSystemPromptPrefix(relevantTrimmedFuncs),
+        },
+        {
+            role: "system",
+            content: getSystemPromptSuffix(LANGLIBS, [], sourceFiles, params.fileAttachmentContents, prompt),
+            providerOptions: {
+                anthropic: { cacheControl: { type: "ephemeral" } },
             },
-            {
-                role: "system",
-                content: getSystemPromptSuffix(LANGLIBS, [], sourceFiles, params.fileAttachmentContents, prompt),
-                providerOptions: {
-                    anthropic: { cacheControl: { type: "ephemeral" } },
-                },
+        },
+        ...historyMessages,
+        {
+            role: "user",
+            content: prompt,
+            providerOptions: {
+                anthropic: { cacheControl: { type: "ephemeral" } },
             },
-            ...historyMessages,
-            {
-                role: "user",
-                content: prompt,
-                providerOptions: {
-                    anthropic: { cacheControl: { type: "ephemeral" } },
-                },
-            },
+        },
     ];
 
-    try {
-        const { fullStream } = streamText({
-            model: anthropic("claude-3-5-sonnet-20241022"),
-            maxTokens: 4096,
-            temperature: 0,
-            messages: allMessages,
-        });
+    const { fullStream } = streamText({
+        model: anthropic(ANTHROPIC_SONNET_4),
+        maxTokens: 4096*2,
+        temperature: 0,
+        messages: allMessages,
+        abortSignal: AIPanelAbortController.getInstance().signal,
+    });
 
-        eventHandler({ type: 'start' });
-        let assistantResponse: string = "";
-        for await (const part of fullStream) {
-            switch (part.type) {
-                case "text-delta": {
-                    const textPart = part.textDelta;
-                    assistantResponse += textPart;
-                    eventHandler({ type: 'content_block', content: textPart });
-                    break;
-                }
-                case "error": {
-                    const error = part.error;
-                    console.error("Error during Code generation:", error);
-                    eventHandler({ type: 'error', content: getErrorMessage(error) });
-                    break;
-                }
-                case "finish": {
-                    const finishReason = part.finishReason;
-                    const postProcessedResp: PostProcessResponse = await postProcess({
-                        assistant_response: assistantResponse
-                    });
-                    assistantResponse = postProcessedResp.assistant_response;
+    eventHandler({ type: "start" });
+    let assistantResponse: string = "";
+    for await (const part of fullStream) {
+        switch (part.type) {
+            case "text-delta": {
+                const textPart = part.textDelta;
+                assistantResponse += textPart;
+                eventHandler({ type: "content_block", content: textPart });
+                break;
+            }
+            case "error": {
+                const error = part.error;
+                console.error("Error during Code generation:", error);
+                eventHandler({ type: "error", content: getErrorMessage(error) });
+                break;
+            }
+            case "finish": {
+                const finishReason = part.finishReason;
+                const postProcessedResp: PostProcessResponse = await postProcess({
+                    assistant_response: assistantResponse,
+                });
+                assistantResponse = postProcessedResp.assistant_response;
 
-                    eventHandler({ type: 'content_replace', content: assistantResponse });
-                    eventHandler({ type: 'stop' });
-                    break;
-                }
+                eventHandler({ type: "content_replace", content: assistantResponse });
+                eventHandler({ type: "stop" });
+                break;
             }
         }
-    } catch (error) {
-        console.error("Error during Healthcare code generation:", error);
-        eventHandler({ type: 'error', content: getErrorMessage(error) });
     }
 }
 
 // Main public function that uses the default event handler
 export async function generateHealthcareCode(params: GenerateCodeRequest): Promise<void> {
     const eventHandler = createWebviewEventHandler();
-    await generateHealthcareCodeCore(params, eventHandler);
+    try {
+        await generateHealthcareCodeCore(params, eventHandler);
+    } catch (error) {
+        console.error("Error during healthcare generation:", error);
+        eventHandler({ type: "error", content: getErrorMessage(error) });
+    }
 }
 
 function getSystemPromptPrefix(apidocs: Library[]) {
@@ -100,7 +132,13 @@ ${JSON.stringify(apidocs)}
 `;
 }
 
-function getSystemPromptSuffix(langlibs: Library[], types: string[], existingCode: SourceFiles[], fileUploadContents: FileAttatchment[], usecase: string): string {
+function getSystemPromptSuffix(
+    langlibs: Library[],
+    types: string[],
+    existingCode: SourceFiles[],
+    fileUploadContents: FileAttatchment[],
+    usecase: string
+): string {
     return `Then, learn and understand the core Ballerina language libraries, the types and the functions they offer: 
 <langlibs>
 ${JSON.stringify(langlibs)}
@@ -252,17 +290,21 @@ Think step-by-step and start writing code. Adhere to the outcomes of the plannin
 `;
 }
 
-export async function getRequiredTypesFromLibJson(libraries: string[], prompt: string, librariesJson: Library[]): Promise<GetTypeResponse[]> {
+export async function getRequiredTypesFromLibJson(
+    libraries: string[],
+    prompt: string,
+    librariesJson: Library[]
+): Promise<GetTypeResponse[]> {
     if (librariesJson.length === 0) {
         return [];
     }
 
     const typeDefs: GetTypesRequest[] = librariesJson
-        .filter(lib => libraryContains(lib.name, libraries))
-        .map(lib => ({
+        .filter((lib) => libraryContains(lib.name, libraries))
+        .map((lib) => ({
             name: lib.name,
             description: lib.description,
-            types: filteredTypes(lib.typeDefs)
+            types: filteredTypes(lib.typeDefs),
         }));
 
     if (typeDefs.length === 0) {
@@ -308,15 +350,16 @@ Think step-by-step to choose the required types in order to solve the given ques
 
     const messages: CoreMessage[] = [
         { role: "system", content: getLibSystemPrompt },
-        { role: "user", content: getLibUserPrompt }
+        { role: "user", content: getLibUserPrompt },
     ];
     try {
         const { object } = await generateObject({
-            model: anthropic("claude-3-5-haiku-20241022"),
+            model: anthropic(ANTHROPIC_HAIKU),
             maxTokens: 8192,
             temperature: 0,
             messages: messages,
-            schema: getTypesResponseSchema
+            schema: getTypesResponseSchema,
+            abortSignal: AIPanelAbortController.getInstance().signal,
         });
 
         const libList = object as GetTypesResponse;
@@ -327,8 +370,8 @@ Think step-by-step to choose the required types in order to solve the given ques
 }
 
 function filteredTypes(typeDefinitions: TypeDefinition[]): MiniType[] {
-    return typeDefinitions.map(typeDef => ({
+    return typeDefinitions.map((typeDef) => ({
         name: typeDef.name,
-        description: typeDef.description
+        description: typeDef.description,
     }));
 }

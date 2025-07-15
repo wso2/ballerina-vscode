@@ -58,6 +58,32 @@ const REQUEST_TIMEOUT = 2000000;
 let abortController = new AbortController();
 const primitiveTypes = ["string", "int", "float", "decimal", "boolean"];
 
+export class AIPanelAbortController {
+    private static instance: AIPanelAbortController;
+    private abortController: AbortController;
+
+    private constructor() {
+        this.abortController = new AbortController();
+    }
+
+    public static getInstance(): AIPanelAbortController {
+        if (!AIPanelAbortController.instance) {
+            AIPanelAbortController.instance = new AIPanelAbortController();
+        }
+        return AIPanelAbortController.instance;
+    }
+
+    public get signal(): AbortSignal {
+        return this.abortController.signal;
+    }
+
+    public abort(): void {
+        this.abortController.abort();
+        // Create a new AbortController for the next operation
+        this.abortController = new AbortController();
+    }
+}
+
 export function handleStop() {
     abortController.abort();
 }

@@ -3,11 +3,12 @@ import { generateObject, CoreMessage, generateText } from "ai";
 import { BACKEND_URL } from "../../utils";
 import { GetFunctionResponse, GetFunctionsRequest, GetFunctionsResponse, getFunctionsResponseSchema, MinifiedClient, MinifiedRemoteFunction, MinifiedResourceFunction } from "./funcs_inter_types";
 import { Client, GetTypeResponse, Library, RemoteFunction, ResourceFunction } from "./libs_types";
-import { anthropic } from "../connection";
+import { anthropic, ANTHROPIC_HAIKU } from "../connection";
 import { GenerationType } from "./libs";
 import { getRequiredTypesFromLibJson } from "../healthcare/healthcare";
 import { langClient } from "../../activator";
 import { getGenerationMode } from "../utils";
+import { AIPanelAbortController } from "../../../../../src/rpc-managers/ai-panel/utils";
 
 
 export async function selectRequiredFunctions(prompt: string, selectedLibNames: string[], generationType: GenerationType): Promise<Library[]> {
@@ -161,11 +162,12 @@ Now, based on the provided libraries, clients, and functions, and the user query
     ];
     try {
         const { object } = await generateObject({
-            model: anthropic("claude-3-5-haiku-20241022"),
+            model: anthropic(ANTHROPIC_HAIKU),
             maxTokens: 8192,
             temperature: 0,
             messages: messages,
-            schema: getFunctionsResponseSchema
+            schema: getFunctionsResponseSchema,
+            abortSignal: AIPanelAbortController.getInstance().signal
         });
 
         const libList = object as GetFunctionsResponse;

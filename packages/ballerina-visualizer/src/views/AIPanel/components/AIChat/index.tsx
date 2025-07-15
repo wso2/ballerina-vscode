@@ -313,7 +313,7 @@ const AIChat: React.FC = () => {
             addChatEntry("assistant", messages[messages.length - 1].content);
         } else if (type === "error") {
             console.log("Received error signal");
-            const errorTemplate = `\n<error data-system="true" data-auth="${SYSTEM_ERROR_SECRET}">${response.content}</error>`;
+            const errorTemplate = `\n\n<error data-system="true" data-auth="${SYSTEM_ERROR_SECRET}">${response.content}</error>`;
             setMessages((prevMessages) => {
                 const newMessages = [...prevMessages];
                 newMessages[newMessages.length - 1].content += errorTemplate;
@@ -1425,9 +1425,9 @@ const AIChat: React.FC = () => {
 
     async function handleStop() {
         // Abort any ongoing requests
-        abortFetchWithAuth();
+        // abortFetchWithAuth();
         // Abort test generation if running
-        rpcClient.getAiPanelRpcClient().abortTestGeneration();
+        rpcClient.getAiPanelRpcClient().abortAIGeneration();
 
         setIsLoading(false);
         setIsCodeLoading(false);
