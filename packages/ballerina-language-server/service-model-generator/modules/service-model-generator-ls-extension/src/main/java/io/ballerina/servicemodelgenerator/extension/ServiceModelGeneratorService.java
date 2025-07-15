@@ -78,6 +78,7 @@ import io.ballerina.servicemodelgenerator.extension.request.ServiceModifierReque
 import io.ballerina.servicemodelgenerator.extension.request.ServiceSourceRequest;
 import io.ballerina.servicemodelgenerator.extension.request.TriggerListRequest;
 import io.ballerina.servicemodelgenerator.extension.request.TriggerRequest;
+import io.ballerina.servicemodelgenerator.extension.request.TypesRequest;
 import io.ballerina.servicemodelgenerator.extension.response.AddOrGetDefaultListenerResponse;
 import io.ballerina.servicemodelgenerator.extension.response.CommonSourceResponse;
 import io.ballerina.servicemodelgenerator.extension.response.FunctionModelResponse;
@@ -89,9 +90,11 @@ import io.ballerina.servicemodelgenerator.extension.response.ServiceFromSourceRe
 import io.ballerina.servicemodelgenerator.extension.response.ServiceModelResponse;
 import io.ballerina.servicemodelgenerator.extension.response.TriggerListResponse;
 import io.ballerina.servicemodelgenerator.extension.response.TriggerResponse;
+import io.ballerina.servicemodelgenerator.extension.response.TypeResponse;
 import io.ballerina.servicemodelgenerator.extension.util.ListenerUtil;
 import io.ballerina.servicemodelgenerator.extension.util.ServiceClassUtil;
 import io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils;
+import io.ballerina.servicemodelgenerator.extension.util.TypeCompletionGenerator;
 import io.ballerina.servicemodelgenerator.extension.util.Utils;
 import io.ballerina.tools.text.LinePosition;
 import io.ballerina.tools.text.LineRange;
@@ -112,6 +115,7 @@ import java.lang.reflect.Type;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -350,7 +354,7 @@ public class ServiceModelGeneratorService implements ExtendedLanguageServerServi
                 }
                 Set<String> listenersList = ListenerUtil.getCompatibleListeners(request.moduleName(), semanticModel,
                         project);
-                serviceModel.getListener().setItems(listenersList.stream().toList());
+                serviceModel.getListener().setItems(listenersList.stream().map(l -> (Object) l).toList());
                 return new ServiceModelResponse(serviceModel);
             } catch (Throwable e) {
                 return new ServiceModelResponse(e);
@@ -1115,6 +1119,25 @@ public class ServiceModelGeneratorService implements ExtendedLanguageServerServi
                 return new CommonSourceResponse(Map.of(request.filePath(), edits));
             } catch (Throwable e) {
                 return new CommonSourceResponse(e);
+            }
+        });
+    }
+
+    /**
+     * Get the filtered list of types for a given protocol context.
+     *
+     * @param request Class field modifier request
+     * @return {@link CommonSourceResponse} of the common source response
+     */
+    @JsonRequest
+    public CompletableFuture<TypeResponse> types(TypesRequest request) {
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                Path filePath = Path.of(request.filePath());
+                Project project = this.workspaceManager.loadProject(filePath);
+                return new TypeResponse(TypeCompletionGenerator.getTypes(project));
+            } catch (Throwable e) {
+                return new TypeResponse(Collections.emptyList());
             }
         });
     }

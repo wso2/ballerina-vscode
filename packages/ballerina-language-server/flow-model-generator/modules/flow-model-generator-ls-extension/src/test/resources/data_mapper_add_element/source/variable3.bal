@@ -22,7 +22,7 @@ service OASServiceType on new http:Listener(9090) {
 
 	resource function get pet() returns int|http:NotFound {
         do {
-            Department department = {name: "DEPT1", students: [{username: "Alex", password: "xelA", address: [{street: "s1", city: "c1"}]}]};
+            // Department department = {name: "DEPT1", students: [{username: "Alex", password: "xelA", address: [{street: "s1", city: "c1"}]}]};
 		} on fail error e {
 			return http:NOT_FOUND;
 		}

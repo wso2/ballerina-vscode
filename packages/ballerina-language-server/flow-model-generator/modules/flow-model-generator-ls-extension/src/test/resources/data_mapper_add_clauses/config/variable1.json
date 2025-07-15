@@ -1,48 +1,77 @@
 {
   "source": "variable1.bal",
   "description": "Sample diagram node",
-  "codedata": {
-    "node": "VARIABLE",
-    "lineRange": {
-      "fileName": "variable1.bal",
-      "startLine": {
-        "line": 19,
-        "offset": 12
+  "diagram": {
+    "id": "32874",
+    "metadata": {
+      "label": "Variable",
+      "description": "Assign a value to a variable"
+    },
+    "codedata": {
+      "node": "VARIABLE",
+      "lineRange": {
+        "fileName": "variable1.bal",
+        "startLine": {
+          "line": 0,
+          "offset": 0
+        },
+        "endLine": {
+          "line": 0,
+          "offset": 0
+        }
       },
-      "endLine": {
-        "line": 19,
-        "offset": 101
+      "sourceCode": ""
+    },
+    "returning": false,
+    "properties": {
+      "expression": {
+        "metadata": {
+          "label": "Expression",
+          "description": "Expression"
+        },
+        "valueType": "EXPRESSION",
+        "value": "from var item in userInfo select { password: item.password }; ",
+        "optional": false,
+        "editable": true
+      },
+      "variable": {
+        "metadata": {
+          "label": "Variable",
+          "description": "Name of the variable"
+        },
+        "valueType": "IDENTIFIER",
+        "value": "credentials",
+        "optional": false,
+        "editable": true
+      },
+      "type": {
+        "metadata": {
+          "label": "Type",
+          "description": "Type of the variable"
+        },
+        "valueType": "TYPE",
+        "value": "Credentials[]",
+        "optional": false,
+        "editable": true
       }
     },
-    "sourceCode": "Credentials[] credentials = from var item in userInfo select { password: item.password };",
-    "isNew": true
+    "flags": 0
   },
   "propertyKey": "expression",
-  "index": 0,
-  "clause": {
-    "type": "from",
-    "properties": {
+  "query": {
+    "fromClause": {
       "name": "item",
       "type": "var",
       "expression": "userInfo"
+    },
+    "intermediateClauses": [],
+    "resultClause": {
+      "type": "select",
+      "properties": {
+        "expression": "{ password: item.password }"
+      }
     }
   },
-  "targetField": "credentials",
-  "output": {
-    "variable1.bal": [
-      {
-        "range": {
-          "start": {
-            "line": 19,
-            "character": 65
-          },
-          "end": {
-            "line": 19,
-            "character": 65
-          }
-        },
-        "newText": "\nfrom var item in userInfo"
-      }
-    ]
-  }
+  "targetField": "",
+  "output": "from var item in userInfo\nselect { password: item.password }"
 }

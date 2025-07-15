@@ -83,7 +83,7 @@ public class GetAgentOrgTest extends AbstractLSTest {
     }
 
     /**
-     * Represents the test configuration for the flow model getNodeTemplate API.
+     * Represents the test configuration for the getAgentOrg API.
      *
      * @param source      The source file path
      * @param orgName     Expected organization name

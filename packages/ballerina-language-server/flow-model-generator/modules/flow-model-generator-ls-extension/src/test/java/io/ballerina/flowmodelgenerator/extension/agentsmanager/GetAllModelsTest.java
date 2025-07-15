@@ -94,5 +94,8 @@ public class GetAllModelsTest extends AbstractLSTest {
      * @param models      List of all available models
      */
     private record TestConfig(String source, String description, String orgName, String agent, JsonArray models) {
+        public String description() {
+            return description == null ? "" : description;
+        }
     }
 }

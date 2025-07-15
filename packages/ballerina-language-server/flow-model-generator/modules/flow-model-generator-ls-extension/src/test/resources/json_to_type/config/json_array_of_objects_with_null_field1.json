@@ -1,0 +1,10 @@
+{
+  "description": "JSON object with mixed typed fields (arrays of different object types)",
+  "filePath": "proj/types.bal",
+  "jsonString": "[\n  {\"id\": 1, \"name\": true},\n  {\"id\": 2, \"name\": null }\n]",
+  "typeName": "Persons",
+  "prefix": "",
+  "allowAdditionalFields": false,
+  "asInline": false,
+  "expectedTypes": "\ntype PersonsItem record {|\n\tint id;\n\tboolean? name;\n|};\n\ntype Persons PersonsItem[];\n"
+}

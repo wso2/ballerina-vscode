@@ -19,7 +19,7 @@
 package io.ballerina.flowmodelgenerator.extension.request;
 
 /**
- * A request to retrieve all available agents.
+ * A request to retrieve which `ai` org to use.
  *
  * @param projectPath project path
 

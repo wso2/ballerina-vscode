@@ -23,7 +23,6 @@ import com.google.gson.JsonElement;
 import io.ballerina.flowmodelgenerator.extension.request.FilePathRequest;
 import io.ballerina.modelgenerator.commons.AbstractLSTest;
 import org.testng.Assert;
-import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import java.io.IOException;
@@ -53,18 +52,9 @@ public class GetAllTypesTest extends AbstractLSTest {
         }
     }
 
-    @DataProvider(name = "data-provider")
-    @Override
-    protected Object[] getConfigsList() {
-        return new Object[][]{
-                {Path.of("get_all_types1.json")},
-                {Path.of("get_all_types2.json")},
-        };
-    }
-
     @Override
     protected String getResourceDir() {
-        return "types_manager";
+        return "types_manager/get_types";
     }
 
     @Override

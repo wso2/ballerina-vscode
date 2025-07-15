@@ -1,46 +1,113 @@
 {
-  "source": "variable2.bal",
+  "source": "variable1.bal",
   "description": "Sample diagram node",
-  "codedata": {
-    "node": "VARIABLE",
-    "lineRange": {
-      "fileName": "variable2.bal",
-      "startLine": {
-        "line": 19,
-        "offset": 12
+  "diagram": {
+    "id": "32874",
+    "metadata": {
+      "label": "Variable",
+      "description": "Assign a value to a variable"
+    },
+    "codedata": {
+      "node": "VARIABLE",
+      "lineRange": {
+        "fileName": "variable1.bal",
+        "startLine": {
+          "line": 0,
+          "offset": 0
+        },
+        "endLine": {
+          "line": 0,
+          "offset": 0
+        }
       },
-      "endLine": {
-        "line": 19,
-        "offset": 122
+      "sourceCode": ""
+    },
+    "returning": false,
+    "properties": {
+      "expression": {
+        "metadata": {
+          "label": "Expression",
+          "description": "Expression"
+        },
+        "valueType": "EXPRESSION",
+        "value": "from var item in userInfo select { password: item.password }; ",
+        "optional": false,
+        "editable": true
+      },
+      "variable": {
+        "metadata": {
+          "label": "Variable",
+          "description": "Name of the variable"
+        },
+        "valueType": "IDENTIFIER",
+        "value": "credentials",
+        "optional": false,
+        "editable": true
+      },
+      "type": {
+        "metadata": {
+          "label": "Type",
+          "description": "Type of the variable"
+        },
+        "valueType": "TYPE",
+        "value": "Credentials[]",
+        "optional": false,
+        "editable": true
       }
     },
-    "sourceCode": "Credentials[] credentials = from var item in userInfo select { password: item.password };",
-    "isNew": false
+    "flags": 0
   },
   "propertyKey": "expression",
-  "index": 0,
-  "clause": {
-    "type": "where",
-    "properties": {
-      "expression": "userInfo.username == \"Alex\""
+  "query": {
+    "fromClause": {
+      "name": "item",
+      "type": "var",
+      "expression": "userInfo"
+    },
+    "intermediateClauses": [
+      {
+        "type": "where",
+        "properties": {
+          "expression": "userInfo.username == \"Alex\""
+        }
+      },
+      {
+        "type": "from",
+        "properties": {
+          "name": "newItem",
+          "type": "var",
+          "expression": "userInfo.username == \"Alex\""
+        }
+      },
+      {
+        "type": "let",
+        "properties": {
+          "name": "i",
+          "type": "int",
+          "expression": "2"
+        }
+      },
+      {
+        "type": "order-by",
+        "properties": {
+          "expression": "userInfo.username",
+          "order": "ascending"
+        }
+      },
+      {
+        "type": "limit",
+        "properties": {
+          "expression": "1"
+        }
+      }
+    ],
+    "resultClause": {
+      "type": "select",
+      "properties": {
+        "expression": "{ password: item.password }"
+      }
     }
   },
-  "targetField": "credentials",
-  "output": {
-    "variable2.bal": [
-      {
-        "range": {
-          "start": {
-            "line": 19,
-            "character": 66
-          },
-          "end": {
-            "line": 19,
-            "character": 86
-          }
-        },
-        "newText": "where userInfo.username == \"Alex\""
-      }
-    ]
-  }
+  "targetField": "",
+  "output": "from var item in userInfo\nwhere userInfo.username == \"Alex\"\nfrom var newItem in userInfo.username == \"Alex\"\nlet int i = 2\norder by userInfo.username ascending\nlimit 1\nselect { password: item.password }"
 }

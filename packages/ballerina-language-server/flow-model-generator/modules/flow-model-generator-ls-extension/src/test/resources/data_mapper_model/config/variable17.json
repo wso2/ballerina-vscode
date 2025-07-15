@@ -1,20 +1,61 @@
 {
   "source": "variable8.bal",
   "description": "Sample diagram node",
-  "codedata": {
-    "node": "VARIABLE",
-    "lineRange": {
-      "fileName": "variable8.bal",
-      "startLine": {
-        "line": 26,
-        "offset": 12
+  "diagram": {
+    "id": "32874",
+    "metadata": {
+      "label": "Variable",
+      "description": "Assign a value to a variable"
+    },
+    "codedata": {
+      "node": "VARIABLE",
+      "lineRange": {
+        "fileName": "variable8.bal",
+        "startLine": {
+          "line": 0,
+          "offset": 0
+        },
+        "endLine": {
+          "line": 0,
+          "offset": 0
+        }
       },
-      "endLine": {
-        "line": 26,
-        "offset": 133
+      "sourceCode": ""
+    },
+    "returning": false,
+    "properties": {
+      "expression": {
+        "metadata": {
+          "label": "Expression",
+          "description": "Expression"
+        },
+        "valueType": "EXPRESSION",
+        "value": "{id: 1234, credentials: [{username: userInfo[0].username, password: userInfo[1].password}], length: 0}",
+        "optional": false,
+        "editable": true
+      },
+      "variable": {
+        "metadata": {
+          "label": "Variable",
+          "description": "Name of the variable"
+        },
+        "valueType": "IDENTIFIER",
+        "value": "student",
+        "optional": false,
+        "editable": true
+      },
+      "type": {
+        "metadata": {
+          "label": "Type",
+          "description": "Type of the variable"
+        },
+        "valueType": "TYPE",
+        "value": "Student",
+        "optional": false,
+        "editable": true
       }
     },
-    "sourceCode": ""
+    "flags": 0
   },
   "propertyKey": "expression",
   "position": {
@@ -33,19 +74,19 @@
         "member": {
           "fields": [
             {
-              "id": "credentials.0.username",
+              "id": "credentials.username",
               "variableName": "username",
               "typeName": "string",
               "kind": "string"
             },
             {
-              "id": "credentials.0.password",
+              "id": "credentials.password",
               "variableName": "password",
               "typeName": "string",
               "kind": "string"
             }
           ],
-          "id": "credentials.0",
+          "id": "credentials",
           "typeName": "Credentials",
           "kind": "record"
         },
@@ -59,19 +100,19 @@
         "member": {
           "fields": [
             {
-              "id": "userInfo.0.username",
+              "id": "userInfo.username",
               "variableName": "username",
               "typeName": "string",
               "kind": "string"
             },
             {
-              "id": "userInfo.0.password",
+              "id": "userInfo.password",
               "variableName": "password",
               "typeName": "string",
               "kind": "string"
             }
           ],
-          "id": "userInfo.0",
+          "id": "userInfo",
           "typeName": "UserInfo",
           "kind": "record"
         },

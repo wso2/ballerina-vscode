@@ -236,7 +236,8 @@
                             "optional": false,
                             "editable": true,
                             "advanced": false,
-                            "hidden": false
+                            "hidden": false,
+                            "comment": {}
                           }
                         ],
                         "optional": false,
@@ -335,7 +336,8 @@
                             "optional": false,
                             "editable": true,
                             "advanced": false,
-                            "hidden": false
+                            "hidden": false,
+                            "comment": {}
                           }
                         ],
                         "optional": false,
@@ -417,7 +419,8 @@
                                     "optional": false,
                                     "editable": true,
                                     "advanced": false,
-                                    "hidden": false
+                                    "hidden": false,
+                                    "comment": {}
                                   }
                                 ],
                                 "optional": false,
@@ -516,7 +519,8 @@
                                     "optional": false,
                                     "editable": true,
                                     "advanced": false,
-                                    "hidden": false
+                                    "hidden": false,
+                                    "comment": {}
                                   }
                                 ],
                                 "optional": false,
@@ -615,7 +619,8 @@
                                     "optional": false,
                                     "editable": true,
                                     "advanced": false,
-                                    "hidden": false
+                                    "hidden": false,
+                                    "comment": {}
                                   }
                                 ],
                                 "optional": false,
@@ -722,7 +727,8 @@
                             "optional": false,
                             "editable": true,
                             "advanced": false,
-                            "hidden": false
+                            "hidden": false,
+                            "comment": {}
                           }
                         ],
                         "optional": false,

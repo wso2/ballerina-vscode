@@ -18,6 +18,7 @@
 
 package io.ballerina.servicemodelgenerator.extension.model;
 
+import com.google.gson.JsonPrimitive;
 import io.ballerina.modelgenerator.commons.ParameterMemberTypeData;
 
 import java.util.HashMap;
@@ -29,8 +30,8 @@ public class Value {
     private MetaData metadata;
     private boolean enabled;
     private boolean editable;
-    private String value;
-    private List<String> values;
+    private Object value;
+    private List<Object> values;
     private String valueType;
     private String valueTypeConstraint;
     private boolean isType;
@@ -38,7 +39,7 @@ public class Value {
     private boolean optional;
     private boolean advanced;
     private Map<String, Value> properties;
-    private List<String> items;
+    private List<Object> items;
     private Codedata codedata;
     private List<Value> choices;
     private boolean addNewButton = false;
@@ -57,14 +58,24 @@ public class Value {
                 null, null, null, new HashMap<>());
     }
 
-    public Value(String value, String valueType, boolean isEnabled) {
+    public Value(Object value, String valueType, boolean isEnabled) {
         this(null, isEnabled, true, value, valueType, null, false, null,
                 false, false, null, null, null, new HashMap<>());
     }
 
-    public Value(MetaData metadata, boolean enabled, boolean editable, String value, String valueType,
+    public Value(Object value, String valueType, boolean isEnabled, boolean editable) {
+        this(null, isEnabled, editable, value, valueType, null, false, null,
+                false, false, null, null, null, new HashMap<>());
+    }
+
+    public Value(Object value, String valueType, boolean isEnabled, boolean editable, boolean optional) {
+        this(null, isEnabled, editable, value, valueType, null, false, null,
+                optional, false, null, null, null, new HashMap<>());
+    }
+
+    public Value(MetaData metadata, boolean enabled, boolean editable, Object value, String valueType,
                  String valueTypeConstraint, boolean isType, String placeholder, boolean optional,
-                 boolean advanced, Map<String, Value> properties, List<String> items, Codedata codedata,
+                 boolean advanced, Map<String, Value> properties, List<Object> items, Codedata codedata,
                  Map<String, String> imports) {
         this.metadata = metadata;
         this.enabled = enabled;
@@ -103,10 +114,9 @@ public class Value {
         this.imports = value.imports;
     }
 
-    public Value(MetaData metadata, boolean enabled, boolean editable, String value, List<String> values,
-                 String valueType,
-                 String valueTypeConstraint, boolean isType, String placeholder, boolean optional,
-                 boolean advanced, Map<String, Value> properties, List<String> items, Codedata codedata,
+    public Value(MetaData metadata, boolean enabled, boolean editable, Object value, List<Object> values,
+                 String valueType, String valueTypeConstraint, boolean isType, String placeholder, boolean optional,
+                 boolean advanced, Map<String, Value> properties, List<Object> items, Codedata codedata,
                  boolean addNewButton,
                  List<PropertyTypeMemberInfo> typeMembers, Map<String, String> imports) {
         this.metadata = metadata;
@@ -141,7 +151,9 @@ public class Value {
     }
 
     public boolean isEnabledWithValue() {
-        return enabled && ((value != null && !value.isEmpty()) || (values != null && !values.isEmpty()));
+        return enabled && ((value != null && ((value instanceof String && !((String) value).isEmpty())
+                || (value instanceof JsonPrimitive jsonPrimitive && !jsonPrimitive.getAsString().isEmpty())))
+                || (values != null && !values.isEmpty()));
     }
 
     public void setEnabled(boolean enabled) {
@@ -157,25 +169,44 @@ public class Value {
     }
 
     public String getValue() {
-        List<String> values = this.values;
         if (Objects.nonNull(values) && !values.isEmpty()) {
-            return String.join(", ", values.stream().map(Object::toString).toList());
+            if (values.getFirst() instanceof String) {
+                return String.join(", ", values.stream().map(v -> (String) v).toList());
+            }
+            if (values.getFirst() instanceof JsonPrimitive) {
+                return String.join(", ", values.stream().map(v -> (JsonPrimitive) v)
+                        .map(JsonPrimitive::getAsString).toList());
+            }
         }
-        return value;
-    }
-
-    public List<String> getValues() {
-        if (Objects.nonNull(values)) {
-            return values.stream().map(Object::toString).toList();
+        if (value instanceof String) {
+            return (String) value;
+        }
+        if (value instanceof JsonPrimitive) {
+            return ((JsonPrimitive) value).getAsString();
         }
         return null;
     }
 
-    public void setValue(String value) {
+    public List<String> getValues() {
+        if (Objects.nonNull(values) && !values.isEmpty()) {
+            Object firstValue = values.getFirst();
+            if (firstValue instanceof String) {
+                return values.stream().map(v -> (String) v).toList();
+            }
+            return values.stream().map(v -> (JsonPrimitive) v).map(JsonPrimitive::getAsString).toList();
+        }
+        return null;
+    }
+
+    public List<Object> getValuesAsObjects() {
+        return values;
+    }
+
+    public void setValue(Object value) {
         this.value = value;
     }
 
-    public void setValues(List<String> values) {
+    public void setValues(List<Object> values) {
         this.values = values;
     }
 
@@ -244,10 +275,10 @@ public class Value {
     }
 
     public List<String> getItems() {
-        return items;
+        return items.stream().map(Object::toString).toList();
     }
 
-    public void setItems(List<String> items) {
+    public void setItems(List<Object> items) {
         this.items = items;
     }
 
@@ -300,12 +331,12 @@ public class Value {
     public static class ValueBuilder {
         private MetaData metadata;
         private Codedata codedata;
-        private String value;
-        private List<String> values;
+        private Object value;
+        private List<Object> values;
         private String valueType;
         private String valueTypeConstraint;
         private String placeholder;
-        private List<String> items;
+        private List<Object> items;
         private Map<String, Value> properties;
         private List<PropertyTypeMemberInfo> typeMembers;
         private Map<String, String> imports;
@@ -336,7 +367,7 @@ public class Value {
             return this;
         }
 
-        public ValueBuilder value(String value) {
+        public ValueBuilder value(Object value) {
             this.value = value;
             return this;
         }
@@ -376,7 +407,7 @@ public class Value {
             return this;
         }
 
-        public ValueBuilder setItems(List<String> items) {
+        public ValueBuilder setItems(List<Object> items) {
             this.items = items;
             return this;
         }
@@ -386,7 +417,7 @@ public class Value {
             return this;
         }
 
-        public ValueBuilder setValues(List<String> values) {
+        public ValueBuilder setValues(List<Object> values) {
             this.values = values;
             return this;
         }

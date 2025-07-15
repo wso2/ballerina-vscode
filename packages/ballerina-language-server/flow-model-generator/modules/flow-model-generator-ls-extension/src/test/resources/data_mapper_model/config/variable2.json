@@ -1,20 +1,61 @@
 {
   "source": "variable2.bal",
   "description": "Sample diagram node",
-  "codedata": {
-    "node": "VARIABLE",
-    "lineRange": {
-      "fileName": "variable2.bal",
-      "startLine": {
-        "line": 19,
-        "offset": 12
+  "diagram": {
+    "id": "32874",
+    "metadata": {
+      "label": "Variable",
+      "description": "Assign a value to a variable"
+    },
+    "codedata": {
+      "node": "VARIABLE",
+      "lineRange": {
+        "fileName": "variable2.bal",
+        "startLine": {
+          "line": 0,
+          "offset": 0
+        },
+        "endLine": {
+          "line": 0,
+          "offset": 0
+        }
       },
-      "endLine": {
-        "line": 19,
-        "offset": 60
+      "sourceCode": ""
+    },
+    "returning": false,
+    "properties": {
+      "expression": {
+        "metadata": {
+          "label": "Expression",
+          "description": "Expression"
+        },
+        "valueType": "EXPRESSION",
+        "value": "{username: userInfo.username}",
+        "optional": false,
+        "editable": true
+      },
+      "variable": {
+        "metadata": {
+          "label": "Variable",
+          "description": "Name of the variable"
+        },
+        "valueType": "IDENTIFIER",
+        "value": "student",
+        "optional": false,
+        "editable": true
+      },
+      "type": {
+        "metadata": {
+          "label": "Type",
+          "description": "Type of the variable"
+        },
+        "valueType": "TYPE",
+        "value": "Student",
+        "optional": false,
+        "editable": true
       }
     },
-    "sourceCode": ""
+    "flags": 0
   },
   "propertyKey": "expression",
   "position": {

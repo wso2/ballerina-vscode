@@ -127,7 +127,7 @@ public class ListenerUtil {
                     Path path = project.sourceRoot().resolve(location.lineRange().fileName());
                     DocumentId documentId = project.documentId(path);
                     Document document = project.currentPackage().getDefaultModule().document(documentId);
-                    if (document != null) {
+                    if (!isHttpDefaultListenerDefined && document != null) {
                         ModulePartNode node = document.syntaxTree().rootNode();
                         TextRange range = TextRange.from(location.textRange().startOffset(),
                                 location.textRange().length());
@@ -206,7 +206,7 @@ public class ListenerUtil {
         if (Objects.nonNull(listener) && listener.isEnabledWithValue()) {
             List<String> values = listener.getValues();
             if (Objects.nonNull(values) && !values.isEmpty()) {
-                List<String> valuesList = new ArrayList<>() {{
+                List<Object> valuesList = new ArrayList<>() {{
                     addAll(values);
                 }};
                 for (int i = 0; i < values.size(); i++) {

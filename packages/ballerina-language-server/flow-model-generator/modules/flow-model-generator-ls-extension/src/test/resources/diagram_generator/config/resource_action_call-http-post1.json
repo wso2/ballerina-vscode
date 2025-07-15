@@ -269,7 +269,7 @@
           },
           "type": {
             "metadata": {
-              "label": "Variable Type",
+              "label": "Result Type",
               "description": "Type of the variable"
             },
             "valueType": "TYPE",
@@ -516,7 +516,7 @@
           },
           "type": {
             "metadata": {
-              "label": "Variable Type",
+              "label": "Result Type",
               "description": "Type of the variable"
             },
             "valueType": "TYPE",
@@ -762,7 +762,7 @@
           },
           "type": {
             "metadata": {
-              "label": "Variable Type",
+              "label": "Result Type",
               "description": "Type of the variable"
             },
             "valueType": "TYPE",
@@ -1012,7 +1012,7 @@
           },
           "type": {
             "metadata": {
-              "label": "Variable Type",
+              "label": "Result Type",
               "description": "Type of the variable"
             },
             "valueType": "TYPE",
@@ -1259,7 +1259,7 @@
           },
           "type": {
             "metadata": {
-              "label": "Variable Type",
+              "label": "Result Type",
               "description": "Type of the variable"
             },
             "valueType": "TYPE",
@@ -1505,7 +1505,7 @@
           },
           "type": {
             "metadata": {
-              "label": "Variable Type",
+              "label": "Result Type",
               "description": "Type of the variable"
             },
             "valueType": "TYPE",
@@ -1751,7 +1751,7 @@
           },
           "type": {
             "metadata": {
-              "label": "Variable Type",
+              "label": "Result Type",
               "description": "Type of the variable"
             },
             "valueType": "TYPE",

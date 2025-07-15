@@ -21,6 +21,7 @@ package io.ballerina.flowmodelgenerator.core.model.node;
 import io.ballerina.compiler.syntax.tree.NodeFactory;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.flowmodelgenerator.core.model.Branch;
+import io.ballerina.flowmodelgenerator.core.model.CommentProperty;
 import io.ballerina.flowmodelgenerator.core.model.NodeBuilder;
 import io.ballerina.flowmodelgenerator.core.model.NodeKind;
 import io.ballerina.flowmodelgenerator.core.model.Property;
@@ -83,7 +84,15 @@ public class MatchBuilder extends NodeBuilder {
             }
 
             List<Property> patternsList = patterns.get().valueAsType(Property.LIST_PROPERTY_TYPE_TOKEN);
-            String joinedPatterns = patternsList.stream()
+            String joinedPatterns = "";
+            if (!patternsList.isEmpty()) {
+                CommentProperty comment = patternsList.getFirst().comment();
+                if (comment != null) {
+                    joinedPatterns += comment.getLeadingComment() != null ? comment.getLeadingComment() : "";
+                }
+            }
+
+            joinedPatterns += patternsList.stream()
                     .map(Property::toSourceCode)
                     .collect(Collectors.joining("|"));
 

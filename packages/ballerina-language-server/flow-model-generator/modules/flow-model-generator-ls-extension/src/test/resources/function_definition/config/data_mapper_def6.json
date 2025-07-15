@@ -53,11 +53,11 @@
       },
       "type": {
         "metadata": {
-          "label": "Return Type",
-          "description": "Type of the return value"
+          "label": "Output",
+          "description": "Output type of the data mapper"
         },
         "valueType": "TYPE",
-        "valueTypeConstraint": "json",
+        "valueTypeConstraint": "anydata",
         "value": "nats:AnydataMessage",
         "optional": false,
         "editable": true,
@@ -67,7 +67,7 @@
       "parameters": {
         "metadata": {
           "label": "Inputs",
-          "description": "Input variables of the data mapper function"
+          "description": "Input variables of the data mapper"
         },
         "valueType": "REPEATABLE_PROPERTY",
         "valueTypeConstraint": {
@@ -83,7 +83,7 @@
                 "description": "Type of the parameter"
               },
               "valueType": "TYPE",
-              "valueTypeConstraint": "json",
+              "valueTypeConstraint": "anydata",
               "value": "",
               "optional": false,
               "editable": true,
@@ -122,7 +122,7 @@
                   "description": "Type of the parameter"
                 },
                 "valueType": "TYPE",
-                "valueTypeConstraint": "json",
+                "valueTypeConstraint": "anydata",
                 "value": "string",
                 "optional": false,
                 "editable": true,
@@ -173,7 +173,7 @@
                   "description": "Type of the parameter"
                 },
                 "valueType": "TYPE",
-                "valueTypeConstraint": "json",
+                "valueTypeConstraint": "anydata",
                 "value": "int",
                 "optional": false,
                 "editable": true,

@@ -19,7 +19,7 @@
 package io.ballerina.flowmodelgenerator.extension.response;
 
 /**
- * Represents the response for available agents.
+ * Represents the response for getAgentOrg.
  *
  * @since 1.0.0
  */
