@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * Copyright (c) 2025, WSO2 LLC. (https://www.wso2.com) All Rights Reserved.
  *
@@ -16,10 +15,11 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+
 import React, { useState } from 'react';
 import styled from '@emotion/styled';
-import { Button, Codicon, Confirm, ContextMenu, Icon, LinkButton, Typography } from '@wso2/ui-toolkit';
-import { CodeData, FunctionModel, NodePosition, ProjectStructureArtifactResponse } from '@wso2/ballerina-core';
+import { Button, Codicon, Confirm, Icon } from '@wso2/ui-toolkit';
+import { CodeData, FunctionModel, ProjectStructureArtifactResponse } from '@wso2/ballerina-core';
 import { useRpcContext } from '@wso2/ballerina-rpc-client';
 
 type MethodProp = {
