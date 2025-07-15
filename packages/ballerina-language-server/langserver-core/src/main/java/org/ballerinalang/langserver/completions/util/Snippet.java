@@ -135,6 +135,8 @@ public enum Snippet {
     DEF_PARANTHESIS(SnippetGenerator.getParanthesisSnippet()),
     
     DEF_SQUARE_BRACKET(SnippetGenerator.getSquareBracketSnippet()),
+
+    DEF_NATURAL_EXPR(SnippetGenerator.getNaturalSnippet()),
     
     // Expressions Snippets
     EXPR_ERROR_CONSTRUCTOR(SnippetGenerator.getErrorConstructorSnippet()),
