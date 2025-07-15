@@ -75,9 +75,10 @@ public class SourceCodeGenerator {
             }
         }
 
-        String template = "%nservice class %s {%s%n\tfunction init() {%n\t}%s%n}";
+        String template = "%n%sservice class %s {%s%n\tfunction init() {%n\t}%s%n}";
 
         return template.formatted(
+                isReadonlyFlagOn(typeData.properties()) ? "readonly " : "",
                 typeData.name(),
                 fieldBuilder.toString(),
                 resourceFunctions.toString()
@@ -115,6 +116,15 @@ public class SourceCodeGenerator {
             docs = generateDocs(typeData.metadata().description(), "");
         }
         String typeDescriptor = generateTypeDescriptor(typeData);
+
+        // Check for readonly property to generate `readonly & <type-desc>` type
+        if (isReadonlyFlagOn(typeData.properties())) {
+            if (typeData.codedata().node() == NodeKind.UNION) {
+                typeDescriptor = "readonly & (" + typeDescriptor + ")";
+            } else {
+                typeDescriptor = "readonly & " + typeDescriptor;
+            }
+        }
 
         String template = "%stype %s %s;";
 
@@ -382,6 +392,11 @@ public class SourceCodeGenerator {
 
     private String generateMember(Member member, boolean withDefaultValue) {
         String typeDescriptor = generateTypeFromMember(member);
+        if (member.readonly()) {
+            // Readonly record fields
+            typeDescriptor = "readonly " + typeDescriptor;
+        }
+
         String template = "%s %s%s"; // <type descriptor> <identifier> [= <default value>]
 
         String fieldName = CommonUtil.escapeReservedKeyword(member.name());
@@ -437,5 +452,10 @@ public class SourceCodeGenerator {
             typeData = (TypeData) typeDescAsObject;
         }
         return typeData;
+    }
+
+    private boolean isReadonlyFlagOn(Map<String, Property> properties) {
+        Property readonlyProperty = properties.get(Property.IS_READ_ONLY_KEY);
+        return readonlyProperty != null && readonlyProperty.value().equals("true");
     }
 }

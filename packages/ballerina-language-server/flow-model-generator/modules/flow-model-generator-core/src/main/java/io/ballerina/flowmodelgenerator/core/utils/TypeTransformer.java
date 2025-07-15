@@ -19,6 +19,8 @@
 package io.ballerina.flowmodelgenerator.core.utils;
 
 import io.ballerina.compiler.api.ModuleID;
+import io.ballerina.compiler.api.SemanticModel;
+import io.ballerina.compiler.api.Types;
 import io.ballerina.compiler.api.symbols.AbsResourcePathAttachPoint;
 import io.ballerina.compiler.api.symbols.ArrayTypeSymbol;
 import io.ballerina.compiler.api.symbols.ClassSymbol;
@@ -45,6 +47,7 @@ import io.ballerina.compiler.api.symbols.SymbolKind;
 import io.ballerina.compiler.api.symbols.TableTypeSymbol;
 import io.ballerina.compiler.api.symbols.TupleTypeSymbol;
 import io.ballerina.compiler.api.symbols.TypeDefinitionSymbol;
+import io.ballerina.compiler.api.symbols.TypeDescKind;
 import io.ballerina.compiler.api.symbols.TypeDescTypeSymbol;
 import io.ballerina.compiler.api.symbols.TypeSymbol;
 import io.ballerina.compiler.api.symbols.UnionTypeSymbol;
@@ -59,6 +62,7 @@ import io.ballerina.flowmodelgenerator.core.model.NodeKind;
 import io.ballerina.flowmodelgenerator.core.model.TypeData;
 import io.ballerina.modelgenerator.commons.CommonUtils;
 import io.ballerina.modelgenerator.commons.ModuleInfo;
+import io.ballerina.modelgenerator.commons.PackageUtil;
 import io.ballerina.projects.Document;
 import io.ballerina.projects.Module;
 
@@ -101,6 +105,7 @@ public class TypeTransformer {
                 .properties()
                     .name(attachPoint, false, false, false)
                     .qualifiers(qualifiers, true, true, true)
+                    .isReadOnly(qualifiers.contains(Qualifier.READONLY.getValue()), true, true, false)
                     .isArray("false", true, true, true)
                     .arraySize("", false, false, false);
 
@@ -231,6 +236,12 @@ public class TypeTransformer {
             typeDataBuilder.editable();
         }
 
+        // Special case for intersection types to get readonly types
+        if (typeDef.typeDescriptor().typeKind() == TypeDescKind.INTERSECTION) {
+            return handleAsFirstClassNonIntersectionType((IntersectionTypeSymbol) typeDef.typeDescriptor(),
+                    typeDataBuilder);
+        }
+
         return transform(typeDef.typeDescriptor(), typeDataBuilder);
     }
 
@@ -326,6 +337,7 @@ public class TypeTransformer {
                     .kind(Member.MemberKind.FIELD)
                     .type(transformedFieldType)
                     .optional(fieldSymbol.isOptional())
+                    .readonly(fieldSymbol.qualifiers().contains(Qualifier.READONLY))
                     .refs(getTypeRefs(transformedFieldType, fieldSymbol.typeDescriptor()))
                     .docs(getDocumentString(fieldSymbol))
                     .defaultValue(getDefaultValueOfField(typeDataBuilder.name(), fieldName).orElse(null))
@@ -683,5 +695,40 @@ public class TypeTransformer {
 
     private List<String> getTypeRefs(Object type, TypeSymbol typeDescriptor) {
         return type instanceof String ? TypeUtils.getTypeRefIds(typeDescriptor, moduleInfo) : List.of();
+    }
+
+    private Object handleAsFirstClassNonIntersectionType(IntersectionTypeSymbol intersectionTypeSymbol,
+                                                         TypeData.TypeDataBuilder typeDataBuilder) {
+        SemanticModel semanticModel = PackageUtil.getCompilation(module.packageInstance())
+                .getSemanticModel(module.moduleId());
+
+        Types types = semanticModel.types();
+
+        TypeSymbol nonReadonlyTypeSymbol = null;
+        List<TypeSymbol> intersectionMemberTypes = intersectionTypeSymbol.memberTypeDescriptors();
+
+        // Check for non-readonly type members to treat the type as a first-class non-intersection type
+        for (TypeSymbol typeSymbol : intersectionMemberTypes) {
+            if (typeSymbol.subtypeOf(types.READONLY)) {
+                continue;
+            }
+
+            if (nonReadonlyTypeSymbol == null) {
+                nonReadonlyTypeSymbol = typeSymbol;
+            } else {
+                // If there are multiple non-readonly types, we cannot handle it as a first-class non-intersection type
+                return transform(intersectionTypeSymbol, typeDataBuilder);
+            }
+        }
+
+        if (nonReadonlyTypeSymbol == null || nonReadonlyTypeSymbol.typeKind() == TypeDescKind.TYPE_REFERENCE) {
+            // If no non-readonly type is found or the found non-readonly type is a type-reference type,
+            // we treat it as a first-class intersection type
+            return transform(intersectionTypeSymbol, typeDataBuilder);
+        }
+
+        // If a non-readonly type is found, we treat it as a first-class non-intersection type with readonly flag on
+        typeDataBuilder.properties().isReadOnly(true, true, true, false);
+        return transform(nonReadonlyTypeSymbol, typeDataBuilder);
     }
 }

@@ -26,7 +26,6 @@ import io.ballerina.flowmodelgenerator.extension.request.MultipleTypeUpdateReque
 import io.ballerina.modelgenerator.commons.AbstractLSTest;
 import org.eclipse.lsp4j.TextEdit;
 import org.testng.Assert;
-import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import java.io.IOException;
@@ -82,17 +81,9 @@ public class CreateMultipleTypesTest extends AbstractLSTest {
         }
     }
 
-    @DataProvider(name = "data-provider")
-    @Override
-    protected Object[] getConfigsList() {
-        return new Object[][]{
-                {Path.of("create_multiple_types_with_array_of_types.json")}
-        };
-    }
-
     @Override
     protected String getResourceDir() {
-        return "types_manager";
+        return "types_manager/create_multiple_types";
     }
 
     @Override
