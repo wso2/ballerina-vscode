@@ -74,6 +74,7 @@ import io.ballerina.flowmodelgenerator.core.model.NodeKind;
 import io.ballerina.flowmodelgenerator.core.model.Property;
 import io.ballerina.flowmodelgenerator.core.model.SourceBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.VariableBuilder;
+import io.ballerina.flowmodelgenerator.core.utils.FileSystemUtils;
 import io.ballerina.modelgenerator.commons.CommonUtils;
 import io.ballerina.modelgenerator.commons.DefaultValueGeneratorUtil;
 import io.ballerina.modelgenerator.commons.ModuleInfo;
@@ -91,6 +92,8 @@ import org.ballerinalang.diagramutil.connector.models.connector.types.ArrayType;
 import org.ballerinalang.diagramutil.connector.models.connector.types.PrimitiveType;
 import org.ballerinalang.diagramutil.connector.models.connector.types.RecordType;
 import org.ballerinalang.langserver.common.utils.CommonUtil;
+import org.ballerinalang.langserver.commons.eventsync.exceptions.EventSyncException;
+import org.ballerinalang.langserver.commons.workspace.WorkspaceDocumentException;
 import org.ballerinalang.langserver.commons.workspace.WorkspaceManager;
 import org.eclipse.lsp4j.Position;
 import org.eclipse.lsp4j.Range;
@@ -1404,6 +1407,121 @@ public class DataMapManager {
         return gson.toJsonTree(source);
     }
 
+    public JsonElement genCustomFunction(WorkspaceManager workspaceManager, SemanticModel semanticModel,
+                                         Path filePath, JsonElement cd, JsonElement mp, JsonElement fm,
+                                         String targetField) {
+        Codedata codedata = gson.fromJson(cd, Codedata.class);
+        NonTerminalNode node = getNode(codedata.lineRange());
+        TargetNode targetNode = getTargetNode(node, targetField, semanticModel);
+        if (targetNode == null) {
+            return null;
+        }
+
+        FunctionMetadata functionMetadata = gson.fromJson(fm, FunctionMetadata.class);
+        Mapping mapping = gson.fromJson(mp, Mapping.class);
+
+        Map<Path, List<TextEdit>> textEditsMap = new HashMap<>();
+        ExpressionNode expressionNode = targetNode.expressionNode();
+        LineRange fieldExprRange = getFieldExprRange(expressionNode, 1, mapping.output().split("\\."));
+        String functionName = genCustomFunctionDef(workspaceManager, filePath, functionMetadata, textEditsMap);
+        genCustomFunctionCall(filePath, functionName, fieldExprRange, mapping.output(), textEditsMap);
+        return gson.toJsonTree(textEditsMap);
+    }
+
+    private LineRange getFieldExprRange(ExpressionNode expr, int idx, String[] names) {
+        if (expr.kind() == SyntaxKind.MAPPING_CONSTRUCTOR) {
+            String name = names[idx];
+            MappingConstructorExpressionNode mappingCtrExpr = (MappingConstructorExpressionNode) expr;
+            Map<String, SpecificFieldNode> mappingFields = convertMappingFieldsToMap(mappingCtrExpr);
+            SpecificFieldNode mappingFieldNode = mappingFields.get(name);
+            if (mappingFieldNode == null) {
+                throw new IllegalStateException("Cannot find field: " + name);
+            } else {
+                return getFieldExprRange(mappingFieldNode.valueExpr().orElseThrow(), idx + 1, names);
+            }
+        } else if (expr.kind() == SyntaxKind.LIST_CONSTRUCTOR) {
+            ListConstructorExpressionNode listCtrExpr = (ListConstructorExpressionNode) expr;
+            String name = names[idx];
+            if (name.matches("\\d+")) {
+                int index = Integer.parseInt(name);
+                if (index >= listCtrExpr.expressions().size()) {
+                    throw new IllegalStateException("Index out of bound");
+                } else {
+                    return getFieldExprRange((ExpressionNode) listCtrExpr.expressions().get(index), idx + 1, names);
+                }
+            } else {
+                throw new IllegalArgumentException("Invalid field name: " + name);
+            }
+        } else {
+            return expr.lineRange();
+        }
+    }
+
+    private String genCustomFunctionDef(WorkspaceManager workspaceManager, Path filePath,
+                                        FunctionMetadata functionMetadata, Map<Path, List<TextEdit>> textEditsMap) {
+        List<Parameter> parameters = functionMetadata.parameters();
+        List<String> paramNames = new ArrayList<>();
+        for (Parameter parameter : parameters) {
+            String paramName = parameter.type();
+            if (parameter.isNullable()) {
+                paramName = paramName + "?";
+            }
+            paramName = paramName + " " + parameter.name();
+            if (parameter.isOptional()) {
+                paramName = paramName + " = " + getDefaultValue(parameter.kind());
+            }
+            paramNames.add(paramName);
+        }
+
+        Path functionsFilePath = workspaceManager.projectRoot(filePath).resolve("functions.bal");
+        try {
+            workspaceManager.loadProject(filePath);
+            Document document = FileSystemUtils.getDocument(workspaceManager, functionsFilePath);
+            String returnType = functionMetadata.returnType();
+            Range functionRange = CommonUtils.toRange(document.syntaxTree().rootNode().lineRange().endLine());
+            String functionName = "function" +
+                    (parameters.isEmpty() ? "" : parameters.getFirst().type() + "To" + returnType);
+            functionName = functionName + functionRange.getStart().getLine();
+            List<TextEdit> textEdits = new ArrayList<>();
+            textEdits.add(new TextEdit(functionRange, System.lineSeparator() + "function " +
+                    functionName + "(" + String.join(", ", paramNames) + ") returns " + returnType + " {}"));
+            textEditsMap.put(functionsFilePath, textEdits);
+            return functionName;
+        } catch (WorkspaceDocumentException | EventSyncException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private String getDefaultValue(String kind) {
+        switch (kind) {
+            case "int", "float", "decimal" -> {
+                return "0";
+            }
+            case "boolean" -> {
+                return "false";
+            }
+            case "string" -> {
+                return "\"\"";
+            }
+            case "record" -> {
+                return "{}";
+            }
+            case "array" -> {
+                return "[]";
+            }
+            default -> {
+                return "";
+            }
+        }
+    }
+
+    private void genCustomFunctionCall(Path filePath, String functionName, LineRange range, String arg,
+                                                Map<Path, List<TextEdit>> textEditsMap) {
+        List<TextEdit> textEdits = new ArrayList<>();
+        textEdits.add(new TextEdit(CommonUtils.toRange(range), functionName + "(" + arg + ")"));
+        textEditsMap.put(filePath, textEdits);
+    }
+
     private NonTerminalNode getNode(LineRange lineRange) {
         SyntaxTree syntaxTree = document.syntaxTree();
         ModulePartNode modulePartNode = syntaxTree.rootNode();
@@ -1441,6 +1559,12 @@ public class DataMapManager {
                         List<MappingElements> elements, Boolean isQueryExpression) {
             this(output, inputs, expression, diagnostics, elements, isQueryExpression, null);
         }
+    }
+
+    private record FunctionMetadata(List<Parameter> parameters, String returnType) {
+    }
+
+    private record Parameter(String name, String type, boolean isOptional, boolean isNullable, String kind) {
     }
 
     private record Query(String output, List<String> inputs, Clause fromClause,
