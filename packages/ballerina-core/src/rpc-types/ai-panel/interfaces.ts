@@ -20,6 +20,7 @@
 import { NodePosition } from "@wso2/syntax-tree";
 import { AIMachineContext, AIMachineStateValue } from "../../state-machine-types";
 import { Command, TemplateId } from "../../interfaces/ai-panel";
+import { FormField } from "../../interfaces/config-spec";
 
 // ==================================
 // General Interfaces
@@ -116,6 +117,9 @@ export interface ParameterMetadata {
     inputMetadata: object;
     outputMetadata: object;
     mapping_fields?: object;
+    constants?: FormField[];
+    configurables?: FormField[];
+    variables?: FormField[];
 }
 
 export interface RecordDefinitonObject {
@@ -130,6 +134,13 @@ export interface MappingFileRecord {
 export interface ParameterDefinitions {
     parameterMetadata: ParameterMetadata,
     errorStatus: boolean
+}
+
+export interface ParameterField {
+    isArrayType: boolean;
+    parameterName: string;
+    parameterType: string;
+    type: string;
 }
 
 // Test-generator related interfaces

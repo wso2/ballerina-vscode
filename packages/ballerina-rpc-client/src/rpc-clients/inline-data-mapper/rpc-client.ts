@@ -26,6 +26,7 @@ import {
     GetSubMappingCodedataRequest,
     InitialIDMSourceRequest,
     InitialIDMSourceResponse,
+    InlineAllDataMapperSourceRequest,
     InlineDataMapperAPI,
     InlineDataMapperModelRequest,
     InlineDataMapperModelResponse,
@@ -36,6 +37,7 @@ import {
     addClauses,
     addNewArrayElement,
     convertToQuery,
+    getAllDataMapperSource,
     getDataMapperCodedata,
     getDataMapperModel,
     getDataMapperSource,
@@ -87,5 +89,9 @@ export class InlineDataMapperRpcClient implements InlineDataMapperAPI {
 
     getSubMappingCodedata(params: GetSubMappingCodedataRequest): Promise<GetInlineDataMapperCodedataResponse> {
         return this._messenger.sendRequest(getSubMappingCodedata, HOST_EXTENSION, params);
+    }
+
+    getAllDataMapperSource(params: InlineAllDataMapperSourceRequest): Promise<InlineDataMapperSourceResponse> {
+        return this._messenger.sendRequest(getAllDataMapperSource, HOST_EXTENSION, params);
     }
 }

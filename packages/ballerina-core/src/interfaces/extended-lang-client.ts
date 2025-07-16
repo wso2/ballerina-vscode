@@ -297,12 +297,19 @@ export interface InlineDataMapperModelRequest {
     targetField?: string;
 }
 
-export interface InlineDataMapperSourceRequest {
+export interface InlineDataMapperBase {
     filePath: string;
     codedata: CodeData;
     varName?: string;
     targetField?: string;
+}
+
+export interface InlineDataMapperSourceRequest extends InlineDataMapperBase {
     mapping: Mapping;
+}
+
+export interface InlineAllDataMapperSourceRequest extends InlineDataMapperBase {
+    mappings: Mapping[];
 }
 
 export interface VisualizableFieldsRequest {
@@ -316,9 +323,11 @@ export interface InlineDataMapperModelResponse {
 }
 
 export interface InlineDataMapperSourceResponse {
-    textEdits: {
+    textEdits?: {
         [key: string]: TextEdit[];
     };
+    error?: string;
+    userAborted?: boolean;
 }
 
 export interface VisualizableFieldsResponse {
