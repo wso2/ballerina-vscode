@@ -101,7 +101,7 @@ export function DiagramControls(props: ControlProps) {
         toJpeg(canvas, { cacheBust: true, quality: 0.95, width: canvas.scrollWidth, height: canvas.scrollHeight })
             .then((dataUrl) => {
                 const link = document.createElement('a');
-                link.download = 'er-diagram.jpeg';
+                link.download = 'type-diagram.jpeg';
                 link.href = dataUrl;
                 link.click();
             })
