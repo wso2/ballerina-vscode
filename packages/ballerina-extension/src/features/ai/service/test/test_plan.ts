@@ -4,7 +4,6 @@ import { getErrorMessage } from "../utils";
 import { TestGenerationTarget, TestPlanGenerationRequest } from "@wso2/ballerina-core";
 import { generateTest, getDiagnostics } from "../../testGenerator";
 import { getBallerinaProjectRoot } from "../../../../rpc-managers/ai-panel/rpc-manager";
-import { BACKEND_URL } from "../../utils";
 import { CopilotEventHandler, createWebviewEventHandler } from "../event";
 import { AIPanelAbortController } from "../../../../../src/rpc-managers/ai-panel/utils";
 
@@ -155,7 +154,6 @@ export async function generateTestPlanCore(
                     });
                     const projectRoot = await getBallerinaProjectRoot();
                     const testResp = await generateTest(projectRoot, {
-                        backendUri: BACKEND_URL,
                         targetType: TestGenerationTarget.Service,
                         targetIdentifier: target,
                         testPlan: assistantResponse,
@@ -173,7 +171,6 @@ export async function generateTestPlanCore(
                             content: `\n<progress>Refining tests based on feedback to ensure accuracy and reliability.</progress>`,
                         });
                         const fixedCode = await generateTest(projectRoot, {
-                            backendUri: BACKEND_URL,
                             targetType: TestGenerationTarget.Service,
                             targetIdentifier: target,
                             testPlan: assistantResponse,

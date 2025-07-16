@@ -1,7 +1,6 @@
 import { generateObject, CoreMessage } from "ai";
 import { z } from "zod";
 import { MinifiedLibrary, RelevantLibrariesAndFunctionsRequest, RelevantLibrariesAndFunctionsResponse } from "@wso2/ballerina-core";
-import { BACKEND_URL } from "../../utils";
 import { Library } from "./libs_types";
 import { selectRequiredFunctions } from "./funcs";
 import { anthropic, ANTHROPIC_HAIKU } from "../connection";

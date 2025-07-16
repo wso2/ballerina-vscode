@@ -139,7 +139,6 @@ export enum TestGenerationTarget {
 }
 
 export interface TestGenerationRequest {
-    backendUri: string;
     targetType: TestGenerationTarget;
     targetIdentifier: string;
     testPlan?: string;
@@ -308,13 +307,14 @@ export interface FileAttatchment {
     fileName: string;
     content: string;
 }
+
+export type OperationType = "CODE_GENERATION" | "CODE_FOR_USER_REQUIREMENT" | "TESTS_FOR_USER_REQUIREMENT";
 export interface GenerateCodeRequest {
     usecase: string;
     chatHistory: ChatEntry[];
-    operationType: string;
+    operationType: OperationType;
     fileAttachmentContents: FileAttatchment[];
 }
-
 
 export interface SourceFiles {
     filePath: string;

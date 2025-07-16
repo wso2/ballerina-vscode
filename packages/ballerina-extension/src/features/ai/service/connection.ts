@@ -54,17 +54,16 @@ export const ANTHROPIC_SONNET_4 = "claude-sonnet-4-20250514";
 
 //Components
 //TODO: Move libs into lang server API. - done
-//TODO: Host claude api with Auth
+//TODO: Host claude api with Auth - done
 //TODO: OpenAI Compatible API?
 //TODO: Token based throttling?
 
 //Auth
-//TODO: send oauth header / api-key
+//TODO: send oauth header / api-key 
 //TODO: use apiKey if BYOK
 
 //Migrations
 //TODO: Migrate healthcare n Natural programmming
-//TODO: Abort controller
 //TODO: Evals?
 
 // Why?

@@ -43,8 +43,6 @@ export async function generateTest(
         throw new Error("The current project is not recognized as a valid Ballerina project. Please ensure you have opened a Ballerina project.");
     }
 
-    const backendUri = testGenRequest.backendUri;
-
     if (testGenRequest.targetType === TestGenerationTarget.Service) {
         if (!testGenRequest.targetIdentifier) {
             throw new Error("Service name is missing in the test request. Please provide a valid service name to generate tests.");
@@ -402,15 +400,6 @@ async function sendTestGeneRequest(request: TestGenerationRequest, projectSource
         ...(request.existingTests && { existingTests: request.existingTests }),
     };
 
-    // const response = await fetchWithTimeout(request.backendUri + "/tests", {
-    //     method: "POST",
-    //     headers: {
-    //         'Accept': 'application/json',
-    //         'Content-Type': 'application/json',
-    //         'User-Agent': 'Ballerina-VSCode-Plugin'
-    //     },
-    //     body: JSON.stringify(body)
-    // }, abortController, TEST_GEN_REQUEST_TIMEOUT);
     const resp: TestGenerationResponse = await generateTestFromLLM(body);
     return resp;
 }
@@ -486,41 +475,6 @@ async function findBallerinaProjectRoot(dirPath: string): Promise<string | null>
 
     return null;
 }
-
-const fetchWithTimeout = async (
-    url: string,
-    options: RequestInit,
-    abortController: AbortController,
-    timeout = 300000
-): Promise<Response | ErrorCode> => {
-    const id = setTimeout(() => abortController?.abort(), timeout);
-
-    try {
-        options = {
-            ...options,
-            signal: abortController.signal,
-        };
-
-        const response = await fetchData(url, options);
-        return response;
-    } catch (error: any) {
-        if (error.name === 'AbortError') {
-            return {
-                code: -1,
-                message: "Request aborted"
-            };
-        }
-        if (error instanceof Error) {
-            return {
-                code: -2,
-                message: error.message
-            };
-        }
-        return UNKNOWN_ERROR;
-    } finally {
-        clearTimeout(id);
-    }
-};
 
 function isErrorCode(error: any): boolean {
     return error.hasOwnProperty("code") && error.hasOwnProperty("message");

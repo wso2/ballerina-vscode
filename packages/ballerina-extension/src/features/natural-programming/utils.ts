@@ -44,6 +44,7 @@ import { getCurrentBallerinaProjectFromContext } from '../config-generator/confi
 import { BallerinaExtension } from 'src/core';
 import { getRefreshedAccessToken } from '../../../src/utils/ai/auth';
 import { AIStateMachine } from '../../../src/views/ai-panel/aiMachine';
+import { fetchWithAuth } from '../ai/service/connection';
 
 let controller = new AbortController();
 
@@ -76,7 +77,7 @@ async function getLLMResponses(sources: BallerinaSource[], token: string, backen
     const nonDefaultModulesWithReadmeFiles: string[] 
         = sources.map(source => source.moduleName).filter(name => name != DEFAULT_MODULE);
 
-    const commentResponsePromise = fetchWithToken(
+    const commentResponsePromise = fetchWithAuth(
         backendurl + API_DOCS_DRIFT_CHECK_ENDPOINT,
         {
             method: "POST",
@@ -97,7 +98,7 @@ async function getLLMResponses(sources: BallerinaSource[], token: string, backen
             body.push(nonDefaultModulesWithReadmeFiles.join(", "));
         }
 
-        const documentationSourceResponsePromise = fetchWithToken(
+        const documentationSourceResponsePromise = fetchWithAuth(
             backendurl + PROJECT_DOCUMENTATION_DRIFT_CHECK_ENDPOINT,
             {
                 method: "POST",
@@ -489,27 +490,6 @@ function getSourcesOfNonDefaultModulesWithReadme(modulesDir: string): BallerinaS
         }
     }
     return sources;
-}
-
-export async function fetchWithToken(url: string, options: RequestInit) {
-    try {
-        let response = await fetch(url, options);
-        console.log("Response status: ", response.status);
-        if (response.status === 401) {
-            console.log("Token expired. Refreshing token...");
-            const newToken = await getRefreshedAccessToken();
-            if (newToken) {
-                options.headers = {
-                    ...options.headers,
-                    'Authorization': `Bearer ${newToken}`,
-                };
-                response = await fetch(url, options);
-            }
-        }
-        return response;
-    } catch (error) {
-        return Error("Error occured while sending the request");
-    }
 }
 
 export function getPluginConfig(): BallerinaPluginConfig {

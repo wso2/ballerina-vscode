@@ -34,11 +34,9 @@ import {
     TOO_MANY_REQUESTS,
     INVALID_RECORD_UNION_TYPE
 } from "../../views/ai-panel/errorCodes";
-import { hasStopped } from "./rpc-manager";
 // import { StateMachineAI } from "../../views/ai-panel/aiMachine";
 import path from "path";
 import * as fs from 'fs';
-import { BACKEND_URL } from "../../features/ai/utils";
 import { getAccessToken, getRefreshedAccessToken } from "../../../src/utils/ai/auth";
 import { AIStateMachine } from "../../../src/views/ai-panel/aiMachine";
 import { AIChatError } from "./utils/errors";
@@ -47,15 +45,6 @@ import { DatamapperResponse, Payload } from "../../../src/features/ai/service/da
 import { DataMapperRequest, DataMapperResponse, FileData, processDataMapperInput } from "../../../src/features/ai/service/datamapper/context_api";
 import { getAskResponse } from "../../../src/features/ai/service/ask/ask";
 
-const BACKEND_BASE_URL = BACKEND_URL.replace(/\/v2\.0$/, "");
-//TODO: Temp workaround as custom domain seem to block file uploads
-const CONTEXT_UPLOAD_URL_V1 = "https://e95488c8-8511-4882-967f-ec3ae2a0f86f-prod.e1-us-east-azure.choreoapis.dev/ballerina-copilot/context-upload-api/v1.0";
-// const CONTEXT_UPLOAD_URL_V1 = BACKEND_BASE_URL + "/context-api/v1.0";
-const ASK_API_URL_V1 = BACKEND_BASE_URL + "/ask-api/v1.0";
-
-const REQUEST_TIMEOUT = 2000000;
-
-let abortController = new AbortController();
 const primitiveTypes = ["string", "int", "float", "decimal", "boolean"];
 
 export class AIPanelAbortController {
@@ -85,7 +74,7 @@ export class AIPanelAbortController {
 }
 
 export function handleStop() {
-    abortController.abort();
+    AIPanelAbortController.getInstance().abort();
 }
 
 export async function getParamDefinitions(
@@ -1494,25 +1483,6 @@ function determineMimeType(fileName: string): string {
     }
 }
 
-async function fetchWithTimeout(url, options, timeout = 100000): Promise<Response | ErrorCode> {
-    abortController = new AbortController();
-    const id = setTimeout(() => abortController.abort(), timeout);
-    try {
-        const response = await fetch(url, { ...options, signal: abortController.signal });
-        clearTimeout(id);
-        return response;
-    } catch (error: any) {
-        if (error.name === 'AbortError' && !hasStopped) {
-            return TIMEOUT;
-        } else if (error.name === 'AbortError' && hasStopped) {
-            return USER_ABORTED;
-        } else {
-            console.error(error);
-            return SERVER_ERROR;
-        }
-    }
-}
-
 export function isErrorCode(error: any): boolean {
     return error.hasOwnProperty("code") && error.hasOwnProperty("message");
 }
@@ -2027,31 +1997,6 @@ async function processCombinedKey(
     return { isinputRecordArrayNullable, isinputRecordArrayOptional, isinputArrayNullable, isinputArrayOptional, isinputNullableArray };
 }
 
-async function sendRequirementFileUploadRequest(file: Blob): Promise<Response | ErrorCode> {
-    const formData = new FormData();
-    formData.append("file", file);
-    const response = await fetchWithToken(CONTEXT_UPLOAD_URL_V1 + "/file_upload/extract_requirements", {
-        method: "POST",
-        body: formData
-    });
-    return response;
-}
-
-export async function getTextFromRequirements(file: Blob): Promise<string | ErrorCode> {
-    try {
-        let response = await sendRequirementFileUploadRequest(file);
-        if (isErrorCode(response)) {
-            return response as ErrorCode;
-        }
-        response = response as Response;
-        let requirements = await filterMappingResponse(response) as string;
-        return requirements;
-    } catch (error) {
-        console.error(error);
-        return UNKNOWN_ERROR;
-    }
-}
-
 export async function requirementsSpecification(filepath: string): Promise<string | ErrorCode> {
     if (!filepath) { 
         throw new Error("File is undefined"); 
@@ -2070,32 +2015,6 @@ export async function requirementsSpecification(filepath: string): Promise<strin
 function getBase64FromFile(filePath) {
     const fileBuffer = fs.readFileSync(filePath);
     return fileBuffer.toString('base64');
-}
-
-export async function fetchWithToken(url: string, options: RequestInit) {
-    const accessToken = await getAccessToken();
-    options.headers = {
-        ...options.headers,
-        'Authorization': `Bearer ${accessToken}`,
-        'User-Agent': 'Ballerina-VSCode-Plugin',
-    };
-    let response = await fetch(url, options);
-    console.log("Response status: ", response.status);
-    if (response.status === 401) {
-        console.log("Token expired. Refreshing token...");
-        const newToken = await getRefreshedAccessToken();
-        if (newToken) {
-            options.headers = {
-                ...options.headers,
-                'Authorization': `Bearer ${newToken}`,
-            };
-            response = await fetch(url, options);
-        } else {
-            AIStateMachine.service().send(AIMachineEventType.LOGOUT);
-            return;
-        }
-    }
-    return response;
 }
 
 export function cleanDiagnosticMessages(entries: DiagnosticEntry[]): DiagnosticEntry[] {

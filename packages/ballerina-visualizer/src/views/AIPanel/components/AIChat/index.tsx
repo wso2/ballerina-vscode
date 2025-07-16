@@ -38,6 +38,7 @@ import {
     TestGeneratorIntermediaryState,
     SourceFiles,
     ChatEntry,
+    OperationType,
 } from "@wso2/ballerina-core";
 
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
@@ -676,7 +677,7 @@ const AIChat: React.FC = () => {
         setIsSyntaxError(false);
     }
 
-    async function processCodeGeneration(content: [string, Attachment[], string], message: string) {
+    async function processCodeGeneration(content: [string, Attachment[], OperationType], message: string) {
         const [useCase, attachments, operationType] = content;
         const fileAttatchments = attachments.map((file) => ({
             fileName: file.name,
