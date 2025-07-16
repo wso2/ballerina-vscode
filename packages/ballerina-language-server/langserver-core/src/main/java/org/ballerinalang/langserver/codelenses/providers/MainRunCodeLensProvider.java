@@ -18,7 +18,6 @@
 
 package org.ballerinalang.langserver.codelenses.providers;
 
-import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
 import io.ballerina.compiler.syntax.tree.Node;
 import org.ballerinalang.annotation.JavaSPIService;
 import org.ballerinalang.langserver.codelenses.CodeLensUtil;
@@ -49,13 +48,12 @@ public class MainRunCodeLensProvider extends AbstractCodeLensesProvider {
 
     @Override
     public CodeLens getLens(DocumentServiceContext context, Node node) {
-        if (node instanceof FunctionDefinitionNode functionDefinitionNode &&
-                AUTOMATION_FUNCTION.equals(functionDefinitionNode.functionName().text())) {
-            List<Object> args = Collections.singletonList(context.fileUri());
-            Command command = new Command(CodeLensUtil.RUN_CODELENS, "ballerina.project.run", args);
-            return CodeLensUtil.getCodeLens(command, node);
+        if (!CodeLensUtil.isValidExecutableFunction(node)) {
+            return null;
         }
-        return null;
+
+        List<Object> args = Collections.singletonList(context.fileUri());
+        Command command = new Command(CodeLensUtil.RUN_CODELENS, "ballerina.project.run", args);
+        return CodeLensUtil.getCodeLens(command, node);
     }
 }
-

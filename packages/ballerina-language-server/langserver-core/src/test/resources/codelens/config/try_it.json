@@ -42,6 +42,44 @@
         }
       },
       "command": {
+        "title": "Run",
+        "command": "ballerina.project.run",
+        "arguments": [
+          "try_it.bal"
+        ]
+      }
+    },
+    {
+      "range": {
+        "start": {
+          "line": 4,
+          "character": 0
+        },
+        "end": {
+          "line": 8,
+          "character": 1
+        }
+      },
+      "command": {
+        "title": "Debug",
+        "command": "ballerina.source.debug",
+        "arguments": [
+          "try_it.bal"
+        ]
+      }
+    },
+    {
+      "range": {
+        "start": {
+          "line": 4,
+          "character": 0
+        },
+        "end": {
+          "line": 8,
+          "character": 1
+        }
+      },
+      "command": {
         "title": "Visualize",
         "command": "ballerina.showVisualizer",
         "arguments": [
@@ -110,6 +148,44 @@
               "character": 5
             }
           }
+        ]
+      }
+    },
+    {
+      "range": {
+        "start": {
+          "line": 10,
+          "character": 0
+        },
+        "end": {
+          "line": 14,
+          "character": 1
+        }
+      },
+      "command": {
+        "title": "Run",
+        "command": "ballerina.project.run",
+        "arguments": [
+          "try_it.bal"
+        ]
+      }
+    },
+    {
+      "range": {
+        "start": {
+          "line": 10,
+          "character": 0
+        },
+        "end": {
+          "line": 14,
+          "character": 1
+        }
+      },
+      "command": {
+        "title": "Debug",
+        "command": "ballerina.source.debug",
+        "arguments": [
+          "try_it.bal"
         ]
       }
     },

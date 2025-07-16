@@ -193,6 +193,44 @@
         }
       },
       "command": {
+        "title": "Run",
+        "command": "ballerina.project.run",
+        "arguments": [
+          "visualize.bal"
+        ]
+      }
+    },
+    {
+      "range": {
+        "start": {
+          "line": 13,
+          "character": 0
+        },
+        "end": {
+          "line": 29,
+          "character": 1
+        }
+      },
+      "command": {
+        "title": "Debug",
+        "command": "ballerina.source.debug",
+        "arguments": [
+          "visualize.bal"
+        ]
+      }
+    },
+    {
+      "range": {
+        "start": {
+          "line": 13,
+          "character": 0
+        },
+        "end": {
+          "line": 29,
+          "character": 1
+        }
+      },
+      "command": {
         "title": "Visualize",
         "command": "ballerina.showVisualizer",
         "arguments": [

@@ -130,6 +130,19 @@ public final class CodeLensUtil {
     }
 
     /**
+     * Checks if the given node represents a valid executable function.
+     * A node is considered valid if it is a service declaration or a function named "main".
+     *
+     * @param node the syntax node to check
+     * @return true if the node is a service declaration or a "main" function, false otherwise
+     */
+    public static boolean isValidExecutableFunction(Node node) {
+        return node.kind() == SyntaxKind.SERVICE_DECLARATION ||
+                (node instanceof FunctionDefinitionNode functionDefinitionNode &&
+                        "main".equals(functionDefinitionNode.functionName().text()));
+    }
+
+    /**
      * Iterates through the provided list of {@link LSCodeLensesProvider} instances and checks if each provider is
      * applicable to the given syntax tree node. If applicable, retrieves the corresponding {@link CodeLens} and adds it
      * to the provided list of code lenses.
