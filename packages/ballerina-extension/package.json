@@ -404,7 +404,7 @@
                 "icon": "$(distro-delete)"
             },
             {
-                "command": "ballerina.show.visualizer",
+                "command": "ballerina.showVisualizer",
                 "title": "Show Visualizer",
                 "icon": "$(distro-design-view)",
                 "category": "Ballerina"
@@ -527,7 +527,7 @@
                 "category": "Ballerina"
             },
             {
-                "command": "ballerina.tryit",
+                "command": "ballerina.tryIt",
                 "title": "Open Try It",
                 "category": "Ballerina",
                 "icon": "$(server)"
@@ -744,7 +744,7 @@
                     "when": "resourceLangId == ballerina || isBallerinaDiagram"
                 },
                 {
-                    "command": "ballerina.tryit",
+                    "command": "ballerina.tryIt",
                     "group": "navigation@1",
                     "title": "Open Try It",
                     "when": "isBIProjectRunning"
@@ -763,7 +763,7 @@
                 },
                 {
                     "when": "resourceLangId == ballerina && !isPersistModelActive",
-                    "command": "ballerina.show.visualizer",
+                    "command": "ballerina.showVisualizer",
                     "group": "navigation@3"
                 },
                 {
@@ -846,7 +846,7 @@
                     "when": "editorLangId != ballerina && !isBallerinaDiagram"
                 },
                 {
-                    "command": "ballerina.show.visualizer",
+                    "command": "ballerina.showVisualizer",
                     "when": "editorLangId == ballerina"
                 },
                 {

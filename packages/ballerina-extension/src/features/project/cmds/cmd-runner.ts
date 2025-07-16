@@ -22,41 +22,46 @@ import { isSupportedSLVersion, isWindows } from "../../../utils";
 import { ballerinaExtInstance } from "../../../core";
 
 
-export enum PALETTE_COMMANDS {
-    ADD = 'ballerina.project.add',
-    BUILD = 'ballerina.project.build',
-    PACK = 'ballerina.project.pack',
-    CLOUD = 'ballerina.create.cloud',
-    LOGIN_COPILOT = "ballerina.login.copilot",
-    RESET_BI = "ballerina.reset.bi",
-    DOC = 'ballerina.project.doc',
-    FOCUS_EXPLORER = 'ballerinaExplorerTreeView.focus',
-    RUN_CMD = 'ballerina.project.run.cmd',
-    RUN = 'ballerina.project.run',
-    SAVE_ALL = 'workbench.action.files.saveFiles',
-    TEST = 'ballerina.project.test',
-    PASTE_JSON_AS_RECORD = 'ballerina.pasteAsRecord',
-    PASTE_XML_AS_RECORD = 'ballerina.pasteXMLAsRecord',
-    CHOREO_SIGNIN = 'ballerina.choreo.signin',
-    CHOREO_ANON_SIGNIN = 'ballerina.choreo.anonymous.signin',
-    CHOREO_SIGNOUT = 'ballerina.choreo.signout',
-    FOCUS_SOURCE_CONTROL = 'workbench.view.scm',
-    CHOREO_SYNC_CHANGES = 'ballerina.choreo.sync',
-    PERFORMANCE_FORECAST_ENABLE = 'performance.forecasting.enable',
-    PERFORMANCE_FORECAST_DISABLE = 'performance.forecasting.disable',
-    TRY_IT = 'ballerina.tryit',
-    OPEN_IN_DIAGRAM = 'ballerina.openIn.diagram',
-    SHOW_DIAGRAM = 'ballerina.show.diagram',
-    SHOW_SOURCE = 'ballerina.show.source',
-    SHOW_ARCHITECTURE_VIEW = 'ballerina.view.architectureView',
-    SHOW_EXAMPLES = 'ballerina.showExamples',
-    REFRESH_SHOW_ARCHITECTURE_VIEW = "ballerina.view.architectureView.refresh",
-    RUN_CONFIG = 'ballerina.project.run.config',
-    CONFIG_CREATE_COMMAND = 'ballerina.project.config.create',
-    SHOW_ENTITY_DIAGRAM = 'ballerina.view.entityDiagram',
-    SHOW_SERVICE_DESIGNER_VIEW = 'ballerina.view.serviceDesigner',
-    SHOW_GRAPHQL_DESIGNER_VIEW = 'ballerina.view.graphqlDesigner'
+export const PALETTE_COMMANDS = {
+    ADD: 'ballerina.project.add',
+    BUILD: 'ballerina.project.build',
+    PACK: 'ballerina.project.pack',
+    CLOUD: 'ballerina.create.cloud',
+    LOGIN_COPILOT: "ballerina.login.copilot",
+    RESET_BI: "ballerina.reset.bi",
+    DOC: 'ballerina.project.doc',
+    FOCUS_EXPLORER: 'ballerinaExplorerTreeView.focus',
+    RUN_CMD: 'ballerina.project.run.cmd',
+    RUN: 'ballerina.project.run',
+    SAVE_ALL: 'workbench.action.files.saveFiles',
+    TEST: 'ballerina.project.test',
+    PASTE_JSON_AS_RECORD: 'ballerina.pasteAsRecord',
+    PASTE_XML_AS_RECORD: 'ballerina.pasteXMLAsRecord',
+    CHOREO_SIGNIN: 'ballerina.choreo.signin',
+    CHOREO_ANON_SIGNIN: 'ballerina.choreo.anonymous.signin',
+    CHOREO_SIGNOUT: 'ballerina.choreo.signout',
+    FOCUS_SOURCE_CONTROL: 'workbench.view.scm',
+    CHOREO_SYNC_CHANGES: 'ballerina.choreo.sync',
+    PERFORMANCE_FORECAST_ENABLE: 'performance.forecasting.enable',
+    PERFORMANCE_FORECAST_DISABLE: 'performance.forecasting.disable',
+    TRY_IT: 'ballerina.tryIt',
+    OPEN_IN_DIAGRAM: 'ballerina.openIn.diagram',
+    SHOW_DIAGRAM: 'ballerina.show.diagram',
+    SHOW_SOURCE: 'ballerina.show.source',
+    SHOW_ARCHITECTURE_VIEW: 'ballerina.view.architectureView',
+    SHOW_EXAMPLES: 'ballerina.showExamples',
+    REFRESH_SHOW_ARCHITECTURE_VIEW: "ballerina.view.architectureView.refresh",
+    RUN_CONFIG: 'ballerina.project.run.config',
+    CONFIG_CREATE_COMMAND: 'ballerina.project.config.create',
+    SHOW_ENTITY_DIAGRAM: 'ballerina.view.entityDiagram',
+    SHOW_SERVICE_DESIGNER_VIEW: 'ballerina.view.serviceDesigner',
+    SHOW_GRAPHQL_DESIGNER_VIEW: 'ballerina.view.graphqlDesigner'
 }
+
+export const INTERNAL_DEBUG_COMMAND = "ballerina.internal.debug";
+export const SOURCE_DEBUG_COMMAND = "ballerina.source.debug";
+export const TEST_DEBUG_COMMAND = "ballerina.test.debug";
+export const FOCUS_DEBUG_CONSOLE_COMMAND = 'workbench.debug.action.focusRepl';
 
 export enum BALLERINA_COMMANDS {
     TEST = "test", BUILD = "build", FORMAT = "format", RUN = "run", RUN_WITH_WATCH = "run --watch", DOC = "doc",
@@ -168,7 +173,7 @@ export function runCommandWithConf(file: BallerinaProject | string, executor: st
     terminal.sendText(commandText, true);
 }
 
-export function runTerminalCommand(executor: string, file?: BallerinaProject | string, env? : { [key: string]:string }) {
+export function runTerminalCommand(executor: string, file?: BallerinaProject | string, env?: { [key: string]: string }) {
     let filePath = '';
     typeof file === 'string' ? filePath = file : filePath = file?.path!;
     if (!terminal) {
@@ -183,7 +188,7 @@ export function clearTerminal(): void {
     }
 }
 
-export function createTerminal(path: string, env? : { [key: string]:string }): void {
+export function createTerminal(path: string, env?: { [key: string]: string }): void {
     if (terminal) {
         terminal = window.createTerminal({ name: TERMINAL_NAME, cwd: path, env: env });
     }
