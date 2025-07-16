@@ -97,23 +97,12 @@
                       "description": "Binding pattern"
                     },
                     "valueType": "EXPRESSION",
-                    "value": "\"red\"",
+                    "value": "\"red\"|\"blue\"",
                     "optional": false,
                     "editable": true,
                     "advanced": false,
-                    "hidden": false
-                  },
-                  {
-                    "metadata": {
-                      "label": "Pattern",
-                      "description": "Binding pattern"
-                    },
-                    "valueType": "EXPRESSION",
-                    "value": "\"blue\"",
-                    "optional": false,
-                    "editable": true,
-                    "advanced": false,
-                    "hidden": false
+                    "hidden": false,
+                    "comment": {}
                   }
                 ],
                 "optional": false,
@@ -200,7 +189,8 @@
                     "optional": false,
                     "editable": true,
                     "advanced": false,
-                    "hidden": false
+                    "hidden": false,
+                    "comment": {}
                   }
                 ],
                 "optional": false,
@@ -287,7 +277,8 @@
                     "optional": false,
                     "editable": true,
                     "advanced": false,
-                    "hidden": false
+                    "hidden": false,
+                    "comment": {}
                   }
                 ],
                 "optional": false,

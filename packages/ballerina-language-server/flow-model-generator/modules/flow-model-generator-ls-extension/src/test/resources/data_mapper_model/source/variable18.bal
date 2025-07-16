@@ -23,17 +23,17 @@ service / on new http:Listener(9090) {
     resource function post getPerson(@http:Payload User user) returns Person|http:InternalServerError {
         do {
             User u1 = getUser();
-            Person5 var3 = {
-                                           contacts: [
-                                               {
-                                                   primaryPhone: "",
-                                                   secondaryPhones: [
-                                                       "1",
-                                                       user.phoneNumber[0]
-                                                   ]
-                                               }
-                                           ]
-                                       };
+            // Person5 var5 = {
+            //     contacts: [
+            //         {
+            //             primaryPhone: "",
+            //             secondaryPhones: [
+            //                 "1",
+            //                 user.phoneNumber[0]
+            //             ]
+            //         }
+            //     ]
+            // };
         } on fail error e {
             return http:INTERNAL_SERVER_ERROR;
         }

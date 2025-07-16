@@ -51,13 +51,14 @@ import java.util.Set;
  * @param typeMembers         member types of the type constrain
  * @param advancedValue       advanced value of the property
  * @param imports             import statements of the dependent types in the format prefix -> moduleId
+ * @param comment             leading and trailing comments of the property
  * @since 1.0.0
  */
 public record Property(Metadata metadata, String valueType, Object valueTypeConstraint, Object value, Object oldValue,
                        String placeholder, boolean optional, boolean editable, boolean advanced, boolean hidden,
                        Boolean modified, Diagnostics diagnostics, PropertyCodedata codedata,
                        List<PropertyTypeMemberInfo> typeMembers, Object advancedValue, Map<String, String> imports,
-                       String defaultValue) {
+                       String defaultValue, CommentProperty comment) {
 
     private static final Gson gson = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
 
@@ -118,6 +119,7 @@ public record Property(Metadata metadata, String valueType, Object valueTypeCons
 
     public static final String TYPE_KEY = "type";
     public static final String TYPE_LABEL = "Variable Type";
+    public static final String RESULT_TYPE_LABEL = "Result Type";
     public static final String PARAMETER_TYPE_DOC = "Type of the parameter";
     public static final String IMPLICIT_TYPE_LABEL = "Type";
     public static final String DESCRIPTION_LABEL = "Description";
@@ -289,6 +291,7 @@ public record Property(Metadata metadata, String valueType, Object valueTypeCons
         private Object advancedValue;
         private Map<String, String> imports;
         private String defaultValue;
+        private CommentProperty commentProperty;
 
         public Builder(T parentBuilder) {
             super(parentBuilder);
@@ -440,12 +443,17 @@ public record Property(Metadata metadata, String valueType, Object valueTypeCons
             return this;
         }
 
+        public Builder<T> comment(CommentProperty comment) {
+            this.commentProperty = comment;
+            return this;
+        }
+
         public Property build() {
             Property property = new Property(metadataBuilder == null ? null : metadataBuilder.build(), type,
                     typeConstraint, value, oldValue, placeholder, optional, editable, advanced, hidden, modified,
                     diagnosticsBuilder == null ? null : diagnosticsBuilder.build(),
                     codedataBuilder == null ? null : codedataBuilder.build(), typeMembers, advancedValue,
-                    imports == null ? null : imports, defaultValue);
+                    imports == null ? null : imports, defaultValue, commentProperty);
             this.metadataBuilder = null;
             this.type = null;
             this.typeConstraint = null;
@@ -461,6 +469,7 @@ public record Property(Metadata metadata, String valueType, Object valueTypeCons
             this.typeMembers = null;
             this.advancedValue = null;
             this.defaultValue = null;
+            this.commentProperty = null;
             return property;
         }
     }

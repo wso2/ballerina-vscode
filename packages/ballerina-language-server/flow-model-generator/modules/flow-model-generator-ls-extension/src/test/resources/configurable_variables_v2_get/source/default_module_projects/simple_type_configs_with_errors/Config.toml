@@ -1,0 +1,10 @@
+[config_tests.simpleconfigs_errors]
+intVar = int
+stringVar = "test
+stringArrayVar = ["apple" "banana", "cherry"]
+recordVar1 = { name "Jane Smith", age = 22, grade = "A" }
+
+[config_tests.simpleconfigs_errors.recordVar2]
+name = "John"
+age = 30
+grade = B

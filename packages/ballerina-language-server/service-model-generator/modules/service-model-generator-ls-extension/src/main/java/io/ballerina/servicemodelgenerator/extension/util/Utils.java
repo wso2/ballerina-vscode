@@ -871,7 +871,7 @@ public final class Utils {
                         .filter(Objects::nonNull)
                         .toList());
                 if (!responses.isEmpty()) {
-                    if (addError && !statusCodeResponses.contains("error")) {
+                    if (addError && !statusCodeResponses.contains("error") && !responses.contains("error")) {
                         responses.addFirst("error");
                     }
                     builder.append(" returns ");

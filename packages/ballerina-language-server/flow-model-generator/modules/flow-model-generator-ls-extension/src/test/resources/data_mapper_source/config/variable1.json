@@ -1,47 +1,67 @@
 {
   "source": "variable1.bal",
   "description": "Sample diagram node",
-  "codedata": {
-    "node": "VARIABLE",
-    "lineRange": {
-      "fileName": "main.bal",
-      "startLine": {
-        "line": 18,
-        "offset": 12
+  "diagram": {
+    "id": "32874",
+    "metadata": {
+      "label": "Variable",
+      "description": "Assign a value to a variable"
+    },
+    "codedata": {
+      "node": "VARIABLE",
+      "lineRange": {
+        "fileName": "variable1.bal",
+        "startLine": {
+          "line": 0,
+          "offset": 0
+        },
+        "endLine": {
+          "line": 0,
+          "offset": 0
+        }
       },
-      "endLine": {
-        "line": 18,
-        "offset": 33
+      "sourceCode": ""
+    },
+    "returning": false,
+    "properties": {
+      "expression": {
+        "metadata": {
+          "label": "Expression",
+          "description": "Expression"
+        },
+        "valueType": "EXPRESSION",
+        "value": "{}",
+        "optional": false,
+        "editable": true
+      },
+      "variable": {
+        "metadata": {
+          "label": "Variable",
+          "description": "Name of the variable"
+        },
+        "valueType": "IDENTIFIER",
+        "value": "student",
+        "optional": false,
+        "editable": true
+      },
+      "type": {
+        "metadata": {
+          "label": "Type",
+          "description": "Type of the variable"
+        },
+        "valueType": "TYPE",
+        "value": "Student",
+        "optional": false,
+        "editable": true
       }
     },
-    "sourceCode": "Student student = {};"
+    "flags": 0
   },
   "propertyKey": "expression",
   "position": {
     "line": 17,
     "offset": 12
   },
-  "mapping": {
-    "output": "student.username",
-    "inputs": [],
-    "expression": "1234",
-    "diagnostics": []
-  },
-  "output": {
-    "variable1.bal": [
-      {
-        "range": {
-          "start": {
-            "line": 18,
-            "character": 31
-          },
-          "end": {
-            "line": 18,
-            "character": 31
-          }
-        },
-        "newText": "username: 1234"
-      }
-    ]
-  }
+  "mappings": [],
+  "output": "{}"
 }

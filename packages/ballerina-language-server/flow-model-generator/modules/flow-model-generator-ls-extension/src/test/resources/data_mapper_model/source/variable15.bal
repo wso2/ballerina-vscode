@@ -17,7 +17,7 @@ service / on new http:Listener(9090) {
 
     resource function post getPerson(@http:Payload User user) returns Person|http:InternalServerError {
         do {
-            TwoDim td = {values: [[user.phoneNumber[0]], [user.phoneNumber[1]], [user.phoneNumber[2], user.phoneNumber[3]]]};
+            // TwoDim td = {values: [[user.phoneNumber[0]], [user.phoneNumber[1]], [user.phoneNumber[2], user.phoneNumber[3]]]};
         } on fail error e {
             return http:INTERNAL_SERVER_ERROR;
         }

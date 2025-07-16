@@ -50,12 +50,15 @@ public class DataMapperDefinitionBuilder extends NodeBuilder {
     public static final String DATA_MAPPER_NAME_DOC = "Name of the data mapper";
 
     public static final String PARAMETERS_LABEL = "Inputs";
-    public static final String PARAMETERS_DOC = "Input variables of the data mapper function";
+    public static final String PARAMETERS_DOC = "Input variables of the data mapper";
+
+    public static final String OUTPUT_LABEL = "Output";
+    public static final String OUTPUT_DOC = "Output type of the data mapper";
 
     private static final Gson gson = new Gson();
 
-    public static final String RETURN_TYPE = TypeKind.JSON.typeName();
-    public static final String PARAMETER_TYPE = TypeKind.JSON.typeName();
+    public static final String RETURN_TYPE = TypeKind.ANYDATA.typeName();
+    public static final String PARAMETER_TYPE = TypeKind.ANYDATA.typeName();
 
     @Override
     public void setConcreteConstData() {
@@ -76,8 +79,17 @@ public class DataMapperDefinitionBuilder extends NodeBuilder {
     }
 
     public static void setMandatoryProperties(NodeBuilder nodeBuilder, String returnType) {
-        nodeBuilder.properties()
-                .returnType(returnType, RETURN_TYPE, false)
+        nodeBuilder.properties().custom()
+                .metadata()
+                    .label(OUTPUT_LABEL)
+                    .description(OUTPUT_DOC)
+                    .stepOut()
+                .value(returnType)
+                .type(Property.ValueType.TYPE)
+                .typeConstraint(RETURN_TYPE)
+                .editable()
+                .stepOut()
+                .addProperty(Property.TYPE_KEY)
                 .nestedProperty();
     }
 

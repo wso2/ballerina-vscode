@@ -28,6 +28,7 @@ import io.ballerina.compiler.syntax.tree.ExpressionNode;
 import io.ballerina.compiler.syntax.tree.FunctionArgumentNode;
 import io.ballerina.compiler.syntax.tree.IdentifierToken;
 import io.ballerina.compiler.syntax.tree.MarkdownDocumentationNode;
+import io.ballerina.compiler.syntax.tree.MatchClauseNode;
 import io.ballerina.compiler.syntax.tree.NamedArgumentNode;
 import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.compiler.syntax.tree.NodeList;
@@ -196,6 +197,11 @@ public class FormBuilder<T> extends FacetedBuilder<T> {
 
     public FormBuilder<T> type(String typeName, boolean editable, String importStatements, boolean hidden) {
         return type(typeName, Property.TYPE_LABEL, editable, null, null, importStatements, hidden);
+    }
+
+    public FormBuilder<T> type(String typeName, boolean editable, String importStatements, boolean hidden,
+                               String label) {
+        return type(typeName, label, editable, null, null, importStatements, hidden);
     }
 
     public FormBuilder<T> type(String typeName, String label, boolean editable, Boolean modified, LineRange lineRange,
@@ -374,6 +380,36 @@ public class FormBuilder<T> extends FacetedBuilder<T> {
                     .label(Property.PATTERNS_LABEL)
                     .description(Property.PATTERNS_DOC)
                     .stepOut()
+                .value(properties)
+                .type(Property.ValueType.SINGLE_SELECT)
+                .editable();
+        addProperty(Property.PATTERNS_KEY);
+
+        return this;
+    }
+
+    public FormBuilder<T> patterns(MatchClauseNode matchClauseNode, String pattern, CommentProperty commentProperty) {
+        List<Property> properties = new ArrayList<>();
+
+        if (!matchClauseNode.matchPatterns().isEmpty()) {
+            Property property = propertyBuilder
+                    .metadata()
+                    .label(Property.PATTERN_LABEL)
+                    .description(Property.PATTERN_DOC)
+                    .stepOut()
+                    .value(pattern)
+                    .comment(commentProperty)
+                    .type(Property.ValueType.EXPRESSION)
+                    .editable()
+                    .build();
+            properties.add(property);
+        }
+
+        propertyBuilder
+                .metadata()
+                .label(Property.PATTERNS_LABEL)
+                .description(Property.PATTERNS_DOC)
+                .stepOut()
                 .value(properties)
                 .type(Property.ValueType.SINGLE_SELECT)
                 .editable();
@@ -1253,24 +1289,26 @@ public class FormBuilder<T> extends FacetedBuilder<T> {
         return endNestedProperty(valueType, key, label, doc, null, false, false);
     }
 
-    public final void addProperty(String key, Node node) {
+    public final FormBuilder<T> addProperty(String key, Node node) {
         if (node != null && diagnosticHandler != null) {
             diagnosticHandler.handle(propertyBuilder, node.lineRange(), true);
         }
         Property property = propertyBuilder.build();
         this.nodeProperties.put(key, property);
+        return this;
     }
 
-    public final void addProperty(String key) {
-        addProperty(key, (Node) null);
+    public final FormBuilder<T> addProperty(String key) {
+        return addProperty(key, (Node) null);
     }
 
-    public final void addProperty(String key, LineRange lineRange) {
+    public final FormBuilder<T> addProperty(String key, LineRange lineRange) {
         if (lineRange != null && diagnosticHandler != null) {
             diagnosticHandler.handle(propertyBuilder, lineRange, true);
         }
         Property property = propertyBuilder.build();
         this.nodeProperties.put(key, property);
+        return this;
     }
 
     public Map<String, Property> build() {

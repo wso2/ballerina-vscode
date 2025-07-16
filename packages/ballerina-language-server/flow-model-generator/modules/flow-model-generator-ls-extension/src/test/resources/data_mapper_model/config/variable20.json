@@ -1,27 +1,67 @@
 {
   "source": "variable10.bal",
   "description": "Sample diagram node",
-  "codedata": {
-    "node": "VARIABLE",
-    "lineRange": {
-      "fileName": "variable10.bal",
-      "startLine": {
-        "line": 31,
-        "offset": 12
+  "diagram": {
+    "id": "32874",
+    "metadata": {
+      "label": "Variable",
+      "description": "Assign a value to a variable"
+    },
+    "codedata": {
+      "node": "VARIABLE",
+      "lineRange": {
+        "fileName": "variable10.bal",
+        "startLine": {
+          "line": 0,
+          "offset": 0
+        },
+        "endLine": {
+          "line": 0,
+          "offset": 0
+        }
       },
-      "endLine": {
-        "line": 39,
-        "offset": 17
+      "sourceCode": ""
+    },
+    "returning": false,
+    "properties": {
+      "expression": {
+        "metadata": {
+          "label": "Expression",
+          "description": "Expression"
+        },
+        "valueType": "EXPRESSION",
+        "value": "from var bank in banks select {name: bank.name, credentials: from var info in bank.userInfo select {password: , username: info.username}}",
+        "optional": false,
+        "editable": true
+      },
+      "variable": {
+        "metadata": {
+          "label": "Variable",
+          "description": "Name of the variable"
+        },
+        "valueType": "IDENTIFIER",
+        "value": "stores",
+        "optional": false,
+        "editable": true
+      },
+      "type": {
+        "metadata": {
+          "label": "Type",
+          "description": "Type of the variable"
+        },
+        "valueType": "TYPE",
+        "value": "Store[]",
+        "optional": false,
+        "editable": true
       }
     },
-    "sourceCode": ""
+    "flags": 0
   },
+  "propertyKey": "expression",
   "position": {
     "line": 30,
     "offset": 64
   },
-  "propertyKey": "expression",
-  "targetField": "stores.credentials",
   "model": {
     "inputs": [
       {
@@ -34,7 +74,7 @@
         "member": {
           "fields": [
             {
-              "id": "banks.0.name",
+              "id": "banks.name",
               "variableName": "name",
               "typeName": "string",
               "kind": "string"
@@ -43,35 +83,35 @@
               "member": {
                 "fields": [
                   {
-                    "id": "banks.0.userInfo.0.username",
+                    "id": "banks.userInfo.username",
                     "variableName": "username",
                     "typeName": "string",
                     "kind": "string"
                   },
                   {
-                    "id": "banks.0.userInfo.0.password",
+                    "id": "banks.userInfo.password",
                     "variableName": "password",
                     "typeName": "string",
                     "kind": "string"
                   },
                   {
-                    "id": "banks.0.userInfo.0.id",
+                    "id": "banks.userInfo.id",
                     "variableName": "id",
                     "typeName": "int",
                     "kind": "int"
                   }
                 ],
-                "id": "banks.0.userInfo.0",
+                "id": "banks.userInfo",
                 "typeName": "UserInfo",
                 "kind": "record"
               },
-              "id": "banks.0.userInfo",
+              "id": "banks.userInfo",
               "variableName": "userInfo",
               "typeName": "UserInfo[]",
               "kind": "array"
             }
           ],
-          "id": "banks.0",
+          "id": "banks",
           "typeName": "Bank",
           "kind": "record"
         },
@@ -85,25 +125,25 @@
         "member": {
           "fields": [
             {
-              "id": "userInfo.0.username",
+              "id": "userInfo.username",
               "variableName": "username",
               "typeName": "string",
               "kind": "string"
             },
             {
-              "id": "userInfo.0.password",
+              "id": "userInfo.password",
               "variableName": "password",
               "typeName": "string",
               "kind": "string"
             },
             {
-              "id": "userInfo.0.id",
+              "id": "userInfo.id",
               "variableName": "id",
               "typeName": "int",
               "kind": "int"
             }
           ],
-          "id": "userInfo.0",
+          "id": "userInfo",
           "typeName": "UserInfo",
           "kind": "record"
         },
@@ -183,7 +223,7 @@
         "inputs": [
           "info.username"
         ],
-        "expression": "info.username\n",
+        "expression": "info.username",
         "diagnostics": [],
         "elements": [],
         "isQueryExpression": false
@@ -200,7 +240,8 @@
         "expression": "bank.userInfo"
       },
       "intermediateClauses": [],
-      "resultClause": "{\n                           password: ,\n                           username: info.username\n                       }"
+      "resultClause": "{password: , username: info.username}"
     }
-  }
+  },
+  "targetField": "stores.credentials"
 }

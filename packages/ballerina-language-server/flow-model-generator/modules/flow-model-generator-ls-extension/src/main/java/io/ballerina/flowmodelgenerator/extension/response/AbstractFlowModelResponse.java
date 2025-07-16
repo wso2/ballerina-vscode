@@ -31,7 +31,7 @@ public abstract class AbstractFlowModelResponse {
     private String stacktrace;
 
     public void setError(Throwable e) {
-        this.errorMsg = e.toString();
+        this.errorMsg = e.getLocalizedMessage();
         this.stacktrace = Arrays.toString(e.getStackTrace());
     }
 
