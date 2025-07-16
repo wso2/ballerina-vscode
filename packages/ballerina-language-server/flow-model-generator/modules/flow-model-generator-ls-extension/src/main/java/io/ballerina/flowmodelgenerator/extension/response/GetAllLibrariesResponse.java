@@ -21,9 +21,9 @@ package io.ballerina.flowmodelgenerator.extension.response;
 import com.google.gson.JsonArray;
 
 /**
- * Represents the response for available agents.
+ * Represents the response for supported copilot libraries.
  *
- * @since 1.0.0
+ * @since 1.1.0
  */
 public class GetAllLibrariesResponse extends AbstractFlowModelResponse {
     private JsonArray libraries;

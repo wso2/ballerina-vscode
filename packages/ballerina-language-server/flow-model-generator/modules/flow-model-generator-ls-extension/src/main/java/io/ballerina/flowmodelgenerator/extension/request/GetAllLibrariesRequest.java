@@ -22,6 +22,8 @@ package io.ballerina.flowmodelgenerator.extension.request;
  * A request to retrieve all available libraries.
  *
  * @param mode The mode to determine which context file to read ("CORE" or "HEALTHCARE")
+ *
+ * @since 1.1.0
  */
 public record GetAllLibrariesRequest(String mode) {
 

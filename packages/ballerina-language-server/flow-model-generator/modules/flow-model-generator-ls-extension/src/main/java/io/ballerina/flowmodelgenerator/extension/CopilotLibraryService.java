@@ -44,6 +44,8 @@ import java.util.concurrent.CompletableFuture;
 /**
  * Service for managing Copilot library operations.
  * Provides streaming JSON processing for efficient memory usage.
+ *
+ * @since 1.1.0
  */
 @JavaSPIService("org.ballerinalang.langserver.commons.service.spi.ExtendedLanguageServerService")
 @JsonSegment("copilotLibraryManager")
