@@ -65,6 +65,7 @@ export interface InlineDataMapperProps {
     generateForm: (formProps: IDMFormProps) => JSX.Element;
     convertToQuery: (outputId: string, viewId: string, name: string) => Promise<void>;
     addClauses: (clause: IntermediateClause, targetField: string, isNew: boolean, index?:number) => Promise<void>;
+    addSubMapping: (subMappingName: string, type: string, index: number, targetField: string) => Promise<void>;
     onClose: () => void;
     handleView: (viewId: string, isSubMapping?: boolean) => void;
 }

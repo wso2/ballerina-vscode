@@ -26,8 +26,8 @@ interface SubMappingConfig {
 }
 
 export interface SubMappingConfigFormData {
-    mappingName: string;
-    mappingType: string | undefined;
+    name: string;
+    type: string | undefined;
     isArray: boolean;
 }
 

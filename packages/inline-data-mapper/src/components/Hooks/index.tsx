@@ -102,6 +102,7 @@ export const useDiagramModel = (
     const context = nodes.find(node => node.context)?.context;
     const { model } = context ?? {};
     const mappings = model.mappings.map(mapping => mapping.expression).toString();
+    const subMappings = model?.subMappings?.map(mapping => mapping.id).toString();
     const collapsedFields = useDMCollapsedFieldsStore(state => state.fields); // Subscribe to collapsedFields
     const expandedFields = useDMExpandedFieldsStore(state => state.fields); // Subscribe to expandedFields
     const { inputSearch, outputSearch } = useDMSearchStore();
@@ -148,7 +149,17 @@ export const useDiagramModel = (
         isError,
         refetch,
     } = useQuery({
-        queryKey: ['diagramModel', noOfNodes, zoomLevel, collapsedFields, expandedFields, inputSearch, outputSearch, mappings],
+        queryKey: [
+            'diagramModel',
+            noOfNodes,
+            zoomLevel,
+            collapsedFields,
+            expandedFields,
+            inputSearch,
+            outputSearch,
+            mappings,
+            subMappings
+        ],
         queryFn: genModel,
         networkMode: 'always',
     });

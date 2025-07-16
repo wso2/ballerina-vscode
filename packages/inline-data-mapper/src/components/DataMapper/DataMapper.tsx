@@ -97,6 +97,7 @@ export function InlineDataMapper(props: InlineDataMapperProps) {
         addArrayElement,
         handleView,
         convertToQuery,
+        addSubMapping,
         generateForm,
         addClauses
     } = props;
@@ -270,6 +271,7 @@ export function InlineDataMapper(props: InlineDataMapperProps) {
                                 views={views}
                                 updateView={editView}
                                 applyModifications={applyModifications}
+                                addSubMapping={addSubMapping}
                                 generateForm={generateForm}
                             />
                         )}

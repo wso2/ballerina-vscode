@@ -43,6 +43,7 @@ import FormGeneratorNew from "../BI/Forms/FormGeneratorNew";
 import { InlineDataMapperProps } from ".";
 import { EXPRESSION_EXTRACTION_REGEX } from "../../constants";
 import { calculateExpressionOffsets, convertBalCompletion, updateLineRange } from "../../utils/bi";
+import { createAddSubMappingRequest } from "./utils";
 
 // Types for model comparison
 interface ModelSignature {
@@ -253,6 +254,29 @@ export function InlineDataMapperView(props: InlineDataMapperProps) {
         }
     }
 
+    const addSubMapping = async (subMappingName: string, type: string, index: number, targetField: string) => {
+        try {
+            const request = createAddSubMappingRequest(
+                filePath,
+                codedata,
+                index,
+                targetField,
+                subMappingName,
+                type
+            );
+            
+            console.log(">>> [Inline Data Mapper] addSubMapping request:", request);
+
+            const response = await rpcClient
+                .getInlineDataMapperRpcClient()
+                .addSubMapping(request);
+            console.log(">>> [Inline Data Mapper] addSubMapping response:", response);
+        } catch (error) {
+            console.error(error);
+            setIsFileUpdateError(true);
+        }
+    };
+
     useEffect(() => {
         // Hack to hit the error boundary
         if (isError) {
@@ -360,6 +384,7 @@ export function InlineDataMapperView(props: InlineDataMapperProps) {
                     generateForm={generateForm}
                     convertToQuery={convertToQuery}
                     addClauses={addClauses}
+                    addSubMapping={addSubMapping}
                     expressionBar={{
                         completions: filteredCompletions,
                         triggerCompletions: retrieveCompeletions,
