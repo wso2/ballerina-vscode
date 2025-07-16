@@ -57,7 +57,7 @@ import java.util.stream.StreamSupport;
 @JavaSPIService("org.ballerinalang.langserver.commons.command.spi.LSCommandExecutor")
 public class RunExecutor implements LSCommandExecutor {
 
-    private static final String RUN_COMMAND = "RUN";
+    public static final String RUN_COMMAND = "RUN";
 
     // commands arg names
     private static final String ARG_PATH = "path";

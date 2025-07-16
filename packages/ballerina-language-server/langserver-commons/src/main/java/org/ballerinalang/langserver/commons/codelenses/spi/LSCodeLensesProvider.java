@@ -15,18 +15,18 @@
  */
 package org.ballerinalang.langserver.commons.codelenses.spi;
 
+import io.ballerina.compiler.syntax.tree.Node;
 import org.ballerinalang.langserver.commons.DocumentServiceContext;
 import org.ballerinalang.langserver.commons.LanguageServerContext;
 import org.eclipse.lsp4j.CodeLens;
 
-import java.util.List;
-
 /**
  * Represents the SPI interface for the Language Server Code Lenses Provider.
- * 
+ *
  * @since 1.0.0
  */
 public interface LSCodeLensesProvider {
+
     /**
      * Returns name of the code lenses provider.
      *
@@ -35,12 +35,14 @@ public interface LSCodeLensesProvider {
     String getName();
 
     /**
-     * Execute the Command.
+     * Returns the code lens for a given node. If the node is not a valid node for the provider,
+     * this method should return null.
      *
-     * @param context           Language Server Context
-     * @return {@link List}     List of code lenses
+     * @param context Language Server Context
+     * @param node    Node to get the code lens
+     * @return {@link CodeLens} Code lens for the node, or null if not applicable
      */
-    List<CodeLens> getLenses(DocumentServiceContext context);
+    CodeLens getLens(DocumentServiceContext context, Node node);
 
     /**
      * Mark code lenses provider is enabled or not.
