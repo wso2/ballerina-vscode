@@ -23,6 +23,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { ExtendedLangClient } from "../core/extended-language-client";
 import { ServiceDesignerRpcManager } from "../rpc-managers/service-designer/rpc-manager";
+import { AiAgentRpcManager } from "../rpc-managers/ai-agent/rpc-manager";
 import { injectAgent, injectAgentCode, injectImportIfMissing } from "./source-utils";
 import { tmpdir } from "os";
 import { ArtifactsUpdated, ArtifactNotificationHandler } from "./project-artifacts-handler";
@@ -181,8 +182,11 @@ async function getEntryValue(artifact: BaseArtifact, icon: string, moduleName?: 
 // This is a hack to inject the AI agent code into the chat service function
 // This has to be replaced once we have a proper design for AI Agent Chat Service
 async function injectAIAgent(serviceArtifact: BaseArtifact) {
+    // Fetch the organization name for importing the AI package
+    const agentOrg = await new AiAgentRpcManager().getAgentOrg({ projectPath: StateMachine.context().projectUri });
+
     // Inject the import if missing
-    const importStatement = `import ballerinax/ai`;
+    const importStatement = `import ${agentOrg.orgName}/ai`;
     await injectImportIfMissing(importStatement, path.join(StateMachine.context().projectUri, `agents.bal`));
 
     //get AgentName

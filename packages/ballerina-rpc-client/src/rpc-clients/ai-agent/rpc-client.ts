@@ -14,9 +14,13 @@
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations
  * under the License.
+ * 
+ * THIS FILE INCLUDES AUTO GENERATED CODE
  */
 import {
     AIAgentAPI,
+    AIAgentOrgRequest,
+    AIAgentOrgResponse,
     AIAgentRequest,
     AIAgentResponse,
     AIAgentToolsUpdateRequest,
@@ -28,15 +32,16 @@ import {
     AINodesResponse,
     AIToolsRequest,
     AIToolsResponse,
-    MemoryManagersRequest,
-    MemoryManagersResponse,
     createAIAgent,
     genTool,
+    getAgentOrg,
     getAllAgents,
     getAllMemoryManagers,
     getAllModels,
     getModels,
     getTools,
+    MemoryManagersRequest,
+    MemoryManagersResponse,
     updateAIAgentTools
 } from "@wso2/ballerina-core";
 import { HOST_EXTENSION } from "vscode-messenger-common";
@@ -47,6 +52,10 @@ export class AiAgentRpcClient implements AIAgentAPI {
 
     constructor(messenger: Messenger) {
         this._messenger = messenger;
+    }
+
+    getAgentOrg(params: AIAgentOrgRequest): Promise<AIAgentOrgResponse> {
+        return this._messenger.sendRequest(getAgentOrg, HOST_EXTENSION, params);
     }
 
     getAllAgents(params: AINodesRequest): Promise<AINodesResponse> {
