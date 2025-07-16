@@ -21,6 +21,15 @@ import { BallerinaRpcClient } from "@wso2/ballerina-rpc-client";
 import { cloneDeep } from "lodash";
 import { URI, Utils } from "vscode-uri";
 
+export const getAgentOrg = async (rpcClient: BallerinaRpcClient) => {
+    const filePath = await rpcClient.getVisualizerLocation();
+    const agentOrgResponse = await rpcClient
+        .getAIAgentRpcClient()
+        .getAgentOrg({ projectPath: filePath.projectUri });
+    console.log(">>> agent org", agentOrgResponse.orgName);
+    return agentOrgResponse.orgName;
+}
+
 export const getAgentFilePath = async (rpcClient: BallerinaRpcClient) => {
     // Get the agent file path and update the node
     const filePath = await rpcClient.getVisualizerLocation();
