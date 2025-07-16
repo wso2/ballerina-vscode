@@ -171,6 +171,16 @@ export function WelcomeView(props: WelcomeViewProps) {
         });
     };
 
+    const goToImportExternalIntegration = () => {
+        rpcClient.getVisualizerRpcClient().openView({
+            type: EVENT_TYPE.OPEN_VIEW,
+            location: {
+                view: MACHINE_VIEW.BIImportIntegrationForm,
+            },
+        });
+    };
+
+
     const openGettingStartedGuide = () => {
         rpcClient.getCommonRpcClient().openExternalUrl({
             url: "https://bi.docs.wso2.com/get-started/quick-start-guide/"
@@ -222,12 +232,20 @@ export function WelcomeView(props: WelcomeViewProps) {
                                 <StepDescription>
                                     Ready to build? Start a new integration project using our intuitive graphical designer.
                                 </StepDescription>
-                                <StyledButton disabled={!props.isBISupported} appearance="primary" onClick={() => goToCreateProject()}>
-                                    <ButtonContent>
-                                        <Codicon name="add" iconSx={{ fontSize: 16 }} />
-                                        Create New Integration
-                                    </ButtonContent>
-                                </StyledButton>
+                                <Row>
+                                    <StyledButton disabled={!props.isBISupported} appearance="primary" onClick={() => goToCreateProject()}>
+                                        <ButtonContent>
+                                            <Codicon name="add" iconSx={{ fontSize: 16 }} />
+                                            Create New Integration
+                                        </ButtonContent>
+                                    </StyledButton>
+                                    <StyledButton disabled={!props.isBISupported} appearance="secondary" onClick={() => goToImportExternalIntegration()}>
+                                        <ButtonContent>
+                                            <Codicon name="add" iconSx={{ fontSize: 16 }} />
+                                            Import External Integration
+                                        </ButtonContent>
+                                    </StyledButton>
+                                </Row>
                             </>
                         }
                         {!props.isBISupported &&
