@@ -419,12 +419,12 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
         // Find the correct artifact by currentIdentifier (id)
         let currentArtifact = artifacts.artifacts.at(0);
         artifacts.artifacts.forEach((artifact) => {
-            if (artifact.id === currentIdentifier) {
+            if (artifact.id === currentIdentifier || artifact.name === currentIdentifier) {
                 currentArtifact = artifact;
             }
             // Check if artifact has resources and find within those
             if (artifact.resources && artifact.resources.length > 0) {
-                const resource = artifact.resources.find((resource) => resource.id === currentIdentifier);
+                const resource = artifact.resources.find((resource) => resource.id === currentIdentifier || resource.name === currentIdentifier);
                 if (resource) {
                     currentArtifact = resource;
                 }

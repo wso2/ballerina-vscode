@@ -49,31 +49,42 @@ export class VisualizerWebview {
             }
         }, 500);
 
-        const debouncedRefreshDataMapper = debounce(async (documentUri: string, codedata: CodeData, name: string) => {
-            await refreshDataMapper(documentUri, codedata, name);
+        const debouncedRefreshDataMapper = debounce(async () => {
+            if (this._panel) {
+                const stateMachineContext = StateMachine.context();
+                const { documentUri, dataMapperMetadata: { codeData, name } } = stateMachineContext;
+                await refreshDataMapper(documentUri, codeData, name);
+            }
         }, 500);
 
         vscode.workspace.onDidChangeTextDocument(async (document) => {
-            await document.document.save();
+            // Save the document only if it is not already opened in a visible editor or the webview is active
+            const isOpened = vscode.window.visibleTextEditors.some(editor => editor.document.uri.toString() === document.document.uri.toString());
+            if (!isOpened || this._panel?.active) {
+                await document.document.save();
+            }
+
             const state = StateMachine.state();
             const machineReady = typeof state === 'object' && 'viewActive' in state && state.viewActive === "viewReady";
-            if (this._panel?.active && machineReady && document && document.document.languageId === LANGUAGE.BALLERINA) {
+            if (!machineReady) return;
+
+            const balFileModified = document?.document.languageId === LANGUAGE.BALLERINA;
+            const configTomlModified = document.document.languageId === LANGUAGE.TOML &&
+                document.document.fileName.endsWith("Config.toml") &&
+                vscode.window.visibleTextEditors.some(editor =>
+                    editor.document.fileName === document.document.fileName
+                );
+            const dataMapperModified = balFileModified &&
+                StateMachine.context().view === MACHINE_VIEW.InlineDataMapper &&
+                document.document.fileName === StateMachine.context().documentUri;
+
+            if (this._panel?.active && dataMapperModified) {
+                debouncedRefreshDataMapper();
+            } else if (this._panel?.active && balFileModified) {
                 sendUpdateNotificationToWebview();
-            } else if (machineReady && document?.document && document.document.languageId === LANGUAGE.TOML && document.document.fileName.endsWith("Config.toml") &&
-                vscode.window.visibleTextEditors.some(editor => editor.document.fileName === document.document.fileName)){
+            } else if (configTomlModified) {
                 sendUpdateNotificationToWebview(true);
             }
-
-            if (StateMachine.context().view === MACHINE_VIEW.InlineDataMapper
-                && document.document.fileName === StateMachine.context().documentUri) {
-                const stateMachineContext = StateMachine.context();
-                debouncedRefreshDataMapper(
-                    stateMachineContext.documentUri,
-                    stateMachineContext.dataMapperMetadata.codeData,
-                    stateMachineContext.dataMapperMetadata.name
-                );
-            }
-
         }, extension.context);
 
         vscode.workspace.onDidDeleteFiles(() => {
@@ -130,7 +141,7 @@ export class VisualizerWebview {
                         <div class="logo-container">
                             <div class="loader"></div>
                         </div>
-                        <h1 class="welcome-title">Welcome to WSO2 Integrator: BI</h1>
+                        <h1 class="welcome-title">WSO2 Integrator: BI</h1>
                         <p class="welcome-subtitle">Setting up your workspace and tools</p>
                         <div class="loading-text">
                             <span class="loading-dots">Loading</span>
