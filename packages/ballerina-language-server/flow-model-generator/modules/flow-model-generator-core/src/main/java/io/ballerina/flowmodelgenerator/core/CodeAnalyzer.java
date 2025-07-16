@@ -220,11 +220,39 @@ public class CodeAnalyzer extends NodeVisitor {
         if (symbol.isEmpty()) {
             return;
         }
-        // Create the start event node
         FunctionBodyNode functionBodyNode = functionDefinitionNode.functionBody();
+
+        FunctionKind kind;
+        String functionName = functionDefinitionNode.functionName().text();
+        String accessor = null;
+
+        if (functionDefinitionNode.kind() == SyntaxKind.RESOURCE_ACCESSOR_DEFINITION) {
+            accessor = functionName;
+            functionName = getPathString(functionDefinitionNode.relativeResourcePath());
+            ServiceDeclarationNode serviceDeclarationNode = getParentServiceDeclaration(functionDefinitionNode);
+            Optional<Symbol> serviceSymbol = semanticModel.symbol(serviceDeclarationNode);
+            if (serviceSymbol.isPresent() && isAgent(serviceSymbol.get())) {
+                kind = FunctionKind.AI_CHAT_AGENT;
+            } else {
+                kind = FunctionKind.RESOURCE;
+            }
+        } else if (hasQualifier(functionDefinitionNode.qualifierList(), SyntaxKind.REMOTE_KEYWORD)) {
+            kind = FunctionKind.REMOTE_FUNCTION;
+        } else {
+            kind = FunctionKind.FUNCTION;
+        }
+
         startNode(NodeKind.EVENT_START, functionDefinitionNode).codedata()
                 .lineRange(functionBodyNode.lineRange())
                 .sourceCode(functionDefinitionNode.toSourceCode().strip());
+
+        nodeBuilder.metadata()
+                .addData("kind", kind.getValue())
+                .addData("label", functionName);
+        if (accessor != null) {
+            nodeBuilder.metadata().addData("accessor", accessor);
+        }
+
 
         // Add the function signature to the metadata
         FunctionSignatureNode functionSignatureNode = functionDefinitionNode.functionSignature();
@@ -2314,5 +2342,51 @@ public class CodeAnalyzer extends NodeVisitor {
         }
         sourceCode = sourceCode.replace(trailingMinutiae.strip(), "");
         return sourceCode.strip();
+    }
+
+    private static String getPathString(NodeList<Node> nodes) {
+        return nodes.stream()
+                .map(node -> node.toString().trim())
+                .collect(Collectors.joining());
+    }
+
+    private static boolean hasQualifier(NodeList<Token> qualifierList, SyntaxKind kind) {
+        return qualifierList.stream().anyMatch(qualifier -> qualifier.kind() == kind);
+    }
+
+    private boolean isAgent(Symbol symbol) {
+        Optional<ModuleSymbol> optModule = symbol.getModule();
+        if (optModule.isEmpty()) {
+            return false;
+        }
+        ModuleID id = optModule.get().id();
+        boolean isAIModule = id.orgName().equals(BALLERINAX) && id.packageName().equals(AI_AGENT);
+        if (!isAIModule) {
+            return false;
+        }
+
+        return symbol.getName().isPresent() && symbol.getName().get().equals("Agent");
+    }
+
+    /**
+     * Represents the kind of a function.
+     *
+     * @since 1.0.1
+     */
+    public enum FunctionKind {
+        FUNCTION("Function"),
+        REMOTE_FUNCTION("Remote Function"),
+        RESOURCE("Resource"),
+        AI_CHAT_AGENT("AI Chat Agent");
+
+        private final String value;
+
+        FunctionKind(String value) {
+            this.value = value;
+        }
+
+        public String getValue() {
+            return value;
+        }
     }
 }
