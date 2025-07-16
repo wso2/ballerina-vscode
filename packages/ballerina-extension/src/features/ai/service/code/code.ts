@@ -25,7 +25,7 @@ import { AIPanelAbortController } from "../../../../../src/rpc-managers/ai-panel
 
 // Core code generation function that emits events
 export async function generateCodeCore(params: GenerateCodeRequest, eventHandler: CopilotEventHandler): Promise<void> {
-    const project: ProjectSource = await getProjectSource("CODE_GENERATION");
+    const project: ProjectSource = await getProjectSource(params.operationType);
     const packageName = project.projectName;
     const sourceFiles: SourceFiles[] = transformProjectSource(project);
     const prompt = getReadmeQuery(params, sourceFiles);

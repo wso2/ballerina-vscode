@@ -36,7 +36,6 @@ export interface AIPanelAPI {
     generateMappings: (params: GenerateMappingsRequest) => Promise<GenerateMappingsResponse>;
     notifyAIMappings: (params: NotifyAIMappingsRequest) => Promise<boolean>;
     stopAIMappings: () => Promise<GenerateMappingsResponse>;
-    getProjectSource: (params: string) => Promise<ProjectSource>;
     getShadowDiagnostics: (params: ProjectSource) => Promise<ProjectDiagnostics>;
     checkSyntaxError: (params: ProjectSource) => Promise<boolean>;
     clearInitialPrompt: () => void;

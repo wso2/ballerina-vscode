@@ -82,7 +82,6 @@ import {
     getGeneratedTests,
     getMappingsFromRecord,
     getModuleDirectory,
-    getProjectSource,
     getProjectUuid,
     getRefreshedAccessToken,
     getRelevantLibrariesAndFunctions,
@@ -174,10 +173,6 @@ export class AiPanelRpcClient implements AIPanelAPI {
 
     stopAIMappings(): Promise<GenerateMappingsResponse> {
         return this._messenger.sendRequest(stopAIMappings, HOST_EXTENSION);
-    }
-
-    getProjectSource(params: string): Promise<ProjectSource> {
-        return this._messenger.sendRequest(getProjectSource, HOST_EXTENSION, params);
     }
 
     getShadowDiagnostics(params: ProjectSource): Promise<ProjectDiagnostics> {

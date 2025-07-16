@@ -41,7 +41,7 @@ export async function generateHealthcareCodeCore(
     params: GenerateCodeRequest,
     eventHandler: CopilotEventHandler
 ): Promise<void> {
-    const project: ProjectSource = await getProjectSource("CODE_GENERATION");
+    const project: ProjectSource = await getProjectSource(params.operationType);
     const sourceFiles: SourceFiles[] = transformProjectSource(project);
     const prompt = getReadmeQuery(params, sourceFiles);
     const relevantTrimmedFuncs: Library[] = (
