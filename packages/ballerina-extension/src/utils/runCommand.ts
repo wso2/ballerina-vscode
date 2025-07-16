@@ -16,14 +16,9 @@
  * under the License.
  */
 
-import { PALETTE_COMMANDS } from 'src/features/project';
 import * as vscode from 'vscode';
 import child_process from 'child_process';
 import { CommandResponse } from '@wso2/ballerina-core';
-
-export function runCommand(command: PALETTE_COMMANDS, args: any[]) {
-    vscode.commands.executeCommand(command, ...args);
-}
 
 export async function runBackgroundTerminalCommand(command: string) {
     return new Promise<CommandResponse>(function (resolve) {
