@@ -85,6 +85,19 @@ export async function askFilePath() {
     });
 }
 
+export async function askFileOrFolderPath() {
+    return await window.showOpenDialog({
+        canSelectFiles: true,
+        canSelectFolders: true,
+        canSelectMany: false,
+        defaultUri: Uri.file(os.homedir()),
+        filters: {
+            'Files': ['yaml', 'json', 'yml']
+        },
+        title: "Select a file or folder"
+    });
+}
+
 export async function applyBallerinaTomlEdit(tomlPath: Uri, textEdit: TextEdit) {
     const workspaceEdit = new WorkspaceEdit();
 
