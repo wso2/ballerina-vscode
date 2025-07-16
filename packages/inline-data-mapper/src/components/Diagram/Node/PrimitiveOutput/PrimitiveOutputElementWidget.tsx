@@ -24,7 +24,7 @@ import { Button, Icon, ProgressRing } from "@wso2/ui-toolkit";
 
 import { IDataMapperContext } from "../../../../utils/DataMapperContext/DataMapperContext";
 import { DataMapperPortWidget, PortState, InputOutputPortModel } from "../../Port";
-import { fieldFQNFromPortName, getDefaultValue } from "../../utils/common-utils";
+import { fieldFQNFromPortName, getDefaultValue, getSanitizedId } from "../../utils/common-utils";
 import { OutputSearchHighlight } from "../commons/Search";
 import { ValueConfigMenu, ValueConfigOption } from "../commons/ValueConfigButton";
 import { useIONodesStyles } from "../../../styles";
@@ -71,21 +71,13 @@ export function PrimitiveOutputElementWidget(props: PrimitiveOutputElementWidget
 
     const fieldName = field?.id || '';
 
-    let updatedParentId = parentId;
-    if (updatedParentId.endsWith('>')) {
-        updatedParentId = updatedParentId.split('.').slice(0, -1).join('.');
-    }
-
-    let portName = updatedParentId;
-
+    let portName = getSanitizedId(parentId);
     if (fieldIndex !== undefined) {
-        portName = `${updatedParentId}.${fieldIndex}`;
+        portName = `${portName}.${fieldIndex}`;
     } else if (fieldName) {
-        portName = `${updatedParentId}.${fieldName}`;
-    } else {
-        portName = updatedParentId;
+        portName = `${portName}.${fieldName}`;
     }
-
+    
     const portIn = getPort(`${portName}.IN`);
     const isExprBarFocused = exprBarFocusedPort?.getName() === portIn?.getName();
     const mapping = portIn && portIn.attributes.value;

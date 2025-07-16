@@ -30,7 +30,7 @@ import { useIONodesStyles } from "../../../styles";
 import { useDMCollapsedFieldsStore } from '../../../../store/store';
 import { getTypeName } from "../../utils/type-utils";
 import { ArrayOutputFieldWidget } from "../ArrayOutput/ArrayOuptutFieldWidget";
-import { fieldFQNFromPortName, getDefaultValue } from "../../utils/common-utils";
+import { fieldFQNFromPortName, getDefaultValue, getSanitizedId } from "../../utils/common-utils";
 import { addValue, removeMapping } from "../../utils/modification-utils";
 import FieldActionWrapper from "../commons/FieldActionWrapper";
 import { ValueConfigMenu, ValueConfigMenuItem, ValueConfigOption } from "../commons/ValueConfigButton";
@@ -75,12 +75,10 @@ export function ObjectOutputFieldWidget(props: ObjectOutputFieldWidgetProps) {
     const isArray = typeKind === TypeKind.Array;
     const isRecord = typeKind === TypeKind.Record;
 
-    let updatedParentId = parentId;
-    if (updatedParentId.endsWith('>')) {
-        updatedParentId = updatedParentId.split('.').slice(0, -1).join('.');
-    }
+    let updatedParentId = getSanitizedId(parentId);
+    
     if (fieldIndex !== undefined) {
-        updatedParentId = `${parentId}.${fieldIndex}`
+        updatedParentId = `${updatedParentId}.${fieldIndex}`
     }
     let fieldName = field?.variableName || '';
     let portName = updatedParentId !== '' ? fieldName !== '' && fieldIndex === undefined ? `${updatedParentId}.${fieldName}` : updatedParentId : fieldName;

@@ -29,7 +29,7 @@ import { OutputSearchHighlight } from "../commons/Search";
 import { useIONodesStyles } from "../../../styles";
 import { useDMCollapsedFieldsStore, useDMExpandedFieldsStore } from '../../../../store/store';
 import { getTypeName } from "../../utils/type-utils";
-import { getDefaultValue } from "../../utils/common-utils";
+import { getSanitizedId } from "../../utils/common-utils";
 
 export interface OutputFieldPreviewWidgetProps {
     parentId: string;
@@ -67,10 +67,7 @@ export function OutputFieldPreviewWidget(props: OutputFieldPreviewWidgetProps) {
     const isArray = typeKind === TypeKind.Array;
     const isRecord = typeKind === TypeKind.Record;
 
-    let updatedParentId = parentId;
-    if (updatedParentId.endsWith('>')) {
-        updatedParentId = updatedParentId.split('.').slice(0, -1).join('.');
-    }
+    let updatedParentId = getSanitizedId(parentId);
     if (fieldIndex !== undefined) {
         updatedParentId = `${updatedParentId}.${fieldIndex}`
     }
