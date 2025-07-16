@@ -214,7 +214,7 @@ export function EnumEditor({ type, onChange, onValidationError }: EnumEditorProp
         <S.Container>
             <S.Header>
                 <S.SectionTitle>Members</S.SectionTitle>
-                <div style={{ display: 'flex', gap: '8px' }}>
+                <div style={{ display: 'flex', gap: '8px' }} data-testid="add-member-button">
                     <Button appearance="icon" onClick={addMember}><Codicon name="add" /></Button>
                 </div>
             </S.Header>
@@ -239,6 +239,7 @@ export function EnumEditor({ type, onChange, onValidationError }: EnumEditorProp
                         </div>
                         <Button
                             appearance="icon"
+                            data-testid={`delete-member-${index}`}
                             onClick={() => deleteMember(index)}
                             disabled={type.members.length <= 1}
                             tooltip={type.members.length <= 1 ? "Enum must have at least one member" : "Remove member"}

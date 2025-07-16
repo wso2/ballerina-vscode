@@ -20,6 +20,7 @@
 import {
     AddArrayElementRequest,
     AddClausesRequest,
+    AddSubMappingRequest,
     ConvertToQueryRequest,
     EVENT_TYPE,
     GetInlineDataMapperCodedataRequest,
@@ -34,6 +35,8 @@ import {
     InlineDataMapperSourceRequest,
     InlineDataMapperSourceResponse,
     MACHINE_VIEW,
+    PropertyRequest,
+    PropertyResponse,
     VisualizableFieldsRequest,
     VisualizableFieldsResponse
 } from "@wso2/ballerina-core";
@@ -46,7 +49,8 @@ export class InlineDataMapperRpcManager implements InlineDataMapperAPI {
     async getInitialIDMSource(params: InitialIDMSourceRequest): Promise<InitialIDMSourceResponse> {
         console.log(">>> requesting inline data mapper initial source from ls", params);
         return new Promise((resolve) => {
-            StateMachine.langClient()
+            StateMachine
+                .langClient()
                 .getSourceCode(params)
                 .then(async (model) => {
                     console.log(">>> inline data mapper initial source from ls", model);
@@ -63,8 +67,6 @@ export class InlineDataMapperRpcManager implements InlineDataMapperAPI {
 
                     const varName = params.flowNode.properties?.variable?.value as string ?? null;
                     const codeData = await fetchDataMapperCodeData(params.filePath, modelCodeData, varName);
-                    // const codeData = params.flowNode.codedata;
-                    // const varName = params.flowNode.properties?.variable?.value as string ?? null;
 
                     openView(EVENT_TYPE.OPEN_VIEW, {
                         view: MACHINE_VIEW.InlineDataMapper,
@@ -103,7 +105,8 @@ export class InlineDataMapperRpcManager implements InlineDataMapperAPI {
 
     async getDataMapperSource(params: InlineDataMapperSourceRequest): Promise<InlineDataMapperSourceResponse> {
         return new Promise(async (resolve) => {
-            StateMachine.langClient()
+            StateMachine
+                .langClient()
                 .getInlineDataMapperSource(params)
                 .then(async (resp) => {
                     console.log(">>> inline data mapper initial source from ls", resp);
@@ -125,7 +128,8 @@ export class InlineDataMapperRpcManager implements InlineDataMapperAPI {
 
     async addNewArrayElement(params: AddArrayElementRequest): Promise<InlineDataMapperSourceResponse> {
         return new Promise(async (resolve) => {
-            await StateMachine.langClient()
+            await StateMachine
+                .langClient()
                 .addArrayElement({
                     filePath: params.filePath,
                     codedata: params.codedata,
@@ -142,7 +146,8 @@ export class InlineDataMapperRpcManager implements InlineDataMapperAPI {
 
     async convertToQuery(params: ConvertToQueryRequest): Promise<InlineDataMapperSourceResponse> {
         return new Promise(async (resolve) => {
-            await StateMachine.langClient()
+            await StateMachine
+                .langClient()
                 .convertToQuery(params)
                 .then(async (resp) => {
                     console.log(">>> inline data mapper convert to query response", resp);
@@ -159,6 +164,19 @@ export class InlineDataMapperRpcManager implements InlineDataMapperAPI {
                 .addClauses(params)
                 .then(async (resp) => {
                     console.log(">>> inline data mapper add clauses response", resp);
+                    updateAndRefreshDataMapper(resp.textEdits, params.filePath, params.codedata, params.varName);
+                    resolve({ textEdits: resp.textEdits });
+                });
+        });
+    }
+
+    async addSubMapping(params: AddSubMappingRequest): Promise<InlineDataMapperSourceResponse> {
+        return new Promise(async (resolve) => {
+            await StateMachine
+                .langClient()
+                .addSubMapping(params)
+                .then(async (resp) => {
+                    console.log(">>> inline data mapper add sub mapping response", resp);
                     updateAndRefreshDataMapper(resp.textEdits, params.filePath, params.codedata, params.varName);
                     resolve({ textEdits: resp.textEdits });
                 });
@@ -207,4 +225,15 @@ export class InlineDataMapperRpcManager implements InlineDataMapperAPI {
                 });
         });
     }
+
+    async getProperty(params: PropertyRequest): Promise<PropertyResponse> {
+        return new Promise(async (resolve) => {
+            const property = await StateMachine
+                .langClient()
+                .getProperty(params) as PropertyResponse;
+
+            resolve(property);
+        });
+    }
+
 }

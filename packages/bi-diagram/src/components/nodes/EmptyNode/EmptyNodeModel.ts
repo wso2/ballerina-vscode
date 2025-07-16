@@ -29,8 +29,9 @@ export class EmptyNodeModel extends NodeModel {
     readonly showButton: boolean;
     topNode: FlowNode | Branch; // top statement node or parent block node
     target: LinePosition;
+    visibleBtnCounter: number;
 
-    constructor(id: string, visible = true, button = false) {
+    constructor(id: string, visible = true, button = false, visibleBtnCounter = 0) {
         super({
             id,
             type: NodeTypes.EMPTY_NODE,
@@ -40,6 +41,7 @@ export class EmptyNodeModel extends NodeModel {
         this.addOutPort("out");
         this.visible = visible;
         this.showButton = button;
+        this.visibleBtnCounter = visibleBtnCounter;
     }
 
     addPort<T extends NodePortModel>(port: T): T {
