@@ -222,19 +222,15 @@ public class CodeAnalyzer extends NodeVisitor {
         }
         FunctionBodyNode functionBodyNode = functionDefinitionNode.functionBody();
 
+        // Set the function kind to display in the flow model
         FunctionKind kind;
         String functionName = functionDefinitionNode.functionName().text();
         String accessor = null;
-
         if (functionDefinitionNode.kind() == SyntaxKind.RESOURCE_ACCESSOR_DEFINITION) {
             accessor = functionName;
             functionName = getPathString(functionDefinitionNode.relativeResourcePath());
             ServiceDeclarationNode serviceDeclarationNode = getParentServiceDeclaration(functionDefinitionNode);
-            if (isAgent(serviceDeclarationNode, semanticModel)) {
-                kind = FunctionKind.AI_CHAT_AGENT;
-            } else {
-                kind = FunctionKind.RESOURCE;
-            }
+            kind = isAgent(serviceDeclarationNode) ? FunctionKind.AI_CHAT_AGENT : FunctionKind.RESOURCE;
         } else if (hasQualifier(functionDefinitionNode.qualifierList(), SyntaxKind.REMOTE_KEYWORD)) {
             kind = FunctionKind.REMOTE_FUNCTION;
         } else {
@@ -251,7 +247,6 @@ public class CodeAnalyzer extends NodeVisitor {
         if (accessor != null) {
             nodeBuilder.metadata().addData("accessor", accessor);
         }
-
 
         // Add the function signature to the metadata
         FunctionSignatureNode functionSignatureNode = functionDefinitionNode.functionSignature();
@@ -2033,7 +2028,7 @@ public class CodeAnalyzer extends NodeVisitor {
                     .collect(Collectors.joining("|"));
             String label = pattern;
             if (matchGuardNode.isPresent()) {
-                label +=  " " + matchGuardNode.get().toSourceCode().strip();
+                label += " " + matchGuardNode.get().toSourceCode().strip();
             }
 
             Branch.Builder branchBuilder = startBranch(label, NodeKind.CONDITIONAL, Branch.BranchKind.BLOCK,
@@ -2353,7 +2348,7 @@ public class CodeAnalyzer extends NodeVisitor {
         return qualifierList.stream().anyMatch(qualifier -> qualifier.kind() == kind);
     }
 
-    private boolean isAgent(ServiceDeclarationNode serviceDeclarationNode, SemanticModel semanticModel) {
+    private boolean isAgent(ServiceDeclarationNode serviceDeclarationNode) {
         SeparatedNodeList<ExpressionNode> expressions = serviceDeclarationNode.expressions();
         if (expressions.isEmpty()) {
             return false;
@@ -2361,21 +2356,20 @@ public class CodeAnalyzer extends NodeVisitor {
 
         ExpressionNode listenerExpression = expressions.get(0);
         Optional<TypeSymbol> typeSymbol = semanticModel.typeOf(listenerExpression);
-
         if (typeSymbol.isEmpty()) {
             return false;
         }
 
-        TypeSymbol listenerTypeSymbol = getListenerTypeSymbol(typeSymbol.get(), semanticModel);
+        TypeSymbol listenerTypeSymbol = getListenerTypeSymbol(typeSymbol.get());
         if (listenerTypeSymbol == null) {
             return false;
         }
 
         Optional<ModuleSymbol> module = listenerTypeSymbol.getModule();
-        return module.isPresent() && "ai".equals(module.get().id().moduleName());
+        return module.isPresent() && AI_AGENT.equals(module.get().id().moduleName());
     }
 
-    private TypeSymbol getListenerTypeSymbol(TypeSymbol typeSymbol, SemanticModel semanticModel) {
+    private TypeSymbol getListenerTypeSymbol(TypeSymbol typeSymbol) {
         if (typeSymbol.typeKind() == TypeDescKind.UNION) {
             UnionTypeSymbol unionTypeSymbol = (UnionTypeSymbol) typeSymbol;
             return unionTypeSymbol.memberTypeDescriptors().stream()
@@ -2385,22 +2379,8 @@ public class CodeAnalyzer extends NodeVisitor {
         return typeSymbol;
     }
 
-    private boolean isAgent(Symbol symbol) {
-        Optional<ModuleSymbol> optModule = symbol.getModule();
-        if (optModule.isEmpty()) {
-            return false;
-        }
-        ModuleID id = optModule.get().id();
-        boolean isAIModule = id.orgName().equals(BALLERINAX) && id.packageName().equals(AI_AGENT);
-        if (!isAIModule) {
-            return false;
-        }
-
-        return symbol.getName().isPresent() && symbol.getName().get().equals("Agent");
-    }
-
     /**
-     * Represents the kind of a function.
+     * Represents the function kind to display in the flow model.
      *
      * @since 1.0.1
      */
