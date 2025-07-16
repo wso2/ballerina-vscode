@@ -10,3 +10,4 @@ io.ballerina.flowmodelgenerator.extension.XMLToRecordConverterService
 io.ballerina.flowmodelgenerator.extension.InitializerService
 io.ballerina.flowmodelgenerator.extension.ICPEnablerService
 io.ballerina.flowmodelgenerator.extension.AgentsManagerService
+io.ballerina.flowmodelgenerator.extension.CopilotLibraryService
