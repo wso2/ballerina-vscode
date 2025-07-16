@@ -300,9 +300,6 @@ public class DataMapManager {
         return gson.toJsonTree(new Model(inputPorts, outputPort, subMappingPorts, mappings, query));
     }
 
-
-
-
     private void setFocusIdForExpression(List<MappingPort> ports, String expression, String focusId) {
         for (MappingPort port : ports) {
             if (expression.equals(port.id)) {
