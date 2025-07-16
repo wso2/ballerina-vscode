@@ -28,7 +28,7 @@ export function AdvancedOptions({ type, onChange }: AdvancedOptionsProps) {
                 <span>Advanced Options</span>
             </div>
             {isExpanded && (
-                <CheckBox
+                <><CheckBox
                     sx={{ border: 'none', padding: '5px' }}
                     label="Allow Additional Fields"
                     checked={type?.allowAdditionalFields === true}
@@ -36,6 +36,25 @@ export function AdvancedOptions({ type, onChange }: AdvancedOptionsProps) {
                         onChange({ ...type, allowAdditionalFields: checked });
                     }}
                 />
+                <CheckBox
+                    sx={{ border: 'none', padding: '5px' }}
+                    label="Is Readonly Type"
+                    checked={type?.properties?.isReadOnly?.value === "true"}
+                    onChange={(checked: boolean) => {
+                        // Match the same pattern used in the working checkbox
+                        onChange({
+                            ...type,
+                            properties: {
+                                ...type.properties,
+                                isReadOnly: {
+                                    ...type.properties?.isReadOnly,
+                                    value: checked ? "true" : "false"
+                                }
+                            }
+                        });
+                    }}
+                />
+                </>
             )}
         </div>
     );
