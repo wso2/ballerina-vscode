@@ -44,6 +44,7 @@ import {
     GetModuleDirParams,
     LLMDiagnostics,
     NotifyAIMappingsRequest,
+    OperationType,
     PostProcessRequest,
     PostProcessResponse,
     ProjectDiagnostics,
@@ -73,6 +74,7 @@ import { Uri, commands, window, workspace } from 'vscode';
 
 import { isNumber } from "lodash";
 import { URI } from "vscode-uri";
+import { fetchWithAuth } from "../../../src/features/ai/service/connection";
 import { generateOpenAPISpec } from "../../../src/features/ai/service/openapi/openapi";
 import { AIStateMachine } from "../../../src/views/ai-panel/aiMachine";
 import { extension } from "../../BalExtensionContext";
@@ -103,7 +105,6 @@ import {
 import { attemptRepairProject, checkProjectDiagnostics } from "./repair-utils";
 import { AIPanelAbortController, cleanDiagnosticMessages, handleStop, isErrorCode, requirementsSpecification, searchDocumentation } from "./utils";
 import { fetchData } from "./utils/fetch-data-utils";
-import { fetchWithAuth } from "../../../src/features/ai/service/connection";
 
 export class AiPanelRpcManager implements AIPanelAPI {
 
@@ -352,10 +353,6 @@ export class AiPanelRpcManager implements AIPanelAPI {
     async stopAIMappings(): Promise<GenerateMappingsResponse> {
         handleStop();
         return { userAborted: true };
-    }
-
-    async getProjectSource(requestType: string): Promise<ProjectSource> {
-        return getProjectSource(requestType);
     }
 
     async getShadowDiagnostics(project: ProjectSource): Promise<ProjectDiagnostics> {
@@ -902,7 +899,7 @@ enum CodeGenerationType {
     CODE_GENERATION = "CODE_GENERATION"
 }
 
-async function getCurrentProjectSource(requestType: string): Promise<BallerinaProject> {
+async function getCurrentProjectSource(requestType: OperationType): Promise<BallerinaProject> {
     const projectRoot = await getBallerinaProjectRoot();
 
     if (!projectRoot) {
@@ -938,7 +935,7 @@ async function getCurrentProjectSource(requestType: string): Promise<BallerinaPr
         }
     }
 
-    if (requestType != CodeGenerationType.CODE_GENERATION) {
+    if (requestType != "CODE_GENERATION") {
         const naturalProgrammingDirectory = projectRoot + `/${NATURAL_PROGRAMMING_DIR_NAME}`;
         if (fs.existsSync(naturalProgrammingDirectory)) {
             const reqFiles = fs.readdirSync(naturalProgrammingDirectory);
@@ -1034,39 +1031,38 @@ export async function postProcess(req: PostProcessRequest): Promise<PostProcessR
     };
 }
 
+export async function getProjectSource(requestType: OperationType): Promise<ProjectSource> {
+    // Fetch the Ballerina project source
+    const project: BallerinaProject = await getCurrentProjectSource(requestType);
 
-   export async function getProjectSource(requestType: string): Promise<ProjectSource> {
-        // Fetch the Ballerina project source
-        const project: BallerinaProject = await getCurrentProjectSource(requestType);
+    // Initialize the ProjectSource object
+    const projectSource: ProjectSource = {
+        sourceFiles: [],
+        projectModules: [],
+        projectName: project.projectName,
+    };
 
-        // Initialize the ProjectSource object
-        const projectSource: ProjectSource = {
-            sourceFiles: [],
-            projectModules: [],
-            projectName: project.projectName,
-        };
-
-        // Iterate through root-level sources
-        for (const [filePath, content] of Object.entries(project.sources)) {
-            projectSource.sourceFiles.push({ filePath, content });
-        }
-
-        // Iterate through module sources
-        if (project.modules) {
-            for (const module of project.modules) {
-                const projectModule: ProjectModule = {
-                    moduleName: module.moduleName,
-                    sourceFiles: [],
-                    isGenerated: module.isGenerated
-                };
-                for (const [fileName, content] of Object.entries(module.sources)) {
-                    // const filePath = `modules/${module.moduleName}/${fileName}`;
-                    // projectSource.sourceFiles.push({ filePath, content });
-                    projectModule.sourceFiles.push({ filePath: fileName, content });
-                }
-                projectSource.projectModules.push(projectModule);
-            }
-        }
-
-        return projectSource;
+    // Iterate through root-level sources
+    for (const [filePath, content] of Object.entries(project.sources)) {
+        projectSource.sourceFiles.push({ filePath, content });
     }
+
+    // Iterate through module sources
+    if (project.modules) {
+        for (const module of project.modules) {
+            const projectModule: ProjectModule = {
+                moduleName: module.moduleName,
+                sourceFiles: [],
+                isGenerated: module.isGenerated
+            };
+            for (const [fileName, content] of Object.entries(module.sources)) {
+                // const filePath = `modules/${module.moduleName}/${fileName}`;
+                // projectSource.sourceFiles.push({ filePath, content });
+                projectModule.sourceFiles.push({ filePath: fileName, content });
+            }
+            projectSource.projectModules.push(projectModule);
+        }
+    }
+
+    return projectSource;
+}

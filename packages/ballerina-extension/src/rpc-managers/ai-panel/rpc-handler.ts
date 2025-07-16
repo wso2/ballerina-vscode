@@ -59,7 +59,6 @@ import {
     getMappingsFromRecord,
     getModuleDirectory,
     GetModuleDirParams,
-    getProjectSource,
     getProjectUuid,
     getRefreshedAccessToken,
     getRelevantLibrariesAndFunctions,
@@ -117,7 +116,6 @@ export function registerAiPanelRpcHandlers(messenger: Messenger) {
     messenger.onRequest(generateMappings, (args: GenerateMappingsRequest) => rpcManger.generateMappings(args));
     messenger.onRequest(notifyAIMappings, (args: NotifyAIMappingsRequest) => rpcManger.notifyAIMappings(args));
     messenger.onRequest(stopAIMappings, () => rpcManger.stopAIMappings());
-    messenger.onRequest(getProjectSource, (args: string) => rpcManger.getProjectSource(args));
     messenger.onRequest(getShadowDiagnostics, (args: ProjectSource) => rpcManger.getShadowDiagnostics(args));
     messenger.onRequest(checkSyntaxError, (args: ProjectSource) => rpcManger.checkSyntaxError(args));
     messenger.onNotification(clearInitialPrompt, () => rpcManger.clearInitialPrompt());
