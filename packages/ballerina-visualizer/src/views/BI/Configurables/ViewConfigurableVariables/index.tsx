@@ -424,6 +424,7 @@ export function ViewConfigurableVariables(props?: ConfigProps) {
                                                                 }}
                                                             />
                                                             <span
+                                                                id={`integration-warning-count`}
                                                                 style={{
                                                                     marginLeft: 3,
                                                                     color: 'var(--vscode-editorWarning-foreground)',
@@ -563,6 +564,7 @@ export function ViewConfigurableVariables(props?: ConfigProps) {
                                                                         }}
                                                                     />
                                                                     <span
+                                                                        id={`${category.name}-warning-count`}
                                                                         style={{
                                                                             marginLeft: 3,
                                                                             color: 'var(--vscode-editorWarning-foreground)',
