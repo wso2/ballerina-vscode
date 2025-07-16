@@ -24,6 +24,7 @@ import com.google.gson.JsonObject;
 import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.compiler.api.symbols.ArrayTypeSymbol;
 import io.ballerina.compiler.api.symbols.FunctionSymbol;
+import io.ballerina.compiler.api.symbols.ModuleSymbol;
 import io.ballerina.compiler.api.symbols.ParameterSymbol;
 import io.ballerina.compiler.api.symbols.Qualifier;
 import io.ballerina.compiler.api.symbols.RecordFieldSymbol;
@@ -1041,6 +1042,18 @@ public class DataMapManager {
                 DefaultValueGeneratorUtil.getDefaultValueForType(recordTypeSymbol);
     }
 
+    public Symbol getMatchedSymbol(String prefix, String type, SemanticModel defaultModuleSM) {
+        return defaultModuleSM.moduleSymbols().stream()
+                .filter(m -> m.kind() == SymbolKind.MODULE)
+                .map(m -> (ModuleSymbol) m)
+                .filter(m -> m.getName().isPresent() && m.getName().get().endsWith(prefix))
+                .flatMap(m -> m.typeDefinitions().stream()
+                        .filter(s -> s.getName().isPresent() && s.getName().get().equals(type))
+                        .findFirst().stream())
+                .findFirst()
+                .orElse(null);
+    }
+
     public Map<String, String> getVisualizableProperties(SemanticModel sm, JsonElement node) {
         Codedata codedata = gson.fromJson(node, Codedata.class);
         String org = codedata.org();
@@ -1079,6 +1092,25 @@ public class DataMapManager {
             }
             throw new IllegalStateException("Unsupported type for visualizable properties: " + kind);
         }
+
+        String[] typeSegments = type.split(":");
+        String prefix = typeSegments.length > 1 ? typeSegments[0] : "";
+        String typeName = typeSegments.length > 1 ? typeSegments[1] : typeSegments[0];
+        Symbol matchedSymbol = getMatchedSymbol(prefix, typeName, semanticModel);
+        if (matchedSymbol != null && matchedSymbol.kind() == SymbolKind.TYPE_DEFINITION) {
+            TypeDefinitionSymbol typeDefSymbol = (TypeDefinitionSymbol) matchedSymbol;
+            TypeSymbol typeSymbol = typeDefSymbol.typeDescriptor();
+            TypeSymbol rawTypeSymbol = CommonUtils.getRawType(typeSymbol);
+            TypeDescKind kind = rawTypeSymbol.typeKind();
+            if (isEffectiveRecordType(kind, rawTypeSymbol)) {
+                if (kind == TypeDescKind.ARRAY || isArray) {
+                    return Map.of("expression", "[]");
+                } else if (kind == TypeDescKind.RECORD) {
+                    return Map.of("expression", "{}");
+                }
+            }
+        }
+
         return Map.of();
     }
 
