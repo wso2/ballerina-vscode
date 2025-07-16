@@ -48,7 +48,6 @@ import io.ballerina.servicemodelgenerator.extension.model.Codedata;
 import io.ballerina.servicemodelgenerator.extension.model.Function;
 import io.ballerina.servicemodelgenerator.extension.model.FunctionReturnType;
 import io.ballerina.servicemodelgenerator.extension.model.HttpResponse;
-import io.ballerina.servicemodelgenerator.extension.model.Parameter;
 import io.ballerina.servicemodelgenerator.extension.model.Service;
 import io.ballerina.servicemodelgenerator.extension.model.Value;
 
@@ -64,7 +63,9 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Collectors;
 
 import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.KIND_RESOURCE;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.getFunctionModel;
@@ -604,11 +605,12 @@ public final class HttpUtil {
         updateValue(functionModel.getAccessor(), commonFunction.getAccessor());
         updateValue(functionModel.getName(), commonFunction.getName());
         updateValue(functionModel.getReturnType(), commonFunction.getReturnType());
-        List<Parameter> parameters = functionModel.getParameters();
-        parameters.removeIf(parameter -> commonFunction.getParameters().stream()
-                .anyMatch(newParameter -> newParameter.getType().getValue()
-                        .equals(parameter.getType().getValue())));
-        commonFunction.getParameters().forEach(functionModel::addParameter);
+        Set<String> existingTypes = functionModel.getParameters().stream()
+                .map(parameter -> parameter.getType().getValue())
+                .collect(Collectors.toSet());
+        commonFunction.getParameters().stream()
+                .filter(commonParam -> !existingTypes.contains(commonParam.getType().getValue()))
+                .forEach(functionModel::addParameter);
     }
 
     private static String getString(Object value) {

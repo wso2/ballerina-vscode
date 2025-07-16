@@ -29,7 +29,7 @@ import java.util.Arrays;
  * @param errorMsg  The error message if the function details could not be retrieved.
  * @param stacktrace The stack trace of the error if applicable.
  *
- * @since 2201.1.1
+ * @since 1.0.1
  */
 public record FunctionFromSourceResponse(Function function, String errorMsg, String stacktrace) {
 
