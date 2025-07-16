@@ -107,6 +107,10 @@ export class QueryOutputNode extends DataMapperNodeModel {
         const { inputs: parentInputs, output: parentOutput} = this.context.model.query;
 
         mappings.forEach((mapping) => {
+            if (mapping.output === parentOutput) {
+                mapping.output += `.<${parentOutput.split('.').pop()}Item>`;
+            }
+            
             const { isComplex, isQueryExpression, inputs, output, expression, diagnostics } = mapping;
             if (isComplex || isQueryExpression || inputs.length !== 1) {
                 // Complex mappings are handled in the LinkConnectorNode
