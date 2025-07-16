@@ -52,7 +52,7 @@ public class MainRunCodeLensProvider extends AbstractCodeLensesProvider {
         if (node instanceof FunctionDefinitionNode functionDefinitionNode &&
                 AUTOMATION_FUNCTION.equals(functionDefinitionNode.functionName().text())) {
             List<Object> args = Collections.singletonList(context.fileUri());
-            Command command = new Command(CodeLensUtil.RUN_CODELENS, "ballerina.run", args);
+            Command command = new Command(CodeLensUtil.RUN_CODELENS, "ballerina.project.run", args);
             return CodeLensUtil.getCodeLens(command, node);
         }
         return null;

@@ -14,7 +14,7 @@
       },
       "command": {
         "title": "Run",
-        "command": "ballerina.run",
+        "command": "ballerina.project.run",
         "arguments": [
           "main.bal"
         ]

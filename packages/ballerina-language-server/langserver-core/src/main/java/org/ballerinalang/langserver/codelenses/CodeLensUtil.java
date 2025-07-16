@@ -130,14 +130,14 @@ public final class CodeLensUtil {
     }
 
     /**
-     * Iterates through the provided list of {@link LSCodeLensesProvider} instances and checks if each provider is applicable
-     * to the given syntax tree node. If applicable, retrieves the corresponding {@link CodeLens} and adds it to the provided
-     * list of code lenses.
+     * Iterates through the provided list of {@link LSCodeLensesProvider} instances and checks if each provider is
+     * applicable to the given syntax tree node. If applicable, retrieves the corresponding {@link CodeLens} and adds it
+     * to the provided list of code lenses.
      *
      * @param codeLensContext the context containing document and language server information
-     * @param member the syntax tree node for which code lenses are being evaluated
-     * @param providers the list of code lens providers to be checked
-     * @param lenses the list to which applicable code lenses will be added
+     * @param member          the syntax tree node for which code lenses are being evaluated
+     * @param providers       the list of code lens providers to be checked
+     * @param lenses          the list to which applicable code lenses will be added
      */
     private static void traverseCodeLensProviders(DocumentServiceContext codeLensContext, Node member,
                                                   List<LSCodeLensesProvider> providers, List<CodeLens> lenses) {
