@@ -143,5 +143,5 @@ type Users readonly & User1[];
 type User5 readonly & (User1 | Person);
 
 type OrderWrapper record {|
-	string 'order;
+    string 'order;
 |};
