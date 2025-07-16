@@ -240,7 +240,8 @@ export function InlineDataMapperView(props: InlineDataMapperProps) {
                 },
                 index,
                 clause,
-                targetField
+                targetField,
+                varName
             };
             console.log(">>> [Inline Data Mapper] addClauses request:", addClausesRequest);
 
