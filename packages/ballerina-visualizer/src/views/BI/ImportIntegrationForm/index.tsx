@@ -281,13 +281,13 @@ export function ImportIntegrationForm() {
         // rpcClient.getBIDiagramRpcClient().importIntegration(finalParams);
     };
 
-    const handleProjecDirSelection = async () => {
+    const handleProjectDirSelection = async () => {
         const projectDirectory = await rpcClient.getCommonRpcClient().selectFileOrDirPath({});
         setPath(projectDirectory.path);
     };
 
     const handleImportSourceSelection = async () => {
-        const importSource = await rpcClient.getCommonRpcClient().selectFileOrDirPath({});
+        const importSource = await rpcClient.getCommonRpcClient().selectFileOrFolder();
         setImportSourcePath(importSource.path);
     };
 
@@ -371,7 +371,7 @@ export function ImportIntegrationForm() {
                     label="Select Integration Path"
                     selectedFile={path}
                     btnText="Select Path"
-                    onSelect={handleProjecDirSelection}
+                    onSelect={handleProjectDirSelection}
                 />
             </LocationSelectorWrapper>
             <IntegrationCardGrid>

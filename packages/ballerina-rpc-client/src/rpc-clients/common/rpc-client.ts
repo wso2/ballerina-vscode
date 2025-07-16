@@ -45,6 +45,7 @@ import {
     openExternalUrl,
     runBackgroundTerminalCommand,
     selectFileOrDirPath,
+    selectFileOrFolderPath,
     showErrorMessage
 } from "@wso2/ballerina-core";
 import { HOST_EXTENSION } from "vscode-messenger-common";
@@ -87,6 +88,10 @@ export class CommonRpcClient implements CommonRPCAPI {
 
     selectFileOrDirPath(params: FileOrDirRequest): Promise<FileOrDirResponse> {
         return this._messenger.sendRequest(selectFileOrDirPath, HOST_EXTENSION, params);
+    }
+
+    selectFileOrFolder(): Promise<FileOrDirResponse> {
+        return this._messenger.sendRequest(selectFileOrFolderPath, HOST_EXTENSION);
     }
 
     experimentalEnabled(): Promise<boolean> {
