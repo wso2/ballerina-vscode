@@ -73,13 +73,16 @@ export class QueryExprConnectorNode extends DataMapperNodeModel {
         const inputSearch = useDMSearchStore.getState().inputSearch;
         const outputSearch = useDMSearchStore.getState().outputSearch;
 
+        const views = this.context.views;
+        const focusedSourceField = views[views.length - 1].sourceField;
+
         this.mapping.inputs.forEach((field) => {
             const inputField = field.split('.').pop();
             const matchedSearch = inputSearch === "" || inputField.toLowerCase().includes(inputSearch.toLowerCase());
 
             if (!matchedSearch) return;
 
-            const inputNode = findInputNode(field, this);
+            const inputNode = findInputNode(field, this, focusedSourceField);
             if (inputNode) {
                 const inputPort = getInputPort(inputNode, field.replace(/\.\d+/g, ''));
                 if (!this.sourcePorts.some(port => port.getID() === inputPort.getID())) {

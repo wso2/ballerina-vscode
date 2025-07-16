@@ -103,20 +103,23 @@ export class QueryOutputNode extends DataMapperNodeModel {
     private createLinks(mappings: Mapping[]) {
 
         const views = this.context.views;
-        const sourceField = views[views.length - 1].sourceField;
+        const focusedSourceField = views[views.length - 1].sourceField;
+        const { inputs: parentInputs, output: parentOutput} = this.context.model.query;
 
-        mappings.forEach((mapping) => {    
+        mappings.forEach((mapping) => {
             const { isComplex, isQueryExpression, inputs, output, expression, diagnostics } = mapping;
             if (isComplex || isQueryExpression || inputs.length !== 1) {
                 // Complex mappings are handled in the LinkConnectorNode
                 return;
             }
             
-            const inputNode = findInputNode(inputs[0], this, sourceField);
+            const inputNode = findInputNode(inputs[0], this, focusedSourceField);
             let inPort: InputOutputPortModel;
             if (inputNode) {
                 inPort = getInputPort(inputNode, inputs[0].replace(/\.\d+/g, ''));
             }
+
+            
 
             const [_, mappedOutPort] = getOutputPort(this, output);
 
@@ -151,15 +154,14 @@ export class QueryOutputNode extends DataMapperNodeModel {
             }
         });
 
-        const { inputs, output} = this.context.model.query;
 
-        const inputNode = findInputNode(inputs[0], this);
+        const inputNode = findInputNode(parentInputs[0], this);
         let inPort: InputOutputPortModel;
         if (inputNode) {
-            inPort = getInputPort(inputNode, inputs[0].replace(/\.\d+/g, ''));
+            inPort = getInputPort(inputNode, parentInputs[0].replace(/\.\d+/g, ''));
         }
 
-        const [_, mappedOutPort] = getOutputPort(this, output);
+        const [_, mappedOutPort] = getOutputPort(this, parentOutput);
 
         if (inPort && mappedOutPort) {
             const lm = new DataMapperLinkModel(undefined, undefined, true, undefined, true);
