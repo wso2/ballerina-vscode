@@ -33,10 +33,15 @@ export interface DataMapperHeaderProps {
     switchView: (index: number) => void;
     hasEditDisabled: boolean;
     onClose: () => void;
+    autoMapWithAI: () => Promise<void>;
 }
 
 export function DataMapperHeader(props: DataMapperHeaderProps) {
-    const { views, switchView, hasEditDisabled, onClose } = props;
+    const { views, switchView, hasEditDisabled, onClose, autoMapWithAI } = props;
+
+    const handleAutoMap = async () => {
+        await autoMapWithAI();
+    };
 
     return (
         <HeaderContainer>
@@ -57,8 +62,8 @@ export function DataMapperHeader(props: DataMapperHeaderProps) {
                     <FilterBar>
                         <HeaderSearchBox />
                     </FilterBar>
-                    {/* TODO: Implement auto map and edit */}
-                    <AutoMapButton onClick={undefined} disabled={true} />
+                    <AutoMapButton onClick={handleAutoMap} disabled={false} /> 
+                    {/* TODO: Implement edit */}
                     <EditButton onClick={undefined} disabled={true} />
                 </RightContainer>
                 <VSCodeButton

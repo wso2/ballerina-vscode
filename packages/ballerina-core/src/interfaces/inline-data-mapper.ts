@@ -28,14 +28,19 @@ export enum TypeKind {
     Decimal = "decimal",
     Boolean = "boolean",
     Enum = "enum",
-    Unknown = "unknown"
+    Unknown = "unknown",
+    Anydata = "anydata",
+    Byte = "byte",
+    Json = "json"
 }
 
 export enum InputCategory {
-    Const = "const",
+    Constant = "constant",
     ModuleVariable = "moduleVariable",
     Configurable = "configurable",
-    Enum = "enum"
+    Enum = "enum",
+    Parameter = "parameter",
+    Variable = "variable"
 }
 
 export enum IntermediateClauseType {

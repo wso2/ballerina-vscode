@@ -19,27 +19,29 @@
  */
 import {
     AddArrayElementRequest,
-    AddClausesRequest,
-    ConvertToQueryRequest,
-    GetInlineDataMapperCodedataRequest,
-    GetSubMappingCodedataRequest,
-    InitialIDMSourceRequest,
-    InlineDataMapperModelRequest,
-    InlineDataMapperSourceRequest,
-    VisualizableFieldsRequest,
     addClauses,
+    AddClausesRequest,
     addNewArrayElement,
     convertToQuery,
+    ConvertToQueryRequest,
+    getAllDataMapperSource,
     getDataMapperCodedata,
     getProperty,
     PropertyRequest,
     getDataMapperModel,
     getDataMapperSource,
     getInitialIDMSource,
+    GetInlineDataMapperCodedataRequest,
     getSubMappingCodedata,
+    GetSubMappingCodedataRequest,
     getVisualizableFields,
     addSubMapping,
-    AddSubMappingRequest
+    AddSubMappingRequest,
+    InitialIDMSourceRequest,
+    InlineAllDataMapperSourceRequest,
+    InlineDataMapperModelRequest,
+    InlineDataMapperSourceRequest,
+    VisualizableFieldsRequest
 } from "@wso2/ballerina-core";
 import { Messenger } from "vscode-messenger";
 import { InlineDataMapperRpcManager } from "./rpc-manager";
@@ -56,5 +58,6 @@ export function registerInlineDataMapperRpcHandlers(messenger: Messenger) {
     messenger.onRequest(addSubMapping, (args: AddSubMappingRequest) => rpcManger.addSubMapping(args));
     messenger.onRequest(getDataMapperCodedata, (args: GetInlineDataMapperCodedataRequest) => rpcManger.getDataMapperCodedata(args));
     messenger.onRequest(getSubMappingCodedata, (args: GetSubMappingCodedataRequest) => rpcManger.getSubMappingCodedata(args));
+    messenger.onRequest(getAllDataMapperSource, (args: InlineAllDataMapperSourceRequest) => rpcManger.getAllDataMapperSource(args));
     messenger.onRequest(getProperty, (args: PropertyRequest) => rpcManger.getProperty(args));
 }

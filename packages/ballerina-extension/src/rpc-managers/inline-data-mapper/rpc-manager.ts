@@ -28,6 +28,7 @@ import {
     GetSubMappingCodedataRequest,
     InitialIDMSourceRequest,
     InitialIDMSourceResponse,
+    InlineAllDataMapperSourceRequest,
     InlineDataMapperAPI,
     InlineDataMapperModelRequest,
     InlineDataMapperModelResponse,
@@ -42,7 +43,7 @@ import {
 
 import { openView, StateMachine } from "../../stateMachine";
 import { updateSourceCode } from "../../utils";
-import { fetchDataMapperCodeData, updateAndRefreshDataMapper } from "./utils";
+import { buildSourceRequests, consolidateTextEdits, fetchDataMapperCodeData, getHasStopped, processSourceRequests, setHasStopped, updateAndRefreshDataMapper, updateInlineDataMapperViewWithParams, updateSourceCodeWithEdits } from "./utils";
 
 export class InlineDataMapperRpcManager implements InlineDataMapperAPI {
     async getInitialIDMSource(params: InitialIDMSourceRequest): Promise<InitialIDMSourceResponse> {
@@ -199,6 +200,29 @@ export class InlineDataMapperRpcManager implements InlineDataMapperAPI {
                 .getSubMappingCodedata(params) as GetInlineDataMapperCodedataResponse;
 
             resolve(dataMapperCodedata);
+        });
+    }
+
+    async getAllDataMapperSource(params: InlineAllDataMapperSourceRequest): Promise<InlineDataMapperSourceResponse> {
+        return new Promise(async (resolve) => {
+            setHasStopped(false);
+
+            const sourceRequests = buildSourceRequests(params);
+            const responses = await processSourceRequests(sourceRequests);
+            const allTextEdits = consolidateTextEdits(responses, params.mappings.length);
+
+            await updateSourceCodeWithEdits({ textEdits: allTextEdits })
+                .then(async () => {
+                    await updateInlineDataMapperViewWithParams(params);
+                    resolve({ textEdits: allTextEdits });
+                })
+                .catch((error) => {
+                    console.error(">>> error in fetching text edit from mappings", error);
+                    resolve({
+                        error: error instanceof Error ? error.message : "Unknown error occurred",
+                        userAborted: getHasStopped()
+                    });
+                });
         });
     }
 
