@@ -32,7 +32,7 @@ import { OutputSearchHighlight } from "../commons/Search";
 import { ObjectOutputFieldWidget } from "../ObjectOutput/ObjectOutputFieldWidget";
 import { ValueConfigMenu, ValueConfigOption } from "../commons/ValueConfigButton";
 import { ValueConfigMenuItem } from "../commons/ValueConfigButton/ValueConfigMenuItem";
-import { fieldFQNFromPortName, getDefaultValue } from "../../utils/common-utils";
+import { fieldFQNFromPortName, getDefaultValue, getSanitizedId } from "../../utils/common-utils";
 import { DiagnosticTooltip } from "../../Diagnostic/DiagnosticTooltip";
 import { TreeBody } from "../commons/Tree/Tree";
 import { getTypeName } from "../../utils/type-utils";
@@ -78,9 +78,9 @@ export function ArrayOutputFieldWidget(props: ArrayOutputFieldWidgetProps) {
     const arrayField = field.member;
     const typeName = getTypeName(field);
 
-    let portName = parentId;
+    let portName = getSanitizedId(parentId);
     if (fieldIndex !== undefined) {
-        portName = `${parentId}.${fieldIndex}`
+        portName = `${portName}.${fieldIndex}`
     }
     const fieldName = field?.variableName || '';
 
@@ -102,9 +102,9 @@ export function ArrayOutputFieldWidget(props: ArrayOutputFieldWidgetProps) {
     }
 
     const hasDefaultValue = expression && getDefaultValue(field.kind) === expression.trim();
-    let isDisabled = portIn.attributes.descendantHasValue;
+    let isDisabled = portIn?.attributes.descendantHasValue;
 
-    if (!isDisabled && !hasDefaultValue) {
+    if (!isDisabled && !hasDefaultValue && portIn) {
         if (hasElements && expanded && portIn.attributes.parentModel) {
             portIn.setDescendantHasValue();
             isDisabled = true;
@@ -390,7 +390,7 @@ export function ArrayOutputFieldWidget(props: ArrayOutputFieldWidgetProps) {
                 <OutputFieldPreviewWidget
                     key={`arr-output--preview-field-${portName}`}
                     engine={engine}
-                    field={{...arrayField, variableName: `${fieldName}Item`}}
+                    field={arrayField}
                     getPort={getPort}
                     parentId={portName}
                     context={context}

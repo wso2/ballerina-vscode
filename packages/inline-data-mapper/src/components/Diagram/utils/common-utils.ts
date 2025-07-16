@@ -129,6 +129,13 @@ export function fieldFQNFromPortName(portName: string): string {
     return portName.split('.').slice(1).join('.');
 }
 
+export function getSanitizedId(id: string): string {
+    if (id.endsWith('>')) {
+         return id.split('.').slice(0, -1).join('.');
+    }
+    return id;
+}
+
 export function getErrorKind(node: DataMapperNodeModel): ErrorNodeKind {
 	const nodeType = node.getType();
 	switch (nodeType) {
@@ -143,13 +150,14 @@ export function getErrorKind(node: DataMapperNodeModel): ErrorNodeKind {
 	}
 }
 
-export function expandArrayFn(context: IDataMapperContext, targetField: string){
+export function expandArrayFn(context: IDataMapperContext, sourceField: string, targetField: string){
 
     const { addView } = context;
 
     const newView: View = {
         label: targetField,
-        targetField: targetField
+        sourceField,
+        targetField
     };
 
     addView(newView);

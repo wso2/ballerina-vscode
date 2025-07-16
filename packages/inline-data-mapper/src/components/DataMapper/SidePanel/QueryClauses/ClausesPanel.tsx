@@ -40,28 +40,12 @@ export function ClausesPanel(props: ClausesPanelProps) {
     const [editing, setEditing] = React.useState<number>(-1);
     const [deleting, setDeleting] = React.useState<number>(-1);
     const [saving, setSaving] = React.useState<number>(-1);
-    const intermediateClauses = query?.intermediateClauses || [];
-    const clauses = intermediateClauses.map(clause => ({
-        type: clause.type,
-        properties: {
-            expression: (clause as any).clause,
-        }
-    }));
 
-    // const _addClauses = (clause: IntermediateClause, targetField: string, isNew?: boolean, index?:number): Promise<void> => {
-    //     return new Promise((resolve) => {
-    //         console.log(`Simulating addClauses for targetField: ${targetField}`);
-    //         setTimeout(() => {
-    //             console.log(`addClauses completed for targetField: ${targetField}`);
-    //             resolve();
-    //         }, 1000); // Simulate a 1-second delay
-    //     });
-    // };
+    const clauses = query?.intermediateClauses || [];
 
     const setClauses = async (clause: IntermediateClause, isNew: boolean, index?: number) => {
         setSaving(index);
-        // await addClauses(clause, targetField, isNew, index);
-        await addClauses(clause, targetField, true, undefined);
+        await addClauses(clause, targetField, isNew, index);
         setSaving(-1);
     }
 

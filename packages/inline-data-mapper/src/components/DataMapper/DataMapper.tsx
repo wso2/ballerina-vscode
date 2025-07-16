@@ -31,6 +31,7 @@ import { View } from "./Views/DataMapperView";
 import {
     useDMCollapsedFieldsStore,
     useDMExpandedFieldsStore,
+    useDMQueryClausesPanelStore,
     useDMSearchStore,
     useDMSubMappingConfigPanelStore
 } from "../../store/store";
@@ -118,6 +119,7 @@ export function InlineDataMapper(props: InlineDataMapperProps) {
     const [hasInternalError, setHasInternalError] = useState(false);
 
     const { isSMConfigPanelOpen } = useDMSubMappingConfigPanelStore((state) => state.subMappingConfig);
+    const { isQueryClausesPanelOpen} = useDMQueryClausesPanelStore();
 
     const { resetSearchStore } = useDMSearchStore();
 
@@ -275,13 +277,17 @@ export function InlineDataMapper(props: InlineDataMapperProps) {
                                 generateForm={generateForm}
                             />
                         )}
+                        {isQueryClausesPanelOpen && (
+                            <ClausesPanel
+                                query={model.query}
+                                targetField={views[views.length - 1].targetField}
+                                addClauses={addClauses}
+                                generateForm={generateForm}
+                            />
+                        )}
                     </>
                 )}
-                <ClausesPanel
-                    query={model.query}
-                    targetField={views[views.length - 1].targetField}
-                    addClauses={addClauses}
-                    generateForm={generateForm} />
+                
             </div>
         </DataMapperErrorBoundary>
     )

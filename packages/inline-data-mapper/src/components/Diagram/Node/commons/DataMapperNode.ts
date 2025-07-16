@@ -159,8 +159,10 @@ export abstract class DataMapperNodeModel extends NodeModel<NodeModelGenerics & 
 
 		const isArray = this.isArrayTypedField(field);
 		const newParentId = this.getNewParentId(parentId, elementIndex);
-		const fieldFQN = this.getOutputFieldFQN(newParentId, field, elementIndex);
+		let fieldFQN = this.getOutputFieldFQN(newParentId, field, elementIndex);
 		const portName = this.getPortName(portPrefix, fieldFQN);
+		
+		if(fieldFQN.endsWith('>')) fieldFQN = fieldFQN.split('.').slice(0, -1).join('.');
 		const mapping = findMappingByOutput(mappings, fieldFQN);
 		const isCollapsed = this.isOutputPortCollapsed(hidden, collapsedFields, expandedFields, 
 			portName, type, isArray, false, mapping?.elements);
@@ -383,7 +385,7 @@ export abstract class DataMapperNodeModel extends NodeModel<NodeModelGenerics & 
 		} else {
 			this.addPortsForOutputField({
 				...attributes,
-				field: { ...attributes.field.member, variableName: attributes.field.variableName + "Item" },
+				field: attributes.field.member,
 				isPreview: true
 			});
 		}

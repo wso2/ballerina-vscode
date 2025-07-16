@@ -27,9 +27,9 @@ import { IDataMapperContext } from "../../../../utils/DataMapperContext/DataMapp
 import { InputOutputPortModel } from "../../Port";
 import { OutputSearchHighlight } from "../commons/Search";
 import { useIONodesStyles } from "../../../styles";
-import { useDMCollapsedFieldsStore } from '../../../../store/store';
+import { useDMCollapsedFieldsStore, useDMExpandedFieldsStore } from '../../../../store/store';
 import { getTypeName } from "../../utils/type-utils";
-import { getDefaultValue } from "../../utils/common-utils";
+import { getSanitizedId } from "../../utils/common-utils";
 
 export interface OutputFieldPreviewWidgetProps {
     parentId: string;
@@ -57,6 +57,7 @@ export function OutputFieldPreviewWidget(props: OutputFieldPreviewWidgetProps) {
     const classes = useIONodesStyles();
     const [isHovered, setIsHovered] = useState(false);
     const collapsedFieldsStore = useDMCollapsedFieldsStore();
+    const expandedFieldsStore = useDMExpandedFieldsStore();
 
     let indentation = treeDepth * 16 + 32;
     let expanded = true;
@@ -66,23 +67,31 @@ export function OutputFieldPreviewWidget(props: OutputFieldPreviewWidgetProps) {
     const isArray = typeKind === TypeKind.Array;
     const isRecord = typeKind === TypeKind.Record;
 
-    let updatedParentId = parentId;
+    let updatedParentId = getSanitizedId(parentId);
     if (fieldIndex !== undefined) {
-        updatedParentId = `${parentId}.${fieldIndex}`
+        updatedParentId = `${updatedParentId}.${fieldIndex}`
     }
     let fieldName = field?.variableName || '';
     let portName = updatedParentId !== '' ? fieldName !== '' ? `${updatedParentId}.${fieldName}` : updatedParentId : fieldName;
     const portIn = getPort(portName + ".IN");
 
-    const fields = (isRecord && field.fields.filter(f => f !== null)) ||
-        (isArray && [{ ...field.member, variableName: fieldName + "Item" }]);
+    const fields = (isRecord && field.fields.filter(f => f !== null)) || (isArray && [field.member]);
 
     const handleExpand = () => {
-        const collapsedFields = collapsedFieldsStore.fields;
-        if (!expanded) {
-            collapsedFieldsStore.setFields(collapsedFields.filter((element) => element !== portName));
-        } else {
-            collapsedFieldsStore.setFields([...collapsedFields, portName]);
+        if (field.kind === TypeKind.Array){
+            const expandedFields = expandedFieldsStore.fields;
+            if (expanded) {
+                expandedFieldsStore.setFields(expandedFields.filter((element) => element !== portName));
+            } else {
+                expandedFieldsStore.setFields([...expandedFields, portName]);
+            }
+        }else{
+            const collapsedFields = collapsedFieldsStore.fields;
+            if (!expanded) {
+                collapsedFieldsStore.setFields(collapsedFields.filter((element) => element !== portName));
+            } else {
+                collapsedFieldsStore.setFields([...collapsedFields, portName]);
+            }
         }
     };
 
