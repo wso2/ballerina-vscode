@@ -20,7 +20,7 @@ import { InputNode } from "../Node";
 
 export function findInputNode(field: string, outputNode: DataMapperNodeModel, parentField?: string): InputNode {
     const nodes = outputNode.getModel().getNodes();
-    const mappingStartsWith = parentField || field.split('.')[0];
+    const mappingStartsWith = (parentField || field).split('.')[0];
 
     const inputNode = nodes.find(node => {
         if (node instanceof InputNode) {
