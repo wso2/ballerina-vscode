@@ -51,7 +51,7 @@
                       "fields": [
                         {
                           "member": {
-                            "id": "user1.user2.user3.user4.user5.u.0",
+                            "id": "user1.user2.user3.user4.user5.u",
                             "typeName": "string",
                             "kind": "string"
                           },
