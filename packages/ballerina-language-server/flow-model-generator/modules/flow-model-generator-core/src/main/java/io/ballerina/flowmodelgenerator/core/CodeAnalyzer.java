@@ -230,8 +230,7 @@ public class CodeAnalyzer extends NodeVisitor {
             accessor = functionName;
             functionName = getPathString(functionDefinitionNode.relativeResourcePath());
             ServiceDeclarationNode serviceDeclarationNode = getParentServiceDeclaration(functionDefinitionNode);
-            Optional<Symbol> serviceSymbol = semanticModel.symbol(serviceDeclarationNode);
-            if (serviceSymbol.isPresent() && isAgent(serviceSymbol.get())) {
+            if (isAgent(serviceDeclarationNode, semanticModel)) {
                 kind = FunctionKind.AI_CHAT_AGENT;
             } else {
                 kind = FunctionKind.RESOURCE;
@@ -2352,6 +2351,38 @@ public class CodeAnalyzer extends NodeVisitor {
 
     private static boolean hasQualifier(NodeList<Token> qualifierList, SyntaxKind kind) {
         return qualifierList.stream().anyMatch(qualifier -> qualifier.kind() == kind);
+    }
+
+    private boolean isAgent(ServiceDeclarationNode serviceDeclarationNode, SemanticModel semanticModel) {
+        SeparatedNodeList<ExpressionNode> expressions = serviceDeclarationNode.expressions();
+        if (expressions.isEmpty()) {
+            return false;
+        }
+
+        ExpressionNode listenerExpression = expressions.get(0);
+        Optional<TypeSymbol> typeSymbol = semanticModel.typeOf(listenerExpression);
+
+        if (typeSymbol.isEmpty()) {
+            return false;
+        }
+
+        TypeSymbol listenerTypeSymbol = getListenerTypeSymbol(typeSymbol.get(), semanticModel);
+        if (listenerTypeSymbol == null) {
+            return false;
+        }
+
+        Optional<ModuleSymbol> module = listenerTypeSymbol.getModule();
+        return module.isPresent() && "ai".equals(module.get().id().moduleName());
+    }
+
+    private TypeSymbol getListenerTypeSymbol(TypeSymbol typeSymbol, SemanticModel semanticModel) {
+        if (typeSymbol.typeKind() == TypeDescKind.UNION) {
+            UnionTypeSymbol unionTypeSymbol = (UnionTypeSymbol) typeSymbol;
+            return unionTypeSymbol.memberTypeDescriptors().stream()
+                    .filter(member -> !member.subtypeOf(semanticModel.types().ERROR))
+                    .findFirst().orElse(null);
+        }
+        return typeSymbol;
     }
 
     private boolean isAgent(Symbol symbol) {
