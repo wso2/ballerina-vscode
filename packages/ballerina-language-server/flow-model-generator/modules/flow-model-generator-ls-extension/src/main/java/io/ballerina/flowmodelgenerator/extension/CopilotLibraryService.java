@@ -36,6 +36,7 @@ import org.eclipse.lsp4j.services.LanguageServer;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
@@ -122,7 +123,7 @@ public class CopilotLibraryService implements ExtendedLanguageServerService {
         JsonArray libraries = new JsonArray();
 
         try (InputStream inputStream = getContextInputStream(mode);
-             InputStreamReader reader = new InputStreamReader(inputStream);
+             InputStreamReader reader = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
              JsonReader jsonReader = new JsonReader(reader)) {
 
             processLibraryArray(jsonReader, libraries, requestedLibraries, limitedFields);
@@ -147,7 +148,7 @@ public class CopilotLibraryService implements ExtendedLanguageServerService {
             contextPath = CORE_CONTEXT_JSON_PATH; // Default to CORE
         }
 
-        InputStream inputStream = getClass().getResourceAsStream(contextPath);
+        InputStream inputStream = CopilotLibraryService.class.getResourceAsStream(contextPath);
         if (inputStream == null) {
             throw new IOException("Context file not found: " + contextPath);
         }
