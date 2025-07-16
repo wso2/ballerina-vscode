@@ -37,6 +37,7 @@ import io.ballerina.servicemodelgenerator.extension.request.ServiceModelRequest;
 import io.ballerina.servicemodelgenerator.extension.request.ServiceModifierRequest;
 import io.ballerina.servicemodelgenerator.extension.request.ServiceSourceRequest;
 import io.ballerina.servicemodelgenerator.extension.response.CommonSourceResponse;
+import io.ballerina.servicemodelgenerator.extension.response.FunctionFromSourceResponse;
 import io.ballerina.servicemodelgenerator.extension.response.FunctionModelResponse;
 import io.ballerina.servicemodelgenerator.extension.response.ListenerDiscoveryResponse;
 import io.ballerina.servicemodelgenerator.extension.response.ListenerFromSourceResponse;
@@ -588,17 +589,15 @@ public class ServiceModelAPITests {
     @Test
     public void testUpdateFunction() throws ExecutionException, InterruptedException {
         Path filePath = resDir.resolve("sample3/main.bal");
-        Codedata codedata = new Codedata(LineRange.from("main.bal", LinePosition.from(7, 0),
-                LinePosition.from(21, 1)));
+        Codedata codedata = new Codedata(LineRange.from("main.bal", LinePosition.from(15, 4),
+                LinePosition.from(20, 5)));
         CommonModelFromSourceRequest sourceRequest = new CommonModelFromSourceRequest(
                 filePath.toAbsolutePath().toString(), codedata);
-        CompletableFuture<?> sourceResult = serviceEndpoint.request("serviceDesign/getServiceFromSource",
+        CompletableFuture<?> sourceResult = serviceEndpoint.request("serviceDesign/getFunctionFromSource",
                 sourceRequest);
-        ServiceFromSourceResponse sourceResponse = (ServiceFromSourceResponse) sourceResult.get();
-        Service service = sourceResponse.service();
-        Assert.assertTrue(Objects.nonNull(service));
-        Assert.assertTrue(service.getFunctions().size() > 1);
-        Function function = service.getFunctions().get(1);
+        FunctionFromSourceResponse sourceResponse = (FunctionFromSourceResponse) sourceResult.get();
+        Function function = sourceResponse.function();
+        Assert.assertTrue(Objects.nonNull(function));
         function.getAccessor().setValue("put");
         function.getReturnType().setValue("");
         List<HttpResponse> responses = function.getReturnType().getResponses();
@@ -622,5 +621,7 @@ public class ServiceModelAPITests {
     @AfterClass
     public void cleanupLanguageServer() {
         this.languageServer.shutdown();
+        this.languageServer = null;
+        this.serviceEndpoint = null;
     }
 }
