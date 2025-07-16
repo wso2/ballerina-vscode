@@ -352,6 +352,15 @@ export interface AddClausesRequest {
     propertyKey?: string;
 }
 
+export interface AddSubMappingRequest {
+    filePath: string;
+    codedata: CodeData;
+    index: number;
+    flowNode: FlowNode;
+    varName?: string;
+    targetField: string;
+}
+
 export interface GetInlineDataMapperCodedataRequest {
     filePath: string;
     codedata: CodeData;
