@@ -279,7 +279,7 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
 
     const handleResourceTryIt = (methodValue: string, pathValue: string) => {
         const resource = serviceType === "http" ? { methodValue, pathValue } : undefined;
-        const commands = ["ballerina.tryit", false, resource, { basePath, listener }];
+        const commands = ["ballerina.tryIt", false, resource, { basePath, listener }];
         rpcClient.getCommonRpcClient().executeCommand({ commands });
     };
 
