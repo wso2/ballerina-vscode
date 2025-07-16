@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { EVENT_TYPE, ListenerModel } from '@wso2/ballerina-core';
 import { View, ViewContent, TextField, Button, Typography } from '@wso2/ui-toolkit';
 import styled from '@emotion/styled';
@@ -26,6 +26,7 @@ import { TitleBar } from '../../../components/TitleBar';
 import { TopNavigationBar } from '../../../components/TopNavigationBar';
 import { RelativeLoader } from '../../../components/RelativeLoader';
 import { FormHeader } from '../../../components/FormHeader';
+import { getAgentOrg } from './utils';
 
 const FORM_WIDTH = 600;
 
@@ -78,9 +79,19 @@ export function AIChatAgentWizard(props: AIChatAgentWizardProps) {
         { label: "Completing", description: "Finalizing the agent setup" }
     ];
 
+    const agentOrg = useRef<string>("");
+    const initWizard = async () => {
+        agentOrg.current = await getAgentOrg(rpcClient);
+    }
+
     useEffect(() => {
-        rpcClient.getServiceDesignerRpcClient().getListenerModel({ moduleName: type }).then(res => {
-            setListenerModel(res.listener);
+        initWizard().then(() => {
+            rpcClient.getServiceDesignerRpcClient().getListenerModel({ moduleName: type, orgName: agentOrg.current }).then(res => {
+                setListenerModel(res.listener);
+            });
+        }).catch(error => {
+            console.error("Error initializing AI Chat Agent Wizard:", error);
+            setNameError("Failed to initialize the wizard. Please try again.");
         });
     }, []);
 
@@ -128,7 +139,8 @@ export function AIChatAgentWizard(props: AIChatAgentWizardProps) {
             await rpcClient.getServiceDesignerRpcClient().getServiceModel({
                 filePath: "",
                 moduleName: type,
-                listenerName: listenerName
+                listenerName: listenerName,
+                orgName: agentOrg.current,
             }).then(res => {
                 const serviceModel = res.service;
                 console.log("Service Model: ", serviceModel);
