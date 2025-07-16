@@ -182,6 +182,8 @@ import {
     FunctionModelRequest,
     FunctionModelResponse,
     TypeDataWithReferences,
+    AIAgentOrgRequest,
+    AIAgentOrgResponse,
     AINodesResponse,
     AIModelsRequest,
     AIToolsRequest,
@@ -362,6 +364,7 @@ enum EXTENDED_APIS {
     BI_ADD_TEST_FUNCTION = 'testManagerService/addTestFunction',
     BI_UPDATE_TEST_FUNCTION = 'testManagerService/updateTestFunction',
     BI_EDIT_FUNCTION_NODE = 'flowDesignService/functionDefinition',
+    BI_AI_AGENT_ORG = 'agentManager/getAgentOrg',
     BI_AI_ALL_AGENTS = 'agentManager/getAllAgents',
     BI_AI_ALL_MODELS = 'agentManager/getAllModels',
     BI_AI_ALL_MEMORY_MANAGERS = 'agentManager/getAllMemoryManagers',
@@ -1093,6 +1096,10 @@ export class ExtendedLangClient extends LanguageClient implements ExtendedLangCl
 
     async addFunction(params: AddFunctionRequest): Promise<AddImportItemResponse> {
         return this.sendRequest<AddImportItemResponse>(EXTENDED_APIS.BI_ADD_FUNCTION, params);
+    }
+
+    async getAgentOrg(params: AIAgentOrgRequest) : Promise<AIAgentOrgResponse> {
+        return this.sendRequest<AIAgentOrgResponse>(EXTENDED_APIS.BI_AI_AGENT_ORG, params);
     }
 
     async getAllAgents(params: AINodesRequest): Promise<AINodesResponse> {
