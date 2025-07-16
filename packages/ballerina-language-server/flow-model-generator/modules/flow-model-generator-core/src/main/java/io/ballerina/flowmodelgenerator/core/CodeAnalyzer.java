@@ -468,17 +468,14 @@ public class CodeAnalyzer extends NodeVisitor {
                 }
                 SimpleNameReferenceNode simpleNameReferenceNode = (SimpleNameReferenceNode) node;
                 Symbol symbol = semanticModel.symbol(node).orElseThrow();
-                if (symbol.kind() != SymbolKind.VARIABLE) {
-                    continue;
-                }
-                TypeSymbol typeSymbol = ((VariableSymbol) symbol).typeDescriptor();
-                if (typeSymbol.getName().isPresent()
-                        && typeSymbol.getModule().isPresent()
-                        && (typeSymbol.getName().get().equals(MCP_TOOL_KIT))
-                        && (typeSymbol.getModule().get().id().moduleName().equals(AI_AGENT))) {
-                    String toolName = simpleNameReferenceNode.name().text().replace("\\", "");
-                    toolsData.add(new ToolData(toolName, ICON_PATH, getToolDescription(""), MCP_SERVER));
-                    continue;
+                if (symbol.kind() == SymbolKind.VARIABLE) {
+                    TypeSymbol typeSymbol = ((VariableSymbol) symbol).typeDescriptor();
+                    if (typeSymbol.getModule().isPresent() && typeSymbol.nameEquals(MCP_TOOL_KIT)
+                            && typeSymbol.getModule().get().id().moduleName().equals(AI_AGENT)) {
+                        String toolName = simpleNameReferenceNode.name().text().replace("\\", "");
+                        toolsData.add(new ToolData(toolName, ICON_PATH, getToolDescription(""), MCP_SERVER));
+                        continue;
+                    }
                 }
                 String toolName = simpleNameReferenceNode.name().text();
                 toolsData.add(new ToolData(toolName, getIcon(toolName), getToolDescription(toolName), null));
