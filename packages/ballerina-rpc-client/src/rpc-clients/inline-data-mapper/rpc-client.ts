@@ -22,6 +22,7 @@ import {
     AddClausesRequest,
     AddSubMappingRequest,
     ConvertToQueryRequest,
+    DeleteMappingRequest,
     GetInlineDataMapperCodedataRequest,
     GetInlineDataMapperCodedataResponse,
     GetSubMappingCodedataRequest,
@@ -40,6 +41,7 @@ import {
     addNewArrayElement,
     addSubMapping,
     convertToQuery,
+    deleteMapping,
     getDataMapperCodedata,
     getDataMapperModel,
     getDataMapperSource,
@@ -88,6 +90,10 @@ export class InlineDataMapperRpcClient implements InlineDataMapperAPI {
 
     addSubMapping(params: AddSubMappingRequest): Promise<InlineDataMapperSourceResponse> {
         return this._messenger.sendRequest(addSubMapping, HOST_EXTENSION, params);
+    }
+
+    deleteMapping(params: DeleteMappingRequest): Promise<InlineDataMapperSourceResponse> {
+        return this._messenger.sendRequest(deleteMapping, HOST_EXTENSION, params);
     }
 
     getDataMapperCodedata(params: GetInlineDataMapperCodedataRequest): Promise<GetInlineDataMapperCodedataResponse> {

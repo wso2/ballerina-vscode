@@ -19,27 +19,29 @@
  */
 import {
     AddArrayElementRequest,
-    AddClausesRequest,
-    ConvertToQueryRequest,
-    GetInlineDataMapperCodedataRequest,
-    GetSubMappingCodedataRequest,
-    InitialIDMSourceRequest,
-    InlineDataMapperModelRequest,
-    InlineDataMapperSourceRequest,
-    VisualizableFieldsRequest,
     addClauses,
+    AddClausesRequest,
     addNewArrayElement,
+    addSubMapping,
+    AddSubMappingRequest,
     convertToQuery,
+    ConvertToQueryRequest,
+    deleteMapping,
+    DeleteMappingRequest,
     getDataMapperCodedata,
-    getProperty,
-    PropertyRequest,
     getDataMapperModel,
     getDataMapperSource,
     getInitialIDMSource,
+    GetInlineDataMapperCodedataRequest,
+    getProperty,
     getSubMappingCodedata,
+    GetSubMappingCodedataRequest,
     getVisualizableFields,
-    addSubMapping,
-    AddSubMappingRequest
+    InitialIDMSourceRequest,
+    InlineDataMapperModelRequest,
+    InlineDataMapperSourceRequest,
+    PropertyRequest,
+    VisualizableFieldsRequest
 } from "@wso2/ballerina-core";
 import { Messenger } from "vscode-messenger";
 import { InlineDataMapperRpcManager } from "./rpc-manager";
@@ -54,6 +56,7 @@ export function registerInlineDataMapperRpcHandlers(messenger: Messenger) {
     messenger.onRequest(convertToQuery, (args: ConvertToQueryRequest) => rpcManger.convertToQuery(args));
     messenger.onRequest(addClauses, (args: AddClausesRequest) => rpcManger.addClauses(args));
     messenger.onRequest(addSubMapping, (args: AddSubMappingRequest) => rpcManger.addSubMapping(args));
+    messenger.onRequest(deleteMapping, (args: DeleteMappingRequest) => rpcManger.deleteMapping(args));
     messenger.onRequest(getDataMapperCodedata, (args: GetInlineDataMapperCodedataRequest) => rpcManger.getDataMapperCodedata(args));
     messenger.onRequest(getSubMappingCodedata, (args: GetSubMappingCodedataRequest) => rpcManger.getSubMappingCodedata(args));
     messenger.onRequest(getProperty, (args: PropertyRequest) => rpcManger.getProperty(args));
