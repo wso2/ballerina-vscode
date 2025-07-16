@@ -1,12 +1,12 @@
 {
   "description": "Test getting kafka service model when existing listener is used",
   "filePath": "sample3/main.bal",
-  "orgName": "ballerina",
+  "orgName": "ballerinax",
   "pkgName": "kafka",
   "moduleName": "kafka",
   "response": {
     "service": {
-      "id": "9",
+      "id": "10",
       "name": "Kafka Event Handler",
       "type": "kafka",
       "displayName": "Kafka Event Handler",
