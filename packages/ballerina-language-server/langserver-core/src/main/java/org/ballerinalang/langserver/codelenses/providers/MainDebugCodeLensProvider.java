@@ -48,17 +48,13 @@ public class MainDebugCodeLensProvider extends AbstractCodeLensesProvider {
     }
 
     @Override
-    public boolean validate(Node node) {
-        if (node instanceof FunctionDefinitionNode functionDefinitionNode) {
-            return AUTOMATION_FUNCTION.equals(functionDefinitionNode.functionName().text());
-        }
-        return false;
-    }
-
-    @Override
     public CodeLens getLens(DocumentServiceContext context, Node node) {
-        List<Object> args = Collections.singletonList(context.fileUri());
-        Command command = new Command(CodeLensUtil.DEBUG_CODELENS, "ballerina.source.debug", args);
-        return CodeLensUtil.getCodeLens(command, node);
+        if (node instanceof FunctionDefinitionNode functionDefinitionNode &&
+                AUTOMATION_FUNCTION.equals(functionDefinitionNode.functionName().text())) {
+            List<Object> args = Collections.singletonList(context.fileUri());
+            Command command = new Command(CodeLensUtil.DEBUG_CODELENS, "ballerina.source.debug", args);
+            return CodeLensUtil.getCodeLens(command, node);
+        }
+        return null;
     }
 }

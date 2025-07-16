@@ -15,7 +15,6 @@
  */
 package org.ballerinalang.langserver.codelenses.providers;
 
-import io.ballerina.compiler.syntax.tree.Node;
 import org.ballerinalang.langserver.commons.LanguageServerContext;
 import org.ballerinalang.langserver.commons.codelenses.spi.LSCodeLensesProvider;
 
@@ -58,5 +57,4 @@ public abstract class AbstractCodeLensesProvider implements LSCodeLensesProvider
         return isEnabled;
     }
 
-    
 }

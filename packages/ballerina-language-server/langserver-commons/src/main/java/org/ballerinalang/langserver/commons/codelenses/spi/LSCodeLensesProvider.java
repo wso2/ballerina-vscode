@@ -35,19 +35,12 @@ public interface LSCodeLensesProvider {
     String getName();
 
     /**
-     * Checks if the code lens is applicable for the given node.
-     *
-     * @param node Syntax tree node
-     * @return True if enabled, false otherwise
-     */
-    boolean validate(Node node);
-
-    /**
-     * Returns the code lens for a given node.
+     * Returns the code lens for a given node. If the node is not a valid node for the provider,
+     * this method should return null.
      *
      * @param context Language Server Context
      * @param node    Node to get the code lens
-     * @return {@link CodeLens} Code lens for the node
+     * @return {@link CodeLens} Code lens for the node, or null if not applicable
      */
     CodeLens getLens(DocumentServiceContext context, Node node);
 

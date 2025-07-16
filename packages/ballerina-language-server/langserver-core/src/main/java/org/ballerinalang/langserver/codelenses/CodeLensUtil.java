@@ -142,11 +142,9 @@ public final class CodeLensUtil {
     private static void traverseCodeLensProviders(DocumentServiceContext codeLensContext, Node member,
                                                   List<LSCodeLensesProvider> providers, List<CodeLens> lenses) {
         for (LSCodeLensesProvider provider : providers) {
-            if (provider.validate(member)) {
-                CodeLens lens = provider.getLens(codeLensContext, member);
-                if (lens != null) {
-                    lenses.add(lens);
-                }
+            CodeLens lens = provider.getLens(codeLensContext, member);
+            if (lens != null) {
+                lenses.add(lens);
             }
         }
     }

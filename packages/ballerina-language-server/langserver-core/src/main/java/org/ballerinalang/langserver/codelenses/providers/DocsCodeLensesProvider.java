@@ -55,36 +55,40 @@ public class DocsCodeLensesProvider extends AbstractCodeLensesProvider {
     }
 
     @Override
-    public boolean validate(Node node) {
-        if (node == null) {
-            return false;
-        }
-        return switch (node.kind()) {
-            case FUNCTION_DEFINITION -> {
+    public CodeLens getLens(DocumentServiceContext context, Node node) {
+        boolean isPublic;
+        switch (node.kind()) {
+            case FUNCTION_DEFINITION:
                 FunctionDefinitionNode funcDef = (FunctionDefinitionNode) node;
                 String nodeName = funcDef.functionName().text();
-                boolean isPublic = funcDef.qualifierList().stream()
+                isPublic = funcDef.qualifierList().stream()
                         .anyMatch(qualifier -> qualifier.kind() == SyntaxKind.PUBLIC_KEYWORD);
-                yield isPublic && !AUTOMATION_FUNCTION.equals(nodeName);
-            }
-            case TYPE_DEFINITION -> {
+                if (!isPublic || AUTOMATION_FUNCTION.equals(nodeName)) {
+                    return null;
+                }
+                break;
+            case TYPE_DEFINITION:
                 TypeDefinitionNode typeDef = (TypeDefinitionNode) node;
-                yield typeDef.visibilityQualifier()
+                isPublic = typeDef.visibilityQualifier()
                         .map(s -> s.kind() == SyntaxKind.PUBLIC_KEYWORD)
                         .orElse(false);
-            }
-            case CLASS_DEFINITION -> {
+                if (!isPublic) {
+                    return null;
+                }
+                break;
+            case CLASS_DEFINITION:
                 ClassDefinitionNode classDef = (ClassDefinitionNode) node;
-                yield classDef.visibilityQualifier()
+                isPublic = classDef.visibilityQualifier()
                         .map(s -> s.kind() == SyntaxKind.PUBLIC_KEYWORD)
                         .orElse(false);
-            }
-            default -> false;
-        };
-    }
+                if (!isPublic) {
+                    return null;
+                }
+                break;
+            default:
+                return null;
+        }
 
-    @Override
-    public CodeLens getLens(DocumentServiceContext context, Node node) {
         Range nodeRange = PositionUtil.toRange(node.lineRange());
         String documentUri = context.fileUri();
         CommandArgument docUriArg = CommandArgument.from(CommandConstants.ARG_KEY_DOC_URI, documentUri);

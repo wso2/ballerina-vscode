@@ -65,11 +65,6 @@ public class TryItCodeLensProvider extends AbstractCodeLensesProvider {
     }
 
     @Override
-    public boolean validate(Node node) {
-        return node.kind() == SyntaxKind.SERVICE_DECLARATION;
-    }
-
-    @Override
     public CodeLens getLens(DocumentServiceContext context, Node node) {
         if (node.kind() != SyntaxKind.SERVICE_DECLARATION) {
             return null;

@@ -49,20 +49,19 @@ public class VisualizeCodeLensProvider extends AbstractCodeLensesProvider {
     }
 
     @Override
-    public boolean validate(Node node) {
-        return switch (node.kind()) {
-            case FUNCTION_DEFINITION,
-                 SERVICE_DECLARATION,
-                 CLASS_DEFINITION,
-                 TYPE_DEFINITION,
-                 RESOURCE_ACCESSOR_DEFINITION,
-                 OBJECT_METHOD_DEFINITION -> true;
-            default -> false;
-        };
-    }
-
-    @Override
     public CodeLens getLens(DocumentServiceContext context, Node node) {
+        switch (node.kind()) {
+            case FUNCTION_DEFINITION:
+            case SERVICE_DECLARATION:
+            case CLASS_DEFINITION:
+            case TYPE_DEFINITION:
+            case RESOURCE_ACCESSOR_DEFINITION:
+            case OBJECT_METHOD_DEFINITION:
+                break;
+            default:
+                return null;
+        }
+
         Range range = PositionUtil.toRange(node.lineRange());
         List<Object> args = Arrays.asList(context.fileUri(), range);
         Command command = new Command(CodeLensUtil.VISUALIZE_CODELENS, "ballerina.showVisualizer", args);
