@@ -319,11 +319,6 @@ const MainPanel = () => {
                     case MACHINE_VIEW.GraphQLDiagram:
                         setViewComponent(<GraphQLDiagram serviceIdentifier={value?.identifier} filePath={value?.documentUri} position={value?.position} projectUri={value?.projectUri} />);
                         break;
-                    case MACHINE_VIEW.SequenceDiagram:
-                        setViewComponent(
-                            <SequenceDiagram syntaxTree={value?.syntaxTree} applyModifications={applyModifications} />
-                        );
-                        break;
                     case MACHINE_VIEW.BallerinaUpdateView:
                         setNavActive(false);
                         setViewComponent(<BallerinaUpdateView />);
