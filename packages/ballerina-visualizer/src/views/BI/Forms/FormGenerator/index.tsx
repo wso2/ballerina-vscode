@@ -34,7 +34,8 @@ import {
     ExpressionProperty,
     Type,
     RecordTypeField,
-    Imports
+    Imports,
+    CodeData
 } from "@wso2/ballerina-core";
 import {
     FormField,
@@ -64,7 +65,7 @@ import {
     filterUnsupportedDiagnostics,
     getFormProperties,
     getImportsForFormFields,
-    getInfoFromExpressionValue,
+    calculateExpressionOffsets,
     injectHighlightTheme,
     removeDuplicateDiagnostics,
     updateLineRange,
@@ -175,6 +176,7 @@ export function FormGenerator(props: FormProps) {
     const [types, setTypes] = useState<CompletionItem[]>([]);
     const [filteredTypes, setFilteredTypes] = useState<CompletionItem[]>([]);
     const expressionOffsetRef = useRef<number>(0); // To track the expression offset on adding import statements
+    const codeDataRef = useRef<any>(null); // To store codeData for getVisualizableFields
 
     useEffect(() => {
         if (rpcClient) {
@@ -254,12 +256,15 @@ export function FormGenerator(props: FormProps) {
             }
         }
 
-        rpcClient
-            .getInlineDataMapperRpcClient()
-            .getVisualizableFields({ filePath: fileName, flowNode: node, position: targetLineRange.startLine })
-            .then((res) => {
-                setVisualizableFields(res.visualizableProperties);
-            });
+        if (node.codedata.node === "VARIABLE") {
+            const codedata = codeDataRef.current || { symbol: formProperties?.type.value };
+            rpcClient
+                .getInlineDataMapperRpcClient()
+                .getVisualizableFields({ filePath: fileName, codedata })
+                .then((res) => {
+                    setVisualizableFields(res.visualizableProperties);
+                });
+        }
 
         // Extract fields with typeMembers where kind is RECORD_TYPE
         const recordTypeFields = Object.entries(formProperties)
@@ -330,7 +335,7 @@ export function FormGenerator(props: FormProps) {
         setTypeEditorState({ isOpen, fieldKey: editingField?.key, newTypeValue: f[editingField?.key] });
     };
 
-    const handleUpdateImports = (key: string, imports: Imports) => {
+    const handleUpdateImports = (key: string, imports: Imports, codedata?: CodeData) => {
         const importKey = Object.keys(imports)?.[0];
         if (Object.keys(formImports).includes(key)) {
             if (importKey && !Object.keys(formImports[key]).includes(importKey)) {
@@ -341,6 +346,7 @@ export function FormGenerator(props: FormProps) {
             const updatedImports = { ...formImports, [key]: imports };
             setFormImports(updatedImports);
         }
+        codeDataRef.current = codedata;
     }
 
     /* Expression editor related functions */
@@ -376,7 +382,7 @@ export function FormGenerator(props: FormProps) {
                         })
                         .sort((a, b) => a.sortText.localeCompare(b.sortText));
                 } else {
-                    const { lineOffset, charOffset } = getInfoFromExpressionValue(value, offset);
+                    const { lineOffset, charOffset } = calculateExpressionOffsets(value, offset);
                     let completions = await rpcClient.getBIDiagramRpcClient().getExpressionCompletions({
                         filePath: fileName,
                         context: {
@@ -487,7 +493,7 @@ export function FormGenerator(props: FormProps) {
     );
 
     const extractArgsFromFunction = async (value: string, property: ExpressionProperty, cursorPosition: number) => {
-        const { lineOffset, charOffset } = getInfoFromExpressionValue(value, cursorPosition);
+        const { lineOffset, charOffset } = calculateExpressionOffsets(value, cursorPosition);
         const signatureHelp = await rpcClient.getBIDiagramRpcClient().getSignatureHelp({
             filePath: fileName,
             context: {
@@ -709,11 +715,13 @@ export function FormGenerator(props: FormProps) {
         handleExpressionEditorCancel,
     ]);
 
-    const fetchVisualizableFields = async (filePath: string, flowNode: FlowNode, position: LinePosition) => {
+    const fetchVisualizableFields = async (filePath: string, typeName?: string) => {
+        const codedata = codeDataRef.current || { symbol: typeName };
         const res = await rpcClient
             .getInlineDataMapperRpcClient()
-            .getVisualizableFields({ filePath, flowNode, position });
+            .getVisualizableFields({ filePath, codedata});
         setVisualizableFields(res.visualizableProperties);
+        codeDataRef.current = {};
     };
 
     const handleTypeCreate = (typeName?: string) => {

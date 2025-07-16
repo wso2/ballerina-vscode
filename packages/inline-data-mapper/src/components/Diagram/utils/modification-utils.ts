@@ -22,6 +22,7 @@ import { IDataMapperContext } from "../../../utils/DataMapperContext/DataMapperC
 import { MappingFindingVisitor } from "../../../visitors/MappingFindingVisitor";
 import { traverseNode } from "../../../utils/model-utils";
 import { MappingDeletionVisitor } from "../../../visitors/MappingDeletionVisitor";
+import { getDefaultValue } from "./common-utils";
 
 export async function createNewMapping(link: DataMapperLinkModel) {
 	const sourcePort = link.getSourcePort();
@@ -49,7 +50,7 @@ export async function createNewMapping(link: DataMapperLinkModel) {
 
 	let expression = input;
 
-	if (targetMapping) {
+	if (targetMapping && targetMapping.expression.trim() !== getDefaultValue(outputPortModel.attributes.field.kind)) {
 		expression = `${targetMapping.expression} + ${input}`;
 	}
 

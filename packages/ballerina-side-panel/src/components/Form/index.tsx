@@ -329,7 +329,7 @@ export interface FormProps {
     updatedExpressionField?: ExpressionFormField;
     resetUpdatedExpressionField?: () => void;
     mergeFormDataWithFlowNode?: (data: FormValues, targetLineRange: LineRange) => FlowNode;
-    handleVisualizableFields?: (filePath: string, flowNode: FlowNode, position: LinePosition) => void;
+    handleVisualizableFields?: (filePath: string, typeName?: string) => void;
     visualizableFields?: { [key: string]: string; };
     recordTypeFields?: RecordTypeField[];
     nestedForm?: boolean;
@@ -540,16 +540,12 @@ export const Form = forwardRef((props: FormProps, ref) => {
     };
 
     const handleOnTypeChange = () => {
-        if (mergeFormDataWithFlowNode) {
-            getVisualiableFields();
-        }
+        getVisualiableFields();
     };
 
     const getVisualiableFields = () => {
-        if (mergeFormDataWithFlowNode) {
-            const flowNode = mergeFormDataWithFlowNode(getValues(), targetLineRange);
-            handleVisualizableFields && handleVisualizableFields(fileName, flowNode, targetLineRange.startLine);
-        }
+        const typeName = watch("type");
+        handleVisualizableFields && handleVisualizableFields(fileName, typeName);
     };
 
     const handleGetExpressionDiagnostics = async (
@@ -577,7 +573,6 @@ export const Form = forwardRef((props: FormProps, ref) => {
     const typeField = formFields.find((field) => field.key === "type");
     const expressionField = formFields.find((field) => field.key === "expression");
     const targetTypeField = formFields.find((field) => field.codedata?.kind === "PARAM_FOR_TYPE_INFER");
-    const dataMapperField = formFields.find((field) => field.label.includes("Data mapper"));
     const hasParameters = hasRequiredParameters(formFields, selectedNode) || hasOptionalParameters(formFields);
     const canOpenInDataMapper = selectedNode === "VARIABLE" &&
         expressionField &&
@@ -745,6 +740,7 @@ export const Form = forwardRef((props: FormProps, ref) => {
                                         autoFocus={firstEditableFieldIndex === formFields.indexOf(updatedField)}
                                         recordTypeFields={recordTypeFields}
                                         onIdentifierEditingStateChange={handleIdentifierEditingStateChange}
+                                        handleOnTypeChange={handleOnTypeChange}
                                     />
                                 </S.Row>
                             );
@@ -799,6 +795,7 @@ export const Form = forwardRef((props: FormProps, ref) => {
                                             handleOnFieldFocus={handleOnFieldFocus}
                                             recordTypeFields={recordTypeFields}
                                             onIdentifierEditingStateChange={handleIdentifierEditingStateChange}
+                                            handleOnTypeChange={handleOnTypeChange}
                                         />
                                     </S.Row>
                                 );
@@ -837,6 +834,7 @@ export const Form = forwardRef((props: FormProps, ref) => {
                                     handleOnFieldFocus={handleOnFieldFocus}
                                     recordTypeFields={recordTypeFields}
                                     onIdentifierEditingStateChange={handleIdentifierEditingStateChange}
+                                    handleOnTypeChange={handleOnTypeChange}
                                 />
                                 {typeField && (
                                     <TypeHelperText

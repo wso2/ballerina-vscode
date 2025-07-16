@@ -310,6 +310,7 @@ export function ConnectorView(props: ConnectorViewProps) {
                                                 {category.items?.map((connector, index) => {
                                                     return (
                                                         <ButtonCard
+                                                            id={`connector-${connector.metadata.label.replace(/[ .]/g, "-").toLowerCase()}`}
                                                             key={connector.metadata.label + index}
                                                             title={connector.metadata.label}
                                                             description={
@@ -344,6 +345,7 @@ export function ConnectorView(props: ConnectorViewProps) {
                                     const connector = item as Item;
                                     return (
                                         <ButtonCard
+                                            id={`connector-${connector.metadata.label.replace(/[ .]/g, "-").toLowerCase()}`}
                                             key={connector.metadata.label + index}
                                             title={connector.metadata.label}
                                             description={

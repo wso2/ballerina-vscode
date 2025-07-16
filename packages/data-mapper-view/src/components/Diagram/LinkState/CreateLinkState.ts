@@ -60,7 +60,7 @@ export class CreateLinkState extends State<DiagramEngine> {
 						}
 
 						if (element instanceof RequiredParamNode
-							|| element instanceof  FromClauseNode
+							|| element instanceof FromClauseNode
 							|| element instanceof LetExpressionNode
 							|| element instanceof ModuleVariableNode
 							|| element instanceof EnumTypeNode

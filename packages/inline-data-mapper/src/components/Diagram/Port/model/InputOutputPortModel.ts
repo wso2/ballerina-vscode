@@ -18,10 +18,10 @@
 import { LinkModel, LinkModelGenerics, PortModel, PortModelGenerics } from "@projectstorm/react-diagrams";
 import { IOType, Mapping } from "@wso2/ballerina-core";
 
-import { DataMapperLinkModel } from "../../Link";
+import { DataMapperLinkModel, MappingType } from "../../Link";
 import { IntermediatePortModel } from "../IntermediatePort";
 import { createNewMapping } from "../../utils/modification-utils";
-import { getMappingType } from "../../utils/common-utils";
+import { getMappingType, isPendingMappingRequired } from "../../utils/common-utils";
 
 export interface InputOutputPortModelGenerics {
 	PORT: InputOutputPortModel;
@@ -33,12 +33,6 @@ export enum ValueType {
 	Default,
 	Empty,
 	NonEmpty
-}
-
-export enum MappingType {
-	ArrayToArray = "array-array",
-	ArrayToSingleton = "array-singleton",
-	Default = undefined // This is for non-array mappings currently
 }
 
 export interface PortAttributes {
@@ -79,10 +73,9 @@ export class InputOutputPortModel extends PortModel<PortModelGenerics & InputOut
 				const targetPort = lm.getTargetPort();
 				
 				const mappingType = getMappingType(sourcePort, targetPort);
-				if (mappingType === MappingType.ArrayToArray) {
+				if (isPendingMappingRequired(mappingType)) {
 					// Source update behavior is determined by the user when connecting arrays.
-					// Only convert to query is available atm so commented return
-					//return;
+					return;
 				}
 
 				await createNewMapping(lm);

@@ -60,9 +60,11 @@ export async function fetchDataMapperCodeData(
     codedata: CodeData,
     varName: string
 ): Promise<CodeData> {
+    // TODO: Remove this modification once the server supports code shrinking scenarios
+    const modifiedCodeData = { ...codedata, lineRange : { ...codedata.lineRange, endLine: codedata.lineRange.startLine } };
     const response = await StateMachine
         .langClient()
-        .getDataMapperCodedata({ filePath, codedata, name: varName });
+        .getDataMapperCodedata({ filePath, codedata: modifiedCodeData, name: varName });
     return response.codedata;
 }
 
@@ -76,20 +78,27 @@ export async function updateAndRefreshDataMapper(
     varName: string
 ) {
     await applyTextEdits(textEdits);
+}
+
+/**
+ * Refreshes the data mapper view with the latest code data.
+ */
+export async function refreshDataMapper(
+    filePath: string,
+    codedata: CodeData,
+    varName: string
+) {
     const newCodeData = await fetchDataMapperCodeData(filePath, codedata, varName);
 
     // Hack to update the codedata with the new source code
     // TODO: Remove this once the lang server is updated to return the new source code
     if (newCodeData) {
-        const newSrc = Array.isArray(Object.values(textEdits))
-            ? Object.values(textEdits)[0][0].newText
-            : Math.random().toString(36).substring(2) + Date.now().toString(36);
+        const newSrc = Math.random().toString(36).substring(2) + Date.now().toString(36);
         newCodeData.sourceCode = newSrc;
     }
 
-    updateInlineDataMapperView(newCodeData);
+    updateInlineDataMapperView(newCodeData, varName);
 }
-
 /**
  * Builds individual source requests from the provided parameters by mapping over each mapping.
  */

@@ -661,12 +661,12 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
     }
 
 
-    // Function to open config toml
+    // Function to open Config.toml
     async openConfigToml(params: OpenConfigTomlRequest): Promise<void> {
         return new Promise(async (resolve) => {
             const currentProject: BallerinaProject | undefined = await getCurrentBIProject(params.filePath);
 
-            const configFilePath = path.join(StateMachine.context().projectUri, "config.toml");
+            const configFilePath = path.join(StateMachine.context().projectUri, "Config.toml");
             const ignoreFile = path.join(StateMachine.context().projectUri, ".gitignore");
             const docLink = "https://ballerina.io/learn/provide-values-to-configurable-variables/#provide-via-toml-syntax";
             const uri = Uri.file(configFilePath);
@@ -694,8 +694,8 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
                 if (fs.existsSync(ignoreFile)) {
                     const ignoreUri = Uri.file(ignoreFile);
                     let ignoreContent: string = fs.readFileSync(ignoreUri.fsPath, 'utf8');
-                    if (!ignoreContent.includes("config.toml")) {
-                        ignoreContent += `\n${"config.toml"}\n`;
+                    if (!ignoreContent.includes("Config.toml")) {
+                        ignoreContent += `\n${"Config.toml"}\n`;
                         fs.writeFile(ignoreUri.fsPath, ignoreContent, function (error) {
                             if (error) {
                                 return window.showErrorMessage('Unable to update the .gitIgnore file: ' + error);

@@ -27,12 +27,15 @@ import {
     InlineDataMapperSourceResponse,
     VisualizableFieldsRequest,
     VisualizableFieldsResponse,
+    PropertyRequest,
+    PropertyResponse,
     InitialIDMSourceResponse,
     InitialIDMSourceRequest,
     GetInlineDataMapperCodedataRequest,
     GetInlineDataMapperCodedataResponse,
     GetSubMappingCodedataRequest,
-    InlineAllDataMapperSourceRequest
+    InlineAllDataMapperSourceRequest,
+    AddSubMappingRequest
 } from "../../interfaces/extended-lang-client";
 import { RequestType } from "vscode-messenger-common";
 
@@ -44,6 +47,8 @@ export const getVisualizableFields: RequestType<VisualizableFieldsRequest, Visua
 export const addNewArrayElement: RequestType<AddArrayElementRequest, InlineDataMapperSourceResponse> = { method: `${_preFix}/addNewArrayElement` };
 export const convertToQuery: RequestType<ConvertToQueryRequest, InlineDataMapperSourceResponse> = { method: `${_preFix}/convertToQuery` };
 export const addClauses: RequestType<AddClausesRequest, InlineDataMapperSourceResponse> = { method: `${_preFix}/addClauses` };
+export const addSubMapping: RequestType<AddSubMappingRequest, InlineDataMapperSourceResponse> = { method: `${_preFix}/addSubMapping` };
 export const getDataMapperCodedata: RequestType<GetInlineDataMapperCodedataRequest, GetInlineDataMapperCodedataResponse> = { method: `${_preFix}/getDataMapperCodedata` };
 export const getSubMappingCodedata: RequestType<GetSubMappingCodedataRequest, GetInlineDataMapperCodedataResponse> = { method: `${_preFix}/getSubMappingCodedata` };
 export const getAllDataMapperSource: RequestType<InlineAllDataMapperSourceRequest, InlineDataMapperSourceResponse> = { method: `${_preFix}/getAllDataMapperSource` };
+export const getProperty: RequestType<PropertyRequest, PropertyResponse> = { method: `${_preFix}/getProperty` };

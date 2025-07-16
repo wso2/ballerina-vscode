@@ -141,10 +141,6 @@ export function removePendingMappingTempLinkIfExists(link: LinkModel) {
 }
 
 export function userActionRequiredMapping(mappingType: MappingType, targetPort: PortModel): boolean {
-    if (targetPort instanceof RecordFieldPortModel && !targetPort?.parentModel) {
-        // No user action required provided for root target ports.
-        return false;
-    }
     return mappingType === MappingType.ArrayToArray
         || mappingType === MappingType.ArrayToSingleton
         || mappingType === MappingType.RecordToRecord

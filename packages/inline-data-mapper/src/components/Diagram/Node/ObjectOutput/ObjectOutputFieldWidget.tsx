@@ -30,12 +30,11 @@ import { useIONodesStyles } from "../../../styles";
 import { useDMCollapsedFieldsStore } from '../../../../store/store';
 import { getTypeName } from "../../utils/type-utils";
 import { ArrayOutputFieldWidget } from "../ArrayOutput/ArrayOuptutFieldWidget";
-import { fieldFQNFromPortName, getDefaultValue } from "../../utils/common-utils";
+import { fieldFQNFromPortName, getDefaultValue, getSanitizedId } from "../../utils/common-utils";
 import { addValue, removeMapping } from "../../utils/modification-utils";
 import FieldActionWrapper from "../commons/FieldActionWrapper";
 import { ValueConfigMenu, ValueConfigMenuItem, ValueConfigOption } from "../commons/ValueConfigButton";
 import { DiagnosticTooltip } from "../../Diagnostic/DiagnosticTooltip";
-import { OutputBeforeInputNotification } from "../commons/OutputBeforeInputNotification";
 import { DataMapperLinkModel } from "../../Link";
 
 export interface ObjectOutputFieldWidgetProps {
@@ -65,7 +64,6 @@ export function ObjectOutputFieldWidget(props: ObjectOutputFieldWidgetProps) {
 
     const [isHovered, setIsHovered] = useState(false);
     const [portState, setPortState] = useState<PortState>(PortState.Unselected);
-    const [hasOutputBeforeInput, setHasOutputBeforeInput] = useState(false);
 
     const collapsedFieldsStore = useDMCollapsedFieldsStore();
 
@@ -77,12 +75,13 @@ export function ObjectOutputFieldWidget(props: ObjectOutputFieldWidgetProps) {
     const isArray = typeKind === TypeKind.Array;
     const isRecord = typeKind === TypeKind.Record;
 
-    let updatedParentId = parentId;
+    let updatedParentId = getSanitizedId(parentId);
+    
     if (fieldIndex !== undefined) {
-        updatedParentId = `${parentId}.${fieldIndex}`
+        updatedParentId = `${updatedParentId}.${fieldIndex}`
     }
     let fieldName = field?.variableName || '';
-    let portName = updatedParentId !== '' ? fieldName !== '' ? `${updatedParentId}.${fieldName}` : updatedParentId : fieldName;
+    let portName = updatedParentId !== '' ? fieldName !== '' && fieldIndex === undefined ? `${updatedParentId}.${fieldName}` : updatedParentId : fieldName;
     const portIn = getPort(portName + ".IN");
     const mapping = portIn && portIn.attributes.value;
     const { inputs, expression, diagnostics } = mapping || {};
@@ -104,10 +103,6 @@ export function ObjectOutputFieldWidget(props: ObjectOutputFieldWidgetProps) {
     const handlePortState = (state: PortState) => {
         setPortState(state)
     };
-
-	const handlePortSelection = (outputBeforeInput: boolean) => {
-		setHasOutputBeforeInput(outputBeforeInput);
-	};
 
     const handleAddValue = async () => {
         setLoading(true);
@@ -256,7 +251,6 @@ export function ObjectOutputFieldWidget(props: ObjectOutputFieldWidgetProps) {
                                 port={portIn}
                                 disable={isDisabled && expanded}
                                 handlePortState={handlePortState}
-                                hasFirstSelectOutput={handlePortSelection}
                             />
                         )}
                     </span>
@@ -285,7 +279,6 @@ export function ObjectOutputFieldWidget(props: ObjectOutputFieldWidgetProps) {
                             />
                         </FieldActionWrapper>
                     ))}
-                    {hasOutputBeforeInput && <OutputBeforeInputNotification />}
                 </div>
             )}
             {isArray && (

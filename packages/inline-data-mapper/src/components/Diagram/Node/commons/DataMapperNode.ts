@@ -112,8 +112,8 @@ export abstract class DataMapperNodeModel extends NodeModel<NodeModelGenerics & 
 
 		const fieldName = field.variableName;
 		const isArray = this.isArrayTypedField(field);
-		const fieldFQN = this.getInputFieldFQN(parentId, fieldName, isOptional);
-		const unsafeFieldFQN = this.getUnsafeFieldFQN(unsafeParentId, fieldName);
+		const fieldFQN = this.getInputFieldFQN(field.isFocused ? "" : parentId, fieldName, isOptional);
+		const unsafeFieldFQN = this.getUnsafeFieldFQN(field.isFocused ? "" : unsafeParentId, fieldName);
 		const portName = this.getPortName(portPrefix, unsafeFieldFQN);
 		const isFocused = this.isFocusedField(focusedFieldFQNs, portName);
 		const isPreview = parent.attributes.isPreview || this.isPreviewPort(focusedFieldFQNs, parent.attributes.field);
@@ -159,8 +159,10 @@ export abstract class DataMapperNodeModel extends NodeModel<NodeModelGenerics & 
 
 		const isArray = this.isArrayTypedField(field);
 		const newParentId = this.getNewParentId(parentId, elementIndex);
-		const fieldFQN = this.getOutputFieldFQN(newParentId, field);
+		let fieldFQN = this.getOutputFieldFQN(newParentId, field, elementIndex);
 		const portName = this.getPortName(portPrefix, fieldFQN);
+		
+		if(fieldFQN.endsWith('>')) fieldFQN = fieldFQN.split('.').slice(0, -1).join('.');
 		const mapping = findMappingByOutput(mappings, fieldFQN);
 		const isCollapsed = this.isOutputPortCollapsed(hidden, collapsedFields, expandedFields, 
 			portName, type, isArray, false, mapping?.elements);
@@ -250,7 +252,10 @@ export abstract class DataMapperNodeModel extends NodeModel<NodeModelGenerics & 
 		return elementIndex !== undefined ? `${parentId}.${elementIndex}` : parentId;
 	}
 
-	private getOutputFieldFQN(newParentId: string, field: IOType): string {
+	private getOutputFieldFQN(newParentId: string, field: IOType, elementIndex?: number): string {
+		if (elementIndex !== undefined) {
+			return newParentId;
+		}
 		const fieldName = field?.variableName || '';
 		return newParentId !== '' ? fieldName !== '' ? `${newParentId}.${fieldName}` : newParentId : fieldName;
 	}
@@ -313,6 +318,7 @@ export abstract class DataMapperNodeModel extends NodeModel<NodeModelGenerics & 
 		const isHidden = attributes.hidden || attributes.collapsed;
 		let numberOfFields = 1;
 
+
 		if (attributes.field.kind === TypeKind.Record) {
 			const fields = attributes.field?.fields;
 			if (fields && fields.length) {
@@ -326,6 +332,15 @@ export abstract class DataMapperNodeModel extends NodeModel<NodeModelGenerics & 
 				});
 			}
 		} else if (attributes.field.kind === TypeKind.Array) {
+
+			const focusedMemberId = attributes.field.focusedMemberId;
+			if (focusedMemberId) {
+				const focusedMemberField = this.context.model.inputs.find(input => input.id === focusedMemberId);
+				if (focusedMemberField) {
+					attributes.field.member = focusedMemberField;
+				}
+			}
+
 			numberOfFields += this.addPortsForInputField({
 				...attributes,
 				hidden: isHidden,
@@ -370,7 +385,7 @@ export abstract class DataMapperNodeModel extends NodeModel<NodeModelGenerics & 
 		} else {
 			this.addPortsForOutputField({
 				...attributes,
-				field: { ...attributes.field.member, variableName: attributes.field.variableName + "Item" },
+				field: attributes.field.member,
 				isPreview: true
 			});
 		}

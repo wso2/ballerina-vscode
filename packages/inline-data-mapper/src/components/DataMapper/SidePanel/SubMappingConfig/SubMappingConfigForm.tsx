@@ -15,32 +15,21 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import React, { useEffect } from "react";
+import React from "react";
 import {
-    AutoComplete,
     Button,
     Codicon,
-    LinkButton,
     SidePanel,
     SidePanelBody,
     SidePanelTitleContainer,
-    TextField,
     ThemeColors
 } from "@wso2/ui-toolkit";
-import styled from "@emotion/styled";
-import { VSCodeCheckbox } from '@vscode/webview-ui-toolkit/react';
-import { Controller, useForm } from 'react-hook-form';
 
 import { useDMSubMappingConfigPanelStore, SubMappingConfigFormData } from "../../../../store/store";
 import { View } from "../../Views/DataMapperView";
 
-const Field = styled.div`
-   display: flex;
-   flex-direction: column;
-   margin-bottom: 12px;
-`;
+import { IDMFormField, IDMFormProps} from "@wso2/ballerina-core";
 
-const ALLOWED_TYPES = ['string', 'number', 'boolean', 'object'];
 const ADD_NEW_SUB_MAPPING_HEADER = "Add New Sub Mapping";
 const EDIT_SUB_MAPPING_HEADER = "Edit Sub Mapping";
 
@@ -48,84 +37,86 @@ export type SubMappingConfigFormProps = {
     views: View[];
     updateView: (updatedView: View) => void;
     applyModifications: (outputId: string, expression: string, viewId: string, name: string) => Promise<void>
+    addSubMapping: (subMappingName: string, type: string, index: number, targetField: string) => Promise<void>;
+    generateForm: (formProps: IDMFormProps) => JSX.Element;
 };
 
 export function SubMappingConfigForm(props: SubMappingConfigFormProps) {
-    const { views, updateView, applyModifications } = props;
-    const lastView = views && views[views.length - 1];
-
-    const allowedTypes = [...ALLOWED_TYPES];
-
+    const { views, addSubMapping, generateForm } = props;
+   
     const {
         subMappingConfig: { isSMConfigPanelOpen, nextSubMappingIndex, suggestedNextSubMappingName },
         resetSubMappingConfig,
         subMappingConfigFormData,
         setSubMappingConfigFormData
-    } = useDMSubMappingConfigPanelStore(state => ({
-        subMappingConfig: state.subMappingConfig,
-        resetSubMappingConfig: state.resetSubMappingConfig,
-        subMappingConfigFormData: state.subMappingConfigFormData,
-        setSubMappingConfigFormData: state.setSubMappingConfigFormData
-    })
-    );
+    } = useDMSubMappingConfigPanelStore();
 
-    let defaultValues: { mappingName: string; mappingType: string | null; isArray: boolean };
+    let defaultValues: { name: string; type: string ; };
     if (subMappingConfigFormData) {
         defaultValues = {
-            mappingName: subMappingConfigFormData.mappingName,
-            mappingType: subMappingConfigFormData.mappingType,
-            isArray: subMappingConfigFormData.isArray
+            name: subMappingConfigFormData.name,
+            type: subMappingConfigFormData.type
         }
     } else {
         defaultValues = {
-            mappingName: suggestedNextSubMappingName,
-            mappingType: null,
-            isArray: false
+            name: suggestedNextSubMappingName,
+            type: ""
         }
     }
 
-    const { control, handleSubmit, setValue, watch, reset, getValues } = useForm<SubMappingConfigFormData>({ defaultValues });
-
     const isEdit = nextSubMappingIndex === -1 && !suggestedNextSubMappingName;
 
-    const getIsArray = (mappingType: string) => {
-        return mappingType.includes('[]');
-    };
-
-    const getBaseType = (mappingType: string) => {
-        return mappingType.replaceAll('[]', '');
-    };
-
-    useEffect(() => {
-        if (isEdit) {
-            const { mappingName, mappingType } = lastView.subMappingInfo;
-            setValue('mappingName', mappingName);
-            setValue('mappingType', getBaseType(mappingType));
-            setValue('isArray', getIsArray(mappingType));
-        } else {
-            setValue('mappingName', defaultValues.mappingName);
-            setValue('mappingType', defaultValues.mappingType);
-            setValue('isArray', defaultValues.isArray);
-        }
-    }, [isEdit, defaultValues.mappingName, defaultValues.mappingType, defaultValues.isArray, setValue]);
-
     const onAdd = async (data: SubMappingConfigFormData) => {
-        // TODO: Implement onAdd
+        const targetField = views[views.length - 1].targetField;
+        await addSubMapping(data.name, data.type, nextSubMappingIndex, targetField);
     };
-
 
     const onEdit = async (data: SubMappingConfigFormData) => {
         // TODO: Implement onEdit
-        resetSubMappingConfig();
-        reset();
     };
 
-    const onClose = () => {
+    const onCancel = () => {
         resetSubMappingConfig();
     };
 
-    const openImportCustomTypeForm = () => {
-        setSubMappingConfigFormData(getValues());
+    const onSubmit = (data: SubMappingConfigFormData) => {
+        if (isEdit) {
+            onEdit(data);
+        } else {
+            onAdd(data);
+        }
+        resetSubMappingConfig();
+    };
+
+    const mappingNameField: IDMFormField = {
+        key: "name",
+        label: "Name",
+        type: "IDENTIFIER",
+        optional: false,
+        editable: true,
+        documentation: "Enter the name of the sub mapping.",
+        value: defaultValues.name,
+        valueTypeConstraint: "Global",
+        enabled: true,
+    };
+
+    const mappingTypeField: IDMFormField = {
+        key: "type",
+        label: "Type",
+        type: "TYPE",
+        optional: false,
+        editable: true,
+        documentation: "Enter the type of the sub mapping.",
+        value: defaultValues.type,
+        valueTypeConstraint: "Global",
+        enabled: true,
+    };
+
+    const formProps: IDMFormProps = {
+        targetLineRange:{ startLine: { line: 0, offset: 0 }, endLine: { line: 0, offset: 0 } },
+        fields: [mappingNameField, mappingTypeField],
+        submitText: isEdit ? "Save" : "Add",
+        onSubmit
     }
 
     return (
@@ -144,97 +135,14 @@ export function SubMappingConfigForm(props: SubMappingConfigFormProps) {
                 <span>{isEdit ? EDIT_SUB_MAPPING_HEADER : ADD_NEW_SUB_MAPPING_HEADER}</span>
                 <Button
                     sx={{ marginLeft: "auto" }}
-                    onClick={onClose}
+                    onClick={onCancel}
                     appearance="icon"
                 >
                     <Codicon name="close" />
                 </Button>
             </SidePanelTitleContainer>
             <SidePanelBody>
-                <Field>
-                    <Controller
-                        name="mappingName"
-                        control={control}
-                        render={({ field }) => (
-                            <TextField
-                                {...field}
-                                label="Sub Mapping Name"
-                                size={50}
-                                placeholder={defaultValues.mappingName}
-                            />
-                        )}
-                    />
-                </Field>
-                <Field>
-                    <Controller
-                        name="mappingType"
-                        control={control}
-                        render={({ field }) => (
-                            <>
-                                <AutoComplete
-                                    label="Type (Optional)"
-                                    name="mappingType"
-                                    items={allowedTypes}
-                                    nullable={true}
-                                    value={field.value}
-                                    onValueChange={(e) => { field.onChange(e); }}
-                                    borderBox
-                                />
-                            </>
-                        )}
-                    />
-
-                    <LinkButton
-                        onClick={openImportCustomTypeForm}
-                        sx={{ padding: "5px", gap: "2px", marginTop: "5px" }}
-                    >
-                        <Codicon
-                            iconSx={{ fontSize: "12px" }}
-                            name="add"
-                        />
-                        <p style={{ fontSize: "12px" }}>Add new type</p>
-                    </LinkButton>
-
-                </Field>
-                <Field>
-                    <Controller
-                        name="isArray"
-                        control={control}
-                        render={({ field }) => (
-                            <VSCodeCheckbox
-                                checked={field.value}
-                                onClick={(e: any) => field.onChange(e.target.checked)}
-                                onBlur={field.onBlur}
-                                name={field.name}
-                                ref={field.ref}
-                            >
-                                Is Array
-                            </VSCodeCheckbox>
-                        )}
-                    />
-                </Field>
-                {!isEdit && (
-                    <div style={{ textAlign: "right", marginTop: "10px", float: "right" }}>
-                        <Button
-                            appearance="primary"
-                            onClick={handleSubmit(onAdd)}
-                            disabled={watch("mappingName") === ""}
-                        >
-                            Add
-                        </Button>
-                    </div>
-                )}
-                {isEdit && (
-                    <div style={{ textAlign: "right", marginTop: "10px", float: "right" }}>
-                        <Button
-                            appearance="primary"
-                            onClick={handleSubmit(onEdit)}
-                            disabled={watch("mappingName") === ""}
-                        >
-                            Save
-                        </Button>
-                    </div>
-                )}
+                {generateForm(formProps)}
             </SidePanelBody>
         </SidePanel>
     );

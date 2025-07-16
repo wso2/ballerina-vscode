@@ -25,9 +25,10 @@ import type {} from "@projectstorm/react-diagrams";
 import { css, Global } from '@emotion/react';
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { IDMFormProps, IDMViewState, ModelState, IntermediateClause } from "@wso2/ballerina-core";
-import { ErrorBoundary } from "@wso2/ui-toolkit";
+import { CompletionItem, ErrorBoundary } from "@wso2/ui-toolkit";
 
 import { InlineDataMapper } from "./components/DataMapper/DataMapper";
+import { ExpressionProvider } from "./context/ExpressionContext";
 
 const queryClient = new QueryClient({
     defaultOptions: {
@@ -48,7 +49,15 @@ const globalStyles = css`
   }
 `;
 
-export interface DataMapperViewProps {
+export interface ExpressionBarProps {
+    completions: CompletionItem[];
+    triggerCompletions: (outputId: string, viewId: string, value: string, cursorPosition?: number) => void;
+    onCompletionSelect: (value: string) => void;
+    onSave: (outputId: string, value: string, viewId: string, name: string) => Promise<void>;
+    onCancel: () => void;
+}
+
+export interface InlineDataMapperProps {
     modelState: ModelState;
     name: string;
     applyModifications: (outputId: string, expression: string, viewId: string, name: string) => Promise<void>;
@@ -56,16 +65,23 @@ export interface DataMapperViewProps {
     generateForm: (formProps: IDMFormProps) => JSX.Element;
     convertToQuery: (outputId: string, viewId: string, name: string) => Promise<void>;
     addClauses: (clause: IntermediateClause, targetField: string, isNew: boolean, index?:number) => Promise<void>;
+    addSubMapping: (subMappingName: string, type: string, index: number, targetField: string) => Promise<void>;
     onClose: () => void;
     handleView: (viewId: string, isSubMapping?: boolean) => void;
 }
 
-export function DataMapperView(props: DataMapperViewProps) {
+export interface DataMapperViewProps extends InlineDataMapperProps {
+    expressionBar: ExpressionBarProps;
+}
+
+export function DataMapperView({ expressionBar, ...props }: DataMapperViewProps) {
     return (
         <ErrorBoundary errorMsg="An error occurred while rendering the Inline Data Mapper">
             <QueryClientProvider client={queryClient}>
                 <Global styles={globalStyles} />
-                <InlineDataMapper {...props}/>
+                <ExpressionProvider {...expressionBar}>
+                    <InlineDataMapper {...props} />
+                </ExpressionProvider>
             </QueryClientProvider>
         </ErrorBoundary>
     );

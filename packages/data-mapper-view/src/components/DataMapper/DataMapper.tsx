@@ -163,6 +163,11 @@ export interface ExpressionInfo {
     label?: string;
 }
 
+export interface InternalError {
+    hasError: boolean;
+    message?: string;
+}
+
 export interface DMNode {
     // the parent node of the selected node
     stNode: STNode;
@@ -257,7 +262,7 @@ export function DataMapperC(props: DataMapperViewProps) {
     const [dmContext, setDmContext] = useState<DataMapperContext>();
     const [dmNodes, setDmNodes] = useState<DataMapperNodeModel[]>();
     const [shouldRestoreTypes, setShouldRestoreTypes] = useState(true);
-    const [hasInternalError, setHasInternalError] = useState(false);
+    const [internalError, setInternalError] = useState<InternalError>();
     const [errorKind, setErrorKind] = useState<ErrorNodeKind>();
     const [isSelectionComplete, setIsSelectionComplete] = useState(false);
     const [currentReferences, setCurrentReferences] = useState<string[]>([]);
@@ -410,7 +415,7 @@ export function DataMapperC(props: DataMapperViewProps) {
 
                     dispatchSelection({ type: ViewOption.INITIALIZE, payload: { prevST, selectedST: selectedST || defaultSt } });
                 } catch (e) {
-                    setHasInternalError(true);
+                    setInternalError({ hasError: true});
                     // tslint:disable-next-line:no-console
                     console.error(e);
                 }
@@ -492,7 +497,7 @@ export function DataMapperC(props: DataMapperViewProps) {
                     setDmNodes(nodes);
                 }
             } catch (e) {
-                setHasInternalError(true);
+                setInternalError({ hasError: true, message: e.message});
                 // tslint:disable-next-line:no-console
                 console.error(e);
             }
@@ -569,7 +574,7 @@ export function DataMapperC(props: DataMapperViewProps) {
     };
 
     return (
-        <DataMapperErrorBoundary hasError={hasInternalError}>
+        <DataMapperErrorBoundary hasError={internalError?.hasError} message={internalError?.message}>
             <CurrentFileContext.Provider value={currentFile}>
                 {selection.state === DMState.INITIALIZED && (
                     <div className={classes.root}>

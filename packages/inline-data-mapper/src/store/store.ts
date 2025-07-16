@@ -26,8 +26,8 @@ interface SubMappingConfig {
 }
 
 export interface SubMappingConfigFormData {
-    mappingName: string;
-    mappingType: string | undefined;
+    name: string;
+    type: string | undefined;
     isArray: boolean;
 }
 
@@ -67,9 +67,13 @@ export interface DataMapperSubMappingConfigPanelState {
 export interface DataMapperExpressionBarState {
     focusedPort: InputOutputPortModel;
     focusedFilter: Node;
+    lastFocusedPort: InputOutputPortModel;
+    lastFocusedFilter: Node;
     inputPort: InputOutputPortModel;
     setFocusedPort: (port: InputOutputPortModel) => void;
     setFocusedFilter: (port: Node) => void;
+    setLastFocusedPort: (port: InputOutputPortModel) => void;
+    setLastFocusedFilter: (port: Node) => void;
     setInputPort: (port: InputOutputPortModel) => void;
     resetFocus: () => void;
     resetInputPort: () => void;
@@ -130,11 +134,20 @@ export const useDMSubMappingConfigPanelStore = create<DataMapperSubMappingConfig
 export const useDMExpressionBarStore = create<DataMapperExpressionBarState>((set) => ({
     focusedPort: undefined,
     focusedFilter: undefined,
-    setFocusedPort: (focusedPort: InputOutputPortModel) => set({ focusedPort }),
+    lastFocusedPort: undefined,
+    lastFocusedFilter: undefined,
+    setFocusedPort: (focusedPort: InputOutputPortModel) => set((state) => ({ lastFocusedPort: state.focusedPort, focusedPort })),
     setFocusedFilter: (focusedFilter: Node) => set({ focusedFilter }),
+    setLastFocusedPort: (lastFocusedPort: InputOutputPortModel) => set({ lastFocusedPort }),
+    setLastFocusedFilter: (lastFocusedFilter: Node) => set({ lastFocusedFilter }),
     inputPort: undefined,
     setInputPort: (inputPort: InputOutputPortModel) => set({ inputPort }),
-    resetFocus: () => set({ focusedPort: undefined, focusedFilter: undefined }),
+    resetFocus: () => set((state) => ({
+        lastFocusedPort: state.focusedPort,
+        lastFocusedFilter: state.focusedFilter,
+        focusedPort: undefined,
+        focusedFilter: undefined
+    })),
     resetInputPort: () => set({ inputPort: undefined })
 }));
 

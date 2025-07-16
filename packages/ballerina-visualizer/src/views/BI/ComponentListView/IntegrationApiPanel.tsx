@@ -63,6 +63,7 @@ export function IntegrationAPIPanel(props: IntegrationAPIPanelProps) {
                         tooltip={isDisabled ? OutOfScopeComponentTooltip : ""}
                     />
                     <ButtonCard
+                        id="graphql-service-card"
                         data-testid="websocket-service-card"
                         icon={<Icon name="bi-graphql" sx={{ color: "#e535ab" }} />}
                         title="GraphQL Service"
@@ -73,6 +74,7 @@ export function IntegrationAPIPanel(props: IntegrationAPIPanelProps) {
                         isBeta
                     />
                     <ButtonCard
+                        id="tcp-service-card"
                         data-testid="websocket-service-card"
                         icon={<Icon name="bi-tcp" />}
                         title="TCP Service"

@@ -32,14 +32,13 @@ import { OutputSearchHighlight } from "../commons/Search";
 import { ObjectOutputFieldWidget } from "../ObjectOutput/ObjectOutputFieldWidget";
 import { ValueConfigMenu, ValueConfigOption } from "../commons/ValueConfigButton";
 import { ValueConfigMenuItem } from "../commons/ValueConfigButton/ValueConfigMenuItem";
-import { fieldFQNFromPortName, getDefaultValue } from "../../utils/common-utils";
+import { fieldFQNFromPortName, getDefaultValue, getSanitizedId } from "../../utils/common-utils";
 import { DiagnosticTooltip } from "../../Diagnostic/DiagnosticTooltip";
 import { TreeBody } from "../commons/Tree/Tree";
 import { getTypeName } from "../../utils/type-utils";
 import FieldActionWrapper from "../commons/FieldActionWrapper";
 import { addValue, removeMapping } from "../../utils/modification-utils";
 import { PrimitiveOutputElementWidget } from "../PrimitiveOutput/PrimitiveOutputElementWidget";
-import { OutputBeforeInputNotification } from "../commons/OutputBeforeInputNotification";
 import { OutputFieldPreviewWidget } from "./OutputFieldPreviewWidget";
 
 export interface ArrayOutputFieldWidgetProps {
@@ -71,7 +70,6 @@ export function ArrayOutputFieldWidget(props: ArrayOutputFieldWidgetProps) {
     const [isLoading, setLoading] = useState(false);
     const [isHovered, setIsHovered] = useState(false);
     const [portState, setPortState] = useState<PortState>(PortState.Unselected);
-    const [hasOutputBeforeInput, setHasOutputBeforeInput] = useState(false);
     const [isAddingElement, setIsAddingElement] = useState(false);
     const collapsedFieldsStore = useDMCollapsedFieldsStore();
     const expandedFieldsStore = useDMExpandedFieldsStore();
@@ -80,9 +78,9 @@ export function ArrayOutputFieldWidget(props: ArrayOutputFieldWidgetProps) {
     const arrayField = field.member;
     const typeName = getTypeName(field);
 
-    let portName = parentId;
+    let portName = getSanitizedId(parentId);
     if (fieldIndex !== undefined) {
-        portName = `${parentId}.${fieldIndex}`
+        portName = `${portName}.${fieldIndex}`
     }
     const fieldName = field?.variableName || '';
 
@@ -104,9 +102,9 @@ export function ArrayOutputFieldWidget(props: ArrayOutputFieldWidgetProps) {
     }
 
     const hasDefaultValue = expression && getDefaultValue(field.kind) === expression.trim();
-    let isDisabled = portIn.attributes.descendantHasValue;
+    let isDisabled = portIn?.attributes.descendantHasValue;
 
-    if (!isDisabled && !hasDefaultValue) {
+    if (!isDisabled && !hasDefaultValue && portIn) {
         if (hasElements && expanded && portIn.attributes.parentModel) {
             portIn.setDescendantHasValue();
             isDisabled = true;
@@ -123,10 +121,6 @@ export function ArrayOutputFieldWidget(props: ArrayOutputFieldWidgetProps) {
     const handlePortState = (state: PortState) => {
         setPortState(state)
     };
-
-	const handlePortSelection = (outputBeforeInput: boolean) => {
-		setHasOutputBeforeInput(outputBeforeInput);
-	};
 
     const handleEditValue = () => {
         if (portIn)
@@ -350,7 +344,6 @@ export function ArrayOutputFieldWidget(props: ArrayOutputFieldWidgetProps) {
                                 port={portIn}
                                 disable={isDisabled && expanded}
                                 handlePortState={handlePortState}
-                                hasFirstSelectOutput={handlePortSelection}
                                 dataTestId={`array-type-editable-record-field-${portIn.getName()}`}
                             />
                         )}
@@ -381,7 +374,6 @@ export function ArrayOutputFieldWidget(props: ArrayOutputFieldWidgetProps) {
                             />
                         </FieldActionWrapper>
                     ))}
-                    {hasOutputBeforeInput && <OutputBeforeInputNotification />}
                 </div>
             )}
             {(expanded && !connectedViaLink && !!elements?.length) && (
@@ -398,7 +390,7 @@ export function ArrayOutputFieldWidget(props: ArrayOutputFieldWidgetProps) {
                 <OutputFieldPreviewWidget
                     key={`arr-output--preview-field-${portName}`}
                     engine={engine}
-                    field={{...arrayField, variableName: `${fieldName}Item`}}
+                    field={arrayField}
                     getPort={getPort}
                     parentId={portName}
                     context={context}

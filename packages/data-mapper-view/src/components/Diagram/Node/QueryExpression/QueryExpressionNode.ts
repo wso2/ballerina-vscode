@@ -76,7 +76,7 @@ export class QueryExpressionNode extends DataMapperNodeModel {
 
     public targetFieldFQN: string;
     public hidden: boolean;
-    public hasInitialized: boolean;
+    public hasScreenWidthChanged: boolean;
 
     constructor(
         public context: IDataMapperContext,
@@ -279,19 +279,14 @@ export class QueryExpressionNode extends DataMapperNodeModel {
             });
         }
 
-        const previouslyHidden = this.hidden;
         this.hidden = this.targetPort?.hidden;
-    
-        if (this.hidden !== previouslyHidden) {
-            this.hasInitialized = false;
-        }
         while (this.targetPort && this.targetPort.hidden){
             this.targetPort = this.targetPort.parentModel;
         }
     }
 
     initLinks(): void {
-        if (this.hasInitialized) {
+        if (this.hasScreenWidthChanged) {
             return;
         }
         if (!this.hidden) {
@@ -357,7 +352,6 @@ export class QueryExpressionNode extends DataMapperNodeModel {
                 this.getModel().addAll(link);
             }
         }
-        this.hasInitialized = true;
     }
 
     public updatePosition() {
@@ -394,5 +388,9 @@ export class QueryExpressionNode extends DataMapperNodeModel {
         }
 
         this.context.applyModifications(modifications);
+    }
+
+    public setHasScreenWidthChanged(hasScreenWidthChanged: boolean): void {
+        this.hasScreenWidthChanged = hasScreenWidthChanged;
     }
 }

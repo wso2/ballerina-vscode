@@ -81,11 +81,35 @@ export class OveriddenLabelWidget extends React.Component<LabelWidgetProps> {
 		};
 
 		const pathCentre = path.getPointAtLength(position);
+		const canvas = this.props.engine.getCanvas();
+		
+		// Get canvas boundaries
+		const canvasWidth = canvas?.offsetWidth || 0;
+		const canvasHeight = canvas?.offsetHeight || 0;
 
-		const labelCoordinates = {
-			x: pathCentre.x - labelDimensions.width / 2 + this.props.label.getOptions().offsetX,
-			y: pathCentre.y - labelDimensions.height / 2 + this.props.label.getOptions().offsetY
-		};
+		// Calculate initial centered position
+		let x = pathCentre.x - labelDimensions.width / 2 + this.props.label.getOptions().offsetX;
+		let y = pathCentre.y - labelDimensions.height / 2 + this.props.label.getOptions().offsetY;
+
+		// Apply boundary constraints to keep label fully visible
+		// Ensure label doesn't go off the left edge
+		if (x < 0) {
+			x = 0;
+		}
+		// Ensure label doesn't go off the right edge
+		if (x + labelDimensions.width > canvasWidth) {
+			x = canvasWidth - labelDimensions.width;
+		}
+		// Ensure label doesn't go off the top edge
+		if (y < 0) {
+			y = 0;
+		}
+		// Ensure label doesn't go off the bottom edge
+		if (y + labelDimensions.height > canvasHeight) {
+			y = canvasHeight - labelDimensions.height;
+		}
+
+		const labelCoordinates = { x, y };
 
 		this.ref.current.style.transform = `translate(${labelCoordinates.x}px, ${labelCoordinates.y}px)`;
 	};

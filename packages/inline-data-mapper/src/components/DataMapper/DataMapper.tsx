@@ -31,11 +31,12 @@ import { View } from "./Views/DataMapperView";
 import {
     useDMCollapsedFieldsStore,
     useDMExpandedFieldsStore,
+    useDMQueryClausesPanelStore,
     useDMSearchStore,
     useDMSubMappingConfigPanelStore
 } from "../../store/store";
 import { KeyboardNavigationManager } from "../../utils/keyboard-navigation-manager";
-import { DataMapperViewProps } from "../../index";
+import { InlineDataMapperProps } from "../../index";
 import { ErrorNodeKind } from "./Error/RenderingError";
 import { IOErrorComponent } from "./Error/DataMapperError";
 import { IntermediateNodeInitVisitor } from "../../visitors/IntermediateNodeInitVisitor";
@@ -120,7 +121,7 @@ function viewsReducer(state: View[], action: ViewAction) {
     }
 }
 
-export function InlineDataMapper(props: DataMapperViewProps) {
+export function InlineDataMapper(props: InlineDataMapperProps) {
     const {
         modelState,
         name,
@@ -129,6 +130,7 @@ export function InlineDataMapper(props: DataMapperViewProps) {
         addArrayElement,
         handleView,
         convertToQuery,
+        addSubMapping,
         generateForm,
         addClauses
     } = props;
@@ -151,6 +153,7 @@ export function InlineDataMapper(props: DataMapperViewProps) {
     const [autoMapError, setAutoMapError] = useState<AutoMapError>();
 
     const { isSMConfigPanelOpen } = useDMSubMappingConfigPanelStore((state) => state.subMappingConfig);
+    const { isQueryClausesPanelOpen} = useDMQueryClausesPanelStore();
 
     const { resetSearchStore } = useDMSearchStore();
     const { rpcClient } = useRpcContext();
@@ -367,15 +370,21 @@ export function InlineDataMapper(props: DataMapperViewProps) {
                                 views={views}
                                 updateView={editView}
                                 applyModifications={applyModifications}
+                                addSubMapping={addSubMapping}
+                                generateForm={generateForm}
+                            />
+                        )}
+                        {isQueryClausesPanelOpen && (
+                            <ClausesPanel
+                                query={model.query}
+                                targetField={views[views.length - 1].targetField}
+                                addClauses={addClauses}
+                                generateForm={generateForm}
                             />
                         )}
                     </>
                 )}
-                <ClausesPanel
-                    query={model.query}
-                    targetField={views[views.length - 1].targetField}
-                    addClauses={addClauses}
-                    generateForm={generateForm} />
+                
             </div>
         </DataMapperErrorBoundary>
     )

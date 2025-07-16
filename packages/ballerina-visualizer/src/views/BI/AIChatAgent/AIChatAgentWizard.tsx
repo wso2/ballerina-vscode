@@ -18,7 +18,7 @@
 
 import { useEffect, useState } from 'react';
 import { EVENT_TYPE, ListenerModel } from '@wso2/ballerina-core';
-import { View, ViewContent, TextField, Button } from '@wso2/ui-toolkit';
+import { View, ViewContent, TextField, Button, Typography } from '@wso2/ui-toolkit';
 import styled from '@emotion/styled';
 import { useRpcContext } from '@wso2/ballerina-rpc-client';
 import { LoadingContainer } from '../../styles';
@@ -195,7 +195,7 @@ export function AIChatAgentWizard(props: AIChatAgentWizardProps) {
                                     onClick={handleCreateService}
                                     disabled={isCreating || !!nameError || !agentName}
                                 >
-                                    {isCreating ? 'Creating...' : 'Create'}
+                                    {isCreating ? <Typography variant="progress">Creating...</Typography> : 'Create'}
                                 </Button>
                             </ButtonContainer>
                             {isCreating && <RelativeLoader message={steps[currentStep].description} />}

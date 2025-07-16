@@ -26,6 +26,7 @@ import { View } from "../Views/DataMapperView";
 import { VSCodeButton } from "@vscode/webview-ui-toolkit/react";
 import AutoMapButton from "./AutoMapButton";
 import EditButton from "./EditButton";
+import ExpressionBarWrapper from "./ExpressionBar";
 
 export interface DataMapperHeaderProps {
     views: View[];
@@ -44,38 +45,46 @@ export function DataMapperHeader(props: DataMapperHeaderProps) {
 
     return (
         <HeaderContainer>
-            <IconButton onClick={onClose}>
-                <Icon name="bi-arrow-back" iconSx={{ fontSize: "24px", color: "var(--vscode-foreground)" }} />
-            </IconButton>
-            <BreadCrumb>
-                <Title>Data Mapper</Title>
-                {!hasEditDisabled && (
-                    <HeaderBreadcrumb
-                        views={views}
-                        switchView={switchView}
-                    />
-                )}
-            </BreadCrumb>
-            <RightContainer isClickable={!hasEditDisabled}>
-                <FilterBar>
-                    <HeaderSearchBox />
-                </FilterBar>
-                <AutoMapButton onClick={handleAutoMap} disabled={false} /> 
-                {/* TODO: Implement edit */}
-                <EditButton onClick={undefined} disabled={true} />
-            </RightContainer>
-            <VSCodeButton
-                appearance="icon"
-                onClick={onClose}
-                style={{ marginLeft: "15px" }}
-            >
-                <Codicon name="chrome-close" />
-            </VSCodeButton>
+            <HeaderContent>
+                <IconButton onClick={onClose}>
+                    <Icon name="bi-arrow-back" iconSx={{ fontSize: "24px", color: "var(--vscode-foreground)" }} />
+                </IconButton>
+                <BreadCrumb>
+                    <Title>Data Mapper</Title>
+                    {!hasEditDisabled && (
+                        <HeaderBreadcrumb
+                            views={views}
+                            switchView={switchView}
+                        />
+                    )}
+                </BreadCrumb>
+                <RightContainer isClickable={!hasEditDisabled}>
+                    <FilterBar>
+                        <HeaderSearchBox />
+                    </FilterBar>
+                    <AutoMapButton onClick={handleAutoMap} disabled={false} /> 
+                    {/* TODO: Implement edit */}
+                    <EditButton onClick={undefined} disabled={true} />
+                </RightContainer>
+                <VSCodeButton
+                    appearance="icon"
+                    onClick={onClose}
+                    style={{ marginLeft: "15px" }}
+                >
+                    <Codicon name="chrome-close" />
+                </VSCodeButton>
+            </HeaderContent>
+            <ExpressionBarWrapper views={views} />
         </HeaderContainer>
     );
 }
 
 const HeaderContainer = styled.div`
+    display: flex;
+    flex-direction: column;
+`;
+
+const HeaderContent = styled.div`
     height: 56px;
     display: flex;
     padding: 15px;
