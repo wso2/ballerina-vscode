@@ -1084,7 +1084,7 @@ public class DataMapManager {
                 return expressionMap;
             }
             throw new IllegalStateException("Unsupported type for visualizable properties: " +
-                    CommonUtils.getRawType(((TypeDefinitionSymbol)symbol).typeDescriptor()).typeKind());
+                    CommonUtils.getRawType(((TypeDefinitionSymbol) symbol).typeDescriptor()).typeKind());
         }
 
         String[] typeSegments = type.split(":");
