@@ -21,6 +21,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import org.ballerinalang.langserver.codelenses.providers.TryItCodeLensProvider;
 import org.ballerinalang.langserver.util.FileUtils;
 import org.ballerinalang.langserver.util.TestUtil;
 import org.eclipse.lsp4j.CodeLens;
@@ -50,8 +51,10 @@ public class CodeLensTest {
     private static final Logger log = LoggerFactory.getLogger(CodeLensTest.class);
     private static final Gson GSON = new Gson();
 
+
     @BeforeClass
-    public void loadLangServer() throws IOException {
+    public void loadLangServer() {
+        System.setProperty(TryItCodeLensProvider.TRY_IT_TEST_KEY, "true");
         serviceEndpoint = TestUtil.initializeLanguageSever();
     }
 
@@ -90,6 +93,7 @@ public class CodeLensTest {
     public void shutDownLanguageServer() {
         TestUtil.shutdownLanguageServer(this.serviceEndpoint);
         this.serviceEndpoint = null;
+        System.clearProperty(TryItCodeLensProvider.TRY_IT_TEST_KEY);
     }
 
     @DataProvider(name = "codeLensConfigurations")
@@ -98,6 +102,7 @@ public class CodeLensTest {
                 {"test.json"},
                 {"main.json"},
                 {"functions.json"},
+                {"try_it.json"},
                 {"visualize.json"}
         };
     }

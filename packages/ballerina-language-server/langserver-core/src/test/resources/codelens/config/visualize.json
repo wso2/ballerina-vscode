@@ -209,6 +209,31 @@
           }
         ]
       }
+    },
+    {
+      "range": {
+        "start": {
+          "line": 13,
+          "character": 0
+        },
+        "end": {
+          "line": 29,
+          "character": 1
+        }
+      },
+      "command": {
+        "title": "Try it",
+        "command": "ballerina.tryIt",
+        "arguments": [
+          false,
+          null,
+          {
+            "basePath": "/",
+            "listener": "module1:Listener"
+          },
+          "visualize.bal"
+        ]
+      }
     }
   ]
 }
