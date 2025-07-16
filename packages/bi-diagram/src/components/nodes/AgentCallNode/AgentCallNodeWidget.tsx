@@ -81,8 +81,8 @@ export namespace NodeStyles {
             props.hasError
                 ? ThemeColors.ERROR
                 : props.hovered && !props.disabled
-                ? ThemeColors.HIGHLIGHT
-                : ThemeColors.OUTLINE_VARIANT};
+                    ? ThemeColors.HIGHLIGHT
+                    : ThemeColors.OUTLINE_VARIANT};
         border-radius: 10px;
         background-color: ${(props: NodeStyleProp) =>
             props?.isActiveBreakpoint ? ThemeColors.DEBUGGER_BREAKPOINT_BACKGROUND : ThemeColors.SURFACE_DIM};
@@ -306,7 +306,7 @@ interface AgentCallNodeWidgetProps {
     onClick?: (node: FlowNode) => void;
 }
 
-export interface NodeWidgetProps extends Omit<AgentCallNodeWidgetProps, "children"> {}
+export interface NodeWidgetProps extends Omit<AgentCallNodeWidgetProps, "children"> { }
 
 export function AgentCallNodeWidget(props: AgentCallNodeWidgetProps) {
     const { model, engine, onClick } = props;
@@ -490,7 +490,7 @@ export function AgentCallNodeWidget(props: AgentCallNodeWidgetProps) {
     }
 
     return (
-        <NodeStyles.Node>
+        <NodeStyles.Node data-testid="agent-call-node">
             <NodeStyles.Box
                 disabled={disabled}
                 hovered={isBoxHovered}
@@ -680,9 +680,8 @@ export function AgentCallNodeWidget(props: AgentCallNodeWidgetProps) {
                 {tools.map((tool: ToolData, index: number) => (
                     <g
                         key={index}
-                        transform={`translate(0, ${
-                            (index + 1) * (NODE_HEIGHT + AGENT_NODE_TOOL_GAP) + AGENT_NODE_TOOL_SECTION_GAP
-                        })`}
+                        transform={`translate(0, ${(index + 1) * (NODE_HEIGHT + AGENT_NODE_TOOL_GAP) + AGENT_NODE_TOOL_SECTION_GAP
+                            })`}
                         onClick={() => onToolClick(tool)}
                         css={css`
                             cursor: pointer;
@@ -861,11 +860,10 @@ export function AgentCallNodeWidget(props: AgentCallNodeWidgetProps) {
 
                 {/* Add "Add new tool" button below all tools */}
                 <g
-                    transform={`translate(-11, ${
-                        tools.length > 0
-                            ? (tools.length + 1) * (NODE_HEIGHT + AGENT_NODE_TOOL_GAP) + AGENT_NODE_TOOL_SECTION_GAP
-                            : NODE_HEIGHT + AGENT_NODE_TOOL_SECTION_GAP
-                    })`}
+                    transform={`translate(-11, ${tools.length > 0
+                        ? (tools.length + 1) * (NODE_HEIGHT + AGENT_NODE_TOOL_GAP) + AGENT_NODE_TOOL_SECTION_GAP
+                        : NODE_HEIGHT + AGENT_NODE_TOOL_SECTION_GAP
+                        })`}
                     onClick={onAddToolClick}
                     style={{ cursor: "pointer" }}
                 >

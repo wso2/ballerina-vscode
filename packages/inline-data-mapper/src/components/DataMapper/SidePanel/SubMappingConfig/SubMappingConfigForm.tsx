@@ -24,9 +24,6 @@ import {
     SidePanelTitleContainer,
     ThemeColors
 } from "@wso2/ui-toolkit";
-import styled from "@emotion/styled";
-import { VSCodeCheckbox } from '@vscode/webview-ui-toolkit/react';
-import { Controller, useForm } from 'react-hook-form';
 
 import { useDMSubMappingConfigPanelStore, SubMappingConfigFormData } from "../../../../store/store";
 import { View } from "../../Views/DataMapperView";
@@ -40,11 +37,12 @@ export type SubMappingConfigFormProps = {
     views: View[];
     updateView: (updatedView: View) => void;
     applyModifications: (outputId: string, expression: string, viewId: string, name: string) => Promise<void>
+    addSubMapping: (subMappingName: string, type: string, index: number, targetField: string) => Promise<void>;
     generateForm: (formProps: IDMFormProps) => JSX.Element;
 };
 
 export function SubMappingConfigForm(props: SubMappingConfigFormProps) {
-    const { generateForm } = props;
+    const { views, addSubMapping, generateForm } = props;
    
     const {
         subMappingConfig: { isSMConfigPanelOpen, nextSubMappingIndex, suggestedNextSubMappingName },
@@ -53,23 +51,24 @@ export function SubMappingConfigForm(props: SubMappingConfigFormProps) {
         setSubMappingConfigFormData
     } = useDMSubMappingConfigPanelStore();
 
-    let defaultValues: { mappingName: string; mappingType: string ; };
+    let defaultValues: { name: string; type: string ; };
     if (subMappingConfigFormData) {
         defaultValues = {
-            mappingName: subMappingConfigFormData.mappingName,
-            mappingType: subMappingConfigFormData.mappingType
+            name: subMappingConfigFormData.name,
+            type: subMappingConfigFormData.type
         }
     } else {
         defaultValues = {
-            mappingName: suggestedNextSubMappingName,
-            mappingType: ""
+            name: suggestedNextSubMappingName,
+            type: ""
         }
     }
 
     const isEdit = nextSubMappingIndex === -1 && !suggestedNextSubMappingName;
 
     const onAdd = async (data: SubMappingConfigFormData) => {
-        // TODO: Implement onAdd
+        const targetField = views[views.length - 1].targetField;
+        await addSubMapping(data.name, data.type, nextSubMappingIndex, targetField);
     };
 
     const onEdit = async (data: SubMappingConfigFormData) => {
@@ -96,7 +95,7 @@ export function SubMappingConfigForm(props: SubMappingConfigFormProps) {
         optional: false,
         editable: true,
         documentation: "Enter the name of the sub mapping.",
-        value: defaultValues.mappingName,
+        value: defaultValues.name,
         valueTypeConstraint: "Global",
         enabled: true,
     };
@@ -108,7 +107,7 @@ export function SubMappingConfigForm(props: SubMappingConfigFormProps) {
         optional: false,
         editable: true,
         documentation: "Enter the type of the sub mapping.",
-        value: defaultValues.mappingType,
+        value: defaultValues.type,
         valueTypeConstraint: "Global",
         enabled: true,
     };

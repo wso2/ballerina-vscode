@@ -16,12 +16,11 @@
  * under the License.
  */
 
-import { commands, languages, Uri, window } from "vscode";
+import { commands, languages, Uri, window, workspace } from "vscode";
 import { BALLERINA_COMMANDS, getRunCommand, PALETTE_COMMANDS, runCommand } from "./cmd-runner";
 import { ballerinaExtInstance } from "../../../core";
-import { prepareAndGenerateConfig } from "../../config-generator/configGenerator";
 import { getConfigCompletions } from "../../config-generator/utils";
-
+import { BiDiagramRpcManager } from "../../../rpc-managers/bi-diagram/rpc-manager";
 
 function activateConfigRunCommand() {
     // register the config view run command
@@ -37,10 +36,16 @@ function activateConfigRunCommand() {
 
     commands.registerCommand(PALETTE_COMMANDS.CONFIG_CREATE_COMMAND, async () => {
         try {
-            const currentProject = ballerinaExtInstance.getDocumentContext().getCurrentProject();
-            const filePath = window.activeTextEditor.document;
-            const path = filePath.uri.fsPath;
-            prepareAndGenerateConfig(ballerinaExtInstance, currentProject ? currentProject.path! : path, true);
+            // Open current config.toml or create a new config.toml if it does not exist
+            let projectPath: string;
+            if (window.activeTextEditor) {
+                projectPath = window.activeTextEditor.document.uri.fsPath;
+            } else if (workspace.workspaceFolders && workspace.workspaceFolders.length > 0) {
+                projectPath = workspace.workspaceFolders[0].uri.fsPath;
+            }
+
+            const biDiagramRpcManager = new BiDiagramRpcManager();
+            await biDiagramRpcManager.openConfigToml({ filePath: projectPath });
             return;
         } catch (error) {
             throw new Error("Unable to create Config.toml file. Try again with a valid Ballerina file open in the editor.");
