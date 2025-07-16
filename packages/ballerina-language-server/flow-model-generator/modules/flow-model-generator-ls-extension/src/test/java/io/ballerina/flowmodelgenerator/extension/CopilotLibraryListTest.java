@@ -34,7 +34,7 @@ import java.util.List;
 /**
  * Tests for the Copilot Library Service getLibrariesList method.
  *
- * @since 1.0.0
+ * @since 1.0.1
  */
 public class CopilotLibraryListTest extends AbstractLSTest {
 

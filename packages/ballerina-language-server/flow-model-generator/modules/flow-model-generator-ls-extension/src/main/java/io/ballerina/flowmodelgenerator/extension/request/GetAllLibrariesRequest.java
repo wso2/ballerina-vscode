@@ -23,7 +23,7 @@ package io.ballerina.flowmodelgenerator.extension.request;
  *
  * @param mode The mode to determine which context file to read ("CORE" or "HEALTHCARE")
  *
- * @since 1.1.0
+ * @since 1.0.1
  */
 public record GetAllLibrariesRequest(String mode) {
 
