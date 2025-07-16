@@ -374,7 +374,7 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
                         </SubTitleWrapper>
                     }
                     actions={
-                        <ActionButton appearance="secondary" onClick={() => handleEdit(fileName)}>
+                        <ActionButton id="bi-edit" appearance="secondary" onClick={() => handleEdit(fileName)}>
                             <Icon name="bi-edit" sx={{ marginRight: 5, width: 16, height: 16, fontSize: 14 }} />
                             Edit
                         </ActionButton>
@@ -401,7 +401,7 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
                         </SubTitleWrapper>
                     }
                     actions={
-                        <ActionButton appearance="secondary" onClick={() => handleEdit(fileName)}>
+                        <ActionButton id="bi-edit" appearance="secondary" onClick={() => handleEdit(fileName)}>
                             <Icon name="bi-edit" sx={{ marginRight: 5, width: 16, height: 16, fontSize: 14 }} />
                             Edit
                         </ActionButton>

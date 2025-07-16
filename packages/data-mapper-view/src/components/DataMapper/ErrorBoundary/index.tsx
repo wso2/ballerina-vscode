@@ -17,19 +17,52 @@
  */
 import * as React from "react";
 
-import ErrorScreen from "./Error";
+import { WarningBanner } from "../Warning/DataMapperWarning";
+import { css, keyframes } from "@emotion/css";
+import { Typography } from "@wso2/ui-toolkit";
+import { ISSUES_URL } from "../utils";
+
+const fadeIn = keyframes`
+    from { opacity: 0.5; }
+    to { opacity: 1; }
+`;
+
+const classes = {
+  errorContainer: css({
+    display: 'flex',
+    flexDirection: 'column',
+    opacity: 0.7
+  }),
+  errorBanner: css({
+      borderColor: "var(--vscode-errorForeground)"
+  }),
+  errorMessage: css({
+      zIndex: 1,
+      position: 'absolute',
+      top: '50%',
+      left: '50%',
+      transform: 'translate(-50%, -50%)',
+      width: '500px',
+      animation: `${fadeIn} 0.5s ease-in-out`
+  }),
+  errorTitle: css({
+    marginTop: "10px"
+  })
+}
 
 export interface DataMapperErrorBoundaryProps {
     hasError: boolean;
+    message?: string;
     children?: React.ReactNode;
 }
 
-export class DataMapperErrorBoundaryC extends React.Component<DataMapperErrorBoundaryProps, { hasError: boolean }> {
-    state = { hasError: false }
+export class DataMapperErrorBoundaryC extends React.Component<DataMapperErrorBoundaryProps, { hasError: boolean, message: string }> {
+    state = { hasError: false, message: "" }
 
     static getDerivedStateFromProps(props: DataMapperErrorBoundaryProps) {
         return {
-            hasError: props.hasError
+            hasError: props.hasError,
+            message: props.message
         };
     }
 
@@ -42,9 +75,27 @@ export class DataMapperErrorBoundaryC extends React.Component<DataMapperErrorBou
       console.error(error, errorInfo);
     }
 
+    defaultContent = (
+      <div className={classes.errorContainer}>
+        <Typography variant="body2">
+          A problem occurred while rendering the Data Mapper.
+        </Typography>
+        <Typography variant="body2">
+          Please raise an issue with the sample code in our <a href={ISSUES_URL}>issue tracker</a>
+        </Typography>
+      </div>
+    );
+
     render() {
       if (this.state.hasError) {
-        return <ErrorScreen />;
+        return (
+          <div className={classes.errorMessage}>
+            <WarningBanner message={(
+              this.state.message || this.defaultContent
+            )}
+            />
+          </div>
+        );
       }
       return this.props?.children;
     }

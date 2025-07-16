@@ -58,10 +58,14 @@ export class VisualizerWebview {
         }, 500);
 
         vscode.workspace.onDidChangeTextDocument(async (document) => {
-            await document.document.save();
+            // Save the document only if it is not already opened in a visible editor or the webview is active
+            const isOpened = vscode.window.visibleTextEditors.some(editor => editor.document.uri.toString() === document.document.uri.toString());
+            if (!isOpened || this._panel?.active) {
+                await document.document.save();
+            }
+
             const state = StateMachine.state();
             const machineReady = typeof state === 'object' && 'viewActive' in state && state.viewActive === "viewReady";
-
             if (!machineReady) return;
 
             const balFileModified = document?.document.languageId === LANGUAGE.BALLERINA;
@@ -78,7 +82,7 @@ export class VisualizerWebview {
                 debouncedRefreshDataMapper();
             } else if (this._panel?.active && balFileModified) {
                 sendUpdateNotificationToWebview();
-            } else if (configTomlModified){
+            } else if (configTomlModified) {
                 sendUpdateNotificationToWebview(true);
             }
         }, extension.context);
@@ -137,7 +141,7 @@ export class VisualizerWebview {
                         <div class="logo-container">
                             <div class="loader"></div>
                         </div>
-                        <h1 class="welcome-title">Welcome to WSO2 Integrator: BI</h1>
+                        <h1 class="welcome-title">WSO2 Integrator: BI</h1>
                         <p class="welcome-subtitle">Setting up your workspace and tools</p>
                         <div class="loading-text">
                             <span class="loading-dots">Loading</span>
