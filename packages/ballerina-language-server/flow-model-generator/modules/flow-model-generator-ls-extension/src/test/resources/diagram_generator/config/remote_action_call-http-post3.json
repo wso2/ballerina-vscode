@@ -17,6 +17,9 @@
         "metadata": {
           "label": "Start",
           "data": {
+            "kind": "Resource",
+            "label": "milkshake",
+            "accessor": "post",
             "return": "json|http:ClientError"
           }
         },

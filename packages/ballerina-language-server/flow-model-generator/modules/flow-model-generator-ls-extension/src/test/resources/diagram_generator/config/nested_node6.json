@@ -15,7 +15,12 @@
       {
         "id": "88169",
         "metadata": {
-          "label": "Start"
+          "label": "Start",
+          "data": {
+            "kind": "Resource",
+            "label": "queryAction",
+            "accessor": "head"
+          }
         },
         "codedata": {
           "node": "EVENT_START",

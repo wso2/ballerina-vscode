@@ -15,7 +15,11 @@
       {
         "id": "55336",
         "metadata": {
-          "label": "Start"
+          "label": "Start",
+          "data": {
+            "kind": "Function",
+            "label": "simpleWait"
+          }
         },
         "codedata": {
           "node": "EVENT_START",

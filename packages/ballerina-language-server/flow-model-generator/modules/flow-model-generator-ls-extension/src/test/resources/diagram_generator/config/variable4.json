@@ -15,7 +15,11 @@
       {
         "id": "53507",
         "metadata": {
-          "label": "Start"
+          "label": "Start",
+          "data": {
+            "kind": "Function",
+            "label": "testNewDataXml"
+          }
         },
         "codedata": {
           "node": "EVENT_START",

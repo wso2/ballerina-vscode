@@ -1,412 +1,91 @@
 {
   "start": {
-    "line": 91,
-    "offset": 0
+    "line": 58,
+    "offset": 4
   },
   "end": {
-    "line": 103,
-    "offset": 1
+    "line": 60,
+    "offset": 5
   },
-  "source": "if_node.bal",
+  "source": "currency_converter/main.bal",
   "description": "Tests a simple diagram flow",
   "diagram": {
-    "fileName": "if_node.bal",
+    "fileName": "main.bal",
     "nodes": [
       {
-        "id": "124346",
+        "id": "92478",
         "metadata": {
           "label": "Start",
           "data": {
             "kind": "Resource",
-            "label": "mangoes",
+            "label": "[string country]/rate",
             "accessor": "get",
             "parameters": [
-              "int quantity"
+              "string target"
             ],
-            "return": "string"
+            "return": "json|http:InternalServerError"
           }
         },
         "codedata": {
           "node": "EVENT_START",
           "lineRange": {
-            "fileName": "if_node.bal",
+            "fileName": "main.bal",
             "startLine": {
-              "line": 91,
-              "offset": 63
+              "line": 58,
+              "offset": 101
             },
             "endLine": {
-              "line": 103,
+              "line": 60,
               "offset": 5
             }
           },
-          "sourceCode": "resource function get mangoes(int quantity) returns string {\n        if quantity > 10 {\n            return \"large\";\n        } else if quantity > 5 {\n            if quantity > 8 {\n                return \"medium\";\n            } else {\n                return \"small\";\n            }\n        } else {\n            return \"tiny\";\n        }\n    }"
+          "sourceCode": "resource function get [string country]/rate(string target) returns json|http:InternalServerError {\n        return http:INTERNAL_SERVER_ERROR;\n    }"
         },
         "returning": false,
         "flags": 0
       },
       {
-        "id": "123575",
+        "id": "90562",
         "metadata": {
-          "label": "If",
-          "description": "Add conditional branch to the integration flow."
+          "label": "Return",
+          "description": "Value of 'http:INTERNAL_SERVER_ERROR'"
         },
         "codedata": {
-          "node": "IF",
+          "node": "RETURN",
           "lineRange": {
-            "fileName": "if_node.bal",
+            "fileName": "main.bal",
             "startLine": {
-              "line": 92,
+              "line": 59,
               "offset": 8
             },
             "endLine": {
-              "line": 102,
-              "offset": 9
+              "line": 59,
+              "offset": 42
             }
           },
-          "sourceCode": "if quantity > 10 {\n            return \"large\";\n        } else if quantity > 5 {\n            if quantity > 8 {\n                return \"medium\";\n            } else {\n                return \"small\";\n            }\n        } else {\n            return \"tiny\";\n        }"
+          "sourceCode": "return http:INTERNAL_SERVER_ERROR;"
         },
-        "returning": false,
-        "branches": [
-          {
-            "label": "Then",
-            "kind": "BLOCK",
-            "codedata": {
-              "node": "CONDITIONAL",
-              "lineRange": {
-                "fileName": "if_node.bal",
-                "startLine": {
-                  "line": 92,
-                  "offset": 25
-                },
-                "endLine": {
-                  "line": 94,
-                  "offset": 9
-                }
-              },
-              "sourceCode": "{\n            return \"large\";\n        }"
+        "returning": true,
+        "properties": {
+          "expression": {
+            "metadata": {
+              "label": "Expression",
+              "description": "Return value"
             },
-            "repeatable": "ONE_OR_MORE",
-            "properties": {
-              "condition": {
-                "metadata": {
-                  "label": "Condition",
-                  "description": "Boolean Condition"
-                },
-                "valueType": "EXPRESSION",
-                "value": "quantity > 10 ",
-                "placeholder": "true",
-                "optional": false,
-                "editable": true,
-                "advanced": false,
-                "hidden": false
-              }
-            },
-            "children": [
-              {
-                "id": "124399",
-                "metadata": {
-                  "label": "Return",
-                  "description": "Value of '\"large\"'"
-                },
-                "codedata": {
-                  "node": "RETURN",
-                  "lineRange": {
-                    "fileName": "if_node.bal",
-                    "startLine": {
-                      "line": 93,
-                      "offset": 12
-                    },
-                    "endLine": {
-                      "line": 93,
-                      "offset": 27
-                    }
-                  },
-                  "sourceCode": "return \"large\";"
-                },
-                "returning": true,
-                "properties": {
-                  "expression": {
-                    "metadata": {
-                      "label": "Expression",
-                      "description": "Return value"
-                    },
-                    "valueType": "ACTION_OR_EXPRESSION",
-                    "value": "\"large\"",
-                    "optional": false,
-                    "editable": true,
-                    "advanced": false,
-                    "hidden": false
-                  }
-                },
-                "flags": 0
-              }
-            ]
-          },
-          {
-            "label": "quantity > 5",
-            "kind": "BLOCK",
-            "codedata": {
-              "node": "CONDITIONAL",
-              "lineRange": {
-                "fileName": "if_node.bal",
-                "startLine": {
-                  "line": 94,
-                  "offset": 31
-                },
-                "endLine": {
-                  "line": 100,
-                  "offset": 9
-                }
-              },
-              "sourceCode": "{\n            if quantity > 8 {\n                return \"medium\";\n            } else {\n                return \"small\";\n            }\n        }"
-            },
-            "repeatable": "ONE_OR_MORE",
-            "properties": {
-              "condition": {
-                "metadata": {
-                  "label": "Condition",
-                  "description": "Boolean Condition"
-                },
-                "valueType": "EXPRESSION",
-                "value": "quantity > 5 ",
-                "placeholder": "true",
-                "optional": false,
-                "editable": true,
-                "advanced": false,
-                "hidden": false
-              }
-            },
-            "children": [
-              {
-                "id": "126493",
-                "metadata": {
-                  "label": "If",
-                  "description": "Add conditional branch to the integration flow."
-                },
-                "codedata": {
-                  "node": "IF",
-                  "lineRange": {
-                    "fileName": "if_node.bal",
-                    "startLine": {
-                      "line": 95,
-                      "offset": 12
-                    },
-                    "endLine": {
-                      "line": 99,
-                      "offset": 13
-                    }
-                  },
-                  "sourceCode": "if quantity > 8 {\n                return \"medium\";\n            } else {\n                return \"small\";\n            }"
-                },
-                "returning": false,
-                "branches": [
-                  {
-                    "label": "Then",
-                    "kind": "BLOCK",
-                    "codedata": {
-                      "node": "CONDITIONAL",
-                      "lineRange": {
-                        "fileName": "if_node.bal",
-                        "startLine": {
-                          "line": 95,
-                          "offset": 28
-                        },
-                        "endLine": {
-                          "line": 97,
-                          "offset": 13
-                        }
-                      },
-                      "sourceCode": "{\n                return \"medium\";\n            }"
-                    },
-                    "repeatable": "ONE_OR_MORE",
-                    "properties": {
-                      "condition": {
-                        "metadata": {
-                          "label": "Condition",
-                          "description": "Boolean Condition"
-                        },
-                        "valueType": "EXPRESSION",
-                        "value": "quantity > 8 ",
-                        "placeholder": "true",
-                        "optional": false,
-                        "editable": true,
-                        "advanced": false,
-                        "hidden": false
-                      }
-                    },
-                    "children": [
-                      {
-                        "id": "127504",
-                        "metadata": {
-                          "label": "Return",
-                          "description": "Value of '\"medium\"'"
-                        },
-                        "codedata": {
-                          "node": "RETURN",
-                          "lineRange": {
-                            "fileName": "if_node.bal",
-                            "startLine": {
-                              "line": 96,
-                              "offset": 16
-                            },
-                            "endLine": {
-                              "line": 96,
-                              "offset": 32
-                            }
-                          },
-                          "sourceCode": "return \"medium\";"
-                        },
-                        "returning": true,
-                        "properties": {
-                          "expression": {
-                            "metadata": {
-                              "label": "Expression",
-                              "description": "Return value"
-                            },
-                            "valueType": "ACTION_OR_EXPRESSION",
-                            "value": "\"medium\"",
-                            "optional": false,
-                            "editable": true,
-                            "advanced": false,
-                            "hidden": false
-                          }
-                        },
-                        "flags": 0
-                      }
-                    ]
-                  },
-                  {
-                    "label": "Else",
-                    "kind": "BLOCK",
-                    "codedata": {
-                      "node": "ELSE",
-                      "lineRange": {
-                        "fileName": "if_node.bal",
-                        "startLine": {
-                          "line": 97,
-                          "offset": 19
-                        },
-                        "endLine": {
-                          "line": 99,
-                          "offset": 13
-                        }
-                      },
-                      "sourceCode": "{\n                return \"small\";\n            }"
-                    },
-                    "repeatable": "ZERO_OR_ONE",
-                    "children": [
-                      {
-                        "id": "129487",
-                        "metadata": {
-                          "label": "Return",
-                          "description": "Value of '\"small\"'"
-                        },
-                        "codedata": {
-                          "node": "RETURN",
-                          "lineRange": {
-                            "fileName": "if_node.bal",
-                            "startLine": {
-                              "line": 98,
-                              "offset": 16
-                            },
-                            "endLine": {
-                              "line": 98,
-                              "offset": 31
-                            }
-                          },
-                          "sourceCode": "return \"small\";"
-                        },
-                        "returning": true,
-                        "properties": {
-                          "expression": {
-                            "metadata": {
-                              "label": "Expression",
-                              "description": "Return value"
-                            },
-                            "valueType": "ACTION_OR_EXPRESSION",
-                            "value": "\"small\"",
-                            "optional": false,
-                            "editable": true,
-                            "advanced": false,
-                            "hidden": false
-                          }
-                        },
-                        "flags": 0
-                      }
-                    ]
-                  }
-                ],
-                "flags": 0
-              }
-            ]
-          },
-          {
-            "label": "Else",
-            "kind": "BLOCK",
-            "codedata": {
-              "node": "ELSE",
-              "lineRange": {
-                "fileName": "if_node.bal",
-                "startLine": {
-                  "line": 100,
-                  "offset": 15
-                },
-                "endLine": {
-                  "line": 102,
-                  "offset": 9
-                }
-              },
-              "sourceCode": "{\n            return \"tiny\";\n        }"
-            },
-            "repeatable": "ZERO_OR_ONE",
-            "children": [
-              {
-                "id": "132334",
-                "metadata": {
-                  "label": "Return",
-                  "description": "Value of '\"tiny\"'"
-                },
-                "codedata": {
-                  "node": "RETURN",
-                  "lineRange": {
-                    "fileName": "if_node.bal",
-                    "startLine": {
-                      "line": 101,
-                      "offset": 12
-                    },
-                    "endLine": {
-                      "line": 101,
-                      "offset": 26
-                    }
-                  },
-                  "sourceCode": "return \"tiny\";"
-                },
-                "returning": true,
-                "properties": {
-                  "expression": {
-                    "metadata": {
-                      "label": "Expression",
-                      "description": "Return value"
-                    },
-                    "valueType": "ACTION_OR_EXPRESSION",
-                    "value": "\"tiny\"",
-                    "optional": false,
-                    "editable": true,
-                    "advanced": false,
-                    "hidden": false
-                  }
-                },
-                "flags": 0
-              }
-            ]
+            "valueType": "ACTION_OR_EXPRESSION",
+            "value": "http:INTERNAL_SERVER_ERROR",
+            "optional": false,
+            "editable": true,
+            "advanced": false,
+            "hidden": false
           }
-        ],
+        },
         "flags": 0
       }
     ],
     "connections": [
       {
-        "id": "33773",
+        "id": "42750",
         "metadata": {
           "label": "New Connection",
           "description": "The HTTP client provides functionality to connect to remote HTTP services and perform requests using standard HTTP methods like GET, POST, PUT, DELETE, etc.\n",
@@ -419,17 +98,17 @@
           "object": "Client",
           "symbol": "init",
           "lineRange": {
-            "fileName": "if_node.bal",
+            "fileName": "main.bal",
             "startLine": {
-              "line": 2,
+              "line": 11,
               "offset": 0
             },
             "endLine": {
-              "line": 2,
-              "offset": 45
+              "line": 11,
+              "offset": 94
             }
           },
-          "sourceCode": "http:Client foodClient = check new (\"/food\");"
+          "sourceCode": "// new connection\nfinal http:Client currencyClient = check new (url = \"https://api.exchangeratesapi.io/latest\");"
         },
         "returning": false,
         "properties": {
@@ -440,7 +119,7 @@
             },
             "valueType": "EXPRESSION",
             "valueTypeConstraint": "string",
-            "value": "\"/food\"",
+            "value": "\"https://api.exchangeratesapi.io/latest\"",
             "placeholder": "\"\"",
             "optional": false,
             "editable": true,
@@ -1101,21 +780,21 @@
               "description": "Name of the variable"
             },
             "valueType": "IDENTIFIER",
-            "value": "foodClient",
+            "value": "currencyClient",
             "optional": false,
             "editable": false,
             "advanced": false,
             "hidden": false,
             "codedata": {
               "lineRange": {
-                "fileName": "if_node.bal",
+                "fileName": "main.bal",
                 "startLine": {
-                  "line": 2,
-                  "offset": 12
+                  "line": 11,
+                  "offset": 18
                 },
                 "endLine": {
-                  "line": 2,
-                  "offset": 22
+                  "line": 11,
+                  "offset": 32
                 }
               }
             }
@@ -1127,6 +806,216 @@
             },
             "valueType": "TYPE",
             "value": "http:Client",
+            "placeholder": "var",
+            "optional": false,
+            "editable": false,
+            "advanced": false,
+            "hidden": true,
+            "codedata": {}
+          }
+        },
+        "flags": 1
+      },
+      {
+        "id": "36800",
+        "metadata": {
+          "label": "New Connection",
+          "description": "Ballerina Redis connector provides the capability to access Redis cache.\nThis connector lets you to perform operations to access and manipulate key-value data stored in a Redis database. \n",
+          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+        },
+        "codedata": {
+          "node": "NEW_CONNECTION",
+          "org": "ballerinax",
+          "module": "redis",
+          "object": "Client",
+          "symbol": "init",
+          "lineRange": {
+            "fileName": "main.bal",
+            "startLine": {
+              "line": 5,
+              "offset": 0
+            },
+            "endLine": {
+              "line": 8,
+              "offset": 3
+            }
+          },
+          "sourceCode": "// new connection\nfinal redis:Client redisClient = check new (connection = {\n    host: \"localhost\",\n    port: 6379\n});"
+        },
+        "returning": false,
+        "properties": {
+          "$connection": {
+            "metadata": {
+              "label": "Connection Type",
+              "description": "Connection configurations of the Redis server. This can be either a single URI or a set of parameters"
+            },
+            "valueType": "EXPRESSION",
+            "valueTypeConstraint": "redis:ConnectionUri|redis:ConnectionParams",
+            "value": "{\n    host: \"localhost\",\n    port: 6379\n}",
+            "placeholder": "\"\"",
+            "optional": true,
+            "editable": true,
+            "advanced": true,
+            "hidden": false,
+            "codedata": {
+              "kind": "INCLUDED_FIELD",
+              "originalName": "connection"
+            },
+            "typeMembers": [
+              {
+                "type": "ConnectionParams",
+                "packageInfo": "ballerinax:redis:3.1.0",
+                "packageName": "redis",
+                "kind": "RECORD_TYPE",
+                "selected": true
+              },
+              {
+                "type": "ConnectionUri",
+                "packageInfo": "ballerinax:redis:3.1.0",
+                "packageName": "redis",
+                "kind": "BASIC_TYPE",
+                "selected": false
+              }
+            ],
+            "defaultValue": "\"\""
+          },
+          "connectionPooling": {
+            "metadata": {
+              "label": "Connection Pooling Enabled",
+              "description": "Flag to indicate whether connection pooling is enabled"
+            },
+            "valueType": "EXPRESSION",
+            "valueTypeConstraint": "boolean",
+            "placeholder": "false",
+            "optional": true,
+            "editable": true,
+            "advanced": true,
+            "hidden": false,
+            "codedata": {
+              "kind": "INCLUDED_FIELD",
+              "originalName": "connectionPooling"
+            },
+            "typeMembers": [
+              {
+                "type": "boolean",
+                "packageInfo": "",
+                "packageName": "",
+                "kind": "BASIC_TYPE",
+                "selected": false
+              }
+            ],
+            "defaultValue": "false"
+          },
+          "isClusterConnection": {
+            "metadata": {
+              "label": "Cluster Mode Enabled",
+              "description": "Flag to indicate whether the connection is a cluster connection"
+            },
+            "valueType": "EXPRESSION",
+            "valueTypeConstraint": "boolean",
+            "placeholder": "false",
+            "optional": true,
+            "editable": true,
+            "advanced": true,
+            "hidden": false,
+            "codedata": {
+              "kind": "INCLUDED_FIELD",
+              "originalName": "isClusterConnection"
+            },
+            "typeMembers": [
+              {
+                "type": "boolean",
+                "packageInfo": "",
+                "packageName": "",
+                "kind": "BASIC_TYPE",
+                "selected": false
+              }
+            ],
+            "defaultValue": "false"
+          },
+          "secureSocket": {
+            "metadata": {
+              "label": "Secure Socket Configurations",
+              "description": "Configurations related to SSL/TLS encryption"
+            },
+            "valueType": "EXPRESSION",
+            "valueTypeConstraint": "redis:SecureSocket",
+            "placeholder": "{}",
+            "optional": true,
+            "editable": true,
+            "advanced": true,
+            "hidden": false,
+            "codedata": {
+              "kind": "INCLUDED_FIELD",
+              "originalName": "secureSocket"
+            },
+            "typeMembers": [
+              {
+                "type": "SecureSocket",
+                "packageInfo": "ballerinax:redis:3.1.0",
+                "packageName": "redis",
+                "kind": "RECORD_TYPE",
+                "selected": false
+              }
+            ],
+            "defaultValue": "{}"
+          },
+          "checkError": {
+            "metadata": {
+              "label": "Check Error",
+              "description": "Terminate on error"
+            },
+            "valueType": "FLAG",
+            "value": true,
+            "optional": false,
+            "editable": false,
+            "advanced": true,
+            "hidden": true
+          },
+          "scope": {
+            "metadata": {
+              "label": "Connection Scope",
+              "description": "Scope of the connection, Global or Local"
+            },
+            "valueType": "ENUM",
+            "value": "Global",
+            "optional": false,
+            "editable": true,
+            "advanced": true,
+            "hidden": true
+          },
+          "variable": {
+            "metadata": {
+              "label": "Connection Name",
+              "description": "Name of the variable"
+            },
+            "valueType": "IDENTIFIER",
+            "value": "redisClient",
+            "optional": false,
+            "editable": false,
+            "advanced": false,
+            "hidden": false,
+            "codedata": {
+              "lineRange": {
+                "fileName": "main.bal",
+                "startLine": {
+                  "line": 5,
+                  "offset": 19
+                },
+                "endLine": {
+                  "line": 5,
+                  "offset": 30
+                }
+              }
+            }
+          },
+          "type": {
+            "metadata": {
+              "label": "Connection Type",
+              "description": "Type of the variable"
+            },
+            "valueType": "TYPE",
+            "value": "redis:Client",
             "placeholder": "var",
             "optional": false,
             "editable": false,

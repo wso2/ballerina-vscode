@@ -17,6 +17,9 @@
         "metadata": {
           "label": "Start",
           "data": {
+            "kind": "Resource",
+            "label": "converter",
+            "accessor": "get",
             "parameters": [
               "string 'from",
               "string to",
@@ -1114,11 +1117,11 @@
                             "value": {
                               "fileName": "main.bal",
                               "startLine": {
-                                "line": 59,
+                                "line": 63,
                                 "offset": 0
                               },
                               "endLine": {
-                                "line": 60,
+                                "line": 64,
                                 "offset": 53
                               }
                             },

@@ -55,6 +55,10 @@ service / on new http:Listener(8080) {
             return http:INTERNAL_SERVER_ERROR;
         }
     }
+
+    resource function get [string country]/rate(string target) returns json|http:InternalServerError {
+        return http:INTERNAL_SERVER_ERROR;
+    }
 }
 
 function calculate(decimal amount, string cacheValue) returns decimal|error 

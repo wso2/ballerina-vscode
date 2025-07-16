@@ -17,6 +17,9 @@
         "metadata": {
           "label": "Start",
           "data": {
+            "kind": "Resource",
+            "label": "avocados",
+            "accessor": "get",
             "parameters": [
               "int quantity",
               "int ripeness"
