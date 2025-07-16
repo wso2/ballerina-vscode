@@ -1079,18 +1079,12 @@ public class DataMapManager {
             if (symbol.getName().isEmpty() || !symbol.getName().get().equals(type)) {
                 continue;
             }
-            TypeDefinitionSymbol typeDefSymbol = (TypeDefinitionSymbol) symbol;
-            TypeSymbol typeSymbol = typeDefSymbol.typeDescriptor();
-            TypeSymbol rawTypeSymbol = CommonUtils.getRawType(typeSymbol);
-            TypeDescKind kind = rawTypeSymbol.typeKind();
-            if (isEffectiveRecordType(kind, rawTypeSymbol)) {
-                if (kind == TypeDescKind.ARRAY || isArray) {
-                    return Map.of("expression", "[]");
-                } else if (kind == TypeDescKind.RECORD) {
-                    return Map.of("expression", "{}");
-                }
+            Map<String, String> expressionMap = getExpressionMapForType(symbol, isArray);
+            if (!expressionMap.isEmpty()) {
+                return expressionMap;
             }
-            throw new IllegalStateException("Unsupported type for visualizable properties: " + kind);
+            throw new IllegalStateException("Unsupported type for visualizable properties: " +
+                    CommonUtils.getRawType(((TypeDefinitionSymbol)symbol).typeDescriptor()).typeKind());
         }
 
         String[] typeSegments = type.split(":");
@@ -1098,19 +1092,27 @@ public class DataMapManager {
         String typeName = typeSegments.length > 1 ? typeSegments[1] : typeSegments[0];
         Symbol matchedSymbol = getMatchedSymbol(prefix, typeName, semanticModel);
         if (matchedSymbol != null && matchedSymbol.kind() == SymbolKind.TYPE_DEFINITION) {
-            TypeDefinitionSymbol typeDefSymbol = (TypeDefinitionSymbol) matchedSymbol;
-            TypeSymbol typeSymbol = typeDefSymbol.typeDescriptor();
-            TypeSymbol rawTypeSymbol = CommonUtils.getRawType(typeSymbol);
-            TypeDescKind kind = rawTypeSymbol.typeKind();
-            if (isEffectiveRecordType(kind, rawTypeSymbol)) {
-                if (kind == TypeDescKind.ARRAY || isArray) {
-                    return Map.of("expression", "[]");
-                } else if (kind == TypeDescKind.RECORD) {
-                    return Map.of("expression", "{}");
-                }
+            Map<String, String> expressionMap = getExpressionMapForType(matchedSymbol, isArray);
+            if (!expressionMap.isEmpty()) {
+                return expressionMap;
             }
         }
 
+        return Map.of();
+    }
+
+    public Map<String, String> getExpressionMapForType(Symbol symbol, Boolean isArray) {
+        TypeDefinitionSymbol typeDefSymbol = (TypeDefinitionSymbol) symbol;
+        TypeSymbol typeSymbol = typeDefSymbol.typeDescriptor();
+        TypeSymbol rawTypeSymbol = CommonUtils.getRawType(typeSymbol);
+        TypeDescKind kind = rawTypeSymbol.typeKind();
+        if (isEffectiveRecordType(kind, rawTypeSymbol)) {
+            if (kind == TypeDescKind.ARRAY || isArray) {
+                return Map.of("expression", "[]");
+            } else if (kind == TypeDescKind.RECORD) {
+                return Map.of("expression", "{}");
+            }
+        }
         return Map.of();
     }
 
