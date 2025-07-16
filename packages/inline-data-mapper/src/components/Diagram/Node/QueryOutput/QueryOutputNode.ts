@@ -104,11 +104,11 @@ export class QueryOutputNode extends DataMapperNodeModel {
 
         const views = this.context.views;
         const focusedSourceField = views[views.length - 1].sourceField;
-        const { inputs: parentInputs, output: parentOutput} = this.context.model.query;
+        const { inputs: queryInputs, output: queryOutput} = this.context.model.query;
 
         mappings.forEach((mapping) => {
-            if (mapping.output === parentOutput) {
-                mapping.output += `.<${parentOutput.split('.').pop()}Item>`;
+            if (mapping.output === queryOutput) {
+                mapping.output += `.<${queryOutput.split('.').pop()}Item>`;
             }
             
             const { isComplex, isQueryExpression, inputs, output, expression, diagnostics } = mapping;
@@ -159,13 +159,13 @@ export class QueryOutputNode extends DataMapperNodeModel {
         });
 
 
-        const inputNode = findInputNode(parentInputs[0], this);
+        const inputNode = findInputNode(queryInputs[0], this);
         let inPort: InputOutputPortModel;
         if (inputNode) {
-            inPort = getInputPort(inputNode, parentInputs[0].replace(/\.\d+/g, ''));
+            inPort = getInputPort(inputNode, queryInputs[0].replace(/\.\d+/g, ''));
         }
 
-        const [_, mappedOutPort] = getOutputPort(this, parentOutput);
+        const [_, mappedOutPort] = getOutputPort(this, queryOutput);
 
         if (inPort && mappedOutPort) {
             const lm = new DataMapperLinkModel(undefined, undefined, true, undefined, true);
