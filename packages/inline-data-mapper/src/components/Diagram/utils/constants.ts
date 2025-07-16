@@ -34,6 +34,9 @@ export const GAP_BETWEEN_FIELDS = 1;
 
 export const ISSUES_URL = "https://github.com/wso2/product-ballerina-integrator/issues";
 
+export const AUTO_MAP_TIMEOUT_MS = 60000;
+export const AUTO_MAP_IN_PROGRESS_MSG = "Generating mappings for your transformation";
+
 export const OFFSETS = {
     SOURCE_NODE: {
         X: 1,

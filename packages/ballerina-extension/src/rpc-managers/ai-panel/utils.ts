@@ -49,7 +49,7 @@ const CONTEXT_UPLOAD_URL_V1 = "https://e95488c8-8511-4882-967f-ec3ae2a0f86f-prod
 // const CONTEXT_UPLOAD_URL_V1 = BACKEND_BASE_URL + "/context-api/v1.0";
 const ASK_API_URL_V1 = BACKEND_BASE_URL + "/ask-api/v1.0";
 
-const REQUEST_TIMEOUT = 2000000;
+export const REQUEST_TIMEOUT = 2000000;
 
 let abortController = new AbortController();
 const primitiveTypes = ["string", "int", "float", "decimal", "boolean"];
@@ -382,18 +382,35 @@ export async function generateBallerinaCode(response: object, parameterDefinitio
     }
 
     if (response.hasOwnProperty("operation") && response.hasOwnProperty("parameters") && response.hasOwnProperty("targetType")) {
-        let path = await getMappingString(response, parameterDefinitions, nestedKey, recordTypes, unionEnumIntersectionTypes, arrayRecords, arrayEnumUnion, nestedKeyArray);
-        if (isErrorCode(path)) {
-            return {};
-        }        
-        if (path === "") {
-            return {};
-        }
         let parameters: string[] = response["parameters"];
         let paths = parameters[0].split(".");
-        let recordFieldName: string = nestedKey || paths[1];
 
-        return { [recordFieldName]: path };
+        if (paths.length === 1) {
+            const paramName = parameters[0];
+
+            let existsInAny = [
+                ...parameterDefinitions["constants"],
+                ...parameterDefinitions["configurables"],
+                ...parameterDefinitions["variables"]
+            ].some(item => item.name === paramName);
+
+            if (!existsInAny) {
+                return {};
+            } 
+            return { [nestedKey]: parameters[0] };
+        } else {
+            let path = await getMappingString(response, parameterDefinitions, nestedKey, recordTypes, unionEnumIntersectionTypes, arrayRecords, arrayEnumUnion, nestedKeyArray);
+            if (isErrorCode(path)) {
+                return {};
+            }
+            if (path === "") {
+                return {};
+            }
+
+            let recordFieldName: string = nestedKey || paths[1];
+
+            return { [recordFieldName]: path };
+        }
     } else {
         let objectKeys = Object.keys(response);
         for (let index = 0; index < objectKeys.length; index++) {
@@ -1237,7 +1254,7 @@ class TypeInfoVisitorImpl implements TypeInfoVisitor {
     }
 }
 
-function navigateTypeInfo(
+export function navigateTypeInfo(
     typeInfos: FormField[],
     isNill: boolean
 ): RecordDefinitonObject | ErrorCode {
@@ -1546,7 +1563,7 @@ function determineMimeType(fileName: string): string {
     }
 }
 
-async function fetchWithTimeout(url, options, timeout = 100000): Promise<Response | ErrorCode> {
+export async function fetchWithTimeout(url, options, timeout = 100000): Promise<Response | ErrorCode> {
     abortController = new AbortController();
     const id = setTimeout(() => abortController.abort(), timeout);
     try {
@@ -1861,7 +1878,7 @@ async function handleRecordArrays(key: string, nestedKey: string, responseRecord
     return { ...recordFields };
 }
 
-async function filterResponse(resp: Response): Promise<object | ErrorCode> {
+export async function filterResponse(resp: Response): Promise<object | ErrorCode> {
     if (resp.status == 200 || resp.status == 201) {
         const data = (await resp.json()) as any;
         console.log(JSON.stringify(data.mappings));

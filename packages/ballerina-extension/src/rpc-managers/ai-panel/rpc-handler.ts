@@ -14,38 +14,32 @@
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations
  * under the License.
+ * 
+ * THIS FILE INCLUDES AUTO GENERATED CODE
  */
 import {
-    AIChatSummary,
-    AddToProjectRequest,
-    DeleteFromProjectRequest,
-    DeveloperDocument,
-    FetchDataRequest,
-    GenerateMappingsFromRecordRequest,
-    GenerateMappingsRequest,
-    GenerateTypesFromRecordRequest,
-    GetFromFileRequest,
-    GetModuleDirParams,
-    NotifyAIMappingsRequest,
-    PostProcessRequest,
-    ProjectSource,
-    RequirementSpecification,
-    SubmitFeedbackRequest,
-    TestGenerationRequest,
-    TestGenerationResponse,
     abortTestGeneration,
     addChatSummary,
     addToProject,
+    AddToProjectRequest,
+    AIChatSummary,
     applyDoOnFailBlocks,
     checkSyntaxError,
     clearInitialPrompt,
     createTestDirecoryIfNotExists,
     deleteFromProject,
+    DeleteFromProjectRequest,
+    DeveloperDocument,
     fetchData,
+    FetchDataRequest,
+    generateInlineMappings,
     generateMappings,
-    getAIMachineSnapshot,
+    GenerateMappingsFromRecordRequest,
+    GenerateMappingsRequest,
+    GenerateTypesFromRecordRequest,
     getAccessToken,
     getActiveFile,
+    getAIMachineSnapshot,
     getBackendUrl,
     getContentFromFile,
     getDefaultPrompt,
@@ -53,9 +47,11 @@ import {
     getFileExists,
     getFromDocumentation,
     getFromFile,
+    GetFromFileRequest,
     getGeneratedTests,
     getMappingsFromRecord,
     getModuleDirectory,
+    GetModuleDirParams,
     getProjectSource,
     getProjectUuid,
     getRefreshedAccessToken,
@@ -72,13 +68,21 @@ import {
     isRequirementsSpecificationFileExist,
     markAlertShown,
     notifyAIMappings,
+    NotifyAIMappingsRequest,
     postProcess,
+    PostProcessRequest,
+    ProjectSource,
     promptGithubAuthorize,
     promptWSO2AILogout,
     readDeveloperMdFile,
+    RequirementSpecification,
     showSignInAlert,
+    stopAIInlineMappings,
     stopAIMappings,
     submitFeedback,
+    SubmitFeedbackRequest,
+    TestGenerationRequest,
+    TestGenerationResponse,
     updateDevelopmentDocument,
     updateRequirementSpecification
 } from "@wso2/ballerina-core";
@@ -105,6 +109,8 @@ export function registerAiPanelRpcHandlers(messenger: Messenger) {
     messenger.onRequest(getShadowDiagnostics, (args: ProjectSource) => rpcManger.getShadowDiagnostics(args));
     messenger.onRequest(checkSyntaxError, (args: ProjectSource) => rpcManger.checkSyntaxError(args));
     messenger.onNotification(clearInitialPrompt, () => rpcManger.clearInitialPrompt());
+    messenger.onRequest(generateInlineMappings, () => rpcManger.generateInlineMappings());
+    messenger.onRequest(stopAIInlineMappings, () => rpcManger.stopAIInlineMappings());
     messenger.onRequest(getGeneratedTests, (args: TestGenerationRequest) => rpcManger.getGeneratedTests(args));
     messenger.onRequest(getTestDiagnostics, (args: TestGenerationResponse) => rpcManger.getTestDiagnostics(args));
     messenger.onRequest(getServiceSourceForName, (args: string) => rpcManger.getServiceSourceForName(args));

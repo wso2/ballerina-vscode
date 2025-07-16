@@ -29,7 +29,8 @@ import {
     InitialIDMSourceRequest,
     GetInlineDataMapperCodedataRequest,
     GetInlineDataMapperCodedataResponse,
-    GetSubMappingCodedataRequest
+    GetSubMappingCodedataRequest,
+    InlineAllDataMapperSourceRequest
 } from "../../interfaces/extended-lang-client";
 
 export interface InlineDataMapperAPI {
@@ -42,4 +43,5 @@ export interface InlineDataMapperAPI {
     addClauses: (params: AddClausesRequest) => Promise<InlineDataMapperSourceResponse>;
     getDataMapperCodedata: (params: GetInlineDataMapperCodedataRequest) => Promise<GetInlineDataMapperCodedataResponse>;
     getSubMappingCodedata: (params: GetSubMappingCodedataRequest) => Promise<GetInlineDataMapperCodedataResponse>;
+    getAllDataMapperSource: (params:InlineAllDataMapperSourceRequest) => Promise<InlineDataMapperSourceResponse>;
 }
