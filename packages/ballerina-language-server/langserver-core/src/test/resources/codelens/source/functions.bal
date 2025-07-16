@@ -43,3 +43,7 @@ function complexReturnType(string url) returns module1:Client {
     module1:Client myclient = new("https://postman-echo.com/get?foo1=bar1&foo2=bar2");
     return myclient;
 }
+
+public function main(string[] args) {
+
+}

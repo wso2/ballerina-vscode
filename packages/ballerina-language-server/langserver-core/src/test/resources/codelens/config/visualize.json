@@ -1,0 +1,277 @@
+{
+  "source": "visualize.bal",
+  "result": [
+    {
+      "range": {
+        "start": {
+          "line": 2,
+          "character": 0
+        },
+        "end": {
+          "line": 5,
+          "character": 2
+        }
+      },
+      "command": {
+        "title": "Visualize",
+        "command": "ballerina.showVisualizer",
+        "arguments": [
+          "visualize.bal",
+          {
+            "start": {
+              "line": 2,
+              "character": 0
+            },
+            "end": {
+              "line": 5,
+              "character": 2
+            }
+          }
+        ]
+      }
+    },
+    {
+      "range": {
+        "start": {
+          "line": 9,
+          "character": 0
+        },
+        "end": {
+          "line": 11,
+          "character": 1
+        }
+      },
+      "command": {
+        "title": "Document this",
+        "command": "ADD_DOC",
+        "arguments": [
+          {
+            "key": "doc.uri",
+            "value": "visualize.bal"
+          },
+          {
+            "key": "node.range",
+            "value": {
+              "start": {
+                "line": 9,
+                "character": 0
+              },
+              "end": {
+                "line": 11,
+                "character": 1
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "range": {
+        "start": {
+          "line": 9,
+          "character": 0
+        },
+        "end": {
+          "line": 11,
+          "character": 1
+        }
+      },
+      "command": {
+        "title": "Visualize",
+        "command": "ballerina.showVisualizer",
+        "arguments": [
+          "visualize.bal",
+          {
+            "start": {
+              "line": 9,
+              "character": 0
+            },
+            "end": {
+              "line": 11,
+              "character": 1
+            }
+          }
+        ]
+      }
+    },
+    {
+      "range": {
+        "start": {
+          "line": 16,
+          "character": 4
+        },
+        "end": {
+          "line": 20,
+          "character": 5
+        }
+      },
+      "command": {
+        "title": "Visualize",
+        "command": "ballerina.showVisualizer",
+        "arguments": [
+          "visualize.bal",
+          {
+            "start": {
+              "line": 16,
+              "character": 4
+            },
+            "end": {
+              "line": 20,
+              "character": 5
+            }
+          }
+        ]
+      }
+    },
+    {
+      "range": {
+        "start": {
+          "line": 22,
+          "character": 4
+        },
+        "end": {
+          "line": 24,
+          "character": 5
+        }
+      },
+      "command": {
+        "title": "Visualize",
+        "command": "ballerina.showVisualizer",
+        "arguments": [
+          "visualize.bal",
+          {
+            "start": {
+              "line": 22,
+              "character": 4
+            },
+            "end": {
+              "line": 24,
+              "character": 5
+            }
+          }
+        ]
+      }
+    },
+    {
+      "range": {
+        "start": {
+          "line": 26,
+          "character": 4
+        },
+        "end": {
+          "line": 28,
+          "character": 5
+        }
+      },
+      "command": {
+        "title": "Visualize",
+        "command": "ballerina.showVisualizer",
+        "arguments": [
+          "visualize.bal",
+          {
+            "start": {
+              "line": 26,
+              "character": 4
+            },
+            "end": {
+              "line": 28,
+              "character": 5
+            }
+          }
+        ]
+      }
+    },
+    {
+      "range": {
+        "start": {
+          "line": 13,
+          "character": 0
+        },
+        "end": {
+          "line": 29,
+          "character": 1
+        }
+      },
+      "command": {
+        "title": "Run",
+        "command": "ballerina.project.run",
+        "arguments": [
+          "visualize.bal"
+        ]
+      }
+    },
+    {
+      "range": {
+        "start": {
+          "line": 13,
+          "character": 0
+        },
+        "end": {
+          "line": 29,
+          "character": 1
+        }
+      },
+      "command": {
+        "title": "Debug",
+        "command": "ballerina.source.debug",
+        "arguments": [
+          "visualize.bal"
+        ]
+      }
+    },
+    {
+      "range": {
+        "start": {
+          "line": 13,
+          "character": 0
+        },
+        "end": {
+          "line": 29,
+          "character": 1
+        }
+      },
+      "command": {
+        "title": "Visualize",
+        "command": "ballerina.showVisualizer",
+        "arguments": [
+          "visualize.bal",
+          {
+            "start": {
+              "line": 13,
+              "character": 0
+            },
+            "end": {
+              "line": 29,
+              "character": 1
+            }
+          }
+        ]
+      }
+    },
+    {
+      "range": {
+        "start": {
+          "line": 13,
+          "character": 0
+        },
+        "end": {
+          "line": 29,
+          "character": 1
+        }
+      },
+      "command": {
+        "title": "Try it",
+        "command": "ballerina.tryIt",
+        "arguments": [
+          false,
+          null,
+          {
+            "basePath": "/",
+            "listener": "module1:Listener"
+          },
+          "visualize.bal"
+        ]
+      }
+    }
+  ]
+}

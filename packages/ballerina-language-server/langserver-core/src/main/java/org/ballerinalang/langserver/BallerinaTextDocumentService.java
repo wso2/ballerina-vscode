@@ -415,7 +415,7 @@ class BallerinaTextDocumentService implements TextDocumentService {
                     LSContextOperation.TXT_CODE_LENS, this.serverContext,
                     cancelChecker);
             try {
-                return CodeLensUtil.getCodeLenses(codeLensContext, params.getTextDocument());
+                return CodeLensUtil.getCodeLenses(codeLensContext);
             } catch (UserErrorException e) {
                 this.clientLogger.notifyUser("Code Lens", e);
             } catch (CancellationException ignore) {
