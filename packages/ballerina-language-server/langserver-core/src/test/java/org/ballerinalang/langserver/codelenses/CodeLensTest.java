@@ -84,7 +84,7 @@ public class CodeLensTest {
                 getStringListForEvaluation(expectedItemList));
 
         if (!isSameSize || !isSubList) {
-            updateConfig(expectedConfigName, response);
+//            updateConfig(expectedConfigName, response);
             Assert.fail("Code lens test failed for: " + expectedConfigName);
         }
     }

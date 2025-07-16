@@ -52,7 +52,6 @@ import java.util.stream.Collectors;
 public class TryItCodeLensProvider extends AbstractCodeLensesProvider {
 
     private static final String TRY_IT_COMMAND = "ballerina.tryIt";
-    private static final String TITLE = "Try it";
     private static final Set<String> SUPPORTED_MODULES = createSupportedModules();
     public static final String TRY_IT_TEST_KEY = "ballerina.tryit.test";
 
@@ -72,6 +71,9 @@ public class TryItCodeLensProvider extends AbstractCodeLensesProvider {
 
     @Override
     public CodeLens getLens(DocumentServiceContext context, Node node) {
+        if (node.kind() != SyntaxKind.SERVICE_DECLARATION) {
+            return null;
+        }
         ServiceDeclarationNode serviceNode = (ServiceDeclarationNode) node;
         Optional<SemanticModel> semanticModel = context.currentSemanticModel();
         if (semanticModel.isEmpty()) {
@@ -114,7 +116,7 @@ public class TryItCodeLensProvider extends AbstractCodeLensesProvider {
                 context.fileUri()
         );
 
-        Command command = new Command(TITLE, TRY_IT_COMMAND, commandArgs);
+        Command command = new Command(CodeLensUtil.TRY_IT_CODELENS, TRY_IT_COMMAND, commandArgs);
         return CodeLensUtil.getCodeLens(command, node);
     }
 

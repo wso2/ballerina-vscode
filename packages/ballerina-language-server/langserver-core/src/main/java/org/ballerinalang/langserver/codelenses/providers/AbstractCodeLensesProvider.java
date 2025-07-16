@@ -58,8 +58,5 @@ public abstract class AbstractCodeLensesProvider implements LSCodeLensesProvider
         return isEnabled;
     }
 
-    @Override
-    public boolean validate(Node node) {
-        return true;
-    }
+    
 }
