@@ -141,3 +141,7 @@ type Users readonly & User1[];
 
 # Readonly and union type
 type User5 readonly & (User1 | Person);
+
+type OrderWrapper record {|
+    string 'order;
+|};

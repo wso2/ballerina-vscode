@@ -23,6 +23,7 @@ import io.ballerina.compiler.api.symbols.Symbol;
 import io.ballerina.compiler.api.symbols.SymbolKind;
 import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.compiler.syntax.tree.NodeParser;
+import io.ballerina.compiler.syntax.tree.SyntaxInfo;
 import io.ballerina.flowmodelgenerator.core.expressioneditor.ExpressionEditorContext;
 import io.ballerina.flowmodelgenerator.core.model.Property;
 import io.ballerina.modelgenerator.commons.CommonUtils;
@@ -46,6 +47,9 @@ public class IdentifierDiagnosticsRequest extends DiagnosticsRequest {
     private static final String REDECLARED_SYMBOL = "redeclared symbol '%s'";
     private static final DiagnosticErrorCode REDECLARED_SYMBOL_ERROR_CODE = DiagnosticErrorCode.REDECLARED_SYMBOL;
 
+    private static final String INVALID_RESERVED_KEYWORD = "`%s` is a reserved keyword";
+    private static final DiagnosticErrorCode INVALID_RESERVED_KEYWORD_ERROR_CODE = DiagnosticErrorCode.INVALID_TOKEN;
+
     public IdentifierDiagnosticsRequest(ExpressionEditorContext context) {
         super(context);
     }
@@ -53,6 +57,20 @@ public class IdentifierDiagnosticsRequest extends DiagnosticsRequest {
     @Override
     protected Node getParsedNode(String text) {
         return NodeParser.parseBindingPattern(text);
+    }
+
+    @Override
+    protected Set<Diagnostic> getSyntaxDiagnostics(ExpressionEditorContext context) {
+        // Check if the identifier is a non-keyword
+        String expression = context.info().expression();
+        if (Property.ValueType.IDENTIFIER.name().equals(context.getProperty().valueType())
+                && SyntaxInfo.isKeyword(expression)) {
+            String message = INVALID_RESERVED_KEYWORD.formatted(expression);
+            return Set.of(CommonUtils.createDiagnostic(message, context.getExpressionLineRange(),
+                    INVALID_RESERVED_KEYWORD_ERROR_CODE));
+        }
+
+        return super.getSyntaxDiagnostics(context);
     }
 
     @Override

@@ -25,36 +25,19 @@
     {
       "range": {
         "start": {
-          "line": 0,
-          "character": 0
+          "line": 15,
+          "character": 35
         },
         "end": {
-          "line": 0,
-          "character": 4
+          "line": 15,
+          "character": 39
         }
       },
       "severity": "Error",
       "code": {
-        "left": "BCE0600"
+        "left": "BCE3100"
       },
-      "message": "invalid token 'lock'"
-    },
-    {
-      "range": {
-        "start": {
-          "line": 0,
-          "character": 0
-        },
-        "end": {
-          "line": 0,
-          "character": 1
-        }
-      },
-      "severity": "Error",
-      "code": {
-        "left": "BCE0400"
-      },
-      "message": "missing identifier"
+      "message": "`lock` is a reserved keyword"
     }
   ]
 }

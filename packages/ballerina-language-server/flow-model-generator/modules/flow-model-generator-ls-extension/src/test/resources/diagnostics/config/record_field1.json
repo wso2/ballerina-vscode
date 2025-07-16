@@ -1,0 +1,47 @@
+{
+  "description": "",
+  "filePath": "source.bal",
+  "context": {
+    "expression": "order",
+    "startLine": {
+      "line": 26,
+      "offset": 8
+    },
+    "offset": 0,
+    "lineOffset": 0,
+    "codedata": {
+      "node": "VARIABLE",
+      "isNew": true
+    },
+    "property": {
+      "metadata": {
+        "label": "Name",
+        "description": "Name of the variable"
+      },
+      "valueType": "IDENTIFIER",
+      "value": "id",
+      "optional": false,
+      "editable": true,
+      "advanced": false
+    }
+  },
+  "diagnostics": [
+    {
+      "range": {
+        "start": {
+          "line": 26,
+          "character": 8
+        },
+        "end": {
+          "line": 26,
+          "character": 13
+        }
+      },
+      "severity": "Error",
+      "code": {
+        "left": "BCE3100"
+      },
+      "message": "`order` is a reserved keyword"
+    }
+  ]
+}
