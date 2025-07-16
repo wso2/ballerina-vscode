@@ -1,6 +1,5 @@
-import { generateObject, CoreMessage, generateText } from "ai";
+import { generateObject, CoreMessage } from "ai";
 
-import { BACKEND_URL } from "../../utils";
 import { GetFunctionResponse, GetFunctionsRequest, GetFunctionsResponse, getFunctionsResponseSchema, MinifiedClient, MinifiedRemoteFunction, MinifiedResourceFunction } from "./funcs_inter_types";
 import { Client, GetTypeResponse, Library, RemoteFunction, ResourceFunction } from "./libs_types";
 import { anthropic, ANTHROPIC_HAIKU } from "../connection";

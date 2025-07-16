@@ -1,7 +1,6 @@
 import { TestGenerationTarget, TestGeneratorIntermediaryState } from "@wso2/ballerina-core";
 import { getErrorMessage } from "../utils";
 import { generateTest, getDiagnostics } from "../../testGenerator";
-import { BACKEND_URL } from "../../utils";
 import { getBallerinaProjectRoot } from "../../../../rpc-managers/ai-panel/rpc-manager";
 import { URI } from "vscode-uri";
 import * as fs from "fs";
@@ -26,7 +25,6 @@ export async function generateFunctionTestsCore(
 
     const projectRoot = await getBallerinaProjectRoot();
     const response = await generateTest(projectRoot, {
-        backendUri: BACKEND_URL,
         targetType: TestGenerationTarget.Function,
         targetIdentifier: functionIdentifier,
         testPlan: params.testPlan,
@@ -65,7 +63,6 @@ export async function generateFunctionTestsCore(
         });
 
         const fixedCode = await generateTest(projectRoot, {
-            backendUri: BACKEND_URL,
             targetType: TestGenerationTarget.Function,
             targetIdentifier: functionIdentifier,
             testPlan: params.testPlan,

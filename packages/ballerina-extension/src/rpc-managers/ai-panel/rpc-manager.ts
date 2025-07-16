@@ -103,12 +103,9 @@ import {
 import { attemptRepairProject, checkProjectDiagnostics } from "./repair-utils";
 import { AIPanelAbortController, cleanDiagnosticMessages, handleStop, isErrorCode, requirementsSpecification, searchDocumentation } from "./utils";
 import { fetchData } from "./utils/fetch-data-utils";
-
-export let hasStopped: boolean = false;
+import { fetchWithAuth } from "../../../src/features/ai/service/connection";
 
 export class AiPanelRpcManager implements AIPanelAPI {
-
-    private abortController: AbortController;
 
     // ==================================
     // General Functions
@@ -278,7 +275,6 @@ export class AiPanelRpcManager implements AIPanelAPI {
         let { filePath, position } = params;
 
         const fileUri = Uri.file(filePath).toString();
-        hasStopped = false;
 
         const fnSTByRange = await StateMachine.langClient().getSTByRange(
             {
@@ -354,7 +350,6 @@ export class AiPanelRpcManager implements AIPanelAPI {
     }
 
     async stopAIMappings(): Promise<GenerateMappingsResponse> {
-        hasStopped = true;
         handleStop();
         return { userAborted: true };
     }
@@ -415,11 +410,7 @@ export class AiPanelRpcManager implements AIPanelAPI {
             try {
                 const projectRoot = await getBallerinaProjectRoot();
 
-                // if (this.abortController) {
-                //     this.abortController.abort();
-                // }
-                // this.abortController = new AbortController();
-                const generatedTests = await generateTest(projectRoot, params, this.abortController);
+                const generatedTests = await generateTest(projectRoot, params, AIPanelAbortController.getInstance());
                 resolve(generatedTests);
             } catch (error) {
                 reject(error);
@@ -492,10 +483,7 @@ export class AiPanelRpcManager implements AIPanelAPI {
     }
 
     async abortTestGeneration(): Promise<void> {
-        // if (this.abortController) {
-            this.abortController.abort();
-            // this.abortController = null;
-        // }
+        AIPanelAbortController.getInstance().abort();
     }
 
     async getMappingsFromRecord(params: GenerateMappingsFromRecordRequest): Promise<GenerateMappingFromRecordResponse> {
@@ -737,7 +725,7 @@ export class AiPanelRpcManager implements AIPanelAPI {
                     diagnostics: cleanDiagnosticMessages(content.diagnostics)
                 };
 
-                const response = await fetchData(`${BACKEND_URL}/feedback`, {
+                const response = await fetchWithAuth(`${BACKEND_URL}/feedback`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'

@@ -19,7 +19,7 @@ import { LIBS_URL } from "../../utils";
 import { selectRequiredFunctions } from "../libs/funcs";
 import { GenerationType, getSelectedLibraries } from "../libs/libs";
 import { Library, LibraryWithUrl } from "../libs/libs_types";
-import { anthropic, ANTHROPIC_HAIKU } from "../connection";
+import { anthropic, ANTHROPIC_HAIKU, fetchWithAuth } from "../connection";
 import { z } from 'zod';
 import { tool } from 'ai';
 import { AIPanelAbortController } from "../../../../../src/rpc-managers/ai-panel/utils";
@@ -94,7 +94,7 @@ async function extractLearnPages(query: string): Promise<Document[]> {
 
 async function fetchDocumentationFromVectorStore(query: string): Promise<Document[]> {
     try {
-        const response = await fetch(`${LIBS_URL}/topK`, {
+        const response = await fetchWithAuth(`${LIBS_URL}/topK`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -102,7 +102,7 @@ async function fetchDocumentationFromVectorStore(query: string): Promise<Documen
             body: JSON.stringify({
                 query: query
             }),
-            signal: AbortSignal.timeout(30 * 1000),
+            signal: AIPanelAbortController.getInstance().signal,
         });
 
         if (!response.ok) {

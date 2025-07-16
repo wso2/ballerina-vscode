@@ -1,9 +1,5 @@
-import { ChatEntry, ChatNotify, GenerateOpenAPIRequest, onChatNotify } from "@wso2/ballerina-core";
-import { CreateMessageRequest, Message, MessageRole, SystemMessage, TextBlock } from "../types";
-import { BACKEND_URL } from "../../utils";
-import { RPCLayer } from "../../../../../src/RPCLayer";
-import { AiPanelWebview } from "../../../../views/ai-panel/webview";
-import { CoreMessage, generateText, streamText } from "ai";
+import { GenerateOpenAPIRequest } from "@wso2/ballerina-core";
+import { streamText } from "ai";
 import { anthropic, ANTHROPIC_HAIKU } from "../connection";
 import { getErrorMessage, populateHistory } from "../utils";
 import { CopilotEventHandler, createWebviewEventHandler } from "../event";

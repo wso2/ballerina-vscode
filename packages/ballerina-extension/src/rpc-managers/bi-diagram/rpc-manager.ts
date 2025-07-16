@@ -163,6 +163,7 @@ import { cleanAndValidateProject, getCurrentBIProject } from "../../features/con
 import { updateSourceCode } from "../../utils/source-utils";
 import { getRefreshedAccessToken } from "../../../src/utils/ai/auth";
 import { applyBallerinaTomlEdit } from "./utils";
+import { fetchWithAuth } from "../../../src/features/ai/service/connection";
 export class BiDiagramRpcManager implements BIDiagramAPI {
     OpenConfigTomlRequest: (params: OpenConfigTomlRequest) => Promise<void>;
 
@@ -435,7 +436,7 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
                     };
                     console.log(">>> request ai suggestion", { request: requestBody });
                     // generate new nodes
-                    const response = await fetchWithToken(BACKEND_URL + "/inline/generation", requestOptions);
+                    const response = await fetchWithAuth(BACKEND_URL + "/inline/generation", requestOptions);
                     if (!response.ok) {
                         console.log(">>> ai completion api call failed ", response);
                         return new Promise((resolve) => {
@@ -1258,7 +1259,7 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
         };
         console.log(">>> request ai suggestion", { request: requestBody });
         // generate new nodes
-        const response = await fetchWithToken(BACKEND_URL + "/completion", requestOptions);
+        const response = await fetchWithAuth(BACKEND_URL + "/completion", requestOptions);
         if (!response.ok) {
             console.log(">>> ai completion api call failed ", response);
             return new Promise((resolve) => {
@@ -1718,24 +1719,6 @@ export function getRepoRoot(projectRoot: string): string | undefined {
         return undefined;
     }
     return getRepoRoot(path.join(projectRoot, ".."));
-}
-
-export async function fetchWithToken(url: string, options: RequestInit) {
-    let response = await fetch(url, options);
-    console.log("Response status: ", response.status);
-    if (response.status === 401) {
-        console.log("Token expired. Refreshing token...");
-        const newToken = await getRefreshedAccessToken();
-        console.log("refreshed token : " + newToken);
-        if (newToken) {
-            options.headers = {
-                ...options.headers,
-                'Authorization': `Bearer ${newToken}`,
-            };
-            response = await fetch(url, options);
-        }
-    }
-    return response;
 }
 
 export async function getBallerinaFiles(dir: string): Promise<string[]> {
