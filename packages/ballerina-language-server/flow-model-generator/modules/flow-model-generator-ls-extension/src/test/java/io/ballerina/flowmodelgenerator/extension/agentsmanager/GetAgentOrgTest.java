@@ -31,7 +31,7 @@ import java.nio.file.Path;
 /**
  * Tests for get agent org.
  *
- * @since 1.0.0
+ * @since 1.1.0
  */
 public class GetAgentOrgTest extends AbstractLSTest {
 

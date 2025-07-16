@@ -22,7 +22,7 @@ package io.ballerina.flowmodelgenerator.extension.request;
  * A request to retrieve which `ai` org to use.
  *
  * @param projectPath project path
-
+ * @since 1.1.0
  */
 public record GetAgentOrgRequest(String projectPath) {
 }
