@@ -70,7 +70,7 @@ export class LinkConnectorNode extends DataMapperNodeModel {
     public value: string;
     public diagnostics: Diagnostic[];
     public hidden: boolean;
-    public hasInitialized: boolean;
+    public hasScreenWidthChanged: boolean;
 
     constructor(
         public context: IDataMapperContext,
@@ -151,11 +151,7 @@ export class LinkConnectorNode extends DataMapperNodeModel {
                             node.recordField, targetPortPrefix,
                             (portId: string) =>  node.getPort(portId) as RecordFieldPortModel,
                             rootName);
-                        const previouslyHidden = this.hidden;
                         this.hidden = this.targetMappedPort?.portName !== this.targetPort?.portName;
-                        if (this.hidden !== previouslyHidden) {
-                            this.hasInitialized = false;
-                        }
                     }
                 }
             });
@@ -163,7 +159,7 @@ export class LinkConnectorNode extends DataMapperNodeModel {
     }
 
     initLinks(): void {
-        if (this.hasInitialized) {
+        if (this.hasScreenWidthChanged) {
             return;
         }
         if (!this.hidden) {
@@ -258,7 +254,6 @@ export class LinkConnectorNode extends DataMapperNodeModel {
                 })
             }
         }
-        this.hasInitialized = true;
     }
 
     updateSource(): void {
@@ -348,5 +343,9 @@ export class LinkConnectorNode extends DataMapperNodeModel {
             void this.context.applyModifications(modifications);
         }
 
+    }
+
+    public setHasScreenWidthChanged(hasScreenWidthChanged: boolean): void {
+        this.hasScreenWidthChanged = hasScreenWidthChanged;
     }
 }

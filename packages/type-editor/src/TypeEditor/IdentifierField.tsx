@@ -118,6 +118,7 @@ export const IdentifierField = forwardRef<HTMLInputElement, IdentifierFieldProps
     return (
         <TextField
             ref={ref}
+            data-testid="identifier-field"
             value={value}
             onChange={handleChange}
             onBlur={handleOnBlur}

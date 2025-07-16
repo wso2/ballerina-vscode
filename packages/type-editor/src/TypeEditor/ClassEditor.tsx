@@ -351,7 +351,7 @@ export function ClassEditor({ type, onChange, isGraphql, onValidationError }: Cl
         <S.Container>
             <S.Header>
                 <S.SectionTitle>{isGraphql ? 'Object Fields' : 'Resource Methods'}</S.SectionTitle>
-                <div style={{ display: 'flex', gap: '8px' }}>
+                <div style={{ display: 'flex', gap: '8px' }} data-testid="function-add-button">
                     <Button appearance="icon" onClick={addFunction}><Codicon name="add" /></Button>
                 </div>
             </S.Header>

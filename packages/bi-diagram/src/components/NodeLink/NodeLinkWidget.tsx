@@ -115,7 +115,12 @@ export const NodeLinkWidget: React.FC<NodeLinkWidgetProps> = ({ link, engine }) 
     };
 
     return (
-        <g pointerEvents={"stroke"} onMouseEnter={() => setIsHovered(true)} onMouseLeave={() => setIsHovered(false)}>
+        <g
+            data-testid={`diagram-link-${link.linkCounter}`}
+            pointerEvents={"stroke"}
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={() => setIsHovered(false)}
+        >
             <path
                 id={link.getID() + "-bg"}
                 d={link.getSVGPath()}
@@ -212,6 +217,7 @@ export const NodeLinkWidget: React.FC<NodeLinkWidgetProps> = ({ link, engine }) 
                             />
                         </svg>
                         <svg
+                            data-testid={`link-add-button-${link.linkCounter}`}
                             xmlns="http://www.w3.org/2000/svg"
                             width="24"
                             height="24"
