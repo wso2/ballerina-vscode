@@ -8,6 +8,7 @@
       "offset": 0
     },
     "offset": 0,
+    "lineOffset": 0,
     "codedata": {
       "node": "RESOURCE_ACTION_CALL",
       "org": "ballerinax",
@@ -53,6 +54,14 @@
       "sortText": "O",
       "filterText": "http",
       "insertText": "http",
+      "insertTextFormat": "Snippet"
+    },
+    {
+      "label": "natural",
+      "kind": "Unit",
+      "detail": "type",
+      "sortText": "R",
+      "insertText": "natural",
       "insertTextFormat": "Snippet"
     },
     {
@@ -380,6 +389,15 @@
       "sortText": "P",
       "filterText": "xml ``",
       "insertText": "xml `${1}`",
+      "insertTextFormat": "Snippet"
+    },
+    {
+      "label": "natural (..) {..}",
+      "kind": "Snippet",
+      "detail": "Snippet",
+      "sortText": "P",
+      "filterText": "natural (..) {..}",
+      "insertText": "natural (${1}) {${2}}",
       "insertTextFormat": "Snippet"
     },
     {
