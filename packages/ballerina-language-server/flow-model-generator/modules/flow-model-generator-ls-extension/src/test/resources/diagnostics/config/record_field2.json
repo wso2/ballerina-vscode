@@ -2,20 +2,24 @@
   "description": "",
   "filePath": "source.bal",
   "context": {
-    "expression": "lock",
+    "expression": "type",
     "startLine": {
-      "line": 15,
-      "offset": 35
+      "line": 26,
+      "offset": 8
     },
-    "offset": 2,
+    "offset": 0,
+    "lineOffset": 0,
+    "codedata": {
+      "node": "VARIABLE",
+      "isNew": true
+    },
     "property": {
       "metadata": {
         "label": "Name",
         "description": "Name of the variable"
       },
       "valueType": "IDENTIFIER",
-      "valueTypeConstraint": "Object",
-      "value": "i",
+      "value": "id",
       "optional": false,
       "editable": true,
       "advanced": false
@@ -25,19 +29,19 @@
     {
       "range": {
         "start": {
-          "line": 15,
-          "character": 35
+          "line": 26,
+          "character": 8
         },
         "end": {
-          "line": 15,
-          "character": 39
+          "line": 26,
+          "character": 12
         }
       },
       "severity": "Error",
       "code": {
         "left": "BCE3100"
       },
-      "message": "`lock` is a reserved keyword"
+      "message": "`type` is a reserved keyword"
     }
   ]
 }

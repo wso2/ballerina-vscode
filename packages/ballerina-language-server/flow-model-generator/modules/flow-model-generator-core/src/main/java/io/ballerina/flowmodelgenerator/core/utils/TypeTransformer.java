@@ -333,7 +333,7 @@ public class TypeTransformer {
             TypeData.TypeDataBuilder memberTypeDataBuilder = new TypeData.TypeDataBuilder();
             Object transformedFieldType = transform(fieldSymbol.typeDescriptor(), memberTypeDataBuilder);
             Member member = memberBuilder
-                    .name(fieldName)
+                    .name(fieldSymbol.getName().orElse(fieldName))
                     .kind(Member.MemberKind.FIELD)
                     .type(transformedFieldType)
                     .optional(fieldSymbol.isOptional())
