@@ -17,7 +17,7 @@
  */
 
 import styled from "@emotion/styled";
-import { EVENT_TYPE, MACHINE_VIEW } from "@wso2/ballerina-core";
+import { DownloadProgress, EVENT_TYPE, MACHINE_VIEW } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { Button, CheckBox, Codicon, Icon, LocationSelector, TextField, Tooltip, Typography } from "@wso2/ui-toolkit";
 import { useEffect, useState } from "react";
@@ -130,6 +130,7 @@ type IntegrationParams = MuleSoftParams | TibcoParams | LogicAppsParams;
 
 const INTEGRATION_CONFIGS = {
     mulesoft: {
+        title: "MuleSoft",
         parameters: [
             {
                 key: "keepStructure",
@@ -146,6 +147,7 @@ const INTEGRATION_CONFIGS = {
         ],
     },
     tibco: {
+        title: "TIBCO",
         parameters: [
             {
                 key: "keepStructure",
@@ -162,6 +164,7 @@ const INTEGRATION_CONFIGS = {
         ],
     },
     "logic-apps": {
+        title: "Logic Apps",
         parameters: [
             {
                 key: "keepStructure",
@@ -211,6 +214,7 @@ export function ImportIntegrationForm() {
     const [path, setPath] = useState("");
     const [importSourcePath, setImportSourcePath] = useState("");
     const [integrationParams, setIntegrationParams] = useState<Record<string, any>>({});
+    const [progress, setProgress] = useState<DownloadProgress | null>(null);
 
     const handleProjectName = (value: string) => {
         setName(value);
@@ -218,6 +222,8 @@ export function ImportIntegrationForm() {
 
     const handleIntegrationSelection = (integrationType: keyof typeof INTEGRATION_CONFIGS) => {
         setSelectedIntegration(integrationType);
+        setProgress(null);
+
         // Pull integration tool
         rpcClient.getMigrateIntegrationRpcClient().pullMigrationTool({
             toolName: integrationType,
@@ -233,10 +239,13 @@ export function ImportIntegrationForm() {
         setIntegrationParams(defaultParams);
     };
 
-    rpcClient?.onDownloadProgress((progress) => {
-        console.log(`Download progress: ${progress.percentage}% - ${progress.message}`);
-        // TODO: Update UI with progress
-    });
+    // Listen for progress updates from the extension
+    useEffect(() => {
+        rpcClient.onDownloadProgress((progressUpdate) => {
+            console.log(`Download progress: ${progressUpdate.percentage}% - ${progressUpdate.message}`);
+            setProgress(progressUpdate);
+        });
+    }, [rpcClient]);
 
     const handleParameterChange = (paramKey: string, value: any) => {
         setIntegrationParams((prev) => ({
@@ -324,7 +333,7 @@ export function ImportIntegrationForm() {
         return (
             <ParametersSection>
                 <Typography variant="h4" sx={{ marginBottom: 12 }}>
-                    {selectedIntegration.charAt(0).toUpperCase() + selectedIntegration.slice(1)} Configuration
+                    {config.title} Configuration
                 </Typography>
                 {config.parameters.map((param) => (
                     <ParameterItem key={param.key}>
@@ -384,27 +393,20 @@ export function ImportIntegrationForm() {
                 />
             </LocationSelectorWrapper>
             <IntegrationCardGrid>
-                <ButtonCard
-                    id="mulesoft-integration-card"
-                    icon={<Icon name="bi-globe" />}
-                    title="MuleSoft"
-                    onClick={() => handleIntegrationSelection("mulesoft")}
-                    active={selectedIntegration === "mulesoft"}
-                />
-                <ButtonCard
-                    id="tibco-integration-card"
-                    icon={<Icon name="bi-globe" />}
-                    title="TIBCO"
-                    onClick={() => handleIntegrationSelection("tibco")}
-                    active={selectedIntegration === "tibco"}
-                />
-                <ButtonCard
-                    id="logic-apps-integration-card"
-                    icon={<Icon name="bi-globe" />}
-                    title="Logic Apps"
-                    onClick={() => handleIntegrationSelection("logic-apps")}
-                    active={selectedIntegration === "logic-apps"}
-                />
+                {Object.keys(INTEGRATION_CONFIGS).map((key) => {
+                    const integrationKey = key as keyof typeof INTEGRATION_CONFIGS;
+                    const config = INTEGRATION_CONFIGS[integrationKey];
+                    return (
+                        <ButtonCard
+                            key={integrationKey}
+                            id={`${integrationKey}-integration-card`}
+                            icon={<Icon name="bi-globe" />}
+                            title={config.title}
+                            onClick={() => handleIntegrationSelection(integrationKey)}
+                            active={selectedIntegration === integrationKey}
+                        />
+                    );
+                })}
             </IntegrationCardGrid>
             <ImportSourceWrapper>
                 <LocationSelector
