@@ -46,13 +46,6 @@ export function resetHasStopped(): void {
 }
 
 /**
- * Applies text edits to the source code.
- */
-export async function applyTextEdits(textEdits: { [key: string]: TextEdit[] }) {
-    await updateSourceCode({ textEdits });
-}
-
-/**
  * Fetches the latest code data for the data mapper.
  */
 export async function fetchDataMapperCodeData(
@@ -77,7 +70,8 @@ export async function updateAndRefreshDataMapper(
     codedata: CodeData,
     varName: string
 ) {
-    await applyTextEdits(textEdits);
+    await updateSourceCode({ textEdits });
+    await refreshDataMapper(filePath, codedata, varName);
 }
 
 /**
