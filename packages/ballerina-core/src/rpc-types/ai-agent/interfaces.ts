@@ -66,3 +66,9 @@ export interface AIAgentResponse {
     position: NodePosition;
 }
 
+export interface McpToolUpdateRequest {
+    agentFlowNode: FlowNode;
+    serviceUrl: string;
+    serverName: string;
+    selectedTools: string[];
+}

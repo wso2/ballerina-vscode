@@ -31,17 +31,13 @@ import {
     AgentTool,
     AgentToolRequest,
     FlowNode,
+    McpToolUpdateRequest,
     McpToolsRequest,
     McpToolsResponse,
     MemoryManagersRequest,
     MemoryManagersResponse,
-    NodePosition,
-    STModification,
-    SyntaxTree,
-    TextEdit
+    NodePosition
 } from "@wso2/ballerina-core";
-import { writeFileSync } from "fs";
-import { Uri } from "vscode";
 import { URI, Utils } from "vscode-uri";
 import { StateMachine } from "../../stateMachine";
 import { updateSourceCode } from "../../utils/source-utils";
@@ -393,5 +389,126 @@ export class AiAgentRpcManager implements AIAgentAPI {
             console.error(`Failed to create tool: ${error}`);
         }
     }
-}
 
+    async updateMCPToolKit(params: McpToolUpdateRequest): Promise<void> {
+        const projectUri = StateMachine.context().projectUri;
+        const filePath = Utils.joinPath(URI.file(projectUri), "agents.bal").fsPath;
+        
+        // Generate the variable name from the server name
+        const variableName = this.toCamelCase(params.serverName);
+        
+        // 1. Create the MCP ToolKit variable declaration
+        const nodeTemplate = await StateMachine.langClient().getNodeTemplate({
+            position: params.agentFlowNode.codedata.lineRange.endLine,
+            filePath: filePath,
+            id: {
+                node: "CLASS_INIT",
+                org: "ballerinax",
+                module: "ai",
+                packageName: "ai",
+                version: "1.2.1",
+                symbol: "init",
+                object: "McpToolKit"
+            }
+        });
+
+        nodeTemplate.flowNode.properties["serverUrl"].value = params.serviceUrl;
+        nodeTemplate.flowNode.properties["info"].value =
+            '{' +
+            'name: "' + params.serverName.replace(/"/g, '\\"') + '",' +
+            'version: "1.0.0"' +
+            '}';
+        if (Array.isArray(params.selectedTools) && params.selectedTools.length === 0) {
+            nodeTemplate.flowNode.properties["permittedTools"].value = "()";
+        } else {
+            nodeTemplate.flowNode.properties["permittedTools"].value =
+                "[" + params.selectedTools.map((s: string) => `"${s}"`).join(", ") + "]";
+        }
+        nodeTemplate.flowNode.codedata.lineRange = {
+            fileName: filePath,
+            startLine: params.agentFlowNode.codedata.lineRange.startLine,
+            endLine: params.agentFlowNode.codedata.lineRange.endLine
+        };
+        nodeTemplate.flowNode.properties["variable"].value = variableName;
+
+        const mcpToolKitEdits = await StateMachine.langClient().getSourceCode({
+            filePath: filePath,
+            flowNode: nodeTemplate.flowNode,
+        });
+
+        // 2. Update the agent's tools array to include the variable name (following updateAIAgentTools pattern)
+        const agentFlowNode = params.agentFlowNode;
+        let toolsValue = agentFlowNode.properties["tools"].value;
+        
+        // Parse existing tools and add the variable name
+        if (typeof toolsValue === "string") {
+            const toolsArray = this.parseToolsString(toolsValue);
+            if (toolsArray.length > 0) {
+                // Add the variable name if not exists
+                if (!toolsArray.includes(variableName)) {
+                    toolsArray.push(variableName);
+                }
+                // Update the tools value
+                toolsValue = toolsArray.length === 1 ? `[${toolsArray[0]}]` : `[${toolsArray.join(", ")}]`;
+            } else {
+                toolsValue = `[${variableName}]`;
+            }
+        }
+        
+        // Set the updated tools value
+        agentFlowNode.properties["tools"].value = toolsValue;
+        
+        // Generate source code for the updated agent
+        const agentEdits = await StateMachine.langClient().getSourceCode({
+            filePath: filePath,
+            flowNode: agentFlowNode
+        });
+
+        // 3. Filter and combine both edits
+        const mcpEdits: { [filePath: string]: any[] } = {};
+        for (const key in mcpToolKitEdits.textEdits) {
+            const filtered = mcpToolKitEdits.textEdits[key]
+                .filter(edit => !edit.newText.includes("import"))
+                .map(edit => ({
+                    ...edit
+                }));
+
+            if (filtered.length > 0) {
+                mcpEdits[key] = filtered;
+            }
+        }
+
+        // Apply both edits
+        await updateSourceCode({ textEdits: mcpEdits });
+        await updateSourceCode({ textEdits: agentEdits.textEdits });
+    }
+
+    private parseToolsString(toolsStr: string): string[] {
+        // Remove brackets and split by comma
+        const trimmed = toolsStr.trim();
+        if (!trimmed.startsWith("[") || !trimmed.endsWith("]")) {
+            return [];
+        }
+        const inner = trimmed.substring(1, trimmed.length - 1);
+        // Handle empty array case
+        if (!inner.trim()) {
+            return [];
+        }
+        // Split by comma and trim each element
+        return inner.split(",").map((tool) => tool.trim());
+    }
+
+    private toCamelCase(str: string): string {
+        const words = str
+            .replace(/[^a-zA-Z0-9]+/g, ' ')
+            .trim()
+            .split(/\s+/);
+        return words
+            .map((word, index) =>
+                index === 0
+                    ? word.toLowerCase()
+                    : word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+            )
+            .join('');
+    }
+}
