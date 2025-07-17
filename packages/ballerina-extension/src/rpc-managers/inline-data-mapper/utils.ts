@@ -15,7 +15,15 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { CodeData, InlineAllDataMapperSourceRequest, InlineDataMapperSourceRequest, InlineDataMapperSourceResponse, TextEdit } from "@wso2/ballerina-core";
+import {
+    CodeData,
+    ELineRange,
+    InlineAllDataMapperSourceRequest,
+    InlineDataMapperSourceRequest,
+    InlineDataMapperSourceResponse,
+    NodePosition,
+    TextEdit
+} from "@wso2/ballerina-core";
 import { updateSourceCode } from "../../utils";
 import { StateMachine, updateInlineDataMapperView } from "../../stateMachine";
 
@@ -62,16 +70,147 @@ export async function fetchDataMapperCodeData(
 }
 
 /**
- * Orchestrates the update and refresh process for the data mapper.
+ * Updates the source code with text edits and retrieves the updated code data for the variable being edited.
+ * @throws {Error} When source update fails or required data cannot be found
+ */
+export async function updateSource(
+    textEdits: { [key: string]: TextEdit[] },
+    filePath: string,
+    codedata: CodeData,
+    varName: string
+): Promise<CodeData> {
+    // Validate input parameters
+    if (!filePath?.trim() || !varName?.trim() || !codedata?.lineRange) {
+        throw new Error("Missing required parameters for updateSource");
+    }
+
+    try {
+        // Update source code and get artifacts
+        const updatedArtifacts = await updateSourceCode({ textEdits });
+        
+        // Find the artifact that contains our code changes
+        const relevantArtifact = findRelevantArtifact(updatedArtifacts, filePath, codedata.lineRange);
+        if (!relevantArtifact) {
+            throw new Error(`No artifact found for file: ${filePath} within the specified line range`);
+        }
+
+        // Get the flow model for the updated artifact
+        const flowModel = await getFlowModelForArtifact(relevantArtifact, filePath);
+        if (!flowModel) {
+            throw new Error("Failed to retrieve flow model for the updated code");
+        }
+
+        // Find the variable declaration in the flow model
+        const variableCodeData = findVariableInFlowModel(flowModel, varName);
+        if (!variableCodeData) {
+            throw new Error(`Variable "${varName}" not found in the updated flow model`);
+        }
+
+        return variableCodeData;
+
+    } catch (error) {
+        console.error(`Failed to update source for variable "${varName}" in ${filePath}:`, error);
+        throw error;
+    }
+}
+
+/**
+ * Finds the artifact that contains the code changes within the specified line range.
+ */
+function findRelevantArtifact(
+    artifacts: any[], 
+    filePath: string, 
+    lineRange: ELineRange
+): any | null {
+    return artifacts.find(artifact =>
+        artifact.path === filePath && 
+        isWithinArtifact(artifact.position, lineRange)
+    ) || null;
+}
+
+/**
+ * Retrieves the flow model for the given artifact.
+ */
+async function getFlowModelForArtifact(artifact: any, filePath: string): Promise<any | null> {
+    try {
+        const flowModelResponse = await StateMachine
+            .langClient()
+            .getFlowModel({
+                filePath,
+                startLine: { 
+                    line: artifact.position.startLine, 
+                    offset: artifact.position.startColumn 
+                },
+                endLine: { 
+                    line: artifact.position.endLine, 
+                    offset: artifact.position.endColumn 
+                }
+            });
+
+        console.log("Flow model retrieved for inline data mapper:", flowModelResponse);
+
+        return flowModelResponse.flowModel || null;
+    } catch (error) {
+        console.error("Failed to retrieve flow model:", error);
+        return null;
+    }
+}
+
+/**
+ * Finds the specified variable in the flow model and returns its code data.
+ */
+function findVariableInFlowModel(flowModel: any, varName: string): CodeData | null {
+    if (!flowModel?.nodes) {
+        return null;
+    }
+
+    const variableNode = flowModel.nodes.find((node: any) => 
+        node.properties?.variable?.value === varName
+    );
+
+    return variableNode?.codedata || null;
+}
+
+/**
+ * Applies a temporary hack to update the source code with a random string.
+ * TODO: Remove this once the lang server is updated to return the new source code
+ */
+function applySourceCodeHack(codeData: CodeData): void {
+    if (codeData) {
+        const newSrc = Math.random().toString(36).substring(2) + Date.now().toString(36);
+        codeData.sourceCode = newSrc;
+    }
+}
+
+/**
+ * Updates the data mapper view with the provided code data after applying necessary transformations.
+ */
+function updateDataMapperView(codeData: CodeData | null, varName: string): void {
+    if (!codeData) {
+        console.warn(`No code data available for variable: ${varName}`);
+        return;
+    }
+
+    applySourceCodeHack(codeData);
+    updateInlineDataMapperView(codeData, varName);
+}
+
+/**
+ * Updates the source code with text edits and refreshes the data mapper view with the latest code data.
  */
 export async function updateAndRefreshDataMapper(
     textEdits: { [key: string]: TextEdit[] },
     filePath: string,
     codedata: CodeData,
     varName: string
-) {
-    await updateSourceCode({ textEdits });
-    await refreshDataMapper(filePath, codedata, varName);
+): Promise<void> {
+    try {
+        const newCodeData = await updateSource(textEdits, filePath, codedata, varName);
+        updateDataMapperView(newCodeData, varName);
+    } catch (error) {
+        console.error(`Failed to update and refresh data mapper for variable "${varName}":`, error);
+        throw new Error(`Data mapper update failed`);
+    }
 }
 
 /**
@@ -81,18 +220,16 @@ export async function refreshDataMapper(
     filePath: string,
     codedata: CodeData,
     varName: string
-) {
-    const newCodeData = await fetchDataMapperCodeData(filePath, codedata, varName);
-
-    // Hack to update the codedata with the new source code
-    // TODO: Remove this once the lang server is updated to return the new source code
-    if (newCodeData) {
-        const newSrc = Math.random().toString(36).substring(2) + Date.now().toString(36);
-        newCodeData.sourceCode = newSrc;
+): Promise<void> {
+    try {
+        const newCodeData = await fetchDataMapperCodeData(filePath, codedata, varName);
+        updateDataMapperView(newCodeData, varName);
+    } catch (error) {
+        console.error(`Failed to refresh data mapper for variable "${varName}":`, error);
+        throw new Error(`Data mapper refresh failed.`);
     }
-
-    updateInlineDataMapperView(newCodeData, varName);
 }
+
 /**
  * Builds individual source requests from the provided parameters by mapping over each mapping.
  */
@@ -238,4 +375,16 @@ export async function updateInlineDataMapperViewWithParams(params: InlineAllData
         console.error("Failed to update inline data mapper view:", error);
         throw new Error("View update failed");
     }
+}
+
+/**
+ * Determines whether a variable declaration range is completely contained within an artifact's position range.
+ */
+function isWithinArtifact(artifactPosition: NodePosition, varDeclRange: ELineRange) {
+    const artifactStartLine = artifactPosition.startLine;
+    const artifactEndLine = artifactPosition.endLine;
+    const varDeclStartLine = varDeclRange.startLine.line;
+    const varDeclEndLine = varDeclRange.endLine.line;
+
+    return artifactStartLine <= varDeclStartLine && artifactEndLine >= varDeclEndLine;
 }
