@@ -36,6 +36,9 @@ public class MigrateToolInvokingUtil {
     private static final String KET_TEXT_EDITS = "textEdits";
     private static final String KEY_REPORT = "report";
 
+    private MigrateToolInvokingUtil() {
+    }
+
     public static ToolExecutionResult invokeToolMethod(String commandName, String className, String methodName,
                                                         Map<String, Object> args) {
         BalToolsUtil.updateOldBalToolsToml();
@@ -43,7 +46,6 @@ public class MigrateToolInvokingUtil {
         try {
             Class<?> toolClass = classLoader.loadClass(className);
             Method method = toolClass.getMethod(methodName, Map.class);
-            classLoader.close();
             Object invoke = method.invoke(null, args);
             if (invoke instanceof Map<?,?> mapResult) {
                 return transformToolExecutionResult(mapResult);
