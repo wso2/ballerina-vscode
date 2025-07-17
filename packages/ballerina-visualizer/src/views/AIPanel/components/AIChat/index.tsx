@@ -39,6 +39,8 @@ import {
     SourceFiles,
     ChatEntry,
     OperationType,
+    GENERATE_TEST_AGAINST_THE_REQUIREMENT,
+    GENERATE_CODE_AGAINST_THE_REQUIREMENT,
 } from "@wso2/ballerina-core";
 
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
@@ -133,8 +135,6 @@ const DRIFT_CHECK_ERROR = "Failed to check drift between the code and the docume
 const RATE_LIMIT_ERROR = ` Cause: Your usage limit has been exceeded. This should reset in the beggining of the next month.`;
 const UPDATE_CHAT_SUMMARY_FAILED = `Failed to update the chat summary.`;
 
-const GENERATE_TEST_AGAINST_THE_REQUIREMENT = "Generate tests against the requirements";
-const GENERATE_CODE_AGAINST_THE_REQUIREMENT = "Generate code based on the requirements";
 const CHECK_DRIFT_BETWEEN_CODE_AND_DOCUMENTATION = "Check drift between code and documentation";
 const GENERATE_CODE_AGAINST_THE_PROVIDED_REQUIREMENTS = "Generate code based on the following requirements: ";
 const GENERATE_CODE_AGAINST_THE_PROVIDED_REQUIREMENTS_TRIMMED = GENERATE_CODE_AGAINST_THE_PROVIDED_REQUIREMENTS.trim();
@@ -165,6 +165,7 @@ const AIChat: React.FC = () => {
     const aiChatInputRef = useRef<AIChatInputRef>(null);
     const messagesRef = useRef<any>([]);
 
+    const isErrorChunkReceivedRef = useRef(false);
 
     const messagesEndRef = React.createRef<HTMLDivElement>();
 
@@ -322,6 +323,7 @@ const AIChat: React.FC = () => {
             });
             setIsCodeLoading(false);
             setIsLoading(false);
+            isErrorChunkReceivedRef.current = true;
         }
     });
 
@@ -443,6 +445,7 @@ const AIChat: React.FC = () => {
         setMessages((prevMessages) => prevMessages.filter((message, index) => message.type !== "label"));
         setMessages((prevMessages) => prevMessages.filter((message, index) => message.type !== "question"));
         setIsLoading(true);
+        isErrorChunkReceivedRef.current = false;
         setMessages((prevMessages) =>
             prevMessages.filter((message, index) => index <= lastQuestionIndex || message.type !== "question")
         );
@@ -1708,6 +1711,7 @@ const AIChat: React.FC = () => {
                                                         isPromptExecutedInCurrentWindow={
                                                             isPromptExecutedInCurrentWindow
                                                         }
+                                                        isErrorChunkReceived={isErrorChunkReceivedRef.current}
                                                     />
                                                 );
                                             }

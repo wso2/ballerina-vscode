@@ -2,6 +2,7 @@ import { generateObject, CoreMessage } from "ai";
 
 import { GetFunctionResponse, GetFunctionsRequest, GetFunctionsResponse, getFunctionsResponseSchema, MinifiedClient, MinifiedRemoteFunction, MinifiedResourceFunction } from "./funcs_inter_types";
 import { Client, GetTypeResponse, Library, RemoteFunction, ResourceFunction } from "./libs_types";
+import { TypeDefinition, AbstractFunction, Type, RecordTypeDefinition } from "./libs_types";
 import { anthropic, ANTHROPIC_HAIKU } from "../connection";
 import { GenerationType } from "./libs";
 import { getRequiredTypesFromLibJson } from "../healthcare/healthcare";
@@ -105,24 +106,27 @@ async function getRequiredFunctions(libraries: string[], prompt: string, librari
     const largeLibs = libraryList.filter(lib => getClientFunctionCount(lib.clients) >= 100);
     const smallLibs = libraryList.filter(lib => !largeLibs.includes(lib));
 
-    const suggestedFunctions: Promise<GetFunctionResponse>[] = [];
+    // Create promises for large libraries (each processed individually)
+    const largeLiberiesPromises: Promise<GetFunctionResponse[]>[] = largeLibs.map(funcItem => 
+        getSuggestedFunctions(prompt, [funcItem])
+    );
 
-    // Process large libraries individually
-    for (const funcItem of largeLibs) {
-        suggestedFunctions.push(getSuggestedFunctions(prompt, [funcItem])[0]);
-    }
+    // Create promise for small libraries (processed in bulk)
+    const smallLibrariesPromise = smallLibs.length !== 0 
+        ? getSuggestedFunctions(prompt, smallLibs)
+        : Promise.resolve([]);
 
-    let collectiveResp: GetFunctionResponse[] = [];
-    
-    // Process small libraries in bulk
-    if (smallLibs.length !== 0) {
-        collectiveResp = await getSuggestedFunctions(prompt, smallLibs);
-    }
+    // Wait for all promises to complete
+    const [smallLibResults, ...largeLibResults] = await Promise.all([
+        smallLibrariesPromise,
+        ...largeLiberiesPromises
+    ]);
 
-    // Wait for all individual large library processing
-    const individualResults = await Promise.all(suggestedFunctions);
-    collectiveResp.push(...individualResults);
-
+    // Flatten the results
+    const collectiveResp: GetFunctionResponse[] = [
+        ...smallLibResults,
+        ...largeLibResults.flat()
+    ];
     const endTime = Date.now();
     console.log(`Time taken to get the functions: ${(endTime - startTime) / 1000} seconds`);
     
@@ -241,7 +245,7 @@ export async function getMaximizedSelectedLibs(libNames:string[], generationType
 }
 
 export function toMaximizedLibrariesFromLibJson(functionResponses: GetFunctionResponse[], originalLibraries: Library[]): Library[] {
-    const maximizedLibraries: Library[] = [];
+    const minifiedLibrariesWithoutRecords: Library[] = [];
     
     for (const funcResponse of functionResponses) {
         // Find the original library to get complete information
@@ -250,61 +254,27 @@ export function toMaximizedLibrariesFromLibJson(functionResponses: GetFunctionRe
             continue;
         }
         
+        const filteredClients = selectClients(originalLib.clients, funcResponse);
+        const filteredFunctions = selectFunctions(originalLib.functions, funcResponse);
+        
         const maximizedLib: Library = {
             name: funcResponse.name,
             description: originalLib.description,
-            typeDefs: originalLib.typeDefs, // Include all type definitions
-            clients: [],
-            functions: [],
+            clients: filteredClients,
+            functions: filteredFunctions,
+            // Get only the type definitions that are actually used by the selected functions and clients
+            typeDefs: getOwnTypeDefsForLib(filteredClients, filteredFunctions, originalLib.typeDefs),
             services: originalLib.services
         };
         
-        // Convert minified clients back to full clients
-        if (funcResponse.clients) {
-            for (const minClient of funcResponse.clients) {
-                const originalClient = originalLib.clients.find(c => c.name === minClient.name);
-                if (originalClient) {
-                    const maximizedClient: Client = {
-                        name: minClient.name,
-                        description: originalClient.description,
-                        functions: []
-                    };
-                    
-                    // Convert minified functions back to full functions
-                    for (const minFunc of minClient.functions) {
-                        const originalFunc = originalClient.functions.find(f => {
-                            if ('accessor' in minFunc && 'accessor' in f) {
-                                return f.accessor === minFunc.accessor;
-                            } else if ('name' in minFunc && 'name' in f) {
-                                return f.name === minFunc.name;
-                            }
-                            return false;
-                        });
-                        
-                        if (originalFunc) {
-                            maximizedClient.functions.push(originalFunc);
-                        }
-                    }
-                    
-                    maximizedLib.clients.push(maximizedClient);
-                }
-            }
-        }
-        
-        // Convert minified standalone functions back to full functions
-        if (funcResponse.functions && originalLib.functions) {
-            for (const minFunc of funcResponse.functions) {
-                const originalFunc = originalLib.functions.find(f => f.name === minFunc.name);
-                if (originalFunc) {
-                    maximizedLib.functions!.push(originalFunc);
-                }
-            }
-        }
-        
-        maximizedLibraries.push(maximizedLib);
+        minifiedLibrariesWithoutRecords.push(maximizedLib);
     }
     
-    return maximizedLibraries;
+    // Handle external type references
+    const externalRecordsRefs = getExternalTypeDefsRefs(minifiedLibrariesWithoutRecords);
+    getExternalRecords(minifiedLibrariesWithoutRecords, externalRecordsRefs, originalLibraries);
+    
+    return minifiedLibrariesWithoutRecords;
 }
 
 function mergeLibrariesWithoutDuplicates(maximizedLibraries: Library[], typeLibraries: Library[]): Library[] {
@@ -324,4 +294,324 @@ function mergeLibrariesWithoutDuplicates(maximizedLibraries: Library[], typeLibr
 
 function findLibraryByName(name: string, libraries: Library[]): Library | null {
     return libraries.find(lib => lib.name === name) || null;
+}
+
+// Helper functions for type definition handling
+
+function selectClients(originalClients: Client[], funcResponse: GetFunctionResponse): Client[] {
+    if (!funcResponse.clients) {
+        return [];
+    }
+    
+    const newClients: Client[] = [];
+    
+    for (const minClient of funcResponse.clients) {
+        const originalClient = originalClients.find(c => c.name === minClient.name);
+        if (!originalClient) {
+            continue;
+        }
+        
+        const completeClient: Client = {
+            name: originalClient.name,
+            description: originalClient.description,
+            functions: []
+        };
+        
+        const output: (RemoteFunction | ResourceFunction)[] = [];
+        
+        // Add constructor if there are functions to add
+        if (minClient.functions.length > 0) {
+            const constructor = getConstructor(originalClient.functions);
+            if (constructor) {
+                output.push(constructor);
+            }
+        }
+        
+        // Add selected functions
+        for (const minFunc of minClient.functions) {
+            const completeFunc = getCompleteFuncForMiniFunc(minFunc, originalClient.functions);
+            if (completeFunc) {
+                output.push(completeFunc);
+            }
+        }
+        
+        completeClient.functions = output;
+        newClients.push(completeClient);
+    }
+    
+    return newClients;
+}
+
+function selectFunctions(originalFunctions: RemoteFunction[] | undefined, funcResponse: GetFunctionResponse): RemoteFunction[] | undefined {
+    if (!funcResponse.functions || !originalFunctions) {
+        return undefined;
+    }
+    
+    const output: RemoteFunction[] = [];
+    
+    for (const minFunc of funcResponse.functions) {
+        const originalFunc = originalFunctions.find(f => f.name === minFunc.name);
+        if (originalFunc) {
+            output.push(originalFunc);
+        }
+    }
+    
+    return output.length > 0 ? output : undefined;
+}
+
+function getConstructor(functions: (RemoteFunction | ResourceFunction)[]): RemoteFunction | null {
+    for (const func of functions) {
+        if ('type' in func && func.type === "Constructor") {
+            return func as RemoteFunction;
+        }
+    }
+    return null;
+}
+
+function getCompleteFuncForMiniFunc(
+    minFunc: MinifiedRemoteFunction | MinifiedResourceFunction, 
+    fullFunctions: (RemoteFunction | ResourceFunction)[]
+): (RemoteFunction | ResourceFunction) | null {
+    if ('name' in minFunc) {
+        // MinifiedRemoteFunction
+        return fullFunctions.find(f => 'name' in f && f.name === minFunc.name) || null;
+    } else {
+        // MinifiedResourceFunction
+        return fullFunctions.find(f => 
+            'accessor' in f && 
+            f.accessor === minFunc.accessor && 
+            JSON.stringify(f.paths) === JSON.stringify(minFunc.paths)
+        ) || null;
+    }
+}
+
+function getOwnTypeDefsForLib(
+    clients: Client[], 
+    functions: RemoteFunction[] | undefined, 
+    allTypeDefs: TypeDefinition[]
+): TypeDefinition[] {
+    const allFunctions: AbstractFunction[] = [];
+    
+    // Collect all functions from clients
+    for (const client of clients) {
+        allFunctions.push(...client.functions);
+    }
+    
+    // Add standalone functions
+    if (functions) {
+        allFunctions.push(...functions);
+    }
+    
+    return getOwnRecordRefs(allFunctions, allTypeDefs);
+}
+
+function getOwnRecordRefs(functions: AbstractFunction[], allTypeDefs: TypeDefinition[]): TypeDefinition[] {
+    const ownRecords = new Map<string, TypeDefinition>();
+    
+    // Process all functions to find type references
+    for (const func of functions) {
+        // Check parameter types
+        for (const param of func.parameters) {
+            addInternalRecord(param.type, ownRecords, allTypeDefs);
+        }
+        
+        // Check return type
+        addInternalRecord(func.return.type, ownRecords, allTypeDefs);
+    }
+    
+    // Recursively process found type definitions to include dependent types
+    const processedTypes = new Set<string>();
+    const typesToProcess = Array.from(ownRecords.values());
+    
+    while (typesToProcess.length > 0) {
+        const typeDef = typesToProcess.shift()!;
+        
+        if (processedTypes.has(typeDef.name)) {
+            continue;
+        }
+        
+        processedTypes.add(typeDef.name);
+        
+        if (typeDef.type === 'record') {
+            const recordDef = typeDef as RecordTypeDefinition;
+            for (const field of recordDef.fields) {
+                const foundTypes = addInternalRecord(field.type, ownRecords, allTypeDefs);
+                typesToProcess.push(...foundTypes);
+            }
+        }
+        // TODO: Handle EnumTypeDefinition and UnionTypeDefinition
+    }
+    
+    return Array.from(ownRecords.values());
+}
+
+function addInternalRecord(
+    paramType: Type, 
+    ownRecords: Map<string, TypeDefinition>, 
+    allTypeDefs: TypeDefinition[]
+): TypeDefinition[] {
+    const foundTypes: TypeDefinition[] = [];
+    
+    if (!paramType.links) {
+        return foundTypes;
+    }
+    
+    for (const link of paramType.links) {
+        if (link.category === "internal") {
+            if (isIgnoredRecordName(link.recordName)) {
+                continue;
+            }
+            
+            const typeDefResult = getTypeDefByName(link.recordName, allTypeDefs);
+            if (typeDefResult) {
+                ownRecords.set(link.recordName, typeDefResult);
+                foundTypes.push(typeDefResult);
+            } else {
+                console.warn(`Type ${link.recordName} definition not found.`);
+            }
+        }
+    }
+    
+    return foundTypes;
+}
+
+function isIgnoredRecordName(recordName: string): boolean {
+    const ignoredRecords = [
+        "CodeScanningAnalysisToolGuid",
+        "AlertDismissedAt",
+        "AlertFixedAt",
+        "AlertAutoDismissedAt",
+        "NullableAlertUpdatedAt",
+        "ActionsCanApprovePullRequestReviews",
+        "CodeScanningAlertDismissedComment",
+        "ActionsEnabled",
+        "PreventSelfReview",
+        "SecretScanningAlertResolutionComment",
+        "Conference_enum_update_status",
+        "Message_enum_schedule_type",
+        "Message_enum_update_status",
+        "Siprec_enum_update_status",
+        "Stream_enum_update_status"
+    ];
+    return ignoredRecords.includes(recordName);
+}
+
+function getTypeDefByName(name: string, typeDefs: TypeDefinition[]): TypeDefinition | null {
+    return typeDefs.find(def => def.name === name) || null;
+}
+
+function getExternalTypeDefsRefs(libraries: Library[]): Map<string, string[]> {
+    const externalRecords = new Map<string, string[]>();
+    
+    for (const lib of libraries) {
+        const allFunctions: AbstractFunction[] = [];
+        
+        // Collect all functions from clients
+        for (const client of lib.clients) {
+            allFunctions.push(...client.functions);
+        }
+        
+        // Add standalone functions
+        if (lib.functions) {
+            allFunctions.push(...lib.functions);
+        }
+        
+        getExternalTypeDefRefs(externalRecords, allFunctions, lib.typeDefs);
+    }
+    
+    return externalRecords;
+}
+
+function getExternalTypeDefRefs(
+    externalRecords: Map<string, string[]>, 
+    functions: AbstractFunction[], 
+    allTypeDefs: TypeDefinition[]
+): void {
+    // Check function parameters and return types
+    for (const func of functions) {
+        for (const param of func.parameters) {
+            addExternalRecord(param.type, externalRecords);
+        }
+        addExternalRecord(func.return.type, externalRecords);
+    }
+    
+    // Check type definition fields
+    for (const typeDef of allTypeDefs) {
+        if (typeDef.type === 'record') {
+            const recordDef = typeDef as RecordTypeDefinition;
+            for (const field of recordDef.fields) {
+                addExternalRecord(field.type, externalRecords);
+            }
+        }
+        // TODO: Handle EnumTypeDefinition and UnionTypeDefinition
+    }
+}
+
+function addExternalRecord(paramType: Type, externalRecords: Map<string, string[]>): void {
+    if (!paramType.links) {
+        return;
+    }
+    
+    for (const link of paramType.links) {
+        if (link.category === "external" && link.libraryName) {
+            addLibraryRecords(externalRecords, link.libraryName, link.recordName);
+        }
+    }
+}
+
+function addLibraryRecords(externalRecords: Map<string, string[]>, libraryName: string, recordName: string): void {
+    if (externalRecords.has(libraryName)) {
+        const records = externalRecords.get(libraryName)!;
+        if (!records.includes(recordName)) {
+            records.push(recordName);
+        }
+    } else {
+        externalRecords.set(libraryName, [recordName]);
+    }
+}
+
+function getExternalRecords(
+    newLibraries: Library[], 
+    libRefs: Map<string, string[]>, 
+    originalLibraries: Library[]
+): void {
+    for (const [libName, recordNames] of libRefs.entries()) {
+        if (libName.startsWith("ballerina/lang.int")) {
+            // TODO: find a proper solution
+            continue;
+        }
+        
+        const library = originalLibraries.find(lib => lib.name === libName);
+        if (!library) {
+            console.warn(`Library ${libName} is not found in the context. Skipping the library.`);
+            continue;
+        }
+        
+        for (const recordName of recordNames) {
+            const typeDef = getTypeDefByName(recordName, library.typeDefs);
+            if (!typeDef) {
+                console.warn(`Record ${recordName} is not found in the context. Skipping the record.`);
+                continue;
+            }
+            
+            let newLibrary = newLibraries.find(lib => lib.name === libName);
+            if (!newLibrary) {
+                newLibrary = {
+                    name: libName,
+                    description: library.description,
+                    clients: [],
+                    functions: undefined,
+                    typeDefs: [typeDef],
+                    services: library.services
+                };
+                newLibraries.push(newLibrary);
+            } else {
+                // Check if type definition already exists
+                const existingTypeDef = newLibrary.typeDefs.find(def => def.name === recordName);
+                if (!existingTypeDef) {
+                    newLibrary.typeDefs.push(typeDef);
+                }
+            }
+        }
+    }
 }

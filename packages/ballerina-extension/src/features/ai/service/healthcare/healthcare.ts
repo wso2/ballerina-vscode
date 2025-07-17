@@ -1,7 +1,7 @@
 import { CoreMessage, generateObject, generateText, streamText } from "ai";
 import { anthropic, ANTHROPIC_HAIKU, ANTHROPIC_SONNET_4 } from "../connection";
 import { GenerationType, getRelevantLibrariesAndFunctions } from "../libs/libs";
-import { getReadmeQuery, populateHistory, transformProjectSource, getErrorMessage } from "../utils";
+import { getRewrittenPrompt, populateHistory, transformProjectSource, getErrorMessage } from "../utils";
 import {
     getMaximizedSelectedLibs,
     libraryContains,
@@ -43,7 +43,7 @@ export async function generateHealthcareCodeCore(
 ): Promise<void> {
     const project: ProjectSource = await getProjectSource(params.operationType);
     const sourceFiles: SourceFiles[] = transformProjectSource(project);
-    const prompt = getReadmeQuery(params, sourceFiles);
+    const prompt = getRewrittenPrompt(params, sourceFiles);
     const relevantTrimmedFuncs: Library[] = (
         await getRelevantLibrariesAndFunctions({ query: prompt }, GenerationType.HEALTHCARE_GENERATION)
     ).libraries;

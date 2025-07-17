@@ -1,6 +1,10 @@
 import { generateObject, CoreMessage } from "ai";
 import { z } from "zod";
-import { MinifiedLibrary, RelevantLibrariesAndFunctionsRequest, RelevantLibrariesAndFunctionsResponse } from "@wso2/ballerina-core";
+import {
+    MinifiedLibrary,
+    RelevantLibrariesAndFunctionsRequest,
+    RelevantLibrariesAndFunctionsResponse,
+} from "@wso2/ballerina-core";
 import { Library } from "./libs_types";
 import { selectRequiredFunctions } from "./funcs";
 import { anthropic, ANTHROPIC_HAIKU } from "../connection";
@@ -13,7 +17,7 @@ interface LibraryListResponse {
 }
 
 const LibraryListSchema = z.object({
-    libraries: z.array(z.string())
+    libraries: z.array(z.string()),
 });
 
 // export async function getRelevantLibs(params: GenerateCodeParams): Promise<Library[]> {
@@ -27,31 +31,47 @@ export enum GenerationType {
     HEALTHCARE_GENERATION = "HEALTHCARE_GENERATION",
 }
 
-export async function getRelevantLibrariesAndFunctions(params: RelevantLibrariesAndFunctionsRequest, generationType: GenerationType): Promise<RelevantLibrariesAndFunctionsResponse> {
+export async function getRelevantLibrariesAndFunctions(
+    params: RelevantLibrariesAndFunctionsRequest,
+    generationType: GenerationType
+): Promise<RelevantLibrariesAndFunctionsResponse> {
     const selectedLibs: string[] = await getSelectedLibraries(params.query, generationType);
     const relevantTrimmedFuncs: Library[] = await selectRequiredFunctions(params.query, selectedLibs, generationType);
     return {
-        libraries: relevantTrimmedFuncs
+        libraries: relevantTrimmedFuncs,
     };
 }
 
 export async function getSelectedLibraries(prompt: string, generationType: GenerationType): Promise<string[]> {
     const allLibraries = await getAllLibraries(generationType);
     if (allLibraries.length === 0) {
-       return [];
+        return [];
     }
     const messages: CoreMessage[] = [
-        { role: "system", content: getSystemPrompt() },
-        { role: "user", content: getUserPrompt(prompt, allLibraries, generationType) },
+        {
+            role: "system",
+            content: getSystemPrompt(),
+            providerOptions: {
+                anthropic: { cacheControl: { type: "ephemeral" } },
+            },
+        },
+        {
+            role: "user",
+            content: getUserPrompt(prompt, allLibraries, generationType),
+            providerOptions: {
+                anthropic: { cacheControl: { type: "ephemeral" } },
+            },
+        },
     ];
     //TODO: Add thinking and test with claude haiku
+    //TODO: Check if we need to restrcuture prompt to optimize catching.
     const { object } = await generateObject({
         model: anthropic(ANTHROPIC_HAIKU),
         maxTokens: 4096,
         temperature: 0,
         messages: messages,
         schema: LibraryListSchema,
-        abortSignal: AIPanelAbortController.getInstance().signal
+        abortSignal: AIPanelAbortController.getInstance().signal,
     });
 
     console.log("Selected libraries:", object.libraries);
@@ -97,12 +117,16 @@ Response:
 {
     "libraries": ["ballerinax/github", "ballerinax/slack", "ballerinax/azure.openai.chat"]
 }
-${generationType === GenerationType.CODE_GENERATION ? "" : " ALWAYS include `ballerinax/health.base`, `ballerinax/health.fhir.r4`, `ballerinax/health.fhir.r4.parser`, `ballerinax/health.fhir.r4.international401`, `ballerinax/health.hl7v2commons` and `ballerinax/health.hl7v2` libraries in the selection in addition to what you selected."}`;
+${
+    generationType === GenerationType.CODE_GENERATION
+        ? ""
+        : " ALWAYS include `ballerinax/health.base`, `ballerinax/health.fhir.r4`, `ballerinax/health.fhir.r4.parser`, `ballerinax/health.fhir.r4.international401`, `ballerinax/health.hl7v2commons` and `ballerinax/health.hl7v2` libraries in the selection in addition to what you selected."
+}`;
 }
 
 export async function getAllLibraries(generationType: GenerationType): Promise<MinifiedLibrary[]> {
-    const result = await langClient.getCopilotCompactLibraries({
-        mode: getGenerationMode(generationType)
-    }) as { libraries: MinifiedLibrary[] };
+    const result = (await langClient.getCopilotCompactLibraries({
+        mode: getGenerationMode(generationType),
+    })) as { libraries: MinifiedLibrary[] };
     return result.libraries as MinifiedLibrary[];
 }

@@ -17,6 +17,8 @@ export async function fetchWithAuth(input: string | URL | Request, options: Requ
         ...options.headers,
         'Authorization': `Bearer ${accessToken}`,
         'User-Agent': 'Ballerina-VSCode-Plugin',
+        'Connection': 'keep-alive',
+        // 'Keep-Alive': 'timeout=60, max=100'
     };
     
     let response = await fetch(input, options);
@@ -41,8 +43,10 @@ export async function fetchWithAuth(input: string | URL | Request, options: Requ
     return response;
 }
 
+let url = "https://e95488c8-8511-4882-967f-ec3ae2a0f86f-prod.e1-us-east-azure.choreoapis.dev/ballerina-copilot/intelligence-api/v1.0/claude";
+// let url = "http://localhost:9090/intel/claude"
 export const anthropic = createAnthropic({
-    baseURL: "https://e95488c8-8511-4882-967f-ec3ae2a0f86f-prod.e1-us-east-azure.choreoapis.dev/ballerina-copilot/intelligence-api/v1.0/claude",
+    baseURL: url,
     apiKey: "xx", //TODO: Gives error without this. see if we can remove,
     fetch: fetchWithAuth,
 });
@@ -63,7 +67,7 @@ export const ANTHROPIC_SONNET_4 = "claude-sonnet-4-20250514";
 //TODO: use apiKey if BYOK
 
 //Migrations
-//TODO: Migrate healthcare n Natural programmming
+//TODO: Migrate healthcare
 //TODO: Evals?
 
 // Why?
