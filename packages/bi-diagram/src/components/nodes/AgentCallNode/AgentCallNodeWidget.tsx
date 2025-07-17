@@ -365,7 +365,7 @@ export function AgentCallNodeWidget(props: AgentCallNodeWidgetProps) {
     const onToolClick = (tool: ToolData) => {
         console.log(">>> on Tool Click", tool);
         const toolType = tool.type ?? "";
-        if (toolType.includes("MCP Server")) {
+        if (toolType === "MCP Server") {
             agentNode?.onSelectMcpToolkit && agentNode.onSelectMcpToolkit(tool, model.node);
             setAnchorEl(null);
         } else {
