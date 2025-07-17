@@ -37,11 +37,11 @@ export interface ExpressionLabelWidgetProps {
 export const useStyles = () => ({
     container: css({
         width: '100%',
-        backgroundColor: "var(--vscode-sideBar-background)",
+        backgroundColor: "var(--vscode-editor-background)",
         padding: "2px",
         borderRadius: "6px",
+        border: "1px solid var(--vscode-debugIcon-breakpointDisabledForeground)",
         display: "flex",
-        color: "var(--vscode-checkbox-border)",
         alignItems: "center",
         "& > vscode-button > *": {
             margin: "0 2px"
@@ -60,7 +60,6 @@ export const useStyles = () => ({
         }
     }),
     element: css({
-        backgroundColor: 'var(--vscode-input-background)',
         padding: '10px',
         cursor: 'pointer',
         transitionDuration: '0.2s',
@@ -128,7 +127,7 @@ export function ExpressionLabelWidget(props: ExpressionLabelWidgetProps) {
     }
 
     useEffect(() => {
-        if (link) {
+        if (link?.isActualLink) {
             link.registerListener({
                 selectionChanged(event) {
                     handleLinkStatus(event.isSelected);
@@ -171,7 +170,7 @@ export function ExpressionLabelWidget(props: ExpressionLabelWidgetProps) {
     }
 
     const loadingScreen = (
-        <ProgressRing sx={{ height: '16px', width: '16px' }} />
+        <ProgressRing sx={{ height: '16px', width: '16px' }} color="var(--vscode-debugIcon-breakpointDisabledForeground)" />
     );
 
     const elements: ReactNode[] = [
@@ -261,19 +260,12 @@ export function ExpressionLabelWidget(props: ExpressionLabelWidgetProps) {
         );
     }
 
-  
-
     const source = link?.getSourcePort();
     const target = link?.getTargetPort();
 
-
     return isTempLink
         ? (
-            <div
-                className={classNames(
-                    classes.container
-                )}
-            >
+            <div className={classNames(classes.container)}>
                 <div className={classNames(classes.element, classes.loadingContainer)}>
                     {loadingScreen}
                 </div>
