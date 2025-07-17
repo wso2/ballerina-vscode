@@ -218,6 +218,10 @@ export function ImportIntegrationForm() {
 
     const handleIntegrationSelection = (integrationType: keyof typeof INTEGRATION_CONFIGS) => {
         setSelectedIntegration(integrationType);
+        // Pull integration tool
+        rpcClient.getMigrateIntegrationRpcClient().pullMigrationTool({
+            toolName: integrationType,
+        });
 
         // Initialize parameters with default values
         const config = INTEGRATION_CONFIGS[integrationType];
@@ -228,6 +232,11 @@ export function ImportIntegrationForm() {
 
         setIntegrationParams(defaultParams);
     };
+
+    rpcClient?.onDownloadProgress((progress) => {
+        console.log(`Download progress: ${progress.percentage}% - ${progress.message}`);
+        // TODO: Update UI with progress
+    });
 
     const handleParameterChange = (paramKey: string, value: any) => {
         setIntegrationParams((prev) => ({

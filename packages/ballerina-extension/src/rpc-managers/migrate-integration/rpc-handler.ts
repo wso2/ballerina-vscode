@@ -14,16 +14,17 @@
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations
  * under the License.
+ * 
+ * THIS FILE INCLUDES AUTO GENERATED CODE
  */
+import {
+    MigrationToolPullRequest,
+    pullMigrationTool
+} from "@wso2/ballerina-core";
+import { Messenger } from "vscode-messenger";
+import { MigrateIntegrationRpcManager } from "./rpc-manager";
 
-export * from "./lang-client/rpc-client";
-export * from "./library-browser/rpc-client";
-export * from "./service-designer/rpc-client";
-export * from "./common/rpc-client";
-export * from "./persist-diagram/rpc-client";
-export * from "./graphql-designer/rpc-client";
-export * from "./record-creator/rpc-client";
-export * from "./ai-panel/rpc-client";
-export * from "./connector-wizard/rpc-client";
-export * from "./test-manager/rpc-client";
-export * from "./migrate-integration/rpc-client";
+export function registerMigrateIntegrationRpcHandlers(messenger: Messenger) {
+    const rpcManger = new MigrateIntegrationRpcManager();
+    messenger.onNotification(pullMigrationTool, (args: MigrationToolPullRequest) => rpcManger.pullMigrationTool(args));
+}
