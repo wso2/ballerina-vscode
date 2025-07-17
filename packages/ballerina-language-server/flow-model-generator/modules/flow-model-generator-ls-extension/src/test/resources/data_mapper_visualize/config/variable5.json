@@ -1,0 +1,10 @@
+{
+  "source": "variable3.bal",
+  "description": "Sample diagram node",
+  "codedata": {
+    "symbol": "redis:Options"
+  },
+  "visualizableProperties": {
+    "expression": "{}"
+  }
+}
