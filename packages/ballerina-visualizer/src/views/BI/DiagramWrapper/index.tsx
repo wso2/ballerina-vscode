@@ -153,14 +153,13 @@ const WrappedTooltip = ({ content, children }: WrappedTooltipProps) => {
 };
 
 export interface DiagramWrapperProps {
-    syntaxTree: STNode;
     projectPath: string;
     filePath?: string;
     view?: FocusFlowDiagramView;
 }
 
 export function DiagramWrapper(param: DiagramWrapperProps) {
-    const { syntaxTree, projectPath, filePath, view } = param;
+    const { projectPath, filePath, view } = param;
     const { rpcClient } = useRpcContext();
 
     const [showSequenceDiagram, setShowSequenceDiagram] = useState(false);
@@ -251,6 +250,7 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
     let isResource = parentMetadata?.kind === "Resource";
     let isRemote = parentMetadata?.kind === "Remote Function";
     let isAgent = parentMetadata?.kind === "AI Chat Agent";
+    let isNPFunction = view === FOCUS_FLOW_DIAGRAM_VIEW.NP_FUNCTION;
     const parameters = parentMetadata?.parameters?.join(", ") || "";
     const returnType = parentMetadata?.return || "";
 
@@ -290,7 +290,7 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
                         serviceType === "http" || isAgent ? (
                             <ActionButton
                                 appearance="secondary"
-                                onClick={() => handleResourceTryIt(parentMetadata?.label || "", parentMetadata?.label || "")}
+                                onClick={() => handleResourceTryIt(parentMetadata?.accessor || "", parentMetadata?.label || "")}
                             >
                                 <Icon
                                     name={isAgent ? "comment-discussion" : "play"}
@@ -329,7 +329,7 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
             )}
             {!isResource && !isAutomation && !isRemote && (
                 <TitleBar
-                    title={parentMetadata?.kind}
+                    title={isNPFunction ? "Natural Function" : parentMetadata?.kind}
                     subtitleElement={
                         <SubTitleWrapper>
                             <LeftElementsWrapper>
@@ -407,18 +407,15 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
             )}
             {showSequenceDiagram ? (
                 <BISequenceDiagram
-                    syntaxTree={syntaxTree}
                     onUpdate={handleUpdateDiagram}
                     onReady={handleReadyDiagram}
                 />
             ) : view ? (
                 <BIFocusFlowDiagram
-                    syntaxTree={syntaxTree}
                     projectPath={projectPath}
                     filePath={filePath}
                     onUpdate={handleUpdateDiagram}
                     onReady={handleReadyDiagram}
-                    view={view}
                 />
             ) : (
                 <BIFlowDiagram
