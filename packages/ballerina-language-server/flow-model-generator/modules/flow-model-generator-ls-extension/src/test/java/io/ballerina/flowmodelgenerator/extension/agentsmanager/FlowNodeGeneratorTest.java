@@ -24,9 +24,14 @@ import io.ballerina.flowmodelgenerator.extension.request.FlowModelGeneratorReque
 import io.ballerina.modelgenerator.commons.AbstractLSTest;
 import io.ballerina.tools.text.LinePosition;
 import org.testng.Assert;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.AfterTest;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.BeforeTest;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -55,7 +60,9 @@ public class FlowNodeGeneratorTest extends AbstractLSTest {
     @Test(dataProvider = "data-provider", enabled = false)
     public void test(Path config) throws IOException {
         Path configJsonPath = configDir.resolve(config);
-        TestConfig testConfig = gson.fromJson(Files.newBufferedReader(configJsonPath), TestConfig.class);
+        BufferedReader bufferedReader = Files.newBufferedReader(configJsonPath);
+        TestConfig testConfig = gson.fromJson(bufferedReader, TestConfig.class);
+        bufferedReader.close();
 
         FlowModelGeneratorRequest request = new FlowModelGeneratorRequest(
                 getSourcePath(testConfig.source()), testConfig.start(),
@@ -71,12 +78,22 @@ public class FlowNodeGeneratorTest extends AbstractLSTest {
 
         boolean flowEquality = modifiedDiagram.equals(testConfig.diagram());
         if (!fileNameEquality || !flowEquality) {
-            TestConfig updatedConfig = new TestConfig(testConfig.start(), testConfig.end(), testConfig.source(),
-                    testConfig.description(), modifiedDiagram);
+//            TestConfig updatedConfig = new TestConfig(testConfig.start(), testConfig.end(), testConfig.source(),
+//                    testConfig.description(), modifiedDiagram);
 //            updateConfig(configJsonPath, updatedConfig);
             compareJsonElements(modifiedDiagram, testConfig.diagram());
             Assert.fail(String.format("Failed test: '%s' (%s)", testConfig.description(), configJsonPath));
         }
+    }
+
+    @AfterMethod
+    public void shutDownLS() {
+        this.shutDownLanguageServer();
+    }
+
+    @BeforeMethod
+    public void startLS() {
+        this.startLanguageServer();
     }
 
     @Override
