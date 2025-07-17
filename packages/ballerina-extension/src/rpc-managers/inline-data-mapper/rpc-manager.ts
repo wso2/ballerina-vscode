@@ -220,9 +220,9 @@ export class InlineDataMapperRpcManager implements InlineDataMapperAPI {
                 .deleteMapping(params)
                 .then(async (resp) => {
                     console.log(">>> inline data mapper delete mapping response", resp);
-                    updateAndRefreshDataMapper(resp.textEdits, params.filePath, params.codedata);
+                    updateAndRefreshDataMapper(resp.textEdits, params.filePath, params.codedata, params.varName);
                     resolve({ textEdits: resp.textEdits });
                 });
-        })
+        });
     }
 }

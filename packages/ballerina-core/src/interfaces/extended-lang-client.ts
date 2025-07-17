@@ -365,6 +365,7 @@ export interface DeleteMappingRequest {
     filePath: string;
     codedata: CodeData;
     mapping: Mapping;
+    varName?: string;
     targetField: string;
 }
 
