@@ -49,6 +49,7 @@ public abstract class SearchCommand {
     protected final String query;
     protected final int limit;
     protected final int offset;
+    protected final boolean searchCentral;
     final SearchDatabaseManager dbManager;
     final DefaultViewHolder defaultViewHolder;
 
@@ -57,6 +58,7 @@ public abstract class SearchCommand {
 
     private static final int DEFAULT_LIMIT = 20;
     private static final int DEFAULT_OFFSET = 0;
+    private static final boolean DEFAULT_SEARCH_CENTRAL = true;
 
     public static SearchCommand from(Kind kind, Project module, LineRange position, Map<String, String> queryMap,
                                      Document functionsDoc) {
@@ -82,10 +84,12 @@ public abstract class SearchCommand {
             this.query = "";
             this.limit = DEFAULT_LIMIT;
             this.offset = DEFAULT_OFFSET;
+            this.searchCentral = DEFAULT_SEARCH_CENTRAL;
         } else {
             this.query = queryMap.getOrDefault("q", "");
             this.limit = parseIntParam(queryMap.get("limit"), DEFAULT_LIMIT);
             this.offset = parseIntParam(queryMap.get("offset"), DEFAULT_OFFSET);
+            this.searchCentral = Boolean.parseBoolean(queryMap.getOrDefault("searchCentral", "true"));
         }
     }
 
@@ -104,6 +108,13 @@ public abstract class SearchCommand {
     protected abstract List<Item> search();
 
     /**
+     * Performs a search in Ballerina Central.
+     *
+     * @return List of search results
+     */
+    protected abstract List<Item> searchCentral();
+
+    /**
      * Fetches the popular items if not cached already.
      *
      * @return a list of popular search results
@@ -116,7 +127,14 @@ public abstract class SearchCommand {
      * @return List of search results
      */
     public JsonArray execute() {
-        List<Item> items = query.isEmpty() ? defaultView() : search();
+        List<Item> items;
+        if (query.isEmpty()) {
+            items = defaultView();
+        } else if (searchCentral) {
+            items = searchCentral();
+        } else {
+            items = search();
+        }
         return GSON.toJsonTree(items).getAsJsonArray();
     }
 

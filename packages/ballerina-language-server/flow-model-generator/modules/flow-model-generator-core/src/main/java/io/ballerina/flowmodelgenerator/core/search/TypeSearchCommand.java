@@ -88,6 +88,11 @@ class TypeSearchCommand extends SearchCommand {
     }
 
     @Override
+    protected List<Item> searchCentral() {
+        return List.of();
+    }
+
+    @Override
     protected Map<String, List<SearchResult>> fetchPopularItems() {
         // Return empty value as required
         return Collections.emptyMap();

@@ -19,6 +19,9 @@
 package io.ballerina.flowmodelgenerator.core.search;
 
 import com.google.gson.reflect.TypeToken;
+import io.ballerina.centralconnector.CentralAPI;
+import io.ballerina.centralconnector.RemoteCentral;
+import io.ballerina.centralconnector.response.ConnectorsResponse;
 import io.ballerina.compiler.api.ModuleID;
 import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.compiler.api.symbols.ClassSymbol;
@@ -41,9 +44,11 @@ import io.ballerina.projects.Module;
 import io.ballerina.projects.PackageCompilation;
 import io.ballerina.projects.Project;
 import io.ballerina.tools.text.LineRange;
+import org.ballerinalang.diagramutil.connector.models.connector.Connector;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -97,12 +102,35 @@ public class ConnectorSearchCommand extends SearchCommand {
 
     @Override
     protected List<Item> search() {
-        List<SearchResult> localConnectors = getLocalConnectors();
-        localConnectors.forEach(connector -> rootBuilder.node(generateAvailableNode(connector, true)));
-
+        buildLocalConnectors();
         List<SearchResult> searchResults = dbManager.searchConnectors(query, limit, offset);
         searchResults.forEach(searchResult -> rootBuilder.node(generateAvailableNode(searchResult)));
+        return rootBuilder.build().items();
+    }
 
+    @Override
+    protected List<Item> searchCentral() {
+        buildLocalConnectors();
+        CentralAPI centralClient = RemoteCentral.getInstance();
+        Map<String, String> queryMap = new HashMap<>();
+        queryMap.put("q", query);
+        queryMap.put("limit", String.valueOf(limit));
+        queryMap.put("offset", String.valueOf(offset));
+        ConnectorsResponse connectorsResponse = centralClient.connectors(queryMap);
+
+        if (connectorsResponse != null && connectorsResponse.connectors() != null) {
+            for (Connector connector : connectorsResponse.connectors()) {
+                SearchResult.Package packageInfo = new SearchResult.Package(
+                        connector.packageInfo.getOrganization(),
+                        connector.packageInfo.getName(),
+                        connector.moduleName,
+                        connector.packageInfo.getVersion()
+                );
+                SearchResult searchResult =
+                        SearchResult.from(packageInfo, connector.name, connector.packageInfo.getSummary());
+                rootBuilder.node(generateAvailableNode(searchResult));
+            }
+        }
         return rootBuilder.build().items();
     }
 
@@ -119,6 +147,11 @@ public class ConnectorSearchCommand extends SearchCommand {
             defaultView.put(category.getKey(), searchResults);
         }
         return defaultView;
+    }
+
+    private void buildLocalConnectors() {
+        List<SearchResult> localConnectors = getLocalConnectors();
+        localConnectors.forEach(connector -> rootBuilder.node(generateAvailableNode(connector, true)));
     }
 
     private static AvailableNode generateAvailableNode(SearchResult searchResult) {

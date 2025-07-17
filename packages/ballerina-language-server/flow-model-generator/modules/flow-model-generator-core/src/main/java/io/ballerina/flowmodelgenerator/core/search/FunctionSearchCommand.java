@@ -44,7 +44,13 @@ import io.ballerina.tools.diagnostics.Location;
 import io.ballerina.tools.text.LineRange;
 import org.ballerinalang.langserver.common.utils.PositionUtil;
 
+import io.ballerina.centralconnector.CentralAPI;
+import io.ballerina.centralconnector.RemoteCentral;
+import io.ballerina.centralconnector.response.SymbolResponse;
+
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -120,6 +126,38 @@ class FunctionSearchCommand extends SearchCommand {
         buildProjectNodes();
         List<SearchResult> functionSearchList = dbManager.searchFunctions(query, limit, offset);
         buildLibraryNodes(functionSearchList);
+        return rootBuilder.build().items();
+    }
+
+    @Override
+    protected List<Item> searchCentral() {
+        buildProjectNodes();
+        CentralAPI centralClient = RemoteCentral.getInstance();
+        Map<String, String> queryMap = new HashMap<>();
+        queryMap.put("q", query);
+        queryMap.put("limit", String.valueOf(limit));
+        queryMap.put("offset", String.valueOf(offset));
+
+        SymbolResponse symbolResponse = centralClient.searchSymbols(queryMap);
+        if (symbolResponse != null && symbolResponse.symbols() != null) {
+            for (SymbolResponse.Symbol symbol : symbolResponse.symbols()) {
+                if (symbol.symbolType().equals("function")) {
+                    SearchResult.Package packageInfo = new SearchResult.Package(
+                            symbol.organization(),
+                            symbol.name(),
+                            symbol.name(),
+                            symbol.version()
+                    );
+                    SearchResult searchResult = SearchResult.from(
+                            packageInfo,
+                            symbol.symbolName(),
+                            symbol.description()
+                    );
+                    buildLibraryNodes(Collections.singletonList(searchResult));
+                }
+            }
+        }
+
         return rootBuilder.build().items();
     }
 
