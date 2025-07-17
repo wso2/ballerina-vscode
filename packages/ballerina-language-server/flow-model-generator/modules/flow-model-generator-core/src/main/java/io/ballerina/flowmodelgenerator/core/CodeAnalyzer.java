@@ -405,9 +405,10 @@ public class CodeAnalyzer extends NodeVisitor {
         }
     }
 
-    private String generateToolKitName(List<ToolData> toolsData) {
-        String name = MCP_SERVER;
+    private String generateToolKitName(List<ToolData> toolsData, Node node) {
+        String name = getMcpToolName(node);
         int index = 2;
+
         for (ToolData toolData : toolsData) {
             if (toolData.name.equals(name)) {
                 name = MCP_SERVER + " 0" + index;
@@ -415,6 +416,38 @@ public class CodeAnalyzer extends NodeVisitor {
             }
         }
         return name;
+    }
+
+    private String getMcpToolName(Node node) {
+        ExpressionNode expression = ((CheckExpressionNode) node).expression();
+        if (!(expression instanceof ExplicitNewExpressionNode explicitNewExpr)) {
+            return null;
+        }
+
+        ParenthesizedArgList argList = explicitNewExpr.parenthesizedArgList();
+        if (argList == null) {
+            return null;
+        }
+
+        SeparatedNodeList<FunctionArgumentNode> args = argList.arguments();
+        if (args.size() <= 2 || !(args.get(2) instanceof NamedArgumentNode namedArg)) {
+            return null;
+        }
+
+        ExpressionNode argExpr = namedArg.expression();
+        if (!(argExpr instanceof MappingConstructorExpressionNode mappingConstructorExpr)) {
+            return null;
+        }
+
+        NodeList<MappingFieldNode> fields = mappingConstructorExpr.fields();
+        if (fields.isEmpty() || !(fields.get(0) instanceof SpecificFieldNode specificField)) {
+            return null;
+        }
+        if (specificField.valueExpr().isPresent()) {
+            String value = specificField.valueExpr().get().toString();
+            return value.substring(1, value.length() -1);
+        }
+        return null;
     }
 
     private void genAgentData(ImplicitNewExpressionNode newExpressionNode, ClassSymbol classSymbol) {
@@ -459,7 +492,7 @@ public class CodeAnalyzer extends NodeVisitor {
             ListConstructorExpressionNode listCtrExprNode = (ListConstructorExpressionNode) toolsArg;
             for (Node node : listCtrExprNode.expressions()) {
                 if (node.kind() == SyntaxKind.CHECK_EXPRESSION) {
-                    String toolName = generateToolKitName(toolsData);
+                    String toolName = generateToolKitName(toolsData, node);
                     toolsData.add(new ToolData(toolName, ICON_PATH, getToolDescription(""), MCP_SERVER));
                     continue;
                 }
