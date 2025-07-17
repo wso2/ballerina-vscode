@@ -58,7 +58,7 @@ public abstract class SearchCommand {
 
     private static final int DEFAULT_LIMIT = 20;
     private static final int DEFAULT_OFFSET = 0;
-    private static final boolean DEFAULT_SEARCH_CENTRAL = true;
+    private static final boolean DEFAULT_SEARCH_CENTRAL = false;
 
     public static SearchCommand from(Kind kind, Project module, LineRange position, Map<String, String> queryMap,
                                      Document functionsDoc) {
