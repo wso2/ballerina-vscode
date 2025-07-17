@@ -1,7 +1,7 @@
 import { CoreMessage, generateText, streamText } from "ai";
 import { anthropic, ANTHROPIC_SONNET_4 } from "../connection";
 import { GenerationType, getRelevantLibrariesAndFunctions } from "../libs/libs";
-import { getReadmeQuery, populateHistory, transformProjectSource, getErrorMessage } from "../utils";
+import { getRewrittenPrompt, populateHistory, transformProjectSource, getErrorMessage, extractResourceDocumentContent } from "../utils";
 import { getMaximizedSelectedLibs, selectRequiredFunctions, toMaximizedLibrariesFromLibJson } from "./../libs/funcs";
 import { GetFunctionResponse } from "./../libs/funcs_inter_types";
 import { LANGLIBS } from "./../libs/langlibs";
@@ -12,6 +12,7 @@ import {
     FileAttatchment,
     GenerateCodeRequest,
     onChatNotify,
+    OperationType,
     PostProcessResponse,
     ProjectDiagnostics,
     ProjectSource,
@@ -22,23 +23,24 @@ import {
 import { getProjectSource, postProcess } from "../../../../rpc-managers/ai-panel/rpc-manager";
 import { CopilotEventHandler, createWebviewEventHandler } from "../event";
 import { AIPanelAbortController } from "../../../../../src/rpc-managers/ai-panel/utils";
+import { getRequirementAnalysisCodeGenPrefix, getRequirementAnalysisTestGenPrefix } from "./np_prompts";
 
 // Core code generation function that emits events
 export async function generateCodeCore(params: GenerateCodeRequest, eventHandler: CopilotEventHandler): Promise<void> {
     const project: ProjectSource = await getProjectSource(params.operationType);
     const packageName = project.projectName;
     const sourceFiles: SourceFiles[] = transformProjectSource(project);
-    const prompt = getReadmeQuery(params, sourceFiles);
+    const prompt = getRewrittenPrompt(params, sourceFiles);
     const relevantTrimmedFuncs: Library[] = (
         await getRelevantLibrariesAndFunctions({ query: prompt }, GenerationType.CODE_GENERATION)
     ).libraries;
 
     const historyMessages = populateHistory(params.chatHistory);
-
+    //TODO: Remove Readme.md from NP Path
     const allMessages: CoreMessage[] = [
         {
             role: "system",
-            content: getSystemPromptPrefix(relevantTrimmedFuncs),
+            content: getSystemPromptPrefix(relevantTrimmedFuncs, sourceFiles, params.operationType),
         },
         {
             role: "system",
@@ -50,7 +52,7 @@ export async function generateCodeCore(params: GenerateCodeRequest, eventHandler
         ...historyMessages,
         {
             role: "user",
-            content: getUserPrompt(prompt, sourceFiles, params.fileAttachmentContents, packageName),
+            content: getUserPrompt(prompt, sourceFiles, params.fileAttachmentContents, packageName, params.operationType),
             providerOptions: {
                 anthropic: { cacheControl: { type: "ephemeral" } },
             },
@@ -83,6 +85,11 @@ export async function generateCodeCore(params: GenerateCodeRequest, eventHandler
             }
             case "finish": {
                 const finishReason = part.finishReason;
+                console.log("Finish reason: ", finishReason);
+                if (finishReason === "error") {
+                    // Already handled in error case. 
+                    break;
+                }
                 const postProcessedResp: PostProcessResponse = await postProcess({
                     assistant_response: assistantResponse,
                 });
@@ -100,19 +107,18 @@ export async function generateCodeCore(params: GenerateCodeRequest, eventHandler
                     console.log("Repair iteration: ", repair_attempt);
                     console.log("Diagnotsics trynna fix: ", diagnostics);
 
-                    const repairedResponse: RepairResponse = await repairCodeCore(
+                    const repairedResponse: RepairResponse = await repairCode(
                         {
                             previousMessages: allMessages,
                             assistantResponse: diagnosticFixResp,
                             diagnostics: diagnostics,
-                        },
-                        eventHandler
+                        }
                     );
                     diagnosticFixResp = repairedResponse.repairResponse;
                     diagnostics = repairedResponse.diagnostics;
                     repair_attempt++;
                 }
-
+                console.log("Final Diagnostics ", diagnostics);
                 eventHandler({ type: "content_replace", content: diagnosticFixResp });
                 eventHandler({ type: "diagnostics", diagnostics: diagnostics });
                 eventHandler({ type: "messages", messages: allMessages });
@@ -134,7 +140,13 @@ export async function generateCode(params: GenerateCodeRequest): Promise<void> {
     }
 }
 
-function getSystemPromptPrefix(apidocs: Library[]) {
+function getSystemPromptPrefix(apidocs: Library[], sourceFiles: SourceFiles[], op: OperationType): string {
+    
+    if (op === "CODE_FOR_USER_REQUIREMENT") {
+        return getRequirementAnalysisCodeGenPrefix(apidocs, extractResourceDocumentContent(sourceFiles));
+    } else if (op === "TESTS_FOR_USER_REQUIREMENT") {
+        return getRequirementAnalysisTestGenPrefix(apidocs, extractResourceDocumentContent(sourceFiles));
+    }
     return `You are an expert assistant who specializes in writing Ballerina code. Your goal is to ONLY answer Ballerina related queries. You should always answer with accurate and functional Ballerina code that addresses the specified query while adhering to the constraints of the given API documentation.
 
 You will be provided with following inputs:
@@ -233,7 +245,8 @@ function getUserPrompt(
     usecase: string,
     existingCode: SourceFiles[],
     fileUploadContents: FileAttatchment[],
-    packageName: string
+    packageName: string,
+    op: OperationType
 ): string {
     let fileInstructions = "";
     if (fileUploadContents.length > 0) {
@@ -254,7 +267,7 @@ ${usecase}
 
 Existing Code: Users existing code.
 <existing_code>
-${stringifyExistingCode(existingCode)}
+${stringifyExistingCode(existingCode, op)}
 </existing_code>
 
 Current Package name: ${packageName}
@@ -279,6 +292,7 @@ export async function repairCodeCore(params: RepairParams, eventHandler: Copilot
     eventHandler({ type: "start" });
     const resp = await repairCode(params);
     eventHandler({ type: "content_replace", content: resp.repairResponse });
+    console.log("Manual Repair Diagnostics left: ", resp.diagnostics);
     eventHandler({ type: "diagnostics", diagnostics: resp.diagnostics });
     eventHandler({ type: "stop" });
     return resp;
@@ -319,11 +333,11 @@ export async function repairCode(params: RepairParams): Promise<RepairResponse> 
     return { repairResponse: diagnosticFixResp, diagnostics: postProcessResp.diagnostics.diagnostics };
 }
 
-function stringifyExistingCode(existingCode: SourceFiles[], isBallerinaSourcesOnly: boolean = false): string {
+function stringifyExistingCode(existingCode: SourceFiles[], op: OperationType): string {
     let existingCodeStr = "";
     for (const file of existingCode) {
         const filePath = file.filePath;
-        if (isBallerinaSourcesOnly && !filePath.endsWith(".bal")) {
+        if (op !== "CODE_GENERATION" && !filePath.endsWith(".bal")) {
             continue;
         }
 

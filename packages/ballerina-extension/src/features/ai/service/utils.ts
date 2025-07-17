@@ -4,6 +4,8 @@ import {
     ChatNotify,
     ChatStart,
     DiagnosticEntry,
+    GENERATE_CODE_AGAINST_THE_REQUIREMENT,
+    GENERATE_TEST_AGAINST_THE_REQUIREMENT,
     GenerateCodeRequest,
     IntermidaryState,
     onChatNotify,
@@ -16,6 +18,7 @@ import { MessageRole } from "./types";
 import { RPCLayer } from "../../../../src/RPCLayer";
 import { AiPanelWebview } from "../../../views/ai-panel/webview";
 import { GenerationType } from "./libs/libs";
+import { REQUIREMENTS_DOCUMENT_KEY } from "./code/np_prompts";
 
 export function populateHistory(chatHistory: ChatEntry[]): CoreMessage[] {
     if (!chatHistory || chatHistory.length === 0) {
@@ -63,9 +66,32 @@ export function transformProjectSource(project: ProjectSource): SourceFiles[] {
     return sourceFiles;
 }
 
+export function extractResourceDocumentContent(sourceFiles: readonly SourceFiles[]): string {
+    const requirementFiles = sourceFiles
+        .filter(sourceFile => sourceFile.filePath.toLowerCase().endsWith(REQUIREMENTS_DOCUMENT_KEY))
+        .slice(0, 1)
+        .map(sourceFile => sourceFile.content);
+
+    if (requirementFiles.length === 0) {
+        return "";
+    }
+    return requirementFiles[0];
+}
+
 //TODO: This should be a query rewriter ideally.
-export function getReadmeQuery(params: GenerateCodeRequest, sourceFiles: SourceFiles[]) {
+export function getRewrittenPrompt(params: GenerateCodeRequest, sourceFiles: SourceFiles[]) {
     const prompt = params.usecase;
+    if (prompt.trim() === GENERATE_CODE_AGAINST_THE_REQUIREMENT) {
+        const resourceContent = extractResourceDocumentContent(sourceFiles);
+        return `${GENERATE_CODE_AGAINST_THE_REQUIREMENT}:
+${resourceContent}`;
+    }
+    if (prompt.trim() === GENERATE_TEST_AGAINST_THE_REQUIREMENT) {
+        const resourceContent = extractResourceDocumentContent(sourceFiles);
+        return `${GENERATE_TEST_AGAINST_THE_REQUIREMENT}:
+${resourceContent}`;
+    }
+
     if (!prompt.toLowerCase().includes("readme")) {
         return prompt;
     }
