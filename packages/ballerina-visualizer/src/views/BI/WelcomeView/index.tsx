@@ -179,7 +179,7 @@ export function WelcomeView(props: WelcomeViewProps) {
 
     const openSamples = () => {
         rpcClient.getCommonRpcClient().openExternalUrl({
-            url: "https://bi.docs.wso2.com/learn/samples/message-transformation/"
+            url: "https://bi.docs.wso2.com/integration-guides/integration-as-api/message-transformation/"
         })
     };
 
