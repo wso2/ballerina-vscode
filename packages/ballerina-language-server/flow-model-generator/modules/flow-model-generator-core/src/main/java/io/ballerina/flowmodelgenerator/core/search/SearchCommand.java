@@ -89,7 +89,7 @@ public abstract class SearchCommand {
             this.query = queryMap.getOrDefault("q", "");
             this.limit = parseIntParam(queryMap.get("limit"), DEFAULT_LIMIT);
             this.offset = parseIntParam(queryMap.get("offset"), DEFAULT_OFFSET);
-            this.searchCentral = Boolean.parseBoolean(queryMap.getOrDefault("searchCentral", "true"));
+            this.searchCentral = parseBooleanParam(queryMap.get("searchCentral"), DEFAULT_SEARCH_CENTRAL);
         }
     }
 
@@ -153,6 +153,25 @@ public abstract class SearchCommand {
         try {
             return Integer.parseInt(value);
         } catch (NumberFormatException e) {
+            return defaultValue;
+        }
+    }
+
+    /**
+     * Utility method to parse boolean parameters with a default value.
+     *
+     * @param value        The string value to parse
+     * @param defaultValue Default value to use if parsing fails
+     * @return The parsed boolean or default value
+     */
+    private static boolean parseBooleanParam(String value, boolean defaultValue) {
+        if (value == null) {
+            return defaultValue;
+        }
+
+        try {
+            return Boolean.parseBoolean(value);
+        } catch (Exception e) {
             return defaultValue;
         }
     }

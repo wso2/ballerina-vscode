@@ -100,6 +100,7 @@ class TypeSearchCommand extends SearchCommand {
         queryMap.put("offset", String.valueOf(offset));
 
         SymbolResponse symbolResponse = centralClient.searchSymbols(queryMap);
+        List<SearchResult> searchResults = new ArrayList<>();
         if (symbolResponse != null && symbolResponse.symbols() != null) {
             for (SymbolResponse.Symbol symbol : symbolResponse.symbols()) {
                 if (symbol.symbolType().equals("record") || symbol.symbolType().contains("type")) {
@@ -114,11 +115,12 @@ class TypeSearchCommand extends SearchCommand {
                             symbol.symbolName(),
                             symbol.description()
                     );
-                    buildLibraryNodes(Collections.singletonList(searchResult));
+                    searchResults.add(searchResult);
                 }
             }
         }
 
+        buildLibraryNodes(searchResults);
         return rootBuilder.build().items();
     }
 

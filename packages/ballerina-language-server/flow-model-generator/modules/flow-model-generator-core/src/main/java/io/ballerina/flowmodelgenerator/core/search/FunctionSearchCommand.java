@@ -18,6 +18,9 @@
 
 package io.ballerina.flowmodelgenerator.core.search;
 
+import io.ballerina.centralconnector.CentralAPI;
+import io.ballerina.centralconnector.RemoteCentral;
+import io.ballerina.centralconnector.response.SymbolResponse;
 import io.ballerina.compiler.api.ModuleID;
 import io.ballerina.compiler.api.symbols.AnnotationAttachmentSymbol;
 import io.ballerina.compiler.api.symbols.AnnotationSymbol;
@@ -44,12 +47,7 @@ import io.ballerina.tools.diagnostics.Location;
 import io.ballerina.tools.text.LineRange;
 import org.ballerinalang.langserver.common.utils.PositionUtil;
 
-import io.ballerina.centralconnector.CentralAPI;
-import io.ballerina.centralconnector.RemoteCentral;
-import io.ballerina.centralconnector.response.SymbolResponse;
-
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -139,6 +137,7 @@ class FunctionSearchCommand extends SearchCommand {
         queryMap.put("offset", String.valueOf(offset));
 
         SymbolResponse symbolResponse = centralClient.searchSymbols(queryMap);
+        List<SearchResult> searchResults = new ArrayList<>();
         if (symbolResponse != null && symbolResponse.symbols() != null) {
             for (SymbolResponse.Symbol symbol : symbolResponse.symbols()) {
                 if (symbol.symbolType().equals("function")) {
@@ -153,11 +152,11 @@ class FunctionSearchCommand extends SearchCommand {
                             symbol.symbolName(),
                             symbol.description()
                     );
-                    buildLibraryNodes(Collections.singletonList(searchResult));
+                    searchResults.add(searchResult);
                 }
             }
         }
-
+        buildLibraryNodes(searchResults);
         return rootBuilder.build().items();
     }
 
