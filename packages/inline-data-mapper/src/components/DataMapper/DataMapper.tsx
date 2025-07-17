@@ -99,6 +99,7 @@ export function InlineDataMapper(props: InlineDataMapperProps) {
         handleView,
         convertToQuery,
         addSubMapping,
+        deleteMapping,
         generateForm,
         addClauses
     } = props;
@@ -168,7 +169,8 @@ export function InlineDataMapper(props: InlineDataMapperProps) {
                 applyModifications, 
                 addArrayElement,
                 hasInputsOutputsChanged,
-                convertToQuery
+                convertToQuery,
+                deleteMapping
             );
 
             // Only regenerate IO nodes if inputs/outputs have changed
