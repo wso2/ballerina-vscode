@@ -1,9 +1,13 @@
 import ballerina/log;
-import ballerinax/health.fhir.r4.international401;
+import ballerinax/redis;
 
 public function main() returns error? {
     do {
-        international401:PatientBirthPlace var1;
+        redis:Options options = {
+            host: "localhost",
+            port: 6379,
+            password: "your_password"
+        };
     } on fail error e {
         log:printError("Error occurred", 'error = e);
         return e;

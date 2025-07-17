@@ -1042,11 +1042,11 @@ public class DataMapManager {
                 DefaultValueGeneratorUtil.getDefaultValueForType(recordTypeSymbol);
     }
 
-    public Symbol getMatchedSymbol(String prefix, String type, SemanticModel defaultModuleSM) {
+    public Symbol getMatchedTypeDefSymbol(String prefix, String type, SemanticModel defaultModuleSM) {
         return defaultModuleSM.moduleSymbols().stream()
                 .filter(m -> m.kind() == SymbolKind.MODULE)
                 .map(m -> (ModuleSymbol) m)
-                .filter(m -> m.getName().isPresent() && m.getName().get().endsWith(prefix))
+                .filter(m -> m.id().modulePrefix().equals(prefix))
                 .flatMap(m -> m.typeDefinitions().stream()
                         .filter(s -> s.getName().isPresent() && s.getName().get().equals(type))
                         .findFirst().stream())
@@ -1088,13 +1088,16 @@ public class DataMapManager {
         }
 
         String[] typeSegments = type.split(":");
-        String prefix = typeSegments.length > 1 ? typeSegments[0] : "";
-        String typeName = typeSegments.length > 1 ? typeSegments[1] : typeSegments[0];
-        Symbol matchedSymbol = getMatchedSymbol(prefix, typeName, semanticModel);
-        if (matchedSymbol != null && matchedSymbol.kind() == SymbolKind.TYPE_DEFINITION) {
-            Map<String, String> expressionMap = getExpressionMapForType(matchedSymbol, isArray);
-            if (!expressionMap.isEmpty()) {
-                return expressionMap;
+        boolean hasModulePrefix = typeSegments.length > 1 && !typeSegments[0].isEmpty();
+        if (hasModulePrefix) {
+            String prefix = typeSegments[0];
+            String typeName = typeSegments[1];
+            Symbol matchedSymbol = getMatchedTypeDefSymbol(prefix, typeName, semanticModel);
+            if (matchedSymbol != null) {
+                Map<String, String> expressionMap = getExpressionMapForType(matchedSymbol, isArray);
+                if (!expressionMap.isEmpty()) {
+                    return expressionMap;
+                }
             }
         }
 
