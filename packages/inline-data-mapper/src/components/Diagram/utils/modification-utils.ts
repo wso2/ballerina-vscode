@@ -67,11 +67,6 @@ export async function addValue(fieldId: string, value: string, context: IDataMap
 }
 
 export async function removeMapping(mapping: Mapping, context: IDataMapperContext) {
-	// const deletionVisitor = new MappingDeletionVisitor(fieldId);
-	// traverseNode(context.model, deletionVisitor);
-	// const remainingMappings = deletionVisitor.getRemainingMappings();
-
-	// TODO: Update this once the mapping deletion API is available
 	const views=context.views;
 	const viewId = views[views.length-1].targetField;
 	return await context.deleteMapping( mapping as Mapping, viewId)
