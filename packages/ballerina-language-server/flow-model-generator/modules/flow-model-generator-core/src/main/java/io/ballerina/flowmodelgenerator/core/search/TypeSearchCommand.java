@@ -18,6 +18,9 @@
 
 package io.ballerina.flowmodelgenerator.core.search;
 
+import io.ballerina.centralconnector.CentralAPI;
+import io.ballerina.centralconnector.RemoteCentral;
+import io.ballerina.centralconnector.response.SymbolResponse;
 import io.ballerina.flowmodelgenerator.core.model.AvailableNode;
 import io.ballerina.flowmodelgenerator.core.model.Category;
 import io.ballerina.flowmodelgenerator.core.model.Codedata;
@@ -33,6 +36,7 @@ import io.ballerina.tools.text.LineRange;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -76,20 +80,46 @@ class TypeSearchCommand extends SearchCommand {
         if (!moduleNames.isEmpty()) {
             searchResults.addAll(dbManager.searchTypesByPackages(moduleNames, limit, offset));
         }
-        buildLibraryNodes(searchResults, false);
+        buildLibraryNodes(searchResults);
         return rootBuilder.build().items();
     }
 
     @Override
     protected List<Item> search() {
         List<SearchResult> typeSearchList = dbManager.searchTypes(query, limit, offset);
-        buildLibraryNodes(typeSearchList, true);
+        buildLibraryNodes(typeSearchList);
         return rootBuilder.build().items();
     }
 
     @Override
     protected List<Item> searchCentral() {
-        return List.of();
+        CentralAPI centralClient = RemoteCentral.getInstance();
+        Map<String, String> queryMap = new HashMap<>();
+        queryMap.put("q", query);
+        queryMap.put("limit", String.valueOf(limit));
+        queryMap.put("offset", String.valueOf(offset));
+
+        SymbolResponse symbolResponse = centralClient.searchSymbols(queryMap);
+        if (symbolResponse != null && symbolResponse.symbols() != null) {
+            for (SymbolResponse.Symbol symbol : symbolResponse.symbols()) {
+                if (symbol.symbolType().equals("record") || symbol.symbolType().contains("type")) {
+                    SearchResult.Package packageInfo = new SearchResult.Package(
+                            symbol.organization(),
+                            symbol.name(),
+                            symbol.name(),
+                            symbol.version()
+                    );
+                    SearchResult searchResult = SearchResult.from(
+                            packageInfo,
+                            symbol.symbolName(),
+                            symbol.description()
+                    );
+                    buildLibraryNodes(Collections.singletonList(searchResult));
+                }
+            }
+        }
+
+        return rootBuilder.build().items();
     }
 
     @Override
@@ -98,7 +128,7 @@ class TypeSearchCommand extends SearchCommand {
         return Collections.emptyMap();
     }
 
-    private void buildLibraryNodes(List<SearchResult> typeSearchList, boolean includeAllResults) {
+    private void buildLibraryNodes(List<SearchResult> typeSearchList) {
         // Set the categories based on available flags
         Category.Builder importedTypesBuilder = rootBuilder.stepIn(Category.Name.IMPORTED_TYPES);
         Category.Builder availableTypesBuilder = rootBuilder.stepIn(Category.Name.AVAILABLE_TYPES);
