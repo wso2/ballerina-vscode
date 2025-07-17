@@ -41,7 +41,8 @@ import {
     ExpressionProperty,
     TRIGGER_CHARACTERS,
     TriggerCharacter,
-    TextEdit
+    TextEdit,
+    ParentMetadata
 } from "@wso2/ballerina-core";
 
 import {
@@ -70,16 +71,14 @@ const SpinnerContainer = styled.div`
 `;
 
 export interface BIFocusFlowDiagramProps {
-    syntaxTree: STNode; // INFO: this is used to make the diagram rerender when code changes
     projectPath: string;
     filePath: string;
-    view: FocusFlowDiagramView;
     onUpdate: () => void;
-    onReady: (fileName: string) => void;
+    onReady: (fileName: string, parentMetadata?: ParentMetadata) => void;
 }
 
 export function BIFocusFlowDiagram(props: BIFocusFlowDiagramProps) {
-    const { syntaxTree, projectPath, filePath, onUpdate, onReady, view } = props;
+    const { projectPath, filePath, onUpdate, onReady } = props;
     const { rpcClient } = useRpcContext();
 
     const [model, setModel] = useState<Flow>();
@@ -105,8 +104,8 @@ export function BIFocusFlowDiagram(props: BIFocusFlowDiagramProps) {
     const expressionOffsetRef = useRef<number>(0); // To track the expression offset on adding import statements
 
     useEffect(() => {
-        getFlowModel();
-    }, [syntaxTree]);
+        debouncedGetFlowModel();
+    }, []);
 
     useEffect(() => {
         rpcClient.onProjectContentUpdated((state: boolean) => {
@@ -121,6 +120,13 @@ export function BIFocusFlowDiagram(props: BIFocusFlowDiagramProps) {
         });
     }, [rpcClient]);
 
+    const debouncedGetFlowModel = useCallback(
+        debounce(() => {
+            getFlowModel();
+        }, 1000),
+        [rpcClient]
+    );
+
     const getFlowModel = () => {
         setShowProgressIndicator(true);
         onUpdate();
@@ -133,22 +139,25 @@ export function BIFocusFlowDiagram(props: BIFocusFlowDiagramProps) {
                     .getBIDiagramRpcClient()
                     .getFlowModel()
                     .then(async (model) => {
+                        console.log(">>> focus diagram flow model", model);
                         if (model?.flowModel) {
-                            if (isNaturalFunction(syntaxTree, view)) {
-                                const node = await rpcClient.getBIDiagramRpcClient().getFunctionNode({
-                                    projectPath,
-                                    fileName: filePath,
-                                    functionName: syntaxTree.functionName.value
-                                });
+                            const functionName = (model.flowModel.nodes.find((node) => node.codedata.node === "EVENT_START")?.metadata.data as ParentMetadata).label || "";
+                            const node = await rpcClient.getBIDiagramRpcClient().getFunctionNode({
+                                projectPath,
+                                fileName: filePath,
+                                functionName: functionName
+                            });
 
-                                setSelectedNode(node.functionDefinition);
+                            setSelectedNode(node.functionDefinition);
 
-                                if (node?.functionDefinition) {
-                                    const flowNode = getFlowNodeForNaturalFunction(node.functionDefinition);
-                                    model.flowModel.nodes.push(flowNode);
-                                    setModel(model.flowModel);
-                                    onReady(filePath);
-                                }
+                            if (node?.functionDefinition) {
+                                const flowNode = getFlowNodeForNaturalFunction(node.functionDefinition);
+                                model.flowModel.nodes.push(flowNode);
+                                setModel(model.flowModel);
+                                const parentMetadata = model.flowModel.nodes.find(
+                                    (node) => node.codedata.node === "EVENT_START"
+                                )?.metadata.data as ParentMetadata | undefined;
+                                onReady(model.flowModel.fileName, parentMetadata);
                             }
                         }
                     })
@@ -171,7 +180,7 @@ export function BIFocusFlowDiagram(props: BIFocusFlowDiagramProps) {
         if (originalFlowModel.current) {
             // const updatedModel = removeDraftNodeFromDiagram(model);
             // setModel(updatedModel);
-            getFlowModel();
+            debouncedGetFlowModel();
             originalFlowModel.current = undefined;
             setSuggestedModel(undefined);
             suggestedText.current = undefined;
