@@ -191,6 +191,19 @@ export interface ResultClause {
     query?: Query;
 }
 
+export interface CustomFnMetadata {
+    returnType: string,
+    parameters: CustomFnParams[]
+}
+
+export interface CustomFnParams{
+    name: string,
+    type: string,
+    isOptional: boolean,
+    isNullable: boolean,
+    kind: TypeKind
+}
+
 export interface IDMFormProps {
     targetLineRange: LineRange;
     fields: IDMFormField[];

@@ -36,6 +36,7 @@ import {
     InlineDataMapperSourceRequest,
     InlineDataMapperSourceResponse,
     MACHINE_VIEW,
+    MapWithCustomFnRequest,
     PropertyRequest,
     PropertyResponse,
     VisualizableFieldsRequest,
@@ -258,5 +259,10 @@ export class InlineDataMapperRpcManager implements InlineDataMapperAPI {
                     resolve({ textEdits: resp.textEdits });
                 });
         });
+    }
+
+    async mapWithCustomFn(params: MapWithCustomFnRequest): Promise<InlineDataMapperSourceResponse> {
+        // ADD YOUR IMPLEMENTATION HERE
+        throw new Error('Not implemented');
     }
 }
