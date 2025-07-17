@@ -175,7 +175,7 @@ export function WelcomeView(props: WelcomeViewProps) {
         rpcClient.getVisualizerRpcClient().openView({
             type: EVENT_TYPE.OPEN_VIEW,
             location: {
-                view: MACHINE_VIEW.BIImportIntegrationForm,
+                view: MACHINE_VIEW.BIImportIntegration,
             },
         });
     };
