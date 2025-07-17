@@ -53,30 +53,4 @@ public class TibcoImporter {
         args.put(PARAM_LOG_CALLBACK, logCallback);
         return invokeToolMethod(TIBCO_TOOL_COMMAND, TIBCO_TOOL_CLASS_NAME, TIBCO_TOOL_METHOD_NAME, args);
     }
-
-    public static void main(String[] args) {
-        // Example usage
-        String orgName = "exampleOrg";
-        String packageName = "examplePackage";
-        String sourcePath = "/Users/lakshanweerasinghe/Documents/repos/wso2-enterprise/integration-bi-migration-assistant/tibco/src/test/resources/tibco.projects/XMLTransform/Processes/main.process";
-
-        List<String> logMessages = new ArrayList<>();
-        Consumer<String> logCallback = logMessage -> {
-            logMessages.add(logMessage);
-            System.out.println("Log: " + logMessage);
-        };
-
-        List<String> stateMessages = new ArrayList<>();
-        Consumer<String> stateCallback = state -> {
-            stateMessages.add(state);
-            System.out.println("State: " + state);
-        };
-
-        ToolExecutionResult result = importTibco(orgName, packageName, sourcePath,
-                stateCallback, logCallback);
-
-        System.out.println(result.report());
-        System.out.println("Log Messages: " + logMessages);
-        System.out.println("State Messages: " + stateMessages);
-    }
 }

@@ -18,10 +18,19 @@
 
 package io.ballerina.projectservice.extension.response;
 
+import io.ballerina.projectservice.core.ToolExecutionResult;
+import org.eclipse.lsp4j.TextEdit;
+
+import java.util.Map;
+
 /**
  * Response for the Tibco import operation.
  *
  * @since 1.2.0
  */
-public record ImportTibcoResponse() {
+public record ImportTibcoResponse(String error, Map<String, String> textEdits, String report) {
+
+    public static ImportTibcoResponse from(ToolExecutionResult result) {
+        return new ImportTibcoResponse(result.error(), result.textEdits(), result.report());
+    }
 }

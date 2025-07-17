@@ -23,5 +23,5 @@ package io.ballerina.projectservice.extension.request;
  *
  * @since 1.2.0
  */
-public record ImportTibcoRequest() {
+public record ImportTibcoRequest(String orgName, String packageName, String sourcePath) {
 }

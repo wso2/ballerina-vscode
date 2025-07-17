@@ -47,6 +47,7 @@ public class MigrateToolInvokingUtil {
             Class<?> toolClass = classLoader.loadClass(className);
             Method method = toolClass.getMethod(methodName, Map.class);
             Object invoke = method.invoke(null, args);
+            classLoader.close();
             if (invoke instanceof Map<?,?> mapResult) {
                 return transformToolExecutionResult(mapResult);
             }
