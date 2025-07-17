@@ -214,7 +214,15 @@ export class InlineDataMapperRpcManager implements InlineDataMapperAPI {
     }
 
     async deleteMapping(params: DeleteMappingRequest): Promise<InlineDataMapperSourceResponse> {
-        // ADD YOUR IMPLEMENTATION HERE
-        throw new Error('Not implemented');
+        return new Promise(async (resolve) => {
+            await StateMachine
+                .langClient()
+                .deleteMapping(params)
+                .then(async (resp) => {
+                    console.log(">>> inline data mapper delete mapping response", resp);
+                    updateAndRefreshDataMapper(resp.textEdits, params.filePath, params.codedata);
+                    resolve({ textEdits: resp.textEdits });
+                });
+        })
     }
 }

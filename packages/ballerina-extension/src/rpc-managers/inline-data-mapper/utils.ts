@@ -47,9 +47,9 @@ export async function fetchDataMapperCodeData(
  */
 export async function updateAndRefreshDataMapper(
     textEdits: { [key: string]: TextEdit[] },
-    filePath: string,
-    codedata: CodeData,
-    varName: string
+    filePath?: string,
+    codedata?: CodeData,
+    varName?: string
 ) {
     await applyTextEdits(textEdits);
 }
