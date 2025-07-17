@@ -17,6 +17,9 @@
         "metadata": {
           "label": "Start",
           "data": {
+            "kind": "Resource",
+            "label": "peaches",
+            "accessor": "get",
             "parameters": [
               "map<anydata> data"
             ],

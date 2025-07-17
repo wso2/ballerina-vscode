@@ -17,6 +17,9 @@
         "metadata": {
           "label": "Start",
           "data": {
+            "kind": "Resource",
+            "label": "path1",
+            "accessor": "get",
             "return": "error?"
           }
         },

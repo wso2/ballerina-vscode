@@ -15,7 +15,11 @@
       {
         "id": "32458",
         "metadata": {
-          "label": "Start"
+          "label": "Start",
+          "data": {
+            "kind": "Function",
+            "label": "testStop1"
+          }
         },
         "codedata": {
           "node": "EVENT_START",
