@@ -43,7 +43,17 @@ import {
 
 import { openView, StateMachine } from "../../stateMachine";
 import { updateSourceCode } from "../../utils";
-import { buildSourceRequests, consolidateTextEdits, fetchDataMapperCodeData, getHasStopped, processSourceRequests, setHasStopped, updateAndRefreshDataMapper, updateInlineDataMapperViewWithParams, updateSourceCodeWithEdits } from "./utils";
+import {
+    buildSourceRequests,
+    consolidateTextEdits,
+    fetchDataMapperCodeData,
+    getHasStopped,
+    processSourceRequests,
+    setHasStopped,
+    updateAndRefreshDataMapper,
+    updateInlineDataMapperViewWithParams,
+    updateSourceCodeWithEdits
+} from "./utils";
 
 export class InlineDataMapperRpcManager implements InlineDataMapperAPI {
     async getInitialIDMSource(params: InitialIDMSourceRequest): Promise<InitialIDMSourceResponse> {
@@ -110,7 +120,7 @@ export class InlineDataMapperRpcManager implements InlineDataMapperAPI {
                 .getInlineDataMapperSource(params)
                 .then(async (resp) => {
                     console.log(">>> inline data mapper initial source from ls", resp);
-                    updateAndRefreshDataMapper(resp.textEdits, params.filePath, params.codedata, params.varName);
+                    await updateAndRefreshDataMapper(resp.textEdits, params.filePath, params.codedata, params.varName);
                     resolve({ textEdits: resp.textEdits });
                 });
         });
@@ -138,7 +148,7 @@ export class InlineDataMapperRpcManager implements InlineDataMapperAPI {
                 })
                 .then(async (resp) => {
                     console.log(">>> inline data mapper add array element response", resp);
-                    updateAndRefreshDataMapper(resp.textEdits, params.filePath, params.codedata, params.varName);
+                    await updateAndRefreshDataMapper(resp.textEdits, params.filePath, params.codedata, params.varName);
                     resolve({ textEdits: resp.textEdits });
                 });
         });
@@ -151,7 +161,7 @@ export class InlineDataMapperRpcManager implements InlineDataMapperAPI {
                 .convertToQuery(params)
                 .then(async (resp) => {
                     console.log(">>> inline data mapper convert to query response", resp);
-                    updateAndRefreshDataMapper(resp.textEdits, params.filePath, params.codedata, params.varName);
+                    await updateAndRefreshDataMapper(resp.textEdits, params.filePath, params.codedata, params.varName);
                     resolve({ textEdits: resp.textEdits });
                 });
         });
@@ -164,7 +174,7 @@ export class InlineDataMapperRpcManager implements InlineDataMapperAPI {
                 .addClauses(params)
                 .then(async (resp) => {
                     console.log(">>> inline data mapper add clauses response", resp);
-                    updateAndRefreshDataMapper(resp.textEdits, params.filePath, params.codedata, params.varName);
+                    await updateAndRefreshDataMapper(resp.textEdits, params.filePath, params.codedata, params.varName);
                     resolve({ textEdits: resp.textEdits });
                 });
         });
@@ -177,7 +187,7 @@ export class InlineDataMapperRpcManager implements InlineDataMapperAPI {
                 .addSubMapping(params)
                 .then(async (resp) => {
                     console.log(">>> inline data mapper add sub mapping response", resp);
-                    updateAndRefreshDataMapper(resp.textEdits, params.filePath, params.codedata, params.varName);
+                    await updateAndRefreshDataMapper(resp.textEdits, params.filePath, params.codedata, params.varName);
                     resolve({ textEdits: resp.textEdits });
                 });
         });
