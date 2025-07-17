@@ -56,7 +56,7 @@ export const PALETTE_COMMANDS = {
     SHOW_ENTITY_DIAGRAM: 'ballerina.view.entityDiagram',
     SHOW_SERVICE_DESIGNER_VIEW: 'ballerina.view.serviceDesigner',
     SHOW_GRAPHQL_DESIGNER_VIEW: 'ballerina.view.graphqlDesigner'
-}
+};
 
 export const INTERNAL_DEBUG_COMMAND = "ballerina.internal.debug";
 export const SOURCE_DEBUG_COMMAND = "ballerina.source.debug";
