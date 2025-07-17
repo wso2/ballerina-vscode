@@ -14,16 +14,11 @@
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations
  * under the License.
+ * 
+ * THIS FILE INCLUDES AUTO GENERATED CODE
  */
+import { MigrationToolPullRequest } from "./interfaces";
+import { NotificationType } from "vscode-messenger-common";
 
-export * from "./lang-client/rpc-client";
-export * from "./library-browser/rpc-client";
-export * from "./service-designer/rpc-client";
-export * from "./common/rpc-client";
-export * from "./persist-diagram/rpc-client";
-export * from "./graphql-designer/rpc-client";
-export * from "./record-creator/rpc-client";
-export * from "./ai-panel/rpc-client";
-export * from "./connector-wizard/rpc-client";
-export * from "./test-manager/rpc-client";
-export * from "./migrate-integration/rpc-client";
+const _preFix = "migrate-integration";
+export const pullMigrationTool: NotificationType<MigrationToolPullRequest> = { method: `${_preFix}/pullMigrationTool` };
