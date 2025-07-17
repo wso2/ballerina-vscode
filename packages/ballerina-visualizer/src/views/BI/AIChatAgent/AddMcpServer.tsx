@@ -232,7 +232,8 @@ export function AddMcpServer(props: AddToolProps): JSX.Element {
     const [configs, setConfigs] = useState({});
     const [toolSelection, setToolSelection] = useState("All");
     const [name, setName] = useState(props.name || "");
-    
+    const [hasUserTyped, setHasUserTyped] = useState(false);
+
     // New state for MCP server tools
     const [mcpTools, setMcpTools] = useState<Tool[]>([]);
     const [selectedMcpTools, setSelectedMcpTools] = useState<Set<string>>(new Set());
@@ -459,6 +460,7 @@ export function AddMcpServer(props: AddToolProps): JSX.Element {
     const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const newName = e.target.value;
         setName(newName);
+        setHasUserTyped(true);
         const errorMessage = validateName(newName);
         if (errorMessage == '') {
             setErrorInputs(false);
@@ -702,24 +704,12 @@ export function AddMcpServer(props: AddToolProps): JSX.Element {
                         <TextField
                             sx={{ flexGrow: 1, marginTop: 15 }}
                             disabled={false}
-                            label="Configs"
-                            size={70}
-                            onChange={(e) => setConfigs(e.target.value)}
-                            placeholder="Enter server configurations (optional)"
-                            value={""}
-                        />
-                    </NameContainer>
-
-                    <NameContainer>
-                        <TextField
-                            sx={{ flexGrow: 1, marginTop: 15 }}
-                            disabled={false}
                             label="Name"
                             size={70}
                             errorMsg={nameError}
                             onChange={handleNameChange}
                             placeholder="Enter name for the MCP Tool Kit"
-                            value={name != "" ? name : mcpToolkitCount > 1 ? `MCP Server 0${mcpToolkitCount}` : "MCP Server"}
+                            value={hasUserTyped ? name : (mcpToolkitCount > 1 ? `MCP Server 0${mcpToolkitCount}` : "MCP Server")}
                         />
                     </NameContainer>
 
