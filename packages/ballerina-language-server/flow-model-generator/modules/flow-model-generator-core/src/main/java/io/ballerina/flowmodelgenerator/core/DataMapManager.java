@@ -853,9 +853,7 @@ public class DataMapManager {
             }
         } else if (expr.kind() == SyntaxKind.LIST_CONSTRUCTOR) {
             ListConstructorExpressionNode listCtrExpr = (ListConstructorExpressionNode) expr;
-            if (idx == names.length) {
-                textEdits.add(new TextEdit(CommonUtils.toRange(expr.lineRange()), ""));
-            } else {
+            if (idx != names.length) {
                 String name = names[idx];
                 if (name.matches("\\d+")) {
                     int index = Integer.parseInt(name);
@@ -865,92 +863,92 @@ public class DataMapManager {
                     }
                 }
             }
-        } else {
-            if (idx == names.length) {
-                NonTerminalNode currentNode = expr;
-                NonTerminalNode highestEmptyField = null;
+        }
 
-                while (true) {
-                    NonTerminalNode parentNode = currentNode.parent();
-                    if (parentNode == null) {
-                        break;
-                    }
-                    if (parentNode.kind() == SyntaxKind.SPECIFIC_FIELD) {
-                        SpecificFieldNode specificField = (SpecificFieldNode) parentNode;
-                        NonTerminalNode grandParent = parentNode.parent();
+        if (idx == names.length) {
+            NonTerminalNode currentNode = expr;
+            NonTerminalNode highestEmptyField = null;
 
-                        if (grandParent != null && grandParent.kind() == SyntaxKind.MAPPING_CONSTRUCTOR) {
-                            MappingConstructorExpressionNode mappingCtr = (MappingConstructorExpressionNode)
-                                    grandParent;
-
-                            if (mappingCtr.fields().size() == 1) {
-                                highestEmptyField = specificField;
-                                currentNode = grandParent;
-                                continue;
-                            }
-                        }
-                    }
+            while (true) {
+                NonTerminalNode parentNode = currentNode.parent();
+                if (parentNode == null) {
                     break;
                 }
+                if (parentNode.kind() == SyntaxKind.SPECIFIC_FIELD) {
+                    SpecificFieldNode specificField = (SpecificFieldNode) parentNode;
+                    NonTerminalNode grandParent = parentNode.parent();
 
-                if (highestEmptyField != null) {
-                    textEdits.add(new TextEdit(CommonUtils.toRange(highestEmptyField.lineRange()), ""));
-                } else {
-                    SpecificFieldNode specificField = (SpecificFieldNode) expr.parent();
-                    MappingConstructorExpressionNode mappingCtr = (MappingConstructorExpressionNode)
-                            specificField.parent();
-                    SeparatedNodeList<MappingFieldNode> fields = mappingCtr.fields();
-                    int fieldCount = fields.size();
+                    if (grandParent != null && grandParent.kind() == SyntaxKind.MAPPING_CONSTRUCTOR) {
+                        MappingConstructorExpressionNode mappingCtr = (MappingConstructorExpressionNode)
+                                grandParent;
 
-                    if (fieldCount > 1) {
-                        int fieldIndex = -1;
-                        for (int i = 0; i < fieldCount; i++) {
-                            if (fields.get(i) == specificField) {
-                                fieldIndex = i;
-                                break;
-                            }
+                        if (mappingCtr.fields().size() == 1) {
+                            highestEmptyField = specificField;
+                            currentNode = grandParent;
+                            continue;
                         }
-                        if (fieldIndex >= 0) {
-                            TextRange deleteRange;
-                            if (fieldIndex == fieldCount - 1) {
-                                TextRange fieldRange = specificField.textRange();
-                                Node separator = fields.getSeparator(fieldIndex - 1);
-                                if (separator != null) {
-                                    deleteRange = TextRange.from(
-                                            separator.textRange().startOffset(),
-                                            fieldRange.endOffset() - separator.textRange().startOffset()
-                                    );
-                                } else {
-                                    deleteRange = fieldRange;
-                                }
+                    }
+                }
+                break;
+            }
+
+            if (highestEmptyField != null) {
+                textEdits.add(new TextEdit(CommonUtils.toRange(highestEmptyField.lineRange()), ""));
+            } else {
+                SpecificFieldNode specificField = (SpecificFieldNode) expr.parent();
+                MappingConstructorExpressionNode mappingCtr = (MappingConstructorExpressionNode)
+                        specificField.parent();
+                SeparatedNodeList<MappingFieldNode> fields = mappingCtr.fields();
+                int fieldCount = fields.size();
+
+                if (fieldCount > 1) {
+                    int fieldIndex = -1;
+                    for (int i = 0; i < fieldCount; i++) {
+                        if (fields.get(i) == specificField) {
+                            fieldIndex = i;
+                            break;
+                        }
+                    }
+                    if (fieldIndex >= 0) {
+                        TextRange deleteRange;
+                        if (fieldIndex == fieldCount - 1) {
+                            TextRange fieldRange = specificField.textRange();
+                            Node separator = fields.getSeparator(fieldIndex - 1);
+                            if (separator != null) {
+                                deleteRange = TextRange.from(
+                                        separator.textRange().startOffset(),
+                                        fieldRange.endOffset() - separator.textRange().startOffset()
+                                );
                             } else {
-                                TextRange fieldRange = specificField.textRange();
-                                Node separator = fields.getSeparator(fieldIndex);
-                                if (separator != null) {
-                                    deleteRange = TextRange.from(
-                                            fieldRange.startOffset(),
-                                            fields.get(fieldIndex + 1).
-                                                    textRange().startOffset() - fieldRange.startOffset()
-                                    );
-                                } else {
-                                    deleteRange = fieldRange;
-                                }
+                                deleteRange = fieldRange;
                             }
-
-                            String fileName = document.name();
-                            LinePosition startPos = document.syntaxTree().
-                                    textDocument().linePositionFrom(deleteRange.startOffset());
-                            LinePosition endPos = document.syntaxTree().
-                                    textDocument().linePositionFrom(deleteRange.endOffset());
-
-                            LineRange lineRangeToDelete = LineRange.from(fileName, startPos, endPos);
-                            textEdits.add(new TextEdit(CommonUtils.toRange(lineRangeToDelete), ""));
                         } else {
-                            textEdits.add(new TextEdit(CommonUtils.toRange(specificField.lineRange()), ""));
+                            TextRange fieldRange = specificField.textRange();
+                            Node separator = fields.getSeparator(fieldIndex);
+                            if (separator != null) {
+                                deleteRange = TextRange.from(
+                                        fieldRange.startOffset(),
+                                        fields.get(fieldIndex + 1).
+                                                textRange().startOffset() - fieldRange.startOffset()
+                                );
+                            } else {
+                                deleteRange = fieldRange;
+                            }
                         }
+
+                        String fileName = document.name();
+                        LinePosition startPos = document.syntaxTree().
+                                textDocument().linePositionFrom(deleteRange.startOffset());
+                        LinePosition endPos = document.syntaxTree().
+                                textDocument().linePositionFrom(deleteRange.endOffset());
+
+                        LineRange lineRangeToDelete = LineRange.from(fileName, startPos, endPos);
+                        textEdits.add(new TextEdit(CommonUtils.toRange(lineRangeToDelete), ""));
                     } else {
                         textEdits.add(new TextEdit(CommonUtils.toRange(specificField.lineRange()), ""));
                     }
+                } else {
+                    textEdits.add(new TextEdit(CommonUtils.toRange(specificField.lineRange()), ""));
                 }
             }
         }

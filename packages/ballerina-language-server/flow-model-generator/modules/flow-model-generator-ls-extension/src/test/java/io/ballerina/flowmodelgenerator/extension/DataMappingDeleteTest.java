@@ -52,7 +52,8 @@ public class DataMappingDeleteTest extends AbstractLSTest {
         return new Object[][]{
                 {Path.of("variable1.json")},
                 {Path.of("query1.json")},
-                {Path.of("array.json")}
+                {Path.of("array.json")},
+                {Path.of("array2.json")},
         };
     }
 
