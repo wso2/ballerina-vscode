@@ -18,9 +18,14 @@
 
 package io.ballerina.projectservice.extension;
 
+import io.ballerina.projectservice.extension.request.ImportTibcoRequest;
+import io.ballerina.projectservice.extension.response.ImportTibcoResponse;
 import org.ballerinalang.annotation.JavaSPIService;
 import org.ballerinalang.langserver.commons.service.spi.ExtendedLanguageServerService;
+import org.eclipse.lsp4j.jsonrpc.services.JsonRequest;
 import org.eclipse.lsp4j.jsonrpc.services.JsonSegment;
+
+import java.util.concurrent.CompletableFuture;
 
 /**
  * This service provides project-related functionalities.
@@ -36,5 +41,18 @@ public class ProjectService implements ExtendedLanguageServerService {
     @Override
     public Class<?> getRemoteInterface() {
         return null;
+    }
+
+    /**
+     * Use a tibco project or file to import a Tibco project into the Ballerina project.
+     *
+     * @param request The request containing the details of the Tibco project to be imported.
+     * @return A CompletableFuture that resolves to an ImportTibcoResponse.
+     */
+    @JsonRequest
+    public CompletableFuture<ImportTibcoResponse> importTibco(ImportTibcoRequest request) {
+        return CompletableFuture.supplyAsync(() -> {
+            return new ImportTibcoResponse();
+        });
     }
 }
