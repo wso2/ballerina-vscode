@@ -134,7 +134,7 @@ export async function pullMigrationTool(migrationToolName: string): Promise<void
         // 5. Handle the definitive end of the process
         childProcess.on("close", (code) => {
             debug(`Tool pull command exited with code ${code}`);
-            if (code === 0) {
+            if (code === 0 || (code === 1 && accumulatedStdout.includes("is already available locally"))) {
                 const finalMessage = accumulatedStdout.includes("is already available locally")
                     ? `Tool '${migrationToolName}' is already installed.`
                     : `Successfully pulled '${migrationToolName}'.`;

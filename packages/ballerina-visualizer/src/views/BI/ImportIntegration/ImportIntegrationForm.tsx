@@ -23,6 +23,8 @@ import { Button, CheckBox, Codicon, Icon, LocationSelector, TextField, Tooltip, 
 import { useEffect, useState } from "react";
 import ButtonCard from "../../../components/ButtonCard";
 import { BodyText } from "../../styles";
+import { INTEGRATION_CONFIGS } from "./definitions";
+import { FinalIntegrationParams } from ".";
 
 const FormContainer = styled.div`
     max-width: 660px;
@@ -128,66 +130,6 @@ interface LogicAppsParams extends BaseIntegrationParams {
 
 type IntegrationParams = MuleSoftParams | TibcoParams | LogicAppsParams;
 
-const INTEGRATION_CONFIGS = {
-    mulesoft: {
-        title: "MuleSoft",
-        parameters: [
-            {
-                key: "keepStructure",
-                label: "Preserve Original Process Flow",
-                type: "boolean" as const,
-                defaultValue: false,
-            },
-            {
-                key: "multiRoot",
-                label: "Treat each Directory as a Separate Project",
-                type: "boolean" as const,
-                defaultValue: false,
-            },
-        ],
-    },
-    tibco: {
-        title: "TIBCO",
-        parameters: [
-            {
-                key: "keepStructure",
-                label: "Preserve Original Process Flow",
-                type: "boolean" as const,
-                defaultValue: false,
-            },
-            {
-                key: "multiRoot",
-                label: "Treat each Directory as a Separate Project",
-                type: "boolean" as const,
-                defaultValue: false,
-            },
-        ],
-    },
-    "logic-apps": {
-        title: "Logic Apps",
-        parameters: [
-            {
-                key: "keepStructure",
-                label: "Preserve Original Process Flow",
-                type: "boolean" as const,
-                defaultValue: false,
-            },
-            {
-                key: "multiRoot",
-                label: "Treat each Directory as a Separate Project",
-                type: "boolean" as const,
-                defaultValue: false,
-            },
-            {
-                key: "prompt",
-                label: "Describe the Logic App for AI Conversion",
-                type: "string" as const,
-                defaultValue: "",
-            },
-        ],
-    },
-} as const;
-
 const ParametersSection = styled.div`
     margin: 20px 0;
     padding: 16px;
@@ -207,96 +149,60 @@ const sanitizeProjectName = (name: string): string => {
     return name.replace(/[^a-z0-9]/gi, "_").toLowerCase();
 };
 
-export function ImportIntegrationForm() {
+interface FormProps {
+    selectedIntegration: keyof typeof INTEGRATION_CONFIGS | null;
+    toolPullProgress: DownloadProgress | null;
+    onSelectIntegration: (type: keyof typeof INTEGRATION_CONFIGS) => void;
+    onImport: (params: FinalIntegrationParams) => void;
+}
+
+export function ImportIntegrationForm({
+    selectedIntegration,
+    toolPullProgress,
+    onSelectIntegration,
+    onImport,
+}: FormProps) {
     const { rpcClient } = useRpcContext();
-    const [selectedIntegration, setSelectedIntegration] = useState<keyof typeof INTEGRATION_CONFIGS | null>(null);
+
     const [name, setName] = useState("");
     const [path, setPath] = useState("");
     const [importSourcePath, setImportSourcePath] = useState("");
     const [integrationParams, setIntegrationParams] = useState<Record<string, any>>({});
-    const [progress, setProgress] = useState<DownloadProgress | null>(null);
 
-    const handleProjectName = (value: string) => {
-        setName(value);
-    };
+    const handleProjectName = (value: string) => setName(value);
 
     const handleIntegrationSelection = (integrationType: keyof typeof INTEGRATION_CONFIGS) => {
-        setSelectedIntegration(integrationType);
-        setProgress(null);
+        onSelectIntegration(integrationType);
 
-        // Pull integration tool
-        rpcClient.getMigrateIntegrationRpcClient().pullMigrationTool({
-            toolName: integrationType,
-        });
-
-        // Initialize parameters with default values
         const config = INTEGRATION_CONFIGS[integrationType];
         const defaultParams = config.parameters.reduce((acc, param) => {
             acc[param.key] = param.defaultValue;
             return acc;
         }, {} as Record<string, any>);
-
         setIntegrationParams(defaultParams);
     };
 
-    // Listen for progress updates from the extension
-    useEffect(() => {
-        rpcClient.onDownloadProgress((progressUpdate) => {
-            console.log(`Download progress: ${progressUpdate.percentage}% - ${progressUpdate.message}`);
-            setProgress(progressUpdate);
-        });
-    }, [rpcClient]);
+    const handleImportIntegration = () => {
+        if (!selectedIntegration || !name || !path || !importSourcePath) return;
+
+        const finalParams: FinalIntegrationParams = {
+            name,
+            path,
+            importSourcePath,
+            type: selectedIntegration,
+            ...integrationParams,
+        };
+
+        onImport(finalParams);
+    };
+
+
 
     const handleParameterChange = (paramKey: string, value: any) => {
         setIntegrationParams((prev) => ({
             ...prev,
             [paramKey]: value,
         }));
-    };
-
-    const handleImportIntegration = () => {
-        if (!selectedIntegration || !name || !path || !importSourcePath) return;
-
-        // Create the properly typed parameters object
-        const baseParams = { name, path, importSourcePath };
-
-        let finalParams: IntegrationParams;
-
-        switch (selectedIntegration) {
-            case "mulesoft":
-                finalParams = {
-                    ...baseParams,
-                    type: "mulesoft",
-                    keepStructure: integrationParams.keepStructure || false,
-                    multiRoot: integrationParams.multiRoot || false,
-                } as MuleSoftParams;
-                break;
-            case "tibco":
-                finalParams = {
-                    ...baseParams,
-                    type: "tibco",
-                    keepStructure: integrationParams.keepStructure || false,
-                    multiRoot: integrationParams.multiRoot || false,
-                } as TibcoParams;
-                break;
-            case "logic-apps":
-                finalParams = {
-                    ...baseParams,
-                    type: "logic-apps",
-                    keepStructure: integrationParams.keepStructure || false,
-                    multiRoot: integrationParams.multiRoot || false,
-                    prompt: integrationParams.prompt || "",
-                } as LogicAppsParams;
-                break;
-            default:
-                return;
-        }
-
-        // Pass the parameters to your import function
-        console.log("Importing integration with parameters:", finalParams);
-
-        // TODO: Call your RPC method with finalParams
-        // rpcClient.getBIDiagramRpcClient().importIntegration(finalParams);
     };
 
     const handleProjectDirSelection = async () => {
