@@ -196,6 +196,7 @@ public class CodeAnalyzer extends NodeVisitor {
     private final Stack<NodeBuilder> flowNodeBuilderStack;
     private TypedBindingPatternNode typedBindingPatternNode;
     private static final String BALLERINAX = "ballerinax";
+    private static final String BALLERINA = "ballerina";
     private static final String AI_AGENT = "ai";
 
     public CodeAnalyzer(Project project, SemanticModel semanticModel, String connectionScope,
@@ -300,8 +301,8 @@ public class CodeAnalyzer extends NodeVisitor {
             handleExpressionNode(remoteMethodCallActionNode);
             return;
         }
-        Optional<ClassSymbol> classSymbol = getClassSymbol(remoteMethodCallActionNode.expression());
-        if (classSymbol.isEmpty()) {
+        Optional<ClassSymbol> optClassSymbol = getClassSymbol(remoteMethodCallActionNode.expression());
+        if (optClassSymbol.isEmpty()) {
             handleExpressionNode(remoteMethodCallActionNode);
             return;
         }
@@ -309,68 +310,71 @@ public class CodeAnalyzer extends NodeVisitor {
         String functionName = remoteMethodCallActionNode.methodName().name().text();
         ExpressionNode expressionNode = remoteMethodCallActionNode.expression();
         MethodSymbol functionSymbol = (MethodSymbol) symbol.get();
-        if (isAgentCall(classSymbol.get())) {
+        ClassSymbol classSymbol = optClassSymbol.get();
+        if (isAgentCall(classSymbol)) {
             startNode(NodeKind.AGENT_CALL, expressionNode.parent());
-            setFunctionProperties(functionName, expressionNode, remoteMethodCallActionNode, functionSymbol,
-                    classSymbol.get().getName().orElseThrow());
+            populateAgentMetaData(expressionNode, remoteMethodCallActionNode, classSymbol);
+        } else {
+            startNode(NodeKind.REMOTE_ACTION_CALL, expressionNode.parent());
+        }
+        setFunctionProperties(functionName, expressionNode, remoteMethodCallActionNode, functionSymbol,
+                classSymbol.getName().orElseThrow());
+    }
 
-            if (isClassField(expressionNode)) {
-                ServiceDeclarationNode serviceDeclaration = getParentServiceDeclaration(remoteMethodCallActionNode);
-                for (Node member : serviceDeclaration.members()) {
-                    if (member.kind() != SyntaxKind.OBJECT_METHOD_DEFINITION) {
-                        continue;
-                    }
-                    FunctionDefinitionNode funcDef = (FunctionDefinitionNode) member;
-                    if (funcDef.functionName().text().equals("init")) {
-                        for (StatementNode statement : ((FunctionBodyBlockNode) funcDef.functionBody()).statements()) {
-                            if (statement.kind() != SyntaxKind.ASSIGNMENT_STATEMENT) {
-                                continue;
-                            }
-                            AssignmentStatementNode assignmentStmtNode = (AssignmentStatementNode) statement;
-                            if (!assignmentStmtNode.varRef().toSourceCode().trim()
-                                    .equals(expressionNode.toSourceCode())) {
-                                continue;
-                            }
-                            ImplicitNewExpressionNode newExpressionNode = getNewExpr(assignmentStmtNode.expression());
-                            genAgentData(newExpressionNode, classSymbol.get());
-                        }
-                    }
+    private void populateAgentMetaData(ExpressionNode expressionNode, NonTerminalNode callNode,
+                                       ClassSymbol classSymbol) {
+        if (isClassField(expressionNode)) {
+            ServiceDeclarationNode serviceDeclaration = getParentServiceDeclaration(callNode);
+            for (Node member : serviceDeclaration.members()) {
+                if (member.kind() != SyntaxKind.OBJECT_METHOD_DEFINITION) {
+                    continue;
                 }
-            } else {
-                for (Symbol moduleSymbol : semanticModel.moduleSymbols()) {
-                    if (moduleSymbol.kind() != SymbolKind.VARIABLE) {
-                        continue;
+                FunctionDefinitionNode funcDef = (FunctionDefinitionNode) member;
+                if (funcDef.functionName().text().equals("init")) {
+                    for (StatementNode statement : ((FunctionBodyBlockNode) funcDef.functionBody()).statements()) {
+                        if (statement.kind() != SyntaxKind.ASSIGNMENT_STATEMENT) {
+                            continue;
+                        }
+                        AssignmentStatementNode assignmentStmtNode = (AssignmentStatementNode) statement;
+                        if (!assignmentStmtNode.varRef().toSourceCode().trim()
+                                .equals(expressionNode.toSourceCode())) {
+                            continue;
+                        }
+                        ImplicitNewExpressionNode newExpressionNode = getNewExpr(assignmentStmtNode.expression());
+                        genAgentData(newExpressionNode, classSymbol);
                     }
-                    VariableSymbol variableSymbol = (VariableSymbol) moduleSymbol;
-                    if (!variableSymbol.getName().orElseThrow().equals(expressionNode.toSourceCode())) {
-                        continue;
-                    }
-                    Optional<Location> optLocation = variableSymbol.getLocation();
-                    if (optLocation.isEmpty()) {
-                        throw new IllegalStateException("Location not found for the variable symbol: " +
-                                variableSymbol);
-                    }
-                    NonTerminalNode parent = CommonUtil.findNode(variableSymbol, CommonUtils.getDocument(project,
-                            optLocation.get()).syntaxTree()).get().parent().parent();
-                    if (parent.kind() != SyntaxKind.MODULE_VAR_DECL) {
-                        throw new IllegalStateException("Parent is not a module variable declaration: " + parent);
-                    }
-                    ModuleVariableDeclarationNode moduleVariableDeclarationNode =
-                            (ModuleVariableDeclarationNode) parent;
-                    Optional<ExpressionNode> optInitializer = moduleVariableDeclarationNode.initializer();
-                    if (optInitializer.isEmpty()) {
-                        throw new IllegalStateException("Initializer not found for the module variable declaration: " +
-                                moduleVariableDeclarationNode);
-                    }
-                    ImplicitNewExpressionNode newExpressionNode = getNewExpr(optInitializer.get());
-                    genAgentData(newExpressionNode, classSymbol.get());
-                    break;
                 }
             }
         } else {
-            startNode(NodeKind.REMOTE_ACTION_CALL, expressionNode.parent());
-            setFunctionProperties(functionName, expressionNode, remoteMethodCallActionNode, functionSymbol,
-                    classSymbol.get().getName().orElseThrow());
+            for (Symbol moduleSymbol : semanticModel.moduleSymbols()) {
+                if (moduleSymbol.kind() != SymbolKind.VARIABLE) {
+                    continue;
+                }
+                VariableSymbol variableSymbol = (VariableSymbol) moduleSymbol;
+                if (!variableSymbol.getName().orElseThrow().equals(expressionNode.toSourceCode())) {
+                    continue;
+                }
+                Optional<Location> optLocation = variableSymbol.getLocation();
+                if (optLocation.isEmpty()) {
+                    throw new IllegalStateException("Location not found for the variable symbol: " +
+                            variableSymbol);
+                }
+                NonTerminalNode parent = CommonUtil.findNode(variableSymbol, CommonUtils.getDocument(project,
+                        optLocation.get()).syntaxTree()).get().parent().parent();
+                if (parent.kind() != SyntaxKind.MODULE_VAR_DECL) {
+                    throw new IllegalStateException("Parent is not a module variable declaration: " + parent);
+                }
+                ModuleVariableDeclarationNode moduleVariableDeclarationNode =
+                        (ModuleVariableDeclarationNode) parent;
+                Optional<ExpressionNode> optInitializer = moduleVariableDeclarationNode.initializer();
+                if (optInitializer.isEmpty()) {
+                    throw new IllegalStateException("Initializer not found for the module variable declaration: " +
+                            moduleVariableDeclarationNode);
+                }
+                ImplicitNewExpressionNode newExpressionNode = getNewExpr(optInitializer.get());
+                genAgentData(newExpressionNode, classSymbol);
+                break;
+            }
         }
     }
 
@@ -1500,8 +1504,8 @@ public class CodeAnalyzer extends NodeVisitor {
             return;
         }
 
-        Optional<ClassSymbol> classSymbol = getClassSymbol(methodCallExpressionNode.expression());
-        if (classSymbol.isEmpty()) {
+        Optional<ClassSymbol> optClassSymbol = getClassSymbol(methodCallExpressionNode.expression());
+        if (optClassSymbol.isEmpty()) {
             handleExpressionNode(methodCallExpressionNode);
             return;
         }
@@ -1509,8 +1513,14 @@ public class CodeAnalyzer extends NodeVisitor {
         ExpressionNode expressionNode = methodCallExpressionNode.expression();
         NameReferenceNode nameReferenceNode = methodCallExpressionNode.methodName();
         String functionName = getIdentifierName(nameReferenceNode);
+        ClassSymbol classSymbol = optClassSymbol.get();
+        if (isAgentCall(classSymbol)) {
+            startNode(NodeKind.AGENT_CALL, expressionNode.parent());
+            populateAgentMetaData(expressionNode, methodCallExpressionNode, classSymbol);
+        } else {
+            startNode(NodeKind.METHOD_CALL, methodCallExpressionNode.parent());
+        }
 
-        startNode(NodeKind.METHOD_CALL, methodCallExpressionNode.parent());
         if (CommonUtils.isDefaultPackage(functionSymbol, moduleInfo)) {
             functionSymbol.getLocation()
                     .flatMap(location -> CommonUtil.findNode(functionSymbol,
@@ -1534,8 +1544,8 @@ public class CodeAnalyzer extends NodeVisitor {
                     .stepOut()
                 .codedata()
                     .symbol(functionName)
-                    .object(classSymbol.get().getName().orElse(""));
-        if (classSymbol.get().qualifiers().contains(Qualifier.CLIENT)) {
+                    .object(classSymbol.getName().orElse(""));
+        if (classSymbol.qualifiers().contains(Qualifier.CLIENT)) {
             nodeBuilder.properties().callConnection(expressionNode, Property.CONNECTION_KEY);
         } else {
             nodeBuilder.properties().callExpression(expressionNode, Property.CONNECTION_KEY);
@@ -1675,7 +1685,8 @@ public class CodeAnalyzer extends NodeVisitor {
             return false;
         }
         ModuleID id = optModule.get().id();
-        boolean isAIModule = id.orgName().equals(BALLERINAX) && id.packageName().equals(AI_AGENT);
+        boolean isAIModule = (id.orgName().equals(BALLERINAX) || id.orgName().equals(BALLERINA)) &&
+                id.packageName().equals(AI_AGENT);
         if (!isAIModule) {
             return false;
         }
