@@ -14,6 +14,8 @@
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations
  * under the License.
+ * 
+ * THIS FILE INCLUDES AUTO GENERATED CODE
  */
 import {
     AIChatSummary,
@@ -33,6 +35,8 @@ import {
     GenerateTypesFromRecordResponse,
     GetFromFileRequest,
     GetModuleDirParams,
+    InlineAllDataMapperSourceRequest,
+    InlineDataMapperSourceResponse,
     LLMDiagnostics,
     NotifyAIMappingsRequest,
     PostProcessRequest,
@@ -53,6 +57,7 @@ import {
     createTestDirecoryIfNotExists,
     deleteFromProject,
     fetchData,
+    generateInlineMappings,
     generateMappings,
     getAIMachineSnapshot,
     getAccessToken,
@@ -88,6 +93,7 @@ import {
     promptWSO2AILogout,
     readDeveloperMdFile,
     showSignInAlert,
+    stopAIInlineMappings,
     stopAIMappings,
     submitFeedback,
     updateDevelopmentDocument,
@@ -173,6 +179,14 @@ export class AiPanelRpcClient implements AIPanelAPI {
 
     clearInitialPrompt(): void {
         return this._messenger.sendNotification(clearInitialPrompt, HOST_EXTENSION);
+    }
+
+    generateInlineMappings(): Promise<InlineAllDataMapperSourceRequest> {
+        return this._messenger.sendRequest(generateInlineMappings, HOST_EXTENSION);
+    }
+
+    stopAIInlineMappings(): Promise<InlineDataMapperSourceResponse> {
+        return this._messenger.sendRequest(stopAIInlineMappings, HOST_EXTENSION);
     }
 
     getGeneratedTests(params: TestGenerationRequest): Promise<TestGenerationResponse> {

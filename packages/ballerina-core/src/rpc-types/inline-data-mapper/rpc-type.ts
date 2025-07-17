@@ -34,6 +34,7 @@ import {
     GetInlineDataMapperCodedataRequest,
     GetInlineDataMapperCodedataResponse,
     GetSubMappingCodedataRequest,
+    InlineAllDataMapperSourceRequest,
     AddSubMappingRequest,
     DeleteMappingRequest
 } from "../../interfaces/extended-lang-client";
@@ -51,4 +52,5 @@ export const addSubMapping: RequestType<AddSubMappingRequest, InlineDataMapperSo
 export const deleteMapping: RequestType<DeleteMappingRequest, InlineDataMapperSourceResponse> = { method: `${_preFix}/deleteMapping` };
 export const getDataMapperCodedata: RequestType<GetInlineDataMapperCodedataRequest, GetInlineDataMapperCodedataResponse> = { method: `${_preFix}/getDataMapperCodedata` };
 export const getSubMappingCodedata: RequestType<GetSubMappingCodedataRequest, GetInlineDataMapperCodedataResponse> = { method: `${_preFix}/getSubMappingCodedata` };
+export const getAllDataMapperSource: RequestType<InlineAllDataMapperSourceRequest, InlineDataMapperSourceResponse> = { method: `${_preFix}/getAllDataMapperSource` };
 export const getProperty: RequestType<PropertyRequest, PropertyResponse> = { method: `${_preFix}/getProperty` };

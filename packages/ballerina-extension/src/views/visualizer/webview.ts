@@ -50,11 +50,9 @@ export class VisualizerWebview {
         }, 500);
 
         const debouncedRefreshDataMapper = debounce(async () => {
-            if (this._panel) {
-                const stateMachineContext = StateMachine.context();
-                const { documentUri, dataMapperMetadata: { codeData, name } } = stateMachineContext;
-                await refreshDataMapper(documentUri, codeData, name);
-            }
+            const stateMachineContext = StateMachine.context();
+            const { documentUri, dataMapperMetadata: { codeData, name } } = stateMachineContext;
+            await refreshDataMapper(documentUri, codeData, name);
         }, 500);
 
         vscode.workspace.onDidChangeTextDocument(async (document) => {
@@ -66,7 +64,7 @@ export class VisualizerWebview {
 
             const state = StateMachine.state();
             const machineReady = typeof state === 'object' && 'viewActive' in state && state.viewActive === "viewReady";
-            if (!machineReady) return;
+            if (document?.contentChanges.length === 0 || !machineReady) return;
 
             const balFileModified = document?.document.languageId === LANGUAGE.BALLERINA;
             const configTomlModified = document.document.languageId === LANGUAGE.TOML &&
@@ -78,7 +76,7 @@ export class VisualizerWebview {
                 StateMachine.context().view === MACHINE_VIEW.InlineDataMapper &&
                 document.document.fileName === StateMachine.context().documentUri;
 
-            if (this._panel?.active && dataMapperModified) {
+            if (dataMapperModified) {
                 debouncedRefreshDataMapper();
             } else if (this._panel?.active && balFileModified) {
                 sendUpdateNotificationToWebview();
