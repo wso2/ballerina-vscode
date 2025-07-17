@@ -326,28 +326,7 @@ const stateMachine = createMachine<MachineContext>(
                     return resolve({ ...selectedEntry.location, view: selectedEntry.location.view ? selectedEntry.location.view : MACHINE_VIEW.Overview });
                 }
 
-                if (selectedEntry && (selectedEntry.location.view === MACHINE_VIEW.ERDiagram || selectedEntry.location.view === MACHINE_VIEW.ServiceDesigner || selectedEntry.location.identifier?.includes("#"))) { // TODO: This is a temp fix to avoid the st request for the service designer
-                    // Get the ST from resources only
-                    if (selectedEntry.location.identifier?.includes("#")) {
-                        const fnSTByRange = await StateMachine.langClient().getSTByRange(
-                            {
-                                lineRange: {
-                                    start: {
-                                        line: selectedEntry.location.position.startLine,
-                                        character: selectedEntry.location.position.startColumn
-                                    },
-                                    end: {
-                                        line: selectedEntry.location.position.endLine,
-                                        character: selectedEntry.location.position.endColumn
-                                    }
-                                },
-                                documentIdentifier: {
-                                    uri: Uri.file(context.documentUri).toString()
-                                }
-                            }
-                        ) as SyntaxTree;
-                        selectedEntry.location.syntaxTree = fnSTByRange.syntaxTree;
-                    }
+                if (selectedEntry && (selectedEntry.location.view === MACHINE_VIEW.ERDiagram || selectedEntry.location.view === MACHINE_VIEW.ServiceDesigner || selectedEntry.location.view === MACHINE_VIEW.BIDiagram)) {
                     return resolve(selectedEntry.location);
                 }
 
@@ -362,6 +341,7 @@ const stateMachine = createMachine<MachineContext>(
 
                 const { documentUri, position } = location;
 
+                // TODO: Refactor this to remove the full ST request
                 const node = documentUri && await StateMachine.langClient().getSyntaxTree({
                     documentIdentifier: {
                         uri: Uri.file(documentUri).toString()
