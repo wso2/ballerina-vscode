@@ -43,6 +43,7 @@ dependencies {
     balTools("org.ballerinalang:jballerina-tools:${ballerinaLangVersion}") {
         transitive = false
     }
+    implementation "org.ballerinalang:toml-parser:${ballerinaLangVersion}"
 }
 
 def balDistribution = file("$project.buildDir/extracted-distribution/jballerina-tools-${ballerinaLangVersion}")

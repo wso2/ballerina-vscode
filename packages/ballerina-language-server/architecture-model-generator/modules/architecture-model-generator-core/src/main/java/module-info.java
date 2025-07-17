@@ -25,6 +25,7 @@ module io.ballerina.architecturemodelgenerator {
     requires java.desktop;
     requires io.ballerina.model.generator.commons;
     requires io.ballerina.runtime;
+    requires io.ballerina.toml;
 
     exports io.ballerina.architecturemodelgenerator.core;
     exports io.ballerina.architecturemodelgenerator.core.diagnostics;
