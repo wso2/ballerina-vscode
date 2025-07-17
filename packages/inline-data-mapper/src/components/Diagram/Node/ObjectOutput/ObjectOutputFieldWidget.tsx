@@ -117,7 +117,7 @@ export function ObjectOutputFieldWidget(props: ObjectOutputFieldWidgetProps) {
     const handleDeleteValue = async () => {
         setLoading(true);
         try {
-            await removeMapping(fieldFQNFromPortName(portName), context);
+            await removeMapping(mapping, context);
         } finally {
             setLoading(false);
         }

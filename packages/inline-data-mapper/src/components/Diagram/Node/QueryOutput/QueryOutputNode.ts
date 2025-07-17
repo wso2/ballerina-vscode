@@ -138,7 +138,7 @@ export class QueryOutputNode extends DataMapperNodeModel {
                         value: expression,
                         link: lm,
                         context: this.context,
-                        deleteLink: () => this.deleteField(output),
+                        deleteLink: () => this.deleteField(mapping),
                     }
                 ));
 
@@ -184,8 +184,8 @@ export class QueryOutputNode extends DataMapperNodeModel {
 
     }
 
-    async deleteField(field: string) {
-        await removeMapping(field, this.context);
+    async deleteField(mapping: Mapping) {
+        await removeMapping(mapping, this.context);
     }
 
     public updatePosition() {

@@ -136,7 +136,7 @@ export class PrimitiveOutputNode extends DataMapperNodeModel {
                     new ExpressionLabelModel({
                         value: expression,
                         link: lm,
-                        deleteLink: () => this.deleteField(output),
+                        deleteLink: () => this.deleteField(mapping),
                         ...(queryOutput === output && {collectClauseFn: query.resultClause.properties.func})
                     }
                 ));
@@ -182,8 +182,8 @@ export class PrimitiveOutputNode extends DataMapperNodeModel {
 
     }
 
-    async deleteField(field: string) {
-        await removeMapping(field, this.context);
+    async deleteField(mapping: Mapping) {
+        await removeMapping(mapping, this.context);
     }
 
     public updatePosition() {

@@ -66,7 +66,7 @@ export async function addValue(fieldId: string, value: string, context: IDataMap
 	return await context.applyModifications(fieldId, value, viewId, name);
 }
 
-export async function removeMapping(mapping: string | Mapping, context: IDataMapperContext) {
+export async function removeMapping(mapping: Mapping, context: IDataMapperContext) {
 	// const deletionVisitor = new MappingDeletionVisitor(fieldId);
 	// traverseNode(context.model, deletionVisitor);
 	// const remainingMappings = deletionVisitor.getRemainingMappings();
