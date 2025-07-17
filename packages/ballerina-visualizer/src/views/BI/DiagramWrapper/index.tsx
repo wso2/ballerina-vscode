@@ -231,7 +231,6 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
             setFileName(fileName);
         }
         if (parentMetadata) {
-            console.log(">>> parentMetadata", parentMetadata);
             setParentMetadata(parentMetadata);
         }
     };
