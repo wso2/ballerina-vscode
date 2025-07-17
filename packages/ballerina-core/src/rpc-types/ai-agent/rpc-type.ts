@@ -14,10 +14,12 @@
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations
  * under the License.
+ * 
+ * THIS FILE INCLUDES AUTO GENERATED CODE
  */
 import { AIGentToolsRequest, AIGentToolsResponse, AIModelsRequest, AINodesRequest, AINodesResponse, AIToolsRequest, AIToolsResponse, AIModelsResponse, MemoryManagersResponse, MemoryManagersRequest, McpToolsRequest, McpToolsResponse } from "../../interfaces/extended-lang-client";
-import { AIAgentRequest, AIAgentResponse, AIAgentToolsUpdateRequest } from "./interfaces";
-import { RequestType } from "vscode-messenger-common";
+import { AIAgentRequest, AIAgentResponse, AIAgentToolsUpdateRequest, McpToolUpdateRequest } from "./interfaces";
+import { RequestType, NotificationType } from "vscode-messenger-common";
 
 const _preFix = "ai-agent";
 export const getAllAgents: RequestType<AINodesRequest, AINodesResponse> = { method: `${_preFix}/getAllAgents` };
@@ -29,3 +31,4 @@ export const getMcpTools: RequestType<McpToolsRequest, McpToolsResponse> = { met
 export const genTool: RequestType<AIGentToolsRequest, AIGentToolsResponse> = { method: `${_preFix}/genTool` };
 export const createAIAgent: RequestType<AIAgentRequest, AIAgentResponse> = { method: `${_preFix}/createAIAgent` };
 export const updateAIAgentTools: RequestType<AIAgentToolsUpdateRequest, AIAgentResponse> = { method: `${_preFix}/updateAIAgentTools` };
+export const updateMCPToolKit: NotificationType<McpToolUpdateRequest> = { method: `${_preFix}/updateMCPToolKit` };

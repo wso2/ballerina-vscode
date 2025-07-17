@@ -155,6 +155,7 @@ export type CodeData = {
     node?: NodeKind;
     org?: string;
     module?: string;
+    packageName?: string;
     object?: string;
     symbol?: string;
     lineRange?: ELineRange;

@@ -14,6 +14,8 @@
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations
  * under the License.
+ * 
+ * THIS FILE INCLUDES AUTO GENERATED CODE
  */
 import {
     AIAgentRequest,
@@ -22,17 +24,19 @@ import {
     AIModelsRequest,
     AINodesRequest,
     AIToolsRequest,
-    MemoryManagersRequest,
     createAIAgent,
     genTool,
     getAllAgents,
     getAllMemoryManagers,
     getAllModels,
+    getMcpTools,
     getModels,
     getTools,
-    getMcpTools,
+    McpToolsRequest,
+    McpToolUpdateRequest,
+    MemoryManagersRequest,
     updateAIAgentTools,
-    McpToolsRequest
+    updateMCPToolKit
 } from "@wso2/ballerina-core";
 import { Messenger } from "vscode-messenger";
 import { AiAgentRpcManager } from "./rpc-manager";
@@ -48,4 +52,5 @@ export function registerAiAgentRpcHandlers(messenger: Messenger) {
     messenger.onRequest(genTool, (args: AIGentToolsRequest) => rpcManger.genTool(args));
     messenger.onRequest(createAIAgent, (args: AIAgentRequest) => rpcManger.createAIAgent(args));
     messenger.onRequest(updateAIAgentTools, (args: AIAgentToolsUpdateRequest) => rpcManger.updateAIAgentTools(args));
+    messenger.onNotification(updateMCPToolKit, (args: McpToolUpdateRequest) => rpcManger.updateMCPToolKit(args));
 }

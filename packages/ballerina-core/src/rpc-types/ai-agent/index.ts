@@ -17,7 +17,7 @@
  */
 
 import { AIGentToolsRequest, AIGentToolsResponse, AIModelsRequest, AINodesRequest, AINodesResponse, AIToolsRequest, AIToolsResponse, AIModelsResponse, MemoryManagersResponse, MemoryManagersRequest, McpToolsRequest, McpToolsResponse } from "../../interfaces/extended-lang-client";
-import { AIAgentRequest, AIAgentResponse, AIAgentToolsUpdateRequest } from "./interfaces";
+import { AIAgentRequest, AIAgentResponse, AIAgentToolsUpdateRequest, McpToolUpdateRequest } from "./interfaces";
 
 export interface AIAgentAPI {
     getAllAgents: (params: AINodesRequest) => Promise<AINodesResponse>;
@@ -29,4 +29,5 @@ export interface AIAgentAPI {
     genTool: (params: AIGentToolsRequest) => Promise<AIGentToolsResponse>;
     createAIAgent: (params: AIAgentRequest) => Promise<AIAgentResponse>;
     updateAIAgentTools: (params: AIAgentToolsUpdateRequest) => Promise<AIAgentResponse>;
+    updateMCPToolKit: (params: McpToolUpdateRequest) => Promise<void>;
 }
