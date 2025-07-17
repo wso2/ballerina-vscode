@@ -36,7 +36,6 @@ export async function generateCodeCore(params: GenerateCodeRequest, eventHandler
     ).libraries;
 
     const historyMessages = populateHistory(params.chatHistory);
-    //TODO: Remove Readme.md from NP Path
     const allMessages: CoreMessage[] = [
         {
             role: "system",
@@ -176,7 +175,7 @@ If the query requires code, Follow these steps to generate the Ballerina code:
    - Note the libraries needed to achieve the query and plan the control flow of the applicaiton based input and output parameters of each function of the connector according to the API documentation.
 
 3. Plan your code structure:
-   - Decide which libraries need to be imported (Avoid importing lang.string, lang.boolean, lang.error, lang.float, lang.decimal, lang.int, lang.map langlibs as they are already imported by default).
+   - Decide which libraries need to be imported (Avoid importing lang.string, lang.boolean, lang.float, lang.decimal, lang.int, lang.map langlibs as they are already imported by default).
    - Determine the necessary client initialization.
    - Define Types needed for the query in the types.bal file.
    - Outline the service OR main function for the query.
@@ -216,21 +215,21 @@ Important reminders:
 - A submodule MUST BE imported before being used.  The import statement should only contain the package name and submodule name.  For package my_pkg, folder strucutre generated/fooApi the import should be \`import my_pkg.fooApi;\`
 - If the return parameter typedesc default value is marked as <> in the given API docs, define a custom record in the code that represents the data structure based on the use case and assign to it.  
 - Whenever you have a Json variable, NEVER access or manipulate Json variables. ALWAYS define a record and convert the Json to that record and use it. 
-- When you are accessing fields of a record, always assign it into new variables.
+- When invoking resource function from a client, use the correct paths with accessor and paramters. (eg: exampleClient->/path1/["param"]/path2.get(key="value"))
+- When you are accessing a field of a record, always assign it into new variable and use that variable in the next statement.
 - Avoid long comments in the code.
 - Always use named arguments when providing values to any parameter. (eg: .get(key="value"))
-_ Do not use var keyword (variable declarations, for loops ...). Use explicit types insteads.
+- Mention types EXPLICITLY in variable declarations and foreach statements.
 - Do not modify the README.md file unless asked to be modified explicitly in the query.
 - Do not add/modify toml files(Config.toml/Ballerina.toml) unless asked.
 - In the library API documentation if the service type is specified as generic, adhere to the instructions specified there on writing the service.
 - For GraphQL service related queries, If the user haven't specified their own GraphQL Scehma, Write the proposed GraphQL schema for the user query right after explanation before generating the ballerina code. Use same names as the GraphQL Schema when defining record types.
 
-Begin your response with an explanation, then end the response with the codeblock segments(if any). 
+Begin your response with the explanation, once the entire explanation is finished only, include codeblock segments(if any) in the end of the response. 
 The explanation should explain the control flow decided in step 2, along with the selected libraries and their functions.
 
-Each file which needs modifications, should have a codeblock segment and it MUST have complete file content with the proposed change. Do not provide any explanation after codeblocks.
-
-If the user hasn't provided the information, request the missing information concisely.
+Each file which needs modifications, should have a codeblock segment and it MUST have complete file content with the proposed change. 
+The codeblock segments should only have .bal contents and it should not generate or modify any other file types. Politely decline if the query requests for such cases.
 
 Example Codeblock segment:
 <code filename="main.bal">
