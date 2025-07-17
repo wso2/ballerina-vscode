@@ -19,7 +19,7 @@
 import React, { useState } from "react";
 
 import { DiagramEngine } from "@projectstorm/react-diagrams-core";
-import { Button, Codicon, Icon, ProgressRing } from "@wso2/ui-toolkit";
+import { Button, Codicon, Icon, ProgressRing, TruncatedLabel } from "@wso2/ui-toolkit";
 import { IOType, TypeKind } from "@wso2/ballerina-core";
 import classnames from "classnames";
 
@@ -161,7 +161,7 @@ export function ObjectOutputFieldWidget(props: ObjectOutputFieldWidgetProps) {
     }
 
     const label = !isArray && (
-        <span style={{ marginRight: "auto" }} data-testid={`record-widget-field-label-${portIn?.getName()}`}>
+        <TruncatedLabel style={{ marginRight: "auto" }}>
             <span
                 className={classnames(classes.valueLabel,
                     isDisabled && !hasHoveredParent ? classes.labelDisabled : ""
@@ -212,7 +212,7 @@ export function ObjectOutputFieldWidget(props: ObjectOutputFieldWidgetProps) {
                     )}
                 </span>
             )}
-        </span>
+        </TruncatedLabel>
     );
 
     const addOrEditValueMenuItem: ValueConfigMenuItem = expression || hasDefaultValue
