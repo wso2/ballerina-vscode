@@ -17,14 +17,14 @@
  */
 
 import React, { useEffect, useState } from "react";
-import { ResourceAccessorDefinition, STKindChecker, STNode } from "@wso2/syntax-tree";
+import { STNode } from "@wso2/syntax-tree";
 import { Button, Icon, Switch, View, ThemeColors, Tooltip } from "@wso2/ui-toolkit";
 import { BIFlowDiagram } from "../FlowDiagram";
 import { BISequenceDiagram } from "../SequenceDiagram";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { TopNavigationBar } from "../../../components/TopNavigationBar";
 import { TitleBar } from "../../../components/TitleBar";
-import { EVENT_TYPE, FOCUS_FLOW_DIAGRAM_VIEW, FocusFlowDiagramView } from "@wso2/ballerina-core";
+import { EVENT_TYPE, FOCUS_FLOW_DIAGRAM_VIEW, FocusFlowDiagramView, ParentMetadata } from "@wso2/ballerina-core";
 import { VisualizerLocation } from "@wso2/ballerina-core";
 import { MACHINE_VIEW } from "@wso2/ballerina-core";
 import styled from "@emotion/styled";
@@ -170,6 +170,7 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
     const [serviceType, setServiceType] = useState("");
     const [basePath, setBasePath] = useState("");
     const [listener, setListener] = useState("");
+    const [parentMetadata, setParentMetadata] = useState<ParentMetadata>();
 
     useEffect(() => {
         rpcClient.getVisualizerLocation().then((location) => {
@@ -224,10 +225,14 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
         setLoadingDiagram(true);
     };
 
-    const handleReadyDiagram = (fileName?: string) => {
+    const handleReadyDiagram = (fileName?: string, parentMetadata?: ParentMetadata) => {
         setLoadingDiagram(false);
         if (fileName) {
             setFileName(fileName);
+        }
+        if (parentMetadata) {
+            console.log(">>> parentMetadata", parentMetadata);
+            setParentMetadata(parentMetadata);
         }
     };
 
@@ -237,45 +242,18 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
                 view === FOCUS_FLOW_DIAGRAM_VIEW.NP_FUNCTION
                     ? MACHINE_VIEW.BINPFunctionForm
                     : MACHINE_VIEW.BIFunctionForm,
-            identifier: (syntaxTree as ResourceAccessorDefinition).functionName.value,
+            identifier: parentMetadata?.label || "",
             documentUri: fileUri,
         };
         rpcClient.getVisualizerRpcClient().openView({ type: EVENT_TYPE.OPEN_VIEW, location: context });
     };
 
-    let isAutomation = false;
-    let isResource = false;
-    let isRemote = false;
-    let isAgent = false;
-    let method = "";
-    const parameters = getParameters(syntaxTree);
-    const returnType = getReturnType(syntaxTree);
-
-    if (syntaxTree && STKindChecker.isResourceAccessorDefinition(syntaxTree)) {
-        isResource = true;
-        method = (syntaxTree as ResourceAccessorDefinition).functionName.value;
-    } else if (syntaxTree && STKindChecker.isFunctionDefinition(syntaxTree)) {
-        isResource = false;
-        method = syntaxTree.functionName.value;
-    } else if (syntaxTree && STKindChecker.isObjectMethodDefinition(syntaxTree)) {
-        isRemote = syntaxTree.qualifierList?.some((qualifier) => STKindChecker.isRemoteKeyword(qualifier)) || false;
-        method = syntaxTree.functionName.value;
-    } else {
-        // FIXME: this is a temporary fix to navigate back to overview when the syntax tree is undefined
-        console.error(">>> cannot get method, syntaxTree is undefined");
-        rpcClient
-            .getVisualizerRpcClient()
-            .openView({ type: EVENT_TYPE.OPEN_VIEW, location: { view: MACHINE_VIEW.Overview } });
-        return;
-    }
-
-    if (!isResource && method === "main") {
-        isAutomation = true;
-    }
-
-    if (serviceType === "ai") {
-        isAgent = true;
-    }
+    let isAutomation = parentMetadata?.kind === "Function" && parentMetadata?.label === "main";
+    let isResource = parentMetadata?.kind === "Resource";
+    let isRemote = parentMetadata?.kind === "Remote Function";
+    let isAgent = parentMetadata?.kind === "AI Chat Agent";
+    const parameters = parentMetadata?.parameters?.join(", ") || "";
+    const returnType = parentMetadata?.return || "";
 
     const handleResourceTryIt = (methodValue: string, pathValue: string) => {
         const resource = serviceType === "http" ? { methodValue, pathValue } : undefined;
@@ -288,12 +266,12 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
             <TopNavigationBar />
             {isResource && !isAutomation && (
                 <TitleBar
-                    title={isAgent ? "AI Chat Agent" : "Resource"}
+                    title={parentMetadata?.kind}
                     subtitleElement={
                         <SubTitleWrapper>
                             <LeftElementsWrapper>
-                                <AccessorType>{method}</AccessorType>
-                                <Path>{getResourcePath(syntaxTree)}</Path>
+                                <AccessorType>{parentMetadata?.accessor || ""}</AccessorType>
+                                <Path>{parentMetadata?.label || ""}</Path>
                                 {parameters && (
                                     <WrappedTooltip content={parameters}>
                                         <Parameters>({parameters})</Parameters>
@@ -313,7 +291,7 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
                         serviceType === "http" || isAgent ? (
                             <ActionButton
                                 appearance="secondary"
-                                onClick={() => handleResourceTryIt(method, getResourcePath(syntaxTree))}
+                                onClick={() => handleResourceTryIt(parentMetadata?.label || "", parentMetadata?.label || "")}
                             >
                                 <Icon
                                     name={isAgent ? "comment-discussion" : "play"}
@@ -328,11 +306,11 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
             )}
             {isRemote && (
                 <TitleBar
-                    title={"Remote"}
+                    title={parentMetadata?.kind}
                     subtitleElement={
                         <SubTitleWrapper>
                             <LeftElementsWrapper>
-                                <Path>{method}</Path>
+                                <Path>{parentMetadata?.label || ""}</Path>
                                 {parameters && (
                                     <WrappedTooltip content={parameters}>
                                         <Parameters>({parameters})</Parameters>
@@ -352,11 +330,11 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
             )}
             {!isResource && !isAutomation && !isRemote && (
                 <TitleBar
-                    title={getTitle(view)}
+                    title={parentMetadata?.kind}
                     subtitleElement={
                         <SubTitleWrapper>
                             <LeftElementsWrapper>
-                                <Path>{method}</Path>
+                                <Path>{parentMetadata?.label || ""}</Path>
                                 {parameters && (
                                     <WrappedTooltip content={parameters}>
                                         <Parameters>({parameters})</Parameters>
@@ -383,12 +361,12 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
             )}
             {!isResource && isAutomation && (
                 <TitleBar
-                    title={"Automation"}
+                    title={parentMetadata?.kind}
                     subtitleElement={
                         <SubTitleWrapper>
                             <LeftElementsWrapper>
-                                <WrappedTooltip content={getParameters(syntaxTree)}>
-                                    <Parameters>({getParameters(syntaxTree)})</Parameters>
+                                <WrappedTooltip content={parameters}>
+                                    <Parameters>({parameters})</Parameters>
                                 </WrappedTooltip>
                             </LeftElementsWrapper>
                             {returnType && (
@@ -445,7 +423,6 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
                 />
             ) : (
                 <BIFlowDiagram
-                    syntaxTree={syntaxTree}
                     projectPath={projectPath}
                     onUpdate={handleUpdateDiagram}
                     onReady={handleReadyDiagram}
@@ -453,88 +430,6 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
             )}
         </View>
     );
-}
-
-function getTitle(view: FocusFlowDiagramView) {
-    if (view === FOCUS_FLOW_DIAGRAM_VIEW.NP_FUNCTION) {
-        return "Natural Function";
-    }
-    return "Function";
-}
-
-function getResourcePath(resource: STNode) {
-    let resourcePath = "";
-    if (STKindChecker.isResourceAccessorDefinition(resource)) {
-        resource.relativeResourcePath?.forEach((path, index) => {
-            resourcePath += STKindChecker.isResourcePathSegmentParam(path) ? path.source : path?.value;
-        });
-    }
-    return resourcePath;
-}
-
-function getParameters(syntaxTree: STNode) {
-    if (!syntaxTree) {
-        console.error(">>> cannot get parameters, syntaxTree is undefined");
-        return "";
-    }
-    if (
-        STKindChecker.isResourceAccessorDefinition(syntaxTree) ||
-        (STKindChecker.isObjectMethodDefinition(syntaxTree) &&
-            syntaxTree.qualifierList?.some((qualifier) => STKindChecker.isRemoteKeyword(qualifier)))
-    ) {
-        return syntaxTree.functionSignature.parameters
-            .map((param) => {
-                if (!STKindChecker.isCommaToken(param)) {
-                    return `${param.paramName.value}: ${param.typeName.source.trim()}`;
-                }
-                return null;
-            })
-            .filter(Boolean)
-            .join(", ");
-    } else if (
-        STKindChecker.isFunctionDefinition(syntaxTree) &&
-        STKindChecker.isExpressionFunctionBody(syntaxTree.functionBody) &&
-        syntaxTree.functionBody.expression.kind === "NaturalExpression"
-    ) {
-        return syntaxTree.functionSignature.parameters
-            .map((param) => {
-                if (
-                    !STKindChecker.isCommaToken(param) &&
-                    param.paramName.value !== "prompt" &&
-                    param.paramName.value !== "context"
-                ) {
-                    return `${param.paramName.value}: ${param.typeName.source.trim()}`;
-                }
-                return null;
-            })
-            .filter(Boolean)
-            .join(", ");
-    } else if (STKindChecker.isFunctionDefinition(syntaxTree)) {
-        return syntaxTree.functionSignature.parameters
-            .map((param) => {
-                if (!STKindChecker.isCommaToken(param)) {
-                    return `${param.paramName.value}: ${param.typeName.source.trim()}`;
-                }
-                return null;
-            })
-            .filter(Boolean)
-            .join(", ");
-    }
-    return "";
-}
-
-function getReturnType(syntaxTree: STNode) {
-    if (!syntaxTree) {
-        console.error(">>> cannot get return type, syntaxTree is undefined");
-        return "";
-    }
-    if (STKindChecker.isFunctionDefinition(syntaxTree)) {
-        return syntaxTree.functionSignature.returnTypeDesc?.type.source || "";
-    }
-    if (STKindChecker.isResourceAccessorDefinition(syntaxTree) || STKindChecker.isObjectMethodDefinition(syntaxTree)) {
-        return syntaxTree.functionSignature.returnTypeDesc?.type.source || "";
-    }
-    return "";
 }
 
 export default DiagramWrapper;
