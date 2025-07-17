@@ -840,9 +840,10 @@ public class DataMapManager {
     private void genDeleteMappingSource(ExpressionNode expr, String[] names, int idx, List<TextEdit> textEdits) {
         if (expr == null) {
             return;
-        } else if (expr.kind() == SyntaxKind.MAPPING_CONSTRUCTOR) {
+        }
+
+        if (expr instanceof MappingConstructorExpressionNode mappingCtrExpr) {
             String name = names[idx];
-            MappingConstructorExpressionNode mappingCtrExpr = (MappingConstructorExpressionNode) expr;
             Map<String, SpecificFieldNode> mappingFields = convertMappingFieldsToMap(mappingCtrExpr);
             SpecificFieldNode mappingFieldNode = mappingFields.get(name);
             if (mappingFieldNode == null) {
@@ -851,8 +852,7 @@ public class DataMapManager {
                 genDeleteMappingSource(mappingFieldNode.valueExpr().orElseThrow(), names, idx + 1,
                         textEdits);
             }
-        } else if (expr.kind() == SyntaxKind.LIST_CONSTRUCTOR) {
-            ListConstructorExpressionNode listCtrExpr = (ListConstructorExpressionNode) expr;
+        } else if (expr instanceof ListConstructorExpressionNode listCtrExpr) {
             if (idx != names.length) {
                 String name = names[idx];
                 if (name.matches("\\d+")) {

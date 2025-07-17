@@ -28,7 +28,7 @@ import com.google.gson.JsonElement;
  * @param mapping     Data mapping
  * @param targetField The target field that needs to consider to get the type
  *
- * @since 1.0.0
+ * @since 1.2.0
  */
 public record DataMappingDeleteRequest(String filePath, JsonElement codedata, JsonElement mapping, String targetField) {
 }
