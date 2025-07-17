@@ -81,6 +81,7 @@ import io.ballerina.servicemodelgenerator.extension.request.TriggerRequest;
 import io.ballerina.servicemodelgenerator.extension.request.TypesRequest;
 import io.ballerina.servicemodelgenerator.extension.response.AddOrGetDefaultListenerResponse;
 import io.ballerina.servicemodelgenerator.extension.response.CommonSourceResponse;
+import io.ballerina.servicemodelgenerator.extension.response.FunctionFromSourceResponse;
 import io.ballerina.servicemodelgenerator.extension.response.FunctionModelResponse;
 import io.ballerina.servicemodelgenerator.extension.response.ListenerDiscoveryResponse;
 import io.ballerina.servicemodelgenerator.extension.response.ListenerFromSourceResponse;
@@ -131,6 +132,7 @@ import static io.ballerina.servicemodelgenerator.extension.ServiceModelGenerator
 import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.NEW_LINE;
 import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.NEW_LINE_WITH_TAB;
 import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.TWO_NEW_LINES;
+import static io.ballerina.servicemodelgenerator.extension.util.HttpUtil.getFunctionFromFunctionDef;
 import static io.ballerina.servicemodelgenerator.extension.util.HttpUtil.updateHttpServiceContractModel;
 import static io.ballerina.servicemodelgenerator.extension.util.HttpUtil.updateHttpServiceModel;
 import static io.ballerina.servicemodelgenerator.extension.util.ListenerUtil.getDefaultListenerDeclarationStmt;
@@ -601,15 +603,14 @@ public class ServiceModelGeneratorService implements ExtendedLanguageServerServi
                                     .findFirst();
                             if (serviceContractType.isPresent()) {
                                 serviceContractExists = true;
-                                updateHttpServiceContractModel(serviceModel, serviceContractType.get(), serviceNode,
-                                        semanticModel);
+                                updateHttpServiceContractModel(serviceModel, serviceContractType.get(), serviceNode);
                             }
                         }
                     }
                 }
 
                 if (!serviceContractExists) {
-                    updateHttpServiceModel(serviceModel, serviceNode, semanticModel);
+                    updateHttpServiceModel(serviceModel, serviceNode);
                 }
 
                 updateListenerItems(moduleName, semanticModel, project, serviceModel);
@@ -624,6 +625,41 @@ public class ServiceModelGeneratorService implements ExtendedLanguageServerServi
             updateGenericServiceModel(serviceModel, serviceNode, semanticModel);
             updateListenerItems(moduleName, semanticModel, project, serviceModel);
             return new ServiceFromSourceResponse(serviceModel);
+        });
+    }
+
+    /**
+     * Get the function model for the given line range.
+     *
+     * @param request Common model from source request
+     * @return {@link FunctionFromSourceResponse} of the function from source response
+     */
+    @JsonRequest
+    public CompletableFuture<FunctionFromSourceResponse> getFunctionFromSource(CommonModelFromSourceRequest request) {
+        return CompletableFuture.supplyAsync(() -> {
+            Path filePath = Path.of(request.filePath());
+            Optional<SemanticModel> semanticModelOp;
+            Optional<Document> document;
+            Project project;
+            try {
+                project = this.workspaceManager.loadProject(filePath);
+                semanticModelOp = this.workspaceManager.semanticModel(filePath);
+                document = this.workspaceManager.document(filePath);
+            } catch (Exception e) {
+                return new FunctionFromSourceResponse(e);
+            }
+
+            if (Objects.isNull(project) || document.isEmpty() || semanticModelOp.isEmpty()) {
+                return new FunctionFromSourceResponse();
+            }
+
+            NonTerminalNode node = findNonTerminalNode(request.codedata(), document.get());
+            if (!(node instanceof FunctionDefinitionNode functionDefinitionNode)) {
+                return new FunctionFromSourceResponse();
+            }
+            // TODO: Handle service type functions other than http
+            Function function = getFunctionFromFunctionDef(functionDefinitionNode, semanticModelOp.get());
+            return new FunctionFromSourceResponse(function);
         });
     }
 

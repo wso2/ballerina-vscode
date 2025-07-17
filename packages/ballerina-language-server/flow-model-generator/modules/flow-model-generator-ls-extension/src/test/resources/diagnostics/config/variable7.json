@@ -1,0 +1,47 @@
+{
+  "description": "",
+  "filePath": "source.bal",
+  "context": {
+    "expression": "check",
+    "startLine": {
+      "line": 7,
+      "offset": 16
+    },
+    "offset": 0,
+    "lineOffset": 0,
+    "codedata": {
+      "node": "VARIABLE",
+      "isNew": true
+    },
+    "property": {
+      "metadata": {
+        "label": "Name",
+        "description": "Name of the variable"
+      },
+      "valueType": "IDENTIFIER",
+      "value": "classVar",
+      "optional": false,
+      "editable": true,
+      "advanced": false
+    }
+  },
+  "diagnostics": [
+    {
+      "range": {
+        "start": {
+          "line": 7,
+          "character": 16
+        },
+        "end": {
+          "line": 7,
+          "character": 21
+        }
+      },
+      "severity": "Error",
+      "code": {
+        "left": "BCE3100"
+      },
+      "message": "`check` is a reserved keyword"
+    }
+  ]
+}
