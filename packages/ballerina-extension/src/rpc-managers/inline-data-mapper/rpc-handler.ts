@@ -22,8 +22,6 @@ import {
     addClauses,
     AddClausesRequest,
     addNewArrayElement,
-    addSubMapping,
-    AddSubMappingRequest,
     convertToQuery,
     ConvertToQueryRequest,
     getAllDataMapperSource,
