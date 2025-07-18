@@ -547,10 +547,7 @@ public class DataMapManager {
     }
 
     private LineRange getCustomFunctionRange(Node expr, Document functionDocument) {
-        if (functionDocument == null) {
-            return null;
-        }
-        if (expr.kind() != SyntaxKind.FUNCTION_CALL) {
+        if (functionDocument == null || expr.kind() != SyntaxKind.FUNCTION_CALL) {
             return null;
         }
         FunctionCallExpressionNode funcCall = (FunctionCallExpressionNode) expr;
