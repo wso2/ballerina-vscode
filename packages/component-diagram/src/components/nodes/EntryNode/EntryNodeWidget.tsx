@@ -92,6 +92,21 @@ const Accessor = styled(StyledText)`
     font-family: "GilmerBold";
 `;
 
+const ResourceAccessor = styled(StyledText)<{ color?: string }>`
+    text-transform: uppercase;
+    font-family: "GilmerBold";
+    background-color: ${(props) => props.color};
+    color: #FFF;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    justify-content: center;
+    min-width: 60px;
+    text-align: center;
+    align-items: center;
+    font-weight: bold;
+`;
+
 const Description = styled(StyledText)`
     font-size: 12px;
     max-width: ${ENTRY_NODE_WIDTH - 80}px;
@@ -174,6 +189,16 @@ const ViewAllButtonWrapper = styled.div`
     align-items: center;
     width: 100%;
 `;
+
+const colors = {
+    "GET": '#3d7eff',
+    "PUT": '#fca130',
+    "POST": '#49cc90',
+    "DELETE": '#f93e3e',
+    "PATCH": '#986ee2',
+    "OPTIONS": '#0d5aa7',
+    "HEAD": '#9012fe'
+}
 
 interface EntryNodeWidgetProps {
     model: EntryNodeModel;
@@ -386,6 +411,27 @@ export function EntryNodeWidget(props: EntryNodeWidgetProps) {
     );
 }
 
+export function getColorByMethod(method: string) {
+    switch (method.toUpperCase()) {
+        case "GET":
+            return colors.GET;
+        case "PUT":
+            return colors.PUT;
+        case "POST":
+            return colors.POST;
+        case "DELETE":
+            return colors.DELETE;
+        case "PATCH":
+            return colors.PATCH;
+        case "OPTIONS":
+            return colors.OPTIONS;
+        case "HEAD":
+            return colors.HEAD;
+        default:
+            return '#876036'; // Default color
+    }
+}
+
 function FunctionBox(props: { func: CDFunction | CDResourceFunction; model: EntryNodeModel; engine: DiagramEngine }) {
     const { func, model, engine } = props;
     const [isHovered, setIsHovered] = useState(false);
@@ -415,7 +461,9 @@ function FunctionBox(props: { func: CDFunction | CDResourceFunction; model: Entr
                 onMouseLeave={() => setIsHovered(false)}
             >
                 {(func as CDResourceFunction).accessor && (
-                    <Accessor>{getAccessorDisplay((func as CDResourceFunction).accessor, isGraphQL)}</Accessor>
+                    <ResourceAccessor color={getColorByMethod((func as CDResourceFunction).accessor)}>
+                        {getAccessorDisplay((func as CDResourceFunction).accessor, isGraphQL)}
+                    </ResourceAccessor>
                 )}
                 {isGraphQL && !(func as CDResourceFunction).accessor && (func as CDFunction).name && (
                     <Accessor>Mutation</Accessor>
