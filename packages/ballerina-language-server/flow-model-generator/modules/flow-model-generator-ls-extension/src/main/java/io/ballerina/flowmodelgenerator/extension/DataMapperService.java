@@ -108,10 +108,12 @@ public class DataMapperService implements ExtendedLanguageServerService {
                 if (semanticModel.isEmpty() || document.isEmpty()) {
                     return response;
                 }
+                Path projectPath = workspaceManager.projectRoot(filePath);
+                Optional<Document> functionsDoc = getDocumentFromFile(projectPath, "functions.bal");
 
                 DataMapManager dataMapManager = new DataMapManager(document.get());
                 response.setMappingsModel(dataMapManager.getMappings(semanticModel.get(), request.codedata(),
-                        request.position(), request.targetField()));
+                        request.position(), request.targetField(), functionsDoc.orElse(null)));
             } catch (Throwable e) {
                 response.setError(e);
             }
@@ -334,5 +336,13 @@ public class DataMapperService implements ExtendedLanguageServerService {
             }
             return response;
         });
+    }
+
+    private Optional<Document> getDocumentFromFile(Path projectPath, String fileName) {
+        try {
+            return this.workspaceManagerProxy.get().document(projectPath.resolve(fileName));
+        } catch (Throwable e) {
+            return Optional.empty();
+        }
     }
 }
