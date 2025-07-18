@@ -99,6 +99,16 @@ public class CommonUtils {
     private static final String CALL_LLM = "callLlm";
     private static final String UNKNOWN_TYPE = "Unknown Type";
     private static final String AI = "ai";
+    private static final String AGENT = "Agent";
+
+    public static final String AI_OPENAI = "ai.openai";
+    public static final String AI_ANTHROPIC = "ai.anthropic";
+    public static final String AI_DEEPSEEK = "ai.deepseek";
+    public static final String AI_MISTRAL = "ai.mistral";
+    public static final String AI_OLLAMA = "ai.ollama";
+    public static final String AI_AZURE = "ai.azure";
+    public static final Set<String> AI_MODULE_NAMES = Set.of(AI_OPENAI, AI_ANTHROPIC, AI_DEEPSEEK,
+            AI_MISTRAL, AI_OLLAMA, AI_AZURE);
 
     /**
      * Removes the quotes from the given string.
@@ -915,5 +925,22 @@ public class CommonUtils {
 
     public static boolean isAiModule(String org, String module) {
         return (org.equals(BALLERINAX_ORG_NAME) || org.equals(BALLERINA_ORG_NAME)) && module.equals(AI);
+    }
+
+    public static boolean isAiModelModule(String org, String module) {
+        return org.equals(BALLERINAX_ORG_NAME) && (module.equals(AI) || AI_MODULE_NAMES.contains(module));
+    }
+
+    public static boolean isAgentClass(Symbol symbol) {
+        Optional<ModuleSymbol> optModule = symbol.getModule();
+        if (optModule.isEmpty()) {
+            return false;
+        }
+        ModuleID id = optModule.get().id();
+        if (!isAiModule(id.orgName(), id.packageName())) {
+            return false;
+        }
+
+        return symbol.getName().isPresent() && symbol.getName().get().equals(AGENT);
     }
 }

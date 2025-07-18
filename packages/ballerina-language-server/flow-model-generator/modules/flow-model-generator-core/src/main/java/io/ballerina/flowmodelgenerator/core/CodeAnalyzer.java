@@ -172,7 +172,8 @@ import java.util.Queue;
 import java.util.Stack;
 import java.util.stream.Collectors;
 
-import static io.ballerina.modelgenerator.commons.CommonUtils.isAiModule;
+import static io.ballerina.modelgenerator.commons.CommonUtils.isAiModelModule;
+import static io.ballerina.modelgenerator.commons.CommonUtils.isAgentClass;
 
 /**
  * Analyzes the source code and generates the flow model.
@@ -310,7 +311,7 @@ public class CodeAnalyzer extends NodeVisitor {
         ExpressionNode expressionNode = remoteMethodCallActionNode.expression();
         MethodSymbol functionSymbol = (MethodSymbol) symbol.get();
         ClassSymbol classSymbol = optClassSymbol.get();
-        if (isAgentCall(classSymbol)) {
+        if (isAgentClass(classSymbol)) {
             startNode(NodeKind.AGENT_CALL, expressionNode.parent());
             populateAgentMetaData(expressionNode, remoteMethodCallActionNode, classSymbol);
         } else {
@@ -1239,7 +1240,7 @@ public class CodeAnalyzer extends NodeVisitor {
             return;
         }
         ClassSymbol classSymbol = optClassSymbol.get();
-        if (isAgentCall(classSymbol)) {
+        if (isAgentClass(classSymbol)) {
             startNode(NodeKind.AGENT, newExpressionNode);
         } else if (isAIModel(classSymbol)) {
             startNode(NodeKind.CLASS_INIT, newExpressionNode);
@@ -1513,7 +1514,7 @@ public class CodeAnalyzer extends NodeVisitor {
         NameReferenceNode nameReferenceNode = methodCallExpressionNode.methodName();
         String functionName = getIdentifierName(nameReferenceNode);
         ClassSymbol classSymbol = optClassSymbol.get();
-        if (isAgentCall(classSymbol)) {
+        if (isAgentClass(classSymbol)) {
             startNode(NodeKind.AGENT_CALL, expressionNode.parent());
             populateAgentMetaData(expressionNode, methodCallExpressionNode, classSymbol);
         } else {
@@ -1568,7 +1569,7 @@ public class CodeAnalyzer extends NodeVisitor {
 
         if (dataMappings.containsKey(functionName)) {
             startNode(NodeKind.DATA_MAPPER_CALL, functionCallExpressionNode.parent());
-        } else if (isAgentCall(symbol.get())) {
+        } else if (isAgentClass(symbol.get())) {
             startNode(NodeKind.AGENT_CALL, functionCallExpressionNode.parent());
         } else if (naturalFunctions.containsKey(functionName)) {
             startNode(NodeKind.NP_FUNCTION_CALL, functionCallExpressionNode.parent());
@@ -1678,26 +1679,13 @@ public class CodeAnalyzer extends NodeVisitor {
         return variableType;
     }
 
-    private boolean isAgentCall(Symbol symbol) {
-        Optional<ModuleSymbol> optModule = symbol.getModule();
-        if (optModule.isEmpty()) {
-            return false;
-        }
-        ModuleID id = optModule.get().id();
-        if (!isAiModule(id.orgName(), id.packageName())) {
-            return false;
-        }
-
-        return symbol.getName().isPresent() && symbol.getName().get().equals("Agent");
-    }
-
     private boolean isAIModel(ClassSymbol classSymbol) {
         Optional<ModuleSymbol> optModule = classSymbol.getModule();
         if (optModule.isEmpty()) {
             return false;
         }
         ModuleID id = optModule.get().id();
-        if (!isAiModule(id.orgName(), id.packageName())) {
+        if (!isAiModelModule(id.orgName(), id.packageName())) {
             return false;
         }
 

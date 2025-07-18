@@ -87,6 +87,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
+import static io.ballerina.modelgenerator.commons.CommonUtils.AI_AZURE;
 import static io.ballerina.modelgenerator.commons.CommonUtils.isAiModule;
 
 /**
@@ -111,12 +112,6 @@ public class AgentsGenerator {
     private static final String HTTP_MODULE = "http";
     private static final List<String> HTTP_REMOTE_METHOD_SKIP_LIST = List.of("get", "put", "post", "head",
             "delete", "patch", "options");
-    private static final String AI_OPENAI = "ai.openai";
-    private static final String AI_ANTHROPIC = "ai.anthropic";
-    private static final String AI_DEEPSEEK = "ai.deepseek";
-    private static final String AI_MISTRAL = "ai.mistral";
-    private static final String AI_OLLAMA = "ai.ollama";
-    private static final String AI_AZURE = "ai.azure";
     private static final String OPENAI_MODEL_PROVIDER = "OpenAiModelProvider";
     private static final String DEFAULT_MODEL_PROVIDER = "getDefaultModelProvider";
 
@@ -160,11 +155,8 @@ public class AgentsGenerator {
 
     public JsonArray getNewBallerinaxModels() {
         JsonArray models = new JsonArray();
-        models.add(createModelObject(AI_OPENAI));
-        models.add(createModelObject(AI_ANTHROPIC));
-        models.add(createModelObject(AI_DEEPSEEK));
-        models.add(createModelObject(AI_MISTRAL));
-        models.add(createModelObject(AI_OLLAMA));
+        CommonUtils.AI_MODULE_NAMES.stream().filter(model -> !model.equals(AI_AZURE))
+                .forEach(model -> models.add(createModelObject(model)));
         models.add(createModelObject(NodeKind.CLASS_INIT, AI_AZURE, OPENAI_MODEL_PROVIDER));
         models.add(createModelObject(NodeKind.FUNCTION_CALL, AI, DEFAULT_MODEL_PROVIDER));
         return models;
