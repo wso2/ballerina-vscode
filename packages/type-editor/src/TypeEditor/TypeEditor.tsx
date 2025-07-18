@@ -80,11 +80,7 @@ export function TypeEditor(props: TypeEditorProps) {
                 readonly: false,
                 label: ""
             },
-            properties: {
-                isReadOnly: {
-                    value: "false",
-                },
-            },
+            properties: {},
             codedata: {
                 node: "RECORD" as TypeNodeKind
             },
