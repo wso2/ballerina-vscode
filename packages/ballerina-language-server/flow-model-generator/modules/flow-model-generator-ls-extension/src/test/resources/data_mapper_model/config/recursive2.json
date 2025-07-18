@@ -1,0 +1,57 @@
+{
+  "source": "recursive2.bal",
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "recursive2.bal",
+      "startLine": {
+        "line": 7,
+        "offset": 4
+      },
+      "endLine": {
+        "line": 7,
+        "offset": 23
+      }
+    },
+    "sourceCode": "Person person = {};"
+  },
+  "position": {
+    "line": 7,
+    "offset": 4
+  },
+  "propertyKey": "expression",
+  "targetField": "person",
+  "model": {
+    "inputs": [],
+    "output": {
+      "fields": [
+        {
+          "id": "person.name",
+          "variableName": "name",
+          "typeName": "string",
+          "kind": "string"
+        },
+        {
+          "isRecursive": true,
+          "id": "person.father",
+          "variableName": "father",
+          "typeName": "Person",
+          "kind": "record"
+        },
+        {
+          "isRecursive": true,
+          "id": "person.mother",
+          "variableName": "mother",
+          "typeName": "Person",
+          "kind": "record"
+        }
+      ],
+      "id": "person",
+      "variableName": "person",
+      "typeName": "Person",
+      "kind": "record"
+    },
+    "mappings": []
+  }
+}
