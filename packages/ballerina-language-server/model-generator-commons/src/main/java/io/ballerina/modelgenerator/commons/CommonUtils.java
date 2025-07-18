@@ -75,6 +75,7 @@ import java.net.URI;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -107,7 +108,7 @@ public class CommonUtils {
     public static final String AI_MISTRAL = "ai.mistral";
     public static final String AI_OLLAMA = "ai.ollama";
     public static final String AI_AZURE = "ai.azure";
-    public static final Set<String> AI_MODULE_NAMES = Set.of(AI_OPENAI, AI_ANTHROPIC, AI_DEEPSEEK,
+    public static final List<String> AI_MODULE_NAMES = List.of(AI_OPENAI, AI_ANTHROPIC, AI_DEEPSEEK,
             AI_MISTRAL, AI_OLLAMA, AI_AZURE);
 
     /**

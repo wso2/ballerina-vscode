@@ -602,6 +602,9 @@ public class AgentsGenerator {
     private List<String> populateToolParams(Property toolParams, boolean hasDescription,
                                             SourceBuilder sourceBuilder) {
         List<String> paramList = new ArrayList<>();
+        if (toolParams == null || toolParams.value() == null) {
+            return paramList;
+        }
         if (toolParams.value() instanceof Map<?, ?> paramMap) {
             for (Object obj : paramMap.values()) {
                 Property paramProperty = gson.fromJson(gson.toJsonTree(obj), Property.class);
