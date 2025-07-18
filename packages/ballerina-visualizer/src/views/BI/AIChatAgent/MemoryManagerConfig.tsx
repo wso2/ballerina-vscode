@@ -125,32 +125,32 @@ export function MemoryManagerConfig(props: MemoryManagerConfigProps): JSX.Elemen
             console.error("No module connections found");
             return;
         }
-        
+
         moduleConnectionNodes.current = moduleNodes.flowModel.connections;
-        
+
         // get agent name
         const agentName = agentCallNode.properties.connection.value;
         if (!agentName) {
             console.error("Agent name not found in agent call node");
             return;
         }
-        
+
         // get agent node
-        const agentNode = moduleConnectionNodes.current.find((node) => node.properties.variable.value === agentName);        
+        const agentNode = moduleConnectionNodes.current.find((node) => node.properties.variable.value === agentName);
         if (!agentNode) {
             console.error("Agent node not found", agentCallNode);
             return;
         }
-        
+
         agentNodeRef.current = agentNode;
-        
+
         // get memory manager name
         const memoryManagerName = (agentNode.properties?.memory?.value as string) || ""; // "new ai:MessageWindowChatMemory(33)"
         if (!memoryManagerName) {
             console.log("No memory manager associated with this agent");
             return;
         }
-        
+
         // get memory manager from available ones
         const memoryManagerCodeData = memoryManagers.find((memory) => {
             // Extract the memory manager type from the expression like "new ai:MessageWindowChatMemory(33)"
@@ -163,9 +163,9 @@ export function MemoryManagerConfig(props: MemoryManagerConfigProps): JSX.Elemen
             console.error("Memory manager not found in available memory managers");
             return;
         }
-        
+
         setSelectedMemoryManagerCodeData(memoryManagerCodeData);
-        
+
         const selectedMemoryManagerNodeTemplate = await getNodeTemplate(
             memoryManagerCodeData,
             agentFilePath.current
@@ -174,7 +174,7 @@ export function MemoryManagerConfig(props: MemoryManagerConfigProps): JSX.Elemen
             console.error("Failed to get node template for memory manager");
             return;
         }
-        
+
         // set properties size value
         const sizeValue = memoryManagerName.split("(")[1]?.split(")")[0]?.trim();
         if (sizeValue) {
@@ -192,7 +192,7 @@ export function MemoryManagerConfig(props: MemoryManagerConfigProps): JSX.Elemen
     // fetch selected memory manager code data - node template
     const fetchMemoryManagerNodeTemplate = async (memoryManagerCodeData: CodeData) => {
         setLoading(true);
-         const selectedMemoryManagerNodeTemplate = await getNodeTemplate(
+        const selectedMemoryManagerNodeTemplate = await getNodeTemplate(
             memoryManagerCodeData,
             agentFilePath.current
         );
@@ -202,7 +202,7 @@ export function MemoryManagerConfig(props: MemoryManagerConfigProps): JSX.Elemen
         }
         // set properties variable
         selectedMemoryManagerNodeTemplate.properties.variable.hidden = true;
-        
+
         setSelectedMemoryManager(selectedMemoryManagerNodeTemplate);
         const memoryManagerFields = convertConfig(selectedMemoryManagerNodeTemplate.properties);
         setSelectedMemoryManagerFields(memoryManagerFields);
@@ -326,6 +326,7 @@ export function MemoryManagerConfig(props: MemoryManagerConfigProps): JSX.Elemen
                     targetLineRange={agentNodeRef.current.codedata.lineRange}
                     onSubmit={handleOnSave}
                     disableSaveButton={savingForm}
+                    isSaving={savingForm}
                 />
             )}
         </Container>

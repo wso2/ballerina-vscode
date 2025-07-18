@@ -124,6 +124,7 @@ export function ToolConfig(props: ToolConfigProps): JSX.Element {
                     targetLineRange={agentCallNode.codedata.lineRange}
                     onSubmit={handleOnSave}
                     disableSaveButton={savingForm}
+                    isSaving={savingForm}
                 />
             )}
         </Container>
