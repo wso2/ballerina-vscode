@@ -24,7 +24,7 @@ import * as path from 'path';
 import { ExtendedLangClient } from "../core/extended-language-client";
 import { ServiceDesignerRpcManager } from "../rpc-managers/service-designer/rpc-manager";
 import { AiAgentRpcManager } from "../rpc-managers/ai-agent/rpc-manager";
-import { injectAgent, injectAgentCode, injectImportIfMissing } from "./source-utils";
+import { injectAgentCode, injectImportIfMissing } from "./source-utils";
 import { tmpdir } from "os";
 import { ArtifactsUpdated, ArtifactNotificationHandler } from "./project-artifacts-handler";
 
@@ -185,15 +185,9 @@ async function injectAIAgent(serviceArtifact: BaseArtifact) {
     // Fetch the organization name for importing the AI package
     const agentOrg = await new AiAgentRpcManager().getAgentOrg({ projectPath: StateMachine.context().projectUri });
 
-    // Inject the import if missing
-    const importStatement = `import ${agentOrg.orgName}/ai`;
-    await injectImportIfMissing(importStatement, path.join(StateMachine.context().projectUri, `agents.bal`));
-
     //get AgentName
     const agentName = serviceArtifact.name.split('-')[1].trim().replace(/\//g, '');
 
-    // Inject the agent code
-    await injectAgent(agentName, StateMachine.context().projectUri);
     // Retrieve the service model
     const targetFile = Utils.joinPath(URI.parse(StateMachine.context().projectUri), serviceArtifact.location.fileName).fsPath;
     const updatedService = await new ServiceDesignerRpcManager().getServiceModelFromCode({
@@ -212,7 +206,7 @@ async function injectAIAgent(serviceArtifact: BaseArtifact) {
     const injectionPosition = updatedService.service.functions[0].codedata.lineRange.endLine;
     const serviceFile = path.join(StateMachine.context().projectUri, `main.bal`);
     ensureFileExists(serviceFile);
-    await injectAgentCode(agentName, serviceFile, injectionPosition);
+    await injectAgentCode(agentName, serviceFile, injectionPosition, agentOrg.orgName);
     const functionPosition: NodePosition = {
         startLine: updatedService.service.functions[0].codedata.lineRange.startLine.line,
         startColumn: updatedService.service.functions[0].codedata.lineRange.startLine.offset,
