@@ -15,7 +15,12 @@
       {
         "id": "58719",
         "metadata": {
-          "label": "Start"
+          "label": "Start",
+          "data": {
+            "kind": "Resource",
+            "label": "pears",
+            "accessor": "post"
+          }
         },
         "codedata": {
           "node": "EVENT_START",

@@ -17,6 +17,9 @@
         "metadata": {
           "label": "Start",
           "data": {
+            "kind": "Resource",
+            "label": "watermelons",
+            "accessor": "get",
             "parameters": [
               "int quantity"
             ],

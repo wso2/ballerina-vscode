@@ -23,6 +23,8 @@
         "metadata": {
           "label": "Start",
           "data": {
+            "kind": "Function",
+            "label": "fn1",
             "parameters": [
               "boolean flag"
             ]

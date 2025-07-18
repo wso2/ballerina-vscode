@@ -17,6 +17,8 @@
         "metadata": {
           "label": "Start",
           "data": {
+            "kind": "Function",
+            "label": "testForeachWithOnFail2",
             "return": "error?"
           }
         },

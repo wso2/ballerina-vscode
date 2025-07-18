@@ -15,7 +15,11 @@
       {
         "id": "140927",
         "metadata": {
-          "label": "Start"
+          "label": "Start",
+          "data": {
+            "kind": "Function",
+            "label": "emptyComment"
+          }
         },
         "codedata": {
           "node": "EVENT_START",

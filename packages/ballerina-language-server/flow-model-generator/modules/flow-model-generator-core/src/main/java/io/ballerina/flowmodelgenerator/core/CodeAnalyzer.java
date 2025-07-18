@@ -220,11 +220,33 @@ public class CodeAnalyzer extends NodeVisitor {
         if (symbol.isEmpty()) {
             return;
         }
-        // Create the start event node
         FunctionBodyNode functionBodyNode = functionDefinitionNode.functionBody();
+
+        // Set the function kind to display in the flow model
+        FunctionKind kind;
+        String functionName = functionDefinitionNode.functionName().text();
+        String accessor = null;
+        if (functionDefinitionNode.kind() == SyntaxKind.RESOURCE_ACCESSOR_DEFINITION) {
+            accessor = functionName;
+            functionName = getPathString(functionDefinitionNode.relativeResourcePath());
+            ServiceDeclarationNode serviceDeclarationNode = getParentServiceDeclaration(functionDefinitionNode);
+            kind = isAgent(serviceDeclarationNode) ? FunctionKind.AI_CHAT_AGENT : FunctionKind.RESOURCE;
+        } else if (hasQualifier(functionDefinitionNode.qualifierList(), SyntaxKind.REMOTE_KEYWORD)) {
+            kind = FunctionKind.REMOTE_FUNCTION;
+        } else {
+            kind = FunctionKind.FUNCTION;
+        }
+
         startNode(NodeKind.EVENT_START, functionDefinitionNode).codedata()
                 .lineRange(functionBodyNode.lineRange())
                 .sourceCode(functionDefinitionNode.toSourceCode().strip());
+
+        nodeBuilder.metadata()
+                .addData("kind", kind.getValue())
+                .addData("label", functionName);
+        if (accessor != null) {
+            nodeBuilder.metadata().addData("accessor", accessor);
+        }
 
         // Add the function signature to the metadata
         FunctionSignatureNode functionSignatureNode = functionDefinitionNode.functionSignature();
@@ -2006,7 +2028,7 @@ public class CodeAnalyzer extends NodeVisitor {
                     .collect(Collectors.joining("|"));
             String label = pattern;
             if (matchGuardNode.isPresent()) {
-                label +=  " " + matchGuardNode.get().toSourceCode().strip();
+                label += " " + matchGuardNode.get().toSourceCode().strip();
             }
 
             Branch.Builder branchBuilder = startBranch(label, NodeKind.CONDITIONAL, Branch.BranchKind.BLOCK,
@@ -2314,5 +2336,68 @@ public class CodeAnalyzer extends NodeVisitor {
         }
         sourceCode = sourceCode.replace(trailingMinutiae.strip(), "");
         return sourceCode.strip();
+    }
+
+    private static String getPathString(NodeList<Node> nodes) {
+        return nodes.stream()
+                .map(node -> node.toString().trim())
+                .collect(Collectors.joining());
+    }
+
+    private static boolean hasQualifier(NodeList<Token> qualifierList, SyntaxKind kind) {
+        return qualifierList.stream().anyMatch(qualifier -> qualifier.kind() == kind);
+    }
+
+    private boolean isAgent(ServiceDeclarationNode serviceDeclarationNode) {
+        SeparatedNodeList<ExpressionNode> expressions = serviceDeclarationNode.expressions();
+        if (expressions.isEmpty()) {
+            return false;
+        }
+
+        ExpressionNode listenerExpression = expressions.get(0);
+        Optional<TypeSymbol> typeSymbol = semanticModel.typeOf(listenerExpression);
+        if (typeSymbol.isEmpty()) {
+            return false;
+        }
+
+        TypeSymbol listenerTypeSymbol = getListenerTypeSymbol(typeSymbol.get());
+        if (listenerTypeSymbol == null) {
+            return false;
+        }
+
+        Optional<ModuleSymbol> module = listenerTypeSymbol.getModule();
+        return module.isPresent() && AI_AGENT.equals(module.get().id().moduleName());
+    }
+
+    private TypeSymbol getListenerTypeSymbol(TypeSymbol typeSymbol) {
+        if (typeSymbol.typeKind() == TypeDescKind.UNION) {
+            UnionTypeSymbol unionTypeSymbol = (UnionTypeSymbol) typeSymbol;
+            return unionTypeSymbol.memberTypeDescriptors().stream()
+                    .filter(member -> !member.subtypeOf(semanticModel.types().ERROR))
+                    .findFirst().orElse(null);
+        }
+        return typeSymbol;
+    }
+
+    /**
+     * Represents the function kind to display in the flow model.
+     *
+     * @since 1.0.1
+     */
+    public enum FunctionKind {
+        FUNCTION("Function"),
+        REMOTE_FUNCTION("Remote Function"),
+        RESOURCE("Resource"),
+        AI_CHAT_AGENT("AI Chat Agent");
+
+        private final String value;
+
+        FunctionKind(String value) {
+            this.value = value;
+        }
+
+        public String getValue() {
+            return value;
+        }
     }
 }
