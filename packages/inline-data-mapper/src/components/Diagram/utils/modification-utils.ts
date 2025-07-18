@@ -23,7 +23,8 @@ import { MappingFindingVisitor } from "../../../visitors/MappingFindingVisitor";
 import { traverseNode } from "../../../utils/model-utils";
 import { MappingDeletionVisitor } from "../../../visitors/MappingDeletionVisitor";
 import { getDefaultValue } from "./common-utils";
-import { Mapping } from "@wso2/ballerina-core";
+import { CustomFnMetadata, CustomFnParams, Mapping } from "@wso2/ballerina-core";
+import { map } from "lodash";
 
 export async function createNewMapping(link: DataMapperLinkModel) {
 	const sourcePort = link.getSourcePort();
@@ -70,6 +71,45 @@ export async function removeMapping(mapping: Mapping, context: IDataMapperContex
 	const views=context.views;
 	const viewId = views[views.length-1].targetField;
 	return await context.deleteMapping( mapping as Mapping, viewId)
+}
+
+export async function mapWithCustomFn(link: DataMapperLinkModel, context: IDataMapperContext){
+	const sourcePort = link.getSourcePort();
+	const targetPort = link.getTargetPort();
+	if (!sourcePort || !targetPort) {
+		return;
+	}
+
+	const sourcePortModel = sourcePort as InputOutputPortModel;
+	const outputPortModel = targetPort as InputOutputPortModel;
+
+	const input = sourcePortModel.attributes.optionalOmittedFieldFQN;
+	const outputId = outputPortModel.attributes.fieldFQN;
+	const lastView = context.views[context.views.length - 1];
+	const viewId = lastView?.targetField || null;
+
+	const mapping: Mapping = {
+		output: outputId,
+		expression: input
+	};
+
+	const inputField = sourcePortModel.attributes.field;
+	const outputField = outputPortModel.attributes.field;
+	const inputParams: CustomFnParams[] = [{
+		name: inputField.variableName,
+		type: inputField.typeName,
+		isOptional: false,
+		isNullable: false,
+		kind: inputField.kind
+	}];
+
+	const metadata: CustomFnMetadata = {
+		returnType: outputField.typeName || outputField.kind,
+		parameters: inputParams
+	}
+
+	await context.mapWithCustomFn(mapping, metadata, viewId);
+
 }
 
 export function buildInputAccessExpr(fieldFqn: string): string {

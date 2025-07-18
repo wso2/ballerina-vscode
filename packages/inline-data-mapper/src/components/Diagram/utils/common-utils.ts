@@ -47,16 +47,25 @@ export function getMappingType(sourcePort: PortModel, targetPort: PortModel): Ma
         && targetPort instanceof InputOutputPortModel
         && targetPort.attributes.field && sourcePort.attributes.field) {
 
+        const sourceField = sourcePort.attributes.field;
+        const targetField = targetPort.attributes.field;
+
+        if (sourceField.kind === TypeKind.Record || targetField.kind === TypeKind.Record) {
+            return MappingType.ContainsRecord;
+        }
+
         if (targetPort.getParent() instanceof PrimitiveOutputNode) return MappingType.ArrayToSingletonWithCollect;
             
-        const sourceDim = getDMTypeDim(sourcePort.attributes.field);
-        const targetDim = getDMTypeDim(targetPort.attributes.field);
+        const sourceDim = getDMTypeDim(sourceField);
+        const targetDim = getDMTypeDim(targetField);
 
         if (sourceDim > 0) {
             const dimDelta = sourceDim - targetDim;
             if (dimDelta == 0) return MappingType.ArrayToArray;
             if (dimDelta > 0) return MappingType.ArrayToSingleton;
         }
+
+
     }
 
     return MappingType.Default;
@@ -74,6 +83,7 @@ export function getValueType(lm: DataMapperLinkModel): ValueType {
 
 
 export function isPendingMappingRequired(mappingType: MappingType): boolean {
+    return true;
     return mappingType === MappingType.ArrayToSingleton || mappingType === MappingType.ArrayToSingletonWithCollect;
 }
 

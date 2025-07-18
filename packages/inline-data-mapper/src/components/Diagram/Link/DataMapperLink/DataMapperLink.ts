@@ -28,6 +28,7 @@ export enum MappingType {
 	ArrayToArray = "array-array",
 	ArrayToSingleton = "array-singleton",
 	ArrayToSingletonWithCollect = "array-singleton-collect",
+	ContainsRecord = "contains-record",
 	Default = undefined // This is for non-array mappings currently
 }
 

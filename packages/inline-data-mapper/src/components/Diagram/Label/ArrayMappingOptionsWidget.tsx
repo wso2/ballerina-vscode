@@ -27,6 +27,7 @@ import { InputOutputPortModel, ValueType } from '../Port';
 import { genArrayElementAccessSuffix, getValueType } from '../utils/common-utils';
 import { MappingType } from '../Link';
 import { ExpressionLabelModel } from './ExpressionLabelModel';
+import { mapWithCustomFn } from '../utils/modification-utils';
 
 export const useStyles = () => ({
     arrayMappingMenu: css({
@@ -57,7 +58,7 @@ export interface ArrayMappingOptionsWidgetProps {
 
 export function ArrayMappingOptionsWidget(props: ArrayMappingOptionsWidgetProps) {
     const classes = useStyles();
-    const { link  } = props.model;
+    const { link, context  } = props.model;
     const pendingMappingType = link.pendingMappingType;
 
     const sourcePort = link.getSourcePort() as InputOutputPortModel;
@@ -85,7 +86,8 @@ export function ArrayMappingOptionsWidget(props: ArrayMappingOptionsWidgetProps)
 
     };
 
-    const onClickMapUsingCustomFunction = async () => {
+    const onClickMapWithCustomFunction = async () => {
+        await mapWithCustomFn(link, context);
     };
 
     const onClickMapUsingCollectClause = async (collectFunction: string) => {
@@ -143,15 +145,11 @@ export function ArrayMappingOptionsWidget(props: ArrayMappingOptionsWidgetProps)
     pendingMappingType === MappingType.ArrayToSingleton ? a2sMenuItems : 
     a2sCollectClauseItems;
 
-    if (pendingMappingType !== MappingType.ArrayToSingletonWithCollect) {
-        menuItems.push({
-            id: "a2a-a2s-func",
-            label: getItemElement("a2a-a2s-func", "Map Using Custom Function"),
-            onClick: onClickMapUsingCustomFunction
-        });
-    }
-    
-
+    menuItems.push({
+        id: "a2a-a2s-func",
+        label: getItemElement("a2a-a2s-func", "Map Using Custom Function"),
+        onClick: onClickMapWithCustomFunction
+    });
     return (
         <div className={classes.arrayMappingMenu}>
             <Menu sx={a2aMenuStyles}>
