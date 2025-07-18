@@ -20,13 +20,16 @@ import vscode from 'vscode';
 import { ENABLE_BACKGROUND_DRIFT_CHECK } from "../../core/preferences";
 import { debounce } from 'lodash';
 import { StateMachine } from "../../stateMachine";
-import { addConfigFile, getConfigFilePath, getLLMDiagnostics} from "./utils";
-import { NLCodeActionProvider, showTextOptions } from './nl-code-action-provider';
+import { addConfigFile, getConfigFilePath, getLLMDiagnostics } from "./utils";
+import { NLCodeActionProvider } from './nl-code-action-provider';
 import { BallerinaExtension } from 'src/core';
-import { PROGRESS_BAR_MESSAGE_FOR_DRIFT, WARNING_MESSAGE, WARNING_MESSAGE_DEFAULT, 
-    MONITERED_EXTENSIONS
- } from './constants';
- import { isSupportedSLVersion } from "../../utils";
+import {
+    PROGRESS_BAR_MESSAGE_FOR_DRIFT, WARNING_MESSAGE, WARNING_MESSAGE_DEFAULT,
+    MONITERED_EXTENSIONS,
+    COMMAND_SHOW_TEXT
+} from './constants';
+import { isSupportedSLVersion } from "../../utils";
+import { CustomDiagnostic } from './custom-diagnostics';
 
 let diagnosticCollection: vscode.DiagnosticCollection;
 const BALLERINA_UPDATE_13 = 2201130;
@@ -49,30 +52,30 @@ export function activate(ballerinaExtInstance: BallerinaExtension) {
             if (result == null) {
                 return;
             }
-        
+
             if (result > 400 && result < 500) {
                 vscode.window.showWarningMessage(WARNING_MESSAGE);
                 return;
             }
             vscode.window.showWarningMessage(WARNING_MESSAGE_DEFAULT);
         }, 600000);
-        
+
         vscode.workspace.onDidChangeTextDocument(async event => {
             const filePath = event.document.uri.fsPath; // Get the file path
             const fileExtension = filePath.substring(filePath.lastIndexOf('.')); // Extract the file extension
-        
+
             // Check if the file extension is in the monitoredExtensions array
             if (MONITERED_EXTENSIONS.includes(fileExtension)) {
                 debouncedGetLLMDiagnostics();
             }
         }, null, ballerinaExtInstance.context.subscriptions);
-        
+
         vscode.workspace.onDidDeleteFiles(async event => {
             let isMoniteredFileGotDeleted = false;
             event.files.forEach(file => {
                 const filePath = file.fsPath; // Get the file path
                 const fileExtension = filePath.substring(filePath.lastIndexOf('.')); // Extract the file extension
-        
+
                 // Check if the file extension is in the monitoredExtensions array
                 if (MONITERED_EXTENSIONS.includes(fileExtension)) {
                     isMoniteredFileGotDeleted = true;
@@ -92,9 +95,28 @@ export function activate(ballerinaExtInstance: BallerinaExtension) {
         })
     );
 
-    ballerinaExtInstance.context.subscriptions.push(showTextOptions);
+    ballerinaExtInstance.context.subscriptions.push(
+        vscode.commands.registerCommand(COMMAND_SHOW_TEXT, async (document: vscode.TextDocument,
+            diagnostic: CustomDiagnostic, newText: string, range: vscode.Range) => {
+            const editor = vscode.window.activeTextEditor;
+            if (!editor) {
+                vscode.window.showErrorMessage("No active editor found.");
+                return;
+            }
 
-    vscode.commands.registerCommand("ballerina.verifyDocs", async (...args: any[]) => {    
+            const textToReplace = document.getText(range);
+
+            // Create a Git conflict-like view with "|||||||", "HEAD" and "======="
+            const conflictText = `<<<<<<< HEAD\n${textToReplace}\n=======\n${newText}\n>>>>>>>\n`;
+
+            const edit = new vscode.WorkspaceEdit();
+            edit.replace(document.uri, range, conflictText);
+            await vscode.workspace.applyEdit(edit);
+            vscode.window.showInformationMessage('Changes added');
+        })
+    );
+
+    vscode.commands.registerCommand("ballerina.verifyDocs", async (...args: any[]) => {
         await vscode.window.withProgress(
             {
                 location: vscode.ProgressLocation.Notification,
@@ -102,7 +124,7 @@ export function activate(ballerinaExtInstance: BallerinaExtension) {
                 cancellable: false,
             },
             async () => {
-                const result: number|null = await getLLMDiagnostics(projectPath, diagnosticCollection);
+                const result: number | null = await getLLMDiagnostics(projectPath, diagnosticCollection);
                 if (result == null) {
                     return;
                 }
@@ -119,8 +141,8 @@ export function activate(ballerinaExtInstance: BallerinaExtension) {
     vscode.commands.registerCommand("ballerina.configureDefaultModelForNaturalFunctions", async (...args: any[]) => {
         const configPath = await getConfigFilePath(ballerinaExtInstance, projectPath);
         if (configPath != null) {
-            const isNaturalFunctionsAvailableInBallerinaOrg = 
-                        isSupportedSLVersion(ballerinaExtInstance, BALLERINA_UPDATE_13);
+            const isNaturalFunctionsAvailableInBallerinaOrg =
+                isSupportedSLVersion(ballerinaExtInstance, BALLERINA_UPDATE_13);
             addConfigFile(configPath, isNaturalFunctionsAvailableInBallerinaOrg);
         }
     });
