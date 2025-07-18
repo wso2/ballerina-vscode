@@ -95,6 +95,8 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Stream;
 
+import static io.ballerina.modelgenerator.commons.CommonUtils.isAiModule;
+
 /**
  * Factory class to create {@link FunctionData} instances from function symbols.
  *
@@ -1113,7 +1115,7 @@ public class FunctionDataBuilder {
     }
 
     private boolean isAgentModelType(String paramName) {
-        return moduleInfo.org().equals("ballerinax") && moduleInfo.moduleName().equals("ai")
+        return isAiModule(moduleInfo.org(), moduleInfo.moduleName())
                 && (functionKind == FunctionData.Kind.CLASS_INIT || functionKind == FunctionData.Kind.CONNECTOR)
                 && paramName.equals("modelType"); // TODO: Check Param Name
     }

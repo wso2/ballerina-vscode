@@ -126,6 +126,7 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
 import static io.ballerina.compiler.syntax.tree.SyntaxKind.OBJECT_TYPE_DESC;
+import static io.ballerina.modelgenerator.commons.CommonUtils.isAiModule;
 import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.KIND_MUTATION;
 import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.KIND_REMOTE;
 import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.NEW_LINE;
@@ -154,7 +155,6 @@ import static io.ballerina.servicemodelgenerator.extension.util.Utils.getListene
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.getPath;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.getServiceDeclarationNode;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.importExists;
-import static io.ballerina.servicemodelgenerator.extension.util.Utils.isAiAgentModule;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.populateRequiredFuncsDesignApproachAndServiceType;
 
 /**
@@ -393,7 +393,7 @@ public class ServiceModelGeneratorService implements ExtendedLanguageServerServi
                 }
 
                 Set<String> importStmts = new HashSet<>();
-                if (isAiAgentModule(service.getOrgName(), service.getModuleName()) &&
+                if (isAiModule(service.getOrgName(), service.getModuleName()) &&
                         !importExists(node, "ballerina", "http")) {
                     importStmts.add(Utils.getImportStmt("ballerina", "http"));
                 }

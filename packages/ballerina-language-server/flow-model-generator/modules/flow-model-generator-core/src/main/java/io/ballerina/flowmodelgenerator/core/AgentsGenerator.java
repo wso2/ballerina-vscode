@@ -87,6 +87,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
+import static io.ballerina.modelgenerator.commons.CommonUtils.isAiModule;
+
 /**
  * This class is responsible for managing agents.
  *
@@ -637,7 +639,7 @@ public class AgentsGenerator {
                 continue;
             }
             ModuleID id = optModule.get().id();
-            if (!(id.orgName().equals(BALLERINAX) && id.packageName().equals(AI))) {
+            if (!isAiModule(id.orgName(), id.packageName())) {
                 continue;
             }
             Optional<String> optName = annotationSymbol.getName();

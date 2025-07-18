@@ -50,6 +50,8 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 
+import static io.ballerina.modelgenerator.commons.CommonUtils.isAiModule;
+
 /**
  * Represents a command to search for functions within a module. This class extends SearchCommand and provides
  * functionality to search for both project-specific and library functions.
@@ -243,7 +245,7 @@ class FunctionSearchCommand extends SearchCommand {
                 continue;
             }
             ModuleID id = optModule.get().id();
-            if (!(id.orgName().equals(BALLERINAX) && id.packageName().equals(AI_AGENT))) {
+            if (!isAiModule(id.orgName(), id.packageName())) {
                 continue;
             }
             Optional<String> optName = annotationSymbol.getName();

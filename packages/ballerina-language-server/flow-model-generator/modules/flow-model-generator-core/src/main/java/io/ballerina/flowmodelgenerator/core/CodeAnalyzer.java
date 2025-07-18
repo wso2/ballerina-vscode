@@ -172,6 +172,8 @@ import java.util.Queue;
 import java.util.Stack;
 import java.util.stream.Collectors;
 
+import static io.ballerina.modelgenerator.commons.CommonUtils.isAiModule;
+
 /**
  * Analyzes the source code and generates the flow model.
  *
@@ -195,9 +197,6 @@ public class CodeAnalyzer extends NodeVisitor {
     private final List<FlowNode> flowNodeList;
     private final Stack<NodeBuilder> flowNodeBuilderStack;
     private TypedBindingPatternNode typedBindingPatternNode;
-    private static final String BALLERINAX = "ballerinax";
-    private static final String BALLERINA = "ballerina";
-    private static final String AI_AGENT = "ai";
 
     public CodeAnalyzer(Project project, SemanticModel semanticModel, String connectionScope,
                         Map<String, LineRange> dataMappings, Map<String, LineRange> naturalFunctions,
@@ -1685,9 +1684,7 @@ public class CodeAnalyzer extends NodeVisitor {
             return false;
         }
         ModuleID id = optModule.get().id();
-        boolean isAIModule = (id.orgName().equals(BALLERINAX) || id.orgName().equals(BALLERINA)) &&
-                id.packageName().equals(AI_AGENT);
-        if (!isAIModule) {
+        if (!isAiModule(id.orgName(), id.packageName())) {
             return false;
         }
 
@@ -1700,8 +1697,7 @@ public class CodeAnalyzer extends NodeVisitor {
             return false;
         }
         ModuleID id = optModule.get().id();
-        boolean isAIModule = id.orgName().equals(BALLERINAX) && id.packageName().equals(AI_AGENT);
-        if (!isAIModule) {
+        if (!isAiModule(id.orgName(), id.packageName())) {
             return false;
         }
 

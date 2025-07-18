@@ -98,6 +98,7 @@ public class CommonUtils {
     private static final String NATURAL_FUNCTION = "NaturalFunction";
     private static final String CALL_LLM = "callLlm";
     private static final String UNKNOWN_TYPE = "Unknown Type";
+    private static final String AI = "ai";
 
     /**
      * Removes the quotes from the given string.
@@ -910,5 +911,9 @@ public class CommonUtils {
                         module.equals(importDeclarationNode.pkgNameComps.stream()
                                 .map(identifierNode -> identifierNode.value)
                                 .collect(Collectors.joining("."))));
+    }
+
+    public static boolean isAiModule(String org, String module) {
+        return (org.equals(BALLERINAX_ORG_NAME) || org.equals(BALLERINA_ORG_NAME)) && module.equals(AI);
     }
 }
