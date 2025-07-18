@@ -33,7 +33,8 @@ import {
     GetInlineDataMapperCodedataResponse,
     GetSubMappingCodedataRequest,
     InlineAllDataMapperSourceRequest,
-    AddSubMappingRequest
+    AddSubMappingRequest,
+    DeleteMappingRequest
 } from "../../interfaces/extended-lang-client";
 
 export interface InlineDataMapperAPI {
@@ -45,6 +46,7 @@ export interface InlineDataMapperAPI {
     convertToQuery: (params: ConvertToQueryRequest) => Promise<InlineDataMapperSourceResponse>;
     addClauses: (params: AddClausesRequest) => Promise<InlineDataMapperSourceResponse>;
     addSubMapping: (params: AddSubMappingRequest) => Promise<InlineDataMapperSourceResponse>;
+    deleteMapping: (params: DeleteMappingRequest) => Promise<InlineDataMapperSourceResponse>;
     getDataMapperCodedata: (params: GetInlineDataMapperCodedataRequest) => Promise<GetInlineDataMapperCodedataResponse>;
     getSubMappingCodedata: (params: GetSubMappingCodedataRequest) => Promise<GetInlineDataMapperCodedataResponse>;
     getAllDataMapperSource: (params:InlineAllDataMapperSourceRequest) => Promise<InlineDataMapperSourceResponse>;

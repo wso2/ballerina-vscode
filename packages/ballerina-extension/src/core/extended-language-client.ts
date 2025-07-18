@@ -234,7 +234,8 @@ import {
     GetInlineDataMapperCodedataRequest,
     GetInlineDataMapperCodedataResponse,
     GetSubMappingCodedataRequest,
-    AddSubMappingRequest
+    AddSubMappingRequest,
+    DeleteMappingRequest
 } from "@wso2/ballerina-core";
 import { BallerinaExtension } from "./index";
 import { debug, handlePullModuleProgress } from "../utils";
@@ -313,6 +314,7 @@ enum EXTENDED_APIS {
     DATA_MAPPER_CONVERT_TO_QUERY = 'dataMapper/convertToQuery',
     DATA_MAPPER_ADD_CLAUSES = 'dataMapper/addClauses',
     DATA_MAPPER_ADD_SUB_MAPPING = 'dataMapper/addSubMapping',
+    DATA_MAPPER_DELETE_MAPPING = 'dataMapper/deleteMapping',
     DATA_MAPPER_CODEDATA = 'dataMapper/nodePosition',
     DATA_MAPPER_SUB_MAPPING_CODEDATA = 'dataMapper/subMapping',
     DATA_MAPPER_PROPERTY = 'dataMapper/fieldPosition',
@@ -695,6 +697,10 @@ export class ExtendedLangClient extends LanguageClient implements ExtendedLangCl
 
     async addSubMapping(params: AddSubMappingRequest): Promise<InlineDataMapperSourceResponse> {
         return this.sendRequest<InlineDataMapperSourceResponse>(EXTENDED_APIS.DATA_MAPPER_ADD_SUB_MAPPING, params);
+    }
+
+    async deleteMapping(params: DeleteMappingRequest): Promise<InlineDataMapperSourceResponse> {
+        return this.sendRequest<InlineDataMapperSourceResponse>(EXTENDED_APIS.DATA_MAPPER_DELETE_MAPPING, params);
     }
 
     async getDataMapperCodedata(params: GetInlineDataMapperCodedataRequest): Promise<GetInlineDataMapperCodedataResponse> {

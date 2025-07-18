@@ -22,6 +22,7 @@ import {
     AddClausesRequest,
     AddSubMappingRequest,
     ConvertToQueryRequest,
+    DeleteMappingRequest,
     EVENT_TYPE,
     GetInlineDataMapperCodedataRequest,
     GetInlineDataMapperCodedataResponse,
@@ -245,4 +246,16 @@ export class InlineDataMapperRpcManager implements InlineDataMapperAPI {
         });
     }
 
+    async deleteMapping(params: DeleteMappingRequest): Promise<InlineDataMapperSourceResponse> {
+        return new Promise(async (resolve) => {
+            await StateMachine
+                .langClient()
+                .deleteMapping(params)
+                .then(async (resp) => {
+                    console.log(">>> inline data mapper delete mapping response", resp);
+                    await updateAndRefreshDataMapper(resp.textEdits, params.filePath, params.codedata, params.varName);
+                    resolve({ textEdits: resp.textEdits });
+                });
+        });
+    }
 }
