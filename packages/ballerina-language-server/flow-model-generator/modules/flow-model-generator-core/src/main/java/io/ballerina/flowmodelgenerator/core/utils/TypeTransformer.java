@@ -709,14 +709,20 @@ public class TypeTransformer {
 
         // Check for non-readonly type members to treat the type as a first-class non-intersection type
         for (TypeSymbol typeSymbol : intersectionMemberTypes) {
-            if (typeSymbol.subtypeOf(types.READONLY)) {
+            if (typeSymbol.typeKind() == TypeDescKind.READONLY) {
                 continue;
+            }
+
+            if (typeSymbol.typeKind() == TypeDescKind.INTERSECTION) {
+                // If a member type is an intersection type, we don't handle it as a first-class non-intersection type
+                return transform(intersectionTypeSymbol, typeDataBuilder);
             }
 
             if (nonReadonlyTypeSymbol == null) {
                 nonReadonlyTypeSymbol = typeSymbol;
             } else {
-                // If there are multiple non-readonly types, we cannot handle it as a first-class non-intersection type
+                // If there are multiple non-readonly types,
+                // we handle the intersection type as a first-class intersection type
                 return transform(intersectionTypeSymbol, typeDataBuilder);
             }
         }
