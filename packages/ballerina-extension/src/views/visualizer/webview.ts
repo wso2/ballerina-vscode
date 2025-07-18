@@ -64,7 +64,7 @@ export class VisualizerWebview {
 
             const state = StateMachine.state();
             const machineReady = typeof state === 'object' && 'viewActive' in state && state.viewActive === "viewReady";
-            if (document?.contentChanges.length === 0 || !machineReady) return;
+            if (document?.contentChanges.length === 0 || !machineReady) { return; }
 
             const balFileModified = document?.document.languageId === LANGUAGE.BALLERINA;
             const configTomlModified = document.document.languageId === LANGUAGE.TOML &&
