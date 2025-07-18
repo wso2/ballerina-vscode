@@ -26,7 +26,8 @@ import ConfigForm from "./ConfigForm";
 import { Dropdown } from "@wso2/ui-toolkit";
 import { cloneDeep } from "lodash";
 import { RelativeLoader } from "../../../components/RelativeLoader";
-import { getAgentFilePath } from "./utils";
+import { getAgentFilePath, getAgentOrg } from "./utils";
+import { BALLERINA, BALLERINAX, GET_DEFAULT_MODEL_PROVIDER, WSO2_MODEL_PROVIDER, PROVIDER_NAME_MAP } from "../../../constants";
 
 const Container = styled.div`
     padding: 16px;
@@ -68,6 +69,7 @@ export function ModelConfig(props: ModelConfigProps): JSX.Element {
     const [savingForm, setSavingForm] = useState<boolean>(false);
 
     const agentFilePath = useRef<string>("");
+    const agentOrg = useRef<string>("");
     const moduleConnectionNodes = useRef<FlowNode[]>([]);
     const selectedModelFlowNode = useRef<FlowNode>();
 
@@ -77,18 +79,48 @@ export function ModelConfig(props: ModelConfigProps): JSX.Element {
 
     useEffect(() => {
         if (modelsCodeData.length > 0 && selectedModel && !selectedModelCodeData) {
-            fetchModelNodeTemplate(selectedModel.codedata);
+            // Find the initial modelCodeData that matches selectedModel
+            let initialModelCodeData: CodeData | undefined;
+            if (agentOrg.current === BALLERINA) {
+                initialModelCodeData = modelsCodeData.find((model) => model.module === selectedModel.codedata.module);
+            } else if (agentOrg.current === BALLERINAX) {
+                initialModelCodeData = modelsCodeData.find((model) => model.object === selectedModel.codedata.object);
+            } else {
+                initialModelCodeData = modelsCodeData.find((model) => model.module === selectedModel.codedata.module);
+            }
+            if (initialModelCodeData) {
+                setSelectedModelCodeData(initialModelCodeData);
+                fetchModelNodeTemplate(initialModelCodeData);
+            } else {
+                fetchModelNodeTemplate(selectedModel.codedata);
+            }
         }
     }, [modelsCodeData, selectedModel]);
 
     const initPanel = async () => {
         setLoading(true);
         agentFilePath.current = await getAgentFilePath(rpcClient);
+        agentOrg.current = await getAgentOrg(rpcClient);
         // fetch all models
         await fetchModels();
         // fetch selected agent model
         await fetchSelectedAgentModel();
         setLoading(false);
+    };
+
+    // Helper to get provider name from modelCodeData
+    const getProviderName = (model: CodeData, useMappedName: boolean = false) => {
+        if (!model) return "";
+        if (agentOrg.current === BALLERINA) {
+            if (useMappedName) {
+                return PROVIDER_NAME_MAP[model.module] || model.module;
+            }
+            return model.module;
+        } else if (agentOrg.current === BALLERINAX) {
+            return model.object;
+        }
+        // fallback
+        return model.module || model.object;
     };
 
     const fetchModels = async () => {
@@ -100,7 +132,7 @@ export function ModelConfig(props: ModelConfigProps): JSX.Element {
         }
         const models = await rpcClient
             .getAIAgentRpcClient()
-            .getAllModels({ agent: agentName, filePath: agentFilePath.current });
+            .getAllModels({ agent: agentName, filePath: agentFilePath.current, orgName: agentOrg.current });
         console.log(">>> all models", models);
         setModelsCodeData(models.models);
     };
@@ -134,7 +166,16 @@ export function ModelConfig(props: ModelConfigProps): JSX.Element {
     const fetchModelNodeTemplate = async (modelCodeData: CodeData) => {
         setLoading(true);
         let nodeProperties: NodeProperties = {};
-        if (selectedModel?.codedata.object === modelCodeData.object) {
+        // Determine provider match for both agentOrg cases
+        let isProviderMatch = false;
+        if (agentOrg.current === BALLERINA) {
+            isProviderMatch = selectedModel?.codedata.module === modelCodeData.module;
+        } else if (agentOrg.current === BALLERINAX) {
+            isProviderMatch = selectedModel?.codedata.object === modelCodeData.object;
+        } else {
+            isProviderMatch = selectedModel?.codedata.module === modelCodeData.module;
+        }
+        if (isProviderMatch) {
             // use selected model properties
             selectedModelFlowNode.current = cloneDeep(selectedModel);
             nodeProperties = selectedModel?.properties;
@@ -203,7 +244,12 @@ export function ModelConfig(props: ModelConfigProps): JSX.Element {
                         id="agent-model-dropdown"
                         items={[
                             { value: "Select a provider...", content: "Select a provider..." },
-                            ...modelsCodeData.map((model) => ({ value: model.object, content: model.object })),
+                            ...[...modelsCodeData]
+                                .sort((a, b) => (b.symbol === GET_DEFAULT_MODEL_PROVIDER ? 1 : 0) - (a.symbol === GET_DEFAULT_MODEL_PROVIDER ? 1 : 0))
+                                .map((model) => ({
+                                    value: getProviderName(model),
+                                    content: model.symbol === GET_DEFAULT_MODEL_PROVIDER ? WSO2_MODEL_PROVIDER : getProviderName(model, true)
+                                })),
                         ]}
                         label="Select Model Provider"
                         description={"Available Providers"}
@@ -211,11 +257,12 @@ export function ModelConfig(props: ModelConfigProps): JSX.Element {
                             if (value === "Select a provider...") {
                                 return; // Skip the init option
                             }
-                            const selectedModelCodeData = modelsCodeData.find((model) => model.object === value);
+                            const selectedModelCodeData = modelsCodeData.find((model) => getProviderName(model) === value);
+                            console.log("Selected Model Code Data: ", selectedModelCodeData);
                             setSelectedModelCodeData(selectedModelCodeData);
                             fetchModelNodeTemplate(selectedModelCodeData);
                         }}
-                        value={selectedModelCodeData?.object || (agentCallNode?.metadata.data?.model?.type as string)}
+                        value={selectedModelCodeData ? getProviderName(selectedModelCodeData) : (agentCallNode?.metadata.data?.model?.type as string)}
                         containerSx={{ width: "100%" }}
                     />
                 </Row>
@@ -231,6 +278,7 @@ export function ModelConfig(props: ModelConfigProps): JSX.Element {
                     targetLineRange={selectedModel?.codedata.lineRange}
                     onSubmit={handleOnSave}
                     disableSaveButton={savingForm}
+                    isSaving={savingForm}
                 />
             )}
         </Container>
