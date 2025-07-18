@@ -32,7 +32,8 @@ import {
     IntermediateClause,
     TriggerCharacter,
     TRIGGER_CHARACTERS,
-    Mapping
+    Mapping,
+    CustomFnMetadata
 } from "@wso2/ballerina-core";
 import { CompletionItem, ProgressIndicator } from "@wso2/ui-toolkit";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
@@ -297,6 +298,25 @@ export function InlineDataMapperView(props: InlineDataMapperProps) {
         }
     };
 
+    const mapWithCustomFn = async (mapping: Mapping, metadata: CustomFnMetadata, viewId: string) => {
+        try {
+            const resp = await rpcClient
+                .getInlineDataMapperRpcClient()
+                .mapWithCustomFn({
+                    filePath,
+                    codedata,
+                    mapping,
+                    functionMetadata: metadata,
+                    varName,
+                    targetField: viewId,
+                });
+            console.log(">>> [Inline Data Mapper] mapWithCustomFn response:", resp);
+        } catch (error) {
+            console.error(error);
+            setIsFileUpdateError(true);
+        }
+    };
+
     useEffect(() => {
         // Hack to hit the error boundary
         if (isError) {
@@ -406,6 +426,7 @@ export function InlineDataMapperView(props: InlineDataMapperProps) {
                     addClauses={addClauses}
                     addSubMapping={addSubMapping}
                     deleteMapping={deleteMapping}
+                    mapWithCustomFn={mapWithCustomFn}
                     expressionBar={{
                         completions: filteredCompletions,
                         triggerCompletions: retrieveCompeletions,

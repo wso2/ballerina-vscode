@@ -133,7 +133,8 @@ export function InlineDataMapper(props: InlineDataMapperProps) {
         addSubMapping,
         deleteMapping,
         generateForm,
-        addClauses
+        addClauses,
+        mapWithCustomFn
     } = props;
     const {
         model,
@@ -205,7 +206,8 @@ export function InlineDataMapper(props: InlineDataMapperProps) {
                 addArrayElement,
                 hasInputsOutputsChanged,
                 convertToQuery,
-                deleteMapping
+                deleteMapping,
+                mapWithCustomFn
             );
 
             // Only regenerate IO nodes if inputs/outputs have changed

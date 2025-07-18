@@ -262,7 +262,15 @@ export class InlineDataMapperRpcManager implements InlineDataMapperAPI {
     }
 
     async mapWithCustomFn(params: MapWithCustomFnRequest): Promise<InlineDataMapperSourceResponse> {
-        // ADD YOUR IMPLEMENTATION HERE
-        throw new Error('Not implemented');
+        return new Promise(async (resolve) => {
+            await StateMachine
+                .langClient()
+                .mapWithCustomFn(params)
+                .then(async (resp) => {
+                    console.log(">>> inline data mapper map with custom fn response", resp);
+                    await updateAndRefreshDataMapper(resp.textEdits, params.filePath, params.codedata, params.varName);
+                    resolve({ textEdits: resp.textEdits });
+                });
+        });
     }
 }
