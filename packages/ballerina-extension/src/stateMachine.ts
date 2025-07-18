@@ -66,16 +66,30 @@ const stateMachine = createMachine<MachineContext>(
             initialize: {
                 invoke: {
                     src: checkForProjects,
-                    onDone: {
-                        target: "renderInitialView",
-                        actions: assign({
-                            isBI: (context, event) => event.data.isBI,
-                            projectUri: (context, event) => event.data.projectPath,
-                            scope: (context, event) => event.data.scope,
-                            org: (context, event) => event.data.orgName,
-                            package: (context, event) => event.data.packageName,
-                        })
-                    },
+                    onDone: [
+                        {
+                            target: "renderInitialView",
+                            cond: (context, event) => event.data && event.data.isBI,
+                            actions: assign({
+                                isBI: (context, event) => event.data.isBI,
+                                projectUri: (context, event) => event.data.projectPath,
+                                scope: (context, event) => event.data.scope,
+                                org: (context, event) => event.data.orgName,
+                                package: (context, event) => event.data.packageName,
+                            })
+                        },
+                        {
+                            target: "activateLS",
+                            cond: (context, event) => event.data && event.data.isBI === false,
+                            actions: assign({
+                                isBI: (context, event) => event.data.isBI,
+                                projectUri: (context, event) => event.data.projectPath,
+                                scope: (context, event) => event.data.scope,
+                                org: (context, event) => event.data.orgName,
+                                package: (context, event) => event.data.packageName,
+                            })
+                        }
+                    ],
                     onError: {
                         target: "renderInitialView"
                     }
@@ -547,7 +561,7 @@ async function handleSingleWorkspace(workspaceURI: any) {
         console.error("No BI enabled workspace found");
     }
 
-    return { isBI, projectPath, scope, orgName, packageName  };
+    return { isBI, projectPath, scope, orgName, packageName };
 }
 
 function setBIContext(isBI: boolean) {
