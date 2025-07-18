@@ -16,6 +16,8 @@
  * under the License.
  */
 
+import { BaseVisitor } from "@wso2/ballerina-core";
+
 import {
     COMMENT_NODE_CIRCLE_WIDTH,
     COMMENT_NODE_GAP,
@@ -28,7 +30,6 @@ import {
 } from "../resources/constants";
 import { reverseCustomNodeId } from "../utils/node";
 import { Branch, FlowNode } from "../utils/types";
-import { BaseVisitor } from "./BaseVisitor";
 
 export class PositionVisitor implements BaseVisitor {
     private skipChildrenVisit = false;
