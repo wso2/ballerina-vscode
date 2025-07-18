@@ -25,6 +25,19 @@
     "optional": false,
     "editable": false,
     "advanced": false,
-    "hidden": false
+    "hidden": false,
+    "codedata": {
+      "lineRange": {
+        "fileName": "variable2.bal",
+        "startLine": {
+          "line": 24,
+          "offset": 75
+        },
+        "endLine": {
+          "line": 24,
+          "offset": 82
+        }
+      }
+    }
   }
 }

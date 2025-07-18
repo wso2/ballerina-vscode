@@ -1415,12 +1415,16 @@ public class DataMapManager {
             }
         }
 
+        LineRange lineRange = getFieldExprRange(expression.expressionNode(), 1, splits);
+
         Property.Builder<DataMapManager> dataMapManagerBuilder = new Property.Builder<>(this);
-        Property build = dataMapManagerBuilder
+        dataMapManagerBuilder = dataMapManagerBuilder
                 .type(Property.ValueType.EXPRESSION)
-                .typeConstraint(CommonUtils.getTypeSignature(semanticModel, typeSymbol, false))
-                .build();
-        return gson.toJsonTree(build);
+                .typeConstraint(CommonUtils.getTypeSignature(semanticModel, typeSymbol, false));
+        if (lineRange != null) {
+            dataMapManagerBuilder = dataMapManagerBuilder.codedata().lineRange(lineRange).stepOut();
+        }
+        return gson.toJsonTree(dataMapManagerBuilder.build());
     }
 
     public JsonElement subMapping(JsonElement cd, String view) {
@@ -1608,7 +1612,9 @@ public class DataMapManager {
         ExpressionNode expressionNode = targetNode.expressionNode();
         LineRange fieldExprRange = getFieldExprRange(expressionNode, 1, mapping.output().split("\\."));
         String functionName = genCustomFunctionDef(workspaceManager, filePath, functionMetadata, textEditsMap);
-        genCustomFunctionCall(filePath, functionName, fieldExprRange, mapping.output(), textEditsMap);
+        if (fieldExprRange != null) {
+            genCustomFunctionCall(filePath, functionName, fieldExprRange, mapping.output(), textEditsMap);
+        }
         return gson.toJsonTree(textEditsMap);
     }
 
@@ -1619,7 +1625,7 @@ public class DataMapManager {
             Map<String, SpecificFieldNode> mappingFields = convertMappingFieldsToMap(mappingCtrExpr);
             SpecificFieldNode mappingFieldNode = mappingFields.get(name);
             if (mappingFieldNode == null) {
-                throw new IllegalStateException("Cannot find field: " + name);
+                return null;
             } else {
                 return getFieldExprRange(mappingFieldNode.valueExpr().orElseThrow(), idx + 1, names);
             }
@@ -1629,7 +1635,7 @@ public class DataMapManager {
             if (name.matches("\\d+")) {
                 int index = Integer.parseInt(name);
                 if (index >= listCtrExpr.expressions().size()) {
-                    throw new IllegalStateException("Index out of bound");
+                    return null;
                 } else {
                     return getFieldExprRange((ExpressionNode) listCtrExpr.expressions().get(index), idx + 1, names);
                 }
