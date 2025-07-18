@@ -646,6 +646,13 @@
                 "category": "BI"
             },
             {
+                "command": "BI.project-explorer.view-configuration",
+                "title": "View Configuration",
+                "icon": "$(distro-design-view)",
+                "group": "navigation",
+                "category": "BI"
+            },
+            {
                 "command": "BI.project-explorer.switch-project",
                 "title": "Switch Project",
                 "icon": "$(distro-switch-project)",

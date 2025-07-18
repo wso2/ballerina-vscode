@@ -72,6 +72,10 @@ export function activate(context: BallerinaExtension) {
         openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.AddConfigVariables });
     });
 
+    commands.registerCommand(BI_COMMANDS.VIEW_CONFIGURATION, () => {
+        openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.ViewConfigVariables });
+    }); 
+
     commands.registerCommand(BI_COMMANDS.SHOW_OVERVIEW, () => {
         openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.Overview });
     });
