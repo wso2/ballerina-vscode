@@ -268,6 +268,7 @@ const MainPanel = () => {
                     case MACHINE_VIEW.BIDiagram:
                         setViewComponent(
                             <DiagramWrapper
+                                key={value?.identifier}
                                 projectPath={value?.projectUri}
                                 filePath={value?.documentUri}
                                 view={value?.focusFlowDiagramView}
