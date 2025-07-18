@@ -18,7 +18,7 @@
 // tslint:disable: jsx-no-multiline-js
 import React, { useState } from "react";
 
-import { Button, Codicon } from "@wso2/ui-toolkit";
+import { Button, Codicon, TruncatedLabel } from "@wso2/ui-toolkit";
 import { DiagramEngine } from '@projectstorm/react-diagrams';
 import { IOType, TypeKind } from "@wso2/ballerina-core";
 
@@ -77,7 +77,7 @@ export function InputNodeWidget(props: InputNodeWidgetProps) {
     }
 
     const label = (
-        <span style={{ marginRight: "auto" }}>
+        <TruncatedLabel style={{ marginRight: "auto" }}>
             <span className={classes.valueLabelHeader}>
                 <InputSearchHighlight>{valueLabel ? valueLabel : id}</InputSearchHighlight>
             </span>
@@ -86,7 +86,7 @@ export function InputNodeWidget(props: InputNodeWidgetProps) {
                     {typeName}
                 </span>
             )}
-        </span>
+        </TruncatedLabel>
     );
 
     const handleExpand = () => {

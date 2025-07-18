@@ -20,7 +20,7 @@ import React, { useMemo, useState } from "react";
 
 import { DiagramEngine } from "@projectstorm/react-diagrams-core";
 import classnames from "classnames";
-import { Button, Icon, ProgressRing } from "@wso2/ui-toolkit";
+import { Button, Icon, ProgressRing, TruncatedLabel } from "@wso2/ui-toolkit";
 
 import { IDataMapperContext } from "../../../../utils/DataMapperContext/DataMapperContext";
 import { DataMapperPortWidget, PortState, InputOutputPortModel } from "../../Port";
@@ -124,7 +124,7 @@ export function PrimitiveOutputElementWidget(props: PrimitiveOutputElementWidget
     };
 
     const label = (
-        <span style={{ marginRight: "auto" }} data-testid={`primitive-array-element-${portIn?.getName()}`}>
+        <TruncatedLabel style={{ marginRight: "auto" }}>
             <span className={classes.valueLabel} style={{ marginLeft: "24px" }}>
                 {diagnostics?.length > 0 ? (
                     <DiagnosticTooltip
@@ -155,7 +155,7 @@ export function PrimitiveOutputElementWidget(props: PrimitiveOutputElementWidget
                 )
                 }
             </span>
-        </span>
+        </TruncatedLabel>
     );
 
     return (
