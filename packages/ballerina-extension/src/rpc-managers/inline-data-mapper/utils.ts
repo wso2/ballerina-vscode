@@ -18,14 +18,18 @@
 import {
     CodeData,
     ELineRange,
+    Flow,
     InlineAllDataMapperSourceRequest,
     InlineDataMapperSourceRequest,
     InlineDataMapperSourceResponse,
     NodePosition,
-    TextEdit
+    ProjectStructureArtifactResponse,
+    TextEdit,
+    traverseFlow
 } from "@wso2/ballerina-core";
 import { updateSourceCode } from "../../utils";
 import { StateMachine, updateInlineDataMapperView } from "../../stateMachine";
+import { VariableFindingVisitor } from "./VariableFindingVisitor";
 
 /**
  * Shared state for data mapper operations
@@ -118,10 +122,10 @@ export async function updateSource(
  * Finds the artifact that contains the code changes within the specified line range.
  */
 function findRelevantArtifact(
-    artifacts: any[], 
+    artifacts: ProjectStructureArtifactResponse[], 
     filePath: string, 
     lineRange: ELineRange
-): any | null {
+): ProjectStructureArtifactResponse | null {
     return artifacts.find(artifact =>
         artifact.path === filePath && 
         isWithinArtifact(artifact.position, lineRange)
@@ -131,7 +135,7 @@ function findRelevantArtifact(
 /**
  * Retrieves the flow model for the given artifact.
  */
-async function getFlowModelForArtifact(artifact: any, filePath: string): Promise<any | null> {
+async function getFlowModelForArtifact(artifact: ProjectStructureArtifactResponse, filePath: string): Promise<Flow | null> {
     try {
         const flowModelResponse = await StateMachine
             .langClient()
@@ -159,14 +163,14 @@ async function getFlowModelForArtifact(artifact: any, filePath: string): Promise
 /**
  * Finds the specified variable in the flow model and returns its code data.
  */
-function findVariableInFlowModel(flowModel: any, varName: string): CodeData | null {
+function findVariableInFlowModel(flowModel: Flow, varName: string): CodeData | null {
     if (!flowModel?.nodes) {
         return null;
     }
 
-    const variableNode = flowModel.nodes.find((node: any) => 
-        node.properties?.variable?.value === varName
-    );
+    const variableFindingVisitor = new VariableFindingVisitor(varName);
+    traverseFlow(flowModel, variableFindingVisitor);
+    const variableNode = variableFindingVisitor.getVarNode();
 
     return variableNode?.codedata || null;
 }
