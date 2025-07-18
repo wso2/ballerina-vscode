@@ -1,5 +1,5 @@
 // Following service class is expected to be generated
-readonly service class Person {
+service class Person {
     private final string name;
     private final int age;
     private final boolean isAdult;

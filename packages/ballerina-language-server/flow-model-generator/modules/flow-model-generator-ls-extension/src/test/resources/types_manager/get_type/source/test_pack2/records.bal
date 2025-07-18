@@ -62,3 +62,25 @@ type User2 readonly & record {|
 	int uuid;
 	string name;
 |};
+
+# Readonly record with empty body
+type DroidRecord1 readonly & record {|
+|};
+
+# Readonly record with empty body (open record)
+type DroidRecord2 readonly & record {
+};
+
+# Readonly record with all readonly fields
+type Starship1 readonly & record {|
+    readonly string id;
+    readonly string name;
+    readonly float length?;
+|};
+
+# Readonly record with all readonly fields (open record)
+type Starship2 readonly & record {
+    readonly string id;
+    readonly string name;
+    readonly float length?;
+};
