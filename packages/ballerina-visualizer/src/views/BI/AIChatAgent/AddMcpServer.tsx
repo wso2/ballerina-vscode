@@ -597,6 +597,26 @@ export function AddMcpServer(props: AddToolProps): JSX.Element {
         }
     };
 
+    const existingMcpToolkits = extractMcpToolkitNames(toolsStringList);
+
+    const generateUniqueValue = () => {
+        if (hasUserTyped || editMode) {
+            return name;
+        }
+        
+        let counter = mcpToolkitCount;
+        let candidateValue = counter > 1 ? `MCP Server 0${counter}` : "MCP Server";
+        while (existingMcpToolkits.some(existingName => 
+            existingName.toLowerCase() === candidateValue.trim().toLowerCase()
+        )) {
+            counter++;
+            candidateValue = `MCP Server 0${counter}`;
+        }
+        
+        return candidateValue;
+    };
+    const computedValue = generateUniqueValue();
+
     const hasExistingTools = existingTools.length > 0;
     const isToolSelected = selectedTool !== null;
     const canSave = serviceUrl.trim() && (toolSelection !== "Selected" || selectedMcpTools.size > 0);
@@ -709,7 +729,7 @@ export function AddMcpServer(props: AddToolProps): JSX.Element {
                             errorMsg={nameError}
                             onChange={handleNameChange}
                             placeholder="Enter name for the MCP Tool Kit"
-                            value={hasUserTyped ? name : (mcpToolkitCount > 1 ? `MCP Server 0${mcpToolkitCount}` : "MCP Server")}
+                            value={computedValue}
                         />
                     </NameContainer>
 
