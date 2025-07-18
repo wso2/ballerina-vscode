@@ -26,9 +26,11 @@ import classNames from "classnames";
 import { DiagnosticWidget } from '../Diagnostic/DiagnosticWidget';
 import { ExpressionLabelModel } from './ExpressionLabelModel';
 import { isSourcePortArray, isTargetPortArray } from '../utils/link-utils';
-import { DataMapperLinkModel } from '../Link';
+import { DataMapperLinkModel, MappingType } from '../Link';
 import { CodeActionWidget } from '../CodeAction/CodeAction';
 import { InputOutputPortModel } from '../Port';
+import { mapWithCustomFn } from '../utils/modification-utils';
+import { getMappingType } from '../utils/common-utils';
 
 export interface ExpressionLabelWidgetProps {
     model: ExpressionLabelModel;
@@ -105,15 +107,10 @@ export enum LinkState {
     LinkNotSelected
 }
 
-export enum ArrayMappingType {
-    ArrayToArray,
-    ArrayToSingleton
-}
-
 export function ExpressionLabelWidget(props: ExpressionLabelWidgetProps) {
     const [isTempLink, setIsTempLink] = useState<boolean>(false);
     const [isLinkSelected, setIsLinkSelected] = useState<boolean>(false);
-    const [arrayMappingType, setArrayMappingType] = React.useState<ArrayMappingType>(undefined);
+    const [mappingType, setMappingType] = React.useState<MappingType>(MappingType.Default);
     const [deleteInProgress, setDeleteInProgress] = useState(false);
 
     const classes = useStyles();
@@ -133,10 +130,8 @@ export function ExpressionLabelWidget(props: ExpressionLabelWidgetProps) {
                     handleLinkStatus(event.isSelected);
                 },
             });
-            const isSourceArray = isSourcePortArray(source);
-            const isTargetArray = isTargetPortArray(target);
-            const mappingType = getArrayMappingType(isSourceArray, isTargetArray);
-            setArrayMappingType(mappingType);
+            const mappingType = getMappingType(source, target);
+            setMappingType(mappingType);
         } else {
             setIsTempLink(true);
         }
@@ -225,14 +220,26 @@ export function ExpressionLabelWidget(props: ExpressionLabelWidgetProps) {
         await convertToQuery(`${targetPort.attributes.value.output}`, `${viewId}`, `${varName}`);
     };
 
+    const onClickMapWithCustomFn = async () => {
+        await mapWithCustomFn(link, context);
+    };
+
     const codeActions = [];
-    if (arrayMappingType === ArrayMappingType.ArrayToArray) {
+
+    if (mappingType === MappingType.ArrayToArray) {
         codeActions.push({
             title: "Map with query expression",
             onClick: onClickMapWithQuery
-        });
-    } else if (arrayMappingType === ArrayMappingType.ArrayToSingleton) {
+        }, );
+    } else if (mappingType === MappingType.ArrayToSingleton) {
         // TODO: Add impl
+    }
+
+    if (mappingType !== MappingType.Default) {
+        codeActions.push({
+            title: "Map with custom function",
+            onClick: onClickMapWithCustomFn
+        });
     }
 
     if (codeActions.length > 0) {
@@ -281,15 +288,4 @@ export function ExpressionLabelWidget(props: ExpressionLabelWidgetProps) {
                 {elements}
             </div>
         );
-}
-
-export function getArrayMappingType(isSourceArray: boolean, isTargetArray: boolean): ArrayMappingType {
-	let mappingType: ArrayMappingType;
-	if (isSourceArray && isTargetArray) {
-		mappingType = ArrayMappingType.ArrayToArray;
-	} else if (isSourceArray && !isTargetArray) {
-		mappingType = ArrayMappingType.ArrayToSingleton;
-	}
-
-	return mappingType;
 }
