@@ -42,6 +42,7 @@ export const BI_COMMANDS = {
     ADD_FUNCTION: 'BI.project-explorer.add-function',
     OPEN_TYPE_DIAGRAM: 'BI.view.typeDiagram',
     ADD_CONFIGURATION: 'BI.project-explorer.add-configuration',
+    VIEW_CONFIGURATION: 'BI.project-explorer.view-configuration',
     ADD_PROJECT: 'BI.project-explorer.add',
     SHOW_OVERVIEW: 'BI.project-explorer.overview',
     SWITCH_PROJECT: 'BI.project-explorer.switch-project',
