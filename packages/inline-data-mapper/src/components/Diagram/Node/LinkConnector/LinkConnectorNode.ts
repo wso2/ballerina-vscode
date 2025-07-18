@@ -224,6 +224,6 @@ export class LinkConnectorNode extends DataMapperNodeModel {
     }
 
     public async deleteLink(): Promise<void> {
-        await removeMapping(this.mapping.output, this.context);
+        await removeMapping(this.mapping, this.context);
     }
 }

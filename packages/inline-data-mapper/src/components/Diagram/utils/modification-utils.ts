@@ -23,6 +23,7 @@ import { MappingFindingVisitor } from "../../../visitors/MappingFindingVisitor";
 import { traverseNode } from "../../../utils/model-utils";
 import { MappingDeletionVisitor } from "../../../visitors/MappingDeletionVisitor";
 import { getDefaultValue } from "./common-utils";
+import { Mapping } from "@wso2/ballerina-core";
 
 export async function createNewMapping(link: DataMapperLinkModel) {
 	const sourcePort = link.getSourcePort();
@@ -65,13 +66,10 @@ export async function addValue(fieldId: string, value: string, context: IDataMap
 	return await context.applyModifications(fieldId, value, viewId, name);
 }
 
-export async function removeMapping(fieldId: string, context: IDataMapperContext) {
-	const deletionVisitor = new MappingDeletionVisitor(fieldId);
-	traverseNode(context.model, deletionVisitor);
-	const remainingMappings = deletionVisitor.getRemainingMappings();
-
-	// TODO: Update this once the mapping deletion API is available
-	return await context.applyModifications("", "", "", "");
+export async function removeMapping(mapping: Mapping, context: IDataMapperContext) {
+	const views=context.views;
+	const viewId = views[views.length-1].targetField;
+	return await context.deleteMapping( mapping as Mapping, viewId)
 }
 
 export function buildInputAccessExpr(fieldFqn: string): string {

@@ -370,6 +370,14 @@ export interface AddSubMappingRequest {
     targetField: string;
 }
 
+export interface DeleteMappingRequest {
+    filePath: string;
+    codedata: CodeData;
+    mapping: Mapping;
+    varName?: string;
+    targetField: string;
+}
+
 export interface GetInlineDataMapperCodedataRequest {
     filePath: string;
     codedata: CodeData;

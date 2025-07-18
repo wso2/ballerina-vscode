@@ -31,7 +31,8 @@ import {
     IDMViewState,
     IntermediateClause,
     TriggerCharacter,
-    TRIGGER_CHARACTERS
+    TRIGGER_CHARACTERS,
+    Mapping
 } from "@wso2/ballerina-core";
 import { CompletionItem, ProgressIndicator } from "@wso2/ui-toolkit";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
@@ -279,6 +280,24 @@ export function InlineDataMapperView(props: InlineDataMapperProps) {
         }
     };
 
+    const deleteMapping = async (mapping: Mapping, viewId: string) => {
+        try {
+            const resp = await rpcClient
+                .getInlineDataMapperRpcClient()
+                .deleteMapping({
+                    filePath,
+                    codedata,
+                    mapping,
+                    varName,
+                    targetField: viewId,
+                });
+            console.log(">>> [Inline Data Mapper] deleteMapping response:", resp);
+        } catch (error) {
+            console.error(error);
+            setIsFileUpdateError(true);
+        }
+    };
+
     useEffect(() => {
         // Hack to hit the error boundary
         if (isError) {
@@ -387,6 +406,7 @@ export function InlineDataMapperView(props: InlineDataMapperProps) {
                     convertToQuery={convertToQuery}
                     addClauses={addClauses}
                     addSubMapping={addSubMapping}
+                    deleteMapping={deleteMapping}
                     expressionBar={{
                         completions: filteredCompletions,
                         triggerCompletions: retrieveCompeletions,

@@ -35,7 +35,8 @@ import {
     GetInlineDataMapperCodedataResponse,
     GetSubMappingCodedataRequest,
     InlineAllDataMapperSourceRequest,
-    AddSubMappingRequest
+    AddSubMappingRequest,
+    DeleteMappingRequest
 } from "../../interfaces/extended-lang-client";
 import { RequestType } from "vscode-messenger-common";
 
@@ -48,6 +49,7 @@ export const addNewArrayElement: RequestType<AddArrayElementRequest, InlineDataM
 export const convertToQuery: RequestType<ConvertToQueryRequest, InlineDataMapperSourceResponse> = { method: `${_preFix}/convertToQuery` };
 export const addClauses: RequestType<AddClausesRequest, InlineDataMapperSourceResponse> = { method: `${_preFix}/addClauses` };
 export const addSubMapping: RequestType<AddSubMappingRequest, InlineDataMapperSourceResponse> = { method: `${_preFix}/addSubMapping` };
+export const deleteMapping: RequestType<DeleteMappingRequest, InlineDataMapperSourceResponse> = { method: `${_preFix}/deleteMapping` };
 export const getDataMapperCodedata: RequestType<GetInlineDataMapperCodedataRequest, GetInlineDataMapperCodedataResponse> = { method: `${_preFix}/getDataMapperCodedata` };
 export const getSubMappingCodedata: RequestType<GetSubMappingCodedataRequest, GetInlineDataMapperCodedataResponse> = { method: `${_preFix}/getSubMappingCodedata` };
 export const getAllDataMapperSource: RequestType<InlineAllDataMapperSourceRequest, InlineDataMapperSourceResponse> = { method: `${_preFix}/getAllDataMapperSource` };

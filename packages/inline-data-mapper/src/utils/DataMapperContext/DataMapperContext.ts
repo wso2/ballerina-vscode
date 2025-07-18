@@ -25,7 +25,9 @@ export interface IDataMapperContext {
     applyModifications: (outputId: string, expression: string, viewId: string, name: string) => Promise<void>;
     addArrayElement: (outputId: string, viewId: string, name: string) => Promise<void>;
     hasInputsOutputsChanged: boolean;
-    convertToQuery: (outputId: string, viewId: string, name: string) => Promise<void>;}
+    convertToQuery: (outputId: string, viewId: string, name: string) => Promise<void>;
+    deleteMapping: (mapping: Mapping, viewId: string) => Promise<void>;
+}
 
 export class DataMapperContext implements IDataMapperContext {
 
@@ -36,6 +38,7 @@ export class DataMapperContext implements IDataMapperContext {
         public applyModifications: (outputId: string, expression: string, viewId: string, name: string) => Promise<void>,
         public addArrayElement: (outputId: string, viewId: string, name: string) => Promise<void>,
         public hasInputsOutputsChanged: boolean = false,
-        public convertToQuery: (outputId: string, viewId: string, name: string) => Promise<void>
+        public convertToQuery: (outputId: string, viewId: string, name: string) => Promise<void>,
+        public deleteMapping: (mapping: Mapping, viewId: string) => Promise<void>
     ){}
 }
