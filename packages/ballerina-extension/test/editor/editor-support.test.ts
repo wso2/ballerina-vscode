@@ -22,7 +22,7 @@ import { assert } from "chai";
 
 const PROJECT_ROOT = join(__dirname, '..', '..', '..', 'test', 'data');
 
-suite.only("Editor Tests", function () {
+suite("Editor Tests", function () {
     test("Test string splitter", function (done): void {
         const uri = Uri.file(join(PROJECT_ROOT, 'string.bal'));
 
