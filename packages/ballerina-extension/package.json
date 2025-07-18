@@ -647,7 +647,7 @@
             },
             {
                 "command": "BI.project-explorer.view-configuration",
-                "title": "View Configuration",
+                "title": "View Configurations",
                 "icon": "$(distro-design-view)",
                 "group": "navigation",
                 "category": "BI"
