@@ -15,7 +15,11 @@
       {
         "id": "48392",
         "metadata": {
-          "label": "Start"
+          "label": "Start",
+          "data": {
+            "kind": "Function",
+            "label": "panicFunc4"
+          }
         },
         "codedata": {
           "node": "EVENT_START",

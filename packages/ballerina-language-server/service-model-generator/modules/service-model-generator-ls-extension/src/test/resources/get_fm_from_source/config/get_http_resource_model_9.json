@@ -1,0 +1,134 @@
+{
+  "filePath": "sample1/main.bal",
+  "description": "",
+  "start": {
+    "line": 44,
+    "offset": 4
+  },
+  "end": {
+    "line": 46,
+    "offset": 5
+  },
+  "response": {
+    "metadata": {
+      "label": "",
+      "description": ""
+    },
+    "kind": "OBJECT_METHOD",
+    "accessor": {
+      "metadata": {
+        "label": "Accessor",
+        "description": "The accessor of the function"
+      },
+      "enabled": false,
+      "editable": true,
+      "valueType": "IDENTIFIER",
+      "isType": false,
+      "optional": false,
+      "advanced": false,
+      "addNewButton": false,
+      "imports": {}
+    },
+    "name": {
+      "metadata": {
+        "label": "Function Name",
+        "description": "The name of the function"
+      },
+      "enabled": true,
+      "editable": true,
+      "value": "foo",
+      "valueType": "IDENTIFIER",
+      "isType": false,
+      "optional": false,
+      "advanced": false,
+      "addNewButton": false,
+      "imports": {}
+    },
+    "parameters": [],
+    "schema": {
+      "parameter": {
+        "type": {
+          "metadata": {
+            "label": "Parameter Type",
+            "description": "The type of the parameter"
+          },
+          "enabled": true,
+          "editable": true,
+          "valueType": "TYPE",
+          "isType": true,
+          "optional": false,
+          "advanced": false,
+          "addNewButton": false,
+          "imports": {}
+        },
+        "name": {
+          "metadata": {
+            "label": "Parameter Name",
+            "description": "The name of the parameter"
+          },
+          "enabled": true,
+          "editable": true,
+          "valueType": "IDENTIFIER",
+          "isType": false,
+          "optional": false,
+          "advanced": false,
+          "addNewButton": false,
+          "imports": {}
+        },
+        "defaultValue": {
+          "metadata": {
+            "label": "Default Value",
+            "description": "The default value of the parameter"
+          },
+          "enabled": true,
+          "editable": true,
+          "valueType": "EXPRESSION",
+          "isType": false,
+          "optional": true,
+          "advanced": false,
+          "addNewButton": false,
+          "imports": {}
+        },
+        "enabled": true,
+        "editable": true,
+        "optional": false,
+        "advanced": false
+      }
+    },
+    "returnType": {
+      "hasError": false,
+      "metadata": {
+        "label": "Return Type",
+        "description": "The return type of the function"
+      },
+      "enabled": true,
+      "editable": true,
+      "value": "int",
+      "valueType": "TYPE",
+      "isType": false,
+      "optional": true,
+      "advanced": false,
+      "addNewButton": false
+    },
+    "enabled": true,
+    "optional": false,
+    "editable": true,
+    "canAddParameters": true,
+    "codedata": {
+      "lineRange": {
+        "fileName": "main.bal",
+        "startLine": {
+          "line": 44,
+          "offset": 4
+        },
+        "endLine": {
+          "line": 46,
+          "offset": 5
+        }
+      },
+      "inListenerInit": false,
+      "isBasePath": false,
+      "inDisplayAnnotation": false
+    }
+  }
+}

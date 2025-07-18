@@ -17,6 +17,9 @@
         "metadata": {
           "label": "Start",
           "data": {
+            "kind": "Resource",
+            "label": "search/doctors/[string area]",
+            "accessor": "get",
             "return": "json|error"
           }
         },

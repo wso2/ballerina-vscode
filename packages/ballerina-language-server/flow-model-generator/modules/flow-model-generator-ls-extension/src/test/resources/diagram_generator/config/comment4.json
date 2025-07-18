@@ -15,7 +15,11 @@
       {
         "id": "54995",
         "metadata": {
-          "label": "Start"
+          "label": "Start",
+          "data": {
+            "kind": "Function",
+            "label": "commentInFunctionBody2"
+          }
         },
         "codedata": {
           "node": "EVENT_START",

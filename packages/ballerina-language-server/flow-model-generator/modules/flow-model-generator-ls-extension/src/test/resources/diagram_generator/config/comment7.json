@@ -17,6 +17,8 @@
         "metadata": {
           "label": "Start",
           "data": {
+            "kind": "Function",
+            "label": "commentOnFailBody1",
             "parameters": [
               "int i"
             ]

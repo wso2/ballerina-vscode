@@ -106,6 +106,7 @@ public class OpenApiServiceGenerator {
     public static final String DEFAULT_HTTP_RESPONSE = "DefaultStatusCodeResponse";
     public static final String DEFAULT_HTTP_RESPONSE_VALUE = "status: new (0)";
     public static final String SERVICE_DECLARATION = "service %s on %s {";
+    private static final String RANGED_RESPONSE_ERROR_CODE = "OAS_SERVICE_201";
 
     public OpenApiServiceGenerator(Path openAPIContractPath, Path projectPath, WorkspaceManager workspaceManager) {
         this.openAPIContractPath = openAPIContractPath;
@@ -129,6 +130,9 @@ public class OpenApiServiceGenerator {
         for (Diagnostic diagnostic : diagnostics) {
             DiagnosticSeverity severity = diagnostic.diagnosticInfo().severity();
             if (severity == DiagnosticSeverity.ERROR) {
+                if (diagnostic.diagnosticInfo().code().equals(RANGED_RESPONSE_ERROR_CODE)) {
+                    continue;
+                }
                 errorMessages.add(diagnostic.message());
             }
         }

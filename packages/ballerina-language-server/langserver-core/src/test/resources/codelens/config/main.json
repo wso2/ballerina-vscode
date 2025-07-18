@@ -1,0 +1,105 @@
+{
+  "source": "main.bal",
+  "result": [
+    {
+      "range": {
+        "start": {
+          "line": 2,
+          "character": 0
+        },
+        "end": {
+          "line": 4,
+          "character": 1
+        }
+      },
+      "command": {
+        "title": "Run",
+        "command": "ballerina.project.run",
+        "arguments": [
+          "main.bal"
+        ]
+      }
+    },
+    {
+      "range": {
+        "start": {
+          "line": 2,
+          "character": 0
+        },
+        "end": {
+          "line": 4,
+          "character": 1
+        }
+      },
+      "command": {
+        "title": "Debug",
+        "command": "ballerina.source.debug",
+        "arguments": [
+          "main.bal"
+        ]
+      }
+    },
+    {
+      "range": {
+        "start": {
+          "line": 2,
+          "character": 0
+        },
+        "end": {
+          "line": 4,
+          "character": 1
+        }
+      },
+      "command": {
+        "title": "Visualize",
+        "command": "ballerina.showVisualizer",
+        "arguments": [
+          "main.bal",
+          {
+            "start": {
+              "line": 2,
+              "character": 0
+            },
+            "end": {
+              "line": 4,
+              "character": 1
+            }
+          }
+        ]
+      }
+    },
+    {
+      "range": {
+        "start": {
+          "line": 6,
+          "character": 0
+        },
+        "end": {
+          "line": 8,
+          "character": 1
+        }
+      },
+      "command": {
+        "title": "Visualize",
+        "command": "ballerina.showVisualizer",
+        "arguments": [
+          "main.bal",
+          {
+            "start": {
+              "line": 6,
+              "character": 0
+            },
+            "end": {
+              "line": 8,
+              "character": 1
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "id": {
+    "left": "324"
+  },
+  "jsonrpc": "2.0"
+}

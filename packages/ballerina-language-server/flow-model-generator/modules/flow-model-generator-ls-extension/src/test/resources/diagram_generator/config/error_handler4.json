@@ -17,6 +17,8 @@
         "metadata": {
           "label": "Start",
           "data": {
+            "kind": "Function",
+            "label": "failInDoOnFail1",
             "return": "error?"
           }
         },

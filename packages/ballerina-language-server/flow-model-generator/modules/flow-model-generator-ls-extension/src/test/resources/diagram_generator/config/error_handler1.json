@@ -15,7 +15,12 @@
       {
         "id": "38042",
         "metadata": {
-          "label": "Start"
+          "label": "Start",
+          "data": {
+            "kind": "Resource",
+            "label": "apples",
+            "accessor": "get"
+          }
         },
         "codedata": {
           "node": "EVENT_START",

@@ -15,7 +15,12 @@
       {
         "id": "48179",
         "metadata": {
-          "label": "Start"
+          "label": "Start",
+          "data": {
+            "kind": "Resource",
+            "label": "oranges",
+            "accessor": "get"
+          }
         },
         "codedata": {
           "node": "EVENT_START",
