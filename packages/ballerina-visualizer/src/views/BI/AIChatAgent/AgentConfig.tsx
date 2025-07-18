@@ -184,7 +184,9 @@ export function AgentConfig(props: AgentConfigProps): JSX.Element {
         updatedAgentNode.properties.systemPrompt.value = systemPromptValue;
         updatedAgentNode.properties.verbose.value = rawData["verbose"];
         updatedAgentNode.properties.maxIter.value = rawData["maxIter"];
-        updatedAgentNode.properties.agentType.value = rawData["agentType"];
+        if ("agentType" in rawData) {
+            updatedAgentNode.properties.agentType.value = rawData["agentType"];
+        }
 
         const agentResponse = await rpcClient
             .getBIDiagramRpcClient()
