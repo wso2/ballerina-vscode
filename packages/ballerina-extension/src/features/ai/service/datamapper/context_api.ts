@@ -1,36 +1,18 @@
-/**
- * Data Mapper Context API
- * 
- * This module provides TypeScript functions for processing files and text content
- * to generate Ballerina mapping instructions, record types, and requirement analysis.
- * 
- * Migrated from Python FastAPI service with the following changes:
- * - HTTP endpoints replaced with function-based API
- * - File writing removed (content returned directly)
- * - DOCX support removed (not needed)
- * - File representation using {fileName, content} records
- * - Prompts defined as functions instead of files
- * - Uses existing Claude endpoint for LLM calls
- * - File type detection based on extension only (no content-type needed)
- * 
- * Usage:
- * ```typescript
- * // Generate mapping instructions from text
- * const result = await generateMappingInstruction({ 
- *   text: "source data structure..." 
- * });
- * 
- * // Generate Ballerina records from image
- * const result = await generateRecord({ 
- *   file: { fileName: "schema.png", content: "base64ImageData..." } 
- * });
- * 
- * // Extract requirements from PDF
- * const result = await extractRequirements({ 
- *   file: { fileName: "requirements.pdf", content: "base64PdfData..." } 
- * });
- * ```
- */
+// Copyright (c) 2025, WSO2 LLC. (https://www.wso2.com/) All Rights Reserved.
+
+// WSO2 LLC. licenses this file to you under the Apache License,
+// Version 2.0 (the "License"); you may not use this file except
+// in compliance with the License.
+// You may obtain a copy of the License at
+
+// http://www.apache.org/licenses/LICENSE-2.0
+
+// Unless required by applicable law or agreed to in writing,
+// software distributed under the License is distributed on an
+// "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+// KIND, either express or implied. See the License for the
+// specific language governing permissions and limitations
+// under the License.
 
 import { generateText, CoreMessage } from "ai";
 import { anthropic, ANTHROPIC_SONNET_4 } from "../connection";

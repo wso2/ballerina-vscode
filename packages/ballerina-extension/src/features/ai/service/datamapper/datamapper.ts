@@ -1,47 +1,18 @@
-/**
- * AI-Powered Data Mapping Generator for Ballerina
- *
- * This module provides intelligent data transformation mapping capabilities using AI.
- * It analyzes input and output schemas to generate appropriate mapping operations.
- *
- * Key Features:
- * - AI-powered mapping generation using Claude AI
- * - Support for multiple operation types (DIRECT, LENGTH, SPLIT, etc.)
- * - Comprehensive validation and error handling
- * - Retry logic for robust operation
- *
- * Usage:
- * ```typescript
- * import { generateAutoMappings, createSamplePayload } from './datamapper';
- *
- * const payload = createSamplePayload();
- * const response = await generateAutoMappings(payload);
- * console.log(response.mappings);
- * ```
- *
- * Expected Response Format:
- * ```json
- * {
- *   "mappings": {
- *     "id": {
- *       "operation": "DIRECT",
- *       "targetType": "string",
- *       "parameters": ["person.id"]
- *     },
- *     "firstName": {
- *       "operation": "DIRECT",
- *       "targetType": "string",
- *       "parameters": ["person.firstName"]
- *     }
- *   }
- * }
- * ```
- *
- * Configuration:
- * - Ensure the Claude endpoint is running and properly configured
- * - The implementation supports various operation types defined in the operations table
- * - Mapping validation ensures compatibility with supported data types
- */
+// Copyright (c) 2025, WSO2 LLC. (https://www.wso2.com/) All Rights Reserved.
+
+// WSO2 LLC. licenses this file to you under the Apache License,
+// Version 2.0 (the "License"); you may not use this file except
+// in compliance with the License.
+// You may obtain a copy of the License at
+
+// http://www.apache.org/licenses/LICENSE-2.0
+
+// Unless required by applicable law or agreed to in writing,
+// software distributed under the License is distributed on an
+// "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+// KIND, either express or implied. See the License for the
+// specific language governing permissions and limitations
+// under the License.
 
 import { generateText, CoreMessage, generateObject } from "ai";
 import { getDataMappingPrompt } from "./prompt";
