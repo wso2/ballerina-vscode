@@ -137,7 +137,7 @@ export function ViewConfigurableVariables(props?: ConfigProps) {
     const { rpcClient } = useRpcContext();
     const [configVariables, setConfigVariables] = useState<ConfigVariablesState>({});
     const [errorMessage, setErrorMessage] = useState<string>('');
-    const [isAddConfigVariableFormOpen, setAddConfigVariableFormOpen] = useState<boolean>(false);
+    const [isAddConfigVariableFormOpen, setAddConfigVariableFormOpen] = useState<boolean>(props?.addNew || false);
     const [searchValue, setSearchValue] = React.useState<string>('');
     const [categoriesWithModules, setCategoriesWithModules] = useState<CategoryWithModules[]>([]);
     const [selectedModule, setSelectedModule] = useState<PackageModuleState>(null);
@@ -146,12 +146,6 @@ export function ViewConfigurableVariables(props?: ConfigProps) {
     useEffect(() => {
         getConfigVariables();
     }, [props]);
-
-    useEffect(() => {
-        if (props?.addNew) {
-            setAddConfigVariableFormOpen(true);
-        }
-    }, [props?.addNew]);
 
     useEffect(() => {
         if (categoriesWithModules.length > 0 && !selectedModule) {
