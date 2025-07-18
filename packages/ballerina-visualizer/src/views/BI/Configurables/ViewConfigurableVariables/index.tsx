@@ -105,6 +105,7 @@ export interface ConfigProps {
     fileName: string;
     org: string;
     package: string;
+    addNew?: boolean;
 }
 
 interface CategoryWithModules {
@@ -145,6 +146,12 @@ export function ViewConfigurableVariables(props?: ConfigProps) {
     useEffect(() => {
         getConfigVariables();
     }, [props]);
+
+    useEffect(() => {
+        if (props?.addNew) {
+            setAddConfigVariableFormOpen(true);
+        }
+    }, [props?.addNew]);
 
     useEffect(() => {
         if (categoriesWithModules.length > 0 && !selectedModule) {
