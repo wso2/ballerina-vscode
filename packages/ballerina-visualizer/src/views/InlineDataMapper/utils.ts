@@ -62,11 +62,13 @@ export const createAddSubMappingRequest = (
     index: number,
     targetField: string,
     subMappingName: string,
-    type: string
+    type: string,
+    varName: string
 ): AddSubMappingRequest => ({
     filePath,
     codedata,
     index,
     targetField,
-    flowNode: createFlowNode(subMappingName, type, codedata)
+    flowNode: createFlowNode(subMappingName, type, codedata),
+    varName
 });
