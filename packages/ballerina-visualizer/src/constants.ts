@@ -25,6 +25,8 @@ export const EXPRESSION_EXTRACTION_REGEX = new RegExp(
 export const BALLERINA = "ballerina";
 export const BALLERINAX = "ballerinax";
 
+export const AI = "ai";
+
 export const GET_DEFAULT_MODEL_PROVIDER = "getDefaultModelProvider";
 export const WSO2_MODEL_PROVIDER = "Wso2ModelProvider";
 

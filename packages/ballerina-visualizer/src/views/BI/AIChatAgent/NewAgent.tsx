@@ -27,6 +27,7 @@ import ConfigForm from "./ConfigForm";
 import { cloneDeep } from "lodash";
 import { RelativeLoader } from "../../../components/RelativeLoader";
 import { getAgentOrg } from "./utils";
+import { AI, BALLERINA } from "../../../constants";
 
 const Container = styled.div`
     padding: 16px;
@@ -116,7 +117,7 @@ export function NewAgent(props: NewAgentProps): JSX.Element {
             .getAllModels({ agent: agentCodeData.object, filePath: agentFilePath.current, orgName: agentOrg.current });
         console.log(">>> allModels", allModels);
         // get openai model
-        const defaultModel = allModels.models.find((model) => model.object === "OpenAiProvider" || (model.org === "ballerina" && model.module === "ai"));
+        const defaultModel = allModels.models.find((model) => model.object === "OpenAiProvider" || (model.org === BALLERINA && model.module === AI));
         if (!defaultModel) {
             console.log(">>> no default model found");
             return;
