@@ -16,11 +16,12 @@
  * under the License.
  */
 
-import { downloadAndUnzipVSCode } from '@vscode/test-electron';
+import { downloadAndUnzipVSCode, resolveCliArgsFromVSCodeExecutablePath } from '@vscode/test-electron';
 import { defaultCachePath } from '@vscode/test-electron/out/download';
 import { TestOptions } from '@vscode/test-electron/out/runTest';
 import * as cp from 'child_process';
 import * as path from 'path';
+const packageJson = require('../../../package.json')
 
 /**
  * Run VS Code extension test
@@ -30,6 +31,15 @@ import * as path from 'path';
 export async function runTests(options: TestOptions): Promise<number> {
 	if (!options.vscodeExecutablePath) {
 		options.vscodeExecutablePath = await downloadAndUnzipVSCode(options);
+		const [cli, ...args] = resolveCliArgsFromVSCodeExecutablePath(options.vscodeExecutablePath)
+		if (packageJson.extensionDependencies) {
+			for (const extensionId of packageJson.extensionDependencies) {
+				cp.spawnSync(cli, [...args, '--install-extension', extensionId], {
+					encoding: 'utf-8',
+					stdio: 'inherit',
+				})
+			}
+		}
 	}
 
 	let args = [
