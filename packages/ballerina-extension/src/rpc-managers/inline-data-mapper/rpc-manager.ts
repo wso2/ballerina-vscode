@@ -82,7 +82,7 @@ export class InlineDataMapperRpcManager implements InlineDataMapperAPI {
                                 }
                             });
                             resolve({ textEdits: model.textEdits });
-                        })
+                        });
                 })
                 .catch((error) => {
                     console.log(">>> error fetching inline data mapper initial source from ls", error);
@@ -251,10 +251,12 @@ export class InlineDataMapperRpcManager implements InlineDataMapperAPI {
             await StateMachine
                 .langClient()
                 .deleteMapping(params)
-                .then(async (resp) => {
+                .then((resp) => {
                     console.log(">>> inline data mapper delete mapping response", resp);
-                    await updateAndRefreshDataMapper(resp.textEdits, params.filePath, params.codedata, params.varName);
-                    resolve({ textEdits: resp.textEdits });
+                    updateAndRefreshDataMapper(resp.textEdits, params.filePath, params.codedata, params.varName)
+                    .then(() => {
+                        resolve({ textEdits: resp.textEdits });
+                    });
                 });
         });
     }
