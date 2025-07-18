@@ -18,6 +18,9 @@
  * THIS FILE INCLUDES AUTO GENERATED CODE
  */
 import {
+    ImportTibcoResponse,
+    ImportTibcoRPCRequest,
+    importTibcoToBI,
     MigrateIntegrationAPI,
     MigrationToolPullRequest,
     pullMigrationTool
@@ -34,5 +37,9 @@ export class MigrateIntegrationRpcClient implements MigrateIntegrationAPI {
 
     pullMigrationTool(params: MigrationToolPullRequest): void {
         return this._messenger.sendNotification(pullMigrationTool, HOST_EXTENSION, params);
+    }
+
+    importTibcoToBI(params: ImportTibcoRPCRequest): Promise<ImportTibcoResponse> {
+        return this._messenger.sendRequest(importTibcoToBI, HOST_EXTENSION, params);
     }
 }

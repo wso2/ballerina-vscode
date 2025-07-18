@@ -77,6 +77,19 @@ export function createBIProject(name: string, isService: boolean) {
         });
 }
 
+export function getUsername(): string {
+    // Get current username from the system across different OS platforms
+    let username: string;
+    if (process.platform === 'win32') {
+        // Windows
+        username = process.env.USERNAME || 'myOrg';
+    } else {
+        // macOS and Linux
+        username = process.env.USER || 'myOrg';
+    }
+    return username;
+}
+
 export function createBIProjectPure(name: string, projectPath: string) {
     const projectLocation = projectPath;
 
@@ -88,18 +101,7 @@ export function createBIProjectPure(name: string, projectPath: string) {
     }
 
     // Get current username from the system across different OS platforms
-    let username;
-    try {
-        if (process.platform === 'win32') {
-            // Windows
-            username = process.env.USERNAME || 'myOrg';
-        } else {
-            // macOS and Linux
-            username = process.env.USER || 'myOrg';
-        }
-    } catch (error) {
-        console.error('Error getting username:', error);
-    }
+    const username = getUsername();
 
     const EMPTY = "\n";
 

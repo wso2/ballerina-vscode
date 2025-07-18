@@ -18,7 +18,9 @@
  * THIS FILE INCLUDES AUTO GENERATED CODE
  */
 import {
+    ImportTibcoRPCRequest,
     MigrationToolPullRequest,
+    importTibcoToBI,
     pullMigrationTool
 } from "@wso2/ballerina-core";
 import { Messenger } from "vscode-messenger";
@@ -27,4 +29,5 @@ import { MigrateIntegrationRpcManager } from "./rpc-manager";
 export function registerMigrateIntegrationRpcHandlers(messenger: Messenger) {
     const rpcManger = new MigrateIntegrationRpcManager();
     messenger.onNotification(pullMigrationTool, (args: MigrationToolPullRequest) => rpcManger.pullMigrationTool(args));
+    messenger.onRequest(importTibcoToBI, (args: ImportTibcoRPCRequest) => rpcManger.importTibcoToBI(args));
 }
