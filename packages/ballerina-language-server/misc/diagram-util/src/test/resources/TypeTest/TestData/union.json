@@ -1,0 +1,283 @@
+{
+  "description": "A simple example of a reference-based type",
+  "source": "TypeTest/BalProject1",
+  "typeSymbolName": "FinalRecordType",
+  "Type": {
+    "fields": [
+      {
+        "memberType": {
+          "members": [
+            {
+              "fields": [
+                {
+                  "name": "i1",
+                  "typeName": "int",
+                  "optional": false,
+                  "defaultable": false,
+                  "documentation": "",
+                  "isRestType": false,
+                  "selected": false
+                },
+                {
+                  "name": "s1",
+                  "typeName": "string",
+                  "optional": false,
+                  "defaultable": false,
+                  "documentation": "",
+                  "isRestType": false,
+                  "selected": false
+                }
+              ],
+              "hasRestType": true,
+              "restType": {
+                "typeName": "anydata",
+                "optional": false,
+                "defaultable": false,
+                "isRestType": false,
+                "selected": false
+              },
+              "name": "RecordType1",
+              "typeName": "record",
+              "optional": false,
+              "typeInfo": {
+                "name": "RecordType1",
+                "orgName": "ballerinax",
+                "moduleName": "health.ccda.r1",
+                "version": "0.1.0"
+              },
+              "defaultable": false,
+              "isRestType": false,
+              "selected": false
+            },
+            {
+              "fields": [
+                {
+                  "name": "i2",
+                  "typeName": "int",
+                  "optional": false,
+                  "defaultable": false,
+                  "documentation": "",
+                  "isRestType": false,
+                  "selected": false
+                },
+                {
+                  "name": "s2",
+                  "typeName": "string",
+                  "optional": false,
+                  "defaultable": false,
+                  "documentation": "",
+                  "isRestType": false,
+                  "selected": false
+                }
+              ],
+              "hasRestType": true,
+              "restType": {
+                "typeName": "anydata",
+                "optional": false,
+                "defaultable": false,
+                "isRestType": false,
+                "selected": false
+              },
+              "name": "RecordType2",
+              "typeName": "record",
+              "optional": false,
+              "typeInfo": {
+                "name": "RecordType2",
+                "orgName": "ballerinax",
+                "moduleName": "health.ccda.r1",
+                "version": "0.1.0"
+              },
+              "defaultable": false,
+              "isRestType": false,
+              "selected": false
+            }
+          ],
+          "name": "UnionType",
+          "typeName": "union",
+          "optional": false,
+          "typeInfo": {
+            "name": "UnionType",
+            "orgName": "ballerinax",
+            "moduleName": "health.ccda.r1",
+            "version": "0.1.0"
+          },
+          "defaultable": false,
+          "isRestType": false,
+          "selected": false
+        },
+        "name": "unionList",
+        "typeName": "array",
+        "optional": false,
+        "defaultable": false,
+        "documentation": "",
+        "isRestType": false,
+        "selected": false
+      },
+      {
+        "fields": [
+          {
+            "name": "i3",
+            "typeName": "int",
+            "optional": false,
+            "defaultable": false,
+            "documentation": "",
+            "isRestType": false,
+            "selected": false
+          },
+          {
+            "name": "s3",
+            "typeName": "string",
+            "optional": false,
+            "defaultable": false,
+            "documentation": "",
+            "isRestType": false,
+            "selected": false
+          },
+          {
+            "memberType": {
+              "members": [
+                {
+                  "fields": [
+                    {
+                      "name": "i1",
+                      "typeName": "int",
+                      "optional": false,
+                      "defaultable": false,
+                      "documentation": "",
+                      "isRestType": false,
+                      "selected": false
+                    },
+                    {
+                      "name": "s1",
+                      "typeName": "string",
+                      "optional": false,
+                      "defaultable": false,
+                      "documentation": "",
+                      "isRestType": false,
+                      "selected": false
+                    }
+                  ],
+                  "hasRestType": true,
+                  "restType": {
+                    "typeName": "anydata",
+                    "optional": false,
+                    "defaultable": false,
+                    "isRestType": false,
+                    "selected": false
+                  },
+                  "name": "RecordType1",
+                  "typeName": "record",
+                  "optional": false,
+                  "typeInfo": {
+                    "name": "RecordType1",
+                    "orgName": "ballerinax",
+                    "moduleName": "health.ccda.r1",
+                    "version": "0.1.0"
+                  },
+                  "defaultable": false,
+                  "isRestType": false,
+                  "selected": false
+                },
+                {
+                  "fields": [
+                    {
+                      "name": "i2",
+                      "typeName": "int",
+                      "optional": false,
+                      "defaultable": false,
+                      "documentation": "",
+                      "isRestType": false,
+                      "selected": false
+                    },
+                    {
+                      "name": "s2",
+                      "typeName": "string",
+                      "optional": false,
+                      "defaultable": false,
+                      "documentation": "",
+                      "isRestType": false,
+                      "selected": false
+                    }
+                  ],
+                  "hasRestType": true,
+                  "restType": {
+                    "typeName": "anydata",
+                    "optional": false,
+                    "defaultable": false,
+                    "isRestType": false,
+                    "selected": false
+                  },
+                  "name": "RecordType2",
+                  "typeName": "record",
+                  "optional": false,
+                  "typeInfo": {
+                    "name": "RecordType2",
+                    "orgName": "ballerinax",
+                    "moduleName": "health.ccda.r1",
+                    "version": "0.1.0"
+                  },
+                  "defaultable": false,
+                  "isRestType": false,
+                  "selected": false
+                }
+              ],
+              "name": "UnionType",
+              "typeName": "union",
+              "optional": false,
+              "typeInfo": {
+                "name": "UnionType",
+                "orgName": "ballerinax",
+                "moduleName": "health.ccda.r1",
+                "version": "0.1.0"
+              },
+              "defaultable": false,
+              "isRestType": false,
+              "selected": false
+            },
+            "name": "unionList3",
+            "typeName": "array",
+            "optional": false,
+            "defaultable": false,
+            "documentation": "",
+            "isRestType": false,
+            "selected": false
+          }
+        ],
+        "hasRestType": true,
+        "restType": {
+          "typeName": "anydata",
+          "optional": false,
+          "defaultable": false,
+          "isRestType": false,
+          "selected": false
+        },
+        "name": "record3",
+        "typeName": "record",
+        "optional": false,
+        "typeInfo": {
+          "name": "RecordType3",
+          "orgName": "ballerinax",
+          "moduleName": "health.ccda.r1",
+          "version": "0.1.0"
+        },
+        "defaultable": false,
+        "documentation": "",
+        "isRestType": false,
+        "selected": false
+      }
+    ],
+    "hasRestType": true,
+    "restType": {
+      "typeName": "anydata",
+      "optional": false,
+      "defaultable": false,
+      "isRestType": false,
+      "selected": false
+    },
+    "typeName": "record",
+    "optional": false,
+    "defaultable": false,
+    "isRestType": false,
+    "selected": false
+  }
+}
