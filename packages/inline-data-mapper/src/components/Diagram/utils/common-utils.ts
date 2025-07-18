@@ -74,7 +74,7 @@ export function getValueType(lm: DataMapperLinkModel): ValueType {
 
 
 export function isPendingMappingRequired(mappingType: MappingType): boolean {
-    return mappingType === MappingType.ArrayToSingleton || mappingType === MappingType.ArrayToSingletonWithCollect;
+    return false; // TODO: Implement logic when LS supports on the fly mappings
 }
 
 export function genArrayElementAccessSuffix(sourcePort: PortModel, targetPort: PortModel) {
