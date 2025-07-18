@@ -1,5 +1,5 @@
 import { CoreMessage, generateObject, generateText, streamText } from "ai";
-import { anthropic, ANTHROPIC_HAIKU, ANTHROPIC_SONNET_4 } from "../connection";
+import { anthropic, ANTHROPIC_HAIKU, ANTHROPIC_SONNET_3_5, ANTHROPIC_SONNET_4 } from "../connection";
 import { GenerationType, getRelevantLibrariesAndFunctions } from "../libs/libs";
 import { getRewrittenPrompt, populateHistory, transformProjectSource, getErrorMessage } from "../utils";
 import {
@@ -73,7 +73,7 @@ export async function generateHealthcareCodeCore(
     ];
 
     const { fullStream } = streamText({
-        model: anthropic(ANTHROPIC_SONNET_4),
+        model: anthropic(ANTHROPIC_SONNET_3_5),
         maxTokens: 4096*2,
         temperature: 0,
         messages: allMessages,
