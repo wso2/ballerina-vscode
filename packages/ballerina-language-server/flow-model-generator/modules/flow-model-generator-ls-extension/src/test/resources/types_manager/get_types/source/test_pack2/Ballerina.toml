@@ -1,6 +1,6 @@
 [package]
 org = "testorg"
-name = "test_pack3"
+name = "test_pack2"
 version = "0.1.0"
 distribution = "2201.11.0"
 
