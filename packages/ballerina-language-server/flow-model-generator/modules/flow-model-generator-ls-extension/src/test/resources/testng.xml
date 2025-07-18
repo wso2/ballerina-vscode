@@ -71,6 +71,7 @@ under the License.
             <class name="io.ballerina.flowmodelgenerator.extension.SearchTest"/>
             <class name="io.ballerina.flowmodelgenerator.extension.InitializerTest"/>
             <class name="io.ballerina.flowmodelgenerator.extension.ServiceFieldNodesTest"/>
+            <class name="io.ballerina.flowmodelgenerator.extension.DataMappingDeleteTest"/>
 
             <!--types manager-->
             <class name="io.ballerina.flowmodelgenerator.extension.typesmanager.CreateAndUpdateTypeTest"/>

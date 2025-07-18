@@ -33,6 +33,7 @@ import io.ballerina.flowmodelgenerator.extension.request.DataMapperSubMappingReq
 import io.ballerina.flowmodelgenerator.extension.request.DataMapperSubMappingSourceRequest;
 import io.ballerina.flowmodelgenerator.extension.request.DataMapperTypesRequest;
 import io.ballerina.flowmodelgenerator.extension.request.DataMapperVisualizeRequest;
+import io.ballerina.flowmodelgenerator.extension.request.DataMappingDeleteRequest;
 import io.ballerina.flowmodelgenerator.extension.response.DataMapperFieldPositionResponse;
 import io.ballerina.flowmodelgenerator.extension.response.DataMapperModelResponse;
 import io.ballerina.flowmodelgenerator.extension.response.DataMapperNodePositionResponse;
@@ -40,6 +41,7 @@ import io.ballerina.flowmodelgenerator.extension.response.DataMapperSourceRespon
 import io.ballerina.flowmodelgenerator.extension.response.DataMapperSubMappingResponse;
 import io.ballerina.flowmodelgenerator.extension.response.DataMapperTypesResponse;
 import io.ballerina.flowmodelgenerator.extension.response.DataMapperVisualizeResponse;
+import io.ballerina.flowmodelgenerator.extension.response.DataMappingDeleteResponse;
 import io.ballerina.projects.Document;
 import org.ballerinalang.annotation.JavaSPIService;
 import org.ballerinalang.langserver.commons.LanguageServerContext;
@@ -134,6 +136,28 @@ public class DataMapperService implements ExtendedLanguageServerService {
                 DataMapManager dataMapManager = new DataMapManager(document.get());
                 response.setTextEdits(dataMapManager.getSource(filePath, request.codedata(), request.mapping(),
                         request.targetField()));
+            } catch (Throwable e) {
+                response.setError(e);
+            }
+            return response;
+        });
+    }
+
+    @JsonRequest
+    public CompletableFuture<DataMappingDeleteResponse> deleteMapping(DataMappingDeleteRequest request) {
+        return CompletableFuture.supplyAsync(() -> {
+            DataMappingDeleteResponse response = new DataMappingDeleteResponse();
+            try {
+                Path filePath = Path.of(request.filePath());
+                this.workspaceManager.loadProject(filePath);
+                Optional<Document> document = this.workspaceManager.document(filePath);
+                if (document.isEmpty()) {
+                    return response;
+                }
+
+                DataMapManager dataMapManager = new DataMapManager(document.get());
+                response.setTextEdits(dataMapManager.deleteMapping(filePath, request.codedata(),
+                        request.mapping(), request.targetField()));
             } catch (Throwable e) {
                 response.setError(e);
             }

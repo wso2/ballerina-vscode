@@ -736,6 +736,7 @@ public class DataMapManager {
             ExpressionNode expr = getMappingExpr(varDecl.initializer().orElseThrow(), targetField);
             StringBuilder sb = new StringBuilder();
             genSource(expr, splits, 1, sb, mapping.expression(), null, textEdits);
+
         } else if (node.kind() == SyntaxKind.MODULE_VAR_DECL) {
             ModuleVariableDeclarationNode moduleVarDecl = (ModuleVariableDeclarationNode) node;
             String output = mapping.output();
@@ -748,6 +749,33 @@ public class DataMapManager {
         setImportStatements(mapping.imports(), textEdits);
         return gson.toJsonTree(textEditsMap);
     }
+
+    public JsonElement deleteMapping(Path filePath, JsonElement codeData, JsonElement mappingId, String targetField) {
+        Codedata codedata = gson.fromJson(codeData, Codedata.class);
+        Mapping mapping = gson.fromJson(mappingId, Mapping.class);
+        NonTerminalNode node = getNode(codedata.lineRange());
+
+        Map<Path, List<TextEdit>> textEditsMap = new HashMap<>();
+        List<TextEdit> textEdits = new ArrayList<>();
+        textEditsMap.put(filePath, textEdits);
+
+        if (node.kind() == SyntaxKind.LOCAL_VAR_DECL) {
+            VariableDeclarationNode varDecl = (VariableDeclarationNode) node;
+            String output = mapping.output();
+            String[] splits = output.split(DOT);
+            ExpressionNode expr = getMappingExpr(varDecl.initializer().orElseThrow(), targetField);
+            genDeleteMappingSource(expr, splits, 1, textEdits);
+        } else if (node.kind() == SyntaxKind.MODULE_VAR_DECL) {
+            ModuleVariableDeclarationNode moduleVarDecl = (ModuleVariableDeclarationNode) node;
+            String output = mapping.output();
+            String[] splits = output.split(DOT);
+            ExpressionNode expr = getMappingExpr(moduleVarDecl.initializer().orElseThrow(), targetField);
+            genDeleteMappingSource(expr, splits, 1, textEdits);
+        }
+
+        return gson.toJsonTree(textEditsMap);
+    }
+
 
     private void genSource(ExpressionNode expr, String[] names, int idx, StringBuilder stringBuilder,
                            String mappingExpr, LinePosition position, List<TextEdit> textEdits) {
@@ -809,6 +837,124 @@ public class DataMapManager {
         }
     }
 
+    private void genDeleteMappingSource(ExpressionNode expr, String[] names, int idx, List<TextEdit> textEdits) {
+        if (expr == null) {
+            return;
+        }
+
+        if (expr instanceof MappingConstructorExpressionNode mappingCtrExpr) {
+            String name = names[idx];
+            Map<String, SpecificFieldNode> mappingFields = convertMappingFieldsToMap(mappingCtrExpr);
+            SpecificFieldNode mappingFieldNode = mappingFields.get(name);
+            if (mappingFieldNode == null) {
+                return;
+            } else {
+                genDeleteMappingSource(mappingFieldNode.valueExpr().orElseThrow(), names, idx + 1,
+                        textEdits);
+            }
+        } else if (expr instanceof ListConstructorExpressionNode listCtrExpr) {
+            if (idx != names.length) {
+                String name = names[idx];
+                if (name.matches("\\d+")) {
+                    int index = Integer.parseInt(name);
+                    if (index < listCtrExpr.expressions().size()) {
+                        genDeleteMappingSource((ExpressionNode) listCtrExpr.expressions().get(index),
+                                names, idx + 1, textEdits);
+                    }
+                }
+            }
+        }
+
+        if (idx == names.length) {
+            NonTerminalNode currentNode = expr;
+            NonTerminalNode highestEmptyField = null;
+
+            while (true) {
+                NonTerminalNode parentNode = currentNode.parent();
+                if (parentNode == null) {
+                    break;
+                }
+                if (parentNode.kind() == SyntaxKind.SPECIFIC_FIELD) {
+                    SpecificFieldNode specificField = (SpecificFieldNode) parentNode;
+                    NonTerminalNode grandParent = parentNode.parent();
+
+                    if (grandParent != null && grandParent.kind() == SyntaxKind.MAPPING_CONSTRUCTOR) {
+                        MappingConstructorExpressionNode mappingCtr = (MappingConstructorExpressionNode)
+                                grandParent;
+
+                        if (mappingCtr.fields().size() == 1) {
+                            highestEmptyField = specificField;
+                            currentNode = grandParent;
+                            continue;
+                        }
+                    }
+                }
+                break;
+            }
+
+            if (highestEmptyField != null) {
+                textEdits.add(new TextEdit(CommonUtils.toRange(highestEmptyField.lineRange()), ""));
+            } else {
+                SpecificFieldNode specificField = (SpecificFieldNode) expr.parent();
+                MappingConstructorExpressionNode mappingCtr = (MappingConstructorExpressionNode)
+                        specificField.parent();
+                SeparatedNodeList<MappingFieldNode> fields = mappingCtr.fields();
+                int fieldCount = fields.size();
+
+                if (fieldCount > 1) {
+                    int fieldIndex = -1;
+                    for (int i = 0; i < fieldCount; i++) {
+                        if (fields.get(i) == specificField) {
+                            fieldIndex = i;
+                            break;
+                        }
+                    }
+                    if (fieldIndex >= 0) {
+                        TextRange deleteRange;
+                        if (fieldIndex == fieldCount - 1) {
+                            TextRange fieldRange = specificField.textRange();
+                            Node separator = fields.getSeparator(fieldIndex - 1);
+                            if (separator != null) {
+                                deleteRange = TextRange.from(
+                                        separator.textRange().startOffset(),
+                                        fieldRange.endOffset() - separator.textRange().startOffset()
+                                );
+                            } else {
+                                deleteRange = fieldRange;
+                            }
+                        } else {
+                            TextRange fieldRange = specificField.textRange();
+                            Node separator = fields.getSeparator(fieldIndex);
+                            if (separator != null) {
+                                deleteRange = TextRange.from(
+                                        fieldRange.startOffset(),
+                                        fields.get(fieldIndex + 1).
+                                                textRange().startOffset() - fieldRange.startOffset()
+                                );
+                            } else {
+                                deleteRange = fieldRange;
+                            }
+                        }
+
+                        String fileName = document.name();
+                        LinePosition startPos = document.syntaxTree().
+                                textDocument().linePositionFrom(deleteRange.startOffset());
+                        LinePosition endPos = document.syntaxTree().
+                                textDocument().linePositionFrom(deleteRange.endOffset());
+
+                        LineRange lineRangeToDelete = LineRange.from(fileName, startPos, endPos);
+                        textEdits.add(new TextEdit(CommonUtils.toRange(lineRangeToDelete), ""));
+                    } else {
+                        textEdits.add(new TextEdit(CommonUtils.toRange(specificField.lineRange()), ""));
+                    }
+                } else {
+                    textEdits.add(new TextEdit(CommonUtils.toRange(specificField.lineRange()), ""));
+                }
+            }
+        }
+    }
+
+
     private void setImportStatements(Map<String, String> importStatements, List<TextEdit> textEdits) {
         if (importStatements == null) {
             return;
@@ -835,7 +981,8 @@ public class DataMapManager {
                         .name(importStatement)
                         .endOfStatement()
                         .build(SourceBuilder.SourceKind.IMPORT);
-                textEdits.add(new TextEdit(CommonUtils.toRange(0, 0), stmt + System.lineSeparator()));
+                textEdits.add(new TextEdit(CommonUtils.toRange(0, 0),
+                        stmt + System.lineSeparator()));
             }
         }
     }
