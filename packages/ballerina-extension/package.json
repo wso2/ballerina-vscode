@@ -1098,7 +1098,7 @@
         "@types/lodash": "^4.14.200",
         "@ai-sdk/anthropic": "^1.2.12",
         "ai": "^4.3.16",
-        "@vscode/test-electron": "^2.4.0",
+        "@vscode/test-electron": "^2.5.2",
         "@vscode/vsce": "^2.22.0",
         "@wso2/ballerina-core": "workspace:*",
         "@wso2/ballerina-visualizer": "workspace:*",
