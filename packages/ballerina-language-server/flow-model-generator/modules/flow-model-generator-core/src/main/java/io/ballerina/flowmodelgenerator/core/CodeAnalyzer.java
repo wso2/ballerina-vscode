@@ -500,17 +500,27 @@ public class CodeAnalyzer extends NodeVisitor {
                     continue;
                 }
                 SimpleNameReferenceNode simpleNameReferenceNode = (SimpleNameReferenceNode) node;
-                if (semanticModel.symbol(node).isPresent()) {
-                    Symbol symbol = semanticModel.symbol(node).get();
-                    if (symbol.kind() == SymbolKind.VARIABLE) {
-                        TypeSymbol typeSymbol = ((VariableSymbol) symbol).typeDescriptor();
-                        if (typeSymbol.getModule().isPresent() && typeSymbol.nameEquals(MCP_TOOL_KIT)
-                                && typeSymbol.getModule().get().id().moduleName().equals(AI_AGENT)) {
-                            String toolName = simpleNameReferenceNode.name().text().replace("\\", "");
-                            toolsData.add(new ToolData(toolName, ICON_PATH, getToolDescription(""), MCP_SERVER));
-                            continue;
-                        }
-                    }
+                Optional<Symbol> nodeSymbol = semanticModel.symbol(node);
+                if (nodeSymbol.isEmpty()) {
+                    String toolName = simpleNameReferenceNode.name().text();
+                    toolsData.add(new ToolData(toolName, getIcon(toolName), getToolDescription(toolName), null));
+                    continue;
+                }
+
+                Symbol symbol = nodeSymbol.get();
+                if (symbol.kind() != SymbolKind.VARIABLE) {
+                    String toolName = simpleNameReferenceNode.name().text();
+                    toolsData.add(new ToolData(toolName, getIcon(toolName), getToolDescription(toolName), null));
+                    continue;
+                }
+
+                TypeSymbol typeSymbol = ((VariableSymbol) symbol).typeDescriptor();
+                if (typeSymbol.getModule().isPresent()
+                        && typeSymbol.nameEquals(MCP_TOOL_KIT)
+                        && typeSymbol.getModule().get().id().moduleName().equals(AI_AGENT)) {
+                    String toolName = simpleNameReferenceNode.name().text().replace("\\", "");
+                    toolsData.add(new ToolData(toolName, ICON_PATH, getToolDescription(""), MCP_SERVER));
+                    continue;
                 }
                 String toolName = simpleNameReferenceNode.name().text();
                 toolsData.add(new ToolData(toolName, getIcon(toolName), getToolDescription(toolName), null));
