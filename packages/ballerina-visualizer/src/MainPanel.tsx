@@ -28,13 +28,10 @@ import {
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { Global, css } from "@emotion/react";
 import styled from "@emotion/styled";
-import { NavigationBar } from "./components/NavigationBar";
 import { LoadingRing } from "./components/Loader";
 import { DataMapper } from "./views/DataMapper";
 import { ERDiagram } from "./views/ERDiagram";
 import { GraphQLDiagram } from "./views/GraphQLDiagram";
-import { SequenceDiagram } from "./views/SequenceDiagram";
-import { Overview } from "./views/Overview";
 import { ServiceDesigner } from "./views/BI/ServiceDesigner";
 import {
     WelcomeView,
@@ -46,7 +43,7 @@ import {
     TestFunctionForm
 } from "./views/BI";
 import { handleRedo, handleUndo } from "./utils/utils";
-import { FunctionDefinition, ServiceDeclaration } from "@wso2/syntax-tree";
+import { FunctionDefinition } from "@wso2/syntax-tree";
 import { URI, Utils } from "vscode-uri";
 import { Typography } from "@wso2/ui-toolkit";
 import { PanelType, useVisualizerContext } from "./Context";
@@ -271,7 +268,7 @@ const MainPanel = () => {
                     case MACHINE_VIEW.BIDiagram:
                         setViewComponent(
                             <DiagramWrapper
-                                syntaxTree={value?.syntaxTree}
+                                key={value?.identifier}
                                 projectPath={value?.projectUri}
                                 filePath={value?.documentUri}
                                 view={value?.focusFlowDiagramView}
@@ -318,11 +315,6 @@ const MainPanel = () => {
                         break;
                     case MACHINE_VIEW.GraphQLDiagram:
                         setViewComponent(<GraphQLDiagram serviceIdentifier={value?.identifier} filePath={value?.documentUri} position={value?.position} projectUri={value?.projectUri} />);
-                        break;
-                    case MACHINE_VIEW.SequenceDiagram:
-                        setViewComponent(
-                            <SequenceDiagram syntaxTree={value?.syntaxTree} applyModifications={applyModifications} />
-                        );
                         break;
                     case MACHINE_VIEW.BallerinaUpdateView:
                         setNavActive(false);
@@ -382,7 +374,7 @@ const MainPanel = () => {
                     case MACHINE_VIEW.EditConnectionWizard:
                         setViewComponent(
                             <EditConnectionWizard
-                                fileName={value.documentUri || value.projectUri}
+                                projectUri={value.projectUri}
                                 connectionName={value?.identifier}
                             />
                         );
