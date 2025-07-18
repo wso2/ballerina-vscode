@@ -1,0 +1,108 @@
+{
+  "filePath": "test_pack2/records.bal",
+  "position": {
+    "line": 70,
+    "offset": 5
+  },
+  "description": "Get a record type of readonly and record type with empty body",
+  "type": {
+    "name": "DroidRecord2",
+    "editable": true,
+    "metadata": {
+      "label": "DroidRecord2",
+      "description": "Readonly record with empty body (open record)"
+    },
+    "codedata": {
+      "node": "RECORD",
+      "lineRange": {
+        "fileName": "records.bal",
+        "startLine": {
+          "line": 70,
+          "offset": 5
+        },
+        "endLine": {
+          "line": 70,
+          "offset": 17
+        }
+      }
+    },
+    "properties": {
+      "name": {
+        "metadata": {
+          "label": "Type name",
+          "description": "Unique name to identify the type"
+        },
+        "valueType": "IDENTIFIER",
+        "value": "DroidRecord2",
+        "optional": false,
+        "editable": false,
+        "advanced": false,
+        "hidden": false
+      },
+      "isPublic": {
+        "metadata": {
+          "label": "public",
+          "description": "Is this public"
+        },
+        "valueType": "FLAG",
+        "value": "false",
+        "optional": true,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      },
+      "description": {
+        "metadata": {
+          "label": "Type description",
+          "description": "Detailed description about the type"
+        },
+        "valueType": "STRING",
+        "value": "Readonly record with empty body (open record)",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      },
+      "isReadOnly": {
+        "metadata": {
+          "label": "readonly",
+          "description": "Is this readonly"
+        },
+        "valueType": "FLAG",
+        "value": "true",
+        "optional": true,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      },
+      "isArray": {
+        "metadata": {
+          "label": "Is array type",
+          "description": "Is this type an array or list value"
+        },
+        "valueType": "FLAG",
+        "value": "false",
+        "optional": true,
+        "editable": true,
+        "advanced": true,
+        "hidden": false
+      },
+      "arraySize": {
+        "metadata": {
+          "label": "Size of the array",
+          "description": "Array dimensions"
+        },
+        "valueType": "STRING",
+        "value": "",
+        "optional": true,
+        "editable": true,
+        "advanced": true,
+        "hidden": false
+      }
+    },
+    "members": [],
+    "includes": [],
+    "allowAdditionalFields": true
+  },
+  "refs": []
+}
