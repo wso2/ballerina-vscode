@@ -401,6 +401,16 @@ const MainPanel = () => {
                                 />
                             );
                         break;
+                    case MACHINE_VIEW.AddConfigVariables:
+                        setViewComponent(
+                                <ViewConfigurableVariables
+                                    fileName={Utils.joinPath(URI.file(value.projectUri), 'config.bal').fsPath}
+                                    org={value?.org}
+                                    package={value?.package}
+                                    addNew={true}
+                                />
+                            );
+                        break;
                     default:
                         setNavActive(false);
                         setViewComponent(<LoadingRing />);
