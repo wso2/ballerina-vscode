@@ -29,6 +29,7 @@ import { VisualizerLocation } from "@wso2/ballerina-core";
 import { MACHINE_VIEW } from "@wso2/ballerina-core";
 import styled from "@emotion/styled";
 import { BIFocusFlowDiagram } from "../FocusFlowDiagram";
+import { getColorByMethod } from "../ServiceDesigner/components/ResourceAccordion";
 
 const ActionButton = styled(Button)`
     display: flex;
@@ -39,6 +40,7 @@ const ActionButton = styled(Button)`
 const SubTitleWrapper = styled.div`
     display: flex;
     align-items: center;
+    align-self: center;
     justify-content: flex-start;
     gap: 12px;
     width: 100%;
@@ -50,14 +52,21 @@ const LeftElementsWrapper = styled.div`
     gap: 12px;
 `;
 
-const AccessorType = styled.span`
-    background-color: ${ThemeColors.SURFACE_BRIGHT};
+const AccessorType = styled.span<{ color?: string }>`
+    background-color: ${(props: { color: any; }) => props.color};
     color: ${ThemeColors.ON_SURFACE};
     padding: 4px 8px;
     border-radius: 4px;
     font-size: 12px;
-    font-weight: 500;
     text-transform: uppercase;
+    font-family: "GilmerBold";
+    color: #FFF;
+    padding: 4px 8px;
+    border-radius: 4px;
+    min-width: 60px;
+    text-align: center;
+    align-items: center;
+    font-weight: bold;
 `;
 
 const Path = styled.span`
@@ -292,7 +301,9 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
                     subtitleElement={
                         <SubTitleWrapper>
                             <LeftElementsWrapper>
-                                <AccessorType>{method}</AccessorType>
+                                <AccessorType color={getColorByMethod(method)}>
+                                    {method}
+                                </AccessorType>
                                 <Path>{getResourcePath(syntaxTree)}</Path>
                                 {parameters && (
                                     <WrappedTooltip content={parameters}>
