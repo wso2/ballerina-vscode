@@ -50,10 +50,6 @@ export function getMappingType(sourcePort: PortModel, targetPort: PortModel): Ma
         const sourceField = sourcePort.attributes.field;
         const targetField = targetPort.attributes.field;
 
-        if (sourceField.kind === TypeKind.Record || targetField.kind === TypeKind.Record) {
-            return MappingType.ContainsRecord;
-        }
-
         if (targetPort.getParent() instanceof PrimitiveOutputNode) return MappingType.ArrayToSingletonWithCollect;
             
         const sourceDim = getDMTypeDim(sourceField);
@@ -65,6 +61,9 @@ export function getMappingType(sourcePort: PortModel, targetPort: PortModel): Ma
             if (dimDelta > 0) return MappingType.ArrayToSingleton;
         }
 
+        if ((sourceField.kind !== targetField.kind) || (sourceField.variableName !== targetField.variableName)) {
+            return MappingType.Incompatible;
+        }
 
     }
 
