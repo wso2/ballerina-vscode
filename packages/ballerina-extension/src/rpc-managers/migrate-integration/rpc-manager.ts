@@ -17,8 +17,16 @@
  * 
  * THIS FILE INCLUDES AUTO GENERATED CODE
  */
-import { MigrateIntegrationAPI, } from "@wso2/ballerina-core";
+import {
+    ImportTibcoRequest,
+    ImportTibcoResponse,
+    ImportTibcoRPCRequest,
+    MigrateIntegrationAPI
+} from "@wso2/ballerina-core";
+import { StateMachine } from "../../stateMachine";
 import { pullMigrationTool } from "../../utils/migrate-integration";
+import { getUsername } from "../../utils/bi";
+
 
 export class MigrateIntegrationRpcManager implements MigrateIntegrationAPI {
     async pullMigrationTool(args: { toolName: string }): Promise<void> {
@@ -28,5 +36,15 @@ export class MigrateIntegrationRpcManager implements MigrateIntegrationAPI {
             console.error(`Failed to pull migration tool '${args.toolName}':`, error);
             throw error;
         }
+    }
+
+    async importTibcoToBI(params: ImportTibcoRPCRequest): Promise<ImportTibcoResponse> {
+        const orgName = getUsername();
+        const langParams: ImportTibcoRequest = {
+            orgName: orgName,
+            packageName: params.packageName,
+            sourcePath: params.sourcePath
+        };
+        return StateMachine.langClient().importTibcoToBI(langParams);
     }
 }

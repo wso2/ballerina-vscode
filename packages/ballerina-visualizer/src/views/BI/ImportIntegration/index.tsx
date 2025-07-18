@@ -18,7 +18,7 @@
 
 import { useState, useEffect } from "react";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
-import { DownloadProgress } from "@wso2/ballerina-core";
+import { DownloadProgress, ImportTibcoRPCRequest } from "@wso2/ballerina-core";
 import { ImportIntegrationForm } from "./ImportIntegrationForm";
 import { MigrationProgressView } from "./MigrationProgressView";
 import { INTEGRATION_CONFIGS } from "./definitions";
@@ -70,10 +70,23 @@ export function ImportIntegration() {
             return;
         }
         setImportParams(finalParams);
-        setView('loading');
+        // setView('loading');
 
-        // TODO: Call the RPC to start the main import process
-        // rpcClient.getBIDiagramRpcClient().importIntegration(finalParams);
+        // TODO: Should the logic of deciding which migration tool to use be here or in the extension?
+        if (selectedIntegration === 'tibco') {
+
+            const params: ImportTibcoRPCRequest = {
+                packageName: finalParams.path,
+                sourcePath: finalParams.importSourcePath,
+            }
+            rpcClient.getMigrateIntegrationRpcClient().importTibcoToBI(params).then((response) => {
+                console.log("TIBCO import response:", response);
+                // Handle successful import response here
+            }).catch((error) => {
+                console.error("Error during TIBCO import:", error);
+                // Handle error during import
+            });
+        }
     };
 
     return (

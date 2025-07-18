@@ -19,3 +19,8 @@
 export interface MigrationToolPullRequest {
     toolName: string;
 }
+
+export interface ImportTibcoRPCRequest {
+    packageName: string;
+    sourcePath: string;
+}

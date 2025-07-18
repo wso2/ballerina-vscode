@@ -17,8 +17,10 @@
  * 
  * THIS FILE INCLUDES AUTO GENERATED CODE
  */
-import { MigrationToolPullRequest } from "./interfaces";
-import { NotificationType } from "vscode-messenger-common";
+import { ImportTibcoResponse } from "../../interfaces/extended-lang-client";
+import { ImportTibcoRPCRequest, MigrationToolPullRequest } from "./interfaces";
+import { NotificationType, RequestType } from "vscode-messenger-common";
 
 const _preFix = "migrate-integration";
 export const pullMigrationTool: NotificationType<MigrationToolPullRequest> = { method: `${_preFix}/pullMigrationTool` };
+export const importTibcoToBI: RequestType<ImportTibcoRPCRequest, ImportTibcoResponse> = { method: `${_preFix}/importTibcoToBI` };
