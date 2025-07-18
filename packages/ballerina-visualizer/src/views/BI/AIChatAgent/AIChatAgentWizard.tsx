@@ -29,6 +29,7 @@ import { RelativeLoader } from '../../../components/RelativeLoader';
 import { FormHeader } from '../../../components/FormHeader';
 import { getAgentOrg } from './utils';
 import { cloneDeep } from 'lodash';
+import { AI, BALLERINA } from '../../../constants';
 
 const FORM_WIDTH = 600;
 
@@ -155,7 +156,7 @@ export function AIChatAgentWizard(props: AIChatAgentWizardProps) {
             .getAllModels({ agent: agentCodeData.object, filePath: agentFilePath.current, orgName: agentOrg.current });
         console.log(">>> allModels", allModels);
         // get openai model
-        const defaultModel = allModels.models.find((model) => model.object === "OpenAiProvider" || (model.org === "ballerina" && model.module === "ai"));
+        const defaultModel = allModels.models.find((model) => model.object === "OpenAiProvider" || (model.org === BALLERINA && model.module === AI));
         if (!defaultModel) {
             console.log(">>> no default model found");
             return;
