@@ -174,6 +174,7 @@ const MainPanel = () => {
     const [navActive, setNavActive] = useState<boolean>(true);
     const [showHome, setShowHome] = useState<boolean>(true);
     const [popupState, setPopupState] = useState<PopupMachineStateValue>("initialize");
+    const [diagramKey, setDiagramKey] = useState<number>(0);
 
     rpcClient?.onStateChanged((newState: MachineStateValue) => {
         if (typeof newState === "object" && "viewActive" in newState && newState.viewActive === "viewReady") {
@@ -234,6 +235,8 @@ const MainPanel = () => {
 
     const fetchContext = () => {
         setNavActive(true);
+        // Force re-render of DiagramWrapper by incrementing the key
+        setDiagramKey(prev => prev + 1);
         rpcClient.getVisualizerLocation().then((value) => {
             let defaultFunctionsFile = Utils.joinPath(URI.file(value.projectUri), 'functions.bal').fsPath;
             if (value.documentUri) {
@@ -268,6 +271,7 @@ const MainPanel = () => {
                     case MACHINE_VIEW.BIDiagram:
                         setViewComponent(
                             <DiagramWrapper
+                                key={diagramKey}
                                 projectPath={value?.projectUri}
                                 filePath={value?.documentUri}
                                 view={value?.focusFlowDiagramView}
@@ -393,12 +397,12 @@ const MainPanel = () => {
                         break;
                     case MACHINE_VIEW.ViewConfigVariables:
                         setViewComponent(
-                                <ViewConfigurableVariables
-                                    fileName={Utils.joinPath(URI.file(value.projectUri), 'config.bal').fsPath}
-                                    org={value?.org}
-                                    package={value?.package}
-                                />
-                            );
+                            <ViewConfigurableVariables
+                                fileName={Utils.joinPath(URI.file(value.projectUri), 'config.bal').fsPath}
+                                org={value?.org}
+                                package={value?.package}
+                            />
+                        );
                         break;
                     default:
                         setNavActive(false);
