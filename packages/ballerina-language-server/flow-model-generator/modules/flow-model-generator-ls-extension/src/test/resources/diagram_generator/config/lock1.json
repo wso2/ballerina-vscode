@@ -15,7 +15,11 @@
       {
         "id": "32520",
         "metadata": {
-          "label": "Start"
+          "label": "Start",
+          "data": {
+            "kind": "Function",
+            "label": "testLock1"
+          }
         },
         "codedata": {
           "node": "EVENT_START",

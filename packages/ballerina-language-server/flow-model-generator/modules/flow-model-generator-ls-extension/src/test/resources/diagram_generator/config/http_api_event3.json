@@ -17,6 +17,9 @@
         "metadata": {
           "label": "Start",
           "data": {
+            "kind": "Resource",
+            "label": "menu/[int year]/[boolean... flags]",
+            "accessor": "post",
             "parameters": [
               "string item"
             ]

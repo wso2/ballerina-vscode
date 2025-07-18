@@ -17,6 +17,8 @@
         "metadata": {
           "label": "Start",
           "data": {
+            "kind": "Remote Function",
+            "label": "onFileChange",
             "parameters": [
               "ftp:Caller caller",
               "ftp:WatchEvent & readonly event"

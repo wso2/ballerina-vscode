@@ -17,6 +17,8 @@
         "metadata": {
           "label": "Start",
           "data": {
+            "kind": "Function",
+            "label": "basic2AlternateWait",
             "return": "string|error"
           }
         },

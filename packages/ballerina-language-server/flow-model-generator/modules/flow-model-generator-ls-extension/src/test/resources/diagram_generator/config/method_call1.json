@@ -15,7 +15,11 @@
       {
         "id": "58746",
         "metadata": {
-          "label": "Start"
+          "label": "Start",
+          "data": {
+            "kind": "Function",
+            "label": "userMethods"
+          }
         },
         "codedata": {
           "node": "EVENT_START",

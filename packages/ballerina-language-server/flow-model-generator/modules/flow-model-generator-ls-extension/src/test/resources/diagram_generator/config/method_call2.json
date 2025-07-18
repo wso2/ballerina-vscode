@@ -15,7 +15,11 @@
       {
         "id": "69968",
         "metadata": {
-          "label": "Start"
+          "label": "Start",
+          "data": {
+            "kind": "Function",
+            "label": "langLibMethods"
+          }
         },
         "codedata": {
           "node": "EVENT_START",
