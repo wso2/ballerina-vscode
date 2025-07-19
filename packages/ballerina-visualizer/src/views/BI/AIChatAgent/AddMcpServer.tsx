@@ -247,6 +247,7 @@ export function AddMcpServer(props: AddToolProps): JSX.Element {
     const [savingForm, setSavingForm] = useState<boolean>(false);
 
     const agentFilePath = useRef<string>("");
+    const hasUpdatedToolsField = useRef(false);
 
     const handleAddNewMcpServer = () => {
         onAddMcpServer();
@@ -261,8 +262,10 @@ export function AddMcpServer(props: AddToolProps): JSX.Element {
     }, [agentCallNode]);
 
     useEffect(() => {
-        if (mcpToolResponse && mcpToolResponse.properties) {
+        if (mcpToolResponse && !hasUpdatedToolsField.current) {
+            console.log("Running updateMcpToolResponseWithToolsField", mcpToolResponse);
             updateMcpToolResponseWithToolsField();
+            hasUpdatedToolsField.current = true;
         }
     }, [mcpToolResponse]);
 
@@ -354,6 +357,7 @@ export function AddMcpServer(props: AddToolProps): JSX.Element {
     };
 
     const initPanel = async () => {
+        hasUpdatedToolsField.current = false; // Reset on panel init
         setLoading(true);
         // get agent file path
         agentFilePath.current = await getAgentFilePath(rpcClient);
@@ -759,24 +763,16 @@ export function AddMcpServer(props: AddToolProps): JSX.Element {
     };
 
     const updateMcpToolResponseWithToolsField = () => {
-        // First check if mcpToolResponse exists
-        if (!mcpToolResponse) {
-            console.warn("mcpToolResponse is null or undefined");
-            return;
-        }
-
-        // Create updated properties with safe defaults
+    
         const updatedProperties = {
-            ...(mcpToolResponse.properties || {}), // Fallback to empty object if properties is null/undefined
+            ...(mcpToolResponse.properties || {}),
             scope: fieldVal
         };
-
-        // Create the updated response
+    
         const updatedMcpToolResponse = {
             ...mcpToolResponse,
             properties: updatedProperties
         };
-        console.log(">>> mcp tools after", updatedMcpToolResponse);
         setMcpToolResponse(updatedMcpToolResponse);
     };
 
@@ -799,31 +795,6 @@ export function AddMcpServer(props: AddToolProps): JSX.Element {
                     onSubmit={onSave}
                 />
             )}
-            {renderToolsSelection()}
-                <Footer>
-                    {editMode ? (
-                        // Edit mode: Show only Save button
-                        <PrimaryButton 
-                            onClick={handleOnEdit} 
-                            disabled={savingForm || !canSave || loadingMcpTools || errorInputs}
-                        >
-                            {savingForm ? "Saving..." : "Save"}
-                        </PrimaryButton>
-                    ) : (
-                        // Add mode: Show Back and Add to Agent buttons
-                        <>
-                            <Button onClick={handleBack}>
-                                Back
-                            </Button>
-                            <PrimaryButton 
-                                onClick={handleOnSave} 
-                                disabled={savingForm || !canSave || loadingMcpTools || errorInputs}
-                            >
-                                {savingForm ? "Adding..." : "Add to Agent"}
-                            </PrimaryButton>
-                        </>
-                    )}
-                </Footer>
         </Container>
     );
 }
