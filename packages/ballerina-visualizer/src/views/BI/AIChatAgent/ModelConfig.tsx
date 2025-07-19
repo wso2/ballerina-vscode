@@ -26,7 +26,7 @@ import ConfigForm from "./ConfigForm";
 import { Dropdown } from "@wso2/ui-toolkit";
 import { cloneDeep } from "lodash";
 import { RelativeLoader } from "../../../components/RelativeLoader";
-import { getAgentFilePath, getAgentOrg } from "./utils";
+import { getAgentFilePath, getAgentOrg, getNodeTemplate } from "./utils";
 import { BALLERINA, BALLERINAX, GET_DEFAULT_MODEL_PROVIDER, WSO2_MODEL_PROVIDER, PROVIDER_NAME_MAP } from "../../../constants";
 
 const Container = styled.div`
@@ -180,7 +180,7 @@ export function ModelConfig(props: ModelConfigProps): JSX.Element {
             selectedModelFlowNode.current = cloneDeep(selectedModel);
             nodeProperties = selectedModel?.properties;
         } else {
-            const modelNodeTemplate = await getNodeTemplate(modelCodeData, agentFilePath.current);
+            const modelNodeTemplate = await getNodeTemplate(rpcClient, modelCodeData, agentFilePath.current);
             console.log(">>> selected model node template", { modelNodeTemplate, modelCodeData });
             selectedModelFlowNode.current = cloneDeep(modelNodeTemplate);
             nodeProperties = modelNodeTemplate.properties;
@@ -197,16 +197,6 @@ export function ModelConfig(props: ModelConfigProps): JSX.Element {
         const modelFields = convertConfig(nodeProperties);
         setSelectedModelFields(modelFields);
         setLoading(false);
-    };
-
-    const getNodeTemplate = async (codeData: CodeData, filePath: string) => {
-        const response = await rpcClient.getBIDiagramRpcClient().getNodeTemplate({
-            position: { line: 0, offset: 0 },
-            filePath: filePath,
-            id: codeData,
-        });
-        console.log(">>> get node template response", response);
-        return response?.flowNode;
     };
 
     const handleOnSave = async (data: FormField[], rawData: FormValues) => {

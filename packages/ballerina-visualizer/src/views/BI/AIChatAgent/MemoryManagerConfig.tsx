@@ -26,7 +26,7 @@ import ConfigForm from "./ConfigForm";
 import { Dropdown } from "@wso2/ui-toolkit";
 import { cloneDeep } from "lodash";
 import { RelativeLoader } from "../../../components/RelativeLoader";
-import { getAgentFilePath, getAgentOrg } from "./utils";
+import { getAgentFilePath, getAgentOrg, getNodeTemplate } from "./utils";
 
 const Container = styled.div`
     padding: 16px;
@@ -167,6 +167,7 @@ export function MemoryManagerConfig(props: MemoryManagerConfigProps): JSX.Elemen
         setSelectedMemoryManagerCodeData(memoryManagerCodeData);
 
         const selectedMemoryManagerNodeTemplate = await getNodeTemplate(
+            rpcClient,
             memoryManagerCodeData,
             agentFilePath.current
         );
@@ -193,6 +194,7 @@ export function MemoryManagerConfig(props: MemoryManagerConfigProps): JSX.Elemen
     const fetchMemoryManagerNodeTemplate = async (memoryManagerCodeData: CodeData) => {
         setLoading(true);
         const selectedMemoryManagerNodeTemplate = await getNodeTemplate(
+            rpcClient,
             memoryManagerCodeData,
             agentFilePath.current
         );
@@ -207,16 +209,6 @@ export function MemoryManagerConfig(props: MemoryManagerConfigProps): JSX.Elemen
         const memoryManagerFields = convertConfig(selectedMemoryManagerNodeTemplate.properties);
         setSelectedMemoryManagerFields(memoryManagerFields);
         setLoading(false);
-    };
-
-    const getNodeTemplate = async (codeData: CodeData, filePath: string) => {
-        const response = await rpcClient.getBIDiagramRpcClient().getNodeTemplate({
-            position: { line: 0, offset: 0 },
-            filePath: filePath,
-            id: codeData,
-        });
-        console.log(">>> get node template response", response);
-        return response?.flowNode;
     };
 
     const handleOnSave = async (data: FormField[], rawData: FormValues) => {

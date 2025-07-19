@@ -18,7 +18,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import styled from "@emotion/styled";
-import { CodeData, FlowNode, LinePosition, LineRange, NodeProperties } from "@wso2/ballerina-core";
+import { FlowNode, LinePosition, LineRange, NodeProperties } from "@wso2/ballerina-core";
 import { FormField, FormValues } from "@wso2/ballerina-side-panel";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { convertConfig } from "../../../utils/bi";
@@ -26,7 +26,7 @@ import { URI, Utils } from "vscode-uri";
 import ConfigForm from "./ConfigForm";
 import { cloneDeep } from "lodash";
 import { RelativeLoader } from "../../../components/RelativeLoader";
-import { getAgentOrg } from "./utils";
+import { getAgentOrg, getNodeTemplate } from "./utils";
 import { AI, BALLERINA } from "../../../constants";
 
 const Container = styled.div`
@@ -108,7 +108,7 @@ export function NewAgent(props: NewAgentProps): JSX.Element {
         }
         const agentCodeData = allAgents.agents.at(0);
         // get agent node template
-        const agentNodeTemplate = await getNodeTemplate(agentCodeData, agentFilePath.current);
+        const agentNodeTemplate = await getNodeTemplate(rpcClient, agentCodeData, agentFilePath.current);
         setAgentNode(agentNodeTemplate);
 
         // get all llm models
@@ -123,7 +123,7 @@ export function NewAgent(props: NewAgentProps): JSX.Element {
             return;
         }
         // get model node template
-        const modelNodeTemplate = await getNodeTemplate(defaultModel, agentFilePath.current);
+        const modelNodeTemplate = await getNodeTemplate(rpcClient, defaultModel, agentFilePath.current);
         setDefaultModelNode(modelNodeTemplate);
 
         // get agent call node template
@@ -284,20 +284,6 @@ export function NewAgent(props: NewAgentProps): JSX.Element {
 
         onSave?.();
         setSavingForm(false);
-    };
-
-    const getNodeTemplate = async (
-        codeData: CodeData,
-        filePath: string,
-        position: LinePosition = { line: 0, offset: 0 }
-    ) => {
-        const response = await rpcClient.getBIDiagramRpcClient().getNodeTemplate({
-            position: position,
-            filePath: filePath,
-            id: codeData,
-        });
-        console.log(">>> get node template response", response);
-        return response?.flowNode;
     };
 
     return (
