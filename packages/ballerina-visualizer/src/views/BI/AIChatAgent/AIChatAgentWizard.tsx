@@ -228,11 +228,12 @@ export function AIChatAgentWizard(props: AIChatAgentWizardProps) {
                     console.log(">>> agent service sourceCode", sourceCode);
                     console.log(">>> newArtifact", newArtifact);
                     // save model node
+                    const modelVarName = `_${agentName}Model`;
+                    defaultModelNode.properties.variable.value = modelVarName;
                     const modelResponse = await rpcClient
                         .getBIDiagramRpcClient()
                         .getSourceCode({ filePath: agentFilePath.current, flowNode: defaultModelNode });
                     console.log(">>> modelResponse getSourceCode", { modelResponse });
-                    const modelVarName = defaultModelNode.properties.variable.value as string;
 
                     // wait 2 seconds (wait until LS is updated)
                     console.log(">>> wait 2 seconds");
