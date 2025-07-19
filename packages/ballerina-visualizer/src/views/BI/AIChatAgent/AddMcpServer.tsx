@@ -13,8 +13,11 @@ import { FlowNode } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { ActionButtons, Button, Codicon, ThemeColors, Dropdown } from "@wso2/ui-toolkit";
 import { RelativeLoader } from "../../../components/RelativeLoader";
+import FormGenerator from "../Forms/FormGenerator";
 import { addMcpServerToAgentNode, updateMcpServerToAgentNode, findAgentNodeFromAgentCallNode, getAgentFilePath } from "./utils";
 import { TextField, CheckBox } from '@wso2/ui-toolkit';
+import { FormField, FormValues } from "@wso2/ballerina-side-panel";
+import { set } from "lodash";
 
 const NameContainer = styled.div`
     display: flex;
@@ -256,6 +259,12 @@ export function AddMcpServer(props: AddToolProps): JSX.Element {
     useEffect(() => {
         initPanel();
     }, [agentCallNode]);
+
+    useEffect(() => {
+        if (mcpToolResponse && mcpToolResponse.properties) {
+            updateMcpToolResponseWithToolsField();
+        }
+    }, [mcpToolResponse]);
 
     // Effect to fetch MCP tools when serviceUrl changes and toolSelection is "Selected"
     useEffect(() => {
@@ -692,6 +701,85 @@ export function AddMcpServer(props: AddToolProps): JSX.Element {
     width: 100%;
 `;
 
+    const fields: FormField[] = [
+        {
+            key: `name`,
+            label: "Tool Name",
+            type: "IDENTIFIER",
+            valueType: "IDENTIFIER",
+            optional: false,
+            editable: true,
+            documentation: "Enter the name of the tool.",
+            value: "",
+            valueTypeConstraint: "Global",
+            enabled: true,
+        },
+        {
+            key: `description`,
+            label: "Description",
+            type: "TEXTAREA",
+            optional: true,
+            editable: true,
+            documentation: "Enter the description of the tool.",
+            value: "",
+            valueType: "STRING",
+            valueTypeConstraint: "",
+            enabled: true,
+        }
+    ];
+
+    const fieldVal = {
+        key: "scope",
+        advanced: false,
+        codedata: {
+            kind: 'REQUIRED',
+            originalName: 'scope',
+        },
+        editable: true,
+        hidden: false,
+        metadata: {
+            label: "Tools to Include",
+            description: "Select the tools to include in the MCP server."
+        },
+        optional: false,
+        placeholder: "",
+        valueType: "SINGLE_SELECT",
+        valueTypeConstraint: "string",
+        typeMembers: [
+            {
+                type: "string",
+                packageInfo: "",
+                packageName: "",
+                kind: "BASIC_TYPE",
+                selected: false
+            }
+        ],
+        imports: {},
+        defaultValue: ""
+    };
+
+    const updateMcpToolResponseWithToolsField = () => {
+        // First check if mcpToolResponse exists
+        if (!mcpToolResponse) {
+            console.warn("mcpToolResponse is null or undefined");
+            return;
+        }
+
+        // Create updated properties with safe defaults
+        const updatedProperties = {
+            ...(mcpToolResponse.properties || {}), // Fallback to empty object if properties is null/undefined
+            scope: fieldVal
+        };
+
+        // Create the updated response
+        const updatedMcpToolResponse = {
+            ...mcpToolResponse,
+            properties: updatedProperties
+        };
+        console.log(">>> mcp tools after", updatedMcpToolResponse);
+        setMcpToolResponse(updatedMcpToolResponse);
+    };
+
     return (
         <Container>
             
@@ -701,54 +789,17 @@ export function AddMcpServer(props: AddToolProps): JSX.Element {
                 </LoaderContainer>
             )}
 
-            <>
-                <Column>
-                    <Description>
-                        {editMode ? "Edit MCP server configuration." : "Add an MCP server to provide tools to the Agent."}
-                    </Description>
-                    
-                    <NameContainer>
-                        <TextField
-                            sx={{ flexGrow: 1, marginTop: 15 }}
-                            disabled={false}
-                            errorMsg={urlError}
-                            label="Server URL"
-                            size={70}
-                            onChange={handleServiceUrlChange}
-                            placeholder="Enter MCP server URL"
-                            value={serviceUrl}
-                        />
-                    </NameContainer>
-
-                    <NameContainer>
-                        <TextField
-                            sx={{ flexGrow: 1, marginTop: 15 }}
-                            disabled={false}
-                            label="Name"
-                            size={70}
-                            errorMsg={nameError}
-                            onChange={handleNameChange}
-                            placeholder="Enter name for the MCP Tool Kit"
-                            value={computedValue}
-                        />
-                    </NameContainer>
-
-                    <NameContainer style={{ marginTop: 15 }}>
-                        <DropdownContainer>
-                            <Dropdown
-                                id="tool-selection"
-                                label="Tools to Include"
-                                value={toolSelection}
-                                items={[
-                                    { id: "All", value: "All" },
-                                    { id: "Selected", value: "Selected" },
-                                ]}
-                                onValueChange={(value) => setToolSelection(value)}
-                            />
-                        </DropdownContainer>
-                    </NameContainer>
-                    {renderToolsSelection()}
-                </Column>
+            {mcpToolResponse && (
+                <FormGenerator
+                    fileName={agentFilePath.current}
+                    targetLineRange={{ startLine: { line: 0, offset: 0 }, endLine: { line: 0, offset: 0 } }}
+                    nodeFormTemplate={mcpToolResponse}
+                    submitText={"Save Tool"}
+                    node={mcpToolResponse}
+                    onSubmit={onSave}
+                />
+            )}
+            {renderToolsSelection()}
                 <Footer>
                     {editMode ? (
                         // Edit mode: Show only Save button
@@ -773,7 +824,7 @@ export function AddMcpServer(props: AddToolProps): JSX.Element {
                         </>
                     )}
                 </Footer>
-            </>
         </Container>
     );
 }
+

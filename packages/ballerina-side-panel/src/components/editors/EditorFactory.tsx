@@ -110,7 +110,14 @@ export const EditorFactory = (props: FormFieldEditorProps) => {
     } else if (field.type === "FILE_SELECT" && field.editable) {
         return <FileSelect field={field} />;
     } else if (field.type === "SINGLE_SELECT" && field.editable) {
+        // return <IdentifierEditor
+        //     field={field}
+        //     handleOnFieldFocus={handleOnFieldFocus}
+        //     autoFocus={autoFocus}
+        //     onEditingStateChange={onIdentifierEditingStateChange}
+        // />;
         // HACK:Single select field is treat as type editor for now
+        console.log(">>> Single select field is treated as type editor", field);
         return <DropdownEditor field={field} openSubPanel={openSubPanel} />;
     } else if (!field.items && (field.key === "type" || field.type === "TYPE") && field.editable) {
         // Type field is a type editor
