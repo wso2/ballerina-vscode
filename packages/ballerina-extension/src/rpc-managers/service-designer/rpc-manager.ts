@@ -21,6 +21,8 @@ import {
     DIRECTORY_MAP,
     ExportOASRequest,
     ExportOASResponse,
+    FunctionFromSourceRequest,
+    FunctionFromSourceResponse,
     FunctionModelRequest,
     FunctionModelResponse,
     FunctionSourceCodeRequest,
@@ -48,7 +50,6 @@ import {
     TriggerModelsResponse,
     UpdatedArtifactsResponse
 } from "@wso2/ballerina-core";
-import { NodePosition } from "@wso2/syntax-tree";
 import * as fs from 'fs';
 import * as yaml from 'js-yaml';
 import * as path from 'path';
@@ -397,6 +398,18 @@ export class ServiceDesignerRpcManager implements ServiceDesignerAPI {
                 resolve(res);
             } catch (error) {
                 console.log(">>> error fetching resource return types", error);
+            }
+        });
+    }
+
+    async getFunctionFromSource(params: FunctionFromSourceRequest): Promise<FunctionFromSourceResponse> {
+        return new Promise(async (resolve) => {
+            const context = StateMachine.context();
+            try {
+                const res: FunctionFromSourceResponse = await context.langClient.getFunctionFromSource(params);
+                resolve(res);
+            } catch (error) {
+                console.log(">>> error fetching function model", error);
             }
         });
     }

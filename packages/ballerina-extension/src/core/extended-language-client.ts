@@ -231,6 +231,8 @@ import {
     CopilotFilterLibrariesResponse,
     CopilotFilterLibrariesRequest,
     GetConfigVariableNodeTemplateRequest
+    FunctionFromSourceRequest,
+    FunctionFromSourceResponse
 } from "@wso2/ballerina-core";
 import { BallerinaExtension } from "./index";
 import { debug, handlePullModuleProgress } from "../utils";
@@ -355,6 +357,7 @@ enum EXTENDED_APIS {
     BI_SERVICE_ADD_FUNCTION = 'serviceDesign/addFunction',
     BI_SERVICE_UPDATE_RESOURCE = 'serviceDesign/updateFunction',
     BI_SERVICE_SERVICE_CLASS_MODEL = 'serviceDesign/getServiceClassModelFromSource',
+    BI_GET_FUNCTION_FROM_SOURCE = 'serviceDesign/getFunctionFromSource',
     BI_UPDATE_CLASS_FIELD = 'serviceDesign/updateClassField',
     BI_ADD_CLASS_FIELD = 'serviceDesign/addField',
     BI_DESIGN_MODEL = 'designModelService/getDesignModel',
@@ -1019,6 +1022,10 @@ export class ExtendedLangClient extends LanguageClient implements ExtendedLangCl
 
     async getServiceClassModel(params: ModelFromCodeRequest): Promise<ServiceClassModelResponse> {
         return this.sendRequest<ServiceClassModelResponse>(EXTENDED_APIS.BI_SERVICE_SERVICE_CLASS_MODEL, params);
+    }
+
+    async getFunctionFromSource(params: FunctionFromSourceRequest): Promise<FunctionFromSourceResponse> {
+        return this.sendRequest<FunctionFromSourceResponse>(EXTENDED_APIS.BI_GET_FUNCTION_FROM_SOURCE, params);
     }
 
     async updateClassField(params: ClassFieldModifierRequest): Promise<SourceEditResponse> {
