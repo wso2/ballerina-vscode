@@ -232,8 +232,6 @@ export function AIChatAgentWizard(props: AIChatAgentWizardProps) {
                     updatedAgentNode.properties.systemPrompt.value = systemPromptValue;
                     updatedAgentNode.properties.model.value = modelVarName;
                     updatedAgentNode.properties.tools.value = [];
-                    updatedAgentNode.properties.verbose.value = "false";
-                    updatedAgentNode.properties.maxIter.value = "0";
                     updatedAgentNode.properties.variable.value = agentVarName;
 
                     const agentResponse = await rpcClient
