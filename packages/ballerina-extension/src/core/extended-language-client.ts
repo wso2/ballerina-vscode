@@ -230,7 +230,7 @@ import {
     CopilotAllLibrariesRequest,
     CopilotFilterLibrariesResponse,
     CopilotFilterLibrariesRequest,
-    GetConfigVariableNodeTemplateRequest
+    GetConfigVariableNodeTemplateRequest,
     FunctionFromSourceRequest,
     FunctionFromSourceResponse
 } from "@wso2/ballerina-core";
