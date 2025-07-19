@@ -16,10 +16,25 @@
  * under the License.
  */
 
-import { FlowNode } from "@wso2/ballerina-core";
+import { BINodeTemplateRequest, CodeData, FlowNode, LinePosition } from "@wso2/ballerina-core";
 import { BallerinaRpcClient } from "@wso2/ballerina-rpc-client";
 import { cloneDeep } from "lodash";
 import { URI, Utils } from "vscode-uri";
+
+export const getNodeTemplate = async (
+    rpcClient: BallerinaRpcClient,
+    codeData: CodeData,
+    filePath: string,
+    position: LinePosition = { line: 0, offset: 0 }
+) => {
+    const response = await rpcClient.getBIDiagramRpcClient().getNodeTemplate({
+        position: position,
+        filePath: filePath,
+        id: codeData,
+    });
+    console.log(">>> get node template response", response);
+    return response?.flowNode;
+};
 
 export const getAgentOrg = async (rpcClient: BallerinaRpcClient) => {
     const filePath = await rpcClient.getVisualizerLocation();

@@ -17,7 +17,7 @@
  */
 
 import { useEffect, useRef, useState } from 'react';
-import { CodeData, EVENT_TYPE, FlowNode, LinePosition, ListenerModel } from '@wso2/ballerina-core';
+import { EVENT_TYPE, FlowNode, LinePosition, ListenerModel } from '@wso2/ballerina-core';
 import { View, ViewContent, TextField, Button, Typography } from '@wso2/ui-toolkit';
 import styled from '@emotion/styled';
 import { useRpcContext } from '@wso2/ballerina-rpc-client';
@@ -27,7 +27,7 @@ import { TitleBar } from '../../../components/TitleBar';
 import { TopNavigationBar } from '../../../components/TopNavigationBar';
 import { RelativeLoader } from '../../../components/RelativeLoader';
 import { FormHeader } from '../../../components/FormHeader';
-import { getAgentOrg } from './utils';
+import { getAgentOrg, getNodeTemplate } from './utils';
 import { cloneDeep } from 'lodash';
 import { AI, BALLERINA } from '../../../constants';
 
@@ -123,20 +123,6 @@ export function AIChatAgentWizard(props: AIChatAgentWizardProps) {
         });
     }, []);
 
-    const getNodeTemplate = async (
-        codeData: CodeData,
-        filePath: string,
-        position: LinePosition = { line: 0, offset: 0 }
-    ) => {
-        const response = await rpcClient.getBIDiagramRpcClient().getNodeTemplate({
-            position: position,
-            filePath: filePath,
-            id: codeData,
-        });
-        console.log(">>> get node template response", response);
-        return response?.flowNode;
-    };
-
     const fetchAgentNode = async () => {
         // get the agent node
         const allAgents = await rpcClient.getAIAgentRpcClient().getAllAgents({ filePath: agentFilePath.current, orgName: agentOrg.current });
@@ -147,7 +133,7 @@ export function AIChatAgentWizard(props: AIChatAgentWizardProps) {
         }
         const agentCodeData = allAgents.agents.at(0);
         // get agent node template
-        const agentNodeTemplate = await getNodeTemplate(agentCodeData, agentFilePath.current);
+        const agentNodeTemplate = await getNodeTemplate(rpcClient, agentCodeData, agentFilePath.current);
         setAgentNode(agentNodeTemplate);
 
         // get all llm models
@@ -162,7 +148,7 @@ export function AIChatAgentWizard(props: AIChatAgentWizardProps) {
             return;
         }
         // get model node template
-        const modelNodeTemplate = await getNodeTemplate(defaultModel, agentFilePath.current);
+        const modelNodeTemplate = await getNodeTemplate(rpcClient, defaultModel, agentFilePath.current);
         setDefaultModelNode(modelNodeTemplate);
     };
 
