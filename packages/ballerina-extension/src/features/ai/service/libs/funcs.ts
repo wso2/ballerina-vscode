@@ -122,6 +122,8 @@ async function getRequiredFunctions(libraries: string[], prompt: string, librari
     const largeLibs = libraryList.filter(lib => getClientFunctionCount(lib.clients) >= 100);
     const smallLibs = libraryList.filter(lib => !largeLibs.includes(lib));
 
+    console.log(`[Parallel Execution Plan] Large libraries: ${largeLibs.length} (${largeLibs.map(lib => lib.name).join(', ')}), Small libraries: ${smallLibs.length} (${smallLibs.map(lib => lib.name).join(', ')})`);
+
     // Create promises for large libraries (each processed individually)
     const largeLiberiesPromises: Promise<GetFunctionResponse[]>[] = largeLibs.map(funcItem => 
         getSuggestedFunctions(prompt, [funcItem])
@@ -132,11 +134,19 @@ async function getRequiredFunctions(libraries: string[], prompt: string, librari
         ? getSuggestedFunctions(prompt, smallLibs)
         : Promise.resolve([]);
 
+    console.log(`[Parallel Execution Start] Starting ${largeLiberiesPromises.length} large library requests + 1 small libraries bulk request`);
+    const parallelStartTime = Date.now();
+
     // Wait for all promises to complete
     const [smallLibResults, ...largeLibResults] = await Promise.all([
         smallLibrariesPromise,
         ...largeLiberiesPromises
     ]);
+
+    const parallelEndTime = Date.now();
+    const parallelDuration = (parallelEndTime - parallelStartTime) / 1000;
+    
+    console.log(`[Parallel Execution Complete] Total parallel execution time: ${parallelDuration}s`);
 
     // Flatten the results
     const collectiveResp: GetFunctionResponse[] = [
@@ -144,12 +154,20 @@ async function getRequiredFunctions(libraries: string[], prompt: string, librari
         ...largeLibResults.flat()
     ];
     const endTime = Date.now();
-    console.log(`Time taken to get the functions: ${(endTime - startTime) / 1000} seconds`);
+    const totalDuration = (endTime - startTime) / 1000;
+    
+    console.log(`[getRequiredFunctions Complete] Total function count: ${collectiveResp.reduce((total, lib) => total + (lib.clients?.reduce((clientTotal, client) => clientTotal + client.functions.length, 0) || 0) + (lib.functions?.length || 0), 0)}, Total duration: ${totalDuration}s, Preparation time: ${(parallelStartTime - startTime) / 1000}s, Parallel time: ${parallelDuration}s`);
     
     return collectiveResp;
 }
 
 async function getSuggestedFunctions(prompt: string, libraryList: GetFunctionsRequest[]): Promise<GetFunctionResponse[]> {
+    const startTime = Date.now();
+    const libraryNames = libraryList.map(lib => lib.name).join(', ');
+    const functionCount = libraryList.reduce((total, lib) => total + getClientFunctionCount(lib.clients) + (lib.functions?.length || 0), 0);
+    
+    console.log(`[AI Request Start] Libraries: [${libraryNames}], Function Count: ${functionCount}`);
+    
     const getLibSystemPrompt = "You are an AI assistant tasked with filtering and removing unwanted functions and clients from a given set of libraries and clients based on a user query. Your goal is to return only the relevant libraries, clients, and functions that match the user's needs.";
     const getLibUserPrompt = `
 You will be provided with a list of libraries, clients, and their functions and user query.
@@ -190,9 +208,17 @@ Now, based on the provided libraries, clients, and functions, and the user query
         });
 
         const libList = object as GetFunctionsResponse;
+        const endTime = Date.now();
+        const duration = (endTime - startTime) / 1000;
+        
+        console.log(`[AI Request Complete] Libraries: [${libraryNames}], Duration: ${duration}s, Selected Functions: ${libList.libraries.reduce((total, lib) => total + (lib.clients?.reduce((clientTotal, client) => clientTotal + client.functions.length, 0) || 0) + (lib.functions?.length || 0), 0)}`);
+        
         printSelectedFunctions(libList.libraries);
         return libList.libraries;
     } catch (error) {
+        const endTime = Date.now();
+        const duration = (endTime - startTime) / 1000;
+        console.error(`[AI Request Failed] Libraries: [${libraryNames}], Duration: ${duration}s, Error: ${error}`);
         throw new Error(`Failed to parse bulk functions response: ${error}`);
     }
 }
