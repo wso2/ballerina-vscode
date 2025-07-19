@@ -124,6 +124,7 @@ public class DataMapManager {
     public static final String WHERE = "where";
     public static final String LIMIT = "limit";
     public static final String ORDER_BY = "order-by";
+    public static final String ITEM = "Item";
     private final Document document;
     private final Gson gson = new Gson();
 
@@ -1211,12 +1212,12 @@ public class DataMapManager {
         String name = "item";
         SyntaxKind kind = inputExpr.kind();
         if (kind == SyntaxKind.SIMPLE_NAME_REFERENCE) {
-            name = inputExpr.toSourceCode() + "Item";
+            name = inputExpr.toSourceCode().trim() + ITEM;
         } else if (kind == SyntaxKind.FIELD_ACCESS) {
             FieldAccessExpressionNode fieldAccessExpr = (FieldAccessExpressionNode) inputExpr;
-            name = fieldAccessExpr.fieldName().toSourceCode() + "Item";
+            name = fieldAccessExpr.fieldName().toSourceCode().trim() + ITEM;
         }
-        return "from var " + name + " in " + inputExpr.toSourceCode() + " " +
+        return "from var " + name + " in " + inputExpr.toSourceCode().trim() + " " +
                 SyntaxKind.SELECT_KEYWORD.stringValue() + " " +
                 DefaultValueGeneratorUtil.getDefaultValueForType(recordTypeSymbol);
     }
