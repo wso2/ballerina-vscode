@@ -103,12 +103,9 @@ public class AgentsGenerator {
     public static final String TARGET_TYPE = "targetType";
     private final Gson gson;
     private final SemanticModel semanticModel;
-    private static final String BALLERINAX = "ballerinax";
-    private static final String AI = "ai";
     private static final String INIT = "init";
     private static final String AGENT_FILE = "agents.bal";
     public static final String AGENT = "Agent";
-    private static final String BALLERINA_ORG = "ballerina";
     private static final String HTTP_MODULE = "http";
     private static final List<String> HTTP_REMOTE_METHOD_SKIP_LIST = List.of("get", "put", "post", "head",
             "delete", "patch", "options");
@@ -158,7 +155,7 @@ public class AgentsGenerator {
         CommonUtils.AI_MODULE_NAMES.stream().filter(model -> !model.equals(AI_AZURE))
                 .forEach(model -> models.add(createModelObject(model)));
         models.add(createModelObject(NodeKind.CLASS_INIT, AI_AZURE, OPENAI_MODEL_PROVIDER));
-        models.add(createModelObject(NodeKind.FUNCTION_CALL, AI, DEFAULT_MODEL_PROVIDER));
+        models.add(createModelObject(NodeKind.FUNCTION_CALL, Constants.AI, DEFAULT_MODEL_PROVIDER));
         return models;
     }
 
@@ -169,7 +166,8 @@ public class AgentsGenerator {
     private JsonObject createModelObject(NodeKind nodeKind, String moduleName, String objectOrFuncName) {
         JsonObject model = new JsonObject();
         model.addProperty("node", nodeKind.toString());
-        model.addProperty("org", nodeKind.equals(NodeKind.CLASS_INIT) ? BALLERINAX : BALLERINA_ORG);
+        model.addProperty("org", nodeKind.equals(NodeKind.CLASS_INIT) ?
+                Constants.BALLERINAX : Constants.BALLERINA);
         model.addProperty("module", moduleName);
         model.addProperty("packageName", moduleName);
         if (nodeKind.equals(NodeKind.CLASS_INIT)) {
@@ -732,7 +730,7 @@ public class AgentsGenerator {
             String packageName = methodFunction.packageName();
             String moduleName = methodFunction.moduleName();
             String version = methodFunction.version();
-            boolean isHttpModule = org.equals(BALLERINA_ORG) && packageName.equals(HTTP_MODULE);
+            boolean isHttpModule = org.equals(Constants.BALLERINA) && packageName.equals(HTTP_MODULE);
 
             NodeBuilder nodeBuilder;
             String label;

@@ -30,6 +30,9 @@ public class Constants {
     public static final String CHECKPANIC = "checkpanic";
 
     public static final String MAIN_FUNCTION_NAME = "main";
+    public static final String BALLERINA = "ballerina";
+    public static final String BALLERINAX = "ballerinax";
+    public static final String AI = "ai";
 
     // Constants used for Natural functions
     public static final class NaturalFunctions {
