@@ -112,6 +112,9 @@ public class FunctionDataBuilder {
     public static final String GET_DEFAULT_EMBEDDING_PROVIDER_FUNCTION_NAME = "getDefaultEmbeddingProvider";
     private static final String WSO2_MODEL_PROVIDER_TYPE_NAME = "Wso2ModelProvider";
     private static final String WSO2_EMBEDDING_PROVIDER_TYPE_NAME = "Wso2EmbeddingProvider";
+    private static final String BALLERINAX_ORG_NAME = "ballerinax";
+    private static final String AI_MODULE_NAME = "ai";
+    private static final String MODEL_TYPE_PARAMETER_NAME = "modelType";
     private SemanticModel semanticModel;
     private TypeSymbol errorTypeSymbol;
     private Package resolvedPackage;
@@ -702,7 +705,7 @@ public class FunctionDataBuilder {
             parameters.putAll(includedParameters);
             placeholder = DefaultValueGeneratorUtil.getDefaultValueForType(typeSymbol);
         } else if (parameterKind == ParameterData.Kind.REQUIRED) {
-            if (isAgentModelType(paramName)) {
+            if (isAiModelTypeParameter(paramName, functionKind)) {
                 List<String> memberTypes = new ArrayList<>();
                 TypeSymbol rawParamType = CommonUtils.getRawType(typeSymbol);
                 if (rawParamType.typeKind() == TypeDescKind.UNION) {
@@ -1151,10 +1154,12 @@ public class FunctionDataBuilder {
         return sb.toString();
     }
 
-    private boolean isAgentModelType(String paramName) {
-        return moduleInfo.org().equals("ballerinax") && moduleInfo.moduleName().equals("ai")
-                && (functionKind == FunctionData.Kind.CLASS_INIT || functionKind == FunctionData.Kind.CONNECTOR)
-                && paramName.equals("modelType"); // TODO: Check Param Name
+    private boolean isAiModelTypeParameter(String paramName, FunctionData.Kind functionKind) {
+        return MODEL_TYPE_PARAMETER_NAME.equals(paramName) &&
+                (functionKind == FunctionData.Kind.MODEL_PROVIDER || (BALLERINAX_ORG_NAME.equals(moduleInfo.org())
+                        && AI_MODULE_NAME.equals(moduleInfo.moduleName())
+                        && (functionKind == FunctionData.Kind.CLASS_INIT
+                        || functionKind == FunctionData.Kind.CONNECTOR)));
     }
 
     private record ParamForTypeInfer(String paramName, String defaultValue, String type) {
