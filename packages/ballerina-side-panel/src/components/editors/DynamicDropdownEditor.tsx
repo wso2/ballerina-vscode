@@ -36,14 +36,12 @@ interface DropdownEditorProps {
     onToolsChange?: (selectedTools: string[]) => void;
 }
 
-export function DropdownEditor(props: DropdownEditorProps) {
+export function DynamicDropdownEditor(props: DropdownEditorProps) {
     const { field, openSubPanel, serviceUrl, configs, rpcClient, onToolsChange } = props;
     const { form } = useFormContext();
     const { register, setValue, watch } = form;
 
-    if (field.key === "scope") {
-        field.items = ["Global", "Local"];
-    }
+    field.items = ["All", "Selected"];
 
     return (
         <>

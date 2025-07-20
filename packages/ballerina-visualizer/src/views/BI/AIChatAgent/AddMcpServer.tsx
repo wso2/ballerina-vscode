@@ -182,10 +182,10 @@ const LoadingMessage = styled.div`
     gap: 8px;
 `;
 
-const CheckboxIcon = styled.div<{ visible: boolean }>`
+const CheckboxIcon = styled.div<{ visible: boolean }>((props: React.PropsWithChildren<{ visible: boolean }>) => `
     width: 10px;
     height: 10px;
-    opacity: ${props => props.visible ? 1 : 0};
+    opacity: ${props.visible ? 1 : 0};
     transition: opacity 0.2s ease;
     display: flex;
     align-items: center;
@@ -201,7 +201,7 @@ const CheckboxIcon = styled.div<{ visible: boolean }>`
         background-position: center;
         background-size: contain;
     }
-`;
+`);
 
 interface Tool {
     name: string;
@@ -533,38 +533,44 @@ export function AddMcpServer(props: AddToolProps): JSX.Element {
         }
     };
 
-    const handleOnSave = async () => {
-        console.log(">>> save value", { selectedTool, selectedMcpTools: Array.from(selectedMcpTools) });
-        
-        let defaultName = "MCP Server";
-        if (mcpToolkitCount > 1) {
-            defaultName += ` 0${mcpToolkitCount}`;
+    // Update handleOnSave to accept all submitted form values
+    const handleOnSave = async (
+        node?: FlowNode,
+        isDataMapper?: boolean,
+        formImports?: any,
+        rawFormValues?: FormValues
+    ) => {
+        console.log("All submitted form values:", rawFormValues);
+        // Use the same logic as the display to determine the name
+        let finalName;
+        if (name.trim() !== "") {
+            finalName = name.trim();
+        } else {
+            finalName = mcpToolkitCount > 1 ? `MCP Server 0${mcpToolkitCount}` : "MCP Server";
         }
+
         const payload = {
-            name: name.trim() || defaultName,
+            name: finalName,
             serviceUrl: serviceUrl.trim(),
             configs: configs,
             toolSelection,
             selectedTools: toolSelection === "Selected" ? Array.from(selectedMcpTools) : []
         };
-        setMcpToolkitCount(mcpToolkitCount + 1);
-        console.log(">>> toolkit count", mcpToolkitCount);
         console.log(">>> Saving with payload:", payload);
 
         setSavingForm(true);
         try {
-            // update the agent node
-            const updatedAgentNode = await addMcpServerToAgentNode(agentNode, payload);
-            // generate the source code
-            const agentResponse = await rpcClient
-                .getBIDiagramRpcClient()
-                .getSourceCode({ filePath: agentFilePath.current, flowNode: updatedAgentNode });
-            console.log(">>> response getSourceCode with template ", { agentResponse });
-
+            await rpcClient.getAIAgentRpcClient().updateMCPToolKit({
+                agentFlowNode: agentNode,
+                serviceUrl: `"${payload.serviceUrl}"`,
+                serverName: finalName,
+                selectedTools: payload.selectedTools,
+                oldVariableName: "",
+                updatedNode: node
+            });
             onSave?.();
         } catch (error) {
             console.error(">>> Error saving MCP server", error);
-            // You might want to show an error message to the user here
         } finally {
             setSavingForm(false);
         }
@@ -647,7 +653,6 @@ export function AddMcpServer(props: AddToolProps): JSX.Element {
                     <ToolsTitle>Available Tools</ToolsTitle>
                     {mcpTools.length > 0 && (
                         <Button
-                            size="small"
                             onClick={handleSelectAllTools}
                             disabled={loadingMcpTools}
                         >
@@ -658,7 +663,7 @@ export function AddMcpServer(props: AddToolProps): JSX.Element {
                 
                 {loadingMcpTools && (
                     <LoadingMessage>
-                        <RelativeLoader size="small" />
+                        <RelativeLoader />
                         Loading tools from MCP server...
                     </LoadingMessage>
                 )}
@@ -749,6 +754,7 @@ export function AddMcpServer(props: AddToolProps): JSX.Element {
         placeholder: "",
         valueType: "SINGLE_SELECT",
         valueTypeConstraint: "string",
+        value: "All", // <-- add this line to fix the linter error
         typeMembers: [
             {
                 type: "string",
@@ -759,16 +765,47 @@ export function AddMcpServer(props: AddToolProps): JSX.Element {
             }
         ],
         imports: {},
-        defaultValue: ""
+        defaultValue: "All",
+        itemOptions: [    {
+        "id": "All",
+        "content": "All",
+        "value": "All"
+    },
+    {
+        "id": "Selected",
+        "content": "Selected",
+        "value": "Selected"
+    }]
     };
 
     const updateMcpToolResponseWithToolsField = () => {
-    
+        // Extract current values for edit mode
+        let currentName = name;
+        let currentDescription = "";
+        let currentScope = toolSelection; // "All" or "Selected"
+
+        // Try to extract description from agentNode or toolsStringList if available
+        if (editMode && agentNode && agentNode.properties && agentNode.properties.description) {
+            currentDescription = agentNode.properties.description.value || "";
+        }
+
+        // Update the properties with current values
         const updatedProperties = {
             ...(mcpToolResponse.properties || {}),
-            scope: fieldVal
+            name: {
+                ...fields[0],
+                value: currentName,
+            },
+            description: {
+                ...fields[1],
+                value: currentDescription,
+            },
+            scope: {
+                ...fieldVal,
+                value: currentScope,
+            },
         };
-    
+
         const updatedMcpToolResponse = {
             ...mcpToolResponse,
             properties: updatedProperties
@@ -792,7 +829,7 @@ export function AddMcpServer(props: AddToolProps): JSX.Element {
                     nodeFormTemplate={mcpToolResponse}
                     submitText={"Save Tool"}
                     node={mcpToolResponse}
-                    onSubmit={onSave}
+                    onSubmit={handleOnSave}
                 />
             )}
         </Container>

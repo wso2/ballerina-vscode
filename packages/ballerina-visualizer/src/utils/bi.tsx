@@ -192,6 +192,7 @@ export function convertNodePropertyToFormField(
         advanceProps: convertNodePropertiesToFormFields(property.advanceProperties),
         valueType: property.valueType,
         items: getFormFieldItems(property, connections),
+        itemOptions: property.itemOptions,
         diagnostics: property.diagnostics?.diagnostics || [],
         valueTypeConstraint: property.valueTypeConstraint,
         lineRange: property?.codedata?.lineRange,

@@ -101,7 +101,7 @@ interface FormProps {
     editForm?: boolean;
     isGraphql?: boolean;
     submitText?: string;
-    onSubmit: (node?: FlowNode, isDataMapper?: boolean, formImports?: FormImports) => void;
+    onSubmit: (node?: FlowNode, isDataMapper?: boolean, formImports?: FormImports, rawFormValues?: FormValues) => void;
     showProgressIndicator?: boolean;
     subPanelView?: SubPanelView;
     openSubPanel?: (subPanel: SubPanel) => void;
@@ -289,7 +289,7 @@ export function FormGenerator(props: FormProps) {
             console.log(">>> Updated node", updatedNode);
 
             const isDataMapperFormUpdate = data["isDataMapperFormUpdate"];
-            onSubmit(updatedNode, isDataMapperFormUpdate, formImports);
+            onSubmit(updatedNode, isDataMapperFormUpdate, formImports, data);
         }
     };
 

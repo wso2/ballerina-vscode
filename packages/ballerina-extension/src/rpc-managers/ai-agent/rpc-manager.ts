@@ -411,50 +411,55 @@ export class AiAgentRpcManager implements AIAgentAPI {
         
         // Generate the variable name from the server name
         const variableName = this.toCamelCase(params.serverName);
-        
-        // 1. Create the MCP ToolKit variable declaration
-        const nodeTemplate = await StateMachine.langClient().getNodeTemplate({
-            position: params.agentFlowNode.codedata.lineRange.endLine,
-            filePath: filePath,
-            id: {
-                node: "CLASS_INIT",
-                org: "ballerinax",
-                module: "ai",
-                packageName: "ai",
-                version: "1.2.1",
-                symbol: "init",
-                object: "McpToolKit"
+
+        // 1. Use the updatedNode from params for the MCP ToolKit edits
+        let mcpEdits: { [filePath: string]: any[] } = {};
+        if (params.updatedNode) {
+            // Get the template node
+            const nodeTemplate = await StateMachine.langClient().getNodeTemplate({
+                position: params.agentFlowNode.codedata.lineRange.endLine,
+                filePath: filePath,
+                id: {
+                    node: "CLASS_INIT",
+                    org: "ballerinax",
+                    module: "ai",
+                    packageName: "ai",
+                    version: "1.2.1",
+                    symbol: "init",
+                    object: "McpToolKit"
+                }
+            });
+
+            nodeTemplate.flowNode.properties["serverUrl"] = params.updatedNode.properties["serverUrl"];
+            nodeTemplate.flowNode.properties["info"] = params.updatedNode.properties["info"];
+            nodeTemplate.flowNode.properties["variable"].value = variableName;
+            nodeTemplate.flowNode.properties["permittedTools"].value = `()`;
+            // nodeTemplate.flowNode.properties["permittedTools"].value = "()";
+            // Use only the template node for generating text edits
+            const mcpToolKitEdits = await StateMachine.langClient().getSourceCode({
+                filePath: filePath,
+                flowNode: nodeTemplate.flowNode,
+            });
+            mcpEdits = mcpToolKitEdits.textEdits;
+
+
+            for (const key in mcpToolKitEdits.textEdits) {
+                const filtered = mcpToolKitEdits.textEdits[key]
+                    .filter(edit => !edit.newText.includes("import"))
+                    .map(edit => ({
+                        ...edit
+                    }));
+
+                if (filtered.length > 0) {
+                    mcpEdits[key] = filtered;
+                }
             }
-        });
-
-        nodeTemplate.flowNode.properties["serverUrl"].value = params.serviceUrl;
-        nodeTemplate.flowNode.properties["info"].value =
-            '{' +
-            'name: "' + params.serverName.replace(/"/g, '\\"') + '",' +
-            'version: "1.0.0"' +
-            '}';
-        if (Array.isArray(params.selectedTools) && params.selectedTools.length === 0) {
-            nodeTemplate.flowNode.properties["permittedTools"].value = "()";
-        } else {
-            nodeTemplate.flowNode.properties["permittedTools"].value =
-                "[" + params.selectedTools.map((s: string) => `"${s}"`).join(", ") + "]";
         }
-        nodeTemplate.flowNode.codedata.lineRange = {
-            fileName: filePath,
-            startLine: params.agentFlowNode.codedata.lineRange.startLine,
-            endLine: params.agentFlowNode.codedata.lineRange.endLine
-        };
-        nodeTemplate.flowNode.properties["variable"].value = variableName;
-
-        const mcpToolKitEdits = await StateMachine.langClient().getSourceCode({
-            filePath: filePath,
-            flowNode: nodeTemplate.flowNode,
-        });
 
         // 2. Update the agent's tools array to include the variable name (following updateAIAgentTools pattern)
         const agentFlowNode = params.agentFlowNode;
         let toolsValue = agentFlowNode.properties["tools"].value;
-        
+
         // Parse existing tools and add the variable name
         if (typeof toolsValue === "string") {
             const toolsArray = this.parseToolsString(toolsValue);
@@ -469,31 +474,18 @@ export class AiAgentRpcManager implements AIAgentAPI {
                 toolsValue = `[${variableName}]`;
             }
         }
-        
+
         // Set the updated tools value
         agentFlowNode.properties["tools"].value = toolsValue;
-        
+
         // Generate source code for the updated agent
         const agentEdits = await StateMachine.langClient().getSourceCode({
             filePath: filePath,
             flowNode: agentFlowNode
         });
 
-        // 3. Filter and combine both edits
-        const mcpEdits: { [filePath: string]: any[] } = {};
-        for (const key in mcpToolKitEdits.textEdits) {
-            const filtered = mcpToolKitEdits.textEdits[key]
-                .filter(edit => !edit.newText.includes("import"))
-                .map(edit => ({
-                    ...edit
-                }));
 
-            if (filtered.length > 0) {
-                mcpEdits[key] = filtered;
-            }
-        }
-
-        // Apply both edits
+        // 3. Apply both edits
         await updateSourceCode({ textEdits: mcpEdits });
         await updateSourceCode({ textEdits: agentEdits.textEdits });
     }
