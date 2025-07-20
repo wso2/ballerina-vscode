@@ -35,6 +35,6 @@ export const PROVIDER_NAME_MAP: Record<string, string> = {
     "ai.openai": "OpenAiProvider",
     "ai.azure": "AzureOpenAiProvider",
     "ai.mistral": "MistralAiProvider",
-    "ai.deepseek": "DeepSeekProvider",
+    "ai.deepseek": "DeepseekProvider",
     "ai.ollama": "OllamaProvider",
 };
