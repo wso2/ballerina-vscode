@@ -425,11 +425,11 @@ public class AvailableNodesGenerator {
         return getCategory(symbol, this::isAiVectorStore);
     }
 
-    private boolean isAiTypeInclusion(ClassSymbol classSymbol, String targetTypeName) {
+    private boolean hasAiTypeInclusion(ClassSymbol classSymbol, String includedTypeName) {
         return classSymbol.typeInclusions().stream()
                 .filter(typeSymbol -> typeSymbol instanceof TypeReferenceTypeSymbol)
                 .map(typeSymbol -> (TypeReferenceTypeSymbol) typeSymbol)
-                .filter(typeRef -> typeRef.definition().nameEquals(targetTypeName))
+                .filter(typeRef -> typeRef.definition().nameEquals(includedTypeName))
                 .map(TypeSymbol::getModule)
                 .filter(Optional::isPresent)
                 .map(Optional::get)
@@ -438,18 +438,18 @@ public class AvailableNodesGenerator {
     }
 
     private boolean isAiModelProvider(ClassSymbol classSymbol) {
-        return isAiTypeInclusion(classSymbol, Ai.MODEL_PROVIDER_TYPE_NAME);
+        return hasAiTypeInclusion(classSymbol, Ai.MODEL_PROVIDER_TYPE_NAME);
     }
 
     private boolean isAiEmbeddingProvider(ClassSymbol classSymbol) {
-        return isAiTypeInclusion(classSymbol, Ai.EMBEDDING_PROVIDER_TYPE_NAME);
+        return hasAiTypeInclusion(classSymbol, Ai.EMBEDDING_PROVIDER_TYPE_NAME);
     }
 
     private boolean isAiKnowledgeBase(ClassSymbol classSymbol) {
-        return isAiTypeInclusion(classSymbol, Ai.KNOWLEDGE_BASE_TYPE_NAME);
+        return hasAiTypeInclusion(classSymbol, Ai.KNOWLEDGE_BASE_TYPE_NAME);
     }
 
     private boolean isAiVectorStore(ClassSymbol classSymbol) {
-        return isAiTypeInclusion(classSymbol, Ai.VECTOR_STORE_TYPE_NAME);
+        return hasAiTypeInclusion(classSymbol, Ai.VECTOR_STORE_TYPE_NAME);
     }
 }
