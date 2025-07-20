@@ -11,7 +11,7 @@
                         "description": "Pinecone vector store implementation with support for dense, sparse, and hybrid vector search modes."
                     },
                     "codedata": {
-                        "node": "VECTOR_STORES",
+                        "node": "VECTOR_STORE",
                         "module": "ai.pinecone",
                         "packageName": "ai.pinecone",
                         "symbol": "init",
@@ -29,7 +29,7 @@
                         "description": "In-memory vector store implementation for testing and development purposes."
                     },
                     "codedata": {
-                        "node": "VECTOR_STORES",
+                        "node": "VECTOR_STORE",
                         "module": "ai",
                         "packageName": "ai",
                         "symbol": "init",

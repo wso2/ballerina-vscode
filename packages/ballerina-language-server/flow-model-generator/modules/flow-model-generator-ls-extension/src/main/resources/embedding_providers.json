@@ -11,7 +11,7 @@
                         "description": "Provides an interface to interact with embedding models hosted by WSO2."
                     },
                     "codedata": {
-                        "node": "EMBEDDING_PROVIDERS",
+                        "node": "EMBEDDING_PROVIDER",
                         "module": "ai",
                         "packageName": "ai",
                         "symbol": "getDefaultEmbeddingProvider",
@@ -28,7 +28,7 @@
                         "description": "Provides an interface to interact with OpenAI embedding models."
                     },
                     "codedata": {
-                        "node": "EMBEDDING_PROVIDERS",
+                        "node": "EMBEDDING_PROVIDER",
                         "module": "ai.openai",
                         "packageName": "ai.openai",
                         "symbol": "init",
@@ -46,7 +46,7 @@
                         "description": "Provides an interface to interact with embedding models hosted by WSO2."
                     },
                     "codedata": {
-                        "node": "EMBEDDING_PROVIDERS",
+                        "node": "EMBEDDING_PROVIDER",
                         "module": "ai",
                         "packageName": "ai",
                         "symbol": "init",

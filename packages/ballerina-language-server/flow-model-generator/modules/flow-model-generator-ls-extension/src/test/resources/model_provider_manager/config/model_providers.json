@@ -11,7 +11,7 @@
           "description" : "Provides an interface to interact with WSO2-hosted Large Language Models."
         },
         "codedata" : {
-          "node" : "MODEL_PROVIDERS",
+          "node" : "MODEL_PROVIDER",
           "org" : "ballerina",
           "module" : "ai",
           "packageName" : "ai",
@@ -26,7 +26,7 @@
           "description" : "Provides an interface to interact with OpenAI Large Language Models."
         },
         "codedata" : {
-          "node" : "MODEL_PROVIDERS",
+          "node" : "MODEL_PROVIDER",
           "org" : "ballerinax",
           "module" : "ai.openai",
           "packageName" : "ai.openai",
@@ -42,7 +42,7 @@
           "description" : "Provides an interface to interact with Azure OpenAI Large Language Models."
         },
         "codedata" : {
-          "node" : "MODEL_PROVIDERS",
+          "node" : "MODEL_PROVIDER",
           "org" : "ballerinax",
           "module" : "ai.azure",
           "packageName" : "ai.azure",
@@ -58,7 +58,7 @@
           "description" : "Provides an interface to interact with Anthropic Large Language Models."
         },
         "codedata" : {
-          "node" : "MODEL_PROVIDERS",
+          "node" : "MODEL_PROVIDER",
           "org" : "ballerinax",
           "module" : "ai.anthropic",
           "packageName" : "ai.anthropic",
@@ -74,7 +74,7 @@
           "description" : "Provides an interface to interact with Deepseek Large Language Models."
         },
         "codedata" : {
-          "node" : "MODEL_PROVIDERS",
+          "node" : "MODEL_PROVIDER",
           "org" : "ballerinax",
           "module" : "ai.deepseek",
           "packageName" : "ai.deepseek",
@@ -90,7 +90,7 @@
           "description" : "Provides an interface to interact with Mistral Large Language Models."
         },
         "codedata" : {
-          "node" : "MODEL_PROVIDERS",
+          "node" : "MODEL_PROVIDER",
           "org" : "ballerinax",
           "module" : "ai.mistral",
           "packageName" : "ai.mistral",
@@ -106,7 +106,7 @@
           "description" : "Provides an interface to interact with Ollama Large Language Models."
         },
         "codedata" : {
-          "node" : "MODEL_PROVIDERS",
+          "node" : "MODEL_PROVIDER",
           "org" : "ballerinax",
           "module" : "ai.ollama",
           "packageName" : "ai.ollama",
@@ -122,7 +122,7 @@
           "description" : "Provides an interface to interact with WSO2-hosted Large Language Models."
         },
         "codedata" : {
-          "node" : "MODEL_PROVIDERS",
+          "node" : "MODEL_PROVIDER",
           "org" : "ballerina",
           "module" : "ai",
           "packageName" : "ai",

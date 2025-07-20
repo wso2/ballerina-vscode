@@ -11,7 +11,7 @@
                         "description": "Provides an interface to interact with WSO2-hosted Large Language Models."
                     },
                     "codedata": {
-                        "node": "MODEL_PROVIDERS",
+                        "node": "MODEL_PROVIDER",
                         "module": "ai",
                         "packageName": "ai",
                         "symbol": "getDefaultModelProvider",
@@ -28,7 +28,7 @@
                         "description": "Provides an interface to interact with OpenAI Large Language Models."
                     },
                     "codedata": {
-                        "node": "MODEL_PROVIDERS",
+                        "node": "MODEL_PROVIDER",
                         "module": "ai.openai",
                         "packageName": "ai.openai",
                         "symbol": "init",
@@ -46,7 +46,7 @@
                         "description": "Provides an interface to interact with Azure OpenAI Large Language Models."
                     },
                     "codedata": {
-                        "node": "MODEL_PROVIDERS",
+                        "node": "MODEL_PROVIDER",
                         "module": "ai.azure",
                         "packageName": "ai.azure",
                         "symbol": "init",
@@ -64,7 +64,7 @@
                         "description": "Provides an interface to interact with Anthropic Large Language Models."
                     },
                     "codedata": {
-                        "node": "MODEL_PROVIDERS",
+                        "node": "MODEL_PROVIDER",
                         "module": "ai.anthropic",
                         "packageName": "ai.anthropic",
                         "symbol": "init",
@@ -82,7 +82,7 @@
                         "description": "Provides an interface to interact with Deepseek Large Language Models."
                     },
                     "codedata": {
-                        "node": "MODEL_PROVIDERS",
+                        "node": "MODEL_PROVIDER",
                         "module": "ai.deepseek",
                         "packageName": "ai.deepseek",
                         "symbol": "init",
@@ -100,7 +100,7 @@
                         "description": "Provides an interface to interact with Mistral Large Language Models."
                     },
                     "codedata": {
-                        "node": "MODEL_PROVIDERS",
+                        "node": "MODEL_PROVIDER",
                         "module": "ai.mistral",
                         "packageName": "ai.mistral",
                         "symbol": "init",
@@ -118,7 +118,7 @@
                         "description": "Provides an interface to interact with Ollama Large Language Models."
                     },
                     "codedata": {
-                        "node": "MODEL_PROVIDERS",
+                        "node": "MODEL_PROVIDER",
                         "module": "ai.ollama",
                         "packageName": "ai.ollama",
                         "symbol": "init",
@@ -136,7 +136,7 @@
                         "description": "Provides an interface to interact with WSO2-hosted Large Language Models."
                     },
                     "codedata": {
-                        "node": "MODEL_PROVIDERS",
+                        "node": "MODEL_PROVIDER",
                         "module": "ai",
                         "packageName": "ai",
                         "symbol": "init",
