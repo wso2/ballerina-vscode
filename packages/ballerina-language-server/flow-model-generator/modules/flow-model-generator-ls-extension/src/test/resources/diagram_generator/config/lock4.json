@@ -17,6 +17,8 @@
         "metadata": {
           "label": "Start",
           "data": {
+            "kind": "Function",
+            "label": "testLockWithOnFail2",
             "return": "error?"
           }
         },

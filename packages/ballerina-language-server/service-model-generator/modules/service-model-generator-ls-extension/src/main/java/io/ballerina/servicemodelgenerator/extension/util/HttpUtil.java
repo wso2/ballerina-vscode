@@ -496,17 +496,17 @@ public final class HttpUtil {
                     response.getHeaders(), imports));
             return response.getName().getValue();
         }
-        if (response.getType().isEnabledWithValue()) {
-            if (Objects.nonNull(response.getType().getImports())) {
-                imports.putAll(response.getType().getImports());
-            }
-            return response.getType().getValue();
-        }
         if (Objects.nonNull(response.getBody()) && response.getBody().isEnabledWithValue()) {
             if (Objects.nonNull(response.getBody().getImports())) {
                 imports.putAll(response.getBody().getImports());
             }
             return response.getBody().getValue();
+        }
+        if (response.getType().isEnabledWithValue()) {
+            if (Objects.nonNull(response.getType().getImports())) {
+                imports.putAll(response.getType().getImports());
+            }
+            return response.getType().getValue();
         }
         Value statusCode = response.getStatusCode();
         if (Objects.nonNull(statusCode) && statusCode.isEnabledWithValue()) {

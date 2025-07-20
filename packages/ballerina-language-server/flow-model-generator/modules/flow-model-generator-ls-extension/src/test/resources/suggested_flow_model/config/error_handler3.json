@@ -23,6 +23,9 @@
         "metadata": {
           "label": "Start",
           "data": {
+            "kind": "Resource",
+            "label": "greeting",
+            "accessor": "get",
             "parameters": [
               "string? name"
             ],

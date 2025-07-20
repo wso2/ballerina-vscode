@@ -398,7 +398,7 @@
             "value": "http:Response",
             "valueType": "TYPE",
             "isType": false,
-            "optional": false,
+            "optional": true,
             "advanced": false,
             "addNewButton": false,
             "imports": {}
@@ -413,7 +413,7 @@
             "value": "",
             "valueType": "IDENTIFIER",
             "isType": false,
-            "optional": false,
+            "optional": true,
             "advanced": false,
             "addNewButton": false,
             "imports": {}
@@ -428,7 +428,7 @@
             "value": "http:Response",
             "valueType": "TYPE",
             "isType": false,
-            "optional": false,
+            "optional": true,
             "advanced": false,
             "addNewButton": false,
             "imports": {}
@@ -443,7 +443,7 @@
             "value": "",
             "valueType": "HEADER_SET",
             "isType": false,
-            "optional": false,
+            "optional": true,
             "advanced": false,
             "addNewButton": false,
             "imports": {}
@@ -560,7 +560,7 @@
             "value": "int",
             "valueType": "TYPE",
             "isType": false,
-            "optional": false,
+            "optional": true,
             "advanced": false,
             "addNewButton": false,
             "imports": {}
@@ -575,7 +575,7 @@
             "value": "HttpOk",
             "valueType": "IDENTIFIER",
             "isType": false,
-            "optional": false,
+            "optional": true,
             "advanced": false,
             "addNewButton": false,
             "imports": {}
@@ -590,7 +590,7 @@
             "value": "HttpOk",
             "valueType": "TYPE",
             "isType": false,
-            "optional": false,
+            "optional": true,
             "advanced": false,
             "addNewButton": false,
             "imports": {}
@@ -605,7 +605,7 @@
             "value": [],
             "valueType": "HEADER_SET",
             "isType": false,
-            "optional": false,
+            "optional": true,
             "advanced": false,
             "addNewButton": false,
             "imports": {}
@@ -722,7 +722,7 @@
             "value": "int",
             "valueType": "TYPE",
             "isType": false,
-            "optional": false,
+            "optional": true,
             "advanced": false,
             "addNewButton": false,
             "imports": {}
@@ -737,7 +737,7 @@
             "value": "",
             "valueType": "IDENTIFIER",
             "isType": false,
-            "optional": false,
+            "optional": true,
             "advanced": false,
             "addNewButton": false,
             "imports": {}
@@ -752,7 +752,7 @@
             "value": "int",
             "valueType": "TYPE",
             "isType": false,
-            "optional": false,
+            "optional": true,
             "advanced": false,
             "addNewButton": false,
             "imports": {}
@@ -767,7 +767,7 @@
             "value": "",
             "valueType": "HEADER_SET",
             "isType": false,
-            "optional": false,
+            "optional": true,
             "advanced": false,
             "addNewButton": false,
             "imports": {}

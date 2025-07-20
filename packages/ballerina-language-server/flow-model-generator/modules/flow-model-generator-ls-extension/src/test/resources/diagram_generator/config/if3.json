@@ -17,6 +17,9 @@
         "metadata": {
           "label": "Start",
           "data": {
+            "kind": "Resource",
+            "label": "oranges",
+            "accessor": "get",
             "parameters": [
               "Food food"
             ],

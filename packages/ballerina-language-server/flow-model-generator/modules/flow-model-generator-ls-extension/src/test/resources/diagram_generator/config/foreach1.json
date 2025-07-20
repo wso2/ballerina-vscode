@@ -15,7 +15,11 @@
       {
         "id": "32861",
         "metadata": {
-          "label": "Start"
+          "label": "Start",
+          "data": {
+            "kind": "Function",
+            "label": "testForeach1"
+          }
         },
         "codedata": {
           "node": "EVENT_START",

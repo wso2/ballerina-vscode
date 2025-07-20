@@ -63,11 +63,6 @@ public class Value {
                 false, false, null, null, null, new HashMap<>());
     }
 
-    public Value(Object value, String valueType, boolean isEnabled, boolean editable) {
-        this(null, isEnabled, editable, value, valueType, null, false, null,
-                false, false, null, null, null, new HashMap<>());
-    }
-
     public Value(Object value, String valueType, boolean isEnabled, boolean editable, boolean optional) {
         this(null, isEnabled, editable, value, valueType, null, false, null,
                 optional, false, null, null, null, new HashMap<>());
