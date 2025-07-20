@@ -113,6 +113,7 @@ interface FormProps {
         description?: string; // Optional description explaining what the action button does
         callback: () => void;
     };
+    scopeFieldAddon?: React.ReactNode;
 }
 
 // Styled component for the action button description
@@ -158,6 +159,7 @@ export function FormGenerator(props: FormProps) {
         disableSaveButton,
         actionButtonConfig,
         submitText,
+        scopeFieldAddon,
     } = props;
 
     const { rpcClient } = useRpcContext();
@@ -826,6 +828,7 @@ export function FormGenerator(props: FormProps) {
                     isInferredReturnType={!!node.codedata?.inferredReturnType}
                     formImports={formImports}
                     preserveOrder={node.codedata.node === "VARIABLE" || node.codedata.node === "CONFIG_VARIABLE"}
+                    scopeFieldAddon={scopeFieldAddon}
                 />
             )}
             {typeEditorState.isOpen && (

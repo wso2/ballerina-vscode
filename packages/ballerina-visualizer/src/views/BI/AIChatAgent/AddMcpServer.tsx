@@ -568,6 +568,7 @@ export function AddMcpServer(props: AddToolProps): JSX.Element {
                 oldVariableName: "",
                 updatedNode: node
             });
+            setServiceUrl(payload.serviceUrl);
             onSave?.();
         } catch (error) {
             console.error(">>> Error saving MCP server", error);
@@ -779,38 +780,32 @@ export function AddMcpServer(props: AddToolProps): JSX.Element {
     };
 
     const updateMcpToolResponseWithToolsField = () => {
-        // Extract current values for edit mode
-        let currentName = name;
-        let currentDescription = "";
-        let currentScope = toolSelection; // "All" or "Selected"
+        if (mcpToolResponse) {
+            // Clone properties to avoid mutating state directly
+            const updatedProperties = { ...(mcpToolResponse.properties || {}) };
 
-        // Try to extract description from agentNode or toolsStringList if available
-        if (editMode && agentNode && agentNode.properties && agentNode.properties.description) {
-            currentDescription = agentNode.properties.description.value || "";
+            if (editMode) {
+                if ("serverUrl" in updatedProperties && updatedProperties["serverUrl"]) {
+                    (updatedProperties["serverUrl"] as { value: string }).value = serviceUrl;
+                }
+                if ("info" in updatedProperties && updatedProperties["info"]) {
+                    (updatedProperties["info"] as { value: string }).value = `{ name: "${name}", version: "" }`;
+                }
+                if ("variable" in updatedProperties && updatedProperties["variable"]) {
+                    (updatedProperties["variable"] as { value: string }).value = "mcpServer";
+                }
+            }
+
+            // Add fieldVal as a property named 'scope', wrapped as a Property object
+            updatedProperties["scope"] = fieldVal;
+
+            const updatedMcpToolResponse = {
+                ...mcpToolResponse,
+                properties: updatedProperties,
+            };
+
+            setMcpToolResponse(updatedMcpToolResponse);
         }
-
-        // Update the properties with current values
-        const updatedProperties = {
-            ...(mcpToolResponse.properties || {}),
-            name: {
-                ...fields[0],
-                value: currentName,
-            },
-            description: {
-                ...fields[1],
-                value: currentDescription,
-            },
-            scope: {
-                ...fieldVal,
-                value: currentScope,
-            },
-        };
-
-        const updatedMcpToolResponse = {
-            ...mcpToolResponse,
-            properties: updatedProperties
-        };
-        setMcpToolResponse(updatedMcpToolResponse);
     };
 
     return (
@@ -830,6 +825,7 @@ export function AddMcpServer(props: AddToolProps): JSX.Element {
                     submitText={"Save Tool"}
                     node={mcpToolResponse}
                     onSubmit={handleOnSave}
+                    scopeFieldAddon={renderToolsSelection()}
                 />
             )}
         </Container>

@@ -55,6 +55,7 @@ interface FormFieldEditorProps {
     recordTypeFields?: RecordTypeField[];
     onIdentifierEditingStateChange?: (isEditing: boolean) => void;
     setSubComponentEnabled?: (isAdding: boolean) => void;
+    scopeFieldAddon?: React.ReactNode;
 }
 
 export const EditorFactory = (props: FormFieldEditorProps) => {
@@ -70,7 +71,8 @@ export const EditorFactory = (props: FormFieldEditorProps) => {
         visualizableFields,
         recordTypeFields,
         onIdentifierEditingStateChange,
-        setSubComponentEnabled
+        setSubComponentEnabled,
+        scopeFieldAddon
     } = props;
     if (!field.enabled || field.hidden) {
         return <></>;
@@ -118,7 +120,7 @@ export const EditorFactory = (props: FormFieldEditorProps) => {
         // />;
         // HACK:Single select field is treat as type editor for now
         console.log(">>> Single select field is treated as type editor", field);
-        return <DropdownEditor field={field} openSubPanel={openSubPanel} />;
+        return <DropdownEditor field={field} openSubPanel={openSubPanel} scopeFieldAddon={scopeFieldAddon} />;
     } else if (!field.items && (field.key === "type" || field.type === "TYPE") && field.editable) {
         // Type field is a type editor
         return (

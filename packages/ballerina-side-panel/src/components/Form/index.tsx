@@ -345,6 +345,7 @@ export interface FormProps {
     concertMessage?: string;
     formImports?: FormImports;
     preserveOrder?: boolean;
+    scopeFieldAddon?: React.ReactNode;
 }
 
 export const Form = forwardRef((props: FormProps, ref) => {
@@ -380,6 +381,7 @@ export const Form = forwardRef((props: FormProps, ref) => {
         concertMessage,
         formImports,
         preserveOrder = false,
+        scopeFieldAddon,
     } = props;
 
     const {
@@ -736,6 +738,7 @@ export const Form = forwardRef((props: FormProps, ref) => {
                                         onIdentifierEditingStateChange={handleIdentifierEditingStateChange}
                                         setSubComponentEnabled={setIsSubComponentEnabled}
                                     />
+                                    {updatedField.key === "scope" && scopeFieldAddon}
                                 </S.Row>
                             );
                         })}
