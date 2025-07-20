@@ -17,21 +17,23 @@
  */
 
 import { isSupportedVersion, VERSION } from "../../utils";
-import { languages, workspace } from "vscode";
-import { BallerinaExtension, LANGUAGE } from "../../core";
-import { ExecutorCodeLensProvider } from "./codelens-provider";
+import { commands, debug, DebugConfiguration, Uri, window, workspace, WorkspaceFolder } from "vscode";
+import { BallerinaExtension } from "../../core";
 import { ReadOnlyContentProvider } from "./readonly-content-provider";
-import { StringSplitFeature, StringSplitter } from "./split-provider";
 import * as gitStatus from "./git-status";
+import { INTERNAL_DEBUG_COMMAND, clearTerminal, FOCUS_DEBUG_CONSOLE_COMMAND, SOURCE_DEBUG_COMMAND, TEST_DEBUG_COMMAND } from "../project";
+import { sendTelemetryEvent, TM_EVENT_SOURCE_DEBUG_CODELENS, CMP_EXECUTOR_CODELENS, TM_EVENT_TEST_DEBUG_CODELENS } from "../telemetry";
+import { constructDebugConfig } from "../debugger";
 
 export function activate(ballerinaExtInstance: BallerinaExtension) {
     if (!ballerinaExtInstance.context || !ballerinaExtInstance.langClient) {
         return;
     }
-    if (isSupportedVersion(ballerinaExtInstance, VERSION.ALPHA, 5)) {
-        ballerinaExtInstance.context!.subscriptions.push(new StringSplitFeature(new StringSplitter(),
-            ballerinaExtInstance));
-    }
+    // TODO: Remove this once the use cases are identified
+    // if (isSupportedVersion(ballerinaExtInstance, VERSION.ALPHA, 5)) {
+    //     ballerinaExtInstance.context!.subscriptions.push(new StringSplitFeature(new StringSplitter(),
+    //         ballerinaExtInstance));
+    // }
 
     // Create new content provider for ballerina library files
     const blProvider = new ReadOnlyContentProvider();
@@ -43,7 +45,37 @@ export function activate(ballerinaExtInstance: BallerinaExtension) {
         return;
     }
     if (ballerinaExtInstance.isAllCodeLensEnabled() && isSupportedVersion(ballerinaExtInstance, VERSION.BETA, 1)) {
-        languages.registerCodeLensProvider([{ language: LANGUAGE.BALLERINA, scheme: 'file' }],
-            new ExecutorCodeLensProvider(ballerinaExtInstance));
+        // TODO: Remove this once LS changes are merged
+        // languages.registerCodeLensProvider([{ language: LANGUAGE.BALLERINA, scheme: 'file' }],
+        //     new ExecutorCodeLensProvider(ballerinaExtInstance));
+
+        commands.registerCommand(INTERNAL_DEBUG_COMMAND, async () => {
+            sendTelemetryEvent(ballerinaExtInstance, TM_EVENT_SOURCE_DEBUG_CODELENS, CMP_EXECUTOR_CODELENS);
+            clearTerminal();
+            commands.executeCommand(FOCUS_DEBUG_CONSOLE_COMMAND);
+            startDebugging(window.activeTextEditor!.document.uri, false);
+        });
+
+        commands.registerCommand(SOURCE_DEBUG_COMMAND, async () => {
+            commands.executeCommand(INTERNAL_DEBUG_COMMAND);
+            return;
+        });
+
+        commands.registerCommand(TEST_DEBUG_COMMAND, async () => {
+            sendTelemetryEvent(ballerinaExtInstance, TM_EVENT_TEST_DEBUG_CODELENS, CMP_EXECUTOR_CODELENS);
+            clearTerminal();
+            commands.executeCommand(FOCUS_DEBUG_CONSOLE_COMMAND);
+            startDebugging(window.activeTextEditor!.document.uri, true);
+        });
     }
+}
+
+
+export async function startDebugging(uri: Uri, testDebug: boolean = false, suggestTryit: boolean = false, noDebugMode: boolean = false): Promise<boolean> {
+    const workspaceFolder: WorkspaceFolder | undefined = workspace.getWorkspaceFolder(uri);
+    const debugConfig: DebugConfiguration = await constructDebugConfig(uri, testDebug);
+    debugConfig.suggestTryit = suggestTryit;
+    debugConfig.noDebug = noDebugMode;
+
+    return debug.startDebugging(workspaceFolder, debugConfig);
 }
