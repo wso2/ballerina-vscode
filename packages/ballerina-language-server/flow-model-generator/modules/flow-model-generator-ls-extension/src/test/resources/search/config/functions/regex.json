@@ -86,7 +86,8 @@
                 "symbol": "find",
                 "version": "0.0.0"
               },
-              "enabled": true
+              "enabled": true,
+              "more": false
             },
             {
               "metadata": {
@@ -102,7 +103,8 @@
                 "symbol": "matchAt",
                 "version": "0.0.0"
               },
-              "enabled": true
+              "enabled": true,
+              "more": false
             },
             {
               "metadata": {
@@ -118,7 +120,8 @@
                 "symbol": "fromString",
                 "version": "0.0.0"
               },
-              "enabled": true
+              "enabled": true,
+              "more": false
             },
             {
               "metadata": {
@@ -134,7 +137,8 @@
                 "symbol": "replace",
                 "version": "0.0.0"
               },
-              "enabled": true
+              "enabled": true,
+              "more": false
             },
             {
               "metadata": {
@@ -150,7 +154,8 @@
                 "symbol": "findGroups",
                 "version": "0.0.0"
               },
-              "enabled": true
+              "enabled": true,
+              "more": false
             },
             {
               "metadata": {
@@ -166,7 +171,8 @@
                 "symbol": "matchGroupsAt",
                 "version": "0.0.0"
               },
-              "enabled": true
+              "enabled": true,
+              "more": false
             },
             {
               "metadata": {
@@ -182,7 +188,8 @@
                 "symbol": "fullMatchGroups",
                 "version": "0.0.0"
               },
-              "enabled": true
+              "enabled": true,
+              "more": false
             },
             {
               "metadata": {
@@ -198,7 +205,8 @@
                 "symbol": "replaceAll",
                 "version": "0.0.0"
               },
-              "enabled": true
+              "enabled": true,
+              "more": false
             },
             {
               "metadata": {
@@ -214,7 +222,8 @@
                 "symbol": "isFullMatch",
                 "version": "0.0.0"
               },
-              "enabled": true
+              "enabled": true,
+              "more": false
             },
             {
               "metadata": {
@@ -230,7 +239,8 @@
                 "symbol": "findAllGroups",
                 "version": "0.0.0"
               },
-              "enabled": true
+              "enabled": true,
+              "more": false
             },
             {
               "metadata": {
@@ -246,7 +256,8 @@
                 "symbol": "split",
                 "version": "0.0.0"
               },
-              "enabled": true
+              "enabled": true,
+              "more": false
             },
             {
               "metadata": {
@@ -262,7 +273,8 @@
                 "symbol": "findAll",
                 "version": "0.0.0"
               },
-              "enabled": true
+              "enabled": true,
+              "more": false
             }
           ]
         },
@@ -287,7 +299,8 @@
                 "symbol": "filterDataByRegex",
                 "version": "0.8.0"
               },
-              "enabled": true
+              "enabled": true,
+              "more": false
             },
             {
               "metadata": {
@@ -303,7 +316,8 @@
                 "symbol": "categorizeRegex",
                 "version": "0.8.0"
               },
-              "enabled": true
+              "enabled": true,
+              "more": false
             },
             {
               "metadata": {
@@ -319,7 +333,8 @@
                 "symbol": "replaceText",
                 "version": "0.8.0"
               },
-              "enabled": true
+              "enabled": true,
+              "more": false
             }
           ]
         },
@@ -344,7 +359,8 @@
                 "symbol": "includesMatch",
                 "version": "0.0.0"
               },
-              "enabled": true
+              "enabled": true,
+              "more": false
             },
             {
               "metadata": {
@@ -360,7 +376,8 @@
                 "symbol": "matches",
                 "version": "0.0.0"
               },
-              "enabled": true
+              "enabled": true,
+              "more": false
             }
           ]
         }

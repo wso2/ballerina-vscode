@@ -25,7 +25,8 @@
         "version": "2.14.2",
         "isGenerated": false
       },
-      "enabled": true
+      "enabled": true,
+      "more": false
     },
     {
       "metadata": {
@@ -46,7 +47,8 @@
         "version": "1.5.1",
         "isGenerated": false
       },
-      "enabled": true
+      "enabled": true,
+      "more": false
     },
     {
       "metadata": {
@@ -67,7 +69,8 @@
         "version": "1.0.0",
         "isGenerated": false
       },
-      "enabled": true
+      "enabled": true,
+      "more": false
     },
     {
       "metadata": {
@@ -88,7 +91,8 @@
         "version": "1.5.1",
         "isGenerated": false
       },
-      "enabled": true
+      "enabled": true,
+      "more": false
     },
     {
       "metadata": {
@@ -109,7 +113,8 @@
         "version": "1.5.1",
         "isGenerated": false
       },
-      "enabled": true
+      "enabled": true,
+      "more": false
     },
     {
       "metadata": {
@@ -130,7 +135,8 @@
         "version": "1.5.1",
         "isGenerated": false
       },
-      "enabled": true
+      "enabled": true,
+      "more": false
     },
     {
       "metadata": {
@@ -151,7 +157,8 @@
         "version": "1.5.1",
         "isGenerated": false
       },
-      "enabled": true
+      "enabled": true,
+      "more": false
     },
     {
       "metadata": {
@@ -172,7 +179,8 @@
         "version": "1.2.0",
         "isGenerated": false
       },
-      "enabled": true
+      "enabled": true,
+      "more": false
     },
     {
       "metadata": {
@@ -193,7 +201,8 @@
         "version": "1.7.1",
         "isGenerated": false
       },
-      "enabled": true
+      "enabled": true,
+      "more": false
     },
     {
       "metadata": {
@@ -214,7 +223,8 @@
         "version": "1.0.0",
         "isGenerated": false
       },
-      "enabled": true
+      "enabled": true,
+      "more": false
     },
     {
       "metadata": {
@@ -235,7 +245,8 @@
         "version": "2.0.0",
         "isGenerated": false
       },
-      "enabled": true
+      "enabled": true,
+      "more": false
     },
     {
       "metadata": {
@@ -256,7 +267,8 @@
         "version": "1.5.1",
         "isGenerated": false
       },
-      "enabled": true
+      "enabled": true,
+      "more": false
     },
     {
       "metadata": {
@@ -277,7 +289,8 @@
         "version": "1.2.0",
         "isGenerated": false
       },
-      "enabled": true
+      "enabled": true,
+      "more": false
     },
     {
       "metadata": {
@@ -298,7 +311,8 @@
         "version": "1.5.1",
         "isGenerated": false
       },
-      "enabled": true
+      "enabled": true,
+      "more": false
     },
     {
       "metadata": {
@@ -319,7 +333,8 @@
         "version": "2.14.0",
         "isGenerated": false
       },
-      "enabled": true
+      "enabled": true,
+      "more": false
     },
     {
       "metadata": {
@@ -340,7 +355,8 @@
         "version": "1.15.0",
         "isGenerated": false
       },
-      "enabled": true
+      "enabled": true,
+      "more": false
     },
     {
       "metadata": {
@@ -361,7 +377,8 @@
         "version": "1.4.1",
         "isGenerated": false
       },
-      "enabled": true
+      "enabled": true,
+      "more": false
     },
     {
       "metadata": {
@@ -382,7 +399,8 @@
         "version": "1.4.1",
         "isGenerated": false
       },
-      "enabled": true
+      "enabled": true,
+      "more": false
     },
     {
       "metadata": {
@@ -403,7 +421,8 @@
         "version": "1.5.1",
         "isGenerated": false
       },
-      "enabled": true
+      "enabled": true,
+      "more": false
     },
     {
       "metadata": {
@@ -424,7 +443,8 @@
         "version": "1.5.1",
         "isGenerated": false
       },
-      "enabled": true
+      "enabled": true,
+      "more": false
     }
   ]
 }

@@ -93,6 +93,7 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Function;
 
 /**
  * Represents the extended language server service for the flow model generator service.
@@ -283,6 +284,41 @@ public class FlowModelGeneratorService implements ExtendedLanguageServerService 
     @JsonRequest
     public CompletableFuture<FlowModelAvailableNodesResponse> getAvailableNodes(
             FlowModelAvailableNodesRequest request) {
+        return handleAvailableNodesRequest(request,
+                generator -> generator.getAvailableNodes(request.position()));
+    }
+
+    @JsonRequest
+    public CompletableFuture<FlowModelAvailableNodesResponse> getAvailableVectorStores(
+            FlowModelAvailableNodesRequest request) {
+        return handleAvailableNodesRequest(request,
+                generator -> generator.getAvailableVectorStores(request.position()));
+    }
+
+    @JsonRequest
+    public CompletableFuture<FlowModelAvailableNodesResponse> getAvailableEmbeddingProviders(
+            FlowModelAvailableNodesRequest request) {
+        return handleAvailableNodesRequest(request,
+                generator -> generator.getAvailableEmbeddingProviders(request.position()));
+    }
+
+    @JsonRequest
+    public CompletableFuture<FlowModelAvailableNodesResponse> getAvailableVectorKnowledgeBases(
+            FlowModelAvailableNodesRequest request) {
+        return handleAvailableNodesRequest(request,
+                generator -> generator.getAvailableVectorKnowledgeBases(request.position()));
+    }
+
+    @JsonRequest
+    public CompletableFuture<FlowModelAvailableNodesResponse> getAvailableModelProviders(
+            FlowModelAvailableNodesRequest request) {
+        return handleAvailableNodesRequest(request,
+                generator -> generator.getAvailableModelProviders(request.position()));
+    }
+
+    private CompletableFuture<FlowModelAvailableNodesResponse> handleAvailableNodesRequest(
+            FlowModelAvailableNodesRequest request,
+            Function<AvailableNodesGenerator, JsonArray> categoryProvider) {
 
         return CompletableFuture.supplyAsync(() -> {
             FlowModelAvailableNodesResponse response = new FlowModelAvailableNodesResponse();
@@ -296,10 +332,9 @@ public class FlowModelGeneratorService implements ExtendedLanguageServerService 
                     return response;
                 }
 
-                AvailableNodesGenerator availableNodesGenerator =
-                        new AvailableNodesGenerator(semanticModel.get(), document.get(), project.currentPackage());
-                response.setCategories(
-                        availableNodesGenerator.getAvailableNodes(request.position()));
+                AvailableNodesGenerator generator = new AvailableNodesGenerator(semanticModel.get(),
+                        document.get(), project.currentPackage());
+                response.setCategories(categoryProvider.apply(generator));
             } catch (Throwable e) {
                 response.setError(e);
             }

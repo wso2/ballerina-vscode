@@ -14,7 +14,7 @@
         "metadata": {
           "label": "Class",
           "description": "OpenAiProvider is a client class that provides an interface for interacting with OpenAI language models.",
-          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_ai_1.0.1.png"
+          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_ai_1.2.1.png"
         },
         "codedata": {
           "node": "CLASS_INIT",
@@ -71,6 +71,13 @@
             },
             "valueType": "SINGLE_SELECT",
             "valueTypeConstraint": [
+              "\"chatgpt-4o-latest\"",
+              "\"gpt-4.1-nano-2025-04-14\"",
+              "\"gpt-4.1-nano\"",
+              "\"gpt-4.1-mini\"",
+              "\"gpt-4.1-mini-2025-04-14\"",
+              "\"gpt-4.1\"",
+              "\"gpt-4.1-2025-04-14\"",
               "\"gpt-3.5-turbo-16k-0613\"",
               "\"gpt-3.5-turbo-0125\"",
               "\"gpt-3.5-turbo-1106\"",
@@ -78,6 +85,10 @@
               "\"gpt-3.5-turbo-0301\"",
               "\"gpt-3.5-turbo-16k\"",
               "\"gpt-3.5-turbo\"",
+              "\"o1-2024-12-17\"",
+              "\"o1\"",
+              "\"o3-mini-2025-01-31\"",
+              "\"o3-mini\"",
               "\"gpt-4-32k-0613\"",
               "\"gpt-4-32k-0314\"",
               "\"gpt-4-32k\"",
@@ -95,14 +106,10 @@
               "\"gpt-4o-2024-05-13\"",
               "\"gpt-4o-2024-08-06\"",
               "\"gpt-4o-2024-11-20\"",
-              "\"gpt-4o\"",
-              "\"o1-2024-12-17\"",
-              "\"o1\"",
-              "\"o3-mini-2025-01-31\"",
-              "\"o3-mini\""
+              "\"gpt-4o\""
             ],
             "value": "ai:GPT_3_5_TURBO_0613",
-            "placeholder": "\"gpt-3.5-turbo-16k-0613\"",
+            "placeholder": "\"chatgpt-4o-latest\"",
             "optional": false,
             "editable": true,
             "advanced": false,
@@ -114,7 +121,7 @@
             "typeMembers": [
               {
                 "type": "OPEN_AI_MODEL_NAMES",
-                "packageInfo": "ballerinax:ai:1.0.1",
+                "packageInfo": "ballerinax:ai:1.2.1",
                 "packageName": "ai",
                 "kind": "BASIC_TYPE",
                 "selected": false
@@ -660,7 +667,7 @@
         "metadata": {
           "label": "Agent",
           "description": "Represents an agent.",
-          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_ai_1.0.1.png"
+          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_ai_1.2.1.png"
         },
         "codedata": {
           "node": "AGENT",
@@ -703,7 +710,7 @@
             "typeMembers": [
               {
                 "type": "SystemPrompt",
-                "packageInfo": "ballerinax:ai:1.0.1",
+                "packageInfo": "ballerinax:ai:1.2.1",
                 "packageName": "ai",
                 "kind": "RECORD_TYPE",
                 "selected": true
@@ -731,7 +738,7 @@
             "typeMembers": [
               {
                 "type": "ModelProvider",
-                "packageInfo": "ballerinax:ai:1.0.1",
+                "packageInfo": "ballerinax:ai:1.2.1",
                 "packageName": "ai",
                 "kind": "OBJECT_TYPE",
                 "selected": false
@@ -786,7 +793,7 @@
             "typeMembers": [
               {
                 "type": "AgentType",
-                "packageInfo": "ballerinax:ai:1.0.1",
+                "packageInfo": "ballerinax:ai:1.2.1",
                 "packageName": "ai",
                 "kind": "BASIC_TYPE",
                 "selected": false
@@ -867,7 +874,7 @@
             "typeMembers": [
               {
                 "type": "Memory",
-                "packageInfo": "ballerinax:ai:1.0.1",
+                "packageInfo": "ballerinax:ai:1.2.1",
                 "packageName": "ai",
                 "kind": "OBJECT_TYPE",
                 "selected": false

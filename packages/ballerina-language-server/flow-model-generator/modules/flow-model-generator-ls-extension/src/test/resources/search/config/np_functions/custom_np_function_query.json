@@ -39,7 +39,8 @@
             "symbol": "rateMovie",
             "version": "0.1.0"
           },
-          "enabled": true
+          "enabled": true,
+          "more": false
         }
       ]
     }

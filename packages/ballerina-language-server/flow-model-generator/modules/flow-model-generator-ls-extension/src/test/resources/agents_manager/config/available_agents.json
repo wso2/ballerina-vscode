@@ -21,7 +21,7 @@
               "metadata": {
                 "label": "run",
                 "description": "Executes the agent for a given user query.\n",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_ai_1.0.1.png"
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_ai_1.2.1.png"
               },
               "codedata": {
                 "node": "REMOTE_ACTION_CALL",
@@ -30,11 +30,12 @@
                 "packageName": "ai",
                 "object": "Agent",
                 "symbol": "run",
-                "version": "1.0.1",
+                "version": "1.2.1",
                 "parentSymbol": "agent",
                 "resourcePath": ""
               },
-              "enabled": true
+              "enabled": true,
+              "more": false
             }
           ]
         },
@@ -60,7 +61,8 @@
                 "parentSymbol": "httpClient",
                 "resourcePath": ""
               },
-              "enabled": true
+              "enabled": true,
+              "more": false
             },
             {
               "metadata": {
@@ -79,7 +81,8 @@
                 "parentSymbol": "httpClient",
                 "resourcePath": ""
               },
-              "enabled": true
+              "enabled": true,
+              "more": false
             },
             {
               "metadata": {
@@ -98,7 +101,8 @@
                 "parentSymbol": "httpClient",
                 "resourcePath": ""
               },
-              "enabled": true
+              "enabled": true,
+              "more": false
             },
             {
               "metadata": {
@@ -117,7 +121,8 @@
                 "parentSymbol": "httpClient",
                 "resourcePath": ""
               },
-              "enabled": true
+              "enabled": true,
+              "more": false
             },
             {
               "metadata": {
@@ -136,7 +141,8 @@
                 "parentSymbol": "httpClient",
                 "resourcePath": ""
               },
-              "enabled": true
+              "enabled": true,
+              "more": false
             },
             {
               "metadata": {
@@ -155,7 +161,8 @@
                 "parentSymbol": "httpClient",
                 "resourcePath": ""
               },
-              "enabled": true
+              "enabled": true,
+              "more": false
             },
             {
               "metadata": {
@@ -174,7 +181,8 @@
                 "parentSymbol": "httpClient",
                 "resourcePath": ""
               },
-              "enabled": true
+              "enabled": true,
+              "more": false
             },
             {
               "metadata": {
@@ -193,7 +201,8 @@
                 "parentSymbol": "httpClient",
                 "resourcePath": ""
               },
-              "enabled": true
+              "enabled": true,
+              "more": false
             },
             {
               "metadata": {
@@ -212,7 +221,8 @@
                 "parentSymbol": "httpClient",
                 "resourcePath": ""
               },
-              "enabled": true
+              "enabled": true,
+              "more": false
             },
             {
               "metadata": {
@@ -231,7 +241,8 @@
                 "parentSymbol": "httpClient",
                 "resourcePath": ""
               },
-              "enabled": true
+              "enabled": true,
+              "more": false
             },
             {
               "metadata": {
@@ -250,7 +261,8 @@
                 "parentSymbol": "httpClient",
                 "resourcePath": ""
               },
-              "enabled": true
+              "enabled": true,
+              "more": false
             },
             {
               "metadata": {
@@ -269,7 +281,8 @@
                 "parentSymbol": "httpClient",
                 "resourcePath": ""
               },
-              "enabled": true
+              "enabled": true,
+              "more": false
             },
             {
               "metadata": {
@@ -288,7 +301,8 @@
                 "parentSymbol": "httpClient",
                 "resourcePath": ""
               },
-              "enabled": true
+              "enabled": true,
+              "more": false
             },
             {
               "metadata": {
@@ -307,7 +321,8 @@
                 "parentSymbol": "httpClient",
                 "resourcePath": ""
               },
-              "enabled": true
+              "enabled": true,
+              "more": false
             },
             {
               "metadata": {
@@ -326,7 +341,8 @@
                 "parentSymbol": "httpClient",
                 "resourcePath": ""
               },
-              "enabled": true
+              "enabled": true,
+              "more": false
             },
             {
               "metadata": {
@@ -345,7 +361,8 @@
                 "parentSymbol": "httpClient",
                 "resourcePath": ""
               },
-              "enabled": true
+              "enabled": true,
+              "more": false
             },
             {
               "metadata": {
@@ -364,7 +381,8 @@
                 "parentSymbol": "httpClient",
                 "resourcePath": ""
               },
-              "enabled": true
+              "enabled": true,
+              "more": false
             },
             {
               "metadata": {
@@ -383,7 +401,8 @@
                 "parentSymbol": "httpClient",
                 "resourcePath": ""
               },
-              "enabled": true
+              "enabled": true,
+              "more": false
             },
             {
               "metadata": {
@@ -402,7 +421,8 @@
                 "parentSymbol": "httpClient",
                 "resourcePath": ""
               },
-              "enabled": true
+              "enabled": true,
+              "more": false
             }
           ]
         },
@@ -428,7 +448,8 @@
                 "parentSymbol": "httpClientResult",
                 "resourcePath": ""
               },
-              "enabled": true
+              "enabled": true,
+              "more": false
             },
             {
               "metadata": {
@@ -447,7 +468,8 @@
                 "parentSymbol": "httpClientResult",
                 "resourcePath": ""
               },
-              "enabled": true
+              "enabled": true,
+              "more": false
             },
             {
               "metadata": {
@@ -466,7 +488,8 @@
                 "parentSymbol": "httpClientResult",
                 "resourcePath": ""
               },
-              "enabled": true
+              "enabled": true,
+              "more": false
             },
             {
               "metadata": {
@@ -485,7 +508,8 @@
                 "parentSymbol": "httpClientResult",
                 "resourcePath": ""
               },
-              "enabled": true
+              "enabled": true,
+              "more": false
             },
             {
               "metadata": {
@@ -504,7 +528,8 @@
                 "parentSymbol": "httpClientResult",
                 "resourcePath": ""
               },
-              "enabled": true
+              "enabled": true,
+              "more": false
             },
             {
               "metadata": {
@@ -523,7 +548,8 @@
                 "parentSymbol": "httpClientResult",
                 "resourcePath": ""
               },
-              "enabled": true
+              "enabled": true,
+              "more": false
             },
             {
               "metadata": {
@@ -542,7 +568,8 @@
                 "parentSymbol": "httpClientResult",
                 "resourcePath": ""
               },
-              "enabled": true
+              "enabled": true,
+              "more": false
             },
             {
               "metadata": {
@@ -561,7 +588,8 @@
                 "parentSymbol": "httpClientResult",
                 "resourcePath": ""
               },
-              "enabled": true
+              "enabled": true,
+              "more": false
             },
             {
               "metadata": {
@@ -580,7 +608,8 @@
                 "parentSymbol": "httpClientResult",
                 "resourcePath": ""
               },
-              "enabled": true
+              "enabled": true,
+              "more": false
             },
             {
               "metadata": {
@@ -599,7 +628,8 @@
                 "parentSymbol": "httpClientResult",
                 "resourcePath": ""
               },
-              "enabled": true
+              "enabled": true,
+              "more": false
             },
             {
               "metadata": {
@@ -618,7 +648,8 @@
                 "parentSymbol": "httpClientResult",
                 "resourcePath": ""
               },
-              "enabled": true
+              "enabled": true,
+              "more": false
             },
             {
               "metadata": {
@@ -637,7 +668,8 @@
                 "parentSymbol": "httpClientResult",
                 "resourcePath": ""
               },
-              "enabled": true
+              "enabled": true,
+              "more": false
             },
             {
               "metadata": {
@@ -656,7 +688,8 @@
                 "parentSymbol": "httpClientResult",
                 "resourcePath": ""
               },
-              "enabled": true
+              "enabled": true,
+              "more": false
             },
             {
               "metadata": {
@@ -675,7 +708,8 @@
                 "parentSymbol": "httpClientResult",
                 "resourcePath": ""
               },
-              "enabled": true
+              "enabled": true,
+              "more": false
             },
             {
               "metadata": {
@@ -694,7 +728,8 @@
                 "parentSymbol": "httpClientResult",
                 "resourcePath": ""
               },
-              "enabled": true
+              "enabled": true,
+              "more": false
             },
             {
               "metadata": {
@@ -713,7 +748,8 @@
                 "parentSymbol": "httpClientResult",
                 "resourcePath": ""
               },
-              "enabled": true
+              "enabled": true,
+              "more": false
             },
             {
               "metadata": {
@@ -732,7 +768,8 @@
                 "parentSymbol": "httpClientResult",
                 "resourcePath": ""
               },
-              "enabled": true
+              "enabled": true,
+              "more": false
             },
             {
               "metadata": {
@@ -751,7 +788,8 @@
                 "parentSymbol": "httpClientResult",
                 "resourcePath": ""
               },
-              "enabled": true
+              "enabled": true,
+              "more": false
             },
             {
               "metadata": {
@@ -770,7 +808,8 @@
                 "parentSymbol": "httpClientResult",
                 "resourcePath": ""
               },
-              "enabled": true
+              "enabled": true,
+              "more": false
             }
           ]
         },
@@ -783,7 +822,7 @@
               "metadata": {
                 "label": "chat",
                 "description": "Sends a chat request to the OpenAI model with the given messages and tools.\n",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_ai_1.0.1.png"
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_ai_1.2.1.png"
               },
               "codedata": {
                 "node": "REMOTE_ACTION_CALL",
@@ -792,13 +831,128 @@
                 "packageName": "ai",
                 "object": "AzureOpenAiProvider",
                 "symbol": "chat",
-                "version": "1.0.1",
+                "version": "1.2.1",
                 "parentSymbol": "model",
                 "resourcePath": ""
               },
-              "enabled": true
+              "enabled": true,
+              "more": false
             }
           ]
+        }
+      ]
+    },
+    {
+      "metadata": {
+        "label": "AI Components",
+        "description": "AI components available in the flow"
+      },
+      "items": [
+        {
+          "metadata": {
+            "label": "Model Provider",
+            "description": "Model providers available within the integration for connecting to an LLM"
+          },
+          "codedata": {
+            "node": "MODEL_PROVIDERS"
+          },
+          "enabled": true,
+          "more": false
+        },
+        {
+          "metadata": {
+            "label": "Call Natural Function",
+            "description": "Call a natural programming function",
+            "icon": "https://gist.github.com/user-attachments/assets/903c5c16-7d67-4af8-8113-ce7c59ccdaab"
+          },
+          "codedata": {
+            "node": "NP_FUNCTION"
+          },
+          "enabled": true,
+          "more": false
+        },
+        {
+          "metadata": {
+            "label": "Vector Knowledge Base",
+            "description": "Vector knowledge bases available in the integration"
+          },
+          "codedata": {
+            "node": "VECTOR_KNOWLEDGE_BASES",
+            "org": "ballerina",
+            "module": "ai",
+            "packageName": "ai",
+            "object": "VectorKnowledgeBase",
+            "symbol": "init",
+            "version": "1.0.0"
+          },
+          "enabled": true,
+          "more": false
+        },
+        {
+          "metadata": {
+            "label": "Recursive Document Chunker"
+          },
+          "codedata": {
+            "node": "FUNCTION_CALL",
+            "org": "ballerina",
+            "module": "ai",
+            "packageName": "ai",
+            "symbol": "chunkDocumentRecursively"
+          },
+          "enabled": true,
+          "more": false
+        },
+        {
+          "metadata": {
+            "label": "Augment Query"
+          },
+          "codedata": {
+            "node": "FUNCTION_CALL",
+            "org": "ballerina",
+            "module": "ai",
+            "packageName": "ai",
+            "symbol": "augmentUserQuery"
+          },
+          "enabled": true,
+          "more": false
+        },
+        {
+          "metadata": {
+            "label": "Vector Store",
+            "description": "Vector stores available in the integration"
+          },
+          "codedata": {
+            "node": "VECTOR_STORES"
+          },
+          "enabled": true,
+          "more": true
+        },
+        {
+          "metadata": {
+            "label": "Embedding Provider",
+            "description": "Embedding providers available within the integration for connecting to an embedding model"
+          },
+          "codedata": {
+            "node": "EMBEDDING_PROVIDERS"
+          },
+          "enabled": true,
+          "more": true
+        },
+        {
+          "metadata": {
+            "label": "Agent",
+            "description": "Create new agent"
+          },
+          "codedata": {
+            "node": "AGENT_CALL",
+            "org": "ballerinax",
+            "module": "ai",
+            "packageName": "ai",
+            "object": "Agent",
+            "symbol": "run"
+          },
+          "enabled": true,
+          "more": false
         }
       ]
     },
@@ -815,7 +969,8 @@
           "codedata": {
             "node": "VARIABLE"
           },
-          "enabled": true
+          "enabled": true,
+          "more": false
         },
         {
           "metadata": {
@@ -825,7 +980,8 @@
           "codedata": {
             "node": "ASSIGN"
           },
-          "enabled": true
+          "enabled": true,
+          "more": false
         },
         {
           "metadata": {
@@ -835,7 +991,8 @@
           "codedata": {
             "node": "FUNCTION"
           },
-          "enabled": true
+          "enabled": true,
+          "more": false
         },
         {
           "metadata": {
@@ -844,33 +1001,8 @@
           "codedata": {
             "node": "DATA_MAPPER_CALL"
           },
-          "enabled": true
-        },
-        {
-          "metadata": {
-            "label": "Call Natural Function",
-            "description": "Call a natural programming function",
-            "icon": "https://gist.github.com/user-attachments/assets/903c5c16-7d67-4af8-8113-ce7c59ccdaab"
-          },
-          "codedata": {
-            "node": "NP_FUNCTION"
-          },
-          "enabled": true
-        },
-        {
-          "metadata": {
-            "label": "Agent",
-            "description": "Create new agent"
-          },
-          "codedata": {
-            "node": "AGENT_CALL",
-            "org": "ballerinax",
-            "module": "ai",
-            "packageName": "ai",
-            "object": "Agent",
-            "symbol": "run"
-          },
-          "enabled": true
+          "enabled": true,
+          "more": false
         }
       ]
     },
@@ -888,7 +1020,8 @@
           "codedata": {
             "node": "IF"
           },
-          "enabled": true
+          "enabled": true,
+          "more": false
         },
         {
           "metadata": {
@@ -898,7 +1031,8 @@
           "codedata": {
             "node": "MATCH"
           },
-          "enabled": true
+          "enabled": true,
+          "more": false
         },
         {
           "metadata": {
@@ -908,7 +1042,8 @@
           "codedata": {
             "node": "WHILE"
           },
-          "enabled": true
+          "enabled": true,
+          "more": false
         },
         {
           "metadata": {
@@ -918,7 +1053,8 @@
           "codedata": {
             "node": "FOREACH"
           },
-          "enabled": true
+          "enabled": true,
+          "more": false
         },
         {
           "metadata": {
@@ -927,7 +1063,8 @@
           "codedata": {
             "node": "RETURN"
           },
-          "enabled": true
+          "enabled": true,
+          "more": false
         }
       ]
     },
@@ -945,7 +1082,8 @@
           "codedata": {
             "node": "ERROR_HANDLER"
           },
-          "enabled": true
+          "enabled": true,
+          "more": false
         },
         {
           "metadata": {
@@ -955,7 +1093,8 @@
           "codedata": {
             "node": "FAIL"
           },
-          "enabled": true
+          "enabled": true,
+          "more": false
         },
         {
           "metadata": {
@@ -965,7 +1104,8 @@
           "codedata": {
             "node": "PANIC"
           },
-          "enabled": true
+          "enabled": true,
+          "more": false
         }
       ]
     },
@@ -983,7 +1123,8 @@
           "codedata": {
             "node": "FORK"
           },
-          "enabled": true
+          "enabled": true,
+          "more": false
         },
         {
           "metadata": {
@@ -993,7 +1134,8 @@
           "codedata": {
             "node": "PARALLEL_FLOW"
           },
-          "enabled": true
+          "enabled": true,
+          "more": false
         },
         {
           "metadata": {
@@ -1003,7 +1145,8 @@
           "codedata": {
             "node": "WAIT"
           },
-          "enabled": true
+          "enabled": true,
+          "more": false
         },
         {
           "metadata": {
@@ -1013,7 +1156,8 @@
           "codedata": {
             "node": "LOCK"
           },
-          "enabled": true
+          "enabled": true,
+          "more": false
         },
         {
           "metadata": {
@@ -1023,7 +1167,8 @@
           "codedata": {
             "node": "START"
           },
-          "enabled": true
+          "enabled": true,
+          "more": false
         },
         {
           "metadata": {
@@ -1033,7 +1178,8 @@
           "codedata": {
             "node": "TRANSACTION"
           },
-          "enabled": true
+          "enabled": true,
+          "more": false
         },
         {
           "metadata": {
@@ -1043,7 +1189,8 @@
           "codedata": {
             "node": "COMMIT"
           },
-          "enabled": true
+          "enabled": true,
+          "more": false
         },
         {
           "metadata": {
@@ -1053,7 +1200,8 @@
           "codedata": {
             "node": "ROLLBACK"
           },
-          "enabled": true
+          "enabled": true,
+          "more": false
         },
         {
           "metadata": {
@@ -1063,7 +1211,8 @@
           "codedata": {
             "node": "RETRY"
           },
-          "enabled": true
+          "enabled": true,
+          "more": false
         }
       ]
     },
@@ -1086,7 +1235,8 @@
             "symbol": "printInfo",
             "version": "2.10.0"
           },
-          "enabled": true
+          "enabled": true,
+          "more": false
         },
         {
           "metadata": {
@@ -1102,7 +1252,8 @@
             "symbol": "printError",
             "version": "2.10.0"
           },
-          "enabled": true
+          "enabled": true,
+          "more": false
         },
         {
           "metadata": {
@@ -1118,7 +1269,8 @@
             "symbol": "printWarn",
             "version": "2.10.0"
           },
-          "enabled": true
+          "enabled": true,
+          "more": false
         },
         {
           "metadata": {
@@ -1134,7 +1286,8 @@
             "symbol": "printDebug",
             "version": "2.10.0"
           },
-          "enabled": true
+          "enabled": true,
+          "more": false
         }
       ]
     }
