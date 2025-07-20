@@ -56,6 +56,9 @@ interface FormFieldEditorProps {
     onIdentifierEditingStateChange?: (isEditing: boolean) => void;
     setSubComponentEnabled?: (isAdding: boolean) => void;
     scopeFieldAddon?: React.ReactNode;
+    newServerUrl?: string;
+    mcpTools?: { name: string; description?: string }[];
+    onToolsChange?: (selectedTools: string[]) => void;
 }
 
 export const EditorFactory = (props: FormFieldEditorProps) => {
@@ -72,7 +75,8 @@ export const EditorFactory = (props: FormFieldEditorProps) => {
         recordTypeFields,
         onIdentifierEditingStateChange,
         setSubComponentEnabled,
-        scopeFieldAddon
+        scopeFieldAddon,
+        newServerUrl
     } = props;
     if (!field.enabled || field.hidden) {
         return <></>;
@@ -108,7 +112,7 @@ export const EditorFactory = (props: FormFieldEditorProps) => {
         return <TextEditor field={field} handleOnFieldFocus={handleOnFieldFocus} />;
     } else if (field.type.toUpperCase() === "ENUM") {
         // Enum is a dropdown field
-        return <DropdownEditor field={field} />;
+        return <DropdownEditor field={field} mcpTools={props.mcpTools} onToolsChange={props.onToolsChange} />;
     } else if (field.type === "FILE_SELECT" && field.editable) {
         return <FileSelect field={field} />;
     } else if (field.type === "SINGLE_SELECT" && field.editable) {
@@ -120,7 +124,7 @@ export const EditorFactory = (props: FormFieldEditorProps) => {
         // />;
         // HACK:Single select field is treat as type editor for now
         console.log(">>> Single select field is treated as type editor", field);
-        return <DropdownEditor field={field} openSubPanel={openSubPanel} scopeFieldAddon={scopeFieldAddon} />;
+        return <DropdownEditor field={field} openSubPanel={openSubPanel} scopeFieldAddon={scopeFieldAddon} newServerUrl={newServerUrl} mcpTools={props.mcpTools} onToolsChange={props.onToolsChange} />;
     } else if (!field.items && (field.key === "type" || field.type === "TYPE") && field.editable) {
         // Type field is a type editor
         return (

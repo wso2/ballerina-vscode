@@ -35,6 +35,8 @@ interface DropdownEditorProps {
     rpcClient?: any;
     onToolsChange?: (selectedTools: string[]) => void;
     renderToolsSelection?: () => React.ReactNode;
+    newServerUrl?: string;
+    mcpTools?: { name: string; description?: string }[]; // <-- add this line
 }
 
 const ToolsContainer = styled.div`
@@ -110,77 +112,55 @@ const DropdownSpacer = styled.div`
 `;
 
 export function DropdownEditor(props: DropdownEditorProps) {
-    const { field, openSubPanel, serviceUrl, configs, rpcClient, onToolsChange } = props;
+    const { field, openSubPanel, serviceUrl, configs, rpcClient, onToolsChange, newServerUrl } = props;
     const { form } = useFormContext();
     const { register, setValue, watch } = form;
 
+    console.log(">>> DropdownEditor props:", props);
     // MCP tools selection state (self-contained)
-    const [mcpTools, setMcpTools] = useState<{ name: string; description?: string }[]>([]);
+    const DUMMY_TOOLS = [
+        { name: "single-greet", description: "Greet a user with a single message" },
+        { name: "multi-greet", description: "Greet a user with multiple messages" }
+    ];
+    
+    const [mcpTools, setMcpTools] = useState<{ name: string; description?: string }[]>(props.mcpTools || DUMMY_TOOLS);
+
+    // Sync mcpTools state with props.mcpTools
+    useEffect(() => {
+        if (props.mcpTools) {
+            setMcpTools(props.mcpTools);
+        }
+    }, [props.mcpTools]);
     const [selectedMcpTools, setSelectedMcpTools] = useState<Set<string>>(new Set());
     const [loadingMcpTools, setLoadingMcpTools] = useState(false);
     const [mcpToolsError, setMcpToolsError] = useState<string>("");
-    const [toolSelection, setToolSelection] = useState<string>("All");
+    const toolSelection = watch(field.key);
     const [localServiceUrl, setLocalServiceUrl] = useState<string>("");
     const [localConfigs, setLocalConfigs] = useState<any>({});
     const [editMode] = useState(false); // You can set this based on your logic if needed
 
     // Debounce logic for serverUrl input
     const debounceTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+    // useEffect(() => {
+    //     if (field.key === "scope" && toolSelection === "Selected" && localServiceUrl.trim()) {
+    //         if (debounceTimeout.current) clearTimeout(debounceTimeout.current);
+    //         debounceTimeout.current = setTimeout(() => {
+    //             fetchMcpTools();
+    //         }, 500); // 500ms debounce
+    //     } else {
+    //         setMcpTools(mcpTools);
+    //         setSelectedMcpTools(new Set());
+    //         setMcpToolsError("");
+    //     }
+    //     // eslint-disable-next-line react-hooks/exhaustive-deps
+    // }, [toolSelection, localServiceUrl]);
+
     useEffect(() => {
-        if (field.key === "scope" && toolSelection === "Selected" && localServiceUrl.trim()) {
-            if (debounceTimeout.current) clearTimeout(debounceTimeout.current);
-            debounceTimeout.current = setTimeout(() => {
-                fetchMcpTools();
-            }, 500); // 500ms debounce
-        } else {
-            setMcpTools([]);
-            setSelectedMcpTools(new Set());
-            setMcpToolsError("");
+        if (newServerUrl && newServerUrl !== localServiceUrl) {
+            setLocalServiceUrl(newServerUrl);
+            console.log(">>> New server URL set:", newServerUrl);
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [toolSelection, localServiceUrl]);
-
-    // Use the provided fetchMcpTools logic
-    const fetchMcpTools = async () => {
-        if (!localServiceUrl.trim() || !rpcClient) {
-            return;
-        }
-
-        setLoadingMcpTools(true);
-        setMcpToolsError("");
-        setMcpTools([]);
-        // Don't clear selected tools in edit mode
-        if (!editMode) {
-            setSelectedMcpTools(new Set());
-        }
-
-        try {
-            // Check if getMcpTools method exists in the RPC client
-            const languageServerClient = rpcClient.getAIAgentRpcClient?.();
-
-            if (typeof languageServerClient?.getMcpTools === 'function') {
-                // Use the actual RPC method if it exists
-                console.log(">>> Fetching MCP tools from server");
-                const response = await languageServerClient.getMcpTools({ 
-                    serviceUrl: localServiceUrl.trim(),
-                    configs: localConfigs
-                });
-
-                console.log(">>> MCP tools response", response);
-
-                if (response.tools && Array.isArray(response.tools)) {
-                    setMcpTools(response.tools);
-                } else {
-                    setMcpToolsError("No tools found in MCP server response");
-                }
-            }
-        } catch (error) {
-            console.error(">>> Error fetching MCP tools", error);
-            setMcpToolsError(`Failed to fetch tools from MCP server: ${error || 'Unknown error'}`);
-        } finally {
-            setLoadingMcpTools(false);
-        }
-    };
+    }, [newServerUrl]);
 
     const handleToolSelectionChange = (toolName: string, isSelected: boolean) => {
         const newSelectedTools = new Set(selectedMcpTools);
@@ -190,17 +170,31 @@ export function DropdownEditor(props: DropdownEditorProps) {
             newSelectedTools.delete(toolName);
         }
         setSelectedMcpTools(newSelectedTools);
+        // Call the callback with the updated selection
+        props.onToolsChange?.(Array.from(newSelectedTools));
     };
 
     const handleSelectAllTools = () => {
+        let newSelectedTools: Set<string>;
         if (selectedMcpTools.size === mcpTools.length) {
-            setSelectedMcpTools(new Set());
+            newSelectedTools = new Set();
         } else {
-            setSelectedMcpTools(new Set(mcpTools.map(tool => tool.name)));
+            newSelectedTools = new Set(mcpTools.map(tool => tool.name));
         }
+        setSelectedMcpTools(newSelectedTools);
+        // Call the callback with the updated selection
+        props.onToolsChange?.(Array.from(newSelectedTools));
     };
 
+    // Call onToolsChange whenever selectedMcpTools changes
+    useEffect(() => {
+        props.onToolsChange?.(Array.from(selectedMcpTools));
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [selectedMcpTools]);
+
+    // Update renderToolsSelection to use props.mcpTools if provided
     const renderToolsSelection = () => {
+        const tools = props.mcpTools ?? mcpTools;
         if (toolSelection !== "Selected") {
             return null;
         }
@@ -209,12 +203,12 @@ export function DropdownEditor(props: DropdownEditorProps) {
             <ToolsContainer>
                 <ToolsHeader>
                     <ToolsTitle>Available Tools</ToolsTitle>
-                    {mcpTools.length > 0 && (
+                    {tools.length > 0 && (
                         <Button
                             onClick={handleSelectAllTools}
                             disabled={loadingMcpTools}
                         >
-                            {selectedMcpTools.size === mcpTools.length ? "Deselect All" : "Select All"}
+                            {selectedMcpTools.size === tools.length ? "Deselect All" : "Select All"}
                         </Button>
                     )}
                 </ToolsHeader>
@@ -227,9 +221,9 @@ export function DropdownEditor(props: DropdownEditorProps) {
                 {mcpToolsError && (
                     <ErrorMessage>{mcpToolsError}</ErrorMessage>
                 )}
-                {mcpTools.length > 0 && (
+                {tools.length > 0 && (
                     <ToolCheckboxContainer>
-                        {mcpTools.map((tool) => (
+                        {tools.map((tool) => (
                             <ToolCheckboxItem key={tool.name}>
                                 <CheckBox
                                     label=""
@@ -250,7 +244,7 @@ export function DropdownEditor(props: DropdownEditorProps) {
                         ))}
                     </ToolCheckboxContainer>
                 )}
-                {!loadingMcpTools && !mcpToolsError && mcpTools.length === 0 && localServiceUrl.trim() && (
+                {!loadingMcpTools && !mcpToolsError && tools.length === 0 && localServiceUrl.trim() && (
                     <div style={{ color: ThemeColors.ON_SURFACE_VARIANT, fontSize: '12px' }}>
                         No tools available from this MCP server
                     </div>
@@ -259,7 +253,7 @@ export function DropdownEditor(props: DropdownEditorProps) {
         );
     };
 
-    const showScopeControls = field.key === "scope";
+    const showScopeControls = field.key === "toolsToInclude";
 
     return (
         <DropdownStack>
@@ -274,24 +268,12 @@ export function DropdownEditor(props: DropdownEditorProps) {
                 onChange={(e) => {
                     setValue(field.key, e.target.value);
                     field.onValueChange?.(e.target.value);
-                    if (field.key === "scope") setToolSelection(e.target.value);
                 }}
                 sx={{ width: "100%" }}
                 containerSx={{ width: "100%" }}
                 addNewBtnClick={field.addNewButton ? () => openSubPanel({ view: SubPanelView.ADD_NEW_FORM }) : undefined}
             />
             {showScopeControls && <DropdownSpacer />}
-            {showScopeControls && toolSelection === "Selected" && (
-                <div style={{ marginBottom: 12 }}>
-                    <TextField
-                        label="MCP Server URL"
-                        value={localServiceUrl}
-                        onChange={e => setLocalServiceUrl(e.target.value)}
-                        placeholder="Enter MCP server URL"
-                        sx={{ width: "100%" }}
-                    />
-                </div>
-            )}
             {showScopeControls && renderToolsSelection()}
         </DropdownStack>
     );
