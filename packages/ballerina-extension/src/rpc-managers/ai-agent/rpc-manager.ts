@@ -410,7 +410,7 @@ export class AiAgentRpcManager implements AIAgentAPI {
         const filePath = Utils.joinPath(URI.file(projectUri), "agents.bal").fsPath;
         
         // Generate the variable name from the server name
-        const variableName = this.toCamelCase(params.serverName);
+        const variableName = params.updatedNode.properties["variable"].value;
 
         // 1. Use the updatedNode from params for the MCP ToolKit edits
         let mcpEdits: { [filePath: string]: any[] } = {};
@@ -432,8 +432,8 @@ export class AiAgentRpcManager implements AIAgentAPI {
 
             nodeTemplate.flowNode.properties["serverUrl"] = params.updatedNode.properties["serverUrl"];
             nodeTemplate.flowNode.properties["info"] = params.updatedNode.properties["info"];
-            nodeTemplate.flowNode.properties["variable"].value = variableName;
-            nodeTemplate.flowNode.properties["permittedTools"].value = `()`;
+            nodeTemplate.flowNode.properties["variable"].value = params.updatedNode.properties["variable"].value;
+            nodeTemplate.flowNode.properties["permittedTools"].value = params.selectedTools.map(tool => `"${tool}"`);
             // nodeTemplate.flowNode.properties["permittedTools"].value = "()";
             // Use only the template node for generating text edits
             const mcpToolKitEdits = await StateMachine.langClient().getSourceCode({
