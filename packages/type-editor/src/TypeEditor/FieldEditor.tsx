@@ -142,6 +142,7 @@ export const FieldEditor: React.FC<FieldEditorProps> = (props) => {
         <>
             <div style={{ display: 'flex', gap: '8px', alignItems: 'start' }}>
                 <ExpandIconButton
+                    data-testid={`field-expand-btn`}
                     appearance="icon"
                     onClick={() => setPanelOpened(!panelOpened)}
                 >
@@ -197,7 +198,7 @@ export const FieldEditor: React.FC<FieldEditorProps> = (props) => {
                         }}
                     />
                 </CollapsibleSection>
-            )}    
+            )}
             {isRecord(member.type) && typeof member.type !== 'string' && (
                 <div style={{ marginLeft: '24px' }}>
                     <RecordEditor
