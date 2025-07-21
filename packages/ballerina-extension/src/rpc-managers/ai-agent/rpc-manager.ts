@@ -434,7 +434,10 @@ export class AiAgentRpcManager implements AIAgentAPI {
             nodeTemplate.flowNode.properties["info"] = params.updatedNode.properties["info"];
             nodeTemplate.flowNode.properties["variable"].value = params.updatedNode.properties["variable"].value;
             nodeTemplate.flowNode.properties["permittedTools"].value = params.selectedTools.map(tool => `"${tool}"`);
-            // nodeTemplate.flowNode.properties["permittedTools"].value = "()";
+            // Pass codedata if present
+            if (params.codedata) {
+                nodeTemplate.flowNode.codedata.lineRange = params.codedata.lineRange;
+            }
             // Use only the template node for generating text edits
             const mcpToolKitEdits = await StateMachine.langClient().getSourceCode({
                 filePath: filePath,
@@ -454,8 +457,27 @@ export class AiAgentRpcManager implements AIAgentAPI {
                     mcpEdits[key] = filtered;
                 }
             }
+            // Update the range fields using params.codedata.lineRange
+            if (params.codedata && params.codedata.lineRange) {
+                const { startLine, endLine } = params.codedata.lineRange;
+                for (const file in mcpEdits) {
+                    mcpEdits[file] = mcpEdits[file].map(edit => ({
+                        ...edit,
+                        range: {
+                            start: {
+                                line: startLine.line,
+                                character: startLine.offset,
+                            },
+                            end: {
+                                line: endLine.line,
+                                character: endLine.offset,
+                            },
+                        }
+                    }));
+                }
+            }
         }
-
+        
         // 2. Update the agent's tools array to include the variable name (following updateAIAgentTools pattern)
         const agentFlowNode = params.agentFlowNode;
         let toolsValue = agentFlowNode.properties["tools"].value;
@@ -469,7 +491,7 @@ export class AiAgentRpcManager implements AIAgentAPI {
                     toolsArray.push(variableName);
                 }
                 // Update the tools value
-                toolsValue = `[${toolsArray.join(", ")}]`;
+                toolsValue = `[${toolsArray.join(", ")} ]`;
             } else {
                 toolsValue = `[${variableName}]`;
             }

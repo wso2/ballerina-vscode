@@ -72,6 +72,7 @@ interface PanelManagerProps {
     editForm?: boolean;
     updatedExpressionField?: ExpressionFormField;
     showProgressIndicator?: boolean;
+    selectedMcpToolkitName?: string;
 
     // Action handlers
     onClose: () => void;
@@ -115,6 +116,7 @@ export function PanelManager(props: PanelManagerProps) {
         editForm,
         updatedExpressionField,
         showProgressIndicator,
+        selectedMcpToolkitName,
         onClose,
         onBack,
         onSelectNode,
@@ -204,7 +206,16 @@ export function PanelManager(props: PanelManagerProps) {
                 return <AddTool agentCallNode={selectedNode} onAddNewTool={handleOnAddTool} onSave={onClose} />;
 
             case SidePanelView.ADD_MCP_SERVER:
-                return <AddMcpServer agentCallNode={selectedNode} onAddMcpServer={handleOnAddMcpServer} onSave={onClose} />;
+                return (
+                    <AddMcpServer
+                        agentCallNode={selectedNode}
+                        fileName={fileName}
+                        name={selectedMcpToolkitName}
+                        onAddMcpServer={onClose}
+                        onSave={onClose}
+                        onBack={onBack}
+                    />
+                );
 
             case SidePanelView.EDIT_MCP_SERVER:
                 return <AddMcpServer editMode={true} name={selectedClientName} agentCallNode={selectedNode} onAddMcpServer={handleOnEditMcpServer} onSave={onClose} />;
