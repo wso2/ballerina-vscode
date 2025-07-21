@@ -76,6 +76,7 @@ export enum MACHINE_VIEW {
     AddConnectionWizard = "Add Connection Wizard",
     ViewConfigVariables = "View Config Variables",
     EditConfigVariables = "Edit Config Variables",
+    AddConfigVariables = "Add Config Variables",
     EditConnectionWizard = "Edit Connection Wizard",
     BIMainFunctionForm = "Add Automation SKIP",
     BIFunctionForm = "Add Function SKIP",
