@@ -250,7 +250,7 @@ import {
     AIToolResponse,
     AIToolRequest,
     ImportTibcoRequest,
-    ImportTibcoResponse
+    ImportIntegrationResponse
 } from "@wso2/ballerina-core";
 import { BallerinaExtension } from "./index";
 import { debug, handlePullModuleProgress } from "../utils";
@@ -1247,7 +1247,7 @@ export class ExtendedLangClient extends LanguageClient implements ExtendedLangCl
     async deleteOpenApiGeneratedModule(params: OpenAPIClientDeleteRequest): Promise<OpenAPIClientDeleteResponse> {
         return this.sendRequest<OpenAPIClientDeleteResponse>(EXTENDED_APIS.OPEN_API_CLIENT_DELETE, params);
     }
-
+    
     async getCopilotCompactLibraries(params: CopilotAllLibrariesRequest): Promise<CopilotCompactLibrariesResponse> {
         return this.sendRequest<CopilotCompactLibrariesResponse>(EXTENDED_APIS.COPILOT_ALL_LIBRARIES, params);
     }
@@ -1256,10 +1256,9 @@ export class ExtendedLangClient extends LanguageClient implements ExtendedLangCl
         return this.sendRequest<CopilotFilterLibrariesResponse>(EXTENDED_APIS.COPILOT_FILTER_LIBRARIES, params);
     }
 
-
-    async importTibcoToBI(params: ImportTibcoRequest): Promise<ImportTibcoResponse> {
+    async importTibcoToBI(params: ImportTibcoRequest): Promise<ImportIntegrationResponse> {
         debug(`Importing Tibco to Ballerina: ${JSON.stringify(params)}`);
-        return this.sendRequest<ImportTibcoResponse>(EXTENDED_APIS.TIBCO_TO_BI, params);
+        return this.sendRequest<ImportIntegrationResponse>(EXTENDED_APIS.TIBCO_TO_BI, params);
     }
 
     // <------------ BI APIS END --------------->

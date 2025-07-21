@@ -110,7 +110,8 @@ import {
     RecordsInWorkspaceMentions,
     BuildMode,
     DevantMetadata,
-    GeneratedClientSaveResponse
+    GeneratedClientSaveResponse,
+    MigrateRequest
 } from "./interfaces";
 
 export interface BIDiagramAPI {
@@ -127,6 +128,7 @@ export interface BIDiagramAPI {
     getNodeTemplate: (params: BINodeTemplateRequest) => Promise<BINodeTemplateResponse>;
     getAiSuggestions: (params: BIAiSuggestionsRequest) => Promise<BIAiSuggestionsResponse>;
     createProject: (params: ProjectRequest) => void;
+    migrateProject: (params: MigrateRequest) => void;
     getWorkspaces: () => Promise<WorkspacesResponse>;
     getProjectStructure: () => Promise<ProjectStructureResponse>;
     getProjectComponents: () => Promise<ProjectComponentsResponse>;

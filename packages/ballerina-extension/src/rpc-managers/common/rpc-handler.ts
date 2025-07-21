@@ -53,7 +53,7 @@ export function registerCommonRpcHandlers(messenger: Messenger) {
     messenger.onRequest(runBackgroundTerminalCommand, (args: RunExternalCommandRequest) => rpcManger.runBackgroundTerminalCommand(args));
     messenger.onNotification(openExternalUrl, (args: OpenExternalUrlRequest) => rpcManger.openExternalUrl(args));
     messenger.onRequest(selectFileOrDirPath, (args: FileOrDirRequest) => rpcManger.selectFileOrDirPath(args));
-    messenger.onRequest(selectFileOrFolderPath, () => rpcManger.selectFileOrFolder());
+    messenger.onRequest(selectFileOrFolderPath, () => rpcManger.selectFileOrFolderPath());
     messenger.onRequest(experimentalEnabled, () => rpcManger.experimentalEnabled());
     messenger.onRequest(isNPSupported, () => rpcManger.isNPSupported());
     messenger.onRequest(getWorkspaceRoot, () => rpcManger.getWorkspaceRoot());

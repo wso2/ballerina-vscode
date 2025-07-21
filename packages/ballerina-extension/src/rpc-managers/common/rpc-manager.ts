@@ -186,7 +186,7 @@ export class CommonRpcManager implements CommonRPCAPI {
         });
     }
 
-    async selectFileOrFolder(): Promise<FileOrDirResponse> {
+    async selectFileOrFolderPath(): Promise<FileOrDirResponse> {
         return new Promise(async (resolve) => {
             const selectedFileOrFolder = await askFileOrFolderPath();
             if (!selectedFileOrFolder || selectedFileOrFolder.length === 0) {

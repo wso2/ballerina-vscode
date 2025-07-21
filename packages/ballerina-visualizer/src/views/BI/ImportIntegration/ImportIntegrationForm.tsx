@@ -196,8 +196,6 @@ export function ImportIntegrationForm({
         onImport(finalParams);
     };
 
-
-
     const handleParameterChange = (paramKey: string, value: any) => {
         setIntegrationParams((prev) => ({
             ...prev,
@@ -211,7 +209,7 @@ export function ImportIntegrationForm({
     };
 
     const handleImportSourceSelection = async () => {
-        const importSource = await rpcClient.getCommonRpcClient().selectFileOrFolder();
+        const importSource = await rpcClient.getCommonRpcClient().selectFileOrFolderPath();
         setImportSourcePath(importSource.path);
     };
 
