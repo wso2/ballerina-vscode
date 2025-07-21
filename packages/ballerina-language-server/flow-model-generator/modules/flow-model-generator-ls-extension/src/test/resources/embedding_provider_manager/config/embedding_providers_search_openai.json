@@ -1,0 +1,32 @@
+{
+  "source": "embedding_provider/provider.bal",
+  "query": "openai",
+  "expectedEmbeddingProviders": {
+    "categories": [
+      {
+        "metadata": {
+          "label": "Embedding Providers"
+        },
+        "items": [
+          {
+            "metadata": {
+              "label": "OpenAI Embedding Provider",
+              "description": "Provides an interface to interact with OpenAI embedding models."
+            },
+            "codedata": {
+              "node": "EMBEDDING_PROVIDER",
+              "org": "ballerinax",
+              "module": "ai.openai",
+              "packageName": "ai.openai",
+              "object": "EmbeddingProvider",
+              "symbol": "init",
+              "version": "1.0.0"
+            },
+            "enabled": true,
+            "more": false
+          }
+        ]
+      }
+    ]
+  }
+}

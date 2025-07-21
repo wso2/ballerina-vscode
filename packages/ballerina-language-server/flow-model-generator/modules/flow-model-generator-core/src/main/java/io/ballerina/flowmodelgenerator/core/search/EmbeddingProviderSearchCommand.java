@@ -16,7 +16,7 @@
  *  under the License.
  */
 
- package io.ballerina.flowmodelgenerator.core.search;
+package io.ballerina.flowmodelgenerator.core.search;
 
 import io.ballerina.flowmodelgenerator.core.LocalIndexCentral;
 import io.ballerina.flowmodelgenerator.core.model.AvailableNode;
@@ -62,7 +62,7 @@ public class EmbeddingProviderSearchCommand extends SearchCommand {
                         availableNode.codedata().module().contains(query))
                 .toList();
 
-        providers.removeAll(matchingProviders);
+        providers.clear();
         providers.addAll(matchingProviders);
 
         return List.of(embeddingProviderCategory);

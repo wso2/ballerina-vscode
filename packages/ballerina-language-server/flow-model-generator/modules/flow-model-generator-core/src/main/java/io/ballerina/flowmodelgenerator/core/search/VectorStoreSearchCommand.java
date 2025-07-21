@@ -44,7 +44,7 @@ public class VectorStoreSearchCommand extends SearchCommand {
                         availableNode.codedata().module().contains(query))
                 .toList();
 
-        stores.removeAll(matchingStores);
+        stores.clear();
         stores.addAll(matchingStores);
 
         return List.of(vectorStoreCategory);

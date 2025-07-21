@@ -61,7 +61,7 @@ public class ModelProviderSearchCommand extends SearchCommand {
                 .filter(item -> item instanceof AvailableNode availableNode
                         && availableNode.codedata().module().contains(query)).toList();
 
-        providers.removeAll(matchingProviders);
+        providers.clear();
         providers.addAll(matchingProviders);
 
         return List.of(modelProviderCategory);

@@ -1,4 +1,4 @@
-package io.ballerina.flowmodelgenerator.extension.modelprovidermanager;
+package io.ballerina.flowmodelgenerator.extension.embeddingprovidermanager;
 
 import com.google.gson.JsonObject;
 import io.ballerina.flowmodelgenerator.extension.request.SearchRequest;
@@ -13,15 +13,15 @@ import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
 
-public class ModelProviderSearchTest extends AbstractLSTest {
-    private static final String MODEL_PROVIDER_KIND_NAME = "MODEL_PROVIDER";
+public class EmbeddingProviderSearchTest extends AbstractLSTest {
+    private static final String EMBEDDING_PROVIDER_KIND_NAME = "EMBEDDING_PROVIDER";
 
     @DataProvider(name = "data-provider")
     @Override
     protected Object[] getConfigsList() {
         return new Object[][]{
-                {Path.of("model_providers.json")},
-                {Path.of("model_providers_search_deepseek.json")}
+                {Path.of("embedding_providers.json")},
+                {Path.of("embedding_providers_search_openai.json")}
         };
     }
 
@@ -32,9 +32,9 @@ public class ModelProviderSearchTest extends AbstractLSTest {
         TestConfig testConfig = gson.fromJson(Files.newBufferedReader(configJsonPath), TestConfig.class);
         String filePath = sourceDir.resolve(testConfig.source()).toAbsolutePath().toString();
         Map<String, String> queryMap = getQueryMap(testConfig);
-        SearchRequest searchRequest = new SearchRequest(MODEL_PROVIDER_KIND_NAME, filePath, null, queryMap);
+        SearchRequest searchRequest = new SearchRequest(EMBEDDING_PROVIDER_KIND_NAME, filePath, null, queryMap);
         JsonObject searchResult = getResponse(searchRequest);
-        if (!searchResult.equals(testConfig.expectedModelProviders())) {
+        if (!searchResult.equals(testConfig.expectedEmbeddingProviders())) {
             TestConfig updatedConfig = new TestConfig(testConfig.source(), testConfig.query(), searchResult);
             // updateConfig(configJsonPath, updatedConfig);
             Assert.fail("Test failed. Updated the expected output in " + configJsonPath);
@@ -52,12 +52,12 @@ public class ModelProviderSearchTest extends AbstractLSTest {
 
     @Override
     protected String getResourceDir() {
-        return "model_provider_manager";
+        return "embedding_provider_manager";
     }
 
     @Override
     protected Class<? extends AbstractLSTest> clazz() {
-        return ModelProviderSearchTest.class;
+        return EmbeddingProviderSearchTest.class;
     }
 
     @Override
@@ -68,11 +68,11 @@ public class ModelProviderSearchTest extends AbstractLSTest {
     /**
      * Represents the test configuration for the flow model getNodeTemplate API.
      *
-     * @param source                 The source file path
-     * @param query                  The query string to search
-     * @param expectedModelProviders The expected set of model providers
+     * @param source                     The source file path
+     * @param query                      The query string to search
+     * @param expectedEmbeddingProviders The expected set of model providers
      */
-    private record TestConfig(String source, String query, JsonObject expectedModelProviders) {
+    private record TestConfig(String source, String query, JsonObject expectedEmbeddingProviders) {
 
     }
 }

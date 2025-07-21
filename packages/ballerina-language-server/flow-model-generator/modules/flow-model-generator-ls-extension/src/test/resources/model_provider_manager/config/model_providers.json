@@ -1,138 +1,149 @@
 {
   "source": "model_provider/provider.bal",
   "expectedModelProviders": {
-    "categories" : [ {
-      "metadata" : {
-        "label" : "Model Providers"
-      },
-      "items" : [ {
-        "metadata" : {
-          "label" : "Default Model Provider (WSO2)",
-          "description" : "Provides an interface to interact with WSO2-hosted Large Language Models."
+    "categories": [
+      {
+        "metadata": {
+          "label": "Model Providers"
         },
-        "codedata" : {
-          "node" : "MODEL_PROVIDER",
-          "org" : "ballerina",
-          "module" : "ai",
-          "packageName" : "ai",
-          "symbol" : "getDefaultModelProvider",
-          "version" : "1.0.0"
-        },
-        "enabled" : true,
-        "more" : false
-      }, {
-        "metadata" : {
-          "label" : "OpenAI Model Provider",
-          "description" : "Provides an interface to interact with OpenAI Large Language Models."
-        },
-        "codedata" : {
-          "node" : "MODEL_PROVIDER",
-          "org" : "ballerinax",
-          "module" : "ai.openai",
-          "packageName" : "ai.openai",
-          "object" : "ModelProvider",
-          "symbol" : "init",
-          "version" : "1.0.0"
-        },
-        "enabled" : true,
-        "more" : false
-      }, {
-        "metadata" : {
-          "label" : "Azure Model Provider",
-          "description" : "Provides an interface to interact with Azure OpenAI Large Language Models."
-        },
-        "codedata" : {
-          "node" : "MODEL_PROVIDER",
-          "org" : "ballerinax",
-          "module" : "ai.azure",
-          "packageName" : "ai.azure",
-          "object" : "OpenAiModelProvider",
-          "symbol" : "init",
-          "version" : "1.0.0"
-        },
-        "enabled" : true,
-        "more" : false
-      }, {
-        "metadata" : {
-          "label" : "Anthropic Model Provider",
-          "description" : "Provides an interface to interact with Anthropic Large Language Models."
-        },
-        "codedata" : {
-          "node" : "MODEL_PROVIDER",
-          "org" : "ballerinax",
-          "module" : "ai.anthropic",
-          "packageName" : "ai.anthropic",
-          "object" : "ModelProvider",
-          "symbol" : "init",
-          "version" : "1.0.0"
-        },
-        "enabled" : true,
-        "more" : false
-      }, {
-        "metadata" : {
-          "label" : "Deepseek Model Provider",
-          "description" : "Provides an interface to interact with Deepseek Large Language Models."
-        },
-        "codedata" : {
-          "node" : "MODEL_PROVIDER",
-          "org" : "ballerinax",
-          "module" : "ai.deepseek",
-          "packageName" : "ai.deepseek",
-          "object" : "ModelProvider",
-          "symbol" : "init",
-          "version" : "1.0.0"
-        },
-        "enabled" : true,
-        "more" : false
-      }, {
-        "metadata" : {
-          "label" : "Mistral Model Provider",
-          "description" : "Provides an interface to interact with Mistral Large Language Models."
-        },
-        "codedata" : {
-          "node" : "MODEL_PROVIDER",
-          "org" : "ballerinax",
-          "module" : "ai.mistral",
-          "packageName" : "ai.mistral",
-          "object" : "ModelProvider",
-          "symbol" : "init",
-          "version" : "1.0.0"
-        },
-        "enabled" : true,
-        "more" : false
-      }, {
-        "metadata" : {
-          "label" : "Ollama Model Provider",
-          "description" : "Provides an interface to interact with Ollama Large Language Models."
-        },
-        "codedata" : {
-          "node" : "MODEL_PROVIDER",
-          "org" : "ballerinax",
-          "module" : "ai.ollama",
-          "packageName" : "ai.ollama",
-          "object" : "ModelProvider",
-          "symbol" : "init",
-          "version" : "1.0.0"
-        },
-        "enabled" : true,
-        "more" : false
-      }, {
-        "metadata" : {
-          "label" : "WSO2 Model Provider",
-          "description" : "Provides an interface to interact with WSO2-hosted Large Language Models."
-        },
-        "codedata" : {
-          "node" : "MODEL_PROVIDER",
-          "org" : "ballerina",
-          "module" : "ai",
-          "packageName" : "ai",
-          "object" : "Wso2ModelProvider",
-          "symbol" : "init",
-          "version" : "1.0.0"
-        },
-        "enabled" : true,
-        "more" : false
-      } ]
-    } ]
+        "items": [
+          {
+            "metadata": {
+              "label": "Default Model Provider (WSO2)",
+              "description": "Provides an interface to interact with WSO2-hosted Large Language Models."
+            },
+            "codedata": {
+              "node": "MODEL_PROVIDER",
+              "org": "ballerina",
+              "module": "ai",
+              "packageName": "ai",
+              "symbol": "getDefaultModelProvider",
+              "version": "1.0.0"
+            },
+            "enabled": true,
+            "more": false
+          },
+          {
+            "metadata": {
+              "label": "OpenAI Model Provider",
+              "description": "Provides an interface to interact with OpenAI Large Language Models."
+            },
+            "codedata": {
+              "node": "MODEL_PROVIDER",
+              "org": "ballerinax",
+              "module": "ai.openai",
+              "packageName": "ai.openai",
+              "object": "ModelProvider",
+              "symbol": "init",
+              "version": "1.0.0"
+            },
+            "enabled": true,
+            "more": false
+          },
+          {
+            "metadata": {
+              "label": "Azure Model Provider",
+              "description": "Provides an interface to interact with Azure OpenAI Large Language Models."
+            },
+            "codedata": {
+              "node": "MODEL_PROVIDER",
+              "org": "ballerinax",
+              "module": "ai.azure",
+              "packageName": "ai.azure",
+              "object": "OpenAiModelProvider",
+              "symbol": "init",
+              "version": "1.0.0"
+            },
+            "enabled": true,
+            "more": false
+          },
+          {
+            "metadata": {
+              "label": "Anthropic Model Provider",
+              "description": "Provides an interface to interact with Anthropic Large Language Models."
+            },
+            "codedata": {
+              "node": "MODEL_PROVIDER",
+              "org": "ballerinax",
+              "module": "ai.anthropic",
+              "packageName": "ai.anthropic",
+              "object": "ModelProvider",
+              "symbol": "init",
+              "version": "1.0.0"
+            },
+            "enabled": true,
+            "more": false
+          },
+          {
+            "metadata": {
+              "label": "Deepseek Model Provider",
+              "description": "Provides an interface to interact with Deepseek Large Language Models."
+            },
+            "codedata": {
+              "node": "MODEL_PROVIDER",
+              "org": "ballerinax",
+              "module": "ai.deepseek",
+              "packageName": "ai.deepseek",
+              "object": "ModelProvider",
+              "symbol": "init",
+              "version": "1.0.0"
+            },
+            "enabled": true,
+            "more": false
+          },
+          {
+            "metadata": {
+              "label": "Mistral Model Provider",
+              "description": "Provides an interface to interact with Mistral Large Language Models."
+            },
+            "codedata": {
+              "node": "MODEL_PROVIDER",
+              "org": "ballerinax",
+              "module": "ai.mistral",
+              "packageName": "ai.mistral",
+              "object": "ModelProvider",
+              "symbol": "init",
+              "version": "1.0.0"
+            },
+            "enabled": true,
+            "more": false
+          },
+          {
+            "metadata": {
+              "label": "Ollama Model Provider",
+              "description": "Provides an interface to interact with Ollama Large Language Models."
+            },
+            "codedata": {
+              "node": "MODEL_PROVIDER",
+              "org": "ballerinax",
+              "module": "ai.ollama",
+              "packageName": "ai.ollama",
+              "object": "ModelProvider",
+              "symbol": "init",
+              "version": "1.0.0"
+            },
+            "enabled": true,
+            "more": false
+          },
+          {
+            "metadata": {
+              "label": "WSO2 Model Provider",
+              "description": "Provides an interface to interact with WSO2-hosted Large Language Models."
+            },
+            "codedata": {
+              "node": "MODEL_PROVIDER",
+              "org": "ballerina",
+              "module": "ai",
+              "packageName": "ai",
+              "object": "Wso2ModelProvider",
+              "symbol": "init",
+              "version": "1.0.0"
+            },
+            "enabled": true,
+            "more": false
+          }
+        ]
+      }
+    ]
   }
 }

@@ -97,6 +97,8 @@ under the License.
             <class name="io.ballerina.flowmodelgenerator.extension.CopilotLibraryListTest"/>
             <class name="io.ballerina.flowmodelgenerator.extension.CopilotLibraryFilterTest"/>
             <class name="io.ballerina.flowmodelgenerator.extension.modelprovidermanager.ModelProviderSearchTest"/>
+            <class name="io.ballerina.flowmodelgenerator.extension.embeddingprovidermanager.EmbeddingProviderSearchTest"/>
+            <class name="io.ballerina.flowmodelgenerator.extension.vectorstoremanager.VectorStoreSearchTest"/>
         </classes>
     </test>
 </suite>
