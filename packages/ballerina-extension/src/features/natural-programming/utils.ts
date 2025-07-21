@@ -34,7 +34,8 @@ import {
     DEFAULT_MODULE, MISSING_README_FILE_WARNING, README_DOCUMENTATION_IS_MISSING,
     MISSING_REQUIREMENT_FILE, MISSING_API_DOCS, API_DOCUMENTATION_IS_MISSING,
     PROGRESS_BAR_MESSAGE_FOR_NP_TOKEN,
-    ERROR_NO_BALLERINA_SOURCES
+    ERROR_NO_BALLERINA_SOURCES,
+    LOGIN_REQUIRED_WARNING
 } from "./constants";
 import { isError, isNumber } from 'lodash';
 import { HttpStatusCode } from 'axios';
@@ -49,10 +50,10 @@ import { fetchWithAuth } from '../ai/service/connection';
 let controller = new AbortController();
 
 export async function getLLMDiagnostics(projectUri: string, diagnosticCollection
-                                                  : vscode.DiagnosticCollection): Promise<number | null> {
+    : vscode.DiagnosticCollection): Promise<number | null> {
     const ballerinaProjectSource: BallerinaSource = await getBallerinaProjectSourceFiles(projectUri);
-    const sourcesOfNonDefaultModulesWithReadme: BallerinaSource[] 
-                    = getSourcesOfNonDefaultModulesWithReadme(path.join(projectUri, "modules"));
+    const sourcesOfNonDefaultModulesWithReadme: BallerinaSource[]
+        = getSourcesOfNonDefaultModulesWithReadme(path.join(projectUri, "modules"));
 
     const sources: BallerinaSource[] = [ballerinaProjectSource, ...sourcesOfNonDefaultModulesWithReadme];
     const backendurl = await getBackendURL();
@@ -72,9 +73,9 @@ export async function getLLMDiagnostics(projectUri: string, diagnosticCollection
 }
 
 async function getLLMResponses(sources: BallerinaSource[], token: string, backendurl: string)
-                                                                    : Promise<any[] | number> {
+    : Promise<any[] | number> {
     let promises: Promise<Response | Error>[] = [];
-    const nonDefaultModulesWithReadmeFiles: string[] 
+    const nonDefaultModulesWithReadmeFiles: string[]
         = sources.map(source => source.moduleName).filter(name => name != DEFAULT_MODULE);
 
     const commentResponsePromise = fetchWithAuth(
@@ -116,8 +117,8 @@ async function getLLMResponses(sources: BallerinaSource[], token: string, backen
     let responses: (Response | Error)[] = await Promise.all(promises);
     const firstResponse = responses[0];
 
-    const filteredResponses: Response[] 
-            = responses.filter(response => !isError(response) && response.ok) as Response[];
+    const filteredResponses: Response[]
+        = responses.filter(response => !isError(response) && response.ok) as Response[];
 
     if (filteredResponses.length === 0) {
         if (isError(firstResponse)) {
@@ -138,8 +139,8 @@ async function getLLMResponses(sources: BallerinaSource[], token: string, backen
     return extractedResponses;
 }
 
-async function createDiagnosticCollection(responses: any[], projectUri: string, 
-                                                        diagnosticCollection: vscode.DiagnosticCollection) {
+async function createDiagnosticCollection(responses: any[], projectUri: string,
+    diagnosticCollection: vscode.DiagnosticCollection) {
     let diagnosticsMap = new Map<string, vscode.Diagnostic[]>();
 
     for (const response of responses) {
@@ -258,8 +259,8 @@ async function createDiagnostic(result: ResultItem, uri: Uri): Promise<CustomDia
 
 export async function getLLMDiagnosticArrayAsString(projectUri: string): Promise<string | number> {
     const ballerinaProjectSource: BallerinaSource = await getBallerinaProjectSourceFiles(projectUri);
-    const sourcesOfNonDefaultModulesWithReadme: BallerinaSource[] 
-                    = getSourcesOfNonDefaultModulesWithReadme(path.join(projectUri, "modules"));
+    const sourcesOfNonDefaultModulesWithReadme: BallerinaSource[]
+        = getSourcesOfNonDefaultModulesWithReadme(path.join(projectUri, "modules"));
 
     const sources: BallerinaSource[] = [ballerinaProjectSource, ...sourcesOfNonDefaultModulesWithReadme];
     const backendurl = await getBackendURL();
@@ -539,7 +540,7 @@ function findFileCaseInsensitive(directory, fileName) {
 }
 
 export function addDefaultModelConfigForNaturalFunctions(
-                projectPath: string, token: string, backendUrl: string, isNaturalFunctionsAvailableInBallerinaOrg: boolean) {
+    projectPath: string, token: string, backendUrl: string, isNaturalFunctionsAvailableInBallerinaOrg: boolean) {
     const moduleOrg = isNaturalFunctionsAvailableInBallerinaOrg ? "ballerina" : "ballerinax";
     const targetTable = `[${moduleOrg}.np.defaultModelConfig]`;
     const urlLine = `url = "${backendUrl}"`;
@@ -604,10 +605,18 @@ export function addDefaultModelConfigForNaturalFunctions(
     fs.writeFileSync(configFilePath, fileContent);
 }
 
-export function getTokenForNaturalFunction() {
+export async function getTokenForNaturalFunction() {
     try {
-        return getRefreshedAccessToken();
+        const token = await getRefreshedAccessToken();
+        if (!token) {
+            vscode.window.showWarningMessage(LOGIN_REQUIRED_WARNING);
+            return null;
+        }
+        return token;
     } catch (error) {
+        if ((error as Error).message === "Refresh token is not available.") {
+            vscode.window.showWarningMessage(LOGIN_REQUIRED_WARNING);
+        }
         throw error;
     }
 }
@@ -660,7 +669,7 @@ export async function getConfigFilePath(ballerinaExtInstance: BallerinaExtension
         if (!currentBallerinaProject) {
             return await showNoBallerinaSourceWarningMessage();
         }
-            
+
         if (currentBallerinaProject.kind == 'SINGLE_FILE_PROJECT') {
             configPath = path.dirname(currentBallerinaProject.path);
         } else {
@@ -711,8 +720,8 @@ async function isBallerinaProjectAsync(rootPath: string): Promise<boolean> {
         }
 
         const files = fs.readdirSync(rootPath);
-        return files.some(file => 
-            file.toLowerCase() === 'ballerina.toml' || 
+        return files.some(file =>
+            file.toLowerCase() === 'ballerina.toml' ||
             file.toLowerCase().endsWith('.bal')
         );
     } catch (error) {

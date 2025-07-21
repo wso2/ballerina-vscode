@@ -24,7 +24,7 @@ import { StateMachine } from "../../stateMachine";
 import { getRefreshedAccessToken } from '../../../src/utils/ai/auth';
 import { AIStateMachine } from '../../../src/views/ai-panel/aiMachine';
 import { AIMachineEventType } from '@wso2/ballerina-core/lib/state-machine-types';
-import { CONFIG_FILE_NAME, ERROR_NO_BALLERINA_SOURCES, PROGRESS_BAR_MESSAGE_FROM_WSO2_DEFAULT_MODEL } from './constants';
+import { CONFIG_FILE_NAME, ERROR_NO_BALLERINA_SOURCES, LOGIN_REQUIRED_WARNING, PROGRESS_BAR_MESSAGE_FROM_WSO2_DEFAULT_MODEL } from './constants';
 import { getCurrentBallerinaProjectFromContext } from '../config-generator/configGenerator';
 import { BallerinaProject } from '@wso2/ballerina-core';
 import { BallerinaExtension } from 'src/core';
@@ -128,10 +128,18 @@ export async function getConfigFilePath(ballerinaExtInstance: BallerinaExtension
     }
 }
 
-export function getTokenForDefaultModel() {
+export async function getTokenForDefaultModel() {
     try {
-        return getRefreshedAccessToken();
+        const token = await getRefreshedAccessToken();
+        if (!token) {
+            vscode.window.showWarningMessage(LOGIN_REQUIRED_WARNING);
+            return null;
+        }
+        return token;
     } catch (error) {
+        if ((error as Error).message === "Refresh token is not available.") {
+            vscode.window.showWarningMessage(LOGIN_REQUIRED_WARNING);
+        }
         throw error;
     }
 }
