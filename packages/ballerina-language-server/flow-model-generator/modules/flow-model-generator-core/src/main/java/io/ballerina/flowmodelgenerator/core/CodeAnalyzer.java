@@ -231,8 +231,13 @@ public class CodeAnalyzer extends NodeVisitor {
         if (functionDefinitionNode.kind() == SyntaxKind.RESOURCE_ACCESSOR_DEFINITION) {
             accessor = functionName;
             functionName = getPathString(functionDefinitionNode.relativeResourcePath());
-            ServiceDeclarationNode serviceDeclarationNode = getParentServiceDeclaration(functionDefinitionNode);
-            kind = isAgent(serviceDeclarationNode) ? FunctionKind.AI_CHAT_AGENT : FunctionKind.RESOURCE;
+            NonTerminalNode parentNode = getParentNode(functionDefinitionNode);
+            if (parentNode instanceof ServiceDeclarationNode serviceDeclarationNode &&
+                    isAgent(serviceDeclarationNode)) {
+                kind = FunctionKind.AI_CHAT_AGENT;
+            } else {
+                kind = FunctionKind.RESOURCE;
+            }
         } else if (hasQualifier(functionDefinitionNode.qualifierList(), SyntaxKind.REMOTE_KEYWORD)) {
             kind = FunctionKind.REMOTE_FUNCTION;
         } else {
@@ -506,6 +511,18 @@ public class CodeAnalyzer extends NodeVisitor {
             throw new IllegalStateException("Service declaration not found");
         }
         return (ServiceDeclarationNode) currentNode;
+    }
+
+    private NonTerminalNode getParentNode(NonTerminalNode node) {
+        NonTerminalNode currentNode = node;
+        while (currentNode != null && currentNode.kind() != SyntaxKind.SERVICE_DECLARATION &&
+                currentNode.kind() != SyntaxKind.CLASS_DEFINITION) {
+            currentNode = currentNode.parent();
+        }
+        if (currentNode == null) {
+            throw new IllegalStateException("Parent node not found");
+        }
+        return currentNode;
     }
 
     private void setFunctionProperties(String functionName, ExpressionNode expressionNode,
