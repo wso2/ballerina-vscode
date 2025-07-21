@@ -181,6 +181,14 @@
       "sortText": "A",
       "insertText": "test",
       "insertTextFormat": "Snippet"
+    },
+    {
+      "label": "lang.natural",
+      "kind": "Module",
+      "detail": "Module",
+      "sortText": "B",
+      "insertText": "lang.'natural;",
+      "insertTextFormat": "Snippet"
     }
   ]
 }
