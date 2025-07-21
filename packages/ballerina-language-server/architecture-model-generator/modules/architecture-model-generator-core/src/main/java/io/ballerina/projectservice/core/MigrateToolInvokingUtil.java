@@ -18,10 +18,10 @@
 
 package io.ballerina.projectservice.core;
 
-import io.ballerina.projects.util.CustomURLClassLoader;
 import io.ballerina.projectservice.core.baltool.BalToolsUtil;
 
 import java.lang.reflect.Method;
+import java.net.URLClassLoader;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -42,7 +42,7 @@ public class MigrateToolInvokingUtil {
     public static ToolExecutionResult invokeToolMethod(String commandName, String className, String methodName,
                                                         Map<String, Object> args) {
         BalToolsUtil.updateOldBalToolsToml();
-        CustomURLClassLoader classLoader = BalToolsUtil.getCustomToolClassLoader(commandName);
+        URLClassLoader classLoader = BalToolsUtil.getCustomToolClassLoader(commandName);
         try {
             Class<?> toolClass = classLoader.loadClass(className);
             Method method = toolClass.getMethod(methodName, Map.class);

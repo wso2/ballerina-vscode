@@ -27,12 +27,10 @@ import org.ballerinalang.langserver.commons.LanguageServerContext;
 import org.ballerinalang.langserver.commons.client.ExtendedLanguageClient;
 import org.ballerinalang.langserver.commons.service.spi.ExtendedLanguageServerService;
 import org.ballerinalang.langserver.commons.workspace.WorkspaceManagerProxy;
-import org.eclipse.lsp4j.TextEdit;
 import org.eclipse.lsp4j.jsonrpc.services.JsonRequest;
 import org.eclipse.lsp4j.jsonrpc.services.JsonSegment;
 import org.eclipse.lsp4j.services.LanguageServer;
 
-import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
@@ -46,13 +44,13 @@ import java.util.function.Consumer;
 public class ProjectService implements ExtendedLanguageServerService {
 
     public static final String CAPABILITY_NAME = "projectService";
-    private ExtendedLanguageClient langClient;
+    private LanguageServerContext context;
 
     @Override
     public void init(LanguageServer langServer,
                      WorkspaceManagerProxy workspaceManagerProxy,
                      LanguageServerContext serverContext) {
-        this.langClient = serverContext.get(ExtendedLanguageClient.class);
+        this.context = serverContext;
     }
 
     @Override
@@ -69,8 +67,12 @@ public class ProjectService implements ExtendedLanguageServerService {
     @JsonRequest
     public CompletableFuture<ImportTibcoResponse> importTibco(ImportTibcoRequest request) {
         return CompletableFuture.supplyAsync(() -> {
-            Consumer<String> stateCallback = state -> langClient.stateCallback(state);
-            Consumer<String> logCallback = log -> langClient.logCallback(log);
+            ExtendedLanguageClient langClient = this.context.get(ExtendedLanguageClient.class);
+            if (langClient == null) {
+                new ImportTibcoResponse("Language client not available", null, null);
+            }
+            Consumer<String> stateCallback = langClient::stateCallback;
+            Consumer<String> logCallback = langClient::logCallback;
             ToolExecutionResult result = TibcoImporter.importTibco(request.orgName(), request.packageName(),
                     request.sourcePath(), stateCallback, logCallback);
             return ImportTibcoResponse.from(result);

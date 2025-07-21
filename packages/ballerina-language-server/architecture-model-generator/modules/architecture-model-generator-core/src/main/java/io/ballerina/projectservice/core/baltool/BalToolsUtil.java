@@ -32,6 +32,7 @@ import org.wso2.ballerinalang.util.RepoUtils;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLClassLoader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -99,8 +100,6 @@ public final class BalToolsUtil {
     private static final String TOOL_COMMAND = "tool";
 
     private static final String ANY_PLATFORM = "any";
-    private static String platform;
-
 
 
     private static final List<String> options = Arrays.asList(VERSION_OPTION, VERSION_SHORT_OPTION, HELP_OPTION,
@@ -137,7 +136,7 @@ public final class BalToolsUtil {
                 .flatMap(List::stream).noneMatch(commandName::equals);
     }
 
-    public static CustomURLClassLoader getCustomToolClassLoader(String commandName) {
+    public static URLClassLoader getCustomToolClassLoader(String commandName) {
         List<File> toolJars = getToolCommandJarAndDependencyJars(commandName);
         URL[] urls = toolJars.stream()
                 .map(file -> {
@@ -150,7 +149,7 @@ public final class BalToolsUtil {
                 .toArray(URL[]::new);
         // Combine custom class loader with system class loader
         ClassLoader systemClassLoader = ClassLoader.getSystemClassLoader();
-        return new CustomURLClassLoader(urls, systemClassLoader);
+        return new URLClassLoader(urls, systemClassLoader);
     }
 
     private static List<File> getToolCommandJarAndDependencyJars(String commandName) {
@@ -163,32 +162,9 @@ public final class BalToolsUtil {
         BalToolsToml balToolsToml = BalToolsToml.from(balToolsTomlPath);
         BalToolsManifest balToolsManifest = BalToolsManifestBuilder.from(balToolsToml).build();
 
-        // we load all tool jars for the help, default commands and --help, -h options
-//        if (HELP_COMMAND.equals(commandName)) {
-//            return balToolsManifest.tools().values().stream()
-//                    .flatMap(map -> map.values().stream())
-//                    .flatMap(map -> map.values().stream())
-//                    .filter(BalToolsManifest.Tool::active)
-//                    .map(tool1 -> findJarFiles(CommandUtil.getPlatformSpecificBalaPath(
-//                                    tool1.org(), tool1.name(), tool1.version(), ProjectConstants.LOCAL_REPOSITORY_NAME
-//                                            .equals(tool1.repository()) ? localBalaDirPath : centralBalaDirPath)
-//                            .resolve(TOOL).resolve(LIBS)
-//                            .toFile()))
-//                    .flatMap(List::stream)
-//                    .toList();
-//        }
-
         Optional<BalToolsManifest.Tool> toolOpt = balToolsManifest.getActiveTool(commandName);
         if (toolOpt.isPresent()) {
             BalToolsManifest.Tool tool = toolOpt.get();
-//            if (!isToolDistCompatibilityWithCurrentDist(tool)) {
-//                String errMsg = "tool '" + tool.id() + ":" + tool.version() +
-//                        "' is not compatible with the current Ballerina distribution '" +
-//                        RepoUtils.getBallerinaShortVersion() +
-//                        "'. Use 'bal tool search' to select a version compatible with the " +
-//                        "current Ballerina distribution.";
-//                throw new RuntimeException(errMsg);
-//            }
             Path platformPath = getPlatformSpecificBalaPath(
                     tool.org(), tool.name(), tool.version(), ProjectConstants.LOCAL_REPOSITORY_NAME
                             .equals(tool.repository()) ? localBalaDirPath : centralBalaDirPath);
@@ -197,31 +173,6 @@ public final class BalToolsUtil {
         }
         throw new RuntimeException("unknown command '" + commandName + "'. ");
     }
-
-//    private static boolean isToolDistCompatibilityWithCurrentDist(BalToolsManifest.Tool tool) {
-//        SemanticVersion currentDistVersion = SemanticVersion.from(RepoUtils.getBallerinaShortVersion());
-//        SemanticVersion toolDistVersion = getToolDistVersionFromCentralCache(tool);
-//        return isVersionsCompatible(currentDistVersion, toolDistVersion);
-//    }
-
-//    private static SemanticVersion getToolDistVersionFromCentralCache(BalToolsManifest.Tool tool) {
-//        Path centralBalaDirPath = ProjectUtils.createAndGetHomeReposPath().resolve(
-//                Path.of(REPOSITORIES_DIR, CENTRAL_REPOSITORY_CACHE_NAME, ProjectConstants.BALA_DIR_NAME));
-//        Path localBalaPath = ProjectUtils.createAndGetHomeReposPath().resolve(
-//                Path.of(REPOSITORIES_DIR, ProjectConstants.LOCAL_REPOSITORY_NAME, ProjectConstants.BALA_DIR_NAME));
-//        Path balaPath =  getPlatformSpecificBalaPath(
-//                tool.org(), tool.name(), tool.version(), ProjectConstants.LOCAL_REPOSITORY_NAME
-//                        .equals(tool.repository()) ? localBalaPath : centralBalaDirPath);
-//        PackageJson packageJson = BalaFiles.readPackageJson(balaPath);
-//        return SemanticVersion.from(packageJson.getBallerinaVersion());
-//    }
-
-    private static boolean isVersionsCompatible(SemanticVersion localDistVersion,
-                                                SemanticVersion toolDistVersion) {
-        return localDistVersion.major() == toolDistVersion.major()
-                && localDistVersion.minor() >= toolDistVersion.minor();
-    }
-
     /**
      * Find jar files in the given directory.
      *
@@ -303,7 +254,7 @@ public final class BalToolsUtil {
         Path balaPath = balaCache.resolve(
                 ProjectUtils.getRelativeBalaPath(orgName, pkgName, version, null));
         //First we will check for a bala that match any platform
-        platform = ANY_PLATFORM;
+        String platform = ANY_PLATFORM;
         if (!Files.exists(balaPath)) {
             for (JvmTarget supportedPlatform : JvmTarget.values()) {
                 balaPath = balaCache.resolve(
