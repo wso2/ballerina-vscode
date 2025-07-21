@@ -13,5 +13,8 @@
     "line": 17,
     "offset": 12
   },
-  "visualizableProperties": {}
+  "visualizableProperties": {
+    "isDataMapped": false,
+    "defaultValue": "0"
+  }
 }

@@ -18,7 +18,7 @@
 
 package io.ballerina.flowmodelgenerator.extension.response;
 
-import java.util.Map;
+import com.google.gson.JsonElement;
 
 /**
  * Represents the response containing data mapper model data mapping.
@@ -27,16 +27,16 @@ import java.util.Map;
  */
 public class DataMapperVisualizeResponse extends AbstractFlowModelResponse {
 
-    private Map<String, String> visualizableProperties;
+    private JsonElement visualizableProperties;
 
     public DataMapperVisualizeResponse() {
     }
 
-    public Map<String, String> getVisualizableProperties() {
+    public JsonElement getVisualizableProperties() {
         return visualizableProperties;
     }
 
-    public void setVisualizableProperties(Map<String, String> visualizableProperties) {
+    public void setVisualizableProperties(JsonElement visualizableProperties) {
         this.visualizableProperties = visualizableProperties;
     }
 }

@@ -125,6 +125,11 @@ public class DataMapManager {
     public static final String LIMIT = "limit";
     public static final String ORDER_BY = "order-by";
     public static final String ITEM = "Item";
+    public static final String INT = "int";
+    public static final String FLOAT = "float";
+    public static final String DECIMAL = "decimal";
+    public static final String BOOLEAN = "boolean";
+    public static final String STRING = "string";
     private final Document document;
     private final Gson gson = new Gson();
 
@@ -1236,7 +1241,7 @@ public class DataMapManager {
                 .orElse(null);
     }
 
-    public Map<String, String> getVisualizableProperties(SemanticModel sm, JsonElement node) {
+    public JsonElement getVisualizableProperties(SemanticModel sm, JsonElement node) {
         Codedata codedata = gson.fromJson(node, Codedata.class);
         String org = codedata.org();
         SemanticModel semanticModel;
@@ -1254,6 +1259,11 @@ public class DataMapManager {
         String[] typeParts = codedata.symbol().split("\\[", 2);
         String type = typeParts[0];
         boolean isArray = (typeParts.length > 1 ? "[" + typeParts[1] : "").startsWith("[");
+        DataMapCapability dataMapCapability = getDataMapperCapabilityForPrimitiveTypes(type, isArray);
+        if (dataMapCapability != null) {
+            return gson.toJsonTree(dataMapCapability);
+        }
+
         for (Symbol symbol : semanticModel.moduleSymbols()) {
             if (symbol.kind() != SymbolKind.TYPE_DEFINITION) {
                 continue;
@@ -1261,12 +1271,7 @@ public class DataMapManager {
             if (symbol.getName().isEmpty() || !symbol.getName().get().equals(type)) {
                 continue;
             }
-            Map<String, String> expressionMap = getExpressionMapForType(symbol, isArray);
-            if (!expressionMap.isEmpty()) {
-                return expressionMap;
-            }
-            throw new IllegalStateException("Unsupported type for visualizable properties: " +
-                    CommonUtils.getRawType(((TypeDefinitionSymbol) symbol).typeDescriptor()).typeKind());
+            return gson.toJsonTree(getDataMapCapability(symbol, isArray));
         }
 
         String[] typeSegments = type.split(":");
@@ -1276,29 +1281,47 @@ public class DataMapManager {
             String typeName = typeSegments[1];
             Symbol matchedSymbol = getMatchedTypeDefSymbol(prefix, typeName, semanticModel);
             if (matchedSymbol != null) {
-                Map<String, String> expressionMap = getExpressionMapForType(matchedSymbol, isArray);
-                if (!expressionMap.isEmpty()) {
-                    return expressionMap;
-                }
+                return gson.toJsonTree(getDataMapCapability(matchedSymbol, isArray));
             }
         }
-
-        return Map.of();
+        return null;
     }
 
-    public Map<String, String> getExpressionMapForType(Symbol symbol, Boolean isArray) {
+    private DataMapCapability getDataMapCapability(Symbol symbol, Boolean isArray) {
         TypeDefinitionSymbol typeDefSymbol = (TypeDefinitionSymbol) symbol;
         TypeSymbol typeSymbol = typeDefSymbol.typeDescriptor();
         TypeSymbol rawTypeSymbol = CommonUtils.getRawType(typeSymbol);
         TypeDescKind kind = rawTypeSymbol.typeKind();
         if (isEffectiveRecordType(kind, rawTypeSymbol)) {
-            if (kind == TypeDescKind.ARRAY || isArray) {
-                return Map.of("expression", "[]");
-            } else if (kind == TypeDescKind.RECORD) {
-                return Map.of("expression", "{}");
+            if (isArray) {
+                return new DataMapCapability(true, "[]");
+            }
+            return new DataMapCapability(true, "{}");
+        } else if (kind == TypeDescKind.INT || kind == TypeDescKind.DECIMAL || kind == TypeDescKind.FLOAT) {
+            return new DataMapCapability(false, "0");
+        } else if (kind == TypeDescKind.BOOLEAN) {
+            return new DataMapCapability(false, "false");
+        } else if (kind == TypeDescKind.STRING) {
+            return new DataMapCapability(false, "\"\"");
+        } 
+        return null;
+    }
+
+    private DataMapCapability getDataMapperCapabilityForPrimitiveTypes(String type, Boolean isArray) {
+        switch (type) {
+            case INT, FLOAT, DECIMAL -> {
+                return new DataMapCapability(false, isArray ? "[]" : "0");
+            }
+            case BOOLEAN -> {
+                return new DataMapCapability(false, isArray ? "[]" : "false");
+            }
+            case STRING -> {
+                return new DataMapCapability(false, isArray ? "[]" : "\"\"");
+            }
+            default -> {
+                return null;
             }
         }
-        return Map.of();
     }
 
     private boolean isEffectiveRecordType(TypeDescKind kind, TypeSymbol rawTypeSymbol) {
@@ -1719,13 +1742,13 @@ public class DataMapManager {
 
     private String getDefaultValue(String kind) {
         switch (kind) {
-            case "int", "float", "decimal" -> {
+            case INT, FLOAT, DECIMAL -> {
                 return "0";
             }
-            case "boolean" -> {
+            case BOOLEAN -> {
                 return "false";
             }
-            case "string" -> {
+            case STRING -> {
                 return "\"\"";
             }
             case "record" -> {
@@ -1811,6 +1834,10 @@ public class DataMapManager {
     }
 
     private record MappingElements(List<Mapping> mappings) {
+
+    }
+
+    private record DataMapCapability(boolean isDataMapped, String defaultValue) {
 
     }
 

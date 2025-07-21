@@ -5,6 +5,7 @@
     "symbol": "redis:Options"
   },
   "visualizableProperties": {
-    "expression": "{}"
+    "isDataMapped": true,
+    "defaultValue": "{}"
   }
 }
