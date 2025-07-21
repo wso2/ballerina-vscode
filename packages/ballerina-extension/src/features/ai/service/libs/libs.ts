@@ -63,6 +63,7 @@ export async function getSelectedLibraries(prompt: string, generationType: Gener
     if (allLibraries.length === 0) {
         return [];
     }
+    console.log("All libraries:", allLibraries);
     const messages: CoreMessage[] = [
         {
             role: "system",
