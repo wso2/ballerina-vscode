@@ -99,6 +99,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
     const [subPanel, setSubPanel] = useState<SubPanel>({ view: SubPanelView.UNDEFINED });
     const [updatedExpressionField, setUpdatedExpressionField] = useState<any>(undefined);
     const [breakpointInfo, setBreakpointInfo] = useState<BreakpointInfo>();
+    const [selectedMcpToolkitName, setSelectedMcpToolkitName] = useState<string | undefined>(undefined);
 
     const selectedNodeRef = useRef<FlowNode>();
     const nodeTemplateRef = useRef<FlowNode>();
@@ -1065,6 +1066,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
         selectedNodeRef.current = node;
         selectedClientName.current = tool.name;
         showEditForm.current = true;
+        setSelectedMcpToolkitName(tool.name);
 
         setShowProgressIndicator(true);
         // get project components to find the function
@@ -1244,6 +1246,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 onDeleteTool={handleOnDeleteTool}
                 onAddTool={handleOnAddTool}
                 onAddMcpServer={handleOnAddMcpServer}
+                selectedMcpToolkitName={selectedMcpToolkitName}
             />
         </>
     );

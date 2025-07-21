@@ -314,6 +314,26 @@ export function AddMcpServer(props: AddToolProps): JSX.Element {
         setMcpToolResponse(mcpToolResponse.flowNode)
         console.log(">>> response getSourceCode with template ", { mcpToolResponse });
         console.log(">>> agent node ", { agentNode });
+        const variableNodes = await rpcClient.getBIDiagramRpcClient().getModuleNodes();
+        console.log(">>> variableNodes", variableNodes);
+        if (editMode) {
+            // Find the variable with type 'ai:McpToolKit'
+            const mcpVariable = variableNodes.flowModel?.variables?.find(
+                (v) => v.properties?.type?.value === "ai:McpToolKit" && v.properties.variable?.value === name
+            );
+            console.log(">>> mcpVariable", mcpVariable);
+            // Properly add toolsToInclude to the properties object
+            const updatedProperties = { ...(mcpVariable.properties || {}) };
+            (updatedProperties as any)["toolsToInclude"] = fieldVal;
+
+            const updatedMcpToolResponse = {
+                ...mcpVariable,
+                properties: updatedProperties,
+                codedata: mcpVariable.codedata,
+            };
+
+            setMcpToolResponse(updatedMcpToolResponse);
+        }
         if (agentNode?.properties?.tools?.value) {
             const toolsString = agentNode.properties.tools.value.toString();
             const mcpToolkits = extractMcpToolkits(toolsString);
@@ -574,7 +594,8 @@ export function AddMcpServer(props: AddToolProps): JSX.Element {
                 serverName: finalName,
                 selectedTools: selectedTools,
                 updatedNode: node,
-                mcpTools: payload.mcpTools // <-- pass mcpTools to the method
+                codedata: mcpToolResponse.codedata,
+                mcpTools: payload.mcpTools
             });
             setServiceUrl(payload.serviceUrl);
             onSave?.();

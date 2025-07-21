@@ -124,7 +124,7 @@ export const EditorFactory = (props: FormFieldEditorProps) => {
         // />;
         // HACK:Single select field is treat as type editor for now
         console.log(">>> Single select field is treated as type editor", field);
-        return <DropdownEditor field={field} openSubPanel={openSubPanel} scopeFieldAddon={scopeFieldAddon} newServerUrl={newServerUrl} mcpTools={props.mcpTools} onToolsChange={props.onToolsChange} />;
+        return <DropdownEditor field={field} openSubPanel={openSubPanel} newServerUrl={newServerUrl} mcpTools={props.mcpTools} onToolsChange={props.onToolsChange} />;
     } else if (!field.items && (field.key === "type" || field.type === "TYPE") && field.editable) {
         // Type field is a type editor
         return (
