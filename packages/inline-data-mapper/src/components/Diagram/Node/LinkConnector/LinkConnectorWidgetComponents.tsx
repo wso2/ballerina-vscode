@@ -69,7 +69,7 @@ export const renderIconButton = (node: LinkConnectorNode) => {
     if (isFunctionCall) {
         if (functionRange) {
             const onClickFunctionCall = () => {
-               
+               node.context.goToFunction(functionRange);
             }
             return renderFunctionCallButton(onClickFunctionCall, node?.value);
         } 

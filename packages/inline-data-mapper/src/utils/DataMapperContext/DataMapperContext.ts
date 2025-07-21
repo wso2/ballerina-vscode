@@ -15,7 +15,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { CustomFnMetadata, ExpandedDMModel, Mapping, Query } from "@wso2/ballerina-core";
+import { CustomFnMetadata, ExpandedDMModel, LineRange, Mapping } from "@wso2/ballerina-core";
 import { View } from "../../components/DataMapper/Views/DataMapperView";
 
 export interface IDataMapperContext {
@@ -28,6 +28,7 @@ export interface IDataMapperContext {
     convertToQuery: (outputId: string, viewId: string, name: string) => Promise<void>;
     deleteMapping: (mapping: Mapping, viewId: string) => Promise<void>;
     mapWithCustomFn: (mapping: Mapping, metadata: CustomFnMetadata, viewId: string) => Promise<void>;
+    goToFunction: (functionRange: LineRange) => Promise<void>;
 }
 
 export class DataMapperContext implements IDataMapperContext {
@@ -41,6 +42,7 @@ export class DataMapperContext implements IDataMapperContext {
         public hasInputsOutputsChanged: boolean = false,
         public convertToQuery: (outputId: string, viewId: string, name: string) => Promise<void>,
         public deleteMapping: (mapping: Mapping, viewId: string) => Promise<void>,
-        public mapWithCustomFn: (mapping: Mapping, metadata: CustomFnMetadata, viewId: string) => Promise<void>
+        public mapWithCustomFn: (mapping: Mapping, metadata: CustomFnMetadata, viewId: string) => Promise<void>,
+        public goToFunction: (functionRange: LineRange) => Promise<void>
     ){}
 }

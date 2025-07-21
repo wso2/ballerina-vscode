@@ -33,7 +33,10 @@ import {
     TriggerCharacter,
     TRIGGER_CHARACTERS,
     Mapping,
-    CustomFnMetadata
+    CustomFnMetadata,
+    NodePosition,
+    EVENT_TYPE,
+    LineRange
 } from "@wso2/ballerina-core";
 import { CompletionItem, ProgressIndicator } from "@wso2/ui-toolkit";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
@@ -46,6 +49,7 @@ import { InlineDataMapperProps } from ".";
 import { EXPRESSION_EXTRACTION_REGEX } from "../../constants";
 import { calculateExpressionOffsets, convertBalCompletion, updateLineRange } from "../../utils/bi";
 import { createAddSubMappingRequest } from "./utils";
+import { URI, Utils } from "vscode-uri";
 
 // Types for model comparison
 interface ModelSignature {
@@ -317,6 +321,23 @@ export function InlineDataMapperView(props: InlineDataMapperProps) {
         }
     };
 
+    const goToFunction = async (functionRange: LineRange) => {
+        const visualizerLocation = await rpcClient.getVisualizerLocation();
+        const documentUri: string = Utils.joinPath(
+            URI.file(visualizerLocation.projectUri),
+            functionRange.fileName
+        ).fsPath;
+        const position: NodePosition = {
+            startLine: functionRange.startLine.line,
+            startColumn: functionRange.startLine.offset,
+            endLine: functionRange.endLine.line,
+            endColumn: functionRange.endLine.offset
+        };
+        rpcClient
+            .getVisualizerRpcClient()
+            .openView({ type: EVENT_TYPE.OPEN_VIEW, location: { documentUri, position } });
+    };
+
     useEffect(() => {
         // Hack to hit the error boundary
         if (isError) {
@@ -427,6 +448,7 @@ export function InlineDataMapperView(props: InlineDataMapperProps) {
                     addSubMapping={addSubMapping}
                     deleteMapping={deleteMapping}
                     mapWithCustomFn={mapWithCustomFn}
+                    goToFunction={goToFunction}
                     expressionBar={{
                         completions: filteredCompletions,
                         triggerCompletions: retrieveCompeletions,
