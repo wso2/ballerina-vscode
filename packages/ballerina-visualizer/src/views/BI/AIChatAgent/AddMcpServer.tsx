@@ -642,7 +642,7 @@ export function AddMcpServer(props: AddToolProps): JSX.Element {
                         </Button>
                     )}
                 </ToolsHeader>
-
+                
                 {loadingMcpTools && (
                     <LoadingMessage>
                         <RelativeLoader size="small" />
@@ -712,7 +712,7 @@ export function AddMcpServer(props: AddToolProps): JSX.Element {
                             sx={{ flexGrow: 1, marginTop: 15 }}
                             disabled={false}
                             errorMsg={urlError}
-                            label="Service URL"
+                            label="Server URL"
                             size={70}
                             onChange={handleServiceUrlChange}
                             placeholder="Enter MCP server URL"
