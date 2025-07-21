@@ -201,6 +201,31 @@ namespace S {
         width: 100%;
         margin-top: 20px;
     `;
+
+    export const ShowMoreContainer = styled.div`
+        display: flex;
+        flex-direction: row;
+        justify-content: center;
+        align-items: center;
+        width: 100%;
+        height: 35px;
+        cursor: pointer;
+        border: 1px dashed ${ThemeColors.OUTLINE_VARIANT};
+        border-radius: 5px;
+        &:hover {
+            background-color: ${ThemeColors.PRIMARY_CONTAINER};
+            border: 1px dashed ${ThemeColors.PRIMARY};
+            border-radius: 5px;
+        }
+    `;
+
+    export const ShowMoreTitle = styled.div`
+        white-space: nowrap;
+        justify-items: center;
+        align-items: center;
+        color: ${ThemeColors.ON_SURFACE_VARIANT};
+        opacity: 0.7;
+    `;
 }
 
 interface NodeListProps {
@@ -328,6 +353,9 @@ export function NodeList(props: NodeListProps) {
     );
 
     const getCategoryContainer = (groups: Category[], isSubCategory = false) => {
+        const callFunctionNode = groups
+            .flatMap((group) => group?.items)
+            .find((item) => "id" in item && item.id === "FUNCTION");
         const content = (
             <>
                 {groups.map((group, index) => {
@@ -444,6 +472,13 @@ export function NodeList(props: NodeListProps) {
                         </S.CategoryRow>
                     );
                 })}
+                {callFunctionNode && (
+                    <S.CategoryRow key={"showMoreFunctions"} showBorder={false}>
+                        <S.ShowMoreContainer onClick={() => handleAddNode(callFunctionNode as Node)}>
+                            <S.ShowMoreTitle>Show More Functions</S.ShowMoreTitle>
+                        </S.ShowMoreContainer>
+                    </S.CategoryRow>
+                )}
             </>
         );
 
