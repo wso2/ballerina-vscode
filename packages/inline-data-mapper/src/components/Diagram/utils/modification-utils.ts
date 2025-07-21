@@ -97,14 +97,14 @@ export async function mapWithCustomFn(link: DataMapperLinkModel, context: IDataM
 	const outputField = outputPortModel.attributes.field;
 	const inputParams: CustomFnParams[] = [{
 		name: inputField.variableName,
-		type: inputField.typeName,
+		type: inputField.typeName.replace("record", "any"),
 		isOptional: false,
 		isNullable: false,
 		kind: inputField.kind
 	}];
 
 	const metadata: CustomFnMetadata = {
-		returnType: outputField.typeName || outputField.kind,
+		returnType: outputField.typeName.replace("record", "any"),
 		parameters: inputParams
 	}
 

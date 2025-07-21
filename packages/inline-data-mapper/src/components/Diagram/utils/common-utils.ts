@@ -61,7 +61,9 @@ export function getMappingType(sourcePort: PortModel, targetPort: PortModel): Ma
             if (dimDelta > 0) return MappingType.ArrayToSingleton;
         }
 
-        if ((sourceField.kind !== targetField.kind) || (sourceField.variableName !== targetField.variableName)) {
+        if ((sourceField.kind !== targetField.kind)
+            || (sourceField.typeName !== targetField.typeName)
+            || sourceField.typeName === "record") {
             return MappingType.Incompatible;
         }
 
