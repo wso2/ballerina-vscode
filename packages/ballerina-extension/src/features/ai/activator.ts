@@ -16,8 +16,11 @@
  * under the License.
  */
 
+import vscode from 'vscode';
 import { BallerinaExtension, ExtendedLangClient } from '../../core';
 import { activateCopilotLoginCommand, resetBIAuth } from './completions';
+import { addConfigFile, getConfigFilePath } from './utils';
+import { StateMachine } from "../../stateMachine";
 
 export let langClient: ExtendedLangClient;
 
@@ -25,4 +28,15 @@ export function activateAIFeatures(ballerinaExternalInstance: BallerinaExtension
     langClient = <ExtendedLangClient>ballerinaExternalInstance.langClient;
     activateCopilotLoginCommand();
     resetBIAuth();
+
+    const projectPath = StateMachine.context().projectUri;
+
+    vscode.commands.registerCommand("ballerina.configureWso2DefaultModelProvider", async (...args: any[]) => {
+        const configPath = await getConfigFilePath(ballerinaExternalInstance, projectPath);
+        if (configPath != null) {
+            addConfigFile(configPath);
+        }
+    });
 }
+
+
