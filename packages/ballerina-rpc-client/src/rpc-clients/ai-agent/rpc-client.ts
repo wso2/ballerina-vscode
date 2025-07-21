@@ -38,11 +38,16 @@ import {
     getAllAgents,
     getAllMemoryManagers,
     getAllModels,
+    getMcpTools,
     getModels,
     getTools,
+    McpToolsRequest,
+    McpToolsResponse,
+    McpToolUpdateRequest,
     MemoryManagersRequest,
     MemoryManagersResponse,
-    updateAIAgentTools
+    updateAIAgentTools,
+    updateMCPToolKit
 } from "@wso2/ballerina-core";
 import { HOST_EXTENSION } from "vscode-messenger-common";
 import { Messenger } from "vscode-messenger-webview";
@@ -78,6 +83,10 @@ export class AiAgentRpcClient implements AIAgentAPI {
         return this._messenger.sendRequest(getTools, HOST_EXTENSION, params);
     }
 
+    getMcpTools(params: McpToolsRequest): Promise<McpToolsResponse> {
+        return this._messenger.sendRequest(getMcpTools, HOST_EXTENSION, params);
+    }
+
     genTool(params: AIGentToolsRequest): Promise<AIGentToolsResponse> {
         return this._messenger.sendRequest(genTool, HOST_EXTENSION, params);
     }
@@ -88,5 +97,9 @@ export class AiAgentRpcClient implements AIAgentAPI {
 
     updateAIAgentTools(params: AIAgentToolsUpdateRequest): Promise<AIAgentResponse> {
         return this._messenger.sendRequest(updateAIAgentTools, HOST_EXTENSION, params);
+    }
+
+    updateMCPToolKit(params: McpToolUpdateRequest): Promise<void> {
+        return this._messenger.sendRequest(updateMCPToolKit, HOST_EXTENSION, params);
     }
 }

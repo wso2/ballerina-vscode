@@ -363,14 +363,26 @@ export function AgentCallNodeWidget(props: AgentCallNodeWidgetProps) {
     };
 
     const onToolClick = (tool: ToolData) => {
-        console.log(">>> onToolClick", tool);
-        agentNode?.onSelectTool && agentNode.onSelectTool(tool, model.node);
-        setAnchorEl(null);
+        console.log(">>> on Tool Click", tool);
+        const toolType = tool.type ?? "";
+        if (toolType === "MCP Server") {
+            agentNode?.onSelectMcpToolkit && agentNode.onSelectMcpToolkit(tool, model.node);
+            setAnchorEl(null);
+        } else {
+            agentNode?.onSelectTool && agentNode.onSelectTool(tool, model.node);
+            setAnchorEl(null);
+        }
     };
 
     const onAddToolClick = () => {
         console.log(">>> onAddToolClick", model.node);
         agentNode?.onAddTool && agentNode.onAddTool(model.node);
+        setAnchorEl(null);
+    };
+
+    const onAddMcpServerClick = () => {
+        console.log(">>> onAddMcpServerClick", model.node);
+        agentNode?.onAddMcpServer && agentNode.onAddMcpServer(model.node);
         setAnchorEl(null);
     };
 
@@ -883,7 +895,7 @@ export function AgentCallNodeWidget(props: AgentCallNodeWidgetProps) {
                             }
                         `}
                     >
-                        <title>Add new tool</title>
+                        <title>Add new tool / MCP server</title>
                         <path
                             fill={ThemeColors.SURFACE_BRIGHT}
                             d="M12 0C5 0 0 5 0 12s5 12 12 12 12-5 12-12S19 0 12 0z"
@@ -913,7 +925,7 @@ export function AgentCallNodeWidget(props: AgentCallNodeWidgetProps) {
                                 font-family: "GilmerRegular";
                             `}
                         >
-                            Add new tool
+                            Add new tool / MCP server
                         </div>
                     </foreignObject>
                 </g>

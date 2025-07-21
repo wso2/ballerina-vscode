@@ -228,6 +228,8 @@ import {
     ResourceReturnTypesResponse,
     JsonToTypeRequest,
     JsonToTypeResponse,
+    McpToolsRequest,
+    McpToolsResponse,
     CopilotCompactLibrariesResponse,
     CopilotAllLibrariesRequest,
     CopilotFilterLibrariesResponse,
@@ -374,6 +376,7 @@ enum EXTENDED_APIS {
     BI_AI_ALL_MEMORY_MANAGERS = 'agentManager/getAllMemoryManagers',
     BI_AI_GET_MODELS = 'agentManager/getModels',
     BI_AI_GET_TOOLS = 'agentManager/getTools',
+    BI_AI_GET_MCP_TOOLS = 'agentManager/getMcpTools',
     BI_AI_GEN_TOOLS = 'agentManager/genTool',
     BI_IS_ICP_ENABLED = 'icpService/isIcpEnabled',
     BI_ADD_ICP = 'icpService/addICP',
@@ -1126,6 +1129,10 @@ export class ExtendedLangClient extends LanguageClient implements ExtendedLangCl
 
     async getTools(params: AIToolsRequest): Promise<AIToolsResponse> {
         return this.sendRequest<AIToolsResponse>(EXTENDED_APIS.BI_AI_GET_TOOLS, params);
+    }
+
+    async getMcpTools(params: McpToolsRequest): Promise<McpToolsResponse> {
+        return this.sendRequest<McpToolsResponse>(EXTENDED_APIS.BI_AI_GET_MCP_TOOLS, params);
     }
 
     async genTool(params: AIGentToolsRequest): Promise<AIGentToolsResponse> {
