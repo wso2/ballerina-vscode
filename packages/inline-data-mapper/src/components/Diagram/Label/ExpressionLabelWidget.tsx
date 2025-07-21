@@ -160,7 +160,7 @@ export function ExpressionLabelWidget(props: ExpressionLabelWidgetProps) {
 
     const collectClauseFns = ["sum", "avg", "min", "max", "count"];
   
-    const onClickChangeCollectClauseFn = ( collectClauseFn: string) => {
+    const onClickChangeCollectClauseFn = async ( collectClauseFn: string) => {
 
     }
 
