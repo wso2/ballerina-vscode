@@ -361,7 +361,7 @@ export function EntryNodeWidget(props: EntryNodeWidgetProps) {
                     onClick={handleOnClick}
                 >
                     <IconWrapper>{getNodeIcon()}</IconWrapper>
-                    <Header hovered={isHovered} onClick={handleOnClick}>
+                    <Header hovered={isHovered}>
                         <Title hovered={isHovered}>{getNodeTitle()}</Title>
                         <Description>{getNodeDescription()}</Description>
                     </Header>
