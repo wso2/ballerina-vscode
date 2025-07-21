@@ -762,21 +762,23 @@ public class DataMapManager {
         List<TextEdit> textEdits = new ArrayList<>();
         textEditsMap.put(filePath, textEdits);
 
+        ExpressionNode expr = null;
         if (node.kind() == SyntaxKind.LOCAL_VAR_DECL) {
             VariableDeclarationNode varDecl = (VariableDeclarationNode) node;
-            String output = mapping.output();
-            String[] splits = output.split(DOT);
-            ExpressionNode expr = getMappingExpr(varDecl.initializer().orElseThrow(), targetField);
-            StringBuilder sb = new StringBuilder();
-            genSource(expr, splits, 1, sb, mapping.expression(), null, textEdits);
-
+            expr = varDecl.initializer().orElseThrow();
         } else if (node.kind() == SyntaxKind.MODULE_VAR_DECL) {
             ModuleVariableDeclarationNode moduleVarDecl = (ModuleVariableDeclarationNode) node;
+            expr = moduleVarDecl.initializer().orElseThrow();
+        } else if (node.kind() == SyntaxKind.LET_VAR_DECL) {
+            LetVariableDeclarationNode varDecl = (LetVariableDeclarationNode) node;
+            expr = varDecl.expression();
+        }
+
+        if (expr != null) {
             String output = mapping.output();
             String[] splits = output.split(DOT);
-            ExpressionNode expr = getMappingExpr(moduleVarDecl.initializer().orElseThrow(), targetField);
             StringBuilder sb = new StringBuilder();
-            genSource(expr, splits, 1, sb, mapping.expression(), null, textEdits);
+            genSource(getMappingExpr(expr, targetField), splits, 1, sb, mapping.expression(), null, textEdits);
         }
 
         setImportStatements(mapping.imports(), textEdits);
