@@ -41,12 +41,6 @@ public class Constants {
         public static final String PROMPT_LABEL = "Prompt";
         public static final String PROMPT_DESCRIPTION = "Prompt for the function";
 
-        public static final String CONTEXT = "context";
-        public static final String CONTEXT_TYPE_NAME = "Context";
-        public static final String MODULE_PREFIXED_CONTEXT_TYPE = "np:Context";
-        public static final String CONTEXT_LABEL = "Context";
-        public static final String CONTEXT_DESCRIPTION = "Context for the function";
-
         public static final String MODEL_PROVIDER = "model";
         public static final String MODEL_PROVIDER_TYPE_NAME = "ModelProvider";
         public static final String MODULE_PREFIXED_MODEL_PROVIDER_TYPE = "np:ModelProvider";
@@ -61,6 +55,7 @@ public class Constants {
         public static final String BALLERINAX_ORG = "ballerinax";
         public static final String BALLERINA_ORG = "ballerina";
         public static final String NP_PACKAGE = "np";
+        public static final String AI_PACKAGE = "ai";
         public static final String NP_PACKAGE_WITH_ORG = BALLERINAX_ORG + "/" + NP_PACKAGE;
 
         public static final String ICON =
