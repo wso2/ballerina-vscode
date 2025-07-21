@@ -14,6 +14,8 @@
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations
  * under the License.
+ * 
+ * THIS FILE INCLUDES AUTO GENERATED CODE
  */
 import {
     AIChatSummary,
@@ -25,10 +27,12 @@ import {
     DeveloperDocument,
     FetchDataRequest,
     FetchDataResponse,
+    GenerateCodeRequest,
     GenerateMappingFromRecordResponse,
     GenerateMappingsFromRecordRequest,
     GenerateMappingsRequest,
     GenerateMappingsResponse,
+    GenerateOpenAPIRequest,
     GenerateTypesFromRecordRequest,
     GenerateTypesFromRecordResponse,
     GetFromFileRequest,
@@ -39,11 +43,17 @@ import {
     PostProcessResponse,
     ProjectDiagnostics,
     ProjectSource,
+    RelevantLibrariesAndFunctionsRequest,
+    RelevantLibrariesAndFunctionsResponse,
+    RepairParams,
     RequirementSpecification,
     SubmitFeedbackRequest,
     TestGenerationMentions,
     TestGenerationRequest,
     TestGenerationResponse,
+    TestGeneratorIntermediaryState,
+    TestPlanGenerationRequest,
+    abortAIGeneration,
     abortTestGeneration,
     addChatSummary,
     addToProject,
@@ -53,7 +63,12 @@ import {
     createTestDirecoryIfNotExists,
     deleteFromProject,
     fetchData,
+    generateCode,
+    generateFunctionTests,
+    generateHealthcareCode,
     generateMappings,
+    generateOpenAPI,
+    generateTestPlan,
     getAIMachineSnapshot,
     getAccessToken,
     getActiveFile,
@@ -67,9 +82,9 @@ import {
     getGeneratedTests,
     getMappingsFromRecord,
     getModuleDirectory,
-    getProjectSource,
     getProjectUuid,
     getRefreshedAccessToken,
+    getRelevantLibrariesAndFunctions,
     getResourceMethodAndPaths,
     getResourceSourceForMethodAndPath,
     getServiceNames,
@@ -87,6 +102,7 @@ import {
     promptGithubAuthorize,
     promptWSO2AILogout,
     readDeveloperMdFile,
+    repairGeneratedCode,
     showSignInAlert,
     stopAIMappings,
     submitFeedback,
@@ -157,10 +173,6 @@ export class AiPanelRpcClient implements AIPanelAPI {
 
     stopAIMappings(): Promise<GenerateMappingsResponse> {
         return this._messenger.sendRequest(stopAIMappings, HOST_EXTENSION);
-    }
-
-    getProjectSource(params: string): Promise<ProjectSource> {
-        return this._messenger.sendRequest(getProjectSource, HOST_EXTENSION, params);
     }
 
     getShadowDiagnostics(params: ProjectSource): Promise<ProjectDiagnostics> {
@@ -293,5 +305,37 @@ export class AiPanelRpcClient implements AIPanelAPI {
 
     submitFeedback(params: SubmitFeedbackRequest): Promise<boolean> {
         return this._messenger.sendRequest(submitFeedback, HOST_EXTENSION, params);
+    }
+
+    getRelevantLibrariesAndFunctions(params: RelevantLibrariesAndFunctionsRequest): Promise<RelevantLibrariesAndFunctionsResponse> {
+        return this._messenger.sendRequest(getRelevantLibrariesAndFunctions, HOST_EXTENSION, params);
+    }
+
+    generateOpenAPI(params: GenerateOpenAPIRequest): void {
+        return this._messenger.sendNotification(generateOpenAPI, HOST_EXTENSION, params);
+    }
+
+    generateCode(params: GenerateCodeRequest): void {
+        return this._messenger.sendNotification(generateCode, HOST_EXTENSION, params);
+    }
+
+    repairGeneratedCode(params: RepairParams): void {
+        return this._messenger.sendNotification(repairGeneratedCode, HOST_EXTENSION, params);
+    }
+
+    generateTestPlan(params: TestPlanGenerationRequest): void {
+        return this._messenger.sendNotification(generateTestPlan, HOST_EXTENSION, params);
+    }
+
+    generateFunctionTests(params: TestGeneratorIntermediaryState): void {
+        return this._messenger.sendNotification(generateFunctionTests, HOST_EXTENSION, params);
+    }
+
+    generateHealthcareCode(params: GenerateCodeRequest): void {
+        return this._messenger.sendNotification(generateHealthcareCode, HOST_EXTENSION, params);
+    }
+
+    abortAIGeneration(): void {
+        return this._messenger.sendNotification(abortAIGeneration, HOST_EXTENSION);
     }
 }

@@ -14,38 +14,39 @@
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations
  * under the License.
+ * 
+ * THIS FILE INCLUDES AUTO GENERATED CODE
  */
 import {
-    AIChatSummary,
-    AddToProjectRequest,
-    DeleteFromProjectRequest,
-    DeveloperDocument,
-    FetchDataRequest,
-    GenerateMappingsFromRecordRequest,
-    GenerateMappingsRequest,
-    GenerateTypesFromRecordRequest,
-    GetFromFileRequest,
-    GetModuleDirParams,
-    NotifyAIMappingsRequest,
-    PostProcessRequest,
-    ProjectSource,
-    RequirementSpecification,
-    SubmitFeedbackRequest,
-    TestGenerationRequest,
-    TestGenerationResponse,
+    abortAIGeneration,
     abortTestGeneration,
     addChatSummary,
     addToProject,
+    AddToProjectRequest,
+    AIChatSummary,
     applyDoOnFailBlocks,
     checkSyntaxError,
     clearInitialPrompt,
     createTestDirecoryIfNotExists,
     deleteFromProject,
+    DeleteFromProjectRequest,
+    DeveloperDocument,
     fetchData,
+    FetchDataRequest,
+    generateCode,
+    GenerateCodeRequest,
+    generateFunctionTests,
+    generateHealthcareCode,
     generateMappings,
-    getAIMachineSnapshot,
+    GenerateMappingsFromRecordRequest,
+    GenerateMappingsRequest,
+    generateOpenAPI,
+    GenerateOpenAPIRequest,
+    generateTestPlan,
+    GenerateTypesFromRecordRequest,
     getAccessToken,
     getActiveFile,
+    getAIMachineSnapshot,
     getBackendUrl,
     getContentFromFile,
     getDefaultPrompt,
@@ -53,12 +54,14 @@ import {
     getFileExists,
     getFromDocumentation,
     getFromFile,
+    GetFromFileRequest,
     getGeneratedTests,
     getMappingsFromRecord,
     getModuleDirectory,
-    getProjectSource,
+    GetModuleDirParams,
     getProjectUuid,
     getRefreshedAccessToken,
+    getRelevantLibrariesAndFunctions,
     getResourceMethodAndPaths,
     getResourceSourceForMethodAndPath,
     getServiceNames,
@@ -72,13 +75,25 @@ import {
     isRequirementsSpecificationFileExist,
     markAlertShown,
     notifyAIMappings,
+    NotifyAIMappingsRequest,
     postProcess,
+    PostProcessRequest,
+    ProjectSource,
     promptGithubAuthorize,
     promptWSO2AILogout,
     readDeveloperMdFile,
+    RelevantLibrariesAndFunctionsRequest,
+    repairGeneratedCode,
+    RepairParams,
+    RequirementSpecification,
     showSignInAlert,
     stopAIMappings,
     submitFeedback,
+    SubmitFeedbackRequest,
+    TestGenerationRequest,
+    TestGenerationResponse,
+    TestGeneratorIntermediaryState,
+    TestPlanGenerationRequest,
     updateDevelopmentDocument,
     updateRequirementSpecification
 } from "@wso2/ballerina-core";
@@ -101,7 +116,6 @@ export function registerAiPanelRpcHandlers(messenger: Messenger) {
     messenger.onRequest(generateMappings, (args: GenerateMappingsRequest) => rpcManger.generateMappings(args));
     messenger.onRequest(notifyAIMappings, (args: NotifyAIMappingsRequest) => rpcManger.notifyAIMappings(args));
     messenger.onRequest(stopAIMappings, () => rpcManger.stopAIMappings());
-    messenger.onRequest(getProjectSource, (args: string) => rpcManger.getProjectSource(args));
     messenger.onRequest(getShadowDiagnostics, (args: ProjectSource) => rpcManger.getShadowDiagnostics(args));
     messenger.onRequest(checkSyntaxError, (args: ProjectSource) => rpcManger.checkSyntaxError(args));
     messenger.onNotification(clearInitialPrompt, () => rpcManger.clearInitialPrompt());
@@ -135,4 +149,12 @@ export function registerAiPanelRpcHandlers(messenger: Messenger) {
     messenger.onRequest(getModuleDirectory, (args: GetModuleDirParams) => rpcManger.getModuleDirectory(args));
     messenger.onRequest(getContentFromFile, (args: GetFromFileRequest) => rpcManger.getContentFromFile(args));
     messenger.onRequest(submitFeedback, (args: SubmitFeedbackRequest) => rpcManger.submitFeedback(args));
+    messenger.onRequest(getRelevantLibrariesAndFunctions, (args: RelevantLibrariesAndFunctionsRequest) => rpcManger.getRelevantLibrariesAndFunctions(args));
+    messenger.onNotification(generateOpenAPI, (args: GenerateOpenAPIRequest) => rpcManger.generateOpenAPI(args));
+    messenger.onNotification(generateCode, (args: GenerateCodeRequest) => rpcManger.generateCode(args));
+    messenger.onNotification(repairGeneratedCode, (args: RepairParams) => rpcManger.repairGeneratedCode(args));
+    messenger.onNotification(generateTestPlan, (args: TestPlanGenerationRequest) => rpcManger.generateTestPlan(args));
+    messenger.onNotification(generateFunctionTests, (args: TestGeneratorIntermediaryState) => rpcManger.generateFunctionTests(args));
+    messenger.onNotification(generateHealthcareCode, (args: GenerateCodeRequest) => rpcManger.generateHealthcareCode(args));
+    messenger.onNotification(abortAIGeneration, () => rpcManger.abortAIGeneration());
 }

@@ -401,10 +401,13 @@ export const Form = forwardRef((props: FormProps, ref) => {
     const [diagnosticsInfo, setDiagnosticsInfo] = useState<FormDiagnostics[] | undefined>(undefined);
     const [isMarkdownExpanded, setIsMarkdownExpanded] = useState(false);
     const [isIdentifierEditing, setIsIdentifierEditing] = useState(false);
+    const [isSubComponentEnabled, setIsSubComponentEnabled] = useState(false);
+
     const markdownRef = useRef<HTMLDivElement>(null);
 
     const [isUserConcert, setIsUserConcert] = useState(false);
 
+    
     useEffect(() => {
         // Check if the form is a onetime usage or not. This is checked due to reset issue with nested forms in param manager
         if (!oneTimeForm) {
@@ -654,7 +657,7 @@ export const Form = forwardRef((props: FormProps, ref) => {
 
     const disableSaveButton =
         !isValid || isValidating || props.disableSaveButton || (concertMessage && concertRequired && !isUserConcert) ||
-        isIdentifierEditing || Object.keys(errors).length > 0;
+        isIdentifierEditing || isSubComponentEnabled || Object.keys(errors).length > 0;
 
     const handleShowMoreClick = () => {
         setIsMarkdownExpanded(!isMarkdownExpanded);
@@ -731,6 +734,7 @@ export const Form = forwardRef((props: FormProps, ref) => {
                                         visualizableFields={visualizableFields}
                                         recordTypeFields={recordTypeFields}
                                         onIdentifierEditingStateChange={handleIdentifierEditingStateChange}
+                                        setSubComponentEnabled={setIsSubComponentEnabled}
                                     />
                                 </S.Row>
                             );

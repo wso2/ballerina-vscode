@@ -182,6 +182,8 @@ import {
     FunctionModelRequest,
     FunctionModelResponse,
     TypeDataWithReferences,
+    AIAgentOrgRequest,
+    AIAgentOrgResponse,
     AINodesResponse,
     AIModelsRequest,
     AIToolsRequest,
@@ -219,7 +221,6 @@ import {
     ArtifactsNotification,
     OpenConfigTomlRequest,
     UpdateConfigVariableRequestV2,
-    GetConfigVariableNodeTemplateRequest,
     UpdateConfigVariableResponseV2,
     DeleteConfigVariableRequestV2,
     DeleteConfigVariableResponseV2,
@@ -228,7 +229,12 @@ import {
     JsonToTypeRequest,
     JsonToTypeResponse,
     McpToolsRequest,
-    McpToolsResponse
+    McpToolsResponse,
+    CopilotCompactLibrariesResponse,
+    CopilotAllLibrariesRequest,
+    CopilotFilterLibrariesResponse,
+    CopilotFilterLibrariesRequest,
+    GetConfigVariableNodeTemplateRequest
 } from "@wso2/ballerina-core";
 import { BallerinaExtension } from "./index";
 import { debug, handlePullModuleProgress } from "../utils";
@@ -364,6 +370,7 @@ enum EXTENDED_APIS {
     BI_ADD_TEST_FUNCTION = 'testManagerService/addTestFunction',
     BI_UPDATE_TEST_FUNCTION = 'testManagerService/updateTestFunction',
     BI_EDIT_FUNCTION_NODE = 'flowDesignService/functionDefinition',
+    BI_AI_AGENT_ORG = 'agentManager/getAgentOrg',
     BI_AI_ALL_AGENTS = 'agentManager/getAllAgents',
     BI_AI_ALL_MODELS = 'agentManager/getAllModels',
     BI_AI_ALL_MEMORY_MANAGERS = 'agentManager/getAllMemoryManagers',
@@ -379,7 +386,9 @@ enum EXTENDED_APIS {
     OPEN_API_GENERATED_MODULES = 'openAPIService/getModules',
     OPEN_API_CLIENT_DELETE = 'openAPIService/deleteModule',
     GET_ARTIFACTS = 'designModelService/artifacts',
-    PUBLISH_ARTIFACTS = 'designModelService/publishArtifacts'
+    PUBLISH_ARTIFACTS = 'designModelService/publishArtifacts',
+    COPILOT_ALL_LIBRARIES = 'copilotLibraryManager/getLibrariesList',
+    COPILOT_FILTER_LIBRARIES = 'copilotLibraryManager/getFilteredLibraries'
 }
 
 enum EXTENDED_APIS_ORG {
@@ -1098,6 +1107,10 @@ export class ExtendedLangClient extends LanguageClient implements ExtendedLangCl
         return this.sendRequest<AddImportItemResponse>(EXTENDED_APIS.BI_ADD_FUNCTION, params);
     }
 
+    async getAgentOrg(params: AIAgentOrgRequest) : Promise<AIAgentOrgResponse> {
+        return this.sendRequest<AIAgentOrgResponse>(EXTENDED_APIS.BI_AI_AGENT_ORG, params);
+    }
+
     async getAllAgents(params: AINodesRequest): Promise<AINodesResponse> {
         return this.sendRequest<AINodesResponse>(EXTENDED_APIS.BI_AI_ALL_AGENTS, params);
     }
@@ -1141,6 +1154,15 @@ export class ExtendedLangClient extends LanguageClient implements ExtendedLangCl
     async deleteOpenApiGeneratedModule(params: OpenAPIClientDeleteRequest): Promise<OpenAPIClientDeleteResponse> {
         return this.sendRequest<OpenAPIClientDeleteResponse>(EXTENDED_APIS.OPEN_API_CLIENT_DELETE, params);
     }
+
+    async getCopilotCompactLibraries(params: CopilotAllLibrariesRequest): Promise<CopilotCompactLibrariesResponse> {
+        return this.sendRequest<CopilotCompactLibrariesResponse>(EXTENDED_APIS.COPILOT_ALL_LIBRARIES, params);
+    }
+
+    async getCopilotFilteredLibraries(params: CopilotFilterLibrariesRequest): Promise<CopilotFilterLibrariesResponse> {
+        return this.sendRequest<CopilotFilterLibrariesResponse>(EXTENDED_APIS.COPILOT_FILTER_LIBRARIES, params);
+    }
+
 
     // <------------ BI APIS END --------------->
 

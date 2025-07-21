@@ -24,6 +24,10 @@ import {
 } from "./../telemetry";
 import { PALETTE_COMMANDS } from "./../project/cmds/cmd-runner";
 import { loginGithubCopilot } from '../../utils/ai/auth';
+import { RPCLayer } from "../../RPCLayer";
+// import { VisualizerWebview } from "../../views/visualizer/webview";
+import { AiPanelWebview } from "../../views/ai-panel/webview";
+import { ChatNotify, onChatNotify } from "@wso2/ballerina-core";
 
 export function activateCopilotLoginCommand() {
     commands.registerCommand(PALETTE_COMMANDS.LOGIN_COPILOT, async () => {

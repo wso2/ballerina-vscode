@@ -21,3 +21,20 @@ import { TRIGGER_CHARACTERS } from '@wso2/ballerina-core';
 export const EXPRESSION_EXTRACTION_REGEX = new RegExp(
     `(?<parentContent>(?:[a-zA-Z0-9_']+[${TRIGGER_CHARACTERS.join('')}\(\[])*)?(?<currentContent>[a-zA-Z0-9_']*)$`
 );
+
+export const BALLERINA = "ballerina";
+export const BALLERINAX = "ballerinax";
+
+export const AI = "ai";
+
+export const GET_DEFAULT_MODEL_PROVIDER = "getDefaultModelProvider";
+export const WSO2_MODEL_PROVIDER = "Wso2ModelProvider";
+
+export const PROVIDER_NAME_MAP: Record<string, string> = {
+    "ai.anthropic": "AnthropicProvider",
+    "ai.openai": "OpenAiProvider",
+    "ai.azure": "AzureOpenAiProvider",
+    "ai.mistral": "MistralAiProvider",
+    "ai.deepseek": "DeepseekProvider",
+    "ai.ollama": "OllamaProvider",
+};

@@ -32,30 +32,37 @@ import {
     Diagnostics,
     FetchDataRequest,
     FetchDataResponse,
+    GenerateCodeRequest,
     GenerateMappingFromRecordResponse,
     GenerateMappingsFromRecordRequest,
     GenerateMappingsRequest,
     GenerateMappingsResponse,
+    GenerateOpenAPIRequest,
     GenerateTypesFromRecordRequest,
     GenerateTypesFromRecordResponse,
     GetFromFileRequest,
     GetModuleDirParams,
     LLMDiagnostics,
     NotifyAIMappingsRequest,
+    OperationType,
     PostProcessRequest,
     PostProcessResponse,
     ProjectDiagnostics,
     ProjectModule,
     ProjectSource,
+    RelevantLibrariesAndFunctionsRequest,
+    RelevantLibrariesAndFunctionsResponse,
+    RepairParams,
     RequirementSpecification,
-    STModification,
     SourceFile,
     SubmitFeedbackRequest,
     SyntaxTree,
     TemplateId,
     TestGenerationMentions,
     TestGenerationRequest,
-    TestGenerationResponse
+    TestGenerationResponse,
+    TestGeneratorIntermediaryState,
+    TestPlanGenerationRequest,
 } from "@wso2/ballerina-core";
 import { STKindChecker, STNode } from "@wso2/syntax-tree";
 import * as crypto from 'crypto';
@@ -65,19 +72,28 @@ import path from "path";
 import { parse } from 'toml';
 import { Uri, commands, window, workspace } from 'vscode';
 
-import { writeFileSync } from "fs";
 import { isNumber } from "lodash";
 import { URI } from "vscode-uri";
+import { fetchWithAuth } from "../../../src/features/ai/service/connection";
+import { generateOpenAPISpec } from "../../../src/features/ai/service/openapi/openapi";
 import { AIStateMachine } from "../../../src/views/ai-panel/aiMachine";
 import { extension } from "../../BalExtensionContext";
 import { NOT_SUPPORTED } from "../../core";
 import { generateDataMapping, generateTypeCreation } from "../../features/ai/dataMapping";
+import { generateCode, triggerGeneratedCodeRepair } from "../../features/ai/service/code/code";
+import { generateHealthcareCode } from "../../features/ai/service/healthcare/healthcare";
+import { selectRequiredFunctions } from "../../features/ai/service/libs/funcs";
+import { GenerationType, getSelectedLibraries } from "../../features/ai/service/libs/libs";
+import { Library } from "../../features/ai/service/libs/libs_types";
+import { generateFunctionTests } from "../../features/ai/service/test/function_tests";
+import { generateTestPlan } from "../../features/ai/service/test/test_plan";
 import { generateTest, getDiagnostics, getResourceAccessorDef, getResourceAccessorNames, getServiceDeclaration, getServiceDeclarationNames } from "../../features/ai/testGenerator";
 import { BACKEND_URL, closeAllBallerinaFiles } from "../../features/ai/utils";
 import { getLLMDiagnosticArrayAsString, handleChatSummaryFailure } from "../../features/natural-programming/utils";
 import { StateMachine, updateView } from "../../stateMachine";
 import { getAccessToken, getRefreshedAccessToken, loginGithubCopilot } from "../../utils/ai/auth";
 import { modifyFileContent, writeBallerinaFileDidOpen } from "../../utils/modification";
+import { updateSourceCode } from "../../utils/source-utils";
 import { PARSING_ERROR, UNKNOWN_ERROR } from "../../views/ai-panel/errorCodes";
 import {
     DEVELOPMENT_DOCUMENT,
@@ -87,15 +103,10 @@ import {
     REQ_KEY, TEST_DIR_NAME
 } from "./constants";
 import { attemptRepairProject, checkProjectDiagnostics } from "./repair-utils";
-import { cleanDiagnosticMessages, handleStop, isErrorCode, requirementsSpecification, searchDocumentation } from "./utils";
+import { AIPanelAbortController, cleanDiagnosticMessages, handleStop, isErrorCode, requirementsSpecification, searchDocumentation } from "./utils";
 import { fetchData } from "./utils/fetch-data-utils";
-import { updateSourceCode } from "../../utils/source-utils";
-
-export let hasStopped: boolean = false;
 
 export class AiPanelRpcManager implements AIPanelAPI {
-
-    private testGenAbortController: AbortController | null = null;
 
     // ==================================
     // General Functions
@@ -265,7 +276,6 @@ export class AiPanelRpcManager implements AIPanelAPI {
         let { filePath, position } = params;
 
         const fileUri = Uri.file(filePath).toString();
-        hasStopped = false;
 
         const fnSTByRange = await StateMachine.langClient().getSTByRange(
             {
@@ -341,45 +351,8 @@ export class AiPanelRpcManager implements AIPanelAPI {
     }
 
     async stopAIMappings(): Promise<GenerateMappingsResponse> {
-        hasStopped = true;
         handleStop();
         return { userAborted: true };
-    }
-
-    async getProjectSource(requestType: string): Promise<ProjectSource> {
-        // Fetch the Ballerina project source
-        const project: BallerinaProject = await getCurrentProjectSource(requestType);
-
-        // Initialize the ProjectSource object
-        const projectSource: ProjectSource = {
-            sourceFiles: [],
-            projectModules: [],
-            projectName: project.projectName,
-        };
-
-        // Iterate through root-level sources
-        for (const [filePath, content] of Object.entries(project.sources)) {
-            projectSource.sourceFiles.push({ filePath, content });
-        }
-
-        // Iterate through module sources
-        if (project.modules) {
-            for (const module of project.modules) {
-                const projectModule: ProjectModule = {
-                    moduleName: module.moduleName,
-                    sourceFiles: [],
-                    isGenerated: module.isGenerated
-                };
-                for (const [fileName, content] of Object.entries(module.sources)) {
-                    // const filePath = `modules/${module.moduleName}/${fileName}`;
-                    // projectSource.sourceFiles.push({ filePath, content });
-                    projectModule.sourceFiles.push({ filePath: fileName, content });
-                }
-                projectSource.projectModules.push(projectModule);
-            }
-        }
-
-        return projectSource;
     }
 
     async getShadowDiagnostics(project: ProjectSource): Promise<ProjectDiagnostics> {
@@ -434,11 +407,7 @@ export class AiPanelRpcManager implements AIPanelAPI {
             try {
                 const projectRoot = await getBallerinaProjectRoot();
 
-                if (this.testGenAbortController) {
-                    this.testGenAbortController.abort();
-                }
-                this.testGenAbortController = new AbortController();
-                const generatedTests = await generateTest(projectRoot, params, this.testGenAbortController);
+                const generatedTests = await generateTest(projectRoot, params, AIPanelAbortController.getInstance());
                 resolve(generatedTests);
             } catch (error) {
                 reject(error);
@@ -511,10 +480,7 @@ export class AiPanelRpcManager implements AIPanelAPI {
     }
 
     async abortTestGeneration(): Promise<void> {
-        if (this.testGenAbortController) {
-            this.testGenAbortController.abort();
-            this.testGenAbortController = null;
-        }
+        AIPanelAbortController.getInstance().abort();
     }
 
     async getMappingsFromRecord(params: GenerateMappingsFromRecordRequest): Promise<GenerateMappingFromRecordResponse> {
@@ -528,27 +494,7 @@ export class AiPanelRpcManager implements AIPanelAPI {
     }
 
     async postProcess(req: PostProcessRequest): Promise<PostProcessResponse> {
-        let assist_resp = req.assistant_response;
-        assist_resp = assist_resp.replace(/import ballerinax\/client\.config/g, "import ballerinax/'client.config");
-        const project: ProjectSource = getProjectFromResponse(assist_resp);
-        const environment = await setupProjectEnvironment(project);
-        if (!environment) {
-            return { assistant_response: assist_resp, diagnostics: { diagnostics: [] } };
-        }
-
-        const { langClient, tempDir } = environment;
-        // check project diagnostics
-        let remainingDiags: Diagnostics[] = await attemptRepairProject(langClient, tempDir);
-
-        const filteredDiags: DiagnosticEntry[] = getErrorDiagnostics(remainingDiags);
-        const newAssistantResponse = getModifiedAssistantResponse(assist_resp, tempDir, project);
-        await closeAllBallerinaFiles(tempDir);
-        return {
-            assistant_response: newAssistantResponse,
-            diagnostics: {
-                diagnostics: filteredDiags
-            }
-        };
+        return await postProcess(req);
     }
 
     async applyDoOnFailBlocks(): Promise<void> {
@@ -776,7 +722,7 @@ export class AiPanelRpcManager implements AIPanelAPI {
                     diagnostics: cleanDiagnosticMessages(content.diagnostics)
                 };
 
-                const response = await fetchData(`${BACKEND_URL}/feedback`, {
+                const response = await fetchWithAuth(`${BACKEND_URL}/feedback`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -795,6 +741,42 @@ export class AiPanelRpcManager implements AIPanelAPI {
                 resolve(false);
             }
         });
+    }
+
+    async getRelevantLibrariesAndFunctions(params: RelevantLibrariesAndFunctionsRequest): Promise<RelevantLibrariesAndFunctionsResponse> {
+        const selectedLibs: string[] = await getSelectedLibraries(params.query, GenerationType.CODE_GENERATION);
+        const relevantTrimmedFuncs: Library[] = await selectRequiredFunctions(params.query, selectedLibs, GenerationType.CODE_GENERATION);
+        return {
+            libraries: relevantTrimmedFuncs
+        };
+    }
+
+    async generateOpenAPI(params: GenerateOpenAPIRequest): Promise<void> {
+        await generateOpenAPISpec(params);
+    }
+
+    async generateCode(params: GenerateCodeRequest): Promise<void> {
+        await generateCode(params);
+    }
+
+    async repairGeneratedCode(params: RepairParams): Promise<void> {
+        await triggerGeneratedCodeRepair(params);
+    }
+
+    async generateTestPlan(params: TestPlanGenerationRequest): Promise<void> {
+        await generateTestPlan(params);
+    }
+
+    async generateFunctionTests(params: TestGeneratorIntermediaryState): Promise<void> {
+        await generateFunctionTests(params);
+    }
+
+    async generateHealthcareCode(params: GenerateCodeRequest): Promise<void> {
+        await generateHealthcareCode(params);
+    }
+
+    async abortAIGeneration(): Promise<void> {
+        AIPanelAbortController.getInstance().abort();
     }
 }
 
@@ -917,7 +899,7 @@ enum CodeGenerationType {
     CODE_GENERATION = "CODE_GENERATION"
 }
 
-async function getCurrentProjectSource(requestType: string): Promise<BallerinaProject> {
+async function getCurrentProjectSource(requestType: OperationType): Promise<BallerinaProject> {
     const projectRoot = await getBallerinaProjectRoot();
 
     if (!projectRoot) {
@@ -953,7 +935,7 @@ async function getCurrentProjectSource(requestType: string): Promise<BallerinaPr
         }
     }
 
-    if (requestType != CodeGenerationType.CODE_GENERATION) {
+    if (requestType != "CODE_GENERATION") {
         const naturalProgrammingDirectory = projectRoot + `/${NATURAL_PROGRAMMING_DIR_NAME}`;
         if (fs.existsSync(naturalProgrammingDirectory)) {
             const reqFiles = fs.readdirSync(naturalProgrammingDirectory);
@@ -1007,7 +989,7 @@ async function populateModules(modulesDir: string, project: BallerinaProject) {
     }
 }
 
-async function getBallerinaProjectRoot(): Promise<string | null> {
+export async function getBallerinaProjectRoot(): Promise<string | null> {
 
     const workspaceFolders = workspace.workspaceFolders;
     if (!workspaceFolders) {
@@ -1022,4 +1004,65 @@ async function getBallerinaProjectRoot(): Promise<string | null> {
         return workspaceFolderPath;
     }
     return null;
+}
+
+
+export async function postProcess(req: PostProcessRequest): Promise<PostProcessResponse> {
+    let assist_resp = req.assistant_response;
+    assist_resp = assist_resp.replace(/import ballerinax\/client\.config/g, "import ballerinax/'client.config");
+    const project: ProjectSource = getProjectFromResponse(assist_resp);
+    const environment = await setupProjectEnvironment(project);
+    if (!environment) {
+        return { assistant_response: assist_resp, diagnostics: { diagnostics: [] } };
+    }
+
+    const { langClient, tempDir } = environment;
+    // check project diagnostics
+    let remainingDiags: Diagnostics[] = await attemptRepairProject(langClient, tempDir);
+
+    const filteredDiags: DiagnosticEntry[] = getErrorDiagnostics(remainingDiags);
+    const newAssistantResponse = getModifiedAssistantResponse(assist_resp, tempDir, project);
+    await closeAllBallerinaFiles(tempDir);
+    return {
+        assistant_response: newAssistantResponse,
+        diagnostics: {
+            diagnostics: filteredDiags
+        }
+    };
+}
+
+export async function getProjectSource(requestType: OperationType): Promise<ProjectSource> {
+    // Fetch the Ballerina project source
+    const project: BallerinaProject = await getCurrentProjectSource(requestType);
+
+    // Initialize the ProjectSource object
+    const projectSource: ProjectSource = {
+        sourceFiles: [],
+        projectModules: [],
+        projectName: project.projectName,
+    };
+
+    // Iterate through root-level sources
+    for (const [filePath, content] of Object.entries(project.sources)) {
+        projectSource.sourceFiles.push({ filePath, content });
+    }
+
+    // Iterate through module sources
+    if (project.modules) {
+        for (const module of project.modules) {
+            const projectModule: ProjectModule = {
+                moduleName: module.moduleName,
+                sourceFiles: [],
+                isGenerated: module.isGenerated
+            };
+            for (const [fileName, content] of Object.entries(module.sources)) {
+                // const filePath = `modules/${module.moduleName}/${fileName}`;
+                // projectSource.sourceFiles.push({ filePath, content });
+                projectModule.sourceFiles.push({ filePath: fileName, content });
+            }
+            projectSource.projectModules.push(projectModule);
+        }
+    }
+
+    return projectSource;
 }
