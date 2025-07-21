@@ -93,8 +93,9 @@ export interface Mapping {
     elements?: MappingElement[];
     diagnostics?: IDMDiagnostic[];
     isComplex?: boolean;
-    isFunctionCall?: boolean;
     isQueryExpression?: boolean;
+    isFunctionCall?: boolean;
+    functionRange?: LineRange;
 }
 
 export interface ExpandedDMModel {
