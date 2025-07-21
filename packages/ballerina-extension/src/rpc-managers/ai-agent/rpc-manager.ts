@@ -17,6 +17,8 @@
  */
 import {
     AIAgentAPI,
+    AIAgentOrgRequest,
+    AIAgentOrgResponse,
     AIAgentRequest,
     AIAgentResponse,
     AIAgentToolsUpdateRequest,
@@ -33,13 +35,8 @@ import {
     FlowNode,
     MemoryManagersRequest,
     MemoryManagersResponse,
-    NodePosition,
-    STModification,
-    SyntaxTree,
-    TextEdit
+    NodePosition
 } from "@wso2/ballerina-core";
-import { writeFileSync } from "fs";
-import { Uri } from "vscode";
 import { URI, Utils } from "vscode-uri";
 import { StateMachine } from "../../stateMachine";
 import { updateSourceCode } from "../../utils/source-utils";
@@ -145,13 +142,14 @@ export class AiAgentRpcManager implements AIAgentAPI {
                 }
 
                 // Create the model Second
-                const allAgents = (await StateMachine.langClient().getAllAgents({ filePath }));
+                const agentOrg = await StateMachine.langClient().getAgentOrg({ projectPath: projectUri });
+                const allAgents = (await StateMachine.langClient().getAllAgents({ filePath, orgName: agentOrg.orgName}));
                 console.log("All Agents: ", allAgents);
 
                 const fixedAgentCodeData = allAgents.agents.at(0);
 
                 if (params.modelState === 1) {
-                    const allModels = await StateMachine.langClient().getAllModels({ agent: fixedAgentCodeData.object, filePath });
+                    const allModels = await StateMachine.langClient().getAllModels({ agent: fixedAgentCodeData.object, filePath, orgName: agentOrg.orgName });
                     const modelCodeData = allModels.models.find(val => val.object === params.selectedModel);
                     const modelFlowNode = (await StateMachine.langClient().getNodeTemplate({ filePath, id: modelCodeData, position: { line: 0, offset: 0 } })).flowNode;
 
@@ -378,6 +376,18 @@ export class AiAgentRpcManager implements AIAgentAPI {
         } catch (error) {
             console.error(`Failed to create tool: ${error}`);
         }
+    }
+
+    async getAgentOrg(params: AIAgentOrgRequest): Promise<AIAgentOrgResponse> {
+        return new Promise(async (resolve) => {
+            const context = StateMachine.context();
+            try {
+                const res: AIAgentOrgResponse = await context.langClient.getAgentOrg(params);
+                resolve(res);
+            } catch (error) {
+                console.log(error);
+            }
+        });
     }
 }
 
