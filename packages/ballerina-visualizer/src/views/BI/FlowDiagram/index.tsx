@@ -19,6 +19,7 @@
 import { useEffect, useRef, useState, useMemo } from "react";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import styled from "@emotion/styled";
+import { removeMcpServerFromAgentNode } from "../AIChatAgent/utils";
 import { MemoizedDiagram } from "@wso2/bi-diagram";
 import {
     BIAvailableNodesRequest,
@@ -61,6 +62,7 @@ import {
     removeAgentNode,
     removeToolFromAgentNode,
 } from "../AIChatAgent/utils";
+import { t } from "@tanstack/query-core/build/legacy/hydration-BCnR_RAv";
 import { PROVIDER_NAME_MAP } from "../../../constants";
 
 const Container = styled.div`
@@ -80,10 +82,11 @@ export interface BIFlowDiagramProps {
     projectPath: string;
     onUpdate: () => void;
     onReady: (fileName: string) => void;
+    onSave?: () => void;
 }
 
 export function BIFlowDiagram(props: BIFlowDiagramProps) {
-    const { syntaxTree, projectPath, onUpdate, onReady } = props;
+    const { syntaxTree, projectPath, onUpdate, onReady, onSave } = props;
     const { rpcClient } = useRpcContext();
 
     const [model, setModel] = useState<Flow>();
@@ -988,13 +991,28 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
         // Open the tool selection panel
         setShowProgressIndicator(true);
 
+        setTimeout(() => {
+            setSidePanelView(SidePanelView.ADD_TOOL);
+            setShowSidePanel(true);
+            setShowProgressIndicator(false);
+        }, 500);
+    };
+
+    const handleOnAddMcpServer = (node: FlowNode) => {
+        console.log(">>> Add MCP Server called", node);
+        selectedNodeRef.current = node;
+        selectedClientName.current = "Add MCP Server";
+
+        // Open the tool selection panel
+        setShowProgressIndicator(true);
+
         // This would call the API to fetch tools in a real implementation
         setTimeout(() => {
             // For now, just use a dummy category
             const toolCategories: PanelCategory[] = [
                 {
-                    title: "Tools",
-                    description: "Tools available for the agent",
+                    title: "MCP Servers",
+                    description: "MCP Servers available for the agent",
                     items: [
                         {
                             id: "web-search",
@@ -1007,7 +1025,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
             ];
 
             setCategories(toolCategories);
-            setSidePanelView(SidePanelView.ADD_TOOL);
+            setSidePanelView(SidePanelView.ADD_MCP_SERVER);
             setShowSidePanel(true);
             setShowProgressIndicator(false);
         }, 500);
@@ -1042,19 +1060,66 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
         await rpcClient.getVisualizerRpcClient().openView({ type: EVENT_TYPE.OPEN_VIEW, location: context });
     };
 
+    const handleOnSelectMcpToolkit = async (tool: ToolData, node: FlowNode) => {
+        console.log(">>> Edit mcp toolkit called", { node, tool });
+        selectedNodeRef.current = node;
+        selectedClientName.current = tool.name;
+        showEditForm.current = true;
+
+        setShowProgressIndicator(true);
+        // get project components to find the function
+        const projectComponents = await rpcClient.getBIDiagramRpcClient().getProjectComponents();
+        if (!projectComponents || !projectComponents.components) {
+            console.error("Project components not found");
+            return;
+        }
+        console.log(">>> Project info for mcp toolkit", projectComponents);
+        setTimeout(() => {
+            const toolCategories: PanelCategory[] = [
+                {
+                    title: "MCP Servers",
+                    description: "MCP Servers available for the agent",
+                    items: [
+                        {
+                            id: "web-search",
+                            label: "Web Search",
+                            description: "Search the web for information",
+                            enabled: true,
+                        },
+                    ],
+                },
+            ];
+
+            setCategories(toolCategories);
+            setSidePanelView(SidePanelView.EDIT_MCP_SERVER);
+            setShowSidePanel(true);
+            setShowProgressIndicator(false);
+        }, 500);
+    };
+
     const handleOnDeleteTool = async (tool: ToolData, node: FlowNode) => {
         console.log(">>> Delete tool called", tool, node);
+
         selectedNodeRef.current = node;
         setShowProgressIndicator(true);
         try {
             const agentNode = await findAgentNodeFromAgentCallNode(node, rpcClient);
             const updatedAgentNode = await removeToolFromAgentNode(agentNode, tool.name);
             const agentFilePath = await getAgentFilePath(rpcClient);
-            // Generate the source code
-            const agentResponse = await rpcClient
-                .getBIDiagramRpcClient()
-                .getSourceCode({ filePath: agentFilePath, flowNode: updatedAgentNode });
-            console.log(">>> response getSourceCode after tool deletion", { agentResponse });
+            const toolType = tool.type ?? "";
+            if (toolType.includes("MCP Server")) {
+                const updateAgentNode = removeMcpServerFromAgentNode(updatedAgentNode, tool.name);
+                const agentResponse = await rpcClient
+                    .getBIDiagramRpcClient()
+                    .getSourceCode({ filePath: agentFilePath, flowNode: updateAgentNode });
+                onSave?.();
+                console.log(">>> response getSourceCode after tool deletion", { agentResponse });
+            } else {
+                const agentResponse = await rpcClient
+                    .getBIDiagramRpcClient()
+                    .getSourceCode({ filePath: agentFilePath, flowNode: updatedAgentNode });
+                console.log(">>> response getSourceCode after tool deletion", { agentResponse });
+            }
         } catch (error) {
             console.error("Error deleting tool:", error);
             alert(`Failed to remove tool "${tool.name}". Please try again.`);
@@ -1106,7 +1171,9 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
             agentNode: {
                 onModelSelect: handleOnEditAgentModel,
                 onAddTool: handleOnAddTool,
+                onAddMcpServer: handleOnAddMcpServer,
                 onSelectTool: handleOnSelectTool,
+                onSelectMcpToolkit: handleOnSelectMcpToolkit,
                 onDeleteTool: handleOnDeleteTool,
                 goToTool: handleOnGoToTool,
                 onSelectMemoryManager: handleOnSelectMemoryManager,
@@ -1176,6 +1243,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 onSelectTool={handleOnSelectTool}
                 onDeleteTool={handleOnDeleteTool}
                 onAddTool={handleOnAddTool}
+                onAddMcpServer={handleOnAddMcpServer}
             />
         </>
     );
