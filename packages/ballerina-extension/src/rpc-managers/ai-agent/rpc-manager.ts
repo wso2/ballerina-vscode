@@ -433,7 +433,13 @@ export class AiAgentRpcManager implements AIAgentAPI {
             nodeTemplate.flowNode.properties["serverUrl"] = params.updatedNode.properties["serverUrl"];
             nodeTemplate.flowNode.properties["info"] = params.updatedNode.properties["info"];
             nodeTemplate.flowNode.properties["variable"].value = params.updatedNode.properties["variable"].value;
-            nodeTemplate.flowNode.properties["permittedTools"].value = params.selectedTools.map(tool => `"${tool}"`);
+            if (params.selectedTools.length === 0) {
+                (nodeTemplate.flowNode.properties["permittedTools"] as { value: any }).value = `()`;
+            } else {
+                if ("permittedTools" in nodeTemplate.flowNode.properties) {
+                    (nodeTemplate.flowNode.properties["permittedTools"] as { value: any }).value = params.selectedTools.map(tool => `"${tool}"`);
+                }
+            }
             // Pass codedata if present
             if (params.codedata) {
                 nodeTemplate.flowNode.codedata.lineRange = params.codedata.lineRange;
