@@ -17,9 +17,16 @@
  */
 
 import styled from "@emotion/styled";
-import { DownloadProgress } from "@wso2/ballerina-core";
+import { DownloadProgress, ImportIntegrationResponse } from "@wso2/ballerina-core";
+import { Button, Typography } from "@wso2/ui-toolkit";
 import { FinalIntegrationParams } from ".";
-import { Typography } from "@wso2/ui-toolkit";
+import MigrationReportContainer from "./MigrationReportContainer";
+
+const ButtonWrapper = styled.div`
+    margin-top: 20px;
+    display: flex;
+    justify-content: flex-start;
+`;
 
 const ProgressContainer = styled.div`
     max-width: 660px;
@@ -27,6 +34,9 @@ const ProgressContainer = styled.div`
     display: flex;
     flex-direction: column;
     gap: 40px;
+    max-height: 100vh;
+    overflow-y: auto;
+    padding-bottom: 20px;
 `;
 
 const StepWrapper = styled.div`
@@ -35,12 +45,32 @@ const StepWrapper = styled.div`
     gap: 5px;
 `;
 
+const ReportContainer = styled.div`
+    border: 1px solid var(--vscode-widget-border);
+    border-radius: 4px;
+    padding: 16px;
+    background-color: var(--vscode-editor-background);
+    display: flex;
+    flex-direction: column;
+
+    & .container {
+        flex-direction: column;
+    }
+`;
+
 interface ProgressProps {
     importParams: FinalIntegrationParams | null;
     toolPullProgress: DownloadProgress | null;
+    migrationResponse: ImportIntegrationResponse | null;
+    onCreateIntegrationFiles: () => void;
 }
 
-export function MigrationProgressView({ importParams, toolPullProgress }: ProgressProps) {
+export function MigrationProgressView({
+    importParams,
+    toolPullProgress,
+    migrationResponse,
+    onCreateIntegrationFiles,
+}: ProgressProps) {
     // In a real scenario, you'd have another listener for the main import task's progress
     // const [mainProgress, setMainProgress] = useState(null);
     // useEffect(() => { /* listener for main import task */ }, []);
@@ -68,12 +98,12 @@ export function MigrationProgressView({ importParams, toolPullProgress }: Progre
                     </>
                 )}
                 {isToolReady && (
-                    <Typography variant="caption" sx={{ color: 'var(--vscode-terminal-ansiGreen)' }}>
+                    <Typography variant="caption" sx={{ color: "var(--vscode-terminal-ansiGreen)" }}>
                         Tools are ready.
                     </Typography>
                 )}
                 {toolPullFailed && (
-                    <Typography variant="caption" sx={{ color: 'var(--vscode-terminal-ansiRed)' }}>
+                    <Typography variant="caption" sx={{ color: "var(--vscode-terminal-ansiRed)" }}>
                         Error: {toolPullProgress.message}
                     </Typography>
                 )}
@@ -83,9 +113,34 @@ export function MigrationProgressView({ importParams, toolPullProgress }: Progre
             {isToolReady && (
                 <StepWrapper>
                     <Typography variant="h4">Step 2 of 2: Migrating Project</Typography>
-                    {/* This would be driven by a different progress state */}
-                    <Typography variant="caption">Starting migration...</Typography>
+                    {!migrationResponse ? (
+                        <Typography variant="caption">Starting migration...</Typography>
+                    ) : (
+                        <Typography variant="caption" sx={{ color: "var(--vscode-terminal-ansiGreen)" }}>
+                            Migration completed successfully!
+                        </Typography>
+                    )}
                     {/* <LinearProgress indeterminate /> */}
+                </StepWrapper>
+            )}
+
+            <ButtonWrapper>
+                <Button
+                    disabled={migrationResponse === null || toolPullProgress?.step === -1}
+                    onClick={onCreateIntegrationFiles}
+                    appearance="primary"
+                >
+                    Finish & Open Project
+                </Button>
+            </ButtonWrapper>
+
+            {/* Migration Report */}
+            {migrationResponse?.report && (
+                <StepWrapper>
+                    <Typography variant="h4">Migration Report</Typography>
+                    <ReportContainer>
+                        <MigrationReportContainer htmlContent={migrationResponse.report} />
+                    </ReportContainer>
                 </StepWrapper>
             )}
         </ProgressContainer>

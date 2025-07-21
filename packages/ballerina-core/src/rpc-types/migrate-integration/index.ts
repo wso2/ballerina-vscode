@@ -16,10 +16,10 @@
  * under the License.
  */
 
-import { ImportTibcoResponse } from "../../interfaces/extended-lang-client";
+import { ImportIntegrationResponse } from "../../interfaces/extended-lang-client";
 import { ImportTibcoRPCRequest, MigrationToolPullRequest } from "./interfaces";
 
 export interface MigrateIntegrationAPI {
     pullMigrationTool: (params: MigrationToolPullRequest) => void;
-    importTibcoToBI: (params: ImportTibcoRPCRequest) => Promise<ImportTibcoResponse>;
+    importTibcoToBI: (params: ImportTibcoRPCRequest) => Promise<ImportIntegrationResponse>;
 }

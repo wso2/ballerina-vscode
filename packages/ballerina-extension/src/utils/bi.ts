@@ -19,7 +19,7 @@ import { exec } from "child_process";
 import { window, commands, workspace, Uri } from "vscode";
 import * as fs from 'fs';
 import path from "path";
-import { BallerinaProjectComponents, ComponentRequest, CreateComponentResponse, createFunctionSignature, EVENT_TYPE, NodePosition, STModification, SyntaxTreeResponse } from "@wso2/ballerina-core";
+import { BallerinaProjectComponents, ComponentRequest, CreateComponentResponse, createFunctionSignature, EVENT_TYPE, MigrateRequest, NodePosition, STModification, SyntaxTreeResponse } from "@wso2/ballerina-core";
 import { StateMachine, history, openView } from "../stateMachine";
 import { applyModifications, modifyFileContent, writeBallerinaFileDidOpen } from "./modification";
 import { ModulePart, STKindChecker } from "@wso2/syntax-tree";
@@ -220,6 +220,27 @@ Config.toml
     // Create .gitignore file
     const gitignorePath = path.join(projectRoot, '.gitignore');
     fs.writeFileSync(gitignorePath, gitignoreContent.trim());
+
+    console.log(`BI project created successfully at ${projectRoot}`);
+    commands.executeCommand('vscode.openFolder', Uri.file(path.resolve(projectRoot)));
+}
+
+export async function createBIProjectFromMigration(params: MigrateRequest) {
+    const projectLocation = params.projectPath;
+    const projectName = sanitizeName(params.projectName);
+
+    const projectRoot = path.join(projectLocation, projectName);
+    // Create project root directory
+    if (!fs.existsSync(projectRoot)) {
+        fs.mkdirSync(projectRoot);
+    }
+
+    const EMPTY = "\n";
+    // Write files based on keys in params.textEdits
+    for (const [fileName, content] of Object.entries(params.textEdits)) {
+        const filePath = path.join(projectRoot, fileName);
+        writeBallerinaFileDidOpen(filePath, content || EMPTY);
+    }
 
     console.log(`BI project created successfully at ${projectRoot}`);
     commands.executeCommand('vscode.openFolder', Uri.file(path.resolve(projectRoot)));

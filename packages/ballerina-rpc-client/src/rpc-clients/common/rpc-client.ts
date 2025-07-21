@@ -90,7 +90,7 @@ export class CommonRpcClient implements CommonRPCAPI {
         return this._messenger.sendRequest(selectFileOrDirPath, HOST_EXTENSION, params);
     }
 
-    selectFileOrFolder(): Promise<FileOrDirResponse> {
+    selectFileOrFolderPath(): Promise<FileOrDirResponse> {
         return this._messenger.sendRequest(selectFileOrFolderPath, HOST_EXTENSION);
     }
 
