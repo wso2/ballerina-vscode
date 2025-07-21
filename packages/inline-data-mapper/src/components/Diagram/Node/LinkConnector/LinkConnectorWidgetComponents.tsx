@@ -18,9 +18,10 @@
 // tslint:disable: jsx-no-multiline-js
 import * as React from 'react';
 import { DiagramEngine } from '@projectstorm/react-diagrams-core';
-import { Button, Codicon } from '@wso2/ui-toolkit';
+import { Button, Codicon, Icon } from '@wso2/ui-toolkit';
 
 import { DataMapperPortWidget, IntermediatePortModel } from '../../Port';
+import { LinkConnectorNode } from './LinkConnectorNode';
 
 export const renderPortWidget = (engine: DiagramEngine, port: IntermediatePortModel, label: string) => (
     <DataMapperPortWidget
@@ -29,6 +30,53 @@ export const renderPortWidget = (engine: DiagramEngine, port: IntermediatePortMo
         dataTestId={`link-connector-node-${label}`}
     />
 );
+
+export const renderExpressionIcon = () => (
+    <Icon
+        name={"explicit-outlined"}
+        tooltip="Expression"
+        sx={{ height: "20px", width: "20px", cursor: "default" }}
+        iconSx={{ fontSize: "20px", color: "var(--vscode-input-placeholderForeground)" }}
+    />
+);
+
+export const renderFunctionCallButton = (onClick: () => void, nodeValue: string) => (
+    <Button
+        appearance="icon"
+        onClick={onClick}
+        data-testid={`link-connector-fn-${nodeValue}`}
+        tooltip='Custom Function Call Expression'
+    >
+        <Icon
+            name={"function-icon"}
+            sx={{ cursor: "default" }}
+            iconSx={{ fontSize: "15px", color: "var(--vscode-input-placeholderForeground)" }}
+        />
+    </Button>
+);
+
+export const renderFunctionCallIcon = () => (
+    <Icon
+        name={"function-icon"}
+        tooltip="Function Call Expression"
+        sx={{ cursor: "default" }}
+        iconSx={{ fontSize: "15px", color: "var(--vscode-input-placeholderForeground)" }}
+    />
+);
+
+export const renderIconButton = (node: LinkConnectorNode) => {
+    const { isFunctionCall, functionRange } = node.mapping;
+    if (isFunctionCall) {
+        if (functionRange) {
+            const onClickFunctionCall = () => {
+               
+            }
+            return renderFunctionCallButton(onClickFunctionCall, node?.value);
+        } 
+        return renderFunctionCallIcon();
+    }
+    return renderExpressionIcon();
+}
 
 export const renderEditButton = (onClick: () => void, nodeValue: string) => (
     <Button
