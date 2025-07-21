@@ -365,7 +365,7 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
             {/* Main function title bar with parameters and return type. Can Edit*/}
             {isAutomation && (
                 <TitleBar
-                    title={parentMetadata?.kind}
+                    title={"Automation"}
                     subtitleElement={
                         <SubTitleWrapper>
                             <LeftElementsWrapper>
