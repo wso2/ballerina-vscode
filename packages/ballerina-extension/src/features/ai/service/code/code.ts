@@ -348,7 +348,7 @@ export async function repairCode(params: RepairParams): Promise<RepairResponse> 
     return { repairResponse: diagnosticFixResp, diagnostics: postProcessResp.diagnostics.diagnostics };
 }
 
-function stringifyExistingCode(existingCode: SourceFiles[], op: OperationType): string {
+export function stringifyExistingCode(existingCode: SourceFiles[], op: OperationType): string {
     let existingCodeStr = "";
     for (const file of existingCode) {
         const filePath = file.filePath;
