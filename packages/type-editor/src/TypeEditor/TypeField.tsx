@@ -117,14 +117,6 @@ export const TypeField = forwardRef<HTMLInputElement, TypeFieldProps>((props, re
             return;
         }
 
-        // Skip validation for imported module types (module:Type format) till imported validation are sorted
-        if (value.includes(':')) {
-            const [moduleName, typeName] = value.split(':');
-            if (moduleName && typeName) {
-                // Valid module:Type format, skip validation
-                return;
-            }
-        }
         const projectUri = await rpcClient.getVisualizerLocation().then((res) => res.projectUri);
 
         const endPosition = await rpcClient.getBIDiagramRpcClient().getEndOfFile({
