@@ -1301,9 +1301,8 @@ public class DataMapManager {
             return new DataMapCapability(false, "false");
         } else if (kind == TypeDescKind.STRING) {
             return new DataMapCapability(false, "\"\"");
-        } else {
-            return null;
-        }
+        } 
+        return null;
     }
 
     private DataMapCapability getDataMapperCapabilityForPrimitiveTypes(String type, Boolean isArray) {
