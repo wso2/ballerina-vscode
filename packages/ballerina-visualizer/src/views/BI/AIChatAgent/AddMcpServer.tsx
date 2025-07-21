@@ -573,7 +573,6 @@ export function AddMcpServer(props: AddToolProps): JSX.Element {
                 serviceUrl: `"${payload.serviceUrl}"`,
                 serverName: finalName,
                 selectedTools: selectedTools,
-                oldVariableName: "",
                 updatedNode: node,
                 mcpTools: payload.mcpTools // <-- pass mcpTools to the method
             });

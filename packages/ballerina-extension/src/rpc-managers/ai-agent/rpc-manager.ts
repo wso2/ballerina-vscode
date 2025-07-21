@@ -461,7 +461,7 @@ export class AiAgentRpcManager implements AIAgentAPI {
         let toolsValue = agentFlowNode.properties["tools"].value;
 
         // Parse existing tools and add the variable name
-        if (typeof toolsValue === "string") {
+        if (typeof toolsValue === "string" && typeof variableName === "string") {
             const toolsArray = this.parseToolsString(toolsValue);
             if (toolsArray.length > 0) {
                 // Add the variable name if not exists
@@ -469,7 +469,7 @@ export class AiAgentRpcManager implements AIAgentAPI {
                     toolsArray.push(variableName);
                 }
                 // Update the tools value
-                toolsValue = toolsArray.length === 1 ? `[${toolsArray[0]}]` : `[${toolsArray.join(", ")}]`;
+                toolsValue = `[${toolsArray.join(", ")}]`;
             } else {
                 toolsValue = `[${variableName}]`;
             }
