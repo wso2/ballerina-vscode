@@ -1412,8 +1412,17 @@ export interface FunctionNodeResponse {
 
 // <-------- AI Agent Related ------->
 
+export interface AIAgentOrgRequest {
+    projectPath: string;
+}
+
+export interface AIAgentOrgResponse {
+    orgName: string;
+}
+
 export interface AINodesRequest {
     filePath: string;
+    orgName: string;
 }
 export interface AINodesResponse {
     agents?: CodeData[];
@@ -1421,6 +1430,7 @@ export interface AINodesResponse {
 }
 export interface MemoryManagersRequest {
     filePath: string;
+    orgName: string;
 }
 export interface MemoryManagersResponse {
     memoryManagers?: CodeData[];
@@ -1433,6 +1443,7 @@ export interface AIModelsResponse {
 export interface AIModelsRequest {
     agent: any;
     filePath?: string;
+    orgName: string;
 }
 
 export interface AIToolsRequest {

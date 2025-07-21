@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { AddToProjectRequest, GetFromFileRequest, DeleteFromProjectRequest, GenerateMappingsRequest, GenerateMappingsResponse, NotifyAIMappingsRequest, ProjectSource, ProjectDiagnostics, GenerateMappingsFromRecordRequest, GenerateMappingFromRecordResponse, PostProcessRequest, PostProcessResponse, GenerateTypesFromRecordRequest, GenerateTypesFromRecordResponse, FetchDataRequest, FetchDataResponse, TestGenerationRequest, TestGenerationResponse, TestGenerationMentions, AIChatSummary, DeveloperDocument, RequirementSpecification, LLMDiagnostics, GetModuleDirParams, AIPanelPrompt, AIMachineSnapshot, SubmitFeedbackRequest } from "./interfaces";
+import { AddToProjectRequest, GetFromFileRequest, DeleteFromProjectRequest, GenerateMappingsRequest, GenerateMappingsResponse, NotifyAIMappingsRequest, ProjectSource, ProjectDiagnostics, GenerateMappingsFromRecordRequest, GenerateMappingFromRecordResponse, PostProcessRequest, PostProcessResponse, GenerateTypesFromRecordRequest, GenerateTypesFromRecordResponse, FetchDataRequest, FetchDataResponse, TestGenerationRequest, TestGenerationResponse, TestGenerationMentions, AIChatSummary, DeveloperDocument, RequirementSpecification, LLMDiagnostics, GetModuleDirParams, AIPanelPrompt, AIMachineSnapshot, SubmitFeedbackRequest, RelevantLibrariesAndFunctionsRequest, GenerateOpenAPIRequest, GenerateCodeRequest, TestPlanGenerationRequest, TestGeneratorIntermediaryState, RepairParams, RelevantLibrariesAndFunctionsResponse } from "./interfaces";
 
 export interface AIPanelAPI {
     // ==================================
@@ -36,7 +36,6 @@ export interface AIPanelAPI {
     generateMappings: (params: GenerateMappingsRequest) => Promise<GenerateMappingsResponse>;
     notifyAIMappings: (params: NotifyAIMappingsRequest) => Promise<boolean>;
     stopAIMappings: () => Promise<GenerateMappingsResponse>;
-    getProjectSource: (params: string) => Promise<ProjectSource>;
     getShadowDiagnostics: (params: ProjectSource) => Promise<ProjectDiagnostics>;
     checkSyntaxError: (params: ProjectSource) => Promise<boolean>;
     clearInitialPrompt: () => void;
@@ -71,4 +70,12 @@ export interface AIPanelAPI {
     getModuleDirectory:(params: GetModuleDirParams) => Promise<string>;
     getContentFromFile: (params: GetFromFileRequest) => Promise<string>;
     submitFeedback: (params: SubmitFeedbackRequest) => Promise<boolean>;
+    getRelevantLibrariesAndFunctions: (params: RelevantLibrariesAndFunctionsRequest) => Promise<RelevantLibrariesAndFunctionsResponse>;
+    generateOpenAPI: (params: GenerateOpenAPIRequest) => void;
+    generateCode: (params: GenerateCodeRequest) => void;
+    repairGeneratedCode: (params: RepairParams) => void;
+    generateTestPlan: (params: TestPlanGenerationRequest) => void;
+    generateFunctionTests: (params: TestGeneratorIntermediaryState) => void;
+    generateHealthcareCode: (params: GenerateCodeRequest) => void;
+    abortAIGeneration: () => void;
 }

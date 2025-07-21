@@ -28,6 +28,7 @@ import * as os from 'os';
 import { writeBallerinaFileDidOpen } from '../../utils/modification';
 import { fetchData } from '../../rpc-managers/ai-panel/utils/fetch-data-utils';
 import { closeAllBallerinaFiles } from './utils';
+import { generateTestFromLLM, TestGenerationRequest1 } from './service/test/test';
 
 const TEST_GEN_REQUEST_TIMEOUT = 100000;
 
@@ -35,14 +36,12 @@ const TEST_GEN_REQUEST_TIMEOUT = 100000;
 export async function generateTest(
     projectRoot: string,
     testGenRequest: TestGenerationRequest,
-    abortController: AbortController
+    abortController: AbortController = null
 ): Promise<TestGenerationResponse> {
     const projectSource = await getProjectSource(projectRoot);
     if (!projectSource) {
         throw new Error("The current project is not recognized as a valid Ballerina project. Please ensure you have opened a Ballerina project.");
     }
-
-    const backendUri = testGenRequest.backendUri;
 
     if (testGenRequest.targetType === TestGenerationTarget.Service) {
         if (!testGenRequest.targetIdentifier) {
@@ -368,18 +367,14 @@ async function getOpenAPISpecification(documentFilePath: string): Promise<string
 async function getUnitTests(request: TestGenerationRequest, projectSource: ProjectSource, abortController: AbortController, openApiSpec?: string): Promise<TestGenerationResponse | ErrorCode> {
     try {
         let response = await sendTestGeneRequest(request, projectSource, abortController, openApiSpec);
-        if (isErrorCode(response)) {
-            return (response as ErrorCode);
-        }
-        response = (response as Response);
-        return await filterTestGenResponse(response);
+        return response;
     } catch (error) {
         return UNKNOWN_ERROR;
     }
 }
 
-async function sendTestGeneRequest(request: TestGenerationRequest, projectSource: ProjectSource, abortController: AbortController, openApiSpec?: string): Promise<Response | ErrorCode> {
-    const body = {
+async function sendTestGeneRequest(request: TestGenerationRequest, projectSource: ProjectSource, abortController: AbortController, openApiSpec?: string): Promise<TestGenerationResponse | ErrorCode> {
+    const body:TestGenerationRequest1  = {
         targetType: request.targetType,
         targetIdentifier: request.targetIdentifier,
         projectSource: {
@@ -405,16 +400,8 @@ async function sendTestGeneRequest(request: TestGenerationRequest, projectSource
         ...(request.existingTests && { existingTests: request.existingTests }),
     };
 
-    const response = await fetchWithTimeout(request.backendUri + "/tests", {
-        method: "POST",
-        headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json',
-            'User-Agent': 'Ballerina-VSCode-Plugin'
-        },
-        body: JSON.stringify(body)
-    }, abortController, TEST_GEN_REQUEST_TIMEOUT);
-    return response;
+    const resp: TestGenerationResponse = await generateTestFromLLM(body);
+    return resp;
 }
 
 function getErrorDiagnostics(diagnostics: Diagnostics[], filePath: string): ProjectDiagnostics {
@@ -488,41 +475,6 @@ async function findBallerinaProjectRoot(dirPath: string): Promise<string | null>
 
     return null;
 }
-
-const fetchWithTimeout = async (
-    url: string,
-    options: RequestInit,
-    abortController: AbortController,
-    timeout = 300000
-): Promise<Response | ErrorCode> => {
-    const id = setTimeout(() => abortController?.abort(), timeout);
-
-    try {
-        options = {
-            ...options,
-            signal: abortController.signal,
-        };
-
-        const response = await fetchData(url, options);
-        return response;
-    } catch (error: any) {
-        if (error.name === 'AbortError') {
-            return {
-                code: -1,
-                message: "Request aborted"
-            };
-        }
-        if (error instanceof Error) {
-            return {
-                code: -2,
-                message: error.message
-            };
-        }
-        return UNKNOWN_ERROR;
-    } finally {
-        clearTimeout(id);
-    }
-};
 
 function isErrorCode(error: any): boolean {
     return error.hasOwnProperty("code") && error.hasOwnProperty("message");
