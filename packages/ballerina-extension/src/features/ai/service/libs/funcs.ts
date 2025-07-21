@@ -29,7 +29,6 @@ import { AIPanelAbortController } from "../../../../../src/rpc-managers/ai-panel
 
 export async function selectRequiredFunctions(prompt: string, selectedLibNames: string[], generationType: GenerationType): Promise<Library[]> {
     const selectedLibs: Library[] = await getMaximizedSelectedLibs(selectedLibNames, generationType);
-    console.log("Maximized libraries:", selectedLibs);
     const functionsResponse: GetFunctionResponse[] = await getRequiredFunctions(selectedLibNames, prompt, selectedLibs);
     let typeLibraries: Library[] = [];
     if (generationType === GenerationType.HEALTHCARE_GENERATION) { 

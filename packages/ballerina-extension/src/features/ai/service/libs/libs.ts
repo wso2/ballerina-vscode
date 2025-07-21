@@ -63,7 +63,6 @@ export async function getSelectedLibraries(prompt: string, generationType: Gener
     if (allLibraries.length === 0) {
         return [];
     }
-    console.log("All libraries:", allLibraries);
     const messages: CoreMessage[] = [
         {
             role: "system",
@@ -137,7 +136,7 @@ Response:
 ${
     generationType === GenerationType.CODE_GENERATION
         ? ""
-        : " ALWAYS include `ballerinax/health.base`, `ballerinax/health.fhir.r4`, `ballerinax/health.fhir.r4.parser`, `ballerinax/health.fhir.r4.international401`, `ballerinax/health.hl7v2commons` and `ballerinax/health.hl7v2` libraries in the selection in addition to what you selected."
+        : " ALWAYS include `ballerinax/health.base`, `ballerinax/health.fhir.r4`, `ballerinax/health.fhir.r4.parser`, `ballerinax/health.fhir.r4utils`, `ballerinax/health.fhir.r4.international401`, `ballerinax/health.hl7v2commons` and `ballerinax/health.hl7v2` libraries in the selection in addition to what you selected."
 }`;
 }
 

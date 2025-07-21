@@ -35,8 +35,9 @@ import {
     ProjectSource,
     SourceFiles,
     OperationType,
+    PostProcessResponse,
 } from "@wso2/ballerina-core";
-import { getProjectSource } from "../../../../rpc-managers/ai-panel/rpc-manager";
+import { getProjectSource, postProcess } from "../../../../rpc-managers/ai-panel/rpc-manager";
 import { CopilotEventHandler, createWebviewEventHandler } from "../event";
 import { AIPanelAbortController } from "../../../../../src/rpc-managers/ai-panel/utils";
 import { stringifyExistingCode } from "../code/code";
@@ -64,7 +65,6 @@ export async function generateHealthcareCodeCore(
         },
         {
             role: "system",
-            // content: getSystemPromptSuffix(LANGLIBS, [], sourceFiles, params.fileAttachmentContents, prompt),
             content: getSystemPromptSuffix(LANGLIBS),
             providerOptions: {
                 anthropic: { cacheControl: { type: "ephemeral" } },
@@ -74,7 +74,6 @@ export async function generateHealthcareCodeCore(
         {
             role: "user",
             content: getUserPrompt(prompt, sourceFiles, params.fileAttachmentContents, packageName, params.operationType),
-            // content: prompt,
             providerOptions: {
                 anthropic: { cacheControl: { type: "ephemeral" } },
             },
@@ -82,7 +81,6 @@ export async function generateHealthcareCodeCore(
     ];
 
     const { fullStream } = streamText({
-        // model: anthropic("claude-3-5-sonnet-20241022"),
         model: anthropic(ANTHROPIC_SONNET_4),
         maxTokens: 4096*2,
         temperature: 0,
@@ -108,12 +106,11 @@ export async function generateHealthcareCodeCore(
             }
             case "finish": {
                 const finishReason = part.finishReason;
-                const postProcessedResp: PostProcessResponse = await postProcess({
-                    assistant_response: assistantResponse,
-                });
-                assistantResponse = postProcessedResp.assistant_response;
-
-                eventHandler({ type: "content_replace", content: assistantResponse });
+                console.log("Finish reason: ", finishReason);
+                if (finishReason === "error") {
+                    // Already handled in error case. 
+                    break;
+                }
                 eventHandler({ type: "stop" });
                 break;
             }
@@ -150,7 +147,7 @@ function getSystemPromptSuffix(langlibs: Library[]) {
 ${JSON.stringify(langlibs)}
 </langlibs>
 
-If the query doesn't require code examples, answer the code by utilzing the api documentation.
+If the query doesn't require code examples, answer the code by utilzing the api documentation. 
 If the query requires code, Follow these steps to generate the Ballerina code:
 
 1. Carefully analyze the provided API documentation:
@@ -162,7 +159,7 @@ If the query requires code, Follow these steps to generate the Ballerina code:
    - Note the libraries needed to achieve the query and plan the control flow of the applicaiton based input and output parameters of each function of the connector according to the API documentation.
 
 3. Plan your code structure:
-   - Decide which libraries need to be imported (Avoid importing lang.string, lang.boolean, lang.error, lang.float, lang.decimal, lang.int, lang.map langlibs as they are already imported by default).
+   - Decide which libraries need to be imported (Avoid importing lang.string, lang.boolean, lang.float, lang.decimal, lang.int, lang.map langlibs as they are already imported by default).
    - Determine the necessary client initialization.
    - Define Types needed for the query in the types.bal file.
    - Outline the service OR main function for the query.
@@ -181,7 +178,7 @@ If the query requires code, Follow these steps to generate the Ballerina code:
 4. Generate the Ballerina code:
    - Start with the required import statements.
    - Define required configurables for the query. Use only string, int, boolean types in configurable variables.
-   - Initialize any necessary clients with the correct configuration at the module level(before any function or service declarations).
+   - Initialize any necessary clients with the correct configuration at the module level(before any function or service declarations). 
    - Implement the main function OR service to address the query requirements.
    - Use defined connectors based on the query by following the API documentation.
    - Use only the functions, types, and clients specified in the API documentation.
@@ -204,17 +201,18 @@ Important reminders:
 - Only use specified fields in records according to the api docs. this applies to array types of that record as well.
 - Ensure your code is syntactically correct and follows Ballerina conventions.
 - Do not use dynamic listener registrations.
-- Do not write code in a way that requires updating/assigning values of function parameters.
+- Do not write code in a way that requires updating/assigning values of function parameters. 
 - ALWAYS Use two words camel case identifiers (variable, function parameter, resource function parameter and field names).
 - If the library name contains a . Always use an alias in the import statement. (import org/package.one as one;)
-- Treat generated connectors/clients inside the generated folder as submodules.
+- Treat generated connectors/clients inside the generated folder as submodules. 
 - A submodule MUST BE imported before being used.  The import statement should only contain the package name and submodule name.  For package my_pkg, folder strucutre generated/fooApi the import should be \`import my_pkg.fooApi;\`
-- If the return parameter typedesc default value is marked as <> in the given API docs, define a custom record in the code that represents the data structure based on the use case and assign to it.
-- Whenever you have a Json variable, NEVER access or manipulate Json variables. ALWAYS define a record and convert the Json to that record and use it.
-- When you are accessing fields of a record, always assign it into new variables.
-- Avoid long comments in the code.
+- If the return parameter typedesc default value is marked as <> in the given API docs, define a custom record in the code that represents the data structure based on the use case and assign to it.  
+- Whenever you have a Json variable, NEVER access or manipulate Json variables. ALWAYS define a record and convert the Json to that record and use it. 
+- When invoking resource function from a client, use the correct paths with accessor and paramters. (eg: exampleClient->/path1/["param"]/path2.get(key="value"))
+- When you are accessing a field of a record, always assign it into new variable and use that variable in the next statement.
+- Avoid long comments in the code. Use // for single line comments.
 - Always use named arguments when providing values to any parameter. (eg: .get(key="value"))
-_ Do not use var keyword (variable declarations, for loops ...). Use explicit types insteads.
+- Mention types EXPLICITLY in variable declarations and foreach statements.
 - Do not modify the README.md file unless asked to be modified explicitly in the query.
 - Do not add/modify toml files(Config.toml/Ballerina.toml) unless asked.
 - In the library API documentation if the service type is specified as generic, adhere to the instructions specified there on writing the service.
@@ -236,14 +234,13 @@ _ Do not use var keyword (variable declarations, for loops ...). Use explicit ty
     \`\`\
     - Note the use of \`Album\` instead of a json payload.
 
-Begin your response with an explanation, then end the response with the codeblock segments(if any).
+Begin your response with the explanation, once the entire explanation is finished only, include codeblock segments(if any) in the end of the response. 
 The explanation should explain the control flow decided in step 2, along with the selected libraries and their functions.
 
-Each file which needs modifications, should have a codeblock segment and it MUST have complete file content with the proposed change. Do not provide any explanation after codeblocks.
+Each file which needs modifications, should have a codeblock segment and it MUST have complete file content with the proposed change. 
+The codeblock segments should only have .bal contents and it should not generate or modify any other file types. Politely decline if the query requests for such cases.
 
-If the user hasn't provided the information, request the missing information concisely.
-
-Example Codeblock segment:
+Example Codeblock segments:
   If the generated code is a service, use an appropriate name for the file. Use \`service\` as a prefix to the file name. Example:
   <code filename="service_abc.bal">
   \`\`\ballerina
