@@ -137,23 +137,10 @@ export function DropdownEditor(props: DropdownEditorProps) {
     const toolSelection = watch(field.key);
     const [localServiceUrl, setLocalServiceUrl] = useState<string>("");
     const [localConfigs, setLocalConfigs] = useState<any>({});
-    const [editMode] = useState(false); // You can set this based on your logic if needed
+    const [editMode] = useState(false);
 
     // Debounce logic for serverUrl input
     const debounceTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
-    // useEffect(() => {
-    //     if (field.key === "scope" && toolSelection === "Selected" && localServiceUrl.trim()) {
-    //         if (debounceTimeout.current) clearTimeout(debounceTimeout.current);
-    //         debounceTimeout.current = setTimeout(() => {
-    //             fetchMcpTools();
-    //         }, 500); // 500ms debounce
-    //     } else {
-    //         setMcpTools(mcpTools);
-    //         setSelectedMcpTools(new Set());
-    //         setMcpToolsError("");
-    //     }
-    //     // eslint-disable-next-line react-hooks/exhaustive-deps
-    // }, [toolSelection, localServiceUrl]);
 
     useEffect(() => {
         if (newServerUrl && newServerUrl !== localServiceUrl) {
