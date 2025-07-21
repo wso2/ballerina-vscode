@@ -54,7 +54,7 @@ public class GetAllAgentsTest extends AbstractLSTest {
         String filePath =
                 testConfig.source() == null ? "" : sourceDir.resolve(testConfig.source()).toAbsolutePath().toString();
         GetAllAgentsRequest request = new GetAllAgentsRequest(testConfig.orgName, filePath);
-        JsonArray agents = getResponse(request).getAsJsonArray("agents");
+        JsonArray agents = getResponseAndCloseFile(request, testConfig.source()).getAsJsonArray("agents");
 
         if (!agents.equals(testConfig.agents())) {
             TestConfig updatedConfig = new TestConfig(testConfig.source(), testConfig.description(),

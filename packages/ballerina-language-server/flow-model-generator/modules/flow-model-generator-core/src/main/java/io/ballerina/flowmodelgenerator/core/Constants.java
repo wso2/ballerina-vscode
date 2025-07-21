@@ -32,7 +32,9 @@ public class Constants {
     public static final String MAIN_FUNCTION_NAME = "main";
     public static final String BALLERINA = "ballerina";
     public static final String BALLERINAX = "ballerinax";
+    // AI related constants
     public static final String AI = "ai";
+    public static final String MODEL_VERSION = "1.0.0";
 
     // Constants used for Natural functions
     public static final class NaturalFunctions {

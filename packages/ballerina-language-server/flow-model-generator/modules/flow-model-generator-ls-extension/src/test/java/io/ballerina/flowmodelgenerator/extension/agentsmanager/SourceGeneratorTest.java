@@ -69,7 +69,7 @@ public class SourceGeneratorTest extends AbstractLSTest {
         FlowModelSourceGeneratorRequest request =
                 new FlowModelSourceGeneratorRequest(sourceDir.resolve(testConfig.source()).toAbsolutePath().toString(),
                         testConfig.diagram());
-        JsonObject jsonMap = getResponse(request).getAsJsonObject("textEdits");
+        JsonObject jsonMap = getResponseAndCloseFile(request, testConfig.source()).getAsJsonObject("textEdits");
 
         Map<String, List<TextEdit>> actualTextEdits = gson.fromJson(jsonMap, textEditListType);
 

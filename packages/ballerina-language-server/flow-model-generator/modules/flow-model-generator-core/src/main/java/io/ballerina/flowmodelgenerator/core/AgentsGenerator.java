@@ -87,6 +87,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
+import static io.ballerina.flowmodelgenerator.core.Constants.MODEL_VERSION;
 import static io.ballerina.modelgenerator.commons.CommonUtils.AI_AZURE;
 import static io.ballerina.modelgenerator.commons.CommonUtils.isAiModule;
 
@@ -176,7 +177,7 @@ public class AgentsGenerator {
         } else {
             model.addProperty("symbol", objectOrFuncName);
         }
-        model.addProperty("version", "1.0.0");
+        model.addProperty("version", MODEL_VERSION);
         return model;
     }
 

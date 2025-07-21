@@ -71,7 +71,7 @@ public class GenToolsTest extends AbstractLSTest {
                 testConfig.source() == null ? "" : sourceDir.resolve(testConfig.source()).toAbsolutePath().toString();
         GenToolRequest request = new GenToolRequest(filePath, testConfig.diagram(), testConfig.name(),
                 testConfig.toolParameters(), testConfig.toolDescription(), testConfig.connection());
-        JsonObject jsonMap = getResponse(request).getAsJsonObject("textEdits");
+        JsonObject jsonMap = getResponseAndCloseFile(request, testConfig.source()).getAsJsonObject("textEdits");
 
         Map<String, List<TextEdit>> actualTextEdits = gson.fromJson(jsonMap, textEditListType);
 

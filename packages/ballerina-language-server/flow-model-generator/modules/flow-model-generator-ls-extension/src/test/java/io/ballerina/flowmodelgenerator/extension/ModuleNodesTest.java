@@ -47,7 +47,7 @@ public class ModuleNodesTest extends AbstractLSTest {
         FilePathRequest request = new FilePathRequest(filePath);
         JsonObject response = getResponse(request).get("flowModel").getAsJsonObject();
 
-        JsonObject jsonModel = getResponse(request).getAsJsonObject("flowModel");
+        JsonObject jsonModel = getResponseAndCloseFile(request, testConfig.source()).getAsJsonObject("flowModel");
         String balFileName = Path.of(jsonModel.getAsJsonPrimitive("fileName").getAsString()).getFileName().toString();
         JsonPrimitive testFileName = testConfig.flowModel().getAsJsonPrimitive("fileName");
         boolean fileNameEquality = testFileName != null && balFileName.equals(testFileName.getAsString());

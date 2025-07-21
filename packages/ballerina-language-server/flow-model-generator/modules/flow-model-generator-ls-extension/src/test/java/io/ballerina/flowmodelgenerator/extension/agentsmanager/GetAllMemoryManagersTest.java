@@ -55,7 +55,7 @@ public class GetAllMemoryManagersTest extends AbstractLSTest {
                 testConfig.source() == null ? "" : sourceDir.resolve(testConfig.source()).toAbsolutePath().toString();
         GetAllMemoryManagersRequest request = new GetAllMemoryManagersRequest(testConfig.agent(),
                 testConfig.orgName(), filePath);
-        JsonArray models = getResponse(request).getAsJsonArray("memoryManagers");
+        JsonArray models = getResponseAndCloseFile(request, testConfig.source()).getAsJsonArray("memoryManagers");
 
         if (!models.equals(testConfig.models())) {
             TestConfig updatedConfig = new TestConfig(testConfig.source(), testConfig.orgName(),
