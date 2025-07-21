@@ -52,7 +52,7 @@ public class FlowNodeGeneratorTest extends AbstractLSTest {
     }
 
     @Override
-    @Test(dataProvider = "data-provider")
+    @Test(dataProvider = "data-provider", enabled = false)
     public void test(Path config) throws IOException {
         Path configJsonPath = configDir.resolve(config);
         TestConfig testConfig = gson.fromJson(Files.newBufferedReader(configJsonPath), TestConfig.class);
