@@ -14,6 +14,7 @@
     "offset": 12
   },
   "visualizableProperties": {
-    "expression": "{}"
+    "isDataMapped": true,
+    "defaultValue": "{}"
   }
 }
