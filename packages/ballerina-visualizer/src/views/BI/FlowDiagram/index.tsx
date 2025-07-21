@@ -61,6 +61,7 @@ import {
     removeAgentNode,
     removeToolFromAgentNode,
 } from "../AIChatAgent/utils";
+import { PROVIDER_NAME_MAP } from "../../../constants";
 
 const Container = styled.div`
     width: 100%;
@@ -141,6 +142,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                     .getFlowModel()
                     .then((model) => {
                         if (model?.flowModel) {
+                            updateAgentModelTypes(model?.flowModel);
                             setModel(model.flowModel);
                             onReady(model.flowModel.fileName);
                         }
@@ -151,6 +153,50 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                     });
             });
     };
+
+    // Hack: Updates agent model types based on ModelProvider connections
+    // This is so that we render the icons for the models in the AgentCallNodeWidget
+    function updateAgentModelTypes(flowModel?: Flow) {
+        if (!flowModel || !Array.isArray(flowModel.connections) || !Array.isArray(flowModel.nodes)) return;
+
+        const setModelType = (modelObj: any, providerName: string) => {
+            if (modelObj) {
+                modelObj.type = PROVIDER_NAME_MAP?.[providerName] || providerName;
+            }
+        };
+
+        flowModel.connections
+            .filter(
+                (connection) =>
+                    connection?.codedata?.object === "ModelProvider" ||
+                    connection?.codedata?.object === "OpenAiModelProvider"
+            )
+            .forEach((connection) => {
+                const modelVarName = connection?.properties?.variable?.value;
+                const modelProviderName = connection?.codedata?.module;
+                if (!modelVarName || !modelProviderName) return;
+
+                flowModel.nodes.forEach((node: FlowNode) => {
+                    if (
+                        node?.codedata?.node === "AGENT_CALL" &&
+                        node?.metadata?.data?.model?.name === modelVarName
+                    ) {
+                        setModelType(node.metadata.data.model, modelProviderName);
+                    } else if (node?.codedata?.node === "ERROR_HANDLER" && Array.isArray(node.branches)) {
+                        node.branches.forEach((branch) => {
+                            (branch.children ?? []).forEach((child) => {
+                                if (
+                                    child.codedata.node === "AGENT_CALL" &&
+                                    child.metadata?.data?.model?.name === modelVarName
+                                ) {
+                                    setModelType(child.metadata.data.model, modelProviderName);
+                                }
+                            });
+                        });
+                    }
+                });
+            });
+    }
 
     useEffect(() => {
         if (model && selectedNodeRef.current?.codedata?.lineRange?.startLine && sidePanelView === SidePanelView.FORM) {
