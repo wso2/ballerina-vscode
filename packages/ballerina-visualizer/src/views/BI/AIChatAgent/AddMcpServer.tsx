@@ -229,6 +229,7 @@ export function AddMcpServer(props: AddToolProps): JSX.Element {
     const [urlError, setUrlError] = useState<string>("");
     const [nameError, setNameError] = useState<string>("");
     const [mcpToolResponse, setMcpToolResponse] = useState<FlowNode>(null);
+    const [allVariables, setAllVariables] = useState<FlowNode[]>(null);
 
     const [serviceUrl, setServiceUrl] = useState("");
     const [pendingServiceUrl, setPendingServiceUrl] = useState("");
@@ -316,6 +317,7 @@ export function AddMcpServer(props: AddToolProps): JSX.Element {
         console.log(">>> agent node ", { agentNode });
         const variableNodes = await rpcClient.getBIDiagramRpcClient().getModuleNodes();
         console.log(">>> variableNodes", variableNodes);
+        setAllVariables(variableNodes.flowModel.variables);
         if (editMode) {
             // Find the variable with type 'ai:McpToolKit'
             const mcpVariable = variableNodes.flowModel?.variables?.find(
@@ -324,6 +326,8 @@ export function AddMcpServer(props: AddToolProps): JSX.Element {
             console.log(">>> mcpVariable", mcpVariable);
             // Properly add toolsToInclude to the properties object
             const updatedProperties = { ...(mcpVariable.properties || {}) };
+            const permittedToolsValue = (mcpVariable.properties as any)?.permittedTools?.value;
+            fieldVal.value = permittedToolsValue === "()" ? "All" : "Selected"; 
             (updatedProperties as any)["toolsToInclude"] = fieldVal;
 
             const updatedMcpToolResponse = {
@@ -670,8 +674,9 @@ export function AddMcpServer(props: AddToolProps): JSX.Element {
         if (hasUserTyped || editMode) {
             return name;
         }
-        
+
         let counter = mcpToolkitCount;
+        console.log(">>> all variables", allVariables);
         let candidateValue = counter >= 1 ? `mcpServer${counter}` : "mcpServer";
         while (existingMcpToolkits.some(existingName => 
             existingName.toLowerCase() === candidateValue.trim().toLowerCase()
@@ -816,7 +821,8 @@ export function AddMcpServer(props: AddToolProps): JSX.Element {
             }
 
             if ("variable" in updatedProperties && updatedProperties["variable"]) {
-                (updatedProperties["variable"] as { value: string }).value = generateUniqueVariable();
+                const uniqueVar = generateUniqueVariable();
+                (updatedProperties["variable"] as { value: string }).value = uniqueVar;
             }
             // Add fieldVal as a property named 'scope', wrapped as a Property object
             (updatedProperties as any)["toolsToInclude"] = fieldVal;
