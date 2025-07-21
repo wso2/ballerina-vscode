@@ -16,4 +16,3 @@ service class MyTypeObj1 {
         }
     }
 }
-    
