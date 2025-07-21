@@ -925,11 +925,11 @@ public class CommonUtils {
     }
 
     public static boolean isAiModule(String org, String module) {
-        return (org.equals(BALLERINAX_ORG_NAME) || org.equals(BALLERINA_ORG_NAME)) && module.equals(AI);
+        return (BALLERINAX_ORG_NAME.equals(org) || BALLERINA_ORG_NAME.equals(org)) && module.equals(AI);
     }
 
     public static boolean isAiModelModule(String org, String module) {
-        return org.equals(BALLERINAX_ORG_NAME) && (module.equals(AI) || AI_MODULE_NAMES.contains(module));
+        return BALLERINAX_ORG_NAME.equals(org) && (AI.equals(module) || AI_MODULE_NAMES.contains(module));
     }
 
     public static boolean isAgentClass(Symbol symbol) {

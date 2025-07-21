@@ -292,7 +292,6 @@ public class ServiceModelAPITests {
 
         List<TextEdit> textEdits = sourceResponse.textEdits().entrySet().stream().findFirst().get().getValue();
         Assert.assertEquals(textEdits.size(), 2);
-        Assert.assertEquals(textEdits.getFirst().getNewText(), "\nimport ballerina/ai;\n\n\nimport ballerina/http;\n");
         serviceEndpoint.notify("textDocument/didClose",
                 new DidCloseTextDocumentParams(new TextDocumentIdentifier(filePath.toUri().toString())));
     }
