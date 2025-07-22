@@ -154,7 +154,8 @@ export function InlineDataMapperView(props: InlineDataMapperProps) {
                     mapping: {
                         output: outputId,
                         expression: expression
-                    }
+                    },
+                    withinSubMapping: viewState.isSubMapping
                 });
             console.log(">>> [Inline Data Mapper] getSource response:", resp);
         } catch (error) {
@@ -192,12 +193,24 @@ export function InlineDataMapperView(props: InlineDataMapperProps) {
                     view: viewId
                 });
             console.log(">>> [Inline Data Mapper] getSubMappingCodedata response:", resp);
-            setViewState({viewId, codedata: resp.codedata});
+            setViewState({viewId, codedata: resp.codedata, isSubMapping: true});
         } else {
-            setViewState(prev => ({
-                ...prev,
-                viewId
-            }));
+            if (viewState.isSubMapping) {
+                // If the view is a sub mapping, we need to get the codedata of the parent mapping
+                const res = await rpcClient
+                    .getInlineDataMapperRpcClient()
+                    .getDataMapperCodedata({
+                        filePath,
+                        codedata: viewState.codedata,
+                        name: viewId
+                    });
+                setViewState({viewId, codedata: res.codedata, isSubMapping: false});
+            } else {
+                setViewState(prev => ({
+                    ...prev,
+                    viewId
+                }));
+            }
         }
     };
 
