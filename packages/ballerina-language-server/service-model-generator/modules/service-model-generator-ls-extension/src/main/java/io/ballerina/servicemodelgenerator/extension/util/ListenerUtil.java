@@ -304,9 +304,9 @@ public class ListenerUtil {
         return split[split.length - 1];
     }
 
-    public static Optional<Listener> getListenerModelByName(String moduleName) {
+    public static Optional<Listener> getListenerModelByName(String org, String moduleName) {
         ServiceDatabaseManager dbManager = ServiceDatabaseManager.getInstance();
-        Optional<FunctionData> optFunctionResult = dbManager.getListener(moduleName);
+        Optional<FunctionData> optFunctionResult = dbManager.getListener(org, moduleName);
         if (optFunctionResult.isEmpty()) {
             return Optional.empty();
         }
@@ -320,9 +320,10 @@ public class ListenerUtil {
         return Optional.of(listener);
     }
 
-    public static Optional<Listener> getDefaultListenerModel(ListenerDeclarationNode listenerNode) {
+    public static Optional<Listener> getDefaultListenerModel(String org,
+                                                             ListenerDeclarationNode listenerNode) {
         ServiceDatabaseManager dbManager = ServiceDatabaseManager.getInstance();
-        Optional<FunctionData> optFunctionResult = dbManager.getListener("http");
+        Optional<FunctionData> optFunctionResult = dbManager.getListener(org, "http");
         if (optFunctionResult.isEmpty()) {
             return Optional.empty();
         }
@@ -384,9 +385,9 @@ public class ListenerUtil {
     }
 
     public static Optional<Listener> getListenerFromSource(ListenerDeclarationNode listenerDeclarationNode,
-                                                           SemanticModel semanticModel) {
+                                                           String org, SemanticModel semanticModel) {
         if (ListenerUtil.isHttpDefaultListener(listenerDeclarationNode)) {
-            return ListenerUtil.getDefaultListenerModel(listenerDeclarationNode);
+            return ListenerUtil.getDefaultListenerModel(org, listenerDeclarationNode);
         }
         Optional<Symbol> symbol = semanticModel.symbol(listenerDeclarationNode.typeDescriptor().get());
         if (symbol.isEmpty() || !(symbol.get() instanceof TypeSymbol typeSymbol) || typeSymbol.getModule().isEmpty()) {
@@ -395,7 +396,7 @@ public class ListenerUtil {
 
         String moduleName = typeSymbol.getModule().get().id().moduleName();
         ServiceDatabaseManager dbManager = ServiceDatabaseManager.getInstance();
-        Optional<FunctionData> optFunctionResult = dbManager.getListener(moduleName);
+        Optional<FunctionData> optFunctionResult = dbManager.getListener(org, moduleName);
         if (optFunctionResult.isEmpty()) {
             return Optional.empty();
         }

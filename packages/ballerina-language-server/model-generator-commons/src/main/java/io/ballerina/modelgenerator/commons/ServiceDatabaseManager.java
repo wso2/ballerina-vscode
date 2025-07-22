@@ -46,7 +46,6 @@ public class ServiceDatabaseManager {
     private static final String INDEX_FILE_NAME = "service-index.sqlite";
     private static final Logger LOGGER = Logger.getLogger(ServiceDatabaseManager.class.getName());
     private final String dbPath;
-
     private static class Holder {
 
         private static final ServiceDatabaseManager INSTANCE = new ServiceDatabaseManager();
@@ -84,7 +83,7 @@ public class ServiceDatabaseManager {
         dbPath = "jdbc:sqlite:" + tempFile.toString();
     }
 
-    public Optional<FunctionData> getListener(String module) {
+    public Optional<FunctionData> getListener(String orgName, String module) {
         StringBuilder sql = new StringBuilder("SELECT ");
         sql.append("l.listener_id, ");
         sql.append("l.name AS listener_name, ");
@@ -97,10 +96,16 @@ public class ServiceDatabaseManager {
         sql.append("FROM Listener l ");
         sql.append("JOIN Package p ON l.package_id = p.package_id ");
         sql.append("WHERE p.name = ? ");
+        if (orgName != null) {
+            sql.append(" AND p.org = ?");
+        }
 
         try (Connection conn = DriverManager.getConnection(dbPath);
              PreparedStatement stmt = conn.prepareStatement(sql.toString())) {
             stmt.setString(1, module);
+            if (orgName != null) {
+                stmt.setString(2, orgName);
+            }
 
             ResultSet rs = stmt.executeQuery();
             if (rs.next()) {
@@ -206,7 +211,7 @@ public class ServiceDatabaseManager {
         }
     }
 
-    public Optional<ServiceDeclaration> getServiceDeclaration(String moduleName) {
+    public Optional<ServiceDeclaration> getServiceDeclaration(String orgName, String moduleName) {
         StringBuilder sql = new StringBuilder("SELECT ");
         sql.append("s.display_name, ");
         sql.append("s.optional_type_descriptor, ");
@@ -231,10 +236,16 @@ public class ServiceDatabaseManager {
         sql.append("FROM ServiceDeclaration s ");
         sql.append("JOIN Package p ON s.package_id = p.package_id ");
         sql.append("WHERE p.name = ?");
+        if (orgName != null) {
+            sql.append(" AND p.org = ?");
+        }
 
         try (Connection conn = DriverManager.getConnection(dbPath);
              PreparedStatement stmt = conn.prepareStatement(sql.toString())) {
             stmt.setString(1, moduleName);
+            if (orgName != null) {
+                stmt.setString(2, orgName);
+            }
 
             ResultSet rs = stmt.executeQuery();
             if (rs.next()) {

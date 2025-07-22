@@ -350,6 +350,31 @@
           ]
         }
       }
+    },
+    {
+      "name": "ai",
+      "version": "1.0.0",
+      "serviceTypeSkipList": [],
+      "serviceDeclaration": {
+        "displayName": "AI Agent Service",
+        "optionalTypeDescriptor": 1,
+        "typeDescriptorLabel": "Agent Service Type",
+        "typeDescriptorDescription": "The service type descriptor",
+        "typeDescriptorDefaultValue": "",
+        "addDefaultTypeDescriptor": 0,
+        "optionalAbsoluteResourcePath": 0,
+        "absoluteResourcePathLabel": "Service Base Path",
+        "absoluteResourcePathDescription": "",
+        "absoluteResourcePathDefaultValue": "/agentChat",
+        "optionalStringLiteral": 1,
+        "stringLiteralLabel": "Service Base Path",
+        "stringLiteralDescription": "",
+        "stringLiteralDefaultValue": "",
+        "listenerKind": "MULTIPLE_SELECT",
+        "kind": "agent"
+      },
+      "serviceTypes": {
+      }
     }
   ],
   "ballerinax": [

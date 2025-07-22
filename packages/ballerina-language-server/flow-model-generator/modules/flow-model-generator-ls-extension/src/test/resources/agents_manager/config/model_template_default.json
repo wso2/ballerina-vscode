@@ -1,0 +1,75 @@
+{
+  "source": "agent_1/agents.bal",
+  "position": {
+    "line": 0,
+    "offset": 0
+  },
+  "description": "",
+  "codedata": {
+    "node": "FUNCTION_CALL",
+    "org": "ballerina",
+    "module": "ai",
+    "packageName": "ai",
+    "symbol": "getDefaultModelProvider",
+    "version": "1.0.0"
+  },
+  "output": {
+    "id": "31",
+    "metadata": {
+      "label": "getDefaultModelProvider",
+      "description": "Creates a default model provider based on the provided `wso2ProviderConfig`.",
+      "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.0.0.png"
+    },
+    "codedata": {
+      "node": "FUNCTION_CALL",
+      "org": "ballerina",
+      "module": "ai",
+      "packageName": "ai",
+      "symbol": "getDefaultModelProvider",
+      "version": "1.0.0",
+      "isNew": true
+    },
+    "returning": false,
+    "properties": {
+      "type": {
+        "metadata": {
+          "label": "Result Type",
+          "description": "Type of the variable"
+        },
+        "valueType": "TYPE",
+        "value": "ai:Wso2ModelProvider",
+        "placeholder": "var",
+        "optional": false,
+        "editable": false,
+        "advanced": false,
+        "hidden": false,
+        "codedata": {}
+      },
+      "variable": {
+        "metadata": {
+          "label": "Result",
+          "description": "Name of the result variable"
+        },
+        "valueType": "IDENTIFIER",
+        "value": "aiWso2modelprovider",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      },
+      "checkError": {
+        "metadata": {
+          "label": "Check Error",
+          "description": "Trigger error flow"
+        },
+        "valueType": "FLAG",
+        "value": true,
+        "optional": false,
+        "editable": true,
+        "advanced": true,
+        "hidden": true
+      }
+    },
+    "flags": 0
+  }
+}

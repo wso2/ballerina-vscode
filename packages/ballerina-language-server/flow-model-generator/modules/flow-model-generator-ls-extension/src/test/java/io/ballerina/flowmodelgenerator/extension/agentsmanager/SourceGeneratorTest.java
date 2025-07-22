@@ -52,6 +52,10 @@ public class SourceGeneratorTest extends AbstractLSTest {
     protected Object[] getConfigsList() {
         return new Object[][]{
                 {Path.of("agent_source.json")},
+                {Path.of("agent_source_ballerina.json")},
+                {Path.of("agent_call_source_ballerina.json")},
+                {Path.of("agent_model_source_ballerina.json")},
+                {Path.of("agent_model_source_default.json")},
                 {Path.of("memory_manager_source.json")}
         };
     }
@@ -65,7 +69,7 @@ public class SourceGeneratorTest extends AbstractLSTest {
         FlowModelSourceGeneratorRequest request =
                 new FlowModelSourceGeneratorRequest(sourceDir.resolve(testConfig.source()).toAbsolutePath().toString(),
                         testConfig.diagram());
-        JsonObject jsonMap = getResponse(request).getAsJsonObject("textEdits");
+        JsonObject jsonMap = getResponseAndCloseFile(request, testConfig.source()).getAsJsonObject("textEdits");
 
         Map<String, List<TextEdit>> actualTextEdits = gson.fromJson(jsonMap, textEditListType);
 

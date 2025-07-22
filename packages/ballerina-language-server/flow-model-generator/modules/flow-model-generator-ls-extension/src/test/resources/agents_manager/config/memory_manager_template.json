@@ -9,6 +9,7 @@
     "node": "CLASS_INIT",
     "org": "ballerinax",
     "module": "ai",
+    "packageName": "ai",
     "object": "MessageWindowChatMemory",
     "symbol": "init",
     "version": "1.0.1"
@@ -24,6 +25,7 @@
       "node": "CLASS_INIT",
       "org": "ballerinax",
       "module": "ai",
+      "packageName": "ai",
       "object": "MessageWindowChatMemory",
       "symbol": "init",
       "version": "1.0.1",
@@ -33,7 +35,7 @@
     "properties": {
       "size": {
         "metadata": {
-          "label": "size",
+          "label": "Size",
           "description": "The maximum capacity for stored messages"
         },
         "valueType": "EXPRESSION",
@@ -51,14 +53,16 @@
           {
             "type": "int",
             "packageInfo": "",
+            "packageName": "",
             "kind": "BASIC_TYPE",
             "selected": false
           }
-        ]
+        ],
+        "defaultValue": "0"
       },
       "type": {
         "metadata": {
-          "label": "Variable Type",
+          "label": "Result Type",
           "description": "Type of the variable"
         },
         "valueType": "TYPE",
@@ -72,8 +76,8 @@
       },
       "variable": {
         "metadata": {
-          "label": "Variable Name",
-          "description": "Name of the variable"
+          "label": "Result",
+          "description": "Name of the result variable"
         },
         "valueType": "IDENTIFIER",
         "value": "aiMessagewindowchatmemory",

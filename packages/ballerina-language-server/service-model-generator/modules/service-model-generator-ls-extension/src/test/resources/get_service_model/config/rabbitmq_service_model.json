@@ -1,12 +1,12 @@
 {
   "description": "Test getting rabbitmq service model",
   "filePath": "sample3/main.bal",
-  "orgName": "ballerina",
+  "orgName": "ballerinax",
   "pkgName": "rabbitmq",
   "moduleName": "rabbitmq",
   "response": {
     "service": {
-      "id": "8",
+      "id": "9",
       "name": "RabbitMQ Event Handler",
       "type": "rabbitmq",
       "displayName": "RabbitMQ Event Handler",
