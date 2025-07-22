@@ -33,7 +33,7 @@ export function activateAIFeatures(ballerinaExternalInstance: BallerinaExtension
 
     vscode.commands.registerCommand("ballerina.configureWso2DefaultModelProvider", async (...args: any[]) => {
         const configPath = await getConfigFilePath(ballerinaExternalInstance, projectPath);
-        if (configPath != null) {
+        if (configPath !== null) {
             addConfigFile(configPath);
         }
     });

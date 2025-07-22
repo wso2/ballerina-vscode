@@ -94,7 +94,7 @@ export async function getConfigFilePath(ballerinaExtInstance: BallerinaExtension
     let activeFilePath = "";
     let configPath = "";
 
-    if (rootPath != "") {
+    if (rootPath !== "") {
         return rootPath;
     }
 
@@ -119,7 +119,7 @@ export async function getConfigFilePath(ballerinaExtInstance: BallerinaExtension
             configPath = currentBallerinaProject.path;
         }
 
-        if (configPath == undefined && configPath == "") {
+        if (configPath == undefined || configPath == "") {
             return await showNoBallerinaSourceWarningMessage();
         }
         return configPath;
@@ -151,7 +151,7 @@ export async function getBackendURL(): Promise<string> {
 }
 
 // Function to find a file in a case-insensitive way
-function findFileCaseInsensitive(directory, fileName) {
+function findFileCaseInsensitive(directory: string, fileName: string): string {
     const files = fs.readdirSync(directory);
     const targetFile = files.find(file => file.toLowerCase() === fileName.toLowerCase());
     const file = targetFile ? targetFile : fileName;
@@ -232,8 +232,8 @@ export async function addConfigFile(configPath: string) {
         },
         async () => {
             try {
-                const token: string = await getTokenForDefaultModel();
-                if (token == null) {
+                const token: string | null = await getTokenForDefaultModel();
+                if (token === null) {
                     AIStateMachine.service().send(AIMachineEventType.LOGOUT);
                     return;
                 }
