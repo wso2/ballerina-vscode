@@ -17,17 +17,17 @@
  */
 
 import { commands, languages, Uri, window, workspace } from "vscode";
-import { BALLERINA_COMMANDS, getRunCommand, PALETTE_COMMANDS, runCommand } from "./cmd-runner";
-import { ballerinaExtInstance } from "../../../core";
+import { getRunCommand, PALETTE_COMMANDS, runCommand } from "./cmd-runner";
+import { extension } from "../../../BalExtensionContext";
 import { getConfigCompletions } from "../../config-generator/utils";
 import { BiDiagramRpcManager } from "../../../rpc-managers/bi-diagram/rpc-manager";
 
 function activateConfigRunCommand() {
     // register the config view run command
     commands.registerCommand(PALETTE_COMMANDS.RUN_CONFIG, async (filePath: Uri) => {
-        const currentProject = ballerinaExtInstance.getDocumentContext().getCurrentProject();
+        const currentProject = extension.ballerinaExtInstance.getDocumentContext().getCurrentProject();
         if (currentProject) {
-            runCommand(currentProject, ballerinaExtInstance.getBallerinaCmd(),
+            runCommand(currentProject, extension.ballerinaExtInstance.getBallerinaCmd(),
             getRunCommand(),
             currentProject.path!);
             return;
@@ -54,10 +54,10 @@ function activateConfigRunCommand() {
 
     languages.registerCompletionItemProvider({ language: 'toml' }, {
         async provideCompletionItems(document, position, token, context) {
-            const currentProject = ballerinaExtInstance.getDocumentContext().getCurrentProject();
+            const currentProject = extension.ballerinaExtInstance.getDocumentContext().getCurrentProject();
             const filePath = window.activeTextEditor.document;
             const path = filePath.uri.fsPath;
-            const suggestions = await getConfigCompletions(ballerinaExtInstance, currentProject ? currentProject.path! : path, document, position);
+            const suggestions = await getConfigCompletions(extension.ballerinaExtInstance, currentProject ? currentProject.path! : path, document, position);
             return suggestions;
         }
     });
