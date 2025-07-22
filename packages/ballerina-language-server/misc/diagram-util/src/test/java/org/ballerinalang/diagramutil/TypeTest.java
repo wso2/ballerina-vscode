@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, WSO2 Inc. (http://wso2.com) All Rights Reserved.
+ * Copyright (c) 2025, WSO2 Inc. (http://wso2.com) All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,11 @@
  */
 package org.ballerinalang.diagramutil;
 
-import com.google.gson.*;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.compiler.api.symbols.Symbol;
 import io.ballerina.projects.ModuleId;
@@ -75,13 +79,13 @@ public class TypeTest {
                 .orElseThrow(() -> new RuntimeException("Type symbol '" + typeSymbolName + "' not found"));
 
         Type type = Type.fromSemanticSymbol(typeSymbol);
-        String TypeJson = gson.toJson(type).concat(System.lineSeparator());
+        String typeJson = gson.toJson(type).concat(System.lineSeparator());
         String expectedTypeJson = gson.toJson(jsonObject.get("Type")).concat(System.lineSeparator());
-        if (!TypeJson.equals(expectedTypeJson)) {
-            updateConfig(jsonPath, TypeJson);
+        if (!typeJson.equals(expectedTypeJson)) {
+//            updateConfig(jsonPath, TypeJson);
             Assert.fail(
                     String.format("Type JSON does not match.\n Expected : %s\n Received %s",
-                            expectedTypeJson, TypeJson));
+                            expectedTypeJson, typeJson));
         }
     }
 
@@ -92,6 +96,5 @@ public class TypeTest {
         jsonObject.add("Type", newType);
         Files.writeString(configJsonPath, gson.toJson(jsonObject));
     }
-
 
 }

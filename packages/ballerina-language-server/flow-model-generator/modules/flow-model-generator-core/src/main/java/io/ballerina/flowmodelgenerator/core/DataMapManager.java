@@ -240,6 +240,7 @@ public class DataMapManager {
             String fromClauseVar = fromClauseNode.typedBindingPattern().bindingPattern().toSourceCode().trim();
             if (typeSymbol.isPresent() && typeSymbol.get().typeKind() == TypeDescKind.ARRAY) {
                 TypeSymbol memberTypeSymbol = ((ArrayTypeSymbol) typeSymbol.get()).memberTypeDescriptor();
+                visitedTypes.clear();
                 MappingPort mappingPort = getMappingPort(fromClauseVar, fromClauseVar,
                         Type.fromSemanticSymbol(memberTypeSymbol), true, visitedTypes);
                 if (mappingPort != null) {
@@ -295,6 +296,7 @@ public class DataMapManager {
                 }
                 Symbol symbol = optSymbol.get();
                 String letVarName = symbol.getName().orElseThrow();
+                visitedTypes.clear();
                 subMappingPorts.add(getMappingPort(letVarName, letVarName, Type.fromSemanticSymbol(symbol), false, visitedTypes));
             }
         } else {
