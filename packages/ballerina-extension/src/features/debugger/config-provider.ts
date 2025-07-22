@@ -694,16 +694,7 @@ class BIRunAdapter extends LoggingDebugSession {
             task: 'run'
         };
 
-        const ballerinaHome = ballerinaExtInstance.getConfiguredBallerinaHome();
-        const pluginDevModeEnabled = ballerinaExtInstance.overrideBallerinaHome();
-
-        let runCommand: string;
-        if (pluginDevModeEnabled && ballerinaHome) {
-            runCommand = path.join(ballerinaHome, 'bin', ballerinaExtInstance.getBallerinaCmd());
-        } else {
-            runCommand = ballerinaExtInstance.getBallerinaCmd();
-        }
-        runCommand += ' run';
+        let runCommand: string = `${ballerinaExtInstance.getBallerinaCmd()} run`;
 
         const programArgs = (args as any).programArgs;
         if (programArgs && programArgs.length > 0) {

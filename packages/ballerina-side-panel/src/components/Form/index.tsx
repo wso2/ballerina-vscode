@@ -351,7 +351,6 @@ export const Form = forwardRef((props: FormProps, ref) => {
     const {
         infoLabel,
         formFields,
-        projectPath,
         selectedNode,
         submitText,
         cancelText,
@@ -361,7 +360,6 @@ export const Form = forwardRef((props: FormProps, ref) => {
         onCancelForm,
         oneTimeForm,
         openRecordEditor,
-        openView,
         openSubPanel,
         subPanelView,
         expressionEditor,
@@ -393,7 +391,7 @@ export const Form = forwardRef((props: FormProps, ref) => {
         setValue,
         setError,
         clearErrors,
-        formState: { isValidating, errors, isDirty, isValid: isFormValid, dirtyFields },
+        formState: { isValidating, errors, dirtyFields },
     } = useForm<FormValues>();
 
     const [showAdvancedOptions, setShowAdvancedOptions] = useState(false);
@@ -583,7 +581,6 @@ export const Form = forwardRef((props: FormProps, ref) => {
     const variableField = formFields.find((field) => field.key === "variable");
     const typeField = formFields.find((field) => field.key === "type");
     const targetTypeField = formFields.find((field) => field.codedata?.kind === "PARAM_FOR_TYPE_INFER");
-    const dataMapperField = formFields.find((field) => field.label.includes("Data mapper"));
     const hasParameters = hasRequiredParameters(formFields, selectedNode) || hasOptionalParameters(formFields);
 
     const contextValue: FormContext = {
