@@ -4,7 +4,7 @@
   "functionName": "rateMovie",
   "description": "",
   "output": {
-    "id": "40860",
+    "id": "42844",
     "metadata": {
       "label": "Natural Function",
       "description": "Define a natural function"
@@ -12,15 +12,15 @@
     "codedata": {
       "node": "NP_FUNCTION_DEFINITION",
       "org": "ballerina",
-      "module": "np",
+      "module": "ai",
       "lineRange": {
         "fileName": "functions.bal",
         "startLine": {
-          "line": 9,
+          "line": 11,
           "offset": 0
         },
         "endLine": {
-          "line": 15,
+          "line": 17,
           "offset": 2
         }
       }
@@ -43,11 +43,11 @@
           "lineRange": {
             "fileName": "functions.bal",
             "startLine": {
-              "line": 9,
+              "line": 11,
               "offset": 9
             },
             "endLine": {
-              "line": 9,
+              "line": 11,
               "offset": 18
             }
           }
@@ -155,11 +155,11 @@
                   "lineRange": {
                     "fileName": "functions.bal",
                     "startLine": {
-                      "line": 9,
+                      "line": 11,
                       "offset": 26
                     },
                     "endLine": {
-                      "line": 9,
+                      "line": 11,
                       "offset": 35
                     }
                   }
@@ -205,27 +205,34 @@
           "lineRange": {
             "fileName": "functions.bal",
             "startLine": {
-              "line": 10,
+              "line": 12,
               "offset": 0
             },
             "endLine": {
-              "line": 15,
+              "line": 17,
               "offset": 0
             }
           }
         }
       },
-      "enableModelContext": {
+      "modelProvider": {
         "metadata": {
-          "label": "Enable model configuration",
-          "description": "Allow specifying Large Language Model (LLM) choice"
+          "label": "Configure the model",
+          "description": "The large language model (LLM) to use"
         },
-        "valueType": "FLAG",
-        "value": false,
-        "optional": true,
+        "valueType": "SINGLE_SELECT",
+        "valueTypeConstraint": [
+          "Default Model Provider (WSO2)",
+          "Accept as a parameter"
+        ],
+        "value": "Default Model Provider (WSO2)",
+        "optional": false,
         "editable": true,
-        "advanced": true,
-        "hidden": false
+        "advanced": false,
+        "hidden": false,
+        "codedata": {
+          "kind": "REQUIRED"
+        }
       }
     },
     "flags": 0
