@@ -18,7 +18,7 @@
               "module": "ai",
               "packageName": "ai",
               "symbol": "getDefaultModelProvider",
-              "version": "1.0.0"
+              "version": "1.1.0"
             },
             "enabled": true,
             "more": false
@@ -35,7 +35,7 @@
               "packageName": "ai.openai",
               "object": "ModelProvider",
               "symbol": "init",
-              "version": "1.0.0"
+              "version": "1.1.0"
             },
             "enabled": true,
             "more": false
@@ -52,7 +52,7 @@
               "packageName": "ai.azure",
               "object": "OpenAiModelProvider",
               "symbol": "init",
-              "version": "1.0.0"
+              "version": "1.0.1"
             },
             "enabled": true,
             "more": false
@@ -69,7 +69,7 @@
               "packageName": "ai.anthropic",
               "object": "ModelProvider",
               "symbol": "init",
-              "version": "1.0.0"
+              "version": "1.0.1"
             },
             "enabled": true,
             "more": false
@@ -86,7 +86,7 @@
               "packageName": "ai.deepseek",
               "object": "ModelProvider",
               "symbol": "init",
-              "version": "1.0.0"
+              "version": "1.0.1"
             },
             "enabled": true,
             "more": false
@@ -103,7 +103,7 @@
               "packageName": "ai.mistral",
               "object": "ModelProvider",
               "symbol": "init",
-              "version": "1.0.0"
+              "version": "1.0.1"
             },
             "enabled": true,
             "more": false
@@ -120,7 +120,7 @@
               "packageName": "ai.ollama",
               "object": "ModelProvider",
               "symbol": "init",
-              "version": "1.0.0"
+              "version": "1.0.1"
             },
             "enabled": true,
             "more": false
@@ -137,7 +137,7 @@
               "packageName": "ai",
               "object": "Wso2ModelProvider",
               "symbol": "init",
-              "version": "1.0.0"
+              "version": "1.1.0"
             },
             "enabled": true,
             "more": false

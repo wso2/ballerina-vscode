@@ -19,7 +19,7 @@
               "packageName": "ai.pinecone",
               "object": "VectorStore",
               "symbol": "init",
-              "version": "1.0.0"
+              "version": "1.0.1"
             },
             "enabled": true,
             "more": false
@@ -36,7 +36,7 @@
               "packageName": "ai",
               "object": "InMemoryVectorStore",
               "symbol": "init",
-              "version": "1.0.0"
+              "version": "1.1.0"
             },
             "enabled": true,
             "more": false

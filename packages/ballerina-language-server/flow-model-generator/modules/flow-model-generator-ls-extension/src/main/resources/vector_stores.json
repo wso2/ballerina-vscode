@@ -18,7 +18,7 @@
                         "object": "VectorStore",
                         "org": "ballerinax",
                         "importStmt": "import ballerinax/ai.pinecone",
-                        "version": "1.0.0",
+                        "version": "1.0.1",
                         "flags": 1
                     },
                     "enabled": true
@@ -36,7 +36,7 @@
                         "object": "InMemoryVectorStore",
                         "org": "ballerina",
                         "importStmt": "import ballerina/ai",
-                        "version": "1.0.0",
+                        "version": "1.1.0",
                         "flags": 1
                     },
                     "enabled": true

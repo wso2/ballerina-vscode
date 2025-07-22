@@ -17,7 +17,7 @@
                         "symbol": "getDefaultModelProvider",
                         "org": "ballerina",
                         "importStmt": "import ballerina/ai",
-                        "version": "1.0.0",
+                        "version": "1.1.0",
                         "flags": 1
                     },
                     "enabled": true
@@ -34,7 +34,7 @@
                         "symbol": "init",
                         "org": "ballerinax",
                         "importStmt": "import ballerinax/ai.openai",
-                        "version": "1.0.0",
+                        "version": "1.1.0",
                         "object": "ModelProvider",
                         "flags": 1
                     },
@@ -52,7 +52,7 @@
                         "symbol": "init",
                         "org": "ballerinax",
                         "importStmt": "import ballerinax/ai.azure",
-                        "version": "1.0.0",
+                        "version": "1.0.1",
                         "object": "OpenAiModelProvider",
                         "flags": 1
                     },
@@ -70,7 +70,7 @@
                         "symbol": "init",
                         "org": "ballerinax",
                         "importStmt": "import ballerinax/ai.anthropic",
-                        "version": "1.0.0",
+                        "version": "1.0.1",
                         "object": "ModelProvider",
                         "flags": 1
                     },
@@ -88,7 +88,7 @@
                         "symbol": "init",
                         "org": "ballerinax",
                         "importStmt": "import ballerinax/ai.deepseek",
-                        "version": "1.0.0",
+                        "version": "1.0.1",
                         "object": "ModelProvider",
                         "flags": 1
                     },
@@ -106,7 +106,7 @@
                         "symbol": "init",
                         "org": "ballerinax",
                         "importStmt": "import ballerinax/ai.mistral",
-                        "version": "1.0.0",
+                        "version": "1.0.1",
                         "object": "ModelProvider",
                         "flags": 1
                     },
@@ -124,7 +124,7 @@
                         "symbol": "init",
                         "org": "ballerinax",
                         "importStmt": "import ballerinax/ai.ollama",
-                        "version": "1.0.0",
+                        "version": "1.0.1",
                         "object": "ModelProvider",
                         "flags": 1
                     },
@@ -142,7 +142,7 @@
                         "symbol": "init",
                         "org": "ballerina",
                         "importStmt": "import ballerina/ai",
-                        "version": "1.0.0",
+                        "version": "1.1.0",
                         "object": "Wso2ModelProvider",
                         "flags": 1
                     },

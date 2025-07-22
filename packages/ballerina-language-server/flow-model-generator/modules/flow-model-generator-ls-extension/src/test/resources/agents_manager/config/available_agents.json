@@ -856,7 +856,7 @@
           "codedata": {
             "node": "MODEL_PROVIDERS"
           },
-          "enabled": true,
+          "enabled": false,
           "more": false
         },
         {
@@ -885,7 +885,7 @@
             "symbol": "init",
             "version": "1.0.0"
           },
-          "enabled": true,
+          "enabled": false,
           "more": false
         },
         {
@@ -899,7 +899,7 @@
             "packageName": "ai",
             "symbol": "chunkDocumentRecursively"
           },
-          "enabled": true,
+          "enabled": false,
           "more": false
         },
         {
@@ -913,7 +913,7 @@
             "packageName": "ai",
             "symbol": "augmentUserQuery"
           },
-          "enabled": true,
+          "enabled": false,
           "more": false
         },
         {
@@ -925,7 +925,7 @@
             "node": "VECTOR_STORES"
           },
           "enabled": true,
-          "more": true
+          "more": false
         },
         {
           "metadata": {
@@ -936,7 +936,7 @@
             "node": "EMBEDDING_PROVIDERS"
           },
           "enabled": true,
-          "more": true
+          "more": false
         },
         {
           "metadata": {

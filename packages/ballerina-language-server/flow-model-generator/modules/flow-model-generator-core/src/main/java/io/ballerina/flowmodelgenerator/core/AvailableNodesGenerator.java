@@ -92,7 +92,7 @@ public class AvailableNodesGenerator {
         this.pkg = pkg;
     }
 
-    public JsonArray getAvailableNodes(LinePosition position) {
+    public JsonArray getAvailableNodes(boolean disableBallerinaAiNodes, LinePosition position) {
         List<Category> connections = new ArrayList<>();
         List<Symbol> symbols = semanticModel.visibleSymbols(document, position);
         for (Symbol symbol : symbols) {
@@ -106,9 +106,13 @@ public class AvailableNodesGenerator {
         this.rootBuilder.stepIn(Category.Name.CONNECTIONS).items(new ArrayList<>(connections)).stepOut();
 
         List<Item> items = new ArrayList<>();
-        items.addAll(getAvailableFlowNodes(position));
+        items.addAll(getAvailableFlowNodes(position, disableBallerinaAiNodes));
         items.addAll(LocalIndexCentral.getInstance().getFunctions());
         return gson.toJsonTree(items).getAsJsonArray();
+    }
+
+    public JsonArray getAvailableNodes(LinePosition position) {
+        return getAvailableNodes(true, position);
     }
 
     public JsonArray getAvailableModelProviders(LinePosition position) {
@@ -139,7 +143,7 @@ public class AvailableNodesGenerator {
         return gson.toJsonTree(items).getAsJsonArray();
     }
 
-    private List<Item> getAvailableFlowNodes(LinePosition cursorPosition) {
+    private List<Item> getAvailableFlowNodes(LinePosition cursorPosition, boolean disableBallerinaAiNodes) {
         int txtPos = this.document.textDocument().textPositionFrom(cursorPosition);
         TextRange range = TextRange.from(txtPos, 0);
         NonTerminalNode nonTerminalNode = ((ModulePartNode) document.syntaxTree().rootNode()).findNode(range);
@@ -149,7 +153,7 @@ public class AvailableNodesGenerator {
             SyntaxKind kind = iterationNode.kind();
             switch (kind) {
                 case WHILE_STATEMENT, FOREACH_STATEMENT -> {
-                    setAvailableNodesForIteratingBlock(nonTerminalNode, this.semanticModel);
+                    setAvailableNodesForIteratingBlock(nonTerminalNode, disableBallerinaAiNodes);
                     return this.rootBuilder.build().items();
                 }
                 default -> iterationNode = iterationNode.parent();
@@ -161,23 +165,23 @@ public class AvailableNodesGenerator {
             switch (kind) {
                 case IF_ELSE_STATEMENT, LOCK_STATEMENT, TRANSACTION_STATEMENT, MATCH_STATEMENT, DO_STATEMENT,
                      ON_FAIL_CLAUSE -> {
-                    setAvailableDefaultNodes(nonTerminalNode, semanticModel);
+                    setAvailableDefaultNodes(nonTerminalNode, disableBallerinaAiNodes);
                     return this.rootBuilder.build().items();
                 }
                 default -> nonTerminalNode = nonTerminalNode.parent();
             }
         }
-        setDefaultNodes();
+        setDefaultNodes(disableBallerinaAiNodes);
         return this.rootBuilder.build().items();
     }
 
-    private void setAvailableDefaultNodes(NonTerminalNode node, SemanticModel semanticModel) {
-        setDefaultNodes();
+    private void setAvailableDefaultNodes(NonTerminalNode node, boolean disableBallerinaAiNodes) {
+        setDefaultNodes(disableBallerinaAiNodes);
         setStopNode(node);
     }
 
-    private void setAvailableNodesForIteratingBlock(NonTerminalNode node, SemanticModel semanticModel) {
-        setDefaultNodes();
+    private void setAvailableNodesForIteratingBlock(NonTerminalNode node, boolean disableBallerinaAiNodes) {
+        setDefaultNodes(disableBallerinaAiNodes);
         setStopNode(node);
         this.rootBuilder.stepIn(Category.Name.CONTROL)
                 .node(NodeKind.BREAK)
@@ -185,9 +189,9 @@ public class AvailableNodesGenerator {
                 .stepOut();
     }
 
-    private void setDefaultNodes() {
+    private void setDefaultNodes(boolean disableBallerinaAiNodes) {
         this.rootBuilder.stepIn(Category.Name.AI)
-                .items(getAiNodes())
+                .items(getAiNodes(disableBallerinaAiNodes))
                 .stepOut();
 
         AvailableNode function = new AvailableNode(
@@ -233,11 +237,10 @@ public class AvailableNodesGenerator {
                     .stepOut();
     }
 
-    private List<Item> getAiNodes() {
-        // TODO: sec icons in metadata
+    private List<Item> getAiNodes(boolean disableBallerinaAiNodes) {
         AvailableNode modelProvider = new AvailableNode(new Metadata.Builder<>(null)
                 .label(ModelProviderBuilder.LABEL).description(ModelProviderBuilder.DESCRIPTION).build(),
-                new Codedata.Builder<>(null).node(NodeKind.MODEL_PROVIDERS).build(), true);
+                new Codedata.Builder<>(null).node(NodeKind.MODEL_PROVIDERS).build(), !disableBallerinaAiNodes);
 
         AvailableNode npFunction = new AvailableNode(
                 new Metadata.Builder<>(null).label(NPFunctionCall.LABEL)
@@ -250,20 +253,20 @@ public class AvailableNodesGenerator {
                 new Codedata.Builder<>(null).node(NodeKind.VECTOR_KNOWLEDGE_BASES).org(Ai.BALLERINA_ORG)
                         .module(Ai.AI_PACKAGE).packageName(Ai.AI_PACKAGE).version(Ai.VERSION)
                         .object(Ai.VECTOR_KNOWLEDGE_BASE_TYPE_NAME).symbol("init").build(),
-                true);
+                !disableBallerinaAiNodes);
 
         AvailableNode chunkers = new AvailableNode(
                 new Metadata.Builder<>(null).label(Ai.RECURSIVE_DOCUMENT_CHUNKER_LABEL).build(),
                 new Codedata.Builder<>(null).node(NodeKind.FUNCTION_CALL).org(Ai.BALLERINA_ORG)
                         .module(Ai.AI_PACKAGE).packageName(Ai.AI_PACKAGE)
                         .symbol(Ai.CHUNK_DOCUMENT_RECURSIVELY_METHOD_NAME).build(),
-                true);
+                !disableBallerinaAiNodes);
 
         AvailableNode augmentUserQuery = new AvailableNode(
                 new Metadata.Builder<>(null).label(Ai.AUGMENT_QUERY_LABEL).build(),
                 new Codedata.Builder<>(null).node(NodeKind.FUNCTION_CALL).org(Ai.BALLERINA_ORG)
                         .module(Ai.AI_PACKAGE).packageName(Ai.AI_PACKAGE).symbol(Ai.AUGMENT_USER_QUERY_METHOD_NAME)
-                        .build(), true);
+                        .build(), !disableBallerinaAiNodes);
 
         AvailableNode agentCall = new AvailableNode(
                 new Metadata.Builder<>(null).label(AgentBuilder.LABEL)
@@ -276,13 +279,13 @@ public class AvailableNodesGenerator {
                 new Metadata.Builder<>(null).label(VectorStoreBuilder.LABEL)
                         .description(VectorStoreBuilder.DESCRIPTION).build(),
                 new Codedata.Builder<>(null).node(NodeKind.VECTOR_STORES).build(),
-                true, true);
+                !disableBallerinaAiNodes, true);
 
         AvailableNode embeddingProvider = new AvailableNode(
                 new Metadata.Builder<>(null).label(EmbeddingProviderBuilder.LABEL)
                         .description(EmbeddingProviderBuilder.DESCRIPTION).build(),
                 new Codedata.Builder<>(null).node(NodeKind.EMBEDDING_PROVIDERS).build(),
-                true, true);
+                !disableBallerinaAiNodes, true);
 
         return List.of(modelProvider, npFunction, vectorKnowledgeBase, chunkers, augmentUserQuery,
                 vectorStore, embeddingProvider, agentCall);

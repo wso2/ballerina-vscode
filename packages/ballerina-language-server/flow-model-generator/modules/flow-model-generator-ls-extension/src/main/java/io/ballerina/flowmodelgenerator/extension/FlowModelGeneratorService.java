@@ -95,6 +95,8 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 
+import static io.ballerina.modelgenerator.commons.CommonUtils.BALLERINAX_ORG_NAME;
+
 /**
  * Represents the extended language server service for the flow model generator service.
  *
@@ -284,8 +286,28 @@ public class FlowModelGeneratorService implements ExtendedLanguageServerService 
     @JsonRequest
     public CompletableFuture<FlowModelAvailableNodesResponse> getAvailableNodes(
             FlowModelAvailableNodesRequest request) {
-        return handleAvailableNodesRequest(request,
-                generator -> generator.getAvailableNodes(request.position()));
+        return CompletableFuture.supplyAsync(() -> {
+            FlowModelAvailableNodesResponse response = new FlowModelAvailableNodesResponse();
+            try {
+                Path filePath = Path.of(request.filePath());
+                WorkspaceManager workspaceManager = this.workspaceManagerProxy.get();
+                Project project = workspaceManager.loadProject(filePath);
+                Optional<SemanticModel> semanticModel = workspaceManager.semanticModel(filePath);
+                Optional<Document> document = workspaceManager.document(filePath);
+                if (semanticModel.isEmpty() || document.isEmpty()) {
+                    return response;
+                }
+
+                AvailableNodesGenerator generator = new AvailableNodesGenerator(semanticModel.get(),
+                        document.get(), project.currentPackage());
+                boolean disableBallerinaAiNodes = AgentsManagerService.getAiModuleOrgName(request.filePath(),
+                        workspaceManager).equals(BALLERINAX_ORG_NAME);
+                response.setCategories(generator.getAvailableNodes(disableBallerinaAiNodes, request.position()));
+            } catch (Throwable e) {
+                response.setError(e);
+            }
+            return response;
+        });
     }
 
     @JsonRequest

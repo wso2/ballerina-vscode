@@ -1156,7 +1156,6 @@ public class FunctionDataBuilder {
         return sb.toString();
     }
 
-
     private boolean isAiModelTypeParameter(String paramName, FunctionData.Kind functionKind) {
         return MODEL_TYPE_PARAMETER_NAME.equals(paramName) &&
                 (functionKind == FunctionData.Kind.MODEL_PROVIDER ||
