@@ -105,33 +105,6 @@ const PreviewIcon = styled(Codicon)`
     align-items: center;
 `;
 
-interface BaseIntegrationParams {
-    name: string;
-    path: string;
-    importSourcePath: string;
-}
-
-interface MuleSoftParams extends BaseIntegrationParams {
-    type: "mulesoft";
-    keepStructure: boolean;
-    multiRoot: boolean;
-}
-
-interface TibcoParams extends BaseIntegrationParams {
-    type: "tibco";
-    keepStructure: boolean;
-    multiRoot: boolean;
-}
-
-interface LogicAppsParams extends BaseIntegrationParams {
-    type: "logic-apps";
-    keepStructure: boolean;
-    multiRoot: boolean;
-    prompt: string;
-}
-
-type IntegrationParams = MuleSoftParams | TibcoParams | LogicAppsParams;
-
 const ParametersSection = styled.div`
     margin: 20px 0;
     padding: 16px;

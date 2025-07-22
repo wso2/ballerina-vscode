@@ -47,9 +47,12 @@ export function ImportIntegration() {
     // State managed by the parent component
     const [view, setView] = useState<"form" | "loading">("form");
     const [toolPullProgress, setToolPullProgress] = useState<DownloadProgress | null>(null);
+    const [migrationToolState, setMigrationToolState] = useState<string | null>(null);
+    const [migrationToolLogs, setMigrationToolLogs] = useState<string[]>([]);
     const [pullingTool, setPullingTool] = useState(false);
     const [selectedIntegration, setSelectedIntegration] = useState<keyof typeof INTEGRATION_CONFIGS | null>(null);
     const [importParams, setImportParams] = useState<FinalIntegrationParams | null>(null);
+    const [migrationCompleted, setMigrationCompleted] = useState(false);
     const [migrationResponse, setMigrationResponse] = useState<ImportIntegrationResponse | null>(null);
 
     const pullIntegrationTool = (integrationType: keyof typeof INTEGRATION_CONFIGS) => {
@@ -106,6 +109,17 @@ export function ImportIntegration() {
                 setPullingTool(false);
             }
         });
+
+        rpcClient.onMigrationToolStateChanged((stateUpdate) => {
+            if (stateUpdate === "CodeGeneration completed for project") {
+                setMigrationCompleted(true);
+            }
+            setMigrationToolState(stateUpdate);
+        });
+
+        rpcClient.onMigrationToolLogs((logUpdate) => {
+            setMigrationToolLogs((prevLogs) => [...prevLogs, logUpdate]);
+        });
     }, [rpcClient]);
 
     useEffect(() => {
@@ -128,6 +142,9 @@ export function ImportIntegration() {
             {view === "loading" && (
                 <MigrationProgressView
                     importParams={importParams}
+                    migrationState={migrationToolState}
+                    migrationLogs={migrationToolLogs}
+                    migrationCompleted={migrationCompleted}
                     migrationResponse={migrationResponse}
                     onCreateIntegrationFiles={handleCreateIntegrationFiles}
                 />

@@ -221,6 +221,8 @@ export interface ChatError {
 export const stateChanged: NotificationType<MachineStateValue> = { method: 'stateChanged' };
 export const onDownloadProgress: NotificationType<DownloadProgress> = { method: 'onDownloadProgress' };
 export const onChatNotify: NotificationType<ChatNotify> = { method: 'onChatNotify' };
+export const onMigrationToolLogs: NotificationType<string> = { method: 'onMigrationToolLogs' };
+export const onMigrationToolStateChanged: NotificationType<string> = { method: 'onMigrationToolStateChanged' };
 export const projectContentUpdated: NotificationType<boolean> = { method: 'projectContentUpdated' };
 export const getVisualizerLocation: RequestType<void, VisualizerLocation> = { method: 'getVisualizerLocation' };
 export const webviewReady: NotificationType<void> = { method: `webviewReady` };

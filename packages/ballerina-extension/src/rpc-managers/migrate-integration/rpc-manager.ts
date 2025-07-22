@@ -45,6 +45,7 @@ export class MigrateIntegrationRpcManager implements MigrateIntegrationAPI {
             packageName: sanitizeName(params.packageName),
             sourcePath: params.sourcePath
         };
+        StateMachine.langClient().registerMigrationToolCallbacks();
         return StateMachine.langClient().importTibcoToBI(langParams);
     }
 }
