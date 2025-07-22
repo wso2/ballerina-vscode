@@ -243,6 +243,7 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
     };
 
     let isAutomation = parentMetadata?.kind === "Function" && parentMetadata?.label === "main";
+    let isFunction = parentMetadata?.kind === "Function" && parentMetadata?.label !== "main";
     let isResource = parentMetadata?.kind === "Resource";
     let isRemote = parentMetadata?.kind === "Remote Function";
     let isAgent = parentMetadata?.kind === "AI Chat Agent" && parentMetadata?.label === "chat";

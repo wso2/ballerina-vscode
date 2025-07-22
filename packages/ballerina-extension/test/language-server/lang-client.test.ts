@@ -32,7 +32,7 @@ import {
     Connectors, Completion, Diagnostics,
     SyntaxTree} from '@wso2/ballerina-core';
 import { ExtendedLangClient } from '../../src/core/extended-language-client';
-import { ballerinaExtInstance } from '../../src/core/extension';
+import { extension } from '../../src/BalExtensionContext';
 
 const PROJECT_ROOT = join(__dirname, '..', '..', '..', 'test', 'data');
 
@@ -44,7 +44,7 @@ suite.skip("Language Server Tests", function () {
         langClient = new ExtendedLangClient(
             'ballerina-vscode',
             'Ballerina LS Client',
-            getServerOptions(ballerinaExtInstance),
+            getServerOptions(extension.ballerinaExtInstance),
             { documentSelector: [{ scheme: 'file', language: 'ballerina' }] },
             undefined,
             false
