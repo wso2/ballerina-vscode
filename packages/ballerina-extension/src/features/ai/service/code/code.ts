@@ -233,7 +233,7 @@ Important reminders:
 - Whenever you have a Json variable, NEVER access or manipulate Json variables. ALWAYS define a record and convert the Json to that record and use it. 
 - When invoking resource function from a client, use the correct paths with accessor and paramters. (eg: exampleClient->/path1/["param"]/path2.get(key="value"))
 - When you are accessing a field of a record, always assign it into new variable and use that variable in the next statement.
-- Avoid long comments in the code.
+- Avoid long comments in the code. Use // for single line comments.
 - Always use named arguments when providing values to any parameter. (eg: .get(key="value"))
 - Mention types EXPLICITLY in variable declarations and foreach statements.
 - Do not modify the README.md file unless asked to be modified explicitly in the query.
@@ -328,7 +328,7 @@ export async function repairCode(params: RepairParams): Promise<RepairResponse> 
         },
     ];
 
-    const { text } = await generateText({
+    const { text, usage, providerMetadata } = await generateText({
         model: anthropic(ANTHROPIC_SONNET_4),
         maxTokens: 4096 * 4,
         temperature: 0,
