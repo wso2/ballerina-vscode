@@ -71,7 +71,7 @@
             "data": {
               "isDataMappedFunction": false,
               "isAgentTool": false,
-              "isIsolatedFunction": false
+              "isIsolatedFunction": true
             }
           },
           "codedata": {
@@ -90,7 +90,7 @@
             "data": {
               "isDataMappedFunction": false,
               "isAgentTool": false,
-              "isIsolatedFunction": false
+              "isIsolatedFunction": true
             }
           },
           "codedata": {
