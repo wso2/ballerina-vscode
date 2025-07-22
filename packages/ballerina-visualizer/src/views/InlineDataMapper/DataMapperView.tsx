@@ -32,7 +32,8 @@ import {
     IntermediateClause,
     TriggerCharacter,
     TRIGGER_CHARACTERS,
-    Mapping
+    Mapping,
+    CodeData
 } from "@wso2/ballerina-core";
 import { CompletionItem, ProgressIndicator } from "@wso2/ui-toolkit";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
@@ -256,8 +257,23 @@ export function InlineDataMapperView(props: InlineDataMapperProps) {
         }
     }
 
-    const addSubMapping = async (subMappingName: string, type: string, index: number, targetField: string) => {
+    const addSubMapping = async (
+        subMappingName: string,
+        type: string,
+        index: number,
+        targetField: string,
+        importsCodedata?: CodeData
+    ) => {
         try {
+            const visualizableResponse = await rpcClient
+                .getInlineDataMapperRpcClient()
+                .getVisualizableFields({
+                    filePath,
+                    codedata: importsCodedata || { symbol: type }
+                });
+            console.log(">>> [Inline Data Mapper] getVisualizableFields response:", visualizableResponse);
+
+            const defaultValue = visualizableResponse.visualizableProperties.defaultValue;
             const request = createAddSubMappingRequest(
                 filePath,
                 codedata,
@@ -265,7 +281,8 @@ export function InlineDataMapperView(props: InlineDataMapperProps) {
                 targetField,
                 subMappingName,
                 type,
-                varName
+                varName,
+                defaultValue
             );
             
             console.log(">>> [Inline Data Mapper] addSubMapping request:", request);
