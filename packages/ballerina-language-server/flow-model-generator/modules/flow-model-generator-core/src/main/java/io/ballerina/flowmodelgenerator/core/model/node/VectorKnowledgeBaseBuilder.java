@@ -43,15 +43,9 @@ public class VectorKnowledgeBaseBuilder extends CallBuilder {
     private static final String VECTOR_KNOWLEDGE_BASE_NAME_LABEL_DOC = "Vector knowledge-base instance name";
     private static final String CHECK_ERROR_DOC = "Terminate on error";
 
-    private static final String INIT_METHOD_NAME = "init";
-    private static final String VECTOR_KNOWLEDGE_BASE_TYPE_NAME = "VectorKnowledgeBase";
-
     @Override
     public void setConcreteConstData() {
         metadata().label(LABEL);
-//        codedata().node(NodeKind.VECTOR_KNOWLEDGE_BASE)
-//                .symbol(INIT_METHOD_NAME).object(VECTOR_KNOWLEDGE_BASE_TYPE_NAME)
-//                .module("ai").packageName("ai").version("1.0.0").org("ballerina");
     }
 
     @Override
