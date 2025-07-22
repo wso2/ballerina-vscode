@@ -306,6 +306,7 @@ export interface InlineDataMapperBase {
 
 export interface InlineDataMapperSourceRequest extends InlineDataMapperBase {
     mapping: Mapping;
+    withinSubMapping?: boolean;
 }
 
 export interface InlineAllDataMapperSourceRequest extends InlineDataMapperBase {

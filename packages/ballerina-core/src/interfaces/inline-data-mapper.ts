@@ -222,6 +222,7 @@ export interface IDMFormFieldValues {
 export interface IDMViewState {
     viewId: string;
     codedata?: CodeData;
+    isSubMapping?: boolean;
 }
 
 export interface VisualizableField {
