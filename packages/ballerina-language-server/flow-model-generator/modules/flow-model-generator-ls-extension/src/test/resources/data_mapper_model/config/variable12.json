@@ -16,11 +16,11 @@
     },
     "sourceCode": ""
   },
-  "propertyKey": "expression",
   "position": {
     "line": 24,
     "offset": 65
   },
+  "propertyKey": "expression",
   "model": {
     "inputs": [
       {
@@ -48,7 +48,7 @@
         "variableName": "userInfo",
         "typeName": "UserInfo",
         "kind": "record",
-        "category": "variable"
+        "category": "local-variable"
       }
     ],
     "output": {

@@ -16,11 +16,11 @@
     },
     "sourceCode": ""
   },
-  "propertyKey": "expression",
   "position": {
     "line": 29,
     "offset": 14
   },
+  "propertyKey": "expression",
   "model": {
     "inputs": [
       {
@@ -48,7 +48,7 @@
         "variableName": "std",
         "typeName": "Student",
         "kind": "record",
-        "category": "variable"
+        "category": "local-variable"
       }
     ],
     "output": {

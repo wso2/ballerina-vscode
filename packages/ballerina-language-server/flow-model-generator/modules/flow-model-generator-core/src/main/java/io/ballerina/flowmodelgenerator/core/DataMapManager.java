@@ -654,7 +654,8 @@ public class DataMapManager {
                 if (varSymbol.qualifiers().contains(Qualifier.CONFIGURABLE)) {
                     mappingPort.category = "configurable";
                 } else {
-                    mappingPort.category = "variable";
+                    mappingPort.category =
+                            semanticModel.moduleSymbols().contains(varSymbol) ? "module-variable" : "local-variable";
                 }
                 mappingPorts.add(mappingPort);
             } else if (kind == SymbolKind.PARAMETER) {

@@ -207,7 +207,7 @@
         "variableName": "user",
         "typeName": "User",
         "kind": "record",
-        "category": "variable"
+        "category": "local-variable"
       }
     ],
     "output": {
