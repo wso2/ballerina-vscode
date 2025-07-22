@@ -9,6 +9,7 @@
     "node": "AGENT",
     "org": "ballerinax",
     "module": "ai",
+    "packageName": "ai",
     "object": "Agent",
     "symbol": "init",
     "version": "1.0.1"
@@ -31,6 +32,7 @@
       "node": "AGENT",
       "org": "ballerinax",
       "module": "ai",
+      "packageName": "ai",
       "object": "Agent",
       "symbol": "init",
       "version": "1.0.1",
@@ -57,11 +59,13 @@
         "typeMembers": [
           {
             "type": "SystemPrompt",
-            "packageInfo": "ballerinax:ai:1.2.1",
+            "packageInfo": "ballerinax:ai:1.0.1",
+            "packageName": "ai",
             "kind": "RECORD_TYPE",
             "selected": false
           }
-        ]
+        ],
+        "defaultValue": "{role: \"\", instructions: \"\"}"
       },
       "model": {
         "metadata": {
@@ -82,11 +86,13 @@
         "typeMembers": [
           {
             "type": "ModelProvider",
-            "packageInfo": "ballerinax:ai:1.2.1",
+            "packageInfo": "ballerinax:ai:1.0.1",
+            "packageName": "ai",
             "kind": "OBJECT_TYPE",
             "selected": false
           }
-        ]
+        ],
+        "defaultValue": "object {}"
       },
       "tools": {
         "metadata": {
@@ -108,10 +114,12 @@
           {
             "type": "BaseToolKit|ai",
             "packageInfo": "",
+            "packageName": "",
             "kind": "ARRAY_TYPE",
             "selected": false
           }
-        ]
+        ],
+        "defaultValue": "[]"
       },
       "agentType": {
         "metadata": {
@@ -132,11 +140,13 @@
         "typeMembers": [
           {
             "type": "AgentType",
-            "packageInfo": "ballerinax:ai:1.2.1",
+            "packageInfo": "ballerinax:ai:1.0.1",
+            "packageName": "ai",
             "kind": "BASIC_TYPE",
             "selected": false
           }
-        ]
+        ],
+        "defaultValue": "\"FUNCTION_CALL_AGENT\""
       },
       "maxIter": {
         "metadata": {
@@ -158,10 +168,12 @@
           {
             "type": "int",
             "packageInfo": "",
+            "packageName": "",
             "kind": "BASIC_TYPE",
             "selected": false
           }
-        ]
+        ],
+        "defaultValue": "0"
       },
       "verbose": {
         "metadata": {
@@ -183,10 +195,12 @@
           {
             "type": "boolean",
             "packageInfo": "",
+            "packageName": "",
             "kind": "BASIC_TYPE",
             "selected": false
           }
-        ]
+        ],
+        "defaultValue": "false"
       },
       "memory": {
         "metadata": {
@@ -207,21 +221,24 @@
         "typeMembers": [
           {
             "type": "Memory",
-            "packageInfo": "ballerinax:ai:1.2.1",
+            "packageInfo": "ballerinax:ai:1.0.1",
+            "packageName": "ai",
             "kind": "OBJECT_TYPE",
             "selected": false
           },
           {
             "type": "()",
             "packageInfo": "",
+            "packageName": "",
             "kind": "BASIC_TYPE",
             "selected": false
           }
-        ]
+        ],
+        "defaultValue": "()"
       },
       "type": {
         "metadata": {
-          "label": "Variable Type",
+          "label": "Result Type",
           "description": "Type of the variable"
         },
         "valueType": "TYPE",
@@ -235,8 +252,8 @@
       },
       "variable": {
         "metadata": {
-          "label": "Variable Name",
-          "description": "Name of the variable"
+          "label": "Result",
+          "description": "Name of the result variable"
         },
         "valueType": "IDENTIFIER",
         "value": "aiAgent",
@@ -255,7 +272,7 @@
         "optional": false,
         "editable": true,
         "advanced": true,
-        "hidden": false
+        "hidden": true
       }
     },
     "flags": 0
