@@ -169,6 +169,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Queue;
+import java.util.Set;
 import java.util.Stack;
 import java.util.stream.Collectors;
 
@@ -405,16 +406,19 @@ public class CodeAnalyzer extends NodeVisitor {
         }
     }
 
-    private String generateToolKitName(List<ToolData> toolsData, Node node) {
-        String name = getMcpToolName(node);
-        int index = 2;
-
-        for (ToolData toolData : toolsData) {
-            if (toolData.name.equals(name)) {
-                name = MCP_SERVER + " 0" + index;
-                index++;
-            }
+    private String generateMcpToolKitName(List<ToolData> toolsData, Node node) {
+        String baseName = getMcpToolName(node);
+        Set<String> existingNames = toolsData.stream()
+                .map(tool -> tool.name)
+                .collect(Collectors.toSet());
+        if (!existingNames.contains(baseName)) {
+            return baseName;
         }
+        int index = 2;
+        String name;
+        do {
+            name = String.format("MCP_SERVER %02d", index++);
+        } while (existingNames.contains(name));
         return name;
     }
 
@@ -492,7 +496,7 @@ public class CodeAnalyzer extends NodeVisitor {
             ListConstructorExpressionNode listCtrExprNode = (ListConstructorExpressionNode) toolsArg;
             for (Node node : listCtrExprNode.expressions()) {
                 if (node.kind() == SyntaxKind.CHECK_EXPRESSION) {
-                    String toolName = generateToolKitName(toolsData, node);
+                    String toolName = generateMcpToolKitName(toolsData, node);
                     toolsData.add(new ToolData(toolName, ICON_PATH, getToolDescription(""), MCP_SERVER));
                     continue;
                 }
@@ -508,22 +512,17 @@ public class CodeAnalyzer extends NodeVisitor {
                 }
 
                 Symbol symbol = nodeSymbol.get();
-                if (symbol.kind() != SymbolKind.VARIABLE) {
-                    String toolName = simpleNameReferenceNode.name().text();
-                    toolsData.add(new ToolData(toolName, getIcon(toolName), getToolDescription(toolName), null));
-                    continue;
-                }
-
-                TypeSymbol typeSymbol = ((VariableSymbol) symbol).typeDescriptor();
-                if (typeSymbol.getModule().isPresent()
-                        && typeSymbol.nameEquals(MCP_TOOL_KIT)
-                        && typeSymbol.getModule().get().id().moduleName().equals(AI_AGENT)) {
-                    String toolName = simpleNameReferenceNode.name().text().replace("\\", "");
-                    toolsData.add(new ToolData(toolName, ICON_PATH, getToolDescription(""), MCP_SERVER));
-                    continue;
-                }
                 String toolName = simpleNameReferenceNode.name().text();
-                toolsData.add(new ToolData(toolName, getIcon(toolName), getToolDescription(toolName), null));
+                boolean isMcpToolKit = nodeSymbol
+                        .filter(newSymbol -> symbol.kind() == SymbolKind.VARIABLE)
+                        .map(newSymbol -> ((VariableSymbol) symbol).typeDescriptor())
+                        .filter(typeSymbol -> typeSymbol.getModule().isPresent()
+                                && typeSymbol.nameEquals(MCP_TOOL_KIT)
+                                && typeSymbol.getModule().get().id().moduleName().equals(AI_AGENT))
+                        .isPresent();
+                if (isMcpToolKit) {
+                    toolsData.add(new ToolData(toolName, ICON_PATH, getToolDescription(""), MCP_SERVER));
+                }
             }
             nodeBuilder.metadata().addData("tools", toolsData);
         }
