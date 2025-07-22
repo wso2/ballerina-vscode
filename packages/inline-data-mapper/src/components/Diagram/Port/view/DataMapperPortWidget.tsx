@@ -99,7 +99,6 @@ export const DataMapperPortWidget: React.FC<DataMapperPortWidgetProps> = (props:
 						if (handlePortState) {
 							handlePortState(PortState.Unselected);
 						}
-						resetExprBarFocus();
 					} else if (event.function === "expressionBarFocused") {
 						focusExpressionBar();
 					} else if (event.function === "addToExpression") {
