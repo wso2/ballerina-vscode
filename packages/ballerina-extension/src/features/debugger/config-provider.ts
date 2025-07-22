@@ -33,7 +33,7 @@ import * as child_process from "child_process";
 import { getPortPromise } from 'portfinder';
 import * as path from "path";
 import {
-    ballerinaExtInstance, BallerinaExtension, LANGUAGE, OLD_BALLERINA_VERSION_DEBUGGER_RUNINTERMINAL,
+    BallerinaExtension, LANGUAGE, OLD_BALLERINA_VERSION_DEBUGGER_RUNINTERMINAL,
     UNSUPPORTED_DEBUGGER_RUNINTERMINAL_KIND, INVALID_DEBUGGER_RUNINTERMINAL_KIND
 } from '../../core';
 import { ExtendedLangClient } from '../../core/extended-language-client';
@@ -61,6 +61,7 @@ import { notifyBreakpointChange } from '../../RPCLayer';
 import { VisualizerWebview } from '../../views/visualizer/webview';
 import { URI } from 'vscode-uri';
 import { prepareAndGenerateConfig, cleanAndValidateProject } from '../config-generator/configGenerator';
+import { extension } from '../../BalExtensionContext';
 
 const BALLERINA_COMMAND = "ballerina.command";
 const EXTENDED_CLIENT_CAPABILITIES = "capabilities";
@@ -97,7 +98,7 @@ class DebugConfigProvider implements DebugConfigurationProvider {
             return Promise.resolve({ request: '', type: '', name: '' });
 
         }
-        if (config.noDebug && (ballerinaExtInstance.enabledRunFast() || StateMachine.context().isBI)) {
+        if (config.noDebug && (extension.ballerinaExtInstance.enabledRunFast() || StateMachine.context().isBI)) {
             await handleMainFunctionParams(config);
         }
         return getModifiedConfigs(_folder, config);
@@ -109,7 +110,7 @@ function getValueFromProgramArgs(programArgs: string[], idx: number) {
 }
 
 async function handleMainFunctionParams(config: DebugConfiguration) {
-    const res = await ballerinaExtInstance.langClient?.getMainFunctionParams({
+    const res = await extension.ballerinaExtInstance.langClient?.getMainFunctionParams({
         projectRootIdentifier: {
             uri: "file://" + StateMachine.context().projectUri
         }
@@ -235,9 +236,9 @@ async function getModifiedConfigs(workspaceFolder: WorkspaceFolder, config: Debu
     const debuggeePort = config.debuggeePort ?? await findFreePort();
     config.debuggeePort = debuggeePort.toString();
 
-    const ballerinaHome = ballerinaExtInstance.getBallerinaHome();
+    const ballerinaHome = extension.ballerinaExtInstance.getBallerinaHome();
     config['ballerina.home'] = ballerinaHome;
-    config[BALLERINA_COMMAND] = ballerinaExtInstance.getBallerinaCmd();
+    config[BALLERINA_COMMAND] = extension.ballerinaExtInstance.getBallerinaCmd();
     config[EXTENDED_CLIENT_CAPABILITIES] = { supportsReadOnlyEditors: true, supportsFastRun: isFastRunEnabled() };
 
     if (!config.type) {
@@ -253,7 +254,7 @@ async function getModifiedConfigs(workspaceFolder: WorkspaceFolder, config: Debu
     const activeTextEditor = window.activeTextEditor;
 
     if (activeTextEditor && activeTextEditor.document.fileName.endsWith(BAL_NOTEBOOK)) {
-        sendTelemetryEvent(ballerinaExtInstance, TM_EVENT_START_NOTEBOOK_DEBUG, CMP_NOTEBOOK);
+        sendTelemetryEvent(extension.ballerinaExtInstance, TM_EVENT_START_NOTEBOOK_DEBUG, CMP_NOTEBOOK);
         let activeTextEditorUri = activeTextEditor.document.uri;
         if (activeTextEditorUri.scheme === NOTEBOOK_CELL_SCHEME) {
             activeTextEditorUri = Uri.file(getTempFile());
@@ -297,11 +298,11 @@ async function getModifiedConfigs(workspaceFolder: WorkspaceFolder, config: Debu
                 }
             }
         } else {
-            ballerinaExtInstance.showMessageInvalidProject();
+            extension.ballerinaExtInstance.showMessageInvalidProject();
             return Promise.reject();
         }
 
-        let langClient = <ExtendedLangClient>ballerinaExtInstance.langClient;
+        let langClient = <ExtendedLangClient>extension.ballerinaExtInstance.langClient;
         if (langClient.initializeResult) {
             const { experimental } = langClient.initializeResult!.capabilities;
             if (experimental && experimental.introspection && experimental.introspection.port > 0) {
@@ -319,7 +320,7 @@ async function getModifiedConfigs(workspaceFolder: WorkspaceFolder, config: Debu
     }
 
     if (config.terminal) {
-        var balVersion: decimal = parseFloat(ballerinaExtInstance.ballerinaVersion);
+        var balVersion: decimal = parseFloat(extension.ballerinaExtInstance.ballerinaVersion);
         if (balVersion < 2201.3) {
             window.showWarningMessage(OLD_BALLERINA_VERSION_DEBUGGER_RUNINTERMINAL);
         } else if (config.terminal.toLowerCase() === "external") {
@@ -350,7 +351,7 @@ export async function constructDebugConfig(uri: Uri, testDebug: boolean, args?: 
     const debugConfigs: DebugConfiguration[] = launchConfig.configurations;
 
     if (debugConfigs.length == 0) {
-        const initialConfigurations: DebugConfiguration[] = ballerinaExtInstance.extension.packageJSON.contributes.debuggers[0].initialConfigurations;
+        const initialConfigurations: DebugConfiguration[] = extension.ballerinaExtInstance.extension.packageJSON.contributes.debuggers[0].initialConfigurations;
 
         debugConfigs.push(...initialConfigurations);
         launchConfig.update('configurations', debugConfigs, ConfigurationTarget.WorkspaceFolder, true);
@@ -377,7 +378,7 @@ export async function constructDebugConfig(uri: Uri, testDebug: boolean, args?: 
 }
 
 export function activateDebugConfigProvider(ballerinaExtInstance: BallerinaExtension) {
-    let context = <ExtensionContext>ballerinaExtInstance.context;
+    let context = <ExtensionContext>extension.ballerinaExtInstance.context;
 
     context.subscriptions.push(debug.registerDebugConfigurationProvider('ballerina', new DebugConfigProvider()));
 
@@ -492,7 +493,7 @@ class BallerinaDebugAdapterTrackerFactory implements DebugAdapterTrackerFactory 
                             const workspaceRoot = workspace.workspaceFolders && workspace.workspaceFolders[0].uri.fsPath;
                             if (workspaceRoot) {
                                 // Get the component list
-                                const components: BallerinaProjectComponents = await ballerinaExtInstance?.langClient?.getBallerinaProjectComponents({
+                                const components: BallerinaProjectComponents = await extension.ballerinaExtInstance?.langClient?.getBallerinaProjectComponents({
                                     documentIdentifiers: [{ uri: URI.file(workspaceRoot).toString() }]
                                 });
 
@@ -566,14 +567,14 @@ class BallerinaDebugAdapterDescriptorFactory implements DebugAdapterDescriptorFa
 
     async createDebugAdapterDescriptor(session: DebugSession, executable: DebugAdapterExecutable | undefined): Promise<DebugAdapterDescriptor> {
         // Check if the project contains errors(and fix the possible ones) before starting the debug session
-        const langClient = ballerinaExtInstance.langClient;
+        const langClient = extension.ballerinaExtInstance.langClient;
         const projectRoot = await getCurrentRoot();
         await cleanAndValidateProject(langClient, projectRoot);
 
         // Check if config generation is required before starting the debug session
-        await prepareAndGenerateConfig(ballerinaExtInstance, session.configuration.script, false, StateMachine.context().isBI, false);
+        await prepareAndGenerateConfig(extension.ballerinaExtInstance, session.configuration.script, false, StateMachine.context().isBI, false);
 
-        if (session.configuration.noDebug && ballerinaExtInstance.enabledRunFast()) {
+        if (session.configuration.noDebug && extension.ballerinaExtInstance.enabledRunFast()) {
             return new Promise((resolve) => {
                 resolve(new DebugAdapterInlineImplementation(new FastRunDebugAdapter()));
             });
@@ -596,7 +597,7 @@ class BallerinaDebugAdapterDescriptorFactory implements DebugAdapterDescriptorFa
         opt.env = Object.assign({}, process.env, configEnv);
 
         try {
-            log(`Starting debug adapter: '${this.ballerinaExtInstance.getBallerinaCmd()} start-debugger-adapter ${port.toString()}`);
+            log(`Starting debug adapter: '${extension.ballerinaExtInstance.getBallerinaCmd()} start-debugger-adapter ${port.toString()}`);
             const serverProcess = child_process.spawn(cmd, args, opt);
 
             await new Promise<void>((resolve) => {
@@ -611,17 +612,17 @@ class BallerinaDebugAdapterDescriptorFactory implements DebugAdapterDescriptorFa
                     debugLog(`${data}`);
                 });
             });
-            sendTelemetryEvent(ballerinaExtInstance, TM_EVENT_START_DEBUG_SESSION, CMP_DEBUGGER);
+            sendTelemetryEvent(extension.ballerinaExtInstance, TM_EVENT_START_DEBUG_SESSION, CMP_DEBUGGER);
             this.registerLogTraceNotificationHandler(session);
             return new DebugAdapterServer(port);
         } catch (error) {
-            sendTelemetryException(ballerinaExtInstance, error as Error, CMP_DEBUGGER);
+            sendTelemetryException(extension.ballerinaExtInstance, error as Error, CMP_DEBUGGER);
             return await Promise.reject(error);
         }
     }
 
     private registerLogTraceNotificationHandler(session: DebugSession) {
-        const langClient = ballerinaExtInstance.langClient;
+        const langClient = extension.ballerinaExtInstance.langClient;
         const notificationHandler = langClient.onNotification('$/logTrace', (params: any) => {
             if (params.verbose === "stopped") {
                 // do nothing
@@ -636,10 +637,10 @@ class BallerinaDebugAdapterDescriptorFactory implements DebugAdapterDescriptorFa
     }
     getScriptPath(args: string[]): string {
         args.push('start-debugger-adapter');
-        return this.ballerinaExtInstance.getBallerinaCmd();
+        return extension.ballerinaExtInstance.getBallerinaCmd();
     }
     getCurrentWorkingDir(): string {
-        return path.join(this.ballerinaExtInstance.ballerinaHome, "bin");
+        return path.join(extension.ballerinaExtInstance.ballerinaHome, "bin");
     }
 }
 
@@ -650,7 +651,7 @@ class FastRunDebugAdapter extends LoggingDebugSession {
     programArgs: string[] = [];
 
     protected launchRequest(response: DebugProtocol.LaunchResponse, args: DebugProtocol.LaunchRequestArguments, request?: DebugProtocol.Request): void {
-        const langClient = ballerinaExtInstance.langClient;
+        const langClient = extension.ballerinaExtInstance.langClient;
         const notificationHandler = langClient.onNotification('$/logTrace', (params: any) => {
             if (params.verbose === "stopped") { // even if a single channel (stderr,stdout) stopped, we stop the debug session
                 notificationHandler!.dispose();
@@ -694,14 +695,14 @@ class BIRunAdapter extends LoggingDebugSession {
             task: 'run'
         };
 
-        let runCommand: string = `${ballerinaExtInstance.getBallerinaCmd()} run`;
+        let runCommand: string = `${extension.ballerinaExtInstance.getBallerinaCmd()} run`;
 
         const programArgs = (args as any).programArgs;
         if (programArgs && programArgs.length > 0) {
             runCommand = `${runCommand} -- ${programArgs.join(' ')}`;
         }
 
-        if (isSupportedSLVersion(ballerinaExtInstance, 2201130) && ballerinaExtInstance.enabledExperimentalFeatures()) {
+        if (isSupportedSLVersion(extension.ballerinaExtInstance, 2201130) && extension.ballerinaExtInstance.enabledExperimentalFeatures()) {
             runCommand = `${runCommand} --experimental`;
         }
 
@@ -767,7 +768,7 @@ async function runFast(root: string, options: { debugPort?: number; env?: Map<st
             { key: "programArgs", value: programArgs }
         ];
 
-        return await ballerinaExtInstance.langClient.executeCommand({
+        return await extension.ballerinaExtInstance.langClient.executeCommand({
             command: "RUN",
             arguments: commandArguments,
         });
@@ -778,7 +779,7 @@ async function runFast(root: string, options: { debugPort?: number; env?: Map<st
 }
 
 async function stopRunFast(root: string): Promise<boolean> {
-    return await ballerinaExtInstance.langClient.executeCommand({
+    return await extension.ballerinaExtInstance.langClient.executeCommand({
         command: "STOP", arguments: [
             { key: "path", value: root! }]
     });
