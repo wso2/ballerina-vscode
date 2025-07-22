@@ -801,9 +801,11 @@ public class DataMapManager {
             if (visitedTypes.containsKey(visitedTypeKey)) {
                 Type typeFromVisited = visitedTypes.get(visitedTypeKey);
                 TypeInfo typeFromVisitedInfo = typeFromVisited.getTypeInfo();
-                return new RecursivePort(id, name, typeFromVisitedInfo != null ?
+                MappingPort recursivePort = new MappingPort(id, name, typeFromVisitedInfo != null ?
                         typeFromVisitedInfo.name : typeFromVisited.getTypeName(),
                         typeFromVisited.getTypeName());
+                recursivePort.setIsRecursive(true);
+                return recursivePort;
             }
         }
         return null;
@@ -1907,6 +1909,7 @@ public class DataMapManager {
         String kind;
         String category;
         Boolean isFocused;
+        Boolean isRecursive;
 
         MappingPort(String id, String variableName, String typeName, String kind) {
             this.id = id;
@@ -1942,6 +1945,14 @@ public class DataMapManager {
         Boolean getIsFocused() {
             return this.isFocused;
         }
+
+        void setIsRecursive(Boolean isRecursive) {
+            this.isRecursive = isRecursive;
+        }
+
+        Boolean getIsRecursive() {
+            return this.isRecursive;
+        }
     }
 
     private static class MappingRecordPort extends MappingPort {
@@ -1976,12 +1987,5 @@ public class DataMapManager {
             return this.focusedMemberId;
         }
     }
-
-    private static class RecursivePort extends MappingPort {
-        boolean isRecursive;
-        RecursivePort(String id, String variableName, String typeName, String kind) {
-            super(id, variableName, typeName, kind);
-            this.isRecursive = true;
-        }
-    }
 }
+

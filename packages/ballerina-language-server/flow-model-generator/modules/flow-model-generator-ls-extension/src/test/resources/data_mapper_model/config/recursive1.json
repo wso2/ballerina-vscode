@@ -33,18 +33,18 @@
           "kind": "string"
         },
         {
-          "isRecursive": true,
           "id": "person.father",
           "variableName": "father",
           "typeName": "Person",
-          "kind": "record"
+          "kind": "record",
+          "isRecursive": true
         },
         {
-          "isRecursive": true,
           "id": "person.mother",
           "variableName": "mother",
           "typeName": "Person",
-          "kind": "record"
+          "kind": "record",
+          "isRecursive": true
         }
       ],
       "id": "person",

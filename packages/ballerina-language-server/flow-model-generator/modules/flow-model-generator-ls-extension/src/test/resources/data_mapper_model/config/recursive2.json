@@ -62,11 +62,11 @@
             },
             {
               "member": {
-                "isRecursive": true,
                 "id": "alice.department.employees",
                 "variableName": "<employeesItem>",
                 "typeName": "Employee",
-                "kind": "record"
+                "kind": "record",
+                "isRecursive": true
               },
               "id": "alice.department.employees",
               "variableName": "employees",
