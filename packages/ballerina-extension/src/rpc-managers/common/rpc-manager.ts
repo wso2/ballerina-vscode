@@ -43,7 +43,7 @@ import {
 import child_process from 'child_process';
 import { Uri, commands, env, window, workspace, MarkdownString } from "vscode";
 import { URI } from "vscode-uri";
-import { ballerinaExtInstance } from "../../core";
+import { extension } from "../../BalExtensionContext";
 import { StateMachine } from "../../stateMachine";
 import { goToSource } from "../../utils";
 import { askFilePath, askProjectPath, BALLERINA_INTEGRATOR_ISSUES_URL, getUpdatedSource } from "./utils";
@@ -187,7 +187,7 @@ export class CommonRpcManager implements CommonRPCAPI {
     }
 
     async experimentalEnabled(): Promise<boolean> {
-        return ballerinaExtInstance.enabledExperimentalFeatures();
+        return extension.ballerinaExtInstance.enabledExperimentalFeatures();
     }
 
     async runBackgroundTerminalCommand(params: RunExternalCommandRequest): Promise<RunExternalCommandResponse> {
@@ -227,6 +227,6 @@ export class CommonRpcManager implements CommonRPCAPI {
     }
 
     async isNPSupported(): Promise<boolean> {
-        return ballerinaExtInstance.isNPSupported;
+        return extension.ballerinaExtInstance.isNPSupported;
     }
 }
