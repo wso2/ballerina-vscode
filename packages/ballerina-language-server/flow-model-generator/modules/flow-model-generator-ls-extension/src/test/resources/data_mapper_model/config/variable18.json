@@ -100,7 +100,8 @@
           "incompatible types: expected 'Credentials[]', found 'UserInfo[]'"
         ],
         "elements": [],
-        "isQueryExpression": false
+        "isQueryExpression": false,
+        "isFunctionCall": false
       }
     ]
   }

@@ -11,7 +11,7 @@
       },
       "endLine": {
         "line": 19,
-        "offset": 61
+        "offset": 76
       }
     },
     "sourceCode": ""
@@ -74,11 +74,15 @@
     "mappings": [
       {
         "output": "student.username",
-        "inputs": [],
-        "expression": "bar(user.username)",
+        "inputs": [
+          "user.username",
+          "user.password"
+        ],
+        "expression": "bar(user.username, user.password)",
         "diagnostics": [],
         "elements": [],
         "isQueryExpression": false,
+        "isFunctionCall": true,
         "functionRange": {
           "fileName": "functions.bal",
           "startLine": {
