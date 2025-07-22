@@ -247,6 +247,7 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
     };
 
     let isAutomation = parentMetadata?.kind === "Function" && parentMetadata?.label === "main";
+    let isFunction = parentMetadata?.kind === "Function" && parentMetadata?.label !== "main";
     let isResource = parentMetadata?.kind === "Resource";
     let isRemote = parentMetadata?.kind === "Remote Function";
     let isAgent = parentMetadata?.kind === "AI Chat Agent";
@@ -263,7 +264,8 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
     return (
         <View>
             <TopNavigationBar />
-            {isResource && !isAutomation && (
+            {/* Service resource or agent title bar with parameters and return type. Can Try It/Chat. Cannot Edit*/}
+            {(isAgent || isResource) && (
                 <TitleBar
                     title={parentMetadata?.kind}
                     subtitleElement={
@@ -303,6 +305,7 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
                     }
                 />
             )}
+            {/* Remote function title bar with parameters and return type. Cannot Edit*/}
             {isRemote && (
                 <TitleBar
                     title={parentMetadata?.kind}
@@ -327,7 +330,8 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
                     }
                 />
             )}
-            {!isResource && !isAutomation && !isRemote && (
+            {/* Function/NP Function title bar with parameters and return type. Can Edit*/}
+            {(isFunction || isNPFunction) && (
                 <TitleBar
                     title={isNPFunction ? "Natural Function" : parentMetadata?.kind}
                     subtitleElement={
@@ -358,9 +362,10 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
                     }
                 />
             )}
-            {!isResource && isAutomation && (
+            {/* Main function title bar with parameters and return type. Can Edit*/}
+            {isAutomation && (
                 <TitleBar
-                    title={parentMetadata?.kind}
+                    title={"Automation"}
                     subtitleElement={
                         <SubTitleWrapper>
                             <LeftElementsWrapper>

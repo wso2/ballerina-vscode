@@ -18,7 +18,7 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import styled from "@emotion/styled";
-import { CodeData, FlowNode } from "@wso2/ballerina-core";
+import { CodeData, FlowNode, NodeMetadata } from "@wso2/ballerina-core";
 import { FormField, FormValues } from "@wso2/ballerina-side-panel";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { convertConfig } from "../../../utils/bi";
@@ -70,7 +70,6 @@ export function MemoryManagerConfig(props: MemoryManagerConfigProps): JSX.Elemen
     const agentFilePath = useRef<string>("");
     const agentNodeRef = useRef<FlowNode>();
     const moduleConnectionNodes = useRef<FlowNode[]>([]);
-    const selectedMemoryManagerFlowNode = useRef<FlowNode>();
 
     useEffect(() => {
         initPanel();
@@ -306,7 +305,7 @@ export function MemoryManagerConfig(props: MemoryManagerConfigProps): JSX.Elemen
                         }}
                         value={
                             selectedMemoryManagerCodeData?.object ||
-                            (agentCallNode?.metadata?.data?.memory?.type as string) ||
+                            ((agentCallNode?.metadata?.data as NodeMetadata)?.memory?.type as string) ||
                             memoryManagerDropdownPlaceholder
                         }
                         containerSx={{ width: "100%" }}
@@ -324,6 +323,7 @@ export function MemoryManagerConfig(props: MemoryManagerConfigProps): JSX.Elemen
                     targetLineRange={agentNodeRef.current.codedata.lineRange}
                     onSubmit={handleOnSave}
                     disableSaveButton={savingForm}
+                    isSaving={savingForm}
                 />
             )}
         </Container>
