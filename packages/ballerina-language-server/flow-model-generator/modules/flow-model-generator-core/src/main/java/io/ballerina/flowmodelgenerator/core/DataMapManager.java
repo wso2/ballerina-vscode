@@ -813,9 +813,11 @@ public class DataMapManager {
         return null;
     }
 
-    private String getItemName(String id) {
-        String[] splits = id.split("\\.");
-        return "<" + splits[splits.length - 1] + "Item>";
+    private String getItemName(String name) {
+        if (name.startsWith("<") && name.endsWith(">")) {
+            name = name.trim().substring(1, name.length() - 1);
+        }
+        return "<" + name + "Item>";
     }
 
     private void setModuleInfo(TypeSymbol symbol, MappingPort mappingPort) {

@@ -28,6 +28,7 @@
           {
             "member": {
               "id": "u1.phoneNumber.0",
+              "variableName": "<phoneNumberItem>",
               "typeName": "string",
               "kind": "string"
             },
@@ -48,6 +49,7 @@
           {
             "member": {
               "id": "user.phoneNumber.0",
+              "variableName": "<phoneNumberItem>",
               "typeName": "string",
               "kind": "string"
             },
@@ -69,6 +71,7 @@
         {
           "member": {
             "id": "var3.contacts",
+            "variableName": "<contactsItem>",
             "typeName": "string",
             "kind": "string"
           },

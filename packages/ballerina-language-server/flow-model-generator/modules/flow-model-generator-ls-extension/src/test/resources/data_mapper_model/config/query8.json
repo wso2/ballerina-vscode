@@ -55,6 +55,7 @@
           {
             "member": {
               "id": "info.emails.0",
+              "variableName": "<emailsItem>",
               "typeName": "string",
               "kind": "string"
             },
@@ -67,6 +68,7 @@
             "member": {
               "member": {
                 "id": "info.addresses.0.0",
+                "variableName": "<addressesItemItem>",
                 "typeName": "string",
                 "kind": "string"
               },

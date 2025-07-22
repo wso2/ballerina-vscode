@@ -28,6 +28,7 @@
           {
             "member": {
               "id": "user.phoneNumber.0",
+              "variableName": "<phoneNumberItem>",
               "typeName": "string",
               "kind": "string"
             },
@@ -50,6 +51,7 @@
           "member": {
             "member": {
               "id": "td.values",
+              "variableName": "<valuesItemItem>",
               "typeName": "string",
               "kind": "string"
             },
