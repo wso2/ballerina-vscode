@@ -1,0 +1,37 @@
+{
+  "source": "variable4.bal",
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "variable1.bal",
+      "startLine": {
+        "line": 32,
+        "offset": 12
+      },
+      "endLine": {
+        "line": 32,
+        "offset": 32
+      }
+    },
+    "sourceCode": ""
+  },
+  "propertyKey": "expression",
+  "output": {
+    "variable4.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 32,
+            "character": 26
+          },
+          "end": {
+            "line": 32,
+            "character": 31
+          }
+        },
+        "newText": "from var banksItem in banks select 0"
+      }
+    ]
+  }
+}

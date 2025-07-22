@@ -1256,18 +1256,15 @@ public class DataMapManager {
             if (targetTypeSymbol.typeKind() == TypeDescKind.ARRAY) {
                 TypeSymbol typeSymbol =
                         CommonUtils.getRawType(((ArrayTypeSymbol) targetTypeSymbol).memberTypeDescriptor());
-                if (typeSymbol.typeKind() == TypeDescKind.RECORD) {
-                    String query = getQuerySource(targetNode.expressionNode(), (RecordTypeSymbol) typeSymbol);
-                    textEdits.add(new TextEdit(CommonUtils.toRange(targetNode.expressionNode().lineRange()), query));
-                }
-
+                String query = getQuerySource(targetNode.expressionNode(), typeSymbol);
+                textEdits.add(new TextEdit(CommonUtils.toRange(targetNode.expressionNode().lineRange()), query));
             }
         }
 
         return gson.toJsonTree(textEditsMap);
     }
 
-    private String getQuerySource(NonTerminalNode inputExpr, RecordTypeSymbol recordTypeSymbol) {
+    private String getQuerySource(NonTerminalNode inputExpr, TypeSymbol recordTypeSymbol) {
         String name = "item";
         SyntaxKind kind = inputExpr.kind();
         if (kind == SyntaxKind.SIMPLE_NAME_REFERENCE) {
