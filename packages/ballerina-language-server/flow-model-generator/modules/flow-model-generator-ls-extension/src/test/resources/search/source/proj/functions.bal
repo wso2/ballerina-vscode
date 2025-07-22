@@ -1,4 +1,4 @@
-
+import ballerina/ai;
 # Adds two integers and returns the result.
 #
 # + a - The first integer to be added
@@ -59,7 +59,7 @@ public function safeDivide(float a, float b) returns float|error {
 }
 
 // Natural Functions (NP Functions)
-function suggestMovieGenre() returns string|error => natural {
+function suggestMovieGenre() returns string|error => natural (check ai:getDefaultModelProvider()) {
     **Assumption**
     Think yourself as a movie expert
 
@@ -70,7 +70,7 @@ function suggestMovieGenre() returns string|error => natural {
     string - The suggested movie genre
 };
 
-function suggestMovieName1(string genre, int i) returns string|error => natural {
+function suggestMovieName1(string genre, int i) returns string|error => natural (check ai:getDefaultModelProvider()) {
     **Assumption**
     Think yourself as a movie expert
 
@@ -82,7 +82,7 @@ function suggestMovieName1(string genre, int i) returns string|error => natural 
     string - The suggested movie name
 };
 
-function suggestMovieName2() returns string|error => natural {
+function suggestMovieName2() returns string|error => natural (check ai:getDefaultModelProvider()) {
     **Assumption**
     Think yourself as a movie expert
 
@@ -93,7 +93,7 @@ function suggestMovieName2() returns string|error => natural {
     string - The suggested movie name
 };
 
-function rateMovie(string movieName) returns int|error => natural {
+function rateMovie(string movieName) returns int|error => natural (check ai:getDefaultModelProvider()) {
     **Assumption**
     Think yourself as a movie expert
 

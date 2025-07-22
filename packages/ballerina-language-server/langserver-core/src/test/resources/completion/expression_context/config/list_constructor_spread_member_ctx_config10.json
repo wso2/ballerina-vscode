@@ -832,6 +832,23 @@
       "filterText": "intArr4",
       "insertText": "...intArr4",
       "insertTextFormat": "Snippet"
+    },
+    {
+      "label": "natural",
+      "kind": "Unit",
+      "detail": "type",
+      "sortText": "ARR",
+      "insertText": "natural",
+      "insertTextFormat": "Snippet"
+    },
+    {
+      "label": "natural (..) {..}",
+      "kind": "Snippet",
+      "detail": "Snippet",
+      "sortText": "ATP",
+      "filterText": "natural (..) {..}",
+      "insertText": "natural (${1}) {${2}}",
+      "insertTextFormat": "Snippet"
     }
   ]
 }
