@@ -1158,8 +1158,9 @@ public class FunctionDataBuilder {
 
     private boolean isAiModelTypeParameter(String paramName, FunctionData.Kind functionKind) {
         return MODEL_TYPE_PARAMETER_NAME.equals(paramName) &&
-                (functionKind == FunctionData.Kind.MODEL_PROVIDER ||
-                        (isAiModule(moduleInfo.org(), moduleInfo.moduleName())
+                (functionKind == FunctionData.Kind.MODEL_PROVIDER
+                        || functionKind == FunctionData.Kind.EMBEDDING_PROVIDER
+                        || (isAiModule(moduleInfo.org(), moduleInfo.moduleName())
                                 && (functionKind == FunctionData.Kind.CLASS_INIT
                                 || functionKind == FunctionData.Kind.CONNECTOR)));
     }
