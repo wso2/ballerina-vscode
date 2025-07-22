@@ -54,7 +54,7 @@
         "variableName": "var1",
         "typeName": "Options",
         "kind": "record",
-        "category": "variable",
+        "category": "local-variable",
         "moduleInfo": {
           "org": "ballerinax",
           "packageName": "redis",

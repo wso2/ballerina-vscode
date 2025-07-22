@@ -60,7 +60,7 @@
         "variableName": "userInfo",
         "typeName": "UserInfo[]",
         "kind": "array",
-        "category": "variable"
+        "category": "local-variable"
       }
     ],
     "output": {

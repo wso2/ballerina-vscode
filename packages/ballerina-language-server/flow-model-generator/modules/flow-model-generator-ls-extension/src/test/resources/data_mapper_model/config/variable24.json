@@ -48,7 +48,7 @@
         "variableName": "std",
         "typeName": "Student",
         "kind": "record",
-        "category": "variable"
+        "category": "local-variable"
       }
     ],
     "output": {

@@ -48,7 +48,7 @@
         "variableName": "s",
         "typeName": "Student",
         "kind": "record",
-        "category": "variable"
+        "category": "local-variable"
       },
       {
         "fields": [
@@ -69,7 +69,7 @@
         "variableName": "student",
         "typeName": "Student",
         "kind": "record",
-        "category": "variable"
+        "category": "local-variable"
       },
       {
         "fields": [
@@ -90,7 +90,7 @@
         "variableName": "userInfo",
         "typeName": "UserInfo",
         "kind": "record",
-        "category": "variable"
+        "category": "local-variable"
       }
     ],
     "output": {

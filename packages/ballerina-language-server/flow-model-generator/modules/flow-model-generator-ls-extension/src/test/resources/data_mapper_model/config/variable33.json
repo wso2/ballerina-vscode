@@ -41,7 +41,7 @@
         "variableName": "u1",
         "typeName": "User",
         "kind": "record",
-        "category": "variable"
+        "category": "local-variable"
       },
       {
         "fields": [

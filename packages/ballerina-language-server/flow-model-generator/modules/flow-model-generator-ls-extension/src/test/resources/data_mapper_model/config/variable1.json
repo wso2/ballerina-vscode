@@ -6,11 +6,11 @@
     "lineRange": {
       "fileName": "variable1.bal",
       "startLine": {
-        "line": 18,
+        "line": 19,
         "offset": 12
       },
       "endLine": {
-        "line": 18,
+        "line": 19,
         "offset": 33
       }
     },
@@ -29,6 +29,27 @@
         "typeName": "CONST",
         "kind": "CONST",
         "category": "constant"
+      },
+      {
+        "fields": [
+          {
+            "id": "myStudent.username",
+            "variableName": "username",
+            "typeName": "string",
+            "kind": "string"
+          },
+          {
+            "id": "myStudent.password",
+            "variableName": "password",
+            "typeName": "string",
+            "kind": "string"
+          }
+        ],
+        "id": "myStudent",
+        "variableName": "myStudent",
+        "typeName": "Student",
+        "kind": "record",
+        "category": "module-variable"
       }
     ],
     "output": {
