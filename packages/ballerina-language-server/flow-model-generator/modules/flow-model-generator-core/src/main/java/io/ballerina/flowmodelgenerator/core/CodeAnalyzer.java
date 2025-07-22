@@ -199,7 +199,7 @@ public class CodeAnalyzer extends NodeVisitor {
     private TypedBindingPatternNode typedBindingPatternNode;
     private static final String AI_AGENT = "ai";
     private static final String BALLERINAX = "ballerinax";
-    public static final String ICON_PATH = "https://bcentral-packageicons.azureedge.net/images/ballerina_mcp_0.4.2.png";
+    public static final String ICON_PATH = CommonUtils.generateIcon("ballerina", "mcp", "0.4.2");
     public static final String MCP_TOOL_KIT = "McpToolKit";
     public static final String MCP_SERVER = "MCP Server";
     public static final String NAME = "name";
