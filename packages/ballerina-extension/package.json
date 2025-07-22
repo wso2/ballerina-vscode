@@ -466,6 +466,11 @@
                 "category": "Ballerina"
             },
             {
+                "command": "ballerina.configureWso2DefaultModelProvider",
+                "title": "Configure default WSO2 model provider",
+                "category": "Ballerina"
+            },
+            {
                 "command": "ballerina.configureDefaultModelForNaturalFunctions",
                 "title": "Configure default model for natural functions (Experimental)",
                 "category": "Ballerina"
