@@ -23,6 +23,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.compiler.api.symbols.ArrayTypeSymbol;
+import io.ballerina.compiler.api.symbols.ConstantSymbol;
 import io.ballerina.compiler.api.symbols.FunctionSymbol;
 import io.ballerina.compiler.api.symbols.ModuleSymbol;
 import io.ballerina.compiler.api.symbols.ParameterSymbol;
@@ -200,6 +201,7 @@ public class DataMapManager {
         Type type = Type.fromSemanticSymbol(targetNode.typeSymbol());
         String name = targetNode.name();
         MappingPort outputPort = getMappingPort(name, name, type, false);
+        setModuleInfo(targetNode.typeSymbol(), outputPort);
         ExpressionNode expressionNode = targetNode.expressionNode();
 
         Query query = null;
@@ -646,6 +648,7 @@ public class DataMapManager {
                     continue;
                 }
                 VariableSymbol varSymbol = (VariableSymbol) symbol;
+                setModuleInfo(varSymbol.typeDescriptor(), mappingPort);
                 if (varSymbol.qualifiers().contains(Qualifier.CONFIGURABLE)) {
                     mappingPort.category = "configurable";
                 } else {
@@ -662,6 +665,7 @@ public class DataMapManager {
                 if (mappingPort == null) {
                     continue;
                 }
+                setModuleInfo(((ParameterSymbol) symbol).typeDescriptor(), mappingPort);
                 mappingPort.category = "parameter";
                 mappingPorts.add(mappingPort);
             } else if (kind == SymbolKind.CONSTANT) {
@@ -670,6 +674,7 @@ public class DataMapManager {
                 if (mappingPort == null) {
                     continue;
                 }
+                setModuleInfo(((ConstantSymbol) symbol).typeDescriptor(), mappingPort);
                 mappingPort.category = "constant";
                 mappingPorts.add(mappingPort);
             }
@@ -751,6 +756,11 @@ public class DataMapManager {
     private String getItemName(String id) {
         String[] splits = id.split("\\.");
         return "<" + splits[splits.length - 1] + "Item>";
+    }
+
+    private void setModuleInfo(TypeSymbol symbol, MappingPort mappingPort) {
+        Optional<ModuleSymbol> module = symbol.getModule();
+        module.ifPresent(moduleSymbol -> mappingPort.moduleInfo = ModuleInfo.from(moduleSymbol.id()));
     }
 
     public JsonElement getSource(Path filePath, JsonElement cd, JsonElement mp, String targetField) {
@@ -1507,13 +1517,23 @@ public class DataMapManager {
                 return null;
             }
             if (stNode.kind() == SyntaxKind.LOCAL_VAR_DECL) {
-                return setPosition(((VariableDeclarationNode) stNode).typedBindingPattern(), stNode.lineRange(), name);
-            } else if (stNode.kind() == SyntaxKind.MODULE_VAR_DECL) {
-                return setPosition(((ModuleVariableDeclarationNode) stNode).typedBindingPattern(),
+                JsonElement jsonElement = setPosition(((VariableDeclarationNode) stNode).typedBindingPattern(),
                         stNode.lineRange(), name);
+                if (jsonElement != null) {
+                    return jsonElement;
+                }
+            } else if (stNode.kind() == SyntaxKind.MODULE_VAR_DECL) {
+                JsonElement jsonElement = setPosition(((ModuleVariableDeclarationNode) stNode).typedBindingPattern(),
+                        stNode.lineRange(), name);
+                if (jsonElement != null) {
+                    return jsonElement;
+                }
             } else if (stNode.kind() == SyntaxKind.LET_VAR_DECL) {
-                return setPosition(((LetVariableDeclarationNode) stNode).typedBindingPattern(), stNode.lineRange(),
-                        name);
+                JsonElement jsonElement = setPosition(((LetVariableDeclarationNode) stNode).typedBindingPattern(),
+                        stNode.lineRange(), name);
+                if (jsonElement != null) {
+                    return jsonElement;
+                }
             }
             stNode = stNode.parent();
         }
@@ -1821,6 +1841,7 @@ public class DataMapManager {
         String kind;
         String category;
         Boolean isFocused;
+        ModuleInfo moduleInfo;
 
         MappingPort(String id, String variableName, String typeName, String kind) {
             this.id = id;
@@ -1855,6 +1876,10 @@ public class DataMapManager {
 
         Boolean getIsFocused() {
             return this.isFocused;
+        }
+
+        ModuleInfo getModuleInfo() {
+            return this.moduleInfo;
         }
     }
 
