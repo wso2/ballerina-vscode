@@ -786,6 +786,9 @@ public class DataMapManager {
                 ArrayType arrayType = (ArrayType) type;
                 MappingPort memberPort = getMappingPort(isInputPort ? id + ".0" : id, getItemName(id),
                         arrayType.memberType, isInputPort, visitedTypes);
+                if (memberPort != null && memberPort.variableName == null) {
+                    memberPort.variableName = getItemName(id);
+                }
                 MappingArrayPort arrayPort = new MappingArrayPort(id, name, memberPort == null ? "record" :
                         memberPort.typeName + "[]", type.getTypeName());
                 arrayPort.setMember(memberPort);
