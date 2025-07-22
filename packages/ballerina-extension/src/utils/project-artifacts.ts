@@ -269,6 +269,8 @@ function getDirectoryMapKeyAndIcon(artifact: BaseArtifact, artifactCategoryKey: 
             return { mapKey: DIRECTORY_MAP.CONFIGURABLE, icon: "config" };
         case ARTIFACT_TYPE.NaturalFunctions:
             return { mapKey: DIRECTORY_MAP.NP_FUNCTION, icon: "function" };
+        case ARTIFACT_TYPE.Variables:
+            return { mapKey: DIRECTORY_MAP.VARIABLE, icon: "variable" };
         default:
             console.warn(`Unhandled artifact category key: ${artifactCategoryKey}`);
             return null;
