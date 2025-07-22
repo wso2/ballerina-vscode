@@ -16,12 +16,12 @@
     },
     "sourceCode": ""
   },
-  "propertyKey": "expression",
-  "targetField": "student",
   "position": {
     "line": 24,
     "offset": 65
   },
+  "propertyKey": "expression",
+  "targetField": "student",
   "model": {
     "inputs": [
       {
@@ -49,7 +49,7 @@
         "variableName": "userInfo",
         "typeName": "UserInfo",
         "kind": "record",
-        "category": "variable"
+        "category": "local-variable"
       }
     ],
     "output": {

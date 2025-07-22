@@ -48,7 +48,7 @@
         "variableName": "userInfo",
         "typeName": "UserInfo",
         "kind": "record",
-        "category": "variable"
+        "category": "local-variable"
       }
     ],
     "output": {

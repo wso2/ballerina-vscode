@@ -54,7 +54,7 @@
         "variableName": "credentials",
         "typeName": "Credentials[]",
         "kind": "array",
-        "category": "variable"
+        "category": "local-variable"
       },
       {
         "member": {
@@ -81,7 +81,7 @@
         "variableName": "userInfo",
         "typeName": "UserInfo[]",
         "kind": "array",
-        "category": "variable"
+        "category": "local-variable"
       }
     ],
     "output": {
