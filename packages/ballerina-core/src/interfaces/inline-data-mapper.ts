@@ -197,7 +197,7 @@ export interface IDMFormProps {
     submitText?: string;
     cancelText?: string;
     nestedForm?: boolean;
-    onSubmit: (data: IDMFormFieldValues) => void;
+    onSubmit: (data: IDMFormFieldValues, formImports?: IDMFormFieldValues, importsCodedata?: CodeData) => void;
     onCancel?: () => void;
     isSaving?: boolean;
 }
@@ -223,4 +223,9 @@ export interface IDMViewState {
     viewId: string;
     codedata?: CodeData;
     isSubMapping?: boolean;
+}
+
+export interface VisualizableField {
+    isDataMapped: boolean;
+    defaultValue: string;
 }

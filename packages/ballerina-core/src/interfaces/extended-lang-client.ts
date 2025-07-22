@@ -28,7 +28,7 @@ import { ConnectorRequest, ConnectorResponse } from "../rpc-types/connector-wiza
 import { SqFlow } from "../rpc-types/sequence-diagram/interfaces";
 import { FieldType, FunctionModel, ListenerModel, ServiceClassModel, ServiceModel } from "./service";
 import { CDModel } from "./component-diagram";
-import { DMModel, ExpandedDMModel, IntermediateClause, Mapping, Query } from "./inline-data-mapper";
+import { DMModel, ExpandedDMModel, IntermediateClause, Mapping, VisualizableField } from "./inline-data-mapper";
 import { SCOPE } from "../state-machine-types";
 
 export interface DidOpenParams {
@@ -331,9 +331,7 @@ export interface InlineDataMapperSourceResponse {
 }
 
 export interface VisualizableFieldsResponse {
-    visualizableProperties: {
-        [key: string]: string;
-    };
+    visualizableProperties: VisualizableField;
 }
 
 export interface AddArrayElementRequest {
