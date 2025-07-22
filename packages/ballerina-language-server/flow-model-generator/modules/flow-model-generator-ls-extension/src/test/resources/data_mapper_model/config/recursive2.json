@@ -41,7 +41,7 @@
         "variableName": "engineering",
         "typeName": "Department",
         "kind": "record",
-        "category": "variable"
+        "category": "local-variable"
       }
     ],
     "output": {

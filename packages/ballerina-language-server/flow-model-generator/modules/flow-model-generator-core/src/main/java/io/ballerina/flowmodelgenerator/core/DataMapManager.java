@@ -770,11 +770,12 @@ public class DataMapManager {
                 TypeInfo typeInfo = type.getTypeInfo();
                 MappingRecordPort recordPort = new MappingRecordPort(id, name, typeInfo != null ?
                         typeInfo.name : type.getTypeName(), type.getTypeName());
-                TypeInfo recordTypeInfo = type.getTypeInfo();
-                String visitedTypeKey = recordTypeInfo.name + ":" + recordTypeInfo.orgName + ":" +
-                        recordTypeInfo.moduleName +
-                        ":" + recordTypeInfo.version + recordTypeInfo.packageName;
-                visitedTypes.put(visitedTypeKey, type);
+                if (typeInfo != null) {
+                    String visitedTypeKey = typeInfo.name + ":" + typeInfo.orgName + ":" +
+                            typeInfo.moduleName +
+                            ":" + typeInfo.version + typeInfo.packageName;
+                    visitedTypes.put(visitedTypeKey, type);
+                }
                 for (Type field : recordType.fields) {
                     recordPort.fields.add(getMappingPort(id + "." + field.getName(), field.getName(), field,
                             isInputPort, visitedTypes));
