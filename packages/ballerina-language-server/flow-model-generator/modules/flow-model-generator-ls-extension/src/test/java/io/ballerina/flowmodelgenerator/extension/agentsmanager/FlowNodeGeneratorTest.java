@@ -76,8 +76,8 @@ public class FlowNodeGeneratorTest extends AbstractLSTest {
 
         boolean flowEquality = modifiedDiagram.equals(testConfig.diagram());
         if (!fileNameEquality || !flowEquality) {
-//            TestConfig updatedConfig = new TestConfig(testConfig.start(), testConfig.end(), testConfig.source(),
-//                    testConfig.description(), modifiedDiagram);
+            TestConfig updatedConfig = new TestConfig(testConfig.start(), testConfig.end(), testConfig.source(),
+                    testConfig.description(), modifiedDiagram);
 //            updateConfig(configJsonPath, updatedConfig);
             compareJsonElements(modifiedDiagram, testConfig.diagram());
             Assert.fail(String.format("Failed test: '%s' (%s)", testConfig.description(), configJsonPath));
