@@ -31,7 +31,8 @@ import {
     ExpressionProperty,
     RecordTypeField,
     FormDiagnostics,
-    Imports
+    Imports,
+    CodeData
 } from "@wso2/ballerina-core";
 import {
     FormField,
@@ -79,7 +80,7 @@ interface FormProps {
     onCancel?: () => void;
     editForm?: boolean;
     isGraphqlEditor?: boolean;
-    onSubmit: (data: FormValues, formImports?: FormImports) => void;
+    onSubmit: (data: FormValues, formImports?: FormImports, importsCodedata?: CodeData) => void;
     isSaving?: boolean;
     isActiveSubPanel?: boolean;
     openSubPanel?: (subPanel: SubPanel) => void;
@@ -136,6 +137,7 @@ export function FormGeneratorNew(props: FormProps) {
     const [types, setTypes] = useState<CompletionItem[]>([]);
     const [filteredTypes, setFilteredTypes] = useState<CompletionItem[]>([]);
     const expressionOffsetRef = useRef<number>(0); // To track the expression offset on adding import statements
+    const importsCodedataRef = useRef<any>(null); // To store codeData for getVisualizableFields
 
     const [fieldsValues, setFields] = useState<FormField[]>(fields);
     const [formImports, setFormImports] = useState<FormImports>({});
@@ -537,8 +539,10 @@ export function FormGeneratorNew(props: FormProps) {
         setTypeEditorState({ isOpen, field: editingField, newTypeValue: f[editingField?.key] });
     };
 
-    const handleUpdateImports = (key: string, imports: Imports) => {
+    const handleUpdateImports = (key: string, imports: Imports, codedata?: CodeData) => {
+        importsCodedataRef.current = codedata;
         const importKey = Object.keys(imports)?.[0];
+
         if (Object.keys(formImports).includes(key)) {
             if (importKey && !Object.keys(formImports[key]).includes(importKey)) {
                 const updatedImports = { ...formImports, [key]: { ...formImports[key], ...imports } };
@@ -641,7 +645,8 @@ export function FormGeneratorNew(props: FormProps) {
     ]);
 
     const handleSubmit = (values: FormValues) => {
-        onSubmit(values, formImports);
+        onSubmit(values, formImports, importsCodedataRef.current);
+        importsCodedataRef.current = {};
     };
 
     const handleTypeCreate = (typeName?: string) => {

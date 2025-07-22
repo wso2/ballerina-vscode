@@ -19,7 +19,6 @@
 import { AddSubMappingRequest, CodeData } from "@wso2/ballerina-core";
 
 // Constants for default values related to the sub mapping form
-const DEFAULT_EXPRESSION_VALUE = "$DEFAULT_VALUE";
 const EMPTY_LABEL = "";
 const EMPTY_DESCRIPTION = "";
 
@@ -39,20 +38,20 @@ const createProperty = (valueType: string, value: string, optional: boolean, edi
 });
 
 // Helper function to create flowNode properties
-const createFlowNodeProperties = (subMappingName: string, type: string) => ({
-    expression: createProperty("EXPRESSION", DEFAULT_EXPRESSION_VALUE, true, true),
+const createFlowNodeProperties = (subMappingName: string, type: string, defaultValue: string) => ({
+    expression: createProperty("EXPRESSION", defaultValue, true, true),
     variable: createProperty("IDENTIFIER", subMappingName, false, true),
     type: createProperty("TYPE", type, false, true)
 });
 
 // Helper function to create flowNode
-const createFlowNode = (subMappingName: string, type: string, codedata: CodeData) => ({
+const createFlowNode = (subMappingName: string, type: string, codedata: CodeData, defaultValue: string) => ({
     id: subMappingName,
     returning: false,
     metadata: createMetadata(),
     codedata: codedata,
     branches: [] as any[],
-    properties: createFlowNodeProperties(subMappingName, type)
+    properties: createFlowNodeProperties(subMappingName, type, defaultValue)
 });
 
 // Helper function to create AddSubMappingRequest
@@ -63,12 +62,13 @@ export const createAddSubMappingRequest = (
     targetField: string,
     subMappingName: string,
     type: string,
-    varName: string
+    varName: string,
+    defaultValue: string
 ): AddSubMappingRequest => ({
     filePath,
     codedata,
     index,
     targetField,
-    flowNode: createFlowNode(subMappingName, type, codedata),
+    flowNode: createFlowNode(subMappingName, type, codedata, defaultValue),
     varName
 });
