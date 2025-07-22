@@ -326,8 +326,12 @@ export function AddMcpServer(props: AddToolProps): JSX.Element {
             console.log(">>> mcpVariable", mcpVariable);
             // Properly add toolsToInclude to the properties object
             const updatedProperties = { ...(mcpVariable.properties || {}) };
-            const permittedToolsValue = (mcpVariable.properties as any)?.permittedTools?.value;
-            fieldVal.value = permittedToolsValue === "()" ? "All" : "Selected"; 
+            let permittedToolsValue = (mcpVariable.properties as any)?.permittedTools?.value;
+            if (!permittedToolsValue) {
+                fieldVal.value = "All";
+            } else {
+                fieldVal.value = permittedToolsValue === "()" ? "All" : "Selected";
+            }
             (updatedProperties as any)["toolsToInclude"] = fieldVal;
 
             const updatedMcpToolResponse = {
@@ -401,6 +405,8 @@ export function AddMcpServer(props: AddToolProps): JSX.Element {
         await fetchExistingTools();
         await fetchAgentNode();
         setLoading(false);
+        // const configVariableNodes = await rpcClient.getBIDiagramRpcClient().getConfigVariablesV2();
+        // console.log(">>> configVariableNodes", configVariableNodes);
     };
 
     useEffect(() => {
@@ -468,75 +474,6 @@ export function AddMcpServer(props: AddToolProps): JSX.Element {
             newSelectedTools.delete(toolName);
         }
         setSelectedMcpTools(newSelectedTools);
-    };
-
-    const validateUrl = (url: string): string => {
-        if (!url.trim()) {
-            return '';
-        }
-
-        try {
-            const urlObj = new URL(url);
-            // Check if protocol is http or https
-            if (!['http:', 'https:'].includes(urlObj.protocol)) {
-                return 'URL must use HTTP or HTTPS protocol';
-            }
-            return '';
-        } catch (error) {
-            return 'Please enter a valid URL (e.g., http://example.com)';
-        }
-    };
-
-    const handleServiceUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const newUrl = e.target.value;
-        setServiceUrl(newUrl);
-        const errorMessage = validateUrl(newUrl);
-        if (errorMessage == '') {
-            setErrorInputs(false);
-            setUrlError('');
-        } else {
-            setErrorInputs(true);
-            setUrlError(errorMessage);
-        }
-    };
-
-    const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const newName = e.target.value;
-        setName(newName);
-        setHasUserTyped(true);
-        const errorMessage = validateName(newName);
-        if (errorMessage == '') {
-            setErrorInputs(false);
-            setNameError('');
-        } else {
-            setErrorInputs(true);
-            setNameError(errorMessage);
-        }
-    };
-
-    const validateName = (name: string): string => {
-        if (!name.trim()) {
-            return '';
-        }
-
-        // Extract existing MCP toolkit names from the tools string
-        const existingMcpToolkits = extractMcpToolkitNames(toolsStringList);
-        
-        // Check if the name already exists (case-insensitive comparison)
-        const nameExists = existingMcpToolkits.some(
-            existingName => existingName.toLowerCase() === name.trim().toLowerCase()
-        );
-        
-        if (nameExists && !editMode) {
-            return 'An MCP server with this name already exists';
-        }
-        
-        // In edit mode, allow the current name but not other existing names
-        if (nameExists && editMode && props.name && name.trim().toLowerCase() !== props.name.toLowerCase()) {
-            return 'An MCP server with this name already exists';
-        }
-        
-        return '';
     };
 
     const extractMcpToolkitNames = (toolsString: string): string[] => {
@@ -610,47 +547,6 @@ export function AddMcpServer(props: AddToolProps): JSX.Element {
         }
     };
 
-    const handleOnEdit = async () => {
-        console.log(">>> edit value", { selectedTool, selectedMcpTools: Array.from(selectedMcpTools) });
-        
-        const payload = {
-            name: name.trim(),
-            serviceUrl: serviceUrl.trim(),
-            configs: configs,
-            toolSelection,
-            selectedTools: toolSelection === "Selected" ? Array.from(selectedMcpTools) : [],
-            mcpTools // <-- pass mcpTools in the payload for edit as well
-        };
-        
-        console.log(">>> Updating with payload:", payload);
-
-        setSavingForm(true);
-        try {
-            // Use the original name (from props) to identify which MCP server to update
-            const originalToolName = props.name || "";
-            
-            // Update the existing MCP server configuration
-            const updatedAgentNode = await updateMcpServerToAgentNode(agentNode, payload, originalToolName);
-            
-            if (updatedAgentNode) {
-                // generate the source code
-                const agentResponse = await rpcClient
-                    .getBIDiagramRpcClient()
-                    .getSourceCode({ filePath: agentFilePath.current, flowNode: updatedAgentNode });
-                console.log(">>> response getSourceCode with template ", { agentResponse });
-
-                onSave?.();
-            } else {
-                console.error(">>> Failed to update MCP server - updatedAgentNode is null");
-            }
-        } catch (error) {
-            console.error(">>> Error updating MCP server", error);
-            // You might want to show an error message to the user here
-        } finally {
-            setSavingForm(false);
-        }
-    };
-
     const existingMcpToolkits = extractMcpToolkitNames(toolsStringList);
 
     const generateUniqueValue = () => {
@@ -670,17 +566,19 @@ export function AddMcpServer(props: AddToolProps): JSX.Element {
         return candidateValue;
     };
 
-    const generateUniqueVariable = () => {
+    // Refactored: Accept variables as parameter
+    const generateUniqueVariable = (variables: FlowNode[] = allVariables) => {
         if (hasUserTyped || editMode) {
             return name;
         }
 
         let counter = mcpToolkitCount;
-        console.log(">>> all variables", allVariables);
         let candidateValue = counter >= 1 ? `mcpServer${counter}` : "mcpServer";
-        while (existingMcpToolkits.some(existingName => 
-            existingName.toLowerCase() === candidateValue.trim().toLowerCase()
-        )) {
+        // Loop until candidateValue is unique among variables
+        while ((variables || []).some(v => {
+            const val = v.properties?.variable?.value;
+            return typeof val === 'string' && val.trim().toLowerCase() === candidateValue.trim().toLowerCase();
+        })) {
             counter++;
             candidateValue = `mcpServer${counter}`;
         }
@@ -806,7 +704,8 @@ export function AddMcpServer(props: AddToolProps): JSX.Element {
     }]
     };
 
-    const updateMcpToolResponseWithToolsField = () => {
+    // Refactor to accept variableName as parameter
+    const updateMcpToolResponseWithToolsField = (variableName?: string) => {
         if (mcpToolResponse) {
             // Clone properties to avoid mutating state directly
             const updatedProperties = { ...(mcpToolResponse.properties || {}) };
@@ -815,14 +714,20 @@ export function AddMcpServer(props: AddToolProps): JSX.Element {
                 if ("serverUrl" in updatedProperties && updatedProperties["serverUrl"]) {
                     (updatedProperties["serverUrl"] as { value: string }).value = serviceUrl;
                 }
-                if ("info" in updatedProperties && updatedProperties["info"]) {
-                    (updatedProperties["info"] as { value: string }).value = `{ name: "${name}", version: "" }`;
+                // Only update 'info' if it exists in updatedProperties and has a 'value' property
+                if ("info" in updatedProperties && typeof (updatedProperties["info"] as any)?.value === "string") {
+                    (updatedProperties["info"] as { value: string }).value = ((mcpToolResponse.properties as any)?.info?.value) || "";
                 }
             }
 
             if ("variable" in updatedProperties && updatedProperties["variable"]) {
-                const uniqueVar = generateUniqueVariable();
-                (updatedProperties["variable"] as { value: string }).value = uniqueVar;
+                (updatedProperties["variable"] as { value: string }).value = variableName || generateUniqueVariable(allVariables);
+            }
+            let permittedToolsValue = (mcpToolResponse.properties as any)?.permittedTools?.value;
+            if (!permittedToolsValue) {
+                fieldVal.value = "All";
+            } else {
+                fieldVal.value = permittedToolsValue === "()" ? "All" : "Selected";
             }
             // Add fieldVal as a property named 'scope', wrapped as a Property object
             (updatedProperties as any)["toolsToInclude"] = fieldVal;
@@ -842,6 +747,14 @@ export function AddMcpServer(props: AddToolProps): JSX.Element {
         setSelectedTools(tools);
         // You can do other things here as needed
     };
+
+    useEffect(() => {
+        if (allVariables && Array.isArray(allVariables)) {
+            const uniqueVar = generateUniqueVariable(allVariables);
+            updateMcpToolResponseWithToolsField(uniqueVar);
+            console.log('Generated unique variable:', uniqueVar);
+        }
+    }, [allVariables]);
 
     return (
         <Container>
