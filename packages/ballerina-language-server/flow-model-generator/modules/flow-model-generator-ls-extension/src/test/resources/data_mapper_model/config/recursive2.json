@@ -92,7 +92,8 @@
         "expression": "\"Alice\"",
         "diagnostics": [],
         "elements": [],
-        "isQueryExpression": false
+        "isQueryExpression": false,
+        "isFunctionCall": false
       },
       {
         "output": "alice.department",
@@ -102,7 +103,8 @@
         "expression": "engineering\n",
         "diagnostics": [],
         "elements": [],
-        "isQueryExpression": false
+        "isQueryExpression": false,
+        "isFunctionCall": false
       }
     ]
   }

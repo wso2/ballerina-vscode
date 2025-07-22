@@ -209,8 +209,7 @@ public class DataMapManager {
         Type type = Type.fromSemanticSymbol(targetNode.typeSymbol());
         String name = targetNode.name();
 
-        Map<String, Type> visitedTypes = new HashMap<>();
-        MappingPort outputPort = getMappingPort(name, name, type, false, visitedTypes);
+        MappingPort outputPort = getMappingPort(name, name, type, false, new HashMap<>());
         ExpressionNode expressionNode = targetNode.expressionNode();
 
         Query query = null;
@@ -240,9 +239,8 @@ public class DataMapManager {
             String fromClauseVar = fromClauseNode.typedBindingPattern().bindingPattern().toSourceCode().trim();
             if (typeSymbol.isPresent() && typeSymbol.get().typeKind() == TypeDescKind.ARRAY) {
                 TypeSymbol memberTypeSymbol = ((ArrayTypeSymbol) typeSymbol.get()).memberTypeDescriptor();
-                visitedTypes.clear();
                 MappingPort mappingPort = getMappingPort(fromClauseVar, fromClauseVar,
-                        Type.fromSemanticSymbol(memberTypeSymbol), true, visitedTypes);
+                        Type.fromSemanticSymbol(memberTypeSymbol), true, new HashMap<>());
                 if (mappingPort != null) {
                     mappingPort.setIsFocused(true);
                     setFocusIdForExpression(inputPorts, expression.toString().trim(), mappingPort.id);
@@ -296,9 +294,8 @@ public class DataMapManager {
                 }
                 Symbol symbol = optSymbol.get();
                 String letVarName = symbol.getName().orElseThrow();
-                visitedTypes.clear();
                 subMappingPorts.add(getMappingPort(letVarName, letVarName, Type.fromSemanticSymbol(symbol),
-                        false, visitedTypes));
+                        false, new HashMap<>()));
             }
         } else {
             inputPorts = getInputPorts(semanticModel, this.document, position);
@@ -667,9 +664,8 @@ public class DataMapManager {
                     continue;
                 }
                 Type type = Type.fromSemanticSymbol(symbol);
-                Map<String, Type> visitedTypes = new HashMap<>();
                 MappingPort mappingPort = getMappingPort(optName.get(), optName.get(), type, true,
-                        visitedTypes);
+                        new HashMap<>());
                 if (mappingPort == null) {
                     continue;
                 }
@@ -687,9 +683,8 @@ public class DataMapManager {
                     continue;
                 }
                 Type type = Type.fromSemanticSymbol(symbol);
-                Map<String, Type> visitedTypes = new HashMap<>();
                 MappingPort mappingPort = getMappingPort(optName.get(), optName.get(), type, true,
-                        visitedTypes);
+                        new HashMap<>());
                 if (mappingPort == null) {
                     continue;
                 }
@@ -697,9 +692,8 @@ public class DataMapManager {
                 mappingPorts.add(mappingPort);
             } else if (kind == SymbolKind.CONSTANT) {
                 Type type = Type.fromSemanticSymbol(symbol);
-                Map<String, Type> visitedTypes = new HashMap<>();
                 MappingPort mappingPort = getMappingPort(type.getTypeName(), type.getTypeName(), type, true,
-                        visitedTypes);
+                        new HashMap<>());
                 if (mappingPort == null) {
                     continue;
                 }
