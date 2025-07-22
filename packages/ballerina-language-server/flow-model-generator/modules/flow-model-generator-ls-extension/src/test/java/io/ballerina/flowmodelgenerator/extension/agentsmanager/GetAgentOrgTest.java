@@ -18,7 +18,7 @@
 
 package io.ballerina.flowmodelgenerator.extension.agentsmanager;
 
-import io.ballerina.flowmodelgenerator.extension.request.GetAgentOrgRequest;
+import io.ballerina.flowmodelgenerator.extension.request.GetAiModuleOrgRequest;
 import io.ballerina.modelgenerator.commons.AbstractLSTest;
 import org.testng.Assert;
 import org.testng.annotations.DataProvider;
@@ -52,7 +52,7 @@ public class GetAgentOrgTest extends AbstractLSTest {
         TestConfig testConfig = gson.fromJson(Files.newBufferedReader(configJsonPath), TestConfig.class);
 
         String filePath = sourceDir.resolve(testConfig.source()).toAbsolutePath().toString();
-        GetAgentOrgRequest request = new GetAgentOrgRequest(filePath);
+        GetAiModuleOrgRequest request = new GetAiModuleOrgRequest(filePath);
         String org = getResponseAndCloseFile(request, testConfig.source()).get("orgName").getAsString();
 
         if (!org.equals(testConfig.orgName())) {
@@ -74,7 +74,7 @@ public class GetAgentOrgTest extends AbstractLSTest {
 
     @Override
     protected String getApiName() {
-        return "getAgentOrg";
+        return "getAiModuleOrg";
     }
 
     @Override
@@ -83,7 +83,7 @@ public class GetAgentOrgTest extends AbstractLSTest {
     }
 
     /**
-     * Represents the test configuration for the getAgentOrg API.
+     * Represents the test configuration for the getAiModuleOrg API.
      *
      * @param source      The source file path
      * @param orgName     Expected organization name
