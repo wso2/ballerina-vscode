@@ -19,14 +19,14 @@
 package io.ballerina.flowmodelgenerator.extension.response;
 
 /**
- * Represents the response for getAgentOrg.
+ * Represents the response for getAiModuleOrg.
  *
  * @since 1.1.0
  */
-public class GetAgentOrgResponse extends AbstractFlowModelResponse {
+public class GetAiModuleOrgResponse extends AbstractFlowModelResponse {
     private String orgName;
 
-    public GetAgentOrgResponse() {
+    public GetAiModuleOrgResponse() {
     }
 
     public void setOrg(String orgName) {

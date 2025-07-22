@@ -22,7 +22,7 @@ import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
 import io.ballerina.flowmodelgenerator.core.AgentsGenerator;
 import io.ballerina.flowmodelgenerator.extension.request.GenToolRequest;
-import io.ballerina.flowmodelgenerator.extension.request.GetAgentOrgRequest;
+import io.ballerina.flowmodelgenerator.extension.request.GetAiModuleOrgRequest;
 import io.ballerina.flowmodelgenerator.extension.request.GetAllAgentsRequest;
 import io.ballerina.flowmodelgenerator.extension.request.GetAllMemoryManagersRequest;
 import io.ballerina.flowmodelgenerator.extension.request.GetAllModelsRequest;
@@ -31,8 +31,8 @@ import io.ballerina.flowmodelgenerator.extension.request.GetModelsRequest;
 import io.ballerina.flowmodelgenerator.extension.request.GetToolRequest;
 import io.ballerina.flowmodelgenerator.extension.request.GetToolsRequest;
 import io.ballerina.flowmodelgenerator.extension.response.GenToolResponse;
-import io.ballerina.flowmodelgenerator.extension.response.GetAgentOrgResponse;
 import io.ballerina.flowmodelgenerator.extension.response.GetAgentsResponse;
+import io.ballerina.flowmodelgenerator.extension.response.GetAiModuleOrgResponse;
 import io.ballerina.flowmodelgenerator.extension.response.GetConnectorActionsResponse;
 import io.ballerina.flowmodelgenerator.extension.response.GetMemoryManagersResponse;
 import io.ballerina.flowmodelgenerator.extension.response.GetModelsResponse;
@@ -74,9 +74,9 @@ public class AgentsManagerService implements ExtendedLanguageServerService {
     }
 
     @JsonRequest
-    public CompletableFuture<GetAgentOrgResponse> getAgentOrg(GetAgentOrgRequest request) {
+    public CompletableFuture<GetAiModuleOrgResponse> getAiModuleOrg(GetAiModuleOrgRequest request) {
         return CompletableFuture.supplyAsync(() -> {
-            GetAgentOrgResponse response = new GetAgentOrgResponse();
+            GetAiModuleOrgResponse response = new GetAiModuleOrgResponse();
             try {
                 Path projectPath = Path.of(request.projectPath());
                 Project project = this.workspaceManager.loadProject(projectPath);
