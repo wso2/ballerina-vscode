@@ -406,54 +406,6 @@ public class CodeAnalyzer extends NodeVisitor {
         }
     }
 
-    private String generateMcpToolKitName(List<ToolData> toolsData, Node node) {
-        String baseName = getMcpToolName(node);
-        Set<String> existingNames = toolsData.stream()
-                .map(tool -> tool.name)
-                .collect(Collectors.toSet());
-        if (!existingNames.contains(baseName)) {
-            return baseName;
-        }
-        int index = 2;
-        String name;
-        do {
-            name = String.format("MCP_SERVER %02d", index++);
-        } while (existingNames.contains(name));
-        return name;
-    }
-
-    private String getMcpToolName(Node node) {
-        ExpressionNode expression = ((CheckExpressionNode) node).expression();
-        if (!(expression instanceof ExplicitNewExpressionNode explicitNewExpr)) {
-            return null;
-        }
-
-        ParenthesizedArgList argList = explicitNewExpr.parenthesizedArgList();
-        if (argList == null) {
-            return null;
-        }
-
-        SeparatedNodeList<FunctionArgumentNode> args = argList.arguments();
-        if (args.size() <= 2 || !(args.get(2) instanceof NamedArgumentNode namedArg)) {
-            return null;
-        }
-
-        ExpressionNode argExpr = namedArg.expression();
-        if (!(argExpr instanceof MappingConstructorExpressionNode mappingConstructorExpr)) {
-            return null;
-        }
-
-        NodeList<MappingFieldNode> fields = mappingConstructorExpr.fields();
-        if (fields.isEmpty() || !(fields.get(0) instanceof SpecificFieldNode specificField)) {
-            return null;
-        }
-        if (specificField.valueExpr().isPresent()) {
-            String value = specificField.valueExpr().get().toString();
-            return value.substring(1, value.length() - 1);
-        }
-        return null;
-    }
-
     private void genAgentData(ImplicitNewExpressionNode newExpressionNode, ClassSymbol classSymbol) {
         Optional<ParenthesizedArgList> argList = newExpressionNode.parenthesizedArgList();
         if (argList.isEmpty()) {
@@ -495,11 +447,6 @@ public class CodeAnalyzer extends NodeVisitor {
             List<ToolData> toolsData = new ArrayList<>();
             ListConstructorExpressionNode listCtrExprNode = (ListConstructorExpressionNode) toolsArg;
             for (Node node : listCtrExprNode.expressions()) {
-                if (node.kind() == SyntaxKind.CHECK_EXPRESSION) {
-                    String toolName = generateMcpToolKitName(toolsData, node);
-                    toolsData.add(new ToolData(toolName, ICON_PATH, getToolDescription(""), MCP_SERVER));
-                    continue;
-                }
                 if (node.kind() != SyntaxKind.SIMPLE_NAME_REFERENCE) {
                     continue;
                 }
