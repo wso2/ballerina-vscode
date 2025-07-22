@@ -559,6 +559,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
         if (!updatedNode) {
             console.log(">>> No updated node found");
             updatedNode = selectedNodeRef.current;
+            debouncedGetFlowModel();
         }
         setShowProgressIndicator(true);
         rpcClient
@@ -602,6 +603,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
             if (!agentNodeDeleteResponse) {
                 console.error(">>> Error deleting agent node", node);
                 setShowProgressIndicator(false);
+                debouncedGetFlowModel();
                 return;
             }
         }
@@ -611,6 +613,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
         selectedNodeRef.current = undefined;
         handleOnCloseSidePanel();
         setShowProgressIndicator(false);
+        debouncedGetFlowModel();
     };
 
     const handleOnAddComment = (comment: string, target: LineRange) => {
@@ -692,14 +695,6 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 id: node.codedata,
             })
             .then((response) => {
-                // const nodesWithCustomForms = ["IF", "FORK"];
-                // if (!response.flowNode.properties && !nodesWithCustomForms.includes(response.flowNode.codedata.node)) {
-                //     console.log(">>> Node doesn't have properties. Don't show edit form", response.flowNode);
-                //     setShowProgressIndicator(false);
-                //     showEditForm.current = false;
-                //     return;
-                // }
-
                 nodeTemplateRef.current = response.flowNode;
                 showEditForm.current = true;
                 setSidePanelView(SidePanelView.FORM);
@@ -707,6 +702,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
             })
             .finally(() => {
                 setShowProgressIndicator(false);
+                debouncedGetFlowModel();
             });
     };
 
@@ -942,6 +938,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
             alert("Failed to remove memory manager. Please try again.");
         } finally {
             setShowProgressIndicator(false);
+            debouncedGetFlowModel();
         }
     };
 
@@ -975,6 +972,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
             setSidePanelView(SidePanelView.ADD_TOOL);
             setShowSidePanel(true);
             setShowProgressIndicator(false);
+            debouncedGetFlowModel();
         }, 500);
     };
 
@@ -1025,6 +1023,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
             alert(`Failed to remove tool "${tool.name}". Please try again.`);
         } finally {
             setShowProgressIndicator(false);
+            debouncedGetFlowModel();
         }
     };
 
