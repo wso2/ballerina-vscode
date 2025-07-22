@@ -269,7 +269,8 @@ export function InlineDataMapperView(props: InlineDataMapperProps) {
                 index,
                 targetField,
                 subMappingName,
-                type
+                type,
+                varName
             );
             
             console.log(">>> [Inline Data Mapper] addSubMapping request:", request);

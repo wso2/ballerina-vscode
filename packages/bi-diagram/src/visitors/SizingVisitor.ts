@@ -16,6 +16,8 @@
  * under the License.
  */
 
+import { BaseVisitor, NodeMetadata } from "@wso2/ballerina-core";
+
 import {
     AGENT_NODE_ADD_TOOL_BUTTON_WIDTH,
     AGENT_NODE_TOOL_GAP,
@@ -38,7 +40,6 @@ import {
 } from "../resources/constants";
 import { reverseCustomNodeId } from "../utils/node";
 import { Branch, FlowNode } from "../utils/types";
-import { BaseVisitor } from "./BaseVisitor";
 
 export class SizingVisitor implements BaseVisitor {
     private skipChildrenVisit = false;
@@ -247,7 +248,8 @@ export class SizingVisitor implements BaseVisitor {
         const containerRightWidth = halfNodeWidth + NODE_GAP_X + NODE_HEIGHT + LABEL_HEIGHT + LABEL_WIDTH;
 
         // Calculate node height based on node type
-        const tools = node.metadata?.data?.tools || [];
+        const nodeMetadata = node.metadata.data as NodeMetadata;
+        const tools = nodeMetadata?.tools || [];
         const numberOfCircles = tools.length || 0;
         let containerHeight = NODE_HEIGHT + AGENT_NODE_TOOL_SECTION_GAP + AGENT_NODE_ADD_TOOL_BUTTON_WIDTH + AGENT_NODE_TOOL_GAP * 2;
         if (numberOfCircles > 0) {
