@@ -66,21 +66,19 @@ export async function getSelectedLibraries(prompt: string, generationType: Gener
     const messages: CoreMessage[] = [
         {
             role: "system",
-            content: getSystemPrompt(),
+            content: getSystemPrompt(allLibraries),
             providerOptions: {
                 anthropic: { cacheControl: { type: "ephemeral" } },
             },
         },
         {
             role: "user",
-            content: getUserPrompt(prompt, allLibraries, generationType),
-            providerOptions: {
-                anthropic: { cacheControl: { type: "ephemeral" } },
-            },
+            content: getUserPrompt(prompt, generationType),
         },
     ];
+
     //TODO: Add thinking and test with claude haiku
-    //TODO: Check if we need to restrcuture prompt to optimize catching.
+    const startTime = Date.now();
     const { object } = await generateObject({
         model: anthropic(ANTHROPIC_HAIKU),
         maxTokens: 4096,
@@ -89,19 +87,21 @@ export async function getSelectedLibraries(prompt: string, generationType: Gener
         schema: LibraryListSchema,
         abortSignal: AIPanelAbortController.getInstance().signal,
     });
+    const endTime = Date.now();
+    console.log(`Library selection took ${endTime - startTime}ms`);
 
     console.log("Selected libraries:", object.libraries);
     return object.libraries;
 }
 
-function getSystemPrompt(): string {
-    return `You are an assistant tasked with selecting all the Ballerina libraries needed to answer a specific question from a given set of libraries provided in the context as a JSON. RESPOND ONLY WITH A JSON.`;
+function getSystemPrompt(libraryList: MinifiedLibrary[]): string {
+    return `You are an assistant tasked with selecting all the Ballerina libraries needed to answer a specific question from a given set of libraries provided in the context as a JSON. RESPOND ONLY WITH A JSON.
+# Library Context JSON
+${JSON.stringify(libraryList)}`;
 }
 
-function getUserPrompt(prompt: string, libraryList: MinifiedLibrary[], generationType: GenerationType): string {
+function getUserPrompt(prompt: string, generationType: GenerationType): string {
     return `
-# Library Context JSON
-${JSON.stringify(libraryList)}
 # QUESTION
 ${prompt}
 
