@@ -1820,7 +1820,7 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
     }
 
     async migrateProject(params: MigrateRequest): Promise<void> {
-        createBIProjectFromMigration(params)
+        createBIProjectFromMigration(params);
     }
 }
 

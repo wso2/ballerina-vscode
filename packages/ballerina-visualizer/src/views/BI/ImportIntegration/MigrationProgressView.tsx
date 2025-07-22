@@ -60,25 +60,11 @@ const ReportContainer = styled.div`
 
 interface ProgressProps {
     importParams: FinalIntegrationParams | null;
-    toolPullProgress: DownloadProgress | null;
     migrationResponse: ImportIntegrationResponse | null;
     onCreateIntegrationFiles: () => void;
 }
 
-export function MigrationProgressView({
-    importParams,
-    toolPullProgress,
-    migrationResponse,
-    onCreateIntegrationFiles,
-}: ProgressProps) {
-    // In a real scenario, you'd have another listener for the main import task's progress
-    // const [mainProgress, setMainProgress] = useState(null);
-    // useEffect(() => { /* listener for main import task */ }, []);
-
-    const isToolPulling = toolPullProgress && toolPullProgress.step !== 3 && toolPullProgress.step !== -1;
-    const isToolReady = !toolPullProgress || toolPullProgress.success;
-    const toolPullFailed = toolPullProgress?.step === -1;
-
+export function MigrationProgressView({ importParams, migrationResponse, onCreateIntegrationFiles }: ProgressProps) {
     return (
         <ProgressContainer>
             <div>
@@ -88,48 +74,20 @@ export function MigrationProgressView({
                 </Typography>
             </div>
 
-            {/* Step 1: Tool Download Progress */}
             <StepWrapper>
-                <Typography variant="h4">Step 1 of 2: Preparing Tools</Typography>
-                {isToolPulling && (
-                    <>
-                        <Typography variant="caption">{toolPullProgress.message}</Typography>
-                        {/* <LinearProgress value={toolPullProgress.percentage || 0} /> */}
-                    </>
-                )}
-                {isToolReady && (
+                <Typography variant="h4">SMigrating Project</Typography>
+                {!migrationResponse ? (
+                    <Typography variant="caption">Starting migration...</Typography>
+                ) : (
                     <Typography variant="caption" sx={{ color: "var(--vscode-terminal-ansiGreen)" }}>
-                        Tools are ready.
+                        Migration completed successfully!
                     </Typography>
                 )}
-                {toolPullFailed && (
-                    <Typography variant="caption" sx={{ color: "var(--vscode-terminal-ansiRed)" }}>
-                        Error: {toolPullProgress.message}
-                    </Typography>
-                )}
+                {/* <LinearProgress indeterminate /> */}
             </StepWrapper>
 
-            {/* Step 2: Main Migration Progress */}
-            {isToolReady && (
-                <StepWrapper>
-                    <Typography variant="h4">Step 2 of 2: Migrating Project</Typography>
-                    {!migrationResponse ? (
-                        <Typography variant="caption">Starting migration...</Typography>
-                    ) : (
-                        <Typography variant="caption" sx={{ color: "var(--vscode-terminal-ansiGreen)" }}>
-                            Migration completed successfully!
-                        </Typography>
-                    )}
-                    {/* <LinearProgress indeterminate /> */}
-                </StepWrapper>
-            )}
-
             <ButtonWrapper>
-                <Button
-                    disabled={migrationResponse === null || toolPullProgress?.step === -1}
-                    onClick={onCreateIntegrationFiles}
-                    appearance="primary"
-                >
+                <Button disabled={migrationResponse === null} onClick={onCreateIntegrationFiles} appearance="primary">
                     Finish & Open Project
                 </Button>
             </ButtonWrapper>
