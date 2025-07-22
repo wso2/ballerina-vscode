@@ -1672,7 +1672,7 @@ public class DataMapManager {
         LineRange fieldExprRange = getFieldExprRange(expressionNode, 1, mapping.output().split("\\."));
         String functionName = genCustomFunctionDef(workspaceManager, filePath, functionMetadata, textEditsMap);
         if (fieldExprRange != null) {
-            genCustomFunctionCall(filePath, functionName, fieldExprRange, mapping.output(), textEditsMap);
+            genCustomFunctionCall(filePath, functionName, fieldExprRange, mapping.expression(), textEditsMap);
         }
         return gson.toJsonTree(textEditsMap);
     }

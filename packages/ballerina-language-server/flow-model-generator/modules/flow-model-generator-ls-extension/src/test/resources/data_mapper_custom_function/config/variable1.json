@@ -63,7 +63,7 @@
             "character": 54
           }
         },
-        "newText": "functionStudentToStudent2(student.username)"
+        "newText": "functionStudentToStudent2(userInfo.username)"
       }
     ]
   }
