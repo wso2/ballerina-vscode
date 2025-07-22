@@ -179,7 +179,7 @@ async function getEntryValue(artifact: BaseArtifact, icon: string, moduleName?: 
 // This has to be replaced once we have a proper design for AI Agent Chat Service
 async function injectAIAgent(serviceArtifact: BaseArtifact) {
     // Fetch the organization name for importing the AI package
-    const agentOrg = await new AiAgentRpcManager().getAgentOrg({ projectPath: StateMachine.context().projectUri });
+    const aiModuleOrg = await new AiAgentRpcManager().getAiModuleOrg({ projectPath: StateMachine.context().projectUri });
 
     //get AgentName
     const agentName = serviceArtifact.name.split('-')[1].trim().replace(/\//g, '');
@@ -202,7 +202,7 @@ async function injectAIAgent(serviceArtifact: BaseArtifact) {
     const injectionPosition = updatedService.service.functions[0].codedata.lineRange.endLine;
     const serviceFile = path.join(StateMachine.context().projectUri, `main.bal`);
     ensureFileExists(serviceFile);
-    await injectAgentCode(agentName, serviceFile, injectionPosition, agentOrg.orgName);
+    await injectAgentCode(agentName, serviceFile, injectionPosition, aiModuleOrg.orgName);
     const functionPosition: NodePosition = {
         startLine: updatedService.service.functions[0].codedata.lineRange.startLine.line,
         startColumn: updatedService.service.functions[0].codedata.lineRange.startLine.offset,

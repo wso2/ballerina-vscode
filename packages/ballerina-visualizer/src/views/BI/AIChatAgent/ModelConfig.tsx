@@ -26,7 +26,7 @@ import ConfigForm from "./ConfigForm";
 import { Dropdown } from "@wso2/ui-toolkit";
 import { cloneDeep } from "lodash";
 import { RelativeLoader } from "../../../components/RelativeLoader";
-import { getAgentFilePath, getAgentOrg, getNodeTemplate } from "./utils";
+import { getAgentFilePath, getAiModuleOrg, getNodeTemplate } from "./utils";
 import { BALLERINA, BALLERINAX, GET_DEFAULT_MODEL_PROVIDER, WSO2_MODEL_PROVIDER, PROVIDER_NAME_MAP } from "../../../constants";
 
 const Container = styled.div`
@@ -69,7 +69,7 @@ export function ModelConfig(props: ModelConfigProps): JSX.Element {
     const [savingForm, setSavingForm] = useState<boolean>(false);
 
     const agentFilePath = useRef<string>("");
-    const agentOrg = useRef<string>("");
+    const aiModuleOrg = useRef<string>("");
     const moduleConnectionNodes = useRef<FlowNode[]>([]);
     const selectedModelFlowNode = useRef<FlowNode>();
 
@@ -81,9 +81,9 @@ export function ModelConfig(props: ModelConfigProps): JSX.Element {
         if (modelsCodeData.length > 0 && selectedModel && !selectedModelCodeData) {
             // Find the initial modelCodeData that matches selectedModel
             let initialModelCodeData: CodeData | undefined;
-            if (agentOrg.current === BALLERINA) {
+            if (aiModuleOrg.current === BALLERINA) {
                 initialModelCodeData = modelsCodeData.find((model) => model.module === selectedModel.codedata.module);
-            } else if (agentOrg.current === BALLERINAX) {
+            } else if (aiModuleOrg.current === BALLERINAX) {
                 initialModelCodeData = modelsCodeData.find((model) => model.object === selectedModel.codedata.object);
             } else {
                 initialModelCodeData = modelsCodeData.find((model) => model.module === selectedModel.codedata.module);
@@ -100,7 +100,7 @@ export function ModelConfig(props: ModelConfigProps): JSX.Element {
     const initPanel = async () => {
         setLoading(true);
         agentFilePath.current = await getAgentFilePath(rpcClient);
-        agentOrg.current = await getAgentOrg(rpcClient);
+        aiModuleOrg.current = await getAiModuleOrg(rpcClient);
         // fetch all models
         await fetchModels();
         // fetch selected agent model
@@ -111,12 +111,12 @@ export function ModelConfig(props: ModelConfigProps): JSX.Element {
     // Helper to get provider name from modelCodeData
     const getProviderName = (model: CodeData, useMappedName: boolean = false) => {
         if (!model) return "";
-        if (agentOrg.current === BALLERINA) {
+        if (aiModuleOrg.current === BALLERINA) {
             if (useMappedName) {
                 return PROVIDER_NAME_MAP[model.module] || model.module;
             }
             return model.module;
-        } else if (agentOrg.current === BALLERINAX) {
+        } else if (aiModuleOrg.current === BALLERINAX) {
             return model.object;
         }
         // fallback
@@ -132,7 +132,7 @@ export function ModelConfig(props: ModelConfigProps): JSX.Element {
         }
         const models = await rpcClient
             .getAIAgentRpcClient()
-            .getAllModels({ agent: agentName, filePath: agentFilePath.current, orgName: agentOrg.current });
+            .getAllModels({ agent: agentName, filePath: agentFilePath.current, orgName: aiModuleOrg.current });
         console.log(">>> all models", models);
         setModelsCodeData(models.models);
     };
@@ -166,11 +166,11 @@ export function ModelConfig(props: ModelConfigProps): JSX.Element {
     const fetchModelNodeTemplate = async (modelCodeData: CodeData) => {
         setLoading(true);
         let nodeProperties: NodeProperties = {};
-        // Determine provider match for both agentOrg cases
+        // Determine provider match for both aiModuleOrg cases
         let isProviderMatch = false;
-        if (agentOrg.current === BALLERINA) {
+        if (aiModuleOrg.current === BALLERINA) {
             isProviderMatch = selectedModel?.codedata.module === modelCodeData.module;
-        } else if (agentOrg.current === BALLERINAX) {
+        } else if (aiModuleOrg.current === BALLERINAX) {
             isProviderMatch = selectedModel?.codedata.object === modelCodeData.object;
         } else {
             isProviderMatch = selectedModel?.codedata.module === modelCodeData.module;
