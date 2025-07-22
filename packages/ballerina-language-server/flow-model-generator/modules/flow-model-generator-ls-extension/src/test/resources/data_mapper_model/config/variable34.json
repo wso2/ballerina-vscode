@@ -106,7 +106,8 @@
         "expression": "user.name.length()",
         "diagnostics": [],
         "elements": [],
-        "isQueryExpression": false
+        "isQueryExpression": false,
+        "isFunctionCall": false
       },
       {
         "output": "user1.user2.user3.user4.user5.u",
@@ -116,7 +117,8 @@
         "expression": "user.name",
         "diagnostics": [],
         "elements": [],
-        "isQueryExpression": false
+        "isQueryExpression": false,
+        "isFunctionCall": false
       },
       {
         "output": "user1.s1",
@@ -126,7 +128,8 @@
         "expression": "user.name",
         "diagnostics": [],
         "elements": [],
-        "isQueryExpression": false
+        "isQueryExpression": false,
+        "isFunctionCall": false
       }
     ]
   }

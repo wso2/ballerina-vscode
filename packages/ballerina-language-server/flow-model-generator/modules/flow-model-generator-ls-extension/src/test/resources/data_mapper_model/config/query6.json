@@ -186,7 +186,8 @@
         "expression": "0",
         "diagnostics": [],
         "elements": [],
-        "isQueryExpression": false
+        "isQueryExpression": false,
+        "isFunctionCall": false
       },
       {
         "output": "l3Arr.l4_2",
@@ -194,7 +195,8 @@
         "expression": "\"aaa\"",
         "diagnostics": [],
         "elements": [],
-        "isQueryExpression": false
+        "isQueryExpression": false,
+        "isFunctionCall": false
       }
     ],
     "query": {

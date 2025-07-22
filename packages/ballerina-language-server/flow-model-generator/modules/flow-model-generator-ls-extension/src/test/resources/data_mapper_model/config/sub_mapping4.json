@@ -136,7 +136,8 @@
         "expression": "user.username",
         "diagnostics": [],
         "elements": [],
-        "isQueryExpression": false
+        "isQueryExpression": false,
+        "isFunctionCall": false
       },
       {
         "output": "students.password",
@@ -146,7 +147,8 @@
         "expression": "user.password",
         "diagnostics": [],
         "elements": [],
-        "isQueryExpression": false
+        "isQueryExpression": false,
+        "isFunctionCall": false
       }
     ],
     "query": {

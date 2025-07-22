@@ -159,7 +159,8 @@
         "expression": "secondaryPhonesItem.code",
         "diagnostics": [],
         "elements": [],
-        "isQueryExpression": false
+        "isQueryExpression": false,
+        "isFunctionCall": false
       },
       {
         "output": "phoneNumbers.number",
@@ -169,7 +170,8 @@
         "expression": "secondaryPhonesItem.number",
         "diagnostics": [],
         "elements": [],
-        "isQueryExpression": false
+        "isQueryExpression": false,
+        "isFunctionCall": false
       },
       {
         "output": "phoneNumbers.email",
@@ -179,7 +181,8 @@
         "expression": "email",
         "diagnostics": [],
         "elements": [],
-        "isQueryExpression": false
+        "isQueryExpression": false,
+        "isFunctionCall": false
       }
     ],
     "query": {

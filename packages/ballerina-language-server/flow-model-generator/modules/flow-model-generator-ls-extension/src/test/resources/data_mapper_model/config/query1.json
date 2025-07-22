@@ -108,7 +108,8 @@
         "expression": "secondaryPhonesItem\n",
         "diagnostics": [],
         "elements": [],
-        "isQueryExpression": false
+        "isQueryExpression": false,
+        "isFunctionCall": false
       }
     ],
     "query": {
