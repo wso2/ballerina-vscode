@@ -883,7 +883,7 @@
             "packageName": "ai",
             "object": "VectorKnowledgeBase",
             "symbol": "init",
-            "version": "1.0.0"
+            "version": "1.1.0"
           },
           "enabled": false,
           "more": false
@@ -924,8 +924,8 @@
           "codedata": {
             "node": "VECTOR_STORES"
           },
-          "enabled": true,
-          "more": false
+          "enabled": false,
+          "more": true
         },
         {
           "metadata": {
@@ -935,8 +935,8 @@
           "codedata": {
             "node": "EMBEDDING_PROVIDERS"
           },
-          "enabled": true,
-          "more": false
+          "enabled": false,
+          "more": true
         },
         {
           "metadata": {

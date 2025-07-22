@@ -78,7 +78,7 @@ public class Constants {
 
         public static final String BALLERINA_ORG = "ballerina";
         public static final String AI_PACKAGE = "ai";
-        public static final String VERSION = "1.0.0";
+        public static final String VERSION = "1.1.0";
 
         public static final String RECURSIVE_DOCUMENT_CHUNKER_LABEL = "Recursive Document Chunker";
         public static final String AUGMENT_QUERY_LABEL = "Augment Query";
