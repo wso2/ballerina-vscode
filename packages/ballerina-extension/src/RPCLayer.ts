@@ -41,7 +41,7 @@ import { registerSequenceDiagramRpcHandlers } from './rpc-managers/sequence-diag
 import { registerInlineDataMapperRpcHandlers } from './rpc-managers/inline-data-mapper/rpc-handler';
 import { registerTestManagerRpcHandlers } from './rpc-managers/test-manager/rpc-handler';
 import { registerIcpServiceRpcHandlers } from './rpc-managers/icp-service/rpc-handler';
-import { ballerinaExtInstance } from './core';
+import { extension } from './BalExtensionContext';
 import { registerAgentChatRpcHandlers } from './rpc-managers/agent-chat/rpc-handler';
 import { ArtifactsUpdated, ArtifactNotificationHandler } from './utils/project-artifacts-handler';
 
@@ -136,7 +136,7 @@ async function getContext(): Promise<VisualizerLocation> {
                 isBISupported: context.isBISupported,
                 haveLS: StateMachine.langClient() && true,
                 recordFilePath: path.join(context.projectUri, "types.bal"),
-                enableSequenceDiagram: ballerinaExtInstance.enableSequenceDiagramView(),
+                enableSequenceDiagram: extension.ballerinaExtInstance.enableSequenceDiagramView(),
                 target: context.metadata?.target
             },
             scope: context.scope,

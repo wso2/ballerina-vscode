@@ -73,17 +73,27 @@ export type Metadata = {
     icon?: string;
     keywords?: string[];
     draft?: boolean; // for diagram draft nodes
-    data?: {
-        isDataMappedFunction?: boolean;
-        isAgentTool?: boolean;
-        isIsolatedFunction?: boolean;
-        tools?: ToolData[];
-        model?: ToolData;
-        memory?: MemoryData;
-        agent?: AgentData;
-        paramsToHide?: string[]; // List of properties keys to to hide from forms
-    };
+    data?: NodeMetadata | ParentMetadata;
     functionKind?: string;
+};
+
+export type NodeMetadata = {
+    isDataMappedFunction?: boolean;
+    isAgentTool?: boolean;
+    isIsolatedFunction?: boolean;
+    tools?: ToolData[];
+    model?: ToolData;
+    memory?: MemoryData;
+    agent?: AgentData;
+    paramsToHide?: string[]; // List of properties keys to to hide from forms
+};
+
+export type ParentMetadata = {
+    kind: string;
+    label: string;
+    accessor?: string;
+    parameters?: string[];
+    return?: string;
 };
 
 export type ToolData = {
