@@ -17,7 +17,7 @@
  */
 
 import { PanelContainer, NodeList, ExpressionFormField } from "@wso2/ballerina-side-panel";
-import { FlowNode, LineRange, SubPanel, SubPanelView, FUNCTION_TYPE, ToolData } from "@wso2/ballerina-core";
+import { FlowNode, LineRange, SubPanel, SubPanelView, FUNCTION_TYPE, ToolData, NodeMetadata } from "@wso2/ballerina-core";
 import { HelperView } from "../HelperView";
 import FormGenerator from "../Forms/FormGenerator";
 import { getContainerTitle, getSubPanelWidth } from "../../../utils/bi";
@@ -138,6 +138,11 @@ export function PanelManager(props: PanelManagerProps) {
         setPanelView(SidePanelView.ADD_TOOL);
     };
 
+    const handleSubmitAndClose = () => {
+        onSubmitForm();
+        onClose();
+    };
+
     const findSubPanelComponent = (subPanel: SubPanel) => {
         switch (subPanel.view) {
             case SubPanelView.HELPER_PANEL:
@@ -174,30 +179,30 @@ export function PanelManager(props: PanelManagerProps) {
                         agentCallNode={selectedNode}
                         fileName={fileName}
                         lineRange={targetLineRange}
-                        onSave={onClose}
+                        onSave={handleSubmitAndClose}
                     />
                 );
 
             case SidePanelView.ADD_TOOL:
-                return <AddTool agentCallNode={selectedNode} onAddNewTool={handleOnAddTool} onSave={onClose} />;
+                return <AddTool agentCallNode={selectedNode} onAddNewTool={handleOnAddTool} onSave={handleSubmitAndClose} />;
 
             case SidePanelView.NEW_TOOL:
-                return <NewTool agentCallNode={selectedNode} onSave={onClose} onBack={handleOnBackToAddTool} />;
+                return <NewTool agentCallNode={selectedNode} onSave={handleSubmitAndClose} onBack={handleOnBackToAddTool} />;
 
             case SidePanelView.AGENT_TOOL:
-                const selectedTool = selectedNode?.metadata.data.tools?.find(
+                const selectedTool = (selectedNode?.metadata.data as NodeMetadata).tools?.find(
                     (tool) => tool.name === selectedClientName
                 );
-                return <ToolConfig agentCallNode={selectedNode} toolData={selectedTool} onSave={onClose} />;
+                return <ToolConfig agentCallNode={selectedNode} toolData={selectedTool} onSave={handleSubmitAndClose} />;
 
             case SidePanelView.AGENT_MODEL:
-                return <ModelConfig agentCallNode={selectedNode} onSave={onClose} />;
+                return <ModelConfig agentCallNode={selectedNode} onSave={handleSubmitAndClose} />;
 
             case SidePanelView.AGENT_CONFIG:
-                return <AgentConfig agentCallNode={selectedNode} fileName={fileName} onSave={onClose} />;
+                return <AgentConfig agentCallNode={selectedNode} fileName={fileName} onSave={handleSubmitAndClose} />;
 
             case SidePanelView.AGENT_MEMORY_MANAGER:
-                return <MemoryManagerConfig agentCallNode={selectedNode} onSave={onClose} />;
+                return <MemoryManagerConfig agentCallNode={selectedNode} onSave={handleSubmitAndClose} />;
 
             case SidePanelView.FUNCTION_LIST:
                 return (

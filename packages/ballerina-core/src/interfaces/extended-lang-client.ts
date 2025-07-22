@@ -1490,6 +1490,16 @@ export interface ResourceReturnTypesResponse {
 
 // <-------- Service Designer Related ------->
 
+export interface FunctionFromSourceRequest {
+    filePath: string;
+    codedata: CodeData;
+}
+
+export interface FunctionFromSourceResponse {
+    function: FunctionModel;
+    errorMsg?: string;
+    stacktrace?: string;
+}
 
 export interface FunctionNodeRequest {
     projectPath?: string;
@@ -1706,6 +1716,7 @@ export interface BIInterface extends BaseLangClientInterface {
 
     // Function APIs
     getFunctionNode: (params: FunctionNodeRequest) => Promise<FunctionNodeResponse>;
+    getFunctionFromSource: (params: FunctionFromSourceRequest) => Promise<FunctionFromSourceResponse>;
 
     getDesignModel: (params: BIDesignModelRequest) => Promise<BIDesignModelResponse>;
     getType: (params: GetTypeRequest) => Promise<GetTypeResponse>;
