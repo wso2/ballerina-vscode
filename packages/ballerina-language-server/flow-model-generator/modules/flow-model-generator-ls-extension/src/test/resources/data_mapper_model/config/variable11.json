@@ -99,7 +99,8 @@
         "expression": "1234",
         "diagnostics": [],
         "elements": [],
-        "isQueryExpression": false
+        "isQueryExpression": false,
+        "isFunctionCall": false
       },
       {
         "output": "student.credentials.username",
@@ -109,7 +110,8 @@
         "expression": "userInfo.username",
         "diagnostics": [],
         "elements": [],
-        "isQueryExpression": false
+        "isQueryExpression": false,
+        "isFunctionCall": false
       },
       {
         "output": "student.credentials.password",
@@ -122,7 +124,8 @@
           "missing identifier"
         ],
         "elements": [],
-        "isQueryExpression": false
+        "isQueryExpression": false,
+        "isFunctionCall": false
       },
       {
         "output": "student.length",
@@ -130,7 +133,8 @@
         "expression": "0",
         "diagnostics": [],
         "elements": [],
-        "isQueryExpression": false
+        "isQueryExpression": false,
+        "isFunctionCall": false
       }
     ]
   }

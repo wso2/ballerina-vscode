@@ -94,7 +94,8 @@
                         "expression": "user.phoneNumber[0]",
                         "diagnostics": [],
                         "elements": [],
-                        "isQueryExpression": false
+                        "isQueryExpression": false,
+                        "isFunctionCall": false
                       }
                     ]
                   }
@@ -120,7 +121,8 @@
                         "expression": "user.phoneNumber[1]",
                         "diagnostics": [],
                         "elements": [],
-                        "isQueryExpression": false
+                        "isQueryExpression": false,
+                        "isFunctionCall": false
                       }
                     ]
                   }
@@ -146,7 +148,8 @@
                         "expression": "user.phoneNumber[2]",
                         "diagnostics": [],
                         "elements": [],
-                        "isQueryExpression": false
+                        "isQueryExpression": false,
+                        "isFunctionCall": false
                       }
                     ]
                   },
@@ -160,7 +163,8 @@
                         "expression": "user.phoneNumber[3]",
                         "diagnostics": [],
                         "elements": [],
-                        "isQueryExpression": false
+                        "isQueryExpression": false,
+                        "isFunctionCall": false
                       }
                     ]
                   }

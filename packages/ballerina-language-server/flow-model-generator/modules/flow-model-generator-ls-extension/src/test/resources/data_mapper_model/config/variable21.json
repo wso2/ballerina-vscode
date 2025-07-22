@@ -121,7 +121,8 @@
         "expression": "std.firstName + std.lastName",
         "diagnostics": [],
         "elements": [],
-        "isQueryExpression": false
+        "isQueryExpression": false,
+        "isFunctionCall": false
       },
       {
         "output": "var1909.age",
@@ -131,7 +132,8 @@
         "expression": "std.stdAge",
         "diagnostics": [],
         "elements": [],
-        "isQueryExpression": false
+        "isQueryExpression": false,
+        "isFunctionCall": false
       }
     ]
   }

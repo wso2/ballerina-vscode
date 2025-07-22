@@ -231,7 +231,8 @@
           "missing identifier"
         ],
         "elements": [],
-        "isQueryExpression": false
+        "isQueryExpression": false,
+        "isFunctionCall": false
       },
       {
         "output": "credentials.username",
@@ -241,7 +242,8 @@
         "expression": "info.username\n",
         "diagnostics": [],
         "elements": [],
-        "isQueryExpression": false
+        "isQueryExpression": false,
+        "isFunctionCall": false
       }
     ],
     "query": {

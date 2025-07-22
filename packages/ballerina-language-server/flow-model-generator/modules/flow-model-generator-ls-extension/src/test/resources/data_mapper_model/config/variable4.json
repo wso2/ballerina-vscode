@@ -82,7 +82,8 @@
           "incompatible types: expected 'string', found 'UserInfo'"
         ],
         "elements": [],
-        "isQueryExpression": false
+        "isQueryExpression": false,
+        "isFunctionCall": false
       }
     ]
   }

@@ -157,7 +157,8 @@
         "expression": "from var secondaryPhonesItem in u.info.secondaryPhones\n                               select {code: secondaryPhonesItem.code, number: secondaryPhonesItem.number}\n",
         "diagnostics": [],
         "elements": [],
-        "isQueryExpression": true
+        "isQueryExpression": true,
+        "isFunctionCall": false
       }
     ]
   }

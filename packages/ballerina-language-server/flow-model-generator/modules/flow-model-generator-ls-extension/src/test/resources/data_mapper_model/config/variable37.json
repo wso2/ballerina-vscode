@@ -121,7 +121,8 @@
                         "expression": "2.0",
                         "diagnostics": [],
                         "elements": [],
-                        "isQueryExpression": false
+                        "isQueryExpression": false,
+                        "isFunctionCall": false
                       },
                       {
                         "output": "users4.0.users6.0.account",
@@ -131,7 +132,8 @@
                         "expression": "user.name",
                         "diagnostics": [],
                         "elements": [],
-                        "isQueryExpression": false
+                        "isQueryExpression": false,
+                        "isFunctionCall": false
                       }
                     ]
                   }
@@ -153,7 +155,8 @@
                         "expression": "user.name",
                         "diagnostics": [],
                         "elements": [],
-                        "isQueryExpression": false
+                        "isQueryExpression": false,
+                        "isFunctionCall": false
                       }
                     ]
                   },
@@ -167,7 +170,8 @@
                         "expression": "user.name",
                         "diagnostics": [],
                         "elements": [],
-                        "isQueryExpression": false
+                        "isQueryExpression": false,
+                        "isFunctionCall": false
                       }
                     ]
                   }

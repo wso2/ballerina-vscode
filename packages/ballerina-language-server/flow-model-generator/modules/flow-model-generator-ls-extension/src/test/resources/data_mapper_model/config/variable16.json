@@ -100,7 +100,8 @@
                 "expression": "userInfo[0].username",
                 "diagnostics": [],
                 "elements": [],
-                "isQueryExpression": false
+                "isQueryExpression": false,
+                "isFunctionCall": false
               },
               {
                 "output": "credentials.0.password",
@@ -110,7 +111,8 @@
                 "expression": "userInfo[0].password",
                 "diagnostics": [],
                 "elements": [],
-                "isQueryExpression": false
+                "isQueryExpression": false,
+                "isFunctionCall": false
               }
             ]
           }

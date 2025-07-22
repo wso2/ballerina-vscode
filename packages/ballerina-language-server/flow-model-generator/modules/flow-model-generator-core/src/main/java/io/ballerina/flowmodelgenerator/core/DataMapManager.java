@@ -41,6 +41,7 @@ import io.ballerina.compiler.syntax.tree.CollectClauseNode;
 import io.ballerina.compiler.syntax.tree.ExpressionNode;
 import io.ballerina.compiler.syntax.tree.FieldAccessExpressionNode;
 import io.ballerina.compiler.syntax.tree.FromClauseNode;
+import io.ballerina.compiler.syntax.tree.FunctionArgumentNode;
 import io.ballerina.compiler.syntax.tree.FunctionCallExpressionNode;
 import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
 import io.ballerina.compiler.syntax.tree.ImportDeclarationNode;
@@ -56,13 +57,16 @@ import io.ballerina.compiler.syntax.tree.MethodCallExpressionNode;
 import io.ballerina.compiler.syntax.tree.ModuleMemberDeclarationNode;
 import io.ballerina.compiler.syntax.tree.ModulePartNode;
 import io.ballerina.compiler.syntax.tree.ModuleVariableDeclarationNode;
+import io.ballerina.compiler.syntax.tree.NamedArgumentNode;
 import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.compiler.syntax.tree.NodeList;
 import io.ballerina.compiler.syntax.tree.NonTerminalNode;
 import io.ballerina.compiler.syntax.tree.OrderByClauseNode;
 import io.ballerina.compiler.syntax.tree.OrderKeyNode;
+import io.ballerina.compiler.syntax.tree.PositionalArgumentNode;
 import io.ballerina.compiler.syntax.tree.QueryExpressionNode;
 import io.ballerina.compiler.syntax.tree.QueryPipelineNode;
+import io.ballerina.compiler.syntax.tree.RestArgumentNode;
 import io.ballerina.compiler.syntax.tree.SelectClauseNode;
 import io.ballerina.compiler.syntax.tree.SeparatedNodeList;
 import io.ballerina.compiler.syntax.tree.SpecificFieldNode;
@@ -548,7 +552,8 @@ public class DataMapManager {
         LineRange customFunctionRange = getCustomFunctionRange(expr, functionDocument);
         Mapping mapping = new Mapping(name, inputs, expr.toSourceCode(),
                 getDiagnostics(expr.lineRange(), semanticModel), new ArrayList<>(),
-                expr.kind() == SyntaxKind.QUERY_EXPRESSION, customFunctionRange);
+                expr.kind() == SyntaxKind.QUERY_EXPRESSION, expr.kind() == SyntaxKind.FUNCTION_CALL,
+                customFunctionRange);
         elements.add(mapping);
     }
 
@@ -623,6 +628,17 @@ public class DataMapManager {
         } else if (kind == SyntaxKind.QUERY_EXPRESSION) {
             QueryExpressionNode queryExpr = (QueryExpressionNode) expr;
             inputs.add(queryExpr.queryPipeline().fromClause().expression().toSourceCode().trim());
+        } else if (kind == SyntaxKind.FUNCTION_CALL) {
+            FunctionCallExpressionNode functionCall = (FunctionCallExpressionNode) expr;
+            for (FunctionArgumentNode argument : functionCall.arguments()) {
+                if (argument.kind() == SyntaxKind.POSITIONAL_ARG) {
+                    genInputs(((PositionalArgumentNode) argument).expression(), inputs);
+                } else if (argument.kind() == SyntaxKind.NAMED_ARG) {
+                    genInputs(((NamedArgumentNode) argument).expression(), inputs);
+                } else if (argument.kind() == SyntaxKind.REST_ARG) {
+                    genInputs(((RestArgumentNode) argument).expression(), inputs);
+                }
+            }
         }
     }
 
@@ -1797,21 +1813,24 @@ public class DataMapManager {
     }
 
     private record Mapping(String output, List<String> inputs, String expression, List<String> diagnostics,
-                           List<MappingElements> elements, Boolean isQueryExpression, Map<String, String> imports,
-                           LineRange functionRange) {
+                           List<MappingElements> elements, Boolean isQueryExpression, Boolean isFunctionCall,
+                           Map<String, String> imports, LineRange functionRange) {
 
         private Mapping(String output, List<String> inputs, String expression, List<String> diagnostics,
                         List<MappingElements> elements) {
-            this(output, inputs, expression, diagnostics, elements, null, null, null);
+            this(output, inputs, expression, diagnostics, elements, null, null, null, null);
         }
 
         private Mapping(String output, List<String> inputs, String expression, List<String> diagnostics,
                         List<MappingElements> elements, Boolean isQueryExpression) {
-            this(output, inputs, expression, diagnostics, elements, isQueryExpression, null, null);
+            this(output, inputs, expression, diagnostics, elements, isQueryExpression, null, null, null);
         }
+
         private Mapping(String output, List<String> inputs, String expression, List<String> diagnostics,
-                        List<MappingElements> elements, Boolean isQueryExpression, LineRange customFunctionRange) {
-            this(output, inputs, expression, diagnostics, elements, isQueryExpression, null, customFunctionRange);
+                        List<MappingElements> elements, Boolean isQueryExpression, Boolean isFunctionCall,
+                        LineRange customFunctionRange) {
+            this(output, inputs, expression, diagnostics, elements, isQueryExpression, isFunctionCall, null,
+                    customFunctionRange);
         }
     }
 
