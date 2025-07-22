@@ -17,14 +17,16 @@
  */
 
 import styled from "@emotion/styled";
-import { DownloadProgress, EVENT_TYPE, MACHINE_VIEW } from "@wso2/ballerina-core";
+import { EVENT_TYPE, MACHINE_VIEW } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { Button, CheckBox, Codicon, Icon, LocationSelector, TextField, Tooltip, Typography } from "@wso2/ui-toolkit";
 import { useEffect, useState } from "react";
-import ButtonCard from "../../../components/ButtonCard";
-import { BodyText } from "../../styles";
-import { INTEGRATION_CONFIGS } from "./definitions";
 import { FinalIntegrationParams } from ".";
+import ButtonCard from "../../../components/ButtonCard";
+import { LoadingRing } from "../../../components/Loader";
+import { BodyText, LoadingOverlayContainer } from "../../styles";
+import { sanitizeProjectName } from "../ProjectForm";
+import { INTEGRATION_CONFIGS } from "./definitions";
 
 const FormContainer = styled.div`
     max-width: 660px;
@@ -145,22 +147,20 @@ const ParameterItem = styled.div`
     }
 `;
 
-const sanitizeProjectName = (name: string): string => {
-    return name.replace(/[^a-z0-9]/gi, "_").toLowerCase();
-};
-
 interface FormProps {
     selectedIntegration: keyof typeof INTEGRATION_CONFIGS | null;
-    toolPullProgress: DownloadProgress | null;
+    pullIntegrationTool: (integrationType: keyof typeof INTEGRATION_CONFIGS) => void;
+    pullingTool: boolean;
+    setImportParams: (params: FinalIntegrationParams) => void;
     onSelectIntegration: (type: keyof typeof INTEGRATION_CONFIGS) => void;
-    onImport: (params: FinalIntegrationParams) => void;
 }
 
 export function ImportIntegrationForm({
     selectedIntegration,
-    toolPullProgress,
     onSelectIntegration,
-    onImport,
+    pullIntegrationTool,
+    setImportParams,
+    pullingTool,
 }: FormProps) {
     const { rpcClient } = useRpcContext();
 
@@ -193,7 +193,8 @@ export function ImportIntegrationForm({
             ...integrationParams,
         };
 
-        onImport(finalParams);
+        setImportParams(finalParams);
+        pullIntegrationTool(selectedIntegration);
     };
 
     const handleParameterChange = (paramKey: string, value: any) => {
@@ -213,13 +214,6 @@ export function ImportIntegrationForm({
         setImportSourcePath(importSource.path);
     };
 
-    useEffect(() => {
-        (async () => {
-            const currentDir = await rpcClient.getCommonRpcClient().getWorkspaceRoot();
-            setPath(currentDir.path);
-        })();
-    }, []);
-
     const gotToWelcome = () => {
         rpcClient.getVisualizerRpcClient().openView({
             type: EVENT_TYPE.OPEN_VIEW,
@@ -228,6 +222,13 @@ export function ImportIntegrationForm({
             },
         });
     };
+
+    useEffect(() => {
+        (async () => {
+            const currentDir = await rpcClient.getCommonRpcClient().getWorkspaceRoot();
+            setPath(currentDir.path);
+        })();
+    }, []);
 
     const renderIntegrationParameters = () => {
         if (!selectedIntegration) return null;
@@ -332,6 +333,12 @@ export function ImportIntegrationForm({
                     Import Integration
                 </Button>
             </ButtonWrapper>
+
+            {pullingTool && (
+                <LoadingOverlayContainer>
+                    <LoadingRing message="Pulling integration tool..." />
+                </LoadingOverlayContainer>
+            )}
         </FormContainer>
     );
 }

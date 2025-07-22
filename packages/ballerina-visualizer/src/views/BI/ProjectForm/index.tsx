@@ -85,7 +85,7 @@ const PreviewIcon = styled(Codicon)`
     align-items: center;
 `;
 
-const sanitizeProjectName = (name: string): string => {
+export const sanitizeProjectName = (name: string): string => {
     return name.replace(/[^a-z0-9]/gi, '_').toLowerCase();
 };
 

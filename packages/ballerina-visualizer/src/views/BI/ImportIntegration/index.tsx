@@ -16,14 +16,14 @@
  * under the License.
  */
 
-import { useState, useEffect } from "react";
-import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import {
     DownloadProgress,
-    ImportTibcoRPCRequest,
     ImportIntegrationResponse,
+    ImportTibcoRPCRequest,
     MigrateRequest,
 } from "@wso2/ballerina-core";
+import { useRpcContext } from "@wso2/ballerina-rpc-client";
+import { useEffect, useState } from "react";
 import { ImportIntegrationForm } from "./ImportIntegrationForm";
 import { MigrationProgressView } from "./MigrationProgressView";
 import { INTEGRATION_CONFIGS } from "./definitions";
@@ -47,42 +47,31 @@ export function ImportIntegration() {
     // State managed by the parent component
     const [view, setView] = useState<"form" | "loading">("form");
     const [toolPullProgress, setToolPullProgress] = useState<DownloadProgress | null>(null);
+    const [pullingTool, setPullingTool] = useState(false);
     const [selectedIntegration, setSelectedIntegration] = useState<keyof typeof INTEGRATION_CONFIGS | null>(null);
     const [importParams, setImportParams] = useState<FinalIntegrationParams | null>(null);
     const [migrationResponse, setMigrationResponse] = useState<ImportIntegrationResponse | null>(null);
 
-    // The RPC listener lives here, so it persists across view changes.
-    useEffect(() => {
-        const disposable = rpcClient.onDownloadProgress((progressUpdate) => {
-            setToolPullProgress(progressUpdate);
-        });
-        // TODO: See if a disposable is needed here
-        // return () => disposable.dispose()
-    }, [rpcClient]);
-
-    // Handler for selecting an integration type
-    const handleIntegrationSelection = (integrationType: keyof typeof INTEGRATION_CONFIGS) => {
-        setSelectedIntegration(integrationType);
-        setToolPullProgress(null); // Clear previous progress
+    const pullIntegrationTool = (integrationType: keyof typeof INTEGRATION_CONFIGS) => {
+        setPullingTool(true);
         rpcClient.getMigrateIntegrationRpcClient().pullMigrationTool({
             toolName: integrationType,
         });
     };
 
     // Handler to begin the import and switch to the loading view
-    const handleStartImport = (finalParams: FinalIntegrationParams) => {
+    const handleStartImport = () => {
         if (toolPullProgress?.step === -1) {
             console.error("Cannot start import, tool download failed.");
             return;
         }
-        setImportParams(finalParams);
-        // setView('loading');
+        setView("loading");
 
         // TODO: Should the logic of deciding which migration tool to use be here or in the extension?
         if (selectedIntegration === "tibco") {
             const params: ImportTibcoRPCRequest = {
-                packageName: finalParams.name,
-                sourcePath: finalParams.importSourcePath,
+                packageName: importParams.name,
+                sourcePath: importParams.importSourcePath,
             };
             rpcClient
                 .getMigrateIntegrationRpcClient()
@@ -90,7 +79,6 @@ export function ImportIntegration() {
                 .then((response) => {
                     console.log("TIBCO import response:", response);
                     setMigrationResponse(response);
-                    setView("loading"); // Switch to loading view after starting import
                     // Handle successful import response here
                 })
                 .catch((error) => {
@@ -111,20 +99,35 @@ export function ImportIntegration() {
         }
     };
 
+    useEffect(() => {
+        rpcClient.onDownloadProgress((progressUpdate) => {
+            setToolPullProgress(progressUpdate);
+            if (progressUpdate.success) {
+                setPullingTool(false);
+            }
+        });
+    }, [rpcClient]);
+
+    useEffect(() => {
+        if (toolPullProgress && toolPullProgress.success) {
+            handleStartImport();
+        }
+    }, [toolPullProgress]);
+
     return (
         <div className="import-integration-container">
             {view === "form" && (
                 <ImportIntegrationForm
                     selectedIntegration={selectedIntegration}
-                    toolPullProgress={toolPullProgress}
-                    onSelectIntegration={handleIntegrationSelection}
-                    onImport={handleStartImport}
+                    setImportParams={setImportParams}
+                    pullIntegrationTool={pullIntegrationTool}
+                    pullingTool={pullingTool}
+                    onSelectIntegration={setSelectedIntegration}
                 />
             )}
             {view === "loading" && (
                 <MigrationProgressView
                     importParams={importParams}
-                    toolPullProgress={toolPullProgress}
                     migrationResponse={migrationResponse}
                     onCreateIntegrationFiles={handleCreateIntegrationFiles}
                 />
