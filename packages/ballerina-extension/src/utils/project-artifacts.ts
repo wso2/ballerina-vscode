@@ -61,9 +61,11 @@ export async function updateProjectArtifacts(publishedArtifacts: ArtifactsNotifi
     const currentProjectStructure: ProjectStructureResponse = StateMachine.context().projectStructure;
     if (publishedArtifacts && currentProjectStructure) {
         const tmpUri = URI.file(tmpdir());
+        const projectUri = URI.parse(StateMachine.context().projectUri);
         const publishedArtifactsUri = URI.parse(publishedArtifacts.uri);
-        if (publishedArtifactsUri.path.toLowerCase().includes(tmpUri.path.toLowerCase())) {
+        if (!projectUri.path.toLowerCase().includes(tmpUri.path.toLowerCase()) && publishedArtifactsUri.path.toLowerCase().includes(tmpUri.path.toLowerCase())) {
             // Skip the temp dirs
+            console.log('Skipping temp dirs', publishedArtifactsUri.path, tmpUri.path);
             return;
         }
         const entryLocations = await traverseUpdatedComponents(publishedArtifacts.artifacts, currentProjectStructure);
