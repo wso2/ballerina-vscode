@@ -25,6 +25,7 @@ import { jwtDecode, JwtPayload } from 'jwt-decode';
 
 export const ACCESS_TOKEN_SECRET_KEY = 'BallerinaAIUser';
 export const REFRESH_TOKEN_SECRET_KEY = 'BallerinaAIRefreshToken';
+export const REFRESH_TOKEN_NOT_AVAILABLE_ERROR_MESSAGE = "Refresh token is not available.";
 
 //TODO: What if user doesnt have github copilot.
 //TODO: Where does auth git get triggered
@@ -167,7 +168,7 @@ export const getRefreshedAccessToken = async (): Promise<string> => {
         try {
             const refreshToken = await extension.context.secrets.get(REFRESH_TOKEN_SECRET_KEY);
             if (!refreshToken) {
-                reject(new Error("Refresh token is not available."));
+                reject(new Error(REFRESH_TOKEN_NOT_AVAILABLE_ERROR_MESSAGE));
                 return;
             }
 

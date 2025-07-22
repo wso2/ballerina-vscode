@@ -21,7 +21,7 @@ import path from "path";
 import vscode, { Uri, workspace } from 'vscode';
 
 import { StateMachine } from "../../stateMachine";
-import { getRefreshedAccessToken } from '../../../src/utils/ai/auth';
+import { getRefreshedAccessToken, REFRESH_TOKEN_NOT_AVAILABLE_ERROR_MESSAGE } from '../../../src/utils/ai/auth';
 import { AIStateMachine } from '../../../src/views/ai-panel/aiMachine';
 import { AIMachineEventType } from '@wso2/ballerina-core/lib/state-machine-types';
 import { CONFIG_FILE_NAME, ERROR_NO_BALLERINA_SOURCES, LOGIN_REQUIRED_WARNING, PROGRESS_BAR_MESSAGE_FROM_WSO2_DEFAULT_MODEL } from './constants';
@@ -137,7 +137,7 @@ export async function getTokenForDefaultModel() {
         }
         return token;
     } catch (error) {
-        if ((error as Error).message === "Refresh token is not available.") {
+        if ((error as Error).message === REFRESH_TOKEN_NOT_AVAILABLE_ERROR_MESSAGE) {
             vscode.window.showWarningMessage(LOGIN_REQUIRED_WARNING);
         }
         throw error;
