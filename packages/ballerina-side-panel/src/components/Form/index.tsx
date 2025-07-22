@@ -346,7 +346,6 @@ export const Form = forwardRef((props: FormProps, ref) => {
     const {
         infoLabel,
         formFields,
-        projectPath,
         selectedNode,
         submitText,
         cancelText,
@@ -356,7 +355,6 @@ export const Form = forwardRef((props: FormProps, ref) => {
         onCancelForm,
         oneTimeForm,
         openRecordEditor,
-        openView,
         openSubPanel,
         subPanelView,
         expressionEditor,
@@ -388,7 +386,7 @@ export const Form = forwardRef((props: FormProps, ref) => {
         setValue,
         setError,
         clearErrors,
-        formState: { isValidating, errors, isDirty, isValid: isFormValid, dirtyFields },
+        formState: { isValidating, errors, dirtyFields },
     } = useForm<FormValues>();
 
     const [showAdvancedOptions, setShowAdvancedOptions] = useState(false);
@@ -396,10 +394,13 @@ export const Form = forwardRef((props: FormProps, ref) => {
     const [diagnosticsInfo, setDiagnosticsInfo] = useState<FormDiagnostics[] | undefined>(undefined);
     const [isMarkdownExpanded, setIsMarkdownExpanded] = useState(false);
     const [isIdentifierEditing, setIsIdentifierEditing] = useState(false);
+    const [isSubComponentEnabled, setIsSubComponentEnabled] = useState(false);
+
     const markdownRef = useRef<HTMLDivElement>(null);
 
     const [isUserConcert, setIsUserConcert] = useState(false);
     const [savingButton, setSavingButton] = useState<string | null>(null);
+
 
     useEffect(() => {
         // Check if the form is a onetime usage or not. This is checked due to reset issue with nested forms in param manager
@@ -649,7 +650,7 @@ export const Form = forwardRef((props: FormProps, ref) => {
 
     const disableSaveButton =
         !isValid || isValidating || props.disableSaveButton || (concertMessage && concertRequired && !isUserConcert) ||
-        isIdentifierEditing || Object.keys(errors).length > 0;
+        isIdentifierEditing || isSubComponentEnabled || Object.keys(errors).length > 0;
 
     const handleShowMoreClick = () => {
         setIsMarkdownExpanded(!isMarkdownExpanded);
@@ -741,6 +742,7 @@ export const Form = forwardRef((props: FormProps, ref) => {
                                         recordTypeFields={recordTypeFields}
                                         onIdentifierEditingStateChange={handleIdentifierEditingStateChange}
                                         handleOnTypeChange={handleOnTypeChange}
+                                        setSubComponentEnabled={setIsSubComponentEnabled}
                                     />
                                 </S.Row>
                             );
