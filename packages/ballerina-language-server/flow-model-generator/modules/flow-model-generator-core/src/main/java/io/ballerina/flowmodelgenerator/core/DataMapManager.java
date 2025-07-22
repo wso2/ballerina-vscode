@@ -297,7 +297,8 @@ public class DataMapManager {
                 Symbol symbol = optSymbol.get();
                 String letVarName = symbol.getName().orElseThrow();
                 visitedTypes.clear();
-                subMappingPorts.add(getMappingPort(letVarName, letVarName, Type.fromSemanticSymbol(symbol), false, visitedTypes));
+                subMappingPorts.add(getMappingPort(letVarName, letVarName, Type.fromSemanticSymbol(symbol),
+                        false, visitedTypes));
             }
         } else {
             inputPorts = getInputPorts(semanticModel, this.document, position);
@@ -667,7 +668,8 @@ public class DataMapManager {
                 }
                 Type type = Type.fromSemanticSymbol(symbol);
                 Map<String, Type> visitedTypes = new HashMap<>();
-                MappingPort mappingPort = getMappingPort(optName.get(), optName.get(), type, true, visitedTypes);
+                MappingPort mappingPort = getMappingPort(optName.get(), optName.get(), type, true,
+                        visitedTypes);
                 if (mappingPort == null) {
                     continue;
                 }
@@ -686,7 +688,8 @@ public class DataMapManager {
                 }
                 Type type = Type.fromSemanticSymbol(symbol);
                 Map<String, Type> visitedTypes = new HashMap<>();
-                MappingPort mappingPort = getMappingPort(optName.get(), optName.get(), type, true, visitedTypes);
+                MappingPort mappingPort = getMappingPort(optName.get(), optName.get(), type, true,
+                        visitedTypes);
                 if (mappingPort == null) {
                     continue;
                 }
@@ -695,7 +698,8 @@ public class DataMapManager {
             } else if (kind == SymbolKind.CONSTANT) {
                 Type type = Type.fromSemanticSymbol(symbol);
                 Map<String, Type> visitedTypes = new HashMap<>();
-                MappingPort mappingPort = getMappingPort(type.getTypeName(), type.getTypeName(), type, true, visitedTypes);
+                MappingPort mappingPort = getMappingPort(type.getTypeName(), type.getTypeName(), type, true,
+                        visitedTypes);
                 if (mappingPort == null) {
                     continue;
                 }
@@ -717,7 +721,8 @@ public class DataMapManager {
                 }
                 Type type = Type.fromSemanticSymbol(symbol);
                 Map<String, Type> visitedTypes = new HashMap<>();
-                MappingPort mappingPort = getMappingPort(optName.get(), optName.get(), type, true, visitedTypes);
+                MappingPort mappingPort = getMappingPort(optName.get(), optName.get(), type, true,
+                        visitedTypes);
                 if (mappingPort == null) {
                     continue;
                 }
@@ -735,7 +740,8 @@ public class DataMapManager {
                 }
                 Type type = Type.fromSemanticSymbol(symbol);
                 Map<String, Type> visitedTypes = new HashMap<>();
-                MappingPort mappingPort = getMappingPort(optName.get(), optName.get(), type, true, visitedTypes);
+                MappingPort mappingPort = getMappingPort(optName.get(), optName.get(), type, true,
+                        visitedTypes);
                 if (mappingPort == null) {
                     continue;
                 }
@@ -744,7 +750,8 @@ public class DataMapManager {
             } else if (kind == SymbolKind.CONSTANT) {
                 Type type = Type.fromSemanticSymbol(symbol);
                 Map<String, Type> visitedTypes = new HashMap<>();
-                MappingPort mappingPort = getMappingPort(type.getTypeName(), type.getTypeName(), type, true, visitedTypes);
+                MappingPort mappingPort = getMappingPort(type.getTypeName(), type.getTypeName(), type, true,
+                        visitedTypes);
                 if (mappingPort == null) {
                     continue;
                 }
@@ -755,7 +762,8 @@ public class DataMapManager {
         return mappingPorts;
     }
 
-    private MappingPort getMappingPort(String id, String name, Type type, boolean isInputPort, Map<String, Type> visitedTypes) {
+    private MappingPort getMappingPort(String id, String name, Type type, boolean isInputPort,
+                                       Map<String, Type> visitedTypes) {
         if (type.typeName != null) {
             if (type.getTypeName().equals("record")) {
                 RecordType recordType = (RecordType) type;
