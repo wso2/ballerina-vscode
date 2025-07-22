@@ -522,6 +522,9 @@ public class CodeAnalyzer extends NodeVisitor {
                         .isPresent();
                 if (isMcpToolKit) {
                     toolsData.add(new ToolData(toolName, ICON_PATH, getToolDescription(""), MCP_SERVER));
+                } else {
+                    toolName = simpleNameReferenceNode.name().text();
+                    toolsData.add(new ToolData(toolName, getIcon(toolName), getToolDescription(toolName), null));
                 }
             }
             nodeBuilder.metadata().addData("tools", toolsData);
