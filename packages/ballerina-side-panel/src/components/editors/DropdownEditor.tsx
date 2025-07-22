@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import React from "react";
+import React, { useEffect } from "react";
 
 import { Dropdown } from "@wso2/ui-toolkit";
 
@@ -34,6 +34,13 @@ export function DropdownEditor(props: DropdownEditorProps) {
     const { field, openSubPanel } = props;
     const { form } = useFormContext();
     const { register, setValue } = form;
+
+    useEffect(() => {
+        // if field.key is "modelType" and value is not set and default value set. then setValue to default value initially
+        if (field.key === "modelType" && field.value === undefined && (field.defaultValue || field.placeholder)) {
+            setValue(field.key, field.defaultValue || field.placeholder);
+        }
+    }, [field.defaultValue, field.placeholder]);
 
     // HACK: create values for Scope field
     if (field.key === "scope") {
