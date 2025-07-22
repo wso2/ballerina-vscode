@@ -43,7 +43,7 @@ import { BACKEND_URL } from '../ai/utils';
 import { AIMachineEventType, BallerinaProject } from '@wso2/ballerina-core';
 import { getCurrentBallerinaProjectFromContext } from '../config-generator/configGenerator';
 import { BallerinaExtension } from 'src/core';
-import { getRefreshedAccessToken } from '../../../src/utils/ai/auth';
+import { getRefreshedAccessToken, REFRESH_TOKEN_NOT_AVAILABLE_ERROR_MESSAGE } from '../../../src/utils/ai/auth';
 import { AIStateMachine } from '../../../src/views/ai-panel/aiMachine';
 import { fetchWithAuth } from '../ai/service/connection';
 
@@ -614,7 +614,7 @@ export async function getTokenForNaturalFunction() {
         }
         return token;
     } catch (error) {
-        if ((error as Error).message === "Refresh token is not available.") {
+        if ((error as Error).message === REFRESH_TOKEN_NOT_AVAILABLE_ERROR_MESSAGE) {
             vscode.window.showWarningMessage(LOGIN_REQUIRED_WARNING);
         }
         throw error;
