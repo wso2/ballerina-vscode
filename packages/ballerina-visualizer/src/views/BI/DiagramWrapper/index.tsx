@@ -242,8 +242,6 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
         rpcClient.getVisualizerRpcClient().openView({ type: EVENT_TYPE.OPEN_VIEW, location: context });
     };
 
-    console.log(">>> Parent Metadata: ", parentMetadata);
-
     let isAutomation = parentMetadata?.kind === "Function" && parentMetadata?.label === "main";
     let isResource = parentMetadata?.kind === "Resource";
     let isRemote = parentMetadata?.kind === "Remote Function";
@@ -251,16 +249,6 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
     let isNPFunction = view === FOCUS_FLOW_DIAGRAM_VIEW.NP_FUNCTION;
     const parameters = parentMetadata?.parameters?.join(", ") || "";
     const returnType = parentMetadata?.return || "";
-
-    console.log(">>> data ", {
-        isAutomation,
-        isResource,
-        isRemote,
-        isAgent,
-        isNPFunction,
-        parameters,
-        returnType,
-    });
 
     const handleResourceTryIt = (methodValue: string, pathValue: string) => {
         const resource = serviceType === "http" ? { methodValue, pathValue } : undefined;
