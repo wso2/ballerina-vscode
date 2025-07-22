@@ -759,8 +759,10 @@ public class DataMapManager {
     }
 
     private void setModuleInfo(TypeSymbol symbol, MappingPort mappingPort) {
-        Optional<ModuleSymbol> module = symbol.getModule();
-        module.ifPresent(moduleSymbol -> mappingPort.moduleInfo = ModuleInfo.from(moduleSymbol.id()));
+        if (!CommonUtils.isWithinPackage(symbol, ModuleInfo.from(this.document.module().descriptor()))) {
+            Optional<ModuleSymbol> module = symbol.getModule();
+            module.ifPresent(moduleSymbol -> mappingPort.moduleInfo = ModuleInfo.from(moduleSymbol.id()));
+        }
     }
 
     public JsonElement getSource(Path filePath, JsonElement cd, JsonElement mp, String targetField) {
