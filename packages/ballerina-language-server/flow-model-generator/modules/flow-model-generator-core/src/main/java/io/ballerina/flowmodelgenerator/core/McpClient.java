@@ -48,10 +48,6 @@ public class McpClient {
             conn.setRequestMethod("POST");
             conn.setRequestProperty("Content-Type", "application/json");
             conn.setRequestProperty("Accept", "application/json, text/event-stream");
-            conn.setRequestProperty("User-Agent", "ballerina");
-            conn.setRequestProperty("Upgrade", "h2c");
-            conn.setRequestProperty("Connection", "keep-alive, Upgrade, HTTP2-Settings");
-            conn.setRequestProperty("HTTP2-Settings", "AAEAABAAAAIAAAABAAN_____AAQAAP__AAUAAEAAAAYAACAA");
             conn.setDoOutput(true);
 
             String body = """
