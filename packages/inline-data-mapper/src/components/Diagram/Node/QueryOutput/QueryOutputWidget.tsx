@@ -19,7 +19,7 @@
 import React, { useState } from 'react';
 
 import { DiagramEngine } from '@projectstorm/react-diagrams';
-import { Button, Codicon } from '@wso2/ui-toolkit';
+import { Button, Codicon, TruncatedLabel } from '@wso2/ui-toolkit';
 import { IOType, Mapping } from '@wso2/ballerina-core';
 import { useShallow } from 'zustand/react/shallow';
 
@@ -105,7 +105,7 @@ export function QueryOutputWidget(props: QueryOutputWidgetProps) {
 	};
 
 	const label = (
-		<span style={{ marginRight: "auto" }}>
+		<TruncatedLabel style={{ marginRight: "auto" }}>
 			{valueLabel && (
 				<span className={classes.valueLabel}>
 					<OutputSearchHighlight>{valueLabel}</OutputSearchHighlight>
@@ -115,7 +115,7 @@ export function QueryOutputWidget(props: QueryOutputWidgetProps) {
 			<span className={classes.typeLabel}>
 				{typeName || ''}
 			</span>
-		</span>
+		</TruncatedLabel>
 	);
 
 	const onRightClick = (event: React.MouseEvent) => {

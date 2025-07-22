@@ -19,7 +19,7 @@
 import React, { useMemo, useState } from "react";
 
 import { DiagramEngine } from "@projectstorm/react-diagrams-core";
-import { Button, Codicon, Icon, ProgressRing } from "@wso2/ui-toolkit";
+import { Button, Codicon, Icon, ProgressRing, TruncatedLabel } from "@wso2/ui-toolkit";
 import { IOType, TypeKind } from "@wso2/ballerina-core";
 import classnames from "classnames";
 
@@ -132,12 +132,8 @@ export function ArrayOutputFieldWidget(props: ArrayOutputFieldWidgetProps) {
     };
 
     const label = (
-        <span style={{ marginRight: "auto" }} data-testid={`record-widget-field-label-${portIn?.getName()}`}>
-            <span
-                className={classnames(classes.valueLabel,
-                    isDisabled ? classes.labelDisabled : "")}
-                style={{ marginLeft: !connectedViaLink ? 0 : indentation + 24 }}
-            >
+        <TruncatedLabel style={{ marginRight: "auto" }}>
+            <span className={classnames(classes.valueLabel, isDisabled ? classes.labelDisabled : "")}>
                 <OutputSearchHighlight>{fieldName}</OutputSearchHighlight>
                 {!field?.optional && <span className={classes.requiredMark}>*</span>}
                 {fieldName && typeName && ":"}
@@ -179,7 +175,7 @@ export function ArrayOutputFieldWidget(props: ArrayOutputFieldWidgetProps) {
                     )}
                 </span>
             )}
-        </span>
+        </TruncatedLabel>
     );
 
     const arrayElements = useMemo(() => {

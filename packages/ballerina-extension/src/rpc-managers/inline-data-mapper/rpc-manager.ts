@@ -44,16 +44,15 @@ import {
 } from "@wso2/ballerina-core";
 
 import { openView, StateMachine } from "../../stateMachine";
-import { updateSourceCode } from "../../utils";
 import {
     buildSourceRequests,
     consolidateTextEdits,
-    fetchDataMapperCodeData,
     getHasStopped,
     processSourceRequests,
     setHasStopped,
     updateAndRefreshDataMapper,
     updateInlineDataMapperViewWithParams,
+    updateSource,
     updateSourceCodeWithEdits
 } from "./utils";
 
@@ -64,37 +63,27 @@ export class InlineDataMapperRpcManager implements InlineDataMapperAPI {
             StateMachine
                 .langClient()
                 .getSourceCode(params)
-                .then(async (model) => {
+                .then(model => {
                     console.log(">>> inline data mapper initial source from ls", model);
-                    await updateSourceCode({ textEdits: model.textEdits });
-
-                    let modelCodeData = params.flowNode.codedata;
-                    if (modelCodeData.isNew) {
-                        // Clone the object to avoid mutating the original reference
-                        const clonedModelCodeData = { ...modelCodeData };
-                        clonedModelCodeData.lineRange.startLine.line+=1;
-                        clonedModelCodeData.lineRange.endLine.line+=1;
-                        modelCodeData = clonedModelCodeData;
-                    }
-
                     const varName = params.flowNode.properties?.variable?.value as string ?? null;
-                    const codeData = await fetchDataMapperCodeData(params.filePath, modelCodeData, varName);
-
-                    openView(EVENT_TYPE.OPEN_VIEW, {
-                        view: MACHINE_VIEW.InlineDataMapper,
-                        documentUri: params.filePath,
-                        position: {
-                            startLine: codeData.lineRange.startLine.line,
-                            startColumn: codeData.lineRange.startLine.offset,
-                            endLine: codeData.lineRange.endLine.line,
-                            endColumn: codeData.lineRange.endLine.offset
-                        },
-                        dataMapperMetadata: {
-                            name: varName,
-                            codeData: codeData
-                        }
-                    });
-                    resolve({ textEdits: model.textEdits });
+                    updateSource(model.textEdits, params.filePath, params.flowNode.codedata, varName)
+                        .then(codeData => {
+                            openView(EVENT_TYPE.OPEN_VIEW, {
+                                view: MACHINE_VIEW.InlineDataMapper,
+                                documentUri: params.filePath,
+                                position: {
+                                    startLine: codeData.lineRange.startLine.line,
+                                    startColumn: codeData.lineRange.startLine.offset,
+                                    endLine: codeData.lineRange.endLine.line,
+                                    endColumn: codeData.lineRange.endLine.offset
+                                },
+                                dataMapperMetadata: {
+                                    name: varName,
+                                    codeData: codeData
+                                }
+                            });
+                            resolve({ textEdits: model.textEdits });
+                        });
                 })
                 .catch((error) => {
                     console.log(">>> error fetching inline data mapper initial source from ls", error);
@@ -120,10 +109,12 @@ export class InlineDataMapperRpcManager implements InlineDataMapperAPI {
             StateMachine
                 .langClient()
                 .getInlineDataMapperSource(params)
-                .then(async (resp) => {
+                .then((resp) => {
                     console.log(">>> inline data mapper initial source from ls", resp);
-                    await updateAndRefreshDataMapper(resp.textEdits, params.filePath, params.codedata, params.varName);
-                    resolve({ textEdits: resp.textEdits });
+                    updateAndRefreshDataMapper(resp.textEdits, params.filePath, params.codedata, params.varName)
+                    .then(() => {
+                        resolve({ textEdits: resp.textEdits });
+                    });
                 });
         });
     }
@@ -148,10 +139,12 @@ export class InlineDataMapperRpcManager implements InlineDataMapperAPI {
                     targetField: params.targetField,
                     propertyKey: params.propertyKey
                 })
-                .then(async (resp) => {
+                .then((resp) => {
                     console.log(">>> inline data mapper add array element response", resp);
-                    await updateAndRefreshDataMapper(resp.textEdits, params.filePath, params.codedata, params.varName);
-                    resolve({ textEdits: resp.textEdits });
+                    updateAndRefreshDataMapper(resp.textEdits, params.filePath, params.codedata, params.varName)
+                    .then(() => {
+                        resolve({ textEdits: resp.textEdits });
+                    });
                 });
         });
     }
@@ -161,10 +154,12 @@ export class InlineDataMapperRpcManager implements InlineDataMapperAPI {
             await StateMachine
                 .langClient()
                 .convertToQuery(params)
-                .then(async (resp) => {
+                .then((resp) => {
                     console.log(">>> inline data mapper convert to query response", resp);
-                    await updateAndRefreshDataMapper(resp.textEdits, params.filePath, params.codedata, params.varName);
-                    resolve({ textEdits: resp.textEdits });
+                    updateAndRefreshDataMapper(resp.textEdits, params.filePath, params.codedata, params.varName)
+                    .then(() => {
+                        resolve({ textEdits: resp.textEdits });
+                    });
                 });
         });
     }
@@ -174,10 +169,12 @@ export class InlineDataMapperRpcManager implements InlineDataMapperAPI {
             await StateMachine
                 .langClient()
                 .addClauses(params)
-                .then(async (resp) => {
+                .then((resp) => {
                     console.log(">>> inline data mapper add clauses response", resp);
-                    await updateAndRefreshDataMapper(resp.textEdits, params.filePath, params.codedata, params.varName);
-                    resolve({ textEdits: resp.textEdits });
+                    updateAndRefreshDataMapper(resp.textEdits, params.filePath, params.codedata, params.varName)
+                    .then(() => {
+                        resolve({ textEdits: resp.textEdits });
+                    });
                 });
         });
     }
@@ -187,10 +184,12 @@ export class InlineDataMapperRpcManager implements InlineDataMapperAPI {
             await StateMachine
                 .langClient()
                 .addSubMapping(params)
-                .then(async (resp) => {
+                .then((resp) => {
                     console.log(">>> inline data mapper add sub mapping response", resp);
-                    await updateAndRefreshDataMapper(resp.textEdits, params.filePath, params.codedata, params.varName);
-                    resolve({ textEdits: resp.textEdits });
+                    updateAndRefreshDataMapper(resp.textEdits, params.filePath, params.codedata, params.varName)
+                    .then(() => {
+                        resolve({ textEdits: resp.textEdits });
+                    });
                 });
         });
     }
@@ -253,10 +252,12 @@ export class InlineDataMapperRpcManager implements InlineDataMapperAPI {
             await StateMachine
                 .langClient()
                 .deleteMapping(params)
-                .then(async (resp) => {
+                .then((resp) => {
                     console.log(">>> inline data mapper delete mapping response", resp);
-                    await updateAndRefreshDataMapper(resp.textEdits, params.filePath, params.codedata, params.varName);
-                    resolve({ textEdits: resp.textEdits });
+                    updateAndRefreshDataMapper(resp.textEdits, params.filePath, params.codedata, params.varName)
+                    .then(() => {
+                        resolve({ textEdits: resp.textEdits });
+                    });
                 });
         });
     }

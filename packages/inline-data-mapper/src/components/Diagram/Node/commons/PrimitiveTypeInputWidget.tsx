@@ -25,6 +25,7 @@ import { InputSearchHighlight } from './Search';
 import { TreeContainer, TreeHeader } from './Tree/Tree';
 import { useIONodesStyles } from "../../../styles";
 import { getTypeName } from "../../utils/type-utils";
+import { TruncatedLabel } from "@wso2/ui-toolkit";
 
 export interface PrimitiveTypeItemWidgetProps {
     id: string; // this will be the root ID used to prepend for UUIDs of nested fields
@@ -49,7 +50,7 @@ export function PrimitiveTypeInputWidget(props: PrimitiveTypeItemWidgetProps) {
     };
 
     const label = (
-        <span style={{ marginRight: "auto" }}>
+        <TruncatedLabel style={{ marginRight: "auto" }}>
             <span className={classes.valueLabel}>
                 <InputSearchHighlight>{valueLabel ? valueLabel : id}</InputSearchHighlight>
                 {typeName && ":"}
@@ -59,8 +60,7 @@ export function PrimitiveTypeInputWidget(props: PrimitiveTypeItemWidgetProps) {
                     {typeName}
                 </span>
             )}
-
-        </span>
+        </TruncatedLabel>
     );
 
     return (
