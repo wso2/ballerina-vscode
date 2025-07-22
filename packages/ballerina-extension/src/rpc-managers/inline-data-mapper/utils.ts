@@ -83,7 +83,7 @@ export async function fetchSubMappingCodeData(
 ): Promise<CodeData> {
     const response = await StateMachine
         .langClient()
-        .getSubMappingCodedata({ filePath, codedata, view: name });
+        .getDataMapperCodedata({ filePath, codedata, name });
     return response.codedata;
 }
 

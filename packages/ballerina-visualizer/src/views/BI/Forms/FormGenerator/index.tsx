@@ -35,7 +35,8 @@ import {
     Type,
     RecordTypeField,
     Imports,
-    CodeData
+    CodeData,
+    VisualizableField
 } from "@wso2/ballerina-core";
 import {
     FormField,
@@ -166,7 +167,7 @@ export function FormGenerator(props: FormProps) {
     const [fields, setFields] = useState<FormField[]>([]);
     const [formImports, setFormImports] = useState<FormImports>({});
     const [typeEditorState, setTypeEditorState] = useState<TypeEditorState>({ isOpen: false, newTypeValue: "" });
-    const [visualizableFields, setVisualizableFields] = useState<{ [key: string]: string; }>();
+    const [visualizableField, setVisualizableField] = useState<VisualizableField>();
     const [recordTypeFields, setRecordTypeFields] = useState<RecordTypeField[]>([]);
 
     /* Expression editor related state and ref variables */
@@ -176,7 +177,7 @@ export function FormGenerator(props: FormProps) {
     const [types, setTypes] = useState<CompletionItem[]>([]);
     const [filteredTypes, setFilteredTypes] = useState<CompletionItem[]>([]);
     const expressionOffsetRef = useRef<number>(0); // To track the expression offset on adding import statements
-    const codeDataRef = useRef<any>(null); // To store codeData for getVisualizableFields
+    const importsCodedataRef = useRef<any>(null); // To store codeData for getVisualizableFields
 
     useEffect(() => {
         if (rpcClient) {
@@ -257,12 +258,12 @@ export function FormGenerator(props: FormProps) {
         }
 
         if (node.codedata.node === "VARIABLE") {
-            const codedata = codeDataRef.current || { symbol: formProperties?.type.value };
+            const codedata = importsCodedataRef.current || { symbol: formProperties?.type.value };
             rpcClient
                 .getInlineDataMapperRpcClient()
                 .getVisualizableFields({ filePath: fileName, codedata })
                 .then((res) => {
-                    setVisualizableFields(res.visualizableProperties);
+                    setVisualizableField(res.visualizableProperties);
                 });
         }
 
@@ -336,7 +337,9 @@ export function FormGenerator(props: FormProps) {
     };
 
     const handleUpdateImports = (key: string, imports: Imports, codedata?: CodeData) => {
+        importsCodedataRef.current = codedata;
         const importKey = Object.keys(imports)?.[0];
+
         if (Object.keys(formImports).includes(key)) {
             if (importKey && !Object.keys(formImports[key]).includes(importKey)) {
                 const updatedImports = { ...formImports, [key]: { ...formImports[key], ...imports } };
@@ -346,7 +349,6 @@ export function FormGenerator(props: FormProps) {
             const updatedImports = { ...formImports, [key]: imports };
             setFormImports(updatedImports);
         }
-        codeDataRef.current = codedata;
     }
 
     /* Expression editor related functions */
@@ -716,12 +718,12 @@ export function FormGenerator(props: FormProps) {
     ]);
 
     const fetchVisualizableFields = async (filePath: string, typeName?: string) => {
-        const codedata = codeDataRef.current || { symbol: typeName };
+        const codedata = importsCodedataRef.current || { symbol: typeName };
         const res = await rpcClient
             .getInlineDataMapperRpcClient()
             .getVisualizableFields({ filePath, codedata});
-        setVisualizableFields(res.visualizableProperties);
-        codeDataRef.current = {};
+        setVisualizableField(res.visualizableProperties);
+        importsCodedataRef.current = {};
     };
 
     const handleTypeCreate = (typeName?: string) => {
@@ -826,7 +828,7 @@ export function FormGenerator(props: FormProps) {
                     resetUpdatedExpressionField={resetUpdatedExpressionField}
                     mergeFormDataWithFlowNode={mergeFormDataWithFlowNode}
                     handleVisualizableFields={fetchVisualizableFields}
-                    visualizableFields={visualizableFields}
+                    visualizableField={visualizableField}
                     infoLabel={infoLabel}
                     disableSaveButton={disableSaveButton}
                     actionButton={actionButton}

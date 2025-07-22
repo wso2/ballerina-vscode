@@ -28,7 +28,6 @@ interface SubMappingConfig {
 export interface SubMappingConfigFormData {
     name: string;
     type: string | undefined;
-    isArray: boolean;
 }
 
 export interface DataMapperSearchState {

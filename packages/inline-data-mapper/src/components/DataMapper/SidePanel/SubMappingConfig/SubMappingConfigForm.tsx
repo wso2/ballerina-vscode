@@ -28,7 +28,7 @@ import {
 import { useDMSubMappingConfigPanelStore, SubMappingConfigFormData } from "../../../../store/store";
 import { View } from "../../Views/DataMapperView";
 
-import { IDMFormField, IDMFormProps} from "@wso2/ballerina-core";
+import { CodeData, IDMFormField, IDMFormFieldValues, IDMFormProps} from "@wso2/ballerina-core";
 
 const ADD_NEW_SUB_MAPPING_HEADER = "Add New Sub Mapping";
 const EDIT_SUB_MAPPING_HEADER = "Edit Sub Mapping";
@@ -37,7 +37,7 @@ export type SubMappingConfigFormProps = {
     views: View[];
     updateView: (updatedView: View) => void;
     applyModifications: (outputId: string, expression: string, viewId: string, name: string) => Promise<void>
-    addSubMapping: (subMappingName: string, type: string, index: number, targetField: string) => Promise<void>;
+    addSubMapping: (subMappingName: string, type: string, index: number, targetField: string, importsCodedata?: CodeData) => Promise<void>;
     generateForm: (formProps: IDMFormProps) => JSX.Element;
 };
 
@@ -66,12 +66,12 @@ export function SubMappingConfigForm(props: SubMappingConfigFormProps) {
 
     const isEdit = nextSubMappingIndex === -1 && !suggestedNextSubMappingName;
 
-    const onAdd = async (data: SubMappingConfigFormData) => {
+    const onAdd = async (data: SubMappingConfigFormData, importsCodedata?: CodeData) => {
         const targetField = views[views.length - 1].targetField;
-        await addSubMapping(data.name, data.type, nextSubMappingIndex, targetField);
+        await addSubMapping(data.name, data.type, nextSubMappingIndex, targetField, importsCodedata);
     };
 
-    const onEdit = async (data: SubMappingConfigFormData) => {
+    const onEdit = async (data: SubMappingConfigFormData, importsCodedata?: CodeData) => {
         // TODO: Implement onEdit
     };
 
@@ -79,11 +79,11 @@ export function SubMappingConfigForm(props: SubMappingConfigFormProps) {
         resetSubMappingConfig();
     };
 
-    const onSubmit = (data: SubMappingConfigFormData) => {
+    const onSubmit = (data: SubMappingConfigFormData, formImports?: IDMFormFieldValues, importsCodedata?: CodeData) => {
         if (isEdit) {
-            onEdit(data);
+            onEdit(data, importsCodedata);
         } else {
-            onAdd(data);
+            onAdd(data, importsCodedata);
         }
         resetSubMappingConfig();
     };
