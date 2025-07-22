@@ -39,6 +39,7 @@ import java.util.Set;
  * @since 1.0.0
  */
 public class AgentCallBuilder extends CallBuilder {
+    private static final String BALLERINA = "ballerina";
 
     @Override
     protected NodeKind getFunctionNodeKind() {
@@ -71,7 +72,8 @@ public class AgentCallBuilder extends CallBuilder {
 
         return sourceBuilder.token()
                 .name(connection.get().toSourceCode())
-                .keyword(SyntaxKind.RIGHT_ARROW_TOKEN)
+                .keyword(BALLERINA.equals(flowNode.codedata().org()) ?
+                        SyntaxKind.DOT_TOKEN : SyntaxKind.RIGHT_ARROW_TOKEN)
                 .name(flowNode.metadata().label())
                 .stepOut()
                 .functionParameters(flowNode,

@@ -55,7 +55,8 @@ public class GetToolTest extends AbstractLSTest {
         GetToolRequest request =
                 new GetToolRequest(testConfig.toolName(),
                         sourceDir.resolve(testConfig.source()).toAbsolutePath().toString());
-        GetToolResponse response = gson.fromJson(getResponse(request), GetToolResponse.class);
+        GetToolResponse response = gson.fromJson(
+                getResponseAndCloseFile(request, testConfig.source()), GetToolResponse.class);
 
         if (!response.toolName().equals(testConfig.toolName()) || !response.flowNode().equals(testConfig.flowNode()) ||
                 !(response.methodCallFlowNode() == null ? testConfig.methodCallFlowNode() == null :

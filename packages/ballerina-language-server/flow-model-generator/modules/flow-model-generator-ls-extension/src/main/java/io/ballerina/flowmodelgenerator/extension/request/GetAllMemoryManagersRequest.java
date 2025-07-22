@@ -22,7 +22,8 @@ package io.ballerina.flowmodelgenerator.extension.request;
  * A request to retrieve all memory managers.
  *
  * @param agent name of the agent
+ * @param orgName organization name of the agent
  * @param filePath a file path of the project
  */
-public record GetAllMemoryManagersRequest(String agent, String filePath) {
+public record GetAllMemoryManagersRequest(String agent, String orgName, String filePath) {
 }

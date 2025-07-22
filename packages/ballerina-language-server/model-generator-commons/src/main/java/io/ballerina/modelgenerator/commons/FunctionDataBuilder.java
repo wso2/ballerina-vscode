@@ -95,6 +95,8 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Stream;
 
+import static io.ballerina.modelgenerator.commons.CommonUtils.isAiModule;
+
 /**
  * Factory class to create {@link FunctionData} instances from function symbols.
  *
@@ -1154,12 +1156,13 @@ public class FunctionDataBuilder {
         return sb.toString();
     }
 
+
     private boolean isAiModelTypeParameter(String paramName, FunctionData.Kind functionKind) {
         return MODEL_TYPE_PARAMETER_NAME.equals(paramName) &&
-                (functionKind == FunctionData.Kind.MODEL_PROVIDER || (BALLERINAX_ORG_NAME.equals(moduleInfo.org())
-                        && AI_MODULE_NAME.equals(moduleInfo.moduleName())
-                        && (functionKind == FunctionData.Kind.CLASS_INIT
-                        || functionKind == FunctionData.Kind.CONNECTOR)));
+                (functionKind == FunctionData.Kind.MODEL_PROVIDER ||
+                        (isAiModule(moduleInfo.org(), moduleInfo.moduleName())
+                                && (functionKind == FunctionData.Kind.CLASS_INIT
+                                || functionKind == FunctionData.Kind.CONNECTOR)));
     }
 
     private record ParamForTypeInfer(String paramName, String defaultValue, String type) {

@@ -53,7 +53,7 @@ public class GetModelsTest extends AbstractLSTest {
         String filePath =
                 testConfig.source() == null ? "" : sourceDir.resolve(testConfig.source()).toAbsolutePath().toString();
         GetModelsRequest request = new GetModelsRequest(testConfig.agent(), filePath);
-        JsonArray models = getResponse(request).getAsJsonArray("models");
+        JsonArray models = getResponseAndCloseFile(request, testConfig.source()).getAsJsonArray("models");
 
         if (!models.equals(testConfig.models())) {
             TestConfig updatedConfig = new TestConfig(testConfig.source(), testConfig.description(),

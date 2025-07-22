@@ -53,7 +53,7 @@ public class GetToolsTest extends AbstractLSTest {
         String filePath =
                 testConfig.source() == null ? "" : sourceDir.resolve(testConfig.source()).toAbsolutePath().toString();
         GetToolsRequest request = new GetToolsRequest(filePath);
-        JsonArray functions = getResponse(request).getAsJsonArray("tools");
+        JsonArray functions = getResponseAndCloseFile(request, testConfig.source()).getAsJsonArray("tools");
 
         if (!functions.equals(testConfig.functions())) {
             TestConfig updatedConfig = new TestConfig(testConfig.source(), testConfig.description(), functions);

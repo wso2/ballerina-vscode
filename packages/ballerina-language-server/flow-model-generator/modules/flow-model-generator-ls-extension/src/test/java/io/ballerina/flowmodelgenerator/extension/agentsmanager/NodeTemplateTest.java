@@ -42,10 +42,15 @@ public class NodeTemplateTest extends AbstractLSTest {
     @Override
     protected Object[] getConfigsList() {
         return new Object[][]{
-//                {Path.of("agent_template.json")},
-//                {Path.of("agent_call_template.json")},
+                {Path.of("agent_template.json")},
+                {Path.of("agent_template_ballerina.json")},
+                {Path.of("agent_call_template.json")},
+                {Path.of("agent_call_template_ballerina.json")},
                 {Path.of("model_template.json")},
-//                {Path.of("memory_manager_template.json")}
+                {Path.of("model_template_ballerina.json")},
+                {Path.of("model_template_default.json")},
+                {Path.of("memory_manager_template.json")},
+                {Path.of("memory_manager_template_ballerina.json")}
         };
     }
 
@@ -59,7 +64,7 @@ public class NodeTemplateTest extends AbstractLSTest {
                 testConfig.source() == null ? "" : sourceDir.resolve(testConfig.source()).toAbsolutePath().toString();
         FlowModelNodeTemplateRequest request =
                 new FlowModelNodeTemplateRequest(filePath, testConfig.position(), testConfig.codedata());
-        JsonElement nodeTemplate = getResponse(request).get("flowNode");
+        JsonElement nodeTemplate = getResponseAndCloseFile(request, testConfig.source()).get("flowNode");
 
         if (!nodeTemplate.equals(testConfig.output())) {
             TestConfig updateConfig =

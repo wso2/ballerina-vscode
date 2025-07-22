@@ -21,6 +21,7 @@ package io.ballerina.flowmodelgenerator.core;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import io.ballerina.compiler.api.ModuleID;
 import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.compiler.api.symbols.AnnotationAttachmentSymbol;
@@ -86,6 +87,10 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
+import static io.ballerina.flowmodelgenerator.core.Constants.MODEL_VERSION;
+import static io.ballerina.modelgenerator.commons.CommonUtils.AI_AZURE;
+import static io.ballerina.modelgenerator.commons.CommonUtils.isAiModule;
+
 /**
  * This class is responsible for managing agents.
  *
@@ -99,15 +104,15 @@ public class AgentsGenerator {
     public static final String TARGET_TYPE = "targetType";
     private final Gson gson;
     private final SemanticModel semanticModel;
-    private static final String BALLERINAX = "ballerinax";
-    private static final String AI_AGENT = "ai";
     private static final String INIT = "init";
     private static final String AGENT_FILE = "agents.bal";
     public static final String AGENT = "Agent";
-    private static final String BALLERINA_ORG = "ballerina";
     private static final String HTTP_MODULE = "http";
     private static final List<String> HTTP_REMOTE_METHOD_SKIP_LIST = List.of("get", "put", "post", "head",
             "delete", "patch", "options");
+    private static final String OPENAI_MODEL_PROVIDER = "OpenAiModelProvider";
+    private static final String DEFAULT_MODEL_PROVIDER = "getDefaultModelProvider";
+
 
     public AgentsGenerator() {
         this.gson = new Gson();
@@ -126,7 +131,7 @@ public class AgentsGenerator {
                 continue;
             }
             ClassSymbol classSymbol = (ClassSymbol) symbol;
-            if (classSymbol.qualifiers().contains(Qualifier.CLIENT) && classSymbol.getName().orElse("").equals(AGENT)) {
+            if (classSymbol.getName().orElse("").equals(AGENT)) {
                 Optional<ModuleSymbol> optModule = classSymbol.getModule();
                 if (optModule.isEmpty()) {
                     throw new IllegalStateException("Agent module id not found");
@@ -146,7 +151,37 @@ public class AgentsGenerator {
         return gson.toJsonTree(agents).getAsJsonArray();
     }
 
-    public JsonArray getAllModels(SemanticModel agentSymbol) {
+    public JsonArray getNewBallerinaxModels() {
+        JsonArray models = new JsonArray();
+        CommonUtils.AI_MODULE_NAMES.stream().filter(model -> !model.equals(AI_AZURE))
+                .forEach(model -> models.add(createModelObject(model)));
+        models.add(createModelObject(NodeKind.CLASS_INIT, AI_AZURE, OPENAI_MODEL_PROVIDER));
+        models.add(createModelObject(NodeKind.FUNCTION_CALL, Constants.AI, DEFAULT_MODEL_PROVIDER));
+        return models;
+    }
+
+    private JsonObject createModelObject(String moduleName) {
+        return createModelObject(NodeKind.CLASS_INIT, moduleName, MODEL);
+    }
+
+    private JsonObject createModelObject(NodeKind nodeKind, String moduleName, String objectOrFuncName) {
+        JsonObject model = new JsonObject();
+        model.addProperty("node", nodeKind.toString());
+        model.addProperty("org", nodeKind.equals(NodeKind.CLASS_INIT) ?
+                Constants.BALLERINAX : Constants.BALLERINA);
+        model.addProperty("module", moduleName);
+        model.addProperty("packageName", moduleName);
+        if (nodeKind.equals(NodeKind.CLASS_INIT)) {
+            model.addProperty("object", objectOrFuncName);
+            model.addProperty("symbol", INIT);
+        } else {
+            model.addProperty("symbol", objectOrFuncName);
+        }
+        model.addProperty("version", MODEL_VERSION);
+        return model;
+    }
+
+    public JsonArray getAllBallerinaxModels(SemanticModel agentSymbol) {
         List<ClassSymbol> modelSymbols = new ArrayList<>();
         for (Symbol symbol : agentSymbol.moduleSymbols()) {
             if (symbol.kind() != SymbolKind.CLASS) {
@@ -566,6 +601,9 @@ public class AgentsGenerator {
     private List<String> populateToolParams(Property toolParams, boolean hasDescription,
                                             SourceBuilder sourceBuilder) {
         List<String> paramList = new ArrayList<>();
+        if (toolParams == null || toolParams.value() == null) {
+            return paramList;
+        }
         if (toolParams.value() instanceof Map<?, ?> paramMap) {
             for (Object obj : paramMap.values()) {
                 Property paramProperty = gson.fromJson(gson.toJsonTree(obj), Property.class);
@@ -595,7 +633,7 @@ public class AgentsGenerator {
                 continue;
             }
             ModuleID id = optModule.get().id();
-            if (!(id.orgName().equals(BALLERINAX) && id.packageName().equals(AI_AGENT))) {
+            if (!isAiModule(id.orgName(), id.packageName())) {
                 continue;
             }
             Optional<String> optName = annotationSymbol.getName();
@@ -693,7 +731,7 @@ public class AgentsGenerator {
             String packageName = methodFunction.packageName();
             String moduleName = methodFunction.moduleName();
             String version = methodFunction.version();
-            boolean isHttpModule = org.equals(BALLERINA_ORG) && packageName.equals(HTTP_MODULE);
+            boolean isHttpModule = org.equals(Constants.BALLERINA) && packageName.equals(HTTP_MODULE);
 
             NodeBuilder nodeBuilder;
             String label;

@@ -69,11 +69,13 @@ import org.eclipse.lsp4j.Diagnostic;
 import org.eclipse.lsp4j.DiagnosticSeverity;
 import org.eclipse.lsp4j.Position;
 import org.eclipse.lsp4j.Range;
+import org.wso2.ballerinalang.compiler.tree.BLangPackage;
 
 import java.net.URI;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -97,6 +99,17 @@ public class CommonUtils {
     private static final String NATURAL_FUNCTION = "NaturalFunction";
     private static final String CALL_LLM = "callLlm";
     private static final String UNKNOWN_TYPE = "Unknown Type";
+    private static final String AI = "ai";
+    private static final String AGENT = "Agent";
+
+    public static final String AI_OPENAI = "ai.openai";
+    public static final String AI_ANTHROPIC = "ai.anthropic";
+    public static final String AI_DEEPSEEK = "ai.deepseek";
+    public static final String AI_MISTRAL = "ai.mistral";
+    public static final String AI_OLLAMA = "ai.ollama";
+    public static final String AI_AZURE = "ai.azure";
+    public static final List<String> AI_MODULE_NAMES = List.of(AI_OPENAI, AI_ANTHROPIC, AI_DEEPSEEK,
+            AI_MISTRAL, AI_OLLAMA, AI_AZURE);
 
     /**
      * Removes the quotes from the given string.
@@ -893,5 +906,42 @@ public class CommonUtils {
                     org.equals(importDeclarationNode.orgName().get().orgName().text()) &&
                     module.equals(moduleName);
         });
+    }
+
+    /**
+     * Checks whether the given import exists in the given blangPackage.
+     *
+     * @param blangPackage blangPackage
+     * @param org    organization name
+     * @param module module name
+     * @return true if the import exists, false otherwise
+     */
+    public static boolean importExists(BLangPackage blangPackage, String org, String module) {
+        return blangPackage.imports.stream().anyMatch(importDeclarationNode ->
+                org.equals(importDeclarationNode.orgName.value) &&
+                        module.equals(importDeclarationNode.pkgNameComps.stream()
+                                .map(identifierNode -> identifierNode.value)
+                                .collect(Collectors.joining("."))));
+    }
+
+    public static boolean isAiModule(String org, String module) {
+        return (BALLERINAX_ORG_NAME.equals(org) || BALLERINA_ORG_NAME.equals(org)) && module.equals(AI);
+    }
+
+    public static boolean isAiModelModule(String org, String module) {
+        return BALLERINAX_ORG_NAME.equals(org) && (AI.equals(module) || AI_MODULE_NAMES.contains(module));
+    }
+
+    public static boolean isAgentClass(Symbol symbol) {
+        Optional<ModuleSymbol> optModule = symbol.getModule();
+        if (optModule.isEmpty()) {
+            return false;
+        }
+        ModuleID id = optModule.get().id();
+        if (!isAiModule(id.orgName(), id.packageName())) {
+            return false;
+        }
+
+        return symbol.getName().isPresent() && symbol.getName().get().equals(AGENT);
     }
 }
