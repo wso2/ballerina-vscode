@@ -30,18 +30,19 @@ async function go() {
 		console.log("Fetching values for environment variables...");
 		const { envKeys, missingVars } = createEnvDefinePlugin(env);
 		if (missingVars.length > 0) {
-		  console.warn(
-			'\n⚠️  Environment Variable Configuration Warning:\n' +
-			`Missing required environment variables: ${missingVars.join(', ')}\n` +
-			`Please provide values in either .env file or runtime environment.\n`
-		  );
+			console.warn(
+				'\n⚠️  Environment Variable Configuration Warning:\n' +
+				`Missing required environment variables: ${missingVars.join(', ')}\n` +
+				`Please provide values in either .env file or runtime environment.\n`
+			);
 		}
 
 		await runTests({
 			extensionDevelopmentPath,
 			extensionTestsPath,
 			extensionTestsEnv: {
-				...envKeys
+				...envKeys,
+				AI_TEST_ENV: 'true'
 			}
 		});
 	} catch (err) {
