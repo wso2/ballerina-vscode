@@ -53,6 +53,7 @@ interface FormFieldEditorProps {
     handleOnTypeChange?: () => void;
     recordTypeFields?: RecordTypeField[];
     onIdentifierEditingStateChange?: (isEditing: boolean) => void;
+    setSubComponentEnabled?: (isAdding: boolean) => void;
 }
 
 export const EditorFactory = (props: FormFieldEditorProps) => {
@@ -66,7 +67,8 @@ export const EditorFactory = (props: FormFieldEditorProps) => {
         autoFocus,
         handleOnTypeChange,
         recordTypeFields,
-        onIdentifierEditingStateChange
+        onIdentifierEditingStateChange,
+        setSubComponentEnabled
     } = props;
     if (!field.enabled || field.hidden) {
         return <></>;
@@ -141,7 +143,7 @@ export const EditorFactory = (props: FormFieldEditorProps) => {
         // Skip this property
         return <></>;
     } else if (field.type === "PARAM_MANAGER") {
-        return <ParamManagerEditor field={field} openRecordEditor={openRecordEditor} handleOnFieldFocus={handleOnFieldFocus} selectedNode={selectedNode} />;
+        return <ParamManagerEditor setSubComponentEnabled={setSubComponentEnabled} field={field} openRecordEditor={openRecordEditor} handleOnFieldFocus={handleOnFieldFocus} selectedNode={selectedNode} />;
     } else if (field.type === "REPEATABLE_PROPERTY") {
         return <FormMapEditor field={field} label={"Add Another Key-Value Pair"} />;
     } else if (field.type === "IDENTIFIER" && !field.editable && field?.lineRange) {

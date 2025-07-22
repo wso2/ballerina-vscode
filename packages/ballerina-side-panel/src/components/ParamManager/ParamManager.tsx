@@ -54,6 +54,7 @@ export interface ParamManagerProps {
     openRecordEditor?: (open: boolean) => void;
     readonly?: boolean;
     selectedNode?: NodeKind;
+    setSubComponentEnabled?: (isAdding: boolean) => void;
 }
 
 const AddButtonWrapper = styled.div`
@@ -110,10 +111,11 @@ export interface ParamManagerEditorProps {
     handleOnFieldFocus?: (key: string) => void;
     openRecordEditor?: (open: boolean) => void;
     selectedNode?: NodeKind;
+    setSubComponentEnabled?: (isAdding: boolean) => void;
 }
 
 export function ParamManagerEditor(props: ParamManagerEditorProps) {
-    const { field, openRecordEditor, selectedNode } = props;
+    const { field, openRecordEditor, selectedNode, setSubComponentEnabled } = props;
     const { form } = useFormContext();
     const { control, setValue, getValues } = form;
 
@@ -156,6 +158,7 @@ export function ParamManagerEditor(props: ParamManagerEditorProps) {
                                 onChange(config.paramValues);
                             }}
                             selectedNode={selectedNode}
+                            setSubComponentEnabled={setSubComponentEnabled}
                         />
                         {error && <ErrorBanner errorMsg={error.message.toString()} />}
                     </>
@@ -203,7 +206,7 @@ export function ParamManagerEditor(props: ParamManagerEditorProps) {
 }
 
 export function ParamManager(props: ParamManagerProps) {
-    const { propertyKey, paramConfigs, readonly, onChange, openRecordEditor, selectedNode } = props;
+    const { propertyKey, paramConfigs, readonly, onChange, openRecordEditor, selectedNode, setSubComponentEnabled } = props;
     const { rpcClient } = useRpcContext();
 
     const [editingSegmentId, setEditingSegmentId] = useState<number>(-1);
@@ -214,6 +217,7 @@ export function ParamManager(props: ParamManagerProps) {
 
     const onEdit = (param: Parameter) => {
         setEditingSegmentId(param.id);
+        setSubComponentEnabled?.(true);
     };
 
     const getNewParam = (fields: FormField[], index: number): Parameter => {
@@ -239,6 +243,7 @@ export function ParamManager(props: ParamManagerProps) {
         updatedParameters.push(newParams);
         setParameters(updatedParameters);
         setIsNew(true);
+        setSubComponentEnabled?.(true);
     };
 
     const onDelete = (param: Parameter) => {
@@ -269,10 +274,12 @@ export function ParamManager(props: ParamManagerProps) {
         onChangeParam(paramConfig);
         setEditingSegmentId(-1);
         setIsNew(false);
+        setSubComponentEnabled?.(false);
     };
 
     const onParamEditCancel = (param: Parameter) => {
         setEditingSegmentId(-1);
+        setSubComponentEnabled?.(false);
         if (isNew) {
             onDelete(param);
         }

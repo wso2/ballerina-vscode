@@ -144,7 +144,6 @@ export function Diagram(props: DiagramProps) {
 
         const addTargetVisitor = new LinkTargetVisitor(model, nodes);
         traverseFlow(flowModel, addTargetVisitor);
-        console.log(">>> getDiagramData", { flowModel, nodes, links });
         return { nodes, links };
     };
 
