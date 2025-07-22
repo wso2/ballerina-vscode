@@ -1422,11 +1422,11 @@ export interface FunctionNodeResponse {
 
 // <-------- AI Agent Related ------->
 
-export interface AIAgentOrgRequest {
+export interface AiModuleOrgRequest {
     projectPath: string;
 }
 
-export interface AIAgentOrgResponse {
+export interface AiModuleOrgResponse {
     orgName: string;
 }
 
