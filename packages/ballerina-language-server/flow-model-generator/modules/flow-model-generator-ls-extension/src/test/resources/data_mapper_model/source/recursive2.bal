@@ -1,9 +1,21 @@
-type Person record {
+type Department record {
     string name;
-    Person father;
-    Person mother;
-}
+    Employee[] employees;
+};
+
+type Employee record {
+    string name;
+    Department department;
+};
 
 function fn1() {
-    Person person = {};
+    Department engineering = {
+        name: "Engineering",
+        employees: []
+    };
+
+    Employee alice = {
+        name: "Alice",
+        department: engineering
+    };
 }

@@ -754,7 +754,7 @@ public class DataMapManager {
     }
 
     private MappingPort getMappingPort(String id, String name, Type type, boolean isInputPort, Map<String, Type> visitedTypes) {
-        try {
+        if (type.typeName != null) {
             if (type.getTypeName().equals("record")) {
                 RecordType recordType = (RecordType) type;
                 TypeInfo typeInfo = type.getTypeInfo();
@@ -774,10 +774,6 @@ public class DataMapManager {
                 return new MappingPort(id, type.getName(), type.getTypeName(), type.getTypeName());
             } else if (type.getTypeName().equals("array")) {
                 ArrayType arrayType = (ArrayType) type;
-                TypeInfo arrayTypeInfo = type.getTypeInfo();
-                String visitedTypeKey = arrayTypeInfo.name + ":" + arrayTypeInfo.orgName + ":" + arrayTypeInfo.moduleName +
-                        ":" + arrayTypeInfo.version + arrayTypeInfo.packageName;
-                visitedTypes.put(visitedTypeKey, type);
                 MappingPort memberPort = getMappingPort(isInputPort ? id + ".0" : id, getItemName(id),
                         arrayType.memberType, isInputPort, visitedTypes);
                 MappingArrayPort arrayPort = new MappingArrayPort(id, name, memberPort == null ? "record" :
@@ -787,7 +783,7 @@ public class DataMapManager {
             } else {
                 return null;
             }
-        } catch (Exception e) {
+        } else {
             TypeInfo typeInfo = type.getTypeInfo();
             String visitedTypeKey = typeInfo.name + ":" + typeInfo.orgName + ":" + typeInfo.moduleName +
                     ":" + typeInfo.version + typeInfo.packageName;

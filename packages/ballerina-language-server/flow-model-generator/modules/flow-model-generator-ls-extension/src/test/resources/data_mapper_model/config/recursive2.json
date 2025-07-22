@@ -6,52 +6,104 @@
     "lineRange": {
       "fileName": "recursive2.bal",
       "startLine": {
-        "line": 7,
+        "line": 16,
         "offset": 4
       },
       "endLine": {
-        "line": 7,
-        "offset": 23
+        "line": 19,
+        "offset": 6
       }
     },
-    "sourceCode": "Person person = {};"
+    "sourceCode": "Order orderItem = {};"
   },
   "position": {
-    "line": 7,
+    "line": 16,
     "offset": 4
   },
-  "propertyKey": "expression",
-  "targetField": "person",
   "model": {
-    "inputs": [],
+    "inputs": [
+      {
+        "fields": [
+          {
+            "id": "engineering.name",
+            "variableName": "name",
+            "typeName": "string",
+            "kind": "string"
+          },
+          {
+            "id": "engineering.employees",
+            "variableName": "employees",
+            "typeName": "record",
+            "kind": "array"
+          }
+        ],
+        "id": "engineering",
+        "variableName": "engineering",
+        "typeName": "Department",
+        "kind": "record",
+        "category": "variable"
+      }
+    ],
     "output": {
       "fields": [
         {
-          "id": "person.name",
+          "id": "alice.name",
           "variableName": "name",
           "typeName": "string",
           "kind": "string"
         },
         {
-          "isRecursive": true,
-          "id": "person.father",
-          "variableName": "father",
-          "typeName": "Person",
-          "kind": "record"
-        },
-        {
-          "isRecursive": true,
-          "id": "person.mother",
-          "variableName": "mother",
-          "typeName": "Person",
+          "fields": [
+            {
+              "id": "alice.department.name",
+              "variableName": "name",
+              "typeName": "string",
+              "kind": "string"
+            },
+            {
+              "member": {
+                "isRecursive": true,
+                "id": "alice.department.employees",
+                "variableName": "<employeesItem>",
+                "typeName": "Employee",
+                "kind": "record"
+              },
+              "id": "alice.department.employees",
+              "variableName": "employees",
+              "typeName": "Employee[]",
+              "kind": "array"
+            }
+          ],
+          "id": "alice.department",
+          "variableName": "department",
+          "typeName": "Department",
           "kind": "record"
         }
       ],
-      "id": "person",
-      "variableName": "person",
-      "typeName": "Person",
+      "id": "alice",
+      "variableName": "alice",
+      "typeName": "Employee",
       "kind": "record"
     },
-    "mappings": []
+    "mappings": [
+      {
+        "output": "alice.name",
+        "inputs": [],
+        "expression": "\"Alice\"",
+        "diagnostics": [],
+        "elements": [],
+        "isQueryExpression": false
+      },
+      {
+        "output": "alice.department",
+        "inputs": [
+          "engineering"
+        ],
+        "expression": "engineering\n",
+        "diagnostics": [],
+        "elements": [],
+        "isQueryExpression": false
+      }
+    ]
   }
 }
