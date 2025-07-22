@@ -26,7 +26,7 @@ import { QueryExprConnectorNode } from './QueryExprConnectorNode';
 import { renderDeleteButton, renderEditButton, renderPortWidget } from "../LinkConnector/LinkConnectorWidgetComponents";
 import { DiagnosticWidget } from "../../Diagnostic/DiagnosticWidget";
 import { expandArrayFn } from "../../utils/common-utils";
-import { useDMCollapsedFieldsStore, useDMExpandedFieldsStore } from "../../../../store/store";
+import { useDMCollapsedFieldsStore, useDMExpandedFieldsStore, useDMExpressionBarStore } from "../../../../store/store";
 
 export interface QueryExprConnectorNodeWidgetWidgetProps {
     node: QueryExprConnectorNode;
@@ -37,6 +37,7 @@ export function QueryExprConnectorNodeWidget(props: QueryExprConnectorNodeWidget
     const { node, engine } = props;
 
     const classes = useIntermediateNodeStyles();
+    const setExprBarFocusedPort = useDMExpressionBarStore(state => state.setFocusedPort);
     const collapsedFieldsStore = useDMCollapsedFieldsStore();
     const expandedFieldsStore = useDMExpandedFieldsStore();
 
@@ -46,7 +47,8 @@ export function QueryExprConnectorNodeWidget(props: QueryExprConnectorNodeWidget
     const [deleteInProgress, setDeleteInProgress] = useState(false);
 
     const onClickEdit = () => {
-        // TODO: Focus the expression editor
+        const targetPort = node.targetMappedPort;
+        setExprBarFocusedPort(targetPort);
     };
 
     const onClickDelete = async () => {

@@ -31,6 +31,7 @@ import { CodeActionWidget } from '../CodeAction/CodeAction';
 import { InputOutputPortModel } from '../Port';
 import { mapWithCustomFn } from '../utils/modification-utils';
 import { getMappingType } from '../utils/common-utils';
+import { useDMExpressionBarStore } from "../../../store/store";
 
 export interface ExpressionLabelWidgetProps {
     model: ExpressionLabelModel;
@@ -114,6 +115,8 @@ export function ExpressionLabelWidget(props: ExpressionLabelWidgetProps) {
     const [deleteInProgress, setDeleteInProgress] = useState(false);
 
     const classes = useStyles();
+    const setExprBarFocusedPort = useDMExpressionBarStore(state => state.setFocusedPort);
+
     const { link, value, deleteLink, context, collectClauseFn } = props.model;
     const { convertToQuery } = context || {};
     const targetPort = link?.getTargetPort() as InputOutputPortModel;
@@ -155,7 +158,7 @@ export function ExpressionLabelWidget(props: ExpressionLabelWidgetProps) {
     };
 
     const onClickEdit = (evt?: MouseEvent<HTMLDivElement>) => {
-        // TODO: Implement
+        setExprBarFocusedPort(targetPort);
     };
 
     const collectClauseFns = ["sum", "avg", "min", "max", "count"];
