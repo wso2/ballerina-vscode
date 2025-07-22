@@ -92,10 +92,7 @@ public class CommonUtils {
     private static final Pattern FULLY_QUALIFIED_MODULE_ID_PATTERN =
             Pattern.compile("(\\w+)/([\\w.]+):([^:]+):(\\w+)[|]?");
     public static final String BALLERINA_ORG_NAME = "ballerina";
-    public static final String BALLERINAX_ORG_NAME = "ballerinax";
     public static final String LANG_LIB_PREFIX = "lang.";
-    private static final String NATURAL_FUNCTION = "NaturalFunction";
-    private static final String CALL_LLM = "callLlm";
     private static final String UNKNOWN_TYPE = "Unknown Type";
 
     /**
@@ -791,14 +788,14 @@ public class CommonUtils {
         return moduleId.orgName().equals(CommonUtils.BALLERINA_ORG_NAME) && moduleId.packageName().equals("http");
     }
 
-    public static boolean isBallerinaNpModule(Symbol symbol) {
+    public static boolean isBallerinaAiModule(Symbol symbol) {
         Optional<ModuleSymbol> module = symbol.getModule();
         if (module.isEmpty()) {
             return false;
         }
 
         ModuleID moduleId = module.get().id();
-        return moduleId.orgName().equals(CommonUtils.BALLERINA_ORG_NAME) && moduleId.packageName().equals("np");
+        return moduleId.orgName().equals(CommonUtils.BALLERINA_ORG_NAME) && moduleId.packageName().equals("ai");
     }
 
     public static boolean isNaturalExpressionBodiedFunction(SyntaxTree syntaxTree, FunctionSymbol functionSymbol) {
