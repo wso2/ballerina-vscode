@@ -267,10 +267,12 @@ export class InlineDataMapperRpcManager implements InlineDataMapperAPI {
             await StateMachine
                 .langClient()
                 .mapWithCustomFn(params)
-                .then(async (resp) => {
+                .then((resp) => {
                     console.log(">>> inline data mapper map with custom fn response", resp);
-                    await updateAndRefreshDataMapper(resp.textEdits, params.filePath, params.codedata, params.varName);
-                    resolve({ textEdits: resp.textEdits });
+                    updateAndRefreshDataMapper(resp.textEdits, params.filePath, params.codedata, params.varName)
+                    .then(() => {
+                        resolve({ textEdits: resp.textEdits });
+                    });
                 });
         });
     }
