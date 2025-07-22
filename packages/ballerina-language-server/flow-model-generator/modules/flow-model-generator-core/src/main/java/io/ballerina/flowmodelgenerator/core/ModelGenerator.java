@@ -34,10 +34,12 @@ import io.ballerina.compiler.api.symbols.TypeReferenceTypeSymbol;
 import io.ballerina.compiler.api.symbols.TypeSymbol;
 import io.ballerina.compiler.api.symbols.VariableSymbol;
 import io.ballerina.compiler.syntax.tree.AssignmentStatementNode;
+import io.ballerina.compiler.syntax.tree.CheckExpressionNode;
 import io.ballerina.compiler.syntax.tree.FunctionBodyBlockNode;
 import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
 import io.ballerina.compiler.syntax.tree.ModuleMemberDeclarationNode;
 import io.ballerina.compiler.syntax.tree.ModulePartNode;
+import io.ballerina.compiler.syntax.tree.ModuleVariableDeclarationNode;
 import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.compiler.syntax.tree.NonTerminalNode;
 import io.ballerina.compiler.syntax.tree.ServiceDeclarationNode;
@@ -45,6 +47,7 @@ import io.ballerina.compiler.syntax.tree.StatementNode;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.compiler.syntax.tree.SyntaxTree;
 import io.ballerina.flowmodelgenerator.core.model.Diagram;
+import io.ballerina.flowmodelgenerator.core.model.ExtendedDiagram;
 import io.ballerina.flowmodelgenerator.core.model.FlowNode;
 import io.ballerina.flowmodelgenerator.core.model.Property;
 import io.ballerina.modelgenerator.commons.CommonUtils;
@@ -165,7 +168,18 @@ public class ModelGenerator {
                                 .map(property -> property.value().toString())
                                 .orElse("")))
                 .toList();
-        Diagram diagram = new Diagram(filePath.toString(), List.of(), connectionsList);
+        List<Symbol> symbols = semanticModel.moduleSymbols();
+        List<FlowNode> variablesList = symbols.stream()
+            .filter(symbol -> symbol instanceof VariableSymbol)
+            .map(this::buildVariables)
+            .filter(Optional::isPresent)
+            .map(Optional::get)
+            .sorted(Comparator.comparing(
+                node -> Optional.ofNullable(node.properties().get(Property.VARIABLE_KEY))
+                        .map(property -> property.value().toString())
+                        .orElse("")))
+            .toList();
+        ExtendedDiagram diagram = new ExtendedDiagram(filePath.toString(), List.of(), connectionsList, variablesList);
         return gson.toJsonTree(diagram);
     }
 
@@ -265,6 +279,48 @@ public class ModelGenerator {
             if (!isClassOrObject(typeDescriptorSymbol)) {
                 return Optional.empty();
             }
+            Location location = symbol.getLocation().orElseThrow();
+            DocumentId documentId = project.documentId(
+                    project.kind() == ProjectKind.SINGLE_FILE_PROJECT ? project.sourceRoot() :
+                            project.sourceRoot().resolve(location.lineRange().fileName()));
+            document = project.currentPackage().getDefaultModule().document(documentId);
+            NonTerminalNode childNode =
+                    symbol.getLocation().map(loc -> CommonUtils.getNode(document.syntaxTree(), loc.textRange()))
+                            .orElseThrow();
+            statementNode = getStatementNode.apply(childNode);
+        } catch (RuntimeException ignored) {
+            return Optional.empty();
+        }
+        if (statementNode == null) {
+            return Optional.empty();
+        }
+        CodeAnalyzer codeAnalyzer = new CodeAnalyzer(project, semanticModel, scope, Map.of(), Map.of(),
+                document.textDocument(), ModuleInfo.from(document.module().descriptor()), false);
+        statementNode.accept(codeAnalyzer);
+        List<FlowNode> connections = codeAnalyzer.getFlowNodes();
+        return connections.stream().findFirst();
+    }
+
+    private Optional<FlowNode> buildVariables(Symbol symbol) {
+        Function<NonTerminalNode, NonTerminalNode> getStatementNode;
+        NonTerminalNode statementNode;
+        String scope;
+        Document document;
+
+        switch (symbol.kind()) {
+            case VARIABLE -> {
+                getStatementNode = (NonTerminalNode node) -> node.parent().parent();
+                scope = Property.GLOBAL_SCOPE;
+            }
+            case CLASS_FIELD -> {
+                getStatementNode = (NonTerminalNode node) -> node;
+                scope = Property.SERVICE_SCOPE;
+            }
+            default -> {
+                return Optional.empty();
+            }
+        }
+        try {
             Location location = symbol.getLocation().orElseThrow();
             DocumentId documentId = project.documentId(
                     project.kind() == ProjectKind.SINGLE_FILE_PROJECT ? project.sourceRoot() :
