@@ -206,7 +206,7 @@ async function injectAIAgent(serviceArtifact: BaseArtifact) {
     const functionPosition: NodePosition = {
         startLine: updatedService.service.functions[0].codedata.lineRange.startLine.line,
         startColumn: updatedService.service.functions[0].codedata.lineRange.startLine.offset,
-        endLine: updatedService.service.functions[0].codedata.lineRange.endLine.line + 3,
+        endLine: updatedService.service.functions[0].codedata.lineRange.endLine.line + 2,
         endColumn: updatedService.service.functions[0].codedata.lineRange.endLine.offset
     };
     return {
