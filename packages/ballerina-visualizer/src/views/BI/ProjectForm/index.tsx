@@ -141,13 +141,13 @@ export function ProjectForm() {
                     onTextChange={handleProjectName}
                     value={name}
                     label="Integration Name"
-                    placeholder="Enter a integration name"
+                    placeholder="Enter an integration name"
                     autoFocus={true}
                 />
                 {name && (
                     <PreviewContainer>
                         <PreviewIcon name="project" iconSx={{ fontSize: 14, color: "var(--vscode-descriptionForeground)" }} />
-                            <Tooltip content="A unique identifier for your intergration">
+                            <Tooltip content="A unique identifier for your integration">
                                 <PreviewText variant="caption">
                                     {sanitizeProjectName(name)}
                                 </PreviewText>

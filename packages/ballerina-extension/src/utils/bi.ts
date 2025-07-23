@@ -15,6 +15,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+
 import { exec } from "child_process";
 import { window, commands, workspace, Uri } from "vscode";
 import * as fs from 'fs';
@@ -24,10 +25,66 @@ import { StateMachine, history, openView } from "../stateMachine";
 import { applyModifications, modifyFileContent, writeBallerinaFileDidOpen } from "./modification";
 import { ModulePart, STKindChecker } from "@wso2/syntax-tree";
 import { URI } from "vscode-uri";
+import { debug } from "./logger";
 
 export const README_FILE = "readme.md";
 export const FUNCTIONS_FILE = "functions.bal";
 export const DATA_MAPPING_FILE = "data_mappings.bal";
+
+const settingsJsonContent = `
+{
+    "ballerina.isBI": true
+}
+`;
+
+const launchJsonContent = `
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Ballerina Debug",
+            "type": "ballerina",
+            "request": "launch",
+            "programArgs": [],
+            "commandOptions": [],
+            "env": {}
+        },
+        {
+            "name": "Ballerina Test",
+            "type": "ballerina",
+            "request": "launch",
+            "debugTests": true,
+            "programArgs": [],
+            "commandOptions": [],
+            "env": {}
+        },
+        {
+            "name": "Ballerina Remote",
+            "type": "ballerina",
+            "request": "attach",
+            "debuggeeHost": "127.0.0.1",
+            "debuggeePort": "5005"
+        }
+    ]
+}
+`;
+
+const gitignoreContent = `
+# Ballerina generates this directory during the compilation of a package.
+# It contains compiler-generated artifacts and the final executable if this is an application package.
+target/
+
+# Ballerina maintains the compiler-generated source code here.
+# Remove this if you want to commit generated sources.
+generated/
+
+# Contains configuration values used during development time.
+# See https://ballerina.io/learn/provide-values-to-configurable-variables/ for more details.
+Config.toml
+`;
 
 export function openBIProject() {
     window.showOpenDialog({ canSelectFolders: true, canSelectFiles: false, openLabel: 'Open Integration' })
@@ -116,60 +173,7 @@ sticky = true
 
 `;
 
-    const settingsJsonContent = `
-{
-    "ballerina.isBI": true
-}
-`;
 
-    const launchJsonContent = `
-{
-    // Use IntelliSense to learn about possible attributes.
-    // Hover to view descriptions of existing attributes.
-    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
-    "version": "0.2.0",
-    "configurations": [
-        {
-            "name": "Ballerina Debug",
-            "type": "ballerina",
-            "request": "launch",
-            "programArgs": [],
-            "commandOptions": [],
-            "env": {}
-        },
-        {
-            "name": "Ballerina Test",
-            "type": "ballerina",
-            "request": "launch",
-            "debugTests": true,
-            "programArgs": [],
-            "commandOptions": [],
-            "env": {}
-        },
-        {
-            "name": "Ballerina Remote",
-            "type": "ballerina",
-            "request": "attach",
-            "debuggeeHost": "127.0.0.1",
-            "debuggeePort": "5005"
-        }
-    ]
-}
-`;
-
-    const gitignoreContent = `
-# Ballerina generates this directory during the compilation of a package.
-# It contains compiler-generated artifacts and the final executable if this is an application package.
-target/
-
-# Ballerina maintains the compiler-generated source code here.
-# Remove this if you want to commit generated sources.
-generated/
-
-# Contains configuration values used during development time.
-# See https://ballerina.io/learn/provide-values-to-configurable-variables/ for more details.
-Config.toml
-`;
 
     // Create Ballerina.toml file
     const ballerinaTomlPath = path.join(projectRoot, 'Ballerina.toml');
@@ -242,7 +246,26 @@ export async function createBIProjectFromMigration(params: MigrateRequest) {
         writeBallerinaFileDidOpen(filePath, content || EMPTY);
     }
 
-    console.log(`BI project created successfully at ${projectRoot}`);
+    // Create a .vscode folder
+    const vscodeDir = path.join(projectRoot, '.vscode');
+    if (!fs.existsSync(vscodeDir)) {
+        fs.mkdirSync(vscodeDir);
+    }
+
+    // Create launch.json file
+    const launchPath = path.join(vscodeDir, 'launch.json');
+    fs.writeFileSync(launchPath, launchJsonContent.trim());
+
+    // Create settings.json file
+    const settingsPath = path.join(vscodeDir, 'settings.json');
+    fs.writeFileSync(settingsPath, settingsJsonContent);
+
+    // Create .gitignore file
+    const gitignorePath = path.join(projectRoot, '.gitignore');
+    fs.writeFileSync(gitignorePath, gitignoreContent.trim());
+
+
+    debug(`BI project created successfully at ${projectRoot}`);
     commands.executeCommand('vscode.openFolder', Uri.file(path.resolve(projectRoot)));
 }
 
