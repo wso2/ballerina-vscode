@@ -299,24 +299,109 @@
         },
         {
           "metadata": {
-            "label": "np",
+            "label": "ai",
             "description": "",
             "keywords": []
           },
           "items": [
             {
               "metadata": {
-                "label": "callLlm",
-                "description": "Calls a Large Language Model (LLM) with a given prompt and context and returns \nthe response parsed as the expected type.\n",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_np_0.3.0.png"
+                "label": "getTools",
+                "description": "Get the tools registered with the agent.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.0.0.png"
               },
               "codedata": {
                 "node": "FUNCTION_CALL",
                 "org": "ballerina",
-                "module": "np",
-                "packageName": "np",
-                "symbol": "callLlm",
-                "version": "0.3.0"
+                "module": "ai",
+                "packageName": "ai",
+                "symbol": "getTools",
+                "version": "1.0.0"
+              },
+              "enabled": true,
+              "more": false
+            },
+            {
+              "metadata": {
+                "label": "extractToolsFromOpenApiSpecFile",
+                "description": "Extracts the Http tools from the given OpenAPI specification file.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.0.0.png"
+              },
+              "codedata": {
+                "node": "FUNCTION_CALL",
+                "org": "ballerina",
+                "module": "ai",
+                "packageName": "ai",
+                "symbol": "extractToolsFromOpenApiSpecFile",
+                "version": "1.0.0"
+              },
+              "enabled": true,
+              "more": false
+            },
+            {
+              "metadata": {
+                "label": "extractToolsFromOpenApiJsonSpec",
+                "description": "Extracts the Http tools from the given OpenAPI specification as a JSON \n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.0.0.png"
+              },
+              "codedata": {
+                "node": "FUNCTION_CALL",
+                "org": "ballerina",
+                "module": "ai",
+                "packageName": "ai",
+                "symbol": "extractToolsFromOpenApiJsonSpec",
+                "version": "1.0.0"
+              },
+              "enabled": true,
+              "more": false
+            },
+            {
+              "metadata": {
+                "label": "parseOpenApiSpec",
+                "description": "Parses the given OpenAPI specification as a JSON to a OpenApiSpec object.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.0.0.png"
+              },
+              "codedata": {
+                "node": "FUNCTION_CALL",
+                "org": "ballerina",
+                "module": "ai",
+                "packageName": "ai",
+                "symbol": "parseOpenApiSpec",
+                "version": "1.0.0"
+              },
+              "enabled": true,
+              "more": false
+            },
+            {
+              "metadata": {
+                "label": "executeTool",
+                "description": "Executes an AgentTool.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.0.0.png"
+              },
+              "codedata": {
+                "node": "FUNCTION_CALL",
+                "org": "ballerina",
+                "module": "ai",
+                "packageName": "ai",
+                "symbol": "executeTool",
+                "version": "1.0.0"
+              },
+              "enabled": true,
+              "more": false
+            },
+            {
+              "metadata": {
+                "label": "getToolConfigs",
+                "description": "Generates a array of `ToolConfig` from the given list of function pointers.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.0.0.png"
+              },
+              "codedata": {
+                "node": "FUNCTION_CALL",
+                "org": "ballerina",
+                "module": "ai",
+                "packageName": "ai",
+                "symbol": "getToolConfigs",
+                "version": "1.0.0"
               },
               "enabled": true,
               "more": false
@@ -444,91 +529,6 @@
                 "module": "io",
                 "packageName": "io",
                 "symbol": "fileWriteCsv",
-                "version": "1.8.0"
-              },
-              "enabled": true,
-              "more": false
-            },
-            {
-              "metadata": {
-                "label": "fileWriteCsvFromStream",
-                "description": "Write CSV record stream to a file.\nWhen the input is a `stream<record, io:Error?>` in `OVERWRITE`,  headers will be written to the CSV file by default.\nFor `APPEND`, order of the existing csv file is inferred using the headers and used as the order.\n```ballerina\ntype Coord record {int x;int y;};\nCoord[] contentRecord = [{x: 1,y: 2},{x: 1,y: 2}]\nstring[][] content = [[\"Anne\", \"Johnson\", \"SE\"], [\"John\", \"Cameron\", \"QA\"]];\nstream<string[], io:Error?> stringStream = content.toStream();\nstream<Coord, io:Error?> recordStream = contentRecord.toStream();\nio:Error? result = io:fileWriteCsvFromStream(\"./resources/myfile.csv\", stringStream);\nio:Error? resultRecord = io:fileWriteCsvFromStream(\"./resources/myfileRecord.csv\", recordStream);\n```",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_io_1.8.0.png"
-              },
-              "codedata": {
-                "node": "FUNCTION_CALL",
-                "org": "ballerina",
-                "module": "io",
-                "packageName": "io",
-                "symbol": "fileWriteCsvFromStream",
-                "version": "1.8.0"
-              },
-              "enabled": true,
-              "more": false
-            },
-            {
-              "metadata": {
-                "label": "fileReadString",
-                "description": "Reads the entire file content as a `string`.\nThe resulting string output does not contain the terminal carriage (e.g., `\\r` or `\\n`).\n```ballerina\nstring|io:Error content = io:fileReadString(\"./resources/myfile.txt\");\n```",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_io_1.8.0.png"
-              },
-              "codedata": {
-                "node": "FUNCTION_CALL",
-                "org": "ballerina",
-                "module": "io",
-                "packageName": "io",
-                "symbol": "fileReadString",
-                "version": "1.8.0"
-              },
-              "enabled": true,
-              "more": false
-            },
-            {
-              "metadata": {
-                "label": "fileReadLines",
-                "description": "Reads the entire file content as a list of lines.\nThe resulting string array does not contain the terminal carriage (e.g., `\\r` or `\\n`).\n```ballerina\nstring[]|io:Error content = io:fileReadLines(\"./resources/myfile.txt\");\n```",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_io_1.8.0.png"
-              },
-              "codedata": {
-                "node": "FUNCTION_CALL",
-                "org": "ballerina",
-                "module": "io",
-                "packageName": "io",
-                "symbol": "fileReadLines",
-                "version": "1.8.0"
-              },
-              "enabled": true,
-              "more": false
-            },
-            {
-              "metadata": {
-                "label": "fileReadLinesAsStream",
-                "description": "Reads file content as a stream of lines.\nThe resulting stream does not contain the terminal carriage (e.g., `\\r` or `\\n`).\n```ballerina\nstream<string, io:Error?>|io:Error content = io:fileReadLinesAsStream(\"./resources/myfile.txt\");\n```",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_io_1.8.0.png"
-              },
-              "codedata": {
-                "node": "FUNCTION_CALL",
-                "org": "ballerina",
-                "module": "io",
-                "packageName": "io",
-                "symbol": "fileReadLinesAsStream",
-                "version": "1.8.0"
-              },
-              "enabled": true,
-              "more": false
-            },
-            {
-              "metadata": {
-                "label": "fileReadJson",
-                "description": "Reads file content as a JSON.\n```ballerina\njson|io:Error content = io:fileReadJson(\"./resources/myfile.json\");\n```",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_io_1.8.0.png"
-              },
-              "codedata": {
-                "node": "FUNCTION_CALL",
-                "org": "ballerina",
-                "module": "io",
-                "packageName": "io",
-                "symbol": "fileReadJson",
                 "version": "1.8.0"
               },
               "enabled": true,
