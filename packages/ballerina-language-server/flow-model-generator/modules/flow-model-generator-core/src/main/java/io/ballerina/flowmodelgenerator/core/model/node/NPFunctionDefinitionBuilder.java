@@ -60,6 +60,12 @@ public class NPFunctionDefinitionBuilder extends FunctionDefinitionBuilder {
     public static final String PARAMETERS_DOC = "Function parameters";
 
     private static final String CALL_LLM_FUNCTION = "callLlm";
+    private static final String GET_DEFAULT_MODEL_PROVIDER_FUNCTION = "getDefaultModelProvider";
+
+    private static final List<String> MODEL_PROVIDER_OPTIONS = List.of(
+            NaturalFunctions.DEFAULT_MODEL_PROVIDER_WSO2,
+            NaturalFunctions.ACCEPT_AS_PARAMETER
+    );
 
     private static final Gson gson = new Gson();
 
@@ -69,7 +75,7 @@ public class NPFunctionDefinitionBuilder extends FunctionDefinitionBuilder {
         codedata()
                 .node(NodeKind.NP_FUNCTION_DEFINITION)
                 .org(NaturalFunctions.BALLERINA_ORG)
-                .module(NaturalFunctions.NP_PACKAGE);
+                .module(NaturalFunctions.AI_PACKAGE);
     }
 
     @Override
@@ -78,11 +84,11 @@ public class NPFunctionDefinitionBuilder extends FunctionDefinitionBuilder {
 
         FunctionDataBuilder functionDataBuilder = new FunctionDataBuilder()
                 .parentSymbolType(codedata.object())
-                .name(CALL_LLM_FUNCTION)
+                .name(GET_DEFAULT_MODEL_PROVIDER_FUNCTION)
                 .moduleInfo(new ModuleInfo(
                         NaturalFunctions.BALLERINA_ORG,
-                        NaturalFunctions.NP_PACKAGE,
-                        NaturalFunctions.NP_PACKAGE,
+                        NaturalFunctions.AI_PACKAGE,
+                        NaturalFunctions.AI_PACKAGE,
                         null))
                 .lsClientLogger(context.lsClientLogger())
                 .functionResultKind(FunctionData.Kind.FUNCTION)
@@ -96,6 +102,7 @@ public class NPFunctionDefinitionBuilder extends FunctionDefinitionBuilder {
                 NATURAL_FUNCTION_NAME_DESCRIPTION);
         setMandatoryProperties(this, null);
         endOptionalProperties(this);
+
         // prompt
         properties().custom()
                     .metadata()
@@ -114,19 +121,21 @@ public class NPFunctionDefinitionBuilder extends FunctionDefinitionBuilder {
                     .stepOut()
                     .addProperty(NaturalFunctions.PROMPT);
 
-        // enable model context
+        // Model provider
         properties().custom()
-                    .metadata()
-                        .label(NaturalFunctions.ENABLE_MODEL_CONTEXT_LABEL)
-                        .description(NaturalFunctions.ENABLE_MODEL_CONTEXT_DESCRIPTION)
-                        .stepOut()
-                    .editable()
-                    .value(false)
-                    .optional(true)
-                    .advanced(true)
-                    .type(Property.ValueType.FLAG)
+                .metadata()
+                    .label(NaturalFunctions.MODEL_PROVIDER_LABEL)
+                    .description(NaturalFunctions.MODEL_PROVIDER_DESCRIPTION)
                     .stepOut()
-                    .addProperty(NaturalFunctions.ENABLE_MODEL_CONTEXT);
+                .codedata()
+                    .kind(REQUIRED.name())
+                    .stepOut()
+                .value(NaturalFunctions.DEFAULT_MODEL_PROVIDER_WSO2)
+                .editable()
+                .type(Property.ValueType.SINGLE_SELECT)
+                .typeConstraint(NaturalFunctions.MODEL_PROVIDER_OPTIONS)
+                .stepOut()
+                .addProperty(NaturalFunctions.MODEL_PROVIDER);
     }
 
     public static void setMandatoryProperties(NodeBuilder nodeBuilder, String returnType) {
@@ -155,15 +164,17 @@ public class NPFunctionDefinitionBuilder extends FunctionDefinitionBuilder {
                 .name(property.get().value().toString())
                 .keyword(SyntaxKind.OPEN_PAREN_TOKEN);
 
-        // Write the model parameter
-        Optional<Property> isModelContextEnabledProperty =
-                sourceBuilder.getProperty(NaturalFunctions.ENABLE_MODEL_CONTEXT);
-        boolean isModelConfigEnabled = isModelContextEnabledProperty.isPresent() &&
-                (boolean) isModelContextEnabledProperty.get().value();
+        Optional<Property> modelProviderProperty =
+                sourceBuilder.getProperty(NaturalFunctions.MODEL_PROVIDER);
 
-        if (isModelConfigEnabled) {
+        // Assume that if the model provider is not specified, it is the default model provider.
+        boolean isDefaultModelProvider = (modelProviderProperty.isPresent()
+                && NaturalFunctions.DEFAULT_MODEL_PROVIDER_WSO2.equals(modelProviderProperty.get().value().toString()))
+                || modelProviderProperty.isEmpty();
+
+        if (!isDefaultModelProvider) {
             sourceBuilder.token().name(NaturalFunctions.MODULE_PREFIXED_MODEL_PROVIDER_TYPE +
-                    " " + NaturalFunctions.MODEL_PROVIDER);
+                    " " + NaturalFunctions.MODEL);
         }
 
         // Write the function parameters
@@ -183,7 +194,7 @@ public class NPFunctionDefinitionBuilder extends FunctionDefinitionBuilder {
                 paramList.add(paramType + " " + paramName);
             }
             if (!paramList.isEmpty()) {
-                if (isModelConfigEnabled) {
+                if (!isDefaultModelProvider) {
                     sourceBuilder.token().keyword(SyntaxKind.COMMA_TOKEN);
                 }
                 sourceBuilder.token().name(String.join(", ", paramList));
@@ -214,18 +225,16 @@ public class NPFunctionDefinitionBuilder extends FunctionDefinitionBuilder {
         String naturalExprTemplate = "natural %s{%n" +
                 "%s" +
                 "%n}";
-        String naturalExpr = naturalExprTemplate.formatted(isModelConfigEnabled ? "(model) " : "", promptValue);
+        String naturalExpr = naturalExprTemplate.formatted(isDefaultModelProvider
+                ? "(check ai:getDefaultModelProvider())"
+                : "(model)", promptValue);
         sourceBuilder.token()
                 .rightDoubleArrowToken()
                 .name(naturalExpr)
                 .semicolon();
 
         sourceBuilder.token().skipFormatting();
-
-        if (isModelConfigEnabled) {
-            // Import the package if the model provider is enabled
-            sourceBuilder.acceptImport();
-        }
+        sourceBuilder.acceptImport();
 
         // Generate text edits based on the line range. If a line range exists, update the signature of the existing
         // function. Otherwise, create a new function definition in "functions.bal".

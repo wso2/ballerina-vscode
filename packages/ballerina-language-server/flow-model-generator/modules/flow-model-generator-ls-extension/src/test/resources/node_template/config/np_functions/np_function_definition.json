@@ -1,5 +1,5 @@
 {
-  "description": "Sample diagram node for natural function call",
+  "description": "Node template for natural function definition",
   "codedata": {
     "node": "NP_FUNCTION_DEFINITION"
   },
@@ -12,7 +12,7 @@
     "codedata": {
       "node": "NP_FUNCTION_DEFINITION",
       "org": "ballerina",
-      "module": "np",
+      "module": "ai",
       "isNew": true
     },
     "returning": false,
@@ -120,17 +120,24 @@
           "kind": "REQUIRED"
         }
       },
-      "enableModelContext": {
+      "modelProvider": {
         "metadata": {
-          "label": "Enable model configuration",
-          "description": "Allow specifying Large Language Model (LLM) choice"
+          "label": "Configure the model",
+          "description": "The large language model (LLM) to use"
         },
-        "valueType": "FLAG",
-        "value": false,
-        "optional": true,
+        "valueType": "SINGLE_SELECT",
+        "valueTypeConstraint": [
+          "Default Model Provider (WSO2)",
+          "Accept as a parameter"
+        ],
+        "value": "Default Model Provider (WSO2)",
+        "optional": false,
         "editable": true,
-        "advanced": true,
-        "hidden": false
+        "advanced": false,
+        "hidden": false,
+        "codedata": {
+          "kind": "REQUIRED"
+        }
       }
     },
     "flags": 0
