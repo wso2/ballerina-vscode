@@ -405,8 +405,6 @@ export function AddMcpServer(props: AddToolProps): JSX.Element {
         await fetchExistingTools();
         await fetchAgentNode();
         setLoading(false);
-        // const configVariableNodes = await rpcClient.getBIDiagramRpcClient().getConfigVariablesV2();
-        // console.log(">>> configVariableNodes", configVariableNodes);
     };
 
     useEffect(() => {
