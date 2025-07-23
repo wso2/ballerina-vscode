@@ -15,7 +15,7 @@
 // under the License.
 
 import { generateText } from "ai";
-import { LIBS_URL } from "../../utils";
+import { BACKEND_URL } from "../../utils";
 import { selectRequiredFunctions } from "../libs/funcs";
 import { GenerationType, getSelectedLibraries } from "../libs/libs";
 import { Library, LibraryWithUrl } from "../libs/libs_types";
@@ -94,7 +94,7 @@ async function extractLearnPages(query: string): Promise<Document[]> {
 
 async function fetchDocumentationFromVectorStore(query: string): Promise<Document[]> {
     try {
-        const response = await fetchWithAuth(`${LIBS_URL}/topK`, {
+        const response = await fetchWithAuth(`${BACKEND_URL}/learn-docs-api/v1.0/topK`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
