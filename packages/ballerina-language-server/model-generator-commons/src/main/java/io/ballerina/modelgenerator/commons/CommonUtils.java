@@ -94,6 +94,7 @@ public class CommonUtils {
     private static final Pattern FULLY_QUALIFIED_MODULE_ID_PATTERN =
             Pattern.compile("(\\w+)/([\\w.]+):([^:]+):(\\w+)[|]?");
     public static final String BALLERINA_ORG_NAME = "ballerina";
+    public static final String BALLERINAX_ORG_NAME = "ballerinax";
     public static final String LANG_LIB_PREFIX = "lang.";
     private static final String UNKNOWN_TYPE = "Unknown Type";
     private static final String AI = "ai";
