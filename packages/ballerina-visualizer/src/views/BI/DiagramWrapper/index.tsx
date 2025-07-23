@@ -156,10 +156,12 @@ export interface DiagramWrapperProps {
     projectPath: string;
     filePath?: string;
     view?: FocusFlowDiagramView;
+    breakpointState?: boolean;
+    syntaxTree?: STNode;
 }
 
 export function DiagramWrapper(param: DiagramWrapperProps) {
-    const { projectPath, filePath, view } = param;
+    const { projectPath, filePath, view, breakpointState, syntaxTree } = param;
     const { rpcClient } = useRpcContext();
 
     const [showSequenceDiagram, setShowSequenceDiagram] = useState(false);
@@ -424,6 +426,8 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
                 />
             ) : (
                 <BIFlowDiagram
+                    syntaxTree={syntaxTree}
+                    breakpointState={breakpointState}
                     projectPath={projectPath}
                     onUpdate={handleUpdateDiagram}
                     onReady={handleReadyDiagram}
