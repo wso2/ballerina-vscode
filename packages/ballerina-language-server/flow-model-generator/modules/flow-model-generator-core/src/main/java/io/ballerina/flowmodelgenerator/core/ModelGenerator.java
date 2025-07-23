@@ -73,6 +73,8 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 
+import static io.ballerina.modelgenerator.commons.CommonUtils.isAgentClass;
+
 /**
  * Generator for the flow model.
  *
@@ -287,7 +289,7 @@ public class ModelGenerator {
 
     private boolean isClassOrObject(TypeSymbol typeSymbol) {
         if (typeSymbol.kind() == SymbolKind.CLASS) {
-            if (((ClassSymbol) typeSymbol).qualifiers().contains(Qualifier.CLIENT)) {
+            if (((ClassSymbol) typeSymbol).qualifiers().contains(Qualifier.CLIENT) || isAgentClass(typeSymbol)) {
                 return true;
             }
         }

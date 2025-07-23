@@ -1,0 +1,16 @@
+{
+  "source": "agent_1/agents.bal",
+  "description": "Sample diagram node",
+  "orgName": "ballerinax",
+  "agents": [
+    {
+      "node": "AGENT",
+      "org": "ballerinax",
+      "module": "ai",
+      "packageName": "ai",
+      "object": "Agent",
+      "symbol": "init",
+      "version": "1.0.1"
+    }
+  ]
+}

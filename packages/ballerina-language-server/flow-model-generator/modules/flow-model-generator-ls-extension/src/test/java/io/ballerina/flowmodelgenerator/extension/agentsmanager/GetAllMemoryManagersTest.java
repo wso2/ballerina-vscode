@@ -40,7 +40,8 @@ public class GetAllMemoryManagersTest extends AbstractLSTest {
     @Override
     protected Object[] getConfigsList() {
         return new Object[][]{
-                {Path.of("get_all_memory_managers.json")}
+                {Path.of("get_all_memory_managers.json")},
+                {Path.of("get_all_memory_managers_ballerina.json")}
         };
     }
 
@@ -52,11 +53,12 @@ public class GetAllMemoryManagersTest extends AbstractLSTest {
 
         String filePath =
                 testConfig.source() == null ? "" : sourceDir.resolve(testConfig.source()).toAbsolutePath().toString();
-        GetAllMemoryManagersRequest request = new GetAllMemoryManagersRequest(testConfig.agent(), filePath);
-        JsonArray models = getResponse(request).getAsJsonArray("memoryManagers");
+        GetAllMemoryManagersRequest request = new GetAllMemoryManagersRequest(testConfig.agent(),
+                testConfig.orgName(), filePath);
+        JsonArray models = getResponseAndCloseFile(request, testConfig.source()).getAsJsonArray("memoryManagers");
 
         if (!models.equals(testConfig.models())) {
-            TestConfig updatedConfig = new TestConfig(testConfig.source(), testConfig.description(),
+            TestConfig updatedConfig = new TestConfig(testConfig.source(), testConfig.orgName(),
                     testConfig.agent(), models);
 //            updateConfig(configJsonPath, updatedConfig);
             Assert.fail("Test failed. Updated the expected output in " + configJsonPath);
@@ -87,14 +89,10 @@ public class GetAllMemoryManagersTest extends AbstractLSTest {
      * Represents the test configuration for the flow model getNodeTemplate API.
      *
      * @param source      The source file path
-     * @param description The description of the test
+     * @param orgName     organization of the ai module of the test
      * @param agent       The agent name
      * @param models      List of all available models
      */
-    private record TestConfig(String source, String description, String agent, JsonArray models) {
-
-        public String description() {
-            return description == null ? "" : description;
-        }
+    private record TestConfig(String source, String orgName, String agent, JsonArray models) {
     }
 }

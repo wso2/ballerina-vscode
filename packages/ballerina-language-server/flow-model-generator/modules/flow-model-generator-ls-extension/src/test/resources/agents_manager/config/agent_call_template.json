@@ -9,6 +9,7 @@
     "node": "AGENT_CALL",
     "org": "ballerinax",
     "module": "ai",
+    "packageName": "ai",
     "object": "Agent",
     "symbol": "run",
     "parentSymbol": "agentRun",
@@ -25,6 +26,7 @@
       "node": "AGENT_CALL",
       "org": "ballerinax",
       "module": "ai",
+      "packageName": "ai",
       "object": "Agent",
       "symbol": "run",
       "version": "1.0.1",
@@ -43,7 +45,7 @@
         "optional": false,
         "editable": false,
         "advanced": false,
-        "hidden": false
+        "hidden": true
       },
       "query": {
         "metadata": {
@@ -65,6 +67,7 @@
           {
             "type": "string",
             "packageInfo": "",
+            "packageName": "",
             "kind": "BASIC_TYPE",
             "selected": false
           }
@@ -90,14 +93,16 @@
           {
             "type": "string",
             "packageInfo": "",
+            "packageName": "",
             "kind": "BASIC_TYPE",
             "selected": false
           }
-        ]
+        ],
+        "defaultValue": "\"\""
       },
       "type": {
         "metadata": {
-          "label": "Variable Type",
+          "label": "Result Type",
           "description": "Type of the variable"
         },
         "valueType": "TYPE",
@@ -111,8 +116,8 @@
       },
       "variable": {
         "metadata": {
-          "label": "Variable Name",
-          "description": "Name of the variable"
+          "label": "Result",
+          "description": "Name of the result variable"
         },
         "valueType": "IDENTIFIER",
         "value": "stringResult",
@@ -131,7 +136,7 @@
         "optional": false,
         "editable": true,
         "advanced": true,
-        "hidden": false
+        "hidden": true
       }
     },
     "flags": 0
