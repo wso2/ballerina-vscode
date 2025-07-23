@@ -77,7 +77,8 @@ public class ServiceGeneratorTest extends AbstractLSTest {
         boolean assertFailure = false;
         Map<String, List<TextEdit>> newMap = new HashMap<>();
         try {
-            JsonObject jsonMap = getResponse(request).getAsJsonObject("textEdits");
+            JsonObject jsonMap = getResponseAndCloseFile(
+                    request, testConfig.contractFile()).getAsJsonObject("textEdits");
             Map<String, List<TextEdit>> actualTextEdits = gson.fromJson(jsonMap, textEditListType);
 
             if (actualTextEdits.size() != testConfig.textEdits().size()) {

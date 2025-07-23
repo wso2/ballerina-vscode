@@ -95,6 +95,8 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Stream;
 
+import static io.ballerina.modelgenerator.commons.CommonUtils.isAiModule;
+
 /**
  * Factory class to create {@link FunctionData} instances from function symbols.
  *
@@ -108,6 +110,13 @@ public class FunctionDataBuilder {
 
     public static final String DISPLAY_ANNOTATION = "display";
     public static final String LABEL = "label";
+    public static final String GET_DEFAULT_MODEL_PROVIDER_FUNCTION_NAME = "getDefaultModelProvider";
+    public static final String GET_DEFAULT_EMBEDDING_PROVIDER_FUNCTION_NAME = "getDefaultEmbeddingProvider";
+    private static final String WSO2_MODEL_PROVIDER_TYPE_NAME = "Wso2ModelProvider";
+    private static final String WSO2_EMBEDDING_PROVIDER_TYPE_NAME = "Wso2EmbeddingProvider";
+    private static final String BALLERINAX_ORG_NAME = "ballerinax";
+    private static final String AI_MODULE_NAME = "ai";
+    private static final String MODEL_TYPE_PARAMETER_NAME = "modelType";
     private SemanticModel semanticModel;
     private TypeSymbol errorTypeSymbol;
     private Package resolvedPackage;
@@ -332,10 +341,17 @@ public class FunctionDataBuilder {
                         .orElseThrow(() -> new IllegalStateException("Function symbol not found"));
                 functionSymbol(fetchedSymbol);
             } else {
-                // Fetch the init method if it is a connection
-                if (functionKind == FunctionData.Kind.CONNECTOR) {
-                    if (parentSymbol.kind() != SymbolKind.CLASS ||
-                            !parentSymbol.qualifiers().contains(Qualifier.CLIENT)) {
+                if (isVectorStoreOrKnowledgeBaseKind(functionKind)) {
+                    ClassSymbol classSymbol = (ClassSymbol) parentSymbol;
+                    Optional<MethodSymbol> initMethod = classSymbol.initMethod();
+                    if (initMethod.isEmpty()) {
+                        throw new IllegalStateException("The init method should not be empty");
+                    }
+                    // Fetch the init method if it is a vector store or vector knowledge base
+                    functionSymbol = initMethod.get();
+                } else if (isConnectorOrProviderKind(functionKind)) {
+                    if ((parentSymbol.kind() != SymbolKind.CLASS ||
+                            !parentSymbol.qualifiers().contains(Qualifier.CLIENT))) {
                         throw new IllegalStateException("The connector should be a client class");
                     }
                     ClassSymbol classSymbol = (ClassSymbol) parentSymbol;
@@ -351,7 +367,7 @@ public class FunctionDataBuilder {
                         functionData.setParameters(Map.of());
                         return functionData;
                     }
-
+                    // Fetch the init method if it is a connector or a model provider or an embedding provider
                     functionSymbol = initMethod.get();
                 } else {
                     if (functionKind == FunctionData.Kind.RESOURCE) {
@@ -426,6 +442,16 @@ public class FunctionDataBuilder {
         return functionData;
     }
 
+    private boolean isConnectorOrProviderKind(FunctionData.Kind functionKind) {
+        return functionKind == FunctionData.Kind.CONNECTOR || functionKind == FunctionData.Kind.MODEL_PROVIDER ||
+                functionKind == FunctionData.Kind.EMBEDDING_PROVIDER;
+    }
+
+    private boolean isVectorStoreOrKnowledgeBaseKind(FunctionData.Kind functionKind) {
+        return functionKind == FunctionData.Kind.VECTOR_KNOWLEDGE_BASE
+                || functionKind == FunctionData.Kind.VECTOR_STORE;
+    }
+
     private void checkLocalModule() {
         if (project != null && moduleInfo != null && isLocal()) {
             for (Module module : project.currentPackage().modules()) {
@@ -452,7 +478,15 @@ public class FunctionDataBuilder {
         Optional<TypeSymbol> returnTypeSymbol = functionTypeSymbol.returnTypeDescriptor();
         String returnType = returnTypeSymbol
                 .map(typeSymbol -> {
-                    if (functionKind == FunctionData.Kind.CONNECTOR || functionKind == FunctionData.Kind.CLASS_INIT) {
+                    if (isGetDefaultModelProvider(functionKind, functionName)) {
+                        return CommonUtils.getClassType(moduleInfo.moduleName(), WSO2_MODEL_PROVIDER_TYPE_NAME);
+                    }
+                    if (isGetDefaultEmbeddingProvider(functionKind, functionName)) {
+                        return CommonUtils.getClassType(moduleInfo.moduleName(), WSO2_EMBEDDING_PROVIDER_TYPE_NAME);
+                    }
+                    if (functionKind == FunctionData.Kind.CLASS_INIT
+                            || isConnectorOrProviderKind(functionKind)
+                            || isVectorStoreOrKnowledgeBaseKind(functionKind)) {
                         return CommonUtils.getClassType(moduleInfo.moduleName(),
                                 parentSymbol.getName().orElse("Client"));
                     }
@@ -486,6 +520,16 @@ public class FunctionDataBuilder {
         boolean returnError = returnTypeSymbol
                 .map(returnTypeDesc -> CommonUtils.subTypeOf(returnTypeDesc, errorTypeSymbol)).orElse(false);
         return new ReturnData(returnType, paramForTypeInfer, returnError, importStatements);
+    }
+
+    private boolean isGetDefaultModelProvider(FunctionData.Kind functionKind, String functionName) {
+        return functionKind == FunctionData.Kind.MODEL_PROVIDER
+                && functionName.equals(GET_DEFAULT_MODEL_PROVIDER_FUNCTION_NAME);
+    }
+
+    private boolean isGetDefaultEmbeddingProvider(FunctionData.Kind functionKind, String functionName) {
+        return functionKind == FunctionData.Kind.EMBEDDING_PROVIDER
+                && functionName.equals(GET_DEFAULT_EMBEDDING_PROVIDER_FUNCTION_NAME);
     }
 
     private void setParentSymbol() {
@@ -663,7 +707,7 @@ public class FunctionDataBuilder {
             parameters.putAll(includedParameters);
             placeholder = DefaultValueGeneratorUtil.getDefaultValueForType(typeSymbol);
         } else if (parameterKind == ParameterData.Kind.REQUIRED) {
-            if (isAgentModelType(paramName)) {
+            if (isAiModelTypeParameter(paramName, functionKind)) {
                 List<String> memberTypes = new ArrayList<>();
                 TypeSymbol rawParamType = CommonUtils.getRawType(typeSymbol);
                 if (rawParamType.typeKind() == TypeDescKind.UNION) {
@@ -997,7 +1041,7 @@ public class FunctionDataBuilder {
 
     private String getFunctionName() {
         // Get the client name if it is the init method of the client
-        if (functionKind == FunctionData.Kind.CONNECTOR) {
+        if (isConnectorOrProviderKind(functionKind) || isVectorStoreOrKnowledgeBaseKind(functionKind)) {
             if (parentSymbolType != null) {
                 return parentSymbolType;
             }
@@ -1112,10 +1156,13 @@ public class FunctionDataBuilder {
         return sb.toString();
     }
 
-    private boolean isAgentModelType(String paramName) {
-        return moduleInfo.org().equals("ballerinax") && moduleInfo.moduleName().equals("ai")
-                && (functionKind == FunctionData.Kind.CLASS_INIT || functionKind == FunctionData.Kind.CONNECTOR)
-                && paramName.equals("modelType"); // TODO: Check Param Name
+    private boolean isAiModelTypeParameter(String paramName, FunctionData.Kind functionKind) {
+        return MODEL_TYPE_PARAMETER_NAME.equals(paramName) &&
+                (functionKind == FunctionData.Kind.MODEL_PROVIDER
+                        || functionKind == FunctionData.Kind.EMBEDDING_PROVIDER
+                        || (isAiModule(moduleInfo.org(), moduleInfo.moduleName())
+                                && (functionKind == FunctionData.Kind.CLASS_INIT
+                                || functionKind == FunctionData.Kind.CONNECTOR)));
     }
 
     private record ParamForTypeInfer(String paramName, String defaultValue, String type) {

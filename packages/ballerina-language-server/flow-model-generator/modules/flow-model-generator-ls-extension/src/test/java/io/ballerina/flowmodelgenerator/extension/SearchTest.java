@@ -46,7 +46,8 @@ public class SearchTest extends AbstractLSTest {
 
         SearchRequest request = new SearchRequest(testConfig.kind().name(), getSourcePath(testConfig.source()),
                 testConfig.position(), testConfig.queryMap());
-        JsonArray availableNodes = getResponse(request).getAsJsonArray("categories");
+        JsonArray availableNodes = getResponseAndCloseFile(
+                request, testConfig.source()).getAsJsonArray("categories");
 
         JsonArray categories = availableNodes.getAsJsonArray();
         if (!categories.equals(testConfig.categories())) {

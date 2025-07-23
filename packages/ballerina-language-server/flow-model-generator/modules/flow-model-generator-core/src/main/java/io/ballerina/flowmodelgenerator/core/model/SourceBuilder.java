@@ -101,7 +101,8 @@ public class SourceBuilder {
             if (filePath.endsWith(AGENTS_BAL) && (nodeKind == NodeKind.FUNCTION_DEFINITION
                     || nodeKind == NodeKind.CLASS_INIT
                     || nodeKind == NodeKind.RESOURCE_ACTION_CALL
-                    || nodeKind == NodeKind.REMOTE_ACTION_CALL)) {
+                    || nodeKind == NodeKind.REMOTE_ACTION_CALL
+                    || nodeKind == NodeKind.FUNCTION_CALL)) {
                 nodeKind = NodeKind.AGENT;
             }
             this.filePath = resolvePath(filePath, nodeKind, codedata.lineRange(), codedata.isNew());
@@ -115,7 +116,9 @@ public class SourceBuilder {
     private Path resolvePath(Path inputPath, NodeKind node, LineRange lineRange, Boolean isNew) {
         if (Boolean.TRUE.equals(isNew) || lineRange == null) {
             String defaultFile = switch (node) {
-                case NEW_CONNECTION -> CONNECTIONS_BAL;
+                case NEW_CONNECTION,
+                     MODEL_PROVIDER, EMBEDDING_PROVIDER,
+                     VECTOR_STORE, VECTOR_KNOWLEDGE_BASE -> CONNECTIONS_BAL;
                 case DATA_MAPPER_DEFINITION -> DATA_MAPPINGS_BAL;
                 case FUNCTION_DEFINITION, NP_FUNCTION, NP_FUNCTION_DEFINITION -> FUNCTIONS_BAL;
                 case AUTOMATION -> AUTOMATION_BAL;

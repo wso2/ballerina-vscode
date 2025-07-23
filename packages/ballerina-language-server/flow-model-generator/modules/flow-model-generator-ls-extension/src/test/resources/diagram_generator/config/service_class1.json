@@ -1,0 +1,273 @@
+{
+  "start": {
+    "line": 9,
+    "offset": 0
+  },
+  "end": {
+    "line": 16,
+    "offset": 1
+  },
+  "source": "service_class.bal",
+  "description": "Tests a simple diagram flow",
+  "diagram": {
+    "fileName": "service_class.bal",
+    "nodes": [
+      {
+        "id": "42413",
+        "metadata": {
+          "label": "Start",
+          "data": {
+            "kind": "Resource",
+            "label": "name1",
+            "accessor": "get",
+            "return": "string"
+          }
+        },
+        "codedata": {
+          "node": "EVENT_START",
+          "lineRange": {
+            "fileName": "service_class.bal",
+            "startLine": {
+              "line": 9,
+              "offset": 49
+            },
+            "endLine": {
+              "line": 16,
+              "offset": 5
+            }
+          },
+          "sourceCode": "resource function get name1() returns string {\n        do {\n            panic error(\"Unimplemented function\");\n        } on fail error err {\n            //handle error\n            panic error(\"Unhandled error\");\n        }\n    }"
+        },
+        "returning": false,
+        "flags": 0
+      },
+      {
+        "id": "42076",
+        "metadata": {
+          "label": "ErrorHandler",
+          "description": "Catch and handle errors"
+        },
+        "codedata": {
+          "node": "ERROR_HANDLER",
+          "lineRange": {
+            "fileName": "service_class.bal",
+            "startLine": {
+              "line": 10,
+              "offset": 8
+            },
+            "endLine": {
+              "line": 15,
+              "offset": 9
+            }
+          },
+          "sourceCode": "do {\n            panic error(\"Unimplemented function\");\n        } on fail error err {\n            //handle error\n            panic error(\"Unhandled error\");\n        }"
+        },
+        "returning": false,
+        "branches": [
+          {
+            "label": "Body",
+            "kind": "BLOCK",
+            "codedata": {
+              "node": "BODY",
+              "lineRange": {
+                "fileName": "service_class.bal",
+                "startLine": {
+                  "line": 10,
+                  "offset": 11
+                },
+                "endLine": {
+                  "line": 12,
+                  "offset": 9
+                }
+              },
+              "sourceCode": "{\n            panic error(\"Unimplemented function\");\n        }"
+            },
+            "repeatable": "ONE",
+            "children": [
+              {
+                "id": "43078",
+                "metadata": {
+                  "label": "Panic",
+                  "description": "Panic and stop the execution"
+                },
+                "codedata": {
+                  "node": "PANIC",
+                  "lineRange": {
+                    "fileName": "service_class.bal",
+                    "startLine": {
+                      "line": 11,
+                      "offset": 12
+                    },
+                    "endLine": {
+                      "line": 11,
+                      "offset": 50
+                    }
+                  },
+                  "sourceCode": "panic error(\"Unimplemented function\");"
+                },
+                "returning": false,
+                "properties": {
+                  "expression": {
+                    "metadata": {
+                      "label": "Expression",
+                      "description": "Panic value"
+                    },
+                    "valueType": "EXPRESSION",
+                    "valueTypeConstraint": "error",
+                    "value": "error(\"Unimplemented function\")",
+                    "optional": false,
+                    "editable": true,
+                    "advanced": false,
+                    "hidden": false
+                  }
+                },
+                "flags": 0
+              }
+            ]
+          },
+          {
+            "label": "On Failure",
+            "kind": "BLOCK",
+            "codedata": {
+              "node": "ON_FAILURE",
+              "lineRange": {
+                "fileName": "service_class.bal",
+                "startLine": {
+                  "line": 12,
+                  "offset": 28
+                },
+                "endLine": {
+                  "line": 15,
+                  "offset": 9
+                }
+              },
+              "sourceCode": "{\n            //handle error\n            panic error(\"Unhandled error\");\n        }"
+            },
+            "repeatable": "ZERO_OR_ONE",
+            "properties": {
+              "ignore": {
+                "metadata": {
+                  "label": "Ignore",
+                  "description": "Ignore the error value"
+                },
+                "valueType": "EXPRESSION",
+                "value": "false",
+                "optional": false,
+                "editable": true,
+                "advanced": false,
+                "hidden": false
+              },
+              "errorVariable": {
+                "metadata": {
+                  "label": "Error Variable",
+                  "description": "Name of the error variable"
+                },
+                "valueType": "IDENTIFIER",
+                "value": "err ",
+                "placeholder": "err",
+                "optional": false,
+                "editable": true,
+                "advanced": false,
+                "hidden": false
+              },
+              "errorType": {
+                "metadata": {
+                  "label": "Error Type",
+                  "description": "Type of the error"
+                },
+                "valueType": "TYPE",
+                "value": "error",
+                "placeholder": "error",
+                "optional": false,
+                "editable": true,
+                "advanced": false,
+                "hidden": false
+              }
+            },
+            "children": [
+              {
+                "id": "44666",
+                "metadata": {
+                  "label": "Comment",
+                  "description": ""
+                },
+                "codedata": {
+                  "node": "COMMENT",
+                  "lineRange": {
+                    "fileName": "service_class.bal",
+                    "startLine": {
+                      "line": 13,
+                      "offset": 0
+                    },
+                    "endLine": {
+                      "line": 13,
+                      "offset": 26
+                    }
+                  },
+                  "sourceCode": ""
+                },
+                "returning": false,
+                "properties": {
+                  "comment": {
+                    "metadata": {
+                      "label": "Comment",
+                      "description": "Comment to describe the flow"
+                    },
+                    "valueType": "STRING",
+                    "value": "",
+                    "optional": false,
+                    "editable": true,
+                    "advanced": false,
+                    "hidden": false
+                  }
+                },
+                "flags": 0
+              },
+              {
+                "id": "46047",
+                "metadata": {
+                  "label": "Panic",
+                  "description": "Panic and stop the execution"
+                },
+                "codedata": {
+                  "node": "PANIC",
+                  "lineRange": {
+                    "fileName": "service_class.bal",
+                    "startLine": {
+                      "line": 14,
+                      "offset": 12
+                    },
+                    "endLine": {
+                      "line": 14,
+                      "offset": 43
+                    }
+                  },
+                  "sourceCode": "//handle error\n            panic error(\"Unhandled error\");"
+                },
+                "returning": false,
+                "properties": {
+                  "expression": {
+                    "metadata": {
+                      "label": "Expression",
+                      "description": "Panic value"
+                    },
+                    "valueType": "EXPRESSION",
+                    "valueTypeConstraint": "error",
+                    "value": "error(\"Unhandled error\")",
+                    "optional": false,
+                    "editable": true,
+                    "advanced": false,
+                    "hidden": false
+                  }
+                },
+                "flags": 0
+              }
+            ]
+          }
+        ],
+        "flags": 0
+      }
+    ],
+    "connections": []
+  }
+}

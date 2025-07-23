@@ -43,7 +43,8 @@
             "symbol": "transform",
             "version": "0.1.0"
           },
-          "enabled": true
+          "enabled": true,
+          "more": false
         },
         {
           "metadata": {
@@ -62,7 +63,8 @@
             "symbol": "add",
             "version": "0.1.0"
           },
-          "enabled": true
+          "enabled": true,
+          "more": false
         },
         {
           "metadata": {
@@ -80,7 +82,8 @@
             "symbol": "sum",
             "version": "0.1.0"
           },
-          "enabled": true
+          "enabled": true,
+          "more": false
         },
         {
           "metadata": {
@@ -99,7 +102,8 @@
             "symbol": "prefixSum",
             "version": "0.1.0"
           },
-          "enabled": true
+          "enabled": true,
+          "more": false
         },
         {
           "metadata": {
@@ -118,7 +122,8 @@
             "symbol": "safeDivide",
             "version": "0.1.0"
           },
-          "enabled": true
+          "enabled": true,
+          "more": false
         },
         {
           "metadata": {
@@ -136,7 +141,8 @@
             "symbol": "greet",
             "version": "0.1.0"
           },
-          "enabled": true
+          "enabled": true,
+          "more": false
         },
         {
           "metadata": {
@@ -154,7 +160,8 @@
             "symbol": "sum2",
             "version": "0.1.0"
           },
-          "enabled": true
+          "enabled": true,
+          "more": false
         }
       ]
     },
@@ -202,7 +209,8 @@
                 "symbol": "parseAsType",
                 "version": "1.1.0"
               },
-              "enabled": true
+              "enabled": true,
+              "more": false
             },
             {
               "metadata": {
@@ -218,7 +226,8 @@
                 "symbol": "parseString",
                 "version": "1.1.0"
               },
-              "enabled": true
+              "enabled": true,
+              "more": false
             },
             {
               "metadata": {
@@ -234,7 +243,8 @@
                 "symbol": "parseBytes",
                 "version": "1.1.0"
               },
-              "enabled": true
+              "enabled": true,
+              "more": false
             },
             {
               "metadata": {
@@ -250,7 +260,8 @@
                 "symbol": "parseStream",
                 "version": "1.1.0"
               },
-              "enabled": true
+              "enabled": true,
+              "more": false
             },
             {
               "metadata": {
@@ -266,7 +277,8 @@
                 "symbol": "toJson",
                 "version": "1.1.0"
               },
-              "enabled": true
+              "enabled": true,
+              "more": false
             },
             {
               "metadata": {
@@ -282,7 +294,8 @@
                 "symbol": "prettify",
                 "version": "1.1.0"
               },
-              "enabled": true
+              "enabled": true,
+              "more": false
             },
             {
               "metadata": {
@@ -298,7 +311,8 @@
                 "symbol": "read",
                 "version": "1.1.0"
               },
-              "enabled": true
+              "enabled": true,
+              "more": false
             }
           ]
         },
@@ -323,7 +337,8 @@
                 "symbol": "getTools",
                 "version": "1.0.0"
               },
-              "enabled": true
+              "enabled": true,
+              "more": false
             },
             {
               "metadata": {
@@ -339,7 +354,8 @@
                 "symbol": "extractToolsFromOpenApiSpecFile",
                 "version": "1.0.0"
               },
-              "enabled": true
+              "enabled": true,
+              "more": false
             },
             {
               "metadata": {
@@ -355,7 +371,8 @@
                 "symbol": "extractToolsFromOpenApiJsonSpec",
                 "version": "1.0.0"
               },
-              "enabled": true
+              "enabled": true,
+              "more": false
             },
             {
               "metadata": {
@@ -371,7 +388,8 @@
                 "symbol": "parseOpenApiSpec",
                 "version": "1.0.0"
               },
-              "enabled": true
+              "enabled": true,
+              "more": false
             },
             {
               "metadata": {
@@ -387,7 +405,8 @@
                 "symbol": "executeTool",
                 "version": "1.0.0"
               },
-              "enabled": true
+              "enabled": true,
+              "more": false
             },
             {
               "metadata": {
@@ -403,7 +422,8 @@
                 "symbol": "getToolConfigs",
                 "version": "1.0.0"
               },
-              "enabled": true
+              "enabled": true,
+              "more": false
             }
           ]
         },
@@ -428,7 +448,8 @@
                 "symbol": "fileReadBytes",
                 "version": "1.8.0"
               },
-              "enabled": true
+              "enabled": true,
+              "more": false
             },
             {
               "metadata": {
@@ -444,7 +465,8 @@
                 "symbol": "fileReadBlocksAsStream",
                 "version": "1.8.0"
               },
-              "enabled": true
+              "enabled": true,
+              "more": false
             },
             {
               "metadata": {
@@ -460,7 +482,8 @@
                 "symbol": "fileWriteBytes",
                 "version": "1.8.0"
               },
-              "enabled": true
+              "enabled": true,
+              "more": false
             },
             {
               "metadata": {
@@ -476,7 +499,8 @@
                 "symbol": "fileWriteBlocksFromStream",
                 "version": "1.8.0"
               },
-              "enabled": true
+              "enabled": true,
+              "more": false
             },
             {
               "metadata": {
@@ -492,7 +516,8 @@
                 "symbol": "fileReadCsv",
                 "version": "1.8.0"
               },
-              "enabled": true
+              "enabled": true,
+              "more": false
             },
             {
               "metadata": {
@@ -508,7 +533,8 @@
                 "symbol": "fileReadCsvAsStream",
                 "version": "1.8.0"
               },
-              "enabled": true
+              "enabled": true,
+              "more": false
             },
             {
               "metadata": {
@@ -524,7 +550,8 @@
                 "symbol": "fileWriteCsv",
                 "version": "1.8.0"
               },
-              "enabled": true
+              "enabled": true,
+              "more": false
             },
             {
               "metadata": {
@@ -540,7 +567,8 @@
                 "symbol": "fileReadJson",
                 "version": "1.8.0"
               },
-              "enabled": true
+              "enabled": true,
+              "more": false
             },
             {
               "metadata": {
@@ -556,7 +584,8 @@
                 "symbol": "fileReadString",
                 "version": "1.8.0"
               },
-              "enabled": true
+              "enabled": true,
+              "more": false
             },
             {
               "metadata": {
@@ -572,7 +601,8 @@
                 "symbol": "fileWriteJson",
                 "version": "1.8.0"
               },
-              "enabled": true
+              "enabled": true,
+              "more": false
             },
             {
               "metadata": {
@@ -588,7 +618,8 @@
                 "symbol": "fileWriteString",
                 "version": "1.8.0"
               },
-              "enabled": true
+              "enabled": true,
+              "more": false
             },
             {
               "metadata": {
@@ -604,7 +635,8 @@
                 "symbol": "print",
                 "version": "1.8.0"
               },
-              "enabled": true
+              "enabled": true,
+              "more": false
             },
             {
               "metadata": {
@@ -620,7 +652,8 @@
                 "symbol": "println",
                 "version": "1.8.0"
               },
-              "enabled": true
+              "enabled": true,
+              "more": false
             }
           ]
         },
@@ -645,7 +678,8 @@
                 "symbol": "utcFromString",
                 "version": "2.7.0"
               },
-              "enabled": true
+              "enabled": true,
+              "more": false
             },
             {
               "metadata": {
@@ -661,7 +695,8 @@
                 "symbol": "utcNow",
                 "version": "2.7.0"
               },
-              "enabled": true
+              "enabled": true,
+              "more": false
             }
           ]
         }
@@ -699,7 +734,8 @@
                 "symbol": "printDebug",
                 "version": "2.12.0"
               },
-              "enabled": true
+              "enabled": true,
+              "more": false
             },
             {
               "metadata": {
@@ -715,7 +751,8 @@
                 "symbol": "printError",
                 "version": "2.12.0"
               },
-              "enabled": true
+              "enabled": true,
+              "more": false
             },
             {
               "metadata": {
@@ -731,7 +768,8 @@
                 "symbol": "printInfo",
                 "version": "2.12.0"
               },
-              "enabled": true
+              "enabled": true,
+              "more": false
             },
             {
               "metadata": {
@@ -747,7 +785,8 @@
                 "symbol": "printWarn",
                 "version": "2.12.0"
               },
-              "enabled": true
+              "enabled": true,
+              "more": false
             }
           ]
         }

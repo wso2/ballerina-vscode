@@ -1,6 +1,7 @@
 {
   "source": "agent_1/agents.bal",
   "description": "Sample diagram node",
+  "orgName": "ballerinax",
   "agents": [
     {
       "node": "AGENT",

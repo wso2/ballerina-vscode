@@ -84,6 +84,7 @@ under the License.
             <class name="io.ballerina.flowmodelgenerator.extension.agentsmanager.NodeTemplateTest"/>
             <class name="io.ballerina.flowmodelgenerator.extension.agentsmanager.SourceGeneratorTest"/>
             <class name="io.ballerina.flowmodelgenerator.extension.agentsmanager.GenToolsTest"/>
+            <class name="io.ballerina.flowmodelgenerator.extension.agentsmanager.GetAgentOrgTest"/>
             <class name="io.ballerina.flowmodelgenerator.extension.agentsmanager.GetAllAgentsTest"/>
             <class name="io.ballerina.flowmodelgenerator.extension.agentsmanager.GetAllModelsTest"/>
             <class name="io.ballerina.flowmodelgenerator.extension.agentsmanager.GetModelsTest"/>
@@ -96,6 +97,9 @@ under the License.
 
             <class name="io.ballerina.flowmodelgenerator.extension.CopilotLibraryListTest"/>
             <class name="io.ballerina.flowmodelgenerator.extension.CopilotLibraryFilterTest"/>
+            <class name="io.ballerina.flowmodelgenerator.extension.modelprovidermanager.ModelProviderSearchTest"/>
+            <class name="io.ballerina.flowmodelgenerator.extension.embeddingprovidermanager.EmbeddingProviderSearchTest"/>
+            <class name="io.ballerina.flowmodelgenerator.extension.vectorstoremanager.VectorStoreSearchTest"/>
         </classes>
     </test>
 </suite>

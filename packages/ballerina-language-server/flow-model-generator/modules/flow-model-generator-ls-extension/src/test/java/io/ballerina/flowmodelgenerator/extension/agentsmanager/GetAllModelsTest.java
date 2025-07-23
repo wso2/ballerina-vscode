@@ -40,7 +40,8 @@ public class GetAllModelsTest extends AbstractLSTest {
     @Override
     protected Object[] getConfigsList() {
         return new Object[][]{
-                {Path.of("get_all_models.json")}
+                {Path.of("get_all_models.json")},
+                {Path.of("get_all_models_ballerina.json")}
         };
     }
 
@@ -52,12 +53,12 @@ public class GetAllModelsTest extends AbstractLSTest {
 
         String filePath =
                 testConfig.source() == null ? "" : sourceDir.resolve(testConfig.source()).toAbsolutePath().toString();
-        GetAllModelsRequest request = new GetAllModelsRequest(testConfig.agent(), filePath);
-        JsonArray models = getResponse(request).getAsJsonArray("models");
+        GetAllModelsRequest request = new GetAllModelsRequest(testConfig.agent(), testConfig.orgName(), filePath);
+        JsonArray models = getResponseAndCloseFile(request, testConfig.source()).getAsJsonArray("models");
 
         if (!models.equals(testConfig.models())) {
             TestConfig updatedConfig = new TestConfig(testConfig.source(), testConfig.description(),
-                    testConfig.agent(), models);
+                    testConfig.orgName(), testConfig.agent(), models);
 //            updateConfig(configJsonPath, updatedConfig);
             Assert.fail("Test failed. Updated the expected output in " + configJsonPath);
         }
@@ -88,11 +89,11 @@ public class GetAllModelsTest extends AbstractLSTest {
      *
      * @param source      The source file path
      * @param description The description of the test
+     * @param orgName     organization name
      * @param agent       The agent name
      * @param models      List of all available models
      */
-    private record TestConfig(String source, String description, String agent, JsonArray models) {
-
+    private record TestConfig(String source, String description, String orgName, String agent, JsonArray models) {
         public String description() {
             return description == null ? "" : description;
         }

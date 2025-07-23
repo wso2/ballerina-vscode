@@ -86,7 +86,8 @@
                 "symbol": "fileWriteString",
                 "version": "1.8.0"
               },
-              "enabled": true
+              "enabled": true,
+              "more": false
             },
             {
               "metadata": {
@@ -102,7 +103,8 @@
                 "symbol": "fileWriteJson",
                 "version": "1.8.0"
               },
-              "enabled": true
+              "enabled": true,
+              "more": false
             },
             {
               "metadata": {
@@ -118,7 +120,8 @@
                 "symbol": "fileWriteBytes",
                 "version": "1.8.0"
               },
-              "enabled": true
+              "enabled": true,
+              "more": false
             },
             {
               "metadata": {
@@ -134,7 +137,8 @@
                 "symbol": "fileWriteXml",
                 "version": "1.8.0"
               },
-              "enabled": true
+              "enabled": true,
+              "more": false
             },
             {
               "metadata": {
@@ -150,7 +154,8 @@
                 "symbol": "fileWriteBlocksFromStream",
                 "version": "1.8.0"
               },
-              "enabled": true
+              "enabled": true,
+              "more": false
             },
             {
               "metadata": {
@@ -166,7 +171,8 @@
                 "symbol": "fileWriteLines",
                 "version": "1.8.0"
               },
-              "enabled": true
+              "enabled": true,
+              "more": false
             },
             {
               "metadata": {
@@ -182,7 +188,8 @@
                 "symbol": "fileWriteLinesFromStream",
                 "version": "1.8.0"
               },
-              "enabled": true
+              "enabled": true,
+              "more": false
             },
             {
               "metadata": {
@@ -198,7 +205,8 @@
                 "symbol": "fileWriteCsv",
                 "version": "1.8.0"
               },
-              "enabled": true
+              "enabled": true,
+              "more": false
             },
             {
               "metadata": {
@@ -214,7 +222,8 @@
                 "symbol": "fileWriteCsvFromStream",
                 "version": "1.8.0"
               },
-              "enabled": true
+              "enabled": true,
+              "more": false
             }
           ]
         }
