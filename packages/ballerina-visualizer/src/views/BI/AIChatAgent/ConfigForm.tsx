@@ -39,6 +39,7 @@ const FormContainer = styled.div`
 `;
 
 interface ConfigProps {
+    fileName: string;
     isSaving: boolean;
     formFields: FormField[];
     targetLineRange: LineRange;
@@ -48,7 +49,7 @@ interface ConfigProps {
 }
 
 export function ConfigForm(props: ConfigProps) {
-    const { isSaving, formFields, targetLineRange, disableSaveButton, onSubmit, onBack } = props;
+    const { fileName, isSaving, formFields, targetLineRange, disableSaveButton, onSubmit, onBack } = props;
     console.log(">>> ConfigForm props", props);
 
     const handleSubmit = async (data: FormValues, formImports: FormImports) => {
@@ -80,7 +81,7 @@ export function ConfigForm(props: ConfigProps) {
                 <FormContainer>
                     {targetLineRange && (
                         <FormGeneratorNew
-                            fileName={targetLineRange.fileName}
+                            fileName={fileName}
                             targetLineRange={targetLineRange}
                             fields={formFields}
                             onBack={onBack}
