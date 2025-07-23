@@ -20,48 +20,48 @@ import {
     sendTelemetryEvent, sendTelemetryException, TM_EVENT_PASTE_AS_RECORD, CMP_JSON_TO_RECORD,
 } from "../../telemetry";
 import { commands, window, env } from "vscode";
-import { ballerinaExtInstance, DIAGNOSTIC_SEVERITY } from "../../../core";
+import { extension } from "../../../BalExtensionContext";
 import { PALETTE_COMMANDS, MESSAGES } from "./cmd-runner";
-import { JsonToRecord } from "@wso2/ballerina-core";
+import { DIAGNOSTIC_SEVERITY, JsonToRecord } from "@wso2/ballerina-core";
 
 const MSG_NOT_SUPPORT = "Paste JSON as a Ballerina record feature is not supported";
 
 export function activatePasteJsonAsRecord() {
 
-    if (!ballerinaExtInstance.langClient) {
+    if (!extension.ballerinaExtInstance.langClient) {
         return;
     }
 
     commands.registerCommand(PALETTE_COMMANDS.PASTE_JSON_AS_RECORD, () => {
         // This command is only available since Swan Lake Beta 2
         // Check the version before registering the command
-        const balVersion = ballerinaExtInstance.ballerinaVersion.toLowerCase();
+        const balVersion = extension.ballerinaExtInstance.ballerinaVersion.toLowerCase();
         if (!balVersion.includes("alpha") && !balVersion.includes("preview")) {
             if (balVersion.includes("beta")) {
                 // check if SL Beta version >= 2
-                const digits = ballerinaExtInstance.ballerinaVersion.replace(/[^0-9]/g, "");
+                const digits = extension.ballerinaExtInstance.ballerinaVersion.replace(/[^0-9]/g, "");
                 const versionNumber = +digits;
                 if (versionNumber < 2) {
-                    window.showErrorMessage(`${MSG_NOT_SUPPORT} in ${ballerinaExtInstance.ballerinaVersion}`);
+                    window.showErrorMessage(`${MSG_NOT_SUPPORT} in ${extension.ballerinaExtInstance.ballerinaVersion}`);
                     return;
                 }
             }
         } else {
-            window.showErrorMessage(`${MSG_NOT_SUPPORT} in ${ballerinaExtInstance.ballerinaVersion}`);
+            window.showErrorMessage(`${MSG_NOT_SUPPORT} in ${extension.ballerinaExtInstance.ballerinaVersion}`);
             return;
         }
         if (!window.activeTextEditor || !window.activeTextEditor?.document.fileName.endsWith('.bal')) {
             window.showErrorMessage("Target is not a Ballerina file!");
             return;
         }
-        sendTelemetryEvent(ballerinaExtInstance, TM_EVENT_PASTE_AS_RECORD, CMP_JSON_TO_RECORD);
+        sendTelemetryEvent(extension.ballerinaExtInstance, TM_EVENT_PASTE_AS_RECORD, CMP_JSON_TO_RECORD);
         env.clipboard.readText()
             .then(clipboardText => {
-                if (!ballerinaExtInstance.langClient) {
+                if (!extension.ballerinaExtInstance.langClient) {
                     window.showErrorMessage("Ballerina language client not found.");
                     return;
                 }
-                ballerinaExtInstance.langClient!.convertJsonToRecord({ jsonString: clipboardText, isClosed: false, isRecordTypeDesc: false, recordName: "", forceFormatRecordFields: false })
+                extension.ballerinaExtInstance.langClient!.convertJsonToRecord({ jsonString: clipboardText, isClosed: false, isRecordTypeDesc: false, recordName: "", forceFormatRecordFields: false })
                     .then(lSResponse => {
                         const response = lSResponse as JsonToRecord;
                         if (!response) {
@@ -96,12 +96,12 @@ export function activatePasteJsonAsRecord() {
                     },
                         error => {
                             window.showErrorMessage(error.message);
-                            sendTelemetryException(ballerinaExtInstance, error, CMP_JSON_TO_RECORD);
+                            sendTelemetryException(extension.ballerinaExtInstance, error, CMP_JSON_TO_RECORD);
                         });
             },
                 error => {
                     window.showErrorMessage(error.message);
-                    sendTelemetryException(ballerinaExtInstance, error, CMP_JSON_TO_RECORD);
+                    sendTelemetryException(extension.ballerinaExtInstance, error, CMP_JSON_TO_RECORD);
                 });
     });
 }
