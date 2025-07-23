@@ -18,18 +18,18 @@
 
 import { Uri, ExtensionContext, WebviewOptions, WebviewPanelOptions, Webview } from "vscode";
 import { join, sep } from "path";
-import { ballerinaExtInstance } from "../core";
+import { extension } from "../BalExtensionContext";
 
 export const RESOURCES_CDN = `https://choreo-shared-codeserver-cdne.azureedge.net/ballerina-low-code-resources@${process.env.BALLERINA_LOW_CODE_RESOURCES_VERSION}`;
 const isDevMode = process.env.WEB_VIEW_WATCH_MODE === "true";
 
 function getWebViewResourceRoot(): string {
-    return join((ballerinaExtInstance.context as ExtensionContext).extensionPath,
+    return join((extension.ballerinaExtInstance.context as ExtensionContext).extensionPath,
         'resources');
 }
 
 function getNodeModulesRoot(): string {
-    return join((ballerinaExtInstance.context as ExtensionContext).extensionPath,
+    return join((extension.ballerinaExtInstance.context as ExtensionContext).extensionPath,
         'node_modules');
 }
 
@@ -38,7 +38,7 @@ export function getCommonWebViewOptions(): Partial<WebviewOptions & WebviewPanel
         enableScripts: true,
         retainContextWhenHidden: true,
         localResourceRoots: [
-            Uri.file(join((ballerinaExtInstance.context as ExtensionContext).extensionPath, 'resources', 'jslibs')),
+            Uri.file(join((extension.ballerinaExtInstance.context as ExtensionContext).extensionPath, 'resources', 'jslibs')),
             Uri.file(getWebViewResourceRoot()),
             Uri.file(getNodeModulesRoot())
         ],
@@ -80,11 +80,11 @@ export function getLibraryWebViewContent(options: WebViewOptions, webView: Webvi
     // in windows fontdir path contains \ as separator. css does not like this.
     const fontDirWithSeparatorReplaced = fontDir.split(sep).join("/");
 
-    const isCodeServer = ballerinaExtInstance.getCodeServerContext().codeServerEnv;
+    const isCodeServer = extension.ballerinaExtInstance.getCodeServerContext().codeServerEnv;
     const resourceRoot = isCodeServer ? RESOURCES_CDN : getVSCodeResourceURI(getWebViewResourceRoot(), webView);
 
-    const codiconUri = webView.asWebviewUri(Uri.joinPath((ballerinaExtInstance.context as ExtensionContext).extensionUri, "resources", "codicons", "codicon.css"));
-    const fontsUri = webView.asWebviewUri(Uri.joinPath((ballerinaExtInstance.context as ExtensionContext).extensionUri, "node_modules", "@wso2", "font-wso2-vscode", "dist", "wso2-vscode.css"));
+    const codiconUri = webView.asWebviewUri(Uri.joinPath((extension.ballerinaExtInstance.context as ExtensionContext).extensionUri, "resources", "codicons", "codicon.css"));
+    const fontsUri = webView.asWebviewUri(Uri.joinPath((extension.ballerinaExtInstance.context as ExtensionContext).extensionUri, "node_modules", "@wso2", "font-wso2-vscode", "dist", "wso2-vscode.css"));
 
     return `
             <!DOCTYPE html>
@@ -125,12 +125,12 @@ export function getLibraryWebViewContent(options: WebViewOptions, webView: Webvi
 }
 
 function getComposerURI(webView: Webview): string {
-    return getVSCodeResourceURI(join((ballerinaExtInstance.context as ExtensionContext).extensionPath, 'resources',
+    return getVSCodeResourceURI(join((extension.ballerinaExtInstance.context as ExtensionContext).extensionPath, 'resources',
         'jslibs'), webView);
 }
 
 function getComposerCSSFiles(disableComDebug: boolean, devHost: string, webView: Webview): string[] {
-    const filePath = join((ballerinaExtInstance.context as ExtensionContext).extensionPath, 'resources', 'jslibs', 'themes', 'ballerina-default.min.css');
+    const filePath = join((extension.ballerinaExtInstance.context as ExtensionContext).extensionPath, 'resources', 'jslibs', 'themes', 'ballerina-default.min.css');
     return [
         (isDevMode && !disableComDebug) ? join(devHost, 'themes', 'ballerina-default.min.css')
             : webView.asWebviewUri(Uri.file(filePath)).toString()
@@ -138,7 +138,7 @@ function getComposerCSSFiles(disableComDebug: boolean, devHost: string, webView:
 }
 
 function getComposerJSFiles(componentName: string, disableComDebug: boolean, devHost: string, webView: Webview): string[] {
-    const filePath = join((ballerinaExtInstance.context as ExtensionContext).extensionPath, 'resources', 'jslibs') + sep + componentName + '.js';
+    const filePath = join((extension.ballerinaExtInstance.context as ExtensionContext).extensionPath, 'resources', 'jslibs') + sep + componentName + '.js';
     return [
         (isDevMode && !disableComDebug) ? join(devHost, componentName + '.js')
             : webView.asWebviewUri(Uri.file(filePath)).toString(),

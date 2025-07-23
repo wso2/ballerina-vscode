@@ -25,7 +25,7 @@ import { FindNodeByUidVisitor } from "./history/find-node-by-uid";
 import { FindConstructByNameVisitor } from "./history/find-construct-by-name-visitor";
 import { FindConstructByIndexVisitor } from "./history/find-construct-by-index-visitor";
 import { getConstructBodyString } from "./history/util";
-import { ballerinaExtInstance } from "../core";
+import { extension } from "../BalExtensionContext";
 import path from "path";
 
 export async function getView(documentUri: string, position: NodePosition, projectUri?: string): Promise<HistoryEntry> {
@@ -223,7 +223,7 @@ async function getViewBySTRange(documentUri: string, position: NodePosition, pro
                     documentUri: documentUri,
                     position: node.syntaxTree.position,
                     metadata: {
-                        enableSequenceDiagram: ballerinaExtInstance.enableSequenceDiagramView(),
+                        enableSequenceDiagram: extension.ballerinaExtInstance.enableSequenceDiagramView(),
                     }
                 },
                 dataMapperDepth: 0
@@ -354,7 +354,7 @@ function findViewByArtifact(dir: ProjectStructureArtifactResponse, position: Nod
                         identifier: dir.name,
                         position: dir.position,
                         metadata: {
-                            enableSequenceDiagram: ballerinaExtInstance.enableSequenceDiagramView(),
+                            enableSequenceDiagram: extension.ballerinaExtInstance.enableSequenceDiagramView(),
                         }
                     },
                     dataMapperDepth: 0

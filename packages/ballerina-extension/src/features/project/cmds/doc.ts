@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import { ballerinaExtInstance, LANGUAGE } from "../../../core";
+import { extension } from "../../../BalExtensionContext";
 import { commands, window } from "vscode";
 import {
     TM_EVENT_PROJECT_DOC, TM_EVENT_ERROR_EXECUTE_PROJECT_DOC, CMP_PROJECT_DOC, sendTelemetryEvent,
@@ -25,33 +25,34 @@ import {
 } from "../../telemetry";
 import { runCommand, BALLERINA_COMMANDS, MESSAGES, PROJECT_TYPE, PALETTE_COMMANDS } from "./cmd-runner";
 import { getCurrentBallerinaProject } from "../../../utils/project-utils";
+import { LANGUAGE } from "../../../core";
 
 function activateDocCommand() {
     // register ballerina doc handler
     commands.registerCommand(PALETTE_COMMANDS.DOC, async () => {
         try {
-            sendTelemetryEvent(ballerinaExtInstance, TM_EVENT_PROJECT_DOC, CMP_PROJECT_DOC);
+            sendTelemetryEvent(extension.ballerinaExtInstance, TM_EVENT_PROJECT_DOC, CMP_PROJECT_DOC);
 
             if (window.activeTextEditor && window.activeTextEditor.document.languageId != LANGUAGE.BALLERINA) {
                 window.showErrorMessage(MESSAGES.NOT_IN_PROJECT);
                 return;
             }
 
-            const currentProject = await ballerinaExtInstance.getDocumentContext().isActiveDiagram() ? await
-                getCurrentBallerinaProject(ballerinaExtInstance.getDocumentContext().getLatestDocument()?.toString())
+            const currentProject = await extension.ballerinaExtInstance.getDocumentContext().isActiveDiagram() ? await
+                getCurrentBallerinaProject(extension.ballerinaExtInstance.getDocumentContext().getLatestDocument()?.toString())
                 : await getCurrentBallerinaProject();
             if (currentProject.kind === PROJECT_TYPE.SINGLE_FILE) {
-                sendTelemetryEvent(ballerinaExtInstance, TM_EVENT_ERROR_EXECUTE_PROJECT_DOC, CMP_PROJECT_DOC,
+                sendTelemetryEvent(extension.ballerinaExtInstance, TM_EVENT_ERROR_EXECUTE_PROJECT_DOC, CMP_PROJECT_DOC,
                     getMessageObject(MESSAGES.NOT_IN_PROJECT));
                 window.showErrorMessage(MESSAGES.NOT_IN_PROJECT);
                 return;
             }
-            runCommand(currentProject, ballerinaExtInstance.getBallerinaCmd(), BALLERINA_COMMANDS.DOC,
+            runCommand(currentProject, extension.ballerinaExtInstance.getBallerinaCmd(), BALLERINA_COMMANDS.DOC,
                 currentProject.path!);
 
         } catch (error) {
             if (error instanceof Error) {
-                sendTelemetryException(ballerinaExtInstance, error, CMP_PROJECT_DOC);
+                sendTelemetryException(extension.ballerinaExtInstance, error, CMP_PROJECT_DOC);
                 window.showErrorMessage(error.message);
             } else {
                 window.showErrorMessage("Unkown error occurred.");
