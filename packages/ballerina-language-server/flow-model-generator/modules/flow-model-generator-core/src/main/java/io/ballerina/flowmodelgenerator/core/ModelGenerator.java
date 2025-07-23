@@ -302,16 +302,19 @@ public class ModelGenerator {
     private Optional<FlowNode> buildVariables(Symbol symbol) {
         Function<NonTerminalNode, NonTerminalNode> getStatementNode;
         NonTerminalNode statementNode;
+        TypeSymbol typeSymbol;
         String scope;
         Document document;
 
         switch (symbol.kind()) {
             case VARIABLE -> {
                 getStatementNode = (NonTerminalNode node) -> node.parent().parent();
+                typeSymbol = ((VariableSymbol) symbol).typeDescriptor();
                 scope = Property.GLOBAL_SCOPE;
             }
             case CLASS_FIELD -> {
                 getStatementNode = (NonTerminalNode node) -> node;
+                typeSymbol = ((ClassFieldSymbol) symbol).typeDescriptor();
                 scope = Property.SERVICE_SCOPE;
             }
             default -> {
@@ -319,6 +322,10 @@ public class ModelGenerator {
             }
         }
         try {
+            TypeSymbol typeDescriptorSymbol = ((TypeReferenceTypeSymbol) typeSymbol).typeDescriptor();
+            if (isClassOrObject(typeDescriptorSymbol)) {
+                return Optional.empty();
+            }
             Location location = symbol.getLocation().orElseThrow();
             DocumentId documentId = project.documentId(
                     project.kind() == ProjectKind.SINGLE_FILE_PROJECT ? project.sourceRoot() :
