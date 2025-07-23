@@ -55,6 +55,11 @@ under the License.
             <class name="io.ballerina.flowmodelgenerator.extension.DataMappingVisualizeTest"/>
             <class name="io.ballerina.flowmodelgenerator.extension.DataMappingAddElementTest"/>
             <class name="io.ballerina.flowmodelgenerator.extension.DataMappingAddClausesTest"/>
+            <class name="io.ballerina.flowmodelgenerator.extension.DataMappingFieldPositionTest"/>
+            <class name="io.ballerina.flowmodelgenerator.extension.DataMappingSubMappingTest"/>
+            <class name="io.ballerina.flowmodelgenerator.extension.DataMappingNodePositionTest"/>
+            <class name="io.ballerina.flowmodelgenerator.extension.DataMappingSubMappingSourceTest"/>
+            <class name="io.ballerina.flowmodelgenerator.extension.DataMappingCustomFunctionTest"/>
             <class name="io.ballerina.flowmodelgenerator.extension.OpenApiClientGeneratorTest"/>
             <class name="io.ballerina.flowmodelgenerator.extension.OpenApiClientDeleteTest"/>
             <class name="io.ballerina.flowmodelgenerator.extension.JsonConverterTest"/>
@@ -66,6 +71,7 @@ under the License.
             <class name="io.ballerina.flowmodelgenerator.extension.SearchTest"/>
             <class name="io.ballerina.flowmodelgenerator.extension.InitializerTest"/>
             <class name="io.ballerina.flowmodelgenerator.extension.ServiceFieldNodesTest"/>
+            <class name="io.ballerina.flowmodelgenerator.extension.DataMappingDeleteTest"/>
 
             <!--types manager-->
             <class name="io.ballerina.flowmodelgenerator.extension.typesmanager.CreateAndUpdateTypeTest"/>
@@ -84,7 +90,6 @@ under the License.
             <class name="io.ballerina.flowmodelgenerator.extension.agentsmanager.NodeTemplateTest"/>
             <class name="io.ballerina.flowmodelgenerator.extension.agentsmanager.SourceGeneratorTest"/>
             <class name="io.ballerina.flowmodelgenerator.extension.agentsmanager.GenToolsTest"/>
-            <class name="io.ballerina.flowmodelgenerator.extension.agentsmanager.GetAgentOrgTest"/>
             <class name="io.ballerina.flowmodelgenerator.extension.agentsmanager.GetAllAgentsTest"/>
             <class name="io.ballerina.flowmodelgenerator.extension.agentsmanager.GetAllModelsTest"/>
             <class name="io.ballerina.flowmodelgenerator.extension.agentsmanager.GetModelsTest"/>
@@ -92,14 +97,8 @@ under the License.
             <class name="io.ballerina.flowmodelgenerator.extension.agentsmanager.FlowNodeGeneratorTest"/>
             <class name="io.ballerina.flowmodelgenerator.extension.agentsmanager.AvailableNodesTest"/>
             <class name="io.ballerina.flowmodelgenerator.extension.agentsmanager.SearchTest"/>
-            <class name="io.ballerina.flowmodelgenerator.extension.agentsmanager.GetToolTest"/>
+            <class name="io.ballerina.flowmodelgenerator.extension.agentsmanager.EditToolTest"/>
             <class name="io.ballerina.flowmodelgenerator.extension.agentsmanager.GetAllMemoryManagersTest"/>
-
-            <class name="io.ballerina.flowmodelgenerator.extension.CopilotLibraryListTest"/>
-            <class name="io.ballerina.flowmodelgenerator.extension.CopilotLibraryFilterTest"/>
-            <class name="io.ballerina.flowmodelgenerator.extension.modelprovidermanager.ModelProviderSearchTest"/>
-            <class name="io.ballerina.flowmodelgenerator.extension.embeddingprovidermanager.EmbeddingProviderSearchTest"/>
-            <class name="io.ballerina.flowmodelgenerator.extension.vectorstoremanager.VectorStoreSearchTest"/>
         </classes>
     </test>
 </suite>

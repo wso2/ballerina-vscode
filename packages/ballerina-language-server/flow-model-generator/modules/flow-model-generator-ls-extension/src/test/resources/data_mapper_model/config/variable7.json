@@ -57,11 +57,11 @@
     },
     "flags": 0
   },
-  "propertyKey": "expression",
   "position": {
     "line": 19,
     "offset": 65
   },
+  "propertyKey": "expression",
   "model": {
     "inputs": [
       {
@@ -89,7 +89,7 @@
         "variableName": "userInfo",
         "typeName": "UserInfo",
         "kind": "record",
-        "category": "variable"
+        "category": "local-variable"
       }
     ],
     "output": {
@@ -127,7 +127,8 @@
         "expression": "userInfo.username",
         "diagnostics": [],
         "elements": [],
-        "isQueryExpression": false
+        "isQueryExpression": false,
+        "isFunctionCall": false
       },
       {
         "output": "student.password",
@@ -138,7 +139,8 @@
         "expression": "userInfo.password + userInfo.username",
         "diagnostics": [],
         "elements": [],
-        "isQueryExpression": false
+        "isQueryExpression": false,
+        "isFunctionCall": false
       },
       {
         "output": "student.length",
@@ -146,7 +148,8 @@
         "expression": "41",
         "diagnostics": [],
         "elements": [],
-        "isQueryExpression": false
+        "isQueryExpression": false,
+        "isFunctionCall": false
       }
     ]
   }

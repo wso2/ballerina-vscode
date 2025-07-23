@@ -27,13 +27,13 @@ import com.google.gson.JsonElement;
  */
 public class DataMapperFieldPositionResponse extends AbstractFlowModelResponse {
 
-    private JsonElement field;
+    private JsonElement property;
 
-    public void setField(JsonElement field) {
-        this.field = field;
+    public void setProperty(JsonElement property) {
+        this.property = property;
     }
 
-    public JsonElement getField() {
-        return this.field;
+    public JsonElement getProperty() {
+        return this.property;
     }
 }

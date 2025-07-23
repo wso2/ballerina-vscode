@@ -57,11 +57,11 @@
     },
     "flags": 0
   },
-  "propertyKey": "expression",
   "position": {
     "line": 29,
     "offset": 14
   },
+  "propertyKey": "expression",
   "model": {
     "inputs": [
       {
@@ -89,7 +89,7 @@
         "variableName": "std",
         "typeName": "Student",
         "kind": "record",
-        "category": "variable"
+        "category": "local-variable"
       }
     ],
     "output": {
@@ -162,7 +162,8 @@
         "expression": "std.firstName + std.lastName",
         "diagnostics": [],
         "elements": [],
-        "isQueryExpression": false
+        "isQueryExpression": false,
+        "isFunctionCall": false
       },
       {
         "output": "var1909.age",
@@ -172,7 +173,8 @@
         "expression": "std.stdAge",
         "diagnostics": [],
         "elements": [],
-        "isQueryExpression": false
+        "isQueryExpression": false,
+        "isFunctionCall": false
       }
     ]
   }

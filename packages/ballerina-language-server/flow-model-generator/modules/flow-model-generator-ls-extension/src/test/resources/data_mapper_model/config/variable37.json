@@ -1,67 +1,26 @@
 {
   "source": "variable22.bal",
   "description": "Sample diagram node",
-  "diagram": {
-    "id": "32874",
-    "metadata": {
-      "label": "Variable",
-      "description": "Assign a value to a variable"
-    },
-    "codedata": {
-      "node": "VARIABLE",
-      "lineRange": {
-        "fileName": "variable22.bal",
-        "startLine": {
-          "line": 0,
-          "offset": 0
-        },
-        "endLine": {
-          "line": 0,
-          "offset": 0
-        }
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "variable22.bal",
+      "startLine": {
+        "line": 41,
+        "offset": 12
       },
-      "sourceCode": ""
-    },
-    "returning": false,
-    "properties": {
-      "expression": {
-        "metadata": {
-          "label": "Expression",
-          "description": "Expression"
-        },
-        "valueType": "EXPRESSION",
-        "value": "[{users6: [{balance: 2.0, account: user.name}], user5: {u: [user.name, user.name]}}]",
-        "optional": false,
-        "editable": true
-      },
-      "variable": {
-        "metadata": {
-          "label": "Variable",
-          "description": "Name of the variable"
-        },
-        "valueType": "IDENTIFIER",
-        "value": "users4",
-        "optional": false,
-        "editable": true
-      },
-      "type": {
-        "metadata": {
-          "label": "Type",
-          "description": "Type of the variable"
-        },
-        "valueType": "TYPE",
-        "value": "User4[]",
-        "optional": false,
-        "editable": true
+      "endLine": {
+        "line": 41,
+        "offset": 114
       }
     },
-    "flags": 0
+    "sourceCode": ""
   },
-  "propertyKey": "expression",
   "position": {
     "line": 40,
     "offset": 12
   },
+  "propertyKey": "expression",
   "model": {
     "inputs": [
       {
@@ -88,6 +47,7 @@
               {
                 "member": {
                   "id": "users4.user5.u",
+                  "variableName": "<uItem>",
                   "typeName": "string",
                   "kind": "string"
                 },
@@ -119,6 +79,7 @@
                 }
               ],
               "id": "users4.users6",
+              "variableName": "<users6Item>",
               "typeName": "User6",
               "kind": "record"
             },
@@ -129,6 +90,7 @@
           }
         ],
         "id": "users4",
+        "variableName": "<users4Item>",
         "typeName": "User4",
         "kind": "record"
       },
@@ -160,7 +122,8 @@
                         "expression": "2.0",
                         "diagnostics": [],
                         "elements": [],
-                        "isQueryExpression": false
+                        "isQueryExpression": false,
+                        "isFunctionCall": false
                       },
                       {
                         "output": "users4.0.users6.0.account",
@@ -170,7 +133,8 @@
                         "expression": "user.name",
                         "diagnostics": [],
                         "elements": [],
-                        "isQueryExpression": false
+                        "isQueryExpression": false,
+                        "isFunctionCall": false
                       }
                     ]
                   }
@@ -192,7 +156,8 @@
                         "expression": "user.name",
                         "diagnostics": [],
                         "elements": [],
-                        "isQueryExpression": false
+                        "isQueryExpression": false,
+                        "isFunctionCall": false
                       }
                     ]
                   },
@@ -206,7 +171,8 @@
                         "expression": "user.name",
                         "diagnostics": [],
                         "elements": [],
-                        "isQueryExpression": false
+                        "isQueryExpression": false,
+                        "isFunctionCall": false
                       }
                     ]
                   }
