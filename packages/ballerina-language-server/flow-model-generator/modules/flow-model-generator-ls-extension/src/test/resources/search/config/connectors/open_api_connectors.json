@@ -30,7 +30,8 @@
             "version": "0.1.0",
             "isGenerated": true
           },
-          "enabled": true
+          "enabled": true,
+          "more": false
         }
       ]
     },
@@ -58,7 +59,8 @@
             "version": "2.14.2",
             "isGenerated": false
           },
-          "enabled": true
+          "enabled": true,
+          "more": false
         },
         {
           "metadata": {
@@ -79,7 +81,8 @@
             "version": "1.16.1",
             "isGenerated": false
           },
-          "enabled": true
+          "enabled": true,
+          "more": false
         },
         {
           "metadata": {
@@ -100,7 +103,8 @@
             "version": "2.14.0",
             "isGenerated": false
           },
-          "enabled": true
+          "enabled": true,
+          "more": false
         },
         {
           "metadata": {
@@ -121,7 +125,8 @@
             "version": "1.13.0",
             "isGenerated": false
           },
-          "enabled": true
+          "enabled": true,
+          "more": false
         },
         {
           "metadata": {
@@ -142,7 +147,8 @@
             "version": "1.13.0",
             "isGenerated": false
           },
-          "enabled": true
+          "enabled": true,
+          "more": false
         },
         {
           "metadata": {
@@ -163,7 +169,8 @@
             "version": "2.13.1",
             "isGenerated": false
           },
-          "enabled": true
+          "enabled": true,
+          "more": false
         }
       ]
     },
@@ -191,7 +198,8 @@
             "version": "1.16.1",
             "isGenerated": false
           },
-          "enabled": true
+          "enabled": true,
+          "more": false
         },
         {
           "metadata": {
@@ -212,7 +220,8 @@
             "version": "5.1.0",
             "isGenerated": false
           },
-          "enabled": true
+          "enabled": true,
+          "more": false
         },
         {
           "metadata": {
@@ -233,7 +242,8 @@
             "version": "1.16.1",
             "isGenerated": false
           },
-          "enabled": true
+          "enabled": true,
+          "more": false
         },
         {
           "metadata": {
@@ -254,7 +264,8 @@
             "version": "1.16.1",
             "isGenerated": false
           },
-          "enabled": true
+          "enabled": true,
+          "more": false
         },
         {
           "metadata": {
@@ -275,7 +286,8 @@
             "version": "3.1.0",
             "isGenerated": false
           },
-          "enabled": true
+          "enabled": true,
+          "more": false
         }
       ]
     },
@@ -303,7 +315,8 @@
             "version": "4.5.0",
             "isGenerated": false
           },
-          "enabled": true
+          "enabled": true,
+          "more": false
         },
         {
           "metadata": {
@@ -324,7 +337,8 @@
             "version": "4.5.0",
             "isGenerated": false
           },
-          "enabled": true
+          "enabled": true,
+          "more": false
         },
         {
           "metadata": {
@@ -345,7 +359,8 @@
             "version": "3.2.1",
             "isGenerated": false
           },
-          "enabled": true
+          "enabled": true,
+          "more": false
         }
       ]
     },
@@ -373,7 +388,8 @@
             "version": "3.5.0",
             "isGenerated": false
           },
-          "enabled": true
+          "enabled": true,
+          "more": false
         },
         {
           "metadata": {
@@ -394,7 +410,8 @@
             "version": "3.1.0",
             "isGenerated": false
           },
-          "enabled": true
+          "enabled": true,
+          "more": false
         },
         {
           "metadata": {
@@ -415,7 +432,8 @@
             "version": "2.3.0",
             "isGenerated": false
           },
-          "enabled": true
+          "enabled": true,
+          "more": false
         },
         {
           "metadata": {
@@ -436,7 +454,8 @@
             "version": "4.1.0",
             "isGenerated": false
           },
-          "enabled": true
+          "enabled": true,
+          "more": false
         },
         {
           "metadata": {
@@ -457,7 +476,8 @@
             "version": "4.0.1",
             "isGenerated": false
           },
-          "enabled": true
+          "enabled": true,
+          "more": false
         }
       ]
     },
@@ -485,7 +505,8 @@
             "version": "8.2.0",
             "isGenerated": false
           },
-          "enabled": true
+          "enabled": true,
+          "more": false
         },
         {
           "metadata": {
@@ -506,7 +527,8 @@
             "version": "4.0.0",
             "isGenerated": false
           },
-          "enabled": true
+          "enabled": true,
+          "more": false
         },
         {
           "metadata": {
@@ -527,7 +549,8 @@
             "version": "5.0.0",
             "isGenerated": false
           },
-          "enabled": true
+          "enabled": true,
+          "more": false
         },
         {
           "metadata": {
@@ -548,7 +571,8 @@
             "version": "5.1.0",
             "isGenerated": false
           },
-          "enabled": true
+          "enabled": true,
+          "more": false
         },
         {
           "metadata": {
@@ -569,7 +593,8 @@
             "version": "2.0.0",
             "isGenerated": false
           },
-          "enabled": true
+          "enabled": true,
+          "more": false
         }
       ]
     }

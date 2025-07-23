@@ -1,8 +1,7 @@
 import ballerina/http;
 import ballerinax/ai;
 
-http:Client httpClient = check new ("http://localhost:9090");
-ai:ChatGptModel chatGptModelAgent = new ({}, {});
+ai:OpenAiProvider chatGptModelAgent = check new ("", ai:GPT_4O);
 
 public function main() {
     int x = 32;
@@ -32,7 +31,7 @@ isolated function fn(int x) returns int {
 }
 
 @ai:AgentTool
-isolated function fn2(int x, error? err) returns int? {
+isolated function fn2(int x) returns int? {
     return x + 1;
 }
 

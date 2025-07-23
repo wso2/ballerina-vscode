@@ -42,7 +42,9 @@ import io.ballerina.modelgenerator.commons.PackageUtil;
 import io.ballerina.projects.Document;
 import io.ballerina.projects.Project;
 import org.ballerinalang.annotation.JavaSPIService;
+import org.ballerinalang.langserver.commons.eventsync.exceptions.EventSyncException;
 import org.ballerinalang.langserver.commons.service.spi.ExtendedLanguageServerService;
+import org.ballerinalang.langserver.commons.workspace.WorkspaceDocumentException;
 import org.ballerinalang.langserver.commons.workspace.WorkspaceManager;
 import org.eclipse.lsp4j.jsonrpc.services.JsonRequest;
 import org.eclipse.lsp4j.jsonrpc.services.JsonSegment;
@@ -78,16 +80,20 @@ public class AgentsManagerService implements ExtendedLanguageServerService {
         return CompletableFuture.supplyAsync(() -> {
             GetAiModuleOrgResponse response = new GetAiModuleOrgResponse();
             try {
-                Path projectPath = Path.of(request.projectPath());
-                Project project = this.workspaceManager.loadProject(projectPath);
-                BLangPackage bLangPackage =
-                        PackageUtil.getCompilation(project.currentPackage()).defaultModuleBLangPackage();
-                response.setOrg(importExists(bLangPackage, BALLERINAX, AI) ? BALLERINAX : BALLERINA);
+                response.setOrg(getAiModuleOrgName(request.projectPath(), workspaceManager));
             } catch (Throwable e) {
                 throw new RuntimeException(e);
             }
             return response;
         });
+    }
+
+    public static String getAiModuleOrgName(String path, WorkspaceManager workspaceManager)
+            throws WorkspaceDocumentException, EventSyncException {
+        Path projectPath = Path.of(path);
+        Project project = workspaceManager.loadProject(projectPath);
+        BLangPackage bLangPackage = PackageUtil.getCompilation(project.currentPackage()).defaultModuleBLangPackage();
+        return importExists(bLangPackage, BALLERINAX, AI) ? BALLERINAX : BALLERINA;
     }
 
     @JsonRequest

@@ -291,11 +291,11 @@
         "range": {
           "start": {
             "line": 33,
-            "character": 1
+            "character": 0
           },
           "end": {
             "line": 33,
-            "character": 1
+            "character": 0
           }
         },
         "newText": "isolated "

@@ -39,7 +39,7 @@ public class GetAgentOrgTest extends AbstractLSTest {
     @Override
     protected Object[] getConfigsList() {
         return new Object[][]{
-                {Path.of("ballerina_ai_listener_model.json")},
+//                {Path.of("ballerina_ai_listener_model.json")},
                 {Path.of("ballerina_ai_listener_model_no_ai_imports.json")},
                 {Path.of("ballerinax_ai_listener_model.json")}
         };

@@ -31,4 +31,6 @@ type Admission record {
 
 type Persons Person[];
 
- function foo(string s) returns string {}
+function foo(string s) returns string {
+    return "";
+}

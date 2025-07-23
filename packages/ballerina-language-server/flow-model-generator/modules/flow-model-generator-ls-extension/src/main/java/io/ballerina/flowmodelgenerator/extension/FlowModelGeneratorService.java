@@ -93,6 +93,9 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Function;
+
+import static io.ballerina.modelgenerator.commons.CommonUtils.BALLERINAX_ORG_NAME;
 
 /**
  * Represents the extended language server service for the flow model generator service.
@@ -283,6 +286,61 @@ public class FlowModelGeneratorService implements ExtendedLanguageServerService 
     @JsonRequest
     public CompletableFuture<FlowModelAvailableNodesResponse> getAvailableNodes(
             FlowModelAvailableNodesRequest request) {
+        return CompletableFuture.supplyAsync(() -> {
+            FlowModelAvailableNodesResponse response = new FlowModelAvailableNodesResponse();
+            try {
+                Path filePath = Path.of(request.filePath());
+                WorkspaceManager workspaceManager = this.workspaceManagerProxy.get();
+                Project project = workspaceManager.loadProject(filePath);
+                Optional<SemanticModel> semanticModel = workspaceManager.semanticModel(filePath);
+                Optional<Document> document = workspaceManager.document(filePath);
+                if (semanticModel.isEmpty() || document.isEmpty()) {
+                    return response;
+                }
+
+                AvailableNodesGenerator generator = new AvailableNodesGenerator(semanticModel.get(),
+                        document.get(), project.currentPackage());
+                boolean disableBallerinaAiNodes = AgentsManagerService.getAiModuleOrgName(request.filePath(),
+                        workspaceManager).equals(BALLERINAX_ORG_NAME);
+                response.setCategories(generator.getAvailableNodes(disableBallerinaAiNodes, request.position()));
+            } catch (Throwable e) {
+                response.setError(e);
+            }
+            return response;
+        });
+    }
+
+    @JsonRequest
+    public CompletableFuture<FlowModelAvailableNodesResponse> getAvailableVectorStores(
+            FlowModelAvailableNodesRequest request) {
+        return handleAvailableNodesRequest(request,
+                generator -> generator.getAvailableVectorStores(request.position()));
+    }
+
+    @JsonRequest
+    public CompletableFuture<FlowModelAvailableNodesResponse> getAvailableEmbeddingProviders(
+            FlowModelAvailableNodesRequest request) {
+        return handleAvailableNodesRequest(request,
+                generator -> generator.getAvailableEmbeddingProviders(request.position()));
+    }
+
+    @JsonRequest
+    public CompletableFuture<FlowModelAvailableNodesResponse> getAvailableVectorKnowledgeBases(
+            FlowModelAvailableNodesRequest request) {
+        return handleAvailableNodesRequest(request,
+                generator -> generator.getAvailableVectorKnowledgeBases(request.position()));
+    }
+
+    @JsonRequest
+    public CompletableFuture<FlowModelAvailableNodesResponse> getAvailableModelProviders(
+            FlowModelAvailableNodesRequest request) {
+        return handleAvailableNodesRequest(request,
+                generator -> generator.getAvailableModelProviders(request.position()));
+    }
+
+    private CompletableFuture<FlowModelAvailableNodesResponse> handleAvailableNodesRequest(
+            FlowModelAvailableNodesRequest request,
+            Function<AvailableNodesGenerator, JsonArray> categoryProvider) {
 
         return CompletableFuture.supplyAsync(() -> {
             FlowModelAvailableNodesResponse response = new FlowModelAvailableNodesResponse();
@@ -296,10 +354,9 @@ public class FlowModelGeneratorService implements ExtendedLanguageServerService 
                     return response;
                 }
 
-                AvailableNodesGenerator availableNodesGenerator =
-                        new AvailableNodesGenerator(semanticModel.get(), document.get(), project.currentPackage());
-                response.setCategories(
-                        availableNodesGenerator.getAvailableNodes(request.position()));
+                AvailableNodesGenerator generator = new AvailableNodesGenerator(semanticModel.get(),
+                        document.get(), project.currentPackage());
+                response.setCategories(categoryProvider.apply(generator));
             } catch (Throwable e) {
                 response.setError(e);
             }

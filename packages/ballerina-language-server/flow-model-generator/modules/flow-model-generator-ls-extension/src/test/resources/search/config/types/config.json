@@ -39,7 +39,8 @@
                 "symbol": "CookieConfig",
                 "version": "2.14.2"
               },
-              "enabled": true
+              "enabled": true,
+              "more": false
             }
           ]
         }
@@ -77,7 +78,8 @@
                 "symbol": "ConnectionConfig",
                 "version": "1.0.1"
               },
-              "enabled": true
+              "enabled": true,
+              "more": false
             },
             {
               "metadata": {
@@ -93,7 +95,8 @@
                 "symbol": "AuthConfig",
                 "version": "1.0.1"
               },
-              "enabled": true
+              "enabled": true,
+              "more": false
             },
             {
               "metadata": {
@@ -109,7 +112,8 @@
                 "symbol": "CredentialBearer",
                 "version": "1.0.1"
               },
-              "enabled": true
+              "enabled": true,
+              "more": false
             },
             {
               "metadata": {
@@ -125,7 +129,8 @@
                 "symbol": "ProxyConfig",
                 "version": "1.0.1"
               },
-              "enabled": true
+              "enabled": true,
+              "more": false
             },
             {
               "metadata": {
@@ -141,7 +146,8 @@
                 "symbol": "OAuth2RefreshTokenGrantConfig",
                 "version": "1.0.1"
               },
-              "enabled": true
+              "enabled": true,
+              "more": false
             },
             {
               "metadata": {
@@ -157,7 +163,8 @@
                 "symbol": "ClientHttp1Settings",
                 "version": "1.0.1"
               },
-              "enabled": true
+              "enabled": true,
+              "more": false
             },
             {
               "metadata": {
@@ -173,7 +180,8 @@
                 "symbol": "KeepAlive",
                 "version": "1.0.1"
               },
-              "enabled": true
+              "enabled": true,
+              "more": false
             },
             {
               "metadata": {
@@ -189,7 +197,8 @@
                 "symbol": "OAuth2ClientCredentialsGrantConfig",
                 "version": "1.0.1"
               },
-              "enabled": true
+              "enabled": true,
+              "more": false
             },
             {
               "metadata": {
@@ -205,7 +214,8 @@
                 "symbol": "OAuth2PasswordGrantConfig",
                 "version": "1.0.1"
               },
-              "enabled": true
+              "enabled": true,
+              "more": false
             },
             {
               "metadata": {
@@ -221,7 +231,8 @@
                 "symbol": "OAuth2JwtBearerGrantConfig",
                 "version": "1.0.1"
               },
-              "enabled": true
+              "enabled": true,
+              "more": false
             }
           ]
         },
@@ -246,7 +257,8 @@
                 "symbol": "OAuth2ClientCredentialsGrantConfig",
                 "version": "1.4.1"
               },
-              "enabled": true
+              "enabled": true,
+              "more": false
             }
           ]
         },
@@ -271,7 +283,8 @@
                 "symbol": "ClientConfig",
                 "version": "2.3.0"
               },
-              "enabled": true
+              "enabled": true,
+              "more": false
             }
           ]
         },
@@ -296,7 +309,8 @@
                 "symbol": "ConnectionConfig",
                 "version": "2.2.1"
               },
-              "enabled": true
+              "enabled": true,
+              "more": false
             }
           ]
         },
@@ -321,7 +335,8 @@
                 "symbol": "ClientConfiguration",
                 "version": "2.13.1"
               },
-              "enabled": true
+              "enabled": true,
+              "more": false
             }
           ]
         },
@@ -346,7 +361,8 @@
                 "symbol": "Graphiql",
                 "version": "1.16.1"
               },
-              "enabled": true
+              "enabled": true,
+              "more": false
             },
             {
               "metadata": {
@@ -362,7 +378,8 @@
                 "symbol": "CookieConfig",
                 "version": "1.16.1"
               },
-              "enabled": true
+              "enabled": true,
+              "more": false
             }
           ]
         },
@@ -387,7 +404,8 @@
                 "symbol": "ConnectionConfig",
                 "version": "2.5.0"
               },
-              "enabled": true
+              "enabled": true,
+              "more": false
             }
           ]
         },
@@ -412,7 +430,8 @@
                 "symbol": "ConnectionConfig",
                 "version": "2.4.0"
               },
-              "enabled": true
+              "enabled": true,
+              "more": false
             }
           ]
         },
@@ -437,7 +456,8 @@
                 "symbol": "ConnectionConfig",
                 "version": "2.4.0"
               },
-              "enabled": true
+              "enabled": true,
+              "more": false
             }
           ]
         },
@@ -462,7 +482,8 @@
                 "symbol": "ConnectionConfig",
                 "version": "2.4.0"
               },
-              "enabled": true
+              "enabled": true,
+              "more": false
             }
           ]
         },
@@ -487,7 +508,8 @@
                 "symbol": "ConnectionConfig",
                 "version": "2.4.0"
               },
-              "enabled": true
+              "enabled": true,
+              "more": false
             }
           ]
         },
@@ -512,7 +534,8 @@
                 "symbol": "ConnectionConfig",
                 "version": "2.4.0"
               },
-              "enabled": true
+              "enabled": true,
+              "more": false
             }
           ]
         },
@@ -537,7 +560,8 @@
                 "symbol": "ConnectionConfig",
                 "version": "3.5.1"
               },
-              "enabled": true
+              "enabled": true,
+              "more": false
             }
           ]
         },
@@ -562,7 +586,8 @@
                 "symbol": "ConnectionConfig",
                 "version": "8.2.0"
               },
-              "enabled": true
+              "enabled": true,
+              "more": false
             }
           ]
         }
