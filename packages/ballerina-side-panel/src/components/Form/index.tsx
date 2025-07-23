@@ -45,6 +45,7 @@ import {
     LinePosition,
     ExpressionProperty,
     RecordTypeField,
+    VisualizableField,
 } from "@wso2/ballerina-core";
 import { FormContext, Provider } from "../../context";
 import {
@@ -330,7 +331,7 @@ export interface FormProps {
     resetUpdatedExpressionField?: () => void;
     mergeFormDataWithFlowNode?: (data: FormValues, targetLineRange: LineRange) => FlowNode;
     handleVisualizableFields?: (filePath: string, typeName?: string) => void;
-    visualizableFields?: { [key: string]: string; };
+    visualizableField?: VisualizableField;
     recordTypeFields?: RecordTypeField[];
     nestedForm?: boolean;
     isInferredReturnType?: boolean;
@@ -364,7 +365,7 @@ export const Form = forwardRef((props: FormProps, ref) => {
         resetUpdatedExpressionField,
         mergeFormDataWithFlowNode,
         handleVisualizableFields,
-        visualizableFields,
+        visualizableField,
         recordTypeFields,
         nestedForm,
         compact = false,
@@ -577,7 +578,7 @@ export const Form = forwardRef((props: FormProps, ref) => {
     const hasParameters = hasRequiredParameters(formFields, selectedNode) || hasOptionalParameters(formFields);
     const canOpenInDataMapper = selectedNode === "VARIABLE" &&
         expressionField &&
-        Object.keys(visualizableFields ?? {}).includes(expressionField.key);
+        visualizableField?.isDataMapped;
 
     const contextValue: FormContext = {
         form: {
@@ -664,8 +665,8 @@ export const Form = forwardRef((props: FormProps, ref) => {
     const handleOnOpenInDataMapper = () => {
         setSavingButton('dataMapper');
         handleSubmit((data) => {
-            if (data.expression === '' && visualizableFields?.expression) {
-                data.expression = visualizableFields.expression;
+            if (data.expression === '' && visualizableField?.defaultValue) {
+                data.expression = visualizableField.defaultValue;
             }
             return handleOnSave({ ...data, openInDataMapper: true });
         })();

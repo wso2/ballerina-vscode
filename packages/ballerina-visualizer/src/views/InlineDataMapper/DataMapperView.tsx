@@ -33,6 +33,7 @@ import {
     TriggerCharacter,
     TRIGGER_CHARACTERS,
     Mapping,
+    CodeData,
     CustomFnMetadata,
     NodePosition,
     EVENT_TYPE,
@@ -153,13 +154,14 @@ export function InlineDataMapperView(props: InlineDataMapperProps) {
                 .getInlineDataMapperRpcClient()
                 .getDataMapperSource({
                     filePath,
-                    codedata,
+                    codedata: viewState.codedata,
                     varName: name,
                     targetField: viewId,
                     mapping: {
                         output: outputId,
                         expression: expression
-                    }
+                    },
+                    withinSubMapping: viewState.isSubMapping
                 });
             console.log(">>> [Inline Data Mapper] getSource response:", resp);
         } catch (error) {
@@ -172,7 +174,7 @@ export function InlineDataMapperView(props: InlineDataMapperProps) {
         try {
             const addElementRequest: AddArrayElementRequest = {
                 filePath,
-                codedata,
+                codedata: viewState.codedata,
                 varName: name,
                 targetField: outputId,
                 propertyKey: "expression" // TODO: Remove this once the API is updated
@@ -193,16 +195,28 @@ export function InlineDataMapperView(props: InlineDataMapperProps) {
                 .getInlineDataMapperRpcClient()
                 .getSubMappingCodedata({
                     filePath,
-                    codedata,
+                    codedata: viewState.codedata,
                     view: viewId
                 });
             console.log(">>> [Inline Data Mapper] getSubMappingCodedata response:", resp);
-            setViewState({viewId, codedata: resp.codedata});
+            setViewState({viewId, codedata: resp.codedata, isSubMapping: true});
         } else {
-            setViewState(prev => ({
-                ...prev,
-                viewId
-            }));
+            if (viewState.isSubMapping) {
+                // If the view is a sub mapping, we need to get the codedata of the parent mapping
+                const res = await rpcClient
+                    .getInlineDataMapperRpcClient()
+                    .getDataMapperCodedata({
+                        filePath,
+                        codedata: viewState.codedata,
+                        name: viewId
+                    });
+                setViewState({viewId, codedata: res.codedata, isSubMapping: false});
+            } else {
+                setViewState(prev => ({
+                    ...prev,
+                    viewId
+                }));
+            }
         }
     };
 
@@ -221,7 +235,7 @@ export function InlineDataMapperView(props: InlineDataMapperProps) {
         try {
             const convertToQueryRequest: ConvertToQueryRequest = {
                 filePath,
-                codedata,
+                codedata: viewState.codedata,
                 varName: name,
                 targetField: outputId,
                 propertyKey: "expression" // TODO: Remove this once the API is updated
@@ -241,7 +255,7 @@ export function InlineDataMapperView(props: InlineDataMapperProps) {
             const addClausesRequest: AddClausesRequest = {
                 filePath,
                 codedata: {
-                    ...codedata,
+                    ...viewState.codedata,
                     isNew: true
                 },
                 index,
@@ -261,16 +275,32 @@ export function InlineDataMapperView(props: InlineDataMapperProps) {
         }
     }
 
-    const addSubMapping = async (subMappingName: string, type: string, index: number, targetField: string) => {
+    const addSubMapping = async (
+        subMappingName: string,
+        type: string,
+        index: number,
+        targetField: string,
+        importsCodedata?: CodeData
+    ) => {
         try {
+            const visualizableResponse = await rpcClient
+                .getInlineDataMapperRpcClient()
+                .getVisualizableFields({
+                    filePath,
+                    codedata: importsCodedata || { symbol: type }
+                });
+            console.log(">>> [Inline Data Mapper] getVisualizableFields response:", visualizableResponse);
+
+            const defaultValue = visualizableResponse.visualizableProperties.defaultValue;
             const request = createAddSubMappingRequest(
                 filePath,
-                codedata,
+                viewState.codedata,
                 index,
                 targetField,
                 subMappingName,
                 type,
-                varName
+                varName,
+                defaultValue
             );
             
             console.log(">>> [Inline Data Mapper] addSubMapping request:", request);
@@ -291,7 +321,7 @@ export function InlineDataMapperView(props: InlineDataMapperProps) {
                 .getInlineDataMapperRpcClient()
                 .deleteMapping({
                     filePath,
-                    codedata,
+                    codedata: viewState.codedata,
                     mapping,
                     varName,
                     targetField: viewId,
@@ -368,7 +398,7 @@ export function InlineDataMapperView(props: InlineDataMapperProps) {
             } else {
                 const { property } = await rpcClient.getInlineDataMapperRpcClient().getProperty({
                     filePath: filePath,
-                    codedata: codedata,
+                    codedata: viewState.codedata,
                     propertyKey: "expression", // TODO: Remove this once the API is updated
                     targetField: viewId,
                     fieldId: outputId,
@@ -381,7 +411,7 @@ export function InlineDataMapperView(props: InlineDataMapperProps) {
                         startLine: updateLineRange(codedata.lineRange, expressionOffsetRef.current).startLine,
                         lineOffset: lineOffset,
                         offset: charOffset,
-                        codedata: codedata,
+                        codedata: viewState.codedata,
                         property: property,
                     },
                     completionContext: {
