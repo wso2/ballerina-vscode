@@ -784,10 +784,10 @@ public class DataMapManager {
                 return new MappingPort(id, type.getName(), type.getTypeName(), type.getTypeName());
             } else if (type.getTypeName().equals("array")) {
                 ArrayType arrayType = (ArrayType) type;
-                MappingPort memberPort = getMappingPort(isInputPort ? id + ".0" : id, getItemName(id),
+                MappingPort memberPort = getMappingPort(isInputPort ? id + ".0" : id, getItemName(name),
                         arrayType.memberType, isInputPort, visitedTypes);
                 if (memberPort != null && memberPort.variableName == null) {
-                    memberPort.variableName = getItemName(id);
+                    memberPort.variableName = getItemName(name);
                 }
                 MappingArrayPort arrayPort = new MappingArrayPort(id, name, memberPort == null ? "record" :
                         memberPort.typeName + "[]", type.getTypeName());
