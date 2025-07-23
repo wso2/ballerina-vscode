@@ -72,8 +72,7 @@
                 "symbol": "println",
                 "version": "1.8.0"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             }
           ]
         }
