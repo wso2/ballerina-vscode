@@ -18,6 +18,7 @@ import { createAnthropic } from "@ai-sdk/anthropic";
 import { getAccessToken, getRefreshedAccessToken } from "../../../utils/ai/auth";
 import { AIStateMachine } from "../../../views/ai-panel/aiMachine";
 import { AIMachineEventType } from "@wso2/ballerina-core";
+import { BACKEND_URL } from "../utils";
 
 /**
  * Reusable fetch function that handles authentication with token refresh
@@ -58,10 +59,8 @@ export async function fetchWithAuth(input: string | URL | Request, options: Requ
     return response;
 }
 
-let url = "https://e95488c8-8511-4882-967f-ec3ae2a0f86f-prod.e1-us-east-azure.choreoapis.dev/ballerina-copilot/intelligence-api/v1.0/claude";
-
 export const anthropic = createAnthropic({
-    baseURL: url,
+    baseURL: BACKEND_URL + "/intelligence-api/v1.0/claude",
     apiKey: "xx", //TODO: Gives error without this. see if we can remove,
     fetch: fetchWithAuth,
 });
