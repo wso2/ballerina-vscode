@@ -18,12 +18,11 @@
 
 /* eslint-disable @typescript-eslint/naming-convention */
 import { createMachine, assign, interpret } from 'xstate';
-import * as vscode from 'vscode';
-import { AIMachineStateValue, AIPanelPrompt, AIMachineEventValue, AIMachineEventType, AIMachineContext, AIUserToken } from '@wso2/ballerina-core';
+import { AIMachineStateValue, AIPanelPrompt, AIMachineEventType, AIMachineContext, AIUserToken, AIMachineSendableEvent, LoginMethod } from '@wso2/ballerina-core';
 import { AiPanelWebview } from './webview';
-import { getAuthUrl, getLogoutUrl } from './auth';
 import { extension } from '../../BalExtensionContext';
-import { ACCESS_TOKEN_SECRET_KEY, getAccessToken, REFRESH_TOKEN_SECRET_KEY } from '../../utils/ai/auth';
+import { getAccessToken } from '../../utils/ai/auth';
+import { checkToken, initiateInbuiltAuth, logout, validateApiKey } from './utils';
 
 export const USER_CHECK_BACKEND_URL = '/user/usage';
 
@@ -43,17 +42,23 @@ export const closeAIWebview = () => {
     }
 };
 
-const aiMachine = createMachine<AIMachineContext, AIMachineEventValue>({
+const aiMachine = createMachine<AIMachineContext, AIMachineSendableEvent>({
     id: 'ballerina-ai',
     initial: 'Initialize',
     predictableActionArguments: true,
     context: {
+        loginMethod: undefined,
         userToken: undefined,
         errorMessage: undefined,
     },
     on: {
         DISPOSE: {
             target: 'Initialize',
+            actions: assign({
+                loginMethod: (_ctx) => undefined,
+                userToken: (_ctx) => undefined,
+                errorMessage: (_ctx) => undefined,
+            })
         }
     },
     states: {
@@ -66,11 +71,18 @@ const aiMachine = createMachine<AIMachineContext, AIMachineEventValue>({
                         cond: (_ctx, event) => !!event.data,
                         target: 'Authenticated',
                         actions: assign({
-                            userToken: (_ctx, event) => event.data as AIUserToken,
+                            loginMethod: (_ctx, event) => event.data.loginMethod,
+                            userToken: (_ctx, event) => ({ token: event.data.token }),
+                            errorMessage: (_ctx) => undefined,
                         })
                     },
                     {
                         target: 'Unauthenticated',
+                        actions: assign({
+                            loginMethod: (_ctx) => undefined,
+                            userToken: (_ctx) => undefined,
+                            errorMessage: (_ctx) => undefined,
+                        })
                     }
                 ],
                 onError: [
@@ -78,12 +90,19 @@ const aiMachine = createMachine<AIMachineContext, AIMachineEventValue>({
                         cond: (_ctx, event) => event.data?.message === 'TOKEN_EXPIRED',
                         target: 'Unauthenticated',
                         actions: [
-                            'silentLogout'
+                            'silentLogout',
+                            assign({
+                                loginMethod: (_ctx) => undefined,
+                                userToken: (_ctx) => undefined,
+                                errorMessage: (_ctx) => undefined,
+                            })
                         ]
                     },
                     {
                         target: 'Disabled',
                         actions: assign({
+                            loginMethod: (_ctx) => undefined,
+                            userToken: (_ctx) => undefined,
                             errorMessage: (_ctx, event) => event.data?.message || 'Unknown error'
                         })
                     }
@@ -92,33 +111,130 @@ const aiMachine = createMachine<AIMachineContext, AIMachineEventValue>({
         },
         Unauthenticated: {
             on: {
-                LOGIN: 'Authenticating'
+                [AIMachineEventType.LOGIN]: {
+                    target: 'Authenticating',
+                    actions: assign({
+                        loginMethod: (_ctx) => LoginMethod.BI_INTEL
+                    })
+                },
+                [AIMachineEventType.AUTH_WITH_API_KEY]: {
+                    target: 'Authenticating',
+                    actions: assign({
+                        loginMethod: (_ctx) => LoginMethod.ANTHROPIC_KEY
+                    })
+                }
             }
         },
         Authenticating: {
-            invoke: {
-                id: 'openLogin',
-                src: 'openLogin',
-                onError: {
-                    target: 'Unauthenticated'
-                }
-            },
-            on: {
-                [AIMachineEventType.LOGIN_SUCCESS]: {
-                    target: 'Authenticated',
+            initial: 'determineFlow',
+            states: {
+                determineFlow: {
+                    always: [
+                        {
+                            cond: (context) => context.loginMethod === LoginMethod.BI_INTEL,
+                            target: 'ssoFlow'
+                        },
+                        {
+                            cond: (context) => context.loginMethod === LoginMethod.ANTHROPIC_KEY,
+                            target: 'apiKeyFlow'
+                        },
+                        {
+                            target: 'ssoFlow' // default
+                        }
+                    ]
                 },
-                [AIMachineEventType.CANCEL_LOGIN]: {
-                    target: 'Unauthenticated'
+                ssoFlow: {
+                    invoke: {
+                        id: 'openLogin',
+                        src: 'openLogin',
+                        onError: {
+                            target: '#ballerina-ai.Unauthenticated',
+                            actions: assign({
+                                loginMethod: (_ctx) => undefined,
+                                errorMessage: (_ctx, event) => event.data?.message || 'SSO authentication failed'
+                            })
+                        }
+                    },
+                    on: {
+                        [AIMachineEventType.COMPLETE_AUTH]: {
+                            target: '#ballerina-ai.Authenticated',
+                            actions: assign({
+                                errorMessage: (_ctx) => undefined,
+                            })
+                        },
+                        [AIMachineEventType.CANCEL_LOGIN]: {
+                            target: '#ballerina-ai.Unauthenticated',
+                            actions: assign({
+                                loginMethod: (_ctx) => undefined,
+                                errorMessage: (_ctx) => undefined,
+                            })
+                        }
+                    }
+                },
+                apiKeyFlow: {
+                    on: {
+                        [AIMachineEventType.SUBMIT_API_KEY]: {
+                            target: 'validatingApiKey',
+                            actions: assign({
+                                errorMessage: (_ctx) => undefined
+                            })
+                        },
+                        [AIMachineEventType.CANCEL_LOGIN]: {
+                            target: '#ballerina-ai.Unauthenticated',
+                            actions: assign({
+                                loginMethod: (_ctx) => undefined,
+                                errorMessage: (_ctx) => undefined,
+                            })
+                        }
+                    }
+                },
+                validatingApiKey: {
+                    invoke: {
+                        id: 'validateApiKey',
+                        src: 'validateApiKey',
+                        onDone: {
+                            target: '#ballerina-ai.Authenticated',
+                            actions: assign({
+                                errorMessage: (_ctx) => undefined,
+                            })
+                        },
+                        onError: {
+                            target: 'apiKeyFlow',
+                            actions: assign({
+                                errorMessage: (_ctx, event) => event.data?.message || 'API key validation failed'
+                            })
+                        }
+                    }
                 }
             }
         },
         Authenticated: {
+            invoke: {
+                id: 'getTokenAfterAuth',
+                src: 'getTokenAfterAuth',
+                onDone: {
+                    actions: assign({
+                        userToken: (_ctx, event) => ({ token: event.data.token }),
+                        loginMethod: (_ctx, event) => event.data.loginMethod,
+                        errorMessage: (_ctx) => undefined,
+                    })
+                },
+                onError: {
+                    target: 'Unauthenticated',
+                    actions: assign({
+                        userToken: (_ctx) => undefined,
+                        loginMethod: (_ctx) => undefined,
+                        errorMessage: (_ctx, event) => event.data?.message || 'Failed to retrieve authentication credentials',
+                    })
+                }
+            },
             on: {
                 [AIMachineEventType.LOGOUT]: {
                     target: 'Unauthenticated',
                     actions: [
                         'logout',
                         assign({
+                            loginMethod: (_) => undefined,
                             userToken: (_) => undefined,
                             errorMessage: (_) => undefined,
                         })
@@ -129,6 +245,7 @@ const aiMachine = createMachine<AIMachineContext, AIMachineEventValue>({
                     actions: [
                         'silentLogout',
                         assign({
+                            loginMethod: (_) => undefined,
                             userToken: (_) => undefined,
                             errorMessage: (_) => undefined,
                         })
@@ -139,62 +256,54 @@ const aiMachine = createMachine<AIMachineContext, AIMachineEventValue>({
         Disabled: {
             on: {
                 RETRY: {
-                    target: 'Initialize'
+                    target: 'Initialize',
+                    actions: assign({
+                        userToken: (_ctx) => undefined,
+                        loginMethod: (_ctx) => undefined,
+                        errorMessage: (_ctx) => undefined,
+                    })
                 }
             }
         },
     }
 });
 
-const checkToken = async (context, event): Promise<AIUserToken | undefined> => {
-    return new Promise(async (resolve, reject) => {
-        try {
-            const accessToken = await getAccessToken();
-            if (!accessToken) {
-                resolve(undefined);
-                return;
-            }
-            resolve({ accessToken, usageTokens: undefined });
-        } catch (error) {
-            reject(error);
-        }
-    });
-};
-
-const logout = async (isUserLogout: boolean = true) => {
-    if (isUserLogout) {
-        const logoutURL = await getLogoutUrl();
-        vscode.env.openExternal(vscode.Uri.parse(logoutURL));
-    }
-    await extension.context.secrets.delete(ACCESS_TOKEN_SECRET_KEY);
-    await extension.context.secrets.delete(REFRESH_TOKEN_SECRET_KEY);
-};
-
-const openLogin = async (context, event) => {
+const openLogin = async () => {
     return new Promise(async (resolve, reject) => {
         try {
             const status = await initiateInbuiltAuth();
             if (!status) {
                 aiStateService.send(AIMachineEventType.CANCEL_LOGIN);
             }
+            resolve(status);
         } catch (error) {
             reject(error);
         }
     });
 };
 
-async function initiateInbuiltAuth() {
-    const callbackUri = await vscode.env.asExternalUri(
-        vscode.Uri.parse(`${vscode.env.uriScheme}://wso2.ballerina/signin`)
-    );
-    const oauthURL = await getAuthUrl(callbackUri.toString());
-    return vscode.env.openExternal(vscode.Uri.parse(oauthURL));
+const validateApiKeyService = async (_context: AIMachineContext, event: any) => {
+    const apiKey = event.payload?.apiKey;
+    if (!apiKey) {
+        throw new Error('API key is required');
+    }
+    return await validateApiKey(apiKey, LoginMethod.ANTHROPIC_KEY);
+};
+
+const getTokenAfterAuth = async () => {
+    const result = await getAccessToken();
+    if (!result) {
+        throw new Error('No authentication credentials found');
+    }
+    return { token: result, loginMethod: LoginMethod.BI_INTEL };
 }
 
 const aiStateService = interpret(aiMachine.withConfig({
     services: {
         checkToken: checkToken,
         openLogin: openLogin,
+        validateApiKey: validateApiKeyService,
+        getTokenAfterAuth: getTokenAfterAuth,
     },
     actions: {
         logout: () => {
@@ -206,10 +315,24 @@ const aiStateService = interpret(aiMachine.withConfig({
     }
 }));
 
+const isExtendedEvent = <K extends AIMachineEventType>(
+    arg: K | AIMachineSendableEvent
+): arg is Extract<AIMachineSendableEvent, { type: K }> => {
+    return typeof arg !== "string";
+};
+
 export const AIStateMachine = {
     initialize: () => aiStateService.start(),
     service: () => { return aiStateService; },
     context: () => { return aiStateService.getSnapshot().context; },
     state: () => { return aiStateService.getSnapshot().value as AIMachineStateValue; },
-    sendEvent: (eventType: AIMachineEventType) => { aiStateService.send({ type: eventType }); }
+    sendEvent: <K extends AIMachineEventType>(
+        event: K | Extract<AIMachineSendableEvent, { type: K }>
+    ) => {
+        if (isExtendedEvent(event)) {
+            aiStateService.send(event as AIMachineSendableEvent);
+        } else {
+            aiStateService.send({ type: event } as AIMachineSendableEvent);
+        }
+    }
 };

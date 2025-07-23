@@ -15,7 +15,7 @@
 // under the License.
 
 import { CoreMessage, streamText } from "ai";
-import { anthropic, ANTHROPIC_SONNET_4 } from "../connection";
+import { getAnthropicClient, ANTHROPIC_SONNET_4 } from "../connection";
 import { getErrorMessage } from "../utils";
 import { TestGenerationTarget, TestPlanGenerationRequest } from "@wso2/ballerina-core";
 import { generateTest, getDiagnostics } from "../../testGenerator";
@@ -122,7 +122,7 @@ export async function generateTestPlanCore(
         },
     ];
     const { fullStream } = streamText({
-        model: anthropic(ANTHROPIC_SONNET_4),
+        model: await getAnthropicClient(ANTHROPIC_SONNET_4),
         maxTokens: 8192,
         temperature: 0,
         messages: allMessages,

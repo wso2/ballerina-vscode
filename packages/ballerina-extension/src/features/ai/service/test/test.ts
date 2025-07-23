@@ -15,7 +15,7 @@
 // under the License.
 
 import { generateText, CoreMessage } from "ai";
-import { anthropic } from "../connection";
+import { getAnthropicClient } from "../connection";
 import { 
     getServiceTestGenerationSystemPrompt, 
     getServiceTestDiagnosticsSystemPrompt, 
@@ -103,7 +103,7 @@ async function getStreamedTestResponse(request: TestGenerationRequest1): Promise
     }
 
     const { text } = await generateText({
-        model: anthropic("claude-sonnet-4-20250514"),
+        model: await getAnthropicClient("claude-sonnet-4-20250514"),
         maxTokens: 16384,
         temperature: 0,
         system: systemPrompt,
