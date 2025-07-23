@@ -21,10 +21,8 @@ import { InputOutputPortModel } from "../Port";
 import { IDataMapperContext } from "../../../utils/DataMapperContext/DataMapperContext";
 import { MappingFindingVisitor } from "../../../visitors/MappingFindingVisitor";
 import { traverseNode } from "../../../utils/model-utils";
-import { MappingDeletionVisitor } from "../../../visitors/MappingDeletionVisitor";
 import { getDefaultValue } from "./common-utils";
 import { CustomFnMetadata, CustomFnParams, Mapping } from "@wso2/ballerina-core";
-import { map } from "lodash";
 
 export async function createNewMapping(link: DataMapperLinkModel) {
 	const sourcePort = link.getSourcePort();
