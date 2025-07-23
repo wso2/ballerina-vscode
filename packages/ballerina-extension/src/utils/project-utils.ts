@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import { ballerinaExtInstance } from "../core";
+import { extension } from "../BalExtensionContext";
 import { Uri, window, workspace } from "vscode";
 import * as path from 'path';
 import { isSupportedVersion, VERSION } from "./config";
@@ -28,9 +28,9 @@ function getCurrentBallerinaProject(file?: string): Promise<BallerinaProject> {
         // get path of the current bal file
         const uri = file ? Uri.file(file) : activeEditor.document.uri;
         // if currently opened file is a bal file
-        if (ballerinaExtInstance.langClient && isSupportedVersion(ballerinaExtInstance, VERSION.BETA, 1)) {
+        if (extension.ballerinaExtInstance.langClient && isSupportedVersion(extension.ballerinaExtInstance, VERSION.BETA, 1)) {
             // get Ballerina Project path for current Ballerina file
-            ballerinaExtInstance.langClient.getBallerinaProject({
+            extension.ballerinaExtInstance.langClient.getBallerinaProject({
                 documentIdentifier: {
                     uri: uri.toString(),
                 }
@@ -54,7 +54,7 @@ function getCurrentBallerinaFile(): string {
     if (activeEditor && activeEditor.document.fileName.endsWith('.bal')) {
         return activeEditor.document.fileName;
     }
-    const document = ballerinaExtInstance.getDocumentContext().getLatestDocument();
+    const document = extension.ballerinaExtInstance.getDocumentContext().getLatestDocument();
     if (document) {
         return document.toString();
     }
