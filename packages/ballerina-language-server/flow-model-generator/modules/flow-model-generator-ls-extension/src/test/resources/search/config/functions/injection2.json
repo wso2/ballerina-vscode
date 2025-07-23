@@ -86,8 +86,7 @@
                 "symbol": "hashSha1",
                 "version": "2.9.0"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             },
             {
               "metadata": {
@@ -103,8 +102,7 @@
                 "symbol": "hmacSha1",
                 "version": "2.9.0"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             }
           ]
         },
@@ -129,8 +127,7 @@
                 "symbol": "call",
                 "version": "0.0.0"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             }
           ]
         },
@@ -155,8 +152,7 @@
                 "symbol": "iterator",
                 "version": "0.0.0"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             }
           ]
         }

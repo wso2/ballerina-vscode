@@ -86,8 +86,7 @@
                 "symbol": "toString",
                 "version": "0.0.0"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             }
           ]
         }

@@ -275,20 +275,25 @@ public class AvailableNodesGenerator {
                         .packageName(Ai.AI_PACKAGE).symbol(Ai.AGENT_RUN_METHOD_NAME).object(Ai.AGENT_TYPE_NAME).build(),
                 true);
 
+        return List.of(modelProvider, npFunction, vectorKnowledgeBase, chunkers, augmentUserQuery, agentCall,
+                getMoreAiCategory(disableBallerinaAiNodes));
+    }
+
+    private static Category getMoreAiCategory(boolean disableBallerinaAiNodes) {
         AvailableNode vectorStore = new AvailableNode(
                 new Metadata.Builder<>(null).label(VectorStoreBuilder.LABEL)
                         .description(VectorStoreBuilder.DESCRIPTION).build(),
                 new Codedata.Builder<>(null).node(NodeKind.VECTOR_STORES).build(),
-                !disableBallerinaAiNodes, true);
+                !disableBallerinaAiNodes);
 
         AvailableNode embeddingProvider = new AvailableNode(
                 new Metadata.Builder<>(null).label(EmbeddingProviderBuilder.LABEL)
                         .description(EmbeddingProviderBuilder.DESCRIPTION).build(),
                 new Codedata.Builder<>(null).node(NodeKind.EMBEDDING_PROVIDERS).build(),
-                !disableBallerinaAiNodes, true);
+                !disableBallerinaAiNodes);
 
-        return List.of(modelProvider, npFunction, vectorKnowledgeBase, chunkers, augmentUserQuery,
-                vectorStore, embeddingProvider, agentCall);
+        return new Category.Builder(null).name(Category.Name.MORE)
+                .items(List.of(vectorStore, embeddingProvider)).build();
     }
 
     private void setStopNode(NonTerminalNode node) {
@@ -381,20 +386,20 @@ public class AvailableNodesGenerator {
 
                 Item node = nodeBuilder
                         .metadata()
-                            .label(label)
-                            .icon(CommonUtils.generateIcon(org, packageName, version))
-                            .description(methodFunction.description())
-                            .stepOut()
+                        .label(label)
+                        .icon(CommonUtils.generateIcon(org, packageName, version))
+                        .description(methodFunction.description())
+                        .stepOut()
                         .codedata()
-                            .org(org)
-                            .module(moduleInfo.moduleName())
-                            .packageName(moduleInfo.packageName())
-                            .object(className)
-                            .symbol(methodFunction.name())
-                            .version(version)
-                            .parentSymbol(parentSymbolName)
-                            .resourcePath(methodFunction.resourcePath())
-                            .stepOut()
+                        .org(org)
+                        .module(moduleInfo.moduleName())
+                        .packageName(moduleInfo.packageName())
+                        .object(className)
+                        .symbol(methodFunction.name())
+                        .version(version)
+                        .parentSymbol(parentSymbolName)
+                        .resourcePath(methodFunction.resourcePath())
+                        .stepOut()
                         .buildAvailableNode();
                 methods.add(node);
             }
