@@ -893,7 +893,9 @@ public class DataMapManager {
 
     private void genSource(ExpressionNode expr, String[] names, int idx, StringBuilder stringBuilder,
                            String mappingExpr, LinePosition position, List<TextEdit> textEdits) {
-        if (expr == null) {
+        if (idx == names.length) {
+            textEdits.add(new TextEdit(CommonUtils.toRange(expr.lineRange()), mappingExpr));
+        } else if (expr == null) {
             String name = names[idx];
             if (name.matches("\\d+")) {
                 stringBuilder.append(mappingExpr);
@@ -925,28 +927,19 @@ public class DataMapManager {
             }
         } else if (expr.kind() == SyntaxKind.LIST_CONSTRUCTOR) {
             ListConstructorExpressionNode listCtrExpr = (ListConstructorExpressionNode) expr;
-            if (idx == names.length) {
-                textEdits.add(new TextEdit(CommonUtils.toRange(expr.lineRange()), mappingExpr));
-            } else {
-                String name = names[idx];
-                if (name.matches("\\d+")) {
-                    int index = Integer.parseInt(name);
-                    if (index >= listCtrExpr.expressions().size()) {
-                        if (idx > 0) {
-                            stringBuilder.append(", ");
-                        }
-                        genSource(null, names, idx, stringBuilder, mappingExpr,
-                                listCtrExpr.closeBracket().lineRange().startLine(), textEdits);
-                    } else {
-                        genSource((ExpressionNode) listCtrExpr.expressions().get(index), names, idx + 1, stringBuilder,
-                                mappingExpr, null, textEdits);
+            String name = names[idx];
+            if (name.matches("\\d+")) {
+                int index = Integer.parseInt(name);
+                if (index >= listCtrExpr.expressions().size()) {
+                    if (idx > 0) {
+                        stringBuilder.append(", ");
                     }
+                    genSource(null, names, idx, stringBuilder, mappingExpr,
+                            listCtrExpr.closeBracket().lineRange().startLine(), textEdits);
+                } else {
+                    genSource((ExpressionNode) listCtrExpr.expressions().get(index), names, idx + 1, stringBuilder,
+                            mappingExpr, null, textEdits);
                 }
-            }
-        } else {
-            // TODO: check to move this out of if-else and move up
-            if (idx == names.length) {
-                textEdits.add(new TextEdit(CommonUtils.toRange(expr.lineRange()), mappingExpr));
             }
         }
     }
