@@ -873,18 +873,25 @@ public class DataMapManager {
         List<TextEdit> textEdits = new ArrayList<>();
         textEditsMap.put(filePath, textEdits);
 
+        ExpressionNode expr = null;
         if (node.kind() == SyntaxKind.LOCAL_VAR_DECL) {
             VariableDeclarationNode varDecl = (VariableDeclarationNode) node;
-            String output = mapping.output();
-            String[] splits = output.split(DOT);
-            ExpressionNode expr = getMappingExpr(varDecl.initializer().orElseThrow(), targetField);
-            genDeleteMappingSource(expr, splits, 1, textEdits);
+            expr = varDecl.initializer().orElseThrow();
         } else if (node.kind() == SyntaxKind.MODULE_VAR_DECL) {
             ModuleVariableDeclarationNode moduleVarDecl = (ModuleVariableDeclarationNode) node;
+            expr = moduleVarDecl.initializer().orElseThrow();
+        } else if (node.kind() == SyntaxKind.LET_VAR_DECL) {
+            LetVariableDeclarationNode letVarDecl = (LetVariableDeclarationNode) node;
+            expr = letVarDecl.expression();
+        }
+
+        if (expr != null) {
+            if (expr.kind() == SyntaxKind.LET_EXPRESSION) {
+                expr = ((LetExpressionNode) expr).expression();
+            }
             String output = mapping.output();
             String[] splits = output.split(DOT);
-            ExpressionNode expr = getMappingExpr(moduleVarDecl.initializer().orElseThrow(), targetField);
-            genDeleteMappingSource(expr, splits, 1, textEdits);
+            genDeleteMappingSource(getMappingExpr(expr, targetField), splits, 1, textEdits);
         }
 
         return gson.toJsonTree(textEditsMap);
