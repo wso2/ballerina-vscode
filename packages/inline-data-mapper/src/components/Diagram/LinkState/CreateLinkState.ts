@@ -82,6 +82,8 @@ export class CreateLinkState extends State<DiagramEngine> {
 									portModel.attributes?.collapsed
 								) {
 									handleExpand(portModel.attributes.fieldFQN, false);
+									this.clearState();
+									this.eject();
 								} else if (portModel) {
 									element = portModel;
 								}
