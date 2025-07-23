@@ -62,7 +62,15 @@ public record Category(Metadata metadata, List<Item> items) implements Item {
         IMPORTED_TYPES("Imported Types", "Types imported from other integrations",
                 List.of("Imported", "Type", "Library")),
         AVAILABLE_TYPES("Available Types", "Types available in the library",
-                List.of("Available", "Type", "Library"));
+                List.of("Available", "Type", "Library")),
+        VECTOR_KNOWLEDGE_BASE("Vector Knowledge Bases",
+                "Vector knowledge bases available in the integration", null),
+        MODEL_PROVIDER("Model Providers",
+                "Model providers used in the integration to connect to LLMs", null),
+        EMBEDDING_PROVIDER("Embedding Providers",
+                "Embedding providers used in the integration to connect to embedding models", null),
+        VECTOR_STORE("Vector Stores", "Vector stores used in the integration", null),
+        AI("AI Components", "AI components available in the flow", null);
 
         final String name;
         final String description;

@@ -1,0 +1,47 @@
+{
+    "items": [
+        {
+            "metadata": {
+                "label": "Vector Stores"
+            },
+            "items": [
+                {
+                    "metadata": {
+                        "label": "Pinecone Vector Store",
+                        "description": "Pinecone vector store implementation with support for dense, sparse, and hybrid vector search modes."
+                    },
+                    "codedata": {
+                        "node": "VECTOR_STORE",
+                        "module": "ai.pinecone",
+                        "packageName": "ai.pinecone",
+                        "symbol": "init",
+                        "object": "VectorStore",
+                        "org": "ballerinax",
+                        "importStmt": "import ballerinax/ai.pinecone",
+                        "version": "1.0.1",
+                        "flags": 1
+                    },
+                    "enabled": true
+                },
+                {
+                    "metadata": {
+                        "label": "In-Memory Vector Store",
+                        "description": "In-memory vector store implementation for testing and development purposes."
+                    },
+                    "codedata": {
+                        "node": "VECTOR_STORE",
+                        "module": "ai",
+                        "packageName": "ai",
+                        "symbol": "init",
+                        "object": "InMemoryVectorStore",
+                        "org": "ballerina",
+                        "importStmt": "import ballerina/ai",
+                        "version": "1.1.0",
+                        "flags": 1
+                    },
+                    "enabled": true
+                }
+            ]
+        }
+    ]
+}

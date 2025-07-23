@@ -37,6 +37,7 @@ import io.ballerina.flowmodelgenerator.core.model.node.ContinueBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.DataMapperBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.DataMapperCallBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.DataMapperDefinitionBuilder;
+import io.ballerina.flowmodelgenerator.core.model.node.EmbeddingProviderBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.ErrorHandlerBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.EventStartBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.ExpressionBuilder;
@@ -50,6 +51,7 @@ import io.ballerina.flowmodelgenerator.core.model.node.JsonPayloadBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.LockBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.MatchBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.MethodCall;
+import io.ballerina.flowmodelgenerator.core.model.node.ModelProviderBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.NPFunctionCall;
 import io.ballerina.flowmodelgenerator.core.model.node.NPFunctionDefinitionBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.NewConnectionBuilder;
@@ -64,6 +66,8 @@ import io.ballerina.flowmodelgenerator.core.model.node.StartBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.StopBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.TransactionBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.VariableBuilder;
+import io.ballerina.flowmodelgenerator.core.model.node.VectorKnowledgeBaseBuilder;
+import io.ballerina.flowmodelgenerator.core.model.node.VectorStoreBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.WaitBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.WhileBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.XmlPayloadBuilder;
@@ -149,6 +153,10 @@ public abstract class NodeBuilder implements DiagnosticHandler.DiagnosticCapable
         put(NodeKind.AGENT, AgentBuilder::new);
         put(NodeKind.AGENT_CALL, AgentCallBuilder::new);
         put(NodeKind.CLASS_INIT, ClassInitBuilder::new);
+        put(NodeKind.MODEL_PROVIDER, ModelProviderBuilder::new);
+        put(NodeKind.EMBEDDING_PROVIDER, EmbeddingProviderBuilder::new);
+        put(NodeKind.VECTOR_STORE, VectorStoreBuilder::new);
+        put(NodeKind.VECTOR_KNOWLEDGE_BASE, VectorKnowledgeBaseBuilder::new);
     }};
 
     public static NodeBuilder getNodeFromKind(NodeKind kind) {
