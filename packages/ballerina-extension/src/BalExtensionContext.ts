@@ -20,9 +20,11 @@
 import { ExtensionContext } from "vscode";
 import { AgentChatContext } from "./views/agent-chat/activate";
 import { AIPanelPrompt } from "@wso2/ballerina-core";
+import { BallerinaExtension } from "./core";
 
 export class BalExtensionContext {
     public context!: ExtensionContext;
+    public ballerinaExtInstance: BallerinaExtension;
     public aiChatDefaultPrompt?: AIPanelPrompt;
     public agentChatContext?: AgentChatContext;
     public hasPullModuleNotification = false;
