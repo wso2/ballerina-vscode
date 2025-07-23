@@ -229,7 +229,7 @@
         {
           "metadata": {
             "label": "Embedding Provider",
-            "description": "Embedding providers available within the integration for connecting to an embedding model"
+            "description": "Embedding providers available in the integration for connecting to an embedding model"
           },
           "codedata": {
             "node": "EMBEDDING_PROVIDERS"
