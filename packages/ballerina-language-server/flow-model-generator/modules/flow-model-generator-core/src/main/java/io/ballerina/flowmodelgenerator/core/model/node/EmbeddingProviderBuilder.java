@@ -44,7 +44,7 @@ import static io.ballerina.modelgenerator.commons.FunctionDataBuilder.GET_DEFAUL
  */
 public class EmbeddingProviderBuilder extends CallBuilder {
     public static final String LABEL = "Embedding Provider";
-    public static final String DESCRIPTION = "Embedding providers available within the integration for connecting" +
+    public static final String DESCRIPTION = "Embedding providers available in the integration for connecting" +
             " to an embedding model";
 
     private static final String EMBEDDING_PROVIDER_NAME_LABEL = "Embedding Provider Name";
@@ -71,7 +71,7 @@ public class EmbeddingProviderBuilder extends CallBuilder {
     public Map<Path, List<TextEdit>> toSource(SourceBuilder sourceBuilder) {
         sourceBuilder.token().keyword(SyntaxKind.FINAL_KEYWORD).stepOut().newVariable();
         sourceBuilder.token().keyword(SyntaxKind.CHECK_KEYWORD);
-        if (sourceBuilder.flowNode.codedata().symbol().equals(GET_DEFAULT_EMBEDDING_PROVIDER_FUNCTION_NAME)) {
+        if (GET_DEFAULT_EMBEDDING_PROVIDER_FUNCTION_NAME.equals(sourceBuilder.flowNode.codedata().symbol())) {
             sourceBuilder.token().name(methodCallWithModulePrefix(sourceBuilder));
         } else {
             sourceBuilder.token().keyword(SyntaxKind.NEW_KEYWORD);
@@ -108,7 +108,7 @@ public class EmbeddingProviderBuilder extends CallBuilder {
                 .packageName(functionData.packageName()).version(functionData.version())
                 .symbol(codedata.symbol());
 
-        if (!functionData.name().equals(GET_DEFAULT_EMBEDDING_PROVIDER_FUNCTION_NAME)) {
+        if (!GET_DEFAULT_EMBEDDING_PROVIDER_FUNCTION_NAME.equals(functionData.name())) {
             codedata().object(functionData.name());
         }
 

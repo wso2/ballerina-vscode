@@ -24,11 +24,8 @@ package io.ballerina.flowmodelgenerator.core.model;
  * @param metadata the metadata of the node
  * @param codedata the codedata of the node
  * @param enabled  whether the node is enabled
- * @param more     indicates whether the node should be placed under the "more" section
  * @since 1.0.0
  */
-public record AvailableNode(Metadata metadata, Codedata codedata, boolean enabled, boolean more) implements Item {
-    public AvailableNode(Metadata metadata, Codedata codedata, boolean enabled) {
-        this(metadata, codedata, enabled, false);
-    }
+public record AvailableNode(Metadata metadata, Codedata codedata, boolean enabled) implements Item {
+
 }

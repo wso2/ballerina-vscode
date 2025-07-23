@@ -50,8 +50,7 @@
                 "symbol": "HealthCareFacility",
                 "version": "0.9.0"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             },
             {
               "metadata": {
@@ -67,8 +66,7 @@
                 "symbol": "HealthConcernAct",
                 "version": "0.9.0"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             },
             {
               "metadata": {
@@ -84,8 +82,7 @@
                 "symbol": "HealthStatusEvaluationsandOutcomesSection",
                 "version": "0.9.0"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             },
             {
               "metadata": {
@@ -101,8 +98,7 @@
                 "symbol": "HealthStatusObservation",
                 "version": "0.9.0"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             },
             {
               "metadata": {
@@ -118,8 +114,7 @@
                 "symbol": "HealthConcernsSection",
                 "version": "0.9.0"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             }
           ]
         },
@@ -144,8 +139,7 @@
                 "symbol": "HealthIncident",
                 "version": "1.5.1"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             }
           ]
         },
@@ -170,8 +164,7 @@
                 "symbol": "HealthcareAssertion",
                 "version": "1.5.1"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             },
             {
               "metadata": {
@@ -187,8 +180,7 @@
                 "symbol": "HealthcareLinkingProperties",
                 "version": "1.5.1"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             },
             {
               "metadata": {
@@ -204,8 +196,7 @@
                 "symbol": "HealthcareEntityLink",
                 "version": "1.5.1"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             },
             {
               "metadata": {
@@ -221,8 +212,7 @@
                 "symbol": "HealthcareEntity",
                 "version": "1.5.1"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             },
             {
               "metadata": {
@@ -238,8 +228,7 @@
                 "symbol": "HealthcareTaskResult",
                 "version": "1.5.1"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             },
             {
               "metadata": {
@@ -255,8 +244,7 @@
                 "symbol": "HealthcareResult",
                 "version": "1.5.1"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             },
             {
               "metadata": {
@@ -272,8 +260,7 @@
                 "symbol": "HealthcareRelationEntity",
                 "version": "1.5.1"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             },
             {
               "metadata": {
@@ -289,8 +276,7 @@
                 "symbol": "HealthcareJobState",
                 "version": "1.5.1"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             }
           ]
         },
@@ -315,8 +301,7 @@
                 "symbol": "HealthcareServiceAvailableTimeDaysOfWeek",
                 "version": "3.0.0"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             },
             {
               "metadata": {
@@ -332,8 +317,7 @@
                 "symbol": "HealthcareService",
                 "version": "3.0.0"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             },
             {
               "metadata": {
@@ -349,8 +333,7 @@
                 "symbol": "HealthcareServiceEligibility",
                 "version": "3.0.0"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             }
           ]
         },
@@ -375,8 +358,7 @@
                 "symbol": "HealthcareSecurityError",
                 "version": "1.1.1"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             }
           ]
         },
@@ -401,8 +383,7 @@
                 "symbol": "HealthcareService",
                 "version": "0.9.1"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             },
             {
               "metadata": {
@@ -418,8 +399,7 @@
                 "symbol": "HealthcareServiceEligibility",
                 "version": "0.9.1"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             }
           ]
         }
