@@ -16,6 +16,7 @@
 
 package org.ballerinalang.langserver.codelenses;
 
+import io.ballerina.compiler.syntax.tree.ClassDefinitionNode;
 import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
 import io.ballerina.compiler.syntax.tree.ModuleMemberDeclarationNode;
 import io.ballerina.compiler.syntax.tree.ModulePartNode;
@@ -87,6 +88,12 @@ public final class CodeLensUtil {
             if (member instanceof ServiceDeclarationNode serviceDeclarationNode) {
                 for (Node serviceMember : serviceDeclarationNode.members()) {
                     traverseCodeLensProviders(codeLensContext, serviceMember, providers, lenses);
+                }
+            }
+
+            if (member instanceof ClassDefinitionNode classDefinitionNode) {
+                for (Node classMember : classDefinitionNode.members()) {
+                    traverseCodeLensProviders(codeLensContext, classMember, providers, lenses);
                 }
             }
 
