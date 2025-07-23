@@ -266,39 +266,40 @@ public class ModuleNodeAnalyzer extends NodeVisitor {
                 .stepOut()
                 .addProperty(Constants.NaturalFunctions.PROMPT);
 
+        // Set the `modelProvider` property
+        nodeBuilder.properties().custom()
+                .metadata()
+                    .label(Constants.NaturalFunctions.MODEL_PROVIDER_LABEL)
+                    .description(Constants.NaturalFunctions.MODEL_PROVIDER_DESCRIPTION)
+                    .stepOut()
+                .codedata()
+                    .kind(ParameterData.Kind.REQUIRED.name())
+                    .stepOut()
+                .value(isModelParamEnabled
+                        ? Constants.NaturalFunctions.ACCEPT_AS_PARAMETER
+                        : Constants.NaturalFunctions.DEFAULT_MODEL_PROVIDER_WSO2)
+                .type(Property.ValueType.SINGLE_SELECT)
+                .typeConstraint(Constants.NaturalFunctions.MODEL_PROVIDER_OPTIONS)
+                .editable()
+                .stepOut()
+                .addProperty(Constants.NaturalFunctions.MODEL_PROVIDER);
+
         // Set the `model` property if enabled
         if (isModelParamEnabled) {
             nodeBuilder.properties().custom()
                     .metadata()
-                        .label(Constants.NaturalFunctions.MODEL_PROVIDER_LABEL)
-                        .description(Constants.NaturalFunctions.MODEL_PROVIDER_DESCRIPTION)
+                        .label(Constants.NaturalFunctions.MODEL_LABEL)
+                        .description(Constants.NaturalFunctions.MODEL_DESCRIPTION)
                         .stepOut()
                     .codedata()
                         .kind(ParameterData.Kind.REQUIRED.name())
                         .stepOut()
                     .typeConstraint(Constants.NaturalFunctions.MODULE_PREFIXED_MODEL_PROVIDER_TYPE)
-                    .editable()
-                    .optional(true)
-                    .advanced(true)
-                    .hidden()
                     .type(Property.ValueType.EXPRESSION)
+                    .hidden()
                     .stepOut()
-                    .addProperty(Constants.NaturalFunctions.MODEL_PROVIDER);
+                    .addProperty(Constants.NaturalFunctions.MODEL);
         }
-
-        // set the `enableModelContext` property
-        nodeBuilder.properties().custom()
-                .metadata()
-                .label(Constants.NaturalFunctions.ENABLE_MODEL_CONTEXT_LABEL)
-                .description(Constants.NaturalFunctions.ENABLE_MODEL_CONTEXT_DESCRIPTION)
-                .stepOut()
-                .editable()
-                .value(isModelParamEnabled)
-                .optional(true)
-                .advanced(true)
-                .type(Property.ValueType.FLAG)
-                .stepOut()
-                .addProperty(Constants.NaturalFunctions.ENABLE_MODEL_CONTEXT);
     }
 
     private static String getNodeValue(Node node) {
@@ -317,8 +318,8 @@ public class ModuleNodeAnalyzer extends NodeVisitor {
             return false;
         }
         TypeSymbol typeDesc = ((ParameterSymbol) paramSymbol.get()).typeDescriptor();
-        return CommonUtils.isBallerinaNpModule(typeDesc) && typeDesc.getName().isPresent()
-                && Constants.NaturalFunctions.MODEL_PROVIDER_TYPE_NAME.equals(typeDesc.getName().get());
+        return CommonUtils.isBallerinaAiModule(typeDesc) && typeDesc.getName().isPresent()
+                && Constants.NaturalFunctions.MODEL_TYPE_NAME.equals(typeDesc.getName().get());
     }
 
     private FunctionDocumentation getFunctionDocumentation(FunctionDefinitionNode funcDefNode) {

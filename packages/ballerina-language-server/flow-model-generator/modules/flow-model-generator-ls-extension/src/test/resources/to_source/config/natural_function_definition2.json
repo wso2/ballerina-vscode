@@ -2,13 +2,26 @@
   "source": "natural_functions/functions.bal",
   "description": "Sample diagram node",
   "diagram": {
-    "id": "38969",
+    "id": "34009",
     "metadata": {
       "label": "Natural Function",
       "description": "Define a natural function"
     },
     "codedata": {
-      "node": "NP_FUNCTION_DEFINITION"
+      "node": "NP_FUNCTION_DEFINITION",
+      "org": "ballerina",
+      "module": "ai",
+      "lineRange": {
+        "fileName": "functions.bal",
+        "startLine": {
+          "line": 2,
+          "offset": 0
+        },
+        "endLine": {
+          "line": 11,
+          "offset": 2
+        }
+      }
     },
     "returning": false,
     "properties": {
@@ -28,12 +41,12 @@
           "lineRange": {
             "fileName": "functions.bal",
             "startLine": {
-              "line": 7,
+              "line": 2,
               "offset": 9
             },
             "endLine": {
-              "line": 7,
-              "offset": 26
+              "line": 2,
+              "offset": 30
             }
           }
         }
@@ -97,8 +110,7 @@
               "optional": true,
               "editable": true,
               "advanced": false,
-              "hidden": false,
-              "type": "TEXTAREA"
+              "hidden": false
             }
           },
           "optional": false,
@@ -128,27 +140,34 @@
           "lineRange": {
             "fileName": "functions.bal",
             "startLine": {
-              "line": 8,
+              "line": 3,
               "offset": 0
             },
             "endLine": {
-              "line": 16,
+              "line": 11,
               "offset": 0
             }
           }
         }
       },
-      "enableModelContext": {
+      "modelProvider": {
         "metadata": {
-          "label": "Enable model configuration",
-          "description": "Allow specifying Large Language Model (LLM) choice"
+          "label": "Configure the model",
+          "description": "The large language model (LLM) to use"
         },
-        "valueType": "FLAG",
-        "value": false,
-        "optional": true,
+        "valueType": "SINGLE_SELECT",
+        "valueTypeConstraint": [
+          "Default Model Provider (WSO2)",
+          "Accept as a parameter"
+        ],
+        "value": "Default Model Provider (WSO2)",
+        "optional": false,
         "editable": true,
-        "advanced": true,
-        "hidden": false
+        "advanced": false,
+        "hidden": false,
+        "codedata": {
+          "kind": "REQUIRED"
+        }
       }
     },
     "flags": 0
@@ -158,15 +177,28 @@
       {
         "range": {
           "start": {
-            "line": 43,
-            "character": 2
+            "line": 0,
+            "character": 0
           },
           "end": {
-            "line": 43,
+            "line": 0,
+            "character": 0
+          }
+        },
+        "newText": "import ballerina/ai;"
+      },
+      {
+        "range": {
+          "start": {
+            "line": 2,
+            "character": 0
+          },
+          "end": {
+            "line": 11,
             "character": 2
           }
         },
-        "newText": "\nfunction suggestMovieGenre_new( ) returns string|error => natural {\n\n};\n"
+        "newText": "function suggestMovieGenre_new( ) returns string|error => natural (check ai:getDefaultModelProvider()){\n\n};\n"
       }
     ]
   }

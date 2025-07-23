@@ -199,6 +199,11 @@ public class CodeAnalyzer extends NodeVisitor {
     private final Stack<NodeBuilder> flowNodeBuilderStack;
     private TypedBindingPatternNode typedBindingPatternNode;
     private static final String AI_AGENT = "ai";
+    private static final String BALLERINAX = "ballerinax";
+    public static final String ICON_PATH = CommonUtils.generateIcon("ballerina", "mcp", "0.4.2");
+    public static final String MCP_TOOL_KIT = "McpToolKit";
+    public static final String MCP_SERVER = "MCP Server";
+    public static final String NAME = "name";
 
     public CodeAnalyzer(Project project, SemanticModel semanticModel, String connectionScope,
                         Map<String, LineRange> dataMappings, Map<String, LineRange> naturalFunctions,
@@ -451,8 +456,28 @@ public class CodeAnalyzer extends NodeVisitor {
                     continue;
                 }
                 SimpleNameReferenceNode simpleNameReferenceNode = (SimpleNameReferenceNode) node;
+                Optional<Symbol> nodeSymbol = semanticModel.symbol(node);
+                if (nodeSymbol.isEmpty()) {
+                    String toolName = simpleNameReferenceNode.name().text();
+                    toolsData.add(new ToolData(toolName, getIcon(toolName), getToolDescription(toolName), null));
+                    continue;
+                }
+
+                Symbol symbol = nodeSymbol.get();
                 String toolName = simpleNameReferenceNode.name().text();
-                toolsData.add(new ToolData(toolName, getIcon(toolName), getToolDescription(toolName)));
+                boolean isMcpToolKit = nodeSymbol
+                        .filter(newSymbol -> symbol.kind() == SymbolKind.VARIABLE)
+                        .map(newSymbol -> ((VariableSymbol) symbol).typeDescriptor())
+                        .filter(typeSymbol -> typeSymbol.getModule().isPresent()
+                                && typeSymbol.nameEquals(MCP_TOOL_KIT)
+                                && typeSymbol.getModule().get().id().moduleName().equals(AI_AGENT))
+                        .isPresent();
+                if (isMcpToolKit) {
+                    toolsData.add(new ToolData(toolName, ICON_PATH, getToolDescription(""), MCP_SERVER));
+                } else {
+                    toolName = simpleNameReferenceNode.name().text();
+                    toolsData.add(new ToolData(toolName, getIcon(toolName), getToolDescription(toolName), null));
+                }
             }
             nodeBuilder.metadata().addData("tools", toolsData);
         }
@@ -1286,6 +1311,8 @@ public class CodeAnalyzer extends NodeVisitor {
             startNode(NodeKind.CLASS_INIT, newExpressionNode);
         } else if (classSymbol.qualifiers().contains(Qualifier.CLIENT)) {
             startNode(NodeKind.NEW_CONNECTION, newExpressionNode);
+        } else if (classSymbol.nameEquals(MCP_TOOL_KIT)) {
+            startNode(NodeKind.MCP_TOOLKIT, newExpressionNode);
         } else {
             handleExpressionNode(newExpressionNode);
             return;
@@ -2246,7 +2273,7 @@ public class CodeAnalyzer extends NodeVisitor {
                 continue;
             }
             FunctionSymbol functionSymbol = (FunctionSymbol) symbol;
-            if (functionSymbol.getName().orElseThrow().equals(name)) {
+            if (functionSymbol.nameEquals(name)) {
                 for (AnnotationAttachmentSymbol annotAttachment : functionSymbol.annotAttachments()) {
                     if (annotAttachment.typeDescriptor().getName().orElseThrow().equals("display")) {
                         Optional<ConstantValue> optAttachmentValue = annotAttachment.attachmentValue();
@@ -2322,7 +2349,7 @@ public class CodeAnalyzer extends NodeVisitor {
 
     }
 
-    private record ToolData(String name, String path, String description) {
+    private record ToolData(String name, String path, String description, String type) {
 
     }
 

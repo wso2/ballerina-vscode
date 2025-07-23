@@ -34,7 +34,7 @@
           "label": "blog"
         },
         "valueType": "EXPRESSION",
-        "valueTypeConstraint": "other",
+        "valueTypeConstraint": "Unknown Type",
         "placeholder": "",
         "optional": false,
         "editable": true,

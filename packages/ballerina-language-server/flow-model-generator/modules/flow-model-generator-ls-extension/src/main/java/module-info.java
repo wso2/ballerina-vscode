@@ -32,4 +32,5 @@ module io.ballerina.LSExtensions.FlowService {
     requires io.ballerina.formatter.core;
     requires io.ballerina.model.generator.commons;
     requires io.ballerina.toml;
+    requires java.net.http;
 }

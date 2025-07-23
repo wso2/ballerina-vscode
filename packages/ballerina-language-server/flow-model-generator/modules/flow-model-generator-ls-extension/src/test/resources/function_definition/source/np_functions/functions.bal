@@ -1,4 +1,6 @@
-function suggestMovieName(string genre, int n) returns string|error => natural {
+import ballerina/ai;
+
+function suggestMovieName(string genre, int n) returns string|error => natural(check ai:getDefaultModelProvider()) {
     **Assumption**
     Think yourself as a movie expert
 
@@ -7,7 +9,7 @@ function suggestMovieName(string genre, int n) returns string|error => natural {
     ${genre}
 };
 
-function rateMovie(string movieName) returns int|error => natural {
+function rateMovie(string movieName) returns int|error => natural(check ai:getDefaultModelProvider()) {
     **Assumption**
     Think yourself as a movie expert
 
@@ -15,7 +17,7 @@ function rateMovie(string movieName) returns int|error => natural {
     Give rating for the movie ${movieName} out of 10 based on your opinion
 };
 
-function summarizeBlog(Blog blog) returns Summary|error => natural {
+function summarizeBlog(Blog blog) returns Summary|error => natural(check ai:getDefaultModelProvider()) {
     Think yourself as a blog reviewer and summerize the following blog
 
     **title**
@@ -28,3 +30,5 @@ function summarizeBlog(Blog blog) returns Summary|error => natural {
 function cleanCode() returns string {
     return "cleaned";
 }
+
+
