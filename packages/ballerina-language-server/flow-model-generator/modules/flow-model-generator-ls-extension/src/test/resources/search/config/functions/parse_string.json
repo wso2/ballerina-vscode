@@ -72,8 +72,7 @@
                 "symbol": "parseString",
                 "version": "1.1.0"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             }
           ]
         }
@@ -111,8 +110,7 @@
                 "symbol": "parseString",
                 "version": "1.4.1"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             }
           ]
         },
@@ -137,8 +135,7 @@
                 "symbol": "parseString",
                 "version": "0.8.0"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             }
           ]
         },
@@ -163,8 +160,7 @@
                 "symbol": "parseString",
                 "version": "0.8.0"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             }
           ]
         }

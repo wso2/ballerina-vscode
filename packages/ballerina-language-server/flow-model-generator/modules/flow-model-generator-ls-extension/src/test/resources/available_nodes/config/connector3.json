@@ -34,8 +34,7 @@
                 "parentSymbol": "moduleClient",
                 "resourcePath": ""
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             },
             {
               "metadata": {
@@ -54,8 +53,7 @@
                 "parentSymbol": "moduleClient",
                 "resourcePath": ""
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             },
             {
               "metadata": {
@@ -74,8 +72,7 @@
                 "parentSymbol": "moduleClient",
                 "resourcePath": ""
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             },
             {
               "metadata": {
@@ -94,8 +91,7 @@
                 "parentSymbol": "moduleClient",
                 "resourcePath": ""
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             }
           ]
         }
@@ -115,8 +111,7 @@
           "codedata": {
             "node": "MODEL_PROVIDERS"
           },
-          "enabled": true,
-          "more": false
+          "enabled": true
         },
         {
           "metadata": {
@@ -127,8 +122,7 @@
           "codedata": {
             "node": "NP_FUNCTION"
           },
-          "enabled": true,
-          "more": false
+          "enabled": true
         },
         {
           "metadata": {
@@ -144,8 +138,7 @@
             "symbol": "init",
             "version": "1.1.0"
           },
-          "enabled": true,
-          "more": false
+          "enabled": true
         },
         {
           "metadata": {
@@ -158,8 +151,7 @@
             "packageName": "ai",
             "symbol": "chunkDocumentRecursively"
           },
-          "enabled": true,
-          "more": false
+          "enabled": true
         },
         {
           "metadata": {
@@ -172,30 +164,7 @@
             "packageName": "ai",
             "symbol": "augmentUserQuery"
           },
-          "enabled": true,
-          "more": false
-        },
-        {
-          "metadata": {
-            "label": "Vector Store",
-            "description": "Vector stores available in the integration"
-          },
-          "codedata": {
-            "node": "VECTOR_STORES"
-          },
-          "enabled": true,
-          "more": true
-        },
-        {
-          "metadata": {
-            "label": "Embedding Provider",
-            "description": "Embedding providers available within the integration for connecting to an embedding model"
-          },
-          "codedata": {
-            "node": "EMBEDDING_PROVIDERS"
-          },
-          "enabled": true,
-          "more": true
+          "enabled": true
         },
         {
           "metadata": {
@@ -210,8 +179,35 @@
             "object": "Agent",
             "symbol": "run"
           },
-          "enabled": true,
-          "more": false
+          "enabled": true
+        },
+        {
+          "metadata": {
+            "label": "More",
+            "description": "Expandable section to view more content"
+          },
+          "items": [
+            {
+              "metadata": {
+                "label": "Vector Store",
+                "description": "Vector stores available in the integration"
+              },
+              "codedata": {
+                "node": "VECTOR_STORES"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "Embedding Provider",
+                "description": "Embedding providers available in the integration for connecting to an embedding model"
+              },
+              "codedata": {
+                "node": "EMBEDDING_PROVIDERS"
+              },
+              "enabled": true
+            }
+          ]
         }
       ]
     },
@@ -228,8 +224,7 @@
           "codedata": {
             "node": "VARIABLE"
           },
-          "enabled": true,
-          "more": false
+          "enabled": true
         },
         {
           "metadata": {
@@ -239,8 +234,7 @@
           "codedata": {
             "node": "ASSIGN"
           },
-          "enabled": true,
-          "more": false
+          "enabled": true
         },
         {
           "metadata": {
@@ -250,8 +244,7 @@
           "codedata": {
             "node": "FUNCTION"
           },
-          "enabled": true,
-          "more": false
+          "enabled": true
         },
         {
           "metadata": {
@@ -260,8 +253,7 @@
           "codedata": {
             "node": "DATA_MAPPER_CALL"
           },
-          "enabled": true,
-          "more": false
+          "enabled": true
         }
       ]
     },
@@ -279,8 +271,7 @@
           "codedata": {
             "node": "IF"
           },
-          "enabled": true,
-          "more": false
+          "enabled": true
         },
         {
           "metadata": {
@@ -290,8 +281,7 @@
           "codedata": {
             "node": "MATCH"
           },
-          "enabled": true,
-          "more": false
+          "enabled": true
         },
         {
           "metadata": {
@@ -301,8 +291,7 @@
           "codedata": {
             "node": "WHILE"
           },
-          "enabled": true,
-          "more": false
+          "enabled": true
         },
         {
           "metadata": {
@@ -312,8 +301,7 @@
           "codedata": {
             "node": "FOREACH"
           },
-          "enabled": true,
-          "more": false
+          "enabled": true
         },
         {
           "metadata": {
@@ -322,8 +310,7 @@
           "codedata": {
             "node": "RETURN"
           },
-          "enabled": true,
-          "more": false
+          "enabled": true
         }
       ]
     },
@@ -341,8 +328,7 @@
           "codedata": {
             "node": "ERROR_HANDLER"
           },
-          "enabled": true,
-          "more": false
+          "enabled": true
         },
         {
           "metadata": {
@@ -352,8 +338,7 @@
           "codedata": {
             "node": "FAIL"
           },
-          "enabled": true,
-          "more": false
+          "enabled": true
         },
         {
           "metadata": {
@@ -363,8 +348,7 @@
           "codedata": {
             "node": "PANIC"
           },
-          "enabled": true,
-          "more": false
+          "enabled": true
         }
       ]
     },
@@ -382,8 +366,7 @@
           "codedata": {
             "node": "FORK"
           },
-          "enabled": true,
-          "more": false
+          "enabled": true
         },
         {
           "metadata": {
@@ -393,8 +376,7 @@
           "codedata": {
             "node": "PARALLEL_FLOW"
           },
-          "enabled": true,
-          "more": false
+          "enabled": true
         },
         {
           "metadata": {
@@ -404,8 +386,7 @@
           "codedata": {
             "node": "WAIT"
           },
-          "enabled": true,
-          "more": false
+          "enabled": true
         },
         {
           "metadata": {
@@ -415,8 +396,7 @@
           "codedata": {
             "node": "LOCK"
           },
-          "enabled": true,
-          "more": false
+          "enabled": true
         },
         {
           "metadata": {
@@ -426,8 +406,7 @@
           "codedata": {
             "node": "START"
           },
-          "enabled": true,
-          "more": false
+          "enabled": true
         },
         {
           "metadata": {
@@ -437,8 +416,7 @@
           "codedata": {
             "node": "TRANSACTION"
           },
-          "enabled": true,
-          "more": false
+          "enabled": true
         },
         {
           "metadata": {
@@ -448,8 +426,7 @@
           "codedata": {
             "node": "COMMIT"
           },
-          "enabled": true,
-          "more": false
+          "enabled": true
         },
         {
           "metadata": {
@@ -459,8 +436,7 @@
           "codedata": {
             "node": "ROLLBACK"
           },
-          "enabled": true,
-          "more": false
+          "enabled": true
         },
         {
           "metadata": {
@@ -470,8 +446,7 @@
           "codedata": {
             "node": "RETRY"
           },
-          "enabled": true,
-          "more": false
+          "enabled": true
         }
       ]
     },
@@ -494,8 +469,7 @@
             "symbol": "printInfo",
             "version": "2.10.0"
           },
-          "enabled": true,
-          "more": false
+          "enabled": true
         },
         {
           "metadata": {
@@ -511,8 +485,7 @@
             "symbol": "printError",
             "version": "2.10.0"
           },
-          "enabled": true,
-          "more": false
+          "enabled": true
         },
         {
           "metadata": {
@@ -528,8 +501,7 @@
             "symbol": "printWarn",
             "version": "2.10.0"
           },
-          "enabled": true,
-          "more": false
+          "enabled": true
         },
         {
           "metadata": {
@@ -545,8 +517,7 @@
             "symbol": "printDebug",
             "version": "2.10.0"
           },
-          "enabled": true,
-          "more": false
+          "enabled": true
         }
       ]
     }

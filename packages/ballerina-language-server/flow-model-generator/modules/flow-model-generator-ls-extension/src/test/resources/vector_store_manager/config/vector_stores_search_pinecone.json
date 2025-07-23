@@ -22,8 +22,7 @@
               "symbol": "init",
               "version": "1.0.1"
             },
-            "enabled": true,
-            "more": false
+            "enabled": true
           }
         ]
       }

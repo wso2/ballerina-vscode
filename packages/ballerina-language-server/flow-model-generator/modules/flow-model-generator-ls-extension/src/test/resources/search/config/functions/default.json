@@ -84,8 +84,7 @@
                 "symbol": "fileReadJson",
                 "version": "1.8.0"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             },
             {
               "metadata": {
@@ -101,8 +100,7 @@
                 "symbol": "fileReadString",
                 "version": "1.8.0"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             },
             {
               "metadata": {
@@ -118,8 +116,7 @@
                 "symbol": "fileWriteJson",
                 "version": "1.8.0"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             },
             {
               "metadata": {
@@ -135,8 +132,7 @@
                 "symbol": "fileWriteString",
                 "version": "1.8.0"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             },
             {
               "metadata": {
@@ -152,8 +148,7 @@
                 "symbol": "print",
                 "version": "1.8.0"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             },
             {
               "metadata": {
@@ -169,8 +164,7 @@
                 "symbol": "println",
                 "version": "1.8.0"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             }
           ]
         },
@@ -195,8 +189,7 @@
                 "symbol": "printDebug",
                 "version": "2.12.0"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             },
             {
               "metadata": {
@@ -212,8 +205,7 @@
                 "symbol": "printError",
                 "version": "2.12.0"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             },
             {
               "metadata": {
@@ -229,8 +221,7 @@
                 "symbol": "printInfo",
                 "version": "2.12.0"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             },
             {
               "metadata": {
@@ -246,8 +237,7 @@
                 "symbol": "printWarn",
                 "version": "2.12.0"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             }
           ]
         },
@@ -272,8 +262,7 @@
                 "symbol": "utcFromString",
                 "version": "2.7.0"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             },
             {
               "metadata": {
@@ -289,8 +278,7 @@
                 "symbol": "utcNow",
                 "version": "2.7.0"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             }
           ]
         }
