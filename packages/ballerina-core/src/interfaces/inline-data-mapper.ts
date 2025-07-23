@@ -93,8 +93,9 @@ export interface Mapping {
     elements?: MappingElement[];
     diagnostics?: IDMDiagnostic[];
     isComplex?: boolean;
-    isFunctionCall?: boolean;
     isQueryExpression?: boolean;
+    isFunctionCall?: boolean;
+    functionRange?: LineRange;
 }
 
 export interface ExpandedDMModel {
@@ -189,6 +190,19 @@ export interface ResultClause {
         func?: string;
     };
     query?: Query;
+}
+
+export interface CustomFnMetadata {
+    returnType: string,
+    parameters: CustomFnParams[]
+}
+
+export interface CustomFnParams{
+    name: string,
+    type: string,
+    isOptional: boolean,
+    isNullable: boolean,
+    kind: TypeKind
 }
 
 export interface IDMFormProps {

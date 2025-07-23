@@ -36,6 +36,7 @@ import {
     InlineDataMapperSourceRequest,
     InlineDataMapperSourceResponse,
     MACHINE_VIEW,
+    MapWithCustomFnRequest,
     PropertyRequest,
     PropertyResponse,
     VisualizableFieldsRequest,
@@ -260,6 +261,21 @@ export class InlineDataMapperRpcManager implements InlineDataMapperAPI {
                 .deleteMapping(params)
                 .then((resp) => {
                     console.log(">>> inline data mapper delete mapping response", resp);
+                    updateAndRefreshDataMapper(resp.textEdits, params.filePath, params.codedata, params.varName)
+                    .then(() => {
+                        resolve({ textEdits: resp.textEdits });
+                    });
+                });
+        });
+    }
+
+    async mapWithCustomFn(params: MapWithCustomFnRequest): Promise<InlineDataMapperSourceResponse> {
+        return new Promise(async (resolve) => {
+            await StateMachine
+                .langClient()
+                .mapWithCustomFn(params)
+                .then((resp) => {
+                    console.log(">>> inline data mapper map with custom fn response", resp);
                     updateAndRefreshDataMapper(resp.textEdits, params.filePath, params.codedata, params.varName)
                     .then(() => {
                         resolve({ textEdits: resp.textEdits });
