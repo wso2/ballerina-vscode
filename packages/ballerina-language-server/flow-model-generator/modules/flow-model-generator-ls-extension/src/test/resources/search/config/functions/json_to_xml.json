@@ -86,8 +86,7 @@
                 "symbol": "fromJson",
                 "version": "1.4.1"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             }
           ]
         },
@@ -112,8 +111,7 @@
                 "symbol": "toJson",
                 "version": "0.0.0"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             }
           ]
         }

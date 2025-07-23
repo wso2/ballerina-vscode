@@ -21,8 +21,7 @@
               "symbol": "init",
               "version": "1.0.1"
             },
-            "enabled": true,
-            "more": false
+            "enabled": true
           },
           {
             "metadata": {
@@ -38,8 +37,7 @@
               "symbol": "init",
               "version": "1.1.0"
             },
-            "enabled": true,
-            "more": false
+            "enabled": true
           }
         ]
       }

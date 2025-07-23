@@ -39,8 +39,7 @@
                 "symbol": "Error",
                 "version": "1.1.0"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             },
             {
               "metadata": {
@@ -56,8 +55,7 @@
                 "symbol": "Options",
                 "version": "1.1.0"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             },
             {
               "metadata": {
@@ -73,8 +71,7 @@
                 "symbol": "NameConfig",
                 "version": "1.1.0"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             },
             {
               "metadata": {
@@ -90,8 +87,7 @@
                 "symbol": "JsonPathValue",
                 "version": "1.1.0"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             },
             {
               "metadata": {
@@ -107,8 +103,7 @@
                 "symbol": "JsonPathRawTemplate",
                 "version": "1.1.0"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             }
           ]
         },
@@ -133,8 +128,7 @@
                 "symbol": "Prompt",
                 "version": "0.3.0"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             },
             {
               "metadata": {
@@ -150,8 +144,7 @@
                 "symbol": "Context",
                 "version": "0.3.0"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             },
             {
               "metadata": {
@@ -167,8 +160,7 @@
                 "symbol": "ModelProvider",
                 "version": "0.3.0"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             }
           ]
         },
@@ -193,8 +185,7 @@
                 "symbol": "Block",
                 "version": "1.8.0"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             },
             {
               "metadata": {
@@ -210,8 +201,7 @@
                 "symbol": "ReadableByteChannel",
                 "version": "1.8.0"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             },
             {
               "metadata": {
@@ -227,8 +217,7 @@
                 "symbol": "ReadableCharacterChannel",
                 "version": "1.8.0"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             },
             {
               "metadata": {
@@ -244,8 +233,7 @@
                 "symbol": "ReadableTextRecordChannel",
                 "version": "1.8.0"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             },
             {
               "metadata": {
@@ -261,8 +249,7 @@
                 "symbol": "ReadableCSVChannel",
                 "version": "1.8.0"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             },
             {
               "metadata": {
@@ -278,8 +265,7 @@
                 "symbol": "WritableByteChannel",
                 "version": "1.8.0"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             },
             {
               "metadata": {
@@ -295,8 +281,7 @@
                 "symbol": "WritableCharacterChannel",
                 "version": "1.8.0"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             },
             {
               "metadata": {
@@ -312,8 +297,7 @@
                 "symbol": "WritableTextRecordChannel",
                 "version": "1.8.0"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             },
             {
               "metadata": {
@@ -329,8 +313,7 @@
                 "symbol": "WritableCSVChannel",
                 "version": "1.8.0"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             },
             {
               "metadata": {
@@ -346,8 +329,7 @@
                 "symbol": "Format",
                 "version": "1.8.0"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             },
             {
               "metadata": {
@@ -363,8 +345,7 @@
                 "symbol": "Separator",
                 "version": "1.8.0"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             },
             {
               "metadata": {
@@ -380,8 +361,7 @@
                 "symbol": "Error",
                 "version": "1.8.0"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             },
             {
               "metadata": {
@@ -397,8 +377,7 @@
                 "symbol": "ConnectionTimedOutError",
                 "version": "1.8.0"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             },
             {
               "metadata": {
@@ -414,8 +393,7 @@
                 "symbol": "GenericError",
                 "version": "1.8.0"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             },
             {
               "metadata": {
@@ -431,8 +409,7 @@
                 "symbol": "AccessDeniedError",
                 "version": "1.8.0"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             },
             {
               "metadata": {
@@ -448,8 +425,7 @@
                 "symbol": "FileNotFoundError",
                 "version": "1.8.0"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             },
             {
               "metadata": {
@@ -465,8 +441,7 @@
                 "symbol": "TypeMismatchError",
                 "version": "1.8.0"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             },
             {
               "metadata": {
@@ -482,8 +457,7 @@
                 "symbol": "EofError",
                 "version": "1.8.0"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             },
             {
               "metadata": {
@@ -499,8 +473,7 @@
                 "symbol": "ConfigurationError",
                 "version": "1.8.0"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             },
             {
               "metadata": {
@@ -516,8 +489,7 @@
                 "symbol": "FileWriteOption",
                 "version": "1.8.0"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             },
             {
               "metadata": {
@@ -533,8 +505,7 @@
                 "symbol": "XmlEntityType",
                 "version": "1.8.0"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             },
             {
               "metadata": {
@@ -550,8 +521,7 @@
                 "symbol": "XmlDoctype",
                 "version": "1.8.0"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             },
             {
               "metadata": {
@@ -567,8 +537,7 @@
                 "symbol": "XmlWriteOptions",
                 "version": "1.8.0"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             },
             {
               "metadata": {
@@ -584,8 +553,7 @@
                 "symbol": "PrintableRawTemplate",
                 "version": "1.8.0"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             },
             {
               "metadata": {
@@ -601,8 +569,7 @@
                 "symbol": "Printable",
                 "version": "1.8.0"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             },
             {
               "metadata": {
@@ -618,8 +585,7 @@
                 "symbol": "FileOutputStream",
                 "version": "1.8.0"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             },
             {
               "metadata": {
@@ -635,8 +601,7 @@
                 "symbol": "ByteOrder",
                 "version": "1.8.0"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             },
             {
               "metadata": {
@@ -652,8 +617,7 @@
                 "symbol": "BlockStream",
                 "version": "1.8.0"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             },
             {
               "metadata": {
@@ -669,8 +633,7 @@
                 "symbol": "CSVStream",
                 "version": "1.8.0"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             },
             {
               "metadata": {
@@ -686,8 +649,7 @@
                 "symbol": "LineStream",
                 "version": "1.8.0"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             },
             {
               "metadata": {
@@ -703,8 +665,7 @@
                 "symbol": "ReadableDataChannel",
                 "version": "1.8.0"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             },
             {
               "metadata": {
@@ -720,8 +681,7 @@
                 "symbol": "StringReader",
                 "version": "1.8.0"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             },
             {
               "metadata": {
@@ -737,8 +697,7 @@
                 "symbol": "CsvIterator",
                 "version": "1.8.0"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             },
             {
               "metadata": {
@@ -754,8 +713,7 @@
                 "symbol": "WritableDataChannel",
                 "version": "1.8.0"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             }
           ]
         },
@@ -780,8 +738,7 @@
                 "symbol": "Error",
                 "version": "2.7.0"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             },
             {
               "metadata": {
@@ -797,8 +754,7 @@
                 "symbol": "FormatError",
                 "version": "2.7.0"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             },
             {
               "metadata": {
@@ -814,8 +770,7 @@
                 "symbol": "Seconds",
                 "version": "2.7.0"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             },
             {
               "metadata": {
@@ -831,8 +786,7 @@
                 "symbol": "Utc",
                 "version": "2.7.0"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             },
             {
               "metadata": {
@@ -848,8 +802,7 @@
                 "symbol": "DayOfWeek",
                 "version": "2.7.0"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             },
             {
               "metadata": {
@@ -865,8 +818,7 @@
                 "symbol": "Date",
                 "version": "2.7.0"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             },
             {
               "metadata": {
@@ -882,8 +834,7 @@
                 "symbol": "ZoneOffset",
                 "version": "2.7.0"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             },
             {
               "metadata": {
@@ -899,8 +850,7 @@
                 "symbol": "TimeOfDay",
                 "version": "2.7.0"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             }
           ]
         }
