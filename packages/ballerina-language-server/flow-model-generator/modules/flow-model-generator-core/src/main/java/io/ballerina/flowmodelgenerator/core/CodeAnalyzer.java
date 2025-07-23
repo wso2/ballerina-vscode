@@ -181,6 +181,7 @@ import static io.ballerina.modelgenerator.commons.CommonUtils.isAgentClass;
  * @since 1.0.0
  */
 public class CodeAnalyzer extends NodeVisitor {
+
     // Readonly fields
     private final Project project;
     private final SemanticModel semanticModel;
@@ -1310,7 +1311,7 @@ public class CodeAnalyzer extends NodeVisitor {
             startNode(NodeKind.CLASS_INIT, newExpressionNode);
         } else if (classSymbol.qualifiers().contains(Qualifier.CLIENT)) {
             startNode(NodeKind.NEW_CONNECTION, newExpressionNode);
-        } else if (classSymbol.getName().isPresent() && classSymbol.getName().get().equals(MCP_TOOL_KIT)) {
+        } else if (classSymbol.nameEquals(MCP_TOOL_KIT)) {
             startNode(NodeKind.MCP_TOOLKIT, newExpressionNode);
         } else {
             handleExpressionNode(newExpressionNode);

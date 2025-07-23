@@ -21,7 +21,7 @@ package io.ballerina.flowmodelgenerator.core.model;
 import java.util.List;
 
 /**
- * Represents a diagram.
+ * Represents a diagram including variables.
  *
  * @param fileName The name of the file
  * @param nodes    The nodes in the diagram

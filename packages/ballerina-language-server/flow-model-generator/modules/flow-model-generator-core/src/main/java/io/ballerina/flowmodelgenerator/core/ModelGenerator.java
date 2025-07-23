@@ -159,24 +159,24 @@ public class ModelGenerator {
     }
 
     public JsonElement getModuleNodes() {
-        List<FlowNode> connectionsList = semanticModel.moduleSymbols().stream()
-                .flatMap(symbol -> buildConnection(symbol).stream())
-                .sorted(Comparator.comparing(
-                        node -> Optional.ofNullable(node.properties().get(Property.VARIABLE_KEY))
-                                .map(property -> property.value().toString())
-                                .orElse("")))
-                .toList();
+        List<FlowNode> connectionsList = new ArrayList<>();
+        List<FlowNode> variablesList = new ArrayList<>();
         List<Symbol> symbols = semanticModel.moduleSymbols();
-        List<FlowNode> variablesList = symbols.stream()
-            .filter(symbol -> symbol instanceof VariableSymbol)
-            .map(this::buildVariables)
-            .filter(Optional::isPresent)
-            .map(Optional::get)
-            .sorted(Comparator.comparing(
-                node -> Optional.ofNullable(node.properties().get(Property.VARIABLE_KEY))
-                        .map(property -> property.value().toString())
-                        .orElse("")))
-            .toList();
+
+        for (Symbol symbol : symbols) {
+            buildConnection(symbol).ifPresent(connectionsList::add);
+            if (symbol instanceof VariableSymbol) {
+                buildVariables(symbol).ifPresent(variablesList::add);
+            }
+        }
+        Comparator<FlowNode> comparator = Comparator.comparing(
+            node -> Optional.ofNullable(node.properties().get(Property.VARIABLE_KEY))
+                          .map(property -> property.value().toString())
+                          .orElse("")
+        );
+        connectionsList.sort(comparator);
+        variablesList.sort(comparator);
+
         ExtendedDiagram diagram = new ExtendedDiagram(filePath.toString(), List.of(), connectionsList, variablesList);
         return gson.toJsonTree(diagram);
     }
