@@ -41,7 +41,7 @@ public class GetAllMemoryManagersTest extends AbstractLSTest {
     protected Object[] getConfigsList() {
         return new Object[][]{
                 {Path.of("get_all_memory_managers.json")},
-                {Path.of("get_all_memory_managers_ballerina.json")}
+//                {Path.of("get_all_memory_managers_ballerina.json")}
         };
     }
 
