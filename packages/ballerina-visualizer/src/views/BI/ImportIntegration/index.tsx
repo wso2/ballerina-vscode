@@ -63,8 +63,8 @@ export function ImportIntegration() {
     };
 
     // Handler to begin the import and switch to the loading view
-    const handleStartImport = () => {
-        if (toolPullProgress?.step === -1) {
+    const handleStartImport = (toolPullProgress: DownloadProgress, importParams: FinalIntegrationParams) => {
+        if (toolPullProgress.step === -1) {
             console.error("Cannot start import, tool download failed.");
             return;
         }
@@ -82,11 +82,9 @@ export function ImportIntegration() {
                 .then((response) => {
                     console.log("TIBCO import response:", response);
                     setMigrationResponse(response);
-                    // Handle successful import response here
                 })
                 .catch((error) => {
                     console.error("Error during TIBCO import:", error);
-                    // Handle error during import
                 });
         }
     };
@@ -123,10 +121,10 @@ export function ImportIntegration() {
     }, [rpcClient]);
 
     useEffect(() => {
-        if (toolPullProgress && toolPullProgress.success) {
-            handleStartImport();
+        if (toolPullProgress && toolPullProgress.success && importParams) {
+            handleStartImport(toolPullProgress, importParams);
         }
-    }, [toolPullProgress]);
+    }, [toolPullProgress, importParams]);
 
     return (
         <div className="import-integration-container">

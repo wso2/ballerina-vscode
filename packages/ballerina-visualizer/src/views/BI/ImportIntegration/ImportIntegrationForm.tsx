@@ -247,7 +247,7 @@ export function ImportIntegrationForm({
                     onTextChange={handleProjectName}
                     value={name}
                     label="Integration Name"
-                    placeholder="Enter a integration name"
+                    placeholder="Enter an integration name"
                     autoFocus={true}
                 />
                 <PreviewContainer>
@@ -255,7 +255,7 @@ export function ImportIntegrationForm({
                         name="project"
                         iconSx={{ fontSize: 14, color: "var(--vscode-descriptionForeground)" }}
                     />
-                    <Tooltip content="A unique identifier for your intergration">
+                    <Tooltip content="A unique identifier for your integration">
                         <PreviewText variant="caption">
                             {name ? sanitizeProjectName(name) : "integration_id"}
                         </PreviewText>

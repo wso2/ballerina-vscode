@@ -1,11 +1,27 @@
-import { exec } from "child_process";
-import { ballerinaExtInstance } from "../core";
-import { debug } from "./logger";
+/**
+ * Copyright (c) 2025, WSO2 LLC. (https://www.wso2.com) All Rights Reserved.
+ *
+ * WSO2 LLC. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
 
-// Imports for RPC communication
 import { DownloadProgress, onDownloadProgress } from "@wso2/ballerina-core";
-import { VisualizerWebview } from "../../src/views/visualizer/webview";
-import { RPCLayer } from "../../src/RPCLayer";
+import { exec } from "child_process";
+import { extension } from "../BalExtensionContext";
+import { RPCLayer } from "../RPCLayer";
+import { VisualizerWebview } from "../views/visualizer/webview";
+import { debug } from "./logger";
 
 /**
  * Executes the `bal tool pull` command and sends progress notifications to the webview client via RPC.
@@ -32,7 +48,7 @@ export async function pullMigrationTool(migrationToolName: string): Promise<void
         return Promise.reject(new Error(errorMessage));
     }
 
-    const ballerinaCmd = ballerinaExtInstance.getBallerinaCmd();
+    const ballerinaCmd = extension.ballerinaExtInstance.getBallerinaCmd();
     const command = `${ballerinaCmd} tool pull ${migrationToolCommand}`;
     debug(`Executing migration tool pull command: ${command}`);
 
