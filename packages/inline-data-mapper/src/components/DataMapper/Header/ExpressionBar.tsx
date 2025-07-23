@@ -80,7 +80,7 @@ export default function ExpressionBarWrapper({ views }: ExpressionBarProps) {
     const [textFieldValue, setTextFieldValue] = useState<string>('');
     const [placeholder, setPlaceholder] = useState<string>();
 
-    const { focusedPort, focusedFilter, lastFocusedPort, inputPort, resetInputPort, setLastFocusedPort } =
+    const { focusedPort, focusedFilter, lastFocusedPort, inputPort, resetInputPort, setLastFocusedPort, resetExprBarFocus } =
         useDMExpressionBarStore(
             useShallow((state) => ({
                 focusedPort: state.focusedPort,
@@ -88,7 +88,8 @@ export default function ExpressionBarWrapper({ views }: ExpressionBarProps) {
                 lastFocusedPort: state.lastFocusedPort,
                 inputPort: state.inputPort,
                 resetInputPort: state.resetInputPort,
-                setLastFocusedPort: state.setLastFocusedPort
+                setLastFocusedPort: state.setLastFocusedPort,
+                resetExprBarFocus: state.resetFocus
             }))
         );
 
@@ -195,6 +196,15 @@ export default function ExpressionBarWrapper({ views }: ExpressionBarProps) {
         triggerCompletions(outputId, viewId, textFieldValue, cursorPosition);
     };
 
+    const handleBlur = async (e: any) => {
+        if (e.target.closest('[id^="recordfield-"]')) {
+            return;
+        }
+        await saveSource(focusedPort, textFieldValue);
+        setTextFieldValue("");
+        resetExprBarFocus();
+    };
+
     const inputProps: InputProps = {
         endAdornment: (
             <Button appearance="icon" tooltip="Goto source" onClick={gotoSource}>
@@ -265,6 +275,7 @@ export default function ExpressionBarWrapper({ views }: ExpressionBarProps) {
                 onSave={handleExpressionSave}
                 onCancel={onCancel}
                 onClose={onCancel}
+                onBlur={handleBlur}
                 useTransaction={useDisableOnChange}
                 onManualCompletionRequest={handleManualCompletionRequest}
                 sx={{ display: 'flex', alignItems: 'center' }}

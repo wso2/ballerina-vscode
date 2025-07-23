@@ -111,7 +111,14 @@ export class InlineDataMapperRpcManager implements InlineDataMapperAPI {
                 .getInlineDataMapperSource(params)
                 .then((resp) => {
                     console.log(">>> inline data mapper initial source from ls", resp);
-                    updateAndRefreshDataMapper(resp.textEdits, params.filePath, params.codedata, params.varName)
+                    updateAndRefreshDataMapper(
+                        resp.textEdits,
+                        params.filePath,
+                        params.codedata,
+                        params.varName,
+                        params.targetField,
+                        params.withinSubMapping
+                    )
                     .then(() => {
                         resolve({ textEdits: resp.textEdits });
                     });
