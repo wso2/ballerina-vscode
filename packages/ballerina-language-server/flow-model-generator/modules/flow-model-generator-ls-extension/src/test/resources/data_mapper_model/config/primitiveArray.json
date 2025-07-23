@@ -1,0 +1,130 @@
+{
+  "source": "primitiveArray.bal",
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "primitiveArray.bal",
+      "startLine": {
+        "line": 19,
+        "offset": 4
+      },
+      "endLine": {
+        "line": 22,
+        "offset": 6
+      }
+    },
+    "sourceCode": ""
+  },
+  "position": {
+    "line": 19,
+    "offset": 4
+  },
+  "propertyKey": "expression",
+  "model": {
+    "inputs": [
+      {
+        "fields": [
+          {
+            "id": "engineering.name",
+            "variableName": "name",
+            "typeName": "string",
+            "kind": "string"
+          },
+          {
+            "member": {
+              "id": "engineering.otherCodes.0",
+              "variableName": "<otherCodesItem>",
+              "typeName": "int",
+              "kind": "int"
+            },
+            "id": "engineering.otherCodes",
+            "variableName": "otherCodes",
+            "typeName": "int[]",
+            "kind": "array"
+          }
+        ],
+        "id": "engineering",
+        "variableName": "engineering",
+        "typeName": "Department",
+        "kind": "record",
+        "category": "local-variable"
+      },
+      {
+        "member": {
+          "id": "itemCodes.0",
+          "variableName": "<itemCodesItem>",
+          "typeName": "int",
+          "kind": "int"
+        },
+        "id": "itemCodes",
+        "variableName": "itemCodes",
+        "typeName": "int[]",
+        "kind": "array",
+        "category": "local-variable"
+      }
+    ],
+    "output": {
+      "fields": [
+        {
+          "id": "alice.name",
+          "variableName": "name",
+          "typeName": "string",
+          "kind": "string"
+        },
+        {
+          "fields": [
+            {
+              "id": "alice.department.name",
+              "variableName": "name",
+              "typeName": "string",
+              "kind": "string"
+            },
+            {
+              "member": {
+                "id": "alice.department.otherCodes",
+                "variableName": "<otherCodesItem>",
+                "typeName": "int",
+                "kind": "int"
+              },
+              "id": "alice.department.otherCodes",
+              "variableName": "otherCodes",
+              "typeName": "int[]",
+              "kind": "array"
+            }
+          ],
+          "id": "alice.department",
+          "variableName": "department",
+          "typeName": "Department",
+          "kind": "record"
+        }
+      ],
+      "id": "alice",
+      "variableName": "alice",
+      "typeName": "Employee",
+      "kind": "record"
+    },
+    "mappings": [
+      {
+        "output": "alice.name",
+        "inputs": [],
+        "expression": "\"Alice\"",
+        "diagnostics": [],
+        "elements": [],
+        "isQueryExpression": false,
+        "isFunctionCall": false
+      },
+      {
+        "output": "alice.department",
+        "inputs": [
+          "engineering"
+        ],
+        "expression": "engineering\n",
+        "diagnostics": [],
+        "elements": [],
+        "isQueryExpression": false,
+        "isFunctionCall": false
+      }
+    ]
+  }
+}

@@ -47,6 +47,7 @@
               {
                 "member": {
                   "id": "users4.user5.u",
+                  "variableName": "<uItem>",
                   "typeName": "string",
                   "kind": "string"
                 },

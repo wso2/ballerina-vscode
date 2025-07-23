@@ -784,8 +784,11 @@ public class DataMapManager {
                 return new MappingPort(id, type.getName(), type.getTypeName(), type.getTypeName());
             } else if (type.getTypeName().equals("array")) {
                 ArrayType arrayType = (ArrayType) type;
-                MappingPort memberPort = getMappingPort(isInputPort ? id + ".0" : id, getItemName(id),
+                MappingPort memberPort = getMappingPort(isInputPort ? id + ".0" : id, getItemName(name),
                         arrayType.memberType, isInputPort, visitedTypes);
+                if (memberPort != null && memberPort.variableName == null) {
+                    memberPort.variableName = getItemName(name);
+                }
                 MappingArrayPort arrayPort = new MappingArrayPort(id, name, memberPort == null ? "record" :
                         memberPort.typeName + "[]", type.getTypeName());
                 arrayPort.setMember(memberPort);
@@ -810,9 +813,11 @@ public class DataMapManager {
         return null;
     }
 
-    private String getItemName(String id) {
-        String[] splits = id.split("\\.");
-        return "<" + splits[splits.length - 1] + "Item>";
+    private String getItemName(String name) {
+        if (name.startsWith("<") && name.endsWith(">")) {
+            name = name.trim().substring(1, name.length() - 1);
+        }
+        return "<" + name + "Item>";
     }
 
     private void setModuleInfo(TypeSymbol symbol, MappingPort mappingPort) {

@@ -31,6 +31,7 @@
               {
                 "member": {
                   "id": "u.info.secondaryPhones.0",
+                  "variableName": "<secondaryPhonesItem>",
                   "typeName": "string",
                   "kind": "string"
                 },
@@ -43,6 +44,7 @@
               {
                 "member": {
                   "id": "u.info.emails.0",
+                  "variableName": "<emailsItem>",
                   "typeName": "string",
                   "kind": "string"
                 },
@@ -55,6 +57,7 @@
                 "member": {
                   "member": {
                     "id": "u.info.addresses.0.0",
+                    "variableName": "<addressesItemItem>",
                     "typeName": "string",
                     "kind": "string"
                   },
@@ -91,6 +94,7 @@
     "output": {
       "member": {
         "id": "phoneNumbers",
+        "variableName": "<phoneNumbersItem>",
         "typeName": "string",
         "kind": "string"
       },

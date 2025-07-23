@@ -28,6 +28,7 @@
           {
             "member": {
               "id": "user.phoneNumber.0",
+              "variableName": "<phoneNumberItem>",
               "typeName": "string",
               "kind": "string"
             },
