@@ -23,10 +23,10 @@ import java.util.List;
 /**
  * Represents a diagram including variables.
  *
- * @param fileName The name of the file
- * @param nodes    The nodes in the diagram
- * @param connections  The connections in the diagram
- * @param variables  The variables in the diagram
+ * @param fileName    The name of the file
+ * @param nodes       The nodes in the diagram
+ * @param connections The connections in the diagram
+ * @param variables   The variables in the diagram
  * @since 1.0.0
  */
 public record ExtendedDiagram(String fileName, List<FlowNode> nodes,
