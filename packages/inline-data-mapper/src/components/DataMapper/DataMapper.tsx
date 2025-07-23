@@ -139,8 +139,7 @@ export function InlineDataMapper(props: InlineDataMapperProps) {
     } = props;
     const {
         model,
-        hasInputsOutputsChanged = false,
-        hasSubMappingsChanged = false,
+        hasInputsOutputsChanged = false
     } = modelState;
 
     const initialView = [{
@@ -212,49 +211,24 @@ export function InlineDataMapper(props: InlineDataMapperProps) {
                 goToFunction
             );
 
-            // Only regenerate IO nodes if inputs/outputs have changed
-            let ioNodes: DataMapperNodeModel[] = [];
-            if (hasInputsOutputsChanged || nodes.length === 0) {
-                const ioNodeInitVisitor = new IONodeInitVisitor(context);
-                traverseNode(model, ioNodeInitVisitor);
-                ioNodes = ioNodeInitVisitor.getNodes();
-            } else {
-                // Reuse existing IO nodes but update their context
-                ioNodes = nodes
-                    .filter(node => 
-                        node instanceof InputNode || 
-                        node instanceof ArrayOutputNode || 
-                        node instanceof ObjectOutputNode ||
-                        node instanceof QueryOutputNode
-                    )
-                    .map(node => {
-                        node.context = context;
-                        return node;
-                    });
-            }
+            const ioNodeInitVisitor = new IONodeInitVisitor(context);
+            traverseNode(model, ioNodeInitVisitor);
+            const ioNodes = ioNodeInitVisitor.getNodes();
 
-            // Only regenerate sub mappiing node if sub mappings have changed
             const hasInputNodes = !ioNodes.some(node => node instanceof EmptyInputsNode);
             let subMappingNode: DataMapperNodeModel;
             if (hasInputNodes) {
-                if (hasSubMappingsChanged) {
-                    const subMappingNodeInitVisitor = new SubMappingNodeInitVisitor(context);
-                    traverseNode(model, subMappingNodeInitVisitor);
-                    subMappingNode = subMappingNodeInitVisitor.getNode();
-                } else {
-                    // Reuse existing sub mapping node
-                    subMappingNode = nodes.find(node => node instanceof SubMappingNode) as SubMappingNode;
-                }
+                const subMappingNodeInitVisitor = new SubMappingNodeInitVisitor(context);
+                traverseNode(model, subMappingNodeInitVisitor);
+                subMappingNode = subMappingNodeInitVisitor.getNode();
             }
 
-            // Always regenerate intermediate nodes as they depend on mappings
             const intermediateNodeInitVisitor = new IntermediateNodeInitVisitor(
                 context,
                 nodes.filter(node => node instanceof LinkConnectorNode || node instanceof QueryExprConnectorNode)
             );
             traverseNode(model, intermediateNodeInitVisitor);
 
-            // Only add subMappingNode if it is defined
             setNodes([
                 ...ioNodes,
                 ...(subMappingNode ? [subMappingNode] : []),

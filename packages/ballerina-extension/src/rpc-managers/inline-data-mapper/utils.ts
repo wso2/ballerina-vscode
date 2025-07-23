@@ -424,7 +424,6 @@ function isWithinArtifact(artifactPosition: NodePosition, varDeclRange: ELineRan
     const artifactStartLine = artifactPosition.startLine;
     const artifactEndLine = artifactPosition.endLine;
     const varDeclStartLine = varDeclRange.startLine.line;
-    const varDeclEndLine = varDeclRange.endLine.line;
 
-    return artifactStartLine <= varDeclStartLine && artifactEndLine >= varDeclEndLine;
+    return artifactStartLine <= varDeclStartLine && artifactEndLine >= varDeclStartLine;
 }

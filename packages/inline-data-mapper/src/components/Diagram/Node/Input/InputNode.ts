@@ -38,7 +38,7 @@ export class InputNode extends DataMapperNodeModel {
         public hasNoMatchingFields?: boolean
     ) {
         super(
-            NODE_ID,
+            `${NODE_ID}-${inputType?.id}`,
             context,
             INPUT_NODE_TYPE
         );

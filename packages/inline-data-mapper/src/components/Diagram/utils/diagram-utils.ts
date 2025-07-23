@@ -15,12 +15,14 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+import { FieldCount } from "../../../components/Hooks";
+import { InputNode } from "../Node";
+import { DataMapperNodeModel } from "../Node/commons/DataMapperNode";
 import {
     GAP_BETWEEN_FIELDS,
     GAP_BETWEEN_NODE_HEADER_AND_BODY,
     IO_NODE_FIELD_HEIGHT,
     IO_NODE_HEADER_HEIGHT,
-    OFFSETS,
     defaultModelOptions
 } from "./constants";
 
@@ -54,4 +56,29 @@ export function calculateControlPointOffset(screenWidth: number) {
     const interpolationFactor = (clampedWidth - minWidth) / (maxWidth - minWidth);
     const interpolatedOffset = minOffset + interpolationFactor * (maxOffset - minOffset);
     return interpolatedOffset;
+}
+
+export function getInputNodeFieldCounts(nodes: DataMapperNodeModel[]): { id: string, numberOfFields: number }[] {
+    const inputNodes = nodes.filter(node => node instanceof InputNode);
+    const fieldCounts = inputNodes.map(node => ({
+        id: node.id,
+        numberOfFields: node.numberOfFields
+    }));
+
+    return fieldCounts;
+}
+
+export function getFieldCountMismatchIndex(newFieldCounts: FieldCount[], existingFieldCounts: FieldCount[]) {
+    if (existingFieldCounts.length === 0) return 0;
+
+    for (let i = 0; i < newFieldCounts.length; i++) {
+        const newNode = newFieldCounts[i];
+        const existingNode = existingFieldCounts[i];
+        
+        if (newNode.numberOfFields !== existingNode.numberOfFields) {
+            return i;
+        }
+    }
+    
+    return -1;
 }

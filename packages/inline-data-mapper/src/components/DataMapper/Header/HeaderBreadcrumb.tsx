@@ -57,13 +57,14 @@ export default function HeaderBreadcrumb(props: HeaderBreadcrumbProps) {
     const [activeLink, links] = useMemo(() => {
         if (views) {
             const focusedView = views[views.length - 1];
+            const isFocusedOnSubMappingRoot = focusedView?.subMappingInfo?.focusedOnSubMappingRoot;
             const otherViews = views.slice(0, -1);
             let isRootView = views.length === 1;
             let label = extractLastPartFromLabel(focusedView.label);
 
             const selectedLink = (
                 <div className={classes.active}>
-                    {isRootView ? label : `${label}:Query`}
+                    {isRootView ? label : `${label}:${isFocusedOnSubMappingRoot ? "SubMapping" : "Query"}`}
                 </div>
             );
 
@@ -79,7 +80,7 @@ export default function HeaderBreadcrumb(props: HeaderBreadcrumbProps) {
                             className={classes.link}
                             data-testid={`dm-header-breadcrumb-${index}`}
                         >
-                            {isRootView ? label : `${label}:Query`}
+                            {isRootView ? label : `${label}:${view.subMappingInfo ? "SubMapping" : "Query"}`}
                         </a>
                     );
                 })
