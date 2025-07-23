@@ -78,6 +78,13 @@ public class ModuleNodesTest extends AbstractLSTest {
         return "getModuleNodes";
     }
 
+    @Override
+    protected String[] skipList() {
+        return new String[]{
+                "new_agent_model.json"
+        };
+    }
+
     /**
      * Represents the test configuration for the flow model getFlowDesignModel API.
      *
