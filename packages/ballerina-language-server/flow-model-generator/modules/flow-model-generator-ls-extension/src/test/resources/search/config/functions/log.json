@@ -84,7 +84,8 @@
                 "symbol": "printMetricsLog",
                 "version": "1.0.0"
               },
-              "enabled": true
+              "enabled": true,
+              "more": false
             }
           ]
         },
@@ -109,7 +110,8 @@
                 "symbol": "getEDINames",
                 "version": "0.9.0"
               },
-              "enabled": true
+              "enabled": true,
+              "more": false
             },
             {
               "metadata": {
@@ -125,7 +127,8 @@
                 "symbol": "fromEdiString",
                 "version": "0.9.0"
               },
-              "enabled": true
+              "enabled": true,
+              "more": false
             },
             {
               "metadata": {
@@ -141,7 +144,8 @@
                 "symbol": "toEdiString",
                 "version": "0.9.0"
               },
-              "enabled": true
+              "enabled": true,
+              "more": false
             }
           ]
         },
@@ -166,7 +170,8 @@
                 "symbol": "log",
                 "version": "0.0.0"
               },
-              "enabled": true
+              "enabled": true,
+              "more": false
             },
             {
               "metadata": {
@@ -182,7 +187,8 @@
                 "symbol": "log10",
                 "version": "0.0.0"
               },
-              "enabled": true
+              "enabled": true,
+              "more": false
             }
           ]
         },
@@ -207,7 +213,8 @@
                 "symbol": "printDebug",
                 "version": "2.12.0"
               },
-              "enabled": true
+              "enabled": true,
+              "more": false
             },
             {
               "metadata": {
@@ -223,7 +230,8 @@
                 "symbol": "printInfo",
                 "version": "2.12.0"
               },
-              "enabled": true
+              "enabled": true,
+              "more": false
             },
             {
               "metadata": {
@@ -239,7 +247,8 @@
                 "symbol": "printWarn",
                 "version": "2.12.0"
               },
-              "enabled": true
+              "enabled": true,
+              "more": false
             }
           ]
         },
@@ -264,7 +273,8 @@
                 "symbol": "fromEdiString",
                 "version": "0.9.0"
               },
-              "enabled": true
+              "enabled": true,
+              "more": false
             },
             {
               "metadata": {
@@ -280,7 +290,8 @@
                 "symbol": "toEdiString",
                 "version": "0.9.0"
               },
-              "enabled": true
+              "enabled": true,
+              "more": false
             },
             {
               "metadata": {
@@ -296,7 +307,8 @@
                 "symbol": "getSchema",
                 "version": "0.9.0"
               },
-              "enabled": true
+              "enabled": true,
+              "more": false
             },
             {
               "metadata": {
@@ -312,7 +324,8 @@
                 "symbol": "fromEdiStringWithSchema",
                 "version": "0.9.0"
               },
-              "enabled": true
+              "enabled": true,
+              "more": false
             },
             {
               "metadata": {
@@ -328,7 +341,8 @@
                 "symbol": "toEdiStringWithSchema",
                 "version": "0.9.0"
               },
-              "enabled": true
+              "enabled": true,
+              "more": false
             },
             {
               "metadata": {
@@ -344,7 +358,8 @@
                 "symbol": "transformFromEdiString",
                 "version": "0.9.0"
               },
-              "enabled": true
+              "enabled": true,
+              "more": false
             },
             {
               "metadata": {
@@ -360,7 +375,8 @@
                 "symbol": "transformToEdiString",
                 "version": "0.9.0"
               },
-              "enabled": true
+              "enabled": true,
+              "more": false
             }
           ]
         },
@@ -385,7 +401,8 @@
                 "symbol": "fromEdiString",
                 "version": "0.9.0"
               },
-              "enabled": true
+              "enabled": true,
+              "more": false
             },
             {
               "metadata": {
@@ -401,7 +418,8 @@
                 "symbol": "toEdiString",
                 "version": "0.9.0"
               },
-              "enabled": true
+              "enabled": true,
+              "more": false
             },
             {
               "metadata": {
@@ -417,7 +435,8 @@
                 "symbol": "getSchema",
                 "version": "0.9.0"
               },
-              "enabled": true
+              "enabled": true,
+              "more": false
             },
             {
               "metadata": {
@@ -433,7 +452,8 @@
                 "symbol": "fromEdiStringWithSchema",
                 "version": "0.9.0"
               },
-              "enabled": true
+              "enabled": true,
+              "more": false
             }
           ]
         }

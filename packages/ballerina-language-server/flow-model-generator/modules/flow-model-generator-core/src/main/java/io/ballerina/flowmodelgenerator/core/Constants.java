@@ -71,4 +71,27 @@ public class Constants {
         public static final String ICON =
                 "https://gist.github.com/user-attachments/assets/903c5c16-7d67-4af8-8113-ce7c59ccdaab";
     }
+
+    // Constants used for AI
+    public static final class Ai {
+        private Ai() {}
+
+        public static final String BALLERINA_ORG = "ballerina";
+        public static final String AI_PACKAGE = "ai";
+        public static final String VERSION = "1.1.0";
+
+        public static final String RECURSIVE_DOCUMENT_CHUNKER_LABEL = "Recursive Document Chunker";
+        public static final String AUGMENT_QUERY_LABEL = "Augment Query";
+
+        public static final String MODEL_PROVIDER_TYPE_NAME = "ModelProvider";
+        public static final String EMBEDDING_PROVIDER_TYPE_NAME = "EmbeddingProvider";
+        public static final String KNOWLEDGE_BASE_TYPE_NAME = "KnowledgeBase";
+        public static final String VECTOR_KNOWLEDGE_BASE_TYPE_NAME = "VectorKnowledgeBase";
+        public static final String VECTOR_STORE_TYPE_NAME = "VectorStore";
+        public static final String AGENT_TYPE_NAME = "Agent";
+
+        public static final String AGENT_RUN_METHOD_NAME = "run";
+        public static final String CHUNK_DOCUMENT_RECURSIVELY_METHOD_NAME = "chunkDocumentRecursively";
+        public static final String AUGMENT_USER_QUERY_METHOD_NAME = "augmentUserQuery";
+    }
 }

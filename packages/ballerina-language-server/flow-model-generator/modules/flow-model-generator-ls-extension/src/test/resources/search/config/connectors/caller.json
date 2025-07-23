@@ -25,7 +25,8 @@
         "version": "1.5.1",
         "isGenerated": false
       },
-      "enabled": true
+      "enabled": true,
+      "more": false
     }
   ]
 }

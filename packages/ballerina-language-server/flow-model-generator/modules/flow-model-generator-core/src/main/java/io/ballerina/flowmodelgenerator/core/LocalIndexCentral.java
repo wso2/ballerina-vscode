@@ -56,6 +56,9 @@ public class LocalIndexCentral {
     private Map<String, List<Item>> connectionMap;
     private static final String NODE_TEMPLATES_JSON = "node_templates.json";
     private static final String CONNECTORS_JSON = "connectors.json";
+    private static final String MODEL_PROVIDERS_JSON = "model_providers.json";
+    private static final String VECTOR_STORES_JSON = "vector_stores.json";
+    private static final String EMBEDDING_PROVIDERS_JSON = "embedding_providers.json";
     private static final String CONNECTIONS_JSON = "connections.json";
     private static final String FUNCTIONS_JSON = "functions.json";
 
@@ -85,6 +88,21 @@ public class LocalIndexCentral {
     public List<Item> getConnectors() {
         Category connectors = readJsonResource(CONNECTORS_JSON, Category.class);
         return connectors.items();
+    }
+
+    public List<Item> getModelProviders() {
+        Category modelProviders = readJsonResource(MODEL_PROVIDERS_JSON, Category.class);
+        return modelProviders.items();
+    }
+
+    public List<Item> getEmbeddingProviders() {
+        Category embeddingProviders = readJsonResource(EMBEDDING_PROVIDERS_JSON, Category.class);
+        return embeddingProviders.items();
+    }
+
+    public List<Item> getVectorStores() {
+        Category vectorStores = readJsonResource(VECTOR_STORES_JSON, Category.class);
+        return vectorStores.items();
     }
 
     public List<Item> getFunctions() {
@@ -119,7 +137,7 @@ public class LocalIndexCentral {
                 .limit(limit)
                 .toList();
     }
-    
+
     private List<AvailableNode> getAvailableNodesFromCategory(Category category) {
         List<AvailableNode> availableNodes = new ArrayList<>();
         for (Item item : category.items()) {
@@ -140,7 +158,7 @@ public class LocalIndexCentral {
         connectionMap = readJsonResource(CONNECTIONS_JSON, new ConnectionTypeToken().getType());
     }
 
-    public  <T> T readJsonResource(String resourcePath, Type type) {
+    public <T> T readJsonResource(String resourcePath, Type type) {
         InputStream resourceStream = getClass().getClassLoader().getResourceAsStream(resourcePath);
         if (resourceStream == null) {
             throw new IllegalArgumentException("Resource not found: " + resourcePath);
