@@ -1,5 +1,5 @@
 {
-  "source": "variable17.bal",
+  "source": "variable18.bal",
   "description": "Sample diagram node",
   "codedata": {
     "node": "VARIABLE",
@@ -11,7 +11,7 @@
       },
       "endLine": {
         "line": 18,
-        "offset": 50
+        "offset": 33
       }
     },
     "sourceCode": "Student student = {};"
@@ -22,25 +22,25 @@
     "offset": 12
   },
   "mapping": {
-    "output": "student.username",
+    "output": "student",
     "inputs": [],
     "expression": "1234",
     "diagnostics": []
   },
   "output": {
-    "variable17.bal": [
+    "variable18.bal": [
       {
         "range": {
           "start": {
             "line": 18,
-            "character": 48
+            "character": 30
           },
           "end": {
             "line": 18,
-            "character": 48
+            "character": 32
           }
         },
-        "newText": "username: 1234"
+        "newText": "1234"
       }
     ]
   }

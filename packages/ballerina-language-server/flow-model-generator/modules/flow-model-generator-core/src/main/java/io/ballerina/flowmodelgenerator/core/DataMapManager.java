@@ -128,6 +128,7 @@ public class DataMapManager {
     public static final String FROM = "from";
     public static final String WHERE = "where";
     public static final String LIMIT = "limit";
+    public static final String LET = "let";
     public static final String ORDER_BY = "order-by";
     public static final String ITEM = "Item";
     public static final String INT = "int";
@@ -848,7 +849,11 @@ public class DataMapManager {
             expr = varDecl.expression();
         }
 
+
         if (expr != null) {
+            if (expr.kind() == SyntaxKind.LET_EXPRESSION) {
+                expr = ((LetExpressionNode) expr).expression();
+            }
             String output = mapping.output();
             String[] splits = output.split(DOT);
             StringBuilder sb = new StringBuilder();
@@ -1645,7 +1650,7 @@ public class DataMapManager {
                     SeparatedNodeList<LetVariableDeclarationNode> letVars = letClauseNode.letVarDeclarations();
                     LetVariableDeclarationNode letVar = letVars.get(0);
                     TypedBindingPatternNode typedBindingPattern = letVar.typedBindingPattern();
-                    intermediateClauses.add(new Clause(LIMIT,
+                    intermediateClauses.add(new Clause(LET,
                             new Properties(typedBindingPattern.bindingPattern().toSourceCode().trim(),
                                     typedBindingPattern.typeDescriptor().toSourceCode().trim(),
                                     letVar.expression().toSourceCode().trim(), null)));

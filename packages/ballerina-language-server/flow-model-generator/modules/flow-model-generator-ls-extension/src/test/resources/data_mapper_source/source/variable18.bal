@@ -16,7 +16,7 @@ service OASServiceType on new http:Listener(9090) {
 
 	resource function get pet() returns int|http:NotFound {
         do {
-            Student student = let int x = 2 in {};
+            Student student = {};
 		} on fail error e {
 			return http:NOT_FOUND;
 		}
