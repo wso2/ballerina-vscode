@@ -1,0 +1,45 @@
+{
+  "source": "variable12_new4.bal",
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "variable12.bal",
+      "startLine": {
+        "line": 50,
+        "offset": 12
+      },
+      "endLine": {
+        "line": 50,
+        "offset": 165
+      }
+    },
+    "sourceCode": ""
+  },
+  "propertyKey": "expression",
+  "position": {
+    "line": 49,
+    "offset": 12
+  },
+  "mapping": {
+    "output": "users4.0.users6.0.banks.0.bankInfo.1.bankName",
+    "expression": "\"Bank1\""
+  },
+  "output": {
+    "variable12_new4.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 50,
+            "character": 97
+          },
+          "end": {
+            "line": 50,
+            "character": 97
+          }
+        },
+        "newText": "bankName: \"Bank1\""
+      }
+    ]
+  }
+}
