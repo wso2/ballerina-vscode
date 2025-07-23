@@ -272,6 +272,93 @@
           "visualize.bal"
         ]
       }
+    },
+    {
+      "range": {
+        "start": {
+          "line": 32,
+          "character": 4
+        },
+        "end": {
+          "line": 33,
+          "character": 5
+        }
+      },
+      "command": {
+        "title": "Visualize",
+        "command": "ballerina.showVisualizer",
+        "arguments": [
+          "visualize.bal",
+          {
+            "start": {
+              "line": 32,
+              "character": 4
+            },
+            "end": {
+              "line": 33,
+              "character": 5
+            }
+          }
+        ]
+      }
+    },
+    {
+      "range": {
+        "start": {
+          "line": 35,
+          "character": 4
+        },
+        "end": {
+          "line": 42,
+          "character": 5
+        }
+      },
+      "command": {
+        "title": "Visualize",
+        "command": "ballerina.showVisualizer",
+        "arguments": [
+          "visualize.bal",
+          {
+            "start": {
+              "line": 35,
+              "character": 4
+            },
+            "end": {
+              "line": 42,
+              "character": 5
+            }
+          }
+        ]
+      }
+    },
+    {
+      "range": {
+        "start": {
+          "line": 31,
+          "character": 0
+        },
+        "end": {
+          "line": 43,
+          "character": 1
+        }
+      },
+      "command": {
+        "title": "Visualize",
+        "command": "ballerina.showVisualizer",
+        "arguments": [
+          "visualize.bal",
+          {
+            "start": {
+              "line": 31,
+              "character": 0
+            },
+            "end": {
+              "line": 43,
+              "character": 1
+            }
+          }
+        ]
+      }
     }
   ]
 }
