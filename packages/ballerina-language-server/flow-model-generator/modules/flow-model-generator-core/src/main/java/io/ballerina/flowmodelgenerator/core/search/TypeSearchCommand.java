@@ -113,7 +113,8 @@ class TypeSearchCommand extends SearchCommand {
                     SearchResult searchResult = SearchResult.from(
                             packageInfo,
                             symbol.symbolName(),
-                            symbol.description()
+                            symbol.description(),
+                            true
                     );
                     searchResults.add(searchResult);
                 }
@@ -134,6 +135,7 @@ class TypeSearchCommand extends SearchCommand {
         // Set the categories based on available flags
         Category.Builder importedTypesBuilder = rootBuilder.stepIn(Category.Name.IMPORTED_TYPES);
         Category.Builder availableTypesBuilder = rootBuilder.stepIn(Category.Name.AVAILABLE_TYPES);
+        Category.Builder currentOrgTypesBuilder = rootBuilder.stepIn(Category.Name.CURRENT_ORGANIZATION);
 
         // Add the library types
         for (SearchResult searchResult : typeSearchList) {
@@ -154,8 +156,14 @@ class TypeSearchCommand extends SearchCommand {
                     .symbol(searchResult.name())
                     .version(packageInfo.version())
                     .build();
-            Category.Builder builder =
-                    moduleNames.contains(packageInfo.moduleName()) ? importedTypesBuilder : availableTypesBuilder;
+            Category.Builder builder;
+            if (moduleNames.contains(packageInfo.moduleName())) {
+                builder = importedTypesBuilder;
+            } else if (searchResult.fromCurrentOrg()) {
+                builder = currentOrgTypesBuilder;
+            } else {
+                builder = availableTypesBuilder;
+            }
             if (builder != null) {
                 builder.stepIn(packageInfo.moduleName(), "", List.of())
                         .node(new AvailableNode(metadata, codedata, true));

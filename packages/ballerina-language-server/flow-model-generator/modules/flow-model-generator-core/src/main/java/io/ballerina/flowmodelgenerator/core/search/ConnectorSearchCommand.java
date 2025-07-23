@@ -76,10 +76,7 @@ public class ConnectorSearchCommand extends SearchCommand {
     private static final Set<String> AGENT_SUPPORT_CONNECTORS = LocalIndexCentral.getInstance()
             .readJsonResource(AGENT_SUPPORT_CONNECTORS_JSON, AGENT_SUPPORT_CONNECTORS_LIST_TYPE);
     public static final String IS_AGENT_SUPPORT = "isAgentSupport";
-    public static final String CALLER = "Caller";
     public static final String CLIENT = "Client";
-    public static final String GRPC = "grpc";
-    public static final String PERSIST = "persist";
 
     public ConnectorSearchCommand(Project project, LineRange position, Map<String, String> queryMap) {
         super(project, position, queryMap);
@@ -104,32 +101,38 @@ public class ConnectorSearchCommand extends SearchCommand {
     protected List<Item> search() {
         buildLocalConnectors();
         List<SearchResult> searchResults = dbManager.searchConnectors(query, limit, offset);
-        searchResults.forEach(searchResult -> rootBuilder.node(generateAvailableNode(searchResult)));
+        buildLibraryNodes(searchResults);
         return rootBuilder.build().items();
     }
 
     @Override
     protected List<Item> searchCentral() {
         buildLocalConnectors();
-        CentralAPI centralClient = RemoteCentral.getInstance();
-        Map<String, String> queryMap = new HashMap<>();
-        queryMap.put("q", query);
-        queryMap.put("limit", String.valueOf(limit));
-        queryMap.put("offset", String.valueOf(offset));
-        ConnectorsResponse connectorsResponse = centralClient.connectors(queryMap);
 
-        if (connectorsResponse != null && connectorsResponse.connectors() != null) {
-            for (Connector connector : connectorsResponse.connectors()) {
-                SearchResult.Package packageInfo = new SearchResult.Package(
-                        connector.packageInfo.getOrganization(),
-                        connector.packageInfo.getName(),
-                        connector.moduleName,
-                        connector.packageInfo.getVersion()
-                );
-                SearchResult searchResult =
-                        SearchResult.from(packageInfo, connector.name, connector.packageInfo.getSummary());
-                rootBuilder.node(generateAvailableNode(searchResult));
+        Optional<String> organizationName = getOrganizationName();
+        if (organizationName.isPresent()) {
+            CentralAPI centralClient = RemoteCentral.getInstance();
+            Map<String, String> queryMap = new HashMap<>();
+            queryMap.put("q", query);
+            queryMap.put("limit", String.valueOf(limit));
+            queryMap.put("offset", String.valueOf(offset));
+            queryMap.put("org", organizationName.get());
+            ConnectorsResponse connectorsResponse = centralClient.connectors(queryMap);
+            List<SearchResult> searchResults = new ArrayList<>();
+            if (connectorsResponse != null && connectorsResponse.connectors() != null) {
+                for (Connector connector : connectorsResponse.connectors()) {
+                    SearchResult.Package packageInfo = new SearchResult.Package(
+                            connector.packageInfo.getOrganization(),
+                            connector.packageInfo.getName(),
+                            connector.moduleName,
+                            connector.packageInfo.getVersion()
+                    );
+                    SearchResult searchResult = SearchResult.from(packageInfo, connector.name,
+                            connector.packageInfo.getSummary(), true);
+                    searchResults.add(searchResult);
+                }
             }
+            buildLibraryNodes(searchResults);
         }
         return rootBuilder.build().items();
     }
@@ -152,6 +155,21 @@ public class ConnectorSearchCommand extends SearchCommand {
     private void buildLocalConnectors() {
         List<SearchResult> localConnectors = getLocalConnectors();
         localConnectors.forEach(connector -> rootBuilder.node(generateAvailableNode(connector, true)));
+    }
+
+    private void buildLibraryNodes(List<SearchResult> connectorSearchList) {
+        Category.Builder availableConnectorsBuilder = rootBuilder.stepIn(Category.Name.AVAILABLE_CONNECTORS);
+        Category.Builder currentOrgConnectorsBuilder = rootBuilder.stepIn(Category.Name.CURRENT_ORGANIZATION);
+
+        for (SearchResult searchResult : connectorSearchList) {
+            Category.Builder builder;
+            if (searchResult.fromCurrentOrg()) {
+                builder = currentOrgConnectorsBuilder;
+            } else {
+                builder = availableConnectorsBuilder;
+            }
+            builder.node(generateAvailableNode(searchResult));
+        }
     }
 
     private static AvailableNode generateAvailableNode(SearchResult searchResult) {

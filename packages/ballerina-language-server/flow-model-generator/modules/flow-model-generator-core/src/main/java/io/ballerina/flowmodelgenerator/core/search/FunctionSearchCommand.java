@@ -150,7 +150,8 @@ class FunctionSearchCommand extends SearchCommand {
                     SearchResult searchResult = SearchResult.from(
                             packageInfo,
                             symbol.symbolName(),
-                            symbol.description()
+                            symbol.description(),
+                            true
                     );
                     searchResults.add(searchResult);
                 }
@@ -245,6 +246,7 @@ class FunctionSearchCommand extends SearchCommand {
         // Set the categories based on the available flags
         Category.Builder importedFnBuilder = rootBuilder.stepIn(Category.Name.IMPORTED_FUNCTIONS);
         Category.Builder availableFnBuilder = rootBuilder.stepIn(Category.Name.AVAILABLE_FUNCTIONS);
+        Category.Builder currentOrgFnBuilder = rootBuilder.stepIn(Category.Name.CURRENT_ORGANIZATION);
 
         // Add the library functions
         for (SearchResult searchResult : functionSearchList) {
@@ -265,8 +267,14 @@ class FunctionSearchCommand extends SearchCommand {
                     .symbol(searchResult.name())
                     .version(packageInfo.version())
                     .build();
-            Category.Builder builder =
-                    moduleNames.contains(packageInfo.moduleName()) ? importedFnBuilder : availableFnBuilder;
+            Category.Builder builder;
+            if (moduleNames.contains(packageInfo.moduleName())) {
+                builder = importedFnBuilder;
+            } else if (searchResult.fromCurrentOrg()) {
+                builder = currentOrgFnBuilder;
+            } else {
+                builder = availableFnBuilder;
+            }
             if (builder != null) {
                 builder.stepIn(packageInfo.moduleName(), "", List.of())
                         .node(new AvailableNode(metadata, codedata, true));

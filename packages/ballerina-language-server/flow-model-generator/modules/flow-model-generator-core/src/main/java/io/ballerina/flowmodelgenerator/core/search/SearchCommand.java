@@ -30,6 +30,7 @@ import io.ballerina.tools.text.LineRange;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * Abstract base class for search command operations that handles different types of searches in a module context. This
@@ -174,6 +175,13 @@ public abstract class SearchCommand {
         } catch (Exception e) {
             return defaultValue;
         }
+    }
+
+    protected Optional<String> getOrganizationName() {
+        return project.currentPackage().ballerinaToml()
+                .flatMap(toml -> toml.tomlDocument().toml().getTable("package")
+                .flatMap(table -> table.get("org"))
+                .flatMap(orgValue -> Optional.ofNullable(orgValue.toString())));
     }
 
     public enum Kind {
