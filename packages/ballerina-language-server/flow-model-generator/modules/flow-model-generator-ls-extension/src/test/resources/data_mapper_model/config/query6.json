@@ -1,0 +1,224 @@
+{
+  "source": "query6.bal",
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "query6.bal",
+      "startLine": {
+        "line": 50,
+        "offset": 8
+      },
+      "endLine": {
+        "line": 59,
+        "offset": 10
+      }
+    },
+    "sourceCode": ""
+  },
+  "position": {
+    "line": 50,
+    "offset": 8
+  },
+  "propertyKey": "expression",
+  "targetField": "var2.l1.l2.l3Arr",
+  "model": {
+    "inputs": [
+      {
+        "fields": [
+          {
+            "id": "l2Item.l3",
+            "variableName": "l3",
+            "typeName": "int",
+            "kind": "int"
+          },
+          {
+            "member": {
+              "fields": [
+                {
+                  "id": "l2Item.l3Arr.0.l4_1",
+                  "variableName": "l4_1",
+                  "typeName": "int",
+                  "kind": "int"
+                },
+                {
+                  "id": "l2Item.l3Arr.0.l4_2",
+                  "variableName": "l4_2",
+                  "typeName": "string",
+                  "kind": "string"
+                }
+              ],
+              "id": "l2Item.l3Arr.0",
+              "variableName": "<l3ArrItem>",
+              "typeName": "record",
+              "kind": "record"
+            },
+            "focusedMemberId": "l3ArrItem",
+            "id": "l2Item.l3Arr",
+            "variableName": "l3Arr",
+            "typeName": "record[]",
+            "kind": "array"
+          }
+        ],
+        "id": "l2Item",
+        "variableName": "l2Item",
+        "typeName": "record",
+        "kind": "record",
+        "category": "variable",
+        "isFocused": true
+      },
+      {
+        "fields": [
+          {
+            "fields": [
+              {
+                "member": {
+                  "fields": [
+                    {
+                      "id": "var1.l1.l2.0.l3",
+                      "variableName": "l3",
+                      "typeName": "int",
+                      "kind": "int"
+                    },
+                    {
+                      "member": {
+                        "fields": [
+                          {
+                            "id": "var1.l1.l2.0.l3Arr.0.l4_1",
+                            "variableName": "l4_1",
+                            "typeName": "int",
+                            "kind": "int"
+                          },
+                          {
+                            "id": "var1.l1.l2.0.l3Arr.0.l4_2",
+                            "variableName": "l4_2",
+                            "typeName": "string",
+                            "kind": "string"
+                          }
+                        ],
+                        "id": "var1.l1.l2.0.l3Arr.0",
+                        "variableName": "<l3ArrItem>",
+                        "typeName": "record",
+                        "kind": "record"
+                      },
+                      "id": "var1.l1.l2.0.l3Arr",
+                      "variableName": "l3Arr",
+                      "typeName": "record[]",
+                      "kind": "array"
+                    }
+                  ],
+                  "id": "var1.l1.l2.0",
+                  "variableName": "<l2Item>",
+                  "typeName": "record",
+                  "kind": "record"
+                },
+                "focusedMemberId": "l2Item",
+                "id": "var1.l1.l2",
+                "variableName": "l2",
+                "typeName": "record[]",
+                "kind": "array"
+              }
+            ],
+            "id": "var1.l1",
+            "variableName": "l1",
+            "typeName": "record",
+            "kind": "record"
+          }
+        ],
+        "id": "var1",
+        "variableName": "var1",
+        "typeName": "MyType4",
+        "kind": "record",
+        "category": "variable"
+      },
+      {
+        "fields": [
+          {
+            "id": "l3ArrItem.l4_1",
+            "variableName": "l4_1",
+            "typeName": "int",
+            "kind": "int"
+          },
+          {
+            "id": "l3ArrItem.l4_2",
+            "variableName": "l4_2",
+            "typeName": "string",
+            "kind": "string"
+          }
+        ],
+        "id": "l3ArrItem",
+        "variableName": "l3ArrItem",
+        "typeName": "record",
+        "kind": "record",
+        "isFocused": true
+      }
+    ],
+    "output": {
+      "member": {
+        "fields": [
+          {
+            "id": "l3Arr.l4_1",
+            "variableName": "l4_1",
+            "typeName": "int",
+            "kind": "int"
+          },
+          {
+            "id": "l3Arr.l4_2",
+            "variableName": "l4_2",
+            "typeName": "string",
+            "kind": "string"
+          }
+        ],
+        "id": "l3Arr",
+        "variableName": "<l3ArrItem>",
+        "typeName": "record",
+        "kind": "record"
+      },
+      "id": "l3Arr",
+      "variableName": "l3Arr",
+      "typeName": "record[]",
+      "kind": "array"
+    },
+    "mappings": [
+      {
+        "output": "l3Arr.l4_1",
+        "inputs": [],
+        "expression": "0",
+        "diagnostics": [],
+        "elements": [],
+        "isQueryExpression": false,
+        "isFunctionCall": false
+      },
+      {
+        "output": "l3Arr.l4_2",
+        "inputs": [],
+        "expression": "\"aaa\"",
+        "diagnostics": [],
+        "elements": [],
+        "isQueryExpression": false,
+        "isFunctionCall": false
+      }
+    ],
+    "query": {
+      "output": "l3Arr",
+      "inputs": [
+        "l2Item.l3Arr"
+      ],
+      "fromClause": {
+        "type": "from",
+        "properties": {
+          "name": "l3ArrItem",
+          "type": "record {|int l4_1; string l4_2; anydata...;|}",
+          "expression": "l2Item.l3Arr"
+        }
+      },
+      "intermediateClauses": [],
+      "resultClause": {
+        "type": "select",
+        "properties": {
+          "expression": "{l4_1: 0, l4_2: \"aaa\"}"
+        }
+      }
+    }
+  }
+}

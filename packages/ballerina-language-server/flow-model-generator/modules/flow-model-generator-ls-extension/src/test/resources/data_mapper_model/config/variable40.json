@@ -1,0 +1,100 @@
+{
+  "source": "proj/main.bal",
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "variable24.bal",
+      "startLine": {
+        "line": 19,
+        "offset": 12
+      },
+      "endLine": {
+        "line": 19,
+        "offset": 76
+      }
+    },
+    "sourceCode": ""
+  },
+  "position": {
+    "line": 18,
+    "offset": 65
+  },
+  "propertyKey": "expression",
+  "model": {
+    "inputs": [
+      {
+        "id": "CONST",
+        "typeName": "CONST",
+        "kind": "CONST",
+        "category": "constant"
+      },
+      {
+        "fields": [
+          {
+            "id": "user.username",
+            "variableName": "username",
+            "typeName": "string",
+            "kind": "string"
+          },
+          {
+            "id": "user.password",
+            "variableName": "password",
+            "typeName": "string",
+            "kind": "string"
+          }
+        ],
+        "id": "user",
+        "variableName": "user",
+        "typeName": "UserInfo",
+        "kind": "record",
+        "category": "local-variable"
+      }
+    ],
+    "output": {
+      "fields": [
+        {
+          "id": "student.username",
+          "variableName": "username",
+          "typeName": "string",
+          "kind": "string"
+        },
+        {
+          "id": "student.password",
+          "variableName": "password",
+          "typeName": "string",
+          "kind": "string"
+        }
+      ],
+      "id": "student",
+      "variableName": "student",
+      "typeName": "Student",
+      "kind": "record"
+    },
+    "mappings": [
+      {
+        "output": "student.username",
+        "inputs": [
+          "user.username",
+          "user.password"
+        ],
+        "expression": "bar(user.username, user.password)",
+        "diagnostics": [],
+        "elements": [],
+        "isQueryExpression": false,
+        "isFunctionCall": true,
+        "functionRange": {
+          "fileName": "functions.bal",
+          "startLine": {
+            "line": 4,
+            "offset": 0
+          },
+          "endLine": {
+            "line": 6,
+            "offset": 1
+          }
+        }
+      }
+    ]
+  }
+}

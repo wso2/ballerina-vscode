@@ -18,8 +18,8 @@
 
 package io.ballerina.flowmodelgenerator.extension;
 
-import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import io.ballerina.flowmodelgenerator.extension.request.DataMapperVisualizeRequest;
 import io.ballerina.modelgenerator.commons.AbstractLSTest;
 import io.ballerina.tools.text.LinePosition;
@@ -62,12 +62,12 @@ public class DataMappingVisualizeTest extends AbstractLSTest {
 
         DataMapperVisualizeRequest request =
                 new DataMapperVisualizeRequest(sourceDir.resolve(testConfig.source()).toAbsolutePath().toString(),
-                        testConfig.diagram(), testConfig.position());
-        JsonArray model = getResponse(endpoint, request).getAsJsonArray("visualizableProperties");
+                        testConfig.codedata(), testConfig.position());
+        JsonObject model = getResponse(endpoint, request).getAsJsonObject("visualizableProperties");
 
         if (!model.equals(testConfig.visualizableProperties())) {
             TestConfig updateConfig = new TestConfig(testConfig.source(), testConfig.description(),
-                    testConfig.diagram(), testConfig.position(), model);
+                    testConfig.codedata(), testConfig.position(), model);
 //            updateConfig(configJsonPath, updateConfig);
             compareJsonElements(model, testConfig.visualizableProperties());
             Assert.fail(String.format("Failed test: '%s' (%s)", testConfig.description(), configJsonPath));
@@ -99,11 +99,11 @@ public class DataMappingVisualizeTest extends AbstractLSTest {
      *
      * @param source                 The source file name
      * @param description            The description of the test
-     * @param diagram                The diagram to generate the source code
+     * @param codedata                The codedata for the type of variable
      * @param position               The position to get the visualizable properties
      * @param visualizableProperties The expected visualizable properties
      */
-    private record TestConfig(String source, String description, JsonElement diagram, LinePosition position,
+    private record TestConfig(String source, String description, JsonElement codedata, LinePosition position,
                               JsonElement visualizableProperties) {
 
         public String description() {

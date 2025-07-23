@@ -1,74 +1,34 @@
 {
   "source": "variable17.bal",
   "description": "Sample diagram node",
-  "diagram": {
-    "id": "32874",
-    "metadata": {
-      "label": "Variable",
-      "description": "Assign a value to a variable"
-    },
-    "codedata": {
-      "node": "VARIABLE",
-      "lineRange": {
-        "fileName": "variable17.bal",
-        "startLine": {
-          "line": 0,
-          "offset": 0
-        },
-        "endLine": {
-          "line": 0,
-          "offset": 0
-        }
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "variable17.bal",
+      "startLine": {
+        "line": 25,
+        "offset": 12
       },
-      "sourceCode": ""
-    },
-    "returning": false,
-    "properties": {
-      "expression": {
-        "metadata": {
-          "label": "Expression",
-          "description": "Expression"
-        },
-        "valueType": "EXPRESSION",
-        "value": "{\n                contacts: [user.phoneNumber[0], user.phoneNumber[0]]\n            }",
-        "optional": false,
-        "editable": true
-      },
-      "variable": {
-        "metadata": {
-          "label": "Variable",
-          "description": "Name of the variable"
-        },
-        "valueType": "IDENTIFIER",
-        "value": "var3",
-        "optional": false,
-        "editable": true
-      },
-      "type": {
-        "metadata": {
-          "label": "Type",
-          "description": "Type of the variable"
-        },
-        "valueType": "TYPE",
-        "value": "Person",
-        "optional": false,
-        "editable": true
+      "endLine": {
+        "line": 25,
+        "offset": 40
       }
     },
-    "flags": 0
+    "sourceCode": ""
   },
-  "propertyKey": "expression",
   "position": {
     "line": 19,
     "offset": 32
   },
+  "propertyKey": "expression",
   "model": {
     "inputs": [
       {
         "fields": [
           {
             "member": {
-              "id": "u1.phoneNumber",
+              "id": "u1.phoneNumber.0",
+              "variableName": "<phoneNumberItem>",
               "typeName": "string",
               "kind": "string"
             },
@@ -82,13 +42,14 @@
         "variableName": "u1",
         "typeName": "User",
         "kind": "record",
-        "category": "variable"
+        "category": "local-variable"
       },
       {
         "fields": [
           {
             "member": {
-              "id": "user.phoneNumber",
+              "id": "user.phoneNumber.0",
+              "variableName": "<phoneNumberItem>",
               "typeName": "string",
               "kind": "string"
             },
@@ -110,6 +71,7 @@
         {
           "member": {
             "id": "var3.contacts",
+            "variableName": "<contactsItem>",
             "typeName": "string",
             "kind": "string"
           },
@@ -141,7 +103,8 @@
                 "expression": "user.phoneNumber[0]",
                 "diagnostics": [],
                 "elements": [],
-                "isQueryExpression": false
+                "isQueryExpression": false,
+                "isFunctionCall": false
               }
             ]
           },
@@ -155,7 +118,8 @@
                 "expression": "user.phoneNumber[0]",
                 "diagnostics": [],
                 "elements": [],
-                "isQueryExpression": false
+                "isQueryExpression": false,
+                "isFunctionCall": false
               }
             ]
           }

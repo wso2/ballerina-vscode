@@ -1,0 +1,95 @@
+{
+  "source": "variable24.bal",
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "variable24.bal",
+      "startLine": {
+        "line": 19,
+        "offset": 12
+      },
+      "endLine": {
+        "line": 19,
+        "offset": 65
+      }
+    },
+    "sourceCode": ""
+  },
+  "position": {
+    "line": 18,
+    "offset": 65
+  },
+  "propertyKey": "expression",
+  "model": {
+    "inputs": [
+      {
+        "id": "CONST",
+        "typeName": "CONST",
+        "kind": "CONST",
+        "category": "constant"
+      },
+      {
+        "fields": [
+          {
+            "id": "userInfo.username",
+            "variableName": "username",
+            "typeName": "string",
+            "kind": "string"
+          },
+          {
+            "id": "userInfo.password",
+            "variableName": "password",
+            "typeName": "string",
+            "kind": "string"
+          }
+        ],
+        "id": "userInfo",
+        "variableName": "userInfo",
+        "typeName": "UserInfo",
+        "kind": "record",
+        "category": "local-variable"
+      }
+    ],
+    "output": {
+      "fields": [
+        {
+          "id": "student.username",
+          "variableName": "username",
+          "typeName": "string",
+          "kind": "string"
+        },
+        {
+          "id": "student.password",
+          "variableName": "password",
+          "typeName": "string",
+          "kind": "string"
+        }
+      ],
+      "id": "student",
+      "variableName": "student",
+      "typeName": "Student",
+      "kind": "record"
+    },
+    "subMappings": [
+      {
+        "id": "x",
+        "typeName": "string",
+        "kind": "string"
+      }
+    ],
+    "mappings": [
+      {
+        "output": "student.username",
+        "inputs": [
+          "x"
+        ],
+        "expression": "x",
+        "diagnostics": [],
+        "elements": [],
+        "isQueryExpression": false,
+        "isFunctionCall": false
+      }
+    ]
+  }
+}

@@ -1,9 +1,25 @@
-import ballerina/io;
+import ballerina/http;
 
-public function main() {
-    io:println();
-}
+type UserInfo record {|
+   string username;
+   string password;
+|};
 
-function greet(string name) returns string {
-    return "Hello, " + name + "!";
+type Student record {|
+   string username;
+   string password;
+|};
+
+const string CONST = "CONST";
+
+service OASServiceType on new http:Listener(9090) {
+
+	resource function get pet() returns int|http:NotFound {
+        do {
+            UserInfo user = {username: "user1", password: "pass1"};
+            Student student = {username: bar(user.username, user.password)};
+		} on fail error e {
+			return http:NOT_FOUND;
+		}
+	}
 }

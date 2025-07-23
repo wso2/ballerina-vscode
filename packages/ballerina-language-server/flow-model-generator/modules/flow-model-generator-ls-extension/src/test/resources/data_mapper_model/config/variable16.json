@@ -1,67 +1,26 @@
 {
-  "source": "variable7.bal",
+  "source": "variable7_1.bal",
   "description": "Sample diagram node",
-  "diagram": {
-    "id": "32874",
-    "metadata": {
-      "label": "Variable",
-      "description": "Assign a value to a variable"
-    },
-    "codedata": {
-      "node": "VARIABLE",
-      "lineRange": {
-        "fileName": "variable7.bal",
-        "startLine": {
-          "line": 0,
-          "offset": 0
-        },
-        "endLine": {
-          "line": 0,
-          "offset": 0
-        }
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "variable7_1.bal",
+      "startLine": {
+        "line": 19,
+        "offset": 12
       },
-      "sourceCode": ""
-    },
-    "returning": false,
-    "properties": {
-      "expression": {
-        "metadata": {
-          "label": "Expression",
-          "description": "Expression"
-        },
-        "valueType": "EXPRESSION",
-        "value": "[{username: userInfo[0].username, password: userInfo[0].password}]",
-        "optional": false,
-        "editable": true
-      },
-      "variable": {
-        "metadata": {
-          "label": "Variable",
-          "description": "Name of the variable"
-        },
-        "valueType": "IDENTIFIER",
-        "value": "credentials",
-        "optional": false,
-        "editable": true
-      },
-      "type": {
-        "metadata": {
-          "label": "Type",
-          "description": "Type of the variable"
-        },
-        "valueType": "TYPE",
-        "value": "Credentials[]",
-        "optional": false,
-        "editable": true
+      "endLine": {
+        "line": 19,
+        "offset": 107
       }
     },
-    "flags": 0
+    "sourceCode": ""
   },
-  "propertyKey": "expression",
   "position": {
     "line": 18,
     "offset": 105
   },
+  "propertyKey": "expression",
   "model": {
     "inputs": [
       {
@@ -74,19 +33,20 @@
         "member": {
           "fields": [
             {
-              "id": "userInfo.username",
+              "id": "userInfo.0.username",
               "variableName": "username",
               "typeName": "string",
               "kind": "string"
             },
             {
-              "id": "userInfo.password",
+              "id": "userInfo.0.password",
               "variableName": "password",
               "typeName": "string",
               "kind": "string"
             }
           ],
-          "id": "userInfo",
+          "id": "userInfo.0",
+          "variableName": "<userInfoItem>",
           "typeName": "UserInfo",
           "kind": "record"
         },
@@ -94,7 +54,7 @@
         "variableName": "userInfo",
         "typeName": "UserInfo[]",
         "kind": "array",
-        "category": "variable"
+        "category": "local-variable"
       }
     ],
     "output": {
@@ -114,6 +74,7 @@
           }
         ],
         "id": "credentials",
+        "variableName": "<credentialsItem>",
         "typeName": "Credentials",
         "kind": "record"
       },
@@ -139,7 +100,8 @@
                 "expression": "userInfo[0].username",
                 "diagnostics": [],
                 "elements": [],
-                "isQueryExpression": false
+                "isQueryExpression": false,
+                "isFunctionCall": false
               },
               {
                 "output": "credentials.0.password",
@@ -149,7 +111,8 @@
                 "expression": "userInfo[0].password",
                 "diagnostics": [],
                 "elements": [],
-                "isQueryExpression": false
+                "isQueryExpression": false,
+                "isFunctionCall": false
               }
             ]
           }
