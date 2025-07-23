@@ -37,6 +37,11 @@ import java.util.Set;
 
 import static io.ballerina.modelgenerator.commons.FunctionDataBuilder.GET_DEFAULT_EMBEDDING_PROVIDER_FUNCTION_NAME;
 
+/**
+ * Represents embedding provider node in the flow model.
+ *
+ * @since 1.1.0
+ */
 public class EmbeddingProviderBuilder extends CallBuilder {
     public static final String LABEL = "Embedding Provider";
     public static final String DESCRIPTION = "Embedding providers available within the integration for connecting" +

@@ -35,6 +35,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+/**
+ * Represents vector knowledge base node in the flow model.
+ *
+ * @since 1.1.0
+ */
 public class VectorKnowledgeBaseBuilder extends CallBuilder {
     public static final String LABEL = "Vector Knowledge Base";
     public static final String DESCRIPTION = "Vector knowledge bases available in the integration";

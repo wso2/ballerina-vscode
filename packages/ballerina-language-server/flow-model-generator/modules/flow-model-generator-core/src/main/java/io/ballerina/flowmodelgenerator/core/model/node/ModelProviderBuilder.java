@@ -36,6 +36,11 @@ import java.util.Set;
 
 import static io.ballerina.modelgenerator.commons.FunctionDataBuilder.GET_DEFAULT_MODEL_PROVIDER_FUNCTION_NAME;
 
+/**
+ * Represents model provider node in the flow model.
+ *
+ * @since 1.1.0
+ */
 public class ModelProviderBuilder extends CallBuilder {
     public static final String LABEL = "Model Provider";
     public static final String DESCRIPTION = "Model providers available within the integration " +

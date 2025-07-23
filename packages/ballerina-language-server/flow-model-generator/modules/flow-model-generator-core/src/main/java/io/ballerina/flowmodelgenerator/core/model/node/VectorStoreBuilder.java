@@ -35,6 +35,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+/**
+ * Represents vector store node in the flow model.
+ *
+ * @since 1.1.0
+ */
 public class VectorStoreBuilder extends CallBuilder {
     public static final String LABEL = "Vector Store";
     public static final String DESCRIPTION = "Vector stores available in the integration";

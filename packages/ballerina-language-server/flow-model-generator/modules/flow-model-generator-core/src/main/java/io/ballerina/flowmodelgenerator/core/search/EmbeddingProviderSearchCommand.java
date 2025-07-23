@@ -33,7 +33,7 @@ import java.util.Map;
 /**
  * Handles the search command for embedding providers.
  *
- * @since 1.0.0
+ * @since 1.1.0
  */
 public class EmbeddingProviderSearchCommand extends SearchCommand {
     private List<Item> cachedEmbeddingProviders;
