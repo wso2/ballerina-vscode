@@ -60,7 +60,7 @@ export async function fetchWithAuth(input: string | URL | Request, options: Requ
 }
 
 export const anthropic = createAnthropic({
-    baseURL: BACKEND_URL+ "/intelligence-api/v1.0/claude",
+    baseURL: BACKEND_URL + "/intelligence-api/v1.0/claude",
     apiKey: "xx", //TODO: Gives error without this. see if we can remove,
     fetch: fetchWithAuth,
 });
