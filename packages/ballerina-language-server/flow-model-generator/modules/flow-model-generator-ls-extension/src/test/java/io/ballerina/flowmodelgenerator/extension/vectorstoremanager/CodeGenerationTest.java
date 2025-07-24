@@ -57,8 +57,10 @@ public class CodeGenerationTest extends AbstractLSTest {
         String filePath = sourceDir.resolve(testConfig.source()).toAbsolutePath().toString();
         JsonObject sourceGenerationResponse = getSourceGenerationResponse(filePath, testConfig);
         if (!sourceGenerationResponse.equals(testConfig.expectedResponse())) {
-            TestConfig updatedConfig = new TestConfig(testConfig.source(), testConfig.flowNode(), sourceGenerationResponse);
+            TestConfig updatedConfig = new TestConfig(testConfig.source(), testConfig.flowNode(),
+                    sourceGenerationResponse);
             // updateConfig(configJsonPath, updatedConfig);
+            compareJsonElements(sourceGenerationResponse, testConfig.expectedResponse());
             Assert.fail(String.format("Failed test: '%s'", configJsonPath));
         }
     }

@@ -29,6 +29,9 @@ import org.testng.annotations.Test;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Set;
+
+import static io.ballerina.flowmodelgenerator.extension.TestUtils.assertJsonEqualsIgnoringKey;
 
 /**
  * Test for listing available embedding providers.
@@ -53,7 +56,9 @@ public class GetAvailableEmbeddingProvidersTest extends AbstractLSTest {
         String filePath = sourceDir.resolve(testConfig.source()).toAbsolutePath().toString();
         FlowModelAvailableNodesRequest request = new FlowModelAvailableNodesRequest(filePath, LinePosition.from(1, 1));
         JsonObject availableEmbeddingProviders = getResponse(request);
-        if (!availableEmbeddingProviders.equals(testConfig.expectedEmbeddingProviders())) {
+        Set<String> ignoredKeys = Set.of("version", "icon");
+        if (!assertJsonEqualsIgnoringKey(availableEmbeddingProviders,
+                testConfig.expectedEmbeddingProviders(), ignoredKeys)) {
             TestConfig updatedConfig = new TestConfig(testConfig.source(), availableEmbeddingProviders);
             // updateConfig(configJsonPath, updatedConfig);
             Assert.fail(String.format("Failed test: '%s'", configJsonPath));

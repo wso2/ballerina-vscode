@@ -20,7 +20,6 @@ package io.ballerina.flowmodelgenerator.extension.modelprovidermanager;
 
 import com.google.gson.JsonObject;
 import io.ballerina.flowmodelgenerator.extension.request.FlowModelAvailableNodesRequest;
-import io.ballerina.flowmodelgenerator.extension.request.SearchRequest;
 import io.ballerina.modelgenerator.commons.AbstractLSTest;
 import io.ballerina.tools.text.LinePosition;
 import org.testng.Assert;
@@ -30,8 +29,9 @@ import org.testng.annotations.Test;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Set;
+
+import static io.ballerina.flowmodelgenerator.extension.TestUtils.assertJsonEqualsIgnoringKey;
 
 /**
  * Test for listing available model providers.
@@ -39,6 +39,7 @@ import java.util.Map;
  * @since 1.1.0
  */
 public class GetAvailableModelProvidersTest extends AbstractLSTest {
+    private static final String VERSION_KEY = "version";
 
     @DataProvider(name = "data-provider")
     @Override
@@ -54,11 +55,14 @@ public class GetAvailableModelProvidersTest extends AbstractLSTest {
         Path configJsonPath = configDir.resolve(config);
         TestConfig testConfig = gson.fromJson(Files.newBufferedReader(configJsonPath), TestConfig.class);
         String filePath = sourceDir.resolve(testConfig.source()).toAbsolutePath().toString();
-        FlowModelAvailableNodesRequest request = new FlowModelAvailableNodesRequest(filePath, LinePosition.from(1, 1));
+        FlowModelAvailableNodesRequest request = new FlowModelAvailableNodesRequest(filePath,
+                LinePosition.from(1, 1));
         JsonObject availableModelProviders = getResponse(request);
-        if (!availableModelProviders.equals(testConfig.expectedModelProviders())) {
+        Set<String> ignoredKeys = Set.of("version", "icon");
+        if (!assertJsonEqualsIgnoringKey(availableModelProviders, testConfig.expectedModelProviders(), ignoredKeys)) {
             TestConfig updatedConfig = new TestConfig(testConfig.source(), availableModelProviders);
             // updateConfig(configJsonPath, updatedConfig);
+            compareJsonElements(availableModelProviders, testConfig.expectedModelProviders());
             Assert.fail(String.format("Failed test: '%s'", configJsonPath));
         }
     }

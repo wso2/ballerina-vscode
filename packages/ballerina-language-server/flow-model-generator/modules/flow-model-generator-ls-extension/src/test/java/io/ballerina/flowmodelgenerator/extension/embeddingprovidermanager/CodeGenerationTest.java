@@ -58,8 +58,10 @@ public class CodeGenerationTest extends AbstractLSTest {
         String filePath = sourceDir.resolve(testConfig.source()).toAbsolutePath().toString();
         JsonObject sourceGenerationResponse = getSourceGenerationResponse(filePath, testConfig);
         if (!sourceGenerationResponse.equals(testConfig.expectedResponse())) {
-            TestConfig updatedConfig = new TestConfig(testConfig.source(), testConfig.flowNode(), sourceGenerationResponse);
+            TestConfig updatedConfig = new TestConfig(testConfig.source(), testConfig.flowNode(),
+                    sourceGenerationResponse);
             // updateConfig(configJsonPath, updatedConfig);
+            compareJsonElements(sourceGenerationResponse, testConfig.expectedResponse());
             Assert.fail(String.format("Failed test: '%s'", configJsonPath));
         }
 
@@ -74,8 +76,8 @@ public class CodeGenerationTest extends AbstractLSTest {
         // Find the entry that ends with "connections.bal"
         Map.Entry<String, JsonElement> connectionEditEntry = textEdits.entrySet().stream()
                 .filter(entry -> entry.getKey().endsWith(CONNECTIONS_BAL_FILE_NAME))
-                .findFirst()
-                .orElseThrow(() -> new RuntimeException("Unable to obtain text edits for embedding provider initialization"));
+                .findFirst().orElseThrow(() -> new RuntimeException("Unable to obtain text edits for " +
+                        "embedding provider initialization"));
 
         // Rename the key to connections.bal
         textEdits.remove(connectionEditEntry.getKey());

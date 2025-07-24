@@ -51,11 +51,13 @@ public class GetNodeTemplateTest extends AbstractLSTest {
         Path configJsonPath = configDir.resolve(config);
         TestConfig testConfig = gson.fromJson(Files.newBufferedReader(configJsonPath), TestConfig.class);
         String filePath = sourceDir.resolve(testConfig.source()).toAbsolutePath().toString();
-        FlowModelNodeTemplateRequest request = new FlowModelNodeTemplateRequest(filePath, LinePosition.from(1, 1), testConfig.codedata());
+        FlowModelNodeTemplateRequest request = new FlowModelNodeTemplateRequest(filePath,
+                LinePosition.from(1, 1), testConfig.codedata());
         JsonObject nodeTemplateResponse = getResponse(request);
         if (!nodeTemplateResponse.equals(testConfig.expectedTemplate())) {
             TestConfig updatedConfig = new TestConfig(testConfig.source(), testConfig.codedata(), nodeTemplateResponse);
             // updateConfig(configJsonPath, updatedConfig);
+            compareJsonElements(nodeTemplateResponse, testConfig.expectedTemplate());
             Assert.fail(String.format("Failed test: '%s'", configJsonPath));
         }
     }

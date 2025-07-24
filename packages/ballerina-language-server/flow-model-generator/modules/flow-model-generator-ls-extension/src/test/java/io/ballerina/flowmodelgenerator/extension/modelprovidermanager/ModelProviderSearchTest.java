@@ -60,6 +60,7 @@ public class ModelProviderSearchTest extends AbstractLSTest {
         if (!searchResult.equals(testConfig.expectedModelProviders())) {
             TestConfig updatedConfig = new TestConfig(testConfig.source(), testConfig.query(), searchResult);
             // updateConfig(configJsonPath, updatedConfig);
+            compareJsonElements(searchResult, testConfig.expectedModelProviders());
             Assert.fail(String.format("Failed test: '%s'", configJsonPath));
         }
     }

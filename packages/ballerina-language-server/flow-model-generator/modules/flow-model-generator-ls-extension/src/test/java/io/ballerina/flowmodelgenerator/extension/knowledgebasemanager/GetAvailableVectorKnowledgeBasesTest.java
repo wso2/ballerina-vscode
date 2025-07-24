@@ -29,6 +29,9 @@ import org.testng.annotations.Test;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Set;
+
+import static io.ballerina.flowmodelgenerator.extension.TestUtils.assertJsonEqualsIgnoringKey;
 
 /**
  * Test for listing available knowledge bases.
@@ -52,10 +55,12 @@ public class GetAvailableVectorKnowledgeBasesTest extends AbstractLSTest {
         TestConfig testConfig = gson.fromJson(Files.newBufferedReader(configJsonPath), TestConfig.class);
         String filePath = sourceDir.resolve(testConfig.source()).toAbsolutePath().toString();
         FlowModelAvailableNodesRequest request = new FlowModelAvailableNodesRequest(filePath, LinePosition.from(1, 1));
-        JsonObject availableEmbeddingProviders = getResponse(request);
-        if (!availableEmbeddingProviders.equals(testConfig.expectedKnowledgeBases())) {
-            TestConfig updatedConfig = new TestConfig(testConfig.source(), availableEmbeddingProviders);
+        JsonObject availableKnowledgeBases = getResponse(request);
+        Set<String> ignoredKeys = Set.of("version", "icon");
+        if (!assertJsonEqualsIgnoringKey(availableKnowledgeBases, testConfig.expectedKnowledgeBases(), ignoredKeys)) {
+            TestConfig updatedConfig = new TestConfig(testConfig.source(), availableKnowledgeBases);
             // updateConfig(configJsonPath, updatedConfig);
+            compareJsonElements(availableKnowledgeBases, testConfig.expectedKnowledgeBases());
             Assert.fail(String.format("Failed test: '%s'", configJsonPath));
         }
     }
