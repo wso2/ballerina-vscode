@@ -19,6 +19,7 @@
 export const INTEGRATION_CONFIGS = {
     mulesoft: {
         title: "MuleSoft",
+        description: "Select your MuleSoft project's root folder or main configuration XML file.",
         parameters: [
             // {
             //     key: "keepStructure",
@@ -36,6 +37,7 @@ export const INTEGRATION_CONFIGS = {
     },
     tibco: {
         title: "TIBCO",
+        description: "Select your TIBCO BusinessWorks project folder or main configuration file.",
         parameters: [
             // {
             //     key: "keepStructure",
@@ -53,6 +55,7 @@ export const INTEGRATION_CONFIGS = {
     },
     "logic-apps": {
         title: "Logic Apps",
+        description: "Select your Azure Logic Apps project folder or main configuration file.",
         parameters: [
             {
                 key: "keepStructure",

@@ -239,12 +239,6 @@ export function WelcomeView(props: WelcomeViewProps) {
                                             Create New Integration
                                         </ButtonContent>
                                     </StyledButton>
-                                    <StyledButton disabled={!props.isBISupported} appearance="secondary" onClick={() => goToImportExternalIntegration()}>
-                                        <ButtonContent>
-                                            <Codicon name="add" iconSx={{ fontSize: 16 }} />
-                                            Import External Integration
-                                        </ButtonContent>
-                                    </StyledButton>
                                 </Row>
                             </>
                         }
@@ -288,6 +282,22 @@ export function WelcomeView(props: WelcomeViewProps) {
                                 </Option>
                             </>
                         }
+                    </Column>
+                </Row>
+                <Row>
+                    <Column>
+                        <StepTitle>Import Your Existing Integration</StepTitle>
+                        <StepDescription>
+                            Already have an integration? Import your existing Mule, TIBCO, or Logic Apps integration project and continue building with the graphical designer.
+                        </StepDescription>
+                        <Row>
+                            <StyledButton disabled={!props.isBISupported} appearance="secondary" onClick={() => goToImportExternalIntegration()}>
+                                <ButtonContent>
+                                    <Codicon name="add" iconSx={{ fontSize: 16 }} />
+                                    Import External Integration
+                                </ButtonContent>
+                            </StyledButton>
+                        </Row>
                     </Column>
                 </Row>
                 <Row>
