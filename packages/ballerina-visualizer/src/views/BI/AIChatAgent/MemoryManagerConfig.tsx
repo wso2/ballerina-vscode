@@ -313,6 +313,7 @@ export function MemoryManagerConfig(props: MemoryManagerConfigProps): JSX.Elemen
             )}
             {!loading && selectedMemoryManagerFields?.length > 0 && agentNodeRef.current?.codedata?.lineRange && (
                 <ConfigForm
+                    fileName={agentFilePath.current}
                     formFields={selectedMemoryManagerFields}
                     targetLineRange={agentNodeRef.current.codedata.lineRange}
                     onSubmit={handleOnSave}
