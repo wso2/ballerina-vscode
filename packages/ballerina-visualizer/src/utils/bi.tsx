@@ -164,6 +164,10 @@ export function convertVectorStoreCategoriesToSidePanelCategories(categories: Ca
     return categories.map((category) => convertDiagramCategoryToSidePanelCategory(category));
 }
 
+export function convertEmbeddingProviderCategoriesToSidePanelCategories(categories: Category[]): PanelCategory[] {
+    return categories.map((category) => convertDiagramCategoryToSidePanelCategory(category));
+}
+
 export function convertNodePropertiesToFormFields(
     nodeProperties: NodeProperties,
     connections?: FlowNode[],

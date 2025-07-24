@@ -446,6 +446,7 @@ export function NodeList(props: NodeListProps) {
                     const isNpFunctionCategory = isProjectFunctionsCategory && title === "Natural Functions";
                     const isModelProviderCategory = group.title === "Model Providers";
                     const isVectorStoreCategory = group.title === "Vector Stores";
+                    const isEmbeddingProviderCategory = group.title === "Embedding Providers";
                     // Hide categories that don't have items, except for special categories that can add items
                     if (!group || !group.items || group.items.length === 0) {
                         // Only show empty categories if they have add functionality
@@ -455,7 +456,8 @@ export function NodeList(props: NodeListProps) {
                             !isAgentCategory &&
                             !isNpFunctionCategory &&
                             !isModelProviderCategory &&
-                            !isVectorStoreCategory
+                            !isVectorStoreCategory &&
+                            !isEmbeddingProviderCategory
                         ) {
                             return null;
                         }
@@ -560,7 +562,7 @@ export function NodeList(props: NodeListProps) {
                                 )}
                             {onAdd &&
                                 addButtonLabel &&
-                                (isModelProviderCategory || isVectorStoreCategory) &&
+                                (isModelProviderCategory || isVectorStoreCategory || isEmbeddingProviderCategory) &&
                                 (!group.items || group.items.length === 0) &&
                                 !searchText &&
                                 !isSearching && (
@@ -571,8 +573,8 @@ export function NodeList(props: NodeListProps) {
                                 )}
                             {group.items &&
                             group.items.length > 0 &&
-                            // 1. If parent group is "Connections", "Model Providers", or "Vector Stores" and ALL items don't have id, use getConnectionContainer
-                            (group.title === "Connections" || group.title === "Model Providers" || group.title === "Vector Stores") &&
+                            // 1. If parent group is "Connections", "Model Providers", "Vector Stores", or "Embedding Providers" and ALL items don't have id, use getConnectionContainer
+                            (group.title === "Connections" || group.title === "Model Providers" || group.title === "Vector Stores" || group.title === "Embedding Providers") &&
                             group.items.filter((item) => item != null).every((item) => !("id" in item))
                                 ? getConnectionContainer(group.items as Category[])
                                 : // 2. If ALL items don't have id (all are categories), use getCategoryContainer

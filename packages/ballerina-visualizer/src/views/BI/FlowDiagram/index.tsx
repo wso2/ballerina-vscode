@@ -53,6 +53,7 @@ import {
     convertFunctionCategoriesToSidePanelCategories,
     convertModelProviderCategoriesToSidePanelCategories,
     convertVectorStoreCategoriesToSidePanelCategories,
+    convertEmbeddingProviderCategoriesToSidePanelCategories,
 } from "../../../utils/bi";
 import { NodePosition, STNode } from "@wso2/syntax-tree";
 import { View, ProgressRing, ProgressIndicator, ThemeColors } from "@wso2/ui-toolkit";
@@ -129,6 +130,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
     const selectedNodeMetadata = useRef<{ nodeId: string; metadata: any; fileName: string }>();
     const isCreatingNewModelProvider = useRef<boolean>(false);
     const isCreatingNewVectorStore = useRef<boolean>(false);
+    const isCreatingNewEmbeddingProvider = useRef<boolean>(false);
 
     useEffect(() => {
         debouncedGetFlowModel();
@@ -288,6 +290,39 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
             }
         } else {
             console.log(">>> VECTOR_STORE_LIST not found in navigation stack, closing panel");
+            handleOnCloseSidePanel();
+        }
+    };
+
+    const handleEmbeddingProviderAdded = async () => {
+        console.log(">>> Embedding provider added, navigating back to embedding provider list");
+
+        // Try to navigate back to EMBEDDING_PROVIDER_LIST in the stack
+        const foundInStack = popNavigationStackUntilView(SidePanelView.EMBEDDING_PROVIDER_LIST);
+
+        if (foundInStack) {
+            setShowProgressIndicator(true);
+            try {
+                const response = await rpcClient.getBIDiagramRpcClient().getAvailableEmbeddingProviders({
+                    position: targetRef.current.startLine,
+                    filePath: model?.fileName,
+                });
+                console.log(">>> Refreshed embedding provider list", response);
+                setCategories(
+                    convertFunctionCategoriesToSidePanelCategories(
+                        response.categories as Category[],
+                        FUNCTION_TYPE.REGULAR
+                    )
+                );
+                setSidePanelView(SidePanelView.EMBEDDING_PROVIDER_LIST);
+                setShowSidePanel(true);
+            } catch (error) {
+                console.error(">>> Error refreshing embedding providers", error);
+            } finally {
+                setShowProgressIndicator(false);
+            }
+        } else {
+            console.log(">>> EMBEDDING_PROVIDER_LIST not found in navigation stack, closing panel");
             handleOnCloseSidePanel();
         }
     };
@@ -604,8 +639,11 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                     case "MODEL_PROVIDER":
                         panelView = SidePanelView.MODEL_PROVIDER_LIST;
                         break;
-                    case "VECTOR_STORE" as any: // Temporary type assertion to resolve linter error
+                    case "VECTOR_STORE":
                         panelView = SidePanelView.VECTOR_STORE_LIST;
+                        break;
+                    case "EMBEDDING_PROVIDER":
+                        panelView = SidePanelView.EMBEDDING_PROVIDER_LIST;
                         break;
                     default:
                         panelView = SidePanelView.NODE_LIST;
@@ -633,6 +671,10 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
 
     const handleSearchVectorStore = async (searchText: string, functionType: FUNCTION_TYPE) => {
         await handleSearch(searchText, functionType, "VECTOR_STORE" as any); // Temporary type assertion to resolve linter error
+    };
+
+    const handleSearchEmbeddingProvider = async (searchText: string, functionType: FUNCTION_TYPE) => {
+        await handleSearch(searchText, functionType, "EMBEDDING_PROVIDER" as any); // Temporary type assertion to resolve linter error
     };
 
     const updateCurrentArtifactLocation = async (artifacts: UpdatedArtifactsResponse) => {
@@ -665,6 +707,11 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
             if (currentArtifact.type === "VARIABLE" && isCreatingNewVectorStore.current) {
                 isCreatingNewVectorStore.current = false;
                 await handleVectorStoreAdded();
+                return;
+            }
+            if (currentArtifact.type === "VARIABLE" && isCreatingNewEmbeddingProvider.current) {
+                isCreatingNewEmbeddingProvider.current = false;
+                await handleEmbeddingProviderAdded();
                 return;
             }
         }
@@ -805,6 +852,30 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                             )
                         );
                         setSidePanelView(SidePanelView.VECTOR_STORE_LIST);
+                        setShowSidePanel(true);
+                    })
+                    .finally(() => {
+                        setShowProgressIndicator(false);
+                    });
+                break;
+
+            case "EMBEDDING_PROVIDERS":
+                setShowProgressIndicator(true);
+                rpcClient
+                    .getBIDiagramRpcClient()
+                    .getAvailableEmbeddingProviders({
+                        position: targetRef.current.startLine,
+                        filePath: model?.fileName || fileName,
+                    })
+                    .then((response) => {
+                        console.log(">>> List of embedding providers", response);
+                        setCategories(
+                            convertFunctionCategoriesToSidePanelCategories(
+                                response.categories as Category[],
+                                FUNCTION_TYPE.REGULAR
+                            )
+                        );
+                        setSidePanelView(SidePanelView.EMBEDDING_PROVIDER_LIST);
                         setShowSidePanel(true);
                     })
                     .finally(() => {
@@ -1019,12 +1090,21 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 );
                 setCategories([]);
                 setSidePanelView(SidePanelView.VECTOR_STORE_LIST);
+            } else if (sidePanelView === SidePanelView.EMBEDDING_PROVIDERS) {
+                handleOnSelectNode(
+                    selectedNodeMetadata.current.nodeId,
+                    selectedNodeMetadata.current.metadata,
+                    selectedNodeMetadata.current.fileName
+                );
+                setCategories([]);
+                setSidePanelView(SidePanelView.EMBEDDING_PROVIDER_LIST);
             } else if (
                 sidePanelView === SidePanelView.FUNCTION_LIST ||
                 sidePanelView === SidePanelView.DATA_MAPPER_LIST ||
                 sidePanelView === SidePanelView.NP_FUNCTION_LIST ||
                 sidePanelView === SidePanelView.MODEL_PROVIDER_LIST ||
-                sidePanelView === SidePanelView.VECTOR_STORE_LIST
+                sidePanelView === SidePanelView.VECTOR_STORE_LIST ||
+                sidePanelView === SidePanelView.EMBEDDING_PROVIDER_LIST
             ) {
                 setCategories(initialCategoriesRef.current);
                 setSidePanelView(SidePanelView.NODE_LIST);
@@ -1145,6 +1225,34 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 console.log(">>> Available vector store types", response);
                 setCategories(convertVectorStoreCategoriesToSidePanelCategories(response.categories as Category[]));
                 setSidePanelView(SidePanelView.VECTOR_STORES);
+                setShowSidePanel(true);
+            })
+            .finally(() => {
+                setShowProgressIndicator(false);
+            });
+    };
+
+    const handleOnAddNewEmbeddingProvider = () => {
+        console.log(">>> Adding new embedding provider");
+        isCreatingNewEmbeddingProvider.current = true;
+        setShowProgressIndicator(true);
+
+        // Push current state to navigation stack
+        pushToNavigationStack(sidePanelView, categories, selectedNodeRef.current, selectedClientName.current);
+
+        // Use search to get available embedding provider types
+        rpcClient
+            .getBIDiagramRpcClient()
+            .search({
+                position: { startLine: targetRef.current.startLine, endLine: targetRef.current.endLine },
+                filePath: model?.fileName,
+                queryMap: undefined,
+                searchKind: "EMBEDDING_PROVIDER" as any, // Temporary type assertion to resolve linter error
+            })
+            .then((response) => {
+                console.log(">>> Available embedding provider types", response);
+                setCategories(convertEmbeddingProviderCategoriesToSidePanelCategories(response.categories as Category[]));
+                setSidePanelView(SidePanelView.EMBEDDING_PROVIDERS);
                 setShowSidePanel(true);
             })
             .finally(() => {
@@ -1567,6 +1675,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 onAddDataMapper={handleOnAddDataMapper}
                 onAddModelProvider={handleOnAddNewModelProvider}
                 onAddVectorStore={handleOnAddNewVectorStore}
+                onAddEmbeddingProvider={handleOnAddNewEmbeddingProvider}
                 onSubmitForm={handleOnFormSubmit}
                 showProgressIndicator={showProgressIndicator}
                 onDiscardSuggestions={onDiscardSuggestions}
@@ -1577,6 +1686,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 onSearchNpFunction={handleSearchNpFunction}
                 onSearchModelProvider={handleSearchModelProvider}
                 onSearchVectorStore={handleSearchVectorStore}
+                onSearchEmbeddingProvider={handleSearchEmbeddingProvider}
                 // AI Agent specific callbacks
                 onEditAgent={handleEditAgent}
                 onSelectTool={handleOnSelectTool}
