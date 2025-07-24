@@ -52,6 +52,7 @@ import { DiagnosticsPopUp } from "../../DiagnosticsPopUp";
 import { nodeHasError } from "../../../utils/node";
 import { css } from "@emotion/react";
 import { BreakpointMenu } from "../../BreakNodeMenu/BreakNodeMenu";
+import { NodeMetadata } from "@wso2/ballerina-core";
 
 export namespace NodeStyles {
     export const Node = styled.div`
@@ -491,9 +492,10 @@ export function AgentCallNodeWidget(props: AgentCallNodeWidgetProps) {
     const disabled = model.node.suggested;
     const nodeTitle = "AI Agent";
     const hasError = nodeHasError(model.node);
-    const tools = model.node.metadata?.data?.tools || [];
-    if (model.node.metadata.data?.agent) {
-        model.node.metadata.data.agent = sanitizeAgentData(model.node.metadata.data.agent);
+    const nodeMetadata = model?.node.metadata.data as NodeMetadata;
+    const tools = nodeMetadata?.tools || [];
+    if (nodeMetadata?.agent) {
+        nodeMetadata.agent = sanitizeAgentData(nodeMetadata.agent);
     }
     let containerHeight =
         NODE_HEIGHT + AGENT_NODE_TOOL_SECTION_GAP + AGENT_NODE_ADD_TOOL_BUTTON_WIDTH + AGENT_NODE_TOOL_GAP * 2;
@@ -569,13 +571,13 @@ export function AgentCallNodeWidget(props: AgentCallNodeWidgetProps) {
 
                     <NodeStyles.MemoryContainer>
                         <NodeStyles.Row>
-                            {model.node.metadata?.data.memory ? (
+                            {nodeMetadata?.memory ? (
                                 <NodeStyles.MemoryCard onClick={onMemoryManagerClick}>
                                     <NodeStyles.Row>
                                         <div style={{ flex: 1 }}>
                                             <NodeStyles.MemoryTitle>Memory</NodeStyles.MemoryTitle>
                                             <NodeStyles.MemoryMeta>
-                                                {model.node.metadata.data.memory?.type ||
+                                                {nodeMetadata?.memory?.type ||
                                                     "MessageWindowChatMemory"}
                                             </NodeStyles.MemoryMeta>
                                         </div>
@@ -612,9 +614,9 @@ export function AgentCallNodeWidget(props: AgentCallNodeWidgetProps) {
                         </Popover>
                     </NodeStyles.MemoryContainer>
 
-                    {model.node.metadata.data?.agent?.role ? (
+                    {nodeMetadata?.agent?.role ? (
                         <NodeStyles.Row onClick={handleOnClick}>
-                            <NodeStyles.Role>{model.node.metadata.data.agent.role}</NodeStyles.Role>
+                            <NodeStyles.Role>{nodeMetadata?.agent?.role}</NodeStyles.Role>
                         </NodeStyles.Row>
                     ) : (
                         <NodeStyles.Row onClick={handleOnClick}>
@@ -622,10 +624,10 @@ export function AgentCallNodeWidget(props: AgentCallNodeWidgetProps) {
                         </NodeStyles.Row>
                     )}
 
-                    {model.node.metadata.data?.agent?.instructions ? (
+                    {nodeMetadata?.agent?.instructions ? (
                         <NodeStyles.InstructionsRow onClick={handleOnClick}>
                             <NodeStyles.Instructions>
-                                {model.node.metadata.data.agent.instructions}
+                                {nodeMetadata.agent.instructions}
                             </NodeStyles.Instructions>
                         </NodeStyles.InstructionsRow>
                     ) : (
@@ -672,7 +674,7 @@ export function AgentCallNodeWidget(props: AgentCallNodeWidgetProps) {
                         fill={ThemeColors.ON_SURFACE}
                         style={{ pointerEvents: "none" }}
                     >
-                        {getLlmModelIcons(model.node.metadata.data.model?.type)}
+                        {getLlmModelIcons(nodeMetadata?.model?.type)}
                     </foreignObject>
                     <line
                         x1="0"

@@ -327,10 +327,17 @@ function DeploymentOption({
             onClick={onToggle}
         >
             <DeploymentHeader>
-                <Codicon
-                    name={'circle-outline'}
-                    sx={{ color: isExpanded ? 'var(--vscode-textLink-foreground)' : 'inherit' }}
-                />
+                {isExpanded ? (
+                    <Codicon
+                        name={'triangle-down'}
+                        sx={{ color: 'var(--vscode-textLink-foreground)'}}
+                    />
+                ) : (
+                    <Codicon
+                        name={'triangle-right'}
+                        sx={{ color: 'inherit' }}
+                    />
+                )}
                 <h3>{title}</h3>
             </DeploymentHeader>
             <DeploymentBody isExpanded={isExpanded}>
