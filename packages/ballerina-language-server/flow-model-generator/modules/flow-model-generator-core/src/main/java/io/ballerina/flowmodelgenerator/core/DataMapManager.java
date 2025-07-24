@@ -98,7 +98,11 @@ import io.ballerina.tools.text.TextDocument;
 import io.ballerina.tools.text.TextRange;
 import org.ballerinalang.diagramutil.connector.models.connector.Type;
 import org.ballerinalang.diagramutil.connector.models.connector.TypeInfo;
-import org.ballerinalang.diagramutil.connector.models.connector.types.*;
+import org.ballerinalang.diagramutil.connector.models.connector.types.ArrayType;
+import org.ballerinalang.diagramutil.connector.models.connector.types.EnumType;
+import org.ballerinalang.diagramutil.connector.models.connector.types.PrimitiveType;
+import org.ballerinalang.diagramutil.connector.models.connector.types.RecordType;
+import org.ballerinalang.diagramutil.connector.models.connector.types.UnionType;
 import org.ballerinalang.langserver.common.utils.CommonUtil;
 import org.ballerinalang.langserver.commons.eventsync.exceptions.EventSyncException;
 import org.ballerinalang.langserver.commons.workspace.WorkspaceDocumentException;
@@ -308,9 +312,11 @@ public class DataMapManager {
         List<Mapping> mappings = new ArrayList<>();
         TypeDescKind typeDescKind = CommonUtils.getRawType(targetNode.typeSymbol()).typeKind();
         if (typeDescKind == TypeDescKind.RECORD) {
-            generateRecordVariableDataMapping(expressionNode, mappings, name, semanticModel, functionDocument, enumPorts);
+            generateRecordVariableDataMapping(expressionNode, mappings, name, semanticModel,
+                    functionDocument, enumPorts);
         } else if (typeDescKind == TypeDescKind.ARRAY) {
-            generateArrayVariableDataMapping(expressionNode, mappings, name, semanticModel, functionDocument, enumPorts);
+            generateArrayVariableDataMapping(expressionNode, mappings, name, semanticModel,
+                    functionDocument, enumPorts);
         } else {
             genMapping(expressionNode, name, mappings, semanticModel, functionDocument, enumPorts);
         }
@@ -495,7 +501,8 @@ public class DataMapManager {
             genMapping((ListConstructorExpressionNode) expressionNode, mappings, name, semanticModel,
                     functionDocument, enumPorts);
         } else if (exprKind == SyntaxKind.QUERY_EXPRESSION) {
-            genMapping((QueryExpressionNode) expressionNode, mappings, name, semanticModel, functionDocument, enumPorts);
+            genMapping((QueryExpressionNode) expressionNode, mappings, name,
+                    semanticModel, functionDocument, enumPorts);
         } else {
             genMapping(expressionNode, name, mappings, semanticModel, functionDocument, enumPorts);
         }
@@ -514,7 +521,8 @@ public class DataMapManager {
                 SyntaxKind kind = fieldExpr.kind();
                 if (kind == SyntaxKind.MAPPING_CONSTRUCTOR) {
                     genMapping((MappingConstructorExpressionNode) fieldExpr, mappings,
-                            name + "." + f.fieldName().toSourceCode().trim(), semanticModel, functinoDocument, enumPorts);
+                            name + "." + f.fieldName().toSourceCode().trim(),
+                            semanticModel, functinoDocument, enumPorts);
                 } else if (kind == SyntaxKind.LIST_CONSTRUCTOR) {
                     genMapping((ListConstructorExpressionNode) fieldExpr, mappings, name + "." +
                             f.fieldName().toSourceCode().trim(), semanticModel, functinoDocument, enumPorts);
@@ -557,7 +565,8 @@ public class DataMapManager {
         LineRange customFunctionRange = getCustomFunctionRange(expr, functionDocument);
         Mapping mapping = new Mapping(name, inputs, expr.toSourceCode(),
                 getDiagnostics(expr.lineRange(), semanticModel), new ArrayList<>(),
-                expr.kind() == SyntaxKind.QUERY_EXPRESSION, expr.kind() == SyntaxKind.FUNCTION_CALL,
+                expr.kind() == SyntaxKind.QUERY_EXPRESSION,
+                expr.kind() == SyntaxKind.FUNCTION_CALL,
                 customFunctionRange);
         elements.add(mapping);
     }
@@ -591,7 +600,8 @@ public class DataMapManager {
         SelectClauseNode selectClauseNode = (SelectClauseNode) clauseNode;
         ExpressionNode expr = selectClauseNode.expression();
         if (expr.kind() == SyntaxKind.MAPPING_CONSTRUCTOR) {
-            genMapping((MappingConstructorExpressionNode) expr, mappings, name, semanticModel, functinoDocument, enumPorts);
+            genMapping((MappingConstructorExpressionNode) expr, mappings,
+                    name, semanticModel, functinoDocument, enumPorts);
         } else {
             genMapping(expr, name, mappings, semanticModel, functinoDocument, enumPorts);
         }
@@ -633,7 +643,8 @@ public class DataMapManager {
                 SyntaxKind fieldKind = field.kind();
                 if (fieldKind == SyntaxKind.SPECIFIC_FIELD) {
                     Optional<ExpressionNode> optFieldExpr = ((SpecificFieldNode) field).valueExpr();
-                    optFieldExpr.ifPresent(expressionNode -> genInputs(expressionNode, inputs, enumPorts));
+                    optFieldExpr.ifPresent(expressionNode ->
+                            genInputs(expressionNode, inputs, enumPorts));
                 } else {
                     genInputs(field, inputs, enumPorts);
                 }
@@ -666,7 +677,8 @@ public class DataMapManager {
         return diagnosticMsgs;
     }
 
-    private List<MappingPort> getInputPorts(SemanticModel semanticModel, Document document, LinePosition position, List<MappingPort> enumPorts) {
+    private List<MappingPort> getInputPorts(SemanticModel semanticModel,
+                                            Document document, LinePosition position, List<MappingPort> enumPorts) {
         List<MappingPort> mappingPorts = new ArrayList<>();
 
         List<Symbol> symbols = semanticModel.visibleSymbols(document, position);
@@ -742,9 +754,8 @@ public class DataMapManager {
                     continue;
                 }
                 Type type = Type.fromSemanticSymbol(symbol);
-                Map<String, Type> visitedTypes = new HashMap<>();
                 MappingPort mappingPort = getMappingPort(optName.get(), optName.get(), type, true,
-                        visitedTypes);
+                        new HashMap<>());
                 if (mappingPort == null) {
                     continue;
                 }
@@ -761,9 +772,8 @@ public class DataMapManager {
                     continue;
                 }
                 Type type = Type.fromSemanticSymbol(symbol);
-                Map<String, Type> visitedTypes = new HashMap<>();
                 MappingPort mappingPort = getMappingPort(optName.get(), optName.get(), type, true,
-                        visitedTypes);
+                        new HashMap<>());
                 if (mappingPort == null) {
                     continue;
                 }
@@ -771,9 +781,8 @@ public class DataMapManager {
                 mappingPorts.add(mappingPort);
             } else if (kind == SymbolKind.CONSTANT) {
                 Type type = Type.fromSemanticSymbol(symbol);
-                Map<String, Type> visitedTypes = new HashMap<>();
                 MappingPort mappingPort = getMappingPort(type.getTypeName(), type.getTypeName(), type, true,
-                        visitedTypes);
+                        new HashMap<>());
                 if (mappingPort == null) {
                     continue;
                 }
@@ -781,7 +790,7 @@ public class DataMapManager {
                 mappingPorts.add(mappingPort);
             } else if (kind == SymbolKind.ENUM) {
                 Type type = Type.fromSemanticSymbol(symbol);
-                MappingPort mappingPort = getMappingPort(type.getName(), type.getTypeName(), type, true,
+                MappingPort mappingPort = getMappingPort(type.getName(), type.getName(), type, true,
                         new HashMap<>());
                 if (mappingPort == null) {
                     continue;
@@ -914,7 +923,8 @@ public class DataMapManager {
             String output = mapping.output();
             String[] splits = output.split(DOT);
             StringBuilder sb = new StringBuilder();
-            genSource(getMappingExpr(expr, targetField), splits, 1, sb, mapping.expression(), null, textEdits);
+            genSource(getMappingExpr(expr, targetField), splits, 1, sb,
+                    mapping.expression(), null, textEdits);
         }
 
         setImportStatements(mapping.imports(), textEdits);
