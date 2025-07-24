@@ -115,15 +115,7 @@ export function DropdownEditor(props: DropdownEditorProps) {
     const { field, openSubPanel, serviceUrl, configs, rpcClient, onToolsChange, newServerUrl } = props;
     const { form } = useFormContext();
     const { register, setValue, watch } = form;
-
-    console.log(">>> DropdownEditor props:", props);
-    // MCP tools selection state (self-contained)
-    const DUMMY_TOOLS = [
-        { name: "single-greet", description: "Greet a user with a single message" },
-        { name: "multi-greet", description: "Greet a user with multiple messages" }
-    ];
-    
-    const [mcpTools, setMcpTools] = useState<{ name: string; description?: string }[]>(props.mcpTools || DUMMY_TOOLS);
+    const [mcpTools, setMcpTools] = useState<{ name: string; description?: string }[]>(props.mcpTools || []);
 
     // Sync mcpTools state with props.mcpTools
     useEffect(() => {
