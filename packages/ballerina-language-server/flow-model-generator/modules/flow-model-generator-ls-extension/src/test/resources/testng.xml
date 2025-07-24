@@ -108,20 +108,24 @@ under the License.
             <class name="io.ballerina.flowmodelgenerator.extension.modelprovidermanager.ModelProviderSearchTest"/>
             <class name="io.ballerina.flowmodelgenerator.extension.modelprovidermanager.GetAvailableModelProvidersTest"/>
             <class name="io.ballerina.flowmodelgenerator.extension.modelprovidermanager.GetNodeTemplateTest"/>
+            <class name="io.ballerina.flowmodelgenerator.extension.modelprovidermanager.CodeGenerationTest"/>
 
             <!--embedding provider manager-->
             <class name="io.ballerina.flowmodelgenerator.extension.embeddingprovidermanager.EmbeddingProviderSearchTest"/>
             <class name="io.ballerina.flowmodelgenerator.extension.embeddingprovidermanager.GetAvailableEmbeddingProvidersTest"/>
             <class name="io.ballerina.flowmodelgenerator.extension.embeddingprovidermanager.GetNodeTemplateTest"/>
+            <class name="io.ballerina.flowmodelgenerator.extension.embeddingprovidermanager.CodeGenerationTest"/>
 
             <!--vector store manager-->
             <class name="io.ballerina.flowmodelgenerator.extension.vectorstoremanager.VectorStoreSearchTest"/>
             <class name="io.ballerina.flowmodelgenerator.extension.vectorstoremanager.GetAvailableVectorStoresTest"/>
             <class name="io.ballerina.flowmodelgenerator.extension.vectorstoremanager.GetNodeTemplateTest"/>
+            <class name="io.ballerina.flowmodelgenerator.extension.vectorstoremanager.CodeGenerationTest"/>
 
             <!--knowledge base manager-->
             <class name="io.ballerina.flowmodelgenerator.extension.knowledgebasemanager.GetAvailableVectorKnowledgeBasesTest"/>
             <class name="io.ballerina.flowmodelgenerator.extension.knowledgebasemanager.GetNodeTemplateTest"/>
+            <class name="io.ballerina.flowmodelgenerator.extension.knowledgebasemanager.CodeGenerationTest"/>
         </classes>
     </test>
 </suite>
