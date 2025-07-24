@@ -389,16 +389,14 @@ export class InitVisitor implements BaseVisitor {
 
     private removeViewStateRecursively(node: FlowNode): void {
         node.viewState = undefined;
-        if (node.branches) {
-            node.branches.forEach((branch) => {
-                branch.viewState = undefined;
-                if (branch.children) {
-                    branch.children.forEach((child) => {
-                        this.removeViewStateRecursively(child);
-                    });
-                }
+
+        node.branches?.forEach((branch) => {
+            branch.viewState = undefined;
+            branch.children?.forEach((child) => {
+                this.removeViewStateRecursively(child);
             });
-        }
+        });
+
     }
 
     endVisitErrorHandler(node: FlowNode, parent?: FlowNode): void {
