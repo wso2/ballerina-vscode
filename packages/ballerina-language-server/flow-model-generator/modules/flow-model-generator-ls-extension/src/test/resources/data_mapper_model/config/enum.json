@@ -43,7 +43,7 @@
         ],
         "id": "DepartmentCode",
         "variableName": "DepartmentCode",
-        "typeName": "enum",
+        "typeName": "DepartmentCode",
         "kind": "enum",
         "category": "enum"
       }
@@ -76,7 +76,7 @@
           ],
           "id": "engineering.code",
           "variableName": "code",
-          "typeName": "enum",
+          "typeName": "DepartmentCode",
           "kind": "enum"
         }
       ],
@@ -98,7 +98,7 @@
       {
         "output": "engineering.code",
         "inputs": [
-          "IT"
+          "DepartmentCode.IT"
         ],
         "expression": "IT\n",
         "diagnostics": [],
