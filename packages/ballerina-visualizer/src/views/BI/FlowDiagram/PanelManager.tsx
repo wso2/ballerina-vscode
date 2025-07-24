@@ -18,10 +18,9 @@
 
 import { PanelContainer, NodeList, ExpressionFormField } from "@wso2/ballerina-side-panel";
 import { FlowNode, LineRange, SubPanel, SubPanelView, FUNCTION_TYPE, ToolData, NodeMetadata } from "@wso2/ballerina-core";
-import { InlineDataMapper } from "../../InlineDataMapper";
 import { HelperView } from "../HelperView";
 import FormGenerator from "../Forms/FormGenerator";
-import { getContainerTitle } from "../../../utils/bi";
+import { getContainerTitle, getSubPanelWidth } from "../../../utils/bi";
 import { ModelConfig } from "../AIChatAgent/ModelConfig";
 import { ToolConfig } from "../AIChatAgent/ToolConfig";
 import { AgentConfig } from "../AIChatAgent/AgentConfig";
@@ -78,7 +77,7 @@ interface PanelManagerProps {
     onAddFunction?: () => void;
     onAddNPFunction?: () => void;
     onAddDataMapper?: () => void;
-    onSubmitForm: (updatedNode?: FlowNode, isDataMapperFormUpdate?: boolean) => void;
+    onSubmitForm: (updatedNode?: FlowNode, openInDataMapper?: boolean) => void;
     onDiscardSuggestions: () => void;
     onSubPanel: (subPanel: SubPanel) => void;
     onUpdateExpressionField: (updatedExpressionField: ExpressionFormField) => void;
@@ -146,14 +145,6 @@ export function PanelManager(props: PanelManagerProps) {
 
     const findSubPanelComponent = (subPanel: SubPanel) => {
         switch (subPanel.view) {
-            case SubPanelView.INLINE_DATA_MAPPER:
-                return (
-                    <InlineDataMapper
-                        onClosePanel={onSubPanel}
-                        updateFormField={onUpdateExpressionField}
-                        {...subPanel.props?.inlineDataMapper}
-                    />
-                );
             case SubPanelView.HELPER_PANEL:
                 return (
                     <HelperView
@@ -295,7 +286,7 @@ export function PanelManager(props: PanelManagerProps) {
             show={showSidePanel}
             onClose={onClose}
             onBack={onBackCallback}
-            subPanelWidth={subPanel?.view === SubPanelView.INLINE_DATA_MAPPER ? 800 : 400}
+            subPanelWidth={getSubPanelWidth(subPanel)}
             subPanel={findSubPanelComponent(subPanel)}
         >
             <Container onClick={onDiscardSuggestions}>{renderPanelContent()}</Container>

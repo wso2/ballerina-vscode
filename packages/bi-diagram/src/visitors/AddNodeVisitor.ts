@@ -16,10 +16,11 @@
  * under the License.
  */
 
+import { BaseVisitor } from "@wso2/ballerina-core";
+
 import { isEqual } from "lodash";
 import { Branch, Flow, FlowNode } from "../utils/types";
-import { BaseVisitor } from "./BaseVisitor";
-
+        
 export class AddNodeVisitor implements BaseVisitor {
     private skipChildrenVisit = false;
     private flow: Flow;
