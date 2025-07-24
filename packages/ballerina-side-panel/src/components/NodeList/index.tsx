@@ -136,6 +136,10 @@ namespace S {
     export const ComponentTitle = styled.div`
         white-space: nowrap;
         width: 124px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: block;
+        word-break: break-word;
     `;
 
     export const IconContainer = styled.div`
@@ -320,15 +324,7 @@ export function NodeList(props: NodeListProps) {
                         title={node.label}
                     >
                         <S.IconContainer>{node.icon || <LogIcon />}</S.IconContainer>
-                        <S.ComponentTitle
-                            ref={(el) => {
-                                if (el && el.scrollWidth > el.clientWidth) {
-                                    el.style.fontSize = "13px";
-                                    el.style.wordBreak = "break-word";
-                                    el.style.whiteSpace = "normal";
-                                }
-                            }}
-                        >
+                        <S.ComponentTitle>
                             {node.label}
                         </S.ComponentTitle>
                     </S.Component>
