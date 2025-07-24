@@ -54,3 +54,8 @@ export const DataMappingSchema = z.record(
   ])
 );
 
+// Top-level schema for the data mapping
+export const MappingSchema = z.object({
+  generatedMappings: DataMappingSchema
+});
+
