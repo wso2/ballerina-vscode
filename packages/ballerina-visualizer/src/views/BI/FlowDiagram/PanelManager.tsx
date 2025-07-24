@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import { PanelContainer, NodeList, ExpressionFormField } from "@wso2/ballerina-side-panel";
+import { PanelContainer, NodeList, CardList, ExpressionFormField } from "@wso2/ballerina-side-panel";
 import { FlowNode, LineRange, SubPanel, SubPanelView, FUNCTION_TYPE, ToolData, NodeMetadata } from "@wso2/ballerina-core";
 import { InlineDataMapper } from "../../InlineDataMapper";
 import { HelperView } from "../HelperView";
@@ -45,6 +45,8 @@ export enum SidePanelView {
     FUNCTION_LIST = "FUNCTION_LIST",
     DATA_MAPPER_LIST = "DATA_MAPPER_LIST",
     NP_FUNCTION_LIST = "NP_FUNCTION_LIST",
+    MODEL_PROVIDERS = "MODEL_PROVIDERS",
+    MODEL_PROVIDER_LIST = "MODEL_PROVIDER_LIST",
     NEW_AGENT = "NEW_AGENT",
     ADD_TOOL = "ADD_TOOL",
     NEW_TOOL = "NEW_TOOL",
@@ -72,6 +74,7 @@ interface PanelManagerProps {
     editForm?: boolean;
     updatedExpressionField?: ExpressionFormField;
     showProgressIndicator?: boolean;
+    canGoBack?: boolean;
 
     // Action handlers
     onClose: () => void;
@@ -81,6 +84,7 @@ interface PanelManagerProps {
     onAddFunction?: () => void;
     onAddNPFunction?: () => void;
     onAddDataMapper?: () => void;
+    onAddModelProvider?: () => void;
     onSubmitForm: (updatedNode?: FlowNode, isDataMapperFormUpdate?: boolean) => void;
     onDiscardSuggestions: () => void;
     onSubPanel: (subPanel: SubPanel) => void;
@@ -88,6 +92,7 @@ interface PanelManagerProps {
     onResetUpdatedExpressionField: () => void;
     onSearchFunction?: (searchText: string, functionType: FUNCTION_TYPE) => void;
     onSearchNpFunction?: (searchText: string, functionType: FUNCTION_TYPE) => void;
+    onSearchModelProvider?: (searchText: string, functionType: FUNCTION_TYPE) => void;
     onEditAgent?: () => void;
 
     // AI Agent handlers
@@ -115,6 +120,7 @@ export function PanelManager(props: PanelManagerProps) {
         editForm,
         updatedExpressionField,
         showProgressIndicator,
+        canGoBack,
         onClose,
         onBack,
         onSelectNode,
@@ -122,6 +128,7 @@ export function PanelManager(props: PanelManagerProps) {
         onAddFunction,
         onAddNPFunction,
         onAddDataMapper,
+        onAddModelProvider,
         onSubmitForm,
         onDiscardSuggestions,
         onSubPanel,
@@ -242,7 +249,7 @@ export function PanelManager(props: PanelManagerProps) {
                         onClose={onClose}
                         title={"Functions"}
                         searchPlaceholder={"Search library functions"}
-                        onBack={onBack}
+                        onBack={canGoBack ? onBack : undefined}
                     />
                 );
 
@@ -255,7 +262,7 @@ export function PanelManager(props: PanelManagerProps) {
                         onAddFunction={onAddNPFunction}
                         onClose={onClose}
                         title={"Natural Functions"}
-                        onBack={onBack}
+                        onBack={canGoBack ? onBack : undefined}
                     />
                 );
 
@@ -270,7 +277,33 @@ export function PanelManager(props: PanelManagerProps) {
                         onAddFunction={onAddDataMapper}
                         onClose={onClose}
                         title={"Data Mappers"}
-                        onBack={onBack}
+                        onBack={canGoBack ? onBack : undefined}
+                    />
+                );
+
+            case SidePanelView.MODEL_PROVIDER_LIST:
+                return (
+                    <NodeList
+                        categories={categories}
+                        onSelect={onSelectNode}
+                        onAdd={onAddModelProvider}
+                        addButtonLabel={"Add Model Provider"}
+                        onClose={onClose}
+                        title={"Model Providers"}
+                        searchPlaceholder={"Search model providers"}
+                        onBack={canGoBack ? onBack : undefined}
+                    />
+                );
+
+            case SidePanelView.MODEL_PROVIDERS:
+                return (
+                    <CardList
+                        categories={categories}
+                        onSelect={onSelectNode}
+                        onClose={onClose}
+                        title={"Model Providers"}
+                        searchPlaceholder={"Search model providers"}
+                        onBack={canGoBack ? onBack : undefined}
                     />
                 );
 

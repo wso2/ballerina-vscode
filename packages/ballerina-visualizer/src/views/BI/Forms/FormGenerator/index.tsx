@@ -147,7 +147,6 @@ export function FormGenerator(props: FormProps) {
         clientName,
         targetLineRange,
         projectPath,
-        editForm,
         showProgressIndicator,
         isGraphql,
         onSubmit,

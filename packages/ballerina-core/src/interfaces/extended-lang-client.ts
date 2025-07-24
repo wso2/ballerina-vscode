@@ -728,7 +728,7 @@ export type SearchQueryParams = {
     includeAvailableFunctions?: string;
 }
 
-export type SearchKind = 'FUNCTION' | 'CONNECTOR' | 'TYPE' | "NP_FUNCTION";
+export type SearchKind = 'FUNCTION' | 'CONNECTOR' | 'TYPE' | "NP_FUNCTION" | "MODEL_PROVIDER";
 
 export type BISearchRequest = {
     position: LineRange;
