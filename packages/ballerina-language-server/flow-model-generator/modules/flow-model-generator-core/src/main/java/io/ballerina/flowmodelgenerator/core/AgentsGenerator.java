@@ -167,7 +167,8 @@ public class AgentsGenerator {
         return createModelObject(NodeKind.CLASS_INIT, moduleName, MODEL, version);
     }
 
-    private JsonObject createModelObject(NodeKind nodeKind, String moduleName, String objectOrFuncName, String version) {
+    private JsonObject createModelObject(NodeKind nodeKind, String moduleName, String objectOrFuncName,
+                                         String version) {
         JsonObject model = new JsonObject();
         model.addProperty("node", nodeKind.toString());
         model.addProperty("org", nodeKind.equals(NodeKind.CLASS_INIT) ?
