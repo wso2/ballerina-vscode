@@ -35,8 +35,8 @@ export const AUTH_ORG : string = config.get('authOrg') || process.env.BALLERINA_
 export const AUTH_CLIENT_ID : string = config.get('authClientID') || process.env.BALLERINA_AUTH_CLIENT_ID;
 export const AUTH_REDIRECT_URL : string = config.get('authRedirectURL') || process.env.BALLERINA_AUTH_REDIRECT_URL;
 
-// Add new config exports for other services
-export const LIBS_URL : string = "https://e95488c8-8511-4882-967f-ec3ae2a0f86f-prod.e1-us-east-azure.choreoapis.dev/ballerina-copilot/ballerina-learn-docs-api/v1.0";
+// This refers to old backend before FE Migration. We need to eventually remove this.
+export const OLD_BACKEND_URL : string = BACKEND_URL + "/v2.0";
 
 export async function closeAllBallerinaFiles(dirPath: string): Promise<void> {
     // Check if the directory exists
@@ -146,7 +146,7 @@ export async function getTokenForDefaultModel() {
 
 export async function getBackendURL(): Promise<string> {
     return new Promise(async (resolve) => {
-        resolve(BACKEND_URL);
+        resolve(OLD_BACKEND_URL);
     });
 }
 
