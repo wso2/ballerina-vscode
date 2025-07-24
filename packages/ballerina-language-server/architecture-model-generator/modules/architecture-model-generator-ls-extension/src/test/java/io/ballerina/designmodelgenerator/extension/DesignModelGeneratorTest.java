@@ -28,6 +28,8 @@ import io.ballerina.designmodelgenerator.extension.request.GetDesignModelRequest
 import io.ballerina.designmodelgenerator.extension.response.GetDesignModelResponse;
 import io.ballerina.modelgenerator.commons.AbstractLSTest;
 import org.testng.Assert;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import java.io.IOException;
@@ -132,5 +134,15 @@ public class DesignModelGeneratorTest extends AbstractLSTest {
     }
 
     public record TestConfig(String description, String projectPath, JsonObject output) {
+    }
+
+    @AfterMethod
+    public void shutDownLanguageServer() {
+        super.shutDownLanguageServer();
+    }
+
+    @BeforeMethod
+    public void startLanguageServer() {
+        super.startLanguageServer();
     }
 }
