@@ -18,10 +18,11 @@
  * THIS FILE INCLUDES AUTO GENERATED CODE
  */
 import {
-    ImportTibcoRequest,
+    GetMigrationToolsResponse,
     ImportIntegrationResponse,
+    ImportTibcoRequest,
     ImportTibcoRPCRequest,
-    MigrateIntegrationAPI
+    MigrateIntegrationAPI,
 } from "@wso2/ballerina-core";
 import { StateMachine } from "../../stateMachine";
 import { getUsername, sanitizeName } from "../../utils/bi";
@@ -47,5 +48,10 @@ export class MigrateIntegrationRpcManager implements MigrateIntegrationAPI {
         };
         StateMachine.langClient().registerMigrationToolCallbacks();
         return StateMachine.langClient().importTibcoToBI(langParams);
+    }
+
+    async getMigrationTools(): Promise<GetMigrationToolsResponse> {
+        // ADD YOUR IMPLEMENTATION HERE
+        throw new Error('Not implemented');
     }
 }

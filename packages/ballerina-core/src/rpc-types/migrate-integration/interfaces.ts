@@ -16,6 +16,22 @@
  * under the License.
  */
 
+export interface MigrationTool {
+    id: string;
+    title: string;
+    needsPull: boolean;
+    parameters: Array<{
+        key: string;
+        label: string;
+        type: "boolean" | "string" | "number";
+        defaultValue?: boolean | string | number;
+    }>;
+}
+
+export interface GetMigrationToolsResponse {
+    tools: MigrationTool[];
+}
+
 export interface MigrationToolPullRequest {
     toolName: string;
 }

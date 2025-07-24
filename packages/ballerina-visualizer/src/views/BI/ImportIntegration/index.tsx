@@ -70,7 +70,6 @@ export function ImportIntegration() {
         }
         setView("loading");
 
-        // TODO: Should the logic of deciding which migration tool to use be here or in the extension?
         if (selectedIntegration === "tibco") {
             const params: ImportTibcoRPCRequest = {
                 packageName: importParams.name,
@@ -81,6 +80,7 @@ export function ImportIntegration() {
                 .importTibcoToBI(params)
                 .then((response) => {
                     console.log("TIBCO import response:", response);
+                    setMigrationCompleted(true);
                     setMigrationResponse(response);
                 })
                 .catch((error) => {
@@ -109,9 +109,6 @@ export function ImportIntegration() {
         });
 
         rpcClient.onMigrationToolStateChanged((stateUpdate) => {
-            if (stateUpdate === "CodeGeneration completed for project") {
-                setMigrationCompleted(true);
-            }
             setMigrationToolState(stateUpdate);
         });
 

@@ -17,9 +17,10 @@
  */
 
 import { ImportIntegrationResponse } from "../../interfaces/extended-lang-client";
-import { ImportTibcoRPCRequest, MigrationToolPullRequest } from "./interfaces";
+import { GetMigrationToolsResponse, ImportTibcoRPCRequest, MigrationToolPullRequest } from "./interfaces";
 
 export interface MigrateIntegrationAPI {
+    getMigrationTools: () => Promise<GetMigrationToolsResponse>;
     pullMigrationTool: (params: MigrationToolPullRequest) => void;
     importTibcoToBI: (params: ImportTibcoRPCRequest) => Promise<ImportIntegrationResponse>;
 }
