@@ -1,5 +1,5 @@
 enum DepartmentCode {
-    HR = "hr",
+    HR,
     IT,
     FINANCE
 }
@@ -18,7 +18,7 @@ function fn1() {
 
     Department engineering = {
         name: "Engineering",
-        code: DepartmentCode.IT
+        code: IT
     };
 
 

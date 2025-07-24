@@ -19,7 +19,7 @@ function fn1() {
 
     Department engineering = {
         name: "Engineering",
-        code: DepartmentCode.IT
+        code: IT
     };
 
     Employee alice = {
