@@ -76,6 +76,7 @@ export interface DataMapperExpressionBarState {
     setInputPort: (port: InputOutputPortModel) => void;
     resetFocus: () => void;
     resetInputPort: () => void;
+    resetExpressionBarStore: () => void;  // Complete cleanup for component unmounting
 }
 
 export const useDMSearchStore = create<DataMapperSearchState>((set) => ({
@@ -147,7 +148,15 @@ export const useDMExpressionBarStore = create<DataMapperExpressionBarState>((set
         focusedPort: undefined,
         focusedFilter: undefined
     })),
-    resetInputPort: () => set({ inputPort: undefined })
+    resetInputPort: () => set({ inputPort: undefined }),
+    // Complete state cleanup for component unmounting to prevent stale references
+    resetExpressionBarStore: () => set({
+        focusedPort: undefined,
+        focusedFilter: undefined,
+        lastFocusedPort: undefined,
+        lastFocusedFilter: undefined,
+        inputPort: undefined
+    })
 }));
 
 export interface DataMapperQueryClausesPanelState {
