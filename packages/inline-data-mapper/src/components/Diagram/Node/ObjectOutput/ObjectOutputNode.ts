@@ -107,8 +107,8 @@ export class ObjectOutputNode extends DataMapperNodeModel {
 
     private createLinks(mappings: Mapping[]) {
         mappings.forEach((mapping) => {    
-            const { isComplex, isQueryExpression, inputs, output, expression, diagnostics } = mapping;
-            if (isComplex || isQueryExpression || inputs.length !== 1) {
+            const { isComplex, isQueryExpression, isFunctionCall, inputs, output, expression, diagnostics } = mapping;
+            if (isComplex || isQueryExpression || isFunctionCall || inputs.length !== 1) {
                 // Complex mappings are handled in the LinkConnectorNode
                 return;
             }

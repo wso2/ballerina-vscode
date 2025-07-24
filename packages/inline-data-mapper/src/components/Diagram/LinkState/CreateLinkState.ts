@@ -77,11 +77,13 @@ export class CreateLinkState extends State<DiagramEngine> {
 							if (recordFieldElement) {
 								const fieldId = (recordFieldElement.id.split("-"))[1] + ".OUT";
 								const portModel = (element as any).getPort(fieldId) as InputOutputPortModel;
-								if (portModel.attributes.portType === "OUT" &&
-									!portModel.attributes?.parentModel &&
+								if (portModel?.attributes.portType === "OUT" &&
+									!portModel?.attributes?.parentModel &&
 									portModel.attributes?.collapsed
 								) {
 									handleExpand(portModel.attributes.fieldFQN, false);
+									this.clearState();
+									this.eject();
 								} else if (portModel) {
 									element = portModel;
 								}

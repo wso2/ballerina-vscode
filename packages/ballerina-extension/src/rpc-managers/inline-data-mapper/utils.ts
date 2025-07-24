@@ -74,6 +74,20 @@ export async function fetchDataMapperCodeData(
 }
 
 /**
+ * Fetches the latest code data for the sub mapping.
+ */
+export async function fetchSubMappingCodeData(
+    filePath: string,
+    codedata: CodeData,
+    name: string
+): Promise<CodeData> {
+    const response = await StateMachine
+        .langClient()
+        .getDataMapperCodedata({ filePath, codedata, name });
+    return response.codedata;
+}
+
+/**
  * Updates the source code with text edits and retrieves the updated code data for the variable being edited.
  * @throws {Error} When source update fails or required data cannot be found
  */
@@ -114,6 +128,24 @@ export async function updateSource(
 
     } catch (error) {
         console.error(`Failed to update source for variable "${varName}" in ${filePath}:`, error);
+        throw error;
+    }
+}
+
+/**
+ * Updates the source code within sub mappings and returns the updated code data.
+ */
+export async function updateSubMappingSource(
+    textEdits: { [key: string]: TextEdit[] },
+    filePath: string,
+    codedata: CodeData,
+    name: string
+): Promise<CodeData> {
+    try {
+        await updateSourceCode({ textEdits });
+        return await fetchSubMappingCodeData(filePath, codedata, name);
+    } catch (error) {
+        console.error(`Failed to update source for sub mapping "${name}" in ${filePath}:`, error);
         throw error;
     }
 }
@@ -206,10 +238,14 @@ export async function updateAndRefreshDataMapper(
     textEdits: { [key: string]: TextEdit[] },
     filePath: string,
     codedata: CodeData,
-    varName: string
+    varName: string,
+    targetField?: string,
+    withinSubMapping?: boolean
 ): Promise<void> {
     try {
-        const newCodeData = await updateSource(textEdits, filePath, codedata, varName);
+        const newCodeData = withinSubMapping
+            ? await updateSubMappingSource(textEdits, filePath, codedata, targetField)
+            : await updateSource(textEdits, filePath, codedata, varName);
         updateDataMapperView(newCodeData, varName);
     } catch (error) {
         console.error(`Failed to update and refresh data mapper for variable "${varName}":`, error);
@@ -356,7 +392,6 @@ function isWithinArtifact(artifactPosition: NodePosition, varDeclRange: ELineRan
     const artifactStartLine = artifactPosition.startLine;
     const artifactEndLine = artifactPosition.endLine;
     const varDeclStartLine = varDeclRange.startLine.line;
-    const varDeclEndLine = varDeclRange.endLine.line;
 
-    return artifactStartLine <= varDeclStartLine && artifactEndLine >= varDeclEndLine;
+    return artifactStartLine <= varDeclStartLine && artifactEndLine >= varDeclStartLine;
 }

@@ -15,7 +15,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import React from 'react';
+import React, { useRef, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import {
 	DiagramModel,
@@ -23,7 +23,7 @@ import {
 } from "@projectstorm/react-diagrams";
 
 import { DataMapperNodeModel } from '../Diagram/Node/commons/DataMapperNode';
-import { getIONodeHeight } from '../Diagram/utils/diagram-utils';
+import { getFieldCountMismatchIndex, getInputNodeFieldCounts, getIONodeHeight } from '../Diagram/utils/diagram-utils';
 import { OverlayLayerModel } from '../Diagram/OverlayLayer/OverlayLayerModel';
 import { ErrorNodeKind } from '../DataMapper/Error/RenderingError';
 import { useDMCollapsedFieldsStore, useDMExpandedFieldsStore, useDMSearchStore } from '../../store/store';
@@ -42,6 +42,11 @@ import { GAP_BETWEEN_INPUT_NODES, IO_NODE_DEFAULT_WIDTH, OFFSETS } from '../Diag
 import { InputDataImportNodeModel, OutputDataImportNodeModel } from '../Diagram/Node/DataImport/DataImportNode';
 import { excludeEmptyInputNodes, getErrorKind } from '../Diagram/utils/common-utils';
 
+export interface FieldCount {
+    id: string;
+    numberOfFields: number;
+}
+
 export const useRepositionedNodes = (
     nodes: DataMapperNodeModel[],
     zoomLevel: number,
@@ -49,12 +54,24 @@ export const useRepositionedNodes = (
 ) => {
     const nodesClone = [...excludeEmptyInputNodes(nodes)];
     const prevNodes = diagramModel.getNodes() as DataMapperNodeModel[];
-    const filtersUnchanged = false;
+    const inputNodeFieldCounts = getInputNodeFieldCounts(nodesClone);
+
+    // Ref to store previous field counts
+    const prevFieldCountsRef = useRef<FieldCount[]>([]);
+
+    const fieldCountMismatchIndex = getFieldCountMismatchIndex(inputNodeFieldCounts, prevFieldCountsRef.current);
+    
+    // Update refs when field counts change
+    useEffect(() => {
+        if (fieldCountMismatchIndex !== -1) {
+            prevFieldCountsRef.current = inputNodeFieldCounts;
+        }
+    }, [inputNodeFieldCounts, diagramModel]);
 
     let prevBottomY = 0;
 
-    nodesClone.forEach(node => {
-        const exisitingNode = prevNodes.find(prevNode => prevNode.id === node.id);
+    nodesClone.forEach((node, index) => {
+        const existingNode = prevNodes.find(prevNode => prevNode.id === node.id);
 
         if (node instanceof ObjectOutputNode
             || node instanceof ArrayOutputNode
@@ -63,7 +80,7 @@ export const useRepositionedNodes = (
             || node instanceof OutputDataImportNodeModel
         ) {
             const x = (window.innerWidth) * (100 / zoomLevel) - IO_NODE_DEFAULT_WIDTH;
-            const y = exisitingNode && exisitingNode.getY() !== 0 ? exisitingNode.getY() : 0;
+            const y = existingNode && existingNode.getY() !== 0 ? existingNode.getY() : 0;
             node.setPosition(x, y);
         }
         if (node instanceof InputNode
@@ -73,11 +90,17 @@ export const useRepositionedNodes = (
         ) {
             const x = OFFSETS.SOURCE_NODE.X;
             const computedY = prevBottomY + (prevBottomY ? GAP_BETWEEN_INPUT_NODES : 0);
-            let y = exisitingNode && filtersUnchanged && exisitingNode.getY() !== 0 ? exisitingNode.getY() : computedY;
+
+            const utilizeExistingY = existingNode &&
+                existingNode.getY() !== 0 &&
+                !(node instanceof SubMappingNode) &&
+                (fieldCountMismatchIndex === -1 || index <= fieldCountMismatchIndex);
+
+            let y = utilizeExistingY ? existingNode.getY() : computedY;
             node.setPosition(x, y);
             if (node instanceof InputNode) {
                 const nodeHeight = getIONodeHeight(node.numberOfFields);
-                prevBottomY = computedY + nodeHeight;
+                prevBottomY = y + nodeHeight;
             }
         }
     });
