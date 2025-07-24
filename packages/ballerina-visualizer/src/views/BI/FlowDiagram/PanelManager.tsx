@@ -49,6 +49,8 @@ export enum SidePanelView {
     MODEL_PROVIDER_LIST = "MODEL_PROVIDER_LIST",
     VECTOR_STORES = "VECTOR_STORES",
     VECTOR_STORE_LIST = "VECTOR_STORE_LIST",
+    EMBEDDING_PROVIDERS = "EMBEDDING_PROVIDERS",
+    EMBEDDING_PROVIDER_LIST = "EMBEDDING_PROVIDER_LIST",
     NEW_AGENT = "NEW_AGENT",
     ADD_TOOL = "ADD_TOOL",
     NEW_TOOL = "NEW_TOOL",
@@ -88,6 +90,7 @@ interface PanelManagerProps {
     onAddDataMapper?: () => void;
     onAddModelProvider?: () => void;
     onAddVectorStore?: () => void;
+    onAddEmbeddingProvider?: () => void;
     onSubmitForm: (updatedNode?: FlowNode, isDataMapperFormUpdate?: boolean) => void;
     onDiscardSuggestions: () => void;
     onSubPanel: (subPanel: SubPanel) => void;
@@ -97,6 +100,7 @@ interface PanelManagerProps {
     onSearchNpFunction?: (searchText: string, functionType: FUNCTION_TYPE) => void;
     onSearchModelProvider?: (searchText: string, functionType: FUNCTION_TYPE) => void;
     onSearchVectorStore?: (searchText: string, functionType: FUNCTION_TYPE) => void;
+    onSearchEmbeddingProvider?: (searchText: string, functionType: FUNCTION_TYPE) => void;
     onEditAgent?: () => void;
 
     // AI Agent handlers
@@ -134,6 +138,7 @@ export function PanelManager(props: PanelManagerProps) {
         onAddDataMapper,
         onAddModelProvider,
         onAddVectorStore,
+        onAddEmbeddingProvider,
         onSubmitForm,
         onDiscardSuggestions,
         onSubPanel,
@@ -142,6 +147,7 @@ export function PanelManager(props: PanelManagerProps) {
         onSearchFunction,
         onSearchNpFunction,
         onSearchVectorStore,
+        onSearchEmbeddingProvider,
     } = props;
 
     const [panelView, setPanelView] = useState<SidePanelView>(sidePanelView);
@@ -338,6 +344,35 @@ export function PanelManager(props: PanelManagerProps) {
                         onClose={onClose}
                         title={"Vector Stores"}
                         searchPlaceholder={"Search vector stores"}
+                        onBack={canGoBack ? onBack : undefined}
+                    />
+                );
+
+            case SidePanelView.EMBEDDING_PROVIDER_LIST:
+                return (
+                    <NodeList
+                        categories={categories}
+                        onSelect={onSelectNode}
+                        onAdd={onAddEmbeddingProvider}
+                        addButtonLabel={"Add Embedding Provider"}
+                        onClose={onClose}
+                        title={"Embedding Providers"}
+                        searchPlaceholder={"Search embedding providers"}
+                        onSearchTextChange={(searchText) =>
+                            onSearchEmbeddingProvider?.(searchText, FUNCTION_TYPE.REGULAR)
+                        }
+                        onBack={canGoBack ? onBack : undefined}
+                    />
+                );
+
+            case SidePanelView.EMBEDDING_PROVIDERS:
+                return (
+                    <CardList
+                        categories={categories}
+                        onSelect={onSelectNode}
+                        onClose={onClose}
+                        title={"Embedding Providers"}
+                        searchPlaceholder={"Search embedding providers"}
                         onBack={canGoBack ? onBack : undefined}
                     />
                 );
