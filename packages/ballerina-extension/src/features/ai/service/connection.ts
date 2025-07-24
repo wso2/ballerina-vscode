@@ -15,7 +15,7 @@
 // under the License.
 
 import { createAnthropic } from "@ai-sdk/anthropic";
-import { getAccessToken, getRefreshedAccessToken } from "../../../utils/ai/auth";
+import { getAccessToken, getLoginMethod, getRefreshedAccessToken } from "../../../utils/ai/auth";
 import { AIStateMachine } from "../../../views/ai-panel/aiMachine";
 import { BACKEND_URL } from "../utils";
 import { AIMachineEventType, LoginMethod } from "@wso2/ballerina-core";
@@ -38,37 +38,44 @@ let cachedAuthMethod: LoginMethod | null = null;
  * @param options - Fetch options
  * @returns Promise<Response>
  */
-export async function fetchWithAuth(input: string | URL | Request, options: RequestInit = {}): Promise<Response> {
-    const accessToken = await getAccessToken();
+export async function fetchWithAuth(input: string | URL | Request, options: RequestInit = {}): Promise<Response | undefined> {
+    try {
+        const accessToken = await getAccessToken();
 
-    // Ensure headers object exists
-    options.headers = {
-        ...options.headers,
-        'Authorization': `Bearer ${accessToken.token}`,
-        'User-Agent': 'Ballerina-VSCode-Plugin',
-        'Connection': 'keep-alive',
-    };
+        // Ensure headers object exists
+        options.headers = {
+            ...options.headers,
+            'Authorization': `Bearer ${accessToken}`,
+            'User-Agent': 'Ballerina-VSCode-Plugin',
+            'Connection': 'keep-alive',
+        };
 
-    let response = await fetch(input, options);
-    console.log("Response status: ", response.status);
+        let response = await fetch(input, options);
+        console.log("Response status: ", response.status);
 
-    // Handle token expiration
-    if (response.status === 401) {
-        console.log("Token expired. Refreshing token...");
-        const newToken = await getRefreshedAccessToken();
-        if (newToken) {
-            options.headers = {
-                ...options.headers,
-                'Authorization': `Bearer ${newToken}`,
-            };
-            response = await fetch(input, options);
-        } else {
-            AIStateMachine.service().send(AIMachineEventType.LOGOUT);
-            throw new Error('Authentication failed: Unable to refresh token');
+        // Handle token expiration
+        if (response.status === 401) {
+            console.log("Token expired. Refreshing token...");
+            const newToken = await getRefreshedAccessToken();
+            if (newToken) {
+                options.headers = {
+                    ...options.headers,
+                    'Authorization': `Bearer ${newToken}`,
+                };
+                response = await fetch(input, options);
+            } else {
+                AIStateMachine.service().send(AIMachineEventType.LOGOUT);
+                return;
+            }
         }
-    }
 
-    return response;
+        return response;
+    } catch (error: any) {
+        if (error?.message === "TOKEN_EXPIRED") {
+            AIStateMachine.service().send(AIMachineEventType.LOGOUT);
+        }
+        return;
+    }
 }
 
 /**
@@ -76,7 +83,7 @@ export async function fetchWithAuth(input: string | URL | Request, options: Requ
  * Re-initializes the client if the login method has changed.
  */
 export const getAnthropicClient = async (model: AnthropicModel) => {
-    const { token, loginMethod } = await getAccessToken();
+    const loginMethod = await getLoginMethod();
 
     // Recreate client if login method has changed or no cached instance
     if (!cachedAnthropic || cachedAuthMethod !== loginMethod) {
@@ -87,9 +94,10 @@ export const getAnthropicClient = async (model: AnthropicModel) => {
                 fetch: fetchWithAuth,
             });
         } else if (loginMethod === LoginMethod.ANTHROPIC_KEY) {
+            const apiKey = await getAccessToken();
             cachedAnthropic = createAnthropic({
                 baseURL: "https://api.anthropic.com/v1",
-                apiKey: token,
+                apiKey: apiKey,
             });
         } else {
             throw new Error(`Unsupported login method: ${loginMethod}`);

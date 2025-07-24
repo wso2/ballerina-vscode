@@ -1300,11 +1300,7 @@ export async function getDatamapperCode(parameterDefinitions: ErrorCode | Parame
             console.error(error);
             return NOT_LOGGED_IN;
         });
-        const tokenOrError: string | ErrorCode =
-            typeof accessToken === 'object' && 'token' in accessToken
-                ? accessToken.token
-                : accessToken;
-        let response: DatamapperResponse = await sendDatamapperRequest(parameterDefinitions, tokenOrError);
+        let response: DatamapperResponse = await sendDatamapperRequest(parameterDefinitions, accessToken);
 
         let intermediateMapping = response.mappings;
         let finalCode = await generateBallerinaCode(intermediateMapping, parameterDefinitions, "", nestedKeyArray);

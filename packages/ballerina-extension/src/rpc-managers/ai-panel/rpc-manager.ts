@@ -147,7 +147,7 @@ export class AiPanelRpcManager implements AIPanelAPI {
                     reject(new Error("Access Token is undefined"));
                     return;
                 }
-                resolve(accessToken.token);
+                resolve(accessToken);
             } catch (error) {
                 reject(error);
             }
