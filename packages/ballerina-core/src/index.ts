@@ -113,4 +113,8 @@ export * from "./icons"
 // ------ AI Panel Related Interfaces -------->
 export * from "./interfaces/ai-panel";
 
+// ------ Flow Model Utils -------->
+export * from "./flow-model/BaseVisitor";
+export * from "./flow-model/flow-model-utils";
+
 export { Diagnostic } from "vscode-languageserver-types";
