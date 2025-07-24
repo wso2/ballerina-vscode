@@ -47,6 +47,8 @@ export enum SidePanelView {
     NP_FUNCTION_LIST = "NP_FUNCTION_LIST",
     MODEL_PROVIDERS = "MODEL_PROVIDERS",
     MODEL_PROVIDER_LIST = "MODEL_PROVIDER_LIST",
+    VECTOR_STORES = "VECTOR_STORES",
+    VECTOR_STORE_LIST = "VECTOR_STORE_LIST",
     NEW_AGENT = "NEW_AGENT",
     ADD_TOOL = "ADD_TOOL",
     NEW_TOOL = "NEW_TOOL",
@@ -85,6 +87,7 @@ interface PanelManagerProps {
     onAddNPFunction?: () => void;
     onAddDataMapper?: () => void;
     onAddModelProvider?: () => void;
+    onAddVectorStore?: () => void;
     onSubmitForm: (updatedNode?: FlowNode, isDataMapperFormUpdate?: boolean) => void;
     onDiscardSuggestions: () => void;
     onSubPanel: (subPanel: SubPanel) => void;
@@ -93,6 +96,7 @@ interface PanelManagerProps {
     onSearchFunction?: (searchText: string, functionType: FUNCTION_TYPE) => void;
     onSearchNpFunction?: (searchText: string, functionType: FUNCTION_TYPE) => void;
     onSearchModelProvider?: (searchText: string, functionType: FUNCTION_TYPE) => void;
+    onSearchVectorStore?: (searchText: string, functionType: FUNCTION_TYPE) => void;
     onEditAgent?: () => void;
 
     // AI Agent handlers
@@ -129,6 +133,7 @@ export function PanelManager(props: PanelManagerProps) {
         onAddNPFunction,
         onAddDataMapper,
         onAddModelProvider,
+        onAddVectorStore,
         onSubmitForm,
         onDiscardSuggestions,
         onSubPanel,
@@ -136,6 +141,7 @@ export function PanelManager(props: PanelManagerProps) {
         onResetUpdatedExpressionField,
         onSearchFunction,
         onSearchNpFunction,
+        onSearchVectorStore,
     } = props;
 
     const [panelView, setPanelView] = useState<SidePanelView>(sidePanelView);
@@ -303,6 +309,35 @@ export function PanelManager(props: PanelManagerProps) {
                         onClose={onClose}
                         title={"Model Providers"}
                         searchPlaceholder={"Search model providers"}
+                        onBack={canGoBack ? onBack : undefined}
+                    />
+                );
+
+            case SidePanelView.VECTOR_STORE_LIST:
+                return (
+                    <NodeList
+                        categories={categories}
+                        onSelect={onSelectNode}
+                        onAdd={onAddVectorStore}
+                        addButtonLabel={"Add Vector Store"}
+                        onClose={onClose}
+                        title={"Vector Stores"}
+                        searchPlaceholder={"Search vector stores"}
+                        onSearchTextChange={(searchText) =>
+                            onSearchVectorStore?.(searchText, FUNCTION_TYPE.REGULAR)
+                        }
+                        onBack={canGoBack ? onBack : undefined}
+                    />
+                );
+
+            case SidePanelView.VECTOR_STORES:
+                return (
+                    <CardList
+                        categories={categories}
+                        onSelect={onSelectNode}
+                        onClose={onClose}
+                        title={"Vector Stores"}
+                        searchPlaceholder={"Search vector stores"}
                         onBack={canGoBack ? onBack : undefined}
                     />
                 );

@@ -52,6 +52,7 @@ import {
     convertBICategoriesToSidePanelCategories,
     convertFunctionCategoriesToSidePanelCategories,
     convertModelProviderCategoriesToSidePanelCategories,
+    convertVectorStoreCategoriesToSidePanelCategories,
 } from "../../../utils/bi";
 import { NodePosition, STNode } from "@wso2/syntax-tree";
 import { View, ProgressRing, ProgressIndicator, ThemeColors } from "@wso2/ui-toolkit";
@@ -127,6 +128,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
     const showEditForm = useRef<boolean>(false);
     const selectedNodeMetadata = useRef<{ nodeId: string; metadata: any; fileName: string }>();
     const isCreatingNewModelProvider = useRef<boolean>(false);
+    const isCreatingNewVectorStore = useRef<boolean>(false);
 
     useEffect(() => {
         debouncedGetFlowModel();
@@ -253,6 +255,39 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
             }
         } else {
             console.log(">>> MODEL_PROVIDER_LIST not found in navigation stack, closing panel");
+            handleOnCloseSidePanel();
+        }
+    };
+
+    const handleVectorStoreAdded = async () => {
+        console.log(">>> Vector store added, navigating back to vector store list");
+
+        // Try to navigate back to VECTOR_STORE_LIST in the stack
+        const foundInStack = popNavigationStackUntilView(SidePanelView.VECTOR_STORE_LIST);
+
+        if (foundInStack) {
+            setShowProgressIndicator(true);
+            try {
+                const response = await rpcClient.getBIDiagramRpcClient().getAvailableVectorStores({
+                    position: targetRef.current.startLine,
+                    filePath: model?.fileName,
+                });
+                console.log(">>> Refreshed vector store list", response);
+                setCategories(
+                    convertFunctionCategoriesToSidePanelCategories(
+                        response.categories as Category[],
+                        FUNCTION_TYPE.REGULAR
+                    )
+                );
+                setSidePanelView(SidePanelView.VECTOR_STORE_LIST);
+                setShowSidePanel(true);
+            } catch (error) {
+                console.error(">>> Error refreshing vector stores", error);
+            } finally {
+                setShowProgressIndicator(false);
+            }
+        } else {
+            console.log(">>> VECTOR_STORE_LIST not found in navigation stack, closing panel");
             handleOnCloseSidePanel();
         }
     };
@@ -569,6 +604,9 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                     case "MODEL_PROVIDER":
                         panelView = SidePanelView.MODEL_PROVIDER_LIST;
                         break;
+                    case "VECTOR_STORE" as any: // Temporary type assertion to resolve linter error
+                        panelView = SidePanelView.VECTOR_STORE_LIST;
+                        break;
                     default:
                         panelView = SidePanelView.NODE_LIST;
                 }
@@ -593,6 +631,10 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
         await handleSearch(searchText, functionType, "MODEL_PROVIDER");
     };
 
+    const handleSearchVectorStore = async (searchText: string, functionType: FUNCTION_TYPE) => {
+        await handleSearch(searchText, functionType, "VECTOR_STORE" as any); // Temporary type assertion to resolve linter error
+    };
+
     const updateCurrentArtifactLocation = async (artifacts: UpdatedArtifactsResponse) => {
         console.log(">>> Updating current artifact location", artifacts);
         // Get the updated component and update the location
@@ -614,9 +656,15 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
             }
         });
         if (currentArtifact) {
-            if (currentArtifact.type === "CONNECTION") {
-                // HACK: handle vector db and embedding provider added
+            console.log(">>> currentArtifact", currentArtifact);
+            if (currentArtifact.type === "CONNECTION" && isCreatingNewModelProvider.current) {
+                isCreatingNewModelProvider.current = false;
                 await handleModelProviderAdded();
+                return;
+            }
+            if (currentArtifact.type === "VARIABLE" && isCreatingNewVectorStore.current) {
+                isCreatingNewVectorStore.current = false;
+                await handleVectorStoreAdded();
                 return;
             }
         }
@@ -740,6 +788,30 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                     });
                 break;
 
+            case "VECTOR_STORES":
+                setShowProgressIndicator(true);
+                rpcClient
+                    .getBIDiagramRpcClient()
+                    .getAvailableVectorStores({
+                        position: targetRef.current.startLine,
+                        filePath: model?.fileName || fileName,
+                    })
+                    .then((response) => {
+                        console.log(">>> List of vector stores", response);
+                        setCategories(
+                            convertFunctionCategoriesToSidePanelCategories(
+                                response.categories as Category[],
+                                FUNCTION_TYPE.REGULAR
+                            )
+                        );
+                        setSidePanelView(SidePanelView.VECTOR_STORE_LIST);
+                        setShowSidePanel(true);
+                    })
+                    .finally(() => {
+                        setShowProgressIndicator(false);
+                    });
+                break;
+
             default:
                 // default node
                 console.log(">>> on select panel node", { nodeId, metadata });
@@ -792,12 +864,8 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                     selectedNodeRef.current = undefined;
                     await updateCurrentArtifactLocation(response);
 
-                    // If we were creating a new model provider, go back to the available model providers list
-                    if (isCreatingNewModelProvider.current) {
-                        isCreatingNewModelProvider.current = false;
-                    } else {
-                        handleOnCloseSidePanel();
-                    }
+                    // Handle creation completion
+                    handleOnCloseSidePanel();
                 } else {
                     console.error(">>> Error updating source code", response);
                 }
@@ -943,11 +1011,20 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 );
                 setCategories([]);
                 setSidePanelView(SidePanelView.MODEL_PROVIDER_LIST);
+            } else if (sidePanelView === SidePanelView.VECTOR_STORES) {
+                handleOnSelectNode(
+                    selectedNodeMetadata.current.nodeId,
+                    selectedNodeMetadata.current.metadata,
+                    selectedNodeMetadata.current.fileName
+                );
+                setCategories([]);
+                setSidePanelView(SidePanelView.VECTOR_STORE_LIST);
             } else if (
                 sidePanelView === SidePanelView.FUNCTION_LIST ||
                 sidePanelView === SidePanelView.DATA_MAPPER_LIST ||
                 sidePanelView === SidePanelView.NP_FUNCTION_LIST ||
-                sidePanelView === SidePanelView.MODEL_PROVIDER_LIST
+                sidePanelView === SidePanelView.MODEL_PROVIDER_LIST ||
+                sidePanelView === SidePanelView.VECTOR_STORE_LIST
             ) {
                 setCategories(initialCategoriesRef.current);
                 setSidePanelView(SidePanelView.NODE_LIST);
@@ -1040,6 +1117,34 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 console.log(">>> Available model provider types", response);
                 setCategories(convertModelProviderCategoriesToSidePanelCategories(response.categories as Category[]));
                 setSidePanelView(SidePanelView.MODEL_PROVIDERS);
+                setShowSidePanel(true);
+            })
+            .finally(() => {
+                setShowProgressIndicator(false);
+            });
+    };
+
+    const handleOnAddNewVectorStore = () => {
+        console.log(">>> Adding new vector store");
+        isCreatingNewVectorStore.current = true;
+        setShowProgressIndicator(true);
+
+        // Push current state to navigation stack
+        pushToNavigationStack(sidePanelView, categories, selectedNodeRef.current, selectedClientName.current);
+
+        // Use search to get available vector store types
+        rpcClient
+            .getBIDiagramRpcClient()
+            .search({
+                position: { startLine: targetRef.current.startLine, endLine: targetRef.current.endLine },
+                filePath: model?.fileName,
+                queryMap: undefined,
+                searchKind: "VECTOR_STORE" as any, // Temporary type assertion to resolve linter error
+            })
+            .then((response) => {
+                console.log(">>> Available vector store types", response);
+                setCategories(convertVectorStoreCategoriesToSidePanelCategories(response.categories as Category[]));
+                setSidePanelView(SidePanelView.VECTOR_STORES);
                 setShowSidePanel(true);
             })
             .finally(() => {
@@ -1461,6 +1566,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 onAddNPFunction={handleOnAddNPFunction}
                 onAddDataMapper={handleOnAddDataMapper}
                 onAddModelProvider={handleOnAddNewModelProvider}
+                onAddVectorStore={handleOnAddNewVectorStore}
                 onSubmitForm={handleOnFormSubmit}
                 showProgressIndicator={showProgressIndicator}
                 onDiscardSuggestions={onDiscardSuggestions}
@@ -1470,6 +1576,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 onSearchFunction={handleSearchFunction}
                 onSearchNpFunction={handleSearchNpFunction}
                 onSearchModelProvider={handleSearchModelProvider}
+                onSearchVectorStore={handleSearchVectorStore}
                 // AI Agent specific callbacks
                 onEditAgent={handleEditAgent}
                 onSelectTool={handleOnSelectTool}
