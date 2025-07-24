@@ -175,6 +175,7 @@ const MainPanel = () => {
     const [navActive, setNavActive] = useState<boolean>(true);
     const [showHome, setShowHome] = useState<boolean>(true);
     const [popupState, setPopupState] = useState<PopupMachineStateValue>("initialize");
+    const [breakpointState, setBreakpointState] = useState<boolean>(false);
 
     rpcClient?.onStateChanged((newState: MachineStateValue) => {
         if (typeof newState === "object" && "viewActive" in newState && newState.viewActive === "viewReady") {
@@ -187,7 +188,9 @@ const MainPanel = () => {
     });
 
     rpcClient?.onBreakpointChanges((state: boolean) => {
-        fetchContext();
+        setBreakpointState(pre => {
+                return !pre;
+        });
         console.log("Breakpoint changes");
     });
 
@@ -267,14 +270,45 @@ const MainPanel = () => {
                         />);
                         break;
                     case MACHINE_VIEW.BIDiagram:
-                        setViewComponent(
-                            <DiagramWrapper
-                                key={value?.identifier}
-                                projectPath={value?.projectUri}
-                                filePath={value?.documentUri}
-                                view={value?.focusFlowDiagramView}
-                            />
-                        );
+
+                        rpcClient.getLangClientRpcClient().getSTByRange({
+                            documentIdentifier: {
+                                uri: URI.file(value.documentUri).toString(),
+                            },
+                            lineRange: {
+                                start: {
+                                    line: value?.position?.startLine,
+                                    character: value?.position?.startColumn,
+                                },
+                                end: {
+                                    line: value?.position?.endLine,
+                                    character: value?.position?.endColumn,
+                                },
+                            },
+                        }).then((st) => {
+                            setViewComponent(
+                                <DiagramWrapper
+                                    key={value?.identifier}
+                                    syntaxTree={st.syntaxTree}
+                                    projectPath={value?.projectUri}
+                                    filePath={value?.documentUri}
+                                    view={value?.focusFlowDiagramView}
+                                    breakpointState={breakpointState}
+                                />
+                            );
+                        }).catch((error) => {
+                            console.error("Error fetching ST:", error);
+                            // Fallback to render without waiting
+                            setViewComponent(
+                                <DiagramWrapper
+                                    key={value?.identifier}
+                                    projectPath={value?.projectUri}
+                                    filePath={value?.documentUri}
+                                    view={value?.focusFlowDiagramView}
+                                    breakpointState={breakpointState}
+                                />
+                            );
+                        });
                         break;
                     case MACHINE_VIEW.ERDiagram:
                         setViewComponent(<ERDiagram />);
@@ -431,7 +465,7 @@ const MainPanel = () => {
 
     useEffect(() => {
         fetchContext();
-    }, []);
+    }, [breakpointState]);
 
     useEffect(() => {
         const mouseTrapClient = KeyboardNavigationManager.getClient();

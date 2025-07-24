@@ -79,10 +79,12 @@ export interface BIFlowDiagramProps {
     projectPath: string;
     onUpdate: () => void;
     onReady: (fileName: string, parentMetadata?: ParentMetadata) => void;
+    breakpointState?: boolean;
+    syntaxTree?: STNode;
 }
 
 export function BIFlowDiagram(props: BIFlowDiagramProps) {
-    const { projectPath, onUpdate, onReady } = props;
+    const { projectPath, onUpdate, onReady, breakpointState, syntaxTree } = props;
     const { rpcClient } = useRpcContext();
 
     const [model, setModel] = useState<Flow>();
@@ -109,7 +111,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
 
     useEffect(() => {
         debouncedGetFlowModel();
-    }, []);
+    }, [breakpointState, syntaxTree]);
 
     useEffect(() => {
         rpcClient.onParentPopupSubmitted((parent: ParentPopupData) => {
