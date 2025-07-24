@@ -50,7 +50,7 @@ export async function createNewMapping(link: DataMapperLinkModel) {
 
 	let expression = input;
 
-	if (targetMapping && targetMapping.expression.trim() !== getDefaultValue(outputPortModel.attributes.field.kind)) {
+	if (targetMapping && targetMapping.expression.trim() !== getDefaultValue(outputPortModel.attributes.field?.kind)) {
 		expression = `${targetMapping.expression} + ${input}`;
 	}
 

@@ -158,7 +158,9 @@ export function InputNodeTreeItemWidget(props: InputNodeTreeItemWidgetProps) {
                 </Tooltip>
             )}
             {fields && expanded &&
-                fields.map((subField, index) => {
+                fields
+                ?.filter(f => !!f)
+                .map((subField, index) => {
                     return (
                         <InputNodeTreeItemWidget
                             key={index}
