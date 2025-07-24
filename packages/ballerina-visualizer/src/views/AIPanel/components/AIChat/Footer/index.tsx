@@ -74,7 +74,7 @@ type FooterProps = {
     tagOptions: TagOptions;
     attachmentOptions: AttachmentOptions;
     inputPlaceholder: string;
-    onSend: (content: { input: Input[]; attachments: Attachment[] }) => Promise<void>;
+    onSend: (content: { input: Input[]; attachments: Attachment[]; metadata?: Record<string, any> }) => Promise<void>;
     onStop: () => void;
     isLoading: boolean;
     showSuggestedCommands: boolean;
