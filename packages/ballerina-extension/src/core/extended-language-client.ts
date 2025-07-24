@@ -301,6 +301,10 @@ enum EXTENDED_APIS {
     BI_DELETE_NODE = 'flowDesignService/deleteFlowNode',
     BI_DELETE_BY_COMPONENT_INFO = 'flowDesignService/deleteComponent',
     BI_AVAILABLE_NODES = 'flowDesignService/getAvailableNodes',
+    BI_AVAILABLE_MODEL_PROVIDERS = 'flowDesignService/getAvailableModelProviders',
+    BI_AVAILABLE_VECTOR_STORES = 'flowDesignService/getAvailableVectorStores',
+    BI_AVAILABLE_EMBEDDING_PROVIDERS = 'flowDesignService/getAvailableEmbeddingProviders',
+    BI_AVAILABLE_VECTOR_KNOWLEDGE_BASES = 'flowDesignService/getAvailableVectorKnowledgeBases',
     BI_NODE_TEMPLATE = 'flowDesignService/getNodeTemplate',
     BI_GEN_OPEN_API = 'flowDesignService/generateServiceFromOpenApiContract',
     BI_MODULE_NODES = 'flowDesignService/getModuleNodes',
@@ -879,6 +883,22 @@ export class ExtendedLangClient extends LanguageClient implements ExtendedLangCl
 
     async getAvailableNodes(params: BIAvailableNodesRequest): Promise<BIAvailableNodesResponse> {
         return this.sendRequest<BIAvailableNodesResponse>(EXTENDED_APIS.BI_AVAILABLE_NODES, params);
+    }
+
+    async getAvailableModelProviders(params: BIAvailableNodesRequest): Promise<BIAvailableNodesResponse> {
+        return this.sendRequest<BIAvailableNodesResponse>(EXTENDED_APIS.BI_AVAILABLE_MODEL_PROVIDERS, params);
+    }
+
+    async getAvailableVectorStores(params: BIAvailableNodesRequest): Promise<BIAvailableNodesResponse> {
+        return this.sendRequest<BIAvailableNodesResponse>(EXTENDED_APIS.BI_AVAILABLE_VECTOR_STORES, params);
+    }
+
+    async getAvailableEmbeddingProviders(params: BIAvailableNodesRequest): Promise<BIAvailableNodesResponse> {
+        return this.sendRequest<BIAvailableNodesResponse>(EXTENDED_APIS.BI_AVAILABLE_EMBEDDING_PROVIDERS, params);
+    }
+
+    async getAvailableVectorKnowledgeBases(params: BIAvailableNodesRequest): Promise<BIAvailableNodesResponse> {
+        return this.sendRequest<BIAvailableNodesResponse>(EXTENDED_APIS.BI_AVAILABLE_VECTOR_KNOWLEDGE_BASES, params);
     }
 
     async getEnclosedFunctionDef(params: BIGetEnclosedFunctionRequest): Promise<BIGetEnclosedFunctionResponse> {

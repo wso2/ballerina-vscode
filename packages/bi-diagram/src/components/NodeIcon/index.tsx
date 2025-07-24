@@ -37,6 +37,7 @@ import {
 } from "../../resources";
 import { NodeKind } from "../../utils/types";
 import { Icon } from "@wso2/ui-toolkit";
+import { DefaultLlmIcon } from "../../resources/icons/DefaultLlmIcon";
 
 // VSCode chart colors - guaranteed to be available in all webviews
 // These colors are visually distinct and work well in both light and dark themes
@@ -210,6 +211,10 @@ const NODE_ICONS: Record<NodeKind, React.FC<{ size: number; color: string }>> = 
     FAIL: ({ size, color }) => <Icon name="bi-error" sx={{ fontSize: size, width: size, height: size, color }} />,
     RETRY: ({ size, color }) => <Icon name="bi-retry" sx={{ fontSize: size, width: size, height: size, color }} />,
     AGENT_CALL: ({ size, color }) => <Icon name="bi-ai-agent" sx={{ fontSize: size, width: size, height: size, color }} />,
+    MODEL_PROVIDERS: ({ size, color }) => <DefaultLlmIcon />,
+    VECTOR_KNOWLEDGE_BASES: ({ size, color }) => <Icon name="bi-brain" sx={{ fontSize: size, width: size, height: size, color }} />,
+    VECTOR_STORES: ({ size, color }) => <Icon name="bi-db" sx={{ fontSize: size, width: size, height: size, color }} />,
+    EMBEDDING_PROVIDERS: ({ size, color }) => <Icon name="bi-doc" sx={{ fontSize: size, width: size, height: size, color }} />,
     // Default case for any NodeKind not explicitly handled
 } as Record<NodeKind, React.FC<{ size: number; color: string }>>;
 
