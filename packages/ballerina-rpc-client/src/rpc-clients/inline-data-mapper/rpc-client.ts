@@ -34,6 +34,7 @@ import {
     InlineDataMapperModelResponse,
     InlineDataMapperSourceRequest,
     InlineDataMapperSourceResponse,
+    MapWithCustomFnRequest,
     PropertyRequest,
     PropertyResponse,
     VisualizableFieldsRequest,
@@ -50,7 +51,8 @@ import {
     getInitialIDMSource,
     getProperty,
     getSubMappingCodedata,
-    getVisualizableFields
+    getVisualizableFields,
+    mapWithCustomFn
 } from "@wso2/ballerina-core";
 import { HOST_EXTENSION } from "vscode-messenger-common";
 import { Messenger } from "vscode-messenger-webview";
@@ -96,6 +98,10 @@ export class InlineDataMapperRpcClient implements InlineDataMapperAPI {
 
     deleteMapping(params: DeleteMappingRequest): Promise<InlineDataMapperSourceResponse> {
         return this._messenger.sendRequest(deleteMapping, HOST_EXTENSION, params);
+    }
+
+    mapWithCustomFn(params: MapWithCustomFnRequest): Promise<InlineDataMapperSourceResponse> {
+        return this._messenger.sendRequest(mapWithCustomFn, HOST_EXTENSION, params);
     }
 
     getDataMapperCodedata(params: GetInlineDataMapperCodedataRequest): Promise<GetInlineDataMapperCodedataResponse> {

@@ -32,7 +32,12 @@ import {
     IntermediateClause,
     TriggerCharacter,
     TRIGGER_CHARACTERS,
-    Mapping
+    Mapping,
+    CodeData,
+    CustomFnMetadata,
+    NodePosition,
+    EVENT_TYPE,
+    LineRange
 } from "@wso2/ballerina-core";
 import { CompletionItem, ProgressIndicator } from "@wso2/ui-toolkit";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
@@ -45,6 +50,7 @@ import { InlineDataMapperProps } from ".";
 import { EXPRESSION_EXTRACTION_REGEX } from "../../constants";
 import { calculateExpressionOffsets, convertBalCompletion, updateLineRange } from "../../utils/bi";
 import { createAddSubMappingRequest } from "./utils";
+import { URI, Utils } from "vscode-uri";
 
 // Types for model comparison
 interface ModelSignature {
@@ -148,13 +154,14 @@ export function InlineDataMapperView(props: InlineDataMapperProps) {
                 .getInlineDataMapperRpcClient()
                 .getDataMapperSource({
                     filePath,
-                    codedata,
+                    codedata: viewState.codedata,
                     varName: name,
                     targetField: viewId,
                     mapping: {
                         output: outputId,
                         expression: expression
-                    }
+                    },
+                    withinSubMapping: viewState.isSubMapping
                 });
             console.log(">>> [Inline Data Mapper] getSource response:", resp);
         } catch (error) {
@@ -167,7 +174,7 @@ export function InlineDataMapperView(props: InlineDataMapperProps) {
         try {
             const addElementRequest: AddArrayElementRequest = {
                 filePath,
-                codedata,
+                codedata: viewState.codedata,
                 varName: name,
                 targetField: outputId,
                 propertyKey: "expression" // TODO: Remove this once the API is updated
@@ -188,16 +195,28 @@ export function InlineDataMapperView(props: InlineDataMapperProps) {
                 .getInlineDataMapperRpcClient()
                 .getSubMappingCodedata({
                     filePath,
-                    codedata,
+                    codedata: viewState.codedata,
                     view: viewId
                 });
             console.log(">>> [Inline Data Mapper] getSubMappingCodedata response:", resp);
-            setViewState({viewId, codedata: resp.codedata});
+            setViewState({viewId, codedata: resp.codedata, isSubMapping: true});
         } else {
-            setViewState(prev => ({
-                ...prev,
-                viewId
-            }));
+            if (viewState.isSubMapping) {
+                // If the view is a sub mapping, we need to get the codedata of the parent mapping
+                const res = await rpcClient
+                    .getInlineDataMapperRpcClient()
+                    .getDataMapperCodedata({
+                        filePath,
+                        codedata: viewState.codedata,
+                        name: viewId
+                    });
+                setViewState({viewId, codedata: res.codedata, isSubMapping: false});
+            } else {
+                setViewState(prev => ({
+                    ...prev,
+                    viewId
+                }));
+            }
         }
     };
 
@@ -216,7 +235,7 @@ export function InlineDataMapperView(props: InlineDataMapperProps) {
         try {
             const convertToQueryRequest: ConvertToQueryRequest = {
                 filePath,
-                codedata,
+                codedata: viewState.codedata,
                 varName: name,
                 targetField: outputId,
                 propertyKey: "expression" // TODO: Remove this once the API is updated
@@ -236,7 +255,7 @@ export function InlineDataMapperView(props: InlineDataMapperProps) {
             const addClausesRequest: AddClausesRequest = {
                 filePath,
                 codedata: {
-                    ...codedata,
+                    ...viewState.codedata,
                     isNew: true
                 },
                 index,
@@ -256,16 +275,32 @@ export function InlineDataMapperView(props: InlineDataMapperProps) {
         }
     }
 
-    const addSubMapping = async (subMappingName: string, type: string, index: number, targetField: string) => {
+    const addSubMapping = async (
+        subMappingName: string,
+        type: string,
+        index: number,
+        targetField: string,
+        importsCodedata?: CodeData
+    ) => {
         try {
+            const visualizableResponse = await rpcClient
+                .getInlineDataMapperRpcClient()
+                .getVisualizableFields({
+                    filePath,
+                    codedata: importsCodedata || { symbol: type }
+                });
+            console.log(">>> [Inline Data Mapper] getVisualizableFields response:", visualizableResponse);
+
+            const defaultValue = visualizableResponse.visualizableProperties.defaultValue;
             const request = createAddSubMappingRequest(
                 filePath,
-                codedata,
+                viewState.codedata,
                 index,
                 targetField,
                 subMappingName,
                 type,
-                varName
+                varName,
+                defaultValue
             );
             
             console.log(">>> [Inline Data Mapper] addSubMapping request:", request);
@@ -286,7 +321,7 @@ export function InlineDataMapperView(props: InlineDataMapperProps) {
                 .getInlineDataMapperRpcClient()
                 .deleteMapping({
                     filePath,
-                    codedata,
+                    codedata: viewState.codedata,
                     mapping,
                     varName,
                     targetField: viewId,
@@ -296,6 +331,42 @@ export function InlineDataMapperView(props: InlineDataMapperProps) {
             console.error(error);
             setIsFileUpdateError(true);
         }
+    };
+
+    const mapWithCustomFn = async (mapping: Mapping, metadata: CustomFnMetadata, viewId: string) => {
+        try {
+            const resp = await rpcClient
+                .getInlineDataMapperRpcClient()
+                .mapWithCustomFn({
+                    filePath,
+                    codedata,
+                    mapping,
+                    functionMetadata: metadata,
+                    varName,
+                    targetField: viewId,
+                });
+            console.log(">>> [Inline Data Mapper] mapWithCustomFn response:", resp);
+        } catch (error) {
+            console.error(error);
+            setIsFileUpdateError(true);
+        }
+    };
+
+    const goToFunction = async (functionRange: LineRange) => {
+        const visualizerLocation = await rpcClient.getVisualizerLocation();
+        const documentUri: string = Utils.joinPath(
+            URI.file(visualizerLocation.projectUri),
+            functionRange.fileName
+        ).fsPath;
+        const position: NodePosition = {
+            startLine: functionRange.startLine.line,
+            startColumn: functionRange.startLine.offset,
+            endLine: functionRange.endLine.line,
+            endColumn: functionRange.endLine.offset
+        };
+        rpcClient
+            .getVisualizerRpcClient()
+            .openView({ type: EVENT_TYPE.OPEN_VIEW, location: { documentUri, position } });
     };
 
     useEffect(() => {
@@ -327,7 +398,7 @@ export function InlineDataMapperView(props: InlineDataMapperProps) {
             } else {
                 const { property } = await rpcClient.getInlineDataMapperRpcClient().getProperty({
                     filePath: filePath,
-                    codedata: codedata,
+                    codedata: viewState.codedata,
                     propertyKey: "expression", // TODO: Remove this once the API is updated
                     targetField: viewId,
                     fieldId: outputId,
@@ -340,7 +411,7 @@ export function InlineDataMapperView(props: InlineDataMapperProps) {
                         startLine: updateLineRange(codedata.lineRange, expressionOffsetRef.current).startLine,
                         lineOffset: lineOffset,
                         offset: charOffset,
-                        codedata: codedata,
+                        codedata: viewState.codedata,
                         property: property,
                     },
                     completionContext: {
@@ -407,6 +478,8 @@ export function InlineDataMapperView(props: InlineDataMapperProps) {
                     addClauses={addClauses}
                     addSubMapping={addSubMapping}
                     deleteMapping={deleteMapping}
+                    mapWithCustomFn={mapWithCustomFn}
+                    goToFunction={goToFunction}
                     expressionBar={{
                         completions: filteredCompletions,
                         triggerCompletions: retrieveCompeletions,
