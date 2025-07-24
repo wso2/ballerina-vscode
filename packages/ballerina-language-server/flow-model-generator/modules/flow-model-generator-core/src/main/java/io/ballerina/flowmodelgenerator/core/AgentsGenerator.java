@@ -87,8 +87,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
-import static io.ballerina.flowmodelgenerator.core.Constants.MODEL_VERSION;
-import static io.ballerina.modelgenerator.commons.CommonUtils.AI_AZURE;
 import static io.ballerina.modelgenerator.commons.CommonUtils.isAiModule;
 
 /**
@@ -153,18 +151,23 @@ public class AgentsGenerator {
 
     public JsonArray getNewBallerinaxModels() {
         JsonArray models = new JsonArray();
-        CommonUtils.AI_MODULE_NAMES.stream().filter(model -> !model.equals(AI_AZURE))
-                .forEach(model -> models.add(createModelObject(model)));
-        models.add(createModelObject(NodeKind.CLASS_INIT, AI_AZURE, OPENAI_MODEL_PROVIDER));
-        models.add(createModelObject(NodeKind.FUNCTION_CALL, Constants.AI, DEFAULT_MODEL_PROVIDER));
+        models.add(createModelObject(CommonUtils.AI_OPENAI, Constants.OPENAI_MODEL_VERSION));
+        models.add(createModelObject(CommonUtils.AI_ANTHROPIC, Constants.ANTHROPIC_MODEL_VERSION));
+        models.add(createModelObject(CommonUtils.AI_DEEPSEEK, Constants.DEEPSEEK_MODEL_VERSION));
+        models.add(createModelObject(CommonUtils.AI_MISTRAL, Constants.MISTRAL_MODEL_VERSION));
+        models.add(createModelObject(CommonUtils.AI_OLLAMA, Constants.OLLAMA_MODEL_VERSION));
+        models.add(createModelObject(NodeKind.CLASS_INIT, CommonUtils.AI_AZURE, OPENAI_MODEL_PROVIDER,
+                Constants.AZURE_MODEL_VERSION));
+        models.add(createModelObject(NodeKind.FUNCTION_CALL, Constants.AI, DEFAULT_MODEL_PROVIDER,
+                Constants.BALLERINA_AI_VERSION));
         return models;
     }
 
-    private JsonObject createModelObject(String moduleName) {
-        return createModelObject(NodeKind.CLASS_INIT, moduleName, MODEL);
+    private JsonObject createModelObject(String moduleName, String version) {
+        return createModelObject(NodeKind.CLASS_INIT, moduleName, MODEL, version);
     }
 
-    private JsonObject createModelObject(NodeKind nodeKind, String moduleName, String objectOrFuncName) {
+    private JsonObject createModelObject(NodeKind nodeKind, String moduleName, String objectOrFuncName, String version) {
         JsonObject model = new JsonObject();
         model.addProperty("node", nodeKind.toString());
         model.addProperty("org", nodeKind.equals(NodeKind.CLASS_INIT) ?
@@ -177,7 +180,7 @@ public class AgentsGenerator {
         } else {
             model.addProperty("symbol", objectOrFuncName);
         }
-        model.addProperty("version", MODEL_VERSION);
+        model.addProperty("version", version);
         return model;
     }
 
