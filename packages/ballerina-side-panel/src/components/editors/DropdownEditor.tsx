@@ -25,6 +25,7 @@ import { FormField } from "../Form/types";
 import { capitalize, getValueForDropdown } from "./utils";
 import { useFormContext } from "../../context";
 import { SubPanel, SubPanelView } from "@wso2/ballerina-core";
+import { McpToolsSelection, McpTool } from "./McpToolsSelection";
 
 interface DropdownEditorProps {
     field: FormField;
@@ -38,68 +39,6 @@ interface DropdownEditorProps {
     newServerUrl?: string;
     mcpTools?: { name: string; description?: string }[]; // <-- add this line
 }
-
-const ToolsContainer = styled.div`
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    margin-top: 12px;
-    padding: 12px;
-    border: 1px solid ${ThemeColors.OUTLINE_VARIANT};
-    border-radius: 8px;
-`;
-const ToolsHeader = styled.div`
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 8px;
-`;
-const ToolsTitle = styled.div`
-    font-size: 14px;
-    font-family: GilmerBold;
-    color: ${ThemeColors.ON_SURFACE};
-`;
-const ToolCheckboxContainer = styled.div`
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    max-height: 200px;
-    overflow-y: auto;
-`;
-const ToolCheckboxItem = styled.div`
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    gap: 8px;
-    padding: 4px 0;
-`;
-const ErrorMessage = styled.div`
-    color: ${ThemeColors.ERROR};
-    font-size: 12px;
-    margin-top: 4px;
-`;
-const LoadingMessage = styled.div`
-    color: ${ThemeColors.ON_SURFACE_VARIANT};
-    font-size: 12px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-`;
-// Simple inline spinner for loading state
-const InlineSpinner = styled.span`
-  display: inline-block;
-  width: 16px;
-  height: 16px;
-  border: 2px solid ${ThemeColors.ON_SURFACE_VARIANT};
-  border-top: 2px solid transparent;
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
-  @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-  }
-`;
 
 const DropdownStack = styled.div`
     display: flex;
@@ -128,11 +67,6 @@ export function DropdownEditor(props: DropdownEditorProps) {
     const [mcpToolsError, setMcpToolsError] = useState<string>("");
     const toolSelection = watch(field.key);
     const [localServiceUrl, setLocalServiceUrl] = useState<string>("");
-    const [localConfigs, setLocalConfigs] = useState<any>({});
-    const [editMode] = useState(false);
-
-    // Debounce logic for serverUrl input
-    const debounceTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     useEffect(() => {
         if (newServerUrl && newServerUrl !== localServiceUrl) {
@@ -171,68 +105,12 @@ export function DropdownEditor(props: DropdownEditorProps) {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [selectedMcpTools]);
 
-    // Update renderToolsSelection to use props.mcpTools if provided
-    const renderToolsSelection = () => {
-        const tools = props.mcpTools ?? mcpTools;
-        if (toolSelection !== "Selected") {
-            return null;
-        }
-
-        return (
-            <ToolsContainer>
-                <ToolsHeader>
-                    <ToolsTitle>Available Tools</ToolsTitle>
-                    {tools.length > 0 && (
-                        <Button
-                            onClick={handleSelectAllTools}
-                            disabled={loadingMcpTools}
-                        >
-                            {selectedMcpTools.size === tools.length ? "Deselect All" : "Select All"}
-                        </Button>
-                    )}
-                </ToolsHeader>
-                {loadingMcpTools && (
-                    <LoadingMessage>
-                        <InlineSpinner />
-                        Loading tools from MCP server...
-                    </LoadingMessage>
-                )}
-                {mcpToolsError && (
-                    <ErrorMessage>{mcpToolsError}</ErrorMessage>
-                )}
-                {tools.length > 0 && (
-                    <ToolCheckboxContainer>
-                        {tools.map((tool) => (
-                            <ToolCheckboxItem key={tool.name}>
-                                <CheckBox
-                                    label=""
-                                    checked={selectedMcpTools.has(tool.name)}
-                                    disabled={loadingMcpTools}
-                                    onChange={() => !loadingMcpTools && handleToolSelectionChange(tool.name, !selectedMcpTools.has(tool.name))}
-                                >
-                                </CheckBox>
-                                <div>
-                                    <div style={{ fontWeight: 'bold' }}>{tool.name}</div>
-                                    {tool.description && (
-                                        <div style={{ fontSize: '12px', color: ThemeColors.ON_SURFACE_VARIANT }}>
-                                            {tool.description}
-                                        </div>
-                                    )}
-                                </div>
-                            </ToolCheckboxItem>
-                        ))}
-                    </ToolCheckboxContainer>
-                )}
-                {!loadingMcpTools && !mcpToolsError && tools.length === 0 && localServiceUrl.trim() && (
-                    <div style={{ color: ThemeColors.ON_SURFACE_VARIANT, fontSize: '12px' }}>
-                        No tools available from this MCP server
-                    </div>
-                )}
-            </ToolsContainer>
-        );
-    };
-
     const showScopeControls = field.key === "toolsToInclude";
+
+    // HACK: create values for Scope field
+    if (field.key === "scope") {
+        field.items = ["Global", "Local"];
+    }
 
     if (showScopeControls) {
         return (
@@ -254,7 +132,17 @@ export function DropdownEditor(props: DropdownEditorProps) {
                     addNewBtnClick={field.addNewButton ? () => openSubPanel({ view: SubPanelView.ADD_NEW_FORM }) : undefined}
                 />
                 <DropdownSpacer />
-                {renderToolsSelection()}
+                {toolSelection === "Selected" && (
+                    <McpToolsSelection
+                        tools={props.mcpTools ?? mcpTools}
+                        selectedTools={selectedMcpTools}
+                        loading={loadingMcpTools}
+                        error={mcpToolsError}
+                        onToolSelectionChange={handleToolSelectionChange}
+                        onSelectAll={handleSelectAllTools}
+                        serviceUrl={localServiceUrl}
+                    />
+                )}
             </DropdownStack>
         );
     }
