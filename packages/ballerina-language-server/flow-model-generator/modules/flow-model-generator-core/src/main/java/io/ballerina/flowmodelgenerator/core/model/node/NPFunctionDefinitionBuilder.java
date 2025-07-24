@@ -115,9 +115,9 @@ public class NPFunctionDefinitionBuilder extends FunctionDefinitionBuilder {
                     .placeholder("")
                     .value("")
                     .typeConstraint(NaturalFunctions.MODULE_PREFIXED_PROMPT_TYPE)
+                    .type(Property.ValueType.RAW_TEMPLATE)
                     .editable()
                     .hidden()
-                    .type(Property.ValueType.RAW_TEMPLATE)
                     .stepOut()
                     .addProperty(NaturalFunctions.PROMPT);
 
@@ -130,12 +130,25 @@ public class NPFunctionDefinitionBuilder extends FunctionDefinitionBuilder {
                 .codedata()
                     .kind(REQUIRED.name())
                     .stepOut()
-                .value(NaturalFunctions.DEFAULT_MODEL_PROVIDER_WSO2)
+                .type(Property.ValueType.EXPRESSION)
+                .value(null)
+                .typeConstraint(null)
                 .editable()
-                .type(Property.ValueType.SINGLE_SELECT)
-                .typeConstraint(NaturalFunctions.MODEL_PROVIDER_OPTIONS)
+                .hidden()
                 .stepOut()
                 .addProperty(NaturalFunctions.MODEL_PROVIDER);
+
+        // Model provider as a parameter
+        properties().custom()
+                .codedata()
+                    .kind(REQUIRED.name())
+                    .stepOut()
+                .type(Property.ValueType.FLAG)
+                .value(false)
+                .editable()
+                .hidden()
+                .stepOut()
+                .addProperty(NaturalFunctions.MODEL_PROVIDER_AS_PARAMETER_KEY);
     }
 
     public static void setMandatoryProperties(NodeBuilder nodeBuilder, String returnType) {
@@ -156,23 +169,20 @@ public class NPFunctionDefinitionBuilder extends FunctionDefinitionBuilder {
         FlowNode flowNode = sourceBuilder.flowNode;
 
         // Write the function name
-        Optional<Property> property = sourceBuilder.getProperty(Property.FUNCTION_NAME_KEY);
-        if (property.isEmpty()) {
+        Optional<Property> functionNameProp = sourceBuilder.getProperty(Property.FUNCTION_NAME_KEY);
+        if (functionNameProp.isEmpty()) {
             throw new IllegalStateException("Function name is not present");
         }
         sourceBuilder.token()
-                .name(property.get().value().toString())
+                .name(functionNameProp.get().value().toString())
                 .keyword(SyntaxKind.OPEN_PAREN_TOKEN);
 
-        Optional<Property> modelProviderProperty =
-                sourceBuilder.getProperty(NaturalFunctions.MODEL_PROVIDER);
-
-        // Assume that if the model provider is not specified, it is the default model provider.
-        boolean isDefaultModelProvider = (modelProviderProperty.isPresent()
-                && NaturalFunctions.DEFAULT_MODEL_PROVIDER_WSO2.equals(modelProviderProperty.get().value().toString()))
-                || modelProviderProperty.isEmpty();
-
-        if (!isDefaultModelProvider) {
+        // Write the model provider parameter if model provider is accepted as a parameter
+        Optional<Property> asParameterProperty =
+                sourceBuilder.getProperty(NaturalFunctions.MODEL_PROVIDER_AS_PARAMETER_KEY);
+        boolean isModelProviderAsParameter = asParameterProperty.isPresent()
+                && asParameterProperty.get().value().equals(true);
+        if (isModelProviderAsParameter) {
             sourceBuilder.token().name(NaturalFunctions.MODULE_PREFIXED_MODEL_PROVIDER_TYPE +
                     " " + NaturalFunctions.MODEL);
         }
@@ -194,7 +204,7 @@ public class NPFunctionDefinitionBuilder extends FunctionDefinitionBuilder {
                 paramList.add(paramType + " " + paramName);
             }
             if (!paramList.isEmpty()) {
-                if (!isDefaultModelProvider) {
+                if (isModelProviderAsParameter) {
                     sourceBuilder.token().keyword(SyntaxKind.COMMA_TOKEN);
                 }
                 sourceBuilder.token().name(String.join(", ", paramList));
@@ -219,15 +229,27 @@ public class NPFunctionDefinitionBuilder extends FunctionDefinitionBuilder {
             sourceBuilder.token().keyword(SyntaxKind.RETURNS_KEYWORD).name("error?");
         }
 
+        String modelVarReference = String.format("_%sModel", functionNameProp.get().value());  // extract the model name
+        if (!isModelProviderAsParameter) {
+            Optional<Property> modelProviderProperty =
+                    sourceBuilder.getProperty(NaturalFunctions.MODEL_PROVIDER);
+            modelVarReference = modelProviderProperty.isPresent()
+                    ? modelProviderProperty.get().value().toString()
+                    : modelVarReference;
+        }
+
+
+
         // Write the natural function expression body
         Optional<Property> promptProperty = sourceBuilder.getProperty(NaturalFunctions.PROMPT);
         String promptValue = promptProperty.map(value -> value.value().toString()).orElse("");
-        String naturalExprTemplate = "natural %s{%n" +
+        String naturalExprTemplate = "natural (%s) {%n" +
                 "%s" +
                 "%n}";
-        String naturalExpr = naturalExprTemplate.formatted(isDefaultModelProvider
-                ? "(check ai:getDefaultModelProvider())"
-                : "(model)", promptValue);
+        String naturalExpr = naturalExprTemplate.formatted(
+                isModelProviderAsParameter ? "model" : modelVarReference,
+                promptValue
+        );
         sourceBuilder.token()
                 .rightDoubleArrowToken()
                 .name(naturalExpr)
