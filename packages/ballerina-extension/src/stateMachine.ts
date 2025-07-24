@@ -1,5 +1,5 @@
 
-import { ballerinaExtInstance, ExtendedLangClient } from './core';
+import { ExtendedLangClient } from './core';
 import { createMachine, assign, interpret } from 'xstate';
 import { activateBallerina } from './extension';
 import { EVENT_TYPE, SyntaxTree, History, HistoryEntry, MachineStateValue, STByRangeRequest, SyntaxTreeResponse, UndoRedoManager, VisualizerLocation, webviewReady, MACHINE_VIEW, DIRECTORY_MAP, SCOPE, ProjectStructureResponse, ArtifactData, ProjectStructureArtifactResponse } from "@wso2/ballerina-core";
@@ -66,18 +66,32 @@ const stateMachine = createMachine<MachineContext>(
             initialize: {
                 invoke: {
                     src: checkForProjects,
-                    onDone: {
-                        target: "renderInitialView",
-                        actions: assign({
-                            isBI: (context, event) => event.data.isBI,
-                            projectUri: (context, event) => event.data.projectPath,
-                            scope: (context, event) => event.data.scope,
-                            org: (context, event) => event.data.orgName,
-                            package: (context, event) => event.data.packageName,
-                        })
-                    },
+                    onDone: [
+                        {
+                            target: "renderInitialView",
+                            cond: (context, event) => event.data && event.data.isBI,
+                            actions: assign({
+                                isBI: (context, event) => event.data.isBI,
+                                projectUri: (context, event) => event.data.projectPath,
+                                scope: (context, event) => event.data.scope,
+                                org: (context, event) => event.data.orgName,
+                                package: (context, event) => event.data.packageName,
+                            })
+                        },
+                        {
+                            target: "activateLS",
+                            cond: (context, event) => event.data && event.data.isBI === false,
+                            actions: assign({
+                                isBI: (context, event) => event.data.isBI,
+                                projectUri: (context, event) => event.data.projectPath,
+                                scope: (context, event) => event.data.scope,
+                                org: (context, event) => event.data.orgName,
+                                package: (context, event) => event.data.packageName,
+                            })
+                        }
+                    ],
                     onError: {
-                        target: "renderInitialView"
+                        target: "activateLS"
                     }
                 }
             },
@@ -103,7 +117,10 @@ const stateMachine = createMachine<MachineContext>(
                         })
                     },
                     onError: {
-                        target: "lsError"
+                        target: "lsError",
+                        actions: () => {
+                            console.error("Error occurred while activating Language Server.");
+                        }
                     }
                 }
             },
@@ -117,7 +134,10 @@ const stateMachine = createMachine<MachineContext>(
                         })
                     },
                     onError: {
-                        target: "lsError"
+                        target: "lsError",
+                        actions: () => {
+                            console.error("Error occurred while fetching project structure.");
+                        }
                     }
                 }
             },
@@ -267,7 +287,7 @@ const stateMachine = createMachine<MachineContext>(
             // Get context values from the project storage so that we can restore the earlier state when user reopens vscode
             return new Promise((resolve, reject) => {
                 if (!VisualizerWebview.currentPanel) {
-                    ballerinaExtInstance.setContext(extension.context);
+                    extension.ballerinaExtInstance.setContext(extension.context);
                     VisualizerWebview.currentPanel = new VisualizerWebview();
                     RPCLayer._messenger.onNotification(webviewReady, () => {
                         history = new History();
@@ -326,7 +346,7 @@ const stateMachine = createMachine<MachineContext>(
                     return resolve({ ...selectedEntry.location, view: selectedEntry.location.view ? selectedEntry.location.view : MACHINE_VIEW.Overview });
                 }
 
-                if (selectedEntry && selectedEntry.location.view === MACHINE_VIEW.ERDiagram) {
+                if (selectedEntry && (selectedEntry.location.view === MACHINE_VIEW.ERDiagram || selectedEntry.location.view === MACHINE_VIEW.ServiceDesigner || selectedEntry.location.view === MACHINE_VIEW.BIDiagram)) {
                     return resolve(selectedEntry.location);
                 }
 
@@ -341,6 +361,7 @@ const stateMachine = createMachine<MachineContext>(
 
                 const { documentUri, position } = location;
 
+                // TODO: Refactor this to remove the full ST request
                 const node = documentUri && await StateMachine.langClient().getSyntaxTree({
                     documentIdentifier: {
                         uri: Uri.file(documentUri).toString()
@@ -479,7 +500,34 @@ export function updateView(refreshTreeView?: boolean) {
         history.pop(); // Remove the last entry
         lastView = getLastHistory(); // Get the new last entry
     }
-    stateService.send({ type: "VIEW_UPDATE", viewLocation: lastView ? lastView.location : { view: "Overview" } });
+    
+    const currentIdentifier = lastView.location.identifier;
+    let currentArtifact: ProjectStructureArtifactResponse;
+
+    // These changes will be revisited in the revamp
+    StateMachine.context().projectStructure.directoryMap[lastView.location.artifactType].forEach((artifact) => {
+        if (artifact.id === currentIdentifier || artifact.name === currentIdentifier) {
+            currentArtifact = artifact;
+        }
+        // Check if artifact has resources and find within those
+        if (artifact.resources && artifact.resources.length > 0) {
+            const resource = artifact.resources.find((resource) => resource.id === currentIdentifier || resource.name === currentIdentifier);
+            if (resource) {
+                currentArtifact = resource;
+            }
+        }
+    });
+
+    const newPosition = currentArtifact?.position || lastView.location.position;
+    const newLocation: VisualizerLocation = { ...lastView.location, position: newPosition };
+    
+    history.updateCurrentEntry({
+        ...lastView,
+        location: newLocation
+
+    });
+
+    stateService.send({ type: "VIEW_UPDATE", viewLocation: lastView ? newLocation : { view: "Overview" } });
     if (refreshTreeView) {
         buildProjectArtifactsStructure(StateMachine.context().projectUri, StateMachine.langClient(), true);
     }
@@ -547,7 +595,7 @@ async function handleSingleWorkspace(workspaceURI: any) {
         console.error("No BI enabled workspace found");
     }
 
-    return { isBI, projectPath, scope, orgName, packageName  };
+    return { isBI, projectPath, scope, orgName, packageName };
 }
 
 function setBIContext(isBI: boolean) {

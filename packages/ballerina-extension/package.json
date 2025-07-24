@@ -404,7 +404,7 @@
                 "icon": "$(distro-delete)"
             },
             {
-                "command": "ballerina.show.visualizer",
+                "command": "ballerina.showVisualizer",
                 "title": "Show Visualizer",
                 "icon": "$(distro-design-view)",
                 "category": "Ballerina"
@@ -532,7 +532,7 @@
                 "category": "Ballerina"
             },
             {
-                "command": "ballerina.tryit",
+                "command": "ballerina.tryIt",
                 "title": "Open Try It",
                 "category": "Ballerina",
                 "icon": "$(server)"
@@ -651,6 +651,13 @@
                 "category": "BI"
             },
             {
+                "command": "BI.project-explorer.view-configuration",
+                "title": "View Configurations",
+                "icon": "$(distro-design-view)",
+                "group": "navigation",
+                "category": "BI"
+            },
+            {
                 "command": "BI.project-explorer.switch-project",
                 "title": "Switch Project",
                 "icon": "$(distro-switch-project)",
@@ -749,7 +756,7 @@
                     "when": "resourceLangId == ballerina || isBallerinaDiagram"
                 },
                 {
-                    "command": "ballerina.tryit",
+                    "command": "ballerina.tryIt",
                     "group": "navigation@1",
                     "title": "Open Try It",
                     "when": "isBIProjectRunning"
@@ -768,7 +775,7 @@
                 },
                 {
                     "when": "resourceLangId == ballerina && !isPersistModelActive",
-                    "command": "ballerina.show.visualizer",
+                    "command": "ballerina.showVisualizer",
                     "group": "navigation@3"
                 },
                 {
@@ -851,7 +858,7 @@
                     "when": "editorLangId != ballerina && !isBallerinaDiagram"
                 },
                 {
-                    "command": "ballerina.show.visualizer",
+                    "command": "ballerina.showVisualizer",
                     "when": "editorLangId == ballerina"
                 },
                 {
