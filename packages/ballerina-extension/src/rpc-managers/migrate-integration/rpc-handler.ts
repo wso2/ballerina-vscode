@@ -20,6 +20,7 @@
 import {
     ImportTibcoRPCRequest,
     MigrationToolPullRequest,
+    getMigrationTools,
     importTibcoToBI,
     pullMigrationTool
 } from "@wso2/ballerina-core";
@@ -28,6 +29,7 @@ import { MigrateIntegrationRpcManager } from "./rpc-manager";
 
 export function registerMigrateIntegrationRpcHandlers(messenger: Messenger) {
     const rpcManger = new MigrateIntegrationRpcManager();
+    messenger.onRequest(getMigrationTools, () => rpcManger.getMigrationTools());
     messenger.onNotification(pullMigrationTool, (args: MigrationToolPullRequest) => rpcManger.pullMigrationTool(args));
     messenger.onRequest(importTibcoToBI, (args: ImportTibcoRPCRequest) => rpcManger.importTibcoToBI(args));
 }
