@@ -111,7 +111,7 @@
       ],
       "id": "animal1",
       "variableName": "animal1",
-      "typeName": "union",
+      "typeName": "Animal",
       "kind": "union"
     },
     "mappings": [

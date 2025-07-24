@@ -16,7 +16,21 @@
       {
         "members": [
           {
-            "typeName": "$CompilationError$",
+            "typeName": "FINANCE",
+            "optional": false,
+            "defaultable": false,
+            "isRestType": false,
+            "selected": false
+          },
+          {
+            "typeName": "IT",
+            "optional": false,
+            "defaultable": false,
+            "isRestType": false,
+            "selected": false
+          },
+          {
+            "typeName": "HR",
             "optional": false,
             "defaultable": false,
             "isRestType": false,

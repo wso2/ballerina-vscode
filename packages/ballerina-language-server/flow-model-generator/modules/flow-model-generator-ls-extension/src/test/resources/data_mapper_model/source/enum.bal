@@ -14,14 +14,13 @@ type Employee record {
     Department department;
 };
 
-DepartmentCode departmentCode = DepartmentCode.IT;
-
 function fn1() {
 
     Department engineering = {
         name: "Engineering",
         code: DepartmentCode.IT
     };
+
 
     Employee alice = {
         name: "Alice",

@@ -806,7 +806,7 @@ public class DataMapManager {
                 return enumPort;
             } else if (type.getTypeName().equals("union")) {
                 UnionType unionType = (UnionType) type;
-                MappingUnionPort unionPort = new MappingUnionPort(id, name, unionType.getTypeName(),
+                MappingUnionPort unionPort = new MappingUnionPort(id, name, unionType.getName(),
                         type.getTypeName());
                 for (Type member : unionType.members) {
                     MappingPort memberPort = getMappingPort(id + "." + member.getName(), member.getName(),
