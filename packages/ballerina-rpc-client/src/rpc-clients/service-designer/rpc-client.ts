@@ -20,6 +20,8 @@
 import {
     ExportOASRequest,
     ExportOASResponse,
+    FunctionFromSourceRequest,
+    FunctionFromSourceResponse,
     FunctionModelRequest,
     FunctionModelResponse,
     FunctionSourceCodeRequest,
@@ -48,6 +50,7 @@ import {
     addResourceSourceCode,
     addServiceSourceCode,
     exportOASFile,
+    getFunctionFromSource,
     getFunctionModel,
     getHttpResourceModel,
     getListenerModel,
@@ -105,6 +108,10 @@ export class ServiceDesignerRpcClient implements ServiceDesignerAPI {
 
     getFunctionModel(params: FunctionModelRequest): Promise<FunctionModelResponse> {
         return this._messenger.sendRequest(getFunctionModel, HOST_EXTENSION, params);
+    }
+
+    getFunctionFromSource(params: FunctionFromSourceRequest): Promise<FunctionFromSourceResponse> {
+        return this._messenger.sendRequest(getFunctionFromSource, HOST_EXTENSION, params);
     }
 
     addServiceSourceCode(params: ServiceSourceCodeRequest): Promise<UpdatedArtifactsResponse> {

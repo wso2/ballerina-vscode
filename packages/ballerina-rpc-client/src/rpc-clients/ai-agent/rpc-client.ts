@@ -19,8 +19,8 @@
  */
 import {
     AIAgentAPI,
-    AIAgentOrgRequest,
-    AIAgentOrgResponse,
+    AiModuleOrgRequest,
+    AiModuleOrgResponse,
     AIAgentRequest,
     AIAgentResponse,
     AIAgentToolsUpdateRequest,
@@ -34,7 +34,7 @@ import {
     AIToolsResponse,
     createAIAgent,
     genTool,
-    getAgentOrg,
+    getAiModuleOrg,
     getAllAgents,
     getAllMemoryManagers,
     getAllModels,
@@ -59,8 +59,8 @@ export class AiAgentRpcClient implements AIAgentAPI {
         this._messenger = messenger;
     }
 
-    getAgentOrg(params: AIAgentOrgRequest): Promise<AIAgentOrgResponse> {
-        return this._messenger.sendRequest(getAgentOrg, HOST_EXTENSION, params);
+    getAiModuleOrg(params: AiModuleOrgRequest): Promise<AiModuleOrgResponse> {
+        return this._messenger.sendRequest(getAiModuleOrg, HOST_EXTENSION, params);
     }
 
     getAllAgents(params: AINodesRequest): Promise<AINodesResponse> {

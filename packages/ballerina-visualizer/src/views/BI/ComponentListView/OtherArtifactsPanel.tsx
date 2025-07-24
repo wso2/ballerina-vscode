@@ -61,7 +61,7 @@ export function OtherArtifactsPanel(props: OtherArtifactsPanelProps) {
             await rpcClient.getVisualizerRpcClient().openView({
                 type: EVENT_TYPE.OPEN_VIEW,
                 location: {
-                    view: MACHINE_VIEW.ViewConfigVariables,
+                    view: MACHINE_VIEW.AddConfigVariables,
                 },
             });
         } else if (key === DIRECTORY_MAP.FUNCTION) {

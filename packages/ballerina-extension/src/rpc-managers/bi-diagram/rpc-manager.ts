@@ -151,7 +151,6 @@ import {
 import { DebugProtocol } from "vscode-debugprotocol";
 import { extension } from "../../BalExtensionContext";
 import { notifyBreakpointChange } from "../../RPCLayer";
-import { ballerinaExtInstance } from "../../core";
 import { BreakpointManager } from "../../features/debugger/breakpoint-manager";
 import { StateMachine, updateView } from "../../stateMachine";
 import { getCompleteSuggestions } from '../../utils/ai/completions';
@@ -400,7 +399,7 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
         return new Promise(async (resolve) => {
             const { filePath, position, prompt } = params;
 
-            const enableAiSuggestions = ballerinaExtInstance.enableAiSuggestions();
+            const enableAiSuggestions = extension.ballerinaExtInstance.enableAiSuggestions();
             if (!enableAiSuggestions) {
                 resolve(undefined);
                 return;
@@ -609,7 +608,7 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
     async getConfigVariablesV2(): Promise<ConfigVariableResponse> {
         return new Promise(async (resolve) => {
             const projectPath = path.join(StateMachine.context().projectUri);
-            const showLibraryConfigVariables = ballerinaExtInstance.showLibraryConfigVariables();
+            const showLibraryConfigVariables = extension.ballerinaExtInstance.showLibraryConfigVariables();
             const variables = await StateMachine.langClient().getConfigVariablesV2({
                 projectPath: projectPath,
                 includeLibraries: showLibraryConfigVariables !== false

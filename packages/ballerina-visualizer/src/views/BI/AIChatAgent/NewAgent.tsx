@@ -26,7 +26,7 @@ import { URI, Utils } from "vscode-uri";
 import ConfigForm from "./ConfigForm";
 import { cloneDeep } from "lodash";
 import { RelativeLoader } from "../../../components/RelativeLoader";
-import { getAgentOrg, getNodeTemplate } from "./utils";
+import { getAiModuleOrg, getNodeTemplate } from "./utils";
 import { AI, BALLERINA } from "../../../constants";
 
 const Container = styled.div`
@@ -61,7 +61,8 @@ export function NewAgent(props: NewAgentProps): JSX.Element {
     const [savingForm, setSavingForm] = useState<boolean>(false);
 
     const agentFilePath = useRef<string>("");
-    const agentOrg = useRef<string>("");
+    const mainFilePath = useRef<string>("");
+    const aiModuleOrg = useRef<string>("");
     const agentCallEndOfFile = useRef<LinePosition | null>(null);
     const agentEndOfFile = useRef<LinePosition | null>(null);
 
@@ -74,8 +75,10 @@ export function NewAgent(props: NewAgentProps): JSX.Element {
         // get agent file path
         const filePath = await rpcClient.getVisualizerLocation();
         agentFilePath.current = Utils.joinPath(URI.file(filePath.projectUri), "agents.bal").fsPath;
+        // get main file path
+        mainFilePath.current = Utils.joinPath(URI.file(filePath.projectUri), "main.bal").fsPath;
         // get agent org
-        agentOrg.current = await getAgentOrg(rpcClient);
+        aiModuleOrg.current = await getAiModuleOrg(rpcClient);
         // fetch agent node
         await fetchAgentNode();
         // get end of files
@@ -100,7 +103,7 @@ export function NewAgent(props: NewAgentProps): JSX.Element {
 
     const fetchAgentNode = async () => {
         // get the agent node
-        const allAgents = await rpcClient.getAIAgentRpcClient().getAllAgents({ filePath: agentFilePath.current, orgName: agentOrg.current });
+        const allAgents = await rpcClient.getAIAgentRpcClient().getAllAgents({ filePath: agentFilePath.current, orgName: aiModuleOrg.current });
         console.log(">>> allAgents", allAgents);
         if (!allAgents.agents.length) {
             console.log(">>> no agents found");
@@ -114,7 +117,7 @@ export function NewAgent(props: NewAgentProps): JSX.Element {
         // get all llm models
         const allModels = await rpcClient
             .getAIAgentRpcClient()
-            .getAllModels({ agent: agentCodeData.object, filePath: agentFilePath.current, orgName: agentOrg.current });
+            .getAllModels({ agent: agentCodeData.object, filePath: agentFilePath.current, orgName: aiModuleOrg.current });
         console.log(">>> allModels", allModels);
         // get openai model
         const defaultModel = allModels.models.find((model) => model.object === "OpenAiProvider" || (model.org === BALLERINA && model.module === AI));
@@ -134,7 +137,7 @@ export function NewAgent(props: NewAgentProps): JSX.Element {
             return;
         }
         // overwrite the agent call node properties
-        agentCallNode.codedata.org = agentOrg.current;
+        agentCallNode.codedata.org = aiModuleOrg.current;
 
         const agentCallFormFields = convertConfig(agentCallNode.properties);
         const systemPromptProperty = agentNode.properties.systemPrompt;
@@ -295,6 +298,7 @@ export function NewAgent(props: NewAgentProps): JSX.Element {
             )}
             {!loading && (
                 <ConfigForm
+                    fileName={mainFilePath.current}
                     isSaving={savingForm}
                     formFields={formFields}
                     targetLineRange={{
