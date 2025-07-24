@@ -268,6 +268,7 @@ export function ModelConfig(props: ModelConfigProps): JSX.Element {
             )}
             {!loading && selectedModelFields?.length > 0 && selectedModel?.codedata?.lineRange && (
                 <ConfigForm
+                    fileName={agentFilePath.current}
                     formFields={selectedModelFields}
                     targetLineRange={selectedModel?.codedata.lineRange}
                     onSubmit={handleOnSave}

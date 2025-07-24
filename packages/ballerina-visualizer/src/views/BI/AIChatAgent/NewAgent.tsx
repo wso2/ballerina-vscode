@@ -61,6 +61,7 @@ export function NewAgent(props: NewAgentProps): JSX.Element {
     const [savingForm, setSavingForm] = useState<boolean>(false);
 
     const agentFilePath = useRef<string>("");
+    const mainFilePath = useRef<string>("");
     const aiModuleOrg = useRef<string>("");
     const agentCallEndOfFile = useRef<LinePosition | null>(null);
     const agentEndOfFile = useRef<LinePosition | null>(null);
@@ -74,6 +75,8 @@ export function NewAgent(props: NewAgentProps): JSX.Element {
         // get agent file path
         const filePath = await rpcClient.getVisualizerLocation();
         agentFilePath.current = Utils.joinPath(URI.file(filePath.projectUri), "agents.bal").fsPath;
+        // get main file path
+        mainFilePath.current = Utils.joinPath(URI.file(filePath.projectUri), "main.bal").fsPath;
         // get agent org
         aiModuleOrg.current = await getAiModuleOrg(rpcClient);
         // fetch agent node
@@ -295,6 +298,7 @@ export function NewAgent(props: NewAgentProps): JSX.Element {
             )}
             {!loading && (
                 <ConfigForm
+                    fileName={mainFilePath.current}
                     isSaving={savingForm}
                     formFields={formFields}
                     targetLineRange={{
