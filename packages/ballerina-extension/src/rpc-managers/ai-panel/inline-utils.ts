@@ -7,8 +7,8 @@
  * You may not alter or remove any copyright or other notice from copies of this content.
  */
 
-import { AIMachineEventType, ErrorCode, ExpandedDMModel, FormField, InlineDataMapperModelResponse, InputCategory, IOType, Mapping, MappingElement, ParameterDefinitions, ParameterField, ParameterMetadata, RecordDefinitonObject, TypeInfo, TypeKind } from "@wso2/ballerina-core";
-import { fetchWithTimeout, filterResponse, generateBallerinaCode, isErrorCode, navigateTypeInfo, REQUEST_TIMEOUT } from "./utils";
+import { AIMachineEventType, Attachment, ErrorCode, ExpandedDMModel, FieldConfig, FormField, InlineDataMapperModelResponse, InputCategory, IOType, Mapping, MappingElement, ParameterDefinitions, ParameterField, ParameterMetadata, RecordDefinitonObject, TypeKind } from "@wso2/ballerina-core";
+import { fetchWithTimeout, filterResponse, generateBallerinaCode, isErrorCode, mappingFileInlineDataMapperModel, navigateTypeInfo, REQUEST_TIMEOUT } from "./utils";
 import { getAccessToken, getRefreshedAccessToken } from "../../utils/ai/auth";
 import { NOT_LOGGED_IN, TIMEOUT } from "../../views/ai-panel/errorCodes";
 import { AIStateMachine } from "../../views/ai-panel/aiMachine";
@@ -99,15 +99,15 @@ function extractNameFromId(id: string): string {
 }
 
 function transformInputs(inputs: IOType[]): {
-    constants: FormField[];
-    configurables: FormField[];
-    variables: FormField[];
+    constants: Record<string, FieldConfig>;
+    configurables: Record<string, FieldConfig>;
+    variables: Record<string, FieldConfig>;
     parameters: ParameterField[];
     parameterFields: { [parameterName: string]: FormField[] }; 
 } {
-    const constants: FormField[] = [];
-    const configurables: FormField[] = [];
-    const variables: FormField[] = [];
+    const constants: Record<string, FieldConfig> = {};
+    const configurables: Record<string, FieldConfig> = {};
+    const variables: Record<string, FieldConfig> = {};
     const parameters: ParameterField[] = [];
     const parameterFields: { [parameterName: string]: FormField[] } = {}; 
 
@@ -150,29 +150,32 @@ function transformInputs(inputs: IOType[]): {
             };
         };
 
-        const createOtherField = (input: IOType): FormField => {
+        const createFieldConfig = (input: IOType): FieldConfig => {
             if (!input.typeName) {
                 throw new Error("TypeName is missing");
             }
             return {
-                name: input.id,
-                typeName: input.kind || "unknown"
+                typeName: input.kind || "unknown",
+                type: input.kind || "unknown",
+                typeInstance: input.id,
+                nullable: false, // default to false TODO: Update if needed
+                optional: false // default to false TODO: Update if needed
             };
         };
 
         // Handle different categories
         if (input.category === InputCategory.Constant) {
-            constants.push(createOtherField(input));
+            constants[input.id] = createFieldConfig(input);
             return;
         }
 
         if (input.category === InputCategory.Configurable) {
-            configurables.push(createOtherField(input));
+            configurables[input.id] = createFieldConfig(input);
             return;
         }
 
         if (input.category === InputCategory.Variable) {
-            variables.push(createOtherField(input));
+            variables[input.id] = createFieldConfig(input);
             return;
         }
 
@@ -343,7 +346,7 @@ function transformCodeObjectToMappings(codeObject: any, request: InlineDataMappe
 }
 
 export async function getInlineParamDefinitions(
-    modelResponse: InlineDataMapperModelResponse
+    inlineDataMapperResponse: InlineDataMapperModelResponse
 ): Promise<ParameterDefinitions | ErrorCode> {
     let inputs: { [key: string]: any } = {};
     let inputMetadata: { [key: string]: any } = {};
@@ -351,7 +354,7 @@ export async function getInlineParamDefinitions(
     let outputMetadata: { [key: string]: any } = {};
     let isErrorExists = false;
 
-    let { inputs: mappingInputs, output: mappingOutput } = modelResponse.mappingsModel as ExpandedDMModel;
+    let { inputs: mappingInputs, output: mappingOutput } = inlineDataMapperResponse.mappingsModel as ExpandedDMModel;
     let transformedInputs = transformInputs(mappingInputs);
     let transformedOutputs = transformOutput(mappingOutput);
 
@@ -404,7 +407,7 @@ export async function getInlineParamDefinitions(
     };
 }
 
-async function sendInlineDatamapperRequest(parameterDefinitions: InlineDataMapperModelResponse | ErrorCode, accessToken: string | ErrorCode): Promise<Response | ErrorCode> {
+async function sendInlineDatamapperRequest(inlineDataMapperResponse: InlineDataMapperModelResponse | ErrorCode, accessToken: string | ErrorCode): Promise<Response | ErrorCode> {
     const response = await fetchWithTimeout(BACKEND_URL + "/inline/datamapper", {
         method: "POST",
         headers: {
@@ -413,20 +416,20 @@ async function sendInlineDatamapperRequest(parameterDefinitions: InlineDataMappe
             'User-Agent': 'Ballerina-VSCode-Plugin',
             'Authorization': 'Bearer ' + accessToken
         },
-        body: JSON.stringify(parameterDefinitions)
+        body: JSON.stringify(inlineDataMapperResponse)
     }, REQUEST_TIMEOUT);
 
     return response;
 }
 
-async function getInlineDatamapperCode(InlineDataMapperRequest: InlineDataMapperModelResponse | ErrorCode, parameterDefinitions: ParameterMetadata | ErrorCode): Promise<object | ErrorCode> {
+async function getInlineDatamapperCode(inlineDataMapperResponse: InlineDataMapperModelResponse | ErrorCode, parameterDefinitions: ParameterMetadata | ErrorCode): Promise<object | ErrorCode> {
     let nestedKeyArray: string[] = [];
     try {
         const accessToken = await getAccessToken().catch((error) => {
             console.error(error);
             return NOT_LOGGED_IN;
         });
-        let response = await sendInlineDatamapperRequest(InlineDataMapperRequest, accessToken);
+        let response = await sendInlineDatamapperRequest(inlineDataMapperResponse, accessToken);
         if (isErrorCode(response)) {
             return (response as ErrorCode);
         }
@@ -440,7 +443,7 @@ async function getInlineDatamapperCode(InlineDataMapperRequest: InlineDataMapper
                 AIStateMachine.service().send(AIMachineEventType.LOGOUT);
                 return;
             }
-            let retryResponse: Response | ErrorCode = await sendInlineDatamapperRequest(InlineDataMapperRequest, newAccessToken);
+            let retryResponse: Response | ErrorCode = await sendInlineDatamapperRequest(inlineDataMapperResponse, newAccessToken);
 
             if (isErrorCode(retryResponse)) {
                 return (retryResponse as ErrorCode);
@@ -461,21 +464,29 @@ async function getInlineDatamapperCode(InlineDataMapperRequest: InlineDataMapper
 }
 
 export async function processInlineMappings(
-    request: ExpandedDMModel
+    request: ExpandedDMModel,
+    file?: Attachment
 ): Promise<MappingElement | ErrorCode> {
-    const modelResponse = cleanInlineDataMapperModelResponse(request) as InlineDataMapperModelResponse;
+    let inlineDataMapperResponse = cleanInlineDataMapperModelResponse(request) as InlineDataMapperModelResponse;
 
-    let result = await getInlineParamDefinitions(modelResponse);
+    let result = await getInlineParamDefinitions(inlineDataMapperResponse);
     if (isErrorCode(result)) {
         return result as ErrorCode;
     }
     let parameterDefinitions = (result as ParameterDefinitions).parameterMetadata;
+    if (file) {
+        let mappedResult = await mappingFileInlineDataMapperModel(file, inlineDataMapperResponse);
+        if (isErrorCode(mappedResult)) {
+            return mappedResult as ErrorCode;
+        }
+        inlineDataMapperResponse = mappedResult as InlineDataMapperModelResponse;
+    }
 
-    const codeObject = await getInlineDatamapperCode(modelResponse, parameterDefinitions);
+    const codeObject = await getInlineDatamapperCode(inlineDataMapperResponse, parameterDefinitions);
     if (isErrorCode(codeObject) || Object.keys(codeObject).length === 0) {
         return codeObject as ErrorCode;
     }
 
-    const mappings: Mapping[] = transformCodeObjectToMappings(codeObject, modelResponse);
+    const mappings: Mapping[] = transformCodeObjectToMappings(codeObject, inlineDataMapperResponse);
     return { mappings };
 }

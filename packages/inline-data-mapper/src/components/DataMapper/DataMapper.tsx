@@ -54,40 +54,13 @@ import { SubMappingNodeInitVisitor } from "../../visitors/SubMappingNodeInitVisi
 import { SubMappingConfigForm } from "./SidePanel/SubMappingConfig/SubMappingConfigForm";
 import { ClausesPanel } from "./SidePanel/QueryClauses/ClausesPanel";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
-import { VSCodeProgressRing } from "@vscode/webview-ui-toolkit/react";
-import { Button, Codicon } from "@wso2/ui-toolkit";
-import { AUTO_MAP_IN_PROGRESS_MSG, AUTO_MAP_TIMEOUT_MS } from "../Diagram/utils/constants";
 
 const classes = {
     root: css({
         flexGrow: 1,
         height: "100vh",
         overflow: "hidden",
-    }),
-    overlayWithLoader: css({
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'center',
-        alignItems: 'center',
-        height: '100vh',
-        width: '100vw',
-        zIndex: 1,
-        position: 'fixed',
-        backdropFilter: "blur(3px)",
-        backgroundColor: 'rgba(var(--vscode-editor-background-rgb), 0.8)',
-    }),
-    autoMapInProgressMsg: css({
-        marginTop: '10px'
-    }),
-    autoMapStopButton: css({
-        "& > vscode-button": {
-            textTransform: 'none',
-            marginTop: '15px',
-            border: '1px solid var(--vscode-welcomePage-tileBorder)',
-            width: '100px',
-            justifyContent: 'center'
-        }
-    })  
+    })
 }
 
 enum ActionType {
@@ -150,8 +123,6 @@ export function InlineDataMapper(props: InlineDataMapperProps) {
     const [nodes, setNodes] = useState<DataMapperNodeModel[]>([]);
     const [errorKind, setErrorKind] = useState<ErrorNodeKind>();
     const [hasInternalError, setHasInternalError] = useState(false);
-    const [autoMapInProgress, setAutoMapInProgress] = useState(false);
-    const [autoMapError, setAutoMapError] = useState<AutoMapError>();
 
     const { isSMConfigPanelOpen } = useDMSubMappingConfigPanelStore((state) => state.subMappingConfig);
     const { isQueryClausesPanelOpen} = useDMQueryClausesPanelStore();
@@ -288,69 +259,13 @@ export function InlineDataMapper(props: InlineDataMapperProps) {
     };
 
     const autoMapWithAI = async () => {
-        const withTimeout = (promise: Promise<any>) =>
-            Promise.race([
-                promise,
-                new Promise<never>((_, reject) =>
-                    setTimeout(() => reject(new Error('Reached timeout.')), AUTO_MAP_TIMEOUT_MS)
-                )
-            ]).then(result => {
-                if (result?.code && result?.message) throw result;
-                return result;
-            });
-
-        setAutoMapInProgress(true);
-
-        try {
-            const allMappingsRequest = await withTimeout(
-                rpcClient.getAiPanelRpcClient().generateInlineMappings()
-            );
-
-            const sourceResponse = await withTimeout(
-                rpcClient.getInlineDataMapperRpcClient().getAllDataMapperSource(allMappingsRequest)
-            );
-
-            setAutoMapInProgress(false);
-
-            if (sourceResponse.error) {
-                setAutoMapError({ onClose: closeAutoMapError });
-                return;
-            }
-        } catch (error) {
-            setAutoMapInProgress(false);
-            throw error;
-        }
+        rpcClient.getAiPanelRpcClient()
+            .openInlineMappingChatWindow();
     };
-
-    const closeAutoMapError = () => {
-        setAutoMapError(undefined);
-    };
-
-    const stopAutoMap = async (): Promise<boolean> => {
-        setAutoMapInProgress(false);
-        await rpcClient.getAiPanelRpcClient().stopAIInlineMappings();
-        return true;
-    }
 
     return (
         <DataMapperErrorBoundary hasError={hasInternalError} onClose={onClose}>
             <div className={classes.root}>
-                {autoMapInProgress && (
-                    <div className={classes.overlayWithLoader}>
-                        <VSCodeProgressRing />
-                        <div className={classes.autoMapInProgressMsg}>
-                            {AUTO_MAP_IN_PROGRESS_MSG}
-                        </div>
-                        <Button
-                            onClick={stopAutoMap}
-                            appearance="secondary"
-                            className={classes.autoMapStopButton}
-                        >
-                            <Codicon sx={{ marginRight: 5 }} name="stop-circle" />
-                            {"Stop"}
-                        </Button>
-                    </div>
-                )}
                 {model && (
                     <DataMapperHeader
                         views={views}

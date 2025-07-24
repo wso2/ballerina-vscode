@@ -55,11 +55,7 @@ import { WarningBanner } from "./Warning/DataMapperWarning";
 
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { QueryExprMappingType } from "../Diagram/Node/QueryExpression";
-import { AutoMapError } from "./Error/AutoMapError";
-import { AUTO_MAP_IN_PROGRESS_MSG, AUTO_MAP_TIMEOUT_MS } from "../Diagram/utils/constants";
-import { VSCodeProgressRing } from "@vscode/webview-ui-toolkit/react";
-import { Button, Codicon } from "@wso2/ui-toolkit";
-import { AutoMapErrorComponent, IOErrorComponent, UnsupportedIOErrorComponent } from "./Error/DataMapperError";
+import { IOErrorComponent, UnsupportedIOErrorComponent } from "./Error/DataMapperError";
 import { SkeletonLoader } from './SkeletonLoader/SkeletonLoader';
 
 const fadeIn = keyframes`
@@ -104,42 +100,6 @@ const classes = {
         position: 'absolute',
         left: '50%',
         transform: 'translateX(-50%)'
-    }),
-    errorBanner: css({
-        borderColor: "var(--vscode-errorForeground)"
-    }),
-    errorMessage: css({
-        zIndex: 1,
-        position: 'absolute',
-        top: '50%',
-        left: '50%',
-        transform: 'translate(-50%, -50%)',
-        width: '500px',
-        animation: `${fadeIn} 0.5s ease-in-out`
-    }),
-    overlayWithLoader: css({
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'center',
-        alignItems: 'center',
-        height: '100vh',
-        width: '100vw',
-        zIndex: 1,
-        position: 'fixed',
-        backdropFilter: "blur(3px)",
-        backgroundColor: 'rgba(var(--vscode-editor-background-rgb), 0.8)',
-    }),
-    autoMapInProgressMsg: css({
-        marginTop: '10px'
-    }),
-    autoMapStopButton: css({
-        "& > vscode-button": {
-            textTransform: 'none',
-            marginTop: '15px',
-            border: '1px solid var(--vscode-welcomePage-tileBorder)',
-            width: '100px',
-            justifyContent: 'center'
-        }
     })
 }
 
@@ -266,8 +226,6 @@ export function DataMapperC(props: DataMapperViewProps) {
     const [errorKind, setErrorKind] = useState<ErrorNodeKind>();
     const [isSelectionComplete, setIsSelectionComplete] = useState(false);
     const [currentReferences, setCurrentReferences] = useState<string[]>([]);
-    const [autoMapInProgress, setAutoMapInProgress] = useState(false);
-    const [autoMapError, setAutoMapError] = useState<AutoMapError>();
 
     const typeStore = TypeDescriptorStore.getInstance();
     const typeStoreStatus = typeStore.getStatus();
@@ -277,7 +235,7 @@ export function DataMapperC(props: DataMapperViewProps) {
         rpcClient.getCommonRpcClient().goToSource({ position, filePath });
     };
 
-    const isOverlay = (!isFetchingDMMetaData && !isErrorDMMetaData) && (showDMOverlay || showLocalVarConfigPanel || autoMapInProgress);
+    const isOverlay = (!isFetchingDMMetaData && !isErrorDMMetaData) && (showDMOverlay || showLocalVarConfigPanel);
 
     const handleSelectedST = (mode: ViewOption, selectionState?: SelectionState, navIndex?: number) => {
         dispatchSelection({ type: mode, payload: selectionState, index: navIndex });
@@ -395,13 +353,6 @@ export function DataMapperC(props: DataMapperViewProps) {
     const autoMapWithAI = async () => {
         rpcClient.getAiPanelRpcClient().generateMappings({position: fnST.position, filePath});
     };
-
-    const stopAutoMap = async (): Promise<boolean> => {
-        const ai = rpcClient.getAiPanelRpcClient();
-        setAutoMapInProgress(false);
-        await ai.stopAIMappings();
-        return true;
-    }
 
     useEffect(() => {
         if (fnST) {
@@ -583,22 +534,6 @@ export function DataMapperC(props: DataMapperViewProps) {
                                 <div className={dMSupported ? classes.overlay : classes.dmUnsupportedOverlay} />
                             </>
                         }
-                        {autoMapInProgress && (
-                            <div className={classes.overlayWithLoader}>
-                                <VSCodeProgressRing />
-                                <div className={classes.autoMapInProgressMsg}>
-                                    { AUTO_MAP_IN_PROGRESS_MSG }
-                                </div>
-                                <Button
-                                    onClick={stopAutoMap}
-                                    appearance="secondary"
-                                    className={classes.autoMapStopButton}
-                                >
-                                    <Codicon sx={{ marginRight: 5 }} name="stop-circle" />
-                                    {"Stop"}
-                                </Button>
-                        </div>
-                        )}
                         {fnST && (
                             <DataMapperHeader
                                 selection={selection}
@@ -619,7 +554,6 @@ export function DataMapperC(props: DataMapperViewProps) {
                             </>
                         )}
                         {errorKind && <IOErrorComponent errorKind={errorKind} classes={classes} />}
-                        {autoMapError && <AutoMapErrorComponent autoMapError={autoMapError} classes={classes} />}
                         {dmNodes.length > 0 && !hasInvalidIO && !errorKind && (
                             <DataMapperDiagram
                                 nodes={dmNodes}
