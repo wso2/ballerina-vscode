@@ -16,8 +16,8 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { InlineAllDataMapperSourceRequest, InlineDataMapperSourceResponse } from "../../interfaces/extended-lang-client";
-import { AddToProjectRequest, GetFromFileRequest, DeleteFromProjectRequest, GenerateMappingsRequest, GenerateMappingsResponse, NotifyAIMappingsRequest, ProjectSource, ProjectDiagnostics, GenerateMappingsFromRecordRequest, GenerateMappingFromRecordResponse, PostProcessRequest, PostProcessResponse, GenerateTypesFromRecordRequest, GenerateTypesFromRecordResponse, FetchDataRequest, FetchDataResponse, TestGenerationRequest, TestGenerationResponse, TestGenerationMentions, AIChatSummary, DeveloperDocument, RequirementSpecification, LLMDiagnostics, GetModuleDirParams, AIPanelPrompt, AIMachineSnapshot, SubmitFeedbackRequest } from "./interfaces";
+import { InlineAllDataMapperSourceRequest, MetadataWithAttachments } from "../../interfaces/extended-lang-client";
+import { AddToProjectRequest, GetFromFileRequest, DeleteFromProjectRequest, GenerateMappingsRequest, GenerateMappingsResponse, NotifyAIMappingsRequest, ProjectSource, ProjectDiagnostics, GenerateMappingsFromRecordRequest, GenerateMappingFromRecordResponse, PostProcessRequest, PostProcessResponse, GenerateTypesFromRecordRequest, GenerateTypesFromRecordResponse, FetchDataRequest, FetchDataResponse, TestGenerationRequest, TestGenerationResponse, TestGenerationMentions, AIChatSummary, DeveloperDocument, RequirementSpecification, LLMDiagnostics, GetModuleDirParams, AIPanelPrompt, AIMachineSnapshot, SubmitFeedbackRequest, CodeSegment } from "./interfaces";
 
 export interface AIPanelAPI {
     // ==================================
@@ -36,13 +36,13 @@ export interface AIPanelAPI {
     deleteFromProject: (params: DeleteFromProjectRequest) => void;
     generateMappings: (params: GenerateMappingsRequest) => Promise<GenerateMappingsResponse>;
     notifyAIMappings: (params: NotifyAIMappingsRequest) => Promise<boolean>;
-    stopAIMappings: () => Promise<GenerateMappingsResponse>;
     getProjectSource: (params: string) => Promise<ProjectSource>;
     getShadowDiagnostics: (params: ProjectSource) => Promise<ProjectDiagnostics>;
     checkSyntaxError: (params: ProjectSource) => Promise<boolean>;
     clearInitialPrompt: () => void;
-    generateInlineMappings: () => Promise<InlineAllDataMapperSourceRequest>;
-    stopAIInlineMappings: () => Promise<InlineDataMapperSourceResponse>;
+    openInlineMappingChatWindow: () => void;
+    getMappingsFromModel: (params: MetadataWithAttachments) => Promise<InlineAllDataMapperSourceRequest>;
+    addInlineCodeSegmentToWorkspace: (params: CodeSegment) => void;
     // Test-generator related functions
     getGeneratedTests: (params: TestGenerationRequest) => Promise<TestGenerationResponse>;
     getTestDiagnostics: (params: TestGenerationResponse) => Promise<ProjectDiagnostics>;

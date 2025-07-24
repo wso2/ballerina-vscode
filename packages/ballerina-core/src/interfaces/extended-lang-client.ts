@@ -29,7 +29,8 @@ import { SqFlow } from "../rpc-types/sequence-diagram/interfaces";
 import { FieldType, FunctionModel, ListenerModel, ServiceClassModel, ServiceModel } from "./service";
 import { CDModel } from "./component-diagram";
 import { DMModel, ExpandedDMModel, IntermediateClause, Mapping, VisualizableField, CustomFnMetadata } from "./inline-data-mapper";
-import { SCOPE } from "../state-machine-types";
+import { DataMapperMetadata, SCOPE } from "../state-machine-types";
+import { Attachment } from "../rpc-types/ai-panel/interfaces";
 
 export interface DidOpenParams {
     textDocument: TextDocumentItem;
@@ -311,6 +312,15 @@ export interface InlineDataMapperSourceRequest extends InlineDataMapperBase {
 
 export interface InlineAllDataMapperSourceRequest extends InlineDataMapperBase {
     mappings: Mapping[];
+}
+
+export interface ExtendedDataMapperMetadata extends DataMapperMetadata {
+    mappingsModel: ExpandedDMModel;
+}
+
+export interface MetadataWithAttachments {
+    metadata: ExtendedDataMapperMetadata;
+    attachment?: Attachment[];
 }
 
 export interface VisualizableFieldsRequest {
