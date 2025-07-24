@@ -28,12 +28,17 @@ export interface ExpressionLabelOptions extends BaseModelOptions {
 	link?: DataMapperLinkModel;
 	field?: Node;
 	editorLabel?: string;
+	isQuery?: boolean;
+	collectClauseFn?: string;
 	deleteLink?: () => void;
 }
 
 export class ExpressionLabelModel extends LabelModel {
+	context?: IDataMapperContext;
 	link?: DataMapperLinkModel;
 	value?: string;
+	isQuery?: boolean;
+	collectClauseFn?: string;
 	deleteLink?: () => void;
 
 	constructor(options: ExpressionLabelOptions = {}) {
@@ -41,8 +46,11 @@ export class ExpressionLabelModel extends LabelModel {
 			...options,
 			type: 'expression-label'
 		});
+		this.context = options.context;
 		this.link = options.link;
 		this.value = options.value || '';
+		this.isQuery = options.isQuery;
+		this.collectClauseFn = options.collectClauseFn;
 		this.updateSource = this.updateSource.bind(this);
 		this.deleteLink = options.deleteLink;
 	}

@@ -557,19 +557,33 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
         }
     };
 
-    const handleOnFormSubmit = (updatedNode?: FlowNode, isDataMapperFormUpdate?: boolean) => {
+    const handleOnFormSubmit = (updatedNode?: FlowNode, openInDataMapper?: boolean) => {
         if (!updatedNode) {
             console.log(">>> No updated node found");
             updatedNode = selectedNodeRef.current;
             debouncedGetFlowModel();
         }
         setShowProgressIndicator(true);
+
+        if (openInDataMapper) {
+            rpcClient
+                .getInlineDataMapperRpcClient()
+                .getInitialIDMSource({
+                    filePath: model.fileName,
+                    flowNode: updatedNode,
+                })
+                .finally(() => {
+                    setShowSidePanel(false);
+                    setShowProgressIndicator(false);
+                });
+            return;
+        }
         rpcClient
             .getBIDiagramRpcClient()
             .getSourceCode({
                 filePath: model.fileName,
                 flowNode: updatedNode,
-                isFunctionNodeUpdate: isDataMapperFormUpdate,
+                isFunctionNodeUpdate: openInDataMapper,
             })
             .then(async (response) => {
                 console.log(">>> Updated source code", response);
