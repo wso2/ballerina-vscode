@@ -33,7 +33,8 @@ import {
     useDMExpandedFieldsStore,
     useDMQueryClausesPanelStore,
     useDMSearchStore,
-    useDMSubMappingConfigPanelStore
+    useDMSubMappingConfigPanelStore,
+    useDMExpressionBarStore
 } from "../../store/store";
 import { KeyboardNavigationManager } from "../../utils/keyboard-navigation-manager";
 import { InlineDataMapperProps } from "../../index";
@@ -250,6 +251,7 @@ export function InlineDataMapper(props: InlineDataMapperProps) {
         useDMSearchStore.getState().resetSearchStore();
         useDMCollapsedFieldsStore.getState().resetFields();
         useDMExpandedFieldsStore.getState().resetFields();
+        useDMExpressionBarStore.getState().resetExpressionBarStore();
     }
 
     const handleOnClose = () => {

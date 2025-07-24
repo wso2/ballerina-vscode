@@ -45,12 +45,13 @@ const useStyles = () => ({
         alignItems: 'center',
         justifyContent: 'flex-start',
         paddingInline: '16px',
-        fontFamily: 'GilmerBold',
+        fontFamily: 'GilmerMedium',
         fontSize: '12px',
         width: '150px',
         overflow: 'hidden',
         textOverflow: 'ellipsis',
-        whiteSpace: 'nowrap'
+        whiteSpace: 'nowrap',
+        opacity: 0.8
     }),
     divider: css({
         height: '20px',
