@@ -19,8 +19,10 @@
 package io.ballerina.flowmodelgenerator.extension.modelprovidermanager;
 
 import com.google.gson.JsonObject;
+import io.ballerina.flowmodelgenerator.extension.request.FlowModelAvailableNodesRequest;
 import io.ballerina.flowmodelgenerator.extension.request.SearchRequest;
 import io.ballerina.modelgenerator.commons.AbstractLSTest;
+import io.ballerina.tools.text.LinePosition;
 import org.testng.Assert;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -32,19 +34,17 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Test for searching model providers.
+ * Test for listing available model providers.
  *
  * @since 1.1.0
  */
-public class ModelProviderSearchTest extends AbstractLSTest {
-    private static final String MODEL_PROVIDER_KIND_NAME = "MODEL_PROVIDER";
+public class GetAvailableModelProvidersTest extends AbstractLSTest {
 
     @DataProvider(name = "data-provider")
     @Override
     protected Object[] getConfigsList() {
         return new Object[][]{
-                {Path.of("model_providers.json")},
-                {Path.of("model_providers_search_deepseek.json")}
+                {Path.of("get_model_providers.json")}
         };
     }
 
@@ -54,23 +54,13 @@ public class ModelProviderSearchTest extends AbstractLSTest {
         Path configJsonPath = configDir.resolve(config);
         TestConfig testConfig = gson.fromJson(Files.newBufferedReader(configJsonPath), TestConfig.class);
         String filePath = sourceDir.resolve(testConfig.source()).toAbsolutePath().toString();
-        Map<String, String> queryMap = getQueryMap(testConfig);
-        SearchRequest searchRequest = new SearchRequest(MODEL_PROVIDER_KIND_NAME, filePath, null, queryMap);
-        JsonObject searchResult = getResponse(searchRequest);
-        if (!searchResult.equals(testConfig.expectedModelProviders())) {
-            TestConfig updatedConfig = new TestConfig(testConfig.source(), testConfig.query(), searchResult);
+        FlowModelAvailableNodesRequest request = new FlowModelAvailableNodesRequest(filePath, LinePosition.from(1, 1));
+        JsonObject availableModelProviders = getResponse(request);
+        if (!availableModelProviders.equals(testConfig.expectedModelProviders())) {
+            TestConfig updatedConfig = new TestConfig(testConfig.source(), availableModelProviders);
             // updateConfig(configJsonPath, updatedConfig);
             Assert.fail("Test failed. Updated the expected output in " + configJsonPath);
         }
-    }
-
-    private static Map<String, String> getQueryMap(TestConfig testConfig) {
-        Map<String, String> queryMap = null;
-        if (testConfig.query != null) {
-            queryMap = new HashMap<>();
-            queryMap.put("q", testConfig.query);
-        }
-        return queryMap;
     }
 
     @Override
@@ -80,22 +70,21 @@ public class ModelProviderSearchTest extends AbstractLSTest {
 
     @Override
     protected Class<? extends AbstractLSTest> clazz() {
-        return ModelProviderSearchTest.class;
+        return GetAvailableModelProvidersTest.class;
     }
 
     @Override
     protected String getApiName() {
-        return "search";
+        return "getAvailableModelProviders";
     }
 
     /**
-     * Represents the test configuration for the flow model search API.
+     * Represents the test configuration for the flow model getAvailableModelProviders API.
      *
      * @param source                 The source file path
-     * @param query                  The query string to search
      * @param expectedModelProviders The expected set of model providers
      */
-    private record TestConfig(String source, String query, JsonObject expectedModelProviders) {
+    private record TestConfig(String source, JsonObject expectedModelProviders) {
 
     }
 }
