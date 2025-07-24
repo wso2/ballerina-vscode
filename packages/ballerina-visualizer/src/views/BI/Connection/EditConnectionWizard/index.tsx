@@ -60,7 +60,7 @@ export function EditConnectionWizard(props: EditConnectionWizardProps) {
         rpcClient
             .getBIDiagramRpcClient()
             .getModuleNodes()
-            .then((res) => {
+            .then(async (res) => {
                 console.log(">>> moduleNodes", { moduleNodes: res });
                 if (!res.flowModel.connections || res.flowModel.connections.length === 0) {
                     return;
@@ -74,7 +74,7 @@ export function EditConnectionWizard(props: EditConnectionWizardProps) {
                     return;
                 }
                 const connectionFile = connector.codedata.lineRange.fileName;
-                let connectionFilePath = Utils.joinPath(URI.file(projectUri), connectionFile).fsPath;
+                let connectionFilePath = await rpcClient.getVisualizerRpcClient().joinProjectPath(connectionFile);
                 setFilePath(connectionFilePath);
 
                 setConnection(connector);
