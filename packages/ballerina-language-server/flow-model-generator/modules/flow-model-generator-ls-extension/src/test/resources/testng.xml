@@ -103,13 +103,25 @@ under the License.
 
             <class name="io.ballerina.flowmodelgenerator.extension.CopilotLibraryListTest"/>
             <class name="io.ballerina.flowmodelgenerator.extension.CopilotLibraryFilterTest"/>
+
+            <!--model provider manager-->
             <class name="io.ballerina.flowmodelgenerator.extension.modelprovidermanager.ModelProviderSearchTest"/>
             <class name="io.ballerina.flowmodelgenerator.extension.modelprovidermanager.GetAvailableModelProvidersTest"/>
+            <class name="io.ballerina.flowmodelgenerator.extension.modelprovidermanager.GetNodeTemplateTest"/>
+
+            <!--embedding provider manager-->
             <class name="io.ballerina.flowmodelgenerator.extension.embeddingprovidermanager.EmbeddingProviderSearchTest"/>
             <class name="io.ballerina.flowmodelgenerator.extension.embeddingprovidermanager.GetAvailableEmbeddingProvidersTest"/>
+            <class name="io.ballerina.flowmodelgenerator.extension.embeddingprovidermanager.GetNodeTemplateTest"/>
+
+            <!--vector store manager-->
             <class name="io.ballerina.flowmodelgenerator.extension.vectorstoremanager.VectorStoreSearchTest"/>
             <class name="io.ballerina.flowmodelgenerator.extension.vectorstoremanager.GetAvailableVectorStoresTest"/>
-             <class name="io.ballerina.flowmodelgenerator.extension.knowledgebasemanager.GetAvailableVectorKnowledgeBasesTest"/>
+            <class name="io.ballerina.flowmodelgenerator.extension.vectorstoremanager.GetNodeTemplateTest"/>
+
+            <!--knowledge base manager-->
+            <class name="io.ballerina.flowmodelgenerator.extension.knowledgebasemanager.GetAvailableVectorKnowledgeBasesTest"/>
+            <class name="io.ballerina.flowmodelgenerator.extension.knowledgebasemanager.GetNodeTemplateTest"/>
         </classes>
     </test>
 </suite>
