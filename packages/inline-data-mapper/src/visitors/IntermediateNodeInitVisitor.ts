@@ -34,18 +34,6 @@ export class IntermediateNodeInitVisitor implements BaseVisitor {
     }
 
     beginVisitMapping(node: Mapping): void {
-        // If inputs/outputs haven't changed, try to find existing node
-        if (!this.context.hasInputsOutputsChanged) {
-            const existingNode = this.findExistingNode(node.output);
-            if (existingNode) {
-                console.log(">>> [IntermediateNodeInitVisitor] found existing intermediatenode:", existingNode);
-                existingNode.context = this.context;
-                this.intermediateNodes.push(existingNode);
-                return;
-            }
-        }
-
-        // Create new node if no existing node found or inputs/outputs changed
         if (node.isQueryExpression) {
             // Create query expression connector node
             const queryExprNode = new QueryExprConnectorNode(this.context, node);
