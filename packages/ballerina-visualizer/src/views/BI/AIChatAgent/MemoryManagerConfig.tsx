@@ -26,7 +26,7 @@ import ConfigForm from "./ConfigForm";
 import { Dropdown } from "@wso2/ui-toolkit";
 import { cloneDeep } from "lodash";
 import { RelativeLoader } from "../../../components/RelativeLoader";
-import { getAgentFilePath, getAgentOrg, getNodeTemplate } from "./utils";
+import { getAgentFilePath, getAiModuleOrg, getNodeTemplate } from "./utils";
 
 const Container = styled.div`
     padding: 16px;
@@ -68,7 +68,7 @@ export function MemoryManagerConfig(props: MemoryManagerConfigProps): JSX.Elemen
     const [savingForm, setSavingForm] = useState<boolean>(false);
 
     const agentFilePath = useRef<string>("");
-    const agentOrg = useRef<string>("");
+    const aiModuleOrg = useRef<string>("");
     const agentNodeRef = useRef<FlowNode>();
     const moduleConnectionNodes = useRef<FlowNode[]>([]);
 
@@ -85,7 +85,7 @@ export function MemoryManagerConfig(props: MemoryManagerConfigProps): JSX.Elemen
     const initPanel = async () => {
         setLoading(true);
         agentFilePath.current = await getAgentFilePath(rpcClient);
-        agentOrg.current = await getAgentOrg(rpcClient);
+        aiModuleOrg.current = await getAiModuleOrg(rpcClient);
         // fetch all memory managers
         const memoryManagers = await fetchMemoryManagers();
         // fetch selected agent memory manager
@@ -103,7 +103,7 @@ export function MemoryManagerConfig(props: MemoryManagerConfigProps): JSX.Elemen
         try {
             const memoryManagers = await rpcClient
                 .getAIAgentRpcClient()
-                .getAllMemoryManagers({ filePath: agentFilePath.current, orgName: agentOrg.current });
+                .getAllMemoryManagers({ filePath: agentFilePath.current, orgName: aiModuleOrg.current });
             console.log(">>> all memory managers", memoryManagers);
             if (memoryManagers.memoryManagers) {
                 setMemoryManagersCodeData(memoryManagers.memoryManagers);

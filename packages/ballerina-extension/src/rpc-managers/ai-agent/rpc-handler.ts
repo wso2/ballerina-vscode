@@ -18,7 +18,7 @@
  * THIS FILE INCLUDES AUTO GENERATED CODE
  */
 import {
-    AIAgentOrgRequest,
+    AiModuleOrgRequest,
     AIAgentRequest,
     AIAgentToolsUpdateRequest,
     AIGentToolsRequest,
@@ -27,7 +27,7 @@ import {
     AIToolsRequest,
     createAIAgent,
     genTool,
-    getAgentOrg,
+    getAiModuleOrg,
     getAllAgents,
     getAllMemoryManagers,
     getAllModels,
@@ -45,7 +45,7 @@ import { AiAgentRpcManager } from "./rpc-manager";
 
 export function registerAiAgentRpcHandlers(messenger: Messenger) {
     const rpcManger = new AiAgentRpcManager();
-    messenger.onRequest(getAgentOrg, (args: AIAgentOrgRequest) => rpcManger.getAgentOrg(args));
+    messenger.onRequest(getAiModuleOrg, (args: AiModuleOrgRequest) => rpcManger.getAiModuleOrg(args));
     messenger.onRequest(getAllAgents, (args: AINodesRequest) => rpcManger.getAllAgents(args));
     messenger.onRequest(getAllModels, (args: AIModelsRequest) => rpcManger.getAllModels(args));
     messenger.onRequest(getAllMemoryManagers, (args: MemoryManagersRequest) => rpcManger.getAllMemoryManagers(args));
