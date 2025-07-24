@@ -24,6 +24,8 @@ import io.ballerina.flowmodelgenerator.extension.request.FlowModelGeneratorReque
 import io.ballerina.modelgenerator.commons.AbstractLSTest;
 import io.ballerina.tools.text.LinePosition;
 import org.testng.Assert;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
@@ -52,7 +54,7 @@ public class FlowNodeGeneratorTest extends AbstractLSTest {
     }
 
     @Override
-    @Test(dataProvider = "data-provider", enabled = false)
+    @Test(dataProvider = "data-provider")
     public void test(Path config) throws IOException {
         Path configJsonPath = configDir.resolve(config);
         TestConfig testConfig = gson.fromJson(Files.newBufferedReader(configJsonPath), TestConfig.class);
@@ -77,6 +79,16 @@ public class FlowNodeGeneratorTest extends AbstractLSTest {
             compareJsonElements(modifiedDiagram, testConfig.diagram());
             Assert.fail(String.format("Failed test: '%s' (%s)", testConfig.description(), configJsonPath));
         }
+    }
+
+    @AfterClass
+    public void shutDownLS() {
+        this.shutDownLanguageServer();
+    }
+
+    @BeforeClass
+    public void startLS() {
+        this.startLanguageServer();
     }
 
     @Override

@@ -41,7 +41,7 @@ public class GetAllAgentsTest extends AbstractLSTest {
     protected Object[] getConfigsList() {
         return new Object[][]{
                 {Path.of("get_all_ballerinax_agents.json")},
-//                {Path.of("get_all_ballerina_agents.json")}
+                {Path.of("get_all_ballerina_agents.json")}
         };
     }
 
