@@ -35,7 +35,7 @@ import {
     Structure,
     ChatResponse,
 } from "./types";
-import {  DataMappingSchema } from "./schema";
+import {  MappingSchema } from "./schema";
 import { AIPanelAbortController } from "../../../../../src/rpc-managers/ai-panel/utils";
 
 // =============================================================================
@@ -297,11 +297,11 @@ async function getAutoMappings(
             maxTokens: 4096,
             temperature: 0,
             messages: messages,
-            schema: DataMappingSchema,
+            schema: MappingSchema,
             abortSignal: AIPanelAbortController.getInstance().signal,
         });
 
-        const generatedMappings = object as AIDataMappings;
+        const generatedMappings = object.generatedMappings as AIDataMappings;
         return generatedMappings;
     } catch (error) {
         console.error("Failed to parse response:", error);
