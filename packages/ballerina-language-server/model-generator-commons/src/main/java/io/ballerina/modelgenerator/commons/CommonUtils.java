@@ -96,8 +96,6 @@ public class CommonUtils {
     public static final String BALLERINA_ORG_NAME = "ballerina";
     public static final String BALLERINAX_ORG_NAME = "ballerinax";
     public static final String LANG_LIB_PREFIX = "lang.";
-    private static final String NATURAL_FUNCTION = "NaturalFunction";
-    private static final String CALL_LLM = "callLlm";
     private static final String UNKNOWN_TYPE = "Unknown Type";
     private static final String AI = "ai";
     private static final String AGENT = "Agent";
@@ -265,6 +263,17 @@ public class CommonUtils {
      */
     public static Range toRange(LineRange lineRange) {
         return new Range(toPosition(lineRange.startLine()), toPosition(lineRange.endLine()));
+    }
+
+    /**
+     * Convert the syntax-node line range into a lsp4j range.
+     *
+     * @param line   start line
+     * @param offset character offset
+     * @return {@link Range} converted range
+     */
+    public static Range toRange(int line, int offset) {
+        return toRange(LinePosition.from(line, offset));
     }
 
     /**
@@ -804,14 +813,14 @@ public class CommonUtils {
         return moduleId.orgName().equals(CommonUtils.BALLERINA_ORG_NAME) && moduleId.packageName().equals("http");
     }
 
-    public static boolean isBallerinaNpModule(Symbol symbol) {
+    public static boolean isBallerinaAiModule(Symbol symbol) {
         Optional<ModuleSymbol> module = symbol.getModule();
         if (module.isEmpty()) {
             return false;
         }
 
         ModuleID moduleId = module.get().id();
-        return moduleId.orgName().equals(CommonUtils.BALLERINA_ORG_NAME) && moduleId.packageName().equals("np");
+        return moduleId.orgName().equals(CommonUtils.BALLERINA_ORG_NAME) && moduleId.packageName().equals("ai");
     }
 
     public static boolean isNaturalExpressionBodiedFunction(SyntaxTree syntaxTree, FunctionSymbol functionSymbol) {

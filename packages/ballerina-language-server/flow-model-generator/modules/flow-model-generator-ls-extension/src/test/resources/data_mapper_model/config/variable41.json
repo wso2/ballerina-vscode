@@ -1,0 +1,100 @@
+{
+  "source": "variable25.bal",
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "variable25.bal",
+      "startLine": {
+        "line": 20,
+        "offset": 12
+      },
+      "endLine": {
+        "line": 20,
+        "offset": 34
+      }
+    },
+    "sourceCode": ""
+  },
+  "position": {
+    "line": 19,
+    "offset": 36
+  },
+  "propertyKey": "expression",
+  "model": {
+    "inputs": [
+      {
+        "id": "CONST",
+        "typeName": "CONST",
+        "kind": "CONST",
+        "category": "constant"
+      },
+      {
+        "fields": [
+          {
+            "id": "var1.clientName",
+            "variableName": "clientName",
+            "typeName": "string",
+            "kind": "string"
+          },
+          {
+            "id": "var1.database",
+            "variableName": "database",
+            "typeName": "int",
+            "kind": "int"
+          },
+          {
+            "id": "var1.connectionTimeout",
+            "variableName": "connectionTimeout",
+            "typeName": "int",
+            "kind": "int"
+          }
+        ],
+        "id": "var1",
+        "variableName": "var1",
+        "typeName": "Options",
+        "kind": "record",
+        "category": "local-variable",
+        "moduleInfo": {
+          "org": "ballerinax",
+          "packageName": "redis",
+          "moduleName": "redis",
+          "version": "3.1.0"
+        }
+      }
+    ],
+    "output": {
+      "fields": [
+        {
+          "id": "var2.clientName",
+          "variableName": "clientName",
+          "typeName": "string",
+          "kind": "string"
+        },
+        {
+          "id": "var2.database",
+          "variableName": "database",
+          "typeName": "int",
+          "kind": "int"
+        },
+        {
+          "id": "var2.connectionTimeout",
+          "variableName": "connectionTimeout",
+          "typeName": "int",
+          "kind": "int"
+        }
+      ],
+      "id": "var2",
+      "variableName": "var2",
+      "typeName": "Options",
+      "kind": "record",
+      "moduleInfo": {
+        "org": "ballerinax",
+        "packageName": "redis",
+        "moduleName": "redis",
+        "version": "3.1.0"
+      }
+    },
+    "mappings": []
+  }
+}

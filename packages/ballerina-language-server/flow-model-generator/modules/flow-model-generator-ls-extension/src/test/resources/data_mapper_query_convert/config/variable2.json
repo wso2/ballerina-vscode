@@ -1,67 +1,38 @@
 {
-  "source": "variable1.bal",
+  "source": "variable1_1.bal",
   "description": "Sample diagram node",
-  "diagram": {
-    "id": "32874",
-    "metadata": {
-      "label": "Variable",
-      "description": "Assign a value to a variable"
-    },
-    "codedata": {
-      "node": "VARIABLE",
-      "lineRange": {
-        "fileName": "variable1.bal",
-        "startLine": {
-          "line": 0,
-          "offset": 0
-        },
-        "endLine": {
-          "line": 0,
-          "offset": 0
-        }
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "variable1_1.bal",
+      "startLine": {
+        "line": 31,
+        "offset": 12
       },
-      "sourceCode": ""
-    },
-    "returning": false,
-    "properties": {
-      "expression": {
-        "metadata": {
-          "label": "Expression",
-          "description": "Expression"
-        },
-        "valueType": "EXPRESSION",
-        "value": "from var bank in banks select {name: bank.name, credentials: bank.userInfo}",
-        "optional": false,
-        "editable": true
-      },
-      "variable": {
-        "metadata": {
-          "label": "Variable",
-          "description": "Name of the variable"
-        },
-        "valueType": "IDENTIFIER",
-        "value": "stores",
-        "optional": false,
-        "editable": true
-      },
-      "type": {
-        "metadata": {
-          "label": "Type",
-          "description": "Type of the variable"
-        },
-        "valueType": "TYPE",
-        "value": "Store[]",
-        "optional": false,
-        "editable": true
+      "endLine": {
+        "line": 31,
+        "offset": 105
       }
     },
-    "flags": 0
+    "sourceCode": ""
   },
   "propertyKey": "expression",
-  "position": {
-    "line": 30,
-    "offset": 64
-  },
-  "output": "",
-  "targetField": "stores.0.credentials"
+  "targetField": "stores.credentials",
+  "output": {
+    "variable1_1.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 31,
+            "character": 90
+          },
+          "end": {
+            "line": 31,
+            "character": 103
+          }
+        },
+        "newText": "from var userInfoItem in bank.userInfo select {username: \"\", password: \"\"}"
+      }
+    ]
+  }
 }

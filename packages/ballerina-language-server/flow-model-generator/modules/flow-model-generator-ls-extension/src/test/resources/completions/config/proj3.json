@@ -7,12 +7,21 @@
       "line": 33,
       "offset": 4
     },
-    "offset": 1
+    "offset": 1,
+    "lineOffset": 0
   },
   "completionContext": {
     "triggerKind": "Invoked"
   },
   "completions": [
+    {
+      "label": "natural",
+      "kind": "Unit",
+      "detail": "type",
+      "sortText": "ARR",
+      "insertText": "natural",
+      "insertTextFormat": "Snippet"
+    },
     {
       "label": "decimal",
       "kind": "TypeParameter",
@@ -338,6 +347,15 @@
       "sortText": "ATP",
       "filterText": "xml ``",
       "insertText": "xml `${1}`",
+      "insertTextFormat": "Snippet"
+    },
+    {
+      "label": "natural (..) {..}",
+      "kind": "Snippet",
+      "detail": "Snippet",
+      "sortText": "ATP",
+      "filterText": "natural (..) {..}",
+      "insertText": "natural (${1}) {${2}}",
       "insertTextFormat": "Snippet"
     },
     {

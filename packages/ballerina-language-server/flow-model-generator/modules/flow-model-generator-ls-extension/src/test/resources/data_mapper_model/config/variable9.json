@@ -1,67 +1,26 @@
 {
-  "source": "variable4.bal",
+  "source": "variable4_2.bal",
   "description": "Sample diagram node",
-  "diagram": {
-    "id": "32874",
-    "metadata": {
-      "label": "Variable",
-      "description": "Assign a value to a variable"
-    },
-    "codedata": {
-      "node": "VARIABLE",
-      "lineRange": {
-        "fileName": "variable4.bal",
-        "startLine": {
-          "line": 0,
-          "offset": 0
-        },
-        "endLine": {
-          "line": 0,
-          "offset": 0
-        }
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "variable4_2.bal",
+      "startLine": {
+        "line": 20,
+        "offset": 12
       },
-      "sourceCode": ""
-    },
-    "returning": false,
-    "properties": {
-      "expression": {
-        "metadata": {
-          "label": "Expression",
-          "description": "Expression"
-        },
-        "valueType": "EXPRESSION",
-        "value": "{username: userInfo.username, password: userInfo.password + userInfo.username, length: userInfo.password.length() + userInfo.username.length() + 5}",
-        "optional": false,
-        "editable": true
-      },
-      "variable": {
-        "metadata": {
-          "label": "Variable",
-          "description": "Name of the variable"
-        },
-        "valueType": "IDENTIFIER",
-        "value": "student",
-        "optional": false,
-        "editable": true
-      },
-      "type": {
-        "metadata": {
-          "label": "Type",
-          "description": "Type of the variable"
-        },
-        "valueType": "TYPE",
-        "value": "Student",
-        "optional": false,
-        "editable": true
+      "endLine": {
+        "line": 20,
+        "offset": 178
       }
     },
-    "flags": 0
+    "sourceCode": ""
   },
-  "propertyKey": "expression",
   "position": {
     "line": 19,
     "offset": 65
   },
+  "propertyKey": "expression",
   "model": {
     "inputs": [
       {
@@ -89,7 +48,7 @@
         "variableName": "userInfo",
         "typeName": "UserInfo",
         "kind": "record",
-        "category": "variable"
+        "category": "local-variable"
       }
     ],
     "output": {
@@ -127,7 +86,8 @@
         "expression": "userInfo.username",
         "diagnostics": [],
         "elements": [],
-        "isQueryExpression": false
+        "isQueryExpression": false,
+        "isFunctionCall": false
       },
       {
         "output": "student.password",
@@ -138,7 +98,8 @@
         "expression": "userInfo.password + userInfo.username",
         "diagnostics": [],
         "elements": [],
-        "isQueryExpression": false
+        "isQueryExpression": false,
+        "isFunctionCall": false
       },
       {
         "output": "student.length",
@@ -149,7 +110,8 @@
         "expression": "userInfo.password.length() + userInfo.username.length() + 5",
         "diagnostics": [],
         "elements": [],
-        "isQueryExpression": false
+        "isQueryExpression": false,
+        "isFunctionCall": false
       }
     ]
   }

@@ -1,67 +1,38 @@
 {
-  "source": "variable2.bal",
+  "source": "variable2_1.bal",
   "description": "Sample diagram node",
-  "diagram": {
-    "id": "32874",
-    "metadata": {
-      "label": "Variable",
-      "description": "Assign a value to a variable"
-    },
-    "codedata": {
-      "node": "VARIABLE",
-      "lineRange": {
-        "fileName": "variable2.bal",
-        "startLine": {
-          "line": 0,
-          "offset": 0
-        },
-        "endLine": {
-          "line": 0,
-          "offset": 0
-        }
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "main.bal",
+      "startLine": {
+        "line": 23,
+        "offset": 12
       },
-      "sourceCode": ""
-    },
-    "returning": false,
-    "properties": {
-      "expression": {
-        "metadata": {
-          "label": "Expression",
-          "description": "Expression"
-        },
-        "valueType": "EXPRESSION",
-        "value": "{name: \"DEPT1\", students: [{username: \"Alex\", password: \"xela\"}]}",
-        "optional": false,
-        "editable": true
-      },
-      "variable": {
-        "metadata": {
-          "label": "Variable",
-          "description": "Name of the variable"
-        },
-        "valueType": "IDENTIFIER",
-        "value": "department",
-        "optional": false,
-        "editable": true
-      },
-      "type": {
-        "metadata": {
-          "label": "Type",
-          "description": "Type of the variable"
-        },
-        "valueType": "TYPE",
-        "value": "Department",
-        "optional": false,
-        "editable": true
+      "endLine": {
+        "line": 23,
+        "offset": 102
       }
     },
-    "flags": 0
+    "sourceCode": "UserInfo[] userInfo = [];"
   },
   "propertyKey": "expression",
-  "position": {
-    "line": 22,
-    "offset": 12
-  },
-  "output": "{name: \"DEPT1\", students: [{username: \"Alex\", password: \"xela\"}, {username: \"\", password: \"\"}]}",
-  "targetField": "department.students"
+  "targetField": "department.students",
+  "output": {
+    "variable2_1.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 23,
+            "character": 99
+          },
+          "end": {
+            "line": 23,
+            "character": 99
+          }
+        },
+        "newText": ", {username: \"\", password: \"\"}"
+      }
+    ]
+  }
 }

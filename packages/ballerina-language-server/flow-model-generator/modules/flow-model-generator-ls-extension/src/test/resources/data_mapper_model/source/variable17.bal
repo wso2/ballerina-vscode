@@ -21,6 +21,9 @@ service / on new http:Listener(9090) {
             // Person var1 = {
             //                   contacts: [user.phoneNumber[0], user.phoneNumber[0]]
             //               };
+            Person var3 = {
+                                          contacts: [user.phoneNumber[0], user.phoneNumber[0]]
+                                      };
         } on fail error e {
             return http:INTERNAL_SERVER_ERROR;
         }

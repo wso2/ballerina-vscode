@@ -50,6 +50,9 @@ public class DataMappingModelTest extends AbstractLSTest {
                 {Path.of("query3.json")},
                 {Path.of("query4.json")},
                 {Path.of("query5.json")},
+                {Path.of("query6.json")},
+                {Path.of("query7.json")},
+                {Path.of("query8.json")},
                 {Path.of("variable1.json")},
                 {Path.of("variable2.json")},
                 {Path.of("variable3.json")},
@@ -88,10 +91,16 @@ public class DataMappingModelTest extends AbstractLSTest {
                 {Path.of("variable36.json")},
                 {Path.of("variable37.json")},
                 {Path.of("variable38.json")},
-                {Path.of("function_call1.json")},
-                {Path.of("function_call2.json")},
-                {Path.of("new_connection1.json")},
+                {Path.of("variable39.json")},
                 {Path.of("sub_mapping1.json")},
+                {Path.of("sub_mapping2.json")},
+                {Path.of("sub_mapping3.json")},
+                {Path.of("sub_mapping4.json")},
+                {Path.of("variable40.json")},
+                {Path.of("recursive1.json")},
+                {Path.of("recursive2.json")},
+                {Path.of("variable41.json")},
+                {Path.of("primitiveArray.json")},
         };
     }
 
@@ -104,15 +113,15 @@ public class DataMappingModelTest extends AbstractLSTest {
 
         DataMapperModelRequest request =
                 new DataMapperModelRequest(sourceDir.resolve(testConfig.source()).toAbsolutePath().toString(),
-                        testConfig.diagram(), testConfig.position(), testConfig.propertyKey(),
+                        testConfig.codedata(), testConfig.position(), testConfig.propertyKey(),
                         testConfig.targetField());
         JsonObject model = getResponse(endpoint, request).getAsJsonObject("mappingsModel");
         String actual = model.toString().replace(" ", "");
         String expected = testConfig.model().toString().replace(" ", "");
         if (!actual.equals(expected)) {
             TestConfig updateConfig = new TestConfig(testConfig.source(), testConfig.description(),
-                    testConfig.diagram(), testConfig.propertyKey(), testConfig.position(), model,
-                    testConfig.targetField());
+                    testConfig.codedata(), testConfig.position(), testConfig.propertyKey(), testConfig.targetField(),
+                    model);
 //            updateConfig(configJsonPath, updateConfig);
             compareJsonElements(model, testConfig.model());
             Assert.fail(String.format("Failed test: '%s' (%s)", testConfig.description(), configJsonPath));
@@ -144,14 +153,14 @@ public class DataMappingModelTest extends AbstractLSTest {
      *
      * @param source      The source file name
      * @param description The description of the test
-     * @param diagram     The diagram to generate the source code
-     * @param propertyKey The property that needs to consider to get the type
+     * @param codedata    The details of the node
      * @param position    position of the end of previous statement
+     * @param propertyKey The property that needs to consider to get the type
      * @param model       The expected data mapping model
      * @param targetField The target field to add the element
      */
-    private record TestConfig(String source, String description, JsonElement diagram, String propertyKey,
-                              LinePosition position, JsonElement model, String targetField) {
+    private record TestConfig(String source, String description, JsonElement codedata, LinePosition position,
+                              String propertyKey, String targetField, JsonElement model) {
 
         public String description() {
             return description == null ? "" : description;

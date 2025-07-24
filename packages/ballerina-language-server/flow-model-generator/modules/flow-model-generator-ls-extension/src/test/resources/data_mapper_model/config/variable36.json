@@ -1,67 +1,26 @@
 {
   "source": "variable21.bal",
   "description": "Sample diagram node",
-  "diagram": {
-    "id": "32874",
-    "metadata": {
-      "label": "Variable",
-      "description": "Assign a value to a variable"
-    },
-    "codedata": {
-      "node": "VARIABLE",
-      "lineRange": {
-        "fileName": "variable21.bal",
-        "startLine": {
-          "line": 0,
-          "offset": 0
-        },
-        "endLine": {
-          "line": 0,
-          "offset": 0
-        }
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "variable21.bal",
+      "startLine": {
+        "line": 40,
+        "offset": 12
       },
-      "sourceCode": ""
-    },
-    "returning": false,
-    "properties": {
-      "expression": {
-        "metadata": {
-          "label": "Expression",
-          "description": "Expression"
-        },
-        "valueType": "EXPRESSION",
-        "value": "{user2: {user3: {i3: user.length(), user4: {user5: {u: [user.name, user.name]},users6: [{balance: 0.0, account: user.name}, {balance: 1.0, account: user.name}]}}}, s1: user.name}",
-        "optional": false,
-        "editable": true
-      },
-      "variable": {
-        "metadata": {
-          "label": "Variable",
-          "description": "Name of the variable"
-        },
-        "valueType": "IDENTIFIER",
-        "value": "user1",
-        "optional": false,
-        "editable": true
-      },
-      "type": {
-        "metadata": {
-          "label": "Type",
-          "description": "Type of the variable"
-        },
-        "valueType": "TYPE",
-        "value": "User1",
-        "optional": false,
-        "editable": true
+      "endLine": {
+        "line": 40,
+        "offset": 205
       }
     },
-    "flags": 0
+    "sourceCode": ""
   },
-  "propertyKey": "expression",
   "position": {
     "line": 39,
     "offset": 12
   },
+  "propertyKey": "expression",
   "model": {
     "inputs": [
       {
@@ -93,6 +52,7 @@
                         {
                           "member": {
                             "id": "user1.user2.user3.user4.user5.u",
+                            "variableName": "<uItem>",
                             "typeName": "string",
                             "kind": "string"
                           },
@@ -152,7 +112,8 @@
         "expression": "user.length()",
         "diagnostics": [],
         "elements": [],
-        "isQueryExpression": false
+        "isQueryExpression": false,
+        "isFunctionCall": false
       },
       {
         "output": "user1.user2.user3.user4.user5.u",
@@ -170,7 +131,8 @@
                 "expression": "user.name",
                 "diagnostics": [],
                 "elements": [],
-                "isQueryExpression": false
+                "isQueryExpression": false,
+                "isFunctionCall": false
               }
             ]
           },
@@ -184,7 +146,8 @@
                 "expression": "user.name",
                 "diagnostics": [],
                 "elements": [],
-                "isQueryExpression": false
+                "isQueryExpression": false,
+                "isFunctionCall": false
               }
             ]
           }
@@ -204,7 +167,8 @@
                 "expression": "0.0",
                 "diagnostics": [],
                 "elements": [],
-                "isQueryExpression": false
+                "isQueryExpression": false,
+                "isFunctionCall": false
               },
               {
                 "output": "user1.user2.user3.user4.users6.0.account",
@@ -214,7 +178,8 @@
                 "expression": "user.name",
                 "diagnostics": [],
                 "elements": [],
-                "isQueryExpression": false
+                "isQueryExpression": false,
+                "isFunctionCall": false
               }
             ]
           },
@@ -226,7 +191,8 @@
                 "expression": "1.0",
                 "diagnostics": [],
                 "elements": [],
-                "isQueryExpression": false
+                "isQueryExpression": false,
+                "isFunctionCall": false
               },
               {
                 "output": "user1.user2.user3.user4.users6.1.account",
@@ -236,7 +202,8 @@
                 "expression": "user.name",
                 "diagnostics": [],
                 "elements": [],
-                "isQueryExpression": false
+                "isQueryExpression": false,
+                "isFunctionCall": false
               }
             ]
           }
@@ -250,7 +217,8 @@
         "expression": "user.name",
         "diagnostics": [],
         "elements": [],
-        "isQueryExpression": false
+        "isQueryExpression": false,
+        "isFunctionCall": false
       }
     ]
   }

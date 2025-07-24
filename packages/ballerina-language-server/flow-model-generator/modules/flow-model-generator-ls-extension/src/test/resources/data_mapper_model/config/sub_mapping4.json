@@ -1,0 +1,176 @@
+{
+  "source": "variable2_3.bal",
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "variable2_2.bal",
+      "startLine": {
+        "line": 24,
+        "offset": 34
+      },
+      "endLine": {
+        "line": 24,
+        "offset": 160
+      }
+    },
+    "sourceCode": ""
+  },
+  "position": {
+    "line": 24,
+    "offset": 34
+  },
+  "propertyKey": "expression",
+  "targetField": "s.students",
+  "model": {
+    "inputs": [
+      {
+        "id": "CONST",
+        "typeName": "CONST",
+        "kind": "CONST",
+        "category": "constant"
+      },
+      {
+        "fields": [
+          {
+            "id": "student.username",
+            "variableName": "username",
+            "typeName": "string",
+            "kind": "string"
+          },
+          {
+            "id": "student.password",
+            "variableName": "password",
+            "typeName": "string",
+            "kind": "string"
+          }
+        ],
+        "id": "student",
+        "variableName": "student",
+        "typeName": "Student",
+        "kind": "record",
+        "category": "variable"
+      },
+      {
+        "member": {
+          "fields": [
+            {
+              "id": "userInfo.0.username",
+              "variableName": "username",
+              "typeName": "string",
+              "kind": "string"
+            },
+            {
+              "id": "userInfo.0.password",
+              "variableName": "password",
+              "typeName": "string",
+              "kind": "string"
+            }
+          ],
+          "id": "userInfo.0",
+          "variableName": "<userInfoItem>",
+          "typeName": "UserInfo",
+          "kind": "record"
+        },
+        "focusedMemberId": "user",
+        "id": "userInfo",
+        "variableName": "userInfo",
+        "typeName": "UserInfo[]",
+        "kind": "array",
+        "category": "variable"
+      },
+      {
+        "fields": [
+          {
+            "id": "user.username",
+            "variableName": "username",
+            "typeName": "string",
+            "kind": "string"
+          },
+          {
+            "id": "user.password",
+            "variableName": "password",
+            "typeName": "string",
+            "kind": "string"
+          }
+        ],
+        "id": "user",
+        "variableName": "user",
+        "typeName": "UserInfo",
+        "kind": "record",
+        "isFocused": true
+      }
+    ],
+    "output": {
+      "member": {
+        "fields": [
+          {
+            "id": "students.username",
+            "variableName": "username",
+            "typeName": "string",
+            "kind": "string"
+          },
+          {
+            "id": "students.password",
+            "variableName": "password",
+            "typeName": "string",
+            "kind": "string"
+          }
+        ],
+        "id": "students",
+        "variableName": "<studentsItem>",
+        "typeName": "Student",
+        "kind": "record"
+      },
+      "id": "students",
+      "variableName": "students",
+      "typeName": "Student[]",
+      "kind": "array"
+    },
+    "mappings": [
+      {
+        "output": "students.username",
+        "inputs": [
+          "user.username"
+        ],
+        "expression": "user.username",
+        "diagnostics": [],
+        "elements": [],
+        "isQueryExpression": false,
+        "isFunctionCall": false
+      },
+      {
+        "output": "students.password",
+        "inputs": [
+          "user.password"
+        ],
+        "expression": "user.password",
+        "diagnostics": [],
+        "elements": [],
+        "isQueryExpression": false,
+        "isFunctionCall": false
+      }
+    ],
+    "query": {
+      "output": "students",
+      "inputs": [
+        "userInfo"
+      ],
+      "fromClause": {
+        "type": "from",
+        "properties": {
+          "name": "user",
+          "type": "UserInfo",
+          "expression": "userInfo"
+        }
+      },
+      "intermediateClauses": [],
+      "resultClause": {
+        "type": "select",
+        "properties": {
+          "expression": "{username: user.username, password: user.password}"
+        }
+      }
+    }
+  }
+}

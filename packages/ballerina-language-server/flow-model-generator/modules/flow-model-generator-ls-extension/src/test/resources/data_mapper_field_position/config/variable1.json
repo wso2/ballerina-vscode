@@ -19,25 +19,12 @@
   "propertyKey": "expression",
   "targetField": "userInfo",
   "fieldId": "userInfo.username",
-  "output": {
-    "variable1.bal": [
-      {
-        "range": {
-          "start": {
-            "line": 18,
-            "character": 33
-          },
-          "end": {
-            "line": 18,
-            "character": 33
-          }
-        },
-        "newText": "username: "
-      }
-    ]
-  },
-  "position": {
-    "line": 18,
-    "offset": 43
+  "property": {
+    "valueType": "EXPRESSION",
+    "valueTypeConstraint": "string",
+    "optional": false,
+    "editable": false,
+    "advanced": false,
+    "hidden": false
   }
 }

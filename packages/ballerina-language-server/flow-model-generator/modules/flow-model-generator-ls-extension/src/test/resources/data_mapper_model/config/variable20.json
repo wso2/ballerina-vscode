@@ -1,67 +1,27 @@
 {
   "source": "variable10.bal",
   "description": "Sample diagram node",
-  "diagram": {
-    "id": "32874",
-    "metadata": {
-      "label": "Variable",
-      "description": "Assign a value to a variable"
-    },
-    "codedata": {
-      "node": "VARIABLE",
-      "lineRange": {
-        "fileName": "variable10.bal",
-        "startLine": {
-          "line": 0,
-          "offset": 0
-        },
-        "endLine": {
-          "line": 0,
-          "offset": 0
-        }
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "variable10.bal",
+      "startLine": {
+        "line": 31,
+        "offset": 12
       },
-      "sourceCode": ""
-    },
-    "returning": false,
-    "properties": {
-      "expression": {
-        "metadata": {
-          "label": "Expression",
-          "description": "Expression"
-        },
-        "valueType": "EXPRESSION",
-        "value": "from var bank in banks select {name: bank.name, credentials: from var info in bank.userInfo select {password: , username: info.username}}",
-        "optional": false,
-        "editable": true
-      },
-      "variable": {
-        "metadata": {
-          "label": "Variable",
-          "description": "Name of the variable"
-        },
-        "valueType": "IDENTIFIER",
-        "value": "stores",
-        "optional": false,
-        "editable": true
-      },
-      "type": {
-        "metadata": {
-          "label": "Type",
-          "description": "Type of the variable"
-        },
-        "valueType": "TYPE",
-        "value": "Store[]",
-        "optional": false,
-        "editable": true
+      "endLine": {
+        "line": 39,
+        "offset": 17
       }
     },
-    "flags": 0
+    "sourceCode": ""
   },
-  "propertyKey": "expression",
   "position": {
     "line": 30,
     "offset": 64
   },
+  "propertyKey": "expression",
+  "targetField": "stores.credentials",
   "model": {
     "inputs": [
       {
@@ -71,10 +31,59 @@
         "category": "constant"
       },
       {
+        "fields": [
+          {
+            "id": "bank.name",
+            "variableName": "name",
+            "typeName": "string",
+            "kind": "string"
+          },
+          {
+            "member": {
+              "fields": [
+                {
+                  "id": "bank.userInfo.0.username",
+                  "variableName": "username",
+                  "typeName": "string",
+                  "kind": "string"
+                },
+                {
+                  "id": "bank.userInfo.0.password",
+                  "variableName": "password",
+                  "typeName": "string",
+                  "kind": "string"
+                },
+                {
+                  "id": "bank.userInfo.0.id",
+                  "variableName": "id",
+                  "typeName": "int",
+                  "kind": "int"
+                }
+              ],
+              "id": "bank.userInfo.0",
+              "variableName": "<userInfoItem>",
+              "typeName": "UserInfo",
+              "kind": "record"
+            },
+            "focusedMemberId": "info",
+            "id": "bank.userInfo",
+            "variableName": "userInfo",
+            "typeName": "UserInfo[]",
+            "kind": "array"
+          }
+        ],
+        "id": "bank",
+        "variableName": "bank",
+        "typeName": "Bank",
+        "kind": "record",
+        "category": "variable",
+        "isFocused": true
+      },
+      {
         "member": {
           "fields": [
             {
-              "id": "banks.name",
+              "id": "banks.0.name",
               "variableName": "name",
               "typeName": "string",
               "kind": "string"
@@ -83,38 +92,41 @@
               "member": {
                 "fields": [
                   {
-                    "id": "banks.userInfo.username",
+                    "id": "banks.0.userInfo.0.username",
                     "variableName": "username",
                     "typeName": "string",
                     "kind": "string"
                   },
                   {
-                    "id": "banks.userInfo.password",
+                    "id": "banks.0.userInfo.0.password",
                     "variableName": "password",
                     "typeName": "string",
                     "kind": "string"
                   },
                   {
-                    "id": "banks.userInfo.id",
+                    "id": "banks.0.userInfo.0.id",
                     "variableName": "id",
                     "typeName": "int",
                     "kind": "int"
                   }
                 ],
-                "id": "banks.userInfo",
+                "id": "banks.0.userInfo.0",
+                "variableName": "<userInfoItem>",
                 "typeName": "UserInfo",
                 "kind": "record"
               },
-              "id": "banks.userInfo",
+              "id": "banks.0.userInfo",
               "variableName": "userInfo",
               "typeName": "UserInfo[]",
               "kind": "array"
             }
           ],
-          "id": "banks",
+          "id": "banks.0",
+          "variableName": "<banksItem>",
           "typeName": "Bank",
           "kind": "record"
         },
+        "focusedMemberId": "bank",
         "id": "banks",
         "variableName": "banks",
         "typeName": "Bank[]",
@@ -125,25 +137,26 @@
         "member": {
           "fields": [
             {
-              "id": "userInfo.username",
+              "id": "userInfo.0.username",
               "variableName": "username",
               "typeName": "string",
               "kind": "string"
             },
             {
-              "id": "userInfo.password",
+              "id": "userInfo.0.password",
               "variableName": "password",
               "typeName": "string",
               "kind": "string"
             },
             {
-              "id": "userInfo.id",
+              "id": "userInfo.0.id",
               "variableName": "id",
               "typeName": "int",
               "kind": "int"
             }
           ],
-          "id": "userInfo",
+          "id": "userInfo.0",
+          "variableName": "<userInfoItem>",
           "typeName": "UserInfo",
           "kind": "record"
         },
@@ -177,7 +190,8 @@
         "id": "info",
         "variableName": "info",
         "typeName": "UserInfo",
-        "kind": "record"
+        "kind": "record",
+        "isFocused": true
       }
     ],
     "output": {
@@ -197,6 +211,7 @@
           }
         ],
         "id": "credentials",
+        "variableName": "<credentialsItem>",
         "typeName": "Credentials",
         "kind": "record"
       },
@@ -216,32 +231,41 @@
           "missing identifier"
         ],
         "elements": [],
-        "isQueryExpression": false
+        "isQueryExpression": false,
+        "isFunctionCall": false
       },
       {
         "output": "credentials.username",
         "inputs": [
           "info.username"
         ],
-        "expression": "info.username",
+        "expression": "info.username\n",
         "diagnostics": [],
         "elements": [],
-        "isQueryExpression": false
+        "isQueryExpression": false,
+        "isFunctionCall": false
       }
     ],
     "query": {
-      "output": "stores.credentials",
+      "output": "credentials",
       "inputs": [
         "bank.userInfo"
       ],
       "fromClause": {
-        "type": "UserInfo",
-        "name": "info",
-        "expression": "bank.userInfo"
+        "type": "from",
+        "properties": {
+          "name": "info",
+          "type": "UserInfo",
+          "expression": "bank.userInfo"
+        }
       },
       "intermediateClauses": [],
-      "resultClause": "{password: , username: info.username}"
+      "resultClause": {
+        "type": "select",
+        "properties": {
+          "expression": "{\n                           password: ,\n                           username: info.username\n                       }"
+        }
+      }
     }
-  },
-  "targetField": "stores.credentials"
+  }
 }

@@ -1,67 +1,38 @@
 {
-  "source": "variable4.bal",
+  "source": "variable4_1.bal",
   "description": "Sample diagram node",
-  "diagram": {
-    "id": "32874",
-    "metadata": {
-      "label": "Variable",
-      "description": "Assign a value to a variable"
-    },
-    "codedata": {
-      "node": "VARIABLE",
-      "lineRange": {
-        "fileName": "variable4.bal",
-        "startLine": {
-          "line": 0,
-          "offset": 0
-        },
-        "endLine": {
-          "line": 0,
-          "offset": 0
-        }
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "variable4_1.bal",
+      "startLine": {
+        "line": 14,
+        "offset": 12
       },
-      "sourceCode": ""
-    },
-    "returning": false,
-    "properties": {
-      "expression": {
-        "metadata": {
-          "label": "Expression",
-          "description": "Expression"
-        },
-        "valueType": "EXPRESSION",
-        "value": "[{username: \"uname\", password: \"pword\", \t\nids: [\"id1\", \"id2\"]}]",
-        "optional": false,
-        "editable": true
-      },
-      "variable": {
-        "metadata": {
-          "label": "Variable",
-          "description": "Name of the variable"
-        },
-        "valueType": "IDENTIFIER",
-        "value": "credentials",
-        "optional": false,
-        "editable": true
-      },
-      "type": {
-        "metadata": {
-          "label": "Type",
-          "description": "Type of the variable"
-        },
-        "valueType": "TYPE",
-        "value": "Credentials[]",
-        "optional": false,
-        "editable": true
+      "endLine": {
+        "line": 15,
+        "offset": 38
       }
     },
-    "flags": 0
+    "sourceCode": ""
   },
   "propertyKey": "expression",
-  "position": {
-    "line": 13,
-    "offset": 12
-  },
-  "output": "[\n    {\n        username: \"uname\",\n        password: \"pword\",\n        ids: [\"id1\", \"id2\", \"\"]\n    }\n]",
-  "targetField": "credentials.0.ids"
+  "targetField": "credentials.0.ids",
+  "output": {
+    "variable4_1.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 15,
+            "character": 34
+          },
+          "end": {
+            "line": 15,
+            "character": 34
+          }
+        },
+        "newText": ", \"\""
+      }
+    ]
+  }
 }

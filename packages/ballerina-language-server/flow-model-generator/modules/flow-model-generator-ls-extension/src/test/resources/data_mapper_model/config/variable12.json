@@ -1,67 +1,26 @@
 {
-  "source": "variable5.bal",
+  "source": "variable5_2.bal",
   "description": "Sample diagram node",
-  "diagram": {
-    "id": "32874",
-    "metadata": {
-      "label": "Variable",
-      "description": "Assign a value to a variable"
-    },
-    "codedata": {
-      "node": "VARIABLE",
-      "lineRange": {
-        "fileName": "variable5.bal",
-        "startLine": {
-          "line": 0,
-          "offset": 0
-        },
-        "endLine": {
-          "line": 0,
-          "offset": 0
-        }
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "variable5.bal",
+      "startLine": {
+        "line": 25,
+        "offset": 12
       },
-      "sourceCode": ""
-    },
-    "returning": false,
-    "properties": {
-      "expression": {
-        "metadata": {
-          "label": "Expression",
-          "description": "Expression"
-        },
-        "valueType": "EXPRESSION",
-        "value": "{id: 1234, credentials: {username: userInfo.username, password: userInfo.}, length: userInfo.username}",
-        "optional": false,
-        "editable": true
-      },
-      "variable": {
-        "metadata": {
-          "label": "Variable",
-          "description": "Name of the variable"
-        },
-        "valueType": "IDENTIFIER",
-        "value": "student",
-        "optional": false,
-        "editable": true
-      },
-      "type": {
-        "metadata": {
-          "label": "Type",
-          "description": "Type of the variable"
-        },
-        "valueType": "TYPE",
-        "value": "Student",
-        "optional": false,
-        "editable": true
+      "endLine": {
+        "line": 25,
+        "offset": 133
       }
     },
-    "flags": 0
+    "sourceCode": ""
   },
-  "propertyKey": "expression",
   "position": {
     "line": 24,
     "offset": 65
   },
+  "propertyKey": "expression",
   "model": {
     "inputs": [
       {
@@ -89,7 +48,7 @@
         "variableName": "userInfo",
         "typeName": "UserInfo",
         "kind": "record",
-        "category": "variable"
+        "category": "local-variable"
       }
     ],
     "output": {
@@ -139,7 +98,8 @@
         "expression": "1234",
         "diagnostics": [],
         "elements": [],
-        "isQueryExpression": false
+        "isQueryExpression": false,
+        "isFunctionCall": false
       },
       {
         "output": "student.credentials.username",
@@ -149,7 +109,8 @@
         "expression": "userInfo.username",
         "diagnostics": [],
         "elements": [],
-        "isQueryExpression": false
+        "isQueryExpression": false,
+        "isFunctionCall": false
       },
       {
         "output": "student.credentials.password",
@@ -162,7 +123,8 @@
           "missing identifier"
         ],
         "elements": [],
-        "isQueryExpression": false
+        "isQueryExpression": false,
+        "isFunctionCall": false
       },
       {
         "output": "student.length",
@@ -174,7 +136,8 @@
           "incompatible types: expected 'int', found 'string'"
         ],
         "elements": [],
-        "isQueryExpression": false
+        "isQueryExpression": false,
+        "isFunctionCall": false
       }
     ]
   }

@@ -1,0 +1,187 @@
+{
+  "source": "query2_2.bal",
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "query2_2.bal",
+      "startLine": {
+        "line": 31,
+        "offset": 4
+      },
+      "endLine": {
+        "line": 36,
+        "offset": 21
+      }
+    },
+    "sourceCode": ""
+  },
+  "position": {
+    "line": 31,
+    "offset": 4
+  },
+  "propertyKey": "expression",
+  "targetField": "p.contactDetails.phoneNumbers",
+  "model": {
+    "inputs": [
+      {
+        "fields": [
+          {
+            "member": {
+              "fields": [
+                {
+                  "id": "info.secondaryPhones.0.code",
+                  "variableName": "code",
+                  "typeName": "string",
+                  "kind": "string"
+                },
+                {
+                  "id": "info.secondaryPhones.0.number",
+                  "variableName": "number",
+                  "typeName": "string",
+                  "kind": "string"
+                }
+              ],
+              "id": "info.secondaryPhones.0",
+              "variableName": "<secondaryPhonesItem>",
+              "typeName": "SecondaryPhones",
+              "kind": "record"
+            },
+            "focusedMemberId": "secondaryPhonesItem",
+            "id": "info.secondaryPhones",
+            "variableName": "secondaryPhones",
+            "typeName": "SecondaryPhones[]",
+            "kind": "array"
+          },
+          {
+            "member": {
+              "id": "info.emails.0",
+              "variableName": "<emailsItem>",
+              "typeName": "string",
+              "kind": "string"
+            },
+            "id": "info.emails",
+            "variableName": "emails",
+            "typeName": "string[]",
+            "kind": "array"
+          },
+          {
+            "member": {
+              "member": {
+                "id": "info.addresses.0.0",
+                "variableName": "<addressesItemItem>",
+                "typeName": "string",
+                "kind": "string"
+              },
+              "id": "info.addresses.0",
+              "variableName": "<addressesItem>",
+              "typeName": "string[]",
+              "kind": "array"
+            },
+            "id": "info.addresses",
+            "variableName": "addresses",
+            "typeName": "string[][]",
+            "kind": "array"
+          }
+        ],
+        "id": "info",
+        "variableName": "info",
+        "typeName": "Info",
+        "kind": "record",
+        "category": "variable"
+      },
+      {
+        "fields": [
+          {
+            "id": "secondaryPhonesItem.code",
+            "variableName": "code",
+            "typeName": "string",
+            "kind": "string"
+          },
+          {
+            "id": "secondaryPhonesItem.number",
+            "variableName": "number",
+            "typeName": "string",
+            "kind": "string"
+          }
+        ],
+        "id": "secondaryPhonesItem",
+        "variableName": "secondaryPhonesItem",
+        "typeName": "SecondaryPhones",
+        "kind": "record",
+        "isFocused": true
+      }
+    ],
+    "output": {
+      "member": {
+        "fields": [
+          {
+            "id": "phoneNumbers.code",
+            "variableName": "code",
+            "typeName": "string",
+            "kind": "string"
+          },
+          {
+            "id": "phoneNumbers.number",
+            "variableName": "number",
+            "typeName": "string",
+            "kind": "string"
+          }
+        ],
+        "id": "phoneNumbers",
+        "variableName": "<phoneNumbersItem>",
+        "typeName": "SecondaryPhonesX",
+        "kind": "record"
+      },
+      "id": "phoneNumbers",
+      "variableName": "phoneNumbers",
+      "typeName": "SecondaryPhonesX[]",
+      "kind": "array"
+    },
+    "mappings": [
+      {
+        "output": "phoneNumbers.code",
+        "inputs": [
+          "secondaryPhonesItem.code"
+        ],
+        "expression": "secondaryPhonesItem.code",
+        "diagnostics": [],
+        "elements": [],
+        "isQueryExpression": false,
+        "isFunctionCall": false
+      },
+      {
+        "output": "phoneNumbers.number",
+        "inputs": [
+          "secondaryPhonesItem.number"
+        ],
+        "expression": "secondaryPhonesItem.number",
+        "diagnostics": [],
+        "elements": [],
+        "isQueryExpression": false,
+        "isFunctionCall": false
+      }
+    ],
+    "query": {
+      "output": "phoneNumbers",
+      "inputs": [
+        "info.secondaryPhones"
+      ],
+      "fromClause": {
+        "type": "from",
+        "properties": {
+          "name": "secondaryPhonesItem",
+          "type": "SecondaryPhones",
+          "expression": "info.secondaryPhones"
+        }
+      },
+      "intermediateClauses": [],
+      "resultClause": {
+        "type": "select",
+        "properties": {
+          "expression": "{code: secondaryPhonesItem.code, number: secondaryPhonesItem.number}"
+        }
+      }
+    }
+  }
+}

@@ -804,6 +804,120 @@
     },
     {
       "metadata": {
+        "label": "AI Components",
+        "description": "AI components available in the flow"
+      },
+      "items": [
+        {
+          "metadata": {
+            "label": "Model Provider",
+            "description": "Model providers available within the integration for connecting to an LLM"
+          },
+          "codedata": {
+            "node": "MODEL_PROVIDERS"
+          },
+          "enabled": false
+        },
+        {
+          "metadata": {
+            "label": "Call Natural Function",
+            "description": "Call a natural programming function",
+            "icon": "https://gist.github.com/user-attachments/assets/903c5c16-7d67-4af8-8113-ce7c59ccdaab"
+          },
+          "codedata": {
+            "node": "NP_FUNCTION"
+          },
+          "enabled": true
+        },
+        {
+          "metadata": {
+            "label": "Vector Knowledge Base",
+            "description": "Vector knowledge bases available in the integration"
+          },
+          "codedata": {
+            "node": "VECTOR_KNOWLEDGE_BASES",
+            "org": "ballerina",
+            "module": "ai",
+            "packageName": "ai",
+            "object": "VectorKnowledgeBase",
+            "symbol": "init",
+            "version": "1.1.0"
+          },
+          "enabled": false
+        },
+        {
+          "metadata": {
+            "label": "Recursive Document Chunker"
+          },
+          "codedata": {
+            "node": "FUNCTION_CALL",
+            "org": "ballerina",
+            "module": "ai",
+            "packageName": "ai",
+            "symbol": "chunkDocumentRecursively"
+          },
+          "enabled": false
+        },
+        {
+          "metadata": {
+            "label": "Augment Query"
+          },
+          "codedata": {
+            "node": "FUNCTION_CALL",
+            "org": "ballerina",
+            "module": "ai",
+            "packageName": "ai",
+            "symbol": "augmentUserQuery"
+          },
+          "enabled": false
+        },
+        {
+          "metadata": {
+            "label": "Agent",
+            "description": "Create new agent"
+          },
+          "codedata": {
+            "node": "AGENT_CALL",
+            "org": "ballerinax",
+            "module": "ai",
+            "packageName": "ai",
+            "object": "Agent",
+            "symbol": "run"
+          },
+          "enabled": true
+        },
+        {
+          "metadata": {
+            "label": "More",
+            "description": "Expandable section to view more content"
+          },
+          "items": [
+            {
+              "metadata": {
+                "label": "Vector Store",
+                "description": "Vector stores available in the integration"
+              },
+              "codedata": {
+                "node": "VECTOR_STORES"
+              },
+              "enabled": false
+            },
+            {
+              "metadata": {
+                "label": "Embedding Provider",
+                "description": "Embedding providers available in the integration for connecting to an embedding model"
+              },
+              "codedata": {
+                "node": "EMBEDDING_PROVIDERS"
+              },
+              "enabled": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "metadata": {
         "label": "Statement",
         "description": "Fundamental executable units in a program"
       },
@@ -843,32 +957,6 @@
           },
           "codedata": {
             "node": "DATA_MAPPER_CALL"
-          },
-          "enabled": true
-        },
-        {
-          "metadata": {
-            "label": "Call Natural Function",
-            "description": "Call a natural programming function",
-            "icon": "https://gist.github.com/user-attachments/assets/903c5c16-7d67-4af8-8113-ce7c59ccdaab"
-          },
-          "codedata": {
-            "node": "NP_FUNCTION"
-          },
-          "enabled": true
-        },
-        {
-          "metadata": {
-            "label": "Agent",
-            "description": "Create new agent"
-          },
-          "codedata": {
-            "node": "AGENT_CALL",
-            "org": "ballerinax",
-            "module": "ai",
-            "packageName": "ai",
-            "object": "Agent",
-            "symbol": "run"
           },
           "enabled": true
         }

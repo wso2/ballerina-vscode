@@ -1,0 +1,31 @@
+{
+  "source": "model_provider/provider.bal",
+  "query": "deep",
+  "expectedModelProviders": {
+    "categories": [
+      {
+        "metadata": {
+          "label": "Model Providers"
+        },
+        "items": [
+          {
+            "metadata": {
+              "label": "Deepseek Model Provider",
+              "description": "Provides an interface to interact with Deepseek Large Language Models."
+            },
+            "codedata": {
+              "node": "MODEL_PROVIDER",
+              "org": "ballerinax",
+              "module": "ai.deepseek",
+              "packageName": "ai.deepseek",
+              "object": "ModelProvider",
+              "symbol": "init",
+              "version": "1.0.1"
+            },
+            "enabled": true
+          }
+        ]
+      }
+    ]
+  }
+}
