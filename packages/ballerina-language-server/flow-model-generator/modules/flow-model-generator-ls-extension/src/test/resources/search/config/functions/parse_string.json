@@ -100,7 +100,7 @@
               "metadata": {
                 "label": "parseString",
                 "description": "Converts XML string to record type with projection.\n",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_data.xmldata_1.4.1.png"
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_data.xmldata_1.4.2.png"
               },
               "codedata": {
                 "node": "FUNCTION_CALL",
@@ -108,7 +108,7 @@
                 "module": "data.xmldata",
                 "packageName": "data.xmldata",
                 "symbol": "parseString",
-                "version": "1.4.1"
+                "version": "1.4.2"
               },
               "enabled": true
             }

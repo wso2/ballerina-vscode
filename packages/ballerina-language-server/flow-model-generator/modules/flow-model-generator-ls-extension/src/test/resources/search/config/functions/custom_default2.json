@@ -295,7 +295,7 @@
               "metadata": {
                 "label": "getTools",
                 "description": "Get the tools registered with the agent.\n",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.0.0.png"
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.1.1.png"
               },
               "codedata": {
                 "node": "FUNCTION_CALL",
@@ -303,7 +303,23 @@
                 "module": "ai",
                 "packageName": "ai",
                 "symbol": "getTools",
-                "version": "1.0.0"
+                "version": "1.1.1"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "chunkDocumentRecursively",
+                "description": "Provides functionality to recursively chunk a text document using a configurable strategy.\n\nThe chunking process begins with the specified strategy and recursively falls back to \nfiner-grained strategies if the content exceeds the configured `maxChunkSize`. Overlapping content \nbetween chunks can be controlled using `maxOverlapSize`.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.1.1.png"
+              },
+              "codedata": {
+                "node": "FUNCTION_CALL",
+                "org": "ballerina",
+                "module": "ai",
+                "packageName": "ai",
+                "symbol": "chunkDocumentRecursively",
+                "version": "1.1.1"
               },
               "enabled": true
             },
@@ -311,7 +327,7 @@
               "metadata": {
                 "label": "extractToolsFromOpenApiSpecFile",
                 "description": "Extracts the Http tools from the given OpenAPI specification file.\n",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.0.0.png"
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.1.1.png"
               },
               "codedata": {
                 "node": "FUNCTION_CALL",
@@ -319,7 +335,7 @@
                 "module": "ai",
                 "packageName": "ai",
                 "symbol": "extractToolsFromOpenApiSpecFile",
-                "version": "1.0.0"
+                "version": "1.1.1"
               },
               "enabled": true
             },
@@ -327,7 +343,7 @@
               "metadata": {
                 "label": "extractToolsFromOpenApiJsonSpec",
                 "description": "Extracts the Http tools from the given OpenAPI specification as a JSON \n",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.0.0.png"
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.1.1.png"
               },
               "codedata": {
                 "node": "FUNCTION_CALL",
@@ -335,7 +351,7 @@
                 "module": "ai",
                 "packageName": "ai",
                 "symbol": "extractToolsFromOpenApiJsonSpec",
-                "version": "1.0.0"
+                "version": "1.1.1"
               },
               "enabled": true
             },
@@ -343,7 +359,7 @@
               "metadata": {
                 "label": "parseOpenApiSpec",
                 "description": "Parses the given OpenAPI specification as a JSON to a OpenApiSpec object.\n",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.0.0.png"
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.1.1.png"
               },
               "codedata": {
                 "node": "FUNCTION_CALL",
@@ -351,7 +367,55 @@
                 "module": "ai",
                 "packageName": "ai",
                 "symbol": "parseOpenApiSpec",
-                "version": "1.0.0"
+                "version": "1.1.1"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "getDefaultModelProvider",
+                "description": "Creates a default model provider based on the provided `wso2ProviderConfig`.",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.1.1.png"
+              },
+              "codedata": {
+                "node": "FUNCTION_CALL",
+                "org": "ballerina",
+                "module": "ai",
+                "packageName": "ai",
+                "symbol": "getDefaultModelProvider",
+                "version": "1.1.1"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "getDefaultEmbeddingProvider",
+                "description": "Creates a default embedding provider based on the provided `wso2ProviderConfig`.",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.1.1.png"
+              },
+              "codedata": {
+                "node": "FUNCTION_CALL",
+                "org": "ballerina",
+                "module": "ai",
+                "packageName": "ai",
+                "symbol": "getDefaultEmbeddingProvider",
+                "version": "1.1.1"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "augmentUserQuery",
+                "description": "Augments the user's query with relevant context.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.1.1.png"
+              },
+              "codedata": {
+                "node": "FUNCTION_CALL",
+                "org": "ballerina",
+                "module": "ai",
+                "packageName": "ai",
+                "symbol": "augmentUserQuery",
+                "version": "1.1.1"
               },
               "enabled": true
             },
@@ -359,7 +423,7 @@
               "metadata": {
                 "label": "executeTool",
                 "description": "Executes an AgentTool.\n",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.0.0.png"
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.1.1.png"
               },
               "codedata": {
                 "node": "FUNCTION_CALL",
@@ -367,7 +431,7 @@
                 "module": "ai",
                 "packageName": "ai",
                 "symbol": "executeTool",
-                "version": "1.0.0"
+                "version": "1.1.1"
               },
               "enabled": true
             },
@@ -375,7 +439,7 @@
               "metadata": {
                 "label": "getToolConfigs",
                 "description": "Generates a array of `ToolConfig` from the given list of function pointers.\n",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.0.0.png"
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.1.1.png"
               },
               "codedata": {
                 "node": "FUNCTION_CALL",
@@ -383,7 +447,7 @@
                 "module": "ai",
                 "packageName": "ai",
                 "symbol": "getToolConfigs",
-                "version": "1.0.0"
+                "version": "1.1.1"
               },
               "enabled": true
             }
@@ -440,70 +504,6 @@
                 "module": "io",
                 "packageName": "io",
                 "symbol": "fileWriteBytes",
-                "version": "1.8.0"
-              },
-              "enabled": true
-            },
-            {
-              "metadata": {
-                "label": "fileWriteBlocksFromStream",
-                "description": "Write a byte stream to a file.\n```ballerina\nbyte[] content = [[60, 78, 39, 28]];\nstream<byte[], io:Error?> byteStream = content.toStream();\nio:Error? result = io:fileWriteBlocksFromStream(\"./resources/myfile.txt\", byteStream);\n```",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_io_1.8.0.png"
-              },
-              "codedata": {
-                "node": "FUNCTION_CALL",
-                "org": "ballerina",
-                "module": "io",
-                "packageName": "io",
-                "symbol": "fileWriteBlocksFromStream",
-                "version": "1.8.0"
-              },
-              "enabled": true
-            },
-            {
-              "metadata": {
-                "label": "fileReadCsv",
-                "description": "Read file content as a CSV.\nWhen the expected data type is record[], the first entry of the csv file should contain matching headers.\n```ballerina\nstring[][]|io:Error content = io:fileReadCsv(\"./resources/myfile.csv\");\nrecord{}[]|io:Error content = io:fileReadCsv(\"./resources/myfile.csv\");\n```",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_io_1.8.0.png"
-              },
-              "codedata": {
-                "node": "FUNCTION_CALL",
-                "org": "ballerina",
-                "module": "io",
-                "packageName": "io",
-                "symbol": "fileReadCsv",
-                "version": "1.8.0"
-              },
-              "enabled": true
-            },
-            {
-              "metadata": {
-                "label": "fileReadCsvAsStream",
-                "description": "Read file content as a CSV.\nWhen the expected data type is stream<record, io:Error?>,\nthe first entry of the csv file should contain matching headers.\n```ballerina\nstream<string[]|io:Error content = io:fileReadCsvAsStream(\"./resources/myfile.csv\");\nstream<record{}, io:Error?>|io:Error content = io:fileReadCsvAsStream(\"./resources/myfile.csv\");\n```",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_io_1.8.0.png"
-              },
-              "codedata": {
-                "node": "FUNCTION_CALL",
-                "org": "ballerina",
-                "module": "io",
-                "packageName": "io",
-                "symbol": "fileReadCsvAsStream",
-                "version": "1.8.0"
-              },
-              "enabled": true
-            },
-            {
-              "metadata": {
-                "label": "fileWriteCsv",
-                "description": "Write CSV content to a file.\nWhen the input is a record[] type in `OVERWRITE`,  headers will be written to the CSV file by default.\nFor `APPEND`, order of the existing csv file is inferred using the headers and used as the order.\n```ballerina\ntype Coord record {int x;int y;};\nCoord[] contentRecord = [{x: 1,y: 2},{x: 1,y: 2}]\nstring[][] content = [[\"Anne\", \"Johnson\", \"SE\"], [\"John\", \"Cameron\", \"QA\"]];\nio:Error? result = io:fileWriteCsv(\"./resources/myfile.csv\", content);\nio:Error? resultRecord = io:fileWriteCsv(\"./resources/myfileRecord.csv\", contentRecord);\n```",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_io_1.8.0.png"
-              },
-              "codedata": {
-                "node": "FUNCTION_CALL",
-                "org": "ballerina",
-                "module": "io",
-                "packageName": "io",
-                "symbol": "fileWriteCsv",
                 "version": "1.8.0"
               },
               "enabled": true
