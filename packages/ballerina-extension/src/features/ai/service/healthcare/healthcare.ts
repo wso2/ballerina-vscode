@@ -15,7 +15,7 @@
 // under the License.
 
 import { CoreMessage, generateObject, generateText, streamText } from "ai";
-import { anthropic, ANTHROPIC_HAIKU, ANTHROPIC_SONNET_3_5, ANTHROPIC_SONNET_4 } from "../connection";
+import { getAnthropicClient, ANTHROPIC_HAIKU, ANTHROPIC_SONNET_3_5, ANTHROPIC_SONNET_4 } from "../connection";
 import { GenerationType, getRelevantLibrariesAndFunctions } from "../libs/libs";
 import { getRewrittenPrompt, populateHistory, transformProjectSource, getErrorMessage } from "../utils";
 import {
@@ -89,7 +89,7 @@ export async function generateHealthcareCodeCore(
     ];
 
     const { fullStream } = streamText({
-        model: anthropic(ANTHROPIC_SONNET_3_5),
+        model: await getAnthropicClient(ANTHROPIC_SONNET_3_5),
         maxTokens: 4096*2,
         temperature: 0,
         messages: allMessages,
@@ -370,7 +370,7 @@ Think step-by-step to choose the required types in order to solve the given ques
     ];
     try {
         const { object } = await generateObject({
-            model: anthropic(ANTHROPIC_HAIKU),
+            model: await getAnthropicClient(ANTHROPIC_HAIKU),
             maxTokens: 8192,
             temperature: 0,
             messages: messages,
