@@ -139,6 +139,7 @@ import * as fs from "fs";
 import * as path from 'path';
 import * as vscode from "vscode";
 
+import { ICreateComponentCmdParams, IWso2PlatformExtensionAPI, CommandIds as PlatformExtCommandIds } from "@wso2/wso2-platform-core";
 import {
     ShellExecution,
     Task,
@@ -149,20 +150,17 @@ import {
     window, workspace
 } from "vscode";
 import { DebugProtocol } from "vscode-debugprotocol";
+import { fetchWithAuth } from "../../../src/features/ai/service/connection";
 import { extension } from "../../BalExtensionContext";
 import { notifyBreakpointChange } from "../../RPCLayer";
+import { OLD_BACKEND_URL } from "../../features/ai/utils";
+import { cleanAndValidateProject, getCurrentBIProject } from "../../features/config-generator/configGenerator";
 import { BreakpointManager } from "../../features/debugger/breakpoint-manager";
 import { StateMachine, updateView } from "../../stateMachine";
 import { getCompleteSuggestions } from '../../utils/ai/completions';
 import { README_FILE, createBIAutomation, createBIFunction, createBIProjectPure } from "../../utils/bi";
 import { writeBallerinaFileDidOpen } from "../../utils/modification";
-import { OLD_BACKEND_URL } from "../../features/ai/utils";
-import { ICreateComponentCmdParams, IWso2PlatformExtensionAPI, CommandIds as PlatformExtCommandIds } from "@wso2/wso2-platform-core";
-import { cleanAndValidateProject, getCurrentBIProject } from "../../features/config-generator/configGenerator";
 import { updateSourceCode } from "../../utils/source-utils";
-import { getRefreshedAccessToken } from "../../../src/utils/ai/auth";
-import { applyBallerinaTomlEdit } from "./utils";
-import { fetchWithAuth } from "../../../src/features/ai/service/connection";
 export class BiDiagramRpcManager implements BIDiagramAPI {
     OpenConfigTomlRequest: (params: OpenConfigTomlRequest) => Promise<void>;
 
@@ -312,6 +310,79 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
                 })
                 .catch((error) => {
                     console.log(">>> error fetching available nodes from ls", error);
+                    return new Promise((resolve) => {
+                        resolve(undefined);
+                    });
+                });
+        });
+    }
+
+
+    async getAvailableModelProviders(params: BIAvailableNodesRequest): Promise<BIAvailableNodesResponse> {
+        console.log(">>> requesting bi available model providers from ls", params);
+        return new Promise((resolve) => {
+            StateMachine.langClient()
+                .getAvailableModelProviders(params)
+                .then((model) => {
+                    console.log(">>> bi available model providers from ls", model);
+                    resolve(model);
+                })
+                .catch((error) => {
+                    console.log(">>> error fetching available model providers from ls", error);
+                    return new Promise((resolve) => {
+                        resolve(undefined);
+                    });
+                });
+        });
+    }
+
+    async getAvailableVectorStores(params: BIAvailableNodesRequest): Promise<BIAvailableNodesResponse> {
+        console.log(">>> requesting bi available vector stores from ls", params);
+        return new Promise((resolve) => {
+            StateMachine.langClient()
+                .getAvailableVectorStores(params)
+                .then((model) => {
+                    console.log(">>> bi available vector stores from ls", model);
+                    resolve(model);
+                })
+                .catch((error) => {
+                    console.log(">>> error fetching available vector stores from ls", error);
+                    return new Promise((resolve) => {
+                        resolve(undefined);
+                    });
+                });
+        }); 
+    }
+
+    async getAvailableEmbeddingProviders(params: BIAvailableNodesRequest): Promise<BIAvailableNodesResponse> {
+        console.log(">>> requesting bi available embedding providers from ls", params);
+        return new Promise((resolve) => {
+            StateMachine.langClient()
+                .getAvailableEmbeddingProviders(params)
+                .then((model) => {
+                    console.log(">>> bi available embedding providers from ls", model);
+                    resolve(model);
+                })
+                .catch((error) => {
+                    console.log(">>> error fetching available embedding providers from ls", error);
+                    return new Promise((resolve) => {
+                        resolve(undefined);
+                    });
+                });
+        });
+    }
+
+    async getAvailableVectorKnowledgeBases(params: BIAvailableNodesRequest): Promise<BIAvailableNodesResponse> {
+        console.log(">>> requesting bi available vector knowledge bases from ls", params);
+        return new Promise((resolve) => {
+            StateMachine.langClient()
+                .getAvailableVectorKnowledgeBases(params)
+                .then((model) => {
+                    console.log(">>> bi available vector knowledge bases from ls", model);
+                    resolve(model);
+                })
+                .catch((error) => {
+                    console.log(">>> error fetching available vector knowledge bases from ls", error);
                     return new Promise((resolve) => {
                         resolve(undefined);
                     });
