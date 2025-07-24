@@ -106,6 +106,7 @@ export interface ExpandedDMModel {
     source: string;
     view: string;
     query?: Query;
+    mapping_fields?: Record<string, any>;
 }
 
 export interface DMModel {
@@ -116,6 +117,7 @@ export interface DMModel {
     mappings: Mapping[];
     view: string;
     query?: Query;
+    mapping_fields?: Record<string, any>;
 }
 
 export interface ModelState {

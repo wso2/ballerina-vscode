@@ -17,7 +17,7 @@
  */
 
 import { ArrayTypeDesc, FunctionDefinition, ModulePart, QualifiedNameReference, RequiredParam, STKindChecker } from "@wso2/syntax-tree";
-import { ErrorCode, FormField, STModification, SyntaxTree, Attachment, AttachmentStatus, RecordDefinitonObject, ParameterMetadata, ParameterDefinitions, MappingFileRecord, keywords, AIMachineEventType, DiagnosticEntry } from "@wso2/ballerina-core";
+import { ErrorCode, FormField, STModification, SyntaxTree, Attachment, AttachmentStatus, RecordDefinitonObject, ParameterMetadata, ParameterDefinitions, MappingFileRecord, keywords, AIMachineEventType, DiagnosticEntry, InlineDataMapperModelResponse } from "@wso2/ballerina-core";
 import { QuickPickItem, QuickPickOptions, window, workspace } from 'vscode';
 import { UNKNOWN_ERROR } from '../../views/ai-panel/errorCodes';
 
@@ -34,7 +34,6 @@ import {
     TOO_MANY_REQUESTS,
     INVALID_RECORD_UNION_TYPE
 } from "../../views/ai-panel/errorCodes";
-import { hasStopped } from "./rpc-manager";
 // import { StateMachineAI } from "../../views/ai-panel/aiMachine";
 import path from "path";
 import * as fs from 'fs';
@@ -385,32 +384,14 @@ export async function generateBallerinaCode(response: object, parameterDefinitio
         let parameters: string[] = response["parameters"];
         let paths = parameters[0].split(".");
 
-        if (paths.length === 1) {
-            const paramName = parameters[0];
+        let path = await getMappingString(response, parameterDefinitions, nestedKey, recordTypes, unionEnumIntersectionTypes, arrayRecords, arrayEnumUnion, nestedKeyArray);
 
-            let existsInAny = [
-                ...parameterDefinitions["constants"],
-                ...parameterDefinitions["configurables"],
-                ...parameterDefinitions["variables"]
-            ].some(item => item.name === paramName);
-
-            if (!existsInAny) {
-                return {};
-            } 
-            return { [nestedKey]: parameters[0] };
-        } else {
-            let path = await getMappingString(response, parameterDefinitions, nestedKey, recordTypes, unionEnumIntersectionTypes, arrayRecords, arrayEnumUnion, nestedKeyArray);
-            if (isErrorCode(path)) {
-                return {};
-            }
-            if (path === "") {
-                return {};
-            }
-
-            let recordFieldName: string = nestedKey || paths[1];
-
-            return { [recordFieldName]: path };
+        if (isErrorCode(path) || path === "") {
+            return {};
         }
+
+        let recordFieldName: string = paths.length === 1 ? nestedKey : (nestedKey || paths[1]);
+        return { [recordFieldName]: path };
     } else {
         let objectKeys = Object.keys(response);
         for (let index = 0; index < objectKeys.length; index++) {
@@ -489,8 +470,12 @@ async function getMappingString(mapping: object, parameterDefinitions: Parameter
     // Retrieve inputType
     if (paths.length > 2) {
         modifiedInput = await getNestedType(paths.slice(1), parameterDefinitions["inputMetadata"][recordObjectName]);
-    } else {
+    } else if (paths.length === 2) {
         modifiedInput = parameterDefinitions["inputMetadata"][recordObjectName]["fields"][paths[1]];
+    } else {
+        modifiedInput = parameterDefinitions["configurables"][recordObjectName] ||
+                parameterDefinitions["constants"][recordObjectName] ||
+                parameterDefinitions["variables"][recordObjectName] || parameterDefinitions["inputMetadata"][recordObjectName]["fields"][paths[0]];
     }
 
     // Resolve output metadata
@@ -1516,6 +1501,26 @@ export async function mappingFileParameterDefinitions(file: Attachment, paramete
     };
 }
 
+export async function mappingFileInlineDataMapperModel(file: Attachment, inlineDataMapperResponse: ErrorCode | InlineDataMapperModelResponse): Promise<InlineDataMapperModelResponse | ErrorCode> {
+    if (!file) { return inlineDataMapperResponse; }
+
+    const convertedFile = convertBase64ToBlob(file);
+    if (!convertedFile) { throw new Error("Invalid file content"); }
+
+    let mappingFile = await getMappingFromFile(convertedFile);
+    if (isErrorCode(mappingFile)) { return mappingFile as ErrorCode; }
+
+    mappingFile = mappingFile as MappingFileRecord;
+
+    return {
+        ...(inlineDataMapperResponse as InlineDataMapperModelResponse),
+        mappingsModel: {
+            ...(inlineDataMapperResponse as InlineDataMapperModelResponse).mappingsModel,
+            mapping_fields: mappingFile.mapping_fields,
+        }
+    };
+}
+
 export async function typesFileParameterDefinitions(file: Attachment): Promise<string | ErrorCode> {
     if (!file) { throw new Error("File is undefined"); }
 
@@ -1571,10 +1576,8 @@ export async function fetchWithTimeout(url, options, timeout = 100000): Promise<
         clearTimeout(id);
         return response;
     } catch (error: any) {
-        if (error.name === 'AbortError' && !hasStopped) {
+        if (error.name === 'AbortError') {
             return TIMEOUT;
-        } else if (error.name === 'AbortError' && hasStopped) {
-            return USER_ABORTED;
         } else {
             console.error(error);
             return SERVER_ERROR;
