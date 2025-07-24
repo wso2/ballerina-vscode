@@ -146,7 +146,15 @@ export const clearAuthCredentials = async (): Promise<void> => {
 // ==================================
 // BI Copilot Auth Utils
 // ==================================
-export const getAccessToken = async (): Promise<{ token: string, loginMethod: LoginMethod } | undefined> => {
+export const getLoginMethod = async (): Promise<LoginMethod | undefined> => {
+    const credentials = await getAuthCredentials();
+    if (credentials) {
+        return credentials.loginMethod;
+    }
+    return undefined;
+};
+
+export const getAccessToken = async (): Promise<string | undefined> => {
     return new Promise(async (resolve, reject) => {
         try {
             const credentials = await getAuthCredentials();
@@ -164,7 +172,7 @@ export const getAccessToken = async (): Promise<{ token: string, loginMethod: Lo
                             if (decoded.exp && decoded.exp < now) {
                                 finalToken = await getRefreshedAccessToken();
                             }
-                            resolve({ token: finalToken, loginMethod: LoginMethod.BI_INTEL });
+                            resolve(finalToken);
                             return;
                         } catch (err) {
                             if (axios.isAxiosError(err)) {
@@ -179,7 +187,7 @@ export const getAccessToken = async (): Promise<{ token: string, loginMethod: Lo
                         }
 
                     case LoginMethod.ANTHROPIC_KEY:
-                        resolve({ token: credentials.secrets.apiKey, loginMethod: LoginMethod.ANTHROPIC_KEY });
+                        resolve(credentials.secrets.apiKey);
                         return;
 
                     default:

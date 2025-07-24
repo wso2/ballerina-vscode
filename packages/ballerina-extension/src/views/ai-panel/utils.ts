@@ -22,7 +22,7 @@ import { createAnthropic } from '@ai-sdk/anthropic';
 import { generateText } from 'ai';
 import { getAuthUrl, getLogoutUrl } from './auth';
 import { extension } from '../../BalExtensionContext';
-import { getAccessToken, clearAuthCredentials, storeAuthCredentials } from '../../utils/ai/auth';
+import { getAccessToken, clearAuthCredentials, storeAuthCredentials, getLoginMethod } from '../../utils/ai/auth';
 
 const LEGACY_ACCESS_TOKEN_SECRET_KEY = 'BallerinaAIUser';
 const LEGACY_REFRESH_TOKEN_SECRET_KEY = 'BallerinaAIRefreshToken';
@@ -33,12 +33,13 @@ export const checkToken = async (): Promise<{ token: string; loginMethod: LoginM
             // Clean up any legacy tokens on initialization
             await cleanupLegacyTokens();
 
-            const result = await getAccessToken();
-            if (!result) {
+            const token = await getAccessToken();
+            const loginMethod = await getLoginMethod();
+            if (!token || !loginMethod) {
                 resolve(undefined);
                 return;
             }
-            resolve({ token: result.token, loginMethod: result.loginMethod });
+            resolve({ token, loginMethod });
         } catch (error) {
             reject(error);
         }
@@ -62,8 +63,8 @@ const cleanupLegacyTokens = async (): Promise<void> => {
 export const logout = async (isUserLogout: boolean = true) => {
     // For user-initiated logout, check if we need to redirect to SSO logout
     if (isUserLogout) {
-        const result = await getAccessToken();
-        if (result && result.loginMethod === LoginMethod.BI_INTEL) {
+        const { token, loginMethod } = await checkToken();
+        if (token && loginMethod === LoginMethod.BI_INTEL) {
             const logoutURL = getLogoutUrl();
             vscode.env.openExternal(vscode.Uri.parse(logoutURL));
         }

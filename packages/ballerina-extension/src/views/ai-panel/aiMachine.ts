@@ -296,7 +296,7 @@ const getTokenAfterAuth = async () => {
         throw new Error('No authentication credentials found');
     }
     return { token: result, loginMethod: LoginMethod.BI_INTEL };
-}
+};
 
 const aiStateService = interpret(aiMachine.withConfig({
     services: {
