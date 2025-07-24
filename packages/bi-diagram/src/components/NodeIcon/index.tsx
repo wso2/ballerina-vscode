@@ -37,7 +37,6 @@ import {
 } from "../../resources";
 import { NodeKind } from "../../utils/types";
 import { Icon } from "@wso2/ui-toolkit";
-import { DefaultLlmIcon } from "../../resources/icons/DefaultLlmIcon";
 
 // VSCode chart colors - guaranteed to be available in all webviews
 // These colors are visually distinct and work well in both light and dark themes
@@ -78,8 +77,19 @@ const NODE_COLOR_GROUPS = {
     ],
     
     // AI/NP function group - cyan variants
-    CYAN_FUNCTION_GROUP: ["AGENT_CALL", "NP_FUNCTION", "NP_FUNCTION_CALL"],
-    
+    CYAN_FUNCTION_GROUP: [
+        "AGENT_CALL",
+        "NP_FUNCTION",
+        "NP_FUNCTION_CALL",
+        "MODEL_PROVIDER",
+        "VECTOR_KNOWLEDGE_BASE",
+        "VECTOR_STORE",
+        "EMBEDDING_PROVIDER",
+        "MODEL_PROVIDERS",
+        "VECTOR_KNOWLEDGE_BASES",
+        "VECTOR_STORES",
+        "EMBEDDING_PROVIDERS",
+    ],    
     // Data related - magenta variants
     MAGENTA_DATA_GROUP: ["VARIABLE", "NEW_DATA", "UPDATE_DATA", "ASSIGN"],
     
@@ -211,7 +221,7 @@ const NODE_ICONS: Record<NodeKind, React.FC<{ size: number; color: string }>> = 
     FAIL: ({ size, color }) => <Icon name="bi-error" sx={{ fontSize: size, width: size, height: size, color }} />,
     RETRY: ({ size, color }) => <Icon name="bi-retry" sx={{ fontSize: size, width: size, height: size, color }} />,
     AGENT_CALL: ({ size, color }) => <Icon name="bi-ai-agent" sx={{ fontSize: size, width: size, height: size, color }} />,
-    MODEL_PROVIDERS: ({ size, color }) => <DefaultLlmIcon />,
+    MODEL_PROVIDERS: ({ size, color }) => <Icon name="bi-ai-model" sx={{ fontSize: size, width: size, height: size, color }} />,
     VECTOR_KNOWLEDGE_BASES: ({ size, color }) => <Icon name="bi-brain" sx={{ fontSize: size, width: size, height: size, color }} />,
     VECTOR_STORES: ({ size, color }) => <Icon name="bi-db" sx={{ fontSize: size, width: size, height: size, color }} />,
     EMBEDDING_PROVIDERS: ({ size, color }) => <Icon name="bi-doc" sx={{ fontSize: size, width: size, height: size, color }} />,
