@@ -1422,11 +1422,11 @@ export interface FunctionNodeResponse {
 
 // <-------- AI Agent Related ------->
 
-export interface AIAgentOrgRequest {
+export interface AiModuleOrgRequest {
     projectPath: string;
 }
 
-export interface AIAgentOrgResponse {
+export interface AiModuleOrgResponse {
     orgName: string;
 }
 
@@ -1580,7 +1580,8 @@ export enum ARTIFACT_TYPE {
     Types = "Types",
     NaturalFunctions = "Natural Functions",
     DataMappers = "Data Mappers",
-    Configurations = "Configurations"
+    Configurations = "Configurations",
+    Variables = "Variables"
 }
 
 export interface Artifacts {

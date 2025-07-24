@@ -27,7 +27,7 @@ import { TitleBar } from '../../../components/TitleBar';
 import { TopNavigationBar } from '../../../components/TopNavigationBar';
 import { RelativeLoader } from '../../../components/RelativeLoader';
 import { FormHeader } from '../../../components/FormHeader';
-import { getAgentOrg, getNodeTemplate } from './utils';
+import { getAiModuleOrg, getNodeTemplate } from './utils';
 import { cloneDeep } from 'lodash';
 import { AI, BALLERINA } from '../../../constants';
 
@@ -85,7 +85,7 @@ export function AIChatAgentWizard(props: AIChatAgentWizardProps) {
     ];
 
     const agentFilePath = useRef<string>("");
-    const agentOrg = useRef<string>("");
+    const aiModuleOrg = useRef<string>("");
     const agentCallEndOfFile = useRef<LinePosition | null>(null);
     const agentEndOfFile = useRef<LinePosition | null>(null);
     const mainFilePath = useRef<string>("");
@@ -95,7 +95,7 @@ export function AIChatAgentWizard(props: AIChatAgentWizardProps) {
         const filePath = await rpcClient.getVisualizerLocation();
         agentFilePath.current = Utils.joinPath(URI.file(filePath.projectUri), "agents.bal").fsPath;
         // get agent org
-        agentOrg.current = await getAgentOrg(rpcClient);
+        aiModuleOrg.current = await getAiModuleOrg(rpcClient);
         // fetch agent node
         await fetchAgentNode();
         // get end of files
@@ -114,7 +114,7 @@ export function AIChatAgentWizard(props: AIChatAgentWizardProps) {
 
     useEffect(() => {
         initWizard().then(() => {
-            rpcClient.getServiceDesignerRpcClient().getListenerModel({ moduleName: type, orgName: agentOrg.current }).then(res => {
+            rpcClient.getServiceDesignerRpcClient().getListenerModel({ moduleName: type, orgName: aiModuleOrg.current }).then(res => {
                 setListenerModel(res.listener);
             });
         }).catch(error => {
@@ -125,7 +125,7 @@ export function AIChatAgentWizard(props: AIChatAgentWizardProps) {
 
     const fetchAgentNode = async () => {
         // get the agent node
-        const allAgents = await rpcClient.getAIAgentRpcClient().getAllAgents({ filePath: agentFilePath.current, orgName: agentOrg.current });
+        const allAgents = await rpcClient.getAIAgentRpcClient().getAllAgents({ filePath: agentFilePath.current, orgName: aiModuleOrg.current });
         console.log(">>> allAgents", allAgents);
         if (!allAgents.agents.length) {
             console.log(">>> no agents found");
@@ -139,7 +139,7 @@ export function AIChatAgentWizard(props: AIChatAgentWizardProps) {
         // get all llm models
         const allModels = await rpcClient
             .getAIAgentRpcClient()
-            .getAllModels({ agent: agentCodeData.object, filePath: agentFilePath.current, orgName: agentOrg.current });
+            .getAllModels({ agent: agentCodeData.object, filePath: agentFilePath.current, orgName: aiModuleOrg.current });
         console.log(">>> allModels", allModels);
         // get openai model
         const defaultModel = allModels.models.find((model) => model.object === "OpenAiProvider" || (model.org === BALLERINA && model.module === AI));
@@ -197,7 +197,7 @@ export function AIChatAgentWizard(props: AIChatAgentWizardProps) {
                 filePath: "",
                 moduleName: type,
                 listenerName: listenerName,
-                orgName: agentOrg.current,
+                orgName: aiModuleOrg.current,
             }).then(res => {
                 const serviceModel = res.service;
                 console.log("Service Model: ", serviceModel);

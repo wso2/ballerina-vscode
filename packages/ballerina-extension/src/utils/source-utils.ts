@@ -208,8 +208,8 @@ export async function injectAgentCode(name: string, serviceFile: string, injecti
             `            string stringResult = check _${name}Agent.run(request.message, request.sessionId); 
             return {message: stringResult};
 `
-            : `
-        string stringResult = check _${name}Agent->run(request.message, request.sessionId);
+            :
+            `        string stringResult = check _${name}Agent->run(request.message, request.sessionId);
         return {message: stringResult};
 `;
     serviceEdit.insert(Uri.file(serviceFile), new Position(injectionPosition.line, 0), serviceSourceCode);

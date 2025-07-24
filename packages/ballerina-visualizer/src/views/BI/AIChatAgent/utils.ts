@@ -36,13 +36,13 @@ export const getNodeTemplate = async (
     return response?.flowNode;
 };
 
-export const getAgentOrg = async (rpcClient: BallerinaRpcClient) => {
+export const getAiModuleOrg = async (rpcClient: BallerinaRpcClient) => {
     const filePath = await rpcClient.getVisualizerLocation();
-    const agentOrgResponse = await rpcClient
+    const aiModuleOrgResponse = await rpcClient
         .getAIAgentRpcClient()
-        .getAgentOrg({ projectPath: filePath.projectUri });
-    console.log(">>> agent org", agentOrgResponse.orgName);
-    return agentOrgResponse.orgName;
+        .getAiModuleOrg({ projectPath: filePath.projectUri });
+    console.log(">>> agent org", aiModuleOrgResponse.orgName);
+    return aiModuleOrgResponse.orgName;
 }
 
 export const getAgentFilePath = async (rpcClient: BallerinaRpcClient) => {
