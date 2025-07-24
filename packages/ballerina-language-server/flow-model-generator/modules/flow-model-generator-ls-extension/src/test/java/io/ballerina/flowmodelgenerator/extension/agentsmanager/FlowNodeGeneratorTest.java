@@ -24,8 +24,8 @@ import io.ballerina.flowmodelgenerator.extension.request.FlowModelGeneratorReque
 import io.ballerina.modelgenerator.commons.AbstractLSTest;
 import io.ballerina.tools.text.LinePosition;
 import org.testng.Assert;
-import org.testng.annotations.AfterClass;
-import org.testng.annotations.BeforeClass;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
@@ -84,12 +84,12 @@ public class FlowNodeGeneratorTest extends AbstractLSTest {
         }
     }
 
-    @AfterClass
+    @AfterMethod
     public void shutDownLS() {
         this.shutDownLanguageServer();
     }
 
-    @BeforeClass
+    @BeforeMethod
     public void startLS() {
         this.startLanguageServer();
     }

@@ -88,7 +88,6 @@ subprojects {
         ballerinaStdLibs "io.ballerina.stdlib:http-ballerina:${stdlibHttpVersion}"
         ballerinaStdLibs "io.ballerina.stdlib:graphql-ballerina:${stdlibGraphqlVersion}"
         ballerinaStdLibs "io.ballerina.stdlib:sql-ballerina:${stdLibSqlVersion}"
-        ballerinaStdLibs "io.ballerina.stdlib:ai-ballerina:${stdLibAiVersion}"
         ballerinaStdLibs "io.ballerina.stdlib:grpc-ballerina:${stdlibGrpcVersion}"
         ballerinaStdLibs "io.ballerina:observe-ballerina:${observeInternalVersion}"
         ballerinaStdLibs "io.ballerina.stdlib:observe-ballerina:${observeVersion}"
@@ -112,6 +111,26 @@ def pullBallerinaModule(String packageName, String version = null, String orgNam
             def errOutput = new ByteArrayOutputStream()
             def result = exec {
                 ignoreExitValue = true
+
+                // Check if the package exists in the ballerina user home
+                def centralRepoDir = new File(System.getProperty("user.home"), ".ballerina/repositories/central.ballerina.io/bala/${orgName}")
+                if (centralRepoDir.exists()) {
+                    def pkgDir = new File(centralRepoDir, packageName)
+                    if (pkgDir.exists()) {
+                        if (version != null) {
+                            // Check if the specific version exists
+                            def versionDir = new File(pkgDir, version)
+                            if (versionDir.exists()) {
+                                commandLine 'echo', "Package ${packageName} version ${version} exists"
+                                return
+                            }
+                        } else {
+                            // If no version is specified, check for any version
+                            commandLine 'echo', "Package ${packageName} exists"
+                            return
+                        }
+                    }
+                }
 
                 def balPullCommand = "bal pull ${orgName}/${packageName}${version ? ':' + version : ''} --sticky=false"
                 if (org.gradle.internal.os.OperatingSystem.current().isWindows()) {
