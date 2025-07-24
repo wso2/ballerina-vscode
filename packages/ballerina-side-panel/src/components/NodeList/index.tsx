@@ -202,29 +202,40 @@ namespace S {
         margin-top: 20px;
     `;
 
-    export const ShowMoreContainer = styled.div`
+    export const AdvancedSubcategoryContainer = styled.div`
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        margin-top: 8px;
+    `;
+
+    export const AdvancedSubcategoryHeader = styled.div`
         display: flex;
         flex-direction: row;
-        justify-content: center;
+        justify-content: space-between;
         align-items: center;
         width: 100%;
-        height: 35px;
-        cursor: pointer;
-        border: 1px dashed ${ThemeColors.OUTLINE_VARIANT};
+        padding: 4px 12px;
         border-radius: 5px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        border: 1px solid transparent;
+
         &:hover {
             background-color: ${ThemeColors.PRIMARY_CONTAINER};
-            border: 1px dashed ${ThemeColors.PRIMARY};
-            border-radius: 5px;
+        }
+
+        &:hover > div:first-of-type {
+            opacity: 1;
+            color: ${ThemeColors.PRIMARY};
         }
     `;
 
-    export const ShowMoreTitle = styled.div`
-        white-space: nowrap;
-        justify-items: center;
-        align-items: center;
-        color: ${ThemeColors.ON_SURFACE_VARIANT};
+    export const AdvancedSubTitle = styled.div`
+        font-size: 12px;
         opacity: 0.7;
+        color: ${ThemeColors.ON_SURFACE_VARIANT};
+        transition: all 0.2s ease;
     `;
 }
 
@@ -236,6 +247,8 @@ interface NodeListProps {
     onSearchTextChange?: (text: string) => void;
     onAddConnection?: () => void;
     onAddFunction?: () => void;
+    onAdd?: () => void;
+    addButtonLabel?: string;
     onBack?: () => void;
     onClose?: () => void;
     searchPlaceholder?: string;
@@ -250,21 +263,27 @@ export function NodeList(props: NodeListProps) {
         onSearchTextChange,
         onAddConnection,
         onAddFunction,
+        onAdd,
+        addButtonLabel,
         onBack,
         onClose,
-        searchPlaceholder
+        searchPlaceholder,
     } = props;
 
     const [searchText, setSearchText] = useState<string>("");
     const [showGeneratePanel, setShowGeneratePanel] = useState(false);
     const [isSearching, setIsSearching] = useState(false);
+    const [expandedMoreSections, setExpandedMoreSections] = useState<Record<string, boolean>>({});
     const { rpcClient } = useRpcContext();
     const [isNPSupported, setIsNPSupported] = useState(false);
 
     useEffect(() => {
-        rpcClient.getCommonRpcClient().isNPSupported().then((supported) => {
-            setIsNPSupported(supported);
-        });
+        rpcClient
+            .getCommonRpcClient()
+            .isNPSupported()
+            .then((supported) => {
+                setIsNPSupported(supported);
+            });
     }, []);
 
     useEffect(() => {
@@ -289,6 +308,13 @@ export function NodeList(props: NodeListProps) {
         setIsSearching(false);
     }, [categories]);
 
+    const toggleMoreSection = (sectionKey: string) => {
+        setExpandedMoreSections((prev) => ({
+            ...prev,
+            [sectionKey]: !prev[sectionKey],
+        }));
+    };
+
     const handleAddNode = (node: Node, category?: string) => {
         onSelect(node.id, { node: node.metadata, category });
     };
@@ -305,54 +331,105 @@ export function NodeList(props: NodeListProps) {
         }
     };
 
-    const getNodesContainer = (nodes: Node[]) => (
-        <S.Grid columns={2}>
-            {nodes.map((node, index) => {
-                if (["NP_FUNCTION"].includes(node.id) && !isNPSupported) {
-                    return;
-                }
+    const handleAdd = () => {
+        if (onAdd) {
+            onAdd();
+        }
+    };
 
-                return (
-                    <S.Component
-                        key={node.id + index}
-                        enabled={node.enabled}
-                        onClick={() => handleAddNode(node)}
-                        title={node.label}
-                    >
-                        <S.IconContainer>{node.icon || <LogIcon />}</S.IconContainer>
-                        <S.ComponentTitle
-                            ref={(el) => {
-                                if (el && el.scrollWidth > el.clientWidth) {
-                                    el.style.fontSize = "13px";
-                                    el.style.wordBreak = "break-word";
-                                    el.style.whiteSpace = "normal";
-                                }
-                            }}
-                        >
-                            {node.label}
-                        </S.ComponentTitle>
-                    </S.Component>
-                );
-            })}
-        </S.Grid>
-    );
+    const getNodesContainer = (items: (Node | Category)[], parentCategoryTitle?: string) => {
+        const nodes = items.filter((item): item is Node => "id" in item && !("title" in item));
+        const subcategories = items.filter((item): item is Category => "title" in item && "items" in item);
+
+        return (
+            <>
+                <S.Grid columns={2}>
+                    {nodes.map((node, index) => {
+                        if (["NP_FUNCTION"].includes(node.id) && !isNPSupported) {
+                            return;
+                        }
+
+                        return (
+                            <S.Component
+                                key={node.id + index}
+                                enabled={node.enabled}
+                                onClick={() => handleAddNode(node)}
+                                title={node.label}
+                            >
+                                <S.IconContainer>{node.icon || <LogIcon />}</S.IconContainer>
+                                <S.ComponentTitle
+                                    ref={(el) => {
+                                        if (el && el.scrollWidth > el.clientWidth) {
+                                            el.style.fontSize = "13px";
+                                            el.style.wordBreak = "break-word";
+                                            el.style.whiteSpace = "normal";
+                                        }
+                                    }}
+                                >
+                                    {node.label}
+                                </S.ComponentTitle>
+                            </S.Component>
+                        );
+                    })}
+                </S.Grid>
+                {subcategories.map((subcategory, index) => {
+                    const isMoreSubcategory = subcategory.title === "More";
+
+                    if (isMoreSubcategory) {
+                        const sectionKey = `${parentCategoryTitle}-${subcategory.title}`;
+                        const isExpanded = expandedMoreSections[sectionKey] || searchText?.length > 0;
+
+                        return (
+                            <S.AdvancedSubcategoryContainer key={subcategory.title + index}>
+                                <S.AdvancedSubcategoryHeader onClick={() => toggleMoreSection(sectionKey)}>
+                                    <S.AdvancedSubTitle>{subcategory.title}</S.AdvancedSubTitle>
+                                    <Button
+                                        appearance="icon"
+                                        sx={{
+                                            transition: "all 0.2s ease",
+                                            "&:hover": {
+                                                backgroundColor: "transparent !important",
+                                            },
+                                        }}
+                                    >
+                                        <Codicon name={isExpanded ? "chevron-up" : "chevron-down"} />
+                                    </Button>
+                                </S.AdvancedSubcategoryHeader>
+                                {isExpanded && <div>{getNodesContainer(subcategory.items, parentCategoryTitle)}</div>}
+                            </S.AdvancedSubcategoryContainer>
+                        );
+                    } else {
+                        return (
+                            <S.CategoryRow key={subcategory.title + index} showBorder={false}>
+                                <S.Row>
+                                    <Tooltip content={subcategory.description}>
+                                        <S.SubTitle>{subcategory.title}</S.SubTitle>
+                                    </Tooltip>
+                                </S.Row>
+                                {subcategory.items.length > 0 &&
+                                    getNodesContainer(subcategory.items, parentCategoryTitle)}
+                            </S.CategoryRow>
+                        );
+                    }
+                })}
+            </>
+        );
+    };
 
     const getConnectionContainer = (categories: Category[]) => (
         <S.Grid columns={1}>
             {categories.map((category, index) => (
-                // <Tooltip content={category.description} key={category.title + index + "tooltip"}>
                 <GroupList
                     key={category.title + index + "tooltip"}
                     category={category}
                     expand={searchText?.length > 0}
                     onSelect={handleAddNode}
                 />
-                // </Tooltip>
             ))}
         </S.Grid>
     );
 
-    const getCategoryContainer = (groups: Category[], isSubCategory = false) => {
+    const getCategoryContainer = (groups: Category[], isSubCategory = false, parentCategoryTitle?: string) => {
         const callFunctionNode = groups
             .flatMap((group) => group?.items)
             .find((item) => "id" in item && item.id === "FUNCTION");
@@ -364,14 +441,19 @@ export function NodeList(props: NodeListProps) {
                     const isDataMapperCategory = isProjectFunctionsCategory && title === "Data Mappers";
                     const isAgentCategory = group.title === "Agents";
                     const isNpFunctionCategory = isProjectFunctionsCategory && title === "Natural Functions";
-                    if (
-                        (!group || group.items.length === 0) &&
-                        !isConnectionCategory &&
-                        !isProjectFunctionsCategory &&
-                        !isAgentCategory &&
-                        !isNpFunctionCategory
-                    ) {
-                        return null;
+                    const isModelProviderCategory = group.title === "Model Providers";
+                    // Hide categories that don't have items, except for special categories that can add items
+                    if (!group || group.items.length === 0) {
+                        // Only show empty categories if they have add functionality
+                        if (
+                            !isConnectionCategory &&
+                            !isProjectFunctionsCategory &&
+                            !isAgentCategory &&
+                            !isNpFunctionCategory &&
+                            !isModelProviderCategory
+                        ) {
+                            return null;
+                        }
                     }
                     if (searchText && group.items.length === 0) {
                         return null;
@@ -380,6 +462,7 @@ export function NodeList(props: NodeListProps) {
                     if (!onAddFunction && isProjectFunctionsCategory && group.items?.length === 0) {
                         return null;
                     }
+
                     return (
                         <S.CategoryRow key={group.title + index} showBorder={!isSubCategory}>
                             <S.Row>
@@ -391,49 +474,47 @@ export function NodeList(props: NodeListProps) {
                                 {!isSubCategory && (
                                     <>
                                         <S.Title>{group.title}</S.Title>
-                                        {(isConnectionCategory || isProjectFunctionsCategory || isAgentCategory) && (
-                                            <>
-                                                {onAddConnection && isConnectionCategory && (
+                                        <>
+                                            {onAddConnection && isConnectionCategory && (
+                                                <Button
+                                                    appearance="icon"
+                                                    tooltip="Add Connection"
+                                                    onClick={handleAddConnection}
+                                                >
+                                                    <Codicon name="add" />
+                                                </Button>
+                                            )}
+                                            {onAddFunction && isDataMapperCategory && (
+                                                <Button
+                                                    appearance="icon"
+                                                    tooltip="Create Data Mapper"
+                                                    onClick={handleAddFunction}
+                                                >
+                                                    <Codicon name="add" />
+                                                </Button>
+                                            )}
+                                            {onAddFunction &&
+                                                isProjectFunctionsCategory &&
+                                                !isDataMapperCategory &&
+                                                !isNpFunctionCategory && (
                                                     <Button
                                                         appearance="icon"
-                                                        tooltip="Add Connection"
-                                                        onClick={handleAddConnection}
-                                                    >
-                                                        <Codicon name="add" />
-                                                    </Button>
-                                                )}
-                                                {onAddFunction && isDataMapperCategory && (
-                                                    <Button
-                                                        appearance="icon"
-                                                        tooltip="Create Data Mapper"
+                                                        tooltip="Create Function"
                                                         onClick={handleAddFunction}
                                                     >
                                                         <Codicon name="add" />
                                                     </Button>
                                                 )}
-                                                {onAddFunction &&
-                                                    isProjectFunctionsCategory &&
-                                                    !isDataMapperCategory &&
-                                                    !isNpFunctionCategory && (
-                                                        <Button
-                                                            appearance="icon"
-                                                            tooltip="Create Function"
-                                                            onClick={handleAddFunction}
-                                                        >
-                                                            <Codicon name="add" />
-                                                        </Button>
-                                                    )}
-                                                {onAddFunction && isNpFunctionCategory && (
-                                                    <Button
-                                                        appearance="icon"
-                                                        tooltip="Create Natural Function"
-                                                        onClick={handleAddFunction}
-                                                    >
-                                                        <Codicon name="add" />
-                                                    </Button>
-                                                )}
-                                            </>
-                                        )}
+                                            {onAddFunction && isNpFunctionCategory && (
+                                                <Button
+                                                    appearance="icon"
+                                                    tooltip="Create Natural Function"
+                                                    onClick={handleAddFunction}
+                                                >
+                                                    <Codicon name="add" />
+                                                </Button>
+                                            )}
+                                        </>
                                     </>
                                 )}
                             </S.Row>
@@ -463,28 +544,53 @@ export function NodeList(props: NodeListProps) {
                                         }`}
                                     </S.HighlightedButton>
                                 )}
-                            {group.items.length > 0 && "id" in group.items.at(0)
-                                ? getNodesContainer(group.items as Node[])
+                            {onAdd && addButtonLabel && group.items.length === 0 && !searchText && !isSearching && (
+                                <S.HighlightedButton onClick={handleAdd}>
+                                    <Codicon name="add" iconSx={{ fontSize: 12 }} />
+                                    {addButtonLabel}
+                                </S.HighlightedButton>
+                            )}
+                            {group.items.length > 0 &&
+                            (group.items.some((item) => "id" in item && !("title" in item)) ||
+                                group.items.some((item) => "title" in item && "items" in item))
+                                ? getNodesContainer(
+                                      group.items as (Node | Category)[],
+                                      !isSubCategory ? group.title : parentCategoryTitle
+                                  )
                                 : (onAddConnection && isConnectionCategory) ||
-                                  (onAddFunction && isProjectFunctionsCategory)
+                                  (onAddFunction && isProjectFunctionsCategory) ||
+                                  (onAdd && isModelProviderCategory)
                                 ? getConnectionContainer(group.items as Category[])
-                                : getCategoryContainer(group.items as Category[], true)}
+                                : getCategoryContainer(
+                                      group.items as Category[],
+                                      true,
+                                      !isSubCategory ? group.title : parentCategoryTitle
+                                  )}
                         </S.CategoryRow>
                     );
                 })}
                 {callFunctionNode && (
-                    <S.CategoryRow key={"showMoreFunctions"} showBorder={false}>
-                        <S.ShowMoreContainer onClick={() => handleAddNode(callFunctionNode as Node)}>
-                            <S.ShowMoreTitle>Show More Functions</S.ShowMoreTitle>
-                        </S.ShowMoreContainer>
-                    </S.CategoryRow>
+                    <S.AdvancedSubcategoryContainer key={"showMoreFunctions"}>
+                        <S.AdvancedSubcategoryHeader onClick={() => handleAddNode(callFunctionNode as Node)}>
+                            <S.AdvancedSubTitle>Show More Functions</S.AdvancedSubTitle>
+                            <Button
+                                appearance="icon"
+                                sx={{
+                                    transition: "all 0.2s ease",
+                                    "&:hover": {
+                                        backgroundColor: "transparent !important",
+                                    },
+                                }}
+                            >
+                                <Codicon name="chevron-right" />
+                            </Button>
+                        </S.AdvancedSubcategoryHeader>
+                    </S.AdvancedSubcategoryContainer>
                 )}
             </>
         );
 
-        // Check if the content is empty
         const isEmpty = React.Children.toArray(content.props.children).every((child) => child === null);
-
         return isEmpty ? <div style={{ paddingTop: "10px" }}>No matching results found</div> : content;
     };
 
@@ -492,13 +598,23 @@ export function NodeList(props: NodeListProps) {
     const filterItems = (items: Item[]): Item[] => {
         return items
             .map((item) => {
-                if ("items" in item) {
+                if ("items" in item && "title" in item) {
+                    // This is a Category (like "More")
                     const filteredItems = filterItems(item.items);
-                    return {
-                        ...item,
-                        items: filteredItems,
-                    };
-                } else {
+                    const categoryMatches =
+                        item.title.toLowerCase().includes(searchText.toLowerCase()) ||
+                        (item.description?.toLowerCase() || "").includes(searchText.toLowerCase());
+
+                    // Keep the category if it matches or has matching items
+                    if (categoryMatches || filteredItems.length > 0) {
+                        return {
+                            ...item,
+                            items: filteredItems,
+                        };
+                    }
+                    return null;
+                } else if ("id" in item && "label" in item) {
+                    // This is a Node
                     const lowerCaseTitle = item.label.toLowerCase();
                     const lowerCaseDescription = item.description?.toLowerCase() || "";
                     const lowerCaseSearchText = searchText.toLowerCase();
@@ -508,9 +624,11 @@ export function NodeList(props: NodeListProps) {
                     ) {
                         return item;
                     }
+                    return null;
                 }
+                return null;
             })
-            .filter(Boolean);
+            .filter(Boolean) as Item[];
     };
 
     const filteredCategories = cloneDeep(categories).map((category) => {
@@ -561,7 +679,7 @@ export function NodeList(props: NodeListProps) {
                     <S.Row>
                         <S.StyledSearchInput
                             value={searchText}
-                            placeholder={searchPlaceholder || "Search"} 
+                            placeholder={searchPlaceholder || "Search"}
                             autoFocus={true}
                             onChange={handleOnSearch}
                             size={60}
