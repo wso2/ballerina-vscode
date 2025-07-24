@@ -350,38 +350,6 @@ export function combineTextEdits(edits: TextEdit[]): TextEdit {
 }
 
 /**
- * Updates the source code with the provided text edits.
- */
-export async function updateSourceCodeWithEdits(params: { textEdits: { [key: string]: TextEdit[] } }): Promise<void> {
-    try {
-        await updateSourceCode(params);
-    } catch (error) {
-        console.error("Failed to update source code:", error);
-        throw new Error("Source code update failed");
-    }
-}
-
-/**
- * Updates the inline data mapper view with fresh code data.
- */
-export async function updateInlineDataMapperViewWithParams(params: InlineAllDataMapperSourceRequest): Promise<void> {
-    try {
-        const finalCodedataResp = await StateMachine
-            .langClient()
-            .getDataMapperCodedata({
-                filePath: params.filePath,
-                codedata: params.codedata,
-                name: params.varName
-            });
-
-        updateInlineDataMapperView(finalCodedataResp.codedata);
-    } catch (error) {
-        console.error("Failed to update inline data mapper view:", error);
-        throw new Error("View update failed");
-    }
-}
-
-/**
  * Determines whether a variable declaration range is completely contained within an artifact's position range.
  */
 function isWithinArtifact(artifactPosition: NodePosition, varDeclRange: ELineRange) {

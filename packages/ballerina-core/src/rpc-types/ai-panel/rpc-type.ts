@@ -17,8 +17,8 @@
  * 
  * THIS FILE INCLUDES AUTO GENERATED CODE
  */
-import { InlineAllDataMapperSourceRequest, InlineDataMapperSourceResponse } from "../../interfaces/extended-lang-client";
-import { AddToProjectRequest, GetFromFileRequest, DeleteFromProjectRequest, GenerateMappingsRequest, GenerateMappingsResponse, NotifyAIMappingsRequest, ProjectSource, ProjectDiagnostics, GenerateMappingsFromRecordRequest, GenerateMappingFromRecordResponse, PostProcessRequest, PostProcessResponse, GenerateTypesFromRecordRequest, GenerateTypesFromRecordResponse, FetchDataRequest, FetchDataResponse, TestGenerationRequest, TestGenerationResponse, TestGenerationMentions, AIChatSummary, DeveloperDocument, RequirementSpecification, LLMDiagnostics, GetModuleDirParams, AIPanelPrompt, AIMachineSnapshot, SubmitFeedbackRequest } from "./interfaces";
+import { InlineAllDataMapperSourceRequest, InlineDataMapperSourceResponse, MetadataWithAttachments } from "../../interfaces/extended-lang-client";
+import { AddToProjectRequest, GetFromFileRequest, DeleteFromProjectRequest, GenerateMappingsRequest, GenerateMappingsResponse, NotifyAIMappingsRequest, ProjectSource, ProjectDiagnostics, GenerateMappingsFromRecordRequest, GenerateMappingFromRecordResponse, PostProcessRequest, PostProcessResponse, GenerateTypesFromRecordRequest, GenerateTypesFromRecordResponse, FetchDataRequest, FetchDataResponse, TestGenerationRequest, TestGenerationResponse, TestGenerationMentions, AIChatSummary, DeveloperDocument, RequirementSpecification, LLMDiagnostics, GetModuleDirParams, AIPanelPrompt, AIMachineSnapshot, SubmitFeedbackRequest, CodeSegment } from "./interfaces";
 import { RequestType, NotificationType } from "vscode-messenger-common";
 
 const _preFix = "ai-panel";
@@ -35,13 +35,13 @@ export const getFileExists: RequestType<GetFromFileRequest, boolean> = { method:
 export const deleteFromProject: NotificationType<DeleteFromProjectRequest> = { method: `${_preFix}/deleteFromProject` };
 export const generateMappings: RequestType<GenerateMappingsRequest, GenerateMappingsResponse> = { method: `${_preFix}/generateMappings` };
 export const notifyAIMappings: RequestType<NotifyAIMappingsRequest, boolean> = { method: `${_preFix}/notifyAIMappings` };
-export const stopAIMappings: RequestType<void, GenerateMappingsResponse> = { method: `${_preFix}/stopAIMappings` };
 export const getProjectSource: RequestType<string, ProjectSource> = { method: `${_preFix}/getProjectSource` };
 export const getShadowDiagnostics: RequestType<ProjectSource, ProjectDiagnostics> = { method: `${_preFix}/getShadowDiagnostics` };
 export const checkSyntaxError: RequestType<ProjectSource, boolean> = { method: `${_preFix}/checkSyntaxError` };
 export const clearInitialPrompt: NotificationType<void> = { method: `${_preFix}/clearInitialPrompt` };
-export const generateInlineMappings: RequestType<void, InlineAllDataMapperSourceRequest> = { method: `${_preFix}/generateInlineMappings` };
-export const stopAIInlineMappings: RequestType<void, InlineDataMapperSourceResponse> = { method: `${_preFix}/stopAIInlineMappings` };
+export const openInlineMappingChatWindow: NotificationType<void> = { method: `${_preFix}/openInlineMappingChatWindow` };
+export const getMappingsFromModel: RequestType<MetadataWithAttachments, InlineAllDataMapperSourceRequest> = { method: `${_preFix}/getMappingsFromModel` };
+export const addInlineCodeSegmentToWorkspace: NotificationType<CodeSegment> = { method: `${_preFix}/addInlineCodeSegmentToWorkspace` };
 export const getGeneratedTests: RequestType<TestGenerationRequest, TestGenerationResponse> = { method: `${_preFix}/getGeneratedTests` };
 export const getTestDiagnostics: RequestType<TestGenerationResponse, ProjectDiagnostics> = { method: `${_preFix}/getTestDiagnostics` };
 export const getServiceSourceForName: RequestType<string, string> = { method: `${_preFix}/getServiceSourceForName` };

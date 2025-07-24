@@ -43,16 +43,14 @@ import {
 } from "@wso2/ballerina-core";
 
 import { openView, StateMachine } from "../../stateMachine";
+
 import {
     buildSourceRequests,
     consolidateTextEdits,
-    getHasStopped,
     processSourceRequests,
     setHasStopped,
     updateAndRefreshDataMapper,
-    updateInlineDataMapperViewWithParams,
-    updateSource,
-    updateSourceCodeWithEdits
+    updateSource
 } from "./utils";
 
 export class InlineDataMapperRpcManager implements InlineDataMapperAPI {
@@ -220,19 +218,7 @@ export class InlineDataMapperRpcManager implements InlineDataMapperAPI {
             const sourceRequests = buildSourceRequests(params);
             const responses = await processSourceRequests(sourceRequests);
             const allTextEdits = consolidateTextEdits(responses, params.mappings.length);
-
-            await updateSourceCodeWithEdits({ textEdits: allTextEdits })
-                .then(async () => {
-                    await updateInlineDataMapperViewWithParams(params);
-                    resolve({ textEdits: allTextEdits });
-                })
-                .catch((error) => {
-                    console.error(">>> error in fetching text edit from mappings", error);
-                    resolve({
-                        error: error instanceof Error ? error.message : "Unknown error occurred",
-                        userAborted: getHasStopped()
-                    });
-                });
+            resolve ({ textEdits: allTextEdits });
         });
     }
 

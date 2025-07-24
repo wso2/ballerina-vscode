@@ -19,7 +19,7 @@
 import { useState, useRef, KeyboardEvent, useEffect, useLayoutEffect, useImperativeHandle, forwardRef } from "react";
 import styled from "@emotion/styled";
 import { Codicon } from "@wso2/ui-toolkit";
-import { AIPanelPrompt, Attachment, AttachmentStatus, Command, TemplateId } from "@wso2/ballerina-core";
+import { AIPanelPrompt, Attachment, AttachmentStatus, Command, ExpandedDMModel, TemplateId } from "@wso2/ballerina-core";
 import AttachmentBox, { AttachmentsContainer } from "../AttachmentBox";
 import { StyledInputComponent, StyledInputRef } from "./StyledInput";
 import { AttachmentOptions, useAttachments } from "./hooks/useAttachments";
@@ -122,7 +122,7 @@ interface AIChatInputProps {
     tagOptions: TagOptions;
     attachmentOptions: AttachmentOptions;
     placeholder: string;
-    onSend: (content: { input: Input[]; attachments: Attachment[] }) => Promise<void>;
+    onSend: (content: { input: Input[]; attachments: Attachment[]; metadata?: Record<string, any> }) => Promise<void>;
     onStop: () => void;
     isLoading: boolean;
 }
@@ -137,6 +137,7 @@ const AIChatInput = forwardRef<AIChatInputRef, AIChatInputProps>(
         });
         const [generalTags, setGeneralTags] = useState<Tag[]>([]);
         const [isTagInitDone, setIsTagInitDone] = useState(false);
+        const [currentMetadata, setCurrentMetadata] = useState<Record<string, any>>({});
 
         // refs
         const inputRef = useRef<StyledInputRef>(null);
@@ -469,6 +470,13 @@ const AIChatInput = forwardRef<AIChatInputRef, AIChatInputProps>(
         const updateChatInputWithContent = (content: AIPanelPrompt) => {
             setInputValue({ text: "", updatedContent: content });
             removeAllAttachments();
+
+            // Extract and store metadata safely
+            if (content?.type === 'command-template') {
+                setCurrentMetadata(content.metadata);
+            } else {
+                setCurrentMetadata({});
+            }
         };
 
         /**
@@ -477,6 +485,7 @@ const AIChatInput = forwardRef<AIChatInputRef, AIChatInputProps>(
         const cleanChatInput = () => {
             setInputValue({ text: "" });
             removeAllAttachments();
+            setCurrentMetadata({});
         };
 
         /**
@@ -487,7 +496,8 @@ const AIChatInput = forwardRef<AIChatInputRef, AIChatInputProps>(
             const filteredAttachments = attachments.filter(
                 (attachment) => attachment.status === AttachmentStatus.Success
             );
-            onSend({ input: input, attachments: filteredAttachments });
+            const metadata = currentMetadata;
+            onSend({ input: input, attachments: filteredAttachments, metadata: metadata });
             cleanChatInput();
         };
 

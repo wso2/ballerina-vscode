@@ -23,6 +23,7 @@ import {
     AIPanelAPI,
     AIPanelPrompt,
     AddToProjectRequest,
+    CodeSegment,
     DeleteFromProjectRequest,
     DeveloperDocument,
     FetchDataRequest,
@@ -36,8 +37,8 @@ import {
     GetFromFileRequest,
     GetModuleDirParams,
     InlineAllDataMapperSourceRequest,
-    InlineDataMapperSourceResponse,
     LLMDiagnostics,
+    MetadataWithAttachments,
     NotifyAIMappingsRequest,
     PostProcessRequest,
     PostProcessResponse,
@@ -50,6 +51,7 @@ import {
     TestGenerationResponse,
     abortTestGeneration,
     addChatSummary,
+    addInlineCodeSegmentToWorkspace,
     addToProject,
     applyDoOnFailBlocks,
     checkSyntaxError,
@@ -57,7 +59,6 @@ import {
     createTestDirecoryIfNotExists,
     deleteFromProject,
     fetchData,
-    generateInlineMappings,
     generateMappings,
     getAIMachineSnapshot,
     getAccessToken,
@@ -70,6 +71,7 @@ import {
     getFromDocumentation,
     getFromFile,
     getGeneratedTests,
+    getMappingsFromModel,
     getMappingsFromRecord,
     getModuleDirectory,
     getProjectSource,
@@ -88,13 +90,12 @@ import {
     isRequirementsSpecificationFileExist,
     markAlertShown,
     notifyAIMappings,
+    openInlineMappingChatWindow,
     postProcess,
     promptGithubAuthorize,
     promptWSO2AILogout,
     readDeveloperMdFile,
     showSignInAlert,
-    stopAIInlineMappings,
-    stopAIMappings,
     submitFeedback,
     updateDevelopmentDocument,
     updateRequirementSpecification
@@ -161,10 +162,6 @@ export class AiPanelRpcClient implements AIPanelAPI {
         return this._messenger.sendRequest(notifyAIMappings, HOST_EXTENSION, params);
     }
 
-    stopAIMappings(): Promise<GenerateMappingsResponse> {
-        return this._messenger.sendRequest(stopAIMappings, HOST_EXTENSION);
-    }
-
     getProjectSource(params: string): Promise<ProjectSource> {
         return this._messenger.sendRequest(getProjectSource, HOST_EXTENSION, params);
     }
@@ -181,12 +178,16 @@ export class AiPanelRpcClient implements AIPanelAPI {
         return this._messenger.sendNotification(clearInitialPrompt, HOST_EXTENSION);
     }
 
-    generateInlineMappings(): Promise<InlineAllDataMapperSourceRequest> {
-        return this._messenger.sendRequest(generateInlineMappings, HOST_EXTENSION);
+    openInlineMappingChatWindow(): void {
+        return this._messenger.sendNotification(openInlineMappingChatWindow, HOST_EXTENSION);
     }
 
-    stopAIInlineMappings(): Promise<InlineDataMapperSourceResponse> {
-        return this._messenger.sendRequest(stopAIInlineMappings, HOST_EXTENSION);
+    getMappingsFromModel(params: MetadataWithAttachments): Promise<InlineAllDataMapperSourceRequest> {
+        return this._messenger.sendRequest(getMappingsFromModel, HOST_EXTENSION, params);
+    }
+
+    addInlineCodeSegmentToWorkspace(params: CodeSegment): void {
+        return this._messenger.sendNotification(addInlineCodeSegmentToWorkspace, HOST_EXTENSION, params);
     }
 
     getGeneratedTests(params: TestGenerationRequest): Promise<TestGenerationResponse> {
