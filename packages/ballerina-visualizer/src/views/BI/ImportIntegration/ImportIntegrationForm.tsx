@@ -17,27 +17,22 @@
  */
 
 import styled from "@emotion/styled";
-import { EVENT_TYPE, MACHINE_VIEW } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
-import { Button, CheckBox, Codicon, Icon, LocationSelector, TextField, Tooltip, Typography } from "@wso2/ui-toolkit";
-import { useEffect, useState } from "react";
+import { Button, CheckBox, Icon, TextField, Typography } from "@wso2/ui-toolkit";
+import { useState } from "react";
 import { FinalIntegrationParams } from ".";
 import ButtonCard from "../../../components/ButtonCard";
 import { LoadingRing } from "../../../components/Loader";
 import { BodyText, LoadingOverlayContainer } from "../../styles";
-import { sanitizeProjectName } from "../ProjectForm";
 import { INTEGRATION_CONFIGS } from "./definitions";
 
-const FormContainer = styled.div`
-    max-width: 660px;
-    margin: 80px 120px;
-    height: calc(100vh - 160px);
-    overflow-y: auto;
-`;
+const SELECTION_TEXT = "To begin, choose a source platform from the options above.";
+const IMPORT_DISABLED_TOOLTIP = "Please select a source project from the options above to continue.";
+const IMPORT_ENABLED_TOOLTIP = "Begin converting your selected project and view the progress.";
 
 const IntegrationCardGrid = styled.div`
     display: flex;
-    flex-direction: row;
+    flex-direction: column;
     gap: 12px;
     margin: 20px 0;
 `;
@@ -48,69 +43,18 @@ const ButtonWrapper = styled.div`
     justify-content: flex-end;
 `;
 
-const LocationSelectorWrapper = styled.div`
-    margin-top: 20px;
-`;
-
-const ImportSourceWrapper = styled.div`
-    margin: 20px 0;
-`;
-
-const IconButton = styled.div`
-    cursor: pointer;
-    border-radius: 4px;
-    width: 20px;
-    height: 20px;
-    font-size: 20px;
-    &:hover {
-        background-color: var(--vscode-toolbar-hoverBackground);
-    }
-`;
-
-const PreviewContainer = styled.div`
-    border: 1px solid var(--vscode-input-border);
-    border-radius: 4px;
-    padding: 8px 12px;
-    display: inline-flex;
-    align-items: center;
-    width: fit-content;
-    height: 28px;
-    gap: 8px;
-    background-color: var(--vscode-editor-background);
-    * {
-        cursor: default !important;
-    }
-`;
-
-const InputPreviewWrapper = styled.div`
-    display: flex;
-    flex-direction: column;
-    gap: 3px;
-    margin: 20px 0;
-`;
-
-const PreviewText = styled(Typography)`
-    color: var(--vscode-sideBarTitle-foreground);
-    opacity: 0.5;
-    font-family: var(--vscode-editor-font-family, "Monaco", "Menlo", "Ubuntu Mono", monospace);
-    word-break: break-all;
-    min-width: 100px;
-    display: flex;
-    align-items: center;
-    line-height: 1;
-`;
-
-const PreviewIcon = styled(Codicon)`
-    display: flex;
-    align-items: center;
-`;
-
 const ParametersSection = styled.div`
     margin: 20px 0;
     padding: 16px;
     border: 1px solid var(--vscode-input-border);
     border-radius: 4px;
     background-color: var(--vscode-editor-background);
+`;
+
+const PathText = styled.div`
+    font-family: var(--vscode-editor-font-family);
+    padding: 4px 0;
+    opacity: 0.8;
 `;
 
 const ParameterItem = styled.div`
@@ -137,30 +81,32 @@ export function ImportIntegrationForm({
 }: FormProps) {
     const { rpcClient } = useRpcContext();
 
-    const [name, setName] = useState("");
-    const [path, setPath] = useState("");
     const [importSourcePath, setImportSourcePath] = useState("");
     const [integrationParams, setIntegrationParams] = useState<Record<string, any>>({});
 
-    const handleProjectName = (value: string) => setName(value);
+    const isImportDisabled = importSourcePath.length < 2 || !selectedIntegration;
 
-    const handleIntegrationSelection = (integrationType: keyof typeof INTEGRATION_CONFIGS) => {
+    const handleIntegrationSelection = async (integrationType: keyof typeof INTEGRATION_CONFIGS) => {
+        // Reset state when a new integration is selected
+        setImportSourcePath("");
         onSelectIntegration(integrationType);
-
         const config = INTEGRATION_CONFIGS[integrationType];
         const defaultParams = config.parameters.reduce((acc, param) => {
             acc[param.key] = param.defaultValue;
             return acc;
         }, {} as Record<string, any>);
         setIntegrationParams(defaultParams);
+        const importSource = await rpcClient.getCommonRpcClient().selectFileOrFolderPath();
+        setImportSourcePath(importSource.path);
+        if (importSource.path == "") {
+            onSelectIntegration(null);
+        }
     };
 
     const handleImportIntegration = () => {
-        if (!selectedIntegration || !name || !path || !importSourcePath) return;
+        if (!selectedIntegration || !importSourcePath) return;
 
         const finalParams: FinalIntegrationParams = {
-            name,
-            path,
             importSourcePath,
             type: selectedIntegration,
             ...integrationParams,
@@ -176,32 +122,6 @@ export function ImportIntegrationForm({
             [paramKey]: value,
         }));
     };
-
-    const handleProjectDirSelection = async () => {
-        const projectDirectory = await rpcClient.getCommonRpcClient().selectFileOrDirPath({});
-        setPath(projectDirectory.path);
-    };
-
-    const handleImportSourceSelection = async () => {
-        const importSource = await rpcClient.getCommonRpcClient().selectFileOrFolderPath();
-        setImportSourcePath(importSource.path);
-    };
-
-    const gotToWelcome = () => {
-        rpcClient.getVisualizerRpcClient().openView({
-            type: EVENT_TYPE.OPEN_VIEW,
-            location: {
-                view: MACHINE_VIEW.BIWelcome,
-            },
-        });
-    };
-
-    useEffect(() => {
-        (async () => {
-            const currentDir = await rpcClient.getCommonRpcClient().getWorkspaceRoot();
-            setPath(currentDir.path);
-        })();
-    }, []);
 
     const renderIntegrationParameters = () => {
         if (!selectedIntegration) return null;
@@ -236,40 +156,15 @@ export function ImportIntegrationForm({
     };
 
     return (
-        <FormContainer>
-            <IconButton onClick={gotToWelcome}>
-                <Icon name="bi-arrow-back" iconSx={{ color: "var(--vscode-foreground)" }} />
-            </IconButton>
-            <Typography variant="h2">Import External Integration</Typography>
-            <BodyText>Select the external integration tool and select a location to start building.</BodyText>
-            <InputPreviewWrapper>
-                <TextField
-                    onTextChange={handleProjectName}
-                    value={name}
-                    label="Integration Name"
-                    placeholder="Enter an integration name"
-                    autoFocus={true}
-                />
-                <PreviewContainer>
-                    <PreviewIcon
-                        name="project"
-                        iconSx={{ fontSize: 14, color: "var(--vscode-descriptionForeground)" }}
-                    />
-                    <Tooltip content="A unique identifier for your integration">
-                        <PreviewText variant="caption">
-                            {name ? sanitizeProjectName(name) : "integration_id"}
-                        </PreviewText>
-                    </Tooltip>
-                </PreviewContainer>
-            </InputPreviewWrapper>
-            <LocationSelectorWrapper>
-                <LocationSelector
-                    label="Select Integration Path"
-                    selectedFile={path}
-                    btnText="Select Path"
-                    onSelect={handleProjectDirSelection}
-                />
-            </LocationSelectorWrapper>
+        <>
+            <Typography variant="h2">Import and Migrate an Existing Integration</Typography>
+            <BodyText>
+                This wizard converts an existing integration project from MuleSoft, TIBCO, or Logic Apps into a
+                ready-to-use BI project.
+            </BodyText>
+            <Typography variant="h3" sx={{ marginTop: 20 }}>
+                Choose the source platform and import your project
+            </Typography>
             <IntegrationCardGrid>
                 {Object.keys(INTEGRATION_CONFIGS).map((key) => {
                     const integrationKey = key as keyof typeof INTEGRATION_CONFIGS;
@@ -279,31 +174,33 @@ export function ImportIntegrationForm({
                             key={integrationKey}
                             id={`${integrationKey}-integration-card`}
                             icon={<Icon name="bi-globe" />}
-                            title={config.title}
+                            title={`Import from ${config.title}`}
+                            description={config.description}
                             onClick={() => handleIntegrationSelection(integrationKey)}
                             active={selectedIntegration === integrationKey}
                         />
                     );
                 })}
             </IntegrationCardGrid>
-            <ImportSourceWrapper>
-                <LocationSelector
-                    label="Select Importing Source"
-                    selectedFile={importSourcePath}
-                    btnText="Import Project/File"
-                    onSelect={handleImportSourceSelection}
-                />
-            </ImportSourceWrapper>
 
-            {renderIntegrationParameters()}
+            <PathText>
+                {importSourcePath ? (
+                    <span>{`Project Path: ${importSourcePath}`}</span>
+                ) : (
+                    <div style={{ color: "var(--vscode-editor-foreground)" }}>{SELECTION_TEXT}</div>
+                )}
+            </PathText>
+
+            {importSourcePath.length >= 2 && renderIntegrationParameters()}
 
             <ButtonWrapper>
                 <Button
-                    disabled={name.length < 2 || path.length < 2 || importSourcePath.length < 2 || !selectedIntegration}
+                    disabled={isImportDisabled}
                     onClick={handleImportIntegration}
                     appearance="primary"
+                    tooltip={isImportDisabled ? IMPORT_DISABLED_TOOLTIP : IMPORT_ENABLED_TOOLTIP}
                 >
-                    Import Integration
+                    Start Migration
                 </Button>
             </ButtonWrapper>
 
@@ -312,6 +209,6 @@ export function ImportIntegrationForm({
                     <LoadingRing message="Pulling integration tool..." />
                 </LoadingOverlayContainer>
             )}
-        </FormContainer>
+        </>
     );
 }

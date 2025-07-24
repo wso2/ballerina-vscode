@@ -25,7 +25,6 @@ import MigrationReportContainer from "./MigrationReportContainer";
 
 const ButtonWrapper = styled.div`
     margin-top: 20px;
-    margin-bottom: 20vh;
     display: flex;
     justify-content: flex-start;
 `;
@@ -94,23 +93,22 @@ const CardAction = styled.div`
 `;
 
 interface ProgressProps {
-    importParams: FinalIntegrationParams | null;
     migrationState: string | null;
     migrationLogs: string[];
     migrationCompleted: boolean;
     migrationResponse: ImportIntegrationResponse | null;
-    onCreateIntegrationFiles: () => void;
+    onNext: () => void;
 }
 
 export function MigrationProgressView({
-    importParams,
     migrationState,
     migrationLogs,
     migrationCompleted,
     migrationResponse,
-    onCreateIntegrationFiles,
+    onNext,
 }: ProgressProps) {
     const [isReportOpen, setIsReportOpen] = useState(false);
+    const [isLogsOpen, setIsLogsOpen] = useState(false);
     const colourizeLog = (log: string, index: number) => {
         if (log.startsWith("[SEVERE]")) {
             return (
@@ -123,36 +121,64 @@ export function MigrationProgressView({
     };
 
     return (
-        <ProgressContainer>
+        <>
             <div>
-                <Typography variant="h2">Importing {importParams?.name}</Typography>
-                <Typography sx={{ color: "var(--vscode-descriptionForeground)" }}>
-                    Please wait while we set up your new integration project.
-                </Typography>
+                {migrationCompleted && migrationResponse ? (
+                    <>
+                        <Typography variant="h2">Migration Completed Successfully!</Typography>
+                        <Typography sx={{ color: "var(--vscode-descriptionForeground)" }}>
+                            Your integration project has been successfully migrated. You can now proceed to the final
+                            step to create and open your project.
+                        </Typography>
+                    </>
+                ) : (
+                    <>
+                        <Typography variant="h2">Migration in Progress...</Typography>
+                        <Typography sx={{ color: "var(--vscode-descriptionForeground)" }}>
+                            Please wait while we set up your new integration project.
+                        </Typography>
+                    </>
+                )}
             </div>
             <StepWrapper>
-                <Typography variant="h4">Migrating Project</Typography>
                 {migrationCompleted && migrationResponse ? (
-                    <Typography variant="caption" sx={{ color: "var(--vscode-terminal-ansiGreen)" }}>
+                    <Typography variant="body3" sx={{ color: "var(--vscode-terminal-ansiGreen)" }}>
                         Migration completed successfully!
                     </Typography>
                 ) : (
-                    <Typography variant="caption">{migrationState || "Starting migration..."}</Typography>
+                    <Typography variant="progress">{migrationState || "Starting migration..."}</Typography>
                 )}
-                {/* <LinearProgress indeterminate /> */}
             </StepWrapper>
+
+            <ButtonWrapper>
+                <Button
+                    disabled={!migrationCompleted || migrationResponse === null}
+                    onClick={onNext}
+                    appearance="primary"
+                >
+                    Proceed to Final Step
+                </Button>
+            </ButtonWrapper>
+
             {/* Migration Logs */}
             {migrationLogs.length > 0 && (
                 <StepWrapper>
-                    <Typography variant="h4">Migration Logs</Typography>
-                    <LogsContainer>{migrationLogs.map(colourizeLog)}</LogsContainer>
+                    <CollapsibleHeader onClick={() => setIsLogsOpen(!isLogsOpen)}>
+                        <Typography variant="h4">View Detailed Logs</Typography>
+                        <CardAction>
+                            {isLogsOpen ? <Codicon name={"chevron-down"} /> : <Codicon name={"chevron-right"} />}
+                        </CardAction>
+                    </CollapsibleHeader>
+                    {isLogsOpen && migrationLogs.length > 0 && (
+                        <LogsContainer>{migrationLogs.map(colourizeLog)}</LogsContainer>
+                    )}
                 </StepWrapper>
             )}
             {/* Migration Report */}
             {migrationCompleted && migrationResponse?.report && (
                 <StepWrapper>
                     <CollapsibleHeader onClick={() => setIsReportOpen(!isReportOpen)}>
-                        <Typography variant="h4">Migration Report</Typography>
+                        <Typography variant="h4">View Migration Report</Typography>
                         <CardAction>
                             {isReportOpen ? <Codicon name={"chevron-down"} /> : <Codicon name={"chevron-right"} />}
                         </CardAction>
@@ -164,15 +190,6 @@ export function MigrationProgressView({
                     )}
                 </StepWrapper>
             )}
-            <ButtonWrapper>
-                <Button
-                    disabled={!migrationCompleted || migrationResponse === null}
-                    onClick={onCreateIntegrationFiles}
-                    appearance="primary"
-                >
-                    Finish & Open Project
-                </Button>
-            </ButtonWrapper>
-        </ProgressContainer>
+        </>
     );
 }

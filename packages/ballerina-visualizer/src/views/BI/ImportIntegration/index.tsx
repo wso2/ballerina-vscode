@@ -16,22 +16,45 @@
  * under the License.
  */
 
+import styled from "@emotion/styled";
 import {
     DownloadProgress,
+    EVENT_TYPE,
     ImportIntegrationResponse,
     ImportTibcoRPCRequest,
+    MACHINE_VIEW,
     MigrateRequest,
 } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
+import { Icon, Typography } from "@wso2/ui-toolkit";
+import { Stepper, StepperContainer } from "@wso2/ui-toolkit/lib/components/Stepper/Stepper";
 import { useEffect, useState } from "react";
+import { BodyText } from "../../styles";
 import { ImportIntegrationForm } from "./ImportIntegrationForm";
 import { MigrationProgressView } from "./MigrationProgressView";
 import { INTEGRATION_CONFIGS } from "./definitions";
+import { ConfigureProjectForm } from "./ConfigureProjectForm";
+
+const FormContainer = styled.div`
+    max-width: 660px;
+    margin: 80px 120px;
+    height: calc(100vh - 160px);
+    overflow-y: auto;
+`;
+
+const IconButton = styled.div`
+    cursor: pointer;
+    border-radius: 4px;
+    width: 20px;
+    height: 20px;
+    font-size: 20px;
+    &:hover {
+        background-color: var(--vscode-toolbar-hoverBackground);
+    }
+`;
 
 // Defines the parameters that will be passed from the form to start the import
 export interface FinalIntegrationParams {
-    name: string;
-    path: string;
     importSourcePath: string;
     type: keyof typeof INTEGRATION_CONFIGS;
     [key: string]: any; // For other dynamic parameters
@@ -45,7 +68,7 @@ export function ImportIntegration() {
     const { rpcClient } = useRpcContext();
 
     // State managed by the parent component
-    const [view, setView] = useState<"form" | "loading">("form");
+    const [step, setStep] = useState(0);
     const [toolPullProgress, setToolPullProgress] = useState<DownloadProgress | null>(null);
     const [migrationToolState, setMigrationToolState] = useState<string | null>(null);
     const [migrationToolLogs, setMigrationToolLogs] = useState<string[]>([]);
@@ -54,6 +77,8 @@ export function ImportIntegration() {
     const [importParams, setImportParams] = useState<FinalIntegrationParams | null>(null);
     const [migrationCompleted, setMigrationCompleted] = useState(false);
     const [migrationResponse, setMigrationResponse] = useState<ImportIntegrationResponse | null>(null);
+
+    const defaultSteps = ["Select Source Project", "Migration Status", "Create and Open Project"];
 
     const pullIntegrationTool = (integrationType: keyof typeof INTEGRATION_CONFIGS) => {
         setPullingTool(true);
@@ -66,13 +91,13 @@ export function ImportIntegration() {
     const handleStartImport = (toolPullProgress: DownloadProgress, importParams: FinalIntegrationParams) => {
         if (toolPullProgress.step === -1) {
             console.error("Cannot start import, tool download failed.");
-            return;
         }
-        setView("loading");
+        setStep(1);
+        console.log("Starting import with params:", importParams);
 
         if (selectedIntegration === "tibco") {
             const params: ImportTibcoRPCRequest = {
-                packageName: importParams.name,
+                packageName: "",
                 sourcePath: importParams.importSourcePath,
             };
             rpcClient
@@ -80,8 +105,10 @@ export function ImportIntegration() {
                 .importTibcoToBI(params)
                 .then((response) => {
                     console.log("TIBCO import response:", response);
-                    setMigrationCompleted(true);
-                    setMigrationResponse(response);
+                    setTimeout(() => {
+                        setMigrationCompleted(true);
+                        setMigrationResponse(response);
+                    }, 10);
                 })
                 .catch((error) => {
                     console.error("Error during TIBCO import:", error);
@@ -89,14 +116,32 @@ export function ImportIntegration() {
         }
     };
 
-    const handleCreateIntegrationFiles = () => {
+    const handleCreateIntegrationFiles = (projectName: string, projectPath: string) => {
+        console.log("Creating integration files with params:", importParams);
         if (migrationResponse) {
             const params: MigrateRequest = {
-                projectName: importParams.name,
-                projectPath: importParams.path,
+                projectName: projectName,
+                projectPath: projectPath,
                 textEdits: migrationResponse.textEdits,
             };
             rpcClient.getBIDiagramRpcClient().migrateProject(params);
+        }
+    };
+
+    const gotToWelcome = () => {
+        rpcClient.getVisualizerRpcClient().openView({
+            type: EVENT_TYPE.OPEN_VIEW,
+            location: {
+                view: MACHINE_VIEW.BIWelcome,
+            },
+        });
+    };
+
+    const handleBack = () => {
+        if (step === 0) {
+            gotToWelcome();
+        } else {
+            setStep(step - 1);
         }
     };
 
@@ -108,15 +153,59 @@ export function ImportIntegration() {
             }
         });
 
+        // TODO: Remove simulated delays in production
+        const stateQueue: string[] = [];
+        let isProcessingState = false;
+
+        const logQueue: string[] = [];
+        let isProcessingLogs = false;
+
+        const processStateQueue = () => {
+            if (stateQueue.length === 0) {
+                isProcessingState = false;
+                return;
+            }
+
+            const nextState = stateQueue.shift()!;
+            setMigrationToolState(nextState);
+
+            setTimeout(() => {
+                processStateQueue();
+            }, 10); // 0.8 second delay between each state change
+        };
+
+        const processLogQueue = () => {
+            if (logQueue.length === 0) {
+                isProcessingLogs = false;
+                return;
+            }
+
+            const nextLog = logQueue.shift()!;
+            setMigrationToolLogs((prevLogs) => [...prevLogs, nextLog]);
+
+            setTimeout(() => {
+                processLogQueue();
+            }, 10); // 0.3 second delay between each log
+        };
+
         rpcClient.onMigrationToolStateChanged((stateUpdate) => {
-            setMigrationToolState(stateUpdate);
+            stateQueue.push(stateUpdate);
+
+            if (!isProcessingState) {
+                isProcessingState = true;
+                processStateQueue();
+            }
         });
 
         rpcClient.onMigrationToolLogs((logUpdate) => {
-            setMigrationToolLogs((prevLogs) => [...prevLogs, logUpdate]);
+            logQueue.push(logUpdate);
+
+            if (!isProcessingLogs) {
+                isProcessingLogs = true;
+                processLogQueue();
+            }
         });
     }, [rpcClient]);
-
     useEffect(() => {
         if (toolPullProgress && toolPullProgress.success && importParams) {
             handleStartImport(toolPullProgress, importParams);
@@ -124,8 +213,14 @@ export function ImportIntegration() {
     }, [toolPullProgress, importParams]);
 
     return (
-        <div className="import-integration-container">
-            {view === "form" && (
+        <FormContainer>
+            <IconButton onClick={handleBack}>
+                <Icon name="bi-arrow-back" iconSx={{ color: "var(--vscode-foreground)" }} />
+            </IconButton>
+            <StepperContainer>
+                <Stepper alignment="flex-start" steps={defaultSteps} currentStep={step} />
+            </StepperContainer>
+            {step === 0 && (
                 <ImportIntegrationForm
                     selectedIntegration={selectedIntegration}
                     setImportParams={setImportParams}
@@ -134,16 +229,16 @@ export function ImportIntegration() {
                     onSelectIntegration={setSelectedIntegration}
                 />
             )}
-            {view === "loading" && (
+            {step === 1 && (
                 <MigrationProgressView
-                    importParams={importParams}
                     migrationState={migrationToolState}
                     migrationLogs={migrationToolLogs}
                     migrationCompleted={migrationCompleted}
                     migrationResponse={migrationResponse}
-                    onCreateIntegrationFiles={handleCreateIntegrationFiles}
+                    onNext={() => setStep(2)}
                 />
             )}
-        </div>
+            {step === 2 && <ConfigureProjectForm onNext={handleCreateIntegrationFiles} />}
+        </FormContainer>
     );
 }
