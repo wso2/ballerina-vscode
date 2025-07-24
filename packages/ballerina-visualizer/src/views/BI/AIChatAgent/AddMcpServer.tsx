@@ -221,7 +221,7 @@ export function AddMcpServer(props: AddToolProps): JSX.Element {
     const { agentCallNode, onAddMcpServer, onSave, editMode = false } = props;
     console.log(">>> Add Mcp Server props", props);
     const { rpcClient } = useRpcContext();
-    const [mcpToolkitCount, setMcpToolkitCount] = useState<number>(1);
+    const [mcpToolkitCount, setMcpToolkitCount] = useState<number>(0);
     const [agentNode, setAgentNode] = useState<FlowNode | null>(null);
     const [existingTools, setExistingTools] = useState<string[]>([]);
     const [toolsStringList, setToolsStringList] = useState<string>("");
@@ -507,6 +507,8 @@ export function AddMcpServer(props: AddToolProps): JSX.Element {
     ) => {
         console.log(">>> selected tools", selectedTools)
         console.log("All submitted form values:", rawFormValues);
+        console.log("handle on save node:", node);
+
         // Use the same logic as the display to determine the name
         let finalName;
         if (name.trim() !== "") {
@@ -523,6 +525,18 @@ export function AddMcpServer(props: AddToolProps): JSX.Element {
             selectedTools: selectedTools,
             mcpTools
         };
+        // Update node.properties so that each key is an object with a value property
+        if (rawFormValues && node && node.properties) {
+            const props = node.properties as Record<string, any>;
+            Object.entries(rawFormValues).forEach(([key, value]) => {
+                if (props[key] && typeof props[key] === "object" && "value" in props[key]) {
+                    props[key].value = value;
+                } else {
+                    props[key] = { value };
+                }
+            });
+            node.properties = props;
+        }
         console.log(">>> Saving with payload:", payload);
 
         setSavingForm(true);
@@ -655,11 +669,6 @@ export function AddMcpServer(props: AddToolProps): JSX.Element {
         );
     };
     console.log(">>> agentNode", agentCallNode);
-
-    const DropdownContainer = styled.div`
-    width: 100%;
-`;
-
 
     const fieldVal = {
         key: "scope",

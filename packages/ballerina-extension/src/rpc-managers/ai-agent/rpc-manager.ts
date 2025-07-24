@@ -430,9 +430,15 @@ export class AiAgentRpcManager implements AIAgentAPI {
                 }
             });
 
-            nodeTemplate.flowNode.properties["serverUrl"] = params.updatedNode.properties["serverUrl"];
-            nodeTemplate.flowNode.properties["info"] = params.updatedNode.properties["info"];
-            nodeTemplate.flowNode.properties["variable"].value = params.updatedNode.properties["variable"].value;
+            // Map all properties from updatedNode to nodeTemplate.flowNode
+            for (const key in params.updatedNode.properties) {
+                if (key === "type") {
+                    continue;
+                }
+                if (nodeTemplate.flowNode.properties.hasOwnProperty(key)) {
+                    nodeTemplate.flowNode.properties[key].value = params.updatedNode.properties[key].value;
+                }
+            }
             if (params.selectedTools.length === 0) {
                 (nodeTemplate.flowNode.properties["permittedTools"] as { value: any }).value = `()`;
             } else {
