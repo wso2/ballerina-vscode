@@ -51,7 +51,6 @@ interface FormFieldEditorProps {
     handleOnFieldFocus?: (key: string) => void;
     autoFocus?: boolean;
     handleOnTypeChange?: () => void;
-    visualizableFields?: string[];
     recordTypeFields?: RecordTypeField[];
     onIdentifierEditingStateChange?: (isEditing: boolean) => void;
     setSubComponentEnabled?: (isAdding: boolean) => void;
@@ -67,7 +66,6 @@ export const EditorFactory = (props: FormFieldEditorProps) => {
         handleOnFieldFocus,
         autoFocus,
         handleOnTypeChange,
-        visualizableFields,
         recordTypeFields,
         onIdentifierEditingStateChange,
         setSubComponentEnabled
@@ -95,7 +93,6 @@ export const EditorFactory = (props: FormFieldEditorProps) => {
                 subPanelView={subPanelView}
                 handleOnFieldFocus={handleOnFieldFocus}
                 autoFocus={autoFocus}
-                visualizable={visualizableFields?.includes(field.key)}
                 recordTypeField={recordTypeFields?.find(recordField => recordField.key === field.key)}
             />
         );
@@ -132,7 +129,6 @@ export const EditorFactory = (props: FormFieldEditorProps) => {
                 subPanelView={subPanelView}
                 handleOnFieldFocus={handleOnFieldFocus}
                 autoFocus={autoFocus}
-                visualizable={visualizableFields?.includes(field.key)}
                 recordTypeField={recordTypeFields?.find(recordField => recordField.key === field.key)}
             />
         );
