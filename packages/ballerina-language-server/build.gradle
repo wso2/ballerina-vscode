@@ -112,16 +112,6 @@ def pullBallerinaModule(String packageName, String version = null, String orgNam
             def result = exec {
                 ignoreExitValue = true
 
-                // Check if the package exists in the ballerina user home
-                def centralRepoDir = new File(System.getProperty("user.home"), ".ballerina/repositories/central.ballerina.io/bala/${orgName}")
-                if (centralRepoDir.exists()) {
-                    def pkgDir = new File(centralRepoDir, packageName)
-                    if (pkgDir.exists()) {
-                        commandLine 'echo', "Package ${packageName} exists"
-                        return
-                    }
-                }
-
                 def balPullCommand = "bal pull ${orgName}/${packageName}${version ? ':' + version : ''} --sticky=false"
                 if (org.gradle.internal.os.OperatingSystem.current().isWindows()) {
                     commandLine 'cmd', '/c', balPullCommand
