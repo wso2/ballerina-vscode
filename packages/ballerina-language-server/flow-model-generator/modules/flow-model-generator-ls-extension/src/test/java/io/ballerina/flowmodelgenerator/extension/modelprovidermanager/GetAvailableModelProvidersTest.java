@@ -59,7 +59,7 @@ public class GetAvailableModelProvidersTest extends AbstractLSTest {
         if (!availableModelProviders.equals(testConfig.expectedModelProviders())) {
             TestConfig updatedConfig = new TestConfig(testConfig.source(), availableModelProviders);
             // updateConfig(configJsonPath, updatedConfig);
-            Assert.fail("Test failed. Updated the expected output in " + configJsonPath);
+            Assert.fail(String.format("Failed test: '%s'", configJsonPath));
         }
     }
 

@@ -56,7 +56,7 @@ public class GetAvailableEmbeddingProvidersTest extends AbstractLSTest {
         if (!availableEmbeddingProviders.equals(testConfig.expectedEmbeddingProviders())) {
             TestConfig updatedConfig = new TestConfig(testConfig.source(), availableEmbeddingProviders);
             // updateConfig(configJsonPath, updatedConfig);
-            Assert.fail("Test failed. Updated the expected output in " + configJsonPath);
+            Assert.fail(String.format("Failed test: '%s'", configJsonPath));
         }
     }
 

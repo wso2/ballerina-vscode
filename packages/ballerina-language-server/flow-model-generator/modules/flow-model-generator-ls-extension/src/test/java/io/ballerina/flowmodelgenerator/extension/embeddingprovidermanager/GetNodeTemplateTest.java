@@ -58,7 +58,7 @@ public class GetNodeTemplateTest extends AbstractLSTest {
         if (!nodeTemplateResponse.equals(testConfig.expectedTemplate())) {
             TestConfig updatedConfig = new TestConfig(testConfig.source(), testConfig.codedata(), nodeTemplateResponse);
             // updateConfig(configJsonPath, updatedConfig);
-            Assert.fail("Test failed. Updated the expected output in " + configJsonPath);
+            Assert.fail(String.format("Failed test: '%s'", configJsonPath));
         }
     }
 

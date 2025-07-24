@@ -56,7 +56,7 @@ public class GetAvailableVectorStoresTest extends AbstractLSTest {
         if (!availableVectorStores.equals(testConfig.expectedVectorStores())) {
             TestConfig updatedConfig = new TestConfig(testConfig.source(), availableVectorStores);
             // updateConfig(configJsonPath, updatedConfig);
-            Assert.fail("Test failed. Updated the expectedVectorStores output in " + configJsonPath);
+            Assert.fail(String.format("Failed test: '%s'", configJsonPath));
         }
     }
 

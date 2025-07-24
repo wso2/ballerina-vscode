@@ -60,7 +60,7 @@ public class VectorStoreSearchTest extends AbstractLSTest {
         if (!searchResult.equals(testConfig.expectedVectorStores())) {
             TestConfig updatedConfig = new TestConfig(testConfig.source(), testConfig.query(), searchResult);
             // updateConfig(configJsonPath, updatedConfig);
-            Assert.fail("Test failed. Updated the expected output in " + configJsonPath);
+            Assert.fail(String.format("Failed test: '%s'", configJsonPath));
         }
     }
 
