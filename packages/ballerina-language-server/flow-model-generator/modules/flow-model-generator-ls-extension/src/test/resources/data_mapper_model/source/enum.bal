@@ -1,0 +1,30 @@
+enum DepartmentCode {
+    HR = "hr",
+    IT,
+    FINANCE
+}
+
+type Department record {
+    string name;
+    DepartmentCode code;
+};
+
+type Employee record {
+    string name;
+    Department department;
+};
+
+DepartmentCode departmentCode = DepartmentCode.IT;
+
+function fn1() {
+
+    Department engineering = {
+        name: "Engineering",
+        code: DepartmentCode.IT
+    };
+
+    Employee alice = {
+        name: "Alice",
+        department: engineering
+    };
+}

@@ -1,0 +1,139 @@
+{
+  "source": "enum.bal",
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "enum.bal",
+      "startLine": {
+        "line": 24,
+        "offset": 4
+      },
+      "endLine": {
+        "line": 27,
+        "offset": 6
+      }
+    },
+    "sourceCode": ""
+  },
+  "position": {
+    "line": 24,
+    "offset": 4
+  },
+  "propertyKey": "expression",
+  "model": {
+    "inputs": [
+      {
+        "fields": [
+          {
+            "id": "engineering.name",
+            "variableName": "name",
+            "typeName": "string",
+            "kind": "string"
+          },
+          {
+            "members": [
+              {
+                "id": "engineering.code.FINANCE",
+                "typeName": "FINANCE",
+                "kind": "FINANCE"
+              },
+              {
+                "id": "engineering.code.IT",
+                "typeName": "IT",
+                "kind": "IT"
+              },
+              {
+                "id": "engineering.code.HR",
+                "typeName": "HR",
+                "kind": "HR"
+              }
+            ],
+            "id": "engineering.code",
+            "variableName": "code",
+            "typeName": "enum",
+            "kind": "enum"
+          }
+        ],
+        "id": "engineering",
+        "variableName": "engineering",
+        "typeName": "Department",
+        "kind": "record",
+        "category": "local-variable"
+      }
+    ],
+    "output": {
+      "fields": [
+        {
+          "id": "alice.name",
+          "variableName": "name",
+          "typeName": "string",
+          "kind": "string"
+        },
+        {
+          "fields": [
+            {
+              "id": "alice.department.name",
+              "variableName": "name",
+              "typeName": "string",
+              "kind": "string"
+            },
+            {
+              "members": [
+                {
+                  "id": "alice.department.code.FINANCE",
+                  "typeName": "FINANCE",
+                  "kind": "FINANCE"
+                },
+                {
+                  "id": "alice.department.code.IT",
+                  "typeName": "IT",
+                  "kind": "IT"
+                },
+                {
+                  "id": "alice.department.code.HR",
+                  "typeName": "HR",
+                  "kind": "HR"
+                }
+              ],
+              "id": "alice.department.code",
+              "variableName": "code",
+              "typeName": "enum",
+              "kind": "enum"
+            }
+          ],
+          "id": "alice.department",
+          "variableName": "department",
+          "typeName": "Department",
+          "kind": "record"
+        }
+      ],
+      "id": "alice",
+      "variableName": "alice",
+      "typeName": "Employee",
+      "kind": "record"
+    },
+    "mappings": [
+      {
+        "output": "alice.name",
+        "inputs": [],
+        "expression": "\"Alice\"",
+        "diagnostics": [],
+        "elements": [],
+        "isQueryExpression": false,
+        "isFunctionCall": false
+      },
+      {
+        "output": "alice.department",
+        "inputs": [
+          "engineering"
+        ],
+        "expression": "engineering\n",
+        "diagnostics": [],
+        "elements": [],
+        "isQueryExpression": false,
+        "isFunctionCall": false
+      }
+    ]
+  }
+}

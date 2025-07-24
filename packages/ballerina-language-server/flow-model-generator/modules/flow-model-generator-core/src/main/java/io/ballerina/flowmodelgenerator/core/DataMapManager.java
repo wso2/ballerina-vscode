@@ -97,9 +97,7 @@ import io.ballerina.tools.text.TextDocument;
 import io.ballerina.tools.text.TextRange;
 import org.ballerinalang.diagramutil.connector.models.connector.Type;
 import org.ballerinalang.diagramutil.connector.models.connector.TypeInfo;
-import org.ballerinalang.diagramutil.connector.models.connector.types.ArrayType;
-import org.ballerinalang.diagramutil.connector.models.connector.types.PrimitiveType;
-import org.ballerinalang.diagramutil.connector.models.connector.types.RecordType;
+import org.ballerinalang.diagramutil.connector.models.connector.types.*;
 import org.ballerinalang.langserver.common.utils.CommonUtil;
 import org.ballerinalang.langserver.commons.eventsync.exceptions.EventSyncException;
 import org.ballerinalang.langserver.commons.workspace.WorkspaceDocumentException;
@@ -794,6 +792,30 @@ public class DataMapManager {
                         memberPort.typeName + "[]", type.getTypeName());
                 arrayPort.setMember(memberPort);
                 return arrayPort;
+            } else if (type.getTypeName().equals("enum")) {
+                EnumType enumType = (EnumType) type;
+                MappingEnumPort enumPort = new MappingEnumPort(id, name, enumType.getTypeName(),
+                        type.getTypeName());
+                for (Type member : enumType.members) {
+                    MappingPort memberPort = getMappingPort(id + "." + member.getTypeName(), member.getTypeName(),
+                            member, isInputPort, visitedTypes);
+                    if (memberPort != null) {
+                        enumPort.members.add(memberPort);
+                    }
+                }
+                return enumPort;
+            } else if (type.getTypeName().equals("union")) {
+                UnionType unionType = (UnionType) type;
+                MappingUnionPort unionPort = new MappingUnionPort(id, name, unionType.getTypeName(),
+                        type.getTypeName());
+                for (Type member : unionType.members) {
+                    MappingPort memberPort = getMappingPort(id + "." + member.getName(), member.getName(),
+                            member, isInputPort, visitedTypes);
+                    if (memberPort != null) {
+                        unionPort.members.add(memberPort);
+                    }
+                }
+                return unionPort;
             } else {
                 return null;
             }
@@ -2013,6 +2035,38 @@ public class DataMapManager {
 
         String getFocusedMemberId() {
             return this.focusedMemberId;
+        }
+    }
+
+    private static class MappingEnumPort extends MappingPort {
+        List<MappingPort> members = new ArrayList<>();
+
+        MappingEnumPort(String id, String variableName, String typeName, String kind) {
+            super(id, variableName, typeName, kind);
+        }
+
+        void addMember(MappingPort member) {
+            this.members.add(member);
+        }
+
+        List<MappingPort> getMembers() {
+            return this.members;
+        }
+    }
+
+    private static class MappingUnionPort extends MappingPort {
+        List<MappingPort> members = new ArrayList<>();
+
+        MappingUnionPort(String id, String variableName, String typeName, String kind) {
+            super(id, variableName, typeName, kind);
+        }
+
+        void addMember(MappingPort member) {
+            this.members.add(member);
+        }
+
+        List<MappingPort> getMembers() {
+            return this.members;
         }
     }
 }

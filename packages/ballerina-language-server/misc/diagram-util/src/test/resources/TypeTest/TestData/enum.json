@@ -1,0 +1,55 @@
+{
+  "description": "A simple example of a reference-based type",
+  "source": "TypeTest/BalProject2",
+  "typeSymbolName": "Department",
+  "Type": {
+    "fields": [
+      {
+        "name": "name",
+        "typeName": "string",
+        "optional": false,
+        "defaultable": false,
+        "documentation": "",
+        "isRestType": false,
+        "selected": false
+      },
+      {
+        "members": [
+          {
+            "typeName": "$CompilationError$",
+            "optional": false,
+            "defaultable": false,
+            "isRestType": false,
+            "selected": false
+          }
+        ],
+        "name": "code",
+        "typeName": "enum",
+        "optional": false,
+        "typeInfo": {
+          "name": "DepartmentCode",
+          "orgName": "ballerinax",
+          "moduleName": "health.ccda.r1",
+          "version": "0.1.0"
+        },
+        "defaultable": false,
+        "documentation": "",
+        "isRestType": false,
+        "selected": false
+      }
+    ],
+    "hasRestType": true,
+    "restType": {
+      "typeName": "anydata",
+      "optional": false,
+      "defaultable": false,
+      "isRestType": false,
+      "selected": false
+    },
+    "typeName": "record",
+    "optional": false,
+    "defaultable": false,
+    "isRestType": false,
+    "selected": false
+  }
+}
