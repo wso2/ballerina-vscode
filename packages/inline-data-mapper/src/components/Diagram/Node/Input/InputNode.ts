@@ -17,15 +17,17 @@
  */
 import { Point } from "@projectstorm/geometry";
 
-import { useDMCollapsedFieldsStore } from "../../../../store/store";
+import { useDMCollapsedFieldsStore, useDMExpandedFieldsStore, useDMSearchStore } from "../../../../store/store";
 import { IDataMapperContext } from "../../../../utils/DataMapperContext/DataMapperContext";
 import { DataMapperNodeModel } from "../commons/DataMapperNode";
 import { IOType, TypeKind } from "@wso2/ballerina-core";
+import { getSearchFilteredInput } from "../../utils/search-utils";
 
 export const INPUT_NODE_TYPE = "datamapper-node-input";
 const NODE_ID = "input-node";
 
 export class InputNode extends DataMapperNodeModel {
+    public filteredInputType: IOType;
     public numberOfFields:  number;
     public x: number;
     private identifier: string;
@@ -33,9 +35,10 @@ export class InputNode extends DataMapperNodeModel {
     constructor(
         public context: IDataMapperContext,
         public inputType: IOType,
+        public hasNoMatchingFields?: boolean
     ) {
         super(
-            NODE_ID,
+            `${NODE_ID}-${inputType?.id}`,
             context,
             INPUT_NODE_TYPE
         );
@@ -44,31 +47,73 @@ export class InputNode extends DataMapperNodeModel {
     }
 
     async initPorts() {
+        this.filteredInputType = this.getSearchFilteredType();
+        this.hasNoMatchingFields = !this.filteredInputType;
         this.numberOfFields = 1;
 
-        if (this.inputType) {
+        if (this.filteredInputType) {
             const collapsedFields = useDMCollapsedFieldsStore.getState().fields;
-            const parentPort = this.addPortsForHeader(this.inputType, this.identifier, "OUT", undefined, undefined);
+            const expandedFields = useDMExpandedFieldsStore.getState().fields;
+            const focusedFieldFQNs = this.context.model.query?.inputs || [];
+            const parentPort = this.addPortsForHeader({
+                dmType: this.filteredInputType,
+                name: this.identifier,
+                portType: "OUT",
+                portPrefix: undefined,
+                focusedFieldFQNs,
+                collapsedFields,
+                expandedFields
+            });
 
-            if (this.inputType.kind === TypeKind.Record) {
-                const fields = this.inputType.fields;
+            if (this.filteredInputType.kind === TypeKind.Record) {
+                const fields = this.filteredInputType.fields;
                 fields.forEach((subField) => {
-                    this.numberOfFields += this.addPortsForInputField(
-                        subField, "OUT", this.identifier, this.identifier, '',
-                        parentPort, collapsedFields, parentPort.collapsed, subField.optional
-                    );
+                    this.numberOfFields += this.addPortsForInputField({
+                        field: subField,
+                        portType: "OUT",
+                        parentId: this.identifier,
+                        unsafeParentId: this.identifier,
+                        parent: parentPort,
+                        collapsedFields,
+                        expandedFields,
+                        hidden: parentPort.attributes.collapsed,
+                        isOptional: subField.optional,
+                        focusedFieldFQNs
+                    });
                 });
             } else {
-                this.addPortsForInputField(
-                    this.inputType, "OUT", this.identifier, this.identifier,  '',
-                    parentPort, collapsedFields, parentPort.collapsed, this.inputType.optional
-                );
+                this.addPortsForInputField({
+                    field: this.filteredInputType,
+                    portType: "OUT",
+                    parentId: this.identifier,
+                    unsafeParentId: this.identifier,
+                    parent: parentPort,
+                    collapsedFields,
+                    expandedFields,
+                    hidden: parentPort.attributes.collapsed,
+                    isOptional: this.filteredInputType.optional,
+                    focusedFieldFQNs
+                });
             }
         }
     }
 
     async initLinks() {
         // Links are always created from "IN" ports by backtracing the inputs.
+    }
+
+    public getSearchFilteredType() {
+        // TODO: Include variableName for inputTypes (Currently only available for variables)
+        const variableName = this.inputType.variableName || this.inputType.id;
+        if (variableName) {
+            const searchValue = useDMSearchStore.getState().inputSearch;
+
+            const matchesParamName = variableName.includes(searchValue?.toLowerCase());
+            const type = matchesParamName
+                ? this.inputType
+                : getSearchFilteredInput(this.inputType, variableName);
+            return type;
+        }
     }
 
     setPosition(point: Point): void;

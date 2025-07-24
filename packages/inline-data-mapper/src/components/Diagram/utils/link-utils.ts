@@ -15,14 +15,15 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { PortModel } from "@projectstorm/react-diagrams-core";
+import { LinkModel, PortModel } from "@projectstorm/react-diagrams-core";
 import { TypeKind } from "@wso2/ballerina-core";
 
 import { InputOutputPortModel } from "../Port";
+import { DataMapperLinkModel, MappingType } from "../Link";
 
 export function isSourcePortArray(port: PortModel): boolean {
     if (port instanceof InputOutputPortModel) {
-        const field = port.field;
+        const field = port.attributes.field;
         return field.kind === TypeKind.Array;
     }
     return false;
@@ -30,8 +31,23 @@ export function isSourcePortArray(port: PortModel): boolean {
 
 export function isTargetPortArray(port: PortModel): boolean {
     if (port instanceof InputOutputPortModel) {
-        const field = port.field;
+        const field = port.attributes.field;
         return field.kind === TypeKind.Array;
     }
     return false;
+}
+
+
+export function removePendingMappingTempLinkIfExists(link: LinkModel) {
+	const sourcePort = link.getSourcePort();
+	const targetPort = link.getTargetPort();
+
+	const pendingMappingType = link instanceof DataMapperLinkModel && link.pendingMappingType;
+
+	if (pendingMappingType) {
+		sourcePort?.fireEvent({}, "link-removed");
+		targetPort?.fireEvent({}, "link-removed");
+		link.pendingMappingType = MappingType.Default;
+		link.remove();
+	}
 }

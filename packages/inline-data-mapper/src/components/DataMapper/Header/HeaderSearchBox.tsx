@@ -16,14 +16,15 @@
  * under the License.
  */
 // tslint:disable: jsx-no-multiline-js jsx-no-lambda
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 
 import debounce from "lodash.debounce";
 
 import { useDMSearchStore } from "../../../store/store";
 
 import { getInputOutputSearchTerms } from "./utils";
-import { Codicon, SearchBox } from '@wso2/ui-toolkit';
+import { Codicon, TextField } from '@wso2/ui-toolkit';
+import { HeaderSearchBoxOptions } from './HeaderSearchBoxOptions';
 
 export const INPUT_FIELD_FILTER_LABEL = "in:";
 export const OUTPUT_FIELD_FILTER_LABEL = "out:";
@@ -40,28 +41,37 @@ export interface SearchTerm {
 }
 
 export default function HeaderSearchBox() {
-    const [searchTerm, setSearchTerm] = useState('');
-    const [searchOption, setSearchOption] = useState<string[]>([]);
+
+    const [searchOptions, setSearchOptions] = useState<string[]>([]);
     const [inputSearchTerm, setInputSearchTerm] = useState<SearchTerm>();
     const [outputSearchTerm, setOutputSearchTerm] = useState<SearchTerm>();
     const dmStore = useDMSearchStore.getState();
 
+    const searchTermRef = useRef("");
+    const searchInputRef = useRef<HTMLInputElement>(null);
+
+    const searchOptionsData = [
+        { value: INPUT_FIELD_FILTER_LABEL, label: "Filter in inputs" },
+        { value: OUTPUT_FIELD_FILTER_LABEL, label: "Filter in outputs" }
+    ];
+
     const handleSearchInputChange = (text: string) => {
         debouncedOnChange(text);
-        setSearchTerm(text);
+        searchTermRef.current = text;
     };
 
     const handleSearch = (term: string) => {
         const [inSearchTerm, outSearchTerm] = getInputOutputSearchTerms(term);
+
         const hasInputFilterLabelChanged = !inputSearchTerm
             || (inputSearchTerm && inSearchTerm && inputSearchTerm.isLabelAvailable !== inSearchTerm.isLabelAvailable);
         const hasOutputFilterLabelChanged = !outputSearchTerm
             || (outputSearchTerm && outSearchTerm && outputSearchTerm.isLabelAvailable !== outSearchTerm.isLabelAvailable);
 
         if (hasInputFilterLabelChanged || hasOutputFilterLabelChanged) {
-            let modifiedSearchOptions: string[] = searchOption;
+            let modifiedSearchOptions: string[] = searchOptions;
             if (hasInputFilterLabelChanged) {
-                if (!searchOption.includes(INPUT_FIELD_FILTER_LABEL)) {
+                if (!searchOptions.includes(INPUT_FIELD_FILTER_LABEL)) {
                     if (inSearchTerm && inSearchTerm.isLabelAvailable) {
                         modifiedSearchOptions.push(INPUT_FIELD_FILTER_LABEL);
                     }
@@ -72,7 +82,7 @@ export default function HeaderSearchBox() {
                 }
             }
             if (hasOutputFilterLabelChanged) {
-                if (!searchOption.includes(OUTPUT_FIELD_FILTER_LABEL)) {
+                if (!searchOptions.includes(OUTPUT_FIELD_FILTER_LABEL)) {
                     if (outSearchTerm && outSearchTerm.isLabelAvailable) {
                         modifiedSearchOptions.push(OUTPUT_FIELD_FILTER_LABEL);
                     }
@@ -82,34 +92,36 @@ export default function HeaderSearchBox() {
                     }
                 }
             }
-            setSearchOption(modifiedSearchOptions);
+            setSearchOptions(modifiedSearchOptions);
         }
+
         setInputSearchTerm(inSearchTerm);
         setOutputSearchTerm(outSearchTerm);
         dmStore.setInputSearch(inSearchTerm.searchText.trim());
         dmStore.setOutputSearch(outSearchTerm.searchText.trim());
+
     };
 
     const handleOnSearchTextClear = () => {
         handleSearch("");
-        setSearchTerm("");
+        searchTermRef.current = "";
     };
 
     useEffect(() => {
-        const [inSearchTerm, outSearchTerm] = getInputOutputSearchTerms(searchTerm);
-        let modifiedSearchTerm = searchTerm;
-        if (searchOption.includes(INPUT_FIELD_FILTER_LABEL)) {
+        const [inSearchTerm, outSearchTerm] = getInputOutputSearchTerms(searchTermRef.current);
+        let modifiedSearchTerm = searchTermRef.current;
+        if (searchOptions.includes(INPUT_FIELD_FILTER_LABEL)) {
             if (inSearchTerm && !inSearchTerm.isLabelAvailable) {
-                modifiedSearchTerm += ` ${INPUT_FIELD_FILTER_LABEL}`;
+                modifiedSearchTerm = modifiedSearchTerm.trimEnd() + ` ${INPUT_FIELD_FILTER_LABEL}`;
             }
         } else {
             if (inSearchTerm && inSearchTerm.isLabelAvailable) {
                 modifiedSearchTerm = modifiedSearchTerm.replace(`${INPUT_FIELD_FILTER_LABEL}${inSearchTerm.searchText}`, '');
             }
         }
-        if (searchOption.includes(OUTPUT_FIELD_FILTER_LABEL)) {
+        if (searchOptions.includes(OUTPUT_FIELD_FILTER_LABEL)) {
             if (outSearchTerm && !outSearchTerm.isLabelAvailable) {
-                modifiedSearchTerm += ` ${OUTPUT_FIELD_FILTER_LABEL}`;
+                modifiedSearchTerm = modifiedSearchTerm.trimEnd() + ` ${OUTPUT_FIELD_FILTER_LABEL}`;
             }
         } else {
             if (outSearchTerm && outSearchTerm.isLabelAvailable) {
@@ -117,20 +129,35 @@ export default function HeaderSearchBox() {
             }
         }
         handleSearch(modifiedSearchTerm);
-        setSearchTerm(modifiedSearchTerm);
-    }, [searchOption]);
+        searchTermRef.current = modifiedSearchTerm;
+    }, [searchOptions]);
 
     const debouncedOnChange = debounce((value: string) => handleSearch(value), 400);
-    const filterIcon = (<Codicon name="filter" sx= {{cursor: "auto"}}/>);
+    const filterIcon = (<Codicon name="filter" sx={{ cursor: "auto" }} />);
 
     return (
-        <SearchBox
-            id={`search-${searchOption}`}
-            icon={filterIcon}
+        <TextField
+            id={`search-${searchOptions}`}
+            autoFocus={false}
+            icon={{ iconComponent: filterIcon, position: "start" }}
             placeholder={`filter input and output fields`}
-            value={searchTerm}
-            onChange={handleSearchInputChange}
+            value={searchTermRef.current}
+            ref={searchInputRef}
+            onTextChange={handleSearchInputChange}
             size={100}
+            inputProps={{
+                endAdornment: (
+                    <HeaderSearchBoxOptions
+                        searchTerm={searchTermRef.current}
+                        searchInputRef={searchInputRef}
+                        searchOptions={searchOptions}
+                        setSearchOptions={setSearchOptions}
+                        handleOnSearchTextClear={handleOnSearchTextClear}
+                        searchOptionsData={searchOptionsData}
+                    />
+                ),
+            }}
         />
+
     );
 }

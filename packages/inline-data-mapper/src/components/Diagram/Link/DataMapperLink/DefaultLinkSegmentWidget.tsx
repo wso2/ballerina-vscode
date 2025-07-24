@@ -37,7 +37,8 @@ export class DefaultLinkSegmentWidget extends React.Component<DefaultLinkSegment
             {
                 ref: this.props.forwardRef,
                 strokeWidth: isSelected ? 2 : 1,
-                cursor: !(this.props.link as DataMapperLinkModel).notContainsLabel ? "pointer" : "inherit"
+                cursor: !(this.props.link as DataMapperLinkModel).notContainsLabel ? "pointer" : "inherit",
+                strokeDasharray: (this.props.link as DataMapperLinkModel).isDashLink ? "5,5" : ""
             }
         );
 

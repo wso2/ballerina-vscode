@@ -19,11 +19,10 @@
 import { ViewColumn, window, WebviewPanel, Uri } from "vscode";
 import { getCommonWebViewOptions } from '../../utils';
 import { render } from './render';
-import { ballerinaExtInstance } from "../../core";
+import { extension } from "../../BalExtensionContext";
 import { SwaggerServer } from "./server";
 import { CMP_TRYIT_GRAPHQL_VIEW, sendTelemetryEvent, TM_EVENT_GRAPHQL_RUN } from "../../features/telemetry";
 import path from "path";
-import { extension } from "../../BalExtensionContext";
 
 
 let graphqlViewPanel: WebviewPanel | undefined;
@@ -81,5 +80,5 @@ export async function showGraphqlView(serviceAPI: string): Promise<void> {
         }
     }
     //editor-lowcode-code-tryit
-    sendTelemetryEvent(ballerinaExtInstance, TM_EVENT_GRAPHQL_RUN, CMP_TRYIT_GRAPHQL_VIEW);
+    sendTelemetryEvent(extension.ballerinaExtInstance, TM_EVENT_GRAPHQL_RUN, CMP_TRYIT_GRAPHQL_VIEW);
 }

@@ -15,11 +15,11 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+import { BaseVisitor } from "@wso2/ballerina-core";
 
 import { LAST_NODE, START_NODE } from "../resources/constants";
 import { getCustomNodeId } from "../utils/node";
 import { Branch, Flow, FlowNode, Property, ViewState } from "../utils/types";
-import { BaseVisitor } from "./BaseVisitor";
 
 export class InitVisitor implements BaseVisitor {
     private skipChildrenVisit = false;

@@ -19,18 +19,79 @@
  */
 import {
     AddArrayElementRequest,
+    AddClausesRequest,
+    AddSubMappingRequest,
+    ConvertToQueryRequest,
+    DeleteMappingRequest,
+    EVENT_TYPE,
+    GetInlineDataMapperCodedataRequest,
+    GetInlineDataMapperCodedataResponse,
+    GetSubMappingCodedataRequest,
+    InitialIDMSourceRequest,
+    InitialIDMSourceResponse,
+    InlineAllDataMapperSourceRequest,
     InlineDataMapperAPI,
     InlineDataMapperModelRequest,
     InlineDataMapperModelResponse,
     InlineDataMapperSourceRequest,
     InlineDataMapperSourceResponse,
+    MACHINE_VIEW,
+    MapWithCustomFnRequest,
+    PropertyRequest,
+    PropertyResponse,
     VisualizableFieldsRequest,
     VisualizableFieldsResponse
 } from "@wso2/ballerina-core";
 
-import { StateMachine } from "../../stateMachine";
+import { openView, StateMachine } from "../../stateMachine";
+
+import {
+    buildSourceRequests,
+    consolidateTextEdits,
+    processSourceRequests,
+    setHasStopped,
+    updateAndRefreshDataMapper,
+    updateSource
+} from "./utils";
 
 export class InlineDataMapperRpcManager implements InlineDataMapperAPI {
+    async getInitialIDMSource(params: InitialIDMSourceRequest): Promise<InitialIDMSourceResponse> {
+        console.log(">>> requesting inline data mapper initial source from ls", params);
+        return new Promise((resolve) => {
+            StateMachine
+                .langClient()
+                .getSourceCode(params)
+                .then(model => {
+                    console.log(">>> inline data mapper initial source from ls", model);
+                    const varName = params.flowNode.properties?.variable?.value as string ?? null;
+                    updateSource(model.textEdits, params.filePath, params.flowNode.codedata, varName)
+                        .then(codeData => {
+                            openView(EVENT_TYPE.OPEN_VIEW, {
+                                view: MACHINE_VIEW.InlineDataMapper,
+                                documentUri: params.filePath,
+                                position: {
+                                    startLine: codeData.lineRange.startLine.line,
+                                    startColumn: codeData.lineRange.startLine.offset,
+                                    endLine: codeData.lineRange.endLine.line,
+                                    endColumn: codeData.lineRange.endLine.offset
+                                },
+                                dataMapperMetadata: {
+                                    name: varName,
+                                    codeData: codeData
+                                }
+                            });
+                            resolve({ textEdits: model.textEdits });
+                        });
+                })
+                .catch((error) => {
+                    console.log(">>> error fetching inline data mapper initial source from ls", error);
+                    return new Promise((resolve) => {
+                        resolve({ artifacts: [], error: error });
+                    });
+                });
+        });
+    }
+
     async getDataMapperModel(params: InlineDataMapperModelRequest): Promise<InlineDataMapperModelResponse> {
         return new Promise(async (resolve) => {
             const dataMapperModel = await StateMachine
@@ -43,11 +104,23 @@ export class InlineDataMapperRpcManager implements InlineDataMapperAPI {
 
     async getDataMapperSource(params: InlineDataMapperSourceRequest): Promise<InlineDataMapperSourceResponse> {
         return new Promise(async (resolve) => {
-            const dataMapperSource = await StateMachine
+            StateMachine
                 .langClient()
-                .getInlineDataMapperSource(params) as InlineDataMapperSourceResponse;
-
-            resolve(dataMapperSource);
+                .getInlineDataMapperSource(params)
+                .then((resp) => {
+                    console.log(">>> inline data mapper initial source from ls", resp);
+                    updateAndRefreshDataMapper(
+                        resp.textEdits,
+                        params.filePath,
+                        params.codedata,
+                        params.varName,
+                        params.targetField,
+                        params.withinSubMapping
+                    )
+                    .then(() => {
+                        resolve({ textEdits: resp.textEdits });
+                    });
+                });
         });
     }
 
@@ -63,11 +136,137 @@ export class InlineDataMapperRpcManager implements InlineDataMapperAPI {
 
     async addNewArrayElement(params: AddArrayElementRequest): Promise<InlineDataMapperSourceResponse> {
         return new Promise(async (resolve) => {
-            const dataMapperSource = await StateMachine
+            await StateMachine
                 .langClient()
-                .addArrayElement(params) as InlineDataMapperSourceResponse;
+                .addArrayElement({
+                    filePath: params.filePath,
+                    codedata: params.codedata,
+                    targetField: params.targetField,
+                    propertyKey: params.propertyKey
+                })
+                .then((resp) => {
+                    console.log(">>> inline data mapper add array element response", resp);
+                    updateAndRefreshDataMapper(resp.textEdits, params.filePath, params.codedata, params.varName)
+                    .then(() => {
+                        resolve({ textEdits: resp.textEdits });
+                    });
+                });
+        });
+    }
 
-            resolve(dataMapperSource);
+    async convertToQuery(params: ConvertToQueryRequest): Promise<InlineDataMapperSourceResponse> {
+        return new Promise(async (resolve) => {
+            await StateMachine
+                .langClient()
+                .convertToQuery(params)
+                .then((resp) => {
+                    console.log(">>> inline data mapper convert to query response", resp);
+                    updateAndRefreshDataMapper(resp.textEdits, params.filePath, params.codedata, params.varName)
+                    .then(() => {
+                        resolve({ textEdits: resp.textEdits });
+                    });
+                });
+        });
+    }
+
+    async addClauses(params: AddClausesRequest): Promise<InlineDataMapperSourceResponse> {
+        return new Promise(async (resolve) => {
+            await StateMachine
+                .langClient()
+                .addClauses(params)
+                .then((resp) => {
+                    console.log(">>> inline data mapper add clauses response", resp);
+                    updateAndRefreshDataMapper(resp.textEdits, params.filePath, params.codedata, params.varName)
+                    .then(() => {
+                        resolve({ textEdits: resp.textEdits });
+                    });
+                });
+        });
+    }
+
+    async addSubMapping(params: AddSubMappingRequest): Promise<InlineDataMapperSourceResponse> {
+        return new Promise(async (resolve) => {
+            await StateMachine
+                .langClient()
+                .addSubMapping(params)
+                .then((resp) => {
+                    console.log(">>> inline data mapper add sub mapping response", resp);
+                    updateAndRefreshDataMapper(resp.textEdits, params.filePath, params.codedata, params.varName)
+                    .then(() => {
+                        resolve({ textEdits: resp.textEdits });
+                    });
+                });
+        });
+    }
+
+    async getDataMapperCodedata(params: GetInlineDataMapperCodedataRequest): Promise<GetInlineDataMapperCodedataResponse> {
+        return new Promise(async (resolve) => {
+            const dataMapperCodedata = await StateMachine
+                .langClient()
+                .getDataMapperCodedata(params) as GetInlineDataMapperCodedataResponse;
+
+            resolve(dataMapperCodedata);
+        });
+    }
+
+    async getSubMappingCodedata(params: GetSubMappingCodedataRequest): Promise<GetInlineDataMapperCodedataResponse> {
+        return new Promise(async (resolve) => {
+            const dataMapperCodedata = await StateMachine
+                .langClient()
+                .getSubMappingCodedata(params) as GetInlineDataMapperCodedataResponse;
+
+            resolve(dataMapperCodedata);
+        });
+    }
+
+    async getAllDataMapperSource(params: InlineAllDataMapperSourceRequest): Promise<InlineDataMapperSourceResponse> {
+        return new Promise(async (resolve) => {
+            setHasStopped(false);
+
+            const sourceRequests = buildSourceRequests(params);
+            const responses = await processSourceRequests(sourceRequests);
+            const allTextEdits = consolidateTextEdits(responses, params.mappings.length);
+            resolve ({ textEdits: allTextEdits });
+        });
+    }
+
+    async getProperty(params: PropertyRequest): Promise<PropertyResponse> {
+        return new Promise(async (resolve) => {
+            const property = await StateMachine
+                .langClient()
+                .getProperty(params) as PropertyResponse;
+
+            resolve(property);
+        });
+    }
+
+    async deleteMapping(params: DeleteMappingRequest): Promise<InlineDataMapperSourceResponse> {
+        return new Promise(async (resolve) => {
+            await StateMachine
+                .langClient()
+                .deleteMapping(params)
+                .then((resp) => {
+                    console.log(">>> inline data mapper delete mapping response", resp);
+                    updateAndRefreshDataMapper(resp.textEdits, params.filePath, params.codedata, params.varName)
+                    .then(() => {
+                        resolve({ textEdits: resp.textEdits });
+                    });
+                });
+        });
+    }
+
+    async mapWithCustomFn(params: MapWithCustomFnRequest): Promise<InlineDataMapperSourceResponse> {
+        return new Promise(async (resolve) => {
+            await StateMachine
+                .langClient()
+                .mapWithCustomFn(params)
+                .then((resp) => {
+                    console.log(">>> inline data mapper map with custom fn response", resp);
+                    updateAndRefreshDataMapper(resp.textEdits, params.filePath, params.codedata, params.varName)
+                    .then(() => {
+                        resolve({ textEdits: resp.textEdits });
+                    });
+                });
         });
     }
 }
