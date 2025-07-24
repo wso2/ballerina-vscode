@@ -15,10 +15,22 @@
 // under the License.
 
 import { createAnthropic } from "@ai-sdk/anthropic";
-import { getAccessToken, getRefreshedAccessToken } from "../../../utils/ai/auth";
+import { getAccessToken, getLoginMethod, getRefreshedAccessToken } from "../../../utils/ai/auth";
 import { AIStateMachine } from "../../../views/ai-panel/aiMachine";
-import { AIMachineEventType } from "@wso2/ballerina-core";
 import { BACKEND_URL } from "../utils";
+import { AIMachineEventType, LoginMethod } from "@wso2/ballerina-core";
+
+export const ANTHROPIC_HAIKU = "claude-3-5-haiku-20241022";
+export const ANTHROPIC_SONNET_4 = "claude-sonnet-4-20250514";
+export const ANTHROPIC_SONNET_3_5 = "claude-3-5-sonnet-20241022";
+
+type AnthropicModel =
+    | typeof ANTHROPIC_HAIKU
+    | typeof ANTHROPIC_SONNET_4
+    | typeof ANTHROPIC_SONNET_3_5;
+
+let cachedAnthropic: ReturnType<typeof createAnthropic> | null = null;
+let cachedAuthMethod: LoginMethod | null = null;
 
 /**
  * Reusable fetch function that handles authentication with token refresh
@@ -26,45 +38,73 @@ import { BACKEND_URL } from "../utils";
  * @param options - Fetch options
  * @returns Promise<Response>
  */
-export async function fetchWithAuth(input: string | URL | Request, options: RequestInit = {}): Promise<Response> {
-    const accessToken = await getAccessToken();
-    
-    // Ensure headers object exists
-    options.headers = {
-        ...options.headers,
-        'Authorization': `Bearer ${accessToken}`,
-        'User-Agent': 'Ballerina-VSCode-Plugin',
-        'Connection': 'keep-alive',
-    };
-    
-    let response = await fetch(input, options);
-    console.log("Response status: ", response.status);
-    
-    // Handle token expiration
-    if (response.status === 401) {
-        console.log("Token expired. Refreshing token...");
-        const newToken = await getRefreshedAccessToken();
-        if (newToken) {
-            options.headers = {
-                ...options.headers,
-                'Authorization': `Bearer ${newToken}`,
-            };
-            response = await fetch(input, options);
-        } else {
-            AIStateMachine.service().send(AIMachineEventType.LOGOUT);
-            throw new Error('Authentication failed: Unable to refresh token');
+export async function fetchWithAuth(input: string | URL | Request, options: RequestInit = {}): Promise<Response | undefined> {
+    try {
+        const accessToken = await getAccessToken();
+
+        // Ensure headers object exists
+        options.headers = {
+            ...options.headers,
+            'Authorization': `Bearer ${accessToken}`,
+            'User-Agent': 'Ballerina-VSCode-Plugin',
+            'Connection': 'keep-alive',
+        };
+
+        let response = await fetch(input, options);
+        console.log("Response status: ", response.status);
+
+        // Handle token expiration
+        if (response.status === 401) {
+            console.log("Token expired. Refreshing token...");
+            const newToken = await getRefreshedAccessToken();
+            if (newToken) {
+                options.headers = {
+                    ...options.headers,
+                    'Authorization': `Bearer ${newToken}`,
+                };
+                response = await fetch(input, options);
+            } else {
+                AIStateMachine.service().send(AIMachineEventType.LOGOUT);
+                return;
+            }
         }
+
+        return response;
+    } catch (error: any) {
+        if (error?.message === "TOKEN_EXPIRED") {
+            AIStateMachine.service().send(AIMachineEventType.LOGOUT);
+        }
+        return;
     }
-    
-    return response;
 }
 
-export const anthropic = createAnthropic({
-    baseURL: BACKEND_URL + "/intelligence-api/v1.0/claude",
-    apiKey: "xx", //TODO: Gives error without this. see if we can remove,
-    fetch: fetchWithAuth,
-});
+/**
+ * Returns a singleton Anthropic client instance.
+ * Re-initializes the client if the login method has changed.
+ */
+export const getAnthropicClient = async (model: AnthropicModel) => {
+    const loginMethod = await getLoginMethod();
 
-export const ANTHROPIC_HAIKU = "claude-3-5-haiku-20241022";
-export const ANTHROPIC_SONNET_4 = "claude-sonnet-4-20250514";
-export const ANTHROPIC_SONNET_3_5 = "claude-3-5-sonnet-20241022";
+    // Recreate client if login method has changed or no cached instance
+    if (!cachedAnthropic || cachedAuthMethod !== loginMethod) {
+        if (loginMethod === LoginMethod.BI_INTEL) {
+            cachedAnthropic = createAnthropic({
+                baseURL: BACKEND_URL + "/intelligence-api/v1.0/claude",
+                apiKey: "xx", // dummy value; real auth is via fetchWithAuth
+                fetch: fetchWithAuth,
+            });
+        } else if (loginMethod === LoginMethod.ANTHROPIC_KEY) {
+            const apiKey = await getAccessToken();
+            cachedAnthropic = createAnthropic({
+                baseURL: "https://api.anthropic.com/v1",
+                apiKey: apiKey,
+            });
+        } else {
+            throw new Error(`Unsupported login method: ${loginMethod}`);
+        }
+
+        cachedAuthMethod = loginMethod;
+    }
+
+    return cachedAnthropic(model);
+};
