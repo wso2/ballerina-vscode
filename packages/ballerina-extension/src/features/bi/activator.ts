@@ -34,7 +34,7 @@ import { BiDiagramRpcManager } from "../../rpc-managers/bi-diagram/rpc-manager";
 import { readFileSync, readdirSync, statSync } from "fs";
 import path from "path";
 import { isPositionEqual, isPositionWithinDeletedComponent } from "../../utils/history/util";
-import { startDebugging } from "../editor-support/codelens-provider";
+import { startDebugging } from "../editor-support/activator";
 
 const FOCUS_DEBUG_CONSOLE_COMMAND = 'workbench.debug.action.focusRepl';
 
@@ -69,9 +69,12 @@ export function activate(context: BallerinaExtension) {
     });
 
     commands.registerCommand(BI_COMMANDS.ADD_CONFIGURATION, () => {
-        // Trigger to open the configuration setup view
-        openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.ViewConfigVariables });
+        openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.AddConfigVariables });
     });
+
+    commands.registerCommand(BI_COMMANDS.VIEW_CONFIGURATION, () => {
+        openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.ViewConfigVariables });
+    }); 
 
     commands.registerCommand(BI_COMMANDS.SHOW_OVERVIEW, () => {
         openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.Overview });

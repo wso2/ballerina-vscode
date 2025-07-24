@@ -18,7 +18,7 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import styled from "@emotion/styled";
-import { CodeData, FlowNode, NodeProperties } from "@wso2/ballerina-core";
+import { CodeData, FlowNode, NodeMetadata, NodeProperties } from "@wso2/ballerina-core";
 import { FormField, FormValues } from "@wso2/ballerina-side-panel";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { convertConfig } from "../../../utils/bi";
@@ -252,7 +252,11 @@ export function ModelConfig(props: ModelConfigProps): JSX.Element {
                             setSelectedModelCodeData(selectedModelCodeData);
                             fetchModelNodeTemplate(selectedModelCodeData);
                         }}
-                        value={selectedModelCodeData ? getProviderName(selectedModelCodeData) : (agentCallNode?.metadata.data?.model?.type as string)}
+                        value={
+                            selectedModelCodeData
+                                ? getProviderName(selectedModelCodeData)
+                                : ((agentCallNode?.metadata.data as NodeMetadata)?.model?.type as string)
+                        }
                         containerSx={{ width: "100%" }}
                     />
                 </Row>
