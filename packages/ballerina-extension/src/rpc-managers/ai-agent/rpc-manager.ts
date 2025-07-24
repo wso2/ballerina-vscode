@@ -17,8 +17,8 @@
  */
 import {
     AIAgentAPI,
-    AIAgentOrgRequest,
-    AIAgentOrgResponse,
+    AiModuleOrgRequest,
+    AiModuleOrgResponse,
     AIAgentRequest,
     AIAgentResponse,
     AIAgentToolsUpdateRequest,
@@ -157,14 +157,14 @@ export class AiAgentRpcManager implements AIAgentAPI {
                 }
 
                 // Create the model Second
-                const agentOrg = await StateMachine.langClient().getAgentOrg({ projectPath: projectUri });
-                const allAgents = (await StateMachine.langClient().getAllAgents({ filePath, orgName: agentOrg.orgName}));
+                const aiModuleOrg = await StateMachine.langClient().getAiModuleOrg({ projectPath: projectUri });
+                const allAgents = (await StateMachine.langClient().getAllAgents({ filePath, orgName: aiModuleOrg.orgName}));
                 console.log("All Agents: ", allAgents);
 
                 const fixedAgentCodeData = allAgents.agents.at(0);
 
                 if (params.modelState === 1) {
-                    const allModels = await StateMachine.langClient().getAllModels({ agent: fixedAgentCodeData.object, filePath, orgName: agentOrg.orgName });
+                    const allModels = await StateMachine.langClient().getAllModels({ agent: fixedAgentCodeData.object, filePath, orgName: aiModuleOrg.orgName });
                     const modelCodeData = allModels.models.find(val => val.object === params.selectedModel);
                     const modelFlowNode = (await StateMachine.langClient().getNodeTemplate({ filePath, id: modelCodeData, position: { line: 0, offset: 0 } })).flowNode;
 
@@ -393,11 +393,11 @@ export class AiAgentRpcManager implements AIAgentAPI {
         }
     }
 
-    async getAgentOrg(params: AIAgentOrgRequest): Promise<AIAgentOrgResponse> {
+    async getAiModuleOrg(params: AiModuleOrgRequest): Promise<AiModuleOrgResponse> {
         return new Promise(async (resolve) => {
             const context = StateMachine.context();
             try {
-                const res: AIAgentOrgResponse = await context.langClient.getAgentOrg(params);
+                const res: AiModuleOrgResponse = await context.langClient.getAiModuleOrg(params);
                 resolve(res);
             } catch (error) {
                 console.log(error);

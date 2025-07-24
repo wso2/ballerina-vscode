@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import { ballerinaExtInstance, LANGUAGE } from "../../../core";
+import { extension } from "../../../BalExtensionContext";
 import { commands, window } from "vscode";
 import {
     TM_EVENT_PROJECT_TEST, CMP_PROJECT_TEST, sendTelemetryEvent, sendTelemetryException
@@ -24,12 +24,13 @@ import {
 import { runCommand, BALLERINA_COMMANDS, PROJECT_TYPE, PALETTE_COMMANDS, MESSAGES }
     from "./cmd-runner";
 import { getCurrentBallerinaProject, getCurrentBallerinaFile, getCurrenDirectoryPath } from "../../../utils/project-utils";
+import { LANGUAGE } from "../../../core";
 
 export function activateTestRunner() {
     // register run project tests handler
     commands.registerCommand(PALETTE_COMMANDS.TEST, async (...args: any[]) => {
         try {
-            sendTelemetryEvent(ballerinaExtInstance, TM_EVENT_PROJECT_TEST, CMP_PROJECT_TEST);
+            sendTelemetryEvent(extension.ballerinaExtInstance, TM_EVENT_PROJECT_TEST, CMP_PROJECT_TEST);
             if (window.activeTextEditor && window.activeTextEditor.document.isDirty) {
                 await commands.executeCommand(PALETTE_COMMANDS.SAVE_ALL);
             }
@@ -39,19 +40,19 @@ export function activateTestRunner() {
                 return;
             }
             // get Ballerina Project path for current Ballerina file
-            const currentProject = await ballerinaExtInstance.getDocumentContext().isActiveDiagram() ? await
-                getCurrentBallerinaProject(ballerinaExtInstance.getDocumentContext().getLatestDocument()?.toString())
+            const currentProject = await extension.ballerinaExtInstance.getDocumentContext().isActiveDiagram() ? await
+                getCurrentBallerinaProject(extension.ballerinaExtInstance.getDocumentContext().getLatestDocument()?.toString())
                 : await getCurrentBallerinaProject();
             if (currentProject.kind !== PROJECT_TYPE.SINGLE_FILE) {
-                runCommand(currentProject, ballerinaExtInstance.getBallerinaCmd(), BALLERINA_COMMANDS.TEST,
+                runCommand(currentProject, extension.ballerinaExtInstance.getBallerinaCmd(), BALLERINA_COMMANDS.TEST,
                     ...args, currentProject.path!);
             } else {
-                runCommand(getCurrenDirectoryPath(), ballerinaExtInstance.getBallerinaCmd(),
+                runCommand(getCurrenDirectoryPath(), extension.ballerinaExtInstance.getBallerinaCmd(),
                     BALLERINA_COMMANDS.TEST, ...args, getCurrentBallerinaFile());
             }
         } catch (error) {
             if (error instanceof Error) {
-                sendTelemetryException(ballerinaExtInstance, error, CMP_PROJECT_TEST);
+                sendTelemetryException(extension.ballerinaExtInstance, error, CMP_PROJECT_TEST);
                 window.showErrorMessage(error.message);
             } else {
                 window.showErrorMessage("Unkown error occurred.");
