@@ -16,21 +16,21 @@
       {
         "members": [
           {
-            "typeName": "FINANCE",
+            "typeName": "finance",
             "optional": false,
             "defaultable": false,
             "isRestType": false,
             "selected": false
           },
           {
-            "typeName": "IT",
+            "typeName": "it",
             "optional": false,
             "defaultable": false,
             "isRestType": false,
             "selected": false
           },
           {
-            "typeName": "HR",
+            "typeName": "hr",
             "optional": false,
             "defaultable": false,
             "isRestType": false,

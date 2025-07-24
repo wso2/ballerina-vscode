@@ -24,6 +24,7 @@ import com.google.gson.JsonObject;
 import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.compiler.api.symbols.ArrayTypeSymbol;
 import io.ballerina.compiler.api.symbols.ConstantSymbol;
+import io.ballerina.compiler.api.symbols.EnumSymbol;
 import io.ballerina.compiler.api.symbols.FunctionSymbol;
 import io.ballerina.compiler.api.symbols.ModuleSymbol;
 import io.ballerina.compiler.api.symbols.ParameterSymbol;
@@ -703,6 +704,16 @@ public class DataMapManager {
                 setModuleInfo(((ConstantSymbol) symbol).typeDescriptor(), mappingPort);
                 mappingPort.category = "constant";
                 mappingPorts.add(mappingPort);
+            } else if (kind == SymbolKind.ENUM) {
+                Type type = Type.fromSemanticSymbol(symbol);
+                MappingPort mappingPort = getMappingPort(type.getName(), type.getName(), type, true,
+                        new HashMap<>());
+                if (mappingPort == null) {
+                    continue;
+                }
+                setModuleInfo(((EnumSymbol) symbol).typeDescriptor(), mappingPort);
+                mappingPort.category = "enum";
+                mappingPorts.add(mappingPort);
             }
         }
         return mappingPorts;
@@ -754,6 +765,16 @@ public class DataMapManager {
                     continue;
                 }
                 mappingPort.category = "constant";
+                mappingPorts.add(mappingPort);
+            } else if (kind == SymbolKind.ENUM) {
+                Type type = Type.fromSemanticSymbol(symbol);
+                MappingPort mappingPort = getMappingPort(type.getName(), type.getTypeName(), type, true,
+                        new HashMap<>());
+                if (mappingPort == null) {
+                    continue;
+                }
+                setModuleInfo(((EnumSymbol) symbol).typeDescriptor(), mappingPort);
+                mappingPort.category = "enum";
                 mappingPorts.add(mappingPort);
             }
         }

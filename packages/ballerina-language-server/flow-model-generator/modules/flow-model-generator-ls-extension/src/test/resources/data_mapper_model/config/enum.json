@@ -6,129 +6,101 @@
     "lineRange": {
       "fileName": "enum.bal",
       "startLine": {
-        "line": 24,
+        "line": 18,
         "offset": 4
       },
       "endLine": {
-        "line": 27,
+        "line": 21,
         "offset": 6
       }
     },
     "sourceCode": ""
   },
   "position": {
-    "line": 24,
+    "line": 18,
     "offset": 4
   },
   "propertyKey": "expression",
   "model": {
     "inputs": [
       {
-        "fields": [
+        "members": [
           {
-            "id": "engineering.name",
-            "variableName": "name",
-            "typeName": "string",
-            "kind": "string"
+            "id": "DepartmentCode.FINANCE",
+            "typeName": "FINANCE",
+            "kind": "FINANCE"
           },
           {
-            "members": [
-              {
-                "id": "engineering.code.FINANCE",
-                "typeName": "FINANCE",
-                "kind": "FINANCE"
-              },
-              {
-                "id": "engineering.code.IT",
-                "typeName": "IT",
-                "kind": "IT"
-              },
-              {
-                "id": "engineering.code.HR",
-                "typeName": "HR",
-                "kind": "HR"
-              }
-            ],
-            "id": "engineering.code",
-            "variableName": "code",
-            "typeName": "enum",
-            "kind": "enum"
+            "id": "DepartmentCode.IT",
+            "typeName": "IT",
+            "kind": "IT"
+          },
+          {
+            "id": "DepartmentCode.HR",
+            "typeName": "HR",
+            "kind": "HR"
           }
         ],
-        "id": "engineering",
-        "variableName": "engineering",
-        "typeName": "Department",
-        "kind": "record",
-        "category": "local-variable"
+        "id": "DepartmentCode",
+        "variableName": "DepartmentCode",
+        "typeName": "enum",
+        "kind": "enum",
+        "category": "enum"
       }
     ],
     "output": {
       "fields": [
         {
-          "id": "alice.name",
+          "id": "engineering.name",
           "variableName": "name",
           "typeName": "string",
           "kind": "string"
         },
         {
-          "fields": [
+          "members": [
             {
-              "id": "alice.department.name",
-              "variableName": "name",
-              "typeName": "string",
-              "kind": "string"
+              "id": "engineering.code.FINANCE",
+              "typeName": "FINANCE",
+              "kind": "FINANCE"
             },
             {
-              "members": [
-                {
-                  "id": "alice.department.code.FINANCE",
-                  "typeName": "FINANCE",
-                  "kind": "FINANCE"
-                },
-                {
-                  "id": "alice.department.code.IT",
-                  "typeName": "IT",
-                  "kind": "IT"
-                },
-                {
-                  "id": "alice.department.code.HR",
-                  "typeName": "HR",
-                  "kind": "HR"
-                }
-              ],
-              "id": "alice.department.code",
-              "variableName": "code",
-              "typeName": "enum",
-              "kind": "enum"
+              "id": "engineering.code.IT",
+              "typeName": "IT",
+              "kind": "IT"
+            },
+            {
+              "id": "engineering.code.HR",
+              "typeName": "HR",
+              "kind": "HR"
             }
           ],
-          "id": "alice.department",
-          "variableName": "department",
-          "typeName": "Department",
-          "kind": "record"
+          "id": "engineering.code",
+          "variableName": "code",
+          "typeName": "enum",
+          "kind": "enum"
         }
       ],
-      "id": "alice",
-      "variableName": "alice",
-      "typeName": "Employee",
+      "id": "engineering",
+      "variableName": "engineering",
+      "typeName": "Department",
       "kind": "record"
     },
     "mappings": [
       {
-        "output": "alice.name",
+        "output": "engineering.name",
         "inputs": [],
-        "expression": "\"Alice\"",
+        "expression": "\"Engineering\"",
         "diagnostics": [],
         "elements": [],
         "isQueryExpression": false,
         "isFunctionCall": false
       },
       {
-        "output": "alice.department",
+        "output": "engineering.code",
         "inputs": [
-          "engineering"
+          "IT"
         ],
-        "expression": "engineering\n",
+        "expression": "IT\n",
         "diagnostics": [],
         "elements": [],
         "isQueryExpression": false,
