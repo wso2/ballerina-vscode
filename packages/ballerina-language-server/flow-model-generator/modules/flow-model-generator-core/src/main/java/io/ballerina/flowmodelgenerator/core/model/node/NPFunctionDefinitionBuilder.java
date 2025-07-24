@@ -165,16 +165,35 @@ public class NPFunctionDefinitionBuilder extends FunctionDefinitionBuilder {
 
     @Override
     public Map<Path, List<TextEdit>> toSource(SourceBuilder sourceBuilder) {
-        sourceBuilder.token().keyword(SyntaxKind.FUNCTION_KEYWORD);
         FlowNode flowNode = sourceBuilder.flowNode;
 
-        // Write the function name
+        Boolean isNew = flowNode.codedata().isNew();
         Optional<Property> functionNameProp = sourceBuilder.getProperty(Property.FUNCTION_NAME_KEY);
         if (functionNameProp.isEmpty()) {
             throw new IllegalStateException("Function name is not present");
         }
+        String functionName = functionNameProp.get().value().toString();
+
+        if (isNew != null && isNew) {
+            String modelVarReference = String.format("_%sModel", functionName);  // extract the model name
+            sourceBuilder.newVariable().token()
+                    .keyword(SyntaxKind.FINAL_KEYWORD)
+                    .name("ai:Wso2ModelProvider")
+                    .whiteSpace()
+                    .name(modelVarReference)
+                    .keyword(SyntaxKind.EQUAL_TOKEN)
+                    .keyword(SyntaxKind.CHECK_KEYWORD)
+                    .name("ai:getDefaultModelProvider")
+                    .keyword(SyntaxKind.OPEN_PAREN_TOKEN)
+                    .keyword(SyntaxKind.CLOSE_PAREN_TOKEN)
+                    .endOfStatement();
+        }
+
+        sourceBuilder.token().keyword(SyntaxKind.FUNCTION_KEYWORD);
+
+        // Write the function name
         sourceBuilder.token()
-                .name(functionNameProp.get().value().toString())
+                .name(functionName)
                 .keyword(SyntaxKind.OPEN_PAREN_TOKEN);
 
         // Write the model provider parameter if model provider is accepted as a parameter
@@ -210,7 +229,6 @@ public class NPFunctionDefinitionBuilder extends FunctionDefinitionBuilder {
                 sourceBuilder.token().name(String.join(", ", paramList));
             }
         }
-
         sourceBuilder.token().keyword(SyntaxKind.CLOSE_PAREN_TOKEN);
 
         // Write the return type
@@ -229,16 +247,15 @@ public class NPFunctionDefinitionBuilder extends FunctionDefinitionBuilder {
             sourceBuilder.token().keyword(SyntaxKind.RETURNS_KEYWORD).name("error?");
         }
 
-        String modelVarReference = String.format("_%sModel", functionNameProp.get().value());  // extract the model name
+        String modelVarReference = String.format("_%sModel", functionName);  // extract the model name
         if (!isModelProviderAsParameter) {
             Optional<Property> modelProviderProperty =
                     sourceBuilder.getProperty(NaturalFunctions.MODEL_PROVIDER);
-            modelVarReference = modelProviderProperty.isPresent()
+            modelVarReference = modelProviderProperty.isPresent() &&
+                    !modelProviderProperty.get().value().toString().isBlank()
                     ? modelProviderProperty.get().value().toString()
                     : modelVarReference;
         }
-
-
 
         // Write the natural function expression body
         Optional<Property> promptProperty = sourceBuilder.getProperty(NaturalFunctions.PROMPT);
