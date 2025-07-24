@@ -714,6 +714,9 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
         ) {
             setCategories(initialCategoriesRef.current);
             setSidePanelView(SidePanelView.NODE_LIST);
+        } else if (sidePanelView === SidePanelView.FORM && selectedNodeRef.current.codedata.node === "FUNCTION_CALL") {
+            setSidePanelView(SidePanelView.FUNCTION_LIST);
+            handleSearchFunction("", FUNCTION_TYPE.REGULAR);
         } else {
             setSidePanelView(SidePanelView.NODE_LIST);
             setSubPanel({ view: SubPanelView.UNDEFINED });
