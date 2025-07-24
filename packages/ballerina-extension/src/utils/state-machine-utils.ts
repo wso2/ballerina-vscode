@@ -292,7 +292,8 @@ function findViewByArtifact(dir: ProjectStructureArtifactResponse, position: Nod
                             identifier: dir.name,
                             documentUri: normalizedDocumentUri,
                             position: position,
-                            projectUri: normalizedProjectUri
+                            projectUri: normalizedProjectUri,
+                            artifactType: DIRECTORY_MAP.SERVICE
                         }
                     };
                 } else if (dir.moduleName === "ai") {
@@ -302,7 +303,8 @@ function findViewByArtifact(dir: ProjectStructureArtifactResponse, position: Nod
                             identifier: dir.name,
                             documentUri: normalizedDocumentUri,
                             position: position,
-                            projectUri: normalizedProjectUri
+                            projectUri: normalizedProjectUri,
+                            artifactType: DIRECTORY_MAP.SERVICE,
                         }
                     };
                 } else {
@@ -311,7 +313,8 @@ function findViewByArtifact(dir: ProjectStructureArtifactResponse, position: Nod
                             view: MACHINE_VIEW.ServiceDesigner,
                             identifier: dir.name,
                             documentUri: normalizedDocumentUri,
-                            position: position
+                            position: position,
+                            artifactType: DIRECTORY_MAP.SERVICE
                         }
                     };
                 }
@@ -322,6 +325,7 @@ function findViewByArtifact(dir: ProjectStructureArtifactResponse, position: Nod
                         documentUri: normalizedDocumentUri,
                         position: dir.position,
                         identifier: dir.name,
+                        artifactType: DIRECTORY_MAP.LISTENER
                     }
                 };
             case DIRECTORY_MAP.RESOURCE:
@@ -331,6 +335,7 @@ function findViewByArtifact(dir: ProjectStructureArtifactResponse, position: Nod
                         documentUri: normalizedDocumentUri,
                         position: dir.position,
                         identifier: dir.id,
+                        artifactType: DIRECTORY_MAP.RESOURCE,
                     }
                 };
             case DIRECTORY_MAP.NP_FUNCTION:
@@ -341,6 +346,7 @@ function findViewByArtifact(dir: ProjectStructureArtifactResponse, position: Nod
                         position: dir.position,
                         identifier: dir.name,
                         focusFlowDiagramView: FOCUS_FLOW_DIAGRAM_VIEW.NP_FUNCTION,
+                        artifactType: DIRECTORY_MAP.NP_FUNCTION,
                     },
                     dataMapperDepth: 0
                 };
@@ -353,6 +359,7 @@ function findViewByArtifact(dir: ProjectStructureArtifactResponse, position: Nod
                         documentUri: normalizedDocumentUri,
                         identifier: dir.name,
                         position: dir.position,
+                        artifactType: dir.type,
                         metadata: {
                             enableSequenceDiagram: extension.ballerinaExtInstance.enableSequenceDiagramView(),
                         }
@@ -365,6 +372,7 @@ function findViewByArtifact(dir: ProjectStructureArtifactResponse, position: Nod
                     location: {
                         view: MACHINE_VIEW.EditConnectionWizard,
                         identifier: dir.name,
+                        artifactType: dir.type
                     },
                 };
             case DIRECTORY_MAP.TYPE: // Type diagram should be shown for Type, Class, Enum, Record
@@ -374,7 +382,8 @@ function findViewByArtifact(dir: ProjectStructureArtifactResponse, position: Nod
                         documentUri: normalizedDocumentUri,
                         position: position,
                         identifier: dir.name,
-                        projectUri: normalizedProjectUri
+                        projectUri: normalizedProjectUri,
+                        artifactType: DIRECTORY_MAP.TYPE
                     }
                 };
             case DIRECTORY_MAP.CONFIGURABLE:
@@ -384,6 +393,7 @@ function findViewByArtifact(dir: ProjectStructureArtifactResponse, position: Nod
                         documentUri: normalizedDocumentUri,
                         position: dir.position,
                         identifier: dir.name,
+                        artifactType: DIRECTORY_MAP.CONFIGURABLE
                     },
                 };
             case DIRECTORY_MAP.DATA_MAPPER:
@@ -392,7 +402,8 @@ function findViewByArtifact(dir: ProjectStructureArtifactResponse, position: Nod
                         view: MACHINE_VIEW.DataMapper,
                         identifier: dir.name,
                         documentUri: normalizedDocumentUri,
-                        position: position
+                        position: position,
+                        artifactType: DIRECTORY_MAP.DATA_MAPPER
                     },
                     dataMapperDepth: 0
                 };
