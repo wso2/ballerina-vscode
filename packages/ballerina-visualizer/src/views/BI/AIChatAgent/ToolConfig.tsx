@@ -69,7 +69,7 @@ export function ToolConfig(props: ToolConfigProps): JSX.Element {
         setLoading(true);
         // get agent file path
         const filePath = await rpcClient.getVisualizerLocation();
-        agentFilePath.current = Utils.joinPath(URI.file(filePath.projectUri), "agents.bal").fsPath;
+        agentFilePath.current = await rpcClient.getVisualizerRpcClient().joinProjectPath("agents.bal");
         setLoading(false);
     };
 
