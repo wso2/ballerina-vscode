@@ -102,7 +102,6 @@ export function DropdownEditor(props: DropdownEditorProps) {
     // Call onToolsChange whenever selectedMcpTools changes
     useEffect(() => {
         props.onToolsChange?.(Array.from(selectedMcpTools));
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [selectedMcpTools]);
 
     const showScopeControls = field.key === "toolsToInclude";

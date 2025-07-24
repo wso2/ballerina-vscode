@@ -143,7 +143,7 @@ const StyledActionButton = styled(Button)`
     }
 `;
 
-export const FormGenerator = forwardRef(function FormGenerator(props: FormProps, ref) {
+export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(function FormGenerator(props: FormProps, ref: React.ForwardedRef<FormExpressionEditorRef>) {
     const {
         fileName,
         node,

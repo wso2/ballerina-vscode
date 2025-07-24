@@ -182,27 +182,6 @@ const LoadingMessage = styled.div`
     gap: 8px;
 `;
 
-const CheckboxIcon = styled.div<{ visible: boolean }>((props: React.PropsWithChildren<{ visible: boolean }>) => `
-    width: 10px;
-    height: 10px;
-    opacity: ${props.visible ? 1 : 0};
-    transition: opacity 0.2s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    
-    /* SVG checkmark */
-    &::after {
-        content: '';
-        width: 8px;
-        height: 8px;
-        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='white' d='M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z'/%3E%3C/svg%3E");
-        background-repeat: no-repeat;
-        background-position: center;
-        background-size: contain;
-    }
-`);
-
 interface Tool {
     name: string;
     description?: string;

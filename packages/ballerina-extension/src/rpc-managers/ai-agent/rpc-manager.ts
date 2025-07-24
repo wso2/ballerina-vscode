@@ -503,7 +503,7 @@ export class AiAgentRpcManager implements AIAgentAPI {
                     toolsArray.push(variableName);
                 }
                 // Update the tools value
-                toolsValue = `[${toolsArray.join(", ")} ]`;
+                toolsValue = `[${toolsArray.join(", ")}]`;
             } else {
                 toolsValue = `[${variableName}]`;
             }
