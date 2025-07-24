@@ -158,6 +158,18 @@ function findFileCaseInsensitive(directory: string, fileName: string): string {
     return path.join(directory, file);
 }
 
+// Helper to add or replace a config line
+function addOrReplaceConfigLine(lines: string[], key: string, value: string) {
+    const configLine = `${key} = "${value}"`;
+    const idx = lines.findIndex(l => l.trim().startsWith(`${key} =`));
+    if (idx === -1) {
+        // Add after header
+        lines.splice(1, 0, configLine);
+    } else {
+        lines[idx] = configLine;
+    }
+}
+
 function addDefaultModelConfig(
     projectPath: string, token: string, backendUrl: string) {
     const targetTable = `[ballerina.ai.wso2ProviderConfig]`;
@@ -195,18 +207,6 @@ function addDefaultModelConfig(
     // Extract table content and split into lines once
     let tableContent = fileContent.substring(tableStartIndex, tableEndIndex);
     let lines = tableContent.split('\n');
-
-    // Helper to add or replace a config line
-    function addOrReplaceConfigLine(lines: string[], key: string, value: string) {
-        const configLine = `${key} = "${value}"`;
-        const idx = lines.findIndex(l => l.trim().startsWith(`${key} =`));
-        if (idx === -1) {
-            // Add after header
-            lines.splice(1, 0, configLine);
-        } else {
-            lines[idx] = configLine;
-        }
-    }
 
     // Add or replace serviceUrl
     addOrReplaceConfigLine(lines, SERVICE_URL_KEY, backendUrl);
