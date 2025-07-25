@@ -1,0 +1,127 @@
+{
+  "description": "Project with dynamic http connections",
+  "projectPath": "project_7",
+  "output": {
+    "designModel": {
+      "connections": [
+        {
+          "symbol": "cl",
+          "location": {
+            "filePath": "/Users/lakshanweerasinghe/Documents/repos/ballerina-platform/ballerina-language-server/architecture-model-generator/modules/architecture-model-generator-ls-extension/src/test/resources/get_design_model/source/project_7/main.bal",
+            "startLine": {
+              "line": 17,
+              "offset": 8
+            },
+            "endLine": {
+              "line": 17,
+              "offset": 46
+            }
+          },
+          "scope": "LOCAL",
+          "icon": "",
+          "dependentFunctions": [],
+          "dependentConnection": [],
+          "uuid": "bc3a41ee-4680-9d8c-818e-ac62ef095c23",
+          "enableFlowModel": false,
+          "sortText": "main.bal17"
+        },
+        {
+          "symbol": "cl",
+          "location": {
+            "filePath": "/Users/lakshanweerasinghe/Documents/repos/ballerina-platform/ballerina-language-server/architecture-model-generator/modules/architecture-model-generator-ls-extension/src/test/resources/get_design_model/source/project_7/main.bal",
+            "startLine": {
+              "line": 17,
+              "offset": 8
+            },
+            "endLine": {
+              "line": 17,
+              "offset": 46
+            }
+          },
+          "scope": "LOCAL",
+          "icon": "",
+          "dependentFunctions": [],
+          "dependentConnection": [],
+          "uuid": "bc3a41ee-4680-9d8c-818e-ac62ef095c23",
+          "enableFlowModel": false,
+          "sortText": "main.bal17"
+        }
+      ],
+      "listeners": [
+        {
+          "symbol": "httpDefaultListener",
+          "location": {
+            "filePath": "/Users/lakshanweerasinghe/Documents/repos/ballerina-platform/ballerina-language-server/architecture-model-generator/modules/architecture-model-generator-ls-extension/src/test/resources/get_design_model/source/project_7/main.bal",
+            "startLine": {
+              "line": 2,
+              "offset": 0
+            },
+            "endLine": {
+              "line": 2,
+              "offset": 71
+            }
+          },
+          "attachedServices": [
+            "c6070bec-9562-6f9b-88e5-039190648329"
+          ],
+          "kind": "NAMED",
+          "type": "http:Listener",
+          "args": [],
+          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.14.2.png",
+          "uuid": "c6ff50cf-125e-b9f8-a19c-ba36acfb3253",
+          "enableFlowModel": true,
+          "sortText": "main.bal2"
+        }
+      ],
+      "services": [
+        {
+          "location": {
+            "filePath": "/Users/lakshanweerasinghe/Documents/repos/ballerina-platform/ballerina-language-server/architecture-model-generator/modules/architecture-model-generator-ls-extension/src/test/resources/get_design_model/source/project_7/main.bal",
+            "startLine": {
+              "line": 4,
+              "offset": 0
+            },
+            "endLine": {
+              "line": 8,
+              "offset": 1
+            }
+          },
+          "attachedListeners": [
+            "c6ff50cf-125e-b9f8-a19c-ba36acfb3253"
+          ],
+          "connections": [
+            "bc3a41ee-4680-9d8c-818e-ac62ef095c23"
+          ],
+          "functions": [],
+          "remoteFunctions": [],
+          "resourceFunctions": [
+            {
+              "accessor": "get",
+              "path": "greeting",
+              "location": {
+                "filePath": "/Users/lakshanweerasinghe/Documents/repos/ballerina-platform/ballerina-language-server/architecture-model-generator/modules/architecture-model-generator-ls-extension/src/test/resources/get_design_model/source/project_7/main.bal",
+                "startLine": {
+                  "line": 5,
+                  "offset": 4
+                },
+                "endLine": {
+                  "line": 7,
+                  "offset": 5
+                }
+              },
+              "connections": [
+                "bc3a41ee-4680-9d8c-818e-ac62ef095c23"
+              ]
+            }
+          ],
+          "absolutePath": "/api ",
+          "type": "http:Service",
+          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.14.2.png",
+          "uuid": "c6070bec-9562-6f9b-88e5-039190648329",
+          "enableFlowModel": true,
+          "sortText": "main.bal4"
+        }
+      ]
+    }
+  }
+}

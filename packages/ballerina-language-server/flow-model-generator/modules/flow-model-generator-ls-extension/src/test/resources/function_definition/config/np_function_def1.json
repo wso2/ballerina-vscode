@@ -2,9 +2,9 @@
   "filePath": "np_functions",
   "fileName": "functions.bal",
   "functionName": "suggestMovieName",
-  "description": "",
+  "description": "Natural function with default model provider",
   "output": {
-    "id": "33947",
+    "id": "36923",
     "metadata": {
       "label": "Natural Function",
       "description": "Define a natural function"
@@ -16,11 +16,11 @@
       "lineRange": {
         "fileName": "functions.bal",
         "startLine": {
-          "line": 2,
+          "line": 5,
           "offset": 0
         },
         "endLine": {
-          "line": 9,
+          "line": 12,
           "offset": 2
         }
       }
@@ -43,11 +43,11 @@
           "lineRange": {
             "fileName": "functions.bal",
             "startLine": {
-              "line": 2,
+              "line": 5,
               "offset": 9
             },
             "endLine": {
-              "line": 2,
+              "line": 5,
               "offset": 25
             }
           }
@@ -155,11 +155,11 @@
                   "lineRange": {
                     "fileName": "functions.bal",
                     "startLine": {
-                      "line": 2,
+                      "line": 5,
                       "offset": 33
                     },
                     "endLine": {
-                      "line": 2,
+                      "line": 5,
                       "offset": 38
                     }
                   }
@@ -217,11 +217,11 @@
                   "lineRange": {
                     "fileName": "functions.bal",
                     "startLine": {
-                      "line": 2,
+                      "line": 5,
                       "offset": 44
                     },
                     "endLine": {
-                      "line": 2,
+                      "line": 5,
                       "offset": 45
                     }
                   }
@@ -267,11 +267,11 @@
           "lineRange": {
             "fileName": "functions.bal",
             "startLine": {
-              "line": 3,
+              "line": 6,
               "offset": 0
             },
             "endLine": {
-              "line": 9,
+              "line": 12,
               "offset": 0
             }
           }
@@ -280,18 +280,30 @@
       "modelProvider": {
         "metadata": {
           "label": "Configure the model",
-          "description": "The large language model (LLM) to use"
+          "description": "The large language model (LLM) to use",
+          "data": {
+            "type": "Wso2ModelProvider",
+            "module": "ai"
+          }
         },
-        "valueType": "SINGLE_SELECT",
-        "valueTypeConstraint": [
-          "Default Model Provider (WSO2)",
-          "Accept as a parameter"
-        ],
-        "value": "Default Model Provider (WSO2)",
+        "valueType": "EXPRESSION",
+        "valueTypeConstraint": "Wso2ModelProvider",
+        "value": "_suggestMovieNameModel",
         "optional": false,
         "editable": true,
         "advanced": false,
-        "hidden": false,
+        "hidden": true,
+        "codedata": {
+          "kind": "REQUIRED"
+        }
+      },
+      "modelProviderAsParameter": {
+        "valueType": "FLAG",
+        "value": false,
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": true,
         "codedata": {
           "kind": "REQUIRED"
         }

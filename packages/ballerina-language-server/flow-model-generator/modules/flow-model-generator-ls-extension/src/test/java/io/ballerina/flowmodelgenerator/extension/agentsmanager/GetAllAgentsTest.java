@@ -41,7 +41,7 @@ public class GetAllAgentsTest extends AbstractLSTest {
     protected Object[] getConfigsList() {
         return new Object[][]{
                 {Path.of("get_all_ballerinax_agents.json")},
-//                {Path.of("get_all_ballerina_agents.json")}
+                {Path.of("get_all_ballerina_agents.json")}
         };
     }
 
@@ -60,7 +60,7 @@ public class GetAllAgentsTest extends AbstractLSTest {
             TestConfig updatedConfig = new TestConfig(testConfig.source(), testConfig.description(),
                     testConfig.orgName(), agents);
 //            updateConfig(configJsonPath, updatedConfig);
-            Assert.fail("Test failed. Updated the expected output in " + configJsonPath);
+            Assert.fail("Test failed. Updated the expected output: " + agents);
         }
     }
 

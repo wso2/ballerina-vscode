@@ -1,0 +1,111 @@
+{
+  "source": "enum.bal",
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "enum.bal",
+      "startLine": {
+        "line": 18,
+        "offset": 4
+      },
+      "endLine": {
+        "line": 21,
+        "offset": 6
+      }
+    },
+    "sourceCode": ""
+  },
+  "position": {
+    "line": 18,
+    "offset": 4
+  },
+  "propertyKey": "expression",
+  "model": {
+    "inputs": [
+      {
+        "members": [
+          {
+            "id": "DepartmentCode.FINANCE",
+            "typeName": "FINANCE",
+            "kind": "FINANCE"
+          },
+          {
+            "id": "DepartmentCode.IT",
+            "typeName": "IT",
+            "kind": "IT"
+          },
+          {
+            "id": "DepartmentCode.HR",
+            "typeName": "HR",
+            "kind": "HR"
+          }
+        ],
+        "id": "DepartmentCode",
+        "variableName": "DepartmentCode",
+        "typeName": "DepartmentCode",
+        "kind": "enum",
+        "category": "enum"
+      }
+    ],
+    "output": {
+      "fields": [
+        {
+          "id": "engineering.name",
+          "variableName": "name",
+          "typeName": "string",
+          "kind": "string"
+        },
+        {
+          "members": [
+            {
+              "id": "engineering.code.FINANCE",
+              "typeName": "FINANCE",
+              "kind": "FINANCE"
+            },
+            {
+              "id": "engineering.code.IT",
+              "typeName": "IT",
+              "kind": "IT"
+            },
+            {
+              "id": "engineering.code.HR",
+              "typeName": "HR",
+              "kind": "HR"
+            }
+          ],
+          "id": "engineering.code",
+          "variableName": "code",
+          "typeName": "DepartmentCode",
+          "kind": "enum"
+        }
+      ],
+      "id": "engineering",
+      "variableName": "engineering",
+      "typeName": "Department",
+      "kind": "record"
+    },
+    "mappings": [
+      {
+        "output": "engineering.name",
+        "inputs": [],
+        "expression": "\"Engineering\"",
+        "diagnostics": [],
+        "elements": [],
+        "isQueryExpression": false,
+        "isFunctionCall": false
+      },
+      {
+        "output": "engineering.code",
+        "inputs": [
+          "DepartmentCode.IT"
+        ],
+        "expression": "IT\n",
+        "diagnostics": [],
+        "elements": [],
+        "isQueryExpression": false,
+        "isFunctionCall": false
+      }
+    ]
+  }
+}

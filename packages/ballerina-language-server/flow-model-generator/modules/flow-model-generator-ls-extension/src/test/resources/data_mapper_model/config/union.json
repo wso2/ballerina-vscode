@@ -1,0 +1,131 @@
+{
+  "source": "union.bal",
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "union.bal",
+      "startLine": {
+        "line": 23,
+        "offset": 4
+      },
+      "endLine": {
+        "line": 23,
+        "offset": 25
+      }
+    },
+    "sourceCode": ""
+  },
+  "position": {
+    "line": 23,
+    "offset": 4
+  },
+  "propertyKey": "expression",
+  "model": {
+    "inputs": [
+      {
+        "fields": [
+          {
+            "id": "dog.name",
+            "variableName": "name",
+            "typeName": "string",
+            "kind": "string"
+          },
+          {
+            "id": "dog.breed",
+            "variableName": "breed",
+            "typeName": "string",
+            "kind": "string"
+          }
+        ],
+        "id": "dog",
+        "variableName": "dog",
+        "typeName": "Dog",
+        "kind": "record",
+        "category": "local-variable"
+      },
+      {
+        "fields": [
+          {
+            "id": "elephant.name",
+            "variableName": "name",
+            "typeName": "string",
+            "kind": "string"
+          },
+          {
+            "id": "elephant.cast",
+            "variableName": "cast",
+            "typeName": "string",
+            "kind": "string"
+          }
+        ],
+        "id": "elephant",
+        "variableName": "elephant",
+        "typeName": "Elephant",
+        "kind": "record",
+        "category": "local-variable"
+      }
+    ],
+    "output": {
+      "members": [
+        {
+          "fields": [
+            {
+              "id": "animal1.Dog.name",
+              "variableName": "name",
+              "typeName": "string",
+              "kind": "string"
+            },
+            {
+              "id": "animal1.Dog.breed",
+              "variableName": "breed",
+              "typeName": "string",
+              "kind": "string"
+            }
+          ],
+          "id": "animal1.Dog",
+          "variableName": "Dog",
+          "typeName": "Dog",
+          "kind": "record"
+        },
+        {
+          "fields": [
+            {
+              "id": "animal1.Elephant.name",
+              "variableName": "name",
+              "typeName": "string",
+              "kind": "string"
+            },
+            {
+              "id": "animal1.Elephant.cast",
+              "variableName": "cast",
+              "typeName": "string",
+              "kind": "string"
+            }
+          ],
+          "id": "animal1.Elephant",
+          "variableName": "Elephant",
+          "typeName": "Elephant",
+          "kind": "record"
+        }
+      ],
+      "id": "animal1",
+      "variableName": "animal1",
+      "typeName": "Animal",
+      "kind": "union"
+    },
+    "mappings": [
+      {
+        "output": "animal1",
+        "inputs": [
+          "dog"
+        ],
+        "expression": "dog",
+        "diagnostics": [],
+        "elements": [],
+        "isQueryExpression": false,
+        "isFunctionCall": false
+      }
+    ]
+  }
+}

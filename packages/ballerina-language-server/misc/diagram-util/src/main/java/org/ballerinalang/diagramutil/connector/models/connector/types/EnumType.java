@@ -26,6 +26,7 @@ import java.util.List;
  * Enum model.
  */
 public class EnumType extends Type {
+
     @Expose
     public List<Type> members;
 
@@ -33,4 +34,13 @@ public class EnumType extends Type {
         this.typeName = "enum";
         this.members = members;
     }
+
+    public List<Type> getMembers() {
+        return members;
+    }
+
+    public void setMembers(List<Type> members) {
+        this.members = members;
+    }
+
 }

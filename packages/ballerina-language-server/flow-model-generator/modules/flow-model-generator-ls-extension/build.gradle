@@ -38,13 +38,13 @@ dependencies {
     implementation project(":model-generator-commons")
     implementation project(":langserver-core")
     implementation project(":langserver-commons")
+    implementation project(":diagram-util")
 
     implementation "org.ballerinalang:ballerina-lang:${ballerinaLangVersion}"
     implementation "org.ballerinalang:ballerina-parser:${ballerinaLangVersion}"
     implementation "org.ballerinalang:formatter-core:${ballerinaLangVersion}"
     implementation "org.ballerinalang:ballerina-tools-api:${ballerinaLangVersion}"
     implementation "org.eclipse.lsp4j:org.eclipse.lsp4j:${eclipseLsp4jVersion}"
-    implementation "org.ballerinalang:diagram-util:${ballerinaLangVersion}"
     implementation "org.ballerinalang:json-mapper:${ballerinaLangVersion}"
     implementation "org.ballerinalang:toml-parser:${ballerinaLangVersion}"
     implementation "com.google.code.gson:gson:${gsonVersion}"
@@ -111,7 +111,6 @@ test.dependsOn rootProject.pullBallerinaModule('snowflake', ballerinaxSnowflakeV
 test.dependsOn rootProject.pullBallerinaModule('docusign.dsadmin', ballerinaxDocusignDsadminVersion)
 test.dependsOn rootProject.pullBallerinaModule('mysql', ballerinaxMysqlVersion)
 test.dependsOn rootProject.pullBallerinaModule('wso2.controlplane', ballerinaxWso2ControlplaneVersion)
-test.dependsOn rootProject.pullBallerinaModule('ai.openai', ballerinaxAiOpenaiVersion)
 test.dependsOn rootProject.pullBallerinaModule('ai.ollama', ballerinaxAiOllamaVersion)
 
 // TODO: Re-enable this once the `np` module is available on central

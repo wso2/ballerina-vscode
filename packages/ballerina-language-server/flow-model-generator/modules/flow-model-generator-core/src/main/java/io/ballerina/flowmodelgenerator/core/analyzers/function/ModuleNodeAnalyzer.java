@@ -20,6 +20,7 @@ package io.ballerina.flowmodelgenerator.core.analyzers.function;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
+import io.ballerina.compiler.api.ModuleID;
 import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.compiler.api.symbols.ParameterSymbol;
 import io.ballerina.compiler.api.symbols.Symbol;
@@ -27,6 +28,7 @@ import io.ballerina.compiler.api.symbols.TypeSymbol;
 import io.ballerina.compiler.syntax.tree.AnnotationNode;
 import io.ballerina.compiler.syntax.tree.DefaultableParameterNode;
 import io.ballerina.compiler.syntax.tree.ExpressionFunctionBodyNode;
+import io.ballerina.compiler.syntax.tree.FunctionArgumentNode;
 import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
 import io.ballerina.compiler.syntax.tree.MarkdownDocumentationLineNode;
 import io.ballerina.compiler.syntax.tree.MarkdownDocumentationNode;
@@ -39,6 +41,7 @@ import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.compiler.syntax.tree.NodeList;
 import io.ballerina.compiler.syntax.tree.NodeVisitor;
 import io.ballerina.compiler.syntax.tree.ParameterNode;
+import io.ballerina.compiler.syntax.tree.ParenthesizedArgList;
 import io.ballerina.compiler.syntax.tree.RequiredParameterNode;
 import io.ballerina.compiler.syntax.tree.RestParameterNode;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
@@ -60,6 +63,8 @@ import org.ballerinalang.langserver.commons.BallerinaCompilerApi;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+
+import static io.ballerina.modelgenerator.commons.ParameterData.Kind.REQUIRED;
 
 /**
  * Analyzes the module level functions and generates the flow model.
@@ -266,40 +271,52 @@ public class ModuleNodeAnalyzer extends NodeVisitor {
                 .stepOut()
                 .addProperty(Constants.NaturalFunctions.PROMPT);
 
-        // Set the `modelProvider` property
-        nodeBuilder.properties().custom()
-                .metadata()
-                    .label(Constants.NaturalFunctions.MODEL_PROVIDER_LABEL)
-                    .description(Constants.NaturalFunctions.MODEL_PROVIDER_DESCRIPTION)
-                    .stepOut()
-                .codedata()
-                    .kind(ParameterData.Kind.REQUIRED.name())
-                    .stepOut()
-                .value(isModelParamEnabled
-                        ? Constants.NaturalFunctions.ACCEPT_AS_PARAMETER
-                        : Constants.NaturalFunctions.DEFAULT_MODEL_PROVIDER_WSO2)
-                .type(Property.ValueType.SINGLE_SELECT)
-                .typeConstraint(Constants.NaturalFunctions.MODEL_PROVIDER_OPTIONS)
-                .editable()
-                .stepOut()
-                .addProperty(Constants.NaturalFunctions.MODEL_PROVIDER);
+        Optional<ParenthesizedArgList> argList = naturalExpression.parenthesizedArgList();
 
-        // Set the `model` property if enabled
-        if (isModelParamEnabled) {
+        String modelVarRef = "";
+        String modelTypeRef = "";
+        String modelModuleName = "";
+        if (argList.isPresent() && !argList.get().arguments().isEmpty()) {
+            FunctionArgumentNode modelArg = argList.get().arguments().get(0);
+            modelVarRef = modelArg.toSourceCode();
+            TypeSymbol modelType = semanticModel.typeOf(modelArg).get();
+            modelTypeRef = modelType.getName().get();
+            ModuleID moduleId = modelType.getModule().get().id();
+            modelModuleName = moduleId.moduleName();
+        }
+
+        // Model provider
+        if (!isModelParamEnabled) {
             nodeBuilder.properties().custom()
                     .metadata()
-                        .label(Constants.NaturalFunctions.MODEL_LABEL)
-                        .description(Constants.NaturalFunctions.MODEL_DESCRIPTION)
+                        .label(Constants.NaturalFunctions.MODEL_PROVIDER_LABEL)
+                        .description(Constants.NaturalFunctions.MODEL_PROVIDER_DESCRIPTION)
+                        .addData("type", modelTypeRef)
+                        .addData("module", modelModuleName)
                         .stepOut()
                     .codedata()
                         .kind(ParameterData.Kind.REQUIRED.name())
                         .stepOut()
-                    .typeConstraint(Constants.NaturalFunctions.MODULE_PREFIXED_MODEL_PROVIDER_TYPE)
                     .type(Property.ValueType.EXPRESSION)
+                    .value(modelVarRef)
+                    .typeConstraint(modelTypeRef)
                     .hidden()
+                    .editable()
                     .stepOut()
-                    .addProperty(Constants.NaturalFunctions.MODEL);
+                    .addProperty(Constants.NaturalFunctions.MODEL_PROVIDER);
         }
+
+        // Model provider as a parameter
+        nodeBuilder.properties().custom()
+                .codedata()
+                    .kind(REQUIRED.name())
+                    .stepOut()
+                .type(Property.ValueType.FLAG)
+                .value(isModelParamEnabled)
+                .editable()
+                .hidden()
+                .stepOut()
+                .addProperty(Constants.NaturalFunctions.MODEL_PROVIDER_AS_PARAMETER_KEY);
     }
 
     private static String getNodeValue(Node node) {

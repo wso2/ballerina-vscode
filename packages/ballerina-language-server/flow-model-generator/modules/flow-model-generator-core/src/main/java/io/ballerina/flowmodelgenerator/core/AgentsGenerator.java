@@ -73,10 +73,13 @@ import io.ballerina.tools.text.TextDocument;
 import io.ballerina.tools.text.TextDocumentChange;
 import io.ballerina.tools.text.TextRange;
 import org.ballerinalang.langserver.common.utils.CommonUtil;
+import org.ballerinalang.langserver.commons.eventsync.exceptions.EventSyncException;
+import org.ballerinalang.langserver.commons.workspace.WorkspaceDocumentException;
 import org.ballerinalang.langserver.commons.workspace.WorkspaceManager;
 import org.eclipse.lsp4j.Position;
 import org.eclipse.lsp4j.Range;
 import org.eclipse.lsp4j.TextEdit;
+import org.wso2.ballerinalang.compiler.tree.BLangPackage;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -87,8 +90,12 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
-import static io.ballerina.flowmodelgenerator.core.Constants.MODEL_VERSION;
-import static io.ballerina.modelgenerator.commons.CommonUtils.AI_AZURE;
+import static io.ballerina.flowmodelgenerator.core.Constants.AI;
+import static io.ballerina.flowmodelgenerator.core.Constants.BALLERINA;
+import static io.ballerina.flowmodelgenerator.core.Constants.BALLERINAX;
+import static io.ballerina.flowmodelgenerator.core.Constants.BALLERINAX_AI_VERSION;
+import static io.ballerina.flowmodelgenerator.core.Constants.BALLERINA_AI_VERSION;
+import static io.ballerina.modelgenerator.commons.CommonUtils.importExists;
 import static io.ballerina.modelgenerator.commons.CommonUtils.isAiModule;
 
 /**
@@ -124,6 +131,19 @@ public class AgentsGenerator {
         this.semanticModel = semanticModel;
     }
 
+    public static String getAiModuleOrgName(String path, WorkspaceManager workspaceManager)
+            throws WorkspaceDocumentException, EventSyncException {
+        Path projectPath = Path.of(path);
+        Project project = workspaceManager.loadProject(projectPath);
+        BLangPackage bLangPackage = PackageUtil.getCompilation(project.currentPackage()).defaultModuleBLangPackage();
+        return importExists(bLangPackage, BALLERINAX, AI) ? BALLERINAX : BALLERINA;
+    }
+
+    public ModuleInfo getAiModuleInfo(String orgName) {
+        String version = orgName.equals(BALLERINA) ? BALLERINA_AI_VERSION : BALLERINAX_AI_VERSION;
+        return new ModuleInfo(orgName, AI, AI, version);
+    }
+
     public JsonArray getAllAgents(SemanticModel agentSymbol) {
         List<Codedata> agents = new ArrayList<>();
         for (Symbol symbol : agentSymbol.moduleSymbols()) {
@@ -153,18 +173,24 @@ public class AgentsGenerator {
 
     public JsonArray getNewBallerinaxModels() {
         JsonArray models = new JsonArray();
-        CommonUtils.AI_MODULE_NAMES.stream().filter(model -> !model.equals(AI_AZURE))
-                .forEach(model -> models.add(createModelObject(model)));
-        models.add(createModelObject(NodeKind.CLASS_INIT, AI_AZURE, OPENAI_MODEL_PROVIDER));
-        models.add(createModelObject(NodeKind.FUNCTION_CALL, Constants.AI, DEFAULT_MODEL_PROVIDER));
+        models.add(createModelObject(CommonUtils.AI_OPENAI, Constants.OPENAI_MODEL_VERSION));
+        models.add(createModelObject(CommonUtils.AI_ANTHROPIC, Constants.ANTHROPIC_MODEL_VERSION));
+        models.add(createModelObject(CommonUtils.AI_DEEPSEEK, Constants.DEEPSEEK_MODEL_VERSION));
+        models.add(createModelObject(CommonUtils.AI_MISTRAL, Constants.MISTRAL_MODEL_VERSION));
+        models.add(createModelObject(CommonUtils.AI_OLLAMA, Constants.OLLAMA_MODEL_VERSION));
+        models.add(createModelObject(NodeKind.CLASS_INIT, CommonUtils.AI_AZURE, OPENAI_MODEL_PROVIDER,
+                Constants.AZURE_MODEL_VERSION));
+        models.add(createModelObject(NodeKind.FUNCTION_CALL, Constants.AI, DEFAULT_MODEL_PROVIDER,
+                Constants.BALLERINA_AI_VERSION));
         return models;
     }
 
-    private JsonObject createModelObject(String moduleName) {
-        return createModelObject(NodeKind.CLASS_INIT, moduleName, MODEL);
+    private JsonObject createModelObject(String moduleName, String version) {
+        return createModelObject(NodeKind.CLASS_INIT, moduleName, MODEL, version);
     }
 
-    private JsonObject createModelObject(NodeKind nodeKind, String moduleName, String objectOrFuncName) {
+    private JsonObject createModelObject(NodeKind nodeKind, String moduleName, String objectOrFuncName,
+                                         String version) {
         JsonObject model = new JsonObject();
         model.addProperty("node", nodeKind.toString());
         model.addProperty("org", nodeKind.equals(NodeKind.CLASS_INIT) ?
@@ -177,7 +203,7 @@ public class AgentsGenerator {
         } else {
             model.addProperty("symbol", objectOrFuncName);
         }
-        model.addProperty("version", MODEL_VERSION);
+        model.addProperty("version", version);
         return model;
     }
 

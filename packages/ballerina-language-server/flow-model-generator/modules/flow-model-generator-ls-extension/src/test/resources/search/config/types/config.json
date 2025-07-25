@@ -368,31 +368,6 @@
         },
         {
           "metadata": {
-            "label": "azure.ad",
-            "description": "",
-            "keywords": []
-          },
-          "items": [
-            {
-              "metadata": {
-                "label": "ConnectionConfig",
-                "description": "Client configuration details.",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_azure.ad_2.5.0.png"
-              },
-              "codedata": {
-                "node": "TYPEDESC",
-                "org": "ballerinax",
-                "module": "azure.ad",
-                "packageName": "azure.ad",
-                "symbol": "ConnectionConfig",
-                "version": "2.5.0"
-              },
-              "enabled": true
-            }
-          ]
-        },
-        {
-          "metadata": {
             "label": "microsoft.onenote",
             "description": "",
             "keywords": []
@@ -418,7 +393,7 @@
         },
         {
           "metadata": {
-            "label": "microsoft.teams",
+            "label": "googleapis.sheets",
             "description": "",
             "keywords": []
           },
@@ -427,15 +402,65 @@
               "metadata": {
                 "label": "ConnectionConfig",
                 "description": "Client configuration details.",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_microsoft.teams_2.4.0.png"
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_googleapis.sheets_3.5.1.png"
               },
               "codedata": {
                 "node": "TYPEDESC",
                 "org": "ballerinax",
-                "module": "microsoft.teams",
-                "packageName": "microsoft.teams",
+                "module": "googleapis.sheets",
+                "packageName": "googleapis.sheets",
                 "symbol": "ConnectionConfig",
-                "version": "2.4.0"
+                "version": "3.5.1"
+              },
+              "enabled": true
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "label": "salesforce.soap",
+            "description": "",
+            "keywords": []
+          },
+          "items": [
+            {
+              "metadata": {
+                "label": "ConnectionConfig",
+                "description": "Salesforce client configuration.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_salesforce_8.2.0.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "salesforce.soap",
+                "packageName": "salesforce",
+                "symbol": "ConnectionConfig",
+                "version": "8.2.0"
+              },
+              "enabled": true
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "label": "salesforce.bulk",
+            "description": "",
+            "keywords": []
+          },
+          "items": [
+            {
+              "metadata": {
+                "label": "ConnectionConfig",
+                "description": "Salesforce client configuration.",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_salesforce_8.2.0.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "salesforce.bulk",
+                "packageName": "salesforce",
+                "symbol": "ConnectionConfig",
+                "version": "8.2.0"
               },
               "enabled": true
             }
@@ -493,6 +518,31 @@
         },
         {
           "metadata": {
+            "label": "googleapis.calendar",
+            "description": "",
+            "keywords": []
+          },
+          "items": [
+            {
+              "metadata": {
+                "label": "ConnectionConfig",
+                "description": "Client configuration details.",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_googleapis.calendar_3.2.1.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "googleapis.calendar",
+                "packageName": "googleapis.calendar",
+                "symbol": "ConnectionConfig",
+                "version": "3.2.1"
+              },
+              "enabled": true
+            }
+          ]
+        },
+        {
+          "metadata": {
             "label": "microsoft.excel",
             "description": "",
             "keywords": []
@@ -511,56 +561,6 @@
                 "packageName": "microsoft.excel",
                 "symbol": "ConnectionConfig",
                 "version": "2.4.0"
-              },
-              "enabled": true
-            }
-          ]
-        },
-        {
-          "metadata": {
-            "label": "googleapis.sheets",
-            "description": "",
-            "keywords": []
-          },
-          "items": [
-            {
-              "metadata": {
-                "label": "ConnectionConfig",
-                "description": "Client configuration details.",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_googleapis.sheets_3.5.1.png"
-              },
-              "codedata": {
-                "node": "TYPEDESC",
-                "org": "ballerinax",
-                "module": "googleapis.sheets",
-                "packageName": "googleapis.sheets",
-                "symbol": "ConnectionConfig",
-                "version": "3.5.1"
-              },
-              "enabled": true
-            }
-          ]
-        },
-        {
-          "metadata": {
-            "label": "salesforce.bulk",
-            "description": "",
-            "keywords": []
-          },
-          "items": [
-            {
-              "metadata": {
-                "label": "ConnectionConfig",
-                "description": "Salesforce client configuration.",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_salesforce_8.2.0.png"
-              },
-              "codedata": {
-                "node": "TYPEDESC",
-                "org": "ballerinax",
-                "module": "salesforce.bulk",
-                "packageName": "salesforce",
-                "symbol": "ConnectionConfig",
-                "version": "8.2.0"
               },
               "enabled": true
             }

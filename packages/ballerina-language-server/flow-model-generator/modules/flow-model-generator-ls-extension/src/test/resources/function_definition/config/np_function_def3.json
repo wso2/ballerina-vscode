@@ -1,0 +1,232 @@
+{
+  "filePath": "np_functions",
+  "fileName": "functions.bal",
+  "functionName": "summarizeBlog",
+  "description": "Natural function with model provider as a parameter",
+  "output": {
+    "id": "55802",
+    "metadata": {
+      "label": "Natural Function",
+      "description": "Define a natural function"
+    },
+    "codedata": {
+      "node": "NP_FUNCTION_DEFINITION",
+      "org": "ballerina",
+      "module": "ai",
+      "lineRange": {
+        "fileName": "functions.bal",
+        "startLine": {
+          "line": 24,
+          "offset": 0
+        },
+        "endLine": {
+          "line": 32,
+          "offset": 2
+        }
+      }
+    },
+    "returning": false,
+    "properties": {
+      "functionName": {
+        "metadata": {
+          "label": "Name",
+          "description": "Name of the function"
+        },
+        "valueType": "IDENTIFIER",
+        "valueTypeConstraint": "Global",
+        "value": "summarizeBlog",
+        "optional": false,
+        "editable": false,
+        "advanced": false,
+        "hidden": false,
+        "codedata": {
+          "lineRange": {
+            "fileName": "functions.bal",
+            "startLine": {
+              "line": 24,
+              "offset": 9
+            },
+            "endLine": {
+              "line": 24,
+              "offset": 22
+            }
+          }
+        }
+      },
+      "type": {
+        "metadata": {
+          "label": "Return Type",
+          "description": "Type of the return value"
+        },
+        "valueType": "TYPE",
+        "value": "Summary|error",
+        "optional": true,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      },
+      "parameters": {
+        "metadata": {
+          "label": "Parameters",
+          "description": "Function parameters"
+        },
+        "valueType": "REPEATABLE_PROPERTY",
+        "valueTypeConstraint": {
+          "metadata": {
+            "label": "Parameter",
+            "description": "Function parameter"
+          },
+          "valueType": "FIXED_PROPERTY",
+          "value": {
+            "type": {
+              "metadata": {
+                "label": "Type",
+                "description": "Type of the parameter"
+              },
+              "valueType": "TYPE",
+              "value": "",
+              "optional": false,
+              "editable": true,
+              "advanced": false,
+              "hidden": false
+            },
+            "variable": {
+              "metadata": {
+                "label": "Name",
+                "description": "Name of the parameter"
+              },
+              "valueType": "IDENTIFIER",
+              "value": "",
+              "optional": false,
+              "editable": true,
+              "advanced": false,
+              "hidden": false
+            },
+            "parameterDescription": {
+              "metadata": {
+                "label": "Description",
+                "description": "Description of the parameter"
+              },
+              "valueType": "STRING",
+              "value": "",
+              "optional": true,
+              "editable": true,
+              "advanced": false,
+              "hidden": false
+            }
+          },
+          "optional": false,
+          "editable": false,
+          "advanced": false,
+          "hidden": false
+        },
+        "value": {
+          "blog": {
+            "metadata": {
+              "label": "Parameter",
+              "description": "Function parameter"
+            },
+            "valueType": "FIXED_PROPERTY",
+            "value": {
+              "type": {
+                "metadata": {
+                  "label": "Type",
+                  "description": "Type of the parameter"
+                },
+                "valueType": "TYPE",
+                "value": "Blog",
+                "optional": false,
+                "editable": true,
+                "advanced": false,
+                "hidden": false
+              },
+              "variable": {
+                "metadata": {
+                  "label": "Name",
+                  "description": "Name of the parameter"
+                },
+                "valueType": "IDENTIFIER",
+                "value": "blog",
+                "optional": false,
+                "editable": true,
+                "advanced": false,
+                "hidden": false,
+                "codedata": {
+                  "lineRange": {
+                    "fileName": "functions.bal",
+                    "startLine": {
+                      "line": 24,
+                      "offset": 52
+                    },
+                    "endLine": {
+                      "line": 24,
+                      "offset": 56
+                    }
+                  }
+                }
+              },
+              "parameterDescription": {
+                "metadata": {
+                  "label": "Description",
+                  "description": "Description of the parameter"
+                },
+                "valueType": "STRING",
+                "value": "",
+                "optional": true,
+                "editable": true,
+                "advanced": false,
+                "hidden": false
+              }
+            },
+            "optional": false,
+            "editable": false,
+            "advanced": false,
+            "hidden": false
+          }
+        },
+        "optional": true,
+        "editable": false,
+        "advanced": false,
+        "hidden": false
+      },
+      "prompt": {
+        "metadata": {
+          "label": "Prompt",
+          "description": "Prompt for the function"
+        },
+        "valueType": "RAW_TEMPLATE",
+        "value": "    Think yourself as a blog reviewer and summarize the following blog\n\n    **title**\n    ${blog.title}\n\n    **content**\n    ${blog.content}",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": true,
+        "codedata": {
+          "kind": "REQUIRED",
+          "lineRange": {
+            "fileName": "functions.bal",
+            "startLine": {
+              "line": 25,
+              "offset": 0
+            },
+            "endLine": {
+              "line": 32,
+              "offset": 0
+            }
+          }
+        }
+      },
+      "modelProviderAsParameter": {
+        "valueType": "FLAG",
+        "value": true,
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": true,
+        "codedata": {
+          "kind": "REQUIRED"
+        }
+      }
+    },
+    "flags": 0
+  }
+}

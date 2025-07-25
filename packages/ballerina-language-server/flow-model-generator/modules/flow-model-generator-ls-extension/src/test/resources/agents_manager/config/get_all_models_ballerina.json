@@ -11,7 +11,7 @@
       "packageName": "ai.openai",
       "object": "ModelProvider",
       "symbol": "init",
-      "version": "1.0.0"
+      "version": "1.1.0"
     },
     {
       "node": "CLASS_INIT",
@@ -20,7 +20,7 @@
       "packageName": "ai.anthropic",
       "object": "ModelProvider",
       "symbol": "init",
-      "version": "1.0.0"
+      "version": "1.0.1"
     },
     {
       "node": "CLASS_INIT",
@@ -29,7 +29,7 @@
       "packageName": "ai.deepseek",
       "object": "ModelProvider",
       "symbol": "init",
-      "version": "1.0.0"
+      "version": "1.0.1"
     },
     {
       "node": "CLASS_INIT",
@@ -38,7 +38,7 @@
       "packageName": "ai.mistral",
       "object": "ModelProvider",
       "symbol": "init",
-      "version": "1.0.0"
+      "version": "1.0.1"
     },
     {
       "node": "CLASS_INIT",
@@ -47,7 +47,7 @@
       "packageName": "ai.ollama",
       "object": "ModelProvider",
       "symbol": "init",
-      "version": "1.0.0"
+      "version": "1.0.1"
     },
     {
       "node": "CLASS_INIT",
@@ -56,7 +56,7 @@
       "packageName": "ai.azure",
       "object": "OpenAiModelProvider",
       "symbol": "init",
-      "version": "1.0.0"
+      "version": "1.0.1"
     },
     {
       "node": "FUNCTION_CALL",
@@ -64,7 +64,7 @@
       "module": "ai",
       "packageName": "ai",
       "symbol": "getDefaultModelProvider",
-      "version": "1.0.0"
+      "version": "1.1.1"
     }
   ]
 }

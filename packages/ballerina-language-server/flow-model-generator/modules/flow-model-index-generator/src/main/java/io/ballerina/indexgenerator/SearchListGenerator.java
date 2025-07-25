@@ -1,4 +1,3 @@
-
 /*
  *  Copyright (c) 2025, WSO2 LLC. (http://www.wso2.com)
  *
@@ -47,14 +46,17 @@ class SearchListGenerator {
     private static final Map<String, List<String>> SKIPPED_PACKAGE_LIST = Map.of(
             "ballerina", List.of("xmldata", "regex", "persist", "grpc"),
             "ballerinax", List.of("persist.googlesheets", "persist.inmemory", "persist.redis", "persist.sql",
-                    "netsuite", "ai.agent"));
+                    "netsuite", "ai.agent"),
+            "xlibb", List.of("mqtt")
+    );
 
     public static void main(String[] args) {
         List<PackageMetadataInfo> ballerinaPackages = getPackageList("ballerina");
         List<PackageMetadataInfo> ballerinaxPackages = getPackageList("ballerinax");
+        List<PackageMetadataInfo> xlibbPackages = getPackageList("xlibb");
 
         Map<String, List<PackageMetadataInfo>> packagesMap =
-                Map.of("ballerina", ballerinaPackages, "ballerinax", ballerinaxPackages);
+                Map.of("ballerina", ballerinaPackages, "ballerinax", ballerinaxPackages, "xlibb", xlibbPackages);
 
         // Remove the skipped package list
         SKIPPED_PACKAGE_LIST.forEach((org, pkgs) -> {
