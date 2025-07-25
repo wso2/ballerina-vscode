@@ -22,6 +22,7 @@ import io.ballerina.compiler.api.ModuleID;
 import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.compiler.api.symbols.ArrayTypeSymbol;
 import io.ballerina.compiler.api.symbols.Documentation;
+import io.ballerina.compiler.api.symbols.EnumSymbol;
 import io.ballerina.compiler.api.symbols.ErrorTypeSymbol;
 import io.ballerina.compiler.api.symbols.IntersectionTypeSymbol;
 import io.ballerina.compiler.api.symbols.MapTypeSymbol;
@@ -380,6 +381,8 @@ public class Type {
                 typeName = typeName.substring(1, typeName.length() - 1);
             }
             type = new PrimitiveType(typeName);
+        } else if (symbol instanceof EnumSymbol enumSymbol) {
+            type = getEnumType(enumSymbol, documentationMap, semanticModel);
         } else if (symbol instanceof TypeDefinitionSymbol typeDefinitionSymbol) {
             AtomicReference<String> typeDocumentation = new AtomicReference<>();
             typeDefinitionSymbol.documentation().ifPresent(doc -> {
@@ -448,6 +451,21 @@ public class Type {
         } else {
             type = unionType;
         }
+        return type;
+    }
+
+    private static Type getEnumType(EnumSymbol enumSymbol, Map<String, String> documentationMap,
+                                    SemanticModel semanticModel) {
+        Type type;
+        List<Type> fields = new ArrayList<>();
+        enumSymbol.members().forEach(member -> {
+            Type semanticSymbol = fromSemanticSymbol(member.typeDescriptor(), documentationMap, semanticModel);
+            if (semanticSymbol != null) {
+                fields.add(semanticSymbol);
+            }
+        });
+        type = new EnumType(fields);
+        setTypeInfo(enumSymbol.getName().orElse(null), enumSymbol, type);
         return type;
     }
 

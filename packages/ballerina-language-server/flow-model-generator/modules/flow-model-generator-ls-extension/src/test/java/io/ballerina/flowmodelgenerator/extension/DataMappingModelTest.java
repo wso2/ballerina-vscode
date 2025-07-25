@@ -101,6 +101,9 @@ public class DataMappingModelTest extends AbstractLSTest {
                 {Path.of("recursive2.json")},
                 {Path.of("variable41.json")},
                 {Path.of("primitiveArray.json")},
+                {Path.of("enum.json")},
+                {Path.of("enum2.json")},
+                {Path.of("union.json")}
         };
     }
 
