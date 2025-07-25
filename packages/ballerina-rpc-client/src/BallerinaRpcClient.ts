@@ -48,7 +48,8 @@ import {
     ColorThemeKind,
     currentThemeChanged,
     ChatNotify,
-    onChatNotify
+    onChatNotify,
+    AIMachineSendableEvent
 } from "@wso2/ballerina-core";
 import { LangClientRpcClient } from "./rpc-clients/lang-client/rpc-client";
 import { LibraryBrowserRpcClient } from "./rpc-clients/library-browser/rpc-client";
@@ -182,7 +183,7 @@ export class BallerinaRpcClient {
         this.messenger.onNotification(aiStateChanged, callback);
     }
 
-    sendAIStateEvent(event: AIMachineEventType) {
+    sendAIStateEvent(event: AIMachineEventType | AIMachineSendableEvent) {
         this.messenger.sendRequest(sendAIStateEvent, HOST_EXTENSION, event);
     }
 

@@ -15,7 +15,7 @@
 // under the License.
 
 import { CoreMessage, generateText, streamText } from "ai";
-import { anthropic, ANTHROPIC_SONNET_4 } from "../connection";
+import { getAnthropicClient, ANTHROPIC_SONNET_4 } from "../connection";
 import { GenerationType, getRelevantLibrariesAndFunctions } from "../libs/libs";
 import { getRewrittenPrompt, populateHistory, transformProjectSource, getErrorMessage, extractResourceDocumentContent } from "../utils";
 import { getMaximizedSelectedLibs, selectRequiredFunctions, toMaximizedLibrariesFromLibJson } from "./../libs/funcs";
@@ -75,7 +75,7 @@ export async function generateCodeCore(params: GenerateCodeRequest, eventHandler
     ];
 
     const { fullStream } = streamText({
-        model: anthropic(ANTHROPIC_SONNET_4),
+        model: await getAnthropicClient(ANTHROPIC_SONNET_4),
         maxTokens: 4096*4,
         temperature: 0,
         messages: allMessages,
@@ -329,7 +329,7 @@ export async function repairCode(params: RepairParams): Promise<RepairResponse> 
     ];
 
     const { text, usage, providerMetadata } = await generateText({
-        model: anthropic(ANTHROPIC_SONNET_4),
+        model: await getAnthropicClient(ANTHROPIC_SONNET_4),
         maxTokens: 4096 * 4,
         temperature: 0,
         messages: allMessages,

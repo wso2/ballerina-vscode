@@ -36,13 +36,13 @@ export const getNodeTemplate = async (
     return response?.flowNode;
 };
 
-export const getAgentOrg = async (rpcClient: BallerinaRpcClient) => {
+export const getAiModuleOrg = async (rpcClient: BallerinaRpcClient) => {
     const filePath = await rpcClient.getVisualizerLocation();
-    const agentOrgResponse = await rpcClient
+    const aiModuleOrgResponse = await rpcClient
         .getAIAgentRpcClient()
-        .getAgentOrg({ projectPath: filePath.projectUri });
-    console.log(">>> agent org", agentOrgResponse.orgName);
-    return agentOrgResponse.orgName;
+        .getAiModuleOrg({ projectPath: filePath.projectUri });
+    console.log(">>> agent org", aiModuleOrgResponse.orgName);
+    return aiModuleOrgResponse.orgName;
 }
 
 export const getAgentFilePath = async (rpcClient: BallerinaRpcClient) => {
@@ -51,6 +51,14 @@ export const getAgentFilePath = async (rpcClient: BallerinaRpcClient) => {
     // Create the agent file path
     const agentFilePath = Utils.joinPath(URI.file(filePath.projectUri), "agents.bal").fsPath;
     return agentFilePath;
+};
+
+export const getMainFilePath = async (rpcClient: BallerinaRpcClient) => {
+    // Get the main file path and update the node
+    const filePath = await rpcClient.getVisualizerLocation();
+    // Create the main file path
+    const mainFilePath = Utils.joinPath(URI.file(filePath.projectUri), "main.bal").fsPath;
+    return mainFilePath;
 };
 
 export const findFlowNodeByModuleVarName = async (variableName: string, rpcClient: BallerinaRpcClient) => {

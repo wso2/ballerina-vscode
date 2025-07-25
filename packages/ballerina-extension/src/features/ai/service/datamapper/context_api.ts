@@ -15,7 +15,7 @@
 // under the License.
 
 import { generateText, CoreMessage } from "ai";
-import { anthropic, ANTHROPIC_SONNET_4 } from "../connection";
+import { getAnthropicClient, ANTHROPIC_SONNET_4 } from "../connection";
 import { AIPanelAbortController } from "../../../../../src/rpc-managers/ai-panel/utils";
 
 // Types
@@ -425,7 +425,7 @@ async function extractionUsingClaude({ pdfData, processType }: { pdfData: string
     ];
 
     const { text } = await generateText({
-        model: anthropic(ANTHROPIC_SONNET_4),
+        model: await getAnthropicClient(ANTHROPIC_SONNET_4),
         maxTokens: 8192,
         temperature: 0,
         messages: messages,
@@ -467,7 +467,7 @@ async function imageExtractionUsingClaude({
     ];
 
     const { text } = await generateText({
-        model: anthropic(ANTHROPIC_SONNET_4),
+        model: await getAnthropicClient(ANTHROPIC_SONNET_4),
         maxTokens: 8192,
         temperature: 0,
         messages: messages,
@@ -494,7 +494,7 @@ async function textExtractionUsingClaude({
     ];
 
     const { text } = await generateText({
-        model: anthropic(ANTHROPIC_SONNET_4),
+        model: await getAnthropicClient(ANTHROPIC_SONNET_4),
         maxTokens: 8192,
         temperature: 0,
         messages: messages,

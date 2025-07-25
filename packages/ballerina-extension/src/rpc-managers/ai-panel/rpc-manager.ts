@@ -88,7 +88,7 @@ import { Library } from "../../features/ai/service/libs/libs_types";
 import { generateFunctionTests } from "../../features/ai/service/test/function_tests";
 import { generateTestPlan } from "../../features/ai/service/test/test_plan";
 import { generateTest, getDiagnostics, getResourceAccessorDef, getResourceAccessorNames, getServiceDeclaration, getServiceDeclarationNames } from "../../features/ai/testGenerator";
-import { BACKEND_URL, closeAllBallerinaFiles } from "../../features/ai/utils";
+import { closeAllBallerinaFiles, OLD_BACKEND_URL } from "../../features/ai/utils";
 import { getLLMDiagnosticArrayAsString, handleChatSummaryFailure } from "../../features/natural-programming/utils";
 import { StateMachine, updateView } from "../../stateMachine";
 import { getAccessToken, getRefreshedAccessToken, loginGithubCopilot } from "../../utils/ai/auth";
@@ -113,7 +113,7 @@ export class AiPanelRpcManager implements AIPanelAPI {
     // ==================================
     async getBackendUrl(): Promise<string> {
         return new Promise(async (resolve) => {
-            resolve(BACKEND_URL);
+            resolve(OLD_BACKEND_URL);
         });
     }
 
@@ -142,7 +142,7 @@ export class AiPanelRpcManager implements AIPanelAPI {
     async getAccessToken(): Promise<string> {
         return new Promise(async (resolve, reject) => {
             try {
-                const accessToken = getAccessToken();
+                const accessToken = await getAccessToken();
                 if (!accessToken) {
                     reject(new Error("Access Token is undefined"));
                     return;
@@ -722,14 +722,14 @@ export class AiPanelRpcManager implements AIPanelAPI {
                     diagnostics: cleanDiagnosticMessages(content.diagnostics)
                 };
 
-                const response = await fetchWithAuth(`${BACKEND_URL}/feedback`, {
+                const response = await fetchWithAuth(`${OLD_BACKEND_URL}/feedback`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify(payload)
                 });
-                
+
                 if (response.ok) {
                     resolve(true);
                 } else {

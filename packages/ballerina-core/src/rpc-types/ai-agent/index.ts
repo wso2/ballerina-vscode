@@ -16,11 +16,11 @@
  * under the License.
  */
 
-import { AIAgentOrgRequest, AIAgentOrgResponse, AIGentToolsRequest, AIGentToolsResponse, AIModelsRequest, AINodesRequest, AINodesResponse, AIToolsRequest, AIToolsResponse, AIModelsResponse, MemoryManagersResponse, MemoryManagersRequest, McpToolsRequest, McpToolsResponse } from "../../interfaces/extended-lang-client";
+import { AiModuleOrgRequest, AiModuleOrgResponse, AIGentToolsRequest, AIGentToolsResponse, AIModelsRequest, AINodesRequest, AINodesResponse, AIToolsRequest, AIToolsResponse, AIModelsResponse, MemoryManagersResponse, MemoryManagersRequest, McpToolsRequest, McpToolsResponse } from "../../interfaces/extended-lang-client";
 import { AIAgentRequest, AIAgentResponse, AIAgentToolsUpdateRequest, McpToolUpdateRequest } from "./interfaces";
 
 export interface AIAgentAPI {
-    getAgentOrg: (params: AIAgentOrgRequest) => Promise<AIAgentOrgResponse>;
+    getAiModuleOrg: (params: AiModuleOrgRequest) => Promise<AiModuleOrgResponse>;
     getAllAgents: (params: AINodesRequest) => Promise<AINodesResponse>;
     getAllModels: (params: AIModelsRequest) => Promise<AINodesResponse>;
     getAllMemoryManagers: (params: MemoryManagersRequest) => Promise<MemoryManagersResponse>;

@@ -15,7 +15,7 @@
 // under the License.
 
 import { CoreMessage, generateObject, streamText } from "ai";
-import { anthropic, ANTHROPIC_HAIKU, ANTHROPIC_SONNET_4 } from "../connection";
+import { getAnthropicClient, ANTHROPIC_HAIKU, ANTHROPIC_SONNET_4 } from "../connection";
 import { GenerationType, getRelevantLibrariesAndFunctions } from "../libs/libs";
 import { getRewrittenPrompt, populateHistory, transformProjectSource, getErrorMessage } from "../utils";
 import { libraryContains } from "../libs/funcs";
@@ -35,9 +35,8 @@ import {
     ProjectSource,
     SourceFiles,
     OperationType,
-    PostProcessResponse,
 } from "@wso2/ballerina-core";
-import { getProjectSource, postProcess } from "../../../../rpc-managers/ai-panel/rpc-manager";
+import { getProjectSource } from "../../../../rpc-managers/ai-panel/rpc-manager";
 import { CopilotEventHandler, createWebviewEventHandler } from "../event";
 import { AIPanelAbortController } from "../../../../../src/rpc-managers/ai-panel/utils";
 import { stringifyExistingCode } from "../code/code";
@@ -81,8 +80,8 @@ export async function generateHealthcareCodeCore(
     ];
 
     const { fullStream } = streamText({
-        model: anthropic(ANTHROPIC_SONNET_4),
-        maxTokens: 4096*2,
+        model: await getAnthropicClient(ANTHROPIC_SONNET_4),
+        maxTokens: 4096 * 2,
         temperature: 0,
         messages: allMessages,
         abortSignal: AIPanelAbortController.getInstance().signal,
@@ -108,7 +107,7 @@ export async function generateHealthcareCodeCore(
                 const finishReason = part.finishReason;
                 console.log("Finish reason: ", finishReason);
                 if (finishReason === "error") {
-                    // Already handled in error case. 
+                    // Already handled in error case.
                     break;
                 }
                 eventHandler({ type: "stop" });
@@ -147,7 +146,7 @@ function getSystemPromptSuffix(langlibs: Library[]) {
 ${JSON.stringify(langlibs)}
 </langlibs>
 
-If the query doesn't require code examples, answer the code by utilzing the api documentation. 
+If the query doesn't require code examples, answer the code by utilzing the api documentation.
 If the query requires code, Follow these steps to generate the Ballerina code:
 
 1. Carefully analyze the provided API documentation:
@@ -178,7 +177,7 @@ If the query requires code, Follow these steps to generate the Ballerina code:
 4. Generate the Ballerina code:
    - Start with the required import statements.
    - Define required configurables for the query. Use only string, int, boolean types in configurable variables.
-   - Initialize any necessary clients with the correct configuration at the module level(before any function or service declarations). 
+   - Initialize any necessary clients with the correct configuration at the module level(before any function or service declarations).
    - Implement the main function OR service to address the query requirements.
    - Use defined connectors based on the query by following the API documentation.
    - Use only the functions, types, and clients specified in the API documentation.
@@ -201,13 +200,13 @@ Important reminders:
 - Only use specified fields in records according to the api docs. this applies to array types of that record as well.
 - Ensure your code is syntactically correct and follows Ballerina conventions.
 - Do not use dynamic listener registrations.
-- Do not write code in a way that requires updating/assigning values of function parameters. 
+- Do not write code in a way that requires updating/assigning values of function parameters.
 - ALWAYS Use two words camel case identifiers (variable, function parameter, resource function parameter and field names).
 - If the library name contains a . Always use an alias in the import statement. (import org/package.one as one;)
-- Treat generated connectors/clients inside the generated folder as submodules. 
+- Treat generated connectors/clients inside the generated folder as submodules.
 - A submodule MUST BE imported before being used.  The import statement should only contain the package name and submodule name.  For package my_pkg, folder strucutre generated/fooApi the import should be \`import my_pkg.fooApi;\`
-- If the return parameter typedesc default value is marked as <> in the given API docs, define a custom record in the code that represents the data structure based on the use case and assign to it.  
-- Whenever you have a Json variable, NEVER access or manipulate Json variables. ALWAYS define a record and convert the Json to that record and use it. 
+- If the return parameter typedesc default value is marked as <> in the given API docs, define a custom record in the code that represents the data structure based on the use case and assign to it.
+- Whenever you have a Json variable, NEVER access or manipulate Json variables. ALWAYS define a record and convert the Json to that record and use it.
 - When invoking resource function from a client, use the correct paths with accessor and paramters. (eg: exampleClient->/path1/["param"]/path2.get(key="value"))
 - When you are accessing a field of a record, always assign it into new variable and use that variable in the next statement.
 - Avoid long comments in the code. Use // for single line comments.
@@ -234,10 +233,10 @@ Important reminders:
     \`\`\
     - Note the use of \`Album\` instead of a json payload.
 
-Begin your response with the explanation, once the entire explanation is finished only, include codeblock segments(if any) in the end of the response. 
+Begin your response with the explanation, once the entire explanation is finished only, include codeblock segments(if any) in the end of the response.
 The explanation should explain the control flow decided in step 2, along with the selected libraries and their functions.
 
-Each file which needs modifications, should have a codeblock segment and it MUST have complete file content with the proposed change. 
+Each file which needs modifications, should have a codeblock segment and it MUST have complete file content with the proposed change.
 The codeblock segments should only have .bal contents and it should not generate or modify any other file types. Politely decline if the query requests for such cases.
 
 Example Codeblock segments:
@@ -269,11 +268,11 @@ function getUserPrompt(
         fileInstructions = `4. File Upload Contents. : Contents of the file which the user uploaded as addtional information for the query.
 
 ${fileUploadContents
-    .map(
-        (file) => `File Name: ${file.fileName}
+                .map(
+                    (file) => `File Name: ${file.fileName}
 Content: ${file.content}`
-    )
-    .join("\n")}`;
+                )
+                .join("\n")}`;
     }
 
     return `QUERY: The query you need to answer using the provided api documentation.
@@ -357,7 +356,7 @@ Think step-by-step to choose the required types in order to solve the given ques
     ];
     try {
         const { object } = await generateObject({
-            model: anthropic(ANTHROPIC_HAIKU),
+            model: await getAnthropicClient(ANTHROPIC_HAIKU),
             maxTokens: 8192,
             temperature: 0,
             messages: messages,

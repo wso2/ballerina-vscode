@@ -60,13 +60,9 @@ export async function buildProjectArtifactsStructure(projectDir: string, langCli
 export async function updateProjectArtifacts(publishedArtifacts: ArtifactsNotification): Promise<void> {
     // Current project structure
     const currentProjectStructure: ProjectStructureResponse = StateMachine.context().projectStructure;
-    if (publishedArtifacts && currentProjectStructure) {
-        const tmpUri = URI.file(tmpdir());
-        const publishedArtifactsUri = URI.parse(publishedArtifacts.uri);
-        if (publishedArtifactsUri.path.toLowerCase().includes(tmpUri.path.toLowerCase())) {
-            // Skip the temp dirs
-            return;
-        }
+    const projectUri = URI.parse(StateMachine.context().projectUri);
+    const isWithinProject = URI.parse(publishedArtifacts.uri).path.toLowerCase().includes(projectUri.path.toLowerCase());
+    if (currentProjectStructure && isWithinProject) {
         const entryLocations = await traverseUpdatedComponents(publishedArtifacts.artifacts, currentProjectStructure);
         if (entryLocations.length > 0) {
             const notificationHandler = ArtifactNotificationHandler.getInstance();
@@ -183,7 +179,7 @@ async function getEntryValue(artifact: BaseArtifact, icon: string, moduleName?: 
 // This has to be replaced once we have a proper design for AI Agent Chat Service
 async function injectAIAgent(serviceArtifact: BaseArtifact) {
     // Fetch the organization name for importing the AI package
-    const agentOrg = await new AiAgentRpcManager().getAgentOrg({ projectPath: StateMachine.context().projectUri });
+    const aiModuleOrg = await new AiAgentRpcManager().getAiModuleOrg({ projectPath: StateMachine.context().projectUri });
 
     //get AgentName
     const agentName = serviceArtifact.name.split('-')[1].trim().replace(/\//g, '');
@@ -206,11 +202,11 @@ async function injectAIAgent(serviceArtifact: BaseArtifact) {
     const injectionPosition = updatedService.service.functions[0].codedata.lineRange.endLine;
     const serviceFile = path.join(StateMachine.context().projectUri, `main.bal`);
     ensureFileExists(serviceFile);
-    await injectAgentCode(agentName, serviceFile, injectionPosition, agentOrg.orgName);
+    await injectAgentCode(agentName, serviceFile, injectionPosition, aiModuleOrg.orgName);
     const functionPosition: NodePosition = {
         startLine: updatedService.service.functions[0].codedata.lineRange.startLine.line,
         startColumn: updatedService.service.functions[0].codedata.lineRange.startLine.offset,
-        endLine: updatedService.service.functions[0].codedata.lineRange.endLine.line + 3,
+        endLine: updatedService.service.functions[0].codedata.lineRange.endLine.line + 2,
         endColumn: updatedService.service.functions[0].codedata.lineRange.endLine.offset
     };
     return {
@@ -273,6 +269,8 @@ function getDirectoryMapKeyAndIcon(artifact: BaseArtifact, artifactCategoryKey: 
             return { mapKey: DIRECTORY_MAP.CONFIGURABLE, icon: "config" };
         case ARTIFACT_TYPE.NaturalFunctions:
             return { mapKey: DIRECTORY_MAP.NP_FUNCTION, icon: "function" };
+        case ARTIFACT_TYPE.Variables:
+            return { mapKey: DIRECTORY_MAP.VARIABLE, icon: "variable" };
         default:
             console.warn(`Unhandled artifact category key: ${artifactCategoryKey}`);
             return null;

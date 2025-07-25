@@ -105,6 +105,7 @@ export interface ConfigProps {
     fileName: string;
     org: string;
     package: string;
+    addNew?: boolean;
 }
 
 interface CategoryWithModules {
@@ -136,7 +137,7 @@ export function ViewConfigurableVariables(props?: ConfigProps) {
     const { rpcClient } = useRpcContext();
     const [configVariables, setConfigVariables] = useState<ConfigVariablesState>({});
     const [errorMessage, setErrorMessage] = useState<string>('');
-    const [isAddConfigVariableFormOpen, setAddConfigVariableFormOpen] = useState<boolean>(false);
+    const [isAddConfigVariableFormOpen, setAddConfigVariableFormOpen] = useState<boolean>(props?.addNew || false);
     const [searchValue, setSearchValue] = React.useState<string>('');
     const [categoriesWithModules, setCategoriesWithModules] = useState<CategoryWithModules[]>([]);
     const [selectedModule, setSelectedModule] = useState<PackageModuleState>(null);

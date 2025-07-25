@@ -93,28 +93,51 @@ export async function updateSourceCode(updateSourceCodeRequest: UpdateSourceCode
 
     // Iterate through modificationRequests and apply modifications
     try {
+        // <-------- Using simply the text edits to update the source code -------->
         const workspaceEdit = new vscode.WorkspaceEdit();
         for (const [fileUriString, request] of Object.entries(modificationRequests)) {
-            const { parseSuccess, source, syntaxTree } = (await StateMachine.langClient().stModify({
-                documentIdentifier: { uri: fileUriString },
-                astModifications: request.modifications,
-            })) as SyntaxTree;
-
-            if (parseSuccess) {
+            for (const modification of request.modifications) {
                 const fileUri = Uri.file(request.filePath);
+                const source = modification.config.STATEMENT;
                 workspaceEdit.replace(
                     fileUri,
                     new vscode.Range(
-                        new vscode.Position(0, 0),
-                        new vscode.Position(Number.MAX_SAFE_INTEGER, Number.MAX_SAFE_INTEGER)
+                        new vscode.Position(modification.startLine, modification.startColumn),
+                        new vscode.Position(modification.endLine, modification.endColumn)
                     ),
                     source
                 );
             }
         }
-
         // Apply all changes at once
         await workspace.applyEdit(workspaceEdit);
+
+        // <-------- Format the document after applying all changes using the native formatting API-------->
+        const formattedWorkspaceEdit = new vscode.WorkspaceEdit();
+        for (const [fileUriString, request] of Object.entries(modificationRequests)) {
+            const fileUri = Uri.file(request.filePath);
+            const formattedSources: { newText: string, range: { start: { line: number, character: number }, end: { line: number, character: number } } }[] = await StateMachine.langClient().sendRequest("textDocument/formatting", {
+                textDocument: { uri: fileUriString },
+                options: {
+                    tabSize: 4,
+                    insertSpaces: true
+                }
+            });
+            for (const formattedSource of formattedSources) {
+                // Replace the entire document content with the formatted text to avoid duplication
+                formattedWorkspaceEdit.replace(
+                    fileUri,
+                    new vscode.Range(
+                        new vscode.Position(0, 0),
+                        new vscode.Position(Number.MAX_SAFE_INTEGER, Number.MAX_SAFE_INTEGER)
+                    ),
+                    formattedSource.newText
+                );
+            }
+        }
+
+        // Apply all formatted changes at once
+        await workspace.applyEdit(formattedWorkspaceEdit);
 
         // Handle missing dependencies after all changes are applied
         if (updateSourceCodeRequest.resolveMissingDependencies) {
@@ -185,8 +208,8 @@ export async function injectAgentCode(name: string, serviceFile: string, injecti
             `            string stringResult = check _${name}Agent.run(request.message, request.sessionId); 
             return {message: stringResult};
 `
-            : `
-        string stringResult = check _${name}Agent->run(request.message, request.sessionId);
+            :
+            `        string stringResult = check _${name}Agent->run(request.message, request.sessionId);
         return {message: stringResult};
 `;
     serviceEdit.insert(Uri.file(serviceFile), new Position(injectionPosition.line, 0), serviceSourceCode);
