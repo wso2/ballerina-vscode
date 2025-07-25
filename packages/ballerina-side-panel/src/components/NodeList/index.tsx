@@ -615,8 +615,8 @@ export function NodeList(props: NodeListProps) {
             </>
         );
 
-        const isEmpty = React.Children.toArray(content.props.children).every((child) => child === null) && searchText;
-        return isEmpty ? <div style={{ paddingTop: "10px" }}>No matching results found</div> : content;
+        const isEmpty = React.Children.toArray(content.props.children).every((child) => child === null);
+        return isEmpty && searchText ? <div style={{ paddingTop: "10px" }}>No matching results found</div> : content;
     };
 
     // filter out category items based on search text
