@@ -2054,8 +2054,8 @@ public class DataMapManager {
             return this.moduleInfo;
         }
 
-        void setOptional(Boolean optional) {
-            this.optional = optional;
+        Boolean getOptional() {
+            return this.optional;
         }
     }
 
