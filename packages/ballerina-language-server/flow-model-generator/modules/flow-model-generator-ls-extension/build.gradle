@@ -116,7 +116,7 @@ test.dependsOn rootProject.pullBallerinaModule('ai.openai', ballerinaxAiOpenaiVe
 test.dependsOn rootProject.pullBallerinaModule('ai.ollama', ballerinaxAiOllamaVersion)
 test.dependsOn rootProject.pullBallerinaModule('ai.azure', ballerinaxAiAzureVersion)
 test.dependsOn rootProject.pullBallerinaModule('ai.anthropic', ballerinaxAiAnthropicVersion)
-test.dependsOn rootProject.pullBallerinaModule('ai.deepseek', ballerinaxAiDeeoseekVersion)
+test.dependsOn rootProject.pullBallerinaModule('ai.deepseek', ballerinaxAiDeepseekVersion)
 test.dependsOn rootProject.pullBallerinaModule('ai.mistral', ballerinaxAiMistralVersion)
 test.dependsOn rootProject.pullBallerinaModule('ai.pinecone', ballerinaxAiPineconeVersion)
 
