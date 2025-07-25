@@ -67,6 +67,7 @@ import org.ballerinalang.diagramutil.connector.models.connector.types.RecordType
 import org.ballerinalang.diagramutil.connector.models.connector.types.StreamType;
 import org.ballerinalang.diagramutil.connector.models.connector.types.TableType;
 import org.ballerinalang.diagramutil.connector.models.connector.types.UnionType;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -377,7 +378,7 @@ public class Type {
         } else if (symbol instanceof VariableSymbol variableSymbol) {
             if (variableSymbol.kind() == SymbolKind.CONSTANT) {
                 String name = variableSymbol.getName().orElse(null);
-                type = new ConstType(name, ((ConstantSymbol)(variableSymbol)).broaderTypeDescriptor().signature());
+                type = new ConstType(name, ((ConstantSymbol) (variableSymbol)).broaderTypeDescriptor().signature());
                 return type;
             }
             type = fromSemanticSymbol(variableSymbol.typeDescriptor(), documentationMap, semanticModel);
