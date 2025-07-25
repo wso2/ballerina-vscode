@@ -825,7 +825,7 @@ public class DataMapManager {
                 }
                 return recordPort;
             } else if (type instanceof PrimitiveType) {
-                return new MappingPort(id, type.getName(), type.getTypeName(), type.getTypeName());
+                return new MappingPort(id, name, type.getTypeName(), type.getTypeName());
             } else if (type instanceof ConstType) {
                 return new MappingPort(type.getName(), type.getName(), type.getTypeName(), type.getTypeName());
             } else if (type.getTypeName().equals("array")) {

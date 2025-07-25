@@ -96,6 +96,7 @@
     ],
     "output": {
       "id": "x",
+      "variableName": "x",
       "typeName": "int",
       "kind": "int"
     },

@@ -33,6 +33,7 @@
     ],
     "output": {
       "id": "myAge",
+      "variableName": "myAge",
       "typeName": "int",
       "kind": "int"
     },

@@ -75,6 +75,7 @@
     "subMappings": [
       {
         "id": "x",
+        "variableName": "x",
         "typeName": "string",
         "kind": "string"
       }
