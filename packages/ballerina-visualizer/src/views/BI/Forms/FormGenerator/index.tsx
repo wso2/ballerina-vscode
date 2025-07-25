@@ -152,7 +152,6 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
         clientName,
         targetLineRange,
         projectPath,
-        editForm,
         showProgressIndicator,
         isGraphql,
         onSubmit,

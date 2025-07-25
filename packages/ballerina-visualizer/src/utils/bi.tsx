@@ -25,7 +25,7 @@ import {
     Parameter,
     FormImports,
 } from "@wso2/ballerina-side-panel";
-import { AddNodeVisitor, RemoveNodeVisitor, NodeIcon, traverseFlow, ConnectorIcon } from "@wso2/bi-diagram";
+import { AddNodeVisitor, RemoveNodeVisitor, NodeIcon, traverseFlow, ConnectorIcon, AIModelIcon } from "@wso2/bi-diagram";
 import {
     Category,
     AvailableNode,
@@ -148,6 +148,28 @@ export function convertFunctionCategoriesToSidePanelCategories(
         functionCategory.description = "No functions defined. Click below to create a new function.";
     }
     return panelCategories;
+}
+
+export function convertModelProviderCategoriesToSidePanelCategories(categories: Category[]): PanelCategory[] {
+    const panelCategories = categories.map((category) => convertDiagramCategoryToSidePanelCategory(category));
+    panelCategories.forEach((category) => {
+        category.items?.forEach((item) => {
+            item.icon = <AIModelIcon type={(item as PanelNode).metadata.codedata.module} />;
+        });
+    });
+    return panelCategories;
+}
+
+export function convertVectorStoreCategoriesToSidePanelCategories(categories: Category[]): PanelCategory[] {
+    return categories.map((category) => convertDiagramCategoryToSidePanelCategory(category));
+}
+
+export function convertEmbeddingProviderCategoriesToSidePanelCategories(categories: Category[]): PanelCategory[] {
+    return categories.map((category) => convertDiagramCategoryToSidePanelCategory(category));
+}
+
+export function convertVectorKnowledgeBaseCategoriesToSidePanelCategories(categories: Category[]): PanelCategory[] {
+    return categories.map((category) => convertDiagramCategoryToSidePanelCategory(category));
 }
 
 export function convertNodePropertiesToFormFields(
