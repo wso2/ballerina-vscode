@@ -120,6 +120,7 @@ export function ToolConfig(props: ToolConfigProps): JSX.Element {
             )}
             {!loading && agentCallNode?.codedata?.lineRange && (
                 <ConfigForm
+                    fileName={agentFilePath.current}
                     formFields={formFields}
                     targetLineRange={agentCallNode.codedata.lineRange}
                     onSubmit={handleOnSave}

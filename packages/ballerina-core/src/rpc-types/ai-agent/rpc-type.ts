@@ -17,12 +17,12 @@
  * 
  * THIS FILE INCLUDES AUTO GENERATED CODE
  */
-import { AIAgentOrgRequest, AIAgentOrgResponse, AIGentToolsRequest, AIGentToolsResponse, AIModelsRequest, AINodesRequest, AINodesResponse, AIToolsRequest, AIToolsResponse, AIModelsResponse, MemoryManagersResponse, MemoryManagersRequest, McpToolsRequest, McpToolsResponse } from "../../interfaces/extended-lang-client";
+import { AiModuleOrgRequest, AiModuleOrgResponse, AIGentToolsRequest, AIGentToolsResponse, AIModelsRequest, AINodesRequest, AINodesResponse, AIToolsRequest, AIToolsResponse, AIModelsResponse, MemoryManagersResponse, MemoryManagersRequest, McpToolsRequest, McpToolsResponse } from "../../interfaces/extended-lang-client";
 import { AIAgentRequest, AIAgentResponse, AIAgentToolsUpdateRequest, McpToolUpdateRequest } from "./interfaces";
 import { RequestType, NotificationType } from "vscode-messenger-common";
 
 const _preFix = "ai-agent";
-export const getAgentOrg: RequestType<AIAgentOrgRequest, AIAgentOrgResponse> = { method: `${_preFix}/getAgentOrg` };
+export const getAiModuleOrg: RequestType<AiModuleOrgRequest, AiModuleOrgResponse> = { method: `${_preFix}/getAiModuleOrg` };
 export const getAllAgents: RequestType<AINodesRequest, AINodesResponse> = { method: `${_preFix}/getAllAgents` };
 export const getAllModels: RequestType<AIModelsRequest, AINodesResponse> = { method: `${_preFix}/getAllModels` };
 export const getAllMemoryManagers: RequestType<MemoryManagersRequest, MemoryManagersResponse> = { method: `${_preFix}/getAllMemoryManagers` };

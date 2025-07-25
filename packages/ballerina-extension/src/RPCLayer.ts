@@ -19,7 +19,7 @@
 import { WebviewView, WebviewPanel, window } from 'vscode';
 import { Messenger } from 'vscode-messenger';
 import { StateMachine } from './stateMachine';
-import { stateChanged, getVisualizerLocation, VisualizerLocation, projectContentUpdated, aiStateChanged, sendAIStateEvent, popupStateChanged, getPopupVisualizerState, PopupVisualizerLocation, breakpointChanged, AIMachineEventType, ArtifactData, onArtifactUpdatedNotification, onArtifactUpdatedRequest, currentThemeChanged } from '@wso2/ballerina-core';
+import { stateChanged, getVisualizerLocation, VisualizerLocation, projectContentUpdated, aiStateChanged, sendAIStateEvent, popupStateChanged, getPopupVisualizerState, PopupVisualizerLocation, breakpointChanged, AIMachineEventType, ArtifactData, onArtifactUpdatedNotification, onArtifactUpdatedRequest, currentThemeChanged, AIMachineSendableEvent } from '@wso2/ballerina-core';
 import { VisualizerWebview } from './views/visualizer/webview';
 import { registerVisualizerRpcHandlers } from './rpc-managers/visualizer/rpc-handler';
 import { registerLangClientRpcHandlers } from './rpc-managers/lang-client/rpc-handler';
@@ -41,7 +41,7 @@ import { registerSequenceDiagramRpcHandlers } from './rpc-managers/sequence-diag
 import { registerInlineDataMapperRpcHandlers } from './rpc-managers/inline-data-mapper/rpc-handler';
 import { registerTestManagerRpcHandlers } from './rpc-managers/test-manager/rpc-handler';
 import { registerIcpServiceRpcHandlers } from './rpc-managers/icp-service/rpc-handler';
-import { ballerinaExtInstance } from './core';
+import { extension } from './BalExtensionContext';
 import { registerAgentChatRpcHandlers } from './rpc-managers/agent-chat/rpc-handler';
 import { ArtifactsUpdated, ArtifactNotificationHandler } from './utils/project-artifacts-handler';
 
@@ -94,7 +94,7 @@ export class RPCLayer {
 
         // ----- AI Webview RPC Methods
         registerAiPanelRpcHandlers(RPCLayer._messenger);
-        RPCLayer._messenger.onRequest(sendAIStateEvent, (event: AIMachineEventType) => AIStateMachine.sendEvent(event));
+        RPCLayer._messenger.onRequest(sendAIStateEvent, (event: AIMachineEventType | AIMachineSendableEvent) => AIStateMachine.sendEvent(event));
 
         // ----- Inline Data Mapper Webview RPC Methods
         registerInlineDataMapperRpcHandlers(RPCLayer._messenger);
@@ -136,7 +136,7 @@ async function getContext(): Promise<VisualizerLocation> {
                 isBISupported: context.isBISupported,
                 haveLS: StateMachine.langClient() && true,
                 recordFilePath: path.join(context.projectUri, "types.bal"),
-                enableSequenceDiagram: ballerinaExtInstance.enableSequenceDiagramView(),
+                enableSequenceDiagram: extension.ballerinaExtInstance.enableSequenceDiagramView(),
                 target: context.metadata?.target
             },
             scope: context.scope,

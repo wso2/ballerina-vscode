@@ -15,11 +15,11 @@
 // under the License.
 
 import { generateText } from "ai";
-import { LIBS_URL } from "../../utils";
+import { BACKEND_URL } from "../../utils";
 import { selectRequiredFunctions } from "../libs/funcs";
 import { GenerationType, getSelectedLibraries } from "../libs/libs";
 import { Library, LibraryWithUrl } from "../libs/libs_types";
-import { anthropic, ANTHROPIC_HAIKU, fetchWithAuth } from "../connection";
+import { getAnthropicClient, ANTHROPIC_HAIKU, fetchWithAuth } from "../connection";
 import { z } from 'zod';
 import { tool } from 'ai';
 import { AIPanelAbortController } from "../../../../../src/rpc-managers/ai-panel/utils";
@@ -94,7 +94,7 @@ async function extractLearnPages(query: string): Promise<Document[]> {
 
 async function fetchDocumentationFromVectorStore(query: string): Promise<Document[]> {
     try {
-        const response = await fetchWithAuth(`${LIBS_URL}/topK`, {
+        const response = await fetchWithAuth(`${BACKEND_URL}/learn-docs-api/v1.0/topK`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -219,7 +219,7 @@ export async function getAskResponse(question: string): Promise<ResponseSchema> 
 
 async function getToolCallsFromClaude(question: string): Promise<ToolCall[]> {
     const { text, toolCalls } = await generateText({
-        model: anthropic(ANTHROPIC_HAIKU),
+        model: await getAnthropicClient(ANTHROPIC_HAIKU),
         maxTokens: 8192,
         tools: tools,
         messages: [
@@ -244,7 +244,7 @@ async function getToolCallsFromClaude(question: string): Promise<ToolCall[]> {
 
 async function getFinalResponseFromClaude(systemMessage: string, question: string): Promise<string> {
     const { text } = await generateText({
-        model: anthropic(ANTHROPIC_HAIKU),
+        model: await getAnthropicClient(ANTHROPIC_HAIKU),
         maxTokens: 8192,
         system: systemMessage,
         messages: [

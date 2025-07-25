@@ -1,4 +1,3 @@
-
 /**
  * Copyright (c) 2025, WSO2 LLC. (https://www.wso2.com) All Rights Reserved.
  *
@@ -17,18 +16,7 @@
  * under the License.
  */
 
-import { ExtensionContext } from "vscode";
-import { AgentChatContext } from "./views/agent-chat/activate";
-import { AIPanelPrompt } from "@wso2/ballerina-core";
-import { BallerinaExtension } from "./core";
-
-export class BalExtensionContext {
-    public context!: ExtensionContext;
-    public ballerinaExtInstance: BallerinaExtension;
-    public aiChatDefaultPrompt?: AIPanelPrompt;
-    public agentChatContext?: AgentChatContext;
-    public hasPullModuleNotification = false;
-    public hasPullModuleResolved = false;
-}
-
-export const extension = new BalExtensionContext();
+export const CONFIG_FILE_NAME = "Config.toml";
+export const PROGRESS_BAR_MESSAGE_FROM_WSO2_DEFAULT_MODEL = "Fetching and saving access token for WSO2 default model";
+export const ERROR_NO_BALLERINA_SOURCES = "No Ballerina sources";
+export const LOGIN_REQUIRED_WARNING = "Please sign in to BI Copilot to use this feature.";

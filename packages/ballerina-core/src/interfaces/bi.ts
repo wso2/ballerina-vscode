@@ -73,17 +73,27 @@ export type Metadata = {
     icon?: string;
     keywords?: string[];
     draft?: boolean; // for diagram draft nodes
-    data?: {
-        isDataMappedFunction?: boolean;
-        isAgentTool?: boolean;
-        isIsolatedFunction?: boolean;
-        tools?: ToolData[];
-        model?: ToolData;
-        memory?: MemoryData;
-        agent?: AgentData;
-        paramsToHide?: string[]; // List of properties keys to to hide from forms
-    };
+    data?: NodeMetadata | ParentMetadata;
     functionKind?: string;
+};
+
+export type NodeMetadata = {
+    isDataMappedFunction?: boolean;
+    isAgentTool?: boolean;
+    isIsolatedFunction?: boolean;
+    tools?: ToolData[];
+    model?: ToolData;
+    memory?: MemoryData;
+    agent?: AgentData;
+    paramsToHide?: string[]; // List of properties keys to to hide from forms
+};
+
+export type ParentMetadata = {
+    kind: string;
+    label: string;
+    accessor?: string;
+    parameters?: string[];
+    return?: string;
 };
 
 export type ToolData = {
@@ -224,6 +234,7 @@ export enum DIRECTORY_MAP {
     FUNCTION = "FUNCTION",
     LISTENER = "LISTENER",
     LOCAL_CONNECTORS = "localConnectors",
+    MODEL_PROVIDER = "MODEL_PROVIDER",
     NP_FUNCTION = "NP_FUNCTION",
     REMOTE = "REMOTE",
     RESOURCE = "RESOURCE",
@@ -365,6 +376,14 @@ export type NodeKind =
     | "LOCK"
     | "LV_EXPRESSION"
     | "MATCH"
+    | "MODEL_PROVIDER"
+    | "VECTOR_STORE"
+    | "VECTOR_KNOWLEDGE_BASE"
+    | "EMBEDDING_PROVIDER"
+    | "MODEL_PROVIDERS"
+    | "VECTOR_STORES"
+    | "VECTOR_KNOWLEDGE_BASES"
+    | "EMBEDDING_PROVIDERS"
     | "NEW_CONNECTION"
     | "NEW_DATA"
     | "NP_FUNCTION"

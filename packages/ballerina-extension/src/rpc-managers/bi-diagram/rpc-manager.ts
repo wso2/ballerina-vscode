@@ -139,6 +139,7 @@ import * as fs from "fs";
 import * as path from 'path';
 import * as vscode from "vscode";
 
+import { ICreateComponentCmdParams, IWso2PlatformExtensionAPI, CommandIds as PlatformExtCommandIds } from "@wso2/wso2-platform-core";
 import {
     ShellExecution,
     Task,
@@ -149,21 +150,17 @@ import {
     window, workspace
 } from "vscode";
 import { DebugProtocol } from "vscode-debugprotocol";
+import { fetchWithAuth } from "../../../src/features/ai/service/connection";
 import { extension } from "../../BalExtensionContext";
 import { notifyBreakpointChange } from "../../RPCLayer";
-import { ballerinaExtInstance } from "../../core";
+import { OLD_BACKEND_URL } from "../../features/ai/utils";
+import { cleanAndValidateProject, getCurrentBIProject } from "../../features/config-generator/configGenerator";
 import { BreakpointManager } from "../../features/debugger/breakpoint-manager";
 import { StateMachine, updateView } from "../../stateMachine";
 import { getCompleteSuggestions } from '../../utils/ai/completions';
 import { README_FILE, createBIAutomation, createBIFunction, createBIProjectPure } from "../../utils/bi";
 import { writeBallerinaFileDidOpen } from "../../utils/modification";
-import { BACKEND_URL } from "../../features/ai/utils";
-import { ICreateComponentCmdParams, IWso2PlatformExtensionAPI, CommandIds as PlatformExtCommandIds } from "@wso2/wso2-platform-core";
-import { cleanAndValidateProject, getCurrentBIProject } from "../../features/config-generator/configGenerator";
 import { updateSourceCode } from "../../utils/source-utils";
-import { getRefreshedAccessToken } from "../../../src/utils/ai/auth";
-import { applyBallerinaTomlEdit } from "./utils";
-import { fetchWithAuth } from "../../../src/features/ai/service/connection";
 export class BiDiagramRpcManager implements BIDiagramAPI {
     OpenConfigTomlRequest: (params: OpenConfigTomlRequest) => Promise<void>;
 
@@ -320,6 +317,79 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
         });
     }
 
+
+    async getAvailableModelProviders(params: BIAvailableNodesRequest): Promise<BIAvailableNodesResponse> {
+        console.log(">>> requesting bi available model providers from ls", params);
+        return new Promise((resolve) => {
+            StateMachine.langClient()
+                .getAvailableModelProviders(params)
+                .then((model) => {
+                    console.log(">>> bi available model providers from ls", model);
+                    resolve(model);
+                })
+                .catch((error) => {
+                    console.log(">>> error fetching available model providers from ls", error);
+                    return new Promise((resolve) => {
+                        resolve(undefined);
+                    });
+                });
+        });
+    }
+
+    async getAvailableVectorStores(params: BIAvailableNodesRequest): Promise<BIAvailableNodesResponse> {
+        console.log(">>> requesting bi available vector stores from ls", params);
+        return new Promise((resolve) => {
+            StateMachine.langClient()
+                .getAvailableVectorStores(params)
+                .then((model) => {
+                    console.log(">>> bi available vector stores from ls", model);
+                    resolve(model);
+                })
+                .catch((error) => {
+                    console.log(">>> error fetching available vector stores from ls", error);
+                    return new Promise((resolve) => {
+                        resolve(undefined);
+                    });
+                });
+        }); 
+    }
+
+    async getAvailableEmbeddingProviders(params: BIAvailableNodesRequest): Promise<BIAvailableNodesResponse> {
+        console.log(">>> requesting bi available embedding providers from ls", params);
+        return new Promise((resolve) => {
+            StateMachine.langClient()
+                .getAvailableEmbeddingProviders(params)
+                .then((model) => {
+                    console.log(">>> bi available embedding providers from ls", model);
+                    resolve(model);
+                })
+                .catch((error) => {
+                    console.log(">>> error fetching available embedding providers from ls", error);
+                    return new Promise((resolve) => {
+                        resolve(undefined);
+                    });
+                });
+        });
+    }
+
+    async getAvailableVectorKnowledgeBases(params: BIAvailableNodesRequest): Promise<BIAvailableNodesResponse> {
+        console.log(">>> requesting bi available vector knowledge bases from ls", params);
+        return new Promise((resolve) => {
+            StateMachine.langClient()
+                .getAvailableVectorKnowledgeBases(params)
+                .then((model) => {
+                    console.log(">>> bi available vector knowledge bases from ls", model);
+                    resolve(model);
+                })
+                .catch((error) => {
+                    console.log(">>> error fetching available vector knowledge bases from ls", error);
+                    return new Promise((resolve) => {
+                        resolve(undefined);
+                    });
+                });
+        });
+    }
+
     async getNodeTemplate(params: BINodeTemplateRequest): Promise<BINodeTemplateResponse> {
         console.log(">>> requesting bi node template from ls", params);
         params.forceAssign = true; // TODO: remove this
@@ -400,7 +470,7 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
         return new Promise(async (resolve) => {
             const { filePath, position, prompt } = params;
 
-            const enableAiSuggestions = ballerinaExtInstance.enableAiSuggestions();
+            const enableAiSuggestions = extension.ballerinaExtInstance.enableAiSuggestions();
             if (!enableAiSuggestions) {
                 resolve(undefined);
                 return;
@@ -436,7 +506,7 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
                     };
                     console.log(">>> request ai suggestion", { request: requestBody });
                     // generate new nodes
-                    const response = await fetchWithAuth(BACKEND_URL + "/inline/generation", requestOptions);
+                    const response = await fetchWithAuth(OLD_BACKEND_URL + "/inline/generation", requestOptions);
                     if (!response.ok) {
                         console.log(">>> ai completion api call failed ", response);
                         return new Promise((resolve) => {
@@ -609,7 +679,7 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
     async getConfigVariablesV2(): Promise<ConfigVariableResponse> {
         return new Promise(async (resolve) => {
             const projectPath = path.join(StateMachine.context().projectUri);
-            const showLibraryConfigVariables = ballerinaExtInstance.showLibraryConfigVariables();
+            const showLibraryConfigVariables = extension.ballerinaExtInstance.showLibraryConfigVariables();
             const variables = await StateMachine.langClient().getConfigVariablesV2({
                 projectPath: projectPath,
                 includeLibraries: showLibraryConfigVariables !== false
@@ -1259,7 +1329,7 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
         };
         console.log(">>> request ai suggestion", { request: requestBody });
         // generate new nodes
-        const response = await fetchWithAuth(BACKEND_URL + "/completion", requestOptions);
+        const response = await fetchWithAuth(OLD_BACKEND_URL + "/completion", requestOptions);
         if (!response.ok) {
             console.log(">>> ai completion api call failed ", response);
             return new Promise((resolve) => {

@@ -182,8 +182,8 @@ import {
     FunctionModelRequest,
     FunctionModelResponse,
     TypeDataWithReferences,
-    AIAgentOrgRequest,
-    AIAgentOrgResponse,
+    AiModuleOrgRequest,
+    AiModuleOrgResponse,
     AINodesResponse,
     AIModelsRequest,
     AIToolsRequest,
@@ -234,7 +234,9 @@ import {
     CopilotAllLibrariesRequest,
     CopilotFilterLibrariesResponse,
     CopilotFilterLibrariesRequest,
-    GetConfigVariableNodeTemplateRequest
+    GetConfigVariableNodeTemplateRequest,
+    FunctionFromSourceRequest,
+    FunctionFromSourceResponse
 } from "@wso2/ballerina-core";
 import { BallerinaExtension } from "./index";
 import { debug, handlePullModuleProgress } from "../utils";
@@ -299,6 +301,10 @@ enum EXTENDED_APIS {
     BI_DELETE_NODE = 'flowDesignService/deleteFlowNode',
     BI_DELETE_BY_COMPONENT_INFO = 'flowDesignService/deleteComponent',
     BI_AVAILABLE_NODES = 'flowDesignService/getAvailableNodes',
+    BI_AVAILABLE_MODEL_PROVIDERS = 'flowDesignService/getAvailableModelProviders',
+    BI_AVAILABLE_VECTOR_STORES = 'flowDesignService/getAvailableVectorStores',
+    BI_AVAILABLE_EMBEDDING_PROVIDERS = 'flowDesignService/getAvailableEmbeddingProviders',
+    BI_AVAILABLE_VECTOR_KNOWLEDGE_BASES = 'flowDesignService/getAvailableVectorKnowledgeBases',
     BI_NODE_TEMPLATE = 'flowDesignService/getNodeTemplate',
     BI_GEN_OPEN_API = 'flowDesignService/generateServiceFromOpenApiContract',
     BI_MODULE_NODES = 'flowDesignService/getModuleNodes',
@@ -359,6 +365,7 @@ enum EXTENDED_APIS {
     BI_SERVICE_ADD_FUNCTION = 'serviceDesign/addFunction',
     BI_SERVICE_UPDATE_RESOURCE = 'serviceDesign/updateFunction',
     BI_SERVICE_SERVICE_CLASS_MODEL = 'serviceDesign/getServiceClassModelFromSource',
+    BI_GET_FUNCTION_FROM_SOURCE = 'serviceDesign/getFunctionFromSource',
     BI_UPDATE_CLASS_FIELD = 'serviceDesign/updateClassField',
     BI_ADD_CLASS_FIELD = 'serviceDesign/addField',
     BI_DESIGN_MODEL = 'designModelService/getDesignModel',
@@ -370,7 +377,7 @@ enum EXTENDED_APIS {
     BI_ADD_TEST_FUNCTION = 'testManagerService/addTestFunction',
     BI_UPDATE_TEST_FUNCTION = 'testManagerService/updateTestFunction',
     BI_EDIT_FUNCTION_NODE = 'flowDesignService/functionDefinition',
-    BI_AI_AGENT_ORG = 'agentManager/getAgentOrg',
+    BI_AI_AGENT_ORG = 'agentManager/getAiModuleOrg',
     BI_AI_ALL_AGENTS = 'agentManager/getAllAgents',
     BI_AI_ALL_MODELS = 'agentManager/getAllModels',
     BI_AI_ALL_MEMORY_MANAGERS = 'agentManager/getAllMemoryManagers',
@@ -878,6 +885,22 @@ export class ExtendedLangClient extends LanguageClient implements ExtendedLangCl
         return this.sendRequest<BIAvailableNodesResponse>(EXTENDED_APIS.BI_AVAILABLE_NODES, params);
     }
 
+    async getAvailableModelProviders(params: BIAvailableNodesRequest): Promise<BIAvailableNodesResponse> {
+        return this.sendRequest<BIAvailableNodesResponse>(EXTENDED_APIS.BI_AVAILABLE_MODEL_PROVIDERS, params);
+    }
+
+    async getAvailableVectorStores(params: BIAvailableNodesRequest): Promise<BIAvailableNodesResponse> {
+        return this.sendRequest<BIAvailableNodesResponse>(EXTENDED_APIS.BI_AVAILABLE_VECTOR_STORES, params);
+    }
+
+    async getAvailableEmbeddingProviders(params: BIAvailableNodesRequest): Promise<BIAvailableNodesResponse> {
+        return this.sendRequest<BIAvailableNodesResponse>(EXTENDED_APIS.BI_AVAILABLE_EMBEDDING_PROVIDERS, params);
+    }
+
+    async getAvailableVectorKnowledgeBases(params: BIAvailableNodesRequest): Promise<BIAvailableNodesResponse> {
+        return this.sendRequest<BIAvailableNodesResponse>(EXTENDED_APIS.BI_AVAILABLE_VECTOR_KNOWLEDGE_BASES, params);
+    }
+
     async getEnclosedFunctionDef(params: BIGetEnclosedFunctionRequest): Promise<BIGetEnclosedFunctionResponse> {
         return this.sendRequest<BIGetEnclosedFunctionResponse>(EXTENDED_APIS.BI_GET_ENCLOSED_FUNCTION, params);
     }
@@ -1027,6 +1050,10 @@ export class ExtendedLangClient extends LanguageClient implements ExtendedLangCl
         return this.sendRequest<ServiceClassModelResponse>(EXTENDED_APIS.BI_SERVICE_SERVICE_CLASS_MODEL, params);
     }
 
+    async getFunctionFromSource(params: FunctionFromSourceRequest): Promise<FunctionFromSourceResponse> {
+        return this.sendRequest<FunctionFromSourceResponse>(EXTENDED_APIS.BI_GET_FUNCTION_FROM_SOURCE, params);
+    }
+
     async updateClassField(params: ClassFieldModifierRequest): Promise<SourceEditResponse> {
         return this.sendRequest<SourceEditResponse>(EXTENDED_APIS.BI_UPDATE_CLASS_FIELD, params);
     }
@@ -1107,8 +1134,8 @@ export class ExtendedLangClient extends LanguageClient implements ExtendedLangCl
         return this.sendRequest<AddImportItemResponse>(EXTENDED_APIS.BI_ADD_FUNCTION, params);
     }
 
-    async getAgentOrg(params: AIAgentOrgRequest) : Promise<AIAgentOrgResponse> {
-        return this.sendRequest<AIAgentOrgResponse>(EXTENDED_APIS.BI_AI_AGENT_ORG, params);
+    async getAiModuleOrg(params: AiModuleOrgRequest) : Promise<AiModuleOrgResponse> {
+        return this.sendRequest<AiModuleOrgResponse>(EXTENDED_APIS.BI_AI_AGENT_ORG, params);
     }
 
     async getAllAgents(params: AINodesRequest): Promise<AINodesResponse> {
