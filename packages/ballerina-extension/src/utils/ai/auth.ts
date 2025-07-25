@@ -24,6 +24,7 @@ import { jwtDecode, JwtPayload } from 'jwt-decode';
 import { AuthCredentials, LoginMethod } from '@wso2/ballerina-core';
 
 export const REFRESH_TOKEN_NOT_AVAILABLE_ERROR_MESSAGE = "Refresh token is not available.";
+export const TOKEN_REFRESH_ONLY_SUPPORTED_FOR_BI_INTEL = "Token refresh is only supported for BI Intelligence authentication";
 export const AUTH_CREDENTIALS_SECRET_KEY = 'BallerinaAuthCredentials';
 
 //TODO: What if user doesnt have github copilot.
@@ -214,7 +215,7 @@ export const getRefreshedAccessToken = async (): Promise<string> => {
         try {
             const credentials = await getAuthCredentials();
             if (!credentials || credentials.loginMethod !== LoginMethod.BI_INTEL) {
-                throw new Error('Token refresh is only supported for BI Intel authentication');
+                throw new Error(TOKEN_REFRESH_ONLY_SUPPORTED_FOR_BI_INTEL);
             }
 
             const { refreshToken } = credentials.secrets;

@@ -16,12 +16,13 @@
  * under the License.
  */
 
+import { BaseVisitor } from "@wso2/ballerina-core";
+
 import { NodeLinkModel } from "../components/NodeLink";
 import { EmptyNodeModel } from "../components/nodes/EmptyNode";
 import { END_CONTAINER, NodeTypes, START_CONTAINER } from "../resources/constants";
 import { getBranchInLinkId, getCustomNodeId, getNodeIdFromModel } from "../utils/node";
 import { Flow, FlowNode, LinkableNodeModel, NodeModel } from "../utils/types";
-import { BaseVisitor } from "./BaseVisitor";
 
 export class LinkTargetVisitor implements BaseVisitor {
     private skipChildrenVisit = false;

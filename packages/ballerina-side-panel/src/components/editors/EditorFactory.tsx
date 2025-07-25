@@ -51,10 +51,13 @@ interface FormFieldEditorProps {
     handleOnFieldFocus?: (key: string) => void;
     autoFocus?: boolean;
     handleOnTypeChange?: () => void;
-    visualizableFields?: string[];
     recordTypeFields?: RecordTypeField[];
     onIdentifierEditingStateChange?: (isEditing: boolean) => void;
     setSubComponentEnabled?: (isAdding: boolean) => void;
+    scopeFieldAddon?: React.ReactNode;
+    newServerUrl?: string;
+    mcpTools?: { name: string; description?: string }[];
+    onToolsChange?: (selectedTools: string[]) => void;
 }
 
 export const EditorFactory = (props: FormFieldEditorProps) => {
@@ -67,10 +70,11 @@ export const EditorFactory = (props: FormFieldEditorProps) => {
         handleOnFieldFocus,
         autoFocus,
         handleOnTypeChange,
-        visualizableFields,
         recordTypeFields,
         onIdentifierEditingStateChange,
-        setSubComponentEnabled
+        setSubComponentEnabled,
+        scopeFieldAddon,
+        newServerUrl
     } = props;
     if (!field.enabled || field.hidden) {
         return <></>;
@@ -95,7 +99,6 @@ export const EditorFactory = (props: FormFieldEditorProps) => {
                 subPanelView={subPanelView}
                 handleOnFieldFocus={handleOnFieldFocus}
                 autoFocus={autoFocus}
-                visualizable={visualizableFields?.includes(field.key)}
                 recordTypeField={recordTypeFields?.find(recordField => recordField.key === field.key)}
             />
         );
@@ -106,12 +109,13 @@ export const EditorFactory = (props: FormFieldEditorProps) => {
         return <TextEditor field={field} handleOnFieldFocus={handleOnFieldFocus} />;
     } else if (field.type.toUpperCase() === "ENUM") {
         // Enum is a dropdown field
-        return <DropdownEditor field={field} />;
+        return <DropdownEditor field={field} mcpTools={props.mcpTools} onToolsChange={props.onToolsChange} />;
     } else if (field.type === "FILE_SELECT" && field.editable) {
         return <FileSelect field={field} />;
     } else if (field.type === "SINGLE_SELECT" && field.editable) {
         // HACK:Single select field is treat as type editor for now
-        return <DropdownEditor field={field} openSubPanel={openSubPanel} />;
+        console.log(">>> Single select field is treated as type editor", field);
+        return <DropdownEditor field={field} openSubPanel={openSubPanel} newServerUrl={newServerUrl} mcpTools={props.mcpTools} onToolsChange={props.onToolsChange} />;
     } else if (!field.items && (field.key === "type" || field.type === "TYPE") && field.editable) {
         // Type field is a type editor
         return (
@@ -132,7 +136,6 @@ export const EditorFactory = (props: FormFieldEditorProps) => {
                 subPanelView={subPanelView}
                 handleOnFieldFocus={handleOnFieldFocus}
                 autoFocus={autoFocus}
-                visualizable={visualizableFields?.includes(field.key)}
                 recordTypeField={recordTypeFields?.find(recordField => recordField.key === field.key)}
             />
         );
