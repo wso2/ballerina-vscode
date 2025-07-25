@@ -58,6 +58,8 @@ public class Constants {
         public static final String DEFAULT_MODEL_PROVIDER_WSO2 = "Default Model Provider (WSO2)";
         public static final String ACCEPT_AS_PARAMETER = "Accept as a parameter";
 
+        public static final String MODEL_PROVIDER_AS_PARAMETER_KEY = "modelProviderAsParameter";
+
         public static final String PROMPT = "prompt";
         public static final String MODULE_PREFIXED_PROMPT_TYPE = "np:Prompt";
         public static final String PROMPT_LABEL = "Prompt";

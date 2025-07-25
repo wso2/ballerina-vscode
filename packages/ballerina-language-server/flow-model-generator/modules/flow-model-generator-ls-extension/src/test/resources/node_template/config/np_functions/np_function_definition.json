@@ -125,16 +125,22 @@
           "label": "Configure the model",
           "description": "The large language model (LLM) to use"
         },
-        "valueType": "SINGLE_SELECT",
-        "valueTypeConstraint": [
-          "Default Model Provider (WSO2)",
-          "Accept as a parameter"
-        ],
-        "value": "Default Model Provider (WSO2)",
+        "valueType": "EXPRESSION",
         "optional": false,
         "editable": true,
         "advanced": false,
-        "hidden": false,
+        "hidden": true,
+        "codedata": {
+          "kind": "REQUIRED"
+        }
+      },
+      "modelProviderAsParameter": {
+        "valueType": "FLAG",
+        "value": false,
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": true,
         "codedata": {
           "kind": "REQUIRED"
         }
