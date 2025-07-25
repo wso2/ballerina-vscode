@@ -28,7 +28,8 @@
         "variableName": "CONST",
         "typeName": "string",
         "kind": "string",
-        "category": "constant"
+        "category": "constant",
+        "optional": false
       },
       {
         "fields": [
@@ -36,19 +37,22 @@
             "id": "var1.clientName",
             "variableName": "clientName",
             "typeName": "string",
-            "kind": "string"
+            "kind": "string",
+            "optional": true
           },
           {
             "id": "var1.database",
             "variableName": "database",
             "typeName": "int",
-            "kind": "int"
+            "kind": "int",
+            "optional": false
           },
           {
             "id": "var1.connectionTimeout",
             "variableName": "connectionTimeout",
             "typeName": "int",
-            "kind": "int"
+            "kind": "int",
+            "optional": false
           }
         ],
         "id": "var1",
@@ -61,7 +65,8 @@
           "packageName": "redis",
           "moduleName": "redis",
           "version": "3.1.0"
-        }
+        },
+        "optional": false
       }
     ],
     "output": {
@@ -70,19 +75,22 @@
           "id": "var2.clientName",
           "variableName": "clientName",
           "typeName": "string",
-          "kind": "string"
+          "kind": "string",
+          "optional": true
         },
         {
           "id": "var2.database",
           "variableName": "database",
           "typeName": "int",
-          "kind": "int"
+          "kind": "int",
+          "optional": false
         },
         {
           "id": "var2.connectionTimeout",
           "variableName": "connectionTimeout",
           "typeName": "int",
-          "kind": "int"
+          "kind": "int",
+          "optional": false
         }
       ],
       "id": "var2",
@@ -94,7 +102,8 @@
         "packageName": "redis",
         "moduleName": "redis",
         "version": "3.1.0"
-      }
+      },
+      "optional": false
     },
     "mappings": []
   }

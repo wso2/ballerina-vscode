@@ -28,7 +28,8 @@
         "variableName": "CONST",
         "typeName": "string",
         "kind": "string",
-        "category": "constant"
+        "category": "constant",
+        "optional": false
       },
       {
         "fields": [
@@ -36,20 +37,23 @@
             "id": "user.username",
             "variableName": "username",
             "typeName": "string",
-            "kind": "string"
+            "kind": "string",
+            "optional": false
           },
           {
             "id": "user.password",
             "variableName": "password",
             "typeName": "string",
-            "kind": "string"
+            "kind": "string",
+            "optional": false
           }
         ],
         "id": "user",
         "variableName": "user",
         "typeName": "UserInfo",
         "kind": "record",
-        "category": "local-variable"
+        "category": "local-variable",
+        "optional": false
       }
     ],
     "output": {
@@ -58,19 +62,22 @@
           "id": "student.username",
           "variableName": "username",
           "typeName": "string",
-          "kind": "string"
+          "kind": "string",
+          "optional": false
         },
         {
           "id": "student.password",
           "variableName": "password",
           "typeName": "string",
-          "kind": "string"
+          "kind": "string",
+          "optional": false
         }
       ],
       "id": "student",
       "variableName": "student",
       "typeName": "Student",
-      "kind": "record"
+      "kind": "record",
+      "optional": false
     },
     "mappings": [
       {
