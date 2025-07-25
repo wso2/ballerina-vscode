@@ -20,12 +20,13 @@
 import { NodePosition } from "@wso2/syntax-tree";
 import { AIMachineContext, AIMachineStateValue } from "../../state-machine-types";
 import { Command, TemplateId } from "../../interfaces/ai-panel";
+import { FormField } from "../../interfaces/config-spec";
 
 // ==================================
 // General Interfaces
 // ==================================
 export type AIPanelPrompt =
-    | { type: 'command-template'; command: Command; templateId: TemplateId; text?: string; params?: Map<string, string>; }
+    | { type: 'command-template'; command: Command; templateId: TemplateId; text?: string; params?: Map<string, string>; metadata?: Record<string, any> }
     | { type: 'text'; text: string }
     | undefined;
 
@@ -116,6 +117,9 @@ export interface ParameterMetadata {
     inputMetadata: object;
     outputMetadata: object;
     mapping_fields?: object;
+    constants?: Record<string, FieldConfig>;
+    configurables?: Record<string, FieldConfig>;
+    variables?: Record<string, FieldConfig>;
 }
 
 export interface RecordDefinitonObject {
@@ -130,6 +134,31 @@ export interface MappingFileRecord {
 export interface ParameterDefinitions {
     parameterMetadata: ParameterMetadata,
     errorStatus: boolean
+}
+
+export interface ParameterField {
+    isArrayType: boolean;
+    parameterName: string;
+    parameterType: string;
+    type: string;
+}
+
+export interface FieldDescriptor {
+    type: string;
+    comment: string;
+}
+
+export interface FieldConfig {
+    typeName: string;
+    type: string;
+    typeInstance: string;
+    nullable: boolean;
+    optional: boolean;
+}
+
+export interface CodeSegment {
+    segmentText: string;
+    filePath: string;
 }
 
 // Test-generator related interfaces
