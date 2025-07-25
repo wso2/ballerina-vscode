@@ -17,11 +17,10 @@
  */
 
 import { PanelContainer, NodeList, ExpressionFormField } from "@wso2/ballerina-side-panel";
-import { FlowNode, LineRange, SubPanel, SubPanelView, FUNCTION_TYPE, ToolData } from "@wso2/ballerina-core";
-import { InlineDataMapper } from "../../InlineDataMapper";
+import { FlowNode, LineRange, SubPanel, SubPanelView, FUNCTION_TYPE, ToolData, NodeMetadata } from "@wso2/ballerina-core";
 import { HelperView } from "../HelperView";
 import FormGenerator from "../Forms/FormGenerator";
-import { getContainerTitle } from "../../../utils/bi";
+import { getContainerTitle, getSubPanelWidth } from "../../../utils/bi";
 import { ModelConfig } from "../AIChatAgent/ModelConfig";
 import { ToolConfig } from "../AIChatAgent/ToolConfig";
 import { AgentConfig } from "../AIChatAgent/AgentConfig";
@@ -78,7 +77,7 @@ interface PanelManagerProps {
     onAddFunction?: () => void;
     onAddNPFunction?: () => void;
     onAddDataMapper?: () => void;
-    onSubmitForm: (updatedNode?: FlowNode, isDataMapperFormUpdate?: boolean) => void;
+    onSubmitForm: (updatedNode?: FlowNode, openInDataMapper?: boolean) => void;
     onDiscardSuggestions: () => void;
     onSubPanel: (subPanel: SubPanel) => void;
     onUpdateExpressionField: (updatedExpressionField: ExpressionFormField) => void;
@@ -139,16 +138,13 @@ export function PanelManager(props: PanelManagerProps) {
         setPanelView(SidePanelView.ADD_TOOL);
     };
 
+    const handleSubmitAndClose = () => {
+        onSubmitForm();
+        onClose();
+    };
+
     const findSubPanelComponent = (subPanel: SubPanel) => {
         switch (subPanel.view) {
-            case SubPanelView.INLINE_DATA_MAPPER:
-                return (
-                    <InlineDataMapper
-                        onClosePanel={onSubPanel}
-                        updateFormField={onUpdateExpressionField}
-                        {...subPanel.props?.inlineDataMapper}
-                    />
-                );
             case SubPanelView.HELPER_PANEL:
                 return (
                     <HelperView
@@ -183,30 +179,30 @@ export function PanelManager(props: PanelManagerProps) {
                         agentCallNode={selectedNode}
                         fileName={fileName}
                         lineRange={targetLineRange}
-                        onSave={onClose}
+                        onSave={handleSubmitAndClose}
                     />
                 );
 
             case SidePanelView.ADD_TOOL:
-                return <AddTool agentCallNode={selectedNode} onAddNewTool={handleOnAddTool} onSave={onClose} />;
+                return <AddTool agentCallNode={selectedNode} onAddNewTool={handleOnAddTool} onSave={handleSubmitAndClose} />;
 
             case SidePanelView.NEW_TOOL:
-                return <NewTool agentCallNode={selectedNode} onSave={onClose} onBack={handleOnBackToAddTool} />;
+                return <NewTool agentCallNode={selectedNode} onSave={handleSubmitAndClose} onBack={handleOnBackToAddTool} />;
 
             case SidePanelView.AGENT_TOOL:
-                const selectedTool = selectedNode?.metadata.data.tools?.find(
+                const selectedTool = (selectedNode?.metadata.data as NodeMetadata).tools?.find(
                     (tool) => tool.name === selectedClientName
                 );
-                return <ToolConfig agentCallNode={selectedNode} toolData={selectedTool} onSave={onClose} />;
+                return <ToolConfig agentCallNode={selectedNode} toolData={selectedTool} onSave={handleSubmitAndClose} />;
 
             case SidePanelView.AGENT_MODEL:
-                return <ModelConfig agentCallNode={selectedNode} onSave={onClose} />;
+                return <ModelConfig agentCallNode={selectedNode} onSave={handleSubmitAndClose} />;
 
             case SidePanelView.AGENT_CONFIG:
-                return <AgentConfig agentCallNode={selectedNode} fileName={fileName} onSave={onClose} />;
+                return <AgentConfig agentCallNode={selectedNode} fileName={fileName} onSave={handleSubmitAndClose} />;
 
             case SidePanelView.AGENT_MEMORY_MANAGER:
-                return <MemoryManagerConfig agentCallNode={selectedNode} onSave={onClose} />;
+                return <MemoryManagerConfig agentCallNode={selectedNode} onSave={handleSubmitAndClose} />;
 
             case SidePanelView.FUNCTION_LIST:
                 return (
@@ -290,7 +286,7 @@ export function PanelManager(props: PanelManagerProps) {
             show={showSidePanel}
             onClose={onClose}
             onBack={onBackCallback}
-            subPanelWidth={subPanel?.view === SubPanelView.INLINE_DATA_MAPPER ? 800 : 400}
+            subPanelWidth={getSubPanelWidth(subPanel)}
             subPanel={findSubPanelComponent(subPanel)}
         >
             <Container onClick={onDiscardSuggestions}>{renderPanelContent()}</Container>

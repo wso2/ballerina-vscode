@@ -17,17 +17,40 @@
  */
 import {
     AddArrayElementRequest,
+    ConvertToQueryRequest,
+    AddClausesRequest,
     InlineDataMapperModelRequest,
     InlineDataMapperModelResponse,
     InlineDataMapperSourceRequest,
     InlineDataMapperSourceResponse,
     VisualizableFieldsRequest,
-    VisualizableFieldsResponse
+    VisualizableFieldsResponse,
+    PropertyRequest,
+    PropertyResponse,
+    InitialIDMSourceResponse,
+    InitialIDMSourceRequest,
+    GetInlineDataMapperCodedataRequest,
+    GetInlineDataMapperCodedataResponse,
+    GetSubMappingCodedataRequest,
+    InlineAllDataMapperSourceRequest,
+    AddSubMappingRequest,
+    DeleteMappingRequest,
+    MapWithCustomFnRequest
 } from "../../interfaces/extended-lang-client";
 
 export interface InlineDataMapperAPI {
+    getInitialIDMSource: (params: InitialIDMSourceRequest) => Promise<InitialIDMSourceResponse>;
     getDataMapperModel: (params: InlineDataMapperModelRequest) => Promise<InlineDataMapperModelResponse>;
     getDataMapperSource: (params: InlineDataMapperSourceRequest) => Promise<InlineDataMapperSourceResponse>;
     getVisualizableFields: (params: VisualizableFieldsRequest) => Promise<VisualizableFieldsResponse>;
     addNewArrayElement: (params: AddArrayElementRequest) => Promise<InlineDataMapperSourceResponse>;
+    convertToQuery: (params: ConvertToQueryRequest) => Promise<InlineDataMapperSourceResponse>;
+    addClauses: (params: AddClausesRequest) => Promise<InlineDataMapperSourceResponse>;
+    addSubMapping: (params: AddSubMappingRequest) => Promise<InlineDataMapperSourceResponse>;
+    deleteMapping: (params: DeleteMappingRequest) => Promise<InlineDataMapperSourceResponse>;
+    mapWithCustomFn: (params: MapWithCustomFnRequest) => Promise<InlineDataMapperSourceResponse>;
+    getDataMapperCodedata: (params: GetInlineDataMapperCodedataRequest) => Promise<GetInlineDataMapperCodedataResponse>;
+    getSubMappingCodedata: (params: GetSubMappingCodedataRequest) => Promise<GetInlineDataMapperCodedataResponse>;
+    getAllDataMapperSource: (params:InlineAllDataMapperSourceRequest) => Promise<InlineDataMapperSourceResponse>;
+    getProperty: (params: PropertyRequest) => Promise<PropertyResponse>;
 }

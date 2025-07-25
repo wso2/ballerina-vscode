@@ -121,13 +121,9 @@ const WrappedTooltip = ({ content, children }: WrappedTooltipProps) => {
         let formattedItems: string[] = [];
 
         if (text.includes(",")) {
-            formattedItems = text
-                .split(",")
-                .map((item) => item.trim());
+            formattedItems = text.split(",").map((item) => item.trim());
         } else if (text.includes("|")) {
-            formattedItems = text
-                .split("|")
-                .map((item) => item.trim());
+            formattedItems = text.split("|").map((item) => item.trim());
         } else {
             return text;
         }
@@ -165,10 +161,12 @@ export interface DiagramWrapperProps {
     projectPath: string;
     filePath?: string;
     view?: FocusFlowDiagramView;
+    breakpointState?: boolean;
+    syntaxTree?: STNode;
 }
 
 export function DiagramWrapper(param: DiagramWrapperProps) {
-    const { projectPath, filePath, view } = param;
+    const { projectPath, filePath, view, breakpointState, syntaxTree } = param;
     const { rpcClient } = useRpcContext();
 
     const [showSequenceDiagram, setShowSequenceDiagram] = useState(false);
@@ -256,9 +254,10 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
     };
 
     let isAutomation = parentMetadata?.kind === "Function" && parentMetadata?.label === "main";
+    let isFunction = parentMetadata?.kind === "Function" && parentMetadata?.label !== "main";
     let isResource = parentMetadata?.kind === "Resource";
     let isRemote = parentMetadata?.kind === "Remote Function";
-    let isAgent = parentMetadata?.kind === "AI Chat Agent";
+    let isAgent = parentMetadata?.kind === "AI Chat Agent" && parentMetadata?.label === "chat";
     let isNPFunction = view === FOCUS_FLOW_DIAGRAM_VIEW.NP_FUNCTION;
     const parameters = parentMetadata?.parameters?.join(", ") || "";
     const returnType = parentMetadata?.return || "";
@@ -269,173 +268,130 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
         rpcClient.getCommonRpcClient().executeCommand({ commands });
     };
 
+    // Calculate title based on conditions
+    const getTitle = () => {
+        if (isNPFunction) return "Natural Function";
+        if (isAutomation) return "Automation";
+        return parentMetadata?.kind || "";
+    };
+
+    // Calculate subtitle element based on conditions
+    const getSubtitleElement = () => {
+        return (
+            <SubTitleWrapper>
+                <LeftElementsWrapper>
+                    {isResource && (
+                        <AccessorType color={getColorByMethod(parentMetadata?.accessor || "")}>
+                            {parentMetadata?.accessor || ""}
+                        </AccessorType>
+                    )}
+                    {!isAutomation && <Path>{parentMetadata?.label || ""}</Path>}
+                    {parameters && (
+                        <WrappedTooltip content={parameters}>
+                            <Parameters>({parameters})</Parameters>
+                        </WrappedTooltip>
+                    )}
+                </LeftElementsWrapper>
+                {returnType && (
+                    <WrappedTooltip content={returnType}>
+                        <ReturnType>
+                            <ReturnTypeIcon name="bi-return" /> {returnType}
+                        </ReturnType>
+                    </WrappedTooltip>
+                )}
+            </SubTitleWrapper>
+        );
+    };
+
+    // Calculate actions based on conditions
+    const getActions = () => {
+        if (isAgent) {
+            return (
+                <ActionButton
+                    appearance="secondary"
+                    onClick={() => handleResourceTryIt(parentMetadata?.accessor || "", parentMetadata?.label || "")}
+                >
+                    <Icon
+                        name="comment-discussion"
+                        isCodicon={true}
+                        sx={{ marginRight: 5, width: 16, height: 16, fontSize: 14 }}
+                    />
+                    Chat
+                </ActionButton>
+            );
+        }
+
+        if (isResource && serviceType === "http") {
+            return (
+                <ActionButton
+                    appearance="secondary"
+                    onClick={() => handleResourceTryIt(parentMetadata?.accessor || "", parentMetadata?.label || "")}
+                >
+                    <Icon name={"play"} isCodicon={true} sx={{ marginRight: 5, width: 16, height: 16, fontSize: 14 }} />
+                    {"Try It"}
+                </ActionButton>
+            );
+        }
+
+        if (parentMetadata && !isResource && !isRemote) {
+            return (
+                <ActionButton id="bi-edit" appearance="secondary" onClick={() => handleEdit(fileName)}>
+                    <Icon name="bi-edit" sx={{ marginRight: 5, width: 16, height: 16, fontSize: 14 }} />
+                    Edit
+                </ActionButton>
+            );
+        }
+
+        return null;
+    };
+
     return (
         <View>
             <TopNavigationBar />
-            {isResource && !isAutomation && (
-                <TitleBar
-                    title={parentMetadata?.kind}
-                    subtitleElement={
-                        <SubTitleWrapper>
-                            <LeftElementsWrapper>
-                                <AccessorType color={getColorByMethod(parentMetadata?.accessor || "")}>
-                                    {parentMetadata?.accessor || ""}
-                                </AccessorType>
-                                <Path>{parentMetadata?.label || ""}</Path>
-                                {parameters && (
-                                    <WrappedTooltip content={parameters}>
-                                        <Parameters>({parameters})</Parameters>
-                                    </WrappedTooltip>
-                                )}
-                            </LeftElementsWrapper>
-                            {returnType && (
-                                <WrappedTooltip content={returnType}>
-                                    <ReturnType>
-                                        <ReturnTypeIcon name="bi-return" /> {returnType}
-                                    </ReturnType>
-                                </WrappedTooltip>
-                            )}
-                        </SubTitleWrapper>
-                    }
-                    actions={
-                        serviceType === "http" || isAgent ? (
-                            <ActionButton
-                                appearance="secondary"
-                                onClick={() => handleResourceTryIt(parentMetadata?.accessor || "", parentMetadata?.label || "")}
-                            >
-                                <Icon
-                                    name={isAgent ? "comment-discussion" : "play"}
-                                    isCodicon={true}
-                                    sx={{ marginRight: 5, width: 16, height: 16, fontSize: 14 }}
-                                />
-                                {isAgent ? "Chat" : "Try It"}
-                            </ActionButton>
-                        ) : null
-                    }
-                />
-            )}
-            {isRemote && (
-                <TitleBar
-                    title={parentMetadata?.kind}
-                    subtitleElement={
-                        <SubTitleWrapper>
-                            <LeftElementsWrapper>
-                                <Path>{parentMetadata?.label || ""}</Path>
-                                {parameters && (
-                                    <WrappedTooltip content={parameters}>
-                                        <Parameters>({parameters})</Parameters>
-                                    </WrappedTooltip>
-                                )}
-                            </LeftElementsWrapper>
-                            {returnType && (
-                                <WrappedTooltip content={returnType}>
-                                    <ReturnType>
-                                        <ReturnTypeIcon name="bi-return" /> {returnType}
-                                    </ReturnType>
-                                </WrappedTooltip>
-                            )}
-                        </SubTitleWrapper>
-                    }
-                />
-            )}
-            {!isResource && !isAutomation && !isRemote && (
-                <TitleBar
-                    title={isNPFunction ? "Natural Function" : parentMetadata?.kind}
-                    subtitleElement={
-                        <SubTitleWrapper>
-                            <LeftElementsWrapper>
-                                <Path>{parentMetadata?.label || ""}</Path>
-                                {parameters && (
-                                    <WrappedTooltip content={parameters}>
-                                        <Parameters>({parameters})</Parameters>
-                                    </WrappedTooltip>
-                                )}
-                            </LeftElementsWrapper>
-                            {returnType && (
-                                <WrappedTooltip content={returnType}>
-                                    <ReturnType>
-                                        <ReturnTypeIcon name="bi-return" />
-                                        {returnType}
-                                    </ReturnType>
-                                </WrappedTooltip>
-                            )}
-                        </SubTitleWrapper>
-                    }
-                    actions={
-                        <ActionButton id="bi-edit" appearance="secondary" onClick={() => handleEdit(fileName)}>
-                            <Icon name="bi-edit" sx={{ marginRight: 5, width: 16, height: 16, fontSize: 14 }} />
-                            Edit
-                        </ActionButton>
-                    }
-                />
-            )}
-            {!isResource && isAutomation && (
-                <TitleBar
-                    title={parentMetadata?.kind}
-                    subtitleElement={
-                        <SubTitleWrapper>
-                            <LeftElementsWrapper>
-                                <WrappedTooltip content={parameters}>
-                                    <Parameters>({parameters})</Parameters>
-                                </WrappedTooltip>
-                            </LeftElementsWrapper>
-                            {returnType && (
-                                <WrappedTooltip content={returnType}>
-                                    <ReturnType>
-                                        <ReturnTypeIcon name="bi-return" /> {returnType}
-                                    </ReturnType>
-                                </WrappedTooltip>
-                            )}
-                        </SubTitleWrapper>
-                    }
-                    actions={
-                        <ActionButton id="bi-edit" appearance="secondary" onClick={() => handleEdit(fileName)}>
-                            <Icon name="bi-edit" sx={{ marginRight: 5, width: 16, height: 16, fontSize: 14 }} />
-                            Edit
-                        </ActionButton>
-                    }
-                />
-            )}
-            {enableSequenceDiagram && !isAgent && (
-                <Switch
-                    leftLabel="Flow"
-                    rightLabel="Sequence"
-                    checked={showSequenceDiagram}
-                    checkedColor="var(--vscode-button-background)"
-                    enableTransition={true}
-                    onChange={handleToggleDiagram}
-                    sx={{
-                        width: "250px",
-                        margin: "auto",
-                        position: "fixed",
-                        top: "120px",
-                        right: "16px",
-                        zIndex: "3",
-                        border: "unset",
-                    }}
-                    disabled={loadingDiagram}
-                />
-            )}
-            {showSequenceDiagram ? (
-                <BISequenceDiagram
-                    onUpdate={handleUpdateDiagram}
-                    onReady={handleReadyDiagram}
-                />
-            ) : view ? (
-                <BIFocusFlowDiagram
-                    projectPath={projectPath}
-                    filePath={filePath}
-                    onUpdate={handleUpdateDiagram}
-                    onReady={handleReadyDiagram}
-                />
-            ) : (
-                <BIFlowDiagram
-                    projectPath={projectPath}
-                    onUpdate={handleUpdateDiagram}
-                    onReady={handleReadyDiagram}
-                />
-            )}
-        </View>
+            <TitleBar title={getTitle()} subtitleElement={getSubtitleElement()} actions={getActions()} />
+    {
+        enableSequenceDiagram && !isAgent && (
+            <Switch
+                leftLabel="Flow"
+                rightLabel="Sequence"
+                checked={showSequenceDiagram}
+                checkedColor="var(--vscode-button-background)"
+                enableTransition={true}
+                onChange={handleToggleDiagram}
+                sx={{
+                    width: "250px",
+                    margin: "auto",
+                    position: "fixed",
+                    top: "120px",
+                    right: "16px",
+                    zIndex: "3",
+                    border: "unset",
+                }}
+                disabled={loadingDiagram}
+            />
+        )
+    }
+    {
+        showSequenceDiagram ? (
+            <BISequenceDiagram onUpdate={handleUpdateDiagram} onReady={handleReadyDiagram} />
+        ) : view ? (
+            <BIFocusFlowDiagram
+                projectPath={projectPath}
+                filePath={filePath}
+                onUpdate={handleUpdateDiagram}
+                onReady={handleReadyDiagram}
+            />
+        ) : (
+            <BIFlowDiagram
+                syntaxTree={syntaxTree}
+                breakpointState={breakpointState}
+                projectPath={projectPath}
+                onUpdate={handleUpdateDiagram}
+                onReady={handleReadyDiagram}
+            />
+        )
+    }
+        </View >
     );
 }
 

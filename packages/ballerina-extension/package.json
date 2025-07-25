@@ -933,7 +933,7 @@
                 "description": "design-view",
                 "default": {
                     "fontPath": "./resources/font-wso2-vscode/dist/wso2-vscode.woff",
-                    "fontCharacter": "\\f16b"
+                    "fontCharacter": "\\f16c"
                 }
             },
             "distro-start": {
@@ -947,7 +947,7 @@
                 "description": "debug",
                 "default": {
                     "fontPath": "./resources/font-wso2-vscode/dist/wso2-vscode.woff",
-                    "fontCharacter": "\\f16e"
+                    "fontCharacter": "\\f16f"
                 }
             },
             "distro-source-view": {
@@ -1170,7 +1170,7 @@
         "vscode-extension-tester": "^5.10.0",
         "vscode-messenger": "^0.4.4",
         "webpack": "^5.89.0",
-        "webpack-cli": "^5.1.4",
+        "webpack-cli": "^6.0.1",
         "webpack-merge-and-include-globally": "^2.3.4",
         "yarn": "^1.22.19",
         "adm-zip": "^0.5.16"
