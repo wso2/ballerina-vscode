@@ -540,14 +540,6 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                     return;
                 }
 
-                // // HACK: change knowledge bases kind to vector knowledge base
-                // response.categories[1].items.forEach((item: Item) => {
-                //     const node = item as AvailableNode;
-                //     if (node.codedata?.node === "VECTOR_KNOWLEDGE_BASES") {
-                //         node.codedata.node = "VECTOR_KNOWLEDGE_BASE";
-                //     }
-                // });
-
                 // Use the utility function to filter categories
                 const filteredCategories = transformCategories(response.categories);
                 const convertedCategories = convertBICategoriesToSidePanelCategories(filteredCategories);
