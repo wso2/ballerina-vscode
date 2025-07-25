@@ -183,6 +183,7 @@ export default function ExpressionBarWrapper({ views }: ExpressionBarProps) {
         const viewId = views[views.length - 1]?.targetField;
         const name = views[0]?.targetField;
         await onSave(outputId, value, viewId, name);
+        savedTextFieldValue.current = value;
     };
 
     const handleExpressionSave = async (value: string) => {
