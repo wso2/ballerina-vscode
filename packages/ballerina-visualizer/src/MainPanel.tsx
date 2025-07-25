@@ -28,13 +28,10 @@ import {
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { Global, css } from "@emotion/react";
 import styled from "@emotion/styled";
-import { NavigationBar } from "./components/NavigationBar";
 import { LoadingRing } from "./components/Loader";
 import { DataMapper } from "./views/DataMapper";
 import { ERDiagram } from "./views/ERDiagram";
 import { GraphQLDiagram } from "./views/GraphQLDiagram";
-import { SequenceDiagram } from "./views/SequenceDiagram";
-import { Overview } from "./views/Overview";
 import { ServiceDesigner } from "./views/BI/ServiceDesigner";
 import {
     WelcomeView,
@@ -46,7 +43,7 @@ import {
     TestFunctionForm
 } from "./views/BI";
 import { handleRedo, handleUndo } from "./utils/utils";
-import { FunctionDefinition, ServiceDeclaration } from "@wso2/syntax-tree";
+import { FunctionDefinition } from "@wso2/syntax-tree";
 import { URI, Utils } from "vscode-uri";
 import { Typography } from "@wso2/ui-toolkit";
 import { PanelType, useVisualizerContext } from "./Context";
@@ -71,6 +68,7 @@ import { ServiceClassConfig } from "./views/BI/ServiceClassEditor/ServiceClassCo
 import { AIAgentDesigner } from "./views/BI/AIChatAgent";
 import { AIChatAgentWizard } from "./views/BI/AIChatAgent/AIChatAgentWizard";
 import { BallerinaUpdateView } from "./views/BI/BallerinaUpdateView";
+import { VSCodeProgressRing } from "@vscode/webview-ui-toolkit/react";
 
 const globalStyles = css`
     *,
@@ -78,6 +76,33 @@ const globalStyles = css`
     *::after {
         box-sizing: border-box;
     }
+    
+    @keyframes fadeIn {
+        0% { 
+            opacity: 0;
+        }
+        100% { 
+            opacity: 1;
+        }
+    }
+    
+    .loading-dots::after {
+        content: '';
+        animation: dots 1.5s infinite;
+    }
+    
+    @keyframes dots {
+        0%, 20% { content: ''; }
+        40% { content: '.'; }
+        60% { content: '..'; }
+        80%, 100% { content: '...'; }
+    }
+`;
+
+const ProgressRing = styled(VSCodeProgressRing)`
+    height: 50px;
+    width: 50px;
+    margin: 1.5rem;
 `;
 
 const VisualizerContainer = styled.div`
@@ -96,6 +121,50 @@ const PopUpContainer = styled.div`
     right: 0;
     bottom: 0;
     z-index: 2000;
+`;
+
+const LoadingViewContainer = styled.div`
+    background-color: var(--vscode-editor-background);
+    height: 100vh;
+    width: 100%;
+    display: flex;
+    font-family: var(--vscode-font-family);
+`;
+
+const LoadingContent = styled.div`
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+    height: 100%;
+    width: 100%;
+    padding-top: 30vh;
+    text-align: center;
+    max-width: 500px;
+    margin: 0 auto;
+    animation: fadeIn 1s ease-in-out;
+`;
+
+const LoadingTitle = styled.h1`
+    color: var(--vscode-foreground);
+    font-size: 1.5em;
+    font-weight: 400;
+    margin: 0;
+    letter-spacing: -0.02em;
+    line-height: normal;
+`;
+
+const LoadingSubtitle = styled.p`
+    color: var(--vscode-descriptionForeground);
+    font-size: 13px;
+    margin: 0.5rem 0 2rem 0;
+    opacity: 0.8;
+`;
+
+const LoadingText = styled.div`
+    color: var(--vscode-foreground);
+    font-size: 13px;
+    font-weight: 500;
 `;
 
 const MainPanel = () => {
@@ -199,7 +268,7 @@ const MainPanel = () => {
                     case MACHINE_VIEW.BIDiagram:
                         setViewComponent(
                             <DiagramWrapper
-                                syntaxTree={value?.syntaxTree}
+                                key={value?.identifier}
                                 projectPath={value?.projectUri}
                                 filePath={value?.documentUri}
                                 view={value?.focusFlowDiagramView}
@@ -246,11 +315,6 @@ const MainPanel = () => {
                         break;
                     case MACHINE_VIEW.GraphQLDiagram:
                         setViewComponent(<GraphQLDiagram serviceIdentifier={value?.identifier} filePath={value?.documentUri} position={value?.position} projectUri={value?.projectUri} />);
-                        break;
-                    case MACHINE_VIEW.SequenceDiagram:
-                        setViewComponent(
-                            <SequenceDiagram syntaxTree={value?.syntaxTree} applyModifications={applyModifications} />
-                        );
                         break;
                     case MACHINE_VIEW.BallerinaUpdateView:
                         setNavActive(false);
@@ -310,7 +374,7 @@ const MainPanel = () => {
                     case MACHINE_VIEW.EditConnectionWizard:
                         setViewComponent(
                             <EditConnectionWizard
-                                fileName={value.documentUri || value.projectUri}
+                                projectUri={value.projectUri}
                                 connectionName={value?.identifier}
                             />
                         );
@@ -334,6 +398,16 @@ const MainPanel = () => {
                                     fileName={Utils.joinPath(URI.file(value.projectUri), 'config.bal').fsPath}
                                     org={value?.org}
                                     package={value?.package}
+                                />
+                            );
+                        break;
+                    case MACHINE_VIEW.AddConfigVariables:
+                        setViewComponent(
+                                <ViewConfigurableVariables
+                                    fileName={Utils.joinPath(URI.file(value.projectUri), 'config.bal').fsPath}
+                                    org={value?.org}
+                                    package={value?.package}
+                                    addNew={true}
                                 />
                             );
                         break;
@@ -376,6 +450,20 @@ const MainPanel = () => {
             <VisualizerContainer>
                 {/* {navActive && <NavigationBar showHome={showHome} />} */}
                 {viewComponent && <ComponentViewWrapper>{viewComponent}</ComponentViewWrapper>}
+                {!viewComponent && (
+                    <ComponentViewWrapper>
+                        <LoadingViewContainer>
+                            <LoadingContent>
+                                <ProgressRing />
+                                <LoadingTitle>Loading Integration</LoadingTitle>
+                                <LoadingSubtitle>Setting up your integration environment</LoadingSubtitle>
+                                <LoadingText>
+                                    <span className="loading-dots">Please wait</span>
+                                </LoadingText>
+                            </LoadingContent>
+                        </LoadingViewContainer>
+                    </ComponentViewWrapper>
+                )}
                 {sidePanel !== "EMPTY" && sidePanel === "ADD_CONNECTION" && (
                     <ConnectorList applyModifications={applyModifications} />
                 )}

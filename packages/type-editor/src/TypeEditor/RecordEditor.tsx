@@ -120,7 +120,7 @@ export const RecordEditor = forwardRef<{ addMember: () => void }, RecordEditorPr
             {!isAnonymous &&
                 <Header>
                     <SectionTitle>{isGraphql ? 'Input Object Fields' : 'Fields'}</SectionTitle>
-                    <div style={{ display: 'flex', gap: '8px' }}>
+                    <div style={{ display: 'flex', gap: '8px' }} data-testid="add-field-button">
                         <Button appearance="icon" onClick={addMember}><Codicon name="add" /></Button>
                     </div>
                 </Header>

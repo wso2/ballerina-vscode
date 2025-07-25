@@ -145,7 +145,7 @@ export function ArrayMappingOptionsWidget(props: ArrayMappingOptionsWidgetProps)
         },
         {
             id: "a2a-inner",
-            label: getItemElement("a2a-inner", "Map Array Elements Individually"),
+            label: getItemElement("a2a-inner", "Map Using Query Expression"),
             onClick: onClickMapIndividualElements
         }
     ];
@@ -158,7 +158,7 @@ export function ArrayMappingOptionsWidget(props: ArrayMappingOptionsWidgetProps)
         },
         {
             id: "a2s-inner",
-            label: getItemElement("a2s-inner", "Map Array Elements Individually and access element"),
+            label: getItemElement("a2s-inner", "Map via Query Expression and access element"),
             onClick: () => onClickMapIndividualElements(ClauseType.Select, true)
         }
     ];

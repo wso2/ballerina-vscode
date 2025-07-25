@@ -43,20 +43,16 @@ const Container = styled.div`
 const ListContainer = styled.div<{ isHalfView?: boolean }>`
     display: flex;
     flex-direction: column;
-    gap: 16px;
-    margin-top: 24px;
-    height: ${(props: { isHalfView: boolean }) => (props.isHalfView ? "30vh" : "80vh")};
     gap: 8px;
-    height: 80vh;
-    overflow-y: scroll;
     margin-top: 16px;
+    height: ${(props: { isHalfView: boolean }) => (props.isHalfView ? "30vh" : "calc(100vh - 200px)")};
+    overflow-y: scroll;
 `;
 
 const GridContainer = styled.div<{ isHalfView?: boolean }>`
     display: grid;
     grid-template-columns: ${(props: { isHalfView: boolean }) =>
         props.isHalfView ? "unset" : "repeat(auto-fill, minmax(200px, 1fr))"};
-    gap: 16px;
     gap: 12px;
     width: 100%;
 `;
@@ -310,6 +306,7 @@ export function ConnectorView(props: ConnectorViewProps) {
                                                 {category.items?.map((connector, index) => {
                                                     return (
                                                         <ButtonCard
+                                                            id={`connector-${connector.metadata.label.replace(/[ .]/g, "-").toLowerCase()}`}
                                                             key={connector.metadata.label + index}
                                                             title={connector.metadata.label}
                                                             description={
@@ -344,6 +341,7 @@ export function ConnectorView(props: ConnectorViewProps) {
                                     const connector = item as Item;
                                     return (
                                         <ButtonCard
+                                            id={`connector-${connector.metadata.label.replace(/[ .]/g, "-").toLowerCase()}`}
                                             key={connector.metadata.label + index}
                                             title={connector.metadata.label}
                                             description={

@@ -2,7 +2,7 @@
     "name": "ballerina",
     "displayName": "Ballerina",
     "description": "Ballerina Language support, debugging, graphical visualization, AI-based data-mapping and many more.",
-    "version": "5.1.5",
+    "version": "5.2.1",
     "publisher": "wso2",
     "icon": "resources/images/ballerina.png",
     "homepage": "https://wso2.com/ballerina/vscode/docs",
@@ -199,6 +199,19 @@
                     "type": "boolean",
                     "default": false,
                     "description": "Use Ballerina distribution language server instead of bundled language server. Note: This will be automatically enabled for Ballerina versions older than 2201.12.3."
+                },
+                "ballerina.enableSequenceDiagramView": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Enable the experimental Sequence Diagram View.",
+                    "tags": [
+                        "experimental"
+                    ]
+                },
+                "ballerina.enableAiSuggestions": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Enable AI suggestions in the Flow Diagram View."
                 }
             }
         },
@@ -391,7 +404,7 @@
                 "icon": "$(distro-delete)"
             },
             {
-                "command": "ballerina.show.visualizer",
+                "command": "ballerina.showVisualizer",
                 "title": "Show Visualizer",
                 "icon": "$(distro-design-view)",
                 "category": "Ballerina"
@@ -514,7 +527,7 @@
                 "category": "Ballerina"
             },
             {
-                "command": "ballerina.tryit",
+                "command": "ballerina.tryIt",
                 "title": "Open Try It",
                 "category": "Ballerina",
                 "icon": "$(server)"
@@ -633,6 +646,13 @@
                 "category": "BI"
             },
             {
+                "command": "BI.project-explorer.view-configuration",
+                "title": "View Configurations",
+                "icon": "$(distro-design-view)",
+                "group": "navigation",
+                "category": "BI"
+            },
+            {
                 "command": "BI.project-explorer.switch-project",
                 "title": "Switch Project",
                 "icon": "$(distro-switch-project)",
@@ -731,7 +751,7 @@
                     "when": "resourceLangId == ballerina || isBallerinaDiagram"
                 },
                 {
-                    "command": "ballerina.tryit",
+                    "command": "ballerina.tryIt",
                     "group": "navigation@1",
                     "title": "Open Try It",
                     "when": "isBIProjectRunning"
@@ -750,7 +770,7 @@
                 },
                 {
                     "when": "resourceLangId == ballerina && !isPersistModelActive",
-                    "command": "ballerina.show.visualizer",
+                    "command": "ballerina.showVisualizer",
                     "group": "navigation@3"
                 },
                 {
@@ -833,7 +853,7 @@
                     "when": "editorLangId != ballerina && !isBallerinaDiagram"
                 },
                 {
-                    "command": "ballerina.show.visualizer",
+                    "command": "ballerina.showVisualizer",
                     "when": "editorLangId == ballerina"
                 },
                 {
@@ -1075,7 +1095,7 @@
         "copyFonts": "copyfiles -f ./node_modules/@wso2/font-wso2-vscode/dist/* ./resources/font-wso2-vscode/dist/",
         "copyVSIX": "copyfiles *.vsix ./vsix",
         "copyVSIXToRoot": "copyfiles -f ./vsix/*.vsix ../../..",
-        "download-ls": "node scripts/download-ls.js --prerelease",
+        "download-ls": "node scripts/download-ls.js",
         "build": "pnpm run compile && pnpm run lint && pnpm run postbuild",
         "rebuild": "pnpm run clean && pnpm run compile && pnpm run postbuild",
         "postbuild": "if [ \"$isPreRelease\" = \"true\" ]; then pnpm run download-ls --prerelease; else pnpm run download-ls; fi && pnpm run copyFonts && pnpm run copyJSLibs && pnpm run package && pnpm run copyVSIX",

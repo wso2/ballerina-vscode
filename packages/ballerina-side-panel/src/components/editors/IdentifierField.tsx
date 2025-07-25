@@ -18,10 +18,10 @@
 
 import { TextField } from "@wso2/ui-toolkit";
 import React, { useState, useCallback } from "react";
-import { capitalize, debounce } from "lodash";
+import { debounce } from "lodash";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { useFormContext } from "../../context";
-import { getPropertyFromFormField } from "./utils";
+import { capitalize, getPropertyFromFormField } from "./utils";
 import { FormField } from "../Form/types";
 export interface IdentifierFieldProps {
     field: FormField;

@@ -223,8 +223,12 @@ import {
     UpdateConfigVariableResponseV2,
     DeleteConfigVariableRequestV2,
     DeleteConfigVariableResponseV2,
+    ResourceReturnTypesRequest,
+    ResourceReturnTypesResponse,
     JsonToTypeRequest,
-    JsonToTypeResponse
+    JsonToTypeResponse,
+    FunctionFromSourceRequest,
+    FunctionFromSourceResponse
 } from "@wso2/ballerina-core";
 import { BallerinaExtension } from "./index";
 import { debug, handlePullModuleProgress } from "../utils";
@@ -344,10 +348,12 @@ enum EXTENDED_APIS {
     BI_SERVICE_GET_SERVICE_SOURCE = 'serviceDesign/getServiceFromSource',
     BI_SERVICE_UPDATE_SERVICE_CLASS = 'serviceDesign/updateServiceClass',
     BI_SERVICE_GET_RESOURCE = 'serviceDesign/getFunctionModel',
+    BI_SERVICE_GET_RESOURCE_RETURN_TYPES = 'serviceDesign/types',
     BI_SERVICE_ADD_RESOURCE = 'serviceDesign/addResource',
     BI_SERVICE_ADD_FUNCTION = 'serviceDesign/addFunction',
     BI_SERVICE_UPDATE_RESOURCE = 'serviceDesign/updateFunction',
     BI_SERVICE_SERVICE_CLASS_MODEL = 'serviceDesign/getServiceClassModelFromSource',
+    BI_GET_FUNCTION_FROM_SOURCE = 'serviceDesign/getFunctionFromSource',
     BI_UPDATE_CLASS_FIELD = 'serviceDesign/updateClassField',
     BI_ADD_CLASS_FIELD = 'serviceDesign/addField',
     BI_DESIGN_MODEL = 'designModelService/getDesignModel',
@@ -1012,6 +1018,10 @@ export class ExtendedLangClient extends LanguageClient implements ExtendedLangCl
         return this.sendRequest<ServiceClassModelResponse>(EXTENDED_APIS.BI_SERVICE_SERVICE_CLASS_MODEL, params);
     }
 
+    async getFunctionFromSource(params: FunctionFromSourceRequest): Promise<FunctionFromSourceResponse> {
+        return this.sendRequest<FunctionFromSourceResponse>(EXTENDED_APIS.BI_GET_FUNCTION_FROM_SOURCE, params);
+    }
+
     async updateClassField(params: ClassFieldModifierRequest): Promise<SourceEditResponse> {
         return this.sendRequest<SourceEditResponse>(EXTENDED_APIS.BI_UPDATE_CLASS_FIELD, params);
     }
@@ -1022,6 +1032,10 @@ export class ExtendedLangClient extends LanguageClient implements ExtendedLangCl
 
     async getHttpResourceModel(params: HttpResourceModelRequest): Promise<HttpResourceModelResponse> {
         return this.sendRequest<HttpResourceModelResponse>(EXTENDED_APIS.BI_SERVICE_GET_RESOURCE, params);
+    }
+
+    async getResourceReturnTypes(params: ResourceReturnTypesRequest): Promise<ResourceReturnTypesResponse> {
+        return this.sendRequest<ResourceReturnTypesResponse>(EXTENDED_APIS.BI_SERVICE_GET_RESOURCE_RETURN_TYPES, params);
     }
 
     async addResourceSourceCode(params: FunctionSourceCodeRequest): Promise<ResourceSourceCodeResponse> {

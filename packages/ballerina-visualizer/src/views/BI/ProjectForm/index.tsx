@@ -17,7 +17,7 @@
  */
 
 import React, { useEffect, useState } from "react";
-import { Button, Icon, LocationSelector, TextField, Typography } from "@wso2/ui-toolkit";
+import { Button, Icon, LocationSelector, TextField, Typography,Codicon,Tooltip } from "@wso2/ui-toolkit";
 import styled from "@emotion/styled";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { BodyText } from "../../styles";
@@ -46,6 +46,48 @@ const IconButton = styled.div`
         background-color: var(--vscode-toolbar-hoverBackground);
     }
 `;
+
+const PreviewContainer = styled.div`
+    border: 1px solid var(--vscode-input-border);
+    border-radius: 4px;
+    padding: 8px 12px;
+    display: inline-flex;
+    align-items: center;
+    width: fit-content;
+    height: 28px;
+    gap: 8px;
+    background-color: var(--vscode-editor-background);
+    * {
+        cursor: default !important;
+    }
+`;
+
+const InputPreviewWrapper = styled.div`
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    margin: 20px 0;
+`;
+
+const PreviewText = styled(Typography)`
+    color: var(--vscode-sideBarTitle-foreground);
+    opacity: 0.5;
+    font-family: var(--vscode-editor-font-family, 'Monaco', 'Menlo', 'Ubuntu Mono', monospace);
+    word-break: break-all;
+    min-width: 100px;
+    display: flex;
+    align-items: center;
+    line-height: 1;
+`;
+
+const PreviewIcon = styled(Codicon)`
+    display: flex;
+    align-items: center;
+`;
+
+const sanitizeProjectName = (name: string): string => {
+    return name.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+};
 
 export function ProjectForm() {
     const { rpcClient } = useRpcContext();
@@ -94,13 +136,25 @@ export function ProjectForm() {
             <BodyText>
                 Name your integration and select a location to start building.
             </BodyText>
-            <TextField
-                onTextChange={handleProjectName}
-                sx={{ marginTop: 20, marginBottom: 20 }}
-                value={name}
-                label="Integration Name"
-                placeholder="Enter a integration name"
-            />
+            <InputPreviewWrapper>
+                <TextField
+                    onTextChange={handleProjectName}
+                    value={name}
+                    label="Integration Name"
+                    placeholder="Enter a integration name"
+                    autoFocus={true}
+                />
+                {name && (
+                    <PreviewContainer>
+                        <PreviewIcon name="project" iconSx={{ fontSize: 14, color: "var(--vscode-descriptionForeground)" }} />
+                            <Tooltip content="A unique identifier for your intergration">
+                                <PreviewText variant="caption">
+                                    {sanitizeProjectName(name)}
+                                </PreviewText>
+                            </Tooltip>
+                    </PreviewContainer>
+                )}
+            </InputPreviewWrapper>
             <LocationSelector
                 label="Select Integration Path"
                 selectedFile={path}

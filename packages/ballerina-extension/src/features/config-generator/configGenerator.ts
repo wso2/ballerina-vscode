@@ -27,7 +27,7 @@ import { BallerinaProject, ConfigVariableResponse, EVENT_TYPE, MACHINE_VIEW, Pac
 import { TextDocumentEdit } from "vscode-languageserver-types";
 import { modifyFileContent } from "../../utils/modification";
 import { fileURLToPath } from "url";
-import { startDebugging } from "../editor-support/codelens-provider";
+import { startDebugging } from "../editor-support/activator";
 import { openView } from "../../stateMachine";
 import * as path from "path";
 
