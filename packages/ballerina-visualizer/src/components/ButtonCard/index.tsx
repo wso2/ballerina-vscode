@@ -19,6 +19,7 @@
 import React from "react";
 import { ThemeColors, Tooltip } from "@wso2/ui-toolkit";
 import styled from "@emotion/styled";
+import { BetaSVG } from "../../views/Connectors/Marketplace/BetaSVG";
 
 const Card = styled.div<{ active?: boolean; appearance?: ButtonCardAppearance, disabled?: boolean }>`
     gap: 16px;
@@ -153,6 +154,7 @@ export function ButtonCard(props: ButtonCardProps) {
                             truncate={truncate}
                         >
                             {title}
+                            {isBeta && <BetaSVG />}
                         </Title>
                         {description && <Description truncate={truncate}>{description}</Description>}
                     </ContentContainer>
