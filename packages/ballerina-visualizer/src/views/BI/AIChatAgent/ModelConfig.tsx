@@ -18,7 +18,7 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import styled from "@emotion/styled";
-import { CodeData, FlowNode, NodeMetadata, NodeProperties } from "@wso2/ballerina-core";
+import { CodeData, FlowNode, NodeMetadata, NodeProperties, UpdatedArtifactsResponse } from "@wso2/ballerina-core";
 import { FormField, FormValues } from "@wso2/ballerina-side-panel";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { convertConfig } from "../../../utils/bi";
@@ -51,7 +51,7 @@ const Row = styled.div`
 
 interface ModelConfigProps {
     agentCallNode: FlowNode;
-    onSave?: () => void;
+    onSave?: (response?: UpdatedArtifactsResponse) => void;
 }
 
 export function ModelConfig(props: ModelConfigProps): JSX.Element {
@@ -240,7 +240,7 @@ export function ModelConfig(props: ModelConfigProps): JSX.Element {
             .getBIDiagramRpcClient()
             .getSourceCode({ filePath: agentFilePath.current, flowNode: nodeTemplate });
         console.log(">>> response getSourceCode with template ", { response });
-        onSave?.();
+        onSave?.(response);
         setSavingForm(false);
     };
 
