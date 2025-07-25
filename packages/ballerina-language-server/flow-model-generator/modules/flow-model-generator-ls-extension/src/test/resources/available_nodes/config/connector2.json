@@ -4576,7 +4576,7 @@
           },
           "codedata": {
             "node": "AGENT_CALL",
-            "org": "ballerinax",
+            "org": "ballerina",
             "module": "ai",
             "packageName": "ai",
             "object": "Agent",
