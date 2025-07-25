@@ -49,7 +49,7 @@ export const getAgentFilePath = async (rpcClient: BallerinaRpcClient) => {
     // Get the agent file path and update the node
     const filePath = await rpcClient.getVisualizerLocation();
     // Create the agent file path
-    const agentFilePath = Utils.joinPath(URI.file(filePath.projectUri), "agents.bal").fsPath;
+    const agentFilePath = await rpcClient.getVisualizerRpcClient().joinProjectPath("agents.bal");
     return agentFilePath;
 };
 
@@ -369,7 +369,7 @@ export const removeAgentNode = async (agentCallNode: FlowNode, rpcClient: Baller
     // get file path
     const projectPath = await rpcClient.getVisualizerLocation();
     const agentFileName = agentNode.codedata.lineRange.fileName;
-    const filePath = Utils.joinPath(URI.file(projectPath.projectUri), agentFileName).fsPath;
+    const filePath = await rpcClient.getVisualizerRpcClient().joinProjectPath(agentFileName);
     // delete the agent node
     await rpcClient.getBIDiagramRpcClient().deleteFlowNode({
         filePath: filePath,

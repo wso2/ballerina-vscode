@@ -29,9 +29,9 @@ type ContainerProps = {
 export const Container = styled.div<ContainerProps>`
 	// should take up full height minus the height of the header
 	height: calc(100% - 50px);
-	background-image: radial-gradient(circle at 0.5px 0.5px, var(--vscode-textBlockQuote-border) 1px, transparent 0);
-  	background-size: 8px 8px;
-	background-color: var(--vscode-input-background);
+	background-image: radial-gradient(var(--vscode-editor-inactiveSelectionBackground) 10%, transparent 0px);
+  	background-size: 16px 16px;
+	background-color: var(--vscode-editor-background);
 	display: ${(props: { hidden: any; }) => (props.hidden ? 'none' : 'flex')};
 	font-weight: 400;
 	> * {

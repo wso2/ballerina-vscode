@@ -16,7 +16,6 @@
   "dependencies": {
     "@wso2/ballerina-core": "workspace:*",
     "@wso2/ballerina-rpc-client": "workspace:*",
-    "@wso2/syntax-tree": "workspace:*",
     "@wso2/ui-toolkit": "workspace:*",
     "@projectstorm/react-canvas-core": "^6.7.4",
     "@projectstorm/react-diagrams": "^6.7.4",

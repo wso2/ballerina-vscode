@@ -17,9 +17,8 @@
  */
 
 import { ArrayTypeDesc, FunctionDefinition, ModulePart, QualifiedNameReference, RequiredParam, STKindChecker } from "@wso2/syntax-tree";
-import { ErrorCode, FormField, STModification, SyntaxTree, Attachment, AttachmentStatus, RecordDefinitonObject, ParameterMetadata, ParameterDefinitions, MappingFileRecord, keywords, AIMachineEventType, DiagnosticEntry } from "@wso2/ballerina-core";
-import { QuickPickItem, QuickPickOptions, window, workspace } from 'vscode';
-import { UNKNOWN_ERROR } from '../../views/ai-panel/errorCodes';
+import { ErrorCode, FormField, STModification, SyntaxTree, Attachment, AttachmentStatus, RecordDefinitonObject, ParameterMetadata, ParameterDefinitions, MappingFileRecord, keywords, AIMachineEventType, DiagnosticEntry, InlineDataMapperModelResponse } from "@wso2/ballerina-core";
+import { window } from 'vscode';
 
 import { StateMachine } from "../../stateMachine";
 import {
@@ -29,7 +28,6 @@ import {
     PARSING_ERROR,
     TIMEOUT,
     NOT_LOGGED_IN,
-    USER_ABORTED,
     SERVER_ERROR,
     TOO_MANY_REQUESTS,
     INVALID_RECORD_UNION_TYPE
@@ -37,6 +35,7 @@ import {
 // import { StateMachineAI } from "../../views/ai-panel/aiMachine";
 import path from "path";
 import * as fs from 'fs';
+import { BACKEND_URL } from "../../features/ai/utils";
 import { getAccessToken, getRefreshedAccessToken } from "../../../src/utils/ai/auth";
 import { AIStateMachine } from "../../../src/views/ai-panel/aiMachine";
 import { AIChatError } from "./utils/errors";
@@ -45,6 +44,15 @@ import { DatamapperResponse, Payload } from "../../../src/features/ai/service/da
 import { DataMapperRequest, DataMapperResponse, FileData, processDataMapperInput } from "../../../src/features/ai/service/datamapper/context_api";
 import { getAskResponse } from "../../../src/features/ai/service/ask/ask";
 
+const BACKEND_BASE_URL = BACKEND_URL.replace(/\/v2\.0$/, "");
+//TODO: Temp workaround as custom domain seem to block file uploads
+const CONTEXT_UPLOAD_URL_V1 = "https://e95488c8-8511-4882-967f-ec3ae2a0f86f-prod.e1-us-east-azure.choreoapis.dev/ballerina-copilot/context-upload-api/v1.0";
+// const CONTEXT_UPLOAD_URL_V1 = BACKEND_BASE_URL + "/context-api/v1.0";
+const ASK_API_URL_V1 = BACKEND_BASE_URL + "/ask-api/v1.0";
+
+export const REQUEST_TIMEOUT = 2000000;
+
+let abortController = new AbortController();
 const primitiveTypes = ["string", "int", "float", "decimal", "boolean"];
 
 export class AIPanelAbortController {
@@ -401,17 +409,16 @@ export async function generateBallerinaCode(response: object, parameterDefinitio
     }
 
     if (response.hasOwnProperty("operation") && response.hasOwnProperty("parameters") && response.hasOwnProperty("targetType")) {
-        let path = await getMappingString(response, parameterDefinitions, nestedKey, recordTypes, unionEnumIntersectionTypes, arrayRecords, arrayEnumUnion, nestedKeyArray);
-        if (isErrorCode(path)) {
-            return {};
-        }
-        if (path === "") {
-            return {};
-        }
         let parameters: string[] = response["parameters"];
         let paths = parameters[0].split(".");
-        let recordFieldName: string = nestedKey || paths[1];
 
+        let path = await getMappingString(response, parameterDefinitions, nestedKey, recordTypes, unionEnumIntersectionTypes, arrayRecords, arrayEnumUnion, nestedKeyArray);
+
+        if (isErrorCode(path) || path === "") {
+            return {};
+        }
+
+        let recordFieldName: string = paths.length === 1 ? nestedKey : (nestedKey || paths[1]);
         return { [recordFieldName]: path };
     } else {
         let objectKeys = Object.keys(response);
@@ -491,8 +498,12 @@ async function getMappingString(mapping: object, parameterDefinitions: Parameter
     // Retrieve inputType
     if (paths.length > 2) {
         modifiedInput = await getNestedType(paths.slice(1), parameterDefinitions["inputMetadata"][recordObjectName]);
-    } else {
+    } else if (paths.length === 2) {
         modifiedInput = parameterDefinitions["inputMetadata"][recordObjectName]["fields"][paths[1]];
+    } else {
+        modifiedInput = parameterDefinitions["configurables"][recordObjectName] ||
+                parameterDefinitions["constants"][recordObjectName] ||
+                parameterDefinitions["variables"][recordObjectName] || parameterDefinitions["inputMetadata"][recordObjectName]["fields"][paths[0]];
     }
 
     // Resolve output metadata
@@ -1256,7 +1267,7 @@ class TypeInfoVisitorImpl implements TypeInfoVisitor {
     }
 }
 
-function navigateTypeInfo(
+export function navigateTypeInfo(
     typeInfos: FormField[],
     isNill: boolean
 ): RecordDefinitonObject | ErrorCode {
@@ -1358,6 +1369,16 @@ async function sendDatamapperRequest(parameterDefinitions: ParameterMetadata | E
     return response;
 }
 
+async function sendMappingFileUploadRequest(file: Blob): Promise<Response | ErrorCode> {
+    const formData = new FormData();
+    formData.append("file", file);
+    const response = await fetchWithToken(CONTEXT_UPLOAD_URL_V1 + "/file_upload/generate_mapping_instruction", {
+        method: "POST",
+        body: formData
+    });
+    return response;
+}
+
 export async function searchDocumentation(message: string): Promise<string> {
     const resp = await getAskResponse(message,);
     const finalResponse = resp.content.replace(/<thinking>[\s\S]*?<\/thinking>/g, '');
@@ -1436,6 +1457,44 @@ export async function mappingFileParameterDefinitions(file: Attachment, paramete
     };
 }
 
+export async function getMappingFromFile(file: Blob): Promise<MappingFileRecord | ErrorCode> {
+    try {
+        let response = await sendMappingFileUploadRequest(file);
+        if (isErrorCode(response)) {
+            return response as ErrorCode;
+        }
+        response = response as Response;
+        let mappingContent = JSON.parse((await filterMappingResponse(response)) as string);
+        if (isErrorCode(mappingContent)) {
+            return mappingContent as ErrorCode;
+        }
+        return mappingContent;
+    } catch (error) {
+        console.error(error);
+        return TIMEOUT;
+    }
+}
+
+export async function mappingFileInlineDataMapperModel(file: Attachment, inlineDataMapperResponse: ErrorCode | InlineDataMapperModelResponse): Promise<InlineDataMapperModelResponse | ErrorCode> {
+    if (!file) { return inlineDataMapperResponse; }
+
+    const convertedFile = convertBase64ToBlob(file);
+    if (!convertedFile) { throw new Error("Invalid file content"); }
+
+    let mappingFile = await getMappingFromFile(convertedFile);
+    if (isErrorCode(mappingFile)) { return mappingFile as ErrorCode; }
+
+    mappingFile = mappingFile as MappingFileRecord;
+
+    return {
+        ...(inlineDataMapperResponse as InlineDataMapperModelResponse),
+        mappingsModel: {
+            ...(inlineDataMapperResponse as InlineDataMapperModelResponse).mappingsModel,
+            mapping_fields: mappingFile.mapping_fields,
+        }
+    };
+}
+
 export async function typesFileParameterDefinitions(file: Attachment): Promise<string | ErrorCode> {
     if (!file) { throw new Error("File is undefined"); }
 
@@ -1480,6 +1539,23 @@ function determineMimeType(fileName: string): string {
         case "heic":
         case "heif": return "image/heif";
         default: return "application/octet-stream";
+    }
+}
+
+export async function fetchWithTimeout(url, options, timeout = 100000): Promise<Response | ErrorCode> {
+    abortController = new AbortController();
+    const id = setTimeout(() => abortController.abort(), timeout);
+    try {
+        const response = await fetch(url, { ...options, signal: abortController.signal });
+        clearTimeout(id);
+        return response;
+    } catch (error: any) {
+        if (error.name === 'AbortError') {
+            return TIMEOUT;
+        } else {
+            console.error(error);
+            return SERVER_ERROR;
+        }
     }
 }
 
@@ -1779,7 +1855,7 @@ async function handleRecordArrays(key: string, nestedKey: string, responseRecord
     return { ...recordFields };
 }
 
-async function filterResponse(resp: Response): Promise<object | ErrorCode> {
+export async function filterResponse(resp: Response): Promise<object | ErrorCode> {
     if (resp.status == 200 || resp.status == 201) {
         const data = (await resp.json()) as any;
         console.log(JSON.stringify(data.mappings));
@@ -2017,6 +2093,33 @@ export async function requirementsSpecification(filepath: string): Promise<strin
 function getBase64FromFile(filePath) {
     const fileBuffer = fs.readFileSync(filePath);
     return fileBuffer.toString('base64');
+}
+
+
+export async function fetchWithToken(url: string, options: RequestInit) {
+    const accessToken = await getAccessToken();
+    options.headers = {
+        ...options.headers,
+        'Authorization': `Bearer ${accessToken}`,
+        'User-Agent': 'Ballerina-VSCode-Plugin',
+    };
+    let response = await fetch(url, options);
+    console.log("Response status: ", response.status);
+    if (response.status === 401) {
+        console.log("Token expired. Refreshing token...");
+        const newToken = await getRefreshedAccessToken();
+        if (newToken) {
+            options.headers = {
+                ...options.headers,
+                'Authorization': `Bearer ${newToken}`,
+            };
+            response = await fetch(url, options);
+        } else {
+            AIStateMachine.service().send(AIMachineEventType.LOGOUT);
+            return;
+        }
+    }
+    return response;
 }
 
 export function cleanDiagnosticMessages(entries: DiagnosticEntry[]): DiagnosticEntry[] {
