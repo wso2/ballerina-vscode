@@ -54,6 +54,7 @@ import {
     convertModelProviderCategoriesToSidePanelCategories,
     convertVectorStoreCategoriesToSidePanelCategories,
     convertEmbeddingProviderCategoriesToSidePanelCategories,
+    convertVectorKnowledgeBaseCategoriesToSidePanelCategories,
 } from "../../../utils/bi";
 import { NodePosition, STNode } from "@wso2/syntax-tree";
 import { View, ProgressRing, ProgressIndicator, ThemeColors } from "@wso2/ui-toolkit";
@@ -131,6 +132,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
     const isCreatingNewModelProvider = useRef<boolean>(false);
     const isCreatingNewVectorStore = useRef<boolean>(false);
     const isCreatingNewEmbeddingProvider = useRef<boolean>(false);
+    const isCreatingNewVectorKnowledgeBase = useRef<boolean>(false);
 
     useEffect(() => {
         debouncedGetFlowModel();
@@ -327,6 +329,39 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
         }
     };
 
+    const handleVectorKnowledgeBaseAdded = async () => {
+        console.log(">>> Vector knowledge base added, navigating back to vector knowledge base list");
+
+        // Try to navigate back to VECTOR_KNOWLEDGE_BASE_LIST in the stack
+        const foundInStack = popNavigationStackUntilView(SidePanelView.VECTOR_KNOWLEDGE_BASE_LIST);
+
+        if (foundInStack) {
+            setShowProgressIndicator(true);
+            try {
+                const response = await rpcClient.getBIDiagramRpcClient().getAvailableVectorKnowledgeBases({
+                    position: targetRef.current.startLine,
+                    filePath: model?.fileName,
+                });
+                console.log(">>> Refreshed vector knowledge base list", response);
+                setCategories(
+                    convertFunctionCategoriesToSidePanelCategories(
+                        response.categories as Category[],
+                        FUNCTION_TYPE.REGULAR
+                    )
+                );
+                setSidePanelView(SidePanelView.VECTOR_KNOWLEDGE_BASE_LIST);
+                setShowSidePanel(true);
+            } catch (error) {
+                console.error(">>> Error refreshing vector knowledge bases", error);
+            } finally {
+                setShowProgressIndicator(false);
+            }
+        } else {
+            console.log(">>> VECTOR_KNOWLEDGE_BASE_LIST not found in navigation stack, closing panel");
+            handleOnCloseSidePanel();
+        }
+    };
+
     const getFlowModel = () => {
         setShowProgressIndicator(true);
         onUpdate();
@@ -505,13 +540,13 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                     return;
                 }
 
-                // HACK: change knowledge bases kind to vector knowledge base
-                response.categories[1].items.forEach((item: Item) => {
-                    const node = item as AvailableNode;
-                    if (node.codedata?.node === "VECTOR_KNOWLEDGE_BASES") {
-                        node.codedata.node = "VECTOR_KNOWLEDGE_BASE";
-                    }
-                });
+                // // HACK: change knowledge bases kind to vector knowledge base
+                // response.categories[1].items.forEach((item: Item) => {
+                //     const node = item as AvailableNode;
+                //     if (node.codedata?.node === "VECTOR_KNOWLEDGE_BASES") {
+                //         node.codedata.node = "VECTOR_KNOWLEDGE_BASE";
+                //     }
+                // });
 
                 // Use the utility function to filter categories
                 const filteredCategories = transformCategories(response.categories);
@@ -645,6 +680,9 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                     case "EMBEDDING_PROVIDER":
                         panelView = SidePanelView.EMBEDDING_PROVIDER_LIST;
                         break;
+                    case "VECTOR_KNOWLEDGE_BASE":
+                        panelView = SidePanelView.VECTOR_KNOWLEDGE_BASE_LIST;
+                        break;
                     default:
                         panelView = SidePanelView.NODE_LIST;
                 }
@@ -670,11 +708,15 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
     };
 
     const handleSearchVectorStore = async (searchText: string, functionType: FUNCTION_TYPE) => {
-        await handleSearch(searchText, functionType, "VECTOR_STORE" as any); // Temporary type assertion to resolve linter error
+        await handleSearch(searchText, functionType, "VECTOR_STORE");
     };
 
     const handleSearchEmbeddingProvider = async (searchText: string, functionType: FUNCTION_TYPE) => {
-        await handleSearch(searchText, functionType, "EMBEDDING_PROVIDER" as any); // Temporary type assertion to resolve linter error
+        await handleSearch(searchText, functionType, "EMBEDDING_PROVIDER");
+    };
+
+    const handleSearchVectorKnowledgeBase = async (searchText: string, functionType: FUNCTION_TYPE) => {
+        await handleSearch(searchText, functionType, "VECTOR_KNOWLEDGE_BASE");
     };
 
     const updateCurrentArtifactLocation = async (artifacts: UpdatedArtifactsResponse) => {
@@ -712,6 +754,11 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
             if (currentArtifact.type === "VARIABLE" && isCreatingNewEmbeddingProvider.current) {
                 isCreatingNewEmbeddingProvider.current = false;
                 await handleEmbeddingProviderAdded();
+                return;
+            }
+            if (currentArtifact.type === "VARIABLE" && isCreatingNewVectorKnowledgeBase.current) {
+                isCreatingNewVectorKnowledgeBase.current = false;
+                await handleVectorKnowledgeBaseAdded();
                 return;
             }
         }
@@ -876,6 +923,30 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                             )
                         );
                         setSidePanelView(SidePanelView.EMBEDDING_PROVIDER_LIST);
+                        setShowSidePanel(true);
+                    })
+                    .finally(() => {
+                        setShowProgressIndicator(false);
+                    });
+                break;
+
+            case "VECTOR_KNOWLEDGE_BASES":
+                setShowProgressIndicator(true);
+                rpcClient
+                    .getBIDiagramRpcClient()
+                    .getAvailableVectorKnowledgeBases({
+                        position: targetRef.current.startLine,
+                        filePath: model?.fileName || fileName,
+                    })
+                    .then((response) => {
+                        console.log(">>> List of vector knowledge bases", response);
+                        setCategories(
+                            convertFunctionCategoriesToSidePanelCategories(
+                                response.categories as Category[],
+                                FUNCTION_TYPE.REGULAR
+                            )
+                        );
+                        setSidePanelView(SidePanelView.VECTOR_KNOWLEDGE_BASE_LIST);
                         setShowSidePanel(true);
                     })
                     .finally(() => {
@@ -1099,12 +1170,24 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 setCategories([]);
                 setSidePanelView(SidePanelView.EMBEDDING_PROVIDER_LIST);
             } else if (
+                sidePanelView === SidePanelView.FORM &&
+                selectedNodeMetadata.current.metadata.node.codedata.node === "VECTOR_KNOWLEDGE_BASE"
+            ) {
+                handleOnSelectNode(
+                    selectedNodeMetadata.current.nodeId,
+                    selectedNodeMetadata.current.metadata,
+                    selectedNodeMetadata.current.fileName
+                );
+                setCategories([]);
+                setSidePanelView(SidePanelView.VECTOR_KNOWLEDGE_BASE_LIST);
+            } else if (
                 sidePanelView === SidePanelView.FUNCTION_LIST ||
                 sidePanelView === SidePanelView.DATA_MAPPER_LIST ||
                 sidePanelView === SidePanelView.NP_FUNCTION_LIST ||
                 sidePanelView === SidePanelView.MODEL_PROVIDER_LIST ||
                 sidePanelView === SidePanelView.VECTOR_STORE_LIST ||
-                sidePanelView === SidePanelView.EMBEDDING_PROVIDER_LIST
+                sidePanelView === SidePanelView.EMBEDDING_PROVIDER_LIST ||
+                sidePanelView === SidePanelView.VECTOR_KNOWLEDGE_BASE_LIST
             ) {
                 setCategories(initialCategoriesRef.current);
                 setSidePanelView(SidePanelView.NODE_LIST);
@@ -1219,7 +1302,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 position: { startLine: targetRef.current.startLine, endLine: targetRef.current.endLine },
                 filePath: model?.fileName,
                 queryMap: undefined,
-                searchKind: "VECTOR_STORE" as any, // Temporary type assertion to resolve linter error
+                searchKind: "VECTOR_STORE",
             })
             .then((response) => {
                 console.log(">>> Available vector store types", response);
@@ -1247,17 +1330,35 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 position: { startLine: targetRef.current.startLine, endLine: targetRef.current.endLine },
                 filePath: model?.fileName,
                 queryMap: undefined,
-                searchKind: "EMBEDDING_PROVIDER" as any, // Temporary type assertion to resolve linter error
+                searchKind: "EMBEDDING_PROVIDER",
             })
             .then((response) => {
                 console.log(">>> Available embedding provider types", response);
-                setCategories(convertEmbeddingProviderCategoriesToSidePanelCategories(response.categories as Category[]));
+                setCategories(
+                    convertEmbeddingProviderCategoriesToSidePanelCategories(response.categories as Category[])
+                );
                 setSidePanelView(SidePanelView.EMBEDDING_PROVIDERS);
                 setShowSidePanel(true);
             })
             .finally(() => {
                 setShowProgressIndicator(false);
             });
+    };
+
+    const handleOnAddNewVectorKnowledgeBase = () => {
+        console.log(">>> Adding new vector knowledge base");
+        isCreatingNewVectorKnowledgeBase.current = true;
+        setShowProgressIndicator(true);
+
+        // Push current state to navigation stack
+        pushToNavigationStack(sidePanelView, categories, selectedNodeRef.current, selectedClientName.current);
+        // update the node type to VECTOR_KNOWLEDGE_BASE
+        selectedNodeMetadata.current.metadata.node.codedata.node = "VECTOR_KNOWLEDGE_BASE";
+        handleOnSelectNode(
+            selectedNodeMetadata.current.nodeId,
+            selectedNodeMetadata.current.metadata,
+            selectedNodeMetadata.current.fileName
+        );
     };
 
     const handleOnGoToSource = (node: FlowNode) => {
@@ -1676,6 +1777,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 onAddModelProvider={handleOnAddNewModelProvider}
                 onAddVectorStore={handleOnAddNewVectorStore}
                 onAddEmbeddingProvider={handleOnAddNewEmbeddingProvider}
+                onAddVectorKnowledgeBase={handleOnAddNewVectorKnowledgeBase}
                 onSubmitForm={handleOnFormSubmit}
                 showProgressIndicator={showProgressIndicator}
                 onDiscardSuggestions={onDiscardSuggestions}
@@ -1687,6 +1789,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 onSearchModelProvider={handleSearchModelProvider}
                 onSearchVectorStore={handleSearchVectorStore}
                 onSearchEmbeddingProvider={handleSearchEmbeddingProvider}
+                onSearchVectorKnowledgeBase={handleSearchVectorKnowledgeBase}
                 // AI Agent specific callbacks
                 onEditAgent={handleEditAgent}
                 onSelectTool={handleOnSelectTool}

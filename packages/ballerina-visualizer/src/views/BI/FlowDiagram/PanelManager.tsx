@@ -51,6 +51,7 @@ export enum SidePanelView {
     VECTOR_STORE_LIST = "VECTOR_STORE_LIST",
     EMBEDDING_PROVIDERS = "EMBEDDING_PROVIDERS",
     EMBEDDING_PROVIDER_LIST = "EMBEDDING_PROVIDER_LIST",
+    VECTOR_KNOWLEDGE_BASE_LIST = "VECTOR_KNOWLEDGE_BASE_LIST",
     NEW_AGENT = "NEW_AGENT",
     ADD_TOOL = "ADD_TOOL",
     NEW_TOOL = "NEW_TOOL",
@@ -91,6 +92,7 @@ interface PanelManagerProps {
     onAddModelProvider?: () => void;
     onAddVectorStore?: () => void;
     onAddEmbeddingProvider?: () => void;
+    onAddVectorKnowledgeBase?: () => void;
     onSubmitForm: (updatedNode?: FlowNode, isDataMapperFormUpdate?: boolean) => void;
     onDiscardSuggestions: () => void;
     onSubPanel: (subPanel: SubPanel) => void;
@@ -101,6 +103,7 @@ interface PanelManagerProps {
     onSearchModelProvider?: (searchText: string, functionType: FUNCTION_TYPE) => void;
     onSearchVectorStore?: (searchText: string, functionType: FUNCTION_TYPE) => void;
     onSearchEmbeddingProvider?: (searchText: string, functionType: FUNCTION_TYPE) => void;
+    onSearchVectorKnowledgeBase?: (searchText: string, functionType: FUNCTION_TYPE) => void;
     onEditAgent?: () => void;
 
     // AI Agent handlers
@@ -139,6 +142,7 @@ export function PanelManager(props: PanelManagerProps) {
         onAddModelProvider,
         onAddVectorStore,
         onAddEmbeddingProvider,
+        onAddVectorKnowledgeBase,
         onSubmitForm,
         onDiscardSuggestions,
         onSubPanel,
@@ -148,6 +152,7 @@ export function PanelManager(props: PanelManagerProps) {
         onSearchNpFunction,
         onSearchVectorStore,
         onSearchEmbeddingProvider,
+        onSearchVectorKnowledgeBase,
     } = props;
 
     const [panelView, setPanelView] = useState<SidePanelView>(sidePanelView);
@@ -373,6 +378,23 @@ export function PanelManager(props: PanelManagerProps) {
                         onClose={onClose}
                         title={"Embedding Providers"}
                         searchPlaceholder={"Search embedding providers"}
+                        onBack={canGoBack ? onBack : undefined}
+                    />
+                );
+
+            case SidePanelView.VECTOR_KNOWLEDGE_BASE_LIST:
+                return (
+                    <NodeList
+                        categories={categories}
+                        onSelect={onSelectNode}
+                        onAdd={onAddVectorKnowledgeBase}
+                        addButtonLabel={"Add Vector Knowledge Base"}
+                        onClose={onClose}
+                        title={"Vector Knowledge Bases"}
+                        searchPlaceholder={"Search vector knowledge bases"}
+                        onSearchTextChange={(searchText) =>
+                            onSearchVectorKnowledgeBase?.(searchText, FUNCTION_TYPE.REGULAR)
+                        }
                         onBack={canGoBack ? onBack : undefined}
                     />
                 );
