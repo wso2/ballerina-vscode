@@ -136,8 +136,8 @@ class FunctionSearchCommand extends SearchCommand {
         queryMap.put("limit", String.valueOf(limit));
         queryMap.put("offset", String.valueOf(offset));
 
+        List<SearchResult> searchResults = dbManager.searchFunctions(query, limit, offset);
         SymbolResponse symbolResponse = centralClient.searchSymbols(queryMap);
-        List<SearchResult> searchResults = new ArrayList<>();
         if (symbolResponse != null && symbolResponse.symbols() != null) {
             for (SymbolResponse.Symbol symbol : symbolResponse.symbols()) {
                 if (symbol.symbolType().equals("function")) {
@@ -245,8 +245,8 @@ class FunctionSearchCommand extends SearchCommand {
     private void buildLibraryNodes(List<SearchResult> functionSearchList) {
         // Set the categories based on the available flags
         Category.Builder importedFnBuilder = rootBuilder.stepIn(Category.Name.IMPORTED_FUNCTIONS);
-        Category.Builder availableFnBuilder = rootBuilder.stepIn(Category.Name.AVAILABLE_FUNCTIONS);
         Category.Builder currentOrgFnBuilder = rootBuilder.stepIn(Category.Name.CURRENT_ORGANIZATION);
+        Category.Builder availableFnBuilder = rootBuilder.stepIn(Category.Name.AVAILABLE_FUNCTIONS);
 
         // Add the library functions
         for (SearchResult searchResult : functionSearchList) {

@@ -100,7 +100,7 @@ class TypeSearchCommand extends SearchCommand {
         queryMap.put("offset", String.valueOf(offset));
 
         SymbolResponse symbolResponse = centralClient.searchSymbols(queryMap);
-        List<SearchResult> searchResults = new ArrayList<>();
+        List<SearchResult> searchResults = dbManager.searchTypes(query, limit, offset);
         if (symbolResponse != null && symbolResponse.symbols() != null) {
             for (SymbolResponse.Symbol symbol : symbolResponse.symbols()) {
                 if (symbol.symbolType().equals("record") || symbol.symbolType().contains("type")) {
@@ -134,8 +134,8 @@ class TypeSearchCommand extends SearchCommand {
     private void buildLibraryNodes(List<SearchResult> typeSearchList) {
         // Set the categories based on available flags
         Category.Builder importedTypesBuilder = rootBuilder.stepIn(Category.Name.IMPORTED_TYPES);
-        Category.Builder availableTypesBuilder = rootBuilder.stepIn(Category.Name.AVAILABLE_TYPES);
         Category.Builder currentOrgTypesBuilder = rootBuilder.stepIn(Category.Name.CURRENT_ORGANIZATION);
+        Category.Builder availableTypesBuilder = rootBuilder.stepIn(Category.Name.AVAILABLE_TYPES);
 
         // Add the library types
         for (SearchResult searchResult : typeSearchList) {

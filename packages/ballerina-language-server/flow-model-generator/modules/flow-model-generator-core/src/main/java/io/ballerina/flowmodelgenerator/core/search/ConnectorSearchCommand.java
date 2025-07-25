@@ -108,6 +108,7 @@ public class ConnectorSearchCommand extends SearchCommand {
     @Override
     protected List<Item> searchCentral() {
         buildLocalConnectors();
+        List<SearchResult> searchResults = dbManager.searchConnectors(query, limit, offset);
 
         Optional<String> organizationName = getOrganizationName();
         if (organizationName.isPresent()) {
@@ -118,7 +119,6 @@ public class ConnectorSearchCommand extends SearchCommand {
             queryMap.put("offset", String.valueOf(offset));
             queryMap.put("org", organizationName.get());
             ConnectorsResponse connectorsResponse = centralClient.connectors(queryMap);
-            List<SearchResult> searchResults = new ArrayList<>();
             if (connectorsResponse != null && connectorsResponse.connectors() != null) {
                 for (Connector connector : connectorsResponse.connectors()) {
                     SearchResult.Package packageInfo = new SearchResult.Package(
@@ -132,8 +132,8 @@ public class ConnectorSearchCommand extends SearchCommand {
                     searchResults.add(searchResult);
                 }
             }
-            buildLibraryNodes(searchResults);
         }
+        buildLibraryNodes(searchResults);
         return rootBuilder.build().items();
     }
 
@@ -158,8 +158,8 @@ public class ConnectorSearchCommand extends SearchCommand {
     }
 
     private void buildLibraryNodes(List<SearchResult> connectorSearchList) {
-        Category.Builder availableConnectorsBuilder = rootBuilder.stepIn(Category.Name.AVAILABLE_CONNECTORS);
         Category.Builder currentOrgConnectorsBuilder = rootBuilder.stepIn(Category.Name.CURRENT_ORGANIZATION);
+        Category.Builder availableConnectorsBuilder = rootBuilder.stepIn(Category.Name.AVAILABLE_CONNECTORS);
 
         for (SearchResult searchResult : connectorSearchList) {
             Category.Builder builder;
