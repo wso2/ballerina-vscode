@@ -23,7 +23,7 @@ function rateMovie(string movieName) returns int|error => natural (_rateMovieMod
 };
 
 function summarizeBlog(ai:ModelProvider model, Blog blog) returns Summary|error => natural (model) {
-    Think yourself as a blog reviewer and summerize the following blog
+    Think yourself as a blog reviewer and summarize the following blog
 
     **title**
     ${blog.title}
