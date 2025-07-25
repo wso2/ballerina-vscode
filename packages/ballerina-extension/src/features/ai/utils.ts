@@ -21,7 +21,7 @@ import path from "path";
 import vscode, { Uri, workspace } from 'vscode';
 
 import { StateMachine } from "../../stateMachine";
-import { getRefreshedAccessToken, REFRESH_TOKEN_NOT_AVAILABLE_ERROR_MESSAGE } from '../../../src/utils/ai/auth';
+import { getRefreshedAccessToken, REFRESH_TOKEN_NOT_AVAILABLE_ERROR_MESSAGE, TOKEN_REFRESH_ONLY_SUPPORTED_FOR_BI_INTEL } from '../../../src/utils/ai/auth';
 import { AIStateMachine } from '../../../src/views/ai-panel/aiMachine';
 import { AIMachineEventType } from '@wso2/ballerina-core/lib/state-machine-types';
 import { CONFIG_FILE_NAME, ERROR_NO_BALLERINA_SOURCES, LOGIN_REQUIRED_WARNING, PROGRESS_BAR_MESSAGE_FROM_WSO2_DEFAULT_MODEL } from './constants';
@@ -137,7 +137,7 @@ export async function getTokenForDefaultModel() {
         }
         return token;
     } catch (error) {
-        if ((error as Error).message === REFRESH_TOKEN_NOT_AVAILABLE_ERROR_MESSAGE) {
+        if ((error as Error).message === REFRESH_TOKEN_NOT_AVAILABLE_ERROR_MESSAGE || (error as Error).message === TOKEN_REFRESH_ONLY_SUPPORTED_FOR_BI_INTEL) {
             vscode.window.showWarningMessage(LOGIN_REQUIRED_WARNING);
         }
         throw error;
@@ -158,11 +158,25 @@ function findFileCaseInsensitive(directory: string, fileName: string): string {
     return path.join(directory, file);
 }
 
+// Helper to add or replace a config line
+function addOrReplaceConfigLine(lines: string[], key: string, value: string) {
+    const configLine = `${key} = "${value}"`;
+    const idx = lines.findIndex(l => l.trim().startsWith(`${key} =`));
+    if (idx === -1) {
+        // Add after header
+        lines.splice(1, 0, configLine);
+    } else {
+        lines[idx] = configLine;
+    }
+}
+
 function addDefaultModelConfig(
     projectPath: string, token: string, backendUrl: string) {
     const targetTable = `[ballerina.ai.wso2ProviderConfig]`;
-    const urlLine = `serviceUrl = "${backendUrl}"`;
-    const accessTokenLine = `accessToken = "${token}"`;
+    const SERVICE_URL_KEY = 'serviceUrl';
+    const ACCESS_TOKEN_KEY = 'accessToken';
+    const urlLine = `${SERVICE_URL_KEY} = "${backendUrl}"`;
+    const accessTokenLine = `${ACCESS_TOKEN_KEY} = "${token}"`;
     const configFilePath = findFileCaseInsensitive(projectPath, CONFIG_FILE_NAME);
 
     let fileContent = '';
@@ -184,42 +198,37 @@ function addDefaultModelConfig(
     }
 
     // Table exists, update it
-    const tableEndIndex = fileContent.indexOf('\n', tableStartIndex);
-
-    let updatedTableContent = `${targetTable}\n${urlLine}\n${accessTokenLine}`;
-
-    let urlLineIndex = fileContent.indexOf('url =', tableStartIndex);
-    let accessTokenLineIndex = fileContent.indexOf('accessToken =', tableStartIndex);
-
-    if (urlLineIndex !== -1 && accessTokenLineIndex !== -1) {
-        // url and accessToken lines exist, replace them
-        const existingUrlLineEnd = fileContent.indexOf('\n', urlLineIndex);
-        const existingAccessTokenLineEnd = fileContent.indexOf('\n', accessTokenLineIndex);
-
-        fileContent =
-            fileContent.substring(0, urlLineIndex) +
-            urlLine +
-            fileContent.substring(existingUrlLineEnd, accessTokenLineIndex) +
-            accessTokenLine +
-            fileContent.substring(existingAccessTokenLineEnd);
-        fs.writeFileSync(configFilePath, fileContent);
-        return;
+    // Find the end of the table (next table or end of file)
+    let tableEndIndex = fileContent.indexOf('\n[', tableStartIndex);
+    if (tableEndIndex === -1) {
+        tableEndIndex = fileContent.length;
     }
 
-    // If url or accessToken line does not exist, just replace the entire table
-    let nextTableStartIndex = fileContent.indexOf('[', tableEndIndex + 1);
-    if (nextTableStartIndex === -1) {
-        fileContent = fileContent.substring(0, tableStartIndex)
-            + updatedTableContent + fileContent.substring(tableEndIndex + 1);
+    // Extract table content and split into lines once
+    let tableContent = fileContent.substring(tableStartIndex, tableEndIndex);
+    let lines = tableContent.split('\n');
+
+    // Add or replace serviceUrl
+    addOrReplaceConfigLine(lines, SERVICE_URL_KEY, backendUrl);
+    // Add or replace accessToken (after serviceUrl)
+    // Ensure accessToken is after serviceUrl
+    let serviceUrlIdx = lines.findIndex(l => l.trim().startsWith(`${SERVICE_URL_KEY} =`));
+    let accessTokenIdx = lines.findIndex(l => l.trim().startsWith(`${ACCESS_TOKEN_KEY} =`));
+    if (accessTokenIdx === -1) {
+        lines.splice(serviceUrlIdx + 1, 0, `${ACCESS_TOKEN_KEY} = "${token}"`);
     } else {
-        let nextLineBreakIndex = fileContent.substring(tableEndIndex + 1).indexOf('\n');
-        if (nextLineBreakIndex === -1) {
-            fileContent = fileContent.substring(0, tableStartIndex) + updatedTableContent;
-        } else {
-            fileContent = fileContent.substring(0, tableStartIndex)
-                + updatedTableContent + fileContent.substring(tableEndIndex + 1);
+        lines[accessTokenIdx] = `${ACCESS_TOKEN_KEY} = "${token}"`;
+        // Move accessToken if not after serviceUrl
+        if (accessTokenIdx !== serviceUrlIdx + 1) {
+            const accessTokenLine = lines[accessTokenIdx];
+            lines.splice(accessTokenIdx, 1);
+            lines.splice(serviceUrlIdx + 1, 0, accessTokenLine);
         }
     }
+
+    // Join lines and replace the table in the file content
+    const updatedTableContent = lines.join('\n');
+    fileContent = fileContent.substring(0, tableStartIndex) + updatedTableContent + fileContent.substring(tableEndIndex);
     fs.writeFileSync(configFilePath, fileContent);
 }
 

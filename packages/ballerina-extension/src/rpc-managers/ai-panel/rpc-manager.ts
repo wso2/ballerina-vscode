@@ -142,7 +142,7 @@ export class AiPanelRpcManager implements AIPanelAPI {
     async getAccessToken(): Promise<string> {
         return new Promise(async (resolve, reject) => {
             try {
-                const accessToken = getAccessToken();
+                const accessToken = await getAccessToken();
                 if (!accessToken) {
                     reject(new Error("Access Token is undefined"));
                     return;
@@ -729,7 +729,7 @@ export class AiPanelRpcManager implements AIPanelAPI {
                     },
                     body: JSON.stringify(payload)
                 });
-                
+
                 if (response.ok) {
                     resolve(true);
                 } else {

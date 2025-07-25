@@ -80,6 +80,7 @@ interface PanelManagerProps {
     updatedExpressionField?: ExpressionFormField;
     showProgressIndicator?: boolean;
     canGoBack?: boolean;
+    selectedMcpToolkitName?: string;
 
     // Action handlers
     onClose: () => void;
@@ -132,6 +133,7 @@ export function PanelManager(props: PanelManagerProps) {
         updatedExpressionField,
         showProgressIndicator,
         canGoBack,
+        selectedMcpToolkitName,
         onClose,
         onBack,
         onSelectNode,
@@ -233,7 +235,16 @@ export function PanelManager(props: PanelManagerProps) {
                 return <AddTool agentCallNode={selectedNode} onAddNewTool={handleOnAddTool} onSave={handleSubmitAndClose} />;
 
             case SidePanelView.ADD_MCP_SERVER:
-                return <AddMcpServer agentCallNode={selectedNode} onAddMcpServer={handleOnAddMcpServer} onSave={onClose} />;
+                return (
+                    <AddMcpServer
+                        agentCallNode={selectedNode}
+                        fileName={fileName}
+                        name={selectedMcpToolkitName}
+                        onAddMcpServer={onClose}
+                        onSave={onClose}
+                        onBack={onBack}
+                    />
+                );
 
             case SidePanelView.EDIT_MCP_SERVER:
                 return <AddMcpServer editMode={true} name={selectedClientName} agentCallNode={selectedNode} onAddMcpServer={handleOnEditMcpServer} onSave={onClose} />;
@@ -251,7 +262,7 @@ export function PanelManager(props: PanelManagerProps) {
                 return <ModelConfig agentCallNode={selectedNode} onSave={handleSubmitAndClose} />;
 
             case SidePanelView.AGENT_CONFIG:
-                return <AgentConfig agentCallNode={selectedNode} fileName={fileName} onSave={handleSubmitAndClose} />;
+                return <AgentConfig agentCallNode={selectedNode} fileName={fileName} onSave={onClose} />;
 
             case SidePanelView.AGENT_MEMORY_MANAGER:
                 return <MemoryManagerConfig agentCallNode={selectedNode} onSave={handleSubmitAndClose} />;
