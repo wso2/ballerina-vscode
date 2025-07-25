@@ -28,7 +28,7 @@ export { AIModelIcon } from "./components/AIModelIcon";
 export type { FlowNodeStyle } from "./utils/types";
 
 // traversing utils
-export { traverseFlow, traverseNode } from "./utils/ast";
+export { traverseFlow, traverseNode } from "@wso2/ballerina-core";
 export { AddNodeVisitor } from "./visitors/AddNodeVisitor";
 export { RemoveNodeVisitor } from "./visitors/RemoveNodeVisitor";
 export { RemoveEmptyNodesVisitor } from "./visitors/RemoveEmptyNodesVisitor";
