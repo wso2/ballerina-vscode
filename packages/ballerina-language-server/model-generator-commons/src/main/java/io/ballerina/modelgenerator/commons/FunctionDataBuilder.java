@@ -95,7 +95,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-import static io.ballerina.modelgenerator.commons.CommonUtils.isAiModule;
+import static io.ballerina.modelgenerator.commons.CommonUtils.isAiModelModule;
 
 /**
  * Factory class to create {@link FunctionData} instances from function symbols.
@@ -1160,7 +1160,7 @@ public class FunctionDataBuilder {
         return MODEL_TYPE_PARAMETER_NAME.equals(paramName) &&
                 (functionKind == FunctionData.Kind.MODEL_PROVIDER
                         || functionKind == FunctionData.Kind.EMBEDDING_PROVIDER
-                        || (isAiModule(moduleInfo.org(), moduleInfo.moduleName())
+                        || (isAiModelModule(moduleInfo.org(), moduleInfo.moduleName())
                                 && (functionKind == FunctionData.Kind.CLASS_INIT
                                 || functionKind == FunctionData.Kind.CONNECTOR)));
     }

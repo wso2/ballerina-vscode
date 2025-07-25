@@ -64,6 +64,7 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import static io.ballerina.flowmodelgenerator.core.Constants.Ai;
+import static io.ballerina.flowmodelgenerator.core.Constants.BALLERINA;
 import static io.ballerina.flowmodelgenerator.core.Constants.NaturalFunctions;
 
 /**
@@ -78,7 +79,6 @@ public class AvailableNodesGenerator {
     private final Document document;
     private final Package pkg;
     private final Gson gson;
-    private static final String BALLERINA_ORG = "ballerina";
     private static final String HTTP_MODULE = "http";
     private static final List<String> HTTP_REMOTE_METHOD_SKIP_LIST = List.of("get", "put", "post", "head",
             "delete", "patch", "options");
@@ -271,7 +271,8 @@ public class AvailableNodesGenerator {
         AvailableNode agentCall = new AvailableNode(
                 new Metadata.Builder<>(null).label(AgentBuilder.LABEL)
                         .description(AgentBuilder.DESCRIPTION).build(),
-                new Codedata.Builder<>(null).node(NodeKind.AGENT_CALL).org(BALLERINAX).module(Ai.AI_PACKAGE)
+                new Codedata.Builder<>(null).node(NodeKind.AGENT_CALL).
+                        org(disableBallerinaAiNodes ? BALLERINAX : BALLERINA).module(Ai.AI_PACKAGE)
                         .packageName(Ai.AI_PACKAGE).symbol(Ai.AGENT_RUN_METHOD_NAME).object(Ai.AGENT_TYPE_NAME).build(),
                 true);
 
@@ -361,7 +362,7 @@ public class AvailableNodesGenerator {
                 String org = methodFunction.org();
                 String packageName = methodFunction.packageName();
                 String version = methodFunction.version();
-                boolean isHttpModule = org.equals(BALLERINA_ORG) && packageName.equals(HTTP_MODULE);
+                boolean isHttpModule = org.equals(BALLERINA) && packageName.equals(HTTP_MODULE);
 
                 NodeBuilder nodeBuilder;
                 String label;

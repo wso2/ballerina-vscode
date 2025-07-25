@@ -1,27 +1,16 @@
 {
   "source": "natural_functions/functions.bal",
-  "description": "Sample diagram node",
+  "description": "Create a new natural function which used the default model provider",
   "diagram": {
-    "id": "34009",
     "metadata": {
       "label": "Natural Function",
       "description": "Define a natural function"
     },
     "codedata": {
+      "isNew": true,
       "node": "NP_FUNCTION_DEFINITION",
       "org": "ballerina",
-      "module": "ai",
-      "lineRange": {
-        "fileName": "functions.bal",
-        "startLine": {
-          "line": 2,
-          "offset": 0
-        },
-        "endLine": {
-          "line": 11,
-          "offset": 2
-        }
-      }
+      "module": "ai"
     },
     "returning": false,
     "properties": {
@@ -32,7 +21,7 @@
         },
         "valueType": "IDENTIFIER",
         "valueTypeConstraint": "Global",
-        "value": "suggestMovieGenre_new",
+        "value": "suggestMovieGenre",
         "optional": false,
         "editable": false,
         "advanced": false,
@@ -41,11 +30,11 @@
           "lineRange": {
             "fileName": "functions.bal",
             "startLine": {
-              "line": 2,
+              "line": 5,
               "offset": 9
             },
             "endLine": {
-              "line": 2,
+              "line": 5,
               "offset": 30
             }
           }
@@ -110,7 +99,8 @@
               "optional": true,
               "editable": true,
               "advanced": false,
-              "hidden": false
+              "hidden": false,
+              "type": "TEXTAREA"
             }
           },
           "optional": false,
@@ -118,7 +108,108 @@
           "advanced": false,
           "hidden": false
         },
-        "value": {},
+        "value": {
+          "genre": {
+            "metadata": {
+              "label": "Parameter",
+              "description": "Function parameter"
+            },
+            "valueType": "FIXED_PROPERTY",
+            "value": {
+              "type": {
+                "metadata": {
+                  "label": "Type",
+                  "description": "Type of the parameter"
+                },
+                "valueType": "TYPE",
+                "value": "string",
+                "optional": false,
+                "editable": true,
+                "advanced": false,
+                "hidden": false
+              },
+              "variable": {
+                "metadata": {
+                  "label": "Name",
+                  "description": "Name of the parameter"
+                },
+                "valueType": "IDENTIFIER",
+                "value": "genre",
+                "optional": false,
+                "editable": true,
+                "advanced": false,
+                "hidden": false
+              },
+              "parameterDescription": {
+                "metadata": {
+                  "label": "Description",
+                  "description": "Description of the parameter"
+                },
+                "valueType": "STRING",
+                "value": "",
+                "optional": true,
+                "editable": true,
+                "advanced": false,
+                "hidden": false,
+                "type": "TEXTAREA"
+              }
+            },
+            "optional": false,
+            "editable": false,
+            "advanced": false,
+            "hidden": false
+          },
+          "n": {
+            "metadata": {
+              "label": "Parameter",
+              "description": "Function parameter"
+            },
+            "valueType": "FIXED_PROPERTY",
+            "value": {
+              "type": {
+                "metadata": {
+                  "label": "Type",
+                  "description": "Type of the parameter"
+                },
+                "valueType": "TYPE",
+                "value": "int",
+                "optional": false,
+                "editable": true,
+                "advanced": false,
+                "hidden": false
+              },
+              "variable": {
+                "metadata": {
+                  "label": "Name",
+                  "description": "Name of the parameter"
+                },
+                "valueType": "IDENTIFIER",
+                "value": "n",
+                "optional": false,
+                "editable": true,
+                "advanced": false,
+                "hidden": false
+              },
+              "parameterDescription": {
+                "metadata": {
+                  "label": "Description",
+                  "description": "Description of the parameter"
+                },
+                "valueType": "STRING",
+                "value": "",
+                "optional": true,
+                "editable": true,
+                "advanced": false,
+                "hidden": false,
+                "type": "TEXTAREA"
+              }
+            },
+            "optional": false,
+            "editable": false,
+            "advanced": false,
+            "hidden": false
+          }
+        },
         "optional": true,
         "editable": false,
         "advanced": false,
@@ -130,7 +221,7 @@
           "description": "Prompt for the function"
         },
         "valueType": "RAW_TEMPLATE",
-        "value": "**Assumption**\nThink yourself as a movie expert\n\n**What to do**\nSuggest a movie genre\n\n**Output**\nstring - The suggested movie genre",
+        "value": "**Assumption**\nThink yourself as a movie expert\n\n**What to do**\nSuggest a movie name matching to the genre given:\n${genre}",
         "optional": false,
         "editable": true,
         "advanced": false,
@@ -140,11 +231,11 @@
           "lineRange": {
             "fileName": "functions.bal",
             "startLine": {
-              "line": 3,
+              "line": 6,
               "offset": 0
             },
             "endLine": {
-              "line": 11,
+              "line": 12,
               "offset": 0
             }
           }
@@ -155,16 +246,22 @@
           "label": "Configure the model",
           "description": "The large language model (LLM) to use"
         },
-        "valueType": "SINGLE_SELECT",
-        "valueTypeConstraint": [
-          "Default Model Provider (WSO2)",
-          "Accept as a parameter"
-        ],
-        "value": "Default Model Provider (WSO2)",
+        "valueType": "EXPRESSION",
         "optional": false,
         "editable": true,
         "advanced": false,
-        "hidden": false,
+        "hidden": true,
+        "codedata": {
+          "kind": "REQUIRED"
+        }
+      },
+      "modelProviderAsParameter": {
+        "valueType": "FLAG",
+        "value": false,
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": true,
         "codedata": {
           "kind": "REQUIRED"
         }
@@ -177,28 +274,28 @@
       {
         "range": {
           "start": {
-            "line": 0,
+            "line": 1,
             "character": 0
           },
           "end": {
-            "line": 0,
+            "line": 1,
             "character": 0
           }
         },
-        "newText": "import ballerina/ai;"
+        "newText": "\nimport ballerina/ai;"
       },
       {
         "range": {
           "start": {
-            "line": 2,
-            "character": 0
+            "line": 44,
+            "character": 2
           },
           "end": {
-            "line": 11,
+            "line": 44,
             "character": 2
           }
         },
-        "newText": "function suggestMovieGenre_new( ) returns string|error => natural (check ai:getDefaultModelProvider()){\n**Assumption**\nThink yourself as a movie expert\n\n**What to do**\nSuggest a movie genre\n\n**Output**\nstring - The suggested movie genre\n};\n"
+        "newText": "final ai:Wso2ModelProvider _suggestMovieGenreModel= check ai:getDefaultModelProvider( ) ;\nfunction suggestMovieGenre( string genre, int n) returns string|error => natural (_suggestMovieGenreModel) {\n**Assumption**\nThink yourself as a movie expert\n\n**What to do**\nSuggest a movie name matching to the genre given:\n${genre}\n};\n"
       }
     ]
   }

@@ -52,7 +52,6 @@ public class ConnectionFinder {
     private final Path rootPath;
     private final IntermediateModel intermediateModel;
 
-
     public ConnectionFinder(SemanticModel semanticModel, Path rootPath,
                             Map<String, ModulePartNode> documentMap,
                             IntermediateModel intermediateModel) {
@@ -81,7 +80,10 @@ public class ConnectionFinder {
                 ModulePartNode modulePartNode = documentMap.get(location.lineRange().fileName());
                 NonTerminalNode node = modulePartNode.findNode(location.textRange());
                 if (node instanceof ObjectFieldNode objectFieldNode) {
-                    if (isNewConnection(objectFieldNode.expression().orElse(null))) {
+                    if (objectFieldNode.expression().isEmpty()) {
+                        return;
+                    }
+                    if (isNewConnection(objectFieldNode.expression().get())) {
                         LineRange lineRange = node.lineRange();
                         String sortText = lineRange.fileName() + lineRange.startLine().line();
                         String icon = CommonUtils.generateIcon(classFieldSymbol.typeDescriptor());
@@ -136,7 +138,10 @@ public class ConnectionFinder {
                     ModulePartNode modulePartNode = documentMap.get(location.lineRange().fileName());
                     NonTerminalNode node = modulePartNode.findNode(location.textRange()).parent();
                     if (node instanceof VariableDeclarationNode variableDeclarationNode) {
-                        if (isNewConnection(variableDeclarationNode.initializer().orElse(null))) {
+                        if (variableDeclarationNode.initializer().isEmpty()) {
+                            continue;
+                        }
+                        if (isNewConnection(variableDeclarationNode.initializer().get())) {
                             LineRange lineRange = node.lineRange();
                             String sortText = lineRange.fileName() + lineRange.startLine().line();
                             String icon = CommonUtils.generateIcon(variableSymbol.typeDescriptor());

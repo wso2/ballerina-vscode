@@ -92,7 +92,6 @@ subprojects {
         ballerinaStdLibs "io.ballerina:observe-ballerina:${observeInternalVersion}"
         ballerinaStdLibs "io.ballerina.stdlib:observe-ballerina:${observeVersion}"
         ballerinaStdLibs "io.ballerina.stdlib:tcp-ballerina:${stdlibTcpVersion}"
-        ballerinaStdLibs "io.ballerina.stdlib:ai-ballerina:${stdlibAiVersion}"
 
         /* Ballerina Persist Tool */
         ballerinaStdLibs "io.ballerina:persist-tools:${persistToolVersion}"
@@ -106,7 +105,7 @@ if (moduleVersion.indexOf('-') != -1) {
 
 // TODO: Remove this once the workspace manager is refactored to import modules where necessary.
 def pullBallerinaModule(String packageName, String version = null, String orgName = "ballerinax") {
-    tasks.register("pullBallerinaModule_${packageName.replace('/', '_')}") {
+    tasks.register("pull${orgName.capitalize()}Module_${packageName.replace('/', '_')}") {
         doLast {
             def errOutput = new ByteArrayOutputStream()
             def result = exec {
@@ -117,8 +116,18 @@ def pullBallerinaModule(String packageName, String version = null, String orgNam
                 if (centralRepoDir.exists()) {
                     def pkgDir = new File(centralRepoDir, packageName)
                     if (pkgDir.exists()) {
-                        commandLine 'echo', "Package ${packageName} exists"
-                        return
+                        if (version != null) {
+                            // Check if the specific version exists
+                            def versionDir = new File(pkgDir, version)
+                            if (versionDir.exists()) {
+                                commandLine 'echo', "Package ${packageName} version ${version} exists"
+                                return
+                            }
+                        } else {
+                            // If no version is specified, check for any version
+                            commandLine 'echo', "Package ${packageName} exists"
+                            return
+                        }
                     }
                 }
 
@@ -329,6 +338,7 @@ task pullBallerinaModules {
     dependsOn pullBallerinaModule('rabbitmq', ballerinaxRabbitmqVersion)
     dependsOn pullBallerinaModule('trigger.github', ballerinaxGithubTriggerVersion)
     dependsOn pullBallerinaModule('np', ballerinaxNp)
+    dependsOn pullBallerinaModule('ai', stdlibAiVersion, "ballerina")
 }
 
 test {
