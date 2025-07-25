@@ -16,11 +16,12 @@
  *  under the License.
  */
 
-package io.ballerina.flowmodelgenerator.extension.vectorstoremanager;
+package io.ballerina.flowmodelgenerator.extension.embeddingprovidermanager;
 
 import com.google.gson.JsonObject;
-import io.ballerina.flowmodelgenerator.extension.request.SearchRequest;
+import io.ballerina.flowmodelgenerator.extension.request.FlowModelNodeTemplateRequest;
 import io.ballerina.modelgenerator.commons.AbstractLSTest;
+import io.ballerina.tools.text.LinePosition;
 import org.testng.Assert;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -28,23 +29,21 @@ import org.testng.annotations.Test;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
- * Test for searching vector stores.
+ * Test for obtaining embedding provider node templates.
  *
  * @since 1.1.0
  */
-public class VectorStoreSearchTest extends AbstractLSTest {
-    private static final String VECTOR_STORE = "VECTOR_STORE";
+public class GetNodeTemplateTest extends AbstractLSTest {
 
     @DataProvider(name = "data-provider")
     @Override
     protected Object[] getConfigsList() {
         return new Object[][]{
-                {Path.of("vector_stores.json")},
-                {Path.of("vector_stores_search_pinecone.json")}
+                {Path.of("get_default_embedding_provider_template.json")},
+                {Path.of("get_wso2_embedding_provider_template.json")},
+                {Path.of("get_openai_embedding_provider_template.json")}
         };
     }
 
@@ -54,49 +53,42 @@ public class VectorStoreSearchTest extends AbstractLSTest {
         Path configJsonPath = configDir.resolve(config);
         TestConfig testConfig = gson.fromJson(Files.newBufferedReader(configJsonPath), TestConfig.class);
         String filePath = sourceDir.resolve(testConfig.source()).toAbsolutePath().toString();
-        Map<String, String> queryMap = getQueryMap(testConfig);
-        SearchRequest searchRequest = new SearchRequest(VECTOR_STORE, filePath, null, queryMap);
-        JsonObject searchResult = getResponse(searchRequest);
-        if (!searchResult.equals(testConfig.expectedVectorStores())) {
-            TestConfig updatedConfig = new TestConfig(testConfig.source(), testConfig.query(), searchResult);
+        FlowModelNodeTemplateRequest request = new FlowModelNodeTemplateRequest(filePath,
+                LinePosition.from(1, 1), testConfig.codedata());
+        JsonObject nodeTemplateResponse = getResponse(request);
+        if (!nodeTemplateResponse.equals(testConfig.expectedTemplate())) {
+            TestConfig updatedConfig = new TestConfig(testConfig.source(), testConfig.codedata(), nodeTemplateResponse);
             // updateConfig(configJsonPath, updatedConfig);
-            compareJsonElements(searchResult, testConfig.expectedVectorStores());
-            Assert.fail(String.format("Failed test: '%s'", configJsonPath));
+            compareJsonElements(nodeTemplateResponse, testConfig.expectedTemplate());
+            Assert.fail(String.format("Failed test: '%s' Actual: `%s` Expected `%s`", configJsonPath,
+                    nodeTemplateResponse, testConfig.expectedTemplate()));
         }
     }
 
-    private static Map<String, String> getQueryMap(TestConfig testConfig) {
-        Map<String, String> queryMap = null;
-        if (testConfig.query != null) {
-            queryMap = new HashMap<>();
-            queryMap.put("q", testConfig.query);
-        }
-        return queryMap;
-    }
 
     @Override
     protected String getResourceDir() {
-        return "vector_store_manager";
+        return "embedding_provider_manager";
     }
 
     @Override
     protected Class<? extends AbstractLSTest> clazz() {
-        return VectorStoreSearchTest.class;
+        return GetNodeTemplateTest.class;
     }
 
     @Override
     protected String getApiName() {
-        return "search";
+        return "getNodeTemplate";
     }
 
     /**
      * Represents the test configuration for the flow model getNodeTemplate API.
      *
-     * @param source               The source file path
-     * @param query                The query string to search
-     * @param expectedVectorStores The expected set of model providers
+     * @param source           The source file path
+     * @param codedata         The code data of the embedding provider
+     * @param expectedTemplate The expected template of the embedding provider
      */
-    private record TestConfig(String source, String query, JsonObject expectedVectorStores) {
+    private record TestConfig(String source, JsonObject codedata, JsonObject expectedTemplate) {
 
     }
 }

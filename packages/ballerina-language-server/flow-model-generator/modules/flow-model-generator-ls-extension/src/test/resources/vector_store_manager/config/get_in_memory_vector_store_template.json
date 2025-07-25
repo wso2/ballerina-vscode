@@ -1,0 +1,139 @@
+{
+  "source": "vector_store/store.bal",
+  "codedata": {
+    "node": "VECTOR_STORE",
+    "org": "ballerina",
+    "module": "ai",
+    "packageName": "ai",
+    "object": "InMemoryVectorStore",
+    "symbol": "init",
+    "version": "1.1.0"
+  },
+  "expectedTemplate": {
+    "flowNode": {
+      "id": "31",
+      "metadata": {
+        "label": "Vector Store",
+        "description": "Initializes a new in-memory vector store.\n",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.1.0.png"
+      },
+      "codedata": {
+        "node": "VECTOR_STORE",
+        "org": "ballerina",
+        "module": "ai",
+        "packageName": "ai",
+        "object": "InMemoryVectorStore",
+        "version": "1.1.0",
+        "isNew": true
+      },
+      "returning": false,
+      "properties": {
+        "type": {
+          "metadata": {
+            "label": "Result Type",
+            "description": "Type of the variable"
+          },
+          "valueType": "TYPE",
+          "value": "ai:InMemoryVectorStore",
+          "placeholder": "var",
+          "optional": false,
+          "editable": false,
+          "advanced": false,
+          "hidden": false,
+          "codedata": {}
+        },
+        "variable": {
+          "metadata": {
+            "label": "Vector Store Name",
+            "description": "Vector store instance name"
+          },
+          "valueType": "IDENTIFIER",
+          "value": "aiInmemoryvectorstore",
+          "optional": false,
+          "editable": true,
+          "advanced": false,
+          "hidden": false
+        },
+        "topK": {
+          "metadata": {
+            "label": "Top K",
+            "description": "The maximum number of top similar vectors to return in query results"
+          },
+          "valueType": "EXPRESSION",
+          "valueTypeConstraint": "int",
+          "placeholder": "0",
+          "optional": true,
+          "editable": true,
+          "advanced": true,
+          "hidden": false,
+          "codedata": {
+            "kind": "DEFAULTABLE",
+            "originalName": "topK"
+          },
+          "typeMembers": [
+            {
+              "type": "int",
+              "packageInfo": "",
+              "packageName": "",
+              "kind": "BASIC_TYPE",
+              "selected": false
+            }
+          ],
+          "defaultValue": "0"
+        },
+        "similarityMetric": {
+          "metadata": {
+            "label": "Similarity Metric",
+            "description": "The metric used for vector similarity"
+          },
+          "valueType": "EXPRESSION",
+          "valueTypeConstraint": "ai:SimilarityMetric",
+          "placeholder": "\"DOT_PRODUCT\"",
+          "optional": true,
+          "editable": true,
+          "advanced": true,
+          "hidden": false,
+          "codedata": {
+            "kind": "DEFAULTABLE",
+            "originalName": "similarityMetric"
+          },
+          "typeMembers": [
+            {
+              "type": "SimilarityMetric",
+              "packageInfo": "ballerina:ai:1.1.0",
+              "packageName": "ai",
+              "kind": "BASIC_TYPE",
+              "selected": false
+            }
+          ],
+          "defaultValue": "\"DOT_PRODUCT\""
+        },
+        "scope": {
+          "metadata": {
+            "label": "Connection Scope",
+            "description": "Scope of the connection, Global or Local"
+          },
+          "valueType": "ENUM",
+          "value": "Global",
+          "optional": false,
+          "editable": true,
+          "advanced": true,
+          "hidden": true
+        },
+        "checkError": {
+          "metadata": {
+            "label": "Check Error",
+            "description": "Terminate on error"
+          },
+          "valueType": "FLAG",
+          "value": true,
+          "optional": false,
+          "editable": false,
+          "advanced": true,
+          "hidden": true
+        }
+      },
+      "flags": 0
+    }
+  }
+}

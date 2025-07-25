@@ -19,8 +19,9 @@
 package io.ballerina.flowmodelgenerator.extension.vectorstoremanager;
 
 import com.google.gson.JsonObject;
-import io.ballerina.flowmodelgenerator.extension.request.SearchRequest;
+import io.ballerina.flowmodelgenerator.extension.request.FlowModelAvailableNodesRequest;
 import io.ballerina.modelgenerator.commons.AbstractLSTest;
+import io.ballerina.tools.text.LinePosition;
 import org.testng.Assert;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -28,23 +29,22 @@ import org.testng.annotations.Test;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Set;
+
+import static io.ballerina.flowmodelgenerator.extension.TestUtils.assertJsonEqualsIgnoringKey;
 
 /**
- * Test for searching vector stores.
+ * Test for listing available vector stores.
  *
  * @since 1.1.0
  */
-public class VectorStoreSearchTest extends AbstractLSTest {
-    private static final String VECTOR_STORE = "VECTOR_STORE";
+public class GetAvailableVectorStoresTest extends AbstractLSTest {
 
     @DataProvider(name = "data-provider")
     @Override
     protected Object[] getConfigsList() {
         return new Object[][]{
-                {Path.of("vector_stores.json")},
-                {Path.of("vector_stores_search_pinecone.json")}
+                {Path.of("get_vector_stores.json")}
         };
     }
 
@@ -54,24 +54,15 @@ public class VectorStoreSearchTest extends AbstractLSTest {
         Path configJsonPath = configDir.resolve(config);
         TestConfig testConfig = gson.fromJson(Files.newBufferedReader(configJsonPath), TestConfig.class);
         String filePath = sourceDir.resolve(testConfig.source()).toAbsolutePath().toString();
-        Map<String, String> queryMap = getQueryMap(testConfig);
-        SearchRequest searchRequest = new SearchRequest(VECTOR_STORE, filePath, null, queryMap);
-        JsonObject searchResult = getResponse(searchRequest);
-        if (!searchResult.equals(testConfig.expectedVectorStores())) {
-            TestConfig updatedConfig = new TestConfig(testConfig.source(), testConfig.query(), searchResult);
+        FlowModelAvailableNodesRequest request = new FlowModelAvailableNodesRequest(filePath, LinePosition.from(1, 1));
+        JsonObject availableVectorStores = getResponse(request);
+        Set<String> ignoredKeys = Set.of("version", "icon");
+        if (!assertJsonEqualsIgnoringKey(availableVectorStores, testConfig.expectedVectorStores(), ignoredKeys)) {
+            TestConfig updatedConfig = new TestConfig(testConfig.source(), availableVectorStores);
             // updateConfig(configJsonPath, updatedConfig);
-            compareJsonElements(searchResult, testConfig.expectedVectorStores());
+            compareJsonElements(availableVectorStores, testConfig.expectedVectorStores());
             Assert.fail(String.format("Failed test: '%s'", configJsonPath));
         }
-    }
-
-    private static Map<String, String> getQueryMap(TestConfig testConfig) {
-        Map<String, String> queryMap = null;
-        if (testConfig.query != null) {
-            queryMap = new HashMap<>();
-            queryMap.put("q", testConfig.query);
-        }
-        return queryMap;
     }
 
     @Override
@@ -81,22 +72,21 @@ public class VectorStoreSearchTest extends AbstractLSTest {
 
     @Override
     protected Class<? extends AbstractLSTest> clazz() {
-        return VectorStoreSearchTest.class;
+        return GetAvailableVectorStoresTest.class;
     }
 
     @Override
     protected String getApiName() {
-        return "search";
+        return "getAvailableVectorStores";
     }
 
     /**
-     * Represents the test configuration for the flow model getNodeTemplate API.
+     * Represents the test configuration for the flow model getAvailableVectorStores API.
      *
      * @param source               The source file path
-     * @param query                The query string to search
-     * @param expectedVectorStores The expected set of model providers
+     * @param expectedVectorStores The expected set of vector stores
      */
-    private record TestConfig(String source, String query, JsonObject expectedVectorStores) {
+    private record TestConfig(String source, JsonObject expectedVectorStores) {
 
     }
 }
