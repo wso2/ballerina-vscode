@@ -126,18 +126,27 @@ export function hasNoOutputMatchFound(outputType: IOType, filteredOutputType: IO
 	return false;
 }
 
-export function getFilteredMappings(mappings: Mapping[], searchValue: string): Mapping[] {
+export function getFilteredMappings(mappings: Mapping[], inputSearch: string, outputSearch: string): Mapping[] {
     return mappings.flatMap(mapping => {
+
+		const filteredInputs = mapping.inputs.filter(input => {
+			const inputField = input.split(".").pop();
+			return inputSearch === "" || 
+				inputField.toLowerCase().includes(inputSearch.toLowerCase());
+		});
+
         const outputField = mapping.output.split(".").pop();
-        const isCurrentMappingMatched = searchValue === "" || 
-            outputField.toLowerCase().includes(searchValue.toLowerCase());
+        const matchedWithOutputSearch = outputSearch === "" || 
+            outputField.toLowerCase().includes(outputSearch.toLowerCase());
         
         // Get nested mappings from elements
         const nestedMappings = mapping.elements?.flatMap(element => 
-            getFilteredMappings(element.mappings, searchValue)
+            getFilteredMappings(element.mappings, inputSearch, outputSearch)
         ) || [];
+
+		const filteredMapping = filteredInputs.length > 0 && matchedWithOutputSearch;
         
         // Return current mapping if matched, along with any nested matches
-        return isCurrentMappingMatched ? [mapping, ...nestedMappings] : nestedMappings;
+        return filteredMapping ? [mapping, ...nestedMappings] : nestedMappings;
     });
 }

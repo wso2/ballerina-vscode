@@ -19,9 +19,9 @@
 import React from "react";
 
 import { css } from "@emotion/css";
-
-import { TreeContainer } from "../Tree/Tree";
 import { Codicon } from "@wso2/ui-toolkit";
+
+import { IO_NODE_DEFAULT_WIDTH } from "../../../../../components/Diagram/utils/constants";
 
 interface SearchNoResultFoundProps {
     kind: SearchNoResultFoundKind;
@@ -36,24 +36,33 @@ export enum SearchNoResultFoundKind {
 }
 
 const useStyles = () => ({
+    treeContainer: css({
+        width: `${IO_NODE_DEFAULT_WIDTH}px`,
+        cursor: "default",
+        padding: "12px",
+        fontFamily: "GilmerRegular",
+        background: "var(--vscode-sideBar-background)",
+        border: "1.8px dashed var(--vscode-dropdown-border)",
+        borderRadius: "6px"
+    }),
     noResultFoundBanner: css({
         width: "320px",
-        padding: "10px",
         display: "flex",
+        opacity: 0.8
     })
 });
 
 function SearchNoResultFound({ kind }: SearchNoResultFoundProps) {
     const classes = useStyles();
     return (
-        <TreeContainer>
+        <div className={classes.treeContainer}>
             <div className={classes.noResultFoundBanner}>
-                <Codicon sx={{ marginRight: 8, fontSize: 22 }} name="search" />
+                <Codicon sx={{ marginRight: 10 }} name="search" />
                 <div>
                     {`No matching ${kind} found`}
                 </div>
             </div>
-        </TreeContainer>
+        </div>
     );
 }
 

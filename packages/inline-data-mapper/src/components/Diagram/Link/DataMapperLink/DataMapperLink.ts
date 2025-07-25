@@ -24,20 +24,30 @@ import { IDMDiagnostic } from "@wso2/ballerina-core";
 
 export const LINK_TYPE_ID = "datamapper-link";
 
+export enum MappingType {
+	ArrayToArray = "array-array",
+	ArrayToSingleton = "array-singleton",
+	ArrayToSingletonWithCollect = "array-singleton-collect",
+	Incompatible = "Incompatible",
+	Default = undefined // This is for non-array mappings currently
+}
+
 export class DataMapperLinkModel extends DefaultLinkModel {
+	public pendingMappingType: MappingType = MappingType.Default
 
 	constructor(
 		public value?: string,
 		public diagnostics: IDMDiagnostic[] = [],
 		public isActualLink: boolean = false,
-		public notContainsLabel?: boolean
+		public notContainsLabel?: boolean,
+		public isDashLink?: boolean
 	) {
 		super({
 			type: LINK_TYPE_ID,
 			width: 1,
 			curvyness: 0,
 			locked: true,
-			color: "#00c0ff"
+			color: "var(--vscode-debugIcon-breakpointDisabledForeground)"
 		});
 
 		if (isActualLink){
