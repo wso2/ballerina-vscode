@@ -195,7 +195,7 @@
           "description": "Prompt for the function"
         },
         "valueType": "RAW_TEMPLATE",
-        "value": "    Think yourself as a blog reviewer and summerize the following blog\n\n    **title**\n    ${blog.title}\n\n    **content**\n    ${blog.content}",
+        "value": "    Think yourself as a blog reviewer and summarize the following blog\n\n    **title**\n    ${blog.title}\n\n    **content**\n    ${blog.content}",
         "optional": false,
         "editable": true,
         "advanced": false,
