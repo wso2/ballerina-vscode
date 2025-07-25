@@ -44,6 +44,8 @@ import {
     TextEdit,
     ParentMetadata
 } from "@wso2/ballerina-core";
+import { PanelContainer } from "@wso2/ballerina-side-panel";
+import { ModelConfig } from "../AIChatAgent/ModelConfig";
 
 import {
     addDraftNodeToDiagram,
@@ -85,6 +87,8 @@ export function BIFocusFlowDiagram(props: BIFocusFlowDiagramProps) {
     const [suggestedModel, setSuggestedModel] = useState<Flow>();
     const [showProgressIndicator, setShowProgressIndicator] = useState(false);
     const [breakpointInfo, setBreakpointInfo] = useState<BreakpointInfo>();
+    const [showModelConfigPanel, setShowModelConfigPanel] = useState(false);
+    const [selectedNodeForModelConfig, setSelectedNodeForModelConfig] = useState<FlowNode | undefined>();
 
     const selectedNodeRef = useRef<FlowNode>();
     const nodeTemplateRef = useRef<FlowNode>();
@@ -447,7 +451,7 @@ export function BIFocusFlowDiagram(props: BIFocusFlowDiagramProps) {
                         context: {
                             expression: value,
                             startLine: updateLineRange(
-                                selectedNode.properties['prompt'].codedata.lineRange, 
+                                selectedNode.properties['prompt'].codedata.lineRange,
                                 expressionOffsetRef.current
                             ).startLine,
                             lineOffset: lineOffset,
@@ -527,6 +531,17 @@ export function BIFocusFlowDiagram(props: BIFocusFlowDiagramProps) {
         handleExpressionEditorCancel();
     };
 
+    const handleOnEditAgentModel = (node: FlowNode) => {
+        console.log(">>> on edit agent model", node);
+        setSelectedNodeForModelConfig(node);
+        setShowModelConfigPanel(true);
+    };
+
+    const handleCloseModelConfigPanel = () => {
+        setShowModelConfigPanel(false);
+        setSelectedNodeForModelConfig(undefined);
+    };
+
     const memoizedDiagramProps = useMemo(
         () => ({
             model: flowModel,
@@ -546,7 +561,10 @@ export function BIFocusFlowDiagram(props: BIFocusFlowDiagramProps) {
                 onCompletionItemSelect: handleCompletionItemSelect,
                 onBlur: handleExpressionEditorBlur,
                 onCancel: handleExpressionEditorCancel
-            }
+            },
+            aiNodes: {
+                onModelSelect: handleOnEditAgentModel,
+            },
         }),
         [flowModel, projectPath, breakpointInfo, filteredCompletions]
     );
@@ -566,6 +584,19 @@ export function BIFocusFlowDiagram(props: BIFocusFlowDiagramProps) {
                     {model && <MemoizedDiagram {...memoizedDiagramProps} />}
                 </Container>
             </View>
+
+            {showModelConfigPanel && selectedNodeForModelConfig && (
+                <PanelContainer
+                    title="Configure LLM Model"
+                    show={showModelConfigPanel}
+                    onClose={handleCloseModelConfigPanel}
+                >
+                    <ModelConfig
+                        agentCallNode={selectedNodeForModelConfig}
+                        onSave={handleCloseModelConfigPanel}
+                    />
+                </PanelContainer>
+            )}
         </>
     );
 }

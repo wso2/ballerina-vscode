@@ -71,6 +71,10 @@ export interface DiagramProps {
         onSelectMemoryManager: (node: FlowNode) => void;
         onDeleteMemoryManager: (node: FlowNode) => void;
     };
+    // ai nodes callbacks
+    aiNodes?: {
+        onModelSelect: (node: FlowNode) => void;
+    };
     // ai suggestions callbacks
     suggestions?: {
         fetching: boolean;
@@ -96,6 +100,7 @@ export function Diagram(props: DiagramProps) {
         goToSource,
         openView,
         agentNode,
+        aiNodes,
         suggestions,
         projectPath,
         addBreakpoint,
@@ -225,6 +230,7 @@ export function Diagram(props: DiagramProps) {
         goToSource: goToSource,
         openView: openView,
         agentNode: agentNode,
+        aiNodes: aiNodes,
         suggestions: suggestions,
         projectPath: projectPath,
         readOnly: onAddNode === undefined || onDeleteNode === undefined || onNodeSelect === undefined || readOnly,

@@ -76,6 +76,9 @@ export interface DiagramContextState {
         onSelectMemoryManager: (node: FlowNode) => void;
         onDeleteMemoryManager: (node: FlowNode) => void;
     };
+    aiNodes?: {
+        onModelSelect: (node: FlowNode) => void;
+    };
     suggestions?: {
         fetching: boolean;
         onAccept(): void;
@@ -118,6 +121,9 @@ export const DiagramContext = React.createContext<DiagramContextState>({
         goToTool: () => {},
         onSelectMemoryManager: () => {},
         onDeleteMemoryManager: () => {},
+    },
+    aiNodes: {
+        onModelSelect: () => {},
     },
     suggestions: {
         fetching: false,
