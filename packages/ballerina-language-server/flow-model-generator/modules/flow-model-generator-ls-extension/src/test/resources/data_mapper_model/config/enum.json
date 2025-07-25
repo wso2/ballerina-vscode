@@ -28,24 +28,28 @@
           {
             "id": "DepartmentCode.FINANCE",
             "typeName": "FINANCE",
-            "kind": "FINANCE"
+            "kind": "FINANCE",
+            "optional": false
           },
           {
             "id": "DepartmentCode.IT",
             "typeName": "IT",
-            "kind": "IT"
+            "kind": "IT",
+            "optional": false
           },
           {
             "id": "DepartmentCode.HR",
             "typeName": "HR",
-            "kind": "HR"
+            "kind": "HR",
+            "optional": false
           }
         ],
         "id": "DepartmentCode",
         "variableName": "DepartmentCode",
         "typeName": "DepartmentCode",
         "kind": "enum",
-        "category": "enum"
+        "category": "enum",
+        "optional": false
       }
     ],
     "output": {
@@ -54,36 +58,42 @@
           "id": "engineering.name",
           "variableName": "name",
           "typeName": "string",
-          "kind": "string"
+          "kind": "string",
+          "optional": false
         },
         {
           "members": [
             {
               "id": "engineering.code.FINANCE",
               "typeName": "FINANCE",
-              "kind": "FINANCE"
+              "kind": "FINANCE",
+              "optional": false
             },
             {
               "id": "engineering.code.IT",
               "typeName": "IT",
-              "kind": "IT"
+              "kind": "IT",
+              "optional": false
             },
             {
               "id": "engineering.code.HR",
               "typeName": "HR",
-              "kind": "HR"
+              "kind": "HR",
+              "optional": false
             }
           ],
           "id": "engineering.code",
           "variableName": "code",
           "typeName": "DepartmentCode",
-          "kind": "enum"
+          "kind": "enum",
+          "optional": false
         }
       ],
       "id": "engineering",
       "variableName": "engineering",
       "typeName": "Department",
-      "kind": "record"
+      "kind": "record",
+      "optional": false
     },
     "mappings": [
       {

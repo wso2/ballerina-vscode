@@ -30,19 +30,22 @@
               "id": "user.phoneNumber.0",
               "variableName": "<phoneNumberItem>",
               "typeName": "string",
-              "kind": "string"
+              "kind": "string",
+              "optional": false
             },
             "id": "user.phoneNumber",
             "variableName": "phoneNumber",
             "typeName": "string[]",
-            "kind": "array"
+            "kind": "array",
+            "optional": false
           }
         ],
         "id": "user",
         "variableName": "user",
         "typeName": "User",
         "kind": "record",
-        "category": "parameter"
+        "category": "parameter",
+        "optional": false
       }
     ],
     "output": {
@@ -53,23 +56,27 @@
               "id": "td.values",
               "variableName": "<valuesItemItem>",
               "typeName": "string",
-              "kind": "string"
+              "kind": "string",
+              "optional": false
             },
             "id": "td.values",
             "variableName": "<valuesItem>",
             "typeName": "string[]",
-            "kind": "array"
+            "kind": "array",
+            "optional": false
           },
           "id": "td.values",
           "variableName": "values",
           "typeName": "string[][]",
-          "kind": "array"
+          "kind": "array",
+          "optional": false
         }
       ],
       "id": "td",
       "variableName": "td",
       "typeName": "TwoDim",
-      "kind": "record"
+      "kind": "record",
+      "optional": false
     },
     "mappings": [
       {
