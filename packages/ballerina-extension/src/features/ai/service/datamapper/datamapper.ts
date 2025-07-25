@@ -16,7 +16,7 @@
 
 import { generateText, CoreMessage, generateObject } from "ai";
 import { getDataMappingPrompt } from "./prompt";
-import { anthropic, ANTHROPIC_SONNET_4 } from "../connection";
+import { getAnthropicClient, ANTHROPIC_SONNET_4 } from "../connection";
 import {
     Payload,
     DatamapperResponse,
@@ -293,7 +293,7 @@ async function getAutoMappings(
 
     try {
         const { object } = await generateObject({
-            model: anthropic(ANTHROPIC_SONNET_4),
+            model: await getAnthropicClient(ANTHROPIC_SONNET_4),
             maxTokens: 4096,
             temperature: 0,
             messages: messages,
