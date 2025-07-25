@@ -58,31 +58,6 @@
       "items": [
         {
           "metadata": {
-            "label": "worldtimeapi",
-            "description": "",
-            "keywords": []
-          },
-          "items": [
-            {
-              "metadata": {
-                "label": "DateTimeJsonResponse",
-                "description": "",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_worldtimeapi_1.5.1.png"
-              },
-              "codedata": {
-                "node": "TYPEDESC",
-                "org": "ballerinax",
-                "module": "worldtimeapi",
-                "packageName": "worldtimeapi",
-                "symbol": "DateTimeJsonResponse",
-                "version": "1.5.1"
-              },
-              "enabled": true
-            }
-          ]
-        },
-        {
-          "metadata": {
             "label": "gotowebinar",
             "description": "",
             "keywords": []
@@ -125,6 +100,31 @@
                 "module": "optitune",
                 "packageName": "optitune",
                 "symbol": "DateParameter",
+                "version": "1.5.1"
+              },
+              "enabled": true
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "label": "worldtimeapi",
+            "description": "",
+            "keywords": []
+          },
+          "items": [
+            {
+              "metadata": {
+                "label": "DateTimeJsonResponse",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_worldtimeapi_1.5.1.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "worldtimeapi",
+                "packageName": "worldtimeapi",
+                "symbol": "DateTimeJsonResponse",
                 "version": "1.5.1"
               },
               "enabled": true
@@ -192,56 +192,6 @@
                 "packageName": "adp.paystatements",
                 "symbol": "DateType",
                 "version": "1.5.1"
-              },
-              "enabled": true
-            }
-          ]
-        },
-        {
-          "metadata": {
-            "label": "jira.servicemanagement",
-            "description": "",
-            "keywords": []
-          },
-          "items": [
-            {
-              "metadata": {
-                "label": "DateDTO",
-                "description": "",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_jira.servicemanagement_1.3.1.png"
-              },
-              "codedata": {
-                "node": "TYPEDESC",
-                "org": "ballerinax",
-                "module": "jira.servicemanagement",
-                "packageName": "jira.servicemanagement",
-                "symbol": "DateDTO",
-                "version": "1.3.1"
-              },
-              "enabled": true
-            }
-          ]
-        },
-        {
-          "metadata": {
-            "label": "amadeus.flightofferssearch",
-            "description": "",
-            "keywords": []
-          },
-          "items": [
-            {
-              "metadata": {
-                "label": "DateTimeRange",
-                "description": "",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_amadeus.flightofferssearch_1.3.1.png"
-              },
-              "codedata": {
-                "node": "TYPEDESC",
-                "org": "ballerinax",
-                "module": "amadeus.flightofferssearch",
-                "packageName": "amadeus.flightofferssearch",
-                "symbol": "DateTimeRange",
-                "version": "1.3.1"
               },
               "enabled": true
             }
@@ -322,24 +272,24 @@
         },
         {
           "metadata": {
-            "label": "health.ccda.r3",
+            "label": "amadeus.flightofferssearch",
             "description": "",
             "keywords": []
           },
           "items": [
             {
               "metadata": {
-                "label": "DateOfDiagnosisAct",
+                "label": "DateTimeRange",
                 "description": "",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_health.ccda.r3_0.9.0.png"
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_amadeus.flightofferssearch_1.3.1.png"
               },
               "codedata": {
                 "node": "TYPEDESC",
                 "org": "ballerinax",
-                "module": "health.ccda.r3",
-                "packageName": "health.ccda.r3",
-                "symbol": "DateOfDiagnosisAct",
-                "version": "0.9.0"
+                "module": "amadeus.flightofferssearch",
+                "packageName": "amadeus.flightofferssearch",
+                "symbol": "DateTimeRange",
+                "version": "1.3.1"
               },
               "enabled": true
             }
@@ -347,24 +297,24 @@
         },
         {
           "metadata": {
-            "label": "microsoft.outlook.calendar",
+            "label": "jira.servicemanagement",
             "description": "",
             "keywords": []
           },
           "items": [
             {
               "metadata": {
-                "label": "DateTimeTimeZone",
+                "label": "DateDTO",
                 "description": "",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_microsoft.outlook.calendar_2.4.0.png"
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_jira.servicemanagement_1.3.1.png"
               },
               "codedata": {
                 "node": "TYPEDESC",
                 "org": "ballerinax",
-                "module": "microsoft.outlook.calendar",
-                "packageName": "microsoft.outlook.calendar",
-                "symbol": "DateTimeTimeZone",
-                "version": "2.4.0"
+                "module": "jira.servicemanagement",
+                "packageName": "jira.servicemanagement",
+                "symbol": "DateDTO",
+                "version": "1.3.1"
               },
               "enabled": true
             }
@@ -372,7 +322,7 @@
         },
         {
           "metadata": {
-            "label": "health.fhir.r5",
+            "label": "health.fhir.r4",
             "description": "",
             "keywords": []
           },
@@ -381,15 +331,15 @@
               "metadata": {
                 "label": "DateExtension",
                 "description": "",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_health.fhir.r5_0.9.2.png"
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_health.fhir.r4_6.1.0.png"
               },
               "codedata": {
                 "node": "TYPEDESC",
                 "org": "ballerinax",
-                "module": "health.fhir.r5",
-                "packageName": "health.fhir.r5",
+                "module": "health.fhir.r4",
+                "packageName": "health.fhir.r4",
                 "symbol": "DateExtension",
-                "version": "0.9.2"
+                "version": "6.1.0"
               },
               "enabled": true
             },
@@ -397,40 +347,15 @@
               "metadata": {
                 "label": "DateTimeExtension",
                 "description": "",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_health.fhir.r5_0.9.2.png"
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_health.fhir.r4_6.1.0.png"
               },
               "codedata": {
                 "node": "TYPEDESC",
                 "org": "ballerinax",
-                "module": "health.fhir.r5",
-                "packageName": "health.fhir.r5",
+                "module": "health.fhir.r4",
+                "packageName": "health.fhir.r4",
                 "symbol": "DateTimeExtension",
-                "version": "0.9.2"
-              },
-              "enabled": true
-            }
-          ]
-        },
-        {
-          "metadata": {
-            "label": "candid.essentials",
-            "description": "",
-            "keywords": []
-          },
-          "items": [
-            {
-              "metadata": {
-                "label": "V3EssentialsResponse_dates",
-                "description": "",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_candid_0.1.1.png"
-              },
-              "codedata": {
-                "node": "TYPEDESC",
-                "org": "ballerinax",
-                "module": "candid.essentials",
-                "packageName": "candid",
-                "symbol": "V3EssentialsResponse_dates",
-                "version": "0.1.1"
+                "version": "6.1.0"
               },
               "enabled": true
             }
@@ -463,7 +388,82 @@
         },
         {
           "metadata": {
-            "label": "health.fhir.r4",
+            "label": "microsoft.outlook.calendar",
+            "description": "",
+            "keywords": []
+          },
+          "items": [
+            {
+              "metadata": {
+                "label": "DateTimeTimeZone",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_microsoft.outlook.calendar_2.4.0.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "microsoft.outlook.calendar",
+                "packageName": "microsoft.outlook.calendar",
+                "symbol": "DateTimeTimeZone",
+                "version": "2.4.0"
+              },
+              "enabled": true
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "label": "health.ccda.r3",
+            "description": "",
+            "keywords": []
+          },
+          "items": [
+            {
+              "metadata": {
+                "label": "DateOfDiagnosisAct",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_health.ccda.r3_0.9.0.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "health.ccda.r3",
+                "packageName": "health.ccda.r3",
+                "symbol": "DateOfDiagnosisAct",
+                "version": "0.9.0"
+              },
+              "enabled": true
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "label": "candid.essentials",
+            "description": "",
+            "keywords": []
+          },
+          "items": [
+            {
+              "metadata": {
+                "label": "V3EssentialsResponse_dates",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_candid_0.1.1.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "candid.essentials",
+                "packageName": "candid",
+                "symbol": "V3EssentialsResponse_dates",
+                "version": "0.1.1"
+              },
+              "enabled": true
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "label": "health.fhir.r5",
             "description": "",
             "keywords": []
           },
@@ -472,15 +472,15 @@
               "metadata": {
                 "label": "DateExtension",
                 "description": "",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_health.fhir.r4_6.0.0.png"
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_health.fhir.r5_1.0.0.png"
               },
               "codedata": {
                 "node": "TYPEDESC",
                 "org": "ballerinax",
-                "module": "health.fhir.r4",
-                "packageName": "health.fhir.r4",
+                "module": "health.fhir.r5",
+                "packageName": "health.fhir.r5",
                 "symbol": "DateExtension",
-                "version": "6.0.0"
+                "version": "1.0.0"
               },
               "enabled": true
             },
@@ -488,15 +488,15 @@
               "metadata": {
                 "label": "DateTimeExtension",
                 "description": "",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_health.fhir.r4_6.0.0.png"
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_health.fhir.r5_1.0.0.png"
               },
               "codedata": {
                 "node": "TYPEDESC",
                 "org": "ballerinax",
-                "module": "health.fhir.r4",
-                "packageName": "health.fhir.r4",
+                "module": "health.fhir.r5",
+                "packageName": "health.fhir.r5",
                 "symbol": "DateTimeExtension",
-                "version": "6.0.0"
+                "version": "1.0.0"
               },
               "enabled": true
             }
@@ -545,6 +545,31 @@
         },
         {
           "metadata": {
+            "label": "googleapis.people",
+            "description": "",
+            "keywords": []
+          },
+          "items": [
+            {
+              "metadata": {
+                "label": "Date",
+                "description": "Define a Date entity.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_googleapis.people_2.4.0.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "googleapis.people",
+                "packageName": "googleapis.people",
+                "symbol": "Date",
+                "version": "2.4.0"
+              },
+              "enabled": true
+            }
+          ]
+        },
+        {
+          "metadata": {
             "label": "whatsapp.business",
             "description": "",
             "keywords": []
@@ -579,31 +604,6 @@
                 "packageName": "whatsapp.business",
                 "symbol": "DateTimeUnixEpoch",
                 "version": "1.5.1"
-              },
-              "enabled": true
-            }
-          ]
-        },
-        {
-          "metadata": {
-            "label": "googleapis.people",
-            "description": "",
-            "keywords": []
-          },
-          "items": [
-            {
-              "metadata": {
-                "label": "Date",
-                "description": "Define a Date entity.\n",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_googleapis.people_2.4.0.png"
-              },
-              "codedata": {
-                "node": "TYPEDESC",
-                "org": "ballerinax",
-                "module": "googleapis.people",
-                "packageName": "googleapis.people",
-                "symbol": "Date",
-                "version": "2.4.0"
               },
               "enabled": true
             }
