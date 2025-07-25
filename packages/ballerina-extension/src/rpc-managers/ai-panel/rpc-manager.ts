@@ -25,11 +25,13 @@ import {
     AddToProjectRequest,
     BIModuleNodesRequest,
     BISourceCodeResponse,
+    CodeSegment,
     Command,
     DeleteFromProjectRequest,
     DeveloperDocument,
     DiagnosticEntry,
     Diagnostics,
+    ExpandedDMModel,
     FetchDataRequest,
     FetchDataResponse,
     GenerateCodeRequest,
@@ -42,7 +44,11 @@ import {
     GenerateTypesFromRecordResponse,
     GetFromFileRequest,
     GetModuleDirParams,
+    InlineAllDataMapperSourceRequest,
+    InlineDataMapperModelResponse,
     LLMDiagnostics,
+    MappingElement,
+    MetadataWithAttachments,
     NotifyAIMappingsRequest,
     OperationType,
     PostProcessRequest,
@@ -63,6 +69,8 @@ import {
     TestGenerationResponse,
     TestGeneratorIntermediaryState,
     TestPlanGenerationRequest,
+    TextEdit,
+    openInlineMappingChatWindow
 } from "@wso2/ballerina-core";
 import { STKindChecker, STNode } from "@wso2/syntax-tree";
 import * as crypto from 'crypto';
@@ -95,6 +103,7 @@ import { getAccessToken, getRefreshedAccessToken, loginGithubCopilot } from "../
 import { modifyFileContent, writeBallerinaFileDidOpen } from "../../utils/modification";
 import { updateSourceCode } from "../../utils/source-utils";
 import { PARSING_ERROR, UNKNOWN_ERROR } from "../../views/ai-panel/errorCodes";
+import { refreshDataMapper, updateAndRefreshDataMapper } from "../inline-data-mapper/utils";
 import {
     DEVELOPMENT_DOCUMENT,
     NATURAL_PROGRAMMING_DIR_NAME, REQUIREMENT_DOC_PREFIX,
@@ -102,6 +111,7 @@ import {
     REQUIREMENT_TEXT_DOCUMENT,
     REQ_KEY, TEST_DIR_NAME
 } from "./constants";
+import { processInlineMappings } from "./inline-utils";
 import { attemptRepairProject, checkProjectDiagnostics } from "./repair-utils";
 import { AIPanelAbortController, cleanDiagnosticMessages, handleStop, isErrorCode, requirementsSpecification, searchDocumentation } from "./utils";
 import { fetchData } from "./utils/fetch-data-utils";
@@ -205,6 +215,8 @@ export class AiPanelRpcManager implements AIPanelAPI {
 
         writeBallerinaFileDidOpen(balFilePath, req.content);
         updateView();
+        const datamapperMetadata = StateMachine.context().dataMapperMetadata;
+        await refreshDataMapper(balFilePath, datamapperMetadata.codeData, datamapperMetadata.name);
     }
 
     async getFromFile(req: GetFromFileRequest): Promise<string> {
@@ -354,6 +366,7 @@ export class AiPanelRpcManager implements AIPanelAPI {
         handleStop();
         return { userAborted: true };
     }
+
 
     async getShadowDiagnostics(project: ProjectSource): Promise<ProjectDiagnostics> {
         const environment = await setupProjectEnvironment(project);
@@ -777,6 +790,82 @@ export class AiPanelRpcManager implements AIPanelAPI {
 
     async abortAIGeneration(): Promise<void> {
         AIPanelAbortController.getInstance().abort();
+    }
+    
+    async openInlineMappingChatWindow(): Promise<void> {
+        try {
+            let filePath = StateMachine.context().documentUri;
+            const datamapperMetadata = StateMachine.context().dataMapperMetadata;
+            const dataMapperModel = await StateMachine
+                .langClient()
+                .getInlineDataMapperMappings({
+                    filePath,
+                    codedata: datamapperMetadata.codeData,
+                    position: {
+                        line: datamapperMetadata.codeData.lineRange.startLine.line,
+                        offset: datamapperMetadata.codeData.lineRange.startLine.offset
+                    }
+                }) as InlineDataMapperModelResponse;
+            commands.executeCommand("ballerina.close.ai.panel");
+            commands.executeCommand("ballerina.open.ai.panel", {
+                type: 'command-template',
+                command: Command.DataMap,
+                templateId: TemplateId.InlineMappings,
+                metadata: {
+                    ...datamapperMetadata,
+                    mappingsModel: dataMapperModel.mappingsModel as ExpandedDMModel
+                }
+            });
+        } catch (error) {
+            console.error("Failed to open AI chat window for inline mapping:", error);
+            throw error;
+        }
+    }
+
+    async getMappingsFromModel(params: MetadataWithAttachments): Promise<InlineAllDataMapperSourceRequest> {
+        let filePath = StateMachine.context().documentUri;
+        const file = params.attachment && params.attachment.length > 0
+            ? params.attachment[0]
+            : undefined;
+        const mappingElement = await processInlineMappings(params.metadata.mappingsModel as ExpandedDMModel, file);
+        const allMappingsRequest = {
+            filePath,
+            codedata: params.metadata.codeData,
+            varName: params.metadata.name,
+            position: {
+                line: params.metadata.codeData.lineRange.startLine.line,
+                offset: params.metadata.codeData.lineRange.startLine.offset
+            },
+            mappings: (mappingElement as MappingElement).mappings
+        };
+        return allMappingsRequest;
+    }
+
+    async addInlineCodeSegmentToWorkspace(params: CodeSegment): Promise<void> {
+        try {
+            let filePath = StateMachine.context().documentUri;
+            const datamapperMetadata = StateMachine.context().dataMapperMetadata;
+            const textEdit: TextEdit = {
+                newText: params.segmentText,
+                range: {
+                    start: {
+                        line: datamapperMetadata.codeData.lineRange.startLine.line,
+                        character: datamapperMetadata.codeData.lineRange.startLine.offset
+                    },
+                    end: {
+                        line: datamapperMetadata.codeData.lineRange.endLine.line,
+                        character: datamapperMetadata.codeData.lineRange.endLine.offset
+                    }
+                }
+            };
+            const allTextEdits: { [key: string]: TextEdit[] } = {
+                [filePath]: [textEdit]
+            };
+            await updateAndRefreshDataMapper(allTextEdits, filePath, datamapperMetadata.codeData, datamapperMetadata.name);
+        } catch (error) {
+            console.error(">>> Failed to add inline code segment to the workspace", error);
+            throw error;
+        }
     }
 }
 

@@ -69,6 +69,7 @@ import { AIAgentDesigner } from "./views/BI/AIChatAgent";
 import { AIChatAgentWizard } from "./views/BI/AIChatAgent/AIChatAgentWizard";
 import { BallerinaUpdateView } from "./views/BI/BallerinaUpdateView";
 import { VSCodeProgressRing } from "@vscode/webview-ui-toolkit/react";
+import { InlineDataMapper } from "./views/InlineDataMapper";
 
 const globalStyles = css`
     *,
@@ -188,7 +189,7 @@ const MainPanel = () => {
 
     rpcClient?.onBreakpointChanges((state: boolean) => {
         setBreakpointState(pre => {
-                return !pre;
+            return !pre;
         });
         console.log("Breakpoint changes");
     });
@@ -237,8 +238,9 @@ const MainPanel = () => {
 
     const fetchContext = () => {
         setNavActive(true);
-        rpcClient.getVisualizerLocation().then((value) => {
-            let defaultFunctionsFile = Utils.joinPath(URI.file(value.projectUri), 'functions.bal').fsPath;
+        rpcClient.getVisualizerLocation().then(async (value) => {
+            const configFilePath = await rpcClient.getVisualizerRpcClient().joinProjectPath('config.bal');
+            let defaultFunctionsFile = await rpcClient.getVisualizerRpcClient().joinProjectPath('functions.bal');
             if (value.documentUri) {
                 defaultFunctionsFile = value.documentUri
             }
@@ -323,6 +325,15 @@ const MainPanel = () => {
                                 model={value?.syntaxTree as FunctionDefinition}
                                 functionName={value?.identifier}
                                 applyModifications={applyModifications}
+                            />
+                        );
+                        break;
+                    case MACHINE_VIEW.InlineDataMapper:
+                        setViewComponent(
+                            <InlineDataMapper
+                                filePath={value.documentUri}
+                                codedata={value?.dataMapperMetadata?.codeData}
+                                varName={value?.dataMapperMetadata?.name}
                             />
                         );
                         break;
@@ -428,22 +439,22 @@ const MainPanel = () => {
                         break;
                     case MACHINE_VIEW.ViewConfigVariables:
                         setViewComponent(
-                                <ViewConfigurableVariables
-                                    fileName={Utils.joinPath(URI.file(value.projectUri), 'config.bal').fsPath}
-                                    org={value?.org}
-                                    package={value?.package}
-                                />
-                            );
+                            <ViewConfigurableVariables
+                                fileName={configFilePath}
+                                org={value?.org}
+                                package={value?.package}
+                            />
+                        );
                         break;
                     case MACHINE_VIEW.AddConfigVariables:
                         setViewComponent(
-                                <ViewConfigurableVariables
-                                    fileName={Utils.joinPath(URI.file(value.projectUri), 'config.bal').fsPath}
-                                    org={value?.org}
-                                    package={value?.package}
-                                    addNew={true}
-                                />
-                            );
+                            <ViewConfigurableVariables
+                                fileName={configFilePath}
+                                org={value?.org}
+                                package={value?.package}
+                                addNew={true}
+                            />
+                        );
                         break;
                     default:
                         setNavActive(false);
