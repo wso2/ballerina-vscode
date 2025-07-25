@@ -78,7 +78,8 @@ export function InlineDataMapperView(props: InlineDataMapperProps) {
     const prevCompletionFetchText = useRef<string>("");
     const [filteredCompletions, setFilteredCompletions] = useState<CompletionItem[]>([]);
     const expressionOffsetRef = useRef<number>(0); // To track the expression offset on adding import statements
-    
+    const [isUpdatingSource ,setIsUpdatingSource] = useState<boolean>(false);
+
     // Keep track of previous inputs/outputs and sub mappings for comparison
     const prevSignatureRef = useRef<string>(null);
 
@@ -136,7 +137,7 @@ export function InlineDataMapperView(props: InlineDataMapperProps) {
             setModelState(prev => ({
                 model: {
                     ...prev.model!,
-                   mappings: (model as DMModel).mappings
+                    mappings: (model as DMModel).mappings
                 }
             }));
         }
@@ -170,6 +171,12 @@ export function InlineDataMapperView(props: InlineDataMapperProps) {
         }
     };
 
+    const updateExprFromExprBar = async (outputId: string, expression: string, viewId: string, name: string) => {
+        setIsUpdatingSource(true);
+        await updateExpression(outputId, expression, viewId, name);
+        setIsUpdatingSource(false);
+    }
+
     const addArrayElement = async (outputId: string, viewId: string, name: string) => {
         try {
             const addElementRequest: AddArrayElementRequest = {
@@ -199,7 +206,7 @@ export function InlineDataMapperView(props: InlineDataMapperProps) {
                     view: viewId
                 });
             console.log(">>> [Inline Data Mapper] getSubMappingCodedata response:", resp);
-            setViewState({viewId, codedata: resp.codedata, isSubMapping: true});
+            setViewState({ viewId, codedata: resp.codedata, isSubMapping: true });
         } else {
             if (viewState.isSubMapping) {
                 // If the view is a sub mapping, we need to get the codedata of the parent mapping
@@ -210,7 +217,7 @@ export function InlineDataMapperView(props: InlineDataMapperProps) {
                         codedata: viewState.codedata,
                         name: viewId
                     });
-                setViewState({viewId, codedata: res.codedata, isSubMapping: false});
+                setViewState({ viewId, codedata: res.codedata, isSubMapping: false });
             } else {
                 setViewState(prev => ({
                     ...prev,
@@ -250,7 +257,7 @@ export function InlineDataMapperView(props: InlineDataMapperProps) {
         }
     }
 
-    const addClauses = async (clause: IntermediateClause, targetField: string, isNew: boolean, index?:number) => {
+    const addClauses = async (clause: IntermediateClause, targetField: string, isNew: boolean, index?: number) => {
         try {
             const addClausesRequest: AddClausesRequest = {
                 filePath,
@@ -302,7 +309,7 @@ export function InlineDataMapperView(props: InlineDataMapperProps) {
                 varName,
                 defaultValue
             );
-            
+
             console.log(">>> [Inline Data Mapper] addSubMapping request:", request);
 
             const response = await rpcClient
@@ -353,11 +360,7 @@ export function InlineDataMapperView(props: InlineDataMapperProps) {
     };
 
     const goToFunction = async (functionRange: LineRange) => {
-        const visualizerLocation = await rpcClient.getVisualizerLocation();
-        const documentUri: string = Utils.joinPath(
-            URI.file(visualizerLocation.projectUri),
-            functionRange.fileName
-        ).fsPath;
+        const documentUri: string = await rpcClient.getVisualizerRpcClient().joinProjectPath(functionRange.fileName);
         const position: NodePosition = {
             startLine: functionRange.startLine.line,
             startColumn: functionRange.startLine.offset,
@@ -375,7 +378,7 @@ export function InlineDataMapperView(props: InlineDataMapperProps) {
             throw new Error("Error while fetching input/output types");
         } else if (isFileUpdateError) {
             throw new Error("Error while updating file content");
-        } 
+        }
     }, [isError]);
 
     const retrieveCompeletions = useCallback(
@@ -390,9 +393,9 @@ export function InlineDataMapperView(props: InlineDataMapperProps) {
                 expressionCompletions = completions
                     .filter((completion) => {
                         const lowerCaseText = currentContent.toLowerCase();
-                        const lowerCaseLabel = completion.label.toLowerCase();
+                        const lowerCaseLabel = completion.value.toLowerCase();
 
-                        return lowerCaseLabel.includes(lowerCaseText);
+                        return lowerCaseText !== lowerCaseLabel && lowerCaseLabel.startsWith(lowerCaseText);
                     })
                     .sort((a, b) => a.sortText.localeCompare(b.sortText));
             } else {
@@ -437,15 +440,15 @@ export function InlineDataMapperView(props: InlineDataMapperProps) {
                     expressionCompletions = convertedCompletions
                         .filter((completion) => {
                             const lowerCaseText = currentContent.toLowerCase();
-                            const lowerCaseLabel = completion.label.toLowerCase();
+                            const lowerCaseLabel = completion.value.toLowerCase();
 
-                            return lowerCaseLabel.includes(lowerCaseText);
+                            return lowerCaseText !== lowerCaseLabel && lowerCaseLabel.startsWith(lowerCaseText);
                         })
                         .sort((a, b) => a.sortText.localeCompare(b.sortText));
                 }
                 prevCompletionFetchText.current = parentContent ?? "";
-                setFilteredCompletions(expressionCompletions);
             }
+            setFilteredCompletions(expressionCompletions);
         }, 150),
         [filePath, codedata, varName, completions]
     );
@@ -463,13 +466,13 @@ export function InlineDataMapperView(props: InlineDataMapperProps) {
     return (
         <>
             {isFetching && (
-                 <ProgressIndicator /> 
+                <ProgressIndicator />
             )}
             {modelState.model && (
-                <DataMapperView 
+                <DataMapperView
                     modelState={modelState}
                     name={varName}
-                    onClose={onClose} 
+                    onClose={onClose}
                     applyModifications={updateExpression}
                     addArrayElement={addArrayElement}
                     handleView={handleView}
@@ -482,9 +485,10 @@ export function InlineDataMapperView(props: InlineDataMapperProps) {
                     goToFunction={goToFunction}
                     expressionBar={{
                         completions: filteredCompletions,
+                        isUpdatingSource,
                         triggerCompletions: retrieveCompeletions,
                         onCompletionSelect: handleCompletionSelect,
-                        onSave: updateExpression,
+                        onSave: updateExprFromExprBar,
                         onCancel: handleExpressionCancel,
                     }}
                 />

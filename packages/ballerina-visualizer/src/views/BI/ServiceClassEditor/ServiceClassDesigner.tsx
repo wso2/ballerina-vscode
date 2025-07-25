@@ -107,6 +107,7 @@ export function ServiceClassDesigner(props: ServiceClassDesignerProps) {
     const [isNew, setIsNew] = useState<boolean>(false);
     const [isSaving, setIsSaving] = useState<boolean>(false);
     const [anchorEl, setAnchorEl] = useState<HTMLElement | SVGSVGElement | null>(null);
+    const [serviceClassFilePath, setServiceClassFilePath] = useState<string>("");
 
     useEffect(() => {
         getServiceClassModel();
@@ -148,7 +149,7 @@ export function ServiceClassDesigner(props: ServiceClassDesignerProps) {
 
     const getServiceClassModel = async () => {
         if (!type) return;
-        const currentFilePath = Utils.joinPath(URI.file(projectUri), type.codedata.lineRange.fileName).fsPath;
+        const currentFilePath = await rpcClient.getVisualizerRpcClient().joinProjectPath(type.codedata.lineRange.fileName);
         const serviceClassModelRequest: ModelFromCodeRequest = {
             filePath: currentFilePath,
             codedata: {
@@ -161,7 +162,9 @@ export function ServiceClassDesigner(props: ServiceClassDesignerProps) {
         }
 
         const serviceClassModelResponse = await rpcClient.getBIDiagramRpcClient().getServiceClassModel(serviceClassModelRequest);
+        const serviceClassFilePath = await rpcClient.getVisualizerRpcClient().joinProjectPath(serviceClassModelResponse.model.codedata.lineRange.fileName);
         setServiceClassModel(serviceClassModelResponse.model);
+        setServiceClassFilePath(serviceClassFilePath);
     }
 
     const handleEditFunction = (func: FunctionModel) => {
@@ -177,14 +180,14 @@ export function ServiceClassDesigner(props: ServiceClassDesignerProps) {
             endColumn: func?.codedata?.lineRange?.endLine?.offset
         }
         const deleteAction: STModification = removeStatement(targetPosition);
-        const currentFilePath = Utils.joinPath(URI.file(projectUri), type.codedata.lineRange.fileName).fsPath;
+        const currentFilePath = await rpcClient.getVisualizerRpcClient().joinProjectPath(type.codedata.lineRange.fileName);
         await applyModifications(rpcClient, [deleteAction], currentFilePath);
         getServiceClassModel();
     }
 
     const onFunctionImplement = async (func: FunctionModel) => {
         const lineRange: LineRange = func.codedata.lineRange;
-        const currentFilePath = Utils.joinPath(URI.file(projectUri), type.codedata.lineRange.fileName).fsPath;
+        const currentFilePath = await rpcClient.getVisualizerRpcClient().joinProjectPath(type.codedata.lineRange.fileName);
         const nodePosition: NodePosition = { startLine: lineRange.startLine.line, startColumn: lineRange.startLine.offset, endLine: lineRange.endLine.line, endColumn: lineRange.endLine.offset }
         await rpcClient.getVisualizerRpcClient().openView({ type: EVENT_TYPE.OPEN_VIEW, location: { position: nodePosition, documentUri: currentFilePath } })
     }
@@ -193,7 +196,7 @@ export function ServiceClassDesigner(props: ServiceClassDesignerProps) {
         setIsSaving(true);
         try {
             let lsResponse;
-            const currentFilePath = Utils.joinPath(URI.file(projectUri), serviceClassModel.codedata.lineRange.fileName).fsPath;
+            const currentFilePath = await rpcClient.getVisualizerRpcClient().joinProjectPath(serviceClassModel.codedata.lineRange.fileName);
             if (isNew) {
                 lsResponse = await rpcClient.getServiceDesignerRpcClient().addFunctionSourceCode({
                     filePath: currentFilePath,
@@ -236,7 +239,7 @@ export function ServiceClassDesigner(props: ServiceClassDesignerProps) {
     const handleVariableSave = async (updatedVariable: FieldType) => {
         setIsSaving(true);
         try {
-            const currentFilePath = Utils.joinPath(URI.file(projectUri), serviceClassModel.codedata.lineRange.fileName).fsPath;
+            const currentFilePath = await rpcClient.getVisualizerRpcClient().joinProjectPath(serviceClassModel.codedata.lineRange.fileName);
             if (isNew) {
                 const lsResponse = await rpcClient.getBIDiagramRpcClient().addClassField({
                     filePath: currentFilePath,
@@ -375,7 +378,7 @@ export function ServiceClassDesigner(props: ServiceClassDesignerProps) {
             endColumn: variable?.codedata.lineRange?.endLine?.offset
         }
         const deleteAction: STModification = removeStatement(targetPosition);
-        const currentFilePath = Utils.joinPath(URI.file(projectUri), type.codedata.lineRange.fileName).fsPath;
+        const currentFilePath = await rpcClient.getVisualizerRpcClient().joinProjectPath(type.codedata.lineRange.fileName);
         await applyModifications(rpcClient, [deleteAction], currentFilePath);
         getServiceClassModel();
     }
@@ -417,13 +420,14 @@ export function ServiceClassDesigner(props: ServiceClassDesignerProps) {
             endLine: lineRange.endLine.line,
             endColumn: lineRange.endLine.offset,
         };
+        const currentFilePath = await rpcClient.getVisualizerRpcClient().joinProjectPath(type.codedata.lineRange.fileName);
         await rpcClient
             .getVisualizerRpcClient()
             .openView({
                 type: EVENT_TYPE.OPEN_VIEW,
                 location: {
                     position: nodePosition,
-                    documentUri: Utils.joinPath(URI.file(projectUri), type.codedata.lineRange.fileName).fsPath
+                    documentUri: currentFilePath
                 }
             });
     };
@@ -592,7 +596,7 @@ export function ServiceClassDesigner(props: ServiceClassDesignerProps) {
                     >
                         <OperationForm
                             model={editingFunction}
-                            filePath={Utils.joinPath(URI.file(projectUri), serviceClassModel.codedata.lineRange.fileName).fsPath}
+                            filePath={serviceClassFilePath}
                             lineRange={serviceClassModel.codedata.lineRange}
                             isGraphqlView={isGraphql}
                             isSaving={isSaving}
@@ -612,7 +616,7 @@ export function ServiceClassDesigner(props: ServiceClassDesignerProps) {
                     >
                         <VariableForm
                             model={editingVariable}
-                            filePath={Utils.joinPath(URI.file(projectUri), serviceClassModel.codedata.lineRange.fileName).fsPath}
+                            filePath={serviceClassFilePath}
                             lineRange={serviceClassModel.codedata.lineRange}
                             onClose={handleCloseVariableForm}
                             isSaving={isSaving}
