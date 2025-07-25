@@ -827,7 +827,8 @@ public class DataMapManager {
             } else if (type instanceof PrimitiveType) {
                 return new MappingPort(id, type.getName(), type.getTypeName(), type.getTypeName(), type.optional);
             } else if (type instanceof ConstType) {
-                return new MappingPort(type.getName(), type.getName(), type.getTypeName(), type.getTypeName(), type.optional);
+                return new MappingPort(type.getName(), type.getName(), type.getTypeName(), type.getTypeName(),
+                        type.optional);
             } else if (type.getTypeName().equals("array")) {
                 ArrayType arrayType = (ArrayType) type;
                 MappingPort memberPort = getMappingPort(isInputPort ? id + ".0" : id, getItemName(name),
