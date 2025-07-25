@@ -93,6 +93,7 @@ public class CommonUtils {
     private static final String CENTRAL_ICON_URL = "https://bcentral-packageicons.azureedge.net/images/%s_%s_%s.png";
     private static final Pattern FULLY_QUALIFIED_MODULE_ID_PATTERN =
             Pattern.compile("(\\w+)/([\\w.]+):([^:]+):(\\w+)[|]?");
+    private static final String VECTOR_KNOWLEDGE_BASE_TYPE_NAME = "VectorKnowledgeBase";
     public static final String BALLERINA_ORG_NAME = "ballerina";
     public static final String BALLERINAX_ORG_NAME = "ballerinax";
     public static final String LANG_LIB_PREFIX = "lang.";
@@ -921,8 +922,8 @@ public class CommonUtils {
      * Checks whether the given import exists in the given blangPackage.
      *
      * @param blangPackage blangPackage
-     * @param org    organization name
-     * @param module module name
+     * @param org          organization name
+     * @param module       module name
      * @return true if the import exists, false otherwise
      */
     public static boolean importExists(BLangPackage blangPackage, String org, String module) {
@@ -952,5 +953,11 @@ public class CommonUtils {
         }
 
         return symbol.getName().isPresent() && symbol.getName().get().equals(AGENT);
+    }
+
+    public static boolean isAiVectorKnowledgeBase(Symbol symbol) {
+        Optional<ModuleSymbol> module = symbol.getModule();
+        return module.isPresent() && isAiModule(module.get().id().orgName(), module.get().id().packageName())
+                && symbol.getName().isPresent() && symbol.getName().get().equals(VECTOR_KNOWLEDGE_BASE_TYPE_NAME);
     }
 }

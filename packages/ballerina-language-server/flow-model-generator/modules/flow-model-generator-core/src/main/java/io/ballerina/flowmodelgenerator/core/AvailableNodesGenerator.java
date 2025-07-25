@@ -378,7 +378,9 @@ public class AvailableNodesGenerator {
                     FunctionData.Kind kind = methodFunction.kind();
                     if (kind == FunctionData.Kind.REMOTE) {
                         nodeBuilder = NodeBuilder.getNodeFromKind(NodeKind.REMOTE_ACTION_CALL);
-                    } else if (kind == FunctionData.Kind.FUNCTION) {
+                    } else if (kind == FunctionData.Kind.FUNCTION && isAiKnowledgeBase(classSymbol)) {
+                        nodeBuilder = NodeBuilder.getNodeFromKind(NodeKind.VECTOR_KNOWLEDGE_BASE_CALL);
+                    } else  if (kind == FunctionData.Kind.FUNCTION) {
                         nodeBuilder = NodeBuilder.getNodeFromKind(NodeKind.METHOD_CALL);
                     } else {
                         throw new IllegalStateException("Unexpected value: " + kind);

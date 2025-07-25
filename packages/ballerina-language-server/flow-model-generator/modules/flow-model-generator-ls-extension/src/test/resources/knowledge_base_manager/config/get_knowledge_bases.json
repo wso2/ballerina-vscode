@@ -17,16 +17,16 @@
                 "metadata": {
                   "label": "ingest",
                   "description": "Indexes a collection of chunks.\nConverts each chunk to an embedding and stores it in the vector store,\nmaking the chunk searchable through the retriever.\n",
-                  "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.1.0.png"
+                  "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.1.1.png"
                 },
                 "codedata": {
-                  "node": "METHOD_CALL",
+                  "node": "VECTOR_KNOWLEDGE_BASE_CALL",
                   "org": "ballerina",
                   "module": "ai",
                   "packageName": "ai",
                   "object": "VectorKnowledgeBase",
                   "symbol": "ingest",
-                  "version": "1.1.0",
+                  "version": "1.1.1",
                   "parentSymbol": "vectorKnowledgeBase",
                   "resourcePath": ""
                 },
@@ -36,16 +36,16 @@
                 "metadata": {
                   "label": "retrieve",
                   "description": "Retrieves relevant chunk for the given query.\n",
-                  "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.1.0.png"
+                  "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.1.1.png"
                 },
                 "codedata": {
-                  "node": "METHOD_CALL",
+                  "node": "VECTOR_KNOWLEDGE_BASE_CALL",
                   "org": "ballerina",
                   "module": "ai",
                   "packageName": "ai",
                   "object": "VectorKnowledgeBase",
                   "symbol": "retrieve",
-                  "version": "1.1.0",
+                  "version": "1.1.1",
                   "parentSymbol": "vectorKnowledgeBase",
                   "resourcePath": ""
                 },
