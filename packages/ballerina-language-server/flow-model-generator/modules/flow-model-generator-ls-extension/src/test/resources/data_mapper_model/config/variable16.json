@@ -25,8 +25,9 @@
     "inputs": [
       {
         "id": "CONST",
-        "typeName": "CONST",
-        "kind": "CONST",
+        "variableName": "CONST",
+        "typeName": "string",
+        "kind": "string",
         "category": "constant"
       },
       {

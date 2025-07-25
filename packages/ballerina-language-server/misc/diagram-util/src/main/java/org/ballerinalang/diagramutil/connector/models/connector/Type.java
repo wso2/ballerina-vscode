@@ -21,6 +21,7 @@ import com.google.gson.annotations.Expose;
 import io.ballerina.compiler.api.ModuleID;
 import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.compiler.api.symbols.ArrayTypeSymbol;
+import io.ballerina.compiler.api.symbols.ConstantSymbol;
 import io.ballerina.compiler.api.symbols.Documentation;
 import io.ballerina.compiler.api.symbols.EnumSymbol;
 import io.ballerina.compiler.api.symbols.ErrorTypeSymbol;
@@ -54,6 +55,7 @@ import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.compiler.syntax.tree.TableTypeDescriptorNode;
 import io.ballerina.compiler.syntax.tree.UnionTypeDescriptorNode;
 import org.ballerinalang.diagramutil.connector.models.connector.types.ArrayType;
+import org.ballerinalang.diagramutil.connector.models.connector.types.ConstType;
 import org.ballerinalang.diagramutil.connector.models.connector.types.EnumType;
 import org.ballerinalang.diagramutil.connector.models.connector.types.ErrorType;
 import org.ballerinalang.diagramutil.connector.models.connector.types.InclusionType;
@@ -374,6 +376,11 @@ public class Type {
                 type.defaultable = parameterSymbol.paramKind() == ParameterKind.DEFAULTABLE;
             }
         } else if (symbol instanceof VariableSymbol variableSymbol) {
+            if (variableSymbol.kind() == SymbolKind.CONSTANT) {
+                String name = variableSymbol.getName().orElse(null);
+                type = new ConstType(name, ((ConstantSymbol) (variableSymbol)).broaderTypeDescriptor().signature());
+                return type;
+            }
             type = fromSemanticSymbol(variableSymbol.typeDescriptor(), documentationMap, semanticModel);
         } else if (symbol instanceof TypeSymbol typeSymbol) {
             String typeName = typeSymbol.signature();
