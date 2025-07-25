@@ -393,9 +393,9 @@ export function InlineDataMapperView(props: InlineDataMapperProps) {
                 expressionCompletions = completions
                     .filter((completion) => {
                         const lowerCaseText = currentContent.toLowerCase();
-                        const lowerCaseLabel = completion.label.toLowerCase();
+                        const lowerCaseLabel = completion.value.toLowerCase();
 
-                        return lowerCaseLabel.includes(lowerCaseText);
+                        return lowerCaseText !== lowerCaseLabel && lowerCaseLabel.startsWith(lowerCaseText);
                     })
                     .sort((a, b) => a.sortText.localeCompare(b.sortText));
             } else {
@@ -440,15 +440,15 @@ export function InlineDataMapperView(props: InlineDataMapperProps) {
                     expressionCompletions = convertedCompletions
                         .filter((completion) => {
                             const lowerCaseText = currentContent.toLowerCase();
-                            const lowerCaseLabel = completion.label.toLowerCase();
+                            const lowerCaseLabel = completion.value.toLowerCase();
 
-                            return lowerCaseLabel.includes(lowerCaseText);
+                            return lowerCaseText !== lowerCaseLabel && lowerCaseLabel.startsWith(lowerCaseText);
                         })
                         .sort((a, b) => a.sortText.localeCompare(b.sortText));
                 }
                 prevCompletionFetchText.current = parentContent ?? "";
-                setFilteredCompletions(expressionCompletions);
             }
+            setFilteredCompletions(expressionCompletions);
         }, 150),
         [filePath, codedata, varName, completions]
     );
