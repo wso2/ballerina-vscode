@@ -247,15 +247,7 @@ public class NPFunctionDefinitionBuilder extends FunctionDefinitionBuilder {
             sourceBuilder.token().keyword(SyntaxKind.RETURNS_KEYWORD).name("error?");
         }
 
-        String modelVarReference = String.format("_%sModel", functionName);  // extract the model name
-        if (!isModelProviderAsParameter) {
-            Optional<Property> modelProviderProperty =
-                    sourceBuilder.getProperty(NaturalFunctions.MODEL_PROVIDER);
-            modelVarReference = modelProviderProperty.isPresent() &&
-                    !modelProviderProperty.get().value().toString().isBlank()
-                    ? modelProviderProperty.get().value().toString()
-                    : modelVarReference;
-        }
+        String modelVarReference = getModelVariableReference(sourceBuilder, functionName, isModelProviderAsParameter);
 
         // Write the natural function expression body
         Optional<Property> promptProperty = sourceBuilder.getProperty(NaturalFunctions.PROMPT);
@@ -263,10 +255,7 @@ public class NPFunctionDefinitionBuilder extends FunctionDefinitionBuilder {
         String naturalExprTemplate = "natural (%s) {%n" +
                 "%s" +
                 "%n}";
-        String naturalExpr = naturalExprTemplate.formatted(
-                isModelProviderAsParameter ? "model" : modelVarReference,
-                promptValue
-        );
+        String naturalExpr = naturalExprTemplate.formatted(modelVarReference, promptValue);
         sourceBuilder.token()
                 .rightDoubleArrowToken()
                 .name(naturalExpr)
@@ -284,5 +273,22 @@ public class NPFunctionDefinitionBuilder extends FunctionDefinitionBuilder {
             sourceBuilder.textEdit();
         }
         return sourceBuilder.build();
+    }
+
+    private String getModelVariableReference(SourceBuilder sourceBuilder,
+                                             String functionName,
+                                             boolean isModelProviderAsParameter) {
+        if (isModelProviderAsParameter) {
+            return NaturalFunctions.MODEL;
+        }
+        String inferredModelVarRefName = String.format("_%sModel", functionName);
+        Optional<Property> optModelProviderProperty = sourceBuilder.getProperty(NaturalFunctions.MODEL_PROVIDER);
+        if (optModelProviderProperty.isEmpty()) {
+            return inferredModelVarRefName;
+        }
+        Property modelProviderProperty = optModelProviderProperty.get();
+        return modelProviderProperty.value() != null && !modelProviderProperty.value().toString().isBlank()
+                ? modelProviderProperty.value().toString()
+                : inferredModelVarRefName;
     }
 }
