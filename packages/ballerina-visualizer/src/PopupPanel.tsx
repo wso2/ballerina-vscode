@@ -94,8 +94,8 @@ const PopupPanel = (props: PopupPanelProps) => {
                     break;
                 case MACHINE_VIEW.BIFunctionForm:
                     setIsFullScreen(true);
-                    rpcClient.getVisualizerLocation().then((location) => {
-                        const defaultFunctionsFile = Utils.joinPath(URI.file(location.projectUri), 'functions.bal').fsPath;
+                    rpcClient.getVisualizerLocation().then(async (location) => {
+                        const defaultFunctionsFile = await rpcClient.getVisualizerRpcClient().joinProjectPath('functions.bal');
                         setViewComponent(<FunctionForm
                             projectPath={location.projectUri}
                             filePath={defaultFunctionsFile}
@@ -106,8 +106,8 @@ const PopupPanel = (props: PopupPanelProps) => {
                     break;
                 case MACHINE_VIEW.BIDataMapperForm:
                     setIsFullScreen(true);
-                    rpcClient.getVisualizerLocation().then((location) => {
-                        const defaultFunctionsFile = Utils.joinPath(URI.file(location.projectUri), 'data_mappings.bal').fsPath;
+                    rpcClient.getVisualizerLocation().then(async (location) => {
+                        const defaultFunctionsFile = await rpcClient.getVisualizerRpcClient().joinProjectPath('data_mappings.bal');
                         setViewComponent(
                             <FunctionForm
                                 projectPath={location.projectUri}
@@ -121,8 +121,8 @@ const PopupPanel = (props: PopupPanelProps) => {
                     break;
                 case MACHINE_VIEW.BINPFunctionForm:
                     setIsFullScreen(true);
-                    rpcClient.getVisualizerLocation().then((location) => {
-                        const defaultFunctionsFile = Utils.joinPath(URI.file(location.projectUri), 'functions.bal').fsPath;
+                    rpcClient.getVisualizerLocation().then(async (location) => {
+                        const defaultFunctionsFile = await rpcClient.getVisualizerRpcClient().joinProjectPath('functions.bal');
                         setViewComponent(
                             <FunctionForm
                                 projectPath={location.projectUri}
