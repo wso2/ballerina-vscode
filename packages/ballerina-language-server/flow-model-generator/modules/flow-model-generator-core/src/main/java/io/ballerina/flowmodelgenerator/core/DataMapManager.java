@@ -100,6 +100,7 @@ import org.ballerinalang.diagramutil.connector.models.connector.Type;
 import org.ballerinalang.diagramutil.connector.models.connector.TypeInfo;
 import org.ballerinalang.diagramutil.connector.models.connector.types.ArrayType;
 import org.ballerinalang.diagramutil.connector.models.connector.types.EnumType;
+import org.ballerinalang.diagramutil.connector.models.connector.types.ConstType;
 import org.ballerinalang.diagramutil.connector.models.connector.types.PrimitiveType;
 import org.ballerinalang.diagramutil.connector.models.connector.types.RecordType;
 import org.ballerinalang.diagramutil.connector.models.connector.types.UnionType;
@@ -825,6 +826,8 @@ public class DataMapManager {
                 return recordPort;
             } else if (type instanceof PrimitiveType) {
                 return new MappingPort(id, type.getName(), type.getTypeName(), type.getTypeName());
+            } else if (type instanceof ConstType) {
+                return new MappingPort(type.getName(), type.getName(), type.getTypeName(), type.getTypeName());
             } else if (type.getTypeName().equals("array")) {
                 ArrayType arrayType = (ArrayType) type;
                 MappingPort memberPort = getMappingPort(isInputPort ? id + ".0" : id, getItemName(name),
