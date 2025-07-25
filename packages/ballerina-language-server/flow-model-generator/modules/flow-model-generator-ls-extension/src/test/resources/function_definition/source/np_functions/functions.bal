@@ -1,6 +1,9 @@
 import ballerina/ai;
+import ballerinax/ai.openai;
 
-function suggestMovieName(string genre, int n) returns string|error => natural(check ai:getDefaultModelProvider()) {
+final ai:Wso2ModelProvider _suggestMovieNameModel = check ai:getDefaultModelProvider();
+
+function suggestMovieName(string genre, int n) returns string|error => natural (_suggestMovieNameModel) {
     **Assumption**
     Think yourself as a movie expert
 
@@ -9,7 +12,9 @@ function suggestMovieName(string genre, int n) returns string|error => natural(c
     ${genre}
 };
 
-function rateMovie(string movieName) returns int|error => natural(check ai:getDefaultModelProvider()) {
+final openai:ModelProvider _rateMovieModel = check new ("", openai:GPT_4_TURBO_2024_04_09);
+
+function rateMovie(string movieName) returns int|error => natural (_rateMovieModel) {
     **Assumption**
     Think yourself as a movie expert
 
@@ -17,7 +22,7 @@ function rateMovie(string movieName) returns int|error => natural(check ai:getDe
     Give rating for the movie ${movieName} out of 10 based on your opinion
 };
 
-function summarizeBlog(Blog blog) returns Summary|error => natural(check ai:getDefaultModelProvider()) {
+function summarizeBlog(ai:ModelProvider model, Blog blog) returns Summary|error => natural (model) {
     Think yourself as a blog reviewer and summerize the following blog
 
     **title**
@@ -30,5 +35,4 @@ function summarizeBlog(Blog blog) returns Summary|error => natural(check ai:getD
 function cleanCode() returns string {
     return "cleaned";
 }
-
 
