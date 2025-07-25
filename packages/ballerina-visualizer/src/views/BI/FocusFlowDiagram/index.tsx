@@ -540,6 +540,7 @@ export function BIFocusFlowDiagram(props: BIFocusFlowDiagramProps) {
     const handleCloseModelConfigPanel = () => {
         setShowModelConfigPanel(false);
         setSelectedNodeForModelConfig(undefined);
+        debouncedGetFlowModel();
     };
 
     const memoizedDiagramProps = useMemo(
