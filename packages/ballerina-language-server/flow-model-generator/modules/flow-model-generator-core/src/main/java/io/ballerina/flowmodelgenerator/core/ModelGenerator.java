@@ -322,7 +322,7 @@ public class ModelGenerator {
             }
         }
         try {
-            TypeSymbol typeDescriptorSymbol = ((TypeReferenceTypeSymbol) typeSymbol).typeDescriptor();
+            TypeSymbol typeDescriptorSymbol = CommonUtils.getRawType(typeSymbol);
             if (isClassOrObject(typeDescriptorSymbol)) {
                 return Optional.empty();
             }
