@@ -10,7 +10,7 @@
     "org": "ballerinax",
     "module": "ai.openai",
     "packageName": "ai.openai",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "object": "ModelProvider",
     "symbol": "init"
   },
@@ -19,7 +19,7 @@
     "metadata": {
       "label": "Class",
       "description": "Initializes the OpenAI model with the given connection configuration and model configuration.\n",
-      "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_ai.openai_1.0.0.png"
+      "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_ai.openai_1.1.0.png"
     },
     "codedata": {
       "node": "CLASS_INIT",
@@ -28,7 +28,7 @@
       "packageName": "ai.openai",
       "object": "ModelProvider",
       "symbol": "init",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "isNew": true
     },
     "returning": false,
@@ -64,8 +64,36 @@
           "label": "Model Type",
           "description": "The OpenAI model name"
         },
-        "valueType": "EXPRESSION",
-        "valueTypeConstraint": "openai:OPEN_AI_MODEL_NAMES",
+        "valueType": "SINGLE_SELECT",
+        "valueTypeConstraint": [
+          "\"chatgpt-4o-latest\"",
+          "\"gpt-4.1-nano-2025-04-14\"",
+          "\"gpt-4.1-nano\"",
+          "\"gpt-4.1-mini\"",
+          "\"gpt-4.1-mini-2025-04-14\"",
+          "\"gpt-4.1\"",
+          "\"gpt-4.1-2025-04-14\"",
+          "\"gpt-3.5-turbo-0125\"",
+          "\"gpt-3.5-turbo-1106\"",
+          "\"gpt-3.5-turbo-16k\"",
+          "\"gpt-3.5-turbo\"",
+          "\"o1-pro\"",
+          "\"o1-pro-2025-03-19\"",
+          "\"o1-2024-12-17\"",
+          "\"o1\"",
+          "\"gpt-4-0613\"",
+          "\"gpt-4-1106-preview\"",
+          "\"gpt-4-turbo-preview\"",
+          "\"gpt-4-0125-preview\"",
+          "\"gpt-4-turbo-2024-04-09\"",
+          "\"gpt-4-turbo\"",
+          "\"gpt-4o-mini-2024-07-18\"",
+          "\"gpt-4o-mini\"",
+          "\"gpt-4o-2024-05-13\"",
+          "\"gpt-4o-2024-08-06\"",
+          "\"gpt-4o-2024-11-20\"",
+          "\"gpt-4o\""
+        ],
         "placeholder": "\"chatgpt-4o-latest\"",
         "optional": false,
         "editable": true,
@@ -78,7 +106,7 @@
         "typeMembers": [
           {
             "type": "OPEN_AI_MODEL_NAMES",
-            "packageInfo": "ballerinax:ai.openai:1.0.0",
+            "packageInfo": "ballerinax:ai.openai:1.1.0",
             "packageName": "ai.openai",
             "kind": "BASIC_TYPE",
             "selected": false
