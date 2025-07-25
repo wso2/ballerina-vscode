@@ -42,7 +42,7 @@ public class Constants {
     public static final String MISTRAL_MODEL_VERSION = "1.0.1";
     public static final String ANTHROPIC_MODEL_VERSION = "1.0.1";
     public static final String DEEPSEEK_MODEL_VERSION = "1.0.1";
-    public static final String BALLERINA_AI_VERSION = "1.1.0";
+    public static final String BALLERINA_AI_VERSION = "1.1.1";
     public static final String BALLERINAX_AI_VERSION = "1.0.1";
 
 

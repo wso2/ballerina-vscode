@@ -60,7 +60,7 @@ public class GetAllAgentsTest extends AbstractLSTest {
             TestConfig updatedConfig = new TestConfig(testConfig.source(), testConfig.description(),
                     testConfig.orgName(), agents);
 //            updateConfig(configJsonPath, updatedConfig);
-            Assert.fail("Test failed. Updated the expected output in " + agents);
+            Assert.fail("Test failed. Updated the expected output: " + agents);
         }
     }
 
