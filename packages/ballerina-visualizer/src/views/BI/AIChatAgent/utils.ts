@@ -53,6 +53,13 @@ export const getAgentFilePath = async (rpcClient: BallerinaRpcClient) => {
     return agentFilePath;
 };
 
+export const getNPFilePath = async (rpcClient: BallerinaRpcClient) => {
+    const filePath = await rpcClient.getVisualizerLocation();
+    // Create the NP file path
+    const agentFilePath = Utils.joinPath(URI.file(filePath.projectUri), "functions.bal").fsPath;
+    return agentFilePath;
+};
+
 export const getMainFilePath = async (rpcClient: BallerinaRpcClient) => {
     // Get the main file path and update the node
     const filePath = await rpcClient.getVisualizerLocation();

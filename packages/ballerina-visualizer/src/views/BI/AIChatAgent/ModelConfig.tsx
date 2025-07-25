@@ -18,7 +18,7 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import styled from "@emotion/styled";
-import { CodeData, FlowNode, NodeMetadata, NodeProperties } from "@wso2/ballerina-core";
+import { CodeData, FlowNode, NodeMetadata, NodeProperties, UpdatedArtifactsResponse } from "@wso2/ballerina-core";
 import { FormField, FormValues } from "@wso2/ballerina-side-panel";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { convertConfig } from "../../../utils/bi";
@@ -26,7 +26,7 @@ import ConfigForm from "./ConfigForm";
 import { Dropdown } from "@wso2/ui-toolkit";
 import { cloneDeep } from "lodash";
 import { RelativeLoader } from "../../../components/RelativeLoader";
-import { getAgentFilePath, getAiModuleOrg, getNodeTemplate } from "./utils";
+import { getAgentFilePath, getAiModuleOrg, getNodeTemplate, getNPFilePath } from "./utils";
 import { BALLERINA, BALLERINAX, GET_DEFAULT_MODEL_PROVIDER, WSO2_MODEL_PROVIDER, PROVIDER_NAME_MAP } from "../../../constants";
 
 const Container = styled.div`
@@ -51,7 +51,7 @@ const Row = styled.div`
 
 interface ModelConfigProps {
     agentCallNode: FlowNode;
-    onSave?: () => void;
+    onSave?: (response?: UpdatedArtifactsResponse) => void;
 }
 
 export function ModelConfig(props: ModelConfigProps): JSX.Element {
@@ -99,8 +99,18 @@ export function ModelConfig(props: ModelConfigProps): JSX.Element {
 
     const initPanel = async () => {
         setLoading(true);
-        agentFilePath.current = await getAgentFilePath(rpcClient);
-        aiModuleOrg.current = await getAiModuleOrg(rpcClient);
+        if (agentCallNode?.codedata?.node === "NP_FUNCTION") {
+            agentFilePath.current = await getNPFilePath(rpcClient);
+        } else {
+            agentFilePath.current = await getAgentFilePath(rpcClient);
+        }
+
+        if (agentCallNode?.codedata?.node === "NP_FUNCTION") {
+            aiModuleOrg.current = "ballerina"
+        } else {
+            aiModuleOrg.current = await getAiModuleOrg(rpcClient);
+        }
+
         // fetch all models
         await fetchModels();
         // fetch selected agent model
@@ -125,7 +135,12 @@ export function ModelConfig(props: ModelConfigProps): JSX.Element {
 
     const fetchModels = async () => {
         console.log(">>> agent call node", agentCallNode);
-        const agentName = agentCallNode?.properties.connection.value;
+        let agentName;
+        if (agentCallNode?.codedata?.node === "NP_FUNCTION") {
+            agentName = agentCallNode.properties?.modelProvider?.value;
+        } else {
+            agentName = agentCallNode?.properties.connection.value;
+        }
         if (!agentName) {
             console.error("Agent name not found", agentCallNode);
             return;
@@ -145,7 +160,12 @@ export function ModelConfig(props: ModelConfigProps): JSX.Element {
             moduleConnectionNodes.current = moduleNodes.flowModel.connections;
         }
         // get agent name
-        const agentName = agentCallNode.properties.connection.value;
+        let agentName;
+        if (agentCallNode?.codedata?.node === "NP_FUNCTION") {
+            agentName = agentCallNode.properties?.modelProvider?.value;
+        } else {
+            agentName = agentCallNode.properties.connection.value;
+        }
         // get agent node
         const agentNode = moduleConnectionNodes.current.find((node) => node.properties.variable.value === agentName);
         console.log(">>> agent node", agentNode);
@@ -154,7 +174,7 @@ export function ModelConfig(props: ModelConfigProps): JSX.Element {
             return;
         }
         // get model name
-        const modelName = agentNode?.properties.model.value;
+        const modelName = agentNode?.properties?.model?.value || agentNode?.properties?.variable?.value;
         console.log(">>> model name", modelName);
         // get model node
         const modelNode = moduleConnectionNodes.current.find((node) => node.properties.variable.value === modelName);
@@ -220,7 +240,7 @@ export function ModelConfig(props: ModelConfigProps): JSX.Element {
             .getBIDiagramRpcClient()
             .getSourceCode({ filePath: agentFilePath.current, flowNode: nodeTemplate });
         console.log(">>> response getSourceCode with template ", { response });
-        onSave?.();
+        onSave?.(response);
         setSavingForm(false);
     };
 

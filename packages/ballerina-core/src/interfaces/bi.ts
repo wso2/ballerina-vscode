@@ -86,6 +86,7 @@ export type NodeMetadata = {
     memory?: MemoryData;
     agent?: AgentData;
     paramsToHide?: string[]; // List of properties keys to to hide from forms
+    module?: string;
 };
 
 export type ParentMetadata = {
@@ -318,6 +319,7 @@ export type NodePropertyKey =
     | "memory"
     | "method"
     | "model"
+    | "modelProvider"
     | "msg"
     | "parameters"
     | "path"
