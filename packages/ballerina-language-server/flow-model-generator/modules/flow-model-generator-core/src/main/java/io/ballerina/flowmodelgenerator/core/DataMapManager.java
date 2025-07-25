@@ -2089,14 +2089,6 @@ public class DataMapManager {
         MappingEnumPort(String id, String variableName, String typeName, String kind) {
             super(id, variableName, typeName, kind);
         }
-
-        void addMember(MappingPort member) {
-            this.members.add(member);
-        }
-
-        List<MappingPort> getMembers() {
-            return this.members;
-        }
     }
 
     private static class MappingUnionPort extends MappingPort {
@@ -2104,14 +2096,6 @@ public class DataMapManager {
 
         MappingUnionPort(String id, String variableName, String typeName, String kind) {
             super(id, variableName, typeName, kind);
-        }
-
-        void addMember(MappingPort member) {
-            this.members.add(member);
-        }
-
-        List<MappingPort> getMembers() {
-            return this.members;
         }
     }
 }

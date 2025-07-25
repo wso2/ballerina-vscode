@@ -459,7 +459,6 @@ public class Type {
         Type type;
         List<Type> fields = new ArrayList<>();
         enumSymbol.members().forEach(member -> {
-            TypeSymbol memberTypeSymbol = member.typeDescriptor();
             Type semanticSymbol = fromSemanticSymbol(member.typeDescriptor(), documentationMap, semanticModel);
             if (semanticSymbol != null) {
                 fields.add(semanticSymbol);
