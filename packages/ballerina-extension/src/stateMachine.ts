@@ -505,32 +505,38 @@ export function updateView(refreshTreeView?: boolean) {
         history.pop(); // Remove the last entry
         lastView = getLastHistory(); // Get the new last entry
     }
-    
-    const currentIdentifier = lastView.location.identifier;
-    let currentArtifact: ProjectStructureArtifactResponse;
 
-    // These changes will be revisited in the revamp
-    StateMachine.context().projectStructure.directoryMap[lastView.location.artifactType].forEach((artifact) => {
-        if (artifact.id === currentIdentifier || artifact.name === currentIdentifier) {
-            currentArtifact = artifact;
-        }
-        // Check if artifact has resources and find within those
-        if (artifact.resources && artifact.resources.length > 0) {
-            const resource = artifact.resources.find((resource) => resource.id === currentIdentifier || resource.name === currentIdentifier);
-            if (resource) {
-                currentArtifact = resource;
+    let newLocation: VisualizerLocation;
+
+    if (lastView) {
+        newLocation = { ...lastView.location };
+        const currentIdentifier = lastView.location.identifier;
+        let currentArtifact: ProjectStructureArtifactResponse;
+
+        // These changes will be revisited in the revamp
+        StateMachine.context().projectStructure.directoryMap[lastView.location.artifactType].forEach((artifact) => {
+            if (artifact.id === currentIdentifier || artifact.name === currentIdentifier) {
+                currentArtifact = artifact;
             }
-        }
-    });
+            // Check if artifact has resources and find within those
+            if (artifact.resources && artifact.resources.length > 0) {
+                const resource = artifact.resources.find((resource) => resource.id === currentIdentifier || resource.name === currentIdentifier);
+                if (resource) {
+                    currentArtifact = resource;
+                }
+            }
+        });
 
-    const newPosition = currentArtifact?.position || lastView.location.position;
-    const newLocation: VisualizerLocation = { ...lastView.location, position: newPosition };
-    
-    history.updateCurrentEntry({
-        ...lastView,
-        location: newLocation
+        const newPosition = currentArtifact?.position || lastView.location.position;
+        newLocation = { ...lastView.location, position: newPosition };
 
-    });
+        history.updateCurrentEntry({
+            ...lastView,
+            location: newLocation
+
+        });
+    }
+
 
     stateService.send({ type: "VIEW_UPDATE", viewLocation: lastView ? newLocation : { view: "Overview" } });
     if (refreshTreeView) {
