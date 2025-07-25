@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import { RefObject, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { RefObject, useCallback, useEffect, useMemo, useRef, useState, forwardRef, useImperativeHandle } from "react";
 import {
     EVENT_TYPE,
     ColorThemeKind,
@@ -101,7 +101,7 @@ interface FormProps {
     editForm?: boolean;
     isGraphql?: boolean;
     submitText?: string;
-    onSubmit: (node?: FlowNode, isDataMapper?: boolean, formImports?: FormImports) => void;
+    onSubmit: (node?: FlowNode, isDataMapper?: boolean, formImports?: FormImports, rawFormValues?: FormValues) => void;
     showProgressIndicator?: boolean;
     subPanelView?: SubPanelView;
     openSubPanel?: (subPanel: SubPanel) => void;
@@ -113,6 +113,11 @@ interface FormProps {
         description?: string; // Optional description explaining what the action button does
         callback: () => void;
     };
+    scopeFieldAddon?: React.ReactNode;
+    newServerUrl?: string;
+    onChange?: (fieldKey: string, value: any, allValues: FormValues) => void;
+    mcpTools?: { name: string; description?: string }[];
+    onToolsChange?: (selectedTools: string[]) => void;
 }
 
 // Styled component for the action button description
@@ -138,7 +143,7 @@ const StyledActionButton = styled(Button)`
     }
 `;
 
-export function FormGenerator(props: FormProps) {
+export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(function FormGenerator(props: FormProps, ref: React.ForwardedRef<FormExpressionEditorRef>) {
     const {
         fileName,
         node,
@@ -158,6 +163,10 @@ export function FormGenerator(props: FormProps) {
         disableSaveButton,
         actionButtonConfig,
         submitText,
+        scopeFieldAddon,
+        newServerUrl,
+        onChange,
+        mcpTools,
     } = props;
 
     const { rpcClient } = useRpcContext();
@@ -289,7 +298,7 @@ export function FormGenerator(props: FormProps) {
             console.log(">>> Updated node", updatedNode);
 
             const isDataMapperFormUpdate = data["isDataMapperFormUpdate"];
-            onSubmit(updatedNode, isDataMapperFormUpdate, formImports);
+            onSubmit(updatedNode, isDataMapperFormUpdate, formImports, data);
         }
     };
 
@@ -801,6 +810,7 @@ export function FormGenerator(props: FormProps) {
         <>
             {fields && fields.length > 0 && (
                 <Form
+                    ref={ref}
                     formFields={fields}
                     projectPath={projectPath}
                     selectedNode={node.codedata.node}
@@ -826,6 +836,11 @@ export function FormGenerator(props: FormProps) {
                     isInferredReturnType={!!node.codedata?.inferredReturnType}
                     formImports={formImports}
                     preserveOrder={node.codedata.node === "VARIABLE" || node.codedata.node === "CONFIG_VARIABLE"}
+                    scopeFieldAddon={scopeFieldAddon}
+                    newServerUrl={newServerUrl}
+                    onChange={onChange}
+                    mcpTools={mcpTools}
+                    onToolsChange={props.onToolsChange}
                 />
             )}
             {typeEditorState.isOpen && (
@@ -841,6 +856,6 @@ export function FormGenerator(props: FormProps) {
             )}
         </>
     );
-}
+});
 
 export default FormGenerator;
