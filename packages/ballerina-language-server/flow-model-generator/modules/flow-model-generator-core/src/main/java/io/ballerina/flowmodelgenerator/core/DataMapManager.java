@@ -253,7 +253,7 @@ public class DataMapManager {
                     setFocusIdForExpression(inputPorts, expression.toString().trim(), mappingPort.id);
                     NonTerminalNode parent = expressionNode.parent();
                     SyntaxKind parentKind = parent.kind();
-                    while (parentKind != SyntaxKind.LOCAL_VAR_DECL && parentKind != SyntaxKind.MODULE_VAR_DECL)  {
+                    while (parentKind != SyntaxKind.LOCAL_VAR_DECL && parentKind != SyntaxKind.MODULE_VAR_DECL) {
                         if (parentKind == SyntaxKind.QUERY_EXPRESSION) {
                             QueryExpressionNode parentQueryExpr = (QueryExpressionNode) parent;
                             FromClauseNode parentFromClause = parentQueryExpr.queryPipeline().fromClause();
@@ -931,7 +931,8 @@ public class DataMapManager {
         return gson.toJsonTree(textEditsMap);
     }
 
-    public JsonElement deleteMapping(Path filePath, JsonElement codeData, JsonElement mappingId, String targetField) {
+    public JsonElement deleteMapping(SemanticModel semanticModel, Path filePath, JsonElement codeData,
+                                     JsonElement mappingId, String targetField) {
         Codedata codedata = gson.fromJson(codeData, Codedata.class);
         Mapping mapping = gson.fromJson(mappingId, Mapping.class);
         NonTerminalNode node = getNode(codedata.lineRange());
@@ -958,7 +959,7 @@ public class DataMapManager {
             }
             String output = mapping.output();
             String[] splits = output.split(DOT);
-            genDeleteMappingSource(getMappingExpr(expr, targetField), splits, 1, textEdits);
+            genDeleteMappingSource(semanticModel, getMappingExpr(expr, targetField), splits, 1, textEdits);
         }
 
         return gson.toJsonTree(textEditsMap);
@@ -1018,34 +1019,8 @@ public class DataMapManager {
         }
     }
 
-    private void genDeleteMappingSource(ExpressionNode expr, String[] names, int idx, List<TextEdit> textEdits) {
-        if (expr == null) {
-            return;
-        }
-
-        if (expr instanceof MappingConstructorExpressionNode mappingCtrExpr) {
-            String name = names[idx];
-            Map<String, SpecificFieldNode> mappingFields = convertMappingFieldsToMap(mappingCtrExpr);
-            SpecificFieldNode mappingFieldNode = mappingFields.get(name);
-            if (mappingFieldNode == null) {
-                return;
-            } else {
-                genDeleteMappingSource(mappingFieldNode.valueExpr().orElseThrow(), names, idx + 1,
-                        textEdits);
-            }
-        } else if (expr instanceof ListConstructorExpressionNode listCtrExpr) {
-            if (idx != names.length) {
-                String name = names[idx];
-                if (name.matches("\\d+")) {
-                    int index = Integer.parseInt(name);
-                    if (index < listCtrExpr.expressions().size()) {
-                        genDeleteMappingSource((ExpressionNode) listCtrExpr.expressions().get(index),
-                                names, idx + 1, textEdits);
-                    }
-                }
-            }
-        }
-
+    private void genDeleteMappingSource(SemanticModel semanticModel, ExpressionNode expr, String[] names, int idx,
+                                        List<TextEdit> textEdits) {
         if (idx == names.length) {
             NonTerminalNode currentNode = expr;
             NonTerminalNode highestEmptyField = null;
@@ -1076,60 +1051,121 @@ public class DataMapManager {
             if (highestEmptyField != null) {
                 textEdits.add(new TextEdit(CommonUtils.toRange(highestEmptyField.lineRange()), ""));
             } else {
-                SpecificFieldNode specificField = (SpecificFieldNode) expr.parent();
-                MappingConstructorExpressionNode mappingCtr = (MappingConstructorExpressionNode)
-                        specificField.parent();
-                SeparatedNodeList<MappingFieldNode> fields = mappingCtr.fields();
-                int fieldCount = fields.size();
+                NonTerminalNode parent = expr.parent();
+                if (parent.kind() == SyntaxKind.SPECIFIC_FIELD) {
+                    SpecificFieldNode specificField = (SpecificFieldNode) parent;
+                    MappingConstructorExpressionNode mappingCtr = (MappingConstructorExpressionNode)
+                            specificField.parent();
+                    SeparatedNodeList<MappingFieldNode> fields = mappingCtr.fields();
+                    int fieldCount = fields.size();
 
-                if (fieldCount > 1) {
-                    int fieldIndex = -1;
-                    for (int i = 0; i < fieldCount; i++) {
-                        if (fields.get(i) == specificField) {
-                            fieldIndex = i;
-                            break;
-                        }
-                    }
-                    if (fieldIndex >= 0) {
-                        TextRange deleteRange;
-                        if (fieldIndex == fieldCount - 1) {
-                            TextRange fieldRange = specificField.textRange();
-                            Node separator = fields.getSeparator(fieldIndex - 1);
-                            if (separator != null) {
-                                deleteRange = TextRange.from(
-                                        separator.textRange().startOffset(),
-                                        fieldRange.endOffset() - separator.textRange().startOffset()
-                                );
-                            } else {
-                                deleteRange = fieldRange;
+                    if (fieldCount > 1) {
+                        int fieldIndex = -1;
+                        for (int i = 0; i < fieldCount; i++) {
+                            if (fields.get(i) == specificField) {
+                                fieldIndex = i;
+                                break;
                             }
+                        }
+                        if (fieldIndex >= 0) {
+                            TextRange deleteRange;
+                            if (fieldIndex == fieldCount - 1) {
+                                TextRange fieldRange = specificField.textRange();
+                                Node separator = fields.getSeparator(fieldIndex - 1);
+                                if (separator != null) {
+                                    deleteRange = TextRange.from(
+                                            separator.textRange().startOffset(),
+                                            fieldRange.endOffset() - separator.textRange().startOffset()
+                                    );
+                                } else {
+                                    deleteRange = fieldRange;
+                                }
+                            } else {
+                                TextRange fieldRange = specificField.textRange();
+                                Node separator = fields.getSeparator(fieldIndex);
+                                if (separator != null) {
+                                    deleteRange = TextRange.from(
+                                            fieldRange.startOffset(),
+                                            fields.get(fieldIndex + 1).
+                                                    textRange().startOffset() - fieldRange.startOffset()
+                                    );
+                                } else {
+                                    deleteRange = fieldRange;
+                                }
+                            }
+
+                            String fileName = document.name();
+                            LinePosition startPos = document.syntaxTree().
+                                    textDocument().linePositionFrom(deleteRange.startOffset());
+                            LinePosition endPos = document.syntaxTree().
+                                    textDocument().linePositionFrom(deleteRange.endOffset());
+
+                            LineRange lineRangeToDelete = LineRange.from(fileName, startPos, endPos);
+                            textEdits.add(new TextEdit(CommonUtils.toRange(lineRangeToDelete), ""));
                         } else {
-                            TextRange fieldRange = specificField.textRange();
-                            Node separator = fields.getSeparator(fieldIndex);
-                            if (separator != null) {
-                                deleteRange = TextRange.from(
-                                        fieldRange.startOffset(),
-                                        fields.get(fieldIndex + 1).
-                                                textRange().startOffset() - fieldRange.startOffset()
-                                );
-                            } else {
-                                deleteRange = fieldRange;
-                            }
+                            textEdits.add(new TextEdit(CommonUtils.toRange(specificField.lineRange()), ""));
                         }
-
-                        String fileName = document.name();
-                        LinePosition startPos = document.syntaxTree().
-                                textDocument().linePositionFrom(deleteRange.startOffset());
-                        LinePosition endPos = document.syntaxTree().
-                                textDocument().linePositionFrom(deleteRange.endOffset());
-
-                        LineRange lineRangeToDelete = LineRange.from(fileName, startPos, endPos);
-                        textEdits.add(new TextEdit(CommonUtils.toRange(lineRangeToDelete), ""));
                     } else {
                         textEdits.add(new TextEdit(CommonUtils.toRange(specificField.lineRange()), ""));
                     }
-                } else {
-                    textEdits.add(new TextEdit(CommonUtils.toRange(specificField.lineRange()), ""));
+                } else if (parent.kind() == SyntaxKind.LIST_CONSTRUCTOR) {
+                    ListConstructorExpressionNode listCtrExpr = (ListConstructorExpressionNode) parent;
+                    SeparatedNodeList<Node> expressions = listCtrExpr.expressions();
+                    int memberIdx = 0;
+                    for (int i = 0; i < expressions.size(); i++) {
+                        if (expressions.get(i).equals(expr)) {
+                            memberIdx = i;
+                            break;
+                        }
+                    }
+
+                    if (expressions.size() == 1) {
+                        textEdits.add(new TextEdit(CommonUtils.toRange(expr.lineRange()), ""));
+                    } else {
+                        if (memberIdx + 1 == expressions.size()) {
+                            LinePosition startPos = expressions.get(memberIdx - 1).lineRange().startLine();
+                            LinePosition endPos = expr.lineRange().endLine();
+                            textEdits.add(new TextEdit(CommonUtils.toRange(startPos, endPos), ""));
+                        } else if (memberIdx == 0) {
+                            LinePosition startPos = expr.lineRange().startLine();
+                            LinePosition endPos = expressions.get(1).lineRange().startLine();
+                            textEdits.add(new TextEdit(CommonUtils.toRange(startPos, endPos), ""));
+                        } else {
+                            LinePosition startPos = expressions.get(memberIdx - 1).lineRange().startLine();
+                            LinePosition endPos = expr.lineRange().endLine();
+                            textEdits.add(new TextEdit(CommonUtils.toRange(startPos, endPos), ""));
+                        }
+                    }
+                } else if (parent.kind() == SyntaxKind.LOCAL_VAR_DECL) {
+                    Optional<Symbol> optSymbol = semanticModel.symbol(parent);
+                    if (optSymbol.isPresent()) {
+                        Symbol symbol = optSymbol.get();
+                        if (symbol.kind() == SymbolKind.VARIABLE) {
+                            VariableSymbol varSymbol = (VariableSymbol) symbol;
+                            String defaultVal = getDefaultValue(
+                                    CommonUtil.getRawType(varSymbol.typeDescriptor()).typeKind().getName());
+                            textEdits.add(new TextEdit(CommonUtils.toRange(expr.lineRange()), defaultVal));
+                        }
+                    }
+                }
+            }
+        } else if (expr.kind() == SyntaxKind.MAPPING_CONSTRUCTOR) {
+            MappingConstructorExpressionNode mappingCtrExpr = (MappingConstructorExpressionNode) expr;
+            String name = names[idx];
+            Map<String, SpecificFieldNode> mappingFields = convertMappingFieldsToMap(mappingCtrExpr);
+            SpecificFieldNode mappingFieldNode = mappingFields.get(name);
+            if (mappingFieldNode != null) {
+                genDeleteMappingSource(semanticModel, mappingFieldNode.valueExpr().orElseThrow(), names, idx + 1,
+                        textEdits);
+            }
+        } else if (expr.kind() == SyntaxKind.LIST_CONSTRUCTOR) {
+            ListConstructorExpressionNode listCtrExpr = (ListConstructorExpressionNode) expr;
+            String name = names[idx];
+            if (name.matches("\\d+")) {
+                int index = Integer.parseInt(name);
+                if (index < listCtrExpr.expressions().size()) {
+                    genDeleteMappingSource(semanticModel, (ExpressionNode) listCtrExpr.expressions().get(index),
+                            names, idx + 1, textEdits);
                 }
             }
         }
