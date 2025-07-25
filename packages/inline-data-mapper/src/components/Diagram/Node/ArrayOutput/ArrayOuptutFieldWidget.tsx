@@ -19,12 +19,12 @@
 import React, { useMemo, useState } from "react";
 
 import { DiagramEngine } from "@projectstorm/react-diagrams-core";
-import { Button, Codicon, Icon, ProgressRing } from "@wso2/ui-toolkit";
+import { Button, Codicon, Icon, ProgressRing, TruncatedLabel } from "@wso2/ui-toolkit";
 import { IOType, TypeKind } from "@wso2/ballerina-core";
 import classnames from "classnames";
 
 import { useIONodesStyles } from "../../../styles";
-import { useDMCollapsedFieldsStore, useDMExpressionBarStore } from '../../../../store/store';
+import { useDMCollapsedFieldsStore, useDMExpandedFieldsStore, useDMExpressionBarStore } from '../../../../store/store';
 import { useDMSearchStore } from "../../../../store/store";
 import { IDataMapperContext } from "../../../../utils/DataMapperContext/DataMapperContext";
 import { DataMapperPortWidget, PortState, InputOutputPortModel } from "../../Port";
@@ -32,14 +32,14 @@ import { OutputSearchHighlight } from "../commons/Search";
 import { ObjectOutputFieldWidget } from "../ObjectOutput/ObjectOutputFieldWidget";
 import { ValueConfigMenu, ValueConfigOption } from "../commons/ValueConfigButton";
 import { ValueConfigMenuItem } from "../commons/ValueConfigButton/ValueConfigMenuItem";
-import { fieldFQNFromPortName, getDefaultValue } from "../../utils/common-utils";
+import { fieldFQNFromPortName, getDefaultValue, getSanitizedId } from "../../utils/common-utils";
 import { DiagnosticTooltip } from "../../Diagnostic/DiagnosticTooltip";
 import { TreeBody } from "../commons/Tree/Tree";
 import { getTypeName } from "../../utils/type-utils";
 import FieldActionWrapper from "../commons/FieldActionWrapper";
 import { addValue, removeMapping } from "../../utils/modification-utils";
 import { PrimitiveOutputElementWidget } from "../PrimitiveOutput/PrimitiveOutputElementWidget";
-import { OutputBeforeInputNotification } from "../commons/OutputBeforeInputNotification";
+import { OutputFieldPreviewWidget } from "./OutputFieldPreviewWidget";
 
 export interface ArrayOutputFieldWidgetProps {
     parentId: string;
@@ -70,29 +70,29 @@ export function ArrayOutputFieldWidget(props: ArrayOutputFieldWidgetProps) {
     const [isLoading, setLoading] = useState(false);
     const [isHovered, setIsHovered] = useState(false);
     const [portState, setPortState] = useState<PortState>(PortState.Unselected);
-    const [hasOutputBeforeInput, setHasOutputBeforeInput] = useState(false);
     const [isAddingElement, setIsAddingElement] = useState(false);
     const collapsedFieldsStore = useDMCollapsedFieldsStore();
+    const expandedFieldsStore = useDMExpandedFieldsStore();
     const setExprBarFocusedPort = useDMExpressionBarStore(state => state.setFocusedPort);
 
     const arrayField = field.member;
     const typeName = getTypeName(field);
 
-    let portName = parentId;
+    let portName = getSanitizedId(parentId);
     if (fieldIndex !== undefined) {
-        portName = `${parentId}.${fieldIndex}`
+        portName = `${portName}.${fieldIndex}`
     }
     const fieldName = field?.variableName || '';
 
     const portIn = getPort(`${portName}.IN`);
-    const mapping = portIn && portIn.value;
+    const mapping = portIn && portIn.attributes.value;
     const { inputs, expression, elements, diagnostics } = mapping || {};
     const searchValue = useDMSearchStore.getState().outputSearch;
     const hasElements = elements?.length > 0 && elements.some((element) => element.mappings.length > 0);
     const connectedViaLink = inputs?.length > 0;
 
     let expanded = true;
-    if (portIn && portIn.collapsed) {
+    if (portIn && portIn.attributes.collapsed) {
         expanded = false;
     }
 
@@ -102,17 +102,18 @@ export function ArrayOutputFieldWidget(props: ArrayOutputFieldWidgetProps) {
     }
 
     const hasDefaultValue = expression && getDefaultValue(field.kind) === expression.trim();
-    let isDisabled = portIn.descendantHasValue;
+    let isDisabled = portIn?.attributes.descendantHasValue;
 
-    if (!isDisabled && !hasDefaultValue) {
-        if (hasElements && expanded && portIn.parentModel) {
+    if (!isDisabled && !hasDefaultValue && portIn) {
+        if (hasElements && expanded && portIn.attributes.parentModel) {
             portIn.setDescendantHasValue();
             isDisabled = true;
         }
-        if (portIn.parentModel
-            && (Object.entries(portIn.parentModel.links).length > 0 || portIn.parentModel.ancestorHasValue)
+        if (portIn.attributes.parentModel && (
+            Object.entries(portIn.attributes.parentModel.links).length > 0
+                || portIn.attributes.parentModel.attributes.ancestorHasValue)
         ) {
-            portIn.ancestorHasValue = true;
+            portIn.attributes.ancestorHasValue = true;
             isDisabled = true;
         }
     }
@@ -120,10 +121,6 @@ export function ArrayOutputFieldWidget(props: ArrayOutputFieldWidgetProps) {
     const handlePortState = (state: PortState) => {
         setPortState(state)
     };
-
-	const handlePortSelection = (outputBeforeInput: boolean) => {
-		setHasOutputBeforeInput(outputBeforeInput);
-	};
 
     const handleEditValue = () => {
         if (portIn)
@@ -135,18 +132,14 @@ export function ArrayOutputFieldWidget(props: ArrayOutputFieldWidgetProps) {
     };
 
     const label = (
-        <span style={{ marginRight: "auto" }} data-testid={`record-widget-field-label-${portIn?.getName()}`}>
-            <span
-                className={classnames(classes.valueLabel,
-                    isDisabled ? classes.labelDisabled : "")}
-                style={{ marginLeft: expression && !connectedViaLink ? 0 : indentation + 24 }}
-            >
+        <TruncatedLabel style={{ marginRight: "auto" }}>
+            <span className={classnames(classes.valueLabel, isDisabled ? classes.labelDisabled : "")}>
                 <OutputSearchHighlight>{fieldName}</OutputSearchHighlight>
                 {!field?.optional && <span className={classes.requiredMark}>*</span>}
                 {fieldName && typeName && ":"}
             </span>
             {typeName && (
-                <span className={classnames(classes.outputTypeLabel, isDisabled ? classes.labelDisabled : "")}>
+                <span className={classnames(classes.typeLabel, isDisabled ? classes.labelDisabled : "")}>
                     {typeName}
                 </span>
             )}
@@ -182,7 +175,7 @@ export function ArrayOutputFieldWidget(props: ArrayOutputFieldWidgetProps) {
                     )}
                 </span>
             )}
-        </span>
+        </TruncatedLabel>
     );
 
     const arrayElements = useMemo(() => {
@@ -265,11 +258,14 @@ export function ArrayOutputFieldWidget(props: ArrayOutputFieldWidgetProps) {
     }, [isAddingElement]);
 
     const handleExpand = () => {
+        const expandedFields = expandedFieldsStore.fields;
         const collapsedFields = collapsedFieldsStore.fields;
-        if (!expanded) {
-            collapsedFieldsStore.setFields(collapsedFields.filter((element) => element !== portName));
-        } else {
+        if (expanded) {
+            expandedFieldsStore.setFields(expandedFields.filter((element) => element !== portName));
             collapsedFieldsStore.setFields([...collapsedFields, portName]);
+        } else {
+            expandedFieldsStore.setFields([...expandedFields, portName]);
+            collapsedFieldsStore.setFields(collapsedFields.filter((element) => element !== portName));
         }
     };
 
@@ -285,17 +281,21 @@ export function ArrayOutputFieldWidget(props: ArrayOutputFieldWidgetProps) {
     const handleArrayDeletion = async () => {
         setLoading(true);
         try {
-            await removeMapping(fieldFQNFromPortName(portName), context);
+            await removeMapping(mapping, context);
         } finally {
             setLoading(false);
         }
     };
 
     const handleAddArrayElement = async () => {
+        const varName = context.views[0].targetField;
+        const viewId = context.views[context.views.length - 1].targetField;
+
         setIsAddingElement(true)
         try {
-            return await context.addArrayElement(`${mapping.output}`);
+            await context.addArrayElement(`${mapping.output}`, `${viewId}`, `${varName}`);
         } finally {
+            if (!expanded) handleExpand();
             setIsAddingElement(false);
         }
     };
@@ -311,6 +311,7 @@ export function ArrayOutputFieldWidget(props: ArrayOutputFieldWidgetProps) {
     const valConfigMenuItems: ValueConfigMenuItem[] = hasElements || hasDefaultValue
         ? [
             // { title: ValueConfigOption.EditValue, onClick: handleEditValue }, // TODO: Enable this after adding support for editing array values
+            { title: ValueConfigOption.AddElement, onClick: handleAddArrayElement },
             { title: ValueConfigOption.DeleteArray, onClick: handleArrayDeletion },
         ]
         : [
@@ -339,13 +340,12 @@ export function ArrayOutputFieldWidget(props: ArrayOutputFieldWidgetProps) {
                                 port={portIn}
                                 disable={isDisabled && expanded}
                                 handlePortState={handlePortState}
-                                hasFirstSelectOutput={handlePortSelection}
                                 dataTestId={`array-type-editable-record-field-${portIn.getName()}`}
                             />
                         )}
                     </span>
                     <span className={classes.label}>
-                        {(expression && !connectedViaLink) && (
+                        {(!connectedViaLink) && (
                             <FieldActionWrapper>
                                 <Button
                                     id={`expand-or-collapse-${portName}`}
@@ -370,10 +370,9 @@ export function ArrayOutputFieldWidget(props: ArrayOutputFieldWidgetProps) {
                             />
                         </FieldActionWrapper>
                     ))}
-                    {hasOutputBeforeInput && <OutputBeforeInputNotification />}
                 </div>
             )}
-            {(expanded && expression && !connectedViaLink) && (
+            {(expanded && !connectedViaLink && !!elements?.length) && (
                 <div data-testid={`array-widget-${portIn?.getName()}-values`}>
                     <div className={classes.innerTreeLabel}>
                         <span>[</span>
@@ -382,6 +381,18 @@ export function ArrayOutputFieldWidget(props: ArrayOutputFieldWidgetProps) {
                         <span>]</span>
                     </div>
                 </div>
+            )}
+            {(expanded && !connectedViaLink && !elements?.length) && (
+                <OutputFieldPreviewWidget
+                    key={`arr-output--preview-field-${portName}`}
+                    engine={engine}
+                    field={arrayField}
+                    getPort={getPort}
+                    parentId={portName}
+                    context={context}
+                    treeDepth={treeDepth}
+                    hasHoveredParent={isHovered || hasHoveredParent}
+                />
             )}
         </div>
     );

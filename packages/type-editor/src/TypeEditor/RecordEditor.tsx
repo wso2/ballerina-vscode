@@ -44,6 +44,7 @@ interface RecordEditorProps {
     isAnonymous: boolean;
     onChange: (type: Type) => void;
     isGraphql?: boolean;
+    newType?: boolean;
     onValidationError: (isError: boolean) => void;
 }
 
@@ -53,7 +54,7 @@ interface FieldValidationError {
 }
 
 export const RecordEditor = forwardRef<{ addMember: () => void }, RecordEditorProps>((props, ref) => {
-    const { type, isAnonymous = false, onChange, isGraphql, onValidationError } = props;
+    const { type, isAnonymous = false, onChange, isGraphql, onValidationError, newType } = props;
 
     const [validationErrors, setValidationErrors] = useState<FieldValidationError[]>([{ identifier: false, type: false }]);
     const [hasRecordError, setHasRecordError] = useState(false);
@@ -119,7 +120,7 @@ export const RecordEditor = forwardRef<{ addMember: () => void }, RecordEditorPr
         <div className="record-editor">
             {!isAnonymous &&
                 <Header>
-                    <SectionTitle>{isGraphql ? 'Input Object Fields' : 'Fields'}</SectionTitle>
+                    <SectionTitle>{isGraphql ?  (newType? 'Input Object Fields' : 'Object Fields'): 'Fields'}</SectionTitle>
                     <div style={{ display: 'flex', gap: '8px' }} data-testid="add-field-button">
                         <Button appearance="icon" onClick={addMember}><Codicon name="add" /></Button>
                     </div>
