@@ -20,6 +20,8 @@
 import {
     ExportOASRequest,
     ExportOASResponse,
+    FunctionFromSourceRequest,
+    FunctionFromSourceResponse,
     FunctionModelRequest,
     FunctionModelResponse,
     FunctionSourceCodeRequest,
@@ -32,6 +34,8 @@ import {
     ListenerSourceCodeRequest,
     ListenersRequest,
     ListenersResponse,
+    ResourceReturnTypesRequest,
+    ResourceReturnTypesResponse,
     ServiceDesignerAPI,
     ServiceModelFromCodeRequest,
     ServiceModelFromCodeResponse,
@@ -46,11 +50,13 @@ import {
     addResourceSourceCode,
     addServiceSourceCode,
     exportOASFile,
+    getFunctionFromSource,
     getFunctionModel,
     getHttpResourceModel,
     getListenerModel,
     getListenerModelFromCode,
     getListeners,
+    getResourceReturnTypes,
     getServiceModel,
     getServiceModelFromCode,
     getTriggerModels,
@@ -104,6 +110,10 @@ export class ServiceDesignerRpcClient implements ServiceDesignerAPI {
         return this._messenger.sendRequest(getFunctionModel, HOST_EXTENSION, params);
     }
 
+    getFunctionFromSource(params: FunctionFromSourceRequest): Promise<FunctionFromSourceResponse> {
+        return this._messenger.sendRequest(getFunctionFromSource, HOST_EXTENSION, params);
+    }
+
     addServiceSourceCode(params: ServiceSourceCodeRequest): Promise<UpdatedArtifactsResponse> {
         return this._messenger.sendRequest(addServiceSourceCode, HOST_EXTENSION, params);
     }
@@ -118,6 +128,10 @@ export class ServiceDesignerRpcClient implements ServiceDesignerAPI {
 
     getHttpResourceModel(params: HttpResourceModelRequest): Promise<HttpResourceModelResponse> {
         return this._messenger.sendRequest(getHttpResourceModel, HOST_EXTENSION, params);
+    }
+
+    getResourceReturnTypes(params: ResourceReturnTypesRequest): Promise<ResourceReturnTypesResponse> {
+        return this._messenger.sendRequest(getResourceReturnTypes, HOST_EXTENSION, params);
     }
 
     addResourceSourceCode(params: FunctionSourceCodeRequest): Promise<UpdatedArtifactsResponse> {

@@ -32,6 +32,7 @@ export interface NodeLinkModelOptions {
     brokenLine?: boolean; // default false
     disabled?: boolean; // default false
     alignBottom?: boolean; // default false
+    linkCounter?: number;
     onAddClick?: () => void;
 }
 
@@ -50,6 +51,7 @@ export class NodeLinkModel extends DefaultLinkModel {
     disabled = false;
     alignBottom = false;
     linkBottomOffset = LINK_BOTTOM_OFFSET;
+    linkCounter?: number;
     onAddClick?: () => void;
 
     constructor(label?: string);
@@ -90,6 +92,9 @@ export class NodeLinkModel extends DefaultLinkModel {
                 }
                 if ((options as NodeLinkModelOptions).alignBottom === true) {
                     this.alignBottom = (options as NodeLinkModelOptions).alignBottom;
+                }
+                if ((options as NodeLinkModelOptions).linkCounter) {
+                    this.linkCounter = (options as NodeLinkModelOptions).linkCounter;
                 }
             }
             if ((options as NodeLinkModelOptions).onAddClick) {

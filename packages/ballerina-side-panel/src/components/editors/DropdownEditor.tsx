@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import React from "react";
+import React, { useEffect } from "react";
 
 import { Dropdown } from "@wso2/ui-toolkit";
 
@@ -35,6 +35,13 @@ export function DropdownEditor(props: DropdownEditorProps) {
     const { form } = useFormContext();
     const { register, setValue } = form;
 
+    useEffect(() => {
+        // if field.key is "modelType" and value is not set and default value set. then setValue to default value initially
+        if (field.key === "modelType" && field.value === undefined && (field.defaultValue || field.placeholder)) {
+            setValue(field.key, field.defaultValue || field.placeholder);
+        }
+    }, [field.defaultValue, field.placeholder]);
+
     // HACK: create values for Scope field
     if (field.key === "scope") {
         field.items = ["Global", "Local"];
@@ -43,12 +50,16 @@ export function DropdownEditor(props: DropdownEditorProps) {
     return (
         <Dropdown
             id={field.key}
+            description={field.documentation}
             {...register(field.key, { required: !field.optional, value: getValueForDropdown(field) })}
             label={capitalize(field.label)}
             items={field.itemOptions ? field.itemOptions : field.items?.map((item) => ({ id: item, content: item, value: item }))}
             required={!field.optional}
             disabled={!field.editable}
-            onChange={(e) => setValue(field.key, e.target.value)}
+            onChange={(e) => {
+                setValue(field.key, e.target.value);
+                field.onValueChange?.(e.target.value);
+            }}
             sx={{ width: "100%" }}
             containerSx={{ width: "100%" }}
             addNewBtnClick={field.addNewButton ? () => openSubPanel({ view: SubPanelView.ADD_NEW_FORM }) : undefined}

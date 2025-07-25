@@ -61,7 +61,7 @@ export function OtherArtifactsPanel(props: OtherArtifactsPanelProps) {
             await rpcClient.getVisualizerRpcClient().openView({
                 type: EVENT_TYPE.OPEN_VIEW,
                 location: {
-                    view: MACHINE_VIEW.ViewConfigVariables,
+                    view: MACHINE_VIEW.AddConfigVariables,
                 },
             });
         } else if (key === DIRECTORY_MAP.FUNCTION) {
@@ -93,6 +93,7 @@ export function OtherArtifactsPanel(props: OtherArtifactsPanelProps) {
             </TitleWrapper>
             <CardGrid>
                 <ButtonCard
+                    id="bi-function"
                     data-testid="function"
                     icon={<Icon name="bi-function" />}
                     title="Function"
@@ -100,6 +101,7 @@ export function OtherArtifactsPanel(props: OtherArtifactsPanelProps) {
                 />
                 {isNPSupported &&
                     <ButtonCard
+                        id="bi-ai-function"
                         icon={<Icon name="bi-ai-function" />}
                         title="Natural Function"
                         onClick={() => handleClick(DIRECTORY_MAP.NP_FUNCTION)}

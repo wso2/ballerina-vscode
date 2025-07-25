@@ -40,6 +40,7 @@ import { ReadonlyField } from "./ReadonlyField";
 import { ContextAwareRawExpressionEditor } from "./RawExpressionEditor";
 import { IdentifierField } from "./IdentifierField";
 import { PathEditor } from "./PathEditor";
+import { HeaderSetEditor } from "./HeaderSetEditor";
 
 interface FormFieldEditorProps {
     field: FormField;
@@ -53,6 +54,7 @@ interface FormFieldEditorProps {
     visualizableFields?: string[];
     recordTypeFields?: RecordTypeField[];
     onIdentifierEditingStateChange?: (isEditing: boolean) => void;
+    setSubComponentEnabled?: (isAdding: boolean) => void;
 }
 
 export const EditorFactory = (props: FormFieldEditorProps) => {
@@ -67,12 +69,15 @@ export const EditorFactory = (props: FormFieldEditorProps) => {
         handleOnTypeChange,
         visualizableFields,
         recordTypeFields,
-        onIdentifierEditingStateChange
+        onIdentifierEditingStateChange,
+        setSubComponentEnabled
     } = props;
     if (!field.enabled || field.hidden) {
         return <></>;
     } else if (field.type === "MULTIPLE_SELECT") {
         return <MultiSelectEditor field={field} label={"Attach Another"} openSubPanel={openSubPanel} />;
+    } else if (field.type === "HEADER_SET") {
+        return <HeaderSetEditor field={field} />;
     } else if (field.type === "CHOICE") {
         return <ChoiceForm field={field} recordTypeFields={recordTypeFields} />;
     } else if (field.type === "DROPDOWN_CHOICE") {
@@ -142,7 +147,7 @@ export const EditorFactory = (props: FormFieldEditorProps) => {
         // Skip this property
         return <></>;
     } else if (field.type === "PARAM_MANAGER") {
-        return <ParamManagerEditor field={field} openRecordEditor={openRecordEditor} handleOnFieldFocus={handleOnFieldFocus} selectedNode={selectedNode} />;
+        return <ParamManagerEditor setSubComponentEnabled={setSubComponentEnabled} field={field} openRecordEditor={openRecordEditor} handleOnFieldFocus={handleOnFieldFocus} selectedNode={selectedNode} />;
     } else if (field.type === "REPEATABLE_PROPERTY") {
         return <FormMapEditor field={field} label={"Add Another Key-Value Pair"} />;
     } else if (field.type === "IDENTIFIER" && !field.editable && field?.lineRange) {

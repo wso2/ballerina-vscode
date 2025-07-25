@@ -1380,8 +1380,36 @@ export interface ResourceSourceCodeResponse {
         [key: string]: TextEdit[];
     };
 }
+
+export interface ResourceReturnTypesRequest {
+    filePath?: string;
+    context?: string;
+}
+
+export interface ResponseCode {
+    category: string;
+    label: string;
+    type: string;
+    statusCode: string;
+    hasBody?: boolean;
+}
+export interface ResourceReturnTypesResponse {
+    completions: ResponseCode[];
+}
+
+
 // <-------- Service Designer Related ------->
 
+export interface FunctionFromSourceRequest {
+    filePath: string;
+    codedata: CodeData;
+}
+
+export interface FunctionFromSourceResponse {
+    function: FunctionModel;
+    errorMsg?: string;
+    stacktrace?: string;
+}
 
 export interface FunctionNodeRequest {
     projectPath?: string;
@@ -1594,9 +1622,11 @@ export interface BIInterface extends BaseLangClientInterface {
     getHttpResourceModel: (params: HttpResourceModelRequest) => Promise<HttpResourceModelResponse>;
     addResourceSourceCode: (params: FunctionSourceCodeRequest) => Promise<ResourceSourceCodeResponse>;
     addFunctionSourceCode: (params: FunctionSourceCodeRequest) => Promise<ResourceSourceCodeResponse>;
+    getResourceReturnTypes: (params: ResourceReturnTypesRequest) => Promise<ResourceReturnTypesResponse>;
 
     // Function APIs
     getFunctionNode: (params: FunctionNodeRequest) => Promise<FunctionNodeResponse>;
+    getFunctionFromSource: (params: FunctionFromSourceRequest) => Promise<FunctionFromSourceResponse>;
 
     getDesignModel: (params: BIDesignModelRequest) => Promise<BIDesignModelResponse>;
     getType: (params: GetTypeRequest) => Promise<GetTypeResponse>;

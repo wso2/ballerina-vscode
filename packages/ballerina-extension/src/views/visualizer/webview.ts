@@ -48,13 +48,17 @@ export class VisualizerWebview {
         }, 500);
 
         vscode.workspace.onDidChangeTextDocument(async (document) => {
-            await document.document.save();
             const state = StateMachine.state();
             const machineReady = typeof state === 'object' && 'viewActive' in state && state.viewActive === "viewReady";
+            // Save the document only if it is not already opened in a visible editor or the webview is active
+            const isOpened = vscode.window.visibleTextEditors.some(editor => editor.document.uri.toString() === document.document.uri.toString());
+            if (!isOpened || this._panel?.active) {
+                await document.document.save();
+            }
             if (this._panel?.active && machineReady && document && document.document.languageId === LANGUAGE.BALLERINA) {
                 sendUpdateNotificationToWebview();
             } else if (machineReady && document?.document && document.document.languageId === LANGUAGE.TOML && document.document.fileName.endsWith("Config.toml") &&
-                vscode.window.visibleTextEditors.some(editor => editor.document.fileName === document.document.fileName)){
+                vscode.window.visibleTextEditors.some(editor => editor.document.fileName === document.document.fileName)) {
                 sendUpdateNotificationToWebview(true);
             }
         }, extension.context);
@@ -109,7 +113,16 @@ export class VisualizerWebview {
     private getWebviewContent(webView: Webview) {
         const body = `<div class="container" id="webview-container">
                 <div class="loader-wrapper">
-                    <div class="loader" /></div>
+                    <div class="welcome-content">
+                        <div class="logo-container">
+                            <div class="loader"></div>
+                        </div>
+                        <h1 class="welcome-title">WSO2 Integrator: BI</h1>
+                        <p class="welcome-subtitle">Setting up your workspace and tools</p>
+                        <div class="loading-text">
+                            <span class="loading-dots">Loading</span>
+                        </div>
+                    </div>
                 </div>
             </div>`;
         const bodyCss = ``;
@@ -123,9 +136,10 @@ export class VisualizerWebview {
             .loader-wrapper {
                 display: flex;
                 justify-content: center;
-                align-items: center;
+                align-items: flex-start;
                 height: 100%;
                 width: 100%;
+                padding-top: 30vh;
             }
             .loader {
                 width: 32px;
@@ -150,6 +164,56 @@ export class VisualizerWebview {
                 49.99%{transform:scaleY(1)  rotate(135deg)}
                 50%   {transform:scaleY(-1) rotate(0deg)}
                 100%  {transform:scaleY(-1) rotate(-135deg)}
+            }
+            /* New welcome view styles */
+            .welcome-content {
+                text-align: center;
+                max-width: 500px;
+                padding: 2rem;
+                animation: fadeIn 1s ease-in-out;
+                font-family: var(--vscode-font-family);
+            }
+            .logo-container {
+                margin-bottom: 2rem;
+                display: flex;
+                justify-content: center;
+            }
+            .welcome-title {
+                color: var(--vscode-foreground);
+                margin: 0 0 0.5rem 0;
+                letter-spacing: -0.02em;
+                font-size: 1.5em;
+                font-weight: 400;
+                line-height: normal;
+            }
+            .welcome-subtitle {
+                color: var(--vscode-descriptionForeground);
+                font-size: 13px;
+                margin: 0 0 2rem 0;
+                opacity: 0.8;
+            }
+            .loading-text {
+                color: var(--vscode-foreground);
+                font-size: 13px;
+                font-weight: 500;
+            }
+            .loading-dots::after {
+                content: '';
+                animation: dots 1.5s infinite;
+            }
+            @keyframes fadeIn {
+                0% { 
+                    opacity: 0;
+                }
+                100% { 
+                    opacity: 1;
+                }
+            }
+            @keyframes dots {
+                0%, 20% { content: ''; }
+                40% { content: '.'; }
+                60% { content: '..'; }
+                80%, 100% { content: '...'; }
             }
         `;
         const scripts = `
