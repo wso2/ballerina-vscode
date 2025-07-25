@@ -162,7 +162,7 @@ export function AddTool(props: AddToolProps): JSX.Element {
         
         if (agentNode?.properties?.tools?.value) {
             const toolsString = agentNode.properties.tools.value.toString();
-            const mcpToolkits = extractMcpToolkits(toolsString);
+            const mcpToolkits = await extractMcpToolkits(toolsString);
             setExistingMcpToolkits(mcpToolkits);
             console.log("existingMcpToolkits", existingMcpToolkits);
         }
@@ -177,16 +177,14 @@ export function AddTool(props: AddToolProps): JSX.Element {
     };
 
 
-    const extractMcpToolkits = (toolsString: string): string[] => {
-        const mcpToolkits: string[] = [];
-        const regex = /check new ai:McpToolKit\([^}]*name:\s*"([^"]*)"[^}]*\}\)/g;
-        
-        let match;
-        while ((match = regex.exec(toolsString)) !== null) {
-            mcpToolkits.push(match[1]);
-        }
-        
-        return mcpToolkits;
+    const extractMcpToolkits = async (toolsString: string): Promise<string[]> => {
+        const variableNodes = await rpcClient.getBIDiagramRpcClient().getModuleNodes();
+        // Defensive: check for array
+        const variables = variableNodes.flowModel?.variables || [];
+        return variables
+            .filter((v: any) => v?.properties?.type?.value === "ai:McpToolKit")
+            .map((v: any) => v?.properties?.variable?.value)
+            .filter(Boolean);
     };
 
     const fetchExistingTools = async () => {

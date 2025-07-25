@@ -13,8 +13,11 @@ import { FlowNode } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { ActionButtons, Button, Codicon, ThemeColors, Dropdown } from "@wso2/ui-toolkit";
 import { RelativeLoader } from "../../../components/RelativeLoader";
+import FormGenerator from "../Forms/FormGenerator";
 import { addMcpServerToAgentNode, updateMcpServerToAgentNode, findAgentNodeFromAgentCallNode, getAgentFilePath } from "./utils";
 import { TextField, CheckBox } from '@wso2/ui-toolkit';
+import { FormField, FormValues } from "@wso2/ballerina-side-panel";
+import { set } from "lodash";
 
 const NameContainer = styled.div`
     display: flex;
@@ -179,27 +182,6 @@ const LoadingMessage = styled.div`
     gap: 8px;
 `;
 
-const CheckboxIcon = styled.div<{ visible: boolean }>`
-    width: 10px;
-    height: 10px;
-    opacity: ${props => props.visible ? 1 : 0};
-    transition: opacity 0.2s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    
-    /* SVG checkmark */
-    &::after {
-        content: '';
-        width: 8px;
-        height: 8px;
-        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='white' d='M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z'/%3E%3C/svg%3E");
-        background-repeat: no-repeat;
-        background-position: center;
-        background-size: contain;
-    }
-`;
-
 interface Tool {
     name: string;
     description?: string;
@@ -218,7 +200,7 @@ export function AddMcpServer(props: AddToolProps): JSX.Element {
     const { agentCallNode, onAddMcpServer, onSave, editMode = false } = props;
     console.log(">>> Add Mcp Server props", props);
     const { rpcClient } = useRpcContext();
-    const [mcpToolkitCount, setMcpToolkitCount] = useState<number>(1);
+    const [mcpToolkitCount, setMcpToolkitCount] = useState<number>(0);
     const [agentNode, setAgentNode] = useState<FlowNode | null>(null);
     const [existingTools, setExistingTools] = useState<string[]>([]);
     const [toolsStringList, setToolsStringList] = useState<string>("");
@@ -226,8 +208,10 @@ export function AddMcpServer(props: AddToolProps): JSX.Element {
     const [urlError, setUrlError] = useState<string>("");
     const [nameError, setNameError] = useState<string>("");
     const [mcpToolResponse, setMcpToolResponse] = useState<FlowNode>(null);
+    const [allVariables, setAllVariables] = useState<FlowNode[]>(null);
 
     const [serviceUrl, setServiceUrl] = useState("");
+    const [pendingServiceUrl, setPendingServiceUrl] = useState("");
     const [errorInputs, setErrorInputs] = useState(false);
     const [configs, setConfigs] = useState({});
     const [toolSelection, setToolSelection] = useState("All");
@@ -244,6 +228,8 @@ export function AddMcpServer(props: AddToolProps): JSX.Element {
     const [savingForm, setSavingForm] = useState<boolean>(false);
 
     const agentFilePath = useRef<string>("");
+    const hasUpdatedToolsField = useRef(false);
+    const formRef = useRef<any>(null);
 
     const handleAddNewMcpServer = () => {
         onAddMcpServer();
@@ -257,10 +243,18 @@ export function AddMcpServer(props: AddToolProps): JSX.Element {
         initPanel();
     }, [agentCallNode]);
 
+    useEffect(() => {
+        if (mcpToolResponse && !hasUpdatedToolsField.current) {
+            console.log("Running updateMcpToolResponseWithToolsField", mcpToolResponse);
+            updateMcpToolResponseWithToolsField();
+            hasUpdatedToolsField.current = true;
+        }
+    }, [mcpToolResponse]);
+
     // Effect to fetch MCP tools when serviceUrl changes and toolSelection is "Selected"
     useEffect(() => {
         if (toolSelection === "Selected" && serviceUrl.trim()) {
-            fetchMcpTools();
+            fetchMcpTools(serviceUrl);
         } else {
             // Clear tools when not in selected mode or no URL
             setMcpTools([]);
@@ -268,6 +262,15 @@ export function AddMcpServer(props: AddToolProps): JSX.Element {
             setMcpToolsError("");
         }
     }, [toolSelection, serviceUrl]);
+
+    // Effect to fetch MCP tools when mcpToolResponse serviceUrl changes
+    useEffect(() => {
+        console.log(">>> mcpToolResponse serverUrl changed", (mcpToolResponse?.properties as any)?.['serverUrl']?.value);
+        const serverUrlProp = (mcpToolResponse?.properties as any)?.['serverUrl']?.value;
+        if (typeof serverUrlProp === "string" && serverUrlProp.trim() !== "") {
+            fetchMcpTools(serverUrlProp);
+        }
+    }, [(mcpToolResponse?.properties as any)?.['serverUrl']?.value]);
 
     const fetchAgentNode = async () => {
         const agentNode = await findAgentNodeFromAgentCallNode(agentCallNode, rpcClient);
@@ -290,13 +293,41 @@ export function AddMcpServer(props: AddToolProps): JSX.Element {
             });
         setMcpToolResponse(mcpToolResponse.flowNode)
         console.log(">>> response getSourceCode with template ", { mcpToolResponse });
+        console.log(">>> agent node ", { agentNode });
+        const variableNodes = await rpcClient.getBIDiagramRpcClient().getModuleNodes();
+        console.log(">>> variableNodes", variableNodes);
+        setAllVariables(variableNodes.flowModel.variables);
+        if (editMode) {
+            // Find the variable with type 'ai:McpToolKit'
+            const mcpVariable = variableNodes.flowModel?.variables?.find(
+                (v) => v.properties?.type?.value === "ai:McpToolKit" && v.properties.variable?.value === name
+            );
+            console.log(">>> mcpVariable", mcpVariable);
+            // Properly add toolsToInclude to the properties object
+            const updatedProperties = { ...(mcpVariable.properties || {}) };
+            let permittedToolsValue = (mcpVariable.properties as any)?.permittedTools?.value;
+            if (!permittedToolsValue) {
+                fieldVal.value = "All";
+            } else {
+                fieldVal.value = permittedToolsValue === "()" ? "All" : "Selected";
+            }
+            (updatedProperties as any)["toolsToInclude"] = fieldVal;
+
+            const updatedMcpToolResponse = {
+                ...mcpVariable,
+                properties: updatedProperties,
+                codedata: mcpVariable.codedata,
+            };
+
+            setMcpToolResponse(updatedMcpToolResponse);
+        }
         if (agentNode?.properties?.tools?.value) {
             const toolsString = agentNode.properties.tools.value.toString();
             const mcpToolkits = extractMcpToolkits(toolsString);
             console.log(">>> toolsString", toolsString);
             console.log(">>> mcpToolkits", mcpToolkits);
             if (mcpToolkits.length > 0) {
-                setMcpToolkitCount(mcpToolkits.length + 1);
+                setMcpToolkitCount(mcpToolkits.length);
             }
             setToolsStringList(toolsString);
 
@@ -345,6 +376,7 @@ export function AddMcpServer(props: AddToolProps): JSX.Element {
     };
 
     const initPanel = async () => {
+        hasUpdatedToolsField.current = false; // Reset on panel init
         setLoading(true);
         // get agent file path
         agentFilePath.current = await getAgentFilePath(rpcClient);
@@ -359,15 +391,11 @@ export function AddMcpServer(props: AddToolProps): JSX.Element {
     }, [name, props.agentCallNode?.metadata?.data?.tools, toolsStringList]);
 
     const extractMcpToolkits = (toolsString: string): string[] => {
-        const mcpToolkits: string[] = [];
-        const regex = /check new ai:McpToolKit/g;
-        const matches = toolsString.match(regex);
-        
-        if (matches) {
-            mcpToolkits.push(...Array(matches.length).fill("MCP Server"));
-        }
-        
-        return mcpToolkits;
+        // Remove brackets and whitespace, then split by comma
+        return toolsString
+            .replace(/[\[\]\s]/g, '') // Remove [ ] and whitespace
+            .split(',')
+            .filter(Boolean); // Remove empty strings
     };
     
     const fetchExistingTools = async () => {
@@ -376,33 +404,25 @@ export function AddMcpServer(props: AddToolProps): JSX.Element {
         setExistingTools(existingTools.tools);
     };
 
-    const fetchMcpTools = async () => {
-        if (!serviceUrl.trim()) {
+    const fetchMcpTools = async (url: string) => {
+        // Remove leading/trailing double quotes if present
+        const cleanUrl = url.replace(/^"|"$/g, '');
+        if (!cleanUrl.trim()) {
             return;
         }
-
         setLoadingMcpTools(true);
         setMcpToolsError("");
         setMcpTools([]);
-        // Don't clear selected tools in edit mode
         if (!editMode) {
             setSelectedMcpTools(new Set());
         }
-
         try {
-            // Check if getMcpTools method exists in the RPC client
             const languageServerClient = rpcClient.getAIAgentRpcClient();
-            
             if (typeof languageServerClient.getMcpTools === 'function') {
-                // Use the actual RPC method if it exists
-                console.log(">>> Fetching MCP tools from server");
                 const response = await languageServerClient.getMcpTools({ 
-                    serviceUrl: serviceUrl.trim(),
+                    serviceUrl: cleanUrl.trim(),
                     configs: configs
                 });
-                
-                console.log(">>> MCP tools response", response);
-                
                 if (response.tools && Array.isArray(response.tools)) {
                     setMcpTools(response.tools);
                 } else {
@@ -410,12 +430,18 @@ export function AddMcpServer(props: AddToolProps): JSX.Element {
                 }
             }
         } catch (error) {
-            console.error(">>> Error fetching MCP tools", error);
             setMcpToolsError(`Failed to fetch tools from MCP server: ${error || 'Unknown error'}`);
         } finally {
             setLoadingMcpTools(false);
         }
     };
+
+    // useEffect to fetch tools when pendingServiceUrl changes
+    useEffect(() => {
+        if (pendingServiceUrl.trim()) {
+            fetchMcpTools(pendingServiceUrl);
+        }
+    }, [pendingServiceUrl]);
 
     const handleToolSelectionChange = (toolName: string, isSelected: boolean) => {
         const newSelectedTools = new Set(selectedMcpTools);
@@ -425,75 +451,6 @@ export function AddMcpServer(props: AddToolProps): JSX.Element {
             newSelectedTools.delete(toolName);
         }
         setSelectedMcpTools(newSelectedTools);
-    };
-
-    const validateUrl = (url: string): string => {
-        if (!url.trim()) {
-            return '';
-        }
-
-        try {
-            const urlObj = new URL(url);
-            // Check if protocol is http or https
-            if (!['http:', 'https:'].includes(urlObj.protocol)) {
-                return 'URL must use HTTP or HTTPS protocol';
-            }
-            return '';
-        } catch (error) {
-            return 'Please enter a valid URL (e.g., http://example.com)';
-        }
-    };
-
-    const handleServiceUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const newUrl = e.target.value;
-        setServiceUrl(newUrl);
-        const errorMessage = validateUrl(newUrl);
-        if (errorMessage == '') {
-            setErrorInputs(false);
-            setUrlError('');
-        } else {
-            setErrorInputs(true);
-            setUrlError(errorMessage);
-        }
-    };
-
-    const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const newName = e.target.value;
-        setName(newName);
-        setHasUserTyped(true);
-        const errorMessage = validateName(newName);
-        if (errorMessage == '') {
-            setErrorInputs(false);
-            setNameError('');
-        } else {
-            setErrorInputs(true);
-            setNameError(errorMessage);
-        }
-    };
-
-    const validateName = (name: string): string => {
-        if (!name.trim()) {
-            return '';
-        }
-
-        // Extract existing MCP toolkit names from the tools string
-        const existingMcpToolkits = extractMcpToolkitNames(toolsStringList);
-        
-        // Check if the name already exists (case-insensitive comparison)
-        const nameExists = existingMcpToolkits.some(
-            existingName => existingName.toLowerCase() === name.trim().toLowerCase()
-        );
-        
-        if (nameExists && !editMode) {
-            return 'An MCP server with this name already exists';
-        }
-        
-        // In edit mode, allow the current name but not other existing names
-        if (nameExists && editMode && props.name && name.trim().toLowerCase() !== props.name.toLowerCase()) {
-            return 'An MCP server with this name already exists';
-        }
-        
-        return '';
     };
 
     const extractMcpToolkitNames = (toolsString: string): string[] => {
@@ -520,78 +477,62 @@ export function AddMcpServer(props: AddToolProps): JSX.Element {
         }
     };
 
-    const handleOnSave = async () => {
-        console.log(">>> save value", { selectedTool, selectedMcpTools: Array.from(selectedMcpTools) });
-        
-        let defaultName = "MCP Server";
-        if (mcpToolkitCount > 1) {
-            defaultName += ` 0${mcpToolkitCount}`;
+    // Update handleOnSave to accept all submitted form values
+    const handleOnSave = async (
+        node?: FlowNode,
+        isDataMapper?: boolean,
+        formImports?: any,
+        rawFormValues?: FormValues
+    ) => {
+        console.log(">>> selected tools", selectedTools)
+        console.log("All submitted form values:", rawFormValues);
+        console.log("handle on save node:", node);
+
+        // Use the same logic as the display to determine the name
+        let finalName;
+        if (name.trim() !== "") {
+            finalName = name.trim();
+        } else {
+            finalName = mcpToolkitCount > 1 ? `MCP Server 0${mcpToolkitCount}` : "MCP Server";
         }
+
         const payload = {
-            name: name.trim() || defaultName,
+            name: finalName,
             serviceUrl: serviceUrl.trim(),
             configs: configs,
             toolSelection,
-            selectedTools: toolSelection === "Selected" ? Array.from(selectedMcpTools) : []
+            selectedTools: selectedTools,
+            mcpTools
         };
-        setMcpToolkitCount(mcpToolkitCount + 1);
-        console.log(">>> toolkit count", mcpToolkitCount);
+        // Update node.properties so that each key is an object with a value property
+        if (rawFormValues && node && node.properties) {
+            const props = node.properties as Record<string, any>;
+            Object.entries(rawFormValues).forEach(([key, value]) => {
+                if (props[key] && typeof props[key] === "object" && "value" in props[key]) {
+                    props[key].value = value;
+                } else {
+                    props[key] = { value };
+                }
+            });
+            node.properties = props;
+        }
         console.log(">>> Saving with payload:", payload);
 
         setSavingForm(true);
         try {
-            // update the agent node
-            const updatedAgentNode = await addMcpServerToAgentNode(agentNode, payload);
-            // generate the source code
-            const agentResponse = await rpcClient
-                .getBIDiagramRpcClient()
-                .getSourceCode({ filePath: agentFilePath.current, flowNode: updatedAgentNode });
-            console.log(">>> response getSourceCode with template ", { agentResponse });
-
+            await rpcClient.getAIAgentRpcClient().updateMCPToolKit({
+                agentFlowNode: agentNode,
+                serviceUrl: `"${payload.serviceUrl}"`,
+                serverName: finalName,
+                selectedTools: selectedTools,
+                updatedNode: node,
+                codedata: mcpToolResponse.codedata,
+                mcpTools: payload.mcpTools
+            });
+            setServiceUrl(payload.serviceUrl);
             onSave?.();
         } catch (error) {
             console.error(">>> Error saving MCP server", error);
-            // You might want to show an error message to the user here
-        } finally {
-            setSavingForm(false);
-        }
-    };
-
-    const handleOnEdit = async () => {
-        console.log(">>> edit value", { selectedTool, selectedMcpTools: Array.from(selectedMcpTools) });
-        
-        const payload = {
-            name: name.trim(),
-            serviceUrl: serviceUrl.trim(),
-            configs: configs,
-            toolSelection,
-            selectedTools: toolSelection === "Selected" ? Array.from(selectedMcpTools) : []
-        };
-        
-        console.log(">>> Updating with payload:", payload);
-
-        setSavingForm(true);
-        try {
-            // Use the original name (from props) to identify which MCP server to update
-            const originalToolName = props.name || "";
-            
-            // Update the existing MCP server configuration
-            const updatedAgentNode = await updateMcpServerToAgentNode(agentNode, payload, originalToolName);
-            
-            if (updatedAgentNode) {
-                // generate the source code
-                const agentResponse = await rpcClient
-                    .getBIDiagramRpcClient()
-                    .getSourceCode({ filePath: agentFilePath.current, flowNode: updatedAgentNode });
-                console.log(">>> response getSourceCode with template ", { agentResponse });
-
-                onSave?.();
-            } else {
-                console.error(">>> Failed to update MCP server - updatedAgentNode is null");
-            }
-        } catch (error) {
-            console.error(">>> Error updating MCP server", error);
-            // You might want to show an error message to the user here
         } finally {
             setSavingForm(false);
         }
@@ -615,6 +556,26 @@ export function AddMcpServer(props: AddToolProps): JSX.Element {
         
         return candidateValue;
     };
+
+    // Refactored: Accept variables as parameter
+    const generateUniqueVariable = (variables: FlowNode[] = allVariables) => {
+        if (hasUserTyped || editMode) {
+            return name;
+        }
+
+        let counter = mcpToolkitCount;
+        let candidateValue = counter >= 1 ? `mcpServer${counter}` : "mcpServer";
+        // Loop until candidateValue is unique among variables
+        while ((variables || []).some(v => {
+            const val = v.properties?.variable?.value;
+            return typeof val === 'string' && val.trim().toLowerCase() === candidateValue.trim().toLowerCase();
+        })) {
+            counter++;
+            candidateValue = `mcpServer${counter}`;
+        }
+        return candidateValue;
+    };
+
     const computedValue = generateUniqueValue();
 
     const hasExistingTools = existingTools.length > 0;
@@ -623,7 +584,8 @@ export function AddMcpServer(props: AddToolProps): JSX.Element {
 
     console.log(">>> rendering conditions", { hasExistingTools, isToolSelected, canSave, editMode });
 
-    const renderToolsSelection = () => {
+    // Change renderToolsSelection to accept mcpTools as a parameter
+    const renderToolsSelection = (tools = mcpTools) => {
         if (toolSelection !== "Selected") {
             return null;
         }
@@ -632,20 +594,19 @@ export function AddMcpServer(props: AddToolProps): JSX.Element {
             <ToolsContainer>
                 <ToolsHeader>
                     <ToolsTitle>Available Tools</ToolsTitle>
-                    {mcpTools.length > 0 && (
+                    {tools.length > 0 && (
                         <Button
-                            size="small"
                             onClick={handleSelectAllTools}
                             disabled={loadingMcpTools}
                         >
-                            {selectedMcpTools.size === mcpTools.length ? "Deselect All" : "Select All"}
+                            {selectedMcpTools.size === tools.length ? "Deselect All" : "Select All"}
                         </Button>
                     )}
                 </ToolsHeader>
                 
                 {loadingMcpTools && (
                     <LoadingMessage>
-                        <RelativeLoader size="small" />
+                        <RelativeLoader />
                         Loading tools from MCP server...
                     </LoadingMessage>
                 )}
@@ -654,9 +615,9 @@ export function AddMcpServer(props: AddToolProps): JSX.Element {
                     <ErrorMessage>{mcpToolsError}</ErrorMessage>
                 )}
 
-                {mcpTools.length > 0 && (
+                {tools.length > 0 && (
                     <ToolCheckboxContainer>
-                        {mcpTools.map((tool) => (
+                        {tools.map((tool) => (
                             <ToolCheckboxItem key={tool.name}>
                                 <CheckBox
                                     label=""
@@ -678,7 +639,7 @@ export function AddMcpServer(props: AddToolProps): JSX.Element {
                     </ToolCheckboxContainer>
                 )}
 
-                {!loadingMcpTools && !mcpToolsError && mcpTools.length === 0 && serviceUrl.trim() && (
+                {!loadingMcpTools && !mcpToolsError && tools.length === 0 && serviceUrl.trim() && (
                     <div style={{ color: ThemeColors.ON_SURFACE_VARIANT, fontSize: '12px' }}>
                         No tools available from this MCP server
                     </div>
@@ -688,9 +649,98 @@ export function AddMcpServer(props: AddToolProps): JSX.Element {
     };
     console.log(">>> agentNode", agentCallNode);
 
-    const DropdownContainer = styled.div`
-    width: 100%;
-`;
+    const fieldVal = {
+        key: "scope",
+        advanced: false,
+        codedata: {
+            kind: 'REQUIRED',
+            originalName: 'scope',
+        },
+        editable: true,
+        hidden: false,
+        metadata: {
+            label: "Tools to Include",
+            description: "Select the tools to include in the MCP server."
+        },
+        optional: false,
+        placeholder: "",
+        valueType: "SINGLE_SELECT",
+        valueTypeConstraint: "string",
+        value: "All", // <-- add this line to fix the linter error
+        typeMembers: [
+            {
+                type: "string",
+                packageInfo: "",
+                packageName: "",
+                kind: "BASIC_TYPE",
+                selected: false
+            }
+        ],
+        imports: {},
+        defaultValue: "All",
+        itemOptions: [    {
+        "id": "All",
+        "content": "All",
+        "value": "All"
+    },
+    {
+        "id": "Selected",
+        "content": "Selected",
+        "value": "Selected"
+    }]
+    };
+
+    // Refactor to accept variableName as parameter
+    const updateMcpToolResponseWithToolsField = (variableName?: string) => {
+        if (mcpToolResponse) {
+            // Clone properties to avoid mutating state directly
+            const updatedProperties = { ...(mcpToolResponse.properties || {}) };
+
+            if (editMode) {
+                if ("serverUrl" in updatedProperties && updatedProperties["serverUrl"]) {
+                    (updatedProperties["serverUrl"] as { value: string }).value = serviceUrl;
+                }
+                // Only update 'info' if it exists in updatedProperties and has a 'value' property
+                if ("info" in updatedProperties && typeof (updatedProperties["info"] as any)?.value === "string") {
+                    (updatedProperties["info"] as { value: string }).value = ((mcpToolResponse.properties as any)?.info?.value) || "";
+                }
+            }
+
+            if ("variable" in updatedProperties && updatedProperties["variable"]) {
+                (updatedProperties["variable"] as { value: string }).value = variableName || generateUniqueVariable(allVariables);
+            }
+            let permittedToolsValue = (mcpToolResponse.properties as any)?.permittedTools?.value;
+            if (!permittedToolsValue) {
+                fieldVal.value = "All";
+            } else {
+                fieldVal.value = permittedToolsValue === "()" ? "All" : "Selected";
+            }
+            // Add fieldVal as a property named 'scope', wrapped as a Property object
+            (updatedProperties as any)["toolsToInclude"] = fieldVal;
+
+            const updatedMcpToolResponse = {
+                ...mcpToolResponse,
+                properties: updatedProperties,
+            };
+
+            setMcpToolResponse(updatedMcpToolResponse);
+        }
+    };
+
+    const [selectedTools, setSelectedTools] = useState<string[]>([]);
+
+    const handleToolsChange = (tools: string[]) => {
+        setSelectedTools(tools);
+        // You can do other things here as needed
+    };
+
+    useEffect(() => {
+        if (allVariables && Array.isArray(allVariables)) {
+            const uniqueVar = generateUniqueVariable(allVariables);
+            updateMcpToolResponseWithToolsField(uniqueVar);
+            console.log('Generated unique variable:', uniqueVar);
+        }
+    }, [allVariables]);
 
     return (
         <Container>
@@ -701,79 +751,29 @@ export function AddMcpServer(props: AddToolProps): JSX.Element {
                 </LoaderContainer>
             )}
 
-            <>
-                <Column>
-                    <Description>
-                        {editMode ? "Edit MCP server configuration." : "Add an MCP server to provide tools to the Agent."}
-                    </Description>
-                    
-                    <NameContainer>
-                        <TextField
-                            sx={{ flexGrow: 1, marginTop: 15 }}
-                            disabled={false}
-                            errorMsg={urlError}
-                            label="Server URL"
-                            size={70}
-                            onChange={handleServiceUrlChange}
-                            placeholder="Enter MCP server URL"
-                            value={serviceUrl}
-                        />
-                    </NameContainer>
-
-                    <NameContainer>
-                        <TextField
-                            sx={{ flexGrow: 1, marginTop: 15 }}
-                            disabled={false}
-                            label="Name"
-                            size={70}
-                            errorMsg={nameError}
-                            onChange={handleNameChange}
-                            placeholder="Enter name for the MCP Tool Kit"
-                            value={computedValue}
-                        />
-                    </NameContainer>
-
-                    <NameContainer style={{ marginTop: 15 }}>
-                        <DropdownContainer>
-                            <Dropdown
-                                id="tool-selection"
-                                label="Tools to Include"
-                                value={toolSelection}
-                                items={[
-                                    { id: "All", value: "All" },
-                                    { id: "Selected", value: "Selected" },
-                                ]}
-                                onValueChange={(value) => setToolSelection(value)}
-                            />
-                        </DropdownContainer>
-                    </NameContainer>
-                    {renderToolsSelection()}
-                </Column>
-                <Footer>
-                    {editMode ? (
-                        // Edit mode: Show only Save button
-                        <PrimaryButton 
-                            onClick={handleOnEdit} 
-                            disabled={savingForm || !canSave || loadingMcpTools || errorInputs}
-                        >
-                            {savingForm ? "Saving..." : "Save"}
-                        </PrimaryButton>
-                    ) : (
-                        // Add mode: Show Back and Add to Agent buttons
-                        <>
-                            <Button onClick={handleBack}>
-                                Back
-                            </Button>
-                            <PrimaryButton 
-                                onClick={handleOnSave} 
-                                disabled={savingForm || !canSave || loadingMcpTools || errorInputs}
-                            >
-                                {savingForm ? "Adding..." : "Add to Agent"}
-                            </PrimaryButton>
-                        </>
-                    )}
-                </Footer>
-            </>
+            {mcpToolResponse && (
+                <FormGenerator
+                    ref={formRef}
+                    fileName={agentFilePath.current}
+                    targetLineRange={{ startLine: { line: 0, offset: 0 }, endLine: { line: 0, offset: 0 } }}
+                    nodeFormTemplate={mcpToolResponse}
+                    submitText={"Save Tool"}
+                    node={mcpToolResponse}
+                    onSubmit={handleOnSave}
+                    scopeFieldAddon={renderToolsSelection(mcpTools)}
+                    newServerUrl={serviceUrl}
+                    onChange={(fieldKey, value, allValues) => {
+                        if (fieldKey === "serverUrl") {
+                            setPendingServiceUrl(value);
+                            setServiceUrl(value);
+                        }
+                    }}
+                    mcpTools={mcpTools}
+                    // Pass the handler to FormGenerator
+                    onToolsChange={handleToolsChange}
+                />
+            )}
         </Container>
     );
 }
+

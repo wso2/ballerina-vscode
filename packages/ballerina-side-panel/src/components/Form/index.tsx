@@ -345,6 +345,11 @@ export interface FormProps {
     concertMessage?: string;
     formImports?: FormImports;
     preserveOrder?: boolean;
+    scopeFieldAddon?: React.ReactNode;
+    newServerUrl?: string;
+    onChange?: (fieldKey: string, value: any, allValues: FormValues) => void;
+    mcpTools?: { name: string; description?: string }[];
+    onToolsChange?: (selectedTools: string[]) => void;
 }
 
 export const Form = forwardRef((props: FormProps, ref) => {
@@ -378,6 +383,10 @@ export const Form = forwardRef((props: FormProps, ref) => {
         concertMessage,
         formImports,
         preserveOrder = false,
+        scopeFieldAddon,
+        newServerUrl,
+        mcpTools,
+        onToolsChange,
     } = props;
 
     const {
@@ -497,6 +506,7 @@ export const Form = forwardRef((props: FormProps, ref) => {
     // Expose a method to trigger the save
     useImperativeHandle(ref, () => ({
         triggerSave: () => handleSubmit(handleOnSave)(), // Call handleSubmit with the save function
+        resetForm: (values) => reset(values),
     }));
 
     const handleOpenRecordEditor = (open: boolean, typeField?: FormField) => {
@@ -665,6 +675,20 @@ export const Form = forwardRef((props: FormProps, ref) => {
         }
     };
 
+    const prevValuesRef = useRef<FormValues>({});
+    const watchedValues = watch();
+    useEffect(() => {
+        if (props.onChange) {
+            const prevValues = prevValuesRef.current;
+            Object.entries(watchedValues).forEach(([key, value]) => {
+                if (prevValues[key] !== value) {
+                    props.onChange?.(key, value, watchedValues);
+                }
+            });
+            prevValuesRef.current = { ...watchedValues };
+        }
+    }, [watchedValues]);
+
     return (
         <Provider {...contextValue}>
             <S.Container nestedForm={nestedForm} compact={compact} className="side-panel-body">
@@ -732,7 +756,11 @@ export const Form = forwardRef((props: FormProps, ref) => {
                                         recordTypeFields={recordTypeFields}
                                         onIdentifierEditingStateChange={handleIdentifierEditingStateChange}
                                         setSubComponentEnabled={setIsSubComponentEnabled}
+                                        newServerUrl={newServerUrl}
+                                        mcpTools={mcpTools}
+                                        onToolsChange={onToolsChange}
                                     />
+                                    {updatedField.key === "scope" && scopeFieldAddon}
                                 </S.Row>
                             );
                         })}
