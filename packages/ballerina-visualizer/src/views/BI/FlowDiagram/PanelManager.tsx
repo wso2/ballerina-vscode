@@ -227,7 +227,7 @@ export function PanelManager(props: PanelManagerProps) {
                 return <ModelConfig agentCallNode={selectedNode} onSave={handleSubmitAndClose} />;
 
             case SidePanelView.AGENT_CONFIG:
-                return <AgentConfig agentCallNode={selectedNode} fileName={fileName} onSave={handleSubmitAndClose} />;
+                return <AgentConfig agentCallNode={selectedNode} fileName={fileName} onSave={onClose} />;
 
             case SidePanelView.AGENT_MEMORY_MANAGER:
                 return <MemoryManagerConfig agentCallNode={selectedNode} onSave={handleSubmitAndClose} />;
