@@ -103,7 +103,8 @@ public class DataMappingModelTest extends AbstractLSTest {
                 {Path.of("primitiveArray.json")},
                 {Path.of("enum.json")},
                 {Path.of("enum2.json")},
-                {Path.of("union.json")}
+                {Path.of("union.json")},
+                {Path.of("const.json")}
         };
     }
 

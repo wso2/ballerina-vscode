@@ -1,0 +1,53 @@
+{
+  "source": "const.bal",
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "const.bal",
+      "startLine": {
+        "line": 3,
+        "offset": 4
+      },
+      "endLine": {
+        "line": 3,
+        "offset": 20
+      }
+    },
+    "sourceCode": ""
+  },
+  "position": {
+    "line": 3,
+    "offset": 4
+  },
+  "propertyKey": "expression",
+  "model": {
+    "inputs": [
+      {
+        "id": "AGE",
+        "variableName": "AGE",
+        "typeName": "int",
+        "kind": "int",
+        "category": "constant"
+      }
+    ],
+    "output": {
+      "id": "myAge",
+      "typeName": "int",
+      "kind": "int"
+    },
+    "mappings": [
+      {
+        "output": "myAge",
+        "inputs": [
+          "AGE"
+        ],
+        "expression": "AGE",
+        "diagnostics": [],
+        "elements": [],
+        "isQueryExpression": false,
+        "isFunctionCall": false
+      }
+    ]
+  }
+}
