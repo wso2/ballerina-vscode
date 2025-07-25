@@ -54,7 +54,6 @@ import {
     convertModelProviderCategoriesToSidePanelCategories,
     convertVectorStoreCategoriesToSidePanelCategories,
     convertEmbeddingProviderCategoriesToSidePanelCategories,
-    convertVectorKnowledgeBaseCategoriesToSidePanelCategories,
 } from "../../../utils/bi";
 import { NodePosition, STNode } from "@wso2/syntax-tree";
 import { View, ProgressRing, ProgressIndicator, ThemeColors } from "@wso2/ui-toolkit";
@@ -219,6 +218,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                     setCategories(lastItem.categories);
                     selectedNodeRef.current = lastItem.selectedNode;
                     selectedClientName.current = lastItem.clientName;
+                    newStack.pop();
                     return newStack;
                 }
                 newStack.pop();
@@ -704,25 +704,25 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
     };
 
     const handleSearchModelProvider = async (searchText: string, functionType: FUNCTION_TYPE) => {
-        await handleSearch(searchText, functionType, "MODEL_PROVIDER");
+        // await handleSearch(searchText, functionType, "MODEL_PROVIDER");
     };
 
     const handleSearchVectorStore = async (searchText: string, functionType: FUNCTION_TYPE) => {
-        await handleSearch(searchText, functionType, "VECTOR_STORE");
+        // await handleSearch(searchText, functionType, "VECTOR_STORE");
     };
 
     const handleSearchEmbeddingProvider = async (searchText: string, functionType: FUNCTION_TYPE) => {
-        await handleSearch(searchText, functionType, "EMBEDDING_PROVIDER");
+        // await handleSearch(searchText, functionType, "EMBEDDING_PROVIDER");
     };
 
     const handleSearchVectorKnowledgeBase = async (searchText: string, functionType: FUNCTION_TYPE) => {
-        await handleSearch(searchText, functionType, "VECTOR_KNOWLEDGE_BASE");
+        // await handleSearch(searchText, functionType, "VECTOR_KNOWLEDGE_BASE");
     };
 
-    const updateCurrentArtifactLocation = async (artifacts: UpdatedArtifactsResponse) => {
-        console.log(">>> Updating current artifact location", artifacts);
+    const updateCurrentArtifactLocation = async (artifacts: UpdatedArtifactsResponse, identifier?: string) => {
+        console.log(">>> Updating current artifact location", { artifacts, identifier });
         // Get the updated component and update the location
-        const currentIdentifier = (await rpcClient.getVisualizerLocation()).identifier;
+        const currentIdentifier = identifier || (await rpcClient.getVisualizerLocation()).identifier;
         // Find the correct artifact by currentIdentifier (id)
         let currentArtifact = artifacts.artifacts.at(0);
         artifacts.artifacts.forEach((artifact) => {
@@ -741,22 +741,22 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
         });
         if (currentArtifact) {
             console.log(">>> currentArtifact", currentArtifact);
-            if (currentArtifact.type === "CONNECTION" && isCreatingNewModelProvider.current) {
+            if (identifier && isCreatingNewModelProvider.current) {
                 isCreatingNewModelProvider.current = false;
                 await handleModelProviderAdded();
                 return;
             }
-            if (currentArtifact.type === "VARIABLE" && isCreatingNewVectorStore.current) {
+            if (identifier && isCreatingNewVectorStore.current) {
                 isCreatingNewVectorStore.current = false;
                 await handleVectorStoreAdded();
                 return;
             }
-            if (currentArtifact.type === "VARIABLE" && isCreatingNewEmbeddingProvider.current) {
+            if (identifier && isCreatingNewEmbeddingProvider.current) {
                 isCreatingNewEmbeddingProvider.current = false;
                 await handleEmbeddingProviderAdded();
                 return;
             }
-            if (currentArtifact.type === "VARIABLE" && isCreatingNewVectorKnowledgeBase.current) {
+            if (identifier && isCreatingNewVectorKnowledgeBase.current) {
                 isCreatingNewVectorKnowledgeBase.current = false;
                 await handleVectorKnowledgeBaseAdded();
                 return;
@@ -770,6 +770,8 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 identifier: currentIdentifier,
             },
         });
+        handleOnCloseSidePanel();
+        debouncedGetFlowModel();
     };
 
     const handleOnSelectNode = (nodeId: string, metadata?: any, fileName?: string) => {
@@ -1004,17 +1006,14 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 console.log(">>> Updated source code", response);
                 if (response.artifacts.length > 0) {
                     selectedNodeRef.current = undefined;
-                    await updateCurrentArtifactLocation(response);
-
-                    // Handle creation completion
-                    handleOnCloseSidePanel();
+                    const identifier = (updatedNode.properties?.variable?.value || "") as string;
+                    await updateCurrentArtifactLocation(response, identifier);
                 } else {
                     console.error(">>> Error updating source code", response);
                 }
             })
             .finally(() => {
                 setShowProgressIndicator(false);
-                debouncedGetFlowModel();
             });
     };
 
@@ -1348,17 +1347,33 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
     const handleOnAddNewVectorKnowledgeBase = () => {
         console.log(">>> Adding new vector knowledge base");
         isCreatingNewVectorKnowledgeBase.current = true;
-        setShowProgressIndicator(true);
 
         // Push current state to navigation stack
         pushToNavigationStack(sidePanelView, categories, selectedNodeRef.current, selectedClientName.current);
-        // update the node type to VECTOR_KNOWLEDGE_BASE
-        selectedNodeMetadata.current.metadata.node.codedata.node = "VECTOR_KNOWLEDGE_BASE";
-        handleOnSelectNode(
-            selectedNodeMetadata.current.nodeId,
-            selectedNodeMetadata.current.metadata,
-            selectedNodeMetadata.current.fileName
-        );
+
+        // Update the node type to VECTOR_KNOWLEDGE_BASE and get the template
+        const updatedMetadata = { ...selectedNodeMetadata.current.metadata };
+        updatedMetadata.node.codedata.node = "VECTOR_KNOWLEDGE_BASE";
+        selectedNodeMetadata.current.metadata = updatedMetadata;
+
+        setShowProgressIndicator(true);
+        rpcClient
+            .getBIDiagramRpcClient()
+            .getNodeTemplate({
+                position: targetRef.current.startLine,
+                filePath: model?.fileName,
+                id: updatedMetadata.node.codedata,
+            })
+            .then((response) => {
+                console.log(">>> Vector Knowledge Base template", response);
+                selectedNodeRef.current = response.flowNode;
+                showEditForm.current = false;
+                setSidePanelView(SidePanelView.FORM);
+                setShowSidePanel(true);
+            })
+            .finally(() => {
+                setShowProgressIndicator(false);
+            });
     };
 
     const handleOnGoToSource = (node: FlowNode) => {
