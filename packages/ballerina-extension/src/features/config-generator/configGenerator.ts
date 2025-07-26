@@ -213,6 +213,7 @@ export async function handleOnUnSetValues(packageName: string, configFile: strin
 
 async function executeRunCommand(ballerinaExtInstance: BallerinaExtension, filePath: string, isBi?: boolean) {
     if (ballerinaExtInstance.enabledRunFast() || isBi) {
+        filePath = (await getCurrentBallerinaProject(filePath)).path;
         const projectHasErrors = await cleanAndValidateProject(ballerinaExtInstance.langClient, filePath);
         if (projectHasErrors) {
             window.showErrorMessage("Project contains errors. Please fix them and try again.");
@@ -228,7 +229,7 @@ async function executeRunCommand(ballerinaExtInstance: BallerinaExtension, fileP
 export async function cleanAndValidateProject(langClient: ExtendedLangClient, path: string): Promise<boolean> {
     try {
         // Get initial project diagnostics
-        const projectPath = extension.ballerinaExtInstance?.getDocumentContext()?.getCurrentProject()?.path || path;
+        const projectPath = (await getCurrentBallerinaProject(path)).path;
         let response: ProjectDiagnosticsResponse = await langClient.getProjectDiagnostics({
             projectRootIdentifier: {
                 uri: Uri.file(projectPath).toString()
