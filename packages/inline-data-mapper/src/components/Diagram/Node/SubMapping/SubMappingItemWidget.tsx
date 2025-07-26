@@ -215,7 +215,10 @@ export function SubMappingItemWidget(props: SubMappingItemProps) {
             {
                 expanded && isRecord && hasFields && (
                     <TreeBody>
-                        {type.fields.map((field, index) => {
+                        {type
+                            ?.fields
+                            ?.filter(f => !!f)
+                            .map((field, index) => {
                             return (
                                 <InputNodeTreeItemWidget
                                     key={index}

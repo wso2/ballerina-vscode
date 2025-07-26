@@ -71,7 +71,7 @@ export function ObjectOutputFieldWidget(props: ObjectOutputFieldWidgetProps) {
     let expanded = true;
 
     const typeName = getTypeName(field);
-    const typeKind = field.kind;
+    const typeKind = field?.kind;
     const isArray = typeKind === TypeKind.Array;
     const isRecord = typeKind === TypeKind.Record;
 
@@ -86,9 +86,9 @@ export function ObjectOutputFieldWidget(props: ObjectOutputFieldWidgetProps) {
     const mapping = portIn && portIn.attributes.value;
     const { inputs, expression, diagnostics } = mapping || {};
     const connectedViaLink = inputs?.length > 0;
-    const hasDefaultValue = expression && getDefaultValue(field.kind) === expression.trim();
+    const hasDefaultValue = expression && getDefaultValue(field?.kind) === expression.trim();
 
-    const fields = isRecord && field.fields.filter(f => f !== null);
+    const fields = isRecord && field?.fields?.filter(f => f !== null);
     const isWithinArray = fieldIndex !== undefined;
 
     const handleExpand = () => {
@@ -107,7 +107,7 @@ export function ObjectOutputFieldWidget(props: ObjectOutputFieldWidgetProps) {
     const handleAddValue = async () => {
         setLoading(true);
         try {
-            const defaultValue = getDefaultValue(field.kind);
+            const defaultValue = getDefaultValue(field?.kind);
             await addValue(fieldFQNFromPortName(portName), defaultValue, context);
         } finally {
             setLoading(false);
