@@ -886,7 +886,7 @@ export class NodeInitVisitor implements Visitor {
             && !STKindChecker.isListConstructor(innerExpr)
         ) {
             const inputNodes = getInputNodes(innerExpr);
-            if (inputNodes.length > 1 || isIndexedExpression(innerExpr)) {
+            if (inputNodes.length > 1 || isIndexedExpression(innerExpr) || isComplexExpression(innerExpr)) {
                 const linkConnectorNode = new LinkConnectorNode(
                     this.context,
                     innerExpr,
@@ -910,7 +910,7 @@ export class NodeInitVisitor implements Visitor {
             ) {
                 const inputNodes = getInputNodes(innerExpr);
 
-                if (inputNodes.length > 1 || isIndexedExpression(innerExpr)) {
+                if (inputNodes.length > 1 || isIndexedExpression(innerExpr) || isComplexExpression(innerExpr)) {
                     const linkConnectorNode = new LinkConnectorNode(
                         this.context,
                         innerExpr,
@@ -933,7 +933,7 @@ export class NodeInitVisitor implements Visitor {
         {
             const inputNodes = getInputNodes(expr);
 
-            if (inputNodes.length > 1 || isIndexedExpression(expr)) {
+            if (inputNodes.length > 1 || isIndexedExpression(expr) || isComplexExpression(expr)) {
                 const linkConnectorNode = new LinkConnectorNode(
                     this.context,
                     node.expression,
