@@ -17,6 +17,7 @@
  * under the License.
  */
 import { InlineAllDataMapperSourceRequest, MetadataWithAttachments } from "../../interfaces/extended-lang-client";
+import { LoginMethod } from "../../state-machine-types";
 import { AddToProjectRequest, GetFromFileRequest, DeleteFromProjectRequest, GenerateMappingsRequest, GenerateMappingsResponse, NotifyAIMappingsRequest, ProjectSource, ProjectDiagnostics, GenerateMappingsFromRecordRequest, GenerateMappingFromRecordResponse, PostProcessRequest, PostProcessResponse, GenerateTypesFromRecordRequest, GenerateTypesFromRecordResponse, FetchDataRequest, FetchDataResponse, TestGenerationRequest, TestGenerationResponse, TestGenerationMentions, AIChatSummary, DeveloperDocument, RequirementSpecification, LLMDiagnostics, GetModuleDirParams, AIPanelPrompt, AIMachineSnapshot, SubmitFeedbackRequest, RelevantLibrariesAndFunctionsRequest, GenerateOpenAPIRequest, GenerateCodeRequest, TestPlanGenerationRequest, TestGeneratorIntermediaryState, RepairParams, RelevantLibrariesAndFunctionsResponse, CodeSegment } from "./interfaces";
 
 export interface AIPanelAPI {
@@ -25,6 +26,7 @@ export interface AIPanelAPI {
     // ==================================
     getBackendUrl: () => Promise<string>;
     getProjectUuid: () => Promise<string>;
+    getLoginMethod: () => Promise<LoginMethod>;
     getAccessToken: () => Promise<string>;
     getRefreshedAccessToken: () => Promise<string>;
     getDefaultPrompt: () => Promise<AIPanelPrompt>;

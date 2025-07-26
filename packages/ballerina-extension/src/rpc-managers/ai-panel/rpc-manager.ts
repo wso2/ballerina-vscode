@@ -47,6 +47,7 @@ import {
     InlineAllDataMapperSourceRequest,
     InlineDataMapperModelResponse,
     LLMDiagnostics,
+    LoginMethod,
     MappingElement,
     MetadataWithAttachments,
     NotifyAIMappingsRequest,
@@ -69,8 +70,7 @@ import {
     TestGenerationResponse,
     TestGeneratorIntermediaryState,
     TestPlanGenerationRequest,
-    TextEdit,
-    openInlineMappingChatWindow
+    TextEdit
 } from "@wso2/ballerina-core";
 import { STKindChecker, STNode } from "@wso2/syntax-tree";
 import * as crypto from 'crypto';
@@ -96,10 +96,10 @@ import { Library } from "../../features/ai/service/libs/libs_types";
 import { generateFunctionTests } from "../../features/ai/service/test/function_tests";
 import { generateTestPlan } from "../../features/ai/service/test/test_plan";
 import { generateTest, getDiagnostics, getResourceAccessorDef, getResourceAccessorNames, getServiceDeclaration, getServiceDeclarationNames } from "../../features/ai/testGenerator";
-import { closeAllBallerinaFiles, OLD_BACKEND_URL } from "../../features/ai/utils";
+import { OLD_BACKEND_URL, closeAllBallerinaFiles } from "../../features/ai/utils";
 import { getLLMDiagnosticArrayAsString, handleChatSummaryFailure } from "../../features/natural-programming/utils";
 import { StateMachine, updateView } from "../../stateMachine";
-import { getAccessToken, getRefreshedAccessToken, loginGithubCopilot } from "../../utils/ai/auth";
+import { getAccessToken, getLoginMethod, getRefreshedAccessToken, loginGithubCopilot } from "../../utils/ai/auth";
 import { modifyFileContent, writeBallerinaFileDidOpen } from "../../utils/modification";
 import { updateSourceCode } from "../../utils/source-utils";
 import { PARSING_ERROR, UNKNOWN_ERROR } from "../../views/ai-panel/errorCodes";
@@ -146,6 +146,13 @@ export class AiPanelRpcManager implements AIPanelAPI {
             } catch (error) {
                 resolve("");
             }
+        });
+    }
+
+    async getLoginMethod(): Promise<LoginMethod> {
+        return new Promise(async (resolve) => {
+            const loginMethod = await getLoginMethod();
+            resolve(loginMethod);
         });
     }
 

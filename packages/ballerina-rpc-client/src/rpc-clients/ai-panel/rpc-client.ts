@@ -40,6 +40,7 @@ import {
     GetModuleDirParams,
     InlineAllDataMapperSourceRequest,
     LLMDiagnostics,
+    LoginMethod,
     MetadataWithAttachments,
     NotifyAIMappingsRequest,
     PostProcessRequest,
@@ -84,6 +85,7 @@ import {
     getFromDocumentation,
     getFromFile,
     getGeneratedTests,
+    getLoginMethod,
     getMappingsFromModel,
     getMappingsFromRecord,
     getModuleDirectory,
@@ -131,6 +133,10 @@ export class AiPanelRpcClient implements AIPanelAPI {
 
     getProjectUuid(): Promise<string> {
         return this._messenger.sendRequest(getProjectUuid, HOST_EXTENSION);
+    }
+
+    getLoginMethod(): Promise<LoginMethod> {
+        return this._messenger.sendRequest(getLoginMethod, HOST_EXTENSION);
     }
 
     getAccessToken(): Promise<string> {

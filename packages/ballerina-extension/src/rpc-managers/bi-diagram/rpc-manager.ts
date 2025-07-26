@@ -134,6 +134,7 @@ import {
     WorkspacesResponse,
     DeleteConfigVariableRequestV2,
     DeleteConfigVariableResponseV2,
+    LoginMethod,
 } from "@wso2/ballerina-core";
 import * as fs from "fs";
 import * as path from 'path';
@@ -161,6 +162,7 @@ import { getCompleteSuggestions } from '../../utils/ai/completions';
 import { README_FILE, createBIAutomation, createBIFunction, createBIProjectPure } from "../../utils/bi";
 import { writeBallerinaFileDidOpen } from "../../utils/modification";
 import { updateSourceCode } from "../../utils/source-utils";
+import { getAccessToken, getLoginMethod } from "../../utils/ai/auth";
 export class BiDiagramRpcManager implements BIDiagramAPI {
     OpenConfigTomlRequest: (params: OpenConfigTomlRequest) => Promise<void>;
 
@@ -351,7 +353,7 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
                         resolve(undefined);
                     });
                 });
-        }); 
+        });
     }
 
     async getAvailableEmbeddingProviders(params: BIAvailableNodesRequest): Promise<BIAvailableNodesResponse> {
@@ -488,7 +490,12 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
             let suggestedContent;
             try {
                 if (prompt) {
-                    const token = await extension.context.secrets.get("BallerinaAIUser");
+                    let token: string;
+                    const loginMethod = await getLoginMethod();
+                    if (loginMethod === LoginMethod.BI_INTEL) {
+                        token = await getAccessToken()
+                    }
+
                     if (!token) {
                         resolve(undefined);
                         return;
@@ -508,6 +515,7 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
                     // generate new nodes
                     const response = await fetchWithAuth(OLD_BACKEND_URL + "/inline/generation", requestOptions);
                     if (!response.ok) {
+                        console.log(">>> ai completion api call failed ", response.status);
                         console.log(">>> ai completion api call failed ", response);
                         return new Promise((resolve) => {
                             resolve(undefined);
@@ -520,7 +528,11 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
                     // get next suggestion
                     const copilot_token = await extension.context.secrets.get("GITHUB_COPILOT_TOKEN");
                     if (!copilot_token) {
-                        const token = await extension.context.secrets.get("BallerinaAIUser");
+                        let token: string;
+                        const loginMethod = await getLoginMethod();
+                        if (loginMethod === LoginMethod.BI_INTEL) {
+                            token = await getAccessToken()
+                        }
                         if (!token) {
                             //TODO: Do we need to prompt to login here? If so what? Copilot or Ballerina AI?
                             resolve(undefined);

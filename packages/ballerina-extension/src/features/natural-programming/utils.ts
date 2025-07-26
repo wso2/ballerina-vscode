@@ -40,10 +40,10 @@ import {
 import { isError, isNumber } from 'lodash';
 import { HttpStatusCode } from 'axios';
 import { OLD_BACKEND_URL } from '../ai/utils';
-import { AIMachineEventType, BallerinaProject } from '@wso2/ballerina-core';
+import { AIMachineEventType, BallerinaProject, LoginMethod } from '@wso2/ballerina-core';
 import { getCurrentBallerinaProjectFromContext } from '../config-generator/configGenerator';
 import { BallerinaExtension } from 'src/core';
-import { getRefreshedAccessToken, REFRESH_TOKEN_NOT_AVAILABLE_ERROR_MESSAGE, TOKEN_REFRESH_ONLY_SUPPORTED_FOR_BI_INTEL } from '../../../src/utils/ai/auth';
+import { getAccessToken as getAccesstokenFromUtils, getLoginMethod, getRefreshedAccessToken, REFRESH_TOKEN_NOT_AVAILABLE_ERROR_MESSAGE, TOKEN_REFRESH_ONLY_SUPPORTED_FOR_BI_INTEL } from '../../../src/utils/ai/auth';
 import { AIStateMachine } from '../../../src/views/ai-panel/aiMachine';
 import { fetchWithAuth } from '../ai/service/connection';
 
@@ -505,7 +505,11 @@ export async function getBackendURL(): Promise<string> {
 
 export async function getAccessToken(): Promise<string> {
     return new Promise(async (resolve) => {
-        const token = await extension.context.secrets.get('BallerinaAIUser');
+        let token: string;
+        const loginMethod = await getLoginMethod();
+        if (loginMethod === LoginMethod.BI_INTEL) {
+            token = await getAccesstokenFromUtils()
+        }
         resolve(token as string);
     });
 }
@@ -659,7 +663,7 @@ export async function getConfigFilePath(ballerinaExtInstance: BallerinaExtension
         activeFilePath = activeTextEditor.document.uri.fsPath;
     }
 
-    if (currentProject == null &&  activeFilePath == "") {
+    if (currentProject == null && activeFilePath == "") {
         return await showNoBallerinaSourceWarningMessage();
     }
 
