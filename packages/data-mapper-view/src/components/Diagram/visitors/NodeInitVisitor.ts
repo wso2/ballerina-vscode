@@ -219,13 +219,16 @@ export class NodeInitVisitor implements Visitor {
                             || isIndexedExpression(selectClause.expression)
                         ) {
                             const inputNodes = getInputNodes(selectClause);
+                            const fnDefForFnCall = STKindChecker.isFunctionCall(selectClause.expression) &&
+                                getFnDefForFnCall(selectClause.expression);
                             const linkConnectorNode = new LinkConnectorNode(
                                 this.context,
                                 selectClause,
                                 "",
                                 node,
                                 inputNodes,
-                                this.mapIdentifiers.slice(0)
+                                this.mapIdentifiers.slice(0),
+                                fnDefForFnCall
                             );
                             this.intermediateNodes.push(linkConnectorNode);
                         }
@@ -647,13 +650,16 @@ export class NodeInitVisitor implements Visitor {
                     }
                     if (isComplexExpression(selectClause.expression) || isIndexedExpression(selectClause.expression)) {
                         const inputNodes = getInputNodes(selectClause);
+                        const fnDefForFnCall = STKindChecker.isFunctionCall(selectClause.expression)
+                            && getFnDefForFnCall(selectClause.expression);
                         const linkConnectorNode = new LinkConnectorNode(
                             this.context,
                             node,
                             "",
                             parent,
                             inputNodes,
-                            this.mapIdentifiers.slice(0)
+                            this.mapIdentifiers.slice(0),
+                            fnDefForFnCall
                         );
                         this.intermediateNodes.push(linkConnectorNode);
                     }
@@ -886,6 +892,7 @@ export class NodeInitVisitor implements Visitor {
             && !STKindChecker.isListConstructor(innerExpr)
         ) {
             const inputNodes = getInputNodes(innerExpr);
+            const fnDefForFnCall = STKindChecker.isFunctionCall(innerExpr) && getFnDefForFnCall(innerExpr);
             if (inputNodes.length > 1 || isIndexedExpression(innerExpr) || isComplexExpression(innerExpr)) {
                 const linkConnectorNode = new LinkConnectorNode(
                     this.context,
@@ -893,7 +900,8 @@ export class NodeInitVisitor implements Visitor {
                     "",
                     parent,
                     inputNodes,
-                    [...this.mapIdentifiers, innerExpr]
+                    [...this.mapIdentifiers, innerExpr],
+                    fnDefForFnCall
                 );
                 this.intermediateNodes.push(linkConnectorNode);
             }
@@ -909,6 +917,7 @@ export class NodeInitVisitor implements Visitor {
                 && !STKindChecker.isListConstructor(innerExpr)
             ) {
                 const inputNodes = getInputNodes(innerExpr);
+                const fnDefForFnCall = STKindChecker.isFunctionCall(innerExpr) && getFnDefForFnCall(innerExpr);
 
                 if (inputNodes.length > 1 || isIndexedExpression(innerExpr) || isComplexExpression(innerExpr)) {
                     const linkConnectorNode = new LinkConnectorNode(
@@ -917,7 +926,8 @@ export class NodeInitVisitor implements Visitor {
                         "",
                         parent,
                         inputNodes,
-                        [...this.mapIdentifiers, innerExpr]
+                        [...this.mapIdentifiers, innerExpr],
+                        fnDefForFnCall
                     );
                     this.intermediateNodes.push(linkConnectorNode);
                 }
@@ -932,6 +942,7 @@ export class NodeInitVisitor implements Visitor {
             && !STKindChecker.isExplicitAnonymousFunctionExpression(parent))
         {
             const inputNodes = getInputNodes(expr);
+            const fnDefForFnCall = STKindChecker.isFunctionCall(expr) && getFnDefForFnCall(expr);
 
             if (inputNodes.length > 1 || isIndexedExpression(expr) || isComplexExpression(expr)) {
                 const linkConnectorNode = new LinkConnectorNode(
@@ -940,7 +951,8 @@ export class NodeInitVisitor implements Visitor {
                     "",
                     parent,
                     inputNodes,
-                    [node.expression]
+                    [node.expression],
+                    fnDefForFnCall
                 );
                 this.intermediateNodes.push(linkConnectorNode);
             }
