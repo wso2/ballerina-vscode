@@ -66,7 +66,7 @@ export class InputNode extends DataMapperNodeModel {
             });
 
             if (this.filteredInputType.kind === TypeKind.Record) {
-                const fields = this.filteredInputType.fields;
+                const fields = this.filteredInputType.fields?.filter(f => !!f);
                 fields.forEach((subField) => {
                     this.numberOfFields += this.addPortsForInputField({
                         field: subField,
