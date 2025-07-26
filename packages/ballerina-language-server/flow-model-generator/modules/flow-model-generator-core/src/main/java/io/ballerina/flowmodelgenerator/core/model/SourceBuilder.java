@@ -427,23 +427,23 @@ public class SourceBuilder {
 
             if (firstParamAdded) {
                 if ((kind.equals(ParameterData.Kind.REST_PARAMETER.name()))) {
-                    if (isPropValueEmpty(prop) || ((List<?>) prop.value()).isEmpty()) {
+                    if (isPropValueEmpty(prop)) {
                         continue;
                     }
                     if (hasRestParamValues(prop)) {
                         tokenBuilder.keyword(SyntaxKind.COMMA_TOKEN);
                         addRestParamValues(prop);
-                        continue;
                     }
+                    continue;
                 } else if (kind.equals(ParameterData.Kind.INCLUDED_RECORD_REST.name())) {
-                    if (isPropValueEmpty(prop) || ((List<?>) prop.value()).isEmpty()) {
+                    if (isPropValueEmpty(prop)) {
                         continue;
                     }
                     if (hasRestParamValues(prop)) {
                         tokenBuilder.keyword(SyntaxKind.COMMA_TOKEN);
                         addIncludedRecordRestParamValues(prop);
-                        continue;
                     }
+                    continue;
                 }
             }
 
