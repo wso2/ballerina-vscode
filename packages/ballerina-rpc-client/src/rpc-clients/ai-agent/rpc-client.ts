@@ -30,6 +30,8 @@ import {
     AIModelsResponse,
     AINodesRequest,
     AINodesResponse,
+    AIToolRequest,
+    AIToolResponse,
     AIToolsRequest,
     AIToolsResponse,
     createAIAgent,
@@ -40,6 +42,7 @@ import {
     getAllModels,
     getMcpTools,
     getModels,
+    getTool,
     getTools,
     McpToolsRequest,
     McpToolsResponse,
@@ -81,6 +84,10 @@ export class AiAgentRpcClient implements AIAgentAPI {
 
     getTools(params: AIToolsRequest): Promise<AIToolsResponse> {
         return this._messenger.sendRequest(getTools, HOST_EXTENSION, params);
+    }
+
+    getTool(params: AIToolRequest): Promise<AIToolResponse> {
+        return this._messenger.sendRequest(getTool, HOST_EXTENSION, params);
     }
 
     getMcpTools(params: McpToolsRequest): Promise<McpToolsResponse> {
