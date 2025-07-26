@@ -19,8 +19,7 @@
               "module": "ai.openai",
               "packageName": "ai.openai",
               "object": "EmbeddingProvider",
-              "symbol": "init",
-              "version": "1.1.0"
+              "symbol": "init"
             },
             "enabled": true
           }
