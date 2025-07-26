@@ -26,6 +26,7 @@
       "node": "RESOURCE_ACTION_CALL",
       "org": "ballerinax",
       "module": "docusign.dsadmin",
+      "packageName": "docusign.dsadmin",
       "object": "Client",
       "symbol": "get",
       "isNew": true

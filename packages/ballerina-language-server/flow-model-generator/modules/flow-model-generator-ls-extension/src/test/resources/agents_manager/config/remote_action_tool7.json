@@ -125,24 +125,25 @@
     "id": "31",
     "metadata": {
       "label": "get",
-      "description": "Lists all labels in the user's mailbox.",
-      "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_googleapis.gmail_4.1.0.png"
+      "description": "",
+      "icon": "https://bcentral-packageicons.azureedge.net/images/dulminakodagoda_birctesting_0.1.0.png"
     },
     "codedata": {
       "node": "RESOURCE_ACTION_CALL",
-      "org": "ballerinax",
-      "module": "googleapis.gmail",
+      "org": "dulminakodagoda",
+      "module": "birctesting.testCon",
+      "packageName": "birctesting",
       "object": "Client",
       "symbol": "get",
       "isNew": true,
       "lineRange": {
         "fileName": "agents.bal",
         "startLine": {
-          "line": 11,
+          "line": 3,
           "offset": 0
         },
         "endLine": {
-          "line": 11,
+          "line": 3,
           "offset": 0
         }
       }
@@ -155,420 +156,523 @@
           "description": "Connection to use"
         },
         "valueType": "EXPRESSION",
-        "valueTypeConstraint": "gmail:Client",
+        "valueTypeConstraint": "testCon:Client",
         "value": "connection",
         "optional": false,
         "editable": false,
         "advanced": false,
-        "hidden": false
+        "hidden": true
       },
       "resourcePath": {
         "metadata": {
           "label": "Resource Path",
           "description": "Resource Path"
         },
-        "valueType": "EXPRESSION",
+        "valueType": "ACTION_PATH",
         "value": "resourcePath",
         "optional": false,
         "editable": false,
         "advanced": false,
-        "hidden": false,
+        "hidden": true,
         "codedata": {
-          "originalName": "/users/[userId]/labels"
+          "originalName": "/hotels/search"
         }
       },
-      "userId": {
+      "headers": {
         "metadata": {
-          "label": "userId",
-          "description": "The user's email address. The special value `me` can be used to indicate the authenticated user."
+          "label": "Headers",
+          "description": "Headers to be sent with the request "
         },
         "valueType": "EXPRESSION",
-        "valueTypeConstraint": "string",
-        "placeholder": "\"\"",
-        "optional": false,
+        "valueTypeConstraint": "map<string|string[]>",
+        "placeholder": "{}",
+        "optional": true,
         "editable": true,
-        "advanced": false,
+        "advanced": true,
         "hidden": false,
         "codedata": {
-          "kind": "PATH_PARAM",
-          "originalName": "userId"
+          "kind": "DEFAULTABLE",
+          "originalName": "headers"
+        },
+        "typeMembers": [
+          {
+            "type": "map<string|string[]>",
+            "packageInfo": "",
+            "packageName": "",
+            "kind": "MAP_TYPE",
+            "selected": false
+          }
+        ],
+        "defaultValue": "{}",
+        "value": "headers"
+      },
+      "propertyTypes": {
+        "metadata": {
+          "label": "Property Types",
+          "description": ""
+        },
+        "valueType": "EXPRESSION",
+        "valueTypeConstraint": "string[]|()",
+        "placeholder": "()",
+        "optional": true,
+        "editable": true,
+        "advanced": true,
+        "hidden": false,
+        "codedata": {
+          "kind": "INCLUDED_FIELD",
+          "originalName": "propertyTypes"
+        },
+        "typeMembers": [
+          {
+            "type": "string",
+            "packageInfo": "",
+            "packageName": "",
+            "kind": "ARRAY_TYPE",
+            "selected": false
+          },
+          {
+            "type": "()",
+            "packageInfo": "",
+            "packageName": "",
+            "kind": "BASIC_TYPE",
+            "selected": false
+          }
+        ],
+        "defaultValue": "()",
+        "value": "propertyTypes"
+      },
+      "amenities": {
+        "metadata": {
+          "label": "Amenities",
+          "description": ""
+        },
+        "valueType": "EXPRESSION",
+        "valueTypeConstraint": "string[]|()",
+        "placeholder": "()",
+        "optional": true,
+        "editable": true,
+        "advanced": true,
+        "hidden": false,
+        "codedata": {
+          "kind": "INCLUDED_FIELD",
+          "originalName": "amenities"
+        },
+        "typeMembers": [
+          {
+            "type": "string",
+            "packageInfo": "",
+            "packageName": "",
+            "kind": "ARRAY_TYPE",
+            "selected": false
+          },
+          {
+            "type": "()",
+            "packageInfo": "",
+            "packageName": "",
+            "kind": "BASIC_TYPE",
+            "selected": false
+          }
+        ],
+        "defaultValue": "()",
+        "value": "amenities"
+      },
+      "rooms": {
+        "metadata": {
+          "label": "Rooms",
+          "description": ""
+        },
+        "valueType": "EXPRESSION",
+        "valueTypeConstraint": "int",
+        "placeholder": "0",
+        "optional": true,
+        "editable": true,
+        "advanced": true,
+        "hidden": false,
+        "codedata": {
+          "kind": "INCLUDED_FIELD",
+          "originalName": "rooms"
+        },
+        "typeMembers": [
+          {
+            "type": "int",
+            "packageInfo": "",
+            "packageName": "",
+            "kind": "BASIC_TYPE",
+            "selected": false
+          }
+        ],
+        "defaultValue": "0",
+        "value": "rooms"
+      },
+      "destination": {
+        "metadata": {
+          "label": "Destination",
+          "description": ""
+        },
+        "valueType": "EXPRESSION",
+        "valueTypeConstraint": "string|()",
+        "placeholder": "()",
+        "optional": true,
+        "editable": true,
+        "advanced": true,
+        "hidden": false,
+        "codedata": {
+          "kind": "INCLUDED_FIELD",
+          "originalName": "destination"
+        },
+        "typeMembers": [
+          {
+            "type": "string",
+            "packageInfo": "",
+            "packageName": "",
+            "kind": "BASIC_TYPE",
+            "selected": false
+          },
+          {
+            "type": "()",
+            "packageInfo": "",
+            "packageName": "",
+            "kind": "BASIC_TYPE",
+            "selected": false
+          }
+        ],
+        "defaultValue": "()",
+        "value": "destination"
+      },
+      "minRating": {
+        "metadata": {
+          "label": "Min Rating",
+          "description": ""
+        },
+        "valueType": "EXPRESSION",
+        "valueTypeConstraint": "decimal|()",
+        "placeholder": "()",
+        "optional": true,
+        "editable": true,
+        "advanced": true,
+        "hidden": false,
+        "codedata": {
+          "kind": "INCLUDED_FIELD",
+          "originalName": "minRating"
+        },
+        "typeMembers": [
+          {
+            "type": "decimal",
+            "packageInfo": "",
+            "packageName": "",
+            "kind": "BASIC_TYPE",
+            "selected": false
+          },
+          {
+            "type": "()",
+            "packageInfo": "",
+            "packageName": "",
+            "kind": "BASIC_TYPE",
+            "selected": false
+          }
+        ],
+        "defaultValue": "()",
+        "value": "minRating"
+      },
+      "pageSize": {
+        "metadata": {
+          "label": "Page Size",
+          "description": ""
+        },
+        "valueType": "EXPRESSION",
+        "valueTypeConstraint": "int",
+        "placeholder": "0",
+        "optional": true,
+        "editable": true,
+        "advanced": true,
+        "hidden": false,
+        "codedata": {
+          "kind": "INCLUDED_FIELD",
+          "originalName": "pageSize"
+        },
+        "typeMembers": [
+          {
+            "type": "int",
+            "packageInfo": "",
+            "packageName": "",
+            "kind": "BASIC_TYPE",
+            "selected": false
+          }
+        ],
+        "defaultValue": "0",
+        "value": "pageSize"
+      },
+      "checkInDate": {
+        "metadata": {
+          "label": "Check In Date",
+          "description": ""
+        },
+        "valueType": "EXPRESSION",
+        "valueTypeConstraint": "string|()",
+        "placeholder": "()",
+        "optional": true,
+        "editable": true,
+        "advanced": true,
+        "hidden": false,
+        "codedata": {
+          "kind": "INCLUDED_FIELD",
+          "originalName": "checkInDate"
+        },
+        "typeMembers": [
+          {
+            "type": "string",
+            "packageInfo": "",
+            "packageName": "",
+            "kind": "BASIC_TYPE",
+            "selected": false
+          },
+          {
+            "type": "()",
+            "packageInfo": "",
+            "packageName": "",
+            "kind": "BASIC_TYPE",
+            "selected": false
+          }
+        ],
+        "defaultValue": "()",
+        "value": "checkInDate"
+      },
+      "checkOutDate": {
+        "metadata": {
+          "label": "Check Out Date",
+          "description": ""
+        },
+        "valueType": "EXPRESSION",
+        "valueTypeConstraint": "string|()",
+        "placeholder": "()",
+        "optional": true,
+        "editable": true,
+        "advanced": true,
+        "hidden": false,
+        "codedata": {
+          "kind": "INCLUDED_FIELD",
+          "originalName": "checkOutDate"
+        },
+        "typeMembers": [
+          {
+            "type": "string",
+            "packageInfo": "",
+            "packageName": "",
+            "kind": "BASIC_TYPE",
+            "selected": false
+          },
+          {
+            "type": "()",
+            "packageInfo": "",
+            "packageName": "",
+            "kind": "BASIC_TYPE",
+            "selected": false
+          }
+        ],
+        "defaultValue": "()",
+        "value": "checkOutDate"
+      },
+      "minPrice": {
+        "metadata": {
+          "label": "Min Price",
+          "description": ""
+        },
+        "valueType": "EXPRESSION",
+        "valueTypeConstraint": "decimal|()",
+        "placeholder": "()",
+        "optional": true,
+        "editable": true,
+        "advanced": true,
+        "hidden": false,
+        "codedata": {
+          "kind": "INCLUDED_FIELD",
+          "originalName": "minPrice"
+        },
+        "typeMembers": [
+          {
+            "type": "decimal",
+            "packageInfo": "",
+            "packageName": "",
+            "kind": "BASIC_TYPE",
+            "selected": false
+          },
+          {
+            "type": "()",
+            "packageInfo": "",
+            "packageName": "",
+            "kind": "BASIC_TYPE",
+            "selected": false
+          }
+        ],
+        "defaultValue": "()",
+        "value": "minPrice"
+      },
+      "guests": {
+        "metadata": {
+          "label": "Guests",
+          "description": ""
+        },
+        "valueType": "EXPRESSION",
+        "valueTypeConstraint": "int",
+        "placeholder": "0",
+        "optional": true,
+        "editable": true,
+        "advanced": true,
+        "hidden": false,
+        "codedata": {
+          "kind": "INCLUDED_FIELD",
+          "originalName": "guests"
+        },
+        "typeMembers": [
+          {
+            "type": "int",
+            "packageInfo": "",
+            "packageName": "",
+            "kind": "BASIC_TYPE",
+            "selected": false
+          }
+        ],
+        "defaultValue": "0",
+        "value": "guests"
+      },
+      "sortBy": {
+        "metadata": {
+          "label": "Sort By",
+          "description": ""
+        },
+        "valueType": "EXPRESSION",
+        "valueTypeConstraint": "string|()",
+        "placeholder": "()",
+        "optional": true,
+        "editable": true,
+        "advanced": true,
+        "hidden": false,
+        "codedata": {
+          "kind": "INCLUDED_FIELD",
+          "originalName": "sortBy"
+        },
+        "typeMembers": [
+          {
+            "type": "string",
+            "packageInfo": "",
+            "packageName": "",
+            "kind": "BASIC_TYPE",
+            "selected": false
+          },
+          {
+            "type": "()",
+            "packageInfo": "",
+            "packageName": "",
+            "kind": "BASIC_TYPE",
+            "selected": false
+          }
+        ],
+        "defaultValue": "()",
+        "value": "sortBy"
+      },
+      "maxPrice": {
+        "metadata": {
+          "label": "Max Price",
+          "description": ""
+        },
+        "valueType": "EXPRESSION",
+        "valueTypeConstraint": "decimal|()",
+        "placeholder": "()",
+        "optional": true,
+        "editable": true,
+        "advanced": true,
+        "hidden": false,
+        "codedata": {
+          "kind": "INCLUDED_FIELD",
+          "originalName": "maxPrice"
+        },
+        "typeMembers": [
+          {
+            "type": "decimal",
+            "packageInfo": "",
+            "packageName": "",
+            "kind": "BASIC_TYPE",
+            "selected": false
+          },
+          {
+            "type": "()",
+            "packageInfo": "",
+            "packageName": "",
+            "kind": "BASIC_TYPE",
+            "selected": false
+          }
+        ],
+        "defaultValue": "()",
+        "value": "maxPrice"
+      },
+      "page": {
+        "metadata": {
+          "label": "Page",
+          "description": ""
+        },
+        "valueType": "EXPRESSION",
+        "valueTypeConstraint": "int",
+        "placeholder": "0",
+        "optional": true,
+        "editable": true,
+        "advanced": true,
+        "hidden": false,
+        "codedata": {
+          "kind": "INCLUDED_FIELD",
+          "originalName": "page"
+        },
+        "typeMembers": [
+          {
+            "type": "int",
+            "packageInfo": "",
+            "packageName": "",
+            "kind": "BASIC_TYPE",
+            "selected": false
+          }
+        ],
+        "defaultValue": "0",
+        "value": "page"
+      },
+      "additionalValues": {
+        "metadata": {
+          "label": "Additional Values",
+          "description": "Capture key value pairs"
+        },
+        "valueType": "MAPPING_EXPRESSION_SET",
+        "valueTypeConstraint": "anydata",
+        "placeholder": "{}",
+        "optional": true,
+        "editable": true,
+        "advanced": true,
+        "hidden": false,
+        "codedata": {
+          "kind": "INCLUDED_RECORD_REST",
+          "originalName": "Additional Values"
         },
         "typeMembers": [],
-        "value": "userId"
-      },
-      "xgafv": {
-        "metadata": {
-          "label": "xgafv",
-          "description": "V1 error format."
-        },
-        "valueType": "EXPRESSION",
-        "valueTypeConstraint": "gmail:Xgafv|()",
-        "placeholder": "()",
-        "optional": true,
-        "editable": true,
-        "advanced": true,
-        "hidden": false,
-        "codedata": {
-          "kind": "DEFAULTABLE",
-          "originalName": "xgafv"
-        },
-        "typeMembers": [
-          {
-            "type": "Xgafv",
-            "packageInfo": "ballerinax:googleapis.gmail:4.1.0",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          },
-          {
-            "type": "()",
-            "packageInfo": "",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          }
-        ],
-        "value": "xgafv"
-      },
-      "access_token": {
-        "metadata": {
-          "label": "access_token",
-          "description": "OAuth access token."
-        },
-        "valueType": "EXPRESSION",
-        "valueTypeConstraint": "string|()",
-        "placeholder": "()",
-        "optional": true,
-        "editable": true,
-        "advanced": true,
-        "hidden": false,
-        "codedata": {
-          "kind": "DEFAULTABLE",
-          "originalName": "access_token"
-        },
-        "typeMembers": [
-          {
-            "type": "string",
-            "packageInfo": "",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          },
-          {
-            "type": "()",
-            "packageInfo": "",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          }
-        ],
-        "value": "access_token"
-      },
-      "alt": {
-        "metadata": {
-          "label": "alt",
-          "description": "Data format for response."
-        },
-        "valueType": "EXPRESSION",
-        "valueTypeConstraint": "gmail:Alt|()",
-        "placeholder": "()",
-        "optional": true,
-        "editable": true,
-        "advanced": true,
-        "hidden": false,
-        "codedata": {
-          "kind": "DEFAULTABLE",
-          "originalName": "alt"
-        },
-        "typeMembers": [
-          {
-            "type": "Alt",
-            "packageInfo": "ballerinax:googleapis.gmail:4.1.0",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          },
-          {
-            "type": "()",
-            "packageInfo": "",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          }
-        ],
-        "value": "alt"
-      },
-      "callback": {
-        "metadata": {
-          "label": "callback",
-          "description": "JSONP"
-        },
-        "valueType": "EXPRESSION",
-        "valueTypeConstraint": "string|()",
-        "placeholder": "()",
-        "optional": true,
-        "editable": true,
-        "advanced": true,
-        "hidden": false,
-        "codedata": {
-          "kind": "DEFAULTABLE",
-          "originalName": "callback"
-        },
-        "typeMembers": [
-          {
-            "type": "string",
-            "packageInfo": "",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          },
-          {
-            "type": "()",
-            "packageInfo": "",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          }
-        ],
-        "value": "callback"
-      },
-      "fields": {
-        "metadata": {
-          "label": "fields",
-          "description": "Selector specifying which fields to include in a partial response."
-        },
-        "valueType": "EXPRESSION",
-        "valueTypeConstraint": "string|()",
-        "placeholder": "()",
-        "optional": true,
-        "editable": true,
-        "advanced": true,
-        "hidden": false,
-        "codedata": {
-          "kind": "DEFAULTABLE",
-          "originalName": "fields"
-        },
-        "typeMembers": [
-          {
-            "type": "string",
-            "packageInfo": "",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          },
-          {
-            "type": "()",
-            "packageInfo": "",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          }
-        ],
-        "value": "fields"
-      },
-      "key": {
-        "metadata": {
-          "label": "key",
-          "description": "API key. Your API key identifies your project and provides you with API access, quota, and reports. Required unless you provide an OAuth 2.0 token."
-        },
-        "valueType": "EXPRESSION",
-        "valueTypeConstraint": "string|()",
-        "placeholder": "()",
-        "optional": true,
-        "editable": true,
-        "advanced": true,
-        "hidden": false,
-        "codedata": {
-          "kind": "DEFAULTABLE",
-          "originalName": "'key"
-        },
-        "typeMembers": [
-          {
-            "type": "string",
-            "packageInfo": "",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          },
-          {
-            "type": "()",
-            "packageInfo": "",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          }
-        ],
-        "value": "key"
-      },
-      "oauth_token": {
-        "metadata": {
-          "label": "oauth_token",
-          "description": "OAuth 2.0 token for the current user."
-        },
-        "valueType": "EXPRESSION",
-        "valueTypeConstraint": "string|()",
-        "placeholder": "()",
-        "optional": true,
-        "editable": true,
-        "advanced": true,
-        "hidden": false,
-        "codedata": {
-          "kind": "DEFAULTABLE",
-          "originalName": "oauth_token"
-        },
-        "typeMembers": [
-          {
-            "type": "string",
-            "packageInfo": "",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          },
-          {
-            "type": "()",
-            "packageInfo": "",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          }
-        ],
-        "value": "oauth_token"
-      },
-      "prettyPrint": {
-        "metadata": {
-          "label": "prettyPrint",
-          "description": "Returns response with indentations and line breaks."
-        },
-        "valueType": "EXPRESSION",
-        "valueTypeConstraint": "boolean|()",
-        "placeholder": "()",
-        "optional": true,
-        "editable": true,
-        "advanced": true,
-        "hidden": false,
-        "codedata": {
-          "kind": "DEFAULTABLE",
-          "originalName": "prettyPrint"
-        },
-        "typeMembers": [
-          {
-            "type": "boolean",
-            "packageInfo": "",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          },
-          {
-            "type": "()",
-            "packageInfo": "",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          }
-        ],
-        "value": "prettyPrint"
-      },
-      "quotaUser": {
-        "metadata": {
-          "label": "quotaUser",
-          "description": "Available to use for quota purposes for server-side applications. Can be any arbitrary string assigned to a user, but should not exceed 40 characters."
-        },
-        "valueType": "EXPRESSION",
-        "valueTypeConstraint": "string|()",
-        "placeholder": "()",
-        "optional": true,
-        "editable": true,
-        "advanced": true,
-        "hidden": false,
-        "codedata": {
-          "kind": "DEFAULTABLE",
-          "originalName": "quotaUser"
-        },
-        "typeMembers": [
-          {
-            "type": "string",
-            "packageInfo": "",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          },
-          {
-            "type": "()",
-            "packageInfo": "",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          }
-        ],
-        "value": "quotaUser"
-      },
-      "upload_protocol": {
-        "metadata": {
-          "label": "upload_protocol",
-          "description": "Upload protocol for media (e.g. \"raw\", \"multipart\")."
-        },
-        "valueType": "EXPRESSION",
-        "valueTypeConstraint": "string|()",
-        "placeholder": "()",
-        "optional": true,
-        "editable": true,
-        "advanced": true,
-        "hidden": false,
-        "codedata": {
-          "kind": "DEFAULTABLE",
-          "originalName": "upload_protocol"
-        },
-        "typeMembers": [
-          {
-            "type": "string",
-            "packageInfo": "",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          },
-          {
-            "type": "()",
-            "packageInfo": "",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          }
-        ],
-        "value": "upload_protocol"
-      },
-      "uploadType": {
-        "metadata": {
-          "label": "uploadType",
-          "description": "Legacy upload protocol for media (e.g. \"media\", \"multipart\")."
-        },
-        "valueType": "EXPRESSION",
-        "valueTypeConstraint": "string|()",
-        "placeholder": "()",
-        "optional": true,
-        "editable": true,
-        "advanced": true,
-        "hidden": false,
-        "codedata": {
-          "kind": "DEFAULTABLE",
-          "originalName": "uploadType"
-        },
-        "typeMembers": [
-          {
-            "type": "string",
-            "packageInfo": "",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          },
-          {
-            "type": "()",
-            "packageInfo": "",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          }
-        ],
-        "value": "uploadType"
+        "value": "additionalValues"
       },
       "type": {
         "metadata": {
-          "label": "Variable Type",
+          "label": "Result Type",
           "description": "Type of the variable"
         },
         "valueType": "TYPE",
-        "value": "gmail:ListLabelsResponse",
+        "value": "testCon:HotelSearchResponse",
         "placeholder": "var",
         "optional": false,
         "editable": false,
         "advanced": false,
-        "hidden": false,
+        "hidden": true,
         "codedata": {}
       },
       "variable": {
         "metadata": {
-          "label": "Variable Name",
-          "description": "Name of the variable"
+          "label": "Result",
+          "description": "Name of the result variable"
         },
         "valueType": "IDENTIFIER",
-        "value": "gmailListlabelsresponse",
+        "value": "testconHotelsearchresponse",
         "optional": false,
         "editable": true,
         "advanced": false,
@@ -584,7 +688,7 @@
         "optional": false,
         "editable": true,
         "advanced": true,
-        "hidden": false
+        "hidden": true
       }
     },
     "flags": 0
@@ -602,7 +706,7 @@
             "character": 0
           }
         },
-        "newText": "import ballerinax/googleapis.gmail;"
+        "newText": "import dulminakodagoda/birctesting.testCon;"
       },
       {
         "range": {
@@ -615,7 +719,7 @@
             "character": 0
           }
         },
-        "newText": "# Lists all labels in the user's mailbox.\n@ai:AgentTool\n@display {label: \"\", iconPath: \"https://bcentral-packageicons.azureedge.net/images/ballerinax_googleapis.gmail_4.1.0.png\"}\nisolated function toolFunc(string foo, int... bar) returns gmail:ListLabelsResponse|error {\n    gmail:ListLabelsResponse gmailListlabelsresponse = check gmailClient->/users/[userId]/labels.get();\n    return gmailListlabelsresponse;\n}"
+        "newText": "@ai:AgentTool\n@display {label: \"\", iconPath: \"https://bcentral-packageicons.azureedge.net/images/dulminakodagoda_birctesting_0.1.0.png\"}\nisolated function toolFunc(string foo, int... bar) returns testCon:HotelSearchResponse|error {\n    testCon:HotelSearchResponse testconHotelsearchresponse = check gmailClient->/hotels/search.get(propertyTypes = propertyTypes, amenities = amenities, rooms = rooms, destination = destination, minRating = minRating, pageSize = pageSize, checkInDate = checkInDate, checkOutDate = checkOutDate, minPrice = minPrice, guests = guests, sortBy = sortBy, maxPrice = maxPrice, page = page);\n    return testconHotelsearchresponse;\n}"
       }
     ]
   }
