@@ -33,25 +33,29 @@
                   "id": "u.info.secondaryPhones.0",
                   "variableName": "<secondaryPhonesItem>",
                   "typeName": "string",
-                  "kind": "string"
+                  "kind": "string",
+                  "optional": false
                 },
                 "focusedMemberId": "secondaryPhonesItem",
                 "id": "u.info.secondaryPhones",
                 "variableName": "secondaryPhones",
                 "typeName": "string[]",
-                "kind": "array"
+                "kind": "array",
+                "optional": false
               },
               {
                 "member": {
                   "id": "u.info.emails.0",
                   "variableName": "<emailsItem>",
                   "typeName": "string",
-                  "kind": "string"
+                  "kind": "string",
+                  "optional": false
                 },
                 "id": "u.info.emails",
                 "variableName": "emails",
                 "typeName": "string[]",
-                "kind": "array"
+                "kind": "array",
+                "optional": false
               },
               {
                 "member": {
@@ -59,37 +63,43 @@
                     "id": "u.info.addresses.0.0",
                     "variableName": "<addressesItemItem>",
                     "typeName": "string",
-                    "kind": "string"
+                    "kind": "string",
+                    "optional": false
                   },
                   "id": "u.info.addresses.0",
                   "variableName": "<addressesItem>",
                   "typeName": "string[]",
-                  "kind": "array"
+                  "kind": "array",
+                  "optional": false
                 },
                 "id": "u.info.addresses",
                 "variableName": "addresses",
                 "typeName": "string[][]",
-                "kind": "array"
+                "kind": "array",
+                "optional": false
               }
             ],
             "id": "u.info",
             "variableName": "info",
             "typeName": "Info",
-            "kind": "record"
+            "kind": "record",
+            "optional": false
           }
         ],
         "id": "u",
         "variableName": "u",
         "typeName": "User",
         "kind": "record",
-        "category": "variable"
+        "category": "variable",
+        "optional": false
       },
       {
         "id": "secondaryPhonesItem",
         "variableName": "secondaryPhonesItem",
         "typeName": "string",
         "kind": "string",
-        "isFocused": true
+        "isFocused": true,
+        "optional": false
       }
     ],
     "output": {
@@ -97,12 +107,14 @@
         "id": "phoneNumbers",
         "variableName": "<phoneNumbersItem>",
         "typeName": "string",
-        "kind": "string"
+        "kind": "string",
+        "optional": false
       },
       "id": "phoneNumbers",
       "variableName": "phoneNumbers",
       "typeName": "string[]",
-      "kind": "array"
+      "kind": "array",
+      "optional": false
     },
     "mappings": [
       {

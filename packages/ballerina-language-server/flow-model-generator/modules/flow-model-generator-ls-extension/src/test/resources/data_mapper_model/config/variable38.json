@@ -29,14 +29,16 @@
             "id": "user.name",
             "variableName": "name",
             "typeName": "string",
-            "kind": "string"
+            "kind": "string",
+            "optional": false
           }
         ],
         "id": "user",
         "variableName": "user",
         "typeName": "User",
         "kind": "record",
-        "category": "parameter"
+        "category": "parameter",
+        "optional": false
       }
     ],
     "output": {
@@ -49,18 +51,21 @@
                   "id": "users4.user5.u",
                   "variableName": "<uItem>",
                   "typeName": "string",
-                  "kind": "string"
+                  "kind": "string",
+                  "optional": false
                 },
                 "id": "users4.user5.u",
                 "variableName": "u",
                 "typeName": "string[]",
-                "kind": "array"
+                "kind": "array",
+                "optional": false
               }
             ],
             "id": "users4.user5",
             "variableName": "user5",
             "typeName": "User5",
-            "kind": "record"
+            "kind": "record",
+            "optional": false
           },
           {
             "member": {
@@ -69,13 +74,15 @@
                   "id": "users4.users6.account",
                   "variableName": "account",
                   "typeName": "string",
-                  "kind": "string"
+                  "kind": "string",
+                  "optional": false
                 },
                 {
                   "id": "users4.users6.balance",
                   "variableName": "balance",
                   "typeName": "decimal",
-                  "kind": "decimal"
+                  "kind": "decimal",
+                  "optional": false
                 },
                 {
                   "member": {
@@ -87,51 +94,60 @@
                               "id": "users4.users6.banks.bankInfo.bankName",
                               "variableName": "bankName",
                               "typeName": "string",
-                              "kind": "string"
+                              "kind": "string",
+                              "optional": false
                             }
                           ],
                           "id": "users4.users6.banks.bankInfo",
                           "variableName": "<bankInfoItem>",
                           "typeName": "BankInfo",
-                          "kind": "record"
+                          "kind": "record",
+                          "optional": false
                         },
                         "id": "users4.users6.banks.bankInfo",
                         "variableName": "bankInfo",
                         "typeName": "BankInfo[]",
-                        "kind": "array"
+                        "kind": "array",
+                        "optional": false
                       }
                     ],
                     "id": "users4.users6.banks",
                     "variableName": "<banksItem>",
                     "typeName": "Bank",
-                    "kind": "record"
+                    "kind": "record",
+                    "optional": false
                   },
                   "id": "users4.users6.banks",
                   "variableName": "banks",
                   "typeName": "Bank[]",
-                  "kind": "array"
+                  "kind": "array",
+                  "optional": false
                 }
               ],
               "id": "users4.users6",
               "variableName": "<users6Item>",
               "typeName": "User6",
-              "kind": "record"
+              "kind": "record",
+              "optional": false
             },
             "id": "users4.users6",
             "variableName": "users6",
             "typeName": "User6[]",
-            "kind": "array"
+            "kind": "array",
+            "optional": false
           }
         ],
         "id": "users4",
         "variableName": "<users4Item>",
         "typeName": "User4",
-        "kind": "record"
+        "kind": "record",
+        "optional": false
       },
       "id": "users4",
       "variableName": "users4",
       "typeName": "User4[]",
-      "kind": "array"
+      "kind": "array",
+      "optional": false
     },
     "mappings": [
       {

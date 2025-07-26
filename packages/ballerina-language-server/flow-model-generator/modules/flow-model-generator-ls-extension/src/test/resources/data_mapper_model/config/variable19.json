@@ -28,7 +28,8 @@
         "variableName": "CONST",
         "typeName": "string",
         "kind": "string",
-        "category": "constant"
+        "category": "constant",
+        "optional": false
       },
       {
         "member": {
@@ -37,32 +38,37 @@
               "id": "userInfo.0.username",
               "variableName": "username",
               "typeName": "string",
-              "kind": "string"
+              "kind": "string",
+              "optional": false
             },
             {
               "id": "userInfo.0.password",
               "variableName": "password",
               "typeName": "string",
-              "kind": "string"
+              "kind": "string",
+              "optional": false
             },
             {
               "id": "userInfo.0.id",
               "variableName": "id",
               "typeName": "int",
-              "kind": "int"
+              "kind": "int",
+              "optional": false
             }
           ],
           "id": "userInfo.0",
           "variableName": "<userInfoItem>",
           "typeName": "UserInfo",
-          "kind": "record"
+          "kind": "record",
+          "optional": false
         },
         "focusedMemberId": "item",
         "id": "userInfo",
         "variableName": "userInfo",
         "typeName": "UserInfo[]",
         "kind": "array",
-        "category": "variable"
+        "category": "variable",
+        "optional": false
       },
       {
         "fields": [
@@ -70,26 +76,30 @@
             "id": "item.username",
             "variableName": "username",
             "typeName": "string",
-            "kind": "string"
+            "kind": "string",
+            "optional": false
           },
           {
             "id": "item.password",
             "variableName": "password",
             "typeName": "string",
-            "kind": "string"
+            "kind": "string",
+            "optional": false
           },
           {
             "id": "item.id",
             "variableName": "id",
             "typeName": "int",
-            "kind": "int"
+            "kind": "int",
+            "optional": false
           }
         ],
         "id": "item",
         "variableName": "item",
         "typeName": "UserInfo",
         "kind": "record",
-        "isFocused": true
+        "isFocused": true,
+        "optional": false
       }
     ],
     "output": {
@@ -99,24 +109,28 @@
             "id": "credentials.username",
             "variableName": "username",
             "typeName": "string",
-            "kind": "string"
+            "kind": "string",
+            "optional": false
           },
           {
             "id": "credentials.password",
             "variableName": "password",
             "typeName": "string",
-            "kind": "string"
+            "kind": "string",
+            "optional": false
           }
         ],
         "id": "credentials",
         "variableName": "<credentialsItem>",
         "typeName": "Credentials",
-        "kind": "record"
+        "kind": "record",
+        "optional": false
       },
       "id": "credentials",
       "variableName": "credentials",
       "typeName": "Credentials[]",
-      "kind": "array"
+      "kind": "array",
+      "optional": false
     },
     "mappings": [
       {
