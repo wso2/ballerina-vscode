@@ -30,13 +30,13 @@ export const BALLERINAX = "ballerinax";
 export const AI = "ai";
 
 export const GET_DEFAULT_MODEL_PROVIDER = "getDefaultModelProvider";
-export const WSO2_MODEL_PROVIDER = "Wso2ModelProvider";
+export const WSO2_MODEL_PROVIDER = "Default Model Provider (WSO2)";
 
 export const PROVIDER_NAME_MAP: Record<string, string> = {
-    "ai.anthropic": "AnthropicProvider",
-    "ai.openai": "OpenAiProvider",
-    "ai.azure": "AzureOpenAiProvider",
-    "ai.mistral": "MistralAiProvider",
-    "ai.deepseek": "DeepseekProvider",
-    "ai.ollama": "OllamaProvider",
+    "ai.anthropic": "Anthropic Model Provider",
+    "ai.openai": "OpenAI Model Provider",
+    "ai.azure": "Azure Model Provider",
+    "ai.mistral": "Mistral Model Provider",
+    "ai.deepseek": "Deepseek Model Provider",
+    "ai.ollama": "Ollama Model Provider",
 };

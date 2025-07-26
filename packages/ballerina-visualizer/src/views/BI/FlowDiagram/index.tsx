@@ -399,7 +399,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
 
         const setModelType = (modelObj: any, providerName: string) => {
             if (modelObj) {
-                modelObj.type = PROVIDER_NAME_MAP?.[providerName] || providerName;
+                modelObj.type = providerName;
             }
         };
 
