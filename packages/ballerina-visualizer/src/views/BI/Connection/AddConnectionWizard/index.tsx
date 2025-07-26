@@ -35,7 +35,6 @@ import ConnectionConfigView from "../ConnectionConfigView";
 import { getFormProperties } from "../../../../utils/bi";
 import { ExpressionFormField, FormField, FormValues, PanelContainer } from "@wso2/ballerina-side-panel";
 import { Icon, Overlay, ThemeColors, Typography } from "@wso2/ui-toolkit";
-import { InlineDataMapper } from "../../../InlineDataMapper";
 import { HelperView } from "../../HelperView";
 import { BodyText } from "../../../styles";
 import { DownloadIcon } from "../../../../components/DownloadIcon";
@@ -257,14 +256,6 @@ export function AddConnectionWizard(props: AddConnectionWizardProps) {
 
     const findSubPanelComponent = (subPanel: SubPanel) => {
         switch (subPanel.view) {
-            case SubPanelView.INLINE_DATA_MAPPER:
-                return (
-                    <InlineDataMapper
-                        onClosePanel={handleSubPanel}
-                        updateFormField={updateExpressionField}
-                        {...subPanel.props?.inlineDataMapper}
-                    />
-                );
             case SubPanelView.HELPER_PANEL:
                 return (
                     <HelperView

@@ -17,7 +17,7 @@
  */
 
 import { ArrayTypeDesc, FunctionDefinition, ModulePart, QualifiedNameReference, RequiredParam, STKindChecker } from "@wso2/syntax-tree";
-import { ErrorCode, FormField, STModification, SyntaxTree, Attachment, AttachmentStatus, RecordDefinitonObject, ParameterMetadata, ParameterDefinitions, MappingFileRecord, keywords, AIMachineEventType, DiagnosticEntry } from "@wso2/ballerina-core";
+import { ErrorCode, FormField, STModification, SyntaxTree, Attachment, AttachmentStatus, RecordDefinitonObject, ParameterMetadata, ParameterDefinitions, MappingFileRecord, keywords, AIMachineEventType, DiagnosticEntry, InlineDataMapperModelResponse } from "@wso2/ballerina-core";
 import { QuickPickItem, QuickPickOptions, window, workspace } from 'vscode';
 import { UNKNOWN_ERROR } from '../../views/ai-panel/errorCodes';
 
@@ -34,7 +34,6 @@ import {
     TOO_MANY_REQUESTS,
     INVALID_RECORD_UNION_TYPE
 } from "../../views/ai-panel/errorCodes";
-import { hasStopped } from "./rpc-manager";
 // import { StateMachineAI } from "../../views/ai-panel/aiMachine";
 import path from "path";
 import * as fs from 'fs';
@@ -49,7 +48,7 @@ const CONTEXT_UPLOAD_URL_V1 = "https://e95488c8-8511-4882-967f-ec3ae2a0f86f-prod
 // const CONTEXT_UPLOAD_URL_V1 = BACKEND_BASE_URL + "/context-api/v1.0";
 const ASK_API_URL_V1 = BACKEND_BASE_URL + "/ask-api/v1.0";
 
-const REQUEST_TIMEOUT = 2000000;
+export const REQUEST_TIMEOUT = 2000000;
 
 let abortController = new AbortController();
 const primitiveTypes = ["string", "int", "float", "decimal", "boolean"];
@@ -382,17 +381,16 @@ export async function generateBallerinaCode(response: object, parameterDefinitio
     }
 
     if (response.hasOwnProperty("operation") && response.hasOwnProperty("parameters") && response.hasOwnProperty("targetType")) {
-        let path = await getMappingString(response, parameterDefinitions, nestedKey, recordTypes, unionEnumIntersectionTypes, arrayRecords, arrayEnumUnion, nestedKeyArray);
-        if (isErrorCode(path)) {
-            return {};
-        }        
-        if (path === "") {
-            return {};
-        }
         let parameters: string[] = response["parameters"];
         let paths = parameters[0].split(".");
-        let recordFieldName: string = nestedKey || paths[1];
 
+        let path = await getMappingString(response, parameterDefinitions, nestedKey, recordTypes, unionEnumIntersectionTypes, arrayRecords, arrayEnumUnion, nestedKeyArray);
+
+        if (isErrorCode(path) || path === "") {
+            return {};
+        }
+
+        let recordFieldName: string = paths.length === 1 ? nestedKey : (nestedKey || paths[1]);
         return { [recordFieldName]: path };
     } else {
         let objectKeys = Object.keys(response);
@@ -472,8 +470,12 @@ async function getMappingString(mapping: object, parameterDefinitions: Parameter
     // Retrieve inputType
     if (paths.length > 2) {
         modifiedInput = await getNestedType(paths.slice(1), parameterDefinitions["inputMetadata"][recordObjectName]);
-    } else {
+    } else if (paths.length === 2) {
         modifiedInput = parameterDefinitions["inputMetadata"][recordObjectName]["fields"][paths[1]];
+    } else {
+        modifiedInput = parameterDefinitions["configurables"][recordObjectName] ||
+                parameterDefinitions["constants"][recordObjectName] ||
+                parameterDefinitions["variables"][recordObjectName] || parameterDefinitions["inputMetadata"][recordObjectName]["fields"][paths[0]];
     }
 
     // Resolve output metadata
@@ -1237,7 +1239,7 @@ class TypeInfoVisitorImpl implements TypeInfoVisitor {
     }
 }
 
-function navigateTypeInfo(
+export function navigateTypeInfo(
     typeInfos: FormField[],
     isNill: boolean
 ): RecordDefinitonObject | ErrorCode {
@@ -1499,6 +1501,26 @@ export async function mappingFileParameterDefinitions(file: Attachment, paramete
     };
 }
 
+export async function mappingFileInlineDataMapperModel(file: Attachment, inlineDataMapperResponse: ErrorCode | InlineDataMapperModelResponse): Promise<InlineDataMapperModelResponse | ErrorCode> {
+    if (!file) { return inlineDataMapperResponse; }
+
+    const convertedFile = convertBase64ToBlob(file);
+    if (!convertedFile) { throw new Error("Invalid file content"); }
+
+    let mappingFile = await getMappingFromFile(convertedFile);
+    if (isErrorCode(mappingFile)) { return mappingFile as ErrorCode; }
+
+    mappingFile = mappingFile as MappingFileRecord;
+
+    return {
+        ...(inlineDataMapperResponse as InlineDataMapperModelResponse),
+        mappingsModel: {
+            ...(inlineDataMapperResponse as InlineDataMapperModelResponse).mappingsModel,
+            mapping_fields: mappingFile.mapping_fields,
+        }
+    };
+}
+
 export async function typesFileParameterDefinitions(file: Attachment): Promise<string | ErrorCode> {
     if (!file) { throw new Error("File is undefined"); }
 
@@ -1546,7 +1568,7 @@ function determineMimeType(fileName: string): string {
     }
 }
 
-async function fetchWithTimeout(url, options, timeout = 100000): Promise<Response | ErrorCode> {
+export async function fetchWithTimeout(url, options, timeout = 100000): Promise<Response | ErrorCode> {
     abortController = new AbortController();
     const id = setTimeout(() => abortController.abort(), timeout);
     try {
@@ -1554,10 +1576,8 @@ async function fetchWithTimeout(url, options, timeout = 100000): Promise<Respons
         clearTimeout(id);
         return response;
     } catch (error: any) {
-        if (error.name === 'AbortError' && !hasStopped) {
+        if (error.name === 'AbortError') {
             return TIMEOUT;
-        } else if (error.name === 'AbortError' && hasStopped) {
-            return USER_ABORTED;
         } else {
             console.error(error);
             return SERVER_ERROR;
@@ -1861,7 +1881,7 @@ async function handleRecordArrays(key: string, nestedKey: string, responseRecord
     return { ...recordFields };
 }
 
-async function filterResponse(resp: Response): Promise<object | ErrorCode> {
+export async function filterResponse(resp: Response): Promise<object | ErrorCode> {
     if (resp.status == 200 || resp.status == 201) {
         const data = (await resp.json()) as any;
         console.log(JSON.stringify(data.mappings));
