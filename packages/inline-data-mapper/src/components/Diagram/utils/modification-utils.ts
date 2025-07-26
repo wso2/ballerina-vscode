@@ -23,6 +23,7 @@ import { MappingFindingVisitor } from "../../../visitors/MappingFindingVisitor";
 import { traverseNode } from "../../../utils/model-utils";
 import { getDefaultValue } from "./common-utils";
 import { CustomFnMetadata, CustomFnParams, Mapping } from "@wso2/ballerina-core";
+import { getTypeName } from "./type-utils";
 
 export async function createNewMapping(link: DataMapperLinkModel) {
 	const sourcePort = link.getSourcePort();
@@ -95,14 +96,14 @@ export async function mapWithCustomFn(link: DataMapperLinkModel, context: IDataM
 	const outputField = outputPortModel.attributes.field;
 	const inputParams: CustomFnParams[] = [{
 		name: inputField.variableName,
-		type: inputField.typeName.replace("record", "any"),
+		type: getTypeName(inputField).replace("record", "any"),
 		isOptional: false,
 		isNullable: false,
 		kind: inputField.kind
 	}];
 
 	const metadata: CustomFnMetadata = {
-		returnType: outputField.typeName.replace("record", "any"),
+		returnType: getTypeName(outputField).replace("record", "any"),
 		parameters: inputParams
 	}
 
