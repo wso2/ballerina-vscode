@@ -83,7 +83,8 @@ public class ResourceActionCallBuilder extends CallBuilder {
                         functionData.version()));
         codedata()
                 .org(functionData.org())
-                .module(functionData.packageName())
+                .packageName(functionData.packageName())
+                .module(functionData.moduleName())
                 .object(codedata.object())
                 .symbol(functionData.name());
 
