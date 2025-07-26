@@ -66,7 +66,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -640,7 +640,6 @@ public class TestWorkspaceManager {
 
     private RunResult executeRunCommand(Path filePath)
             throws WorkspaceDocumentException, EventSyncException, LSCommandExecutorException {
-        System.setProperty("java.command", guessJavaPath());
         workspaceManager.loadProject(filePath);
         RunExecutor runExecutor = new RunExecutor();
         MockSettings mockSettings = Mockito.withSettings().stubOnly();
@@ -669,8 +668,10 @@ public class TestWorkspaceManager {
         MockSettings mockSettings = Mockito.withSettings().stubOnly();
         ExecuteCommandContext execContext = Mockito.mock(ExecuteCommandContext.class, mockSettings);
 
-        CommandArgument arg = CommandArgument.from("path", new JsonPrimitive(filePath.toString()));
-        Mockito.when(execContext.getArguments()).thenReturn(Collections.singletonList(arg));
+        CommandArgument javaCmdArg = CommandArgument.from("command", new JsonPrimitive(guessJavaPath()));
+        CommandArgument pathArg = CommandArgument.from("path", new JsonPrimitive(filePath.toString()));
+        CommandArgument[] args = new CommandArgument[]{javaCmdArg, pathArg};
+        Mockito.when(execContext.getArguments()).thenReturn(Arrays.stream(args).toList());
         Mockito.when(execContext.workspace()).thenReturn(workspaceManager);
         return execContext;
     }

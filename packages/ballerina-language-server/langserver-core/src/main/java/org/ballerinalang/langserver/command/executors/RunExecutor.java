@@ -60,8 +60,8 @@ public class RunExecutor implements LSCommandExecutor {
     public static final String RUN_COMMAND = "RUN";
 
     // commands arg names
+    static final String ARG_PATH = "path";
     private static final String ARG_COMMAND = "command";
-    private static final String ARG_PATH = "path";
     private static final String ARG_PROGRAM_ARGS = "programArgs";
     private static final String ARG_ENV = "env";
     private static final String ARG_DEBUG_PORT = "debugPort";
