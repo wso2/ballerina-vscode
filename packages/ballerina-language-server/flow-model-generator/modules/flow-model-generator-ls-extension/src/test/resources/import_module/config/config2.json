@@ -4,5 +4,5 @@
   "importStatement": "import ballerina/io;\n",
   "expression": "io:print",
   "prefix": "io",
-  "moduleId": "ballerina/io:1.8.0"
+  "moduleId": "ballerina/io"
 }

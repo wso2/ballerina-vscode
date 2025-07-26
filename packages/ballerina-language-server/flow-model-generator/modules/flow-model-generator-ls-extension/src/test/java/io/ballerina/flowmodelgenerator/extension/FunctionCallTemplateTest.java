@@ -101,7 +101,8 @@ public class FunctionCallTemplateTest extends AbstractLSTest {
         notifyDidOpen(sourcePath);
         FunctionCallTemplateRequest request = new FunctionCallTemplateRequest(sourcePath, testConfig.codedata(),
                 testConfig.kind(), testConfig.searchKind());
-        String template = getResponse(request).getAsJsonPrimitive("template").getAsString();
+        JsonObject templateResponse = getResponse(request);
+        String template = templateResponse.getAsJsonPrimitive("template").getAsString();
 
         // Call the diagnostics API 
         LinePosition startPosition = LinePosition.from(1, 0);
@@ -112,9 +113,22 @@ public class FunctionCallTemplateTest extends AbstractLSTest {
 
         String propertyType = testConfig.searchKind() != null && testConfig.searchKind().equals("TYPE") ?
                 "type" : "expression";
+        
+        JsonObject properties = variableNode.getAsJsonObject("properties").deepCopy();
+        JsonObject expressionProperty = properties.getAsJsonObject(propertyType);
+        
+        // Add imports if they exist in the template response
+        if (templateResponse.has("prefix") && templateResponse.has("moduleId")) {
+            String prefix = templateResponse.get("prefix").getAsString();
+            String moduleId = templateResponse.get("moduleId").getAsString();
+            JsonObject imports = new JsonObject();
+            imports.addProperty(prefix, moduleId);
+            expressionProperty.add("imports", imports);
+        }
+        
         ExpressionEditorContext.Info info = new ExpressionEditorContext.Info(template, startPosition, offset, 0,
                 variableNode.get("codedata").getAsJsonObject(),
-                variableNode.getAsJsonObject("properties").getAsJsonObject(propertyType));
+                expressionProperty);
         ExpressionEditorDiagnosticsRequest diagnosticsRequest =
                 new ExpressionEditorDiagnosticsRequest(sourcePath, info);
         JsonObject response = getResponse(diagnosticsRequest, "expressionEditor/diagnostics");

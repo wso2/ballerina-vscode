@@ -1018,4 +1018,20 @@ public class CommonUtils {
                 .anyMatch(moduleId -> BALLERINA_ORG_NAME.equals(moduleId.id().orgName()) &&
                         AI.equals(moduleId.id().moduleName()));
     }
+
+    /**
+     * Extracts the default package name from a module signature. i.e. if ballerina/lang.value:1.0.0 -> value,
+     * ballerina/io:1.0.0 -> io
+     *
+     * @param moduleId The module signature to extract the package name from
+     * @return The last segment of the module name as the package name
+     */
+    public static String getPackageName(String moduleId) {
+        String moduleName = moduleId.split("/")[1].split(":")[0];
+        int lastDot = moduleName.lastIndexOf('.');
+        if (lastDot > 0) {
+            return moduleName.substring(lastDot + 1);
+        }
+        return moduleName;
+    }
 }

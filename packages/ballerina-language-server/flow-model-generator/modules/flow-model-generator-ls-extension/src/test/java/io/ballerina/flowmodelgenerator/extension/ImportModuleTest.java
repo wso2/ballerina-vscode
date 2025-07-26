@@ -72,11 +72,18 @@ public class ImportModuleTest extends AbstractLSTest {
             Assert.fail(String.format("Failed test: '%s' (%s)", testConfig.description(), configJsonPath));
         }
 
+        // Add the imports field to the expression property
+        JsonObject properties = variableNode.getAsJsonObject("properties").deepCopy();
+        JsonObject expressionProperty = properties.getAsJsonObject("expression");
+        JsonObject imports = new JsonObject();
+        imports.addProperty(prefix, moduleId);
+        expressionProperty.add("imports", imports);
+
         // Send diagnostics request
         ExpressionEditorContext.Info info =
                 new ExpressionEditorContext.Info(testConfig.expression(), LinePosition.from(1, 0),
                         0, 0, variableNode.get("codedata").getAsJsonObject(),
-                        variableNode.getAsJsonObject("properties").getAsJsonObject("expression"));
+                        expressionProperty);
         ExpressionEditorDiagnosticsRequest diagnosticsRequest =
                 new ExpressionEditorDiagnosticsRequest(sourcePath, info);
         JsonObject response = getResponse(diagnosticsRequest, "expressionEditor/diagnostics");
