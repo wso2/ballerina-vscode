@@ -72,10 +72,10 @@ export interface IDMDiagnostic {
 }
 
 export interface ModuleInfo {
-    org: string
-    packageName: string
-    moduleName: string
-    version: string
+    org?: string
+    packageName?: string
+    moduleName?: string
+    version?: string
 }
 
 export interface IOType {
