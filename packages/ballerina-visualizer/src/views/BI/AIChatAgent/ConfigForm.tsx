@@ -69,6 +69,12 @@ export function ConfigForm(props: ConfigProps) {
         onSubmit(formFields, data);
     };
 
+    // hack: set default value for modelType field if not set
+    const modelTypeField = formFields.find((field) => field.key === "modelType");
+    if (modelTypeField && modelTypeField.value === undefined && (modelTypeField.defaultValue || modelTypeField.placeholder)) {
+        modelTypeField.value = modelTypeField.defaultValue || modelTypeField.placeholder;
+    }
+
     // type field hide
     const typeField = formFields.find((field) => field.key === "type");
     if (typeField) {
