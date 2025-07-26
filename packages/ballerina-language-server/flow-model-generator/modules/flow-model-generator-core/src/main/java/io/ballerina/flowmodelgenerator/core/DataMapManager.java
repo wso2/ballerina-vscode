@@ -310,6 +310,8 @@ public class DataMapManager {
             inputPorts.sort(Comparator.comparing(mt -> mt.id));
         }
 
+        inputPorts = removeParentPort(node, inputPorts);
+
         List<Mapping> mappings = new ArrayList<>();
         TypeDescKind typeDescKind = CommonUtils.getRawType(targetNode.typeSymbol()).typeKind();
         if (typeDescKind == TypeDescKind.RECORD) {
@@ -323,6 +325,30 @@ public class DataMapManager {
         }
 
         return gson.toJsonTree(new Model(inputPorts, outputPort, subMappingPorts, mappings, query));
+    }
+
+    private List<MappingPort> removeParentPort(NonTerminalNode node, List<MappingPort> inputPorts) {
+        if (node.kind() != SyntaxKind.LET_VAR_DECL) {
+            return inputPorts;
+        }
+        NonTerminalNode parentNode = node.parent();
+        while (parentNode != null) {
+            if (parentNode.kind() == SyntaxKind.LOCAL_VAR_DECL) {
+                break;
+            }
+            parentNode = parentNode.parent();
+        }
+        if (parentNode == null) {
+            return inputPorts;
+        }
+        String varName = CommonUtils.getVariableName(((VariableDeclarationNode) parentNode).typedBindingPattern());
+        List<MappingPort> newInputPorts = new ArrayList<>();
+        for (MappingPort inputPort : inputPorts) {
+            if (!inputPort.variableName.equals(varName)) {
+                newInputPorts.add(inputPort);
+            }
+        }
+        return newInputPorts;
     }
 
     private void setFocusIdForExpression(List<MappingPort> ports, String expression, String focusId) {

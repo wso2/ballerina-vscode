@@ -33,27 +33,6 @@
       {
         "fields": [
           {
-            "id": "student.username",
-            "variableName": "username",
-            "typeName": "string",
-            "kind": "string"
-          },
-          {
-            "id": "student.password",
-            "variableName": "password",
-            "typeName": "string",
-            "kind": "string"
-          }
-        ],
-        "id": "student",
-        "variableName": "student",
-        "typeName": "Student",
-        "kind": "record",
-        "category": "local-variable"
-      },
-      {
-        "fields": [
-          {
             "id": "userInfo.username",
             "variableName": "username",
             "typeName": "string",
