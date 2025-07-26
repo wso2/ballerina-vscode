@@ -95,6 +95,7 @@
       },
       {
         "id": "secondaryPhonesItem",
+        "variableName": "secondaryPhonesItem",
         "typeName": "string",
         "kind": "string",
         "isFocused": true,
