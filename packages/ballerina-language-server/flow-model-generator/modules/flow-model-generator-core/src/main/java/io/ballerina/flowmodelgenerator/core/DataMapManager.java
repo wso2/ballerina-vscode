@@ -412,7 +412,7 @@ public class DataMapManager {
             return new TargetNode(typeSymbol, variableSymbol.getName().get(), initializer);
         }
 
-        String[] fieldSplits = targetField.split("\\.");
+        String[] fieldSplits = targetField.split(DOT);
         for (int i = 1; i < fieldSplits.length; i++) {
             String field = fieldSplits[i];
             typeSymbol = CommonUtils.getRawType(typeSymbol);
@@ -953,8 +953,7 @@ public class DataMapManager {
             String output = mapping.output();
             String[] splits = output.split(DOT);
             StringBuilder sb = new StringBuilder();
-            genSource(getMappingExpr(expr, targetField), splits, 1, sb,
-                    mapping.expression(), null, textEdits);
+            genSource(getMappingExpr(expr, targetField), splits, 1, sb, mapping.expression(), null, textEdits);
         }
 
         setImportStatements(mapping.imports(), textEdits);
@@ -1658,7 +1657,7 @@ public class DataMapManager {
             return null;
         }
         TypeSymbol typeSymbol = CommonUtils.getRawType(expression.typeSymbol());
-        String[] splits = fieldId.split("\\.");
+        String[] splits = fieldId.split(DOT);
         for (int i = 1; i < splits.length; i++) {
             String split = splits[i];
             TypeDescKind typeDescKind = typeSymbol.typeKind();
@@ -1882,11 +1881,12 @@ public class DataMapManager {
 
         Map<Path, List<TextEdit>> textEditsMap = new HashMap<>();
         ExpressionNode expressionNode = targetNode.expressionNode();
-        LineRange fieldExprRange = getFieldExprRange(expressionNode, 1, mapping.output().split("\\."));
         String functionName = genCustomFunctionDef(workspaceManager, filePath, functionMetadata, textEditsMap);
-        if (fieldExprRange != null) {
-            genCustomFunctionCall(filePath, functionName, fieldExprRange, mapping.expression(), textEditsMap);
-        }
+
+        List<TextEdit> textEdits = new ArrayList<>();
+        textEditsMap.put(filePath, textEdits);
+        genSource(expressionNode, mapping.output().split(DOT), 1, new StringBuilder(),
+                functionName + "(" + mapping.expression() + ")", null, textEdits);
         return gson.toJsonTree(textEditsMap);
     }
 
@@ -1975,13 +1975,6 @@ public class DataMapManager {
                 return "";
             }
         }
-    }
-
-    private void genCustomFunctionCall(Path filePath, String functionName, LineRange range, String arg,
-                                                Map<Path, List<TextEdit>> textEditsMap) {
-        List<TextEdit> textEdits = new ArrayList<>();
-        textEdits.add(new TextEdit(CommonUtils.toRange(range), functionName + "(" + arg + ")"));
-        textEditsMap.put(filePath, textEdits);
     }
 
     private NonTerminalNode getNode(LineRange lineRange) {
