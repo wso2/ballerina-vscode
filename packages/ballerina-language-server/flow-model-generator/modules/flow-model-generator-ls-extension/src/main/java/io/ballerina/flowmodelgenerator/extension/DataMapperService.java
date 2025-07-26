@@ -152,13 +152,14 @@ public class DataMapperService implements ExtendedLanguageServerService {
             try {
                 Path filePath = Path.of(request.filePath());
                 this.workspaceManager.loadProject(filePath);
+                Optional<SemanticModel> semanticModel = this.workspaceManager.semanticModel(filePath);
                 Optional<Document> document = this.workspaceManager.document(filePath);
-                if (document.isEmpty()) {
+                if (document.isEmpty() || semanticModel.isEmpty()) {
                     return response;
                 }
 
                 DataMapManager dataMapManager = new DataMapManager(document.get());
-                response.setTextEdits(dataMapManager.deleteMapping(filePath, request.codedata(),
+                response.setTextEdits(dataMapManager.deleteMapping(semanticModel.get(), filePath, request.codedata(),
                         request.mapping(), request.targetField()));
             } catch (Throwable e) {
                 response.setError(e);
