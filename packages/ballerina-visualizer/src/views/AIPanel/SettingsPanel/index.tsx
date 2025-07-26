@@ -102,10 +102,10 @@ export const SettingsPanel = (props: { onClose: () => void }) => {
                 <Typography variant="subtitle1">Connect to AI Platforms for Enhanced Features</Typography>
                 <RowGroup>
                     <Row>
-                        <Typography variant="subtitle2">Login to BI Copilot</Typography>
+                        <Typography variant="subtitle2">Log out of BI Copilot</Typography>
                         <Typography variant="caption">
-                            Login to access AI-powered code generation, completions, test generation, data mappings, and
-                            more.
+                            Logging out will end your session and disconnect access to AI-powered tools like code
+                            generation, completions, test generation, and data mappings.
                         </Typography>
                     </Row>
                     <Button onClick={() => handleCopilotLogout()}>Logout</Button>
