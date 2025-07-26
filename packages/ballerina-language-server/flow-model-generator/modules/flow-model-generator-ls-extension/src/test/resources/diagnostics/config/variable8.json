@@ -1,0 +1,43 @@
+{
+  "description": "",
+  "filePath": "main.bal",
+  "context": {
+    "expression": "string `\nTime log:\n${time:utcNow().toString()}\n\nUser log: ${req.id}\n${req.message}\n`",
+    "startLine": {
+      "line": 11,
+      "offset": 4
+    },
+    "lineOffset": 0,
+    "offset": 0,
+    "codedata": {
+      "node": "VARIABLE",
+      "lineRange": {
+        "fileName": "main.bal",
+        "startLine": {
+          "line": 11,
+          "offset": 4
+        },
+        "endLine": {
+          "line": 15,
+          "offset": 2
+        }
+      },
+      "sourceCode": "string s = string `\n\nUser log: ${req.id}\n${req.message}\n`;"
+    },
+    "property": {
+      "metadata": {
+        "label": "Expression",
+        "description": "Initialize with value"
+      },
+      "valueType": "ACTION_OR_EXPRESSION",
+      "value": "string `\n\nUser log: ${req.id}\n${req.message}\n`",
+      "optional": true,
+      "editable": true,
+      "advanced": false,
+      "imports": {
+        "time": "ballerina/time:2.7.0"
+      }
+    }
+  },
+  "diagnostics": []
+}

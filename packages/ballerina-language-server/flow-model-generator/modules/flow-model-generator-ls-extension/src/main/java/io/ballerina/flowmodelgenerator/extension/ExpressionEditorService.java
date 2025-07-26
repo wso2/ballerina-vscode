@@ -44,10 +44,6 @@ import io.ballerina.modelgenerator.commons.ModuleInfo;
 import io.ballerina.modelgenerator.commons.PackageUtil;
 import io.ballerina.projects.CompilationOptions;
 import io.ballerina.projects.Document;
-import io.ballerina.projects.Module;
-import io.ballerina.projects.ModuleDependency;
-import io.ballerina.projects.ModuleDescriptor;
-import io.ballerina.projects.Project;
 import io.ballerina.tools.text.TextEdit;
 import org.ballerinalang.annotation.JavaSPIService;
 import org.ballerinalang.langserver.LSClientLogger;
@@ -236,25 +232,9 @@ public class ExpressionEditorService implements ExtendedLanguageServerService {
                 filePath,
                 null);
         Optional<TextEdit> importTextEdit = expressionEditorContext.getImport(importStatement);
-        importTextEdit.ifPresent(textEdit -> {
-            expressionEditorContext.applyTextEdits(List.of(textEdit));
-            PackageUtil.pullModuleAndNotify(lsClientLogger, ModuleInfo.from(moduleId));
-        });
-
-
-        // Get the imported module details
-        String[] split = importStatement.split("/");
-        Project project = expressionEditorContext.documentContext().project().orElseThrow();
-        project.currentPackage().getResolution(COMPILATION_OPTIONS);
-        Module module = expressionEditorContext.documentContext().module().orElseThrow();
-        ModuleDescriptor descriptor = module.moduleDependencies().stream()
-                .map(ModuleDependency::descriptor)
-                .filter(moduleDependencyDescriptor ->
-                        moduleDependencyDescriptor.org().value().equals(split[0]) &&
-                                moduleDependencyDescriptor.packageName().value().equals(split[1]))
-                .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("Module not found for: " + importStatement));
-        response.setPrefix(CommonUtils.getDefaultModulePrefix(descriptor.packageName().value()));
-        response.setModuleId(CommonUtils.constructModuleId(descriptor));
+        importTextEdit.ifPresent(textEdit ->
+                PackageUtil.pullModuleAndNotify(lsClientLogger, ModuleInfo.from(moduleId)));
+        response.setPrefix(CommonUtils.getPackageName(importStatement));
+        response.setModuleId(moduleId);
     }
 }
