@@ -653,14 +653,14 @@ public class CodeAnalyzer extends NodeVisitor {
                     String unescapedParamName = ParamUtils.removeLeadingSingleQuote(paramResult.name());
                     nodeBuilder.properties()
                             .custom()
-                            .metadata()
-                            .label(unescapedParamName)
-                            .description(paramResult.description())
-                            .stepOut()
+                                .metadata()
+                                .label(unescapedParamName)
+                                .description(paramResult.description())
+                                .stepOut()
                             .codedata()
-                            .kind(paramResult.kind().name())
-                            .originalName(paramResult.name())
-                            .stepOut()
+                                .kind(paramResult.kind().name())
+                                .originalName(paramResult.name())
+                                .stepOut()
                             .value(expr.toSourceCode())
                             .typeConstraint(paramResult.type())
                             .typeMembers(paramResult.typeMembers())
@@ -685,15 +685,15 @@ public class CodeAnalyzer extends NodeVisitor {
 
         nodeBuilder.symbolInfo(functionSymbol)
                 .metadata()
-                .label(functionName)
-                .description(functionData.description())
-                .stepOut()
+                    .label(functionName)
+                    .description(functionData.description())
+                    .stepOut()
                 .codedata()
-                .nodeInfo(clientResourceAccessActionNode)
-                .object(classSymbol.get().getName().orElse(""))
-                .symbol(functionName)
-                .resourcePath(resourcePathTemplate.resourcePathTemplate())
-                .stepOut()
+                    .nodeInfo(clientResourceAccessActionNode)
+                    .object(classSymbol.get().getName().orElse(""))
+                    .symbol(functionName)
+                    .resourcePath(resourcePathTemplate.resourcePathTemplate())
+                    .stepOut()
                 .properties()
                 .callConnection(expressionNode, Property.CONNECTION_KEY)
                 .data(this.typedBindingPatternNode, false, new HashSet<>());
@@ -714,13 +714,13 @@ public class CodeAnalyzer extends NodeVisitor {
             Property.Builder<FormBuilder<NodeBuilder>> customPropBuilder = nodeBuilder.properties().custom();
             customPropBuilder
                     .metadata()
-                    .label(label == null || label.isEmpty() ? unescapedParamName : label)
-                    .description(paramResult.description())
-                    .stepOut()
+                        .label(label == null || label.isEmpty() ? unescapedParamName : label)
+                        .description(paramResult.description())
+                        .stepOut()
                     .codedata()
-                    .kind(paramResult.kind().name())
-                    .originalName(paramResult.name())
-                    .stepOut()
+                        .kind(paramResult.kind().name())
+                        .originalName(paramResult.name())
+                        .stepOut()
                     .placeholder(paramResult.placeholder())
                     .defaultValue(paramResult.defaultValue())
                     .typeConstraint(paramResult.type())
@@ -791,13 +791,13 @@ public class CodeAnalyzer extends NodeVisitor {
                 Property.Builder<FormBuilder<NodeBuilder>> customPropBuilder = nodeBuilder.properties().custom();
                 customPropBuilder
                         .metadata()
-                        .label(label == null || label.isEmpty() ? unescapedParamName : label)
-                        .description(paramResult.description())
-                        .stepOut()
+                            .label(label == null || label.isEmpty() ? unescapedParamName : label)
+                            .description(paramResult.description())
+                            .stepOut()
                         .codedata()
-                        .kind(paramKind.name())
-                        .originalName(paramResult.name())
-                        .stepOut()
+                            .kind(paramKind.name())
+                            .originalName(paramResult.name())
+                            .stepOut()
                         .placeholder(paramResult.placeholder())
                         .defaultValue(paramResult.defaultValue())
                         .typeConstraint(paramResult.type())
@@ -873,9 +873,9 @@ public class CodeAnalyzer extends NodeVisitor {
                     String label = paramResult.label();
                     customPropBuilder
                             .metadata()
-                            .label(label == null || label.isEmpty() ? unescapedParamName : label)
-                            .description(paramResult.description())
-                            .stepOut()
+                                .label(label == null || label.isEmpty() ? unescapedParamName : label)
+                                .description(paramResult.description())
+                                .stepOut()
                             .type(getPropertyTypeFromParam(parameterSymbol, paramResult))
                             .typeConstraint(paramResult.type())
                             .typeMembers(paramResult.typeMembers(), selectedType)
@@ -886,9 +886,9 @@ public class CodeAnalyzer extends NodeVisitor {
                             .editable()
                             .defaultable(paramResult.optional())
                             .codedata()
-                            .kind(paramResult.kind().name())
-                            .originalName(paramResult.name())
-                            .stepOut()
+                                .kind(paramResult.kind().name())
+                                .originalName(paramResult.name())
+                                .stepOut()
                             .stepOut()
                             .addProperty(FlowNodeUtil.getPropertyKey(unescapedParamName));
                 }
@@ -908,9 +908,9 @@ public class CodeAnalyzer extends NodeVisitor {
                 String unescapedParamName = ParamUtils.removeLeadingSingleQuote(restParamResult.name());
                 customPropBuilder
                         .metadata()
-                        .label(unescapedParamName)
-                        .description(restParamResult.description())
-                        .stepOut()
+                            .label(unescapedParamName)
+                            .description(restParamResult.description())
+                            .stepOut()
                         .type(getPropertyTypeFromParam(restParamSymbol, restParamResult))
                         .typeConstraint(restParamResult.type())
                         .typeMembers(restParamResult.typeMembers())
@@ -921,9 +921,9 @@ public class CodeAnalyzer extends NodeVisitor {
                         .editable()
                         .defaultable(!hasOnlyRestParams)
                         .codedata()
-                        .kind(restParamResult.kind().name())
-                        .originalName(restParamResult.name())
-                        .stepOut()
+                            .kind(restParamResult.kind().name())
+                            .originalName(restParamResult.name())
+                            .stepOut()
                         .stepOut()
                         .addProperty(FlowNodeUtil.getPropertyKey(unescapedParamName));
             }
@@ -980,9 +980,9 @@ public class CodeAnalyzer extends NodeVisitor {
                             String label = paramResult.label();
                             customPropBuilder
                                     .metadata()
-                                    .label(label == null || label.isEmpty() ? unescapedParamName : label)
-                                    .description(paramResult.description())
-                                    .stepOut()
+                                        .label(label == null || label.isEmpty() ? unescapedParamName : label)
+                                        .description(paramResult.description())
+                                        .stepOut()
                                     .type(getPropertyTypeFromParam(parameterSymbol, paramResult))
                                     .typeConstraint(paramResult.type())
                                     .typeMembers(paramResult.typeMembers(), selectedType)
@@ -993,9 +993,9 @@ public class CodeAnalyzer extends NodeVisitor {
                                     .editable()
                                     .defaultable(paramResult.optional())
                                     .codedata()
-                                    .kind(paramResult.kind().name())
-                                    .originalName(paramResult.name())
-                                    .stepOut()
+                                        .kind(paramResult.kind().name())
+                                        .originalName(paramResult.name())
+                                        .stepOut()
                                     .stepOut()
                                     .addProperty(FlowNodeUtil.getPropertyKey(unescapedParamName), paramValue);
                         } else {
@@ -1028,9 +1028,9 @@ public class CodeAnalyzer extends NodeVisitor {
                                 String label = paramResult.label();
                                 customPropBuilder
                                         .metadata()
-                                        .label(label == null || label.isEmpty() ? unescapedParamName : label)
-                                        .description(paramResult.description())
-                                        .stepOut()
+                                            .label(label == null || label.isEmpty() ? unescapedParamName : label)
+                                            .description(paramResult.description())
+                                            .stepOut()
                                         .type(getPropertyTypeFromParam(parameterSymbol, paramResult))
                                         .typeConstraint(paramResult.type())
                                         .typeMembers(paramResult.typeMembers(), selectedType)
@@ -1041,9 +1041,9 @@ public class CodeAnalyzer extends NodeVisitor {
                                         .editable()
                                         .defaultable(paramResult.optional())
                                         .codedata()
-                                        .kind(paramResult.kind().name())
-                                        .originalName(paramResult.name())
-                                        .stepOut()
+                                            .kind(paramResult.kind().name())
+                                            .originalName(paramResult.name())
+                                            .stepOut()
                                         .stepOut()
                                         .addProperty(FlowNodeUtil.getPropertyKey(unescapedParamName), paramValue);
 
@@ -1071,9 +1071,9 @@ public class CodeAnalyzer extends NodeVisitor {
                             String label = paramResult.label();
                             customPropBuilder
                                     .metadata()
-                                    .label(label == null || label.isEmpty() ? unescapedParamName : label)
-                                    .description(paramResult.description())
-                                    .stepOut()
+                                        .label(label == null || label.isEmpty() ? unescapedParamName : label)
+                                        .description(paramResult.description())
+                                        .stepOut()
                                     .type(getPropertyTypeFromParam(parameterSymbol, paramResult))
                                     .typeConstraint(paramResult.type())
                                     .typeMembers(paramResult.typeMembers(), selectedType)
@@ -1084,9 +1084,9 @@ public class CodeAnalyzer extends NodeVisitor {
                                     .editable()
                                     .defaultable(paramResult.optional())
                                     .codedata()
-                                    .kind(paramResult.kind().name())
-                                    .originalName(paramResult.name())
-                                    .stepOut()
+                                        .kind(paramResult.kind().name())
+                                        .originalName(paramResult.name())
+                                        .stepOut()
                                     .stepOut()
                                     .addProperty(FlowNodeUtil.getPropertyKey(unescapedParamName), paramValue);
                             return;
@@ -1119,9 +1119,9 @@ public class CodeAnalyzer extends NodeVisitor {
                 String label = paramResult.label();
                 customPropBuilder
                         .metadata()
-                        .label(label == null || label.isEmpty() ? unescapedParamName : label)
-                        .description(paramResult.description())
-                        .stepOut()
+                            .label(label == null || label.isEmpty() ? unescapedParamName : label)
+                            .description(paramResult.description())
+                            .stepOut()
                         .type(getPropertyTypeFromParam(parameterSymbol, paramResult))
                         .typeConstraint(paramResult.type())
                         .typeMembers(paramResult.typeMembers(), selectedType)
@@ -1132,9 +1132,9 @@ public class CodeAnalyzer extends NodeVisitor {
                         .editable()
                         .defaultable(paramResult.optional())
                         .codedata()
-                        .kind(paramResult.kind().name())
-                        .originalName(paramResult.name())
-                        .stepOut()
+                            .kind(paramResult.kind().name())
+                            .originalName(paramResult.name())
+                            .stepOut()
                         .stepOut()
                         .addProperty(FlowNodeUtil.getPropertyKey(unescapedParamName), paramValue);
             }
@@ -1196,9 +1196,9 @@ public class CodeAnalyzer extends NodeVisitor {
                 String unescapedParamName = ParamUtils.removeLeadingSingleQuote(includedRecordRest.name());
                 customPropBuilder
                         .metadata()
-                        .label(unescapedParamName)
-                        .description(includedRecordRest.description())
-                        .stepOut()
+                            .label(unescapedParamName)
+                            .description(includedRecordRest.description())
+                            .stepOut()
                         .type(getPropertyTypeFromParam(null, includedRecordRest))
                         .typeConstraint(includedRecordRest.type())
                         .typeMembers(includedRecordRest.typeMembers())
@@ -1209,9 +1209,9 @@ public class CodeAnalyzer extends NodeVisitor {
                         .editable()
                         .defaultable(includedRecordRest.optional())
                         .codedata()
-                        .kind(includedRecordRest.kind().name())
-                        .originalName(includedRecordRest.name())
-                        .stepOut()
+                            .kind(includedRecordRest.kind().name())
+                            .originalName(includedRecordRest.name())
+                            .stepOut()
                         .stepOut()
                         .addProperty("additionalValues");
             }
@@ -1352,16 +1352,16 @@ public class CodeAnalyzer extends NodeVisitor {
         String name = classSymbol.getName().orElse("");
         nodeBuilder
                 .metadata()
-                .label(packageName)
-                .description(functionData.description())
-                .icon(CommonUtils.generateIcon(org, packageName, functionData.version()))
-                .stepOut()
+                    .label(packageName)
+                    .description(functionData.description())
+                    .icon(CommonUtils.generateIcon(org, packageName, functionData.version()))
+                    .stepOut()
                 .codedata()
-                .org(org)
-                .module(packageName)
-                .object(name)
-                .symbol(NewConnectionBuilder.INIT_SYMBOL)
-                .stepOut()
+                    .org(org)
+                    .module(packageName)
+                    .object(name)
+                    .symbol(NewConnectionBuilder.INIT_SYMBOL)
+                    .stepOut()
                 .properties()
                 .scope(connectionScope)
                 .checkError(true, NewConnectionBuilder.CHECK_ERROR_DOC, false);
@@ -1529,9 +1529,9 @@ public class CodeAnalyzer extends NodeVisitor {
 
             nodeBuilder.properties().custom()
                     .metadata()
-                    .label(AssignBuilder.VARIABLE_LABEL)
-                    .description(AssignBuilder.VARIABLE_DOC)
-                    .stepOut()
+                        .label(AssignBuilder.VARIABLE_LABEL)
+                        .description(AssignBuilder.VARIABLE_DOC)
+                        .stepOut()
                     .type(Property.ValueType.LV_EXPRESSION)
                     .value(CommonUtils.getVariableName(assignmentStatementNode.varRef()))
                     .editable()
@@ -1634,13 +1634,13 @@ public class CodeAnalyzer extends NodeVisitor {
 
         nodeBuilder
                 .symbolInfo(functionSymbol)
-                .metadata()
-                .label(functionName)
-                .description(functionData.description())
-                .stepOut()
+                    .metadata()
+                    .label(functionName)
+                    .description(functionData.description())
+                    .stepOut()
                 .codedata()
-                .symbol(functionName)
-                .object(classSymbol.getName().orElse(""));
+                    .symbol(functionName)
+                    .object(classSymbol.getName().orElse(""));
         if (classSymbol.qualifiers().contains(Qualifier.CLIENT)) {
             nodeBuilder.properties().callConnection(expressionNode, Property.CONNECTION_KEY);
         } else {
