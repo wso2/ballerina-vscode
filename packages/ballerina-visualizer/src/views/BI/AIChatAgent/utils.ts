@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import { BINodeTemplateRequest, CodeData, FlowNode, LinePosition } from "@wso2/ballerina-core";
+import { BINodeTemplateRequest, CodeData, FlowNode, LinePosition, ValueTypeConstraint } from "@wso2/ballerina-core";
 import { BallerinaRpcClient } from "@wso2/ballerina-rpc-client";
 import { cloneDeep } from "lodash";
 import { URI, Utils } from "vscode-uri";
@@ -160,20 +160,20 @@ export const addToolToAgentNode = async (agentNode: FlowNode, toolName: string) 
 };
 
 export interface McpServerConfig {
-  name: string;
-  serviceUrl: string;
-  configs: Record<string, string>;
-  toolSelection: string;
-  selectedTools: string[];
+    name: string;
+    serviceUrl: string;
+    configs: Record<string, string>;
+    toolSelection: string;
+    selectedTools: string[];
 };
 
 export const updateMcpServerToAgentNode = async (
-    agentNode: FlowNode, 
-    toolConfig: McpServerConfig, 
+    agentNode: FlowNode,
+    toolConfig: McpServerConfig,
     originalToolName: string
 ) => {
     if (!agentNode || agentNode.codedata?.node !== "AGENT") return null;
-    
+
     const updatedAgentNode = cloneDeep(agentNode);
     let toolsValue = updatedAgentNode.properties.tools.value;
 
@@ -198,10 +198,10 @@ export const updateMcpServerToAgentNode = async (
 
         console.log(">>> Regex pattern:", pattern);
         console.log(">>> Testing pattern against toolsValue:", pattern.test(toolsValue));
-        
+
         // Reset the regex lastIndex since test() modifies it
         pattern.lastIndex = 0;
-        
+
         if (pattern.test(toolsValue)) {
             console.log(">>> Found existing tool to replace");
             // Reset lastIndex again before replace
@@ -210,10 +210,10 @@ export const updateMcpServerToAgentNode = async (
         } else {
             const trimmedValue = toolsValue.trim();
             const isWrappedInBrackets = trimmedValue.startsWith('[') && trimmedValue.endsWith(']');
-            const innerContent = isWrappedInBrackets 
-                ? trimmedValue.slice(1, -1).trim() 
+            const innerContent = isWrappedInBrackets
+                ? trimmedValue.slice(1, -1).trim()
                 : trimmedValue;
-            toolsValue = innerContent 
+            toolsValue = innerContent
                 ? `[${innerContent}, ${newToolString}]`
                 : `[${newToolString}]`;
         }
@@ -224,7 +224,7 @@ export const updateMcpServerToAgentNode = async (
 
     updatedAgentNode.properties.tools.value = toolsValue;
     updatedAgentNode.codedata.isNew = false;
-    
+
     console.log(">>> Final updated tools value", toolsValue);
     return updatedAgentNode;
 };
@@ -281,7 +281,7 @@ export const removeMcpServerFromAgentNode = (
     const startPattern = 'check new ai:McpToolKit(';
     let startIndex = 0;
     let found = false;
-    
+
     while (!found && startIndex < toolsValue.length) {
         startIndex = toolsValue.indexOf(startPattern, startIndex);
         if (startIndex === -1) break;
@@ -303,9 +303,9 @@ export const removeMcpServerFromAgentNode = (
                 newStartIndex--;
                 hasCommaBefore = true;
             }
-            
+
             let isLastItem = !hasCommaAfter;
-            
+
             let before = toolsValue.substring(0, newStartIndex);
             let after = toolsValue.substring(endIndex);
 
@@ -317,7 +317,7 @@ export const removeMcpServerFromAgentNode = (
                     before = before.substring(0, before.length - 1).trim();
                 }
             }
-            
+
             toolsValue = before + after;
             found = true;
         } else {
@@ -406,3 +406,43 @@ const parseToolsString = (toolsStr: string): string[] => {
     // Split by comma and trim each element
     return inner.split(",").map((tool) => tool.trim());
 };
+
+export function createDefaultParameterValue({ value, parameterDescription, type }: { value: string, parameterDescription?: string, type?: string }): ValueTypeConstraint {
+    const defaultMetadata = {
+        label: "",
+        description: "",
+    };
+    return {
+        metadata: defaultMetadata,
+        valueType: "",
+        value: {
+            variable: {
+                value,
+                metadata: defaultMetadata,
+                valueType: "",
+                optional: false,
+                editable: false,
+                advanced: false
+            },
+            parameterDescription: {
+                value: parameterDescription || "",
+                metadata: defaultMetadata,
+                valueType: "",
+                optional: false,
+                editable: false,
+                advanced: false
+            },
+            type: {
+                value: type || "",
+                metadata: defaultMetadata,
+                valueType: "",
+                optional: false,
+                editable: false,
+                advanced: false
+            }
+        },
+        optional: false,
+        editable: false,
+        advanced: false
+    };
+}
