@@ -1,0 +1,60 @@
+{
+  "source": "knowledge_base/connections.bal",
+  "expectedKnowledgeBases": {
+    "categories": [
+      {
+        "metadata": {
+          "label": "Vector Knowledge Bases",
+          "description": "Vector knowledge bases available in the integration"
+        },
+        "items": [
+          {
+            "metadata": {
+              "label": "vectorKnowledgeBase"
+            },
+            "items": [
+              {
+                "metadata": {
+                  "label": "ingest",
+                  "description": "Indexes a collection of chunks.\nConverts each chunk to an embedding and stores it in the vector store,\nmaking the chunk searchable through the retriever.\n",
+                  "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.1.1.png"
+                },
+                "codedata": {
+                  "node": "VECTOR_KNOWLEDGE_BASE_CALL",
+                  "org": "ballerina",
+                  "module": "ai",
+                  "packageName": "ai",
+                  "object": "VectorKnowledgeBase",
+                  "symbol": "ingest",
+                  "version": "1.1.1",
+                  "parentSymbol": "vectorKnowledgeBase",
+                  "resourcePath": ""
+                },
+                "enabled": true
+              },
+              {
+                "metadata": {
+                  "label": "retrieve",
+                  "description": "Retrieves relevant chunk for the given query.\n",
+                  "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.1.1.png"
+                },
+                "codedata": {
+                  "node": "VECTOR_KNOWLEDGE_BASE_CALL",
+                  "org": "ballerina",
+                  "module": "ai",
+                  "packageName": "ai",
+                  "object": "VectorKnowledgeBase",
+                  "symbol": "retrieve",
+                  "version": "1.1.1",
+                  "parentSymbol": "vectorKnowledgeBase",
+                  "resourcePath": ""
+                },
+                "enabled": true
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

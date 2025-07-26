@@ -21,11 +21,13 @@ package io.ballerina.modelgenerator.commons;
 import io.ballerina.compiler.api.ModuleID;
 import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.compiler.api.symbols.ArrayTypeSymbol;
+import io.ballerina.compiler.api.symbols.ClassSymbol;
 import io.ballerina.compiler.api.symbols.FunctionSymbol;
 import io.ballerina.compiler.api.symbols.FutureTypeSymbol;
 import io.ballerina.compiler.api.symbols.IntersectionTypeSymbol;
 import io.ballerina.compiler.api.symbols.MapTypeSymbol;
 import io.ballerina.compiler.api.symbols.ModuleSymbol;
+import io.ballerina.compiler.api.symbols.ParameterSymbol;
 import io.ballerina.compiler.api.symbols.StreamTypeSymbol;
 import io.ballerina.compiler.api.symbols.Symbol;
 import io.ballerina.compiler.api.symbols.SymbolKind;
@@ -93,6 +95,10 @@ public class CommonUtils {
     private static final String CENTRAL_ICON_URL = "https://bcentral-packageicons.azureedge.net/images/%s_%s_%s.png";
     private static final Pattern FULLY_QUALIFIED_MODULE_ID_PATTERN =
             Pattern.compile("(\\w+)/([\\w.]+):([^:]+):(\\w+)[|]?");
+    private static final String VECTOR_KNOWLEDGE_BASE_TYPE_NAME = "VectorKnowledgeBase";
+    private static final String EMBEDDING_PROVIDER_TYPE_NAME = "EmbeddingProvider";
+    private static final String MODEL_PROVIDER_TYPE_NAME = "ModelProvider";
+    private static final String VECTOR_STORE_TYPE_NAME = "VectorStore";
     public static final String BALLERINA_ORG_NAME = "ballerina";
     public static final String BALLERINAX_ORG_NAME = "ballerinax";
     public static final String LANG_LIB_PREFIX = "lang.";
@@ -932,8 +938,8 @@ public class CommonUtils {
      * Checks whether the given import exists in the given blangPackage.
      *
      * @param blangPackage blangPackage
-     * @param org    organization name
-     * @param module module name
+     * @param org          organization name
+     * @param module       module name
      * @return true if the import exists, false otherwise
      */
     public static boolean importExists(BLangPackage blangPackage, String org, String module) {
@@ -963,5 +969,53 @@ public class CommonUtils {
         }
 
         return symbol.getName().isPresent() && symbol.getName().get().equals(AGENT);
+    }
+
+    public static boolean isAiVectorKnowledgeBase(Symbol symbol) {
+        Optional<ModuleSymbol> module = symbol.getModule();
+        return module.isPresent() && isAiModule(module.get().id().orgName(), module.get().id().packageName())
+                && symbol.getName().isPresent() && symbol.getName().get().equals(VECTOR_KNOWLEDGE_BASE_TYPE_NAME);
+    }
+
+    public static boolean isAiVectorStore(Symbol symbol) {
+        ClassSymbol classSymbol = getClassSymbol(symbol);
+        return classSymbol != null && hasAiTypeInclusion(classSymbol, VECTOR_STORE_TYPE_NAME);
+    }
+
+    public static boolean isAiModelProvider(Symbol symbol) {
+        ClassSymbol classSymbol = getClassSymbol(symbol);
+        return classSymbol != null && hasAiTypeInclusion(classSymbol, MODEL_PROVIDER_TYPE_NAME);
+    }
+
+    public static boolean isAiEmbeddingProvider(Symbol symbol) {
+        ClassSymbol classSymbol = getClassSymbol(symbol);
+        return classSymbol != null && hasAiTypeInclusion(classSymbol, EMBEDDING_PROVIDER_TYPE_NAME);
+    }
+
+    private static ClassSymbol getClassSymbol(Symbol symbol) {
+        if (symbol instanceof ClassSymbol) {
+            return (ClassSymbol) symbol;
+        }
+        TypeReferenceTypeSymbol typeDescriptorSymbol;
+        if (symbol instanceof VariableSymbol variableSymbol) {
+            typeDescriptorSymbol = (TypeReferenceTypeSymbol) variableSymbol.typeDescriptor();
+        } else if (symbol instanceof ParameterSymbol parameterSymbol) {
+            typeDescriptorSymbol = (TypeReferenceTypeSymbol) parameterSymbol.typeDescriptor();
+        } else {
+            return null;
+        }
+        return (ClassSymbol) typeDescriptorSymbol.typeDescriptor();
+    }
+
+    private static boolean hasAiTypeInclusion(ClassSymbol classSymbol, String includedTypeName) {
+        return classSymbol.typeInclusions().stream()
+                .filter(typeSymbol -> typeSymbol instanceof TypeReferenceTypeSymbol)
+                .map(typeSymbol -> (TypeReferenceTypeSymbol) typeSymbol)
+                .filter(typeRef -> typeRef.definition().nameEquals(includedTypeName))
+                .map(TypeSymbol::getModule)
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .anyMatch(moduleId -> BALLERINA_ORG_NAME.equals(moduleId.id().orgName()) &&
+                        AI.equals(moduleId.id().moduleName()));
     }
 }
