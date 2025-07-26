@@ -41,12 +41,12 @@ export class ArrayOutputNodeFactory extends AbstractReactFactory<ArrayOutputNode
 					<ArrayOutputWidget
 						engine={this.engine}
 						id={`${ARRAY_OUTPUT_TARGET_PORT_PREFIX}${event.model.rootName ? `.${event.model.rootName}` : ''}`}
-						outputType={event.model.outputType}
+						outputType={event.model.filteredOutputType}
 						typeName={event.model.typeName}
 						isBodyArrayLitExpr={event.model.isBodyArrayliteralExpr}
 						getPort={(portId: string) => event.model.getPort(portId) as InputOutputPortModel}
 						context={event.model.context}
-						valueLabel={event.model.outputType.id}
+						valueLabel={event.model.filteredOutputType.id}
 					/>
 				)}
 			</>

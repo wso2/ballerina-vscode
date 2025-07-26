@@ -452,35 +452,46 @@ export function modifySpecificFieldSource(
 		targetNode.updateSource();
 	}
 	else {
+		const targetPortHasLinks = Object.keys(targetPort.getLinks())
+			?.filter(linkId => linkId !== newLinkId)
+			.length > 0;
+
 		let targetPos: NodePosition;
 		let targetType: TypeField;
-		Object.keys(targetPort.getLinks()).forEach((linkId) => {
-			if (linkId !== newLinkId) {
-				const targerPortLink = targetPort.getLinks()[linkId]
-				if (sourcePort instanceof IntermediatePortModel) {
-					if (sourcePort.getParent() instanceof LinkConnectorNode) {
-						targetPos = (sourcePort.getParent() as LinkConnectorNode).valueNode.position as NodePosition
-					}
-				} else if (targerPortLink.getLabels().length > 0) {
-					targetPos = (targerPortLink.getLabels()[0] as ExpressionLabelModel).valueNode.position as NodePosition;
-					targetType = getTypeFromStore(targetPos);
-				} else if (targetNode instanceof MappingConstructorNode
-					|| targetNode instanceof PrimitiveTypeNode
-					|| targetNode instanceof ListConstructorNode)
-				{
-					const linkConnector = targetNode
-						.getModel()
-						.getNodes()
-						.find(
-							(node) =>
-								node instanceof LinkConnectorNode &&
-								node.targetPort.portName === (targerPortLink.getTargetPort() as RecordFieldPortModel).portName
-						);
-					targetPos = (linkConnector as LinkConnectorNode).valueNode.position as NodePosition;
-				}
 
-			}
-		});
+		if (targetPortHasLinks) {
+			Object.keys(targetPort.getLinks()).forEach((linkId) => {
+				if (linkId !== newLinkId) {
+					const targerPortLink = targetPort.getLinks()[linkId]
+					if (sourcePort instanceof IntermediatePortModel) {
+						if (sourcePort.getParent() instanceof LinkConnectorNode) {
+							targetPos = (sourcePort.getParent() as LinkConnectorNode).valueNode.position as NodePosition
+						}
+					} else if (targerPortLink.getLabels().length > 0) {
+						targetPos = (targerPortLink.getLabels()[0] as ExpressionLabelModel).valueNode.position as NodePosition;
+						targetType = getTypeFromStore(targetPos);
+					} else if (targetNode instanceof MappingConstructorNode
+						|| targetNode instanceof PrimitiveTypeNode
+						|| targetNode instanceof ListConstructorNode)
+					{
+						const linkConnector = targetNode
+							.getModel()
+							.getNodes()
+							.find(
+								(node) =>
+									node instanceof LinkConnectorNode &&
+									node.targetPort.portName === (targerPortLink.getTargetPort() as RecordFieldPortModel).portName
+							);
+						targetPos = (linkConnector as LinkConnectorNode).valueNode.position as NodePosition;
+					}
+
+				}
+			});
+		} else {
+			targetPos = targetPort?.editableRecordField?.value?.position as NodePosition;
+			targetType = getTypeFromStore(targetPos);
+		}
+
 		if (targetType &&
 			targetType.typeName === PrimitiveBalType.Json &&
 			(sourcePort as RecordFieldPortModel).field.typeName === PrimitiveBalType.Json) {
@@ -1539,7 +1550,7 @@ export function getValueType(lm: DataMapperLinkModel): ValueType {
 			value = "[]";
 		}
 
-		if (value !== undefined) {
+		if (value !== undefined && !isEmptyValue(innerExpr?.position)) {
 			return isDefaultValue(editableRecordField.type, value) ? ValueType.Default : ValueType.NonEmpty;
 		}
 	}
