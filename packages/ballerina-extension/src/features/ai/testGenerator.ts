@@ -26,7 +26,6 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
 import { writeBallerinaFileDidOpen } from '../../utils/modification';
-import { fetchData } from '../../rpc-managers/ai-panel/utils/fetch-data-utils';
 import { closeAllBallerinaFiles } from './utils';
 import { generateTestFromLLM, TestGenerationRequest1 } from './service/test/test';
 
