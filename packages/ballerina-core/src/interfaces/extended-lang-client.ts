@@ -352,7 +352,7 @@ export interface AddArrayElementRequest {
     propertyKey?: string;
 }
 
-export interface ConvertToQueryRequest{
+export interface ConvertToQueryRequest {
     filePath: string;
     codedata: CodeData;
     varName?: string;
@@ -387,7 +387,7 @@ export interface DeleteMappingRequest {
     targetField: string;
 }
 
-export interface MapWithCustomFnRequest{
+export interface MapWithCustomFnRequest {
     filePath: string;
     codedata: CodeData;
     mapping: Mapping;
@@ -1572,6 +1572,24 @@ export interface AIToolsRequest {
 
 export interface AIToolsResponse {
     tools: string[];
+}
+
+export interface AIToolRequest {
+    toolName: string;
+    projectPath: string;
+}
+
+export interface AIToolResponse {
+    name: string;
+    source: string;
+    toolParameters: Property;
+    connection: string;
+    description: string;
+    toolDescription: string;
+    diagram: FunctionNode;
+    output: {
+        [key: string]: TextEdit[];
+    };
 }
 
 export interface McpToolsRequest {
