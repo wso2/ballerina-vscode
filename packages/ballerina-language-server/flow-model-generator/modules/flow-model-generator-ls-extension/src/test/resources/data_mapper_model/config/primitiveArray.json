@@ -29,39 +29,45 @@
             "id": "engineering.name",
             "variableName": "name",
             "typeName": "string",
-            "kind": "string"
+            "kind": "string",
+            "optional": false
           },
           {
             "member": {
               "id": "engineering.otherCodes.0",
               "variableName": "<otherCodesItem>",
               "typeName": "int",
-              "kind": "int"
+              "kind": "int",
+              "optional": false
             },
             "id": "engineering.otherCodes",
             "variableName": "otherCodes",
             "typeName": "int[]",
-            "kind": "array"
+            "kind": "array",
+            "optional": false
           }
         ],
         "id": "engineering",
         "variableName": "engineering",
         "typeName": "Department",
         "kind": "record",
-        "category": "local-variable"
+        "category": "local-variable",
+        "optional": false
       },
       {
         "member": {
           "id": "itemCodes.0",
           "variableName": "<itemCodesItem>",
           "typeName": "int",
-          "kind": "int"
+          "kind": "int",
+          "optional": false
         },
         "id": "itemCodes",
         "variableName": "itemCodes",
         "typeName": "int[]",
         "kind": "array",
-        "category": "local-variable"
+        "category": "local-variable",
+        "optional": false
       }
     ],
     "output": {
@@ -70,7 +76,8 @@
           "id": "alice.name",
           "variableName": "name",
           "typeName": "string",
-          "kind": "string"
+          "kind": "string",
+          "optional": false
         },
         {
           "fields": [
@@ -78,31 +85,36 @@
               "id": "alice.department.name",
               "variableName": "name",
               "typeName": "string",
-              "kind": "string"
+              "kind": "string",
+              "optional": false
             },
             {
               "member": {
                 "id": "alice.department.otherCodes",
                 "variableName": "<otherCodesItem>",
                 "typeName": "int",
-                "kind": "int"
+                "kind": "int",
+                "optional": false
               },
               "id": "alice.department.otherCodes",
               "variableName": "otherCodes",
               "typeName": "int[]",
-              "kind": "array"
+              "kind": "array",
+              "optional": false
             }
           ],
           "id": "alice.department",
           "variableName": "department",
           "typeName": "Department",
-          "kind": "record"
+          "kind": "record",
+          "optional": false
         }
       ],
       "id": "alice",
       "variableName": "alice",
       "typeName": "Employee",
-      "kind": "record"
+      "kind": "record",
+      "optional": false
     },
     "mappings": [
       {

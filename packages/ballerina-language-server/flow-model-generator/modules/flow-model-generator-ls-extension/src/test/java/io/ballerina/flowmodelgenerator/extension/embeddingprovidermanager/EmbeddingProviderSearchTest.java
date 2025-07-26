@@ -60,7 +60,9 @@ public class EmbeddingProviderSearchTest extends AbstractLSTest {
         if (!searchResult.equals(testConfig.expectedEmbeddingProviders())) {
             TestConfig updatedConfig = new TestConfig(testConfig.source(), testConfig.query(), searchResult);
             // updateConfig(configJsonPath, updatedConfig);
-            Assert.fail("Test failed. Updated the expected output in " + configJsonPath);
+            compareJsonElements(searchResult, testConfig.expectedEmbeddingProviders());
+            Assert.fail(String.format("Failed test: '%s' Actual: `%s` Expected `%s`", configJsonPath,
+                    searchResult, testConfig.expectedEmbeddingProviders()));
         }
     }
 

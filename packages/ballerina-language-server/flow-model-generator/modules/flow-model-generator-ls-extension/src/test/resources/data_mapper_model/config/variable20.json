@@ -29,7 +29,8 @@
         "variableName": "CONST",
         "typeName": "string",
         "kind": "string",
-        "category": "constant"
+        "category": "constant",
+        "optional": false
       },
       {
         "fields": [
@@ -37,7 +38,8 @@
             "id": "bank.name",
             "variableName": "name",
             "typeName": "string",
-            "kind": "string"
+            "kind": "string",
+            "optional": false
           },
           {
             "member": {
@@ -46,31 +48,36 @@
                   "id": "bank.userInfo.0.username",
                   "variableName": "username",
                   "typeName": "string",
-                  "kind": "string"
+                  "kind": "string",
+                  "optional": false
                 },
                 {
                   "id": "bank.userInfo.0.password",
                   "variableName": "password",
                   "typeName": "string",
-                  "kind": "string"
+                  "kind": "string",
+                  "optional": false
                 },
                 {
                   "id": "bank.userInfo.0.id",
                   "variableName": "id",
                   "typeName": "int",
-                  "kind": "int"
+                  "kind": "int",
+                  "optional": false
                 }
               ],
               "id": "bank.userInfo.0",
               "variableName": "<userInfoItem>",
               "typeName": "UserInfo",
-              "kind": "record"
+              "kind": "record",
+              "optional": false
             },
             "focusedMemberId": "info",
             "id": "bank.userInfo",
             "variableName": "userInfo",
             "typeName": "UserInfo[]",
-            "kind": "array"
+            "kind": "array",
+            "optional": false
           }
         ],
         "id": "bank",
@@ -78,7 +85,8 @@
         "typeName": "Bank",
         "kind": "record",
         "category": "variable",
-        "isFocused": true
+        "isFocused": true,
+        "optional": false
       },
       {
         "member": {
@@ -87,7 +95,8 @@
               "id": "banks.0.name",
               "variableName": "name",
               "typeName": "string",
-              "kind": "string"
+              "kind": "string",
+              "optional": false
             },
             {
               "member": {
@@ -96,43 +105,50 @@
                     "id": "banks.0.userInfo.0.username",
                     "variableName": "username",
                     "typeName": "string",
-                    "kind": "string"
+                    "kind": "string",
+                    "optional": false
                   },
                   {
                     "id": "banks.0.userInfo.0.password",
                     "variableName": "password",
                     "typeName": "string",
-                    "kind": "string"
+                    "kind": "string",
+                    "optional": false
                   },
                   {
                     "id": "banks.0.userInfo.0.id",
                     "variableName": "id",
                     "typeName": "int",
-                    "kind": "int"
+                    "kind": "int",
+                    "optional": false
                   }
                 ],
                 "id": "banks.0.userInfo.0",
                 "variableName": "<userInfoItem>",
                 "typeName": "UserInfo",
-                "kind": "record"
+                "kind": "record",
+                "optional": false
               },
               "id": "banks.0.userInfo",
               "variableName": "userInfo",
               "typeName": "UserInfo[]",
-              "kind": "array"
+              "kind": "array",
+              "optional": false
             }
           ],
           "id": "banks.0",
           "variableName": "<banksItem>",
           "typeName": "Bank",
-          "kind": "record"
+          "kind": "record",
+          "optional": false
         },
         "focusedMemberId": "bank",
         "id": "banks",
         "variableName": "banks",
         "typeName": "Bank[]",
         "kind": "array",
-        "category": "variable"
+        "category": "variable",
+        "optional": false
       },
       {
         "member": {
@@ -141,31 +157,36 @@
               "id": "userInfo.0.username",
               "variableName": "username",
               "typeName": "string",
-              "kind": "string"
+              "kind": "string",
+              "optional": false
             },
             {
               "id": "userInfo.0.password",
               "variableName": "password",
               "typeName": "string",
-              "kind": "string"
+              "kind": "string",
+              "optional": false
             },
             {
               "id": "userInfo.0.id",
               "variableName": "id",
               "typeName": "int",
-              "kind": "int"
+              "kind": "int",
+              "optional": false
             }
           ],
           "id": "userInfo.0",
           "variableName": "<userInfoItem>",
           "typeName": "UserInfo",
-          "kind": "record"
+          "kind": "record",
+          "optional": false
         },
         "id": "userInfo",
         "variableName": "userInfo",
         "typeName": "UserInfo[]",
         "kind": "array",
-        "category": "variable"
+        "category": "variable",
+        "optional": false
       },
       {
         "fields": [
@@ -173,26 +194,30 @@
             "id": "info.username",
             "variableName": "username",
             "typeName": "string",
-            "kind": "string"
+            "kind": "string",
+            "optional": false
           },
           {
             "id": "info.password",
             "variableName": "password",
             "typeName": "string",
-            "kind": "string"
+            "kind": "string",
+            "optional": false
           },
           {
             "id": "info.id",
             "variableName": "id",
             "typeName": "int",
-            "kind": "int"
+            "kind": "int",
+            "optional": false
           }
         ],
         "id": "info",
         "variableName": "info",
         "typeName": "UserInfo",
         "kind": "record",
-        "isFocused": true
+        "isFocused": true,
+        "optional": false
       }
     ],
     "output": {
@@ -202,24 +227,28 @@
             "id": "credentials.username",
             "variableName": "username",
             "typeName": "string",
-            "kind": "string"
+            "kind": "string",
+            "optional": false
           },
           {
             "id": "credentials.password",
             "variableName": "password",
             "typeName": "string",
-            "kind": "string"
+            "kind": "string",
+            "optional": false
           }
         ],
         "id": "credentials",
         "variableName": "<credentialsItem>",
         "typeName": "Credentials",
-        "kind": "record"
+        "kind": "record",
+        "optional": false
       },
       "id": "credentials",
       "variableName": "credentials",
       "typeName": "Credentials[]",
-      "kind": "array"
+      "kind": "array",
+      "optional": false
     },
     "mappings": [
       {

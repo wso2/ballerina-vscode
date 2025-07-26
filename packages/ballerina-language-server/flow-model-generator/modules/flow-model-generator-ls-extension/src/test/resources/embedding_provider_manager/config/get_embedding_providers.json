@@ -1,0 +1,150 @@
+{
+  "source": "embedding_provider/connections.bal",
+  "expectedEmbeddingProviders": {
+    "categories": [
+      {
+        "metadata": {
+          "label": "Embedding Providers",
+          "description": "Embedding providers used in the integration to connect to embedding models"
+        },
+        "items": [
+          {
+            "metadata": {
+              "label": "openAiEmbeddingModel"
+            },
+            "items": [
+              {
+                "metadata": {
+                  "label": "embed",
+                  "description": "Generates an embedding vector for the provided chunk.\n",
+                  "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_ai.openai_1.1.0.png"
+                },
+                "codedata": {
+                  "node": "REMOTE_ACTION_CALL",
+                  "org": "ballerinax",
+                  "module": "ai.openai",
+                  "packageName": "ai.openai",
+                  "object": "EmbeddingProvider",
+                  "symbol": "embed",
+                  "version": "1.1.0",
+                  "parentSymbol": "openAiEmbeddingModel",
+                  "resourcePath": ""
+                },
+                "enabled": true
+              },
+              {
+                "metadata": {
+                  "label": "batchEmbed",
+                  "description": "Converts a batch of chunks into embeddings.\n",
+                  "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_ai.openai_1.1.0.png"
+                },
+                "codedata": {
+                  "node": "REMOTE_ACTION_CALL",
+                  "org": "ballerinax",
+                  "module": "ai.openai",
+                  "packageName": "ai.openai",
+                  "object": "EmbeddingProvider",
+                  "symbol": "batchEmbed",
+                  "version": "1.1.0",
+                  "parentSymbol": "openAiEmbeddingModel",
+                  "resourcePath": ""
+                },
+                "enabled": true
+              }
+            ]
+          },
+          {
+            "metadata": {
+              "label": "wso2DefaultEmbeddingModel"
+            },
+            "items": [
+              {
+                "metadata": {
+                  "label": "embed",
+                  "description": "Converts chunk to embedding.\n",
+                  "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.1.0.png"
+                },
+                "codedata": {
+                  "node": "REMOTE_ACTION_CALL",
+                  "org": "ballerina",
+                  "module": "ai",
+                  "packageName": "ai",
+                  "object": "Wso2EmbeddingProvider",
+                  "symbol": "embed",
+                  "version": "1.1.0",
+                  "parentSymbol": "wso2DefaultEmbeddingModel",
+                  "resourcePath": ""
+                },
+                "enabled": true
+              },
+              {
+                "metadata": {
+                  "label": "batchEmbed",
+                  "description": "Converts a batch of chunks into embeddings.\n",
+                  "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.1.0.png"
+                },
+                "codedata": {
+                  "node": "REMOTE_ACTION_CALL",
+                  "org": "ballerina",
+                  "module": "ai",
+                  "packageName": "ai",
+                  "object": "Wso2EmbeddingProvider",
+                  "symbol": "batchEmbed",
+                  "version": "1.1.0",
+                  "parentSymbol": "wso2DefaultEmbeddingModel",
+                  "resourcePath": ""
+                },
+                "enabled": true
+              }
+            ]
+          },
+          {
+            "metadata": {
+              "label": "wso2EmbeddingModel"
+            },
+            "items": [
+              {
+                "metadata": {
+                  "label": "embed",
+                  "description": "Converts chunk to embedding.\n",
+                  "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.1.0.png"
+                },
+                "codedata": {
+                  "node": "REMOTE_ACTION_CALL",
+                  "org": "ballerina",
+                  "module": "ai",
+                  "packageName": "ai",
+                  "object": "Wso2EmbeddingProvider",
+                  "symbol": "embed",
+                  "version": "1.1.0",
+                  "parentSymbol": "wso2EmbeddingModel",
+                  "resourcePath": ""
+                },
+                "enabled": true
+              },
+              {
+                "metadata": {
+                  "label": "batchEmbed",
+                  "description": "Converts a batch of chunks into embeddings.\n",
+                  "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.1.0.png"
+                },
+                "codedata": {
+                  "node": "REMOTE_ACTION_CALL",
+                  "org": "ballerina",
+                  "module": "ai",
+                  "packageName": "ai",
+                  "object": "Wso2EmbeddingProvider",
+                  "symbol": "batchEmbed",
+                  "version": "1.1.0",
+                  "parentSymbol": "wso2EmbeddingModel",
+                  "resourcePath": ""
+                },
+                "enabled": true
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -28,7 +28,8 @@
         "variableName": "CONST",
         "typeName": "string",
         "kind": "string",
-        "category": "constant"
+        "category": "constant",
+        "optional": false
       },
       {
         "member": {
@@ -37,25 +38,29 @@
               "id": "credentials.0.username",
               "variableName": "username",
               "typeName": "string",
-              "kind": "string"
+              "kind": "string",
+              "optional": false
             },
             {
               "id": "credentials.0.password",
               "variableName": "password",
               "typeName": "string",
-              "kind": "string"
+              "kind": "string",
+              "optional": false
             }
           ],
           "id": "credentials.0",
           "variableName": "<credentialsItem>",
           "typeName": "Credentials",
-          "kind": "record"
+          "kind": "record",
+          "optional": false
         },
         "id": "credentials",
         "variableName": "credentials",
         "typeName": "Credentials[]",
         "kind": "array",
-        "category": "local-variable"
+        "category": "local-variable",
+        "optional": false
       },
       {
         "member": {
@@ -64,25 +69,29 @@
               "id": "userInfo.0.username",
               "variableName": "username",
               "typeName": "string",
-              "kind": "string"
+              "kind": "string",
+              "optional": false
             },
             {
               "id": "userInfo.0.password",
               "variableName": "password",
               "typeName": "string",
-              "kind": "string"
+              "kind": "string",
+              "optional": false
             }
           ],
           "id": "userInfo.0",
           "variableName": "<userInfoItem>",
           "typeName": "UserInfo",
-          "kind": "record"
+          "kind": "record",
+          "optional": false
         },
         "id": "userInfo",
         "variableName": "userInfo",
         "typeName": "UserInfo[]",
         "kind": "array",
-        "category": "local-variable"
+        "category": "local-variable",
+        "optional": false
       }
     ],
     "output": {
@@ -91,7 +100,8 @@
           "id": "student.id",
           "variableName": "id",
           "typeName": "int",
-          "kind": "int"
+          "kind": "int",
+          "optional": false
         },
         {
           "member": {
@@ -100,36 +110,42 @@
                 "id": "student.credentials.username",
                 "variableName": "username",
                 "typeName": "string",
-                "kind": "string"
+                "kind": "string",
+                "optional": false
               },
               {
                 "id": "student.credentials.password",
                 "variableName": "password",
                 "typeName": "string",
-                "kind": "string"
+                "kind": "string",
+                "optional": false
               }
             ],
             "id": "student.credentials",
             "variableName": "<credentialsItem>",
             "typeName": "Credentials",
-            "kind": "record"
+            "kind": "record",
+            "optional": false
           },
           "id": "student.credentials",
           "variableName": "credentials",
           "typeName": "Credentials[]",
-          "kind": "array"
+          "kind": "array",
+          "optional": false
         },
         {
           "id": "student.length",
           "variableName": "length",
           "typeName": "int",
-          "kind": "int"
+          "kind": "int",
+          "optional": false
         }
       ],
       "id": "student",
       "variableName": "student",
       "typeName": "Student",
-      "kind": "record"
+      "kind": "record",
+      "optional": false
     },
     "mappings": [
       {

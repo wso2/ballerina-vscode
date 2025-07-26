@@ -838,7 +838,7 @@ public class DataMapManager {
                 RecordType recordType = (RecordType) type;
                 TypeInfo typeInfo = type.getTypeInfo();
                 MappingRecordPort recordPort = new MappingRecordPort(id, name, typeInfo != null ?
-                        typeInfo.name : type.getTypeName(), type.getTypeName());
+                        typeInfo.name : type.getTypeName(), type.getTypeName(), type.optional);
                 if (typeInfo != null) {
                     String visitedTypeKey = typeInfo.name + ":" + typeInfo.orgName + ":" +
                             typeInfo.moduleName +
@@ -851,9 +851,10 @@ public class DataMapManager {
                 }
                 return recordPort;
             } else if (type instanceof PrimitiveType) {
-                return new MappingPort(id, name, type.getTypeName(), type.getTypeName());
+                return new MappingPort(id, name, type.getTypeName(), type.getTypeName(), type.optional);
             } else if (type instanceof ConstType) {
-                return new MappingPort(type.getName(), type.getName(), type.getTypeName(), type.getTypeName());
+                return new MappingPort(type.getName(), type.getName(), type.getTypeName(), type.getTypeName(),
+                        type.optional);
             } else if (type.getTypeName().equals("array")) {
                 ArrayType arrayType = (ArrayType) type;
                 MappingPort memberPort = getMappingPort(isInputPort ? id + ".0" : id, getItemName(name),
@@ -862,13 +863,13 @@ public class DataMapManager {
                     memberPort.variableName = getItemName(name);
                 }
                 MappingArrayPort arrayPort = new MappingArrayPort(id, name, memberPort == null ? "record" :
-                        memberPort.typeName + "[]", type.getTypeName());
+                        memberPort.typeName + "[]", type.getTypeName(), type.optional);
                 arrayPort.setMember(memberPort);
                 return arrayPort;
             } else if (type.getTypeName().equals("enum")) {
                 EnumType enumType = (EnumType) type;
                 MappingEnumPort enumPort = new MappingEnumPort(id, name, enumType.getTypeInfo().name,
-                        type.getTypeName());
+                        type.getTypeName(), enumType.optional);
                 for (Type member : enumType.members) {
                     MappingPort memberPort = getMappingPort(id + "." + member.getTypeName(), member.getTypeName(),
                             member, isInputPort, visitedTypes);
@@ -880,7 +881,7 @@ public class DataMapManager {
             } else if (type.getTypeName().equals("union")) {
                 UnionType unionType = (UnionType) type;
                 MappingUnionPort unionPort = new MappingUnionPort(id, name, unionType.getName(),
-                        type.getTypeName());
+                        type.getTypeName(), unionType.optional);
                 for (Type member : unionType.members) {
                     MappingPort memberPort = getMappingPort(id + "." + member.getName(), member.getName(),
                             member, isInputPort, visitedTypes);
@@ -901,7 +902,7 @@ public class DataMapManager {
                 TypeInfo typeFromVisitedInfo = typeFromVisited.getTypeInfo();
                 MappingPort recursivePort = new MappingPort(id, name, typeFromVisitedInfo != null ?
                         typeFromVisitedInfo.name : typeFromVisited.getTypeName(),
-                        typeFromVisited.getTypeName());
+                        typeFromVisited.getTypeName(), type.optional);
                 recursivePort.setIsRecursive(true);
                 return recursivePort;
             }
@@ -2066,12 +2067,14 @@ public class DataMapManager {
         Boolean isFocused;
         Boolean isRecursive;
         ModuleInfo moduleInfo;
+        Boolean optional;
 
-        MappingPort(String id, String variableName, String typeName, String kind) {
+        MappingPort(String id, String variableName, String typeName, String kind, Boolean optional) {
             this.id = id;
             this.variableName = variableName;
             this.typeName = typeName;
             this.kind = kind;
+            this.optional = optional;
         }
 
         String getCategory() {
@@ -2113,13 +2116,17 @@ public class DataMapManager {
         ModuleInfo getModuleInfo() {
             return this.moduleInfo;
         }
+
+        Boolean getOptional() {
+            return this.optional;
+        }
     }
 
     private static class MappingRecordPort extends MappingPort {
         List<MappingPort> fields = new ArrayList<>();
 
-        MappingRecordPort(String id, String variableName, String typeName, String kind) {
-            super(id, variableName, typeName, kind);
+        MappingRecordPort(String id, String variableName, String typeName, String kind, Boolean optional) {
+            super(id, variableName, typeName, kind, optional);
         }
     }
 
@@ -2127,8 +2134,8 @@ public class DataMapManager {
         MappingPort member;
         String focusedMemberId;
 
-        MappingArrayPort(String id, String variableName, String typeName, String kind) {
-            super(id, variableName, typeName, kind);
+        MappingArrayPort(String id, String variableName, String typeName, String kind, Boolean optional) {
+            super(id, variableName, typeName, kind, optional);
         }
 
         void setMember(MappingPort member) {
@@ -2151,16 +2158,16 @@ public class DataMapManager {
     private static class MappingEnumPort extends MappingPort {
         List<MappingPort> members = new ArrayList<>();
 
-        MappingEnumPort(String id, String variableName, String typeName, String kind) {
-            super(id, variableName, typeName, kind);
+        MappingEnumPort(String id, String variableName, String typeName, String kind, Boolean optional) {
+            super(id, variableName, typeName, kind, optional);
         }
     }
 
     private static class MappingUnionPort extends MappingPort {
         List<MappingPort> members = new ArrayList<>();
 
-        MappingUnionPort(String id, String variableName, String typeName, String kind) {
-            super(id, variableName, typeName, kind);
+        MappingUnionPort(String id, String variableName, String typeName, String kind, Boolean optional) {
+            super(id, variableName, typeName, kind, optional);
         }
     }
 }

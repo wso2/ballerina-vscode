@@ -29,7 +29,8 @@
         "variableName": "CONST",
         "typeName": "string",
         "kind": "string",
-        "category": "constant"
+        "category": "constant",
+        "optional": false
       },
       {
         "member": {
@@ -38,26 +39,30 @@
               "id": "userInfo.0.username",
               "variableName": "username",
               "typeName": "string",
-              "kind": "string"
+              "kind": "string",
+              "optional": false
             },
             {
               "id": "userInfo.0.password",
               "variableName": "password",
               "typeName": "string",
-              "kind": "string"
+              "kind": "string",
+              "optional": false
             }
           ],
           "id": "userInfo.0",
           "variableName": "<userInfoItem>",
           "typeName": "UserInfo",
-          "kind": "record"
+          "kind": "record",
+          "optional": false
         },
         "focusedMemberId": "user",
         "id": "userInfo",
         "variableName": "userInfo",
         "typeName": "UserInfo[]",
         "kind": "array",
-        "category": "variable"
+        "category": "variable",
+        "optional": false
       },
       {
         "fields": [
@@ -65,20 +70,23 @@
             "id": "user.username",
             "variableName": "username",
             "typeName": "string",
-            "kind": "string"
+            "kind": "string",
+            "optional": false
           },
           {
             "id": "user.password",
             "variableName": "password",
             "typeName": "string",
-            "kind": "string"
+            "kind": "string",
+            "optional": false
           }
         ],
         "id": "user",
         "variableName": "user",
         "typeName": "UserInfo",
         "kind": "record",
-        "isFocused": true
+        "isFocused": true,
+        "optional": false
       }
     ],
     "output": {
@@ -88,24 +96,28 @@
             "id": "students.username",
             "variableName": "username",
             "typeName": "string",
-            "kind": "string"
+            "kind": "string",
+            "optional": false
           },
           {
             "id": "students.password",
             "variableName": "password",
             "typeName": "string",
-            "kind": "string"
+            "kind": "string",
+            "optional": false
           }
         ],
         "id": "students",
         "variableName": "<studentsItem>",
         "typeName": "Student",
-        "kind": "record"
+        "kind": "record",
+        "optional": false
       },
       "id": "students",
       "variableName": "students",
       "typeName": "Student[]",
-      "kind": "array"
+      "kind": "array",
+      "optional": false
     },
     "mappings": [
       {

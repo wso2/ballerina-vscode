@@ -28,20 +28,23 @@
             "id": "engineering.name",
             "variableName": "name",
             "typeName": "string",
-            "kind": "string"
+            "kind": "string",
+            "optional": false
           },
           {
             "id": "engineering.employees",
             "variableName": "employees",
             "typeName": "record",
-            "kind": "array"
+            "kind": "array",
+            "optional": false
           }
         ],
         "id": "engineering",
         "variableName": "engineering",
         "typeName": "Department",
         "kind": "record",
-        "category": "local-variable"
+        "category": "local-variable",
+        "optional": false
       }
     ],
     "output": {
@@ -50,7 +53,8 @@
           "id": "alice.name",
           "variableName": "name",
           "typeName": "string",
-          "kind": "string"
+          "kind": "string",
+          "optional": false
         },
         {
           "fields": [
@@ -58,7 +62,8 @@
               "id": "alice.department.name",
               "variableName": "name",
               "typeName": "string",
-              "kind": "string"
+              "kind": "string",
+              "optional": false
             },
             {
               "member": {
@@ -66,24 +71,28 @@
                 "variableName": "<employeesItem>",
                 "typeName": "Employee",
                 "kind": "record",
-                "isRecursive": true
+                "isRecursive": true,
+                "optional": false
               },
               "id": "alice.department.employees",
               "variableName": "employees",
               "typeName": "Employee[]",
-              "kind": "array"
+              "kind": "array",
+              "optional": false
             }
           ],
           "id": "alice.department",
           "variableName": "department",
           "typeName": "Department",
-          "kind": "record"
+          "kind": "record",
+          "optional": false
         }
       ],
       "id": "alice",
       "variableName": "alice",
       "typeName": "Employee",
-      "kind": "record"
+      "kind": "record",
+      "optional": false
     },
     "mappings": [
       {

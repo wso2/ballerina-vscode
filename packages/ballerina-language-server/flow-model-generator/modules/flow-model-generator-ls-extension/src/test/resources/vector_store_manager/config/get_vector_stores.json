@@ -1,0 +1,143 @@
+{
+  "source": "vector_store/connections.bal",
+  "expectedVectorStores": {
+    "categories": [
+      {
+        "metadata": {
+          "label": "Vector Stores",
+          "description": "Vector stores used in the integration"
+        },
+        "items": [
+          {
+            "metadata": {
+              "label": "inMemoryVectorStore"
+            },
+            "items": [
+              {
+                "metadata": {
+                  "label": "add",
+                  "description": "Adds vector entries to the in-memory store.\nOnly supports dense vectors in this implementation. \nIf a vector entry with the same ID already exists, it will be replaced.\n",
+                  "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.1.0.png"
+                },
+                "codedata": {
+                  "node": "METHOD_CALL",
+                  "org": "ballerina",
+                  "module": "ai",
+                  "packageName": "ai",
+                  "object": "InMemoryVectorStore",
+                  "symbol": "add",
+                  "version": "1.1.0",
+                  "parentSymbol": "inMemoryVectorStore",
+                  "resourcePath": ""
+                },
+                "enabled": true
+              },
+              {
+                "metadata": {
+                  "label": "query",
+                  "description": "Queries the vector store for vectors similar to the given query.\n",
+                  "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.1.0.png"
+                },
+                "codedata": {
+                  "node": "METHOD_CALL",
+                  "org": "ballerina",
+                  "module": "ai",
+                  "packageName": "ai",
+                  "object": "InMemoryVectorStore",
+                  "symbol": "query",
+                  "version": "1.1.0",
+                  "parentSymbol": "inMemoryVectorStore",
+                  "resourcePath": ""
+                },
+                "enabled": true
+              },
+              {
+                "metadata": {
+                  "label": "delete",
+                  "description": "Deletes a vector entry from the in-memory store.\nRemoves the entry that matches the given reference ID.\n",
+                  "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.1.0.png"
+                },
+                "codedata": {
+                  "node": "METHOD_CALL",
+                  "org": "ballerina",
+                  "module": "ai",
+                  "packageName": "ai",
+                  "object": "InMemoryVectorStore",
+                  "symbol": "delete",
+                  "version": "1.1.0",
+                  "parentSymbol": "inMemoryVectorStore",
+                  "resourcePath": ""
+                },
+                "enabled": true
+              }
+            ]
+          },
+          {
+            "metadata": {
+              "label": "pineconeVectorStore"
+            },
+            "items": [
+              {
+                "metadata": {
+                  "label": "add",
+                  "description": "Adds the given vector entries to the Pinecone vector store.\n",
+                  "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_ai.pinecone_1.0.1.png"
+                },
+                "codedata": {
+                  "node": "METHOD_CALL",
+                  "org": "ballerinax",
+                  "module": "ai.pinecone",
+                  "packageName": "ai.pinecone",
+                  "object": "VectorStore",
+                  "symbol": "add",
+                  "version": "1.0.1",
+                  "parentSymbol": "pineconeVectorStore",
+                  "resourcePath": ""
+                },
+                "enabled": true
+              },
+              {
+                "metadata": {
+                  "label": "query",
+                  "description": "Queries Pinecone using the provided embedding vector and returns the top matches.\n",
+                  "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_ai.pinecone_1.0.1.png"
+                },
+                "codedata": {
+                  "node": "METHOD_CALL",
+                  "org": "ballerinax",
+                  "module": "ai.pinecone",
+                  "packageName": "ai.pinecone",
+                  "object": "VectorStore",
+                  "symbol": "query",
+                  "version": "1.0.1",
+                  "parentSymbol": "pineconeVectorStore",
+                  "resourcePath": ""
+                },
+                "enabled": true
+              },
+              {
+                "metadata": {
+                  "label": "delete",
+                  "description": "Deletes vector entries from the store by their reference document ID.\n",
+                  "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_ai.pinecone_1.0.1.png"
+                },
+                "codedata": {
+                  "node": "METHOD_CALL",
+                  "org": "ballerinax",
+                  "module": "ai.pinecone",
+                  "packageName": "ai.pinecone",
+                  "object": "VectorStore",
+                  "symbol": "delete",
+                  "version": "1.0.1",
+                  "parentSymbol": "pineconeVectorStore",
+                  "resourcePath": ""
+                },
+                "enabled": true
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

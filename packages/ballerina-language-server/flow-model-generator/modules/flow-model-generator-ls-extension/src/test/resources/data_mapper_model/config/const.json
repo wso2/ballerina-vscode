@@ -28,14 +28,16 @@
         "variableName": "AGE",
         "typeName": "int",
         "kind": "int",
-        "category": "constant"
+        "category": "constant",
+        "optional": false
       }
     ],
     "output": {
       "id": "myAge",
       "variableName": "myAge",
       "typeName": "int",
-      "kind": "int"
+      "kind": "int",
+      "optional": false
     },
     "mappings": [
       {

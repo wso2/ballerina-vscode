@@ -1,0 +1,158 @@
+{
+  "source": "generated_knowledge_base",
+  "flowNode": {
+    "id": "31",
+    "metadata": {
+      "label": "Vector Knowledge Base",
+      "description": "Initializes a new `VectorKnowledgeBase` instance.\n",
+      "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.1.0.png"
+    },
+    "codedata": {
+      "node": "VECTOR_KNOWLEDGE_BASE",
+      "org": "ballerina",
+      "module": "ai",
+      "packageName": "ai",
+      "object": "VectorKnowledgeBase",
+      "version": "1.1.0",
+      "isNew": true
+    },
+    "returning": false,
+    "properties": {
+      "type": {
+        "metadata": {
+          "label": "Result Type",
+          "description": "Type of the variable"
+        },
+        "valueType": "TYPE",
+        "value": "ai:VectorKnowledgeBase",
+        "placeholder": "var",
+        "optional": false,
+        "editable": false,
+        "advanced": false,
+        "hidden": false,
+        "codedata": {}
+      },
+      "variable": {
+        "metadata": {
+          "label": "Vector Knowledge Base Name",
+          "description": "Vector knowledge-base instance name"
+        },
+        "valueType": "IDENTIFIER",
+        "value": "aiVectorknowledgebase",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      },
+      "vectorStore": {
+        "metadata": {
+          "label": "Vector Store",
+          "description": "The vector store for embedding persistence"
+        },
+        "valueType": "EXPRESSION",
+        "valueTypeConstraint": "ai:VectorStore",
+        "placeholder": "object {}",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false,
+        "codedata": {
+          "kind": "REQUIRED",
+          "originalName": "vectorStore"
+        },
+        "typeMembers": [
+          {
+            "type": "VectorStore",
+            "packageInfo": "ballerina:ai:1.1.0",
+            "packageName": "ai",
+            "kind": "OBJECT_TYPE",
+            "selected": false
+          }
+        ]
+      },
+      "embeddingModel": {
+        "metadata": {
+          "label": "Embedding Model",
+          "description": "The embedding provider for generating vector representations"
+        },
+        "valueType": "EXPRESSION",
+        "valueTypeConstraint": "ai:EmbeddingProvider",
+        "placeholder": "object {}",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false,
+        "codedata": {
+          "kind": "REQUIRED",
+          "originalName": "embeddingModel"
+        },
+        "typeMembers": [
+          {
+            "type": "EmbeddingProvider",
+            "packageInfo": "ballerina:ai:1.1.0",
+            "packageName": "ai",
+            "kind": "OBJECT_TYPE",
+            "selected": false
+          }
+        ]
+      },
+      "scope": {
+        "metadata": {
+          "label": "Connection Scope",
+          "description": "Scope of the connection, Global or Local"
+        },
+        "valueType": "ENUM",
+        "value": "Global",
+        "optional": false,
+        "editable": true,
+        "advanced": true,
+        "hidden": true
+      },
+      "checkError": {
+        "metadata": {
+          "label": "Check Error",
+          "description": "Terminate on error"
+        },
+        "valueType": "FLAG",
+        "value": true,
+        "optional": false,
+        "editable": false,
+        "advanced": true,
+        "hidden": true
+      }
+    },
+    "flags": 0
+  },
+  "expectedResponse": {
+    "textEdits": {
+      "connections.bal": [
+        {
+          "range": {
+            "start": {
+              "line": 0,
+              "character": 0
+            },
+            "end": {
+              "line": 0,
+              "character": 0
+            }
+          },
+          "newText": "import ballerina/ai;"
+        },
+        {
+          "range": {
+            "start": {
+              "line": 4,
+              "character": 1
+            },
+            "end": {
+              "line": 4,
+              "character": 1
+            }
+          },
+          "newText": "\nfinal ai:VectorKnowledgeBase aiVectorknowledgebase = new (object {}, object {});"
+        }
+      ]
+    }
+  }
+}

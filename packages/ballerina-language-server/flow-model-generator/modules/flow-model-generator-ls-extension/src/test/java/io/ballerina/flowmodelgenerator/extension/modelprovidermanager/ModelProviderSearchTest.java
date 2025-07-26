@@ -60,7 +60,8 @@ public class ModelProviderSearchTest extends AbstractLSTest {
         if (!searchResult.equals(testConfig.expectedModelProviders())) {
             TestConfig updatedConfig = new TestConfig(testConfig.source(), testConfig.query(), searchResult);
             // updateConfig(configJsonPath, updatedConfig);
-            Assert.fail("Test failed. Updated the expected output in " + configJsonPath);
+            compareJsonElements(searchResult, testConfig.expectedModelProviders());
+            Assert.fail(String.format("Failed test: '%s'", configJsonPath));
         }
     }
 
@@ -89,7 +90,7 @@ public class ModelProviderSearchTest extends AbstractLSTest {
     }
 
     /**
-     * Represents the test configuration for the flow model getNodeTemplate API.
+     * Represents the test configuration for the flow model search API.
      *
      * @param source                 The source file path
      * @param query                  The query string to search

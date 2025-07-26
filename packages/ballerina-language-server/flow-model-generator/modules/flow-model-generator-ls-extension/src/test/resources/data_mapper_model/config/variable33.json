@@ -30,19 +30,22 @@
               "id": "u1.phoneNumber.0",
               "variableName": "<phoneNumberItem>",
               "typeName": "string",
-              "kind": "string"
+              "kind": "string",
+              "optional": false
             },
             "id": "u1.phoneNumber",
             "variableName": "phoneNumber",
             "typeName": "string[]",
-            "kind": "array"
+            "kind": "array",
+            "optional": false
           }
         ],
         "id": "u1",
         "variableName": "u1",
         "typeName": "User",
         "kind": "record",
-        "category": "local-variable"
+        "category": "local-variable",
+        "optional": false
       },
       {
         "fields": [
@@ -51,19 +54,22 @@
               "id": "user.phoneNumber.0",
               "variableName": "<phoneNumberItem>",
               "typeName": "string",
-              "kind": "string"
+              "kind": "string",
+              "optional": false
             },
             "id": "user.phoneNumber",
             "variableName": "phoneNumber",
             "typeName": "string[]",
-            "kind": "array"
+            "kind": "array",
+            "optional": false
           }
         ],
         "id": "user",
         "variableName": "user",
         "typeName": "User",
         "kind": "record",
-        "category": "parameter"
+        "category": "parameter",
+        "optional": false
       }
     ],
     "output": {
@@ -75,36 +81,42 @@
                 "id": "var3.contacts.primaryPhone",
                 "variableName": "primaryPhone",
                 "typeName": "string",
-                "kind": "string"
+                "kind": "string",
+                "optional": false
               },
               {
                 "member": {
                   "id": "var3.contacts.secondaryPhones",
                   "variableName": "<secondaryPhonesItem>",
                   "typeName": "string",
-                  "kind": "string"
+                  "kind": "string",
+                  "optional": false
                 },
                 "id": "var3.contacts.secondaryPhones",
                 "variableName": "secondaryPhones",
                 "typeName": "string[]",
-                "kind": "array"
+                "kind": "array",
+                "optional": false
               }
             ],
             "id": "var3.contacts",
             "variableName": "<contactsItem>",
             "typeName": "Temp",
-            "kind": "record"
+            "kind": "record",
+            "optional": false
           },
           "id": "var3.contacts",
           "variableName": "contacts",
           "typeName": "Temp[]",
-          "kind": "array"
+          "kind": "array",
+          "optional": false
         }
       ],
       "id": "var3",
       "variableName": "var3",
       "typeName": "Person5",
-      "kind": "record"
+      "kind": "record",
+      "optional": false
     },
     "mappings": [
       {
