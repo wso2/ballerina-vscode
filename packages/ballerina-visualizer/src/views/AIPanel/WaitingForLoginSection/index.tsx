@@ -209,7 +209,7 @@ const WaitingForLogin = ({ loginMethod, isValidating = false, errorMessage }: Wa
                 <AlertContainer variant="primary">
                     <Title>Connect with Anthropic API Key</Title>
                     <SubTitle>
-                        Enter your Anthropic API key to connect to the AI service. Your API key will be securely stored
+                        Enter your Anthropic API key to connect to BI Copilot. Your API key will be securely stored
                         and used for authentication.
                     </SubTitle>
 
