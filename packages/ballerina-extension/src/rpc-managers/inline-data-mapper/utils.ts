@@ -152,16 +152,32 @@ export async function updateSubMappingSource(
 
 /**
  * Finds the artifact that contains the code changes within the specified line range.
+ * Recursively searches through artifact hierarchy to find the most specific match.
  */
 function findRelevantArtifact(
     artifacts: ProjectStructureArtifactResponse[], 
     filePath: string, 
     lineRange: ELineRange
 ): ProjectStructureArtifactResponse | null {
-    return artifacts.find(artifact =>
-        artifact.path === filePath && 
-        isWithinArtifact(artifact.position, lineRange)
-    ) || null;
+    if (!artifacts || artifacts.length === 0) {
+        return null;
+    }
+
+    for (const currentArtifact of artifacts) {
+        if (isWithinArtifact(currentArtifact.path, filePath, currentArtifact.position, lineRange)) {
+            // If this artifact has resources, recursively search for a more specific match
+            if (currentArtifact.resources && currentArtifact.resources.length > 0) {
+                const nestedMatch = findRelevantArtifact(currentArtifact.resources, filePath, lineRange);
+                // Return the nested match if found, otherwise return the current artifact
+                return nestedMatch || currentArtifact;
+            }
+            
+            // No nested resources
+            return currentArtifact;
+        }
+    }
+
+    return null;
 }
 
 /**
@@ -388,7 +404,16 @@ export function combineTextEdits(edits: TextEdit[]): TextEdit {
 /**
  * Determines whether a variable declaration range is completely contained within an artifact's position range.
  */
-function isWithinArtifact(artifactPosition: NodePosition, varDeclRange: ELineRange) {
+function isWithinArtifact(
+    artifactPath: string,
+    filePath: string,
+    artifactPosition: NodePosition,
+    varDeclRange: ELineRange
+) {
+    if (artifactPath !== filePath) {
+        return false;
+    }
+
     const artifactStartLine = artifactPosition.startLine;
     const artifactEndLine = artifactPosition.endLine;
     const varDeclStartLine = varDeclRange.startLine.line;
