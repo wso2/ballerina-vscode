@@ -315,6 +315,8 @@ export type NodePropertyKey =
     | "enableModelContext"
     | "expression"
     | "functionName"
+    | "functionNameDescription"
+    | "isIsolated"
     | "maxIter"
     | "memory"
     | "method"
@@ -334,6 +336,7 @@ export type NodePropertyKey =
     | "targetType"
     | "tools"
     | "type"
+    | "typeDescription"
     | "variable"
     | "verbose"
     | "view";

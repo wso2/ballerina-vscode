@@ -31,6 +31,7 @@ import { CDModel } from "./component-diagram";
 import { DMModel, ExpandedDMModel, IntermediateClause, Mapping, VisualizableField, CustomFnMetadata } from "./inline-data-mapper";
 import { DataMapperMetadata, SCOPE } from "../state-machine-types";
 import { Attachment } from "../rpc-types/ai-panel/interfaces";
+import { ToolParameters } from "../rpc-types/ai-agent/interfaces";
 
 export interface DidOpenParams {
     textDocument: TextDocumentItem;
@@ -1612,6 +1613,7 @@ export interface AIGentToolsRequest {
     toolName: string;
     description: string;
     connection: string;
+    toolParameters?: ToolParameters;
 }
 
 export interface AIGentToolsResponse {
