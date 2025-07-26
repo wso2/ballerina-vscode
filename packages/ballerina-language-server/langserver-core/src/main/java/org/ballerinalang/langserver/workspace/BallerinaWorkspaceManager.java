@@ -1236,15 +1236,16 @@ public class BallerinaWorkspaceManager implements WorkspaceManager {
             // Get toml
             if (dependenciesToml.isEmpty()) {
                 if (createIfNotExists) {
-                    DocumentConfig documentConfig = DocumentConfig.from(
-                            DocumentId.create(ProjectConstants.DEPENDENCIES_TOML, null), content,
-                            ProjectConstants.DEPENDENCIES_TOML
-                    );
-                    Package pkg = projectContext.project().currentPackage().modify()
-                            .addDependenciesToml(documentConfig)
-                            .apply();
-                    // Update project instance
-                    projectContext.setProject(pkg.project());
+                    sourceRootToProject.remove(projectContext.project().sourceRoot());
+                    Path dependenciesTomlFilePath = projectContext.project().sourceRoot().getParent()
+                            .resolve(ProjectConstants.DEPENDENCIES_TOML);
+                    Optional<ProjectContext> newProjectContext = createProjectContext(dependenciesTomlFilePath,
+                            LSContextOperation.WS_WF_CHANGED.getName());
+                    if (newProjectContext.isEmpty()) {
+                        throw new WorkspaceDocumentException("Invalid operation, cannot create Dependencies.toml!");
+                    }
+                    projectContext = newProjectContext.get();
+                    sourceRootToProject.put(projectContext.project().sourceRoot(), projectContext);
                     return;
                 }
                 throw new WorkspaceDocumentException(ProjectConstants.DEPENDENCIES_TOML + " does not exist!");
