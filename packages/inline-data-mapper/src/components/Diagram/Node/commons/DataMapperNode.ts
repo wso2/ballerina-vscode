@@ -359,7 +359,7 @@ export abstract class DataMapperNodeModel extends NodeModel<NodeModelGenerics & 
 	}
 
 	private processRecordField(attributes: OutputPortAttributes) {
-		const fields = attributes.field?.fields?.filter(f => f !== null);
+		const fields = attributes.field?.fields?.filter(f => !!f);
 		if (fields && fields.length) {
 			fields.forEach((subField) => {
 				this.addPortsForOutputField({
