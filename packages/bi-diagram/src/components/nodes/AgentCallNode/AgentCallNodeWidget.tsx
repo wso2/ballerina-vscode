@@ -1000,16 +1000,22 @@ function sanitizeAgentData(data: AgentData) {
 function getLlmModelIcons(modelType: string) {
     switch (modelType) {
         case "OpenAiProvider":
+        case "ai.openai":
             return <OpenAiIcon />;
         case "AzureOpenAiProvider":
+        case "ai.azure":
             return <AzureOpenAiIcon />;
         case "AnthropicProvider":
+        case "ai.anthropic":
             return <AnthropicIcon />;
         case "OllamaProvider":
+        case "ai.ollama":
             return <OllamaIcon />;
         case "MistralAiProvider":
+        case "ai.mistral":
             return <MistralAIIcon />;
         case "DeepseekProvider":
+        case "ai.deepseek":
             return <DeepseekIcon />;
         default:
             return <DefaultLlmIcon />;
