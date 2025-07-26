@@ -25,22 +25,26 @@ import java.util.Map;
 /**
  * Represents the context required to run a Ballerina program using the LS workspace manager.
  *
+ * @param javaCmd       Java command required running the Ballerina program
  * @param balSourcePath Ballerina source file path to run
  * @param programArgs   program arguments to run the program
  * @param env           environment variables to be added to the program
  * @param debugPort     debug port to be used for debugging (if available)
  * @since 1.0.0
  */
-public record RunContext(Path balSourcePath, List<String> programArgs, Map<String, String> env, Integer debugPort) {
+public record RunContext(String javaCmd, Path balSourcePath, List<String> programArgs, Map<String, String> env,
+                         Integer debugPort) {
 
     public static class Builder {
 
+        private final String javaCmd;
         private final Path sourcePath;
         private List<String> programArgs = new ArrayList<>();
         private Map<String, String> env = Map.of();
         private int debugPort = -1;
 
-        public Builder(Path sourcePath) {
+        public Builder(String command, Path sourcePath) {
+            this.javaCmd = command;
             this.sourcePath = sourcePath;
         }
 
@@ -60,7 +64,7 @@ public record RunContext(Path balSourcePath, List<String> programArgs, Map<Strin
         }
 
         public RunContext build() {
-            return new RunContext(sourcePath, programArgs, env, debugPort);
+            return new RunContext(javaCmd, sourcePath, programArgs, env, debugPort);
         }
     }
 }

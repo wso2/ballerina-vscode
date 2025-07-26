@@ -701,7 +701,7 @@ public class BallerinaWorkspaceManager implements WorkspaceManager {
 
     private List<String> prepareExecutionCommands(RunContext context, Module module, JarResolver jarResolver) {
         List<String> commands = new ArrayList<>();
-        commands.add(System.getProperty(JAVA_COMMAND));
+        commands.add(context.javaCmd());
         commands.add(HEAP_DUMP_FLAG);
         commands.add(HEAP_DUMP_PATH_FLAG + USER_DIR);
         if (context.debugPort() > 0) {
