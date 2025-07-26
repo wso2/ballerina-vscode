@@ -27,16 +27,19 @@
         "members": [
           {
             "id": "DepartmentCode.FINANCE",
+            "variableName": "FINANCE",
             "typeName": "FINANCE",
             "kind": "FINANCE"
           },
           {
             "id": "DepartmentCode.IT",
+            "variableName": "IT",
             "typeName": "IT",
             "kind": "IT"
           },
           {
             "id": "DepartmentCode.HR",
+            "variableName": "HR",
             "typeName": "HR",
             "kind": "HR"
           }
@@ -59,16 +62,19 @@
             "members": [
               {
                 "id": "engineering.code.FINANCE",
+                "variableName": "FINANCE",
                 "typeName": "FINANCE",
                 "kind": "FINANCE"
               },
               {
                 "id": "engineering.code.IT",
+                "variableName": "IT",
                 "typeName": "IT",
                 "kind": "IT"
               },
               {
                 "id": "engineering.code.HR",
+                "variableName": "HR",
                 "typeName": "HR",
                 "kind": "HR"
               }
@@ -98,16 +104,19 @@
           "members": [
             {
               "id": "engineering2.code.FINANCE",
+              "variableName": "FINANCE",
               "typeName": "FINANCE",
               "kind": "FINANCE"
             },
             {
               "id": "engineering2.code.IT",
+              "variableName": "IT",
               "typeName": "IT",
               "kind": "IT"
             },
             {
               "id": "engineering2.code.HR",
+              "variableName": "HR",
               "typeName": "HR",
               "kind": "HR"
             }
