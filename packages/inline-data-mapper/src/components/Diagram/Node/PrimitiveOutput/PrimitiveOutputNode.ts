@@ -108,8 +108,7 @@ export class PrimitiveOutputNode extends DataMapperNodeModel {
 
     private createLinks(mappings: Mapping[]) {
 
-        const query = this.context.model.query;
-        const { inputs: queryInputs, output: queryOutput} = query;
+        const query = this.context.model?.query;
 
         mappings.forEach((mapping) => {    
             const { isComplex, isQueryExpression, inputs, output, expression, diagnostics } = mapping;
@@ -137,7 +136,7 @@ export class PrimitiveOutputNode extends DataMapperNodeModel {
                         value: expression,
                         link: lm,
                         deleteLink: () => this.deleteField(mapping),
-                        ...(queryOutput === output && {collectClauseFn: query.resultClause.properties.func})
+                        ...(query?.output === output && {collectClauseFn: query?.resultClause?.properties?.func})
                     }
                 ));
 
@@ -157,29 +156,31 @@ export class PrimitiveOutputNode extends DataMapperNodeModel {
             }
         });
 
+        if (query) {
+            const { inputs: queryInputs, output: queryOutput} = query;
 
-        const inputNode = findInputNode(queryInputs[0], this);
-        let inPort: InputOutputPortModel;
-        if (inputNode) {
-            inPort = getInputPort(inputNode, queryInputs[0].replace(/\.\d+/g, ''));
+            const inputNode = findInputNode(queryInputs[0], this);
+            let inPort: InputOutputPortModel;
+            if (inputNode) {
+                inPort = getInputPort(inputNode, queryInputs[0].replace(/\.\d+/g, ''));
+            }
+
+            const [_, mappedOutPort] = getOutputPort(this, `${queryOutput}.HEADER`);
+
+            if (inPort && mappedOutPort) {
+                const lm = new DataMapperLinkModel(undefined, undefined, true, undefined, true);
+
+                lm.setTargetPort(mappedOutPort);
+                lm.setSourcePort(inPort);
+                inPort.addLinkedPort(mappedOutPort);
+
+                lm.addLabel(new ExpressionLabelModel({
+                    isQuery: true
+                }));
+
+                this.getModel().addAll(lm as any);
+            }
         }
-
-        const [_, mappedOutPort] = getOutputPort(this, `${queryOutput}.HEADER`);
-
-        if (inPort && mappedOutPort) {
-            const lm = new DataMapperLinkModel(undefined, undefined, true, undefined, true);
-
-            lm.setTargetPort(mappedOutPort);
-            lm.setSourcePort(inPort);
-            inPort.addLinkedPort(mappedOutPort);
-
-            lm.addLabel(new ExpressionLabelModel({
-                isQuery: true
-            }));
-
-            this.getModel().addAll(lm as any);
-        }
-
     }
 
     async deleteField(mapping: Mapping) {

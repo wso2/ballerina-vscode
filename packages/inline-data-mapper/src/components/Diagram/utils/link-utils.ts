@@ -24,7 +24,7 @@ import { DataMapperLinkModel, MappingType } from "../Link";
 export function isSourcePortArray(port: PortModel): boolean {
     if (port instanceof InputOutputPortModel) {
         const field = port.attributes.field;
-        return field.kind === TypeKind.Array;
+        return field?.kind === TypeKind.Array;
     }
     return false;
 }
@@ -32,7 +32,7 @@ export function isSourcePortArray(port: PortModel): boolean {
 export function isTargetPortArray(port: PortModel): boolean {
     if (port instanceof InputOutputPortModel) {
         const field = port.attributes.field;
-        return field.kind === TypeKind.Array;
+        return field?.kind === TypeKind.Array;
     }
     return false;
 }

@@ -75,7 +75,7 @@ export function getFieldCountMismatchIndex(newFieldCounts: FieldCount[], existin
         const newNode = newFieldCounts[i];
         const existingNode = existingFieldCounts[i];
         
-        if (newNode.numberOfFields !== existingNode.numberOfFields) {
+        if (newNode.numberOfFields !== existingNode?.numberOfFields) {
             return i;
         }
     }
