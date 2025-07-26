@@ -29,6 +29,7 @@ import { PrimitiveOutputElementWidget } from "./PrimitiveOutputElementWidget";
 import { useIONodesStyles } from '../../../styles';
 import { useDMCollapsedFieldsStore, useDMIOConfigPanelStore } from '../../../../store/store';
 import { OutputSearchHighlight } from '../commons/Search';
+import { useShallow } from 'zustand/react/shallow';
 
 export interface PrimitiveOutputWidgetProps {
 	id: string;
@@ -57,11 +58,13 @@ export function PrimitiveOutputWidget(props: PrimitiveOutputWidgetProps) {
 
 	const collapsedFieldsStore = useDMCollapsedFieldsStore();
 
-	const { setIsIOConfigPanelOpen, setIOConfigPanelType, setIsSchemaOverridden } = useDMIOConfigPanelStore(state => ({
-		setIsIOConfigPanelOpen: state.setIsIOConfigPanelOpen,
-		setIOConfigPanelType: state.setIOConfigPanelType,
-		setIsSchemaOverridden: state.setIsSchemaOverridden
-	}));
+	const { setIsIOConfigPanelOpen, setIOConfigPanelType, setIsSchemaOverridden } = useDMIOConfigPanelStore(
+		useShallow(state => ({
+			setIsIOConfigPanelOpen: state.setIsIOConfigPanelOpen,
+			setIOConfigPanelType: state.setIOConfigPanelType,
+			setIsSchemaOverridden: state.setIsSchemaOverridden
+		}))
+	);
 
 	const portIn = getPort(`${id}.HEADER.IN`);
 

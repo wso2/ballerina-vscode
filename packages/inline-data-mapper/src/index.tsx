@@ -51,6 +51,7 @@ const globalStyles = css`
 
 export interface ExpressionBarProps {
     completions: CompletionItem[];
+    isUpdatingSource?: boolean;
     triggerCompletions: (outputId: string, viewId: string, value: string, cursorPosition?: number) => void;
     onCompletionSelect: (value: string) => void;
     onSave: (outputId: string, value: string, viewId: string, name: string) => Promise<void>;
