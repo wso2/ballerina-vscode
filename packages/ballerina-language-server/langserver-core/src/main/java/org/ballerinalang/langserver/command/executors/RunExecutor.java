@@ -60,6 +60,7 @@ public class RunExecutor implements LSCommandExecutor {
     public static final String RUN_COMMAND = "RUN";
 
     // commands arg names
+    private static final String ARG_COMMAND = "command";
     private static final String ARG_PATH = "path";
     private static final String ARG_PROGRAM_ARGS = "programArgs";
     private static final String ARG_ENV = "env";
@@ -110,12 +111,19 @@ public class RunExecutor implements LSCommandExecutor {
     }
 
     private RunContext getWorkspaceRunContext(ExecuteCommandContext context) {
-        RunContext.Builder builder = new RunContext.Builder(extractPath(context));
+        RunContext.Builder builder = new RunContext.Builder(extractJavaCmd(context), extractPath(context));
         builder.withProgramArgs(extractProgramArgs(context));
         builder.withEnv(extractEnvVariables(context));
         builder.withDebugPort(extractDebugArgs(context));
 
         return builder.build();
+    }
+
+    private String extractJavaCmd(ExecuteCommandContext context) {
+        return getCommandArgWithName(context, ARG_COMMAND)
+                .map(CommandArgument::<JsonPrimitive>value)
+                .map(JsonPrimitive::getAsString)
+                .orElseThrow(() -> new IllegalArgumentException("Java command argument is required."));
     }
 
     private Path extractPath(ExecuteCommandContext context) {
