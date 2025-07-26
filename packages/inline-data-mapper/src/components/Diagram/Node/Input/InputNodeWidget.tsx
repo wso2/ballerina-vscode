@@ -149,7 +149,10 @@ export function InputNodeWidget(props: InputNodeWidgetProps) {
             {expanded && hasFields && (
                 <TreeBody>
                     {
-                        dmType.fields.map((field, index) => {
+                        dmType
+                            ?.fields
+                            ?.filter(f => !!f)
+                            .map((field, index) => {
                             return (
                                 <InputNodeTreeItemWidget
                                     key={index}
