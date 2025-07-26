@@ -41,12 +41,12 @@ import {
     TM_EVENT_START_DEBUG_SESSION, CMP_DEBUGGER, sendTelemetryEvent, sendTelemetryException,
     CMP_NOTEBOOK, TM_EVENT_START_NOTEBOOK_DEBUG
 } from '../telemetry';
-import { log, debug as debugLog, isSupportedSLVersion } from "../../utils";
+import { log, debug as debugLog, isSupportedSLVersion, isWindows } from "../../utils";
 import { decimal, ExecutableOptions } from 'vscode-languageclient/node';
 import { BAL_NOTEBOOK, getTempFile, NOTEBOOK_CELL_SCHEME } from '../../views/notebook';
 import fileUriToPath from 'file-uri-to-path';
 import { existsSync, readFileSync } from 'fs';
-import { dirname, sep } from 'path';
+import { dirname, join, sep } from 'path';
 import { parseTomlToConfig } from '../config-generator/utils';
 import { LoggingDebugSession, OutputEvent, TerminatedEvent } from 'vscode-debugadapter';
 import { DebugProtocol } from 'vscode-debugprotocol';
@@ -62,6 +62,8 @@ import { VisualizerWebview } from '../../views/visualizer/webview';
 import { URI } from 'vscode-uri';
 import { prepareAndGenerateConfig, cleanAndValidateProject } from '../config-generator/configGenerator';
 import { extension } from '../../BalExtensionContext';
+import * as fs from 'fs';
+import { findHighestVersionJdk } from '../../utils/server/server';
 
 const BALLERINA_COMMAND = "ballerina.command";
 const EXTENDED_CLIENT_CAPABILITIES = "capabilities";
@@ -761,7 +763,10 @@ async function runFast(root: string, options: { debugPort?: number; env?: Map<st
             await commands.executeCommand(PALETTE_COMMANDS.SAVE_ALL);
         }
         const { debugPort = -1, env = new Map(), programArgs = [] } = options;
+
+        const javaCommand: string = getJavaCommand();
         const commandArguments = [
+            { key: "command", value: javaCommand },
             { key: "path", value: root },
             { key: "debugPort", value: debugPort },
             { key: "env", value: env },
@@ -806,6 +811,32 @@ async function getCurrentRoot(): Promise<string> {
 
     const currentProject = await getCurrentBallerinaProject(file);
     return (currentProject.kind !== PROJECT_TYPE.SINGLE_FILE) ? currentProject.path! : file;
+}
+
+function getJavaCommand(): string {
+    const ballerinaHome = isWindows() ? fs.realpathSync.native(extension.ballerinaExtInstance.getBallerinaHome()) : extension.ballerinaExtInstance.getBallerinaHome();
+    // Get the base ballerina home by removing the distribution part
+    const baseHome = ballerinaHome.includes('distributions')
+        ? ballerinaHome.substring(0, ballerinaHome.indexOf('distributions'))
+        : ballerinaHome;
+
+    // Find any JDK in the dependencies directory
+    const dependenciesDir = join(baseHome, 'dependencies');
+    const jdkDir = findHighestVersionJdk(dependenciesDir);
+
+    if (!jdkDir) {
+        log(`No JDK found in dependencies directory: ${dependenciesDir}`);
+        throw new Error(`JDK not found in ${dependenciesDir}`);
+    }
+
+    const jdkVersionMatch = jdkDir.match(/jdk-(.+)-jre/);
+    if (jdkVersionMatch) {
+        log(`JDK Version: ${jdkVersionMatch[1]}`);
+    }
+
+    const javaExecutable = isWindows() ? 'java.exe' : 'java';
+    const cmd = join(jdkDir, 'bin', javaExecutable);
+    return cmd;
 }
 
 function getWorkspaceRoot(): string | undefined {
