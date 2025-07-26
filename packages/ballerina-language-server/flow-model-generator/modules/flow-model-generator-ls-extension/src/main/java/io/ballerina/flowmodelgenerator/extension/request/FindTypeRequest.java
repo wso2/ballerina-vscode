@@ -22,6 +22,7 @@ import io.ballerina.flowmodelgenerator.core.model.Codedata;
 import io.ballerina.flowmodelgenerator.core.model.PropertyTypeMemberInfo;
 
 import java.util.List;
+import java.util.Objects;
 
 /**
  * A request to find a matching type for the given expression.
@@ -41,6 +42,17 @@ public record FindTypeRequest(String filePath, List<PropertyTypeMemberInfo> type
                 return new TypePackageInfo(null, null, null, null);
             }
             String[] parts = packageInfo.split(":");
+            if (Objects.isNull(packageName)) {
+                String packageNamePart = parts[1];
+                // split by dot in the last part to get the package name
+                int lastDotIndex = packageNamePart.lastIndexOf('.');
+                if (lastDotIndex != -1) {
+                    packageName = packageNamePart.substring(0, lastDotIndex);
+                    parts[1] = packageNamePart.substring(lastDotIndex + 1);
+                } else {
+                    packageName = packageNamePart;
+                }
+            }
             return new TypePackageInfo(parts[0], packageName, parts[1], parts[2]);
         }
 
