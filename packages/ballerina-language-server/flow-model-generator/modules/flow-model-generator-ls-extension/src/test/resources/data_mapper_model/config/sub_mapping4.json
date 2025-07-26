@@ -33,30 +33,6 @@
         "optional": false
       },
       {
-        "fields": [
-          {
-            "id": "student.username",
-            "variableName": "username",
-            "typeName": "string",
-            "kind": "string",
-            "optional": false
-          },
-          {
-            "id": "student.password",
-            "variableName": "password",
-            "typeName": "string",
-            "kind": "string",
-            "optional": false
-          }
-        ],
-        "id": "student",
-        "variableName": "student",
-        "typeName": "Student",
-        "kind": "record",
-        "category": "variable",
-        "optional": false
-      },
-      {
         "member": {
           "fields": [
             {
