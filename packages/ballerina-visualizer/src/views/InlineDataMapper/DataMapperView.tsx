@@ -395,7 +395,7 @@ export function InlineDataMapperView(props: InlineDataMapperProps) {
                         const lowerCaseText = currentContent.toLowerCase();
                         const lowerCaseLabel = completion.value.toLowerCase();
 
-                        return lowerCaseText !== lowerCaseLabel && lowerCaseLabel.startsWith(lowerCaseText);
+                        return lowerCaseLabel.startsWith(lowerCaseText);
                     })
                     .sort((a, b) => a.sortText.localeCompare(b.sortText));
             } else {
@@ -442,7 +442,7 @@ export function InlineDataMapperView(props: InlineDataMapperProps) {
                             const lowerCaseText = currentContent.toLowerCase();
                             const lowerCaseLabel = completion.value.toLowerCase();
 
-                            return lowerCaseText !== lowerCaseLabel && lowerCaseLabel.startsWith(lowerCaseText);
+                            return lowerCaseLabel.startsWith(lowerCaseText);
                         })
                         .sort((a, b) => a.sortText.localeCompare(b.sortText));
                 }

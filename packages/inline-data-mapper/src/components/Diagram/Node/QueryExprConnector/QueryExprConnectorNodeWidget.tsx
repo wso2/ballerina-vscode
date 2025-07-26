@@ -70,7 +70,7 @@ export function QueryExprConnectorNodeWidget(props: QueryExprConnectorNodeWidget
         collapsedFieldsStore.removeField(targetPort);
         expandedFieldsStore.removeField(targetPort);
 
-        expandArrayFn(node.context, node.sourcePorts[0].attributes.field.id, node.targetMappedPort.attributes.value?.output);
+        expandArrayFn(node.context, node.sourcePorts[0].attributes.field?.id, node.targetMappedPort.attributes.value?.output);
     };
 
     const loadingScreen = (

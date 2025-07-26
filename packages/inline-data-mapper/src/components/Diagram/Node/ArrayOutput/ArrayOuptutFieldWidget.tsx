@@ -75,7 +75,7 @@ export function ArrayOutputFieldWidget(props: ArrayOutputFieldWidgetProps) {
     const expandedFieldsStore = useDMExpandedFieldsStore();
     const setExprBarFocusedPort = useDMExpressionBarStore(state => state.setFocusedPort);
 
-    const arrayField = field.member;
+    const arrayField = field?.member;
     const typeName = getTypeName(field);
 
     let portName = getSanitizedId(parentId);
@@ -101,7 +101,7 @@ export function ArrayOutputFieldWidget(props: ArrayOutputFieldWidgetProps) {
         indentation += 24;
     }
 
-    const hasDefaultValue = expression && getDefaultValue(field.kind) === expression.trim();
+    const hasDefaultValue = expression && getDefaultValue(field?.kind) === expression.trim();
     let isDisabled = portIn?.attributes.descendantHasValue;
 
     if (!isDisabled && !hasDefaultValue && portIn) {
@@ -382,7 +382,7 @@ export function ArrayOutputFieldWidget(props: ArrayOutputFieldWidgetProps) {
                     </div>
                 </div>
             )}
-            {(expanded && !connectedViaLink && !elements?.length) && (
+            {(expanded && !connectedViaLink && !elements?.length && arrayField) && (
                 <OutputFieldPreviewWidget
                     key={`arr-output--preview-field-${portName}`}
                     engine={engine}

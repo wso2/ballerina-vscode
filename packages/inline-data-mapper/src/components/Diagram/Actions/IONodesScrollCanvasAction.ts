@@ -68,63 +68,18 @@ export class IONodesScrollCanvasAction extends Action {
                     isOutputScrollable = isOutputNode(element);
                 }
 
-                let yDelta = options.inverseZoom ? - deltaY : deltaY;
+                let yDelta = (options.inverseZoom ? - deltaY : deltaY) as number;
                 const diagramEngine = this.engine as DiagramEngine;
-                const inputNodes = getInputNodes(diagramEngine);
-                const ouputNode = getOutputNode(diagramEngine);
+
+
 
                 if (isInputScrollable) {
-
-                    const totalHeight = inputNodes.reduce((acc, node) => acc + node.height, 0);
-                    const averageHeight = totalHeight / inputNodes.length;
-                    let scrollStep = Math.min(Math.abs(yDelta), averageHeight / 2) * Math.sign(yDelta);
-                
-                    const firstNode = inputNodes[0];
-                    const lastNode = inputNodes[inputNodes.length - 1];
-
-                    if (firstNode) {
-                        const newY = firstNode.getY() - scrollStep;
-                        if (newY >= 0 && scrollStep < 0) {
-                            // If the first node is at the top of the canvas, do not scroll further
-                            scrollStep = firstNode.getY();
-                        }
-                    }
-
-                    if (lastNode) {
-                        const newY = lastNode.getY() - scrollStep;
-                        const nodeBottomY = newY + lastNode.height;
-                        if (nodeBottomY < MIN_VISIBLE_HEIGHT ) {
-                            // If the last node is at the bottom of the canvas, do not scroll further
-                            scrollStep = lastNode.getY() + lastNode.height - MIN_VISIBLE_HEIGHT;
-                        }
-                    }
-
-                    inputNodes.forEach(element => {
-                        element.setPosition(element.getX(), element.getY() - scrollStep);
-                    });
-
+                    handleInputScroll(diagramEngine, yDelta);
                 } else if (isOutputScrollable) {
-
-                    if (ouputNode) {
-                        let scrollStep = Math.min(Math.abs(yDelta), ouputNode.height / 2) * Math.sign(yDelta);
-                        let newY = ouputNode.getY() - scrollStep;
-                        const nodeBottomY = newY + ouputNode.height;
-                        if (newY >= 0 && scrollStep < 0) {
-                            // If the output node is at the top of the canvas, do not scroll further
-                            scrollStep = ouputNode.getY();
-                        }
-                        if (nodeBottomY < MIN_VISIBLE_HEIGHT) {
-                            // If the output node is at the bottom of the canvas, do not scroll further
-                            scrollStep = ouputNode.getY() + ouputNode.height - MIN_VISIBLE_HEIGHT;
-                        }
-                        ouputNode.setPosition(ouputNode.getX(), ouputNode.getY() - scrollStep);
-                    }
-                    ouputNode && repositionIntermediateNodes(ouputNode);
-
-                } else if (!element) {
-                    yDelta = getYDeltaForGlobalScroll(diagramEngine, yDelta, zoomOffset);
-					const offsetY = Math.min(0, model.getOffsetY() - yDelta);
-                    model.setOffset(model.getOffsetX(), offsetY);
+                    handleOutputScroll(diagramEngine, yDelta);
+                } else {
+                    handleInputScroll(diagramEngine, yDelta);
+                    handleOutputScroll(diagramEngine, yDelta);
                 }
 
                 this.engine.repaintCanvas();
@@ -135,6 +90,57 @@ export class IONodesScrollCanvasAction extends Action {
                 }
             },
         });
+    }
+}
+
+function handleInputScroll(diagramEngine: DiagramEngine, yDelta: number) {
+    const inputNodes = getInputNodes(diagramEngine);
+    const totalHeight = inputNodes.reduce((acc, node) => acc + node.height, 0);
+    const averageHeight = totalHeight / inputNodes.length;
+    let scrollStep = Math.min(Math.abs(yDelta), averageHeight / 2) * Math.sign(yDelta);
+
+    const firstNode = inputNodes[0];
+    const lastNode = inputNodes[inputNodes.length - 1];
+
+    if (firstNode) {
+        const newY = firstNode.getY() - scrollStep;
+        if (newY >= 0 && scrollStep < 0) {
+            // If the first node is at the top of the canvas, do not scroll further
+            scrollStep = firstNode.getY();
+        }
+    }
+
+    if (lastNode) {
+        const newY = lastNode.getY() - scrollStep;
+        const nodeBottomY = newY + lastNode.height;
+        if (nodeBottomY < MIN_VISIBLE_HEIGHT) {
+            // If the last node is at the bottom of the canvas, do not scroll further
+            scrollStep = lastNode.getY() + lastNode.height - MIN_VISIBLE_HEIGHT;
+        }
+    }
+
+    inputNodes.forEach(element => {
+        element.setPosition(element.getX(), element.getY() - scrollStep);
+    });
+
+}
+
+function handleOutputScroll(diagramEngine: DiagramEngine, yDelta: number) {
+    const outputNode = getOutputNode(diagramEngine);
+    if (outputNode) {
+        let scrollStep = Math.min(Math.abs(yDelta), outputNode.height / 2) * Math.sign(yDelta);
+        let newY = outputNode.getY() - scrollStep;
+        const nodeBottomY = newY + outputNode.height;
+        if (newY >= 0 && scrollStep < 0) {
+            // If the output node is at the top of the canvas, do not scroll further
+            scrollStep = outputNode.getY();
+        }
+        if (nodeBottomY < MIN_VISIBLE_HEIGHT) {
+            // If the output node is at the bottom of the canvas, do not scroll further
+            scrollStep = outputNode.getY() + outputNode.height - MIN_VISIBLE_HEIGHT;
+        }
+        outputNode.setPosition(outputNode.getX(), outputNode.getY() - scrollStep);
+        repositionIntermediateNodes(outputNode);
     }
 }
 
@@ -161,33 +167,4 @@ function repositionIntermediateNodes(outputNode: NodeModel) {
             }
         }
     }
-}
-
-
-function getYDeltaForGlobalScroll(diagramEngine: DiagramEngine, yDelta: number, zoomOffset: number) {
-    let newYDelta = yDelta;
-    const model = diagramEngine.getModel();
-    const offsetY = model.getOffsetY() * zoomOffset;
-
-    const lastInputNode = getInputNodes(diagramEngine).pop();
-    const outputNode = getOutputNode(diagramEngine);
-
-    if (!lastInputNode || !outputNode) return; // When data import nodes present
-
-    const nodeWithMaxBottomY = [lastInputNode, outputNode].reduce((prevNode, currentNode) => {
-        return prevNode.getBoundingBox().getBottomLeft().y > currentNode.getBoundingBox().getBottomLeft().y
-            ? prevNode
-            : currentNode;
-    });
-
-    const nodeOffsetY = nodeWithMaxBottomY.getY() < 0 ? nodeWithMaxBottomY.getY() : 0;
-    let newY = offsetY - yDelta;
-    const visibleHeight = newY + nodeWithMaxBottomY.height + nodeOffsetY;
-
-    if (visibleHeight < MIN_VISIBLE_HEIGHT ) {
-        // If the tallest node is at the bottom of the canvas, do not scroll further
-        newYDelta = offsetY + nodeWithMaxBottomY.height - MIN_VISIBLE_HEIGHT + nodeOffsetY;
-    }
-
-    return newYDelta;
 }

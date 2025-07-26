@@ -102,7 +102,7 @@ export function genArrayElementAccessSuffix(sourcePort: PortModel, targetPort: P
 };
 
 export function isDefaultValue(field: IOType, value: string): boolean {
-	const defaultValue = getDefaultValue(field.kind);
+	const defaultValue = getDefaultValue(field?.kind);
     const targetValue =  value?.trim().replace(/(\r\n|\n|\r|\s)/g, "")
 	return targetValue === "null" ||  defaultValue === targetValue;
 }
