@@ -320,7 +320,7 @@ export abstract class DataMapperNodeModel extends NodeModel<NodeModelGenerics & 
 
 
 		if (attributes.field?.kind === TypeKind.Record) {
-			const fields = attributes.field?.fields?.filter(f => f !== null);
+			const fields = attributes.field?.fields?.filter(f => !!f);
 			if (fields && fields.length) {
 				fields.forEach(subField => {
 					numberOfFields += this.addPortsForInputField({
