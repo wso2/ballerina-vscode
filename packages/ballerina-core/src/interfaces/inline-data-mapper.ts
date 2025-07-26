@@ -71,6 +71,13 @@ export interface IDMDiagnostic {
     };
 }
 
+export interface ModuleInfo {
+    org: string
+    packageName: string
+    moduleName: string
+    version: string
+}
+
 export interface IOType {
     id: string;
     category?: InputCategory;
@@ -84,6 +91,7 @@ export interface IOType {
     optional?: boolean;
     focusedMemberId?: string;
     isFocused?: boolean;
+    moduleInfo? : ModuleInfo;
 }
 
 export interface Mapping {
