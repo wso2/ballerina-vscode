@@ -66,6 +66,9 @@ import java.util.stream.Collectors;
 import static io.ballerina.flowmodelgenerator.core.Constants.Ai;
 import static io.ballerina.flowmodelgenerator.core.Constants.BALLERINA;
 import static io.ballerina.flowmodelgenerator.core.Constants.NaturalFunctions;
+import static io.ballerina.modelgenerator.commons.CommonUtils.isAiEmbeddingProvider;
+import static io.ballerina.modelgenerator.commons.CommonUtils.isAiModelProvider;
+import static io.ballerina.modelgenerator.commons.CommonUtils.isAiVectorKnowledgeBase;
 
 /**
  * Generates available nodes for a given position in the diagram.
@@ -378,9 +381,9 @@ public class AvailableNodesGenerator {
                     FunctionData.Kind kind = methodFunction.kind();
                     if (kind == FunctionData.Kind.REMOTE) {
                         nodeBuilder = NodeBuilder.getNodeFromKind(NodeKind.REMOTE_ACTION_CALL);
-                    } else if (kind == FunctionData.Kind.FUNCTION && isAiKnowledgeBase(classSymbol)) {
+                    } else if (kind == FunctionData.Kind.FUNCTION && isAiVectorKnowledgeBase(classSymbol)) {
                         nodeBuilder = NodeBuilder.getNodeFromKind(NodeKind.VECTOR_KNOWLEDGE_BASE_CALL);
-                    } else  if (kind == FunctionData.Kind.FUNCTION) {
+                    } else if (kind == FunctionData.Kind.FUNCTION) {
                         nodeBuilder = NodeBuilder.getNodeFromKind(NodeKind.METHOD_CALL);
                     } else {
                         throw new IllegalStateException("Unexpected value: " + kind);
@@ -429,38 +432,10 @@ public class AvailableNodesGenerator {
     }
 
     private Optional<Category> getKnowledgeBase(Symbol symbol) {
-        return getCategory(symbol, this::isAiKnowledgeBase);
+        return getCategory(symbol, CommonUtils::isAiVectorKnowledgeBase);
     }
 
     private Optional<Category> getVectorStore(Symbol symbol) {
-        return getCategory(symbol, this::isAiVectorStore);
-    }
-
-    private boolean hasAiTypeInclusion(ClassSymbol classSymbol, String includedTypeName) {
-        return classSymbol.typeInclusions().stream()
-                .filter(typeSymbol -> typeSymbol instanceof TypeReferenceTypeSymbol)
-                .map(typeSymbol -> (TypeReferenceTypeSymbol) typeSymbol)
-                .filter(typeRef -> typeRef.definition().nameEquals(includedTypeName))
-                .map(TypeSymbol::getModule)
-                .filter(Optional::isPresent)
-                .map(Optional::get)
-                .anyMatch(moduleId -> Ai.BALLERINA_ORG.equals(moduleId.id().orgName()) &&
-                        Ai.AI_PACKAGE.equals(moduleId.id().moduleName()));
-    }
-
-    private boolean isAiModelProvider(ClassSymbol classSymbol) {
-        return hasAiTypeInclusion(classSymbol, Ai.MODEL_PROVIDER_TYPE_NAME);
-    }
-
-    private boolean isAiEmbeddingProvider(ClassSymbol classSymbol) {
-        return hasAiTypeInclusion(classSymbol, Ai.EMBEDDING_PROVIDER_TYPE_NAME);
-    }
-
-    private boolean isAiKnowledgeBase(ClassSymbol classSymbol) {
-        return hasAiTypeInclusion(classSymbol, Ai.KNOWLEDGE_BASE_TYPE_NAME);
-    }
-
-    private boolean isAiVectorStore(ClassSymbol classSymbol) {
-        return hasAiTypeInclusion(classSymbol, Ai.VECTOR_STORE_TYPE_NAME);
+        return getCategory(symbol, CommonUtils::isAiVectorStore);
     }
 }

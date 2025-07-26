@@ -51,6 +51,7 @@ public class VectorKnowledgeBaseBuilder extends CallBuilder {
     @Override
     public void setConcreteConstData() {
         metadata().label(LABEL);
+        codedata().node(NodeKind.VECTOR_KNOWLEDGE_BASE);
     }
 
     @Override
@@ -85,7 +86,7 @@ public class VectorKnowledgeBaseBuilder extends CallBuilder {
         metadata().label(functionData.packageName()).description(functionData.description())
                 .icon(CommonUtils.generateIcon(functionData.org(), functionData.packageName(), functionData.version()));
 
-        codedata().node(NodeKind.VECTOR_KNOWLEDGE_BASE).org(functionData.org()).module(functionData.moduleName())
+        codedata().org(functionData.org()).module(functionData.moduleName())
                 .packageName(functionData.packageName()).object(functionData.name())
                 .version(functionData.version());
 

@@ -1939,12 +1939,12 @@
       {
         "id": "103234",
         "metadata": {
-          "label": "Class",
-          "description": "Provider represents a client for interacting with an Ollama language models.",
+          "label": "Model Provider",
+          "description": "Initializes the client with the given connection configuration and model configuration.\n",
           "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_ai.ollama_1.0.1.png"
         },
         "codedata": {
-          "node": "CLASS_INIT",
+          "node": "MODEL_PROVIDER",
           "org": "ballerinax",
           "module": "ai.ollama",
           "object": "ModelProvider",
