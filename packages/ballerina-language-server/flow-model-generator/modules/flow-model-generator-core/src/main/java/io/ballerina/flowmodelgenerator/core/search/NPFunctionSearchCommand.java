@@ -74,12 +74,6 @@ class NPFunctionSearchCommand extends SearchCommand {
     }
 
     @Override
-    protected List<Item> searchCentral() {
-        // The central search is not applicable for NP functions
-        return search();
-    }
-
-    @Override
     protected Map<String, List<SearchResult>> fetchPopularItems() {
         return Map.of();
     }

@@ -109,11 +109,16 @@ public abstract class SearchCommand {
     protected abstract List<Item> search();
 
     /**
-     * Performs a search in Ballerina Central.
+     * Performs a search that includes results from the current organization.
+     * <p>
+     * By default, this method delegates to the standard {@link #search()} functionality. Commands that query Ballerina
+     * Central should override this method to include organization-specific results.
      *
-     * @return List of search results
+     * @return A list of search result items
      */
-    protected abstract List<Item> searchCentral();
+    protected List<Item> searchWithOrganization() {
+        return search();
+    }
 
     /**
      * Fetches the popular items if not cached already.
@@ -132,7 +137,7 @@ public abstract class SearchCommand {
         if (query.isEmpty()) {
             items = defaultView();
         } else if (searchCentral) {
-            items = searchCentral();
+            items = searchWithOrganization();
         } else {
             items = search();
         }
@@ -180,8 +185,8 @@ public abstract class SearchCommand {
     protected Optional<String> getOrganizationName() {
         return project.currentPackage().ballerinaToml()
                 .flatMap(toml -> toml.tomlDocument().toml().getTable("package")
-                .flatMap(table -> table.get("org"))
-                .flatMap(orgValue -> Optional.ofNullable(orgValue.toString())));
+                        .flatMap(table -> table.get("org"))
+                        .flatMap(orgValue -> Optional.ofNullable(orgValue.toString())));
     }
 
     public enum Kind {

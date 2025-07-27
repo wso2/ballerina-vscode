@@ -128,7 +128,7 @@ class FunctionSearchCommand extends SearchCommand {
     }
 
     @Override
-    protected List<Item> searchCentral() {
+    protected List<Item> searchWithOrganization() {
         buildProjectNodes();
         List<SearchResult> searchResults = dbManager.searchFunctions(query, limit, offset);
         Optional<String> organizationName = getOrganizationName();
@@ -248,7 +248,7 @@ class FunctionSearchCommand extends SearchCommand {
         // Set the categories based on the available flags
         Category.Builder importedFnBuilder = rootBuilder.stepIn(Category.Name.IMPORTED_FUNCTIONS);
         Category.Builder currentOrgFnBuilder = rootBuilder.stepIn(Category.Name.CURRENT_ORGANIZATION);
-        Category.Builder availableFnBuilder = rootBuilder.stepIn(Category.Name.AVAILABLE_FUNCTIONS);
+        Category.Builder availableFnBuilder = rootBuilder.stepIn(Category.Name.STANDARD_LIBRARY);
 
         // Add the library functions
         for (SearchResult searchResult : functionSearchList) {

@@ -106,7 +106,7 @@ public class ConnectorSearchCommand extends SearchCommand {
     }
 
     @Override
-    protected List<Item> searchCentral() {
+    protected List<Item> searchWithOrganization() {
         buildLocalConnectors();
         List<SearchResult> searchResults = dbManager.searchConnectors(query, limit, offset);
 
@@ -159,7 +159,7 @@ public class ConnectorSearchCommand extends SearchCommand {
 
     private void buildLibraryNodes(List<SearchResult> connectorSearchList) {
         Category.Builder currentOrgConnectorsBuilder = rootBuilder.stepIn(Category.Name.CURRENT_ORGANIZATION);
-        Category.Builder availableConnectorsBuilder = rootBuilder.stepIn(Category.Name.AVAILABLE_CONNECTORS);
+        Category.Builder availableConnectorsBuilder = rootBuilder.stepIn(Category.Name.STANDARD_LIBRARY);
 
         for (SearchResult searchResult : connectorSearchList) {
             Category.Builder builder;

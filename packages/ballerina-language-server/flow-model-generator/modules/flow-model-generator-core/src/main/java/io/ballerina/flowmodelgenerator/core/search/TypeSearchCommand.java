@@ -93,7 +93,7 @@ class TypeSearchCommand extends SearchCommand {
     }
 
     @Override
-    protected List<Item> searchCentral() {
+    protected List<Item> searchWithOrganization() {
         List<SearchResult> searchResults = dbManager.searchTypes(query, limit, offset);
         Optional<String> organizationName = getOrganizationName();
         if (organizationName.isPresent()) {
@@ -138,7 +138,7 @@ class TypeSearchCommand extends SearchCommand {
         // Set the categories based on available flags
         Category.Builder importedTypesBuilder = rootBuilder.stepIn(Category.Name.IMPORTED_TYPES);
         Category.Builder currentOrgTypesBuilder = rootBuilder.stepIn(Category.Name.CURRENT_ORGANIZATION);
-        Category.Builder availableTypesBuilder = rootBuilder.stepIn(Category.Name.AVAILABLE_TYPES);
+        Category.Builder availableTypesBuilder = rootBuilder.stepIn(Category.Name.STANDARD_LIBRARY);
 
         // Add the library types
         for (SearchResult searchResult : typeSearchList) {
