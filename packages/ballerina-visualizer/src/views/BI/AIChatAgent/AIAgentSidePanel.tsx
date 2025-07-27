@@ -34,9 +34,7 @@ import {
     NodeMetadata,
     FunctionNode,
     FlowNode,
-    Property,
     ToolParameters,
-    ValueTypeConstraint,
     ToolParametersValue,
 } from "@wso2/ballerina-core";
 
@@ -82,8 +80,10 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
     const [categories, setCategories] = useState<PanelCategory[]>([]);
     const [selectedNodeCodeData, setSelectedNodeCodeData] = useState<CodeData>(undefined);
     const [toolNodeId, setToolNodeId] = useState<string>(undefined);
-    const [functionNode, setFunctionNode] = useState<FunctionNode>(null);
-    const [flowNode, setFlowNode] = useState<FlowNode>(null);
+
+    const functionNode = useRef<FunctionNode>(null);
+    const flowNode = useRef<FlowNode>(null);
+
     const [loading, setLoading] = useState<boolean>(false);
     const [fields, setFields] = useState<FormField[]>([
         {
@@ -242,7 +242,7 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
                 });
                 console.log(">>> Function definition response", { functionNodeResponse });
 
-                setFunctionNode(functionNodeResponse.functionDefinition);
+                functionNode.current = functionNodeResponse.functionDefinition;
 
                 // Hide unnecessary properties
                 (["functionName", "functionNameDescription", "isIsolated", "type", "typeDescription"] as Array<keyof typeof functionNodeResponse.functionDefinition.properties>).forEach(
@@ -285,7 +285,7 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
             } catch (error) {
                 console.error(">>> Error fetching function node or template", error);
             }
-        } else if (nodeId === "REMOTE_ACTION_CALL" || nodeId === "METHOD_CALL") {
+        } else if (nodeId === "REMOTE_ACTION_CALL" || nodeId === "RESOURCE_ACTION_CALL" || nodeId === "METHOD_CALL") {
             try {
                 const nodeTemplate = await rpcClient.getBIDiagramRpcClient().getNodeTemplate({
                     position: { line: 0, offset: 0 },
@@ -295,7 +295,7 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
                 console.log(">>> Node template response", { nodeTemplate });
 
                 if (nodeTemplate.flowNode) {
-                    setFlowNode(nodeTemplate.flowNode);
+                    flowNode.current = nodeTemplate.flowNode;
                 } else {
                     console.error("Node template flowNode not found");
                 }
@@ -303,7 +303,7 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
                 const includedKeys: string[] = [];
                 const nodeParameterFields = convertConfig(nodeTemplate.flowNode.properties);
                 nodeParameterFields.forEach((field) => {
-                    if (["type", "targetType", "variable", "checkError", "connection"].includes(field.key)) {
+                    if (["type", "targetType", "variable", "checkError", "connection", "resourcePath"].includes(field.key)) {
                         field.hidden = true;
                         return;
                     }
@@ -355,10 +355,11 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
 
         let toolParameters: ToolParameters | null = null;
         let clonedFunctionNode: FunctionNode | null = null;
+        let clonedFlowNode: FlowNode | null = null;
 
         if (toolNodeId === "FUNCTION_CALL" && Array.isArray(data["parameters"])) {
-            clonedFunctionNode = functionNode ? cloneDeep(functionNode) : null;
-            toolParameters = cloneDeep(functionNode?.properties?.parameters) as unknown as ToolParameters;
+            clonedFunctionNode = functionNode.current ? cloneDeep(functionNode.current) : null;
+            toolParameters = cloneDeep(functionNode.current?.properties?.parameters) as unknown as ToolParameters;
 
             // Update clonedFunctionNode parameter values from data["parameters"]
             const parametersValue = clonedFunctionNode?.properties?.parameters?.value;
@@ -395,24 +396,26 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
                     }
                 });
             }
-        } else if (toolNodeId === "REMOTE_ACTION_CALL" || toolNodeId === "METHOD_CALL" && Array.isArray(data["parameters"])) {
-            toolParameters = createToolParameters();
+        } else if ((toolNodeId === "REMOTE_ACTION_CALL" || toolNodeId === "RESOURCE_ACTION_CALL" || toolNodeId === "METHOD_CALL") && Array.isArray(data["parameters"])) {
+            clonedFlowNode = flowNode.current ? cloneDeep(flowNode.current) : null;
 
-            // Update clonedFunctionNode parameter values from data["parameters"]
-            const parametersValue = flowNode?.properties;
-            if (parametersValue && typeof parametersValue === "object" && !Array.isArray(parametersValue)) {
-                Object.keys(parametersValue).forEach((key) => {
-                    if (!data[key]) {
-                        return;
-                    }
+            // Update flowNode parameter values from data["parameters"]
+            if (clonedFlowNode?.properties && typeof clonedFlowNode?.properties === "object" && !Array.isArray(clonedFlowNode?.properties)) {
+                const newProperties = { ...clonedFlowNode.properties };
+                Object.keys(newProperties).forEach((key) => {
                     const paramValue = data[key];
-                    if ((parametersValue as ToolParametersValue)[key]) {
-                        (parametersValue as ToolParametersValue)[key].value = paramValue;
+                    if (paramValue !== undefined) {
+                        (newProperties as ToolParametersValue)[key] = {
+                            ...((newProperties as ToolParametersValue)[key]!),
+                            value: paramValue
+                        };
                     }
                 });
+                clonedFlowNode.properties = newProperties;
             }
 
             // Update toolParameters: remove keys not present, and set values from data
+            toolParameters = createToolParameters();
             const paramKeys = data["parameters"].map((param: any) => param.key);
             if (toolParameters && typeof toolParameters.value === "object" && !Array.isArray(toolParameters.value)) {
                 Object.keys(toolParameters.value).forEach((key) => {
@@ -440,6 +443,7 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
 
         console.log(">>> toolParameters", { toolParameters });
         console.log(">>> clonedFunctionNode", { clonedFunctionNode });
+        console.log(">>> clonedFlowNode", { clonedFlowNode });
 
         const toolModel: ExtendedAgentToolRequest = {
             toolName: cleanName,
@@ -447,7 +451,7 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
             selectedCodeData: selectedNodeCodeData,
             toolParameters: toolParameters,
             functionNode: clonedFunctionNode,
-            flowNode: flowNode,
+            flowNode: clonedFlowNode,
         };
         console.log("New Agent Tool:", toolModel);
         onSubmit(toolModel);
