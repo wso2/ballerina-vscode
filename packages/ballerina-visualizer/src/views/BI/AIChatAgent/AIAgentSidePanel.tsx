@@ -64,7 +64,6 @@ const ImplementationInfo = styled.div`
     background-color: var(--vscode-input-background);
     border: 1px solid var(--vscode-editorWidget-border);
     padding: 5px 10px;
-    margin-top: 5px;
     cursor: pointer;
     p {
         margin: 0;
@@ -94,6 +93,7 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
     const [categories, setCategories] = useState<PanelCategory[]>([]);
     const [selectedNodeCodeData, setSelectedNodeCodeData] = useState<CodeData>(undefined);
     const [toolNodeId, setToolNodeId] = useState<string>(undefined);
+    const [injectedComponentIndex, setInjectedComponentIndex] = useState<number>(3);
 
     const functionNode = useRef<FunctionNode>(null);
     const flowNode = useRef<FlowNode>(null);
@@ -301,6 +301,7 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
                 functionNodeResponse.functionDefinition.properties.parameters.metadata.description = "";
 
                 const toolInputFields = convertConfig(functionNodeResponse.functionDefinition.properties);
+                setInjectedComponentIndex(2 + toolInputFields.length);
                 console.log(">>> Tool input fields", { toolInputFields });
 
                 const functionNodeTemplate = await rpcClient.getBIDiagramRpcClient().getNodeTemplate({
@@ -317,14 +318,8 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
                 });
                 console.log(">>> Function parameter fields", { functionParameterFields });
 
-                // Optionally deduplicate fields by key
-                const allFields = [...toolInputFields, ...functionParameterFields];
-                const dedupedFields = Array.from(
-                    new Map(allFields.map(field => [field.key, field])).values()
-                );
-
                 setFields((prevFields) => {
-                    return [...prevFields, ...dedupedFields];
+                    return [...prevFields, ...toolInputFields, ...functionParameterFields];
                 });
             } catch (error) {
                 console.error(">>> Error fetching function node or template", error);
@@ -359,6 +354,7 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
 
                 const filteredNodeParameterFields = nodeParameterFields.filter(field => includedKeys.includes(field.key));
                 const toolInputFields = createToolInputFields(filteredNodeParameterFields);
+                setInjectedComponentIndex(2 + toolInputFields.length);
 
                 setFields((prevFields) => {
                     return [...prevFields, ...toolInputFields, ...nodeParameterFields];
@@ -534,25 +530,31 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
                 />
             )}
             {sidePanelView === SidePanelView.TOOL_FORM && (
-                <>
-                    <div style={{ padding: "16px 20px 0" }}>
-                        <p style={{ marginBottom: "8px", fontWeight: "bold" }}>Implementation</p>
-                        <ImplementationInfo onClick={handleBackToNodeList}>
-                            <p>{getImplementationString(selectedNodeRef.current.codedata)}</p>
-                        </ImplementationInfo>
-                    </div>
-                    <FormGeneratorNew
-                        fileName={agentFilePath.current}
-                        targetLineRange={{ startLine: { line: 0, offset: 0 }, endLine: { line: 0, offset: 0 } }}
-                        fields={fields}
-                        onSubmit={handleToolSubmit}
-                        submitText={"Save Tool"}
-                        concertMessage={concertMessage}
-                        concertRequired={concertRequired}
-                        description={description}
-                        helperPaneSide="left"
-                    />
-                </>
+                <FormGeneratorNew
+                    preserveFieldOrder={true}
+                    fileName={agentFilePath.current}
+                    targetLineRange={{ startLine: { line: 0, offset: 0 }, endLine: { line: 0, offset: 0 } }}
+                    fields={fields}
+                    onSubmit={handleToolSubmit}
+                    submitText={"Save Tool"}
+                    concertMessage={concertMessage}
+                    concertRequired={concertRequired}
+                    description={description}
+                    helperPaneSide="left"
+                    injectedComponents={[
+                        {
+                            component: (
+                                <div style={{ width: "100%" }}>
+                                    <p style={{ margin: "0px 0px 8px", fontWeight: "bold" }}>Implementation</p>
+                                    <ImplementationInfo onClick={handleBackToNodeList}>
+                                        <p>{getImplementationString(selectedNodeRef.current.codedata)}</p>
+                                    </ImplementationInfo>
+                                </div>
+                            ),
+                            index: injectedComponentIndex,
+                        },
+                    ]}
+                />
             )}
         </>
     );
