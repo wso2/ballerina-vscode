@@ -138,7 +138,7 @@ export async function generateCodeCore(params: GenerateCodeRequest, eventHandler
                 eventHandler({ type: "content_replace", content: diagnosticFixResp });
                 eventHandler({ type: "diagnostics", diagnostics: diagnostics });
                 eventHandler({ type: "messages", messages: allMessages });
-                eventHandler({ type: "stop" });
+                eventHandler({ type: "stop", command: Command.Code });
                 break;
             }
         }
@@ -311,7 +311,7 @@ export async function repairCodeCore(params: RepairParams, eventHandler: Copilot
     eventHandler({ type: "content_replace", content: resp.repairResponse });
     console.log("Manual Repair Diagnostics left: ", resp.diagnostics);
     eventHandler({ type: "diagnostics", diagnostics: resp.diagnostics });
-    eventHandler({ type: "stop" });
+    eventHandler({ type: "stop", command: undefined });
     return resp;
 }
 

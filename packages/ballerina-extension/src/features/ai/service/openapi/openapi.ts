@@ -66,7 +66,7 @@ export async function generateOpenAPISpecCore(
             }
             case "finish": {
                 const finishReason = part.finishReason;
-                eventHandler({ type: "stop" });
+                eventHandler({ type: "stop", command: Command.OpenAPI });
                 break;
             }
         }

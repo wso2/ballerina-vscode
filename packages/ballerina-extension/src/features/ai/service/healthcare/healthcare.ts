@@ -111,7 +111,7 @@ export async function generateHealthcareCodeCore(
                     // Already handled in error case.
                     break;
                 }
-                eventHandler({ type: "stop" });
+                eventHandler({ type: "stop", command: Command.Healthcare });
                 break;
             }
         }
