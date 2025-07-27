@@ -328,11 +328,6 @@
         ],
         "commands": [
             {
-                "command": "ballerina.update-ballerina-dev-pack",
-                "title": "Update Ballerina Nightly Build",
-                "category": "Ballerina"
-            },
-            {
                 "command": "ballerina.showExamples",
                 "title": "Show Examples",
                 "category": "Ballerina"
