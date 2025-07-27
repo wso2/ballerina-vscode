@@ -20,6 +20,13 @@ import React, { CSSProperties, useState } from "react";
 import { Icon } from "@wso2/ui-toolkit";
 import { ApiIcon } from "../../resources";
 import { getAIColor, ThemeListener } from "../NodeIcon";
+import OpenAiIcon from "../../resources/icons/OpenAiIcon";
+import AzureOpenAiIcon from "../../resources/icons/AzureOpenAiIcon";
+import AnthropicIcon from "../../resources/icons/AnthropicIcon";
+import OllamaIcon from "../../resources/icons/OllamaIcon";
+import MistralAIIcon from "../../resources/icons/MistralAIIcon";
+import DeepseekIcon from "../../resources/icons/DeepseekIcon";
+import DefaultLlmIcon from "../../resources/icons/DefaultLlmIcon";
 
 interface ConnectorIconProps {
     url?: string;
@@ -43,6 +50,13 @@ export function ConnectorIcon(props: ConnectorIconProps): React.ReactElement {
         return <Icon name="bi-globe" className={className} sx={{ width: 24, height: 24, fontSize: 24, ...style }} />;
     }
 
+    // use custom icon for ai model providers
+    const aiModules = ["ai.openai", "ai.azure", "ai.anthropic", "ai.ollama", "ai.mistral", "ai.deepseek"];
+    if (aiModules.some(module => url?.includes(module))) {
+        const selectedModule = aiModules.find(module => url?.includes(module));
+        return getLlmModelIcons(selectedModule);
+    }
+
     // use custom icon for ai module
     if (url?.includes("ballerinax_ai_")) {
         return (
@@ -54,6 +68,12 @@ export function ConnectorIcon(props: ConnectorIconProps): React.ReactElement {
                 />
                 <ThemeListener onThemeChange={handleThemeChange} />
             </>
+        );
+    }
+
+    if (url?.includes("ballerina_ai")) {
+        return (
+            <DefaultLlmIcon />
         );
     }
 
@@ -78,6 +98,33 @@ function isValidUrl(url: string): boolean {
         return true;
     } catch (error) {
         return false;
+    }
+}
+
+// get llm model icons
+// this should replace with CDN icons
+export function getLlmModelIcons(modelType: string) {
+    switch (modelType) {
+        case "OpenAiProvider":
+        case "ai.openai":
+            return <OpenAiIcon />;
+        case "AzureOpenAiProvider":
+        case "ai.azure":
+            return <AzureOpenAiIcon />;
+        case "AnthropicProvider":
+        case "ai.anthropic":
+            return <AnthropicIcon />;
+        case "OllamaProvider":
+        case "ai.ollama":
+            return <OllamaIcon />;
+        case "MistralAiProvider":
+        case "ai.mistral":
+            return <MistralAIIcon />;
+        case "DeepseekProvider":
+        case "ai.deepseek":
+            return <DeepseekIcon />;
+        default:
+            return <DefaultLlmIcon />;
     }
 }
 
