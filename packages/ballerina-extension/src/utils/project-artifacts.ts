@@ -59,22 +59,16 @@ export async function buildProjectArtifactsStructure(projectDir: string, langCli
 export async function updateProjectArtifacts(publishedArtifacts: ArtifactsNotification): Promise<void> {
     // Current project structure
     const currentProjectStructure: ProjectStructureResponse = StateMachine.context().projectStructure;
-    if (publishedArtifacts && currentProjectStructure) {
-        const tmpUri = URI.file(tmpdir());
-        const publishedArtifactsUri = URI.parse(publishedArtifacts.uri);
-        if (publishedArtifactsUri.path.toLowerCase().includes(tmpUri.path.toLowerCase())) {
-            // Skip the temp dirs
-            return;
-        }
+    const projectUri = URI.parse(StateMachine.context().projectUri);
+    const isWithinProject = URI.parse(publishedArtifacts.uri).path.toLowerCase().includes(projectUri.path.toLowerCase());
+    if (currentProjectStructure && isWithinProject) {
         const entryLocations = await traverseUpdatedComponents(publishedArtifacts.artifacts, currentProjectStructure);
-        if (entryLocations.length > 0) {
-            const notificationHandler = ArtifactNotificationHandler.getInstance();
-            // Publish a notification to the artifact handler
-            notificationHandler.publish(ArtifactsUpdated.method, {
-                data: entryLocations,
-                timestamp: Date.now()
-            });
-        }
+        const notificationHandler = ArtifactNotificationHandler.getInstance();
+        // Publish a notification to the artifact handler
+        notificationHandler.publish(ArtifactsUpdated.method, {
+            data: entryLocations,
+            timestamp: Date.now()
+        });
         StateMachine.updateProjectStructure({ ...currentProjectStructure }); // Update the project structure and refresh the tree
     }
 }
