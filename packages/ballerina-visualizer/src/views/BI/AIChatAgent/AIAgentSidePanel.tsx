@@ -63,7 +63,8 @@ const ImplementationInfo = styled.div`
     align-items: center;
     background-color: var(--vscode-input-background);
     border: 1px solid var(--vscode-editorWidget-border);
-    padding: 5px 10px;
+    padding: 10px 10px;
+    border-radius: 4px;
     cursor: pointer;
     p {
         margin: 0;
