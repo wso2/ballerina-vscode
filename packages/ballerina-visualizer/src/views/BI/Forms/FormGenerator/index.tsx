@@ -808,7 +808,6 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
                 resetUpdatedExpressionField={resetUpdatedExpressionField}
                 subPanelView={subPanelView}
                 disableSaveButton={disableSaveButton}
-                submitText={submitText}
             />
         );
     }
