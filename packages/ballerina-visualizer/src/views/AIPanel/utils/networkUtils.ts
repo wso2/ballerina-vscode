@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import { AIMachineEventType } from "@wso2/ballerina-core";
+import { AIMachineEventType, LoginMethod } from "@wso2/ballerina-core";
 
 interface FetchWithAuthParams {
     url: string;
@@ -52,7 +52,7 @@ export const fetchWithAuth = async ({
     let finalToken;
     try {
         const loginMethod = await rpcClient.getAiPanelRpcClient().getLoginMethod();
-        if (loginMethod === "BI_INTEL") {
+        if (loginMethod === LoginMethod.BI_INTEL) {
             finalToken = await rpcClient.getAiPanelRpcClient().getAccessToken();
         }
     } catch (error) {

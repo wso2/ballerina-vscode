@@ -18,6 +18,7 @@
 
 import { NotificationType, RequestType } from "vscode-messenger-common";
 import { NodePosition, STNode } from "@wso2/syntax-tree";
+import { Command } from "./interfaces/ai-panel";
 import { LinePosition } from "./interfaces/common";
 import { Type } from "./interfaces/extended-lang-client";
 import { CodeData, DIRECTORY_MAP, ProjectStructureArtifactResponse, ProjectStructureResponse } from "./interfaces/bi";
@@ -207,6 +208,7 @@ export interface CodeMessages {
 
 export interface ChatStop {
     type: "stop";
+    command: Command | undefined;
 }
 
 export interface ChatError {

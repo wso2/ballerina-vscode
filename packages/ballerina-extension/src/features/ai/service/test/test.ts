@@ -14,6 +14,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
+import { Command } from "@wso2/ballerina-core";
 import { generateText, CoreMessage } from "ai";
 import { getAnthropicClient } from "../connection";
 import { 
@@ -51,7 +52,7 @@ export async function generateTestFromLLMCore(request: TestGenerationRequest1, e
 
 // Main public function that uses the default event handler
 export async function generateTestFromLLM(request: TestGenerationRequest1): Promise<TestGenerationResponse> {
-    const eventHandler = createWebviewEventHandler();
+    const eventHandler = createWebviewEventHandler(Command.Tests );
     return await generateTestFromLLMCore(request, eventHandler);
 }
 

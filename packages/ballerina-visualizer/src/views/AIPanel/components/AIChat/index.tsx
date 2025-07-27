@@ -311,7 +311,8 @@ const AIChat: React.FC = () => {
             console.log("Received stop signal");
             setIsCodeLoading(false);
             setIsLoading(false);
-            addChatEntry("user", messages[messages.length - 2].content,); // Handle this in input layer?
+            const command = response.command;
+            addChatEntry("user", messages[messages.length - 2].content, command != undefined && command == Command.Code ); // Handle this in input layer?
             addChatEntry("assistant", messages[messages.length - 1].content);
         } else if (type === "error") {
             console.log("Received error signal");

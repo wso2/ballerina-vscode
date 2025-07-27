@@ -35,6 +35,7 @@ import {
     ProjectSource,
     SourceFiles,
     OperationType,
+    Command
 } from "@wso2/ballerina-core";
 import { getProjectSource } from "../../../../rpc-managers/ai-panel/rpc-manager";
 import { CopilotEventHandler, createWebviewEventHandler } from "../event";
@@ -110,7 +111,7 @@ export async function generateHealthcareCodeCore(
                     // Already handled in error case.
                     break;
                 }
-                eventHandler({ type: "stop" });
+                eventHandler({ type: "stop", command: Command.Healthcare });
                 break;
             }
         }
@@ -119,7 +120,7 @@ export async function generateHealthcareCodeCore(
 
 // Main public function that uses the default event handler
 export async function generateHealthcareCode(params: GenerateCodeRequest): Promise<void> {
-    const eventHandler = createWebviewEventHandler();
+    const eventHandler = createWebviewEventHandler(Command.Healthcare);
     try {
         await generateHealthcareCodeCore(params, eventHandler);
     } catch (error) {
