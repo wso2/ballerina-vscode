@@ -27,6 +27,7 @@
       "node": "RESOURCE_ACTION_CALL",
       "org": "ballerina",
       "module": "http",
+      "packageName": "http",
       "object": "Client",
       "symbol": "get",
       "isNew": true

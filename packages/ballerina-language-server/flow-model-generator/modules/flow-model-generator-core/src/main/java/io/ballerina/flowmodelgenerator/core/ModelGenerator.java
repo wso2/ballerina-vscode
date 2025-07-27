@@ -75,6 +75,8 @@ import java.util.Set;
 import java.util.function.Function;
 
 import static io.ballerina.modelgenerator.commons.CommonUtils.isAgentClass;
+import static io.ballerina.modelgenerator.commons.CommonUtils.isAiVectorKnowledgeBase;
+import static io.ballerina.modelgenerator.commons.CommonUtils.isAiVectorStore;
 
 /**
  * Generator for the flow model.
@@ -350,7 +352,8 @@ public class ModelGenerator {
 
     private boolean isClassOrObject(TypeSymbol typeSymbol) {
         if (typeSymbol.kind() == SymbolKind.CLASS) {
-            if (((ClassSymbol) typeSymbol).qualifiers().contains(Qualifier.CLIENT) || isAgentClass(typeSymbol)) {
+            if (((ClassSymbol) typeSymbol).qualifiers().contains(Qualifier.CLIENT) || isAgentClass(typeSymbol)
+                    || isAiVectorStore(typeSymbol) || isAiVectorKnowledgeBase(typeSymbol)) {
                 return true;
             }
         }

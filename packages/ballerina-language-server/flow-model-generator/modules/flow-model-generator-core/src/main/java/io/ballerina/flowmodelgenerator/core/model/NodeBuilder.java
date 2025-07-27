@@ -67,6 +67,7 @@ import io.ballerina.flowmodelgenerator.core.model.node.StopBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.TransactionBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.VariableBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.VectorKnowledgeBaseBuilder;
+import io.ballerina.flowmodelgenerator.core.model.node.VectorKnowledgeBaseCallBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.VectorStoreBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.WaitBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.WhileBuilder;
@@ -157,6 +158,7 @@ public abstract class NodeBuilder implements DiagnosticHandler.DiagnosticCapable
         put(NodeKind.EMBEDDING_PROVIDER, EmbeddingProviderBuilder::new);
         put(NodeKind.VECTOR_STORE, VectorStoreBuilder::new);
         put(NodeKind.VECTOR_KNOWLEDGE_BASE, VectorKnowledgeBaseBuilder::new);
+        put(NodeKind.VECTOR_KNOWLEDGE_BASE_CALL, VectorKnowledgeBaseCallBuilder::new);
     }};
 
     public static NodeBuilder getNodeFromKind(NodeKind kind) {

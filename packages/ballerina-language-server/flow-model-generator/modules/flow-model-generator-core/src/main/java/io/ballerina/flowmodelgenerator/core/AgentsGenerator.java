@@ -95,6 +95,7 @@ import static io.ballerina.flowmodelgenerator.core.Constants.BALLERINA;
 import static io.ballerina.flowmodelgenerator.core.Constants.BALLERINAX;
 import static io.ballerina.flowmodelgenerator.core.Constants.BALLERINAX_AI_VERSION;
 import static io.ballerina.flowmodelgenerator.core.Constants.BALLERINA_AI_VERSION;
+import static io.ballerina.flowmodelgenerator.core.Constants.DEFAULT_MODEL_PROVIDER;
 import static io.ballerina.modelgenerator.commons.CommonUtils.importExists;
 import static io.ballerina.modelgenerator.commons.CommonUtils.isAiModule;
 
@@ -118,7 +119,6 @@ public class AgentsGenerator {
     private static final List<String> HTTP_REMOTE_METHOD_SKIP_LIST = List.of("get", "put", "post", "head",
             "delete", "patch", "options");
     private static final String OPENAI_MODEL_PROVIDER = "OpenAiModelProvider";
-    private static final String DEFAULT_MODEL_PROVIDER = "getDefaultModelProvider";
 
 
     public AgentsGenerator() {
@@ -424,7 +424,7 @@ public class AgentsGenerator {
 
             sourceBuilder.token()
                     .keyword(SyntaxKind.CLOSE_BRACE_TOKEN);
-            sourceBuilder.textEdit().acceptImport();
+            sourceBuilder.textEdit(SourceBuilder.SourceKind.DECLARATION).acceptImport();
             Map<Path, List<TextEdit>> textEdits = sourceBuilder.build();
             List<TextEdit> te = new ArrayList<>();
             Path p = addIsolateKeyword(optFuncName.get().value().toString().trim(), filePath, te, workspaceManager);
@@ -501,7 +501,7 @@ public class AgentsGenerator {
             }
             sourceBuilder.token()
                     .keyword(SyntaxKind.CLOSE_BRACE_TOKEN);
-            sourceBuilder.textEdit().acceptImport();
+            sourceBuilder.textEdit(SourceBuilder.SourceKind.DECLARATION).acceptImport();
             return gson.toJsonTree(sourceBuilder.build());
         } else if (nodeKind == NodeKind.RESOURCE_ACTION_CALL) {
             boolean hasDescription = genDescription(description, flowNode, sourceBuilder);
@@ -618,7 +618,7 @@ public class AgentsGenerator {
             }
             sourceBuilder.token()
                     .keyword(SyntaxKind.CLOSE_BRACE_TOKEN);
-            sourceBuilder.textEdit().acceptImport();
+            sourceBuilder.textEdit(SourceBuilder.SourceKind.DECLARATION).acceptImport();
             return gson.toJsonTree(sourceBuilder.build());
         }
         throw new IllegalStateException("Unsupported node kind to generate tool");

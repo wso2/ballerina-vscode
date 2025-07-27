@@ -33,37 +33,43 @@
                   "id": "info.secondaryPhones.0.code",
                   "variableName": "code",
                   "typeName": "string",
-                  "kind": "string"
+                  "kind": "string",
+                  "optional": false
                 },
                 {
                   "id": "info.secondaryPhones.0.number",
                   "variableName": "number",
                   "typeName": "string",
-                  "kind": "string"
+                  "kind": "string",
+                  "optional": false
                 }
               ],
               "id": "info.secondaryPhones.0",
               "variableName": "<secondaryPhonesItem>",
               "typeName": "SecondaryPhones",
-              "kind": "record"
+              "kind": "record",
+              "optional": false
             },
             "focusedMemberId": "secondaryPhonesItem",
             "id": "info.secondaryPhones",
             "variableName": "secondaryPhones",
             "typeName": "SecondaryPhones[]",
-            "kind": "array"
+            "kind": "array",
+            "optional": false
           },
           {
             "member": {
               "id": "info.emails.0",
               "variableName": "<emailsItem>",
               "typeName": "string",
-              "kind": "string"
+              "kind": "string",
+              "optional": false
             },
             "id": "info.emails",
             "variableName": "emails",
             "typeName": "string[]",
-            "kind": "array"
+            "kind": "array",
+            "optional": false
           },
           {
             "member": {
@@ -71,24 +77,28 @@
                 "id": "info.addresses.0.0",
                 "variableName": "<addressesItemItem>",
                 "typeName": "string",
-                "kind": "string"
+                "kind": "string",
+                "optional": false
               },
               "id": "info.addresses.0",
               "variableName": "<addressesItem>",
               "typeName": "string[]",
-              "kind": "array"
+              "kind": "array",
+              "optional": false
             },
             "id": "info.addresses",
             "variableName": "addresses",
             "typeName": "string[][]",
-            "kind": "array"
+            "kind": "array",
+            "optional": false
           }
         ],
         "id": "info",
         "variableName": "info",
         "typeName": "Info",
         "kind": "record",
-        "category": "variable"
+        "category": "variable",
+        "optional": false
       },
       {
         "fields": [
@@ -96,20 +106,23 @@
             "id": "secondaryPhonesItem.code",
             "variableName": "code",
             "typeName": "string",
-            "kind": "string"
+            "kind": "string",
+            "optional": false
           },
           {
             "id": "secondaryPhonesItem.number",
             "variableName": "number",
             "typeName": "string",
-            "kind": "string"
+            "kind": "string",
+            "optional": false
           }
         ],
         "id": "secondaryPhonesItem",
         "variableName": "secondaryPhonesItem",
         "typeName": "SecondaryPhones",
         "kind": "record",
-        "isFocused": true
+        "isFocused": true,
+        "optional": false
       }
     ],
     "output": {
@@ -119,24 +132,28 @@
             "id": "phoneNumbers.code",
             "variableName": "code",
             "typeName": "string",
-            "kind": "string"
+            "kind": "string",
+            "optional": false
           },
           {
             "id": "phoneNumbers.number",
             "variableName": "number",
             "typeName": "string",
-            "kind": "string"
+            "kind": "string",
+            "optional": false
           }
         ],
         "id": "phoneNumbers",
         "variableName": "<phoneNumbersItem>",
         "typeName": "SecondaryPhonesX",
-        "kind": "record"
+        "kind": "record",
+        "optional": false
       },
       "id": "phoneNumbers",
       "variableName": "phoneNumbers",
       "typeName": "SecondaryPhonesX[]",
-      "kind": "array"
+      "kind": "array",
+      "optional": false
     },
     "mappings": [
       {

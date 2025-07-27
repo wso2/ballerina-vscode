@@ -34,17 +34,18 @@ public class Constants {
     public static final String MAIN_FUNCTION_NAME = "main";
     public static final String BALLERINA = "ballerina";
     public static final String BALLERINAX = "ballerinax";
+
     // AI related constants
     public static final String AI = "ai";
-    public static final String OPENAI_MODEL_VERSION = "1.1.0";
-    public static final String OLLAMA_MODEL_VERSION = "1.0.1";
-    public static final String AZURE_MODEL_VERSION = "1.0.1";
-    public static final String MISTRAL_MODEL_VERSION = "1.0.1";
-    public static final String ANTHROPIC_MODEL_VERSION = "1.0.1";
-    public static final String DEEPSEEK_MODEL_VERSION = "1.0.1";
+    public static final String DEFAULT_MODEL_PROVIDER = "getDefaultModelProvider";
+    public static final String OPENAI_MODEL_VERSION = "1.2.0";
+    public static final String OLLAMA_MODEL_VERSION = "1.1.0";
+    public static final String AZURE_MODEL_VERSION = "1.1.0";
+    public static final String MISTRAL_MODEL_VERSION = "1.1.0";
+    public static final String ANTHROPIC_MODEL_VERSION = "1.1.0";
+    public static final String DEEPSEEK_MODEL_VERSION = "1.0.2";
     public static final String BALLERINA_AI_VERSION = "1.1.1";
     public static final String BALLERINAX_AI_VERSION = "1.0.1";
-
 
     // Constants used for Natural functions
     public static final class NaturalFunctions {
@@ -103,12 +104,8 @@ public class Constants {
 
         public static final String RECURSIVE_DOCUMENT_CHUNKER_LABEL = "Recursive Document Chunker";
         public static final String AUGMENT_QUERY_LABEL = "Augment Query";
-
-        public static final String MODEL_PROVIDER_TYPE_NAME = "ModelProvider";
-        public static final String EMBEDDING_PROVIDER_TYPE_NAME = "EmbeddingProvider";
-        public static final String KNOWLEDGE_BASE_TYPE_NAME = "KnowledgeBase";
+        
         public static final String VECTOR_KNOWLEDGE_BASE_TYPE_NAME = "VectorKnowledgeBase";
-        public static final String VECTOR_STORE_TYPE_NAME = "VectorStore";
         public static final String AGENT_TYPE_NAME = "Agent";
 
         public static final String AGENT_RUN_METHOD_NAME = "run";

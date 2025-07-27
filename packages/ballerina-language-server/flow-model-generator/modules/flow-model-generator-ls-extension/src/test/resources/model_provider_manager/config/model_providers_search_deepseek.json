@@ -19,8 +19,7 @@
               "module": "ai.deepseek",
               "packageName": "ai.deepseek",
               "object": "ModelProvider",
-              "symbol": "init",
-              "version": "1.0.1"
+              "symbol": "init"
             },
             "enabled": true
           }

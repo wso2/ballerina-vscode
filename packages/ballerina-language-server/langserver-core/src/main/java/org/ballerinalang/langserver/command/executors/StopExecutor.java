@@ -18,9 +18,15 @@ package org.ballerinalang.langserver.command.executors;
 import com.google.gson.JsonPrimitive;
 import org.ballerinalang.annotation.JavaSPIService;
 import org.ballerinalang.langserver.commons.ExecuteCommandContext;
+import org.ballerinalang.langserver.commons.command.CommandArgument;
 import org.ballerinalang.langserver.commons.command.spi.LSCommandExecutor;
 
+import java.nio.file.Files;
+import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
+import java.util.Optional;
+
+import static org.ballerinalang.langserver.command.executors.RunExecutor.ARG_PATH;
 
 /**
  * Command executor for stopping a Ballerina project.
@@ -36,8 +42,28 @@ public class StopExecutor implements LSCommandExecutor {
         return context.workspace().stop(extractPath(context));
     }
 
-    private static Path extractPath(ExecuteCommandContext context) {
-        return Path.of(context.getArguments().get(0).<JsonPrimitive>value().getAsString());
+    private Path extractPath(ExecuteCommandContext context) {
+        return getCommandArgWithName(context, ARG_PATH)
+                .map(CommandArgument::<JsonPrimitive>value)
+                .map(JsonPrimitive::getAsString)
+                .map(pathStr -> {
+                    try {
+                        Path path = Path.of(pathStr);
+                        if (!Files.exists(path)) {
+                            throw new IllegalArgumentException("Specified path does not exist: " + pathStr);
+                        }
+                        return path;
+                    } catch (InvalidPathException e) {
+                        throw new IllegalArgumentException("Invalid path: " + pathStr, e);
+                    }
+                })
+                .orElseThrow(() -> new IllegalArgumentException("Path argument is required"));
+    }
+
+    private static Optional<CommandArgument> getCommandArgWithName(ExecuteCommandContext context, String name) {
+        return context.getArguments().stream()
+                .filter(commandArg -> commandArg.key().equals(name))
+                .findAny();
     }
 
     @Override

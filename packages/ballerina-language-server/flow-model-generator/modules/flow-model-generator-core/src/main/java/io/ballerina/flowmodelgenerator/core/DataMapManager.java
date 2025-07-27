@@ -99,6 +99,7 @@ import io.ballerina.tools.text.TextRange;
 import org.ballerinalang.diagramutil.connector.models.connector.Type;
 import org.ballerinalang.diagramutil.connector.models.connector.TypeInfo;
 import org.ballerinalang.diagramutil.connector.models.connector.types.ArrayType;
+import org.ballerinalang.diagramutil.connector.models.connector.types.ConstType;
 import org.ballerinalang.diagramutil.connector.models.connector.types.EnumType;
 import org.ballerinalang.diagramutil.connector.models.connector.types.PrimitiveType;
 import org.ballerinalang.diagramutil.connector.models.connector.types.RecordType;
@@ -253,7 +254,7 @@ public class DataMapManager {
                     setFocusIdForExpression(inputPorts, expression.toString().trim(), mappingPort.id);
                     NonTerminalNode parent = expressionNode.parent();
                     SyntaxKind parentKind = parent.kind();
-                    while (parentKind != SyntaxKind.LOCAL_VAR_DECL && parentKind != SyntaxKind.MODULE_VAR_DECL)  {
+                    while (parentKind != SyntaxKind.LOCAL_VAR_DECL && parentKind != SyntaxKind.MODULE_VAR_DECL) {
                         if (parentKind == SyntaxKind.QUERY_EXPRESSION) {
                             QueryExpressionNode parentQueryExpr = (QueryExpressionNode) parent;
                             FromClauseNode parentFromClause = parentQueryExpr.queryPipeline().fromClause();
@@ -309,6 +310,8 @@ public class DataMapManager {
             inputPorts.sort(Comparator.comparing(mt -> mt.id));
         }
 
+        inputPorts = removeParentPort(node, inputPorts);
+
         List<Mapping> mappings = new ArrayList<>();
         TypeDescKind typeDescKind = CommonUtils.getRawType(targetNode.typeSymbol()).typeKind();
         if (typeDescKind == TypeDescKind.RECORD) {
@@ -322,6 +325,30 @@ public class DataMapManager {
         }
 
         return gson.toJsonTree(new Model(inputPorts, outputPort, subMappingPorts, mappings, query));
+    }
+
+    private List<MappingPort> removeParentPort(NonTerminalNode node, List<MappingPort> inputPorts) {
+        if (node.kind() != SyntaxKind.LET_VAR_DECL) {
+            return inputPorts;
+        }
+        NonTerminalNode parentNode = node.parent();
+        while (parentNode != null) {
+            if (parentNode.kind() == SyntaxKind.LOCAL_VAR_DECL) {
+                break;
+            }
+            parentNode = parentNode.parent();
+        }
+        if (parentNode == null) {
+            return inputPorts;
+        }
+        String varName = CommonUtils.getVariableName(((VariableDeclarationNode) parentNode).typedBindingPattern());
+        List<MappingPort> newInputPorts = new ArrayList<>();
+        for (MappingPort inputPort : inputPorts) {
+            if (!inputPort.variableName.equals(varName)) {
+                newInputPorts.add(inputPort);
+            }
+        }
+        return newInputPorts;
     }
 
     private void setFocusIdForExpression(List<MappingPort> ports, String expression, String focusId) {
@@ -385,7 +412,7 @@ public class DataMapManager {
             return new TargetNode(typeSymbol, variableSymbol.getName().get(), initializer);
         }
 
-        String[] fieldSplits = targetField.split("\\.");
+        String[] fieldSplits = targetField.split(DOT);
         for (int i = 1; i < fieldSplits.length; i++) {
             String field = fieldSplits[i];
             typeSymbol = CommonUtils.getRawType(typeSymbol);
@@ -811,7 +838,7 @@ public class DataMapManager {
                 RecordType recordType = (RecordType) type;
                 TypeInfo typeInfo = type.getTypeInfo();
                 MappingRecordPort recordPort = new MappingRecordPort(id, name, typeInfo != null ?
-                        typeInfo.name : type.getTypeName(), type.getTypeName());
+                        typeInfo.name : type.getTypeName(), type.getTypeName(), type.optional);
                 if (typeInfo != null) {
                     String visitedTypeKey = typeInfo.name + ":" + typeInfo.orgName + ":" +
                             typeInfo.moduleName +
@@ -824,7 +851,10 @@ public class DataMapManager {
                 }
                 return recordPort;
             } else if (type instanceof PrimitiveType) {
-                return new MappingPort(id, type.getName(), type.getTypeName(), type.getTypeName());
+                return new MappingPort(id, name, type.getTypeName(), type.getTypeName(), type.optional);
+            } else if (type instanceof ConstType) {
+                return new MappingPort(type.getName(), type.getName(), type.getTypeName(), type.getTypeName(),
+                        type.optional);
             } else if (type.getTypeName().equals("array")) {
                 ArrayType arrayType = (ArrayType) type;
                 MappingPort memberPort = getMappingPort(isInputPort ? id + ".0" : id, getItemName(name),
@@ -833,13 +863,13 @@ public class DataMapManager {
                     memberPort.variableName = getItemName(name);
                 }
                 MappingArrayPort arrayPort = new MappingArrayPort(id, name, memberPort == null ? "record" :
-                        memberPort.typeName + "[]", type.getTypeName());
+                        memberPort.typeName + "[]", type.getTypeName(), type.optional);
                 arrayPort.setMember(memberPort);
                 return arrayPort;
             } else if (type.getTypeName().equals("enum")) {
                 EnumType enumType = (EnumType) type;
                 MappingEnumPort enumPort = new MappingEnumPort(id, name, enumType.getTypeInfo().name,
-                        type.getTypeName());
+                        type.getTypeName(), enumType.optional);
                 for (Type member : enumType.members) {
                     MappingPort memberPort = getMappingPort(id + "." + member.getTypeName(), member.getTypeName(),
                             member, isInputPort, visitedTypes);
@@ -851,7 +881,7 @@ public class DataMapManager {
             } else if (type.getTypeName().equals("union")) {
                 UnionType unionType = (UnionType) type;
                 MappingUnionPort unionPort = new MappingUnionPort(id, name, unionType.getName(),
-                        type.getTypeName());
+                        type.getTypeName(), unionType.optional);
                 for (Type member : unionType.members) {
                     MappingPort memberPort = getMappingPort(id + "." + member.getName(), member.getName(),
                             member, isInputPort, visitedTypes);
@@ -872,7 +902,7 @@ public class DataMapManager {
                 TypeInfo typeFromVisitedInfo = typeFromVisited.getTypeInfo();
                 MappingPort recursivePort = new MappingPort(id, name, typeFromVisitedInfo != null ?
                         typeFromVisitedInfo.name : typeFromVisited.getTypeName(),
-                        typeFromVisited.getTypeName());
+                        typeFromVisited.getTypeName(), type.optional);
                 recursivePort.setIsRecursive(true);
                 return recursivePort;
             }
@@ -923,15 +953,15 @@ public class DataMapManager {
             String output = mapping.output();
             String[] splits = output.split(DOT);
             StringBuilder sb = new StringBuilder();
-            genSource(getMappingExpr(expr, targetField), splits, 1, sb,
-                    mapping.expression(), null, textEdits);
+            genSource(getMappingExpr(expr, targetField), splits, 1, sb, mapping.expression(), null, textEdits);
         }
 
         setImportStatements(mapping.imports(), textEdits);
         return gson.toJsonTree(textEditsMap);
     }
 
-    public JsonElement deleteMapping(Path filePath, JsonElement codeData, JsonElement mappingId, String targetField) {
+    public JsonElement deleteMapping(SemanticModel semanticModel, Path filePath, JsonElement codeData,
+                                     JsonElement mappingId, String targetField) {
         Codedata codedata = gson.fromJson(codeData, Codedata.class);
         Mapping mapping = gson.fromJson(mappingId, Mapping.class);
         NonTerminalNode node = getNode(codedata.lineRange());
@@ -958,7 +988,7 @@ public class DataMapManager {
             }
             String output = mapping.output();
             String[] splits = output.split(DOT);
-            genDeleteMappingSource(getMappingExpr(expr, targetField), splits, 1, textEdits);
+            genDeleteMappingSource(semanticModel, getMappingExpr(expr, targetField), splits, 1, textEdits);
         }
 
         return gson.toJsonTree(textEditsMap);
@@ -1018,34 +1048,8 @@ public class DataMapManager {
         }
     }
 
-    private void genDeleteMappingSource(ExpressionNode expr, String[] names, int idx, List<TextEdit> textEdits) {
-        if (expr == null) {
-            return;
-        }
-
-        if (expr instanceof MappingConstructorExpressionNode mappingCtrExpr) {
-            String name = names[idx];
-            Map<String, SpecificFieldNode> mappingFields = convertMappingFieldsToMap(mappingCtrExpr);
-            SpecificFieldNode mappingFieldNode = mappingFields.get(name);
-            if (mappingFieldNode == null) {
-                return;
-            } else {
-                genDeleteMappingSource(mappingFieldNode.valueExpr().orElseThrow(), names, idx + 1,
-                        textEdits);
-            }
-        } else if (expr instanceof ListConstructorExpressionNode listCtrExpr) {
-            if (idx != names.length) {
-                String name = names[idx];
-                if (name.matches("\\d+")) {
-                    int index = Integer.parseInt(name);
-                    if (index < listCtrExpr.expressions().size()) {
-                        genDeleteMappingSource((ExpressionNode) listCtrExpr.expressions().get(index),
-                                names, idx + 1, textEdits);
-                    }
-                }
-            }
-        }
-
+    private void genDeleteMappingSource(SemanticModel semanticModel, ExpressionNode expr, String[] names, int idx,
+                                        List<TextEdit> textEdits) {
         if (idx == names.length) {
             NonTerminalNode currentNode = expr;
             NonTerminalNode highestEmptyField = null;
@@ -1076,60 +1080,121 @@ public class DataMapManager {
             if (highestEmptyField != null) {
                 textEdits.add(new TextEdit(CommonUtils.toRange(highestEmptyField.lineRange()), ""));
             } else {
-                SpecificFieldNode specificField = (SpecificFieldNode) expr.parent();
-                MappingConstructorExpressionNode mappingCtr = (MappingConstructorExpressionNode)
-                        specificField.parent();
-                SeparatedNodeList<MappingFieldNode> fields = mappingCtr.fields();
-                int fieldCount = fields.size();
+                NonTerminalNode parent = expr.parent();
+                if (parent.kind() == SyntaxKind.SPECIFIC_FIELD) {
+                    SpecificFieldNode specificField = (SpecificFieldNode) parent;
+                    MappingConstructorExpressionNode mappingCtr = (MappingConstructorExpressionNode)
+                            specificField.parent();
+                    SeparatedNodeList<MappingFieldNode> fields = mappingCtr.fields();
+                    int fieldCount = fields.size();
 
-                if (fieldCount > 1) {
-                    int fieldIndex = -1;
-                    for (int i = 0; i < fieldCount; i++) {
-                        if (fields.get(i) == specificField) {
-                            fieldIndex = i;
-                            break;
-                        }
-                    }
-                    if (fieldIndex >= 0) {
-                        TextRange deleteRange;
-                        if (fieldIndex == fieldCount - 1) {
-                            TextRange fieldRange = specificField.textRange();
-                            Node separator = fields.getSeparator(fieldIndex - 1);
-                            if (separator != null) {
-                                deleteRange = TextRange.from(
-                                        separator.textRange().startOffset(),
-                                        fieldRange.endOffset() - separator.textRange().startOffset()
-                                );
-                            } else {
-                                deleteRange = fieldRange;
+                    if (fieldCount > 1) {
+                        int fieldIndex = -1;
+                        for (int i = 0; i < fieldCount; i++) {
+                            if (fields.get(i) == specificField) {
+                                fieldIndex = i;
+                                break;
                             }
+                        }
+                        if (fieldIndex >= 0) {
+                            TextRange deleteRange;
+                            if (fieldIndex == fieldCount - 1) {
+                                TextRange fieldRange = specificField.textRange();
+                                Node separator = fields.getSeparator(fieldIndex - 1);
+                                if (separator != null) {
+                                    deleteRange = TextRange.from(
+                                            separator.textRange().startOffset(),
+                                            fieldRange.endOffset() - separator.textRange().startOffset()
+                                    );
+                                } else {
+                                    deleteRange = fieldRange;
+                                }
+                            } else {
+                                TextRange fieldRange = specificField.textRange();
+                                Node separator = fields.getSeparator(fieldIndex);
+                                if (separator != null) {
+                                    deleteRange = TextRange.from(
+                                            fieldRange.startOffset(),
+                                            fields.get(fieldIndex + 1).
+                                                    textRange().startOffset() - fieldRange.startOffset()
+                                    );
+                                } else {
+                                    deleteRange = fieldRange;
+                                }
+                            }
+
+                            String fileName = document.name();
+                            LinePosition startPos = document.syntaxTree().
+                                    textDocument().linePositionFrom(deleteRange.startOffset());
+                            LinePosition endPos = document.syntaxTree().
+                                    textDocument().linePositionFrom(deleteRange.endOffset());
+
+                            LineRange lineRangeToDelete = LineRange.from(fileName, startPos, endPos);
+                            textEdits.add(new TextEdit(CommonUtils.toRange(lineRangeToDelete), ""));
                         } else {
-                            TextRange fieldRange = specificField.textRange();
-                            Node separator = fields.getSeparator(fieldIndex);
-                            if (separator != null) {
-                                deleteRange = TextRange.from(
-                                        fieldRange.startOffset(),
-                                        fields.get(fieldIndex + 1).
-                                                textRange().startOffset() - fieldRange.startOffset()
-                                );
-                            } else {
-                                deleteRange = fieldRange;
-                            }
+                            textEdits.add(new TextEdit(CommonUtils.toRange(specificField.lineRange()), ""));
                         }
-
-                        String fileName = document.name();
-                        LinePosition startPos = document.syntaxTree().
-                                textDocument().linePositionFrom(deleteRange.startOffset());
-                        LinePosition endPos = document.syntaxTree().
-                                textDocument().linePositionFrom(deleteRange.endOffset());
-
-                        LineRange lineRangeToDelete = LineRange.from(fileName, startPos, endPos);
-                        textEdits.add(new TextEdit(CommonUtils.toRange(lineRangeToDelete), ""));
                     } else {
                         textEdits.add(new TextEdit(CommonUtils.toRange(specificField.lineRange()), ""));
                     }
-                } else {
-                    textEdits.add(new TextEdit(CommonUtils.toRange(specificField.lineRange()), ""));
+                } else if (parent.kind() == SyntaxKind.LIST_CONSTRUCTOR) {
+                    ListConstructorExpressionNode listCtrExpr = (ListConstructorExpressionNode) parent;
+                    SeparatedNodeList<Node> expressions = listCtrExpr.expressions();
+                    int memberIdx = 0;
+                    for (int i = 0; i < expressions.size(); i++) {
+                        if (expressions.get(i).equals(expr)) {
+                            memberIdx = i;
+                            break;
+                        }
+                    }
+
+                    if (expressions.size() == 1) {
+                        textEdits.add(new TextEdit(CommonUtils.toRange(expr.lineRange()), ""));
+                    } else {
+                        if (memberIdx + 1 == expressions.size()) {
+                            LinePosition startPos = expressions.get(memberIdx - 1).lineRange().startLine();
+                            LinePosition endPos = expr.lineRange().endLine();
+                            textEdits.add(new TextEdit(CommonUtils.toRange(startPos, endPos), ""));
+                        } else if (memberIdx == 0) {
+                            LinePosition startPos = expr.lineRange().startLine();
+                            LinePosition endPos = expressions.get(1).lineRange().startLine();
+                            textEdits.add(new TextEdit(CommonUtils.toRange(startPos, endPos), ""));
+                        } else {
+                            LinePosition startPos = expressions.get(memberIdx - 1).lineRange().startLine();
+                            LinePosition endPos = expr.lineRange().endLine();
+                            textEdits.add(new TextEdit(CommonUtils.toRange(startPos, endPos), ""));
+                        }
+                    }
+                } else if (parent.kind() == SyntaxKind.LOCAL_VAR_DECL) {
+                    Optional<Symbol> optSymbol = semanticModel.symbol(parent);
+                    if (optSymbol.isPresent()) {
+                        Symbol symbol = optSymbol.get();
+                        if (symbol.kind() == SymbolKind.VARIABLE) {
+                            VariableSymbol varSymbol = (VariableSymbol) symbol;
+                            String defaultVal = getDefaultValue(
+                                    CommonUtil.getRawType(varSymbol.typeDescriptor()).typeKind().getName());
+                            textEdits.add(new TextEdit(CommonUtils.toRange(expr.lineRange()), defaultVal));
+                        }
+                    }
+                }
+            }
+        } else if (expr.kind() == SyntaxKind.MAPPING_CONSTRUCTOR) {
+            MappingConstructorExpressionNode mappingCtrExpr = (MappingConstructorExpressionNode) expr;
+            String name = names[idx];
+            Map<String, SpecificFieldNode> mappingFields = convertMappingFieldsToMap(mappingCtrExpr);
+            SpecificFieldNode mappingFieldNode = mappingFields.get(name);
+            if (mappingFieldNode != null) {
+                genDeleteMappingSource(semanticModel, mappingFieldNode.valueExpr().orElseThrow(), names, idx + 1,
+                        textEdits);
+            }
+        } else if (expr.kind() == SyntaxKind.LIST_CONSTRUCTOR) {
+            ListConstructorExpressionNode listCtrExpr = (ListConstructorExpressionNode) expr;
+            String name = names[idx];
+            if (name.matches("\\d+")) {
+                int index = Integer.parseInt(name);
+                if (index < listCtrExpr.expressions().size()) {
+                    genDeleteMappingSource(semanticModel, (ExpressionNode) listCtrExpr.expressions().get(index),
+                            names, idx + 1, textEdits);
                 }
             }
         }
@@ -1592,7 +1657,7 @@ public class DataMapManager {
             return null;
         }
         TypeSymbol typeSymbol = CommonUtils.getRawType(expression.typeSymbol());
-        String[] splits = fieldId.split("\\.");
+        String[] splits = fieldId.split(DOT);
         for (int i = 1; i < splits.length; i++) {
             String split = splits[i];
             TypeDescKind typeDescKind = typeSymbol.typeKind();
@@ -1816,11 +1881,12 @@ public class DataMapManager {
 
         Map<Path, List<TextEdit>> textEditsMap = new HashMap<>();
         ExpressionNode expressionNode = targetNode.expressionNode();
-        LineRange fieldExprRange = getFieldExprRange(expressionNode, 1, mapping.output().split("\\."));
         String functionName = genCustomFunctionDef(workspaceManager, filePath, functionMetadata, textEditsMap);
-        if (fieldExprRange != null) {
-            genCustomFunctionCall(filePath, functionName, fieldExprRange, mapping.expression(), textEditsMap);
-        }
+
+        List<TextEdit> textEdits = new ArrayList<>();
+        textEditsMap.put(filePath, textEdits);
+        genSource(expressionNode, mapping.output().split(DOT), 1, new StringBuilder(),
+                functionName + "(" + mapping.expression() + ")", null, textEdits);
         return gson.toJsonTree(textEditsMap);
     }
 
@@ -1911,13 +1977,6 @@ public class DataMapManager {
         }
     }
 
-    private void genCustomFunctionCall(Path filePath, String functionName, LineRange range, String arg,
-                                                Map<Path, List<TextEdit>> textEditsMap) {
-        List<TextEdit> textEdits = new ArrayList<>();
-        textEdits.add(new TextEdit(CommonUtils.toRange(range), functionName + "(" + arg + ")"));
-        textEditsMap.put(filePath, textEdits);
-    }
-
     private NonTerminalNode getNode(LineRange lineRange) {
         SyntaxTree syntaxTree = document.syntaxTree();
         ModulePartNode modulePartNode = syntaxTree.rootNode();
@@ -2001,12 +2060,14 @@ public class DataMapManager {
         Boolean isFocused;
         Boolean isRecursive;
         ModuleInfo moduleInfo;
+        Boolean optional;
 
-        MappingPort(String id, String variableName, String typeName, String kind) {
+        MappingPort(String id, String variableName, String typeName, String kind, Boolean optional) {
             this.id = id;
             this.variableName = variableName;
             this.typeName = typeName;
             this.kind = kind;
+            this.optional = optional;
         }
 
         String getCategory() {
@@ -2048,13 +2109,17 @@ public class DataMapManager {
         ModuleInfo getModuleInfo() {
             return this.moduleInfo;
         }
+
+        Boolean getOptional() {
+            return this.optional;
+        }
     }
 
     private static class MappingRecordPort extends MappingPort {
         List<MappingPort> fields = new ArrayList<>();
 
-        MappingRecordPort(String id, String variableName, String typeName, String kind) {
-            super(id, variableName, typeName, kind);
+        MappingRecordPort(String id, String variableName, String typeName, String kind, Boolean optional) {
+            super(id, variableName, typeName, kind, optional);
         }
     }
 
@@ -2062,8 +2127,8 @@ public class DataMapManager {
         MappingPort member;
         String focusedMemberId;
 
-        MappingArrayPort(String id, String variableName, String typeName, String kind) {
-            super(id, variableName, typeName, kind);
+        MappingArrayPort(String id, String variableName, String typeName, String kind, Boolean optional) {
+            super(id, variableName, typeName, kind, optional);
         }
 
         void setMember(MappingPort member) {
@@ -2086,16 +2151,16 @@ public class DataMapManager {
     private static class MappingEnumPort extends MappingPort {
         List<MappingPort> members = new ArrayList<>();
 
-        MappingEnumPort(String id, String variableName, String typeName, String kind) {
-            super(id, variableName, typeName, kind);
+        MappingEnumPort(String id, String variableName, String typeName, String kind, Boolean optional) {
+            super(id, variableName, typeName, kind, optional);
         }
     }
 
     private static class MappingUnionPort extends MappingPort {
         List<MappingPort> members = new ArrayList<>();
 
-        MappingUnionPort(String id, String variableName, String typeName, String kind) {
-            super(id, variableName, typeName, kind);
+        MappingUnionPort(String id, String variableName, String typeName, String kind, Boolean optional) {
+            super(id, variableName, typeName, kind, optional);
         }
     }
 }

@@ -1,0 +1,70 @@
+{
+  "source": "proj/main.bal",
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "main.bal",
+      "startLine": {
+        "line": 20,
+        "offset": 12
+      },
+      "endLine": {
+        "line": 20,
+        "offset": 34
+      }
+    },
+    "sourceCode": "Student student = {};"
+  },
+  "mapping": {
+    "output": "student.username",
+    "inputs": [],
+    "expression": "userInfo.username",
+    "diagnostics": []
+  },
+  "functionMetadata": {
+    "returnType": "Student",
+    "parameters": [
+      {
+        "name": "student",
+        "type": "Student",
+        "isOptional": false,
+        "isNullable": false,
+        "kind": "record"
+      }
+    ]
+  },
+  "targetField": "student",
+  "output": {
+    "proj/functions.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 2,
+            "character": 1
+          },
+          "end": {
+            "line": 2,
+            "character": 1
+          }
+        },
+        "newText": "\nfunction functionStudentToStudent2(Student student) returns Student {}"
+      }
+    ],
+    "proj/main.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 20,
+            "character": 32
+          },
+          "end": {
+            "line": 20,
+            "character": 32
+          }
+        },
+        "newText": "username: functionStudentToStudent2(userInfo.username)"
+      }
+    ]
+  }
+}

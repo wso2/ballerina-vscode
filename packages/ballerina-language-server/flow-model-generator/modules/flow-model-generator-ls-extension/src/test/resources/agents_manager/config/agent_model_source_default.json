@@ -86,7 +86,7 @@
             "character": 0
           }
         },
-        "newText": "ai:Wso2ModelProvider aiWso2modelprovider = check ai:getDefaultModelProvider();"
+        "newText": "final ai:Wso2ModelProvider aiWso2modelprovider = check ai:getDefaultModelProvider();"
       }
     ]
   }

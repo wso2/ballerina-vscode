@@ -29,14 +29,16 @@
             "id": "user.name",
             "variableName": "name",
             "typeName": "string",
-            "kind": "string"
+            "kind": "string",
+            "optional": false
           }
         ],
         "id": "user",
         "variableName": "user",
         "typeName": "User",
         "kind": "record",
-        "category": "parameter"
+        "category": "parameter",
+        "optional": false
       }
     ],
     "output": {
@@ -54,54 +56,63 @@
                             "id": "user1.user2.user3.user4.user5.u",
                             "variableName": "<uItem>",
                             "typeName": "string",
-                            "kind": "string"
+                            "kind": "string",
+                            "optional": false
                           },
                           "id": "user1.user2.user3.user4.user5.u",
                           "variableName": "u",
                           "typeName": "string[]",
-                          "kind": "array"
+                          "kind": "array",
+                          "optional": false
                         }
                       ],
                       "id": "user1.user2.user3.user4.user5",
                       "variableName": "user5",
                       "typeName": "User5",
-                      "kind": "record"
+                      "kind": "record",
+                      "optional": false
                     }
                   ],
                   "id": "user1.user2.user3.user4",
                   "variableName": "user4",
                   "typeName": "User4",
-                  "kind": "record"
+                  "kind": "record",
+                  "optional": false
                 },
                 {
                   "id": "user1.user2.user3.i3",
                   "variableName": "i3",
                   "typeName": "int",
-                  "kind": "int"
+                  "kind": "int",
+                  "optional": false
                 }
               ],
               "id": "user1.user2.user3",
               "variableName": "user3",
               "typeName": "User3",
-              "kind": "record"
+              "kind": "record",
+              "optional": false
             }
           ],
           "id": "user1.user2",
           "variableName": "user2",
           "typeName": "User2",
-          "kind": "record"
+          "kind": "record",
+          "optional": false
         },
         {
           "id": "user1.s1",
           "variableName": "s1",
           "typeName": "string",
-          "kind": "string"
+          "kind": "string",
+          "optional": false
         }
       ],
       "id": "user1",
       "variableName": "user1",
       "typeName": "User1",
-      "kind": "record"
+      "kind": "record",
+      "optional": false
     },
     "mappings": [
       {

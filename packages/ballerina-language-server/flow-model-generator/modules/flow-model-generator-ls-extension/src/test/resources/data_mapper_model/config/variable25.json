@@ -29,26 +29,30 @@
             "id": "std.firstName",
             "variableName": "firstName",
             "typeName": "string",
-            "kind": "string"
+            "kind": "string",
+            "optional": false
           },
           {
             "id": "std.lastName",
             "variableName": "lastName",
             "typeName": "string",
-            "kind": "string"
+            "kind": "string",
+            "optional": false
           },
           {
             "id": "std.stdAge",
             "variableName": "stdAge",
             "typeName": "int",
-            "kind": "int"
+            "kind": "int",
+            "optional": false
           }
         ],
         "id": "std",
         "variableName": "std",
         "typeName": "Student",
         "kind": "record",
-        "category": "parameter"
+        "category": "parameter",
+        "optional": false
       }
     ],
     "output": {
@@ -57,19 +61,22 @@
           "id": "var1909.name",
           "variableName": "name",
           "typeName": "string",
-          "kind": "string"
+          "kind": "string",
+          "optional": false
         },
         {
           "id": "var1909.age",
           "variableName": "age",
           "typeName": "int",
-          "kind": "int"
+          "kind": "int",
+          "optional": false
         },
         {
           "id": "var1909.city",
           "variableName": "city",
           "typeName": "string",
-          "kind": "string"
+          "kind": "string",
+          "optional": false
         },
         {
           "fields": [
@@ -79,37 +86,43 @@
                   "id": "var1909.foo.bar.firstName",
                   "variableName": "firstName",
                   "typeName": "string",
-                  "kind": "string"
+                  "kind": "string",
+                  "optional": false
                 },
                 {
                   "id": "var1909.foo.bar.lastName",
                   "variableName": "lastName",
                   "typeName": "string",
-                  "kind": "string"
+                  "kind": "string",
+                  "optional": false
                 },
                 {
                   "id": "var1909.foo.bar.stdAge",
                   "variableName": "stdAge",
                   "typeName": "int",
-                  "kind": "int"
+                  "kind": "int",
+                  "optional": false
                 }
               ],
               "id": "var1909.foo.bar",
               "variableName": "bar",
               "typeName": "Student",
-              "kind": "record"
+              "kind": "record",
+              "optional": false
             }
           ],
           "id": "var1909.foo",
           "variableName": "foo",
           "typeName": "record",
-          "kind": "record"
+          "kind": "record",
+          "optional": false
         }
       ],
       "id": "var1909",
       "variableName": "var1909",
       "typeName": "Person",
-      "kind": "record"
+      "kind": "record",
+      "optional": false
     },
     "mappings": [
       {

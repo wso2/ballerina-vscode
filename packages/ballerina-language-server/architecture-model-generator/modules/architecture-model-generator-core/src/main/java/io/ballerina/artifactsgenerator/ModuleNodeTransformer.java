@@ -49,6 +49,9 @@ import org.ballerinalang.langserver.commons.BallerinaCompilerApi;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import static io.ballerina.modelgenerator.commons.CommonUtils.isAiVectorKnowledgeBase;
+import static io.ballerina.modelgenerator.commons.CommonUtils.isAiVectorStore;
+
 /**
  * Transforms module nodes into artifacts based on the syntax node.
  *
@@ -231,7 +234,8 @@ public class ModuleNodeTransformer extends NodeTransformer<Optional<Artifact>> {
             TypeReferenceTypeSymbol typeDescriptorSymbol =
                     (TypeReferenceTypeSymbol) ((VariableSymbol) symbol).typeDescriptor();
             ClassSymbol classSymbol = (ClassSymbol) typeDescriptorSymbol.typeDescriptor();
-            if (classSymbol.qualifiers().contains(Qualifier.CLIENT)) {
+            if (classSymbol.qualifiers().contains(Qualifier.CLIENT) || isAiVectorKnowledgeBase(classSymbol)
+                    || isAiVectorStore(symbol)) {
                 return Optional.of(classSymbol);
             }
         } catch (Throwable e) {
