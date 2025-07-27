@@ -88,6 +88,33 @@ public class ConnectorSearchCommand extends SearchCommand {
         Category.Builder localCategoryBuilder = rootBuilder.stepIn("Local", null, null);
         localConnectors.forEach(connection -> localCategoryBuilder.node(generateAvailableNode(connection, true)));
 
+        Optional<String> organizationName = getOrganizationName();
+        List<SearchResult> organizationConnectors = new ArrayList<>();
+        if (organizationName.isPresent()) {
+            CentralAPI centralClient = RemoteCentral.getInstance();
+            Map<String, String> queryMap = new HashMap<>();
+            queryMap.put("limit", String.valueOf(limit));
+            queryMap.put("offset", String.valueOf(offset));
+            queryMap.put("org", organizationName.get());
+            ConnectorsResponse connectorsResponse = centralClient.connectors(queryMap);
+            if (connectorsResponse != null && connectorsResponse.connectors() != null) {
+                for (Connector connector : connectorsResponse.connectors()) {
+                    SearchResult.Package packageInfo = new SearchResult.Package(
+                            connector.packageInfo.getOrganization(),
+                            connector.packageInfo.getName(),
+                            connector.moduleName,
+                            connector.packageInfo.getVersion()
+                    );
+                    SearchResult searchResult = SearchResult.from(packageInfo, connector.name,
+                            connector.packageInfo.getSummary(), true);
+                    organizationConnectors.add(searchResult);
+                }
+            }
+        }
+        Category.Builder organizationCategoryBuilder = rootBuilder.stepIn(Category.Name.CURRENT_ORGANIZATION);
+        organizationConnectors.forEach(
+                connection -> organizationCategoryBuilder.node(generateAvailableNode(connection)));
+
         Map<String, List<SearchResult>> categories = fetchPopularItems();
         for (Map.Entry<String, List<SearchResult>> entry : categories.entrySet()) {
             Category.Builder categoryBuilder = rootBuilder.stepIn(entry.getKey(), null, null);
