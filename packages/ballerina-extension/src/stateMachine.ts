@@ -507,10 +507,9 @@ export function updateView(refreshTreeView?: boolean) {
     }
 
     let newLocation: VisualizerLocation;
-
-    if (lastView) {
-        newLocation = { ...lastView.location };
-        const currentIdentifier = lastView.location.identifier;
+    newLocation = { ...lastView.location };
+    if (lastView && lastView.location?.artifactType && lastView.location?.identifier) {
+        const currentIdentifier = lastView.location?.identifier;
         let currentArtifact: ProjectStructureArtifactResponse;
 
         // These changes will be revisited in the revamp
@@ -533,7 +532,6 @@ export function updateView(refreshTreeView?: boolean) {
         history.updateCurrentEntry({
             ...lastView,
             location: newLocation
-
         });
     }
 
