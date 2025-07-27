@@ -14,7 +14,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import { GenerateOpenAPIRequest } from "@wso2/ballerina-core";
+import { GenerateOpenAPIRequest, Command } from "@wso2/ballerina-core";
 import { streamText } from "ai";
 import { getAnthropicClient, ANTHROPIC_HAIKU } from "../connection";
 import { getErrorMessage, populateHistory } from "../utils";
@@ -66,7 +66,7 @@ export async function generateOpenAPISpecCore(
             }
             case "finish": {
                 const finishReason = part.finishReason;
-                eventHandler({ type: "stop" });
+                eventHandler({ type: "stop", command: Command.OpenAPI });
                 break;
             }
         }
@@ -75,7 +75,7 @@ export async function generateOpenAPISpecCore(
 
 // Main public function that uses the default event handler
 export async function generateOpenAPISpec(params: GenerateOpenAPIRequest): Promise<void> {
-    const eventHandler = createWebviewEventHandler();
+    const eventHandler = createWebviewEventHandler(Command.OpenAPI);
     try {
         await generateOpenAPISpecCore(params, eventHandler);
     } catch (error) {

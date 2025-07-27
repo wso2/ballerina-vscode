@@ -118,11 +118,15 @@ async function getLLMResponses(sources: BallerinaSource[], token: string, backen
     const firstResponse = responses[0];
 
     const filteredResponses: Response[]
-        = responses.filter(response => !isError(response) && response.ok) as Response[];
+        = responses.filter(response => response != undefined && !isError(response) && response.ok) as Response[];
 
     if (filteredResponses.length === 0) {
         if (isError(firstResponse)) {
             return HttpStatusCode.InternalServerError;
+        }
+
+        if (firstResponse == undefined) {
+            return null;
         }
         return firstResponse.status;
     }
@@ -268,12 +272,12 @@ export async function getLLMDiagnosticArrayAsString(projectUri: string): Promise
 
     const responses = await getLLMResponses(sources, token, backendurl);
 
-    if (isNumber(responses)) {
-        return responses;
-    }
-
     if (responses == null) {
         return "";
+    }
+
+    if (isNumber(responses)) {
+        return responses;
     }
 
     let diagnosticArray = (await createDiagnosticArray(responses, projectUri)).map(diagnostic => {

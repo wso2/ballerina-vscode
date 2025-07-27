@@ -35,6 +35,7 @@ import {
     RepairParams,
     RepairResponse,
     SourceFiles,
+    Command
 } from "@wso2/ballerina-core";
 import { getProjectSource, postProcess } from "../../../../rpc-managers/ai-panel/rpc-manager";
 import { CopilotEventHandler, createWebviewEventHandler } from "../event";
@@ -137,7 +138,7 @@ export async function generateCodeCore(params: GenerateCodeRequest, eventHandler
                 eventHandler({ type: "content_replace", content: diagnosticFixResp });
                 eventHandler({ type: "diagnostics", diagnostics: diagnostics });
                 eventHandler({ type: "messages", messages: allMessages });
-                eventHandler({ type: "stop" });
+                eventHandler({ type: "stop", command: Command.Code });
                 break;
             }
         }
@@ -146,7 +147,7 @@ export async function generateCodeCore(params: GenerateCodeRequest, eventHandler
 
 // Main public function that uses the default event handler
 export async function generateCode(params: GenerateCodeRequest): Promise<void> {
-    const eventHandler = createWebviewEventHandler();
+    const eventHandler = createWebviewEventHandler(Command.Code);
     try {
         await generateCodeCore(params, eventHandler);
     } catch (error) {
@@ -293,7 +294,8 @@ ${fileInstructions}
 }
 
 export async function triggerGeneratedCodeRepair(params: RepairParams): Promise<RepairResponse> {
-    const eventHandler = createWebviewEventHandler();
+    // add null as the command since this is a repair operation is not a command
+    const eventHandler = createWebviewEventHandler(undefined);
     try {
         return await repairCodeCore(params, eventHandler);
     } catch (error) {
@@ -309,7 +311,7 @@ export async function repairCodeCore(params: RepairParams, eventHandler: Copilot
     eventHandler({ type: "content_replace", content: resp.repairResponse });
     console.log("Manual Repair Diagnostics left: ", resp.diagnostics);
     eventHandler({ type: "diagnostics", diagnostics: resp.diagnostics });
-    eventHandler({ type: "stop" });
+    eventHandler({ type: "stop", command: undefined });
     return resp;
 }
 
