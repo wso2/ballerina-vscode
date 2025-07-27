@@ -128,38 +128,34 @@ public class ConnectorSearchCommand extends SearchCommand {
     protected List<Item> search() {
         buildLocalConnectors();
         List<SearchResult> searchResults = dbManager.searchConnectors(query, limit, offset);
-        buildLibraryNodes(searchResults);
-        return rootBuilder.build().items();
-    }
 
-    @Override
-    protected List<Item> searchWithOrganization() {
-        buildLocalConnectors();
-        List<SearchResult> searchResults = dbManager.searchConnectors(query, limit, offset);
-
-        Optional<String> organizationName = getOrganizationName();
-        if (organizationName.isPresent()) {
-            CentralAPI centralClient = RemoteCentral.getInstance();
-            Map<String, String> queryMap = new HashMap<>();
-            queryMap.put("q", query);
-            queryMap.put("limit", String.valueOf(limit));
-            queryMap.put("offset", String.valueOf(offset));
-            queryMap.put("org", organizationName.get());
-            ConnectorsResponse connectorsResponse = centralClient.connectors(queryMap);
-            if (connectorsResponse != null && connectorsResponse.connectors() != null) {
-                for (Connector connector : connectorsResponse.connectors()) {
-                    SearchResult.Package packageInfo = new SearchResult.Package(
-                            connector.packageInfo.getOrganization(),
-                            connector.packageInfo.getName(),
-                            connector.moduleName,
-                            connector.packageInfo.getVersion()
-                    );
-                    SearchResult searchResult = SearchResult.from(packageInfo, connector.name,
-                            connector.packageInfo.getSummary(), true);
-                    searchResults.add(searchResult);
+        // If searchCentral is enabled and organization name is present, search from central
+        if (searchCentral) {
+            Optional<String> organizationName = getOrganizationName();
+            if (organizationName.isPresent()) {
+                CentralAPI centralClient = RemoteCentral.getInstance();
+                Map<String, String> queryMap = new HashMap<>();
+                queryMap.put("q", query);
+                queryMap.put("limit", String.valueOf(limit));
+                queryMap.put("offset", String.valueOf(offset));
+                queryMap.put("org", organizationName.get());
+                ConnectorsResponse connectorsResponse = centralClient.connectors(queryMap);
+                if (connectorsResponse != null && connectorsResponse.connectors() != null) {
+                    for (Connector connector : connectorsResponse.connectors()) {
+                        SearchResult.Package packageInfo = new SearchResult.Package(
+                                connector.packageInfo.getOrganization(),
+                                connector.packageInfo.getName(),
+                                connector.moduleName,
+                                connector.packageInfo.getVersion()
+                        );
+                        SearchResult searchResult = SearchResult.from(packageInfo, connector.name,
+                                connector.packageInfo.getSummary(), true);
+                        searchResults.add(searchResult);
+                    }
                 }
             }
         }
+        
         buildLibraryNodes(searchResults);
         return rootBuilder.build().items();
     }

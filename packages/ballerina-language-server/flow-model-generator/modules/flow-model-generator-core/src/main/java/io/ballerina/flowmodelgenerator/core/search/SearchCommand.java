@@ -109,18 +109,6 @@ public abstract class SearchCommand {
     protected abstract List<Item> search();
 
     /**
-     * Performs a search that includes results from the current organization.
-     * <p>
-     * By default, this method delegates to the standard {@link #search()} functionality. Commands that query Ballerina
-     * Central should override this method to include organization-specific results.
-     *
-     * @return A list of search result items
-     */
-    protected List<Item> searchWithOrganization() {
-        return search();
-    }
-
-    /**
      * Fetches the popular items if not cached already.
      *
      * @return a list of popular search results
@@ -136,8 +124,6 @@ public abstract class SearchCommand {
         List<Item> items;
         if (query.isEmpty()) {
             items = defaultView();
-        } else if (searchCentral) {
-            items = searchWithOrganization();
         } else {
             items = search();
         }

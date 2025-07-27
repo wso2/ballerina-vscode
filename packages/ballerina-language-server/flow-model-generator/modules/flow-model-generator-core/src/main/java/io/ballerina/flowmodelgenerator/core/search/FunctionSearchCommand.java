@@ -123,43 +123,40 @@ class FunctionSearchCommand extends SearchCommand {
     protected List<Item> search() {
         buildProjectNodes();
         List<SearchResult> functionSearchList = dbManager.searchFunctions(query, limit, offset);
-        buildLibraryNodes(functionSearchList);
-        return rootBuilder.build().items();
-    }
-
-    @Override
-    protected List<Item> searchWithOrganization() {
-        buildProjectNodes();
-        List<SearchResult> searchResults = dbManager.searchFunctions(query, limit, offset);
-        Optional<String> organizationName = getOrganizationName();
-        if (organizationName.isPresent()) {
-            CentralAPI centralClient = RemoteCentral.getInstance();
-            Map<String, String> queryMap = new HashMap<>();
-            queryMap.put("q", query + " org:" + organizationName.get());
-            queryMap.put("limit", String.valueOf(limit));
-            queryMap.put("offset", String.valueOf(offset));
-            SymbolResponse symbolResponse = centralClient.searchSymbols(queryMap);
-            if (symbolResponse != null && symbolResponse.symbols() != null) {
-                for (SymbolResponse.Symbol symbol : symbolResponse.symbols()) {
-                    if (symbol.symbolType().equals("function")) {
-                        SearchResult.Package packageInfo = new SearchResult.Package(
-                                symbol.organization(),
-                                symbol.name(),
-                                symbol.name(),
-                                symbol.version()
-                        );
-                        SearchResult searchResult = SearchResult.from(
-                                packageInfo,
-                                symbol.symbolName(),
-                                symbol.description(),
-                                true
-                        );
-                        searchResults.add(searchResult);
+        
+        // If searchCentral is enabled and organization name is present, search from central
+        if (searchCentral) {
+            Optional<String> organizationName = getOrganizationName();
+            if (organizationName.isPresent()) {
+                CentralAPI centralClient = RemoteCentral.getInstance();
+                Map<String, String> queryMap = new HashMap<>();
+                queryMap.put("q", query + " org:" + organizationName.get());
+                queryMap.put("limit", String.valueOf(limit));
+                queryMap.put("offset", String.valueOf(offset));
+                SymbolResponse symbolResponse = centralClient.searchSymbols(queryMap);
+                if (symbolResponse != null && symbolResponse.symbols() != null) {
+                    for (SymbolResponse.Symbol symbol : symbolResponse.symbols()) {
+                        if (symbol.symbolType().equals("function")) {
+                            SearchResult.Package packageInfo = new SearchResult.Package(
+                                    symbol.organization(),
+                                    symbol.name(),
+                                    symbol.name(),
+                                    symbol.version()
+                            );
+                            SearchResult searchResult = SearchResult.from(
+                                    packageInfo,
+                                    symbol.symbolName(),
+                                    symbol.description(),
+                                    true
+                            );
+                            functionSearchList.add(searchResult);
+                        }
                     }
                 }
             }
         }
-        buildLibraryNodes(searchResults);
+        
+        buildLibraryNodes(functionSearchList);
         return rootBuilder.build().items();
     }
 
