@@ -18,7 +18,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
-import { NodeList, Category as PanelCategory, FormField, FormValues, Parameter } from "@wso2/ballerina-side-panel";
+import { NodeList, Category as PanelCategory, FormField, FormValues } from "@wso2/ballerina-side-panel";
 import {
     BIAvailableNodesRequest,
     Category,
@@ -49,12 +49,26 @@ import styled from "@emotion/styled";
 import { URI, Utils } from "vscode-uri";
 import { cloneDeep } from "lodash";
 import { createDefaultParameterValue, createToolInputFields, createToolParameters } from "./formUtils";
+import { FUNCTION_CALL, METHOD_CALL, REMOTE_ACTION_CALL, RESOURCE_ACTION_CALL } from "../../../constants";
 
 const LoaderContainer = styled.div`
     display: flex;
     justify-content: center;
     align-items: center;
     height: 100%;
+`;
+
+const ImplementationInfo = styled.div`
+    display: flex;
+    align-items: center;
+    background-color: var(--vscode-input-background);
+    border: 1px solid var(--vscode-editorWidget-border);
+    padding: 5px 10px;
+    margin-top: 5px;
+    cursor: pointer;
+    p {
+        margin: 0;
+    }
 `;
 
 export enum SidePanelView {
@@ -84,8 +98,7 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
     const functionNode = useRef<FunctionNode>(null);
     const flowNode = useRef<FlowNode>(null);
 
-    const [loading, setLoading] = useState<boolean>(false);
-    const [fields, setFields] = useState<FormField[]>([
+    const initialFields: FormField[] = [
         {
             key: `name`,
             label: "Tool Name",
@@ -110,7 +123,10 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
             valueTypeConstraint: "",
             enabled: true,
         },
-    ]);
+    ];
+
+    const [loading, setLoading] = useState<boolean>(false);
+    const [fields, setFields] = useState<FormField[]>(initialFields);
 
     const targetRef = useRef<LineRange>({ startLine: { line: 0, offset: 0 }, endLine: { line: 0, offset: 0 } });
     const initialCategoriesRef = useRef<PanelCategory[]>([]);
@@ -120,6 +136,34 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
     useEffect(() => {
         fetchNodes();
     }, []);
+
+    const handleBackToNodeList = () => {
+        setSidePanelView(SidePanelView.NODE_LIST);
+        setFields(initialFields);
+        setSelectedNodeCodeData(undefined);
+        setToolNodeId(undefined);
+        selectedNodeRef.current = undefined;
+        functionNode.current = null;
+        flowNode.current = null;
+    };
+
+    const getImplementationString = (codeData: CodeData | undefined): string => {
+        if (!codeData) {
+            return "";
+        }
+        switch (codeData.node) {
+            case RESOURCE_ACTION_CALL:
+                return `${codeData.parentSymbol} -> ${codeData.symbol} ${codeData.resourcePath}`;
+            case REMOTE_ACTION_CALL:
+                return `${codeData.parentSymbol} -> ${codeData.symbol}`;
+            case FUNCTION_CALL:
+                return `${codeData.symbol}`;
+            case METHOD_CALL:
+                return `${codeData.parentSymbol} -> ${codeData.symbol}`;
+            default:
+                return "";
+        }
+    };
 
     // Use effects to refresh the panel
     useEffect(() => {
@@ -233,7 +277,7 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
         selectedNodeRef.current = node;
         setSelectedNodeCodeData(node.codedata);
 
-        if (nodeId === "FUNCTION_CALL") {
+        if (nodeId === FUNCTION_CALL) {
             try {
                 const functionNodeResponse = await rpcClient.getBIDiagramRpcClient().getFunctionNode({
                     functionName: node.codedata.symbol,
@@ -285,7 +329,7 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
             } catch (error) {
                 console.error(">>> Error fetching function node or template", error);
             }
-        } else if (nodeId === "REMOTE_ACTION_CALL" || nodeId === "RESOURCE_ACTION_CALL" || nodeId === "METHOD_CALL") {
+        } else if (nodeId === REMOTE_ACTION_CALL || nodeId === RESOURCE_ACTION_CALL || nodeId === METHOD_CALL) {
             try {
                 const nodeTemplate = await rpcClient.getBIDiagramRpcClient().getNodeTemplate({
                     position: { line: 0, offset: 0 },
@@ -357,7 +401,7 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
         let clonedFunctionNode: FunctionNode | null = null;
         let clonedFlowNode: FlowNode | null = null;
 
-        if (toolNodeId === "FUNCTION_CALL" && Array.isArray(data["parameters"])) {
+        if (toolNodeId === FUNCTION_CALL && Array.isArray(data["parameters"])) {
             clonedFunctionNode = functionNode.current ? cloneDeep(functionNode.current) : null;
             toolParameters = cloneDeep(functionNode.current?.properties?.parameters) as unknown as ToolParameters;
 
@@ -396,7 +440,7 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
                     }
                 });
             }
-        } else if ((toolNodeId === "REMOTE_ACTION_CALL" || toolNodeId === "RESOURCE_ACTION_CALL" || toolNodeId === "METHOD_CALL") && Array.isArray(data["parameters"])) {
+        } else if ((toolNodeId === REMOTE_ACTION_CALL || toolNodeId === RESOURCE_ACTION_CALL || toolNodeId === METHOD_CALL) && Array.isArray(data["parameters"])) {
             clonedFlowNode = flowNode.current ? cloneDeep(flowNode.current) : null;
 
             // Update flowNode parameter values from data["parameters"]
@@ -463,7 +507,7 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
     let description = "";
     if (
         selectedNodeRef.current &&
-        selectedNodeRef.current.codedata.node === "FUNCTION_CALL" &&
+        selectedNodeRef.current.codedata.node === FUNCTION_CALL &&
         !(selectedNodeRef.current.metadata?.data as NodeMetadata)?.isIsolatedFunction
     ) {
         concertMessage = `Convert ${selectedNodeRef.current.metadata.label} function to an isolated function`;
@@ -490,17 +534,25 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
                 />
             )}
             {sidePanelView === SidePanelView.TOOL_FORM && (
-                <FormGeneratorNew
-                    fileName={agentFilePath.current}
-                    targetLineRange={{ startLine: { line: 0, offset: 0 }, endLine: { line: 0, offset: 0 } }}
-                    fields={fields}
-                    onSubmit={handleToolSubmit}
-                    submitText={"Save Tool"}
-                    concertMessage={concertMessage}
-                    concertRequired={concertRequired}
-                    description={description}
-                    helperPaneSide="left"
-                />
+                <>
+                    <div style={{ padding: "16px 20px 0" }}>
+                        <p style={{ marginBottom: "8px", fontWeight: "bold" }}>Implementation</p>
+                        <ImplementationInfo onClick={handleBackToNodeList}>
+                            <p>{getImplementationString(selectedNodeRef.current.codedata)}</p>
+                        </ImplementationInfo>
+                    </div>
+                    <FormGeneratorNew
+                        fileName={agentFilePath.current}
+                        targetLineRange={{ startLine: { line: 0, offset: 0 }, endLine: { line: 0, offset: 0 } }}
+                        fields={fields}
+                        onSubmit={handleToolSubmit}
+                        submitText={"Save Tool"}
+                        concertMessage={concertMessage}
+                        concertRequired={concertRequired}
+                        description={description}
+                        helperPaneSide="left"
+                    />
+                </>
             )}
         </>
     );

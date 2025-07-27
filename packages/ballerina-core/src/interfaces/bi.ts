@@ -381,6 +381,7 @@ export type NodeKind =
     | "LOCK"
     | "LV_EXPRESSION"
     | "MATCH"
+    | "METHOD_CALL"
     | "MODEL_PROVIDER"
     | "VECTOR_STORE"
     | "VECTOR_KNOWLEDGE_BASE"
