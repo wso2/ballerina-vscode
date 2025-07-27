@@ -112,7 +112,7 @@ export function createToolInputFields(filteredNodeParameterFields: FormField[]):
                 paramValues: paramManagerValues,
                 formFields: paramManagerFormFields,
                 handleParameter: function (parameter: Parameter): Parameter {
-                    throw new Error("Function not implemented.");
+                    return parameter;
                 }
             }
         }
