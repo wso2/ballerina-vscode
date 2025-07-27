@@ -24,6 +24,7 @@ import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { AIAgentSidePanel, ExtendedAgentToolRequest } from "./AIAgentSidePanel";
 import { RelativeLoader } from "../../../components/RelativeLoader";
 import { addToolToAgentNode, findAgentNodeFromAgentCallNode, updateFlowNodePropertyValuesWithKeys } from "./utils";
+import { FUNCTION_CALL } from "../../../constants";
 
 const LoaderContainer = styled.div`
     display: flex;
@@ -87,7 +88,7 @@ export function NewTool(props: NewToolProps): JSX.Element {
             await new Promise((resolve) => setTimeout(resolve, 2000));
 
             // add tools
-            if (data.selectedCodeData.node === "FUNCTION_CALL") {
+            if (data.selectedCodeData.node === FUNCTION_CALL) {
                 // create tool from existing function
                 // get function definition
                 const functionDefinition = data.functionNode;
