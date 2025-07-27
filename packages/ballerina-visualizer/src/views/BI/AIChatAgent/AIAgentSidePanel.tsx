@@ -426,13 +426,13 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
                 paramKeys.forEach((key: string) => {
                     const paramObj = toolParameters.value[key];
                     if (paramObj && paramObj.value && paramObj.value.variable) {
-                        paramObj.value.variable.value = key;
+                        paramObj.value.variable.value = data["parameters"].find((param: any) => param.key === key)?.formValues.variable || key;
                         paramObj.value.parameterDescription.value = data["parameters"].find((param: any) => param.key === key)?.formValues.parameterDescription || "";
                         paramObj.value.type.value = data["parameters"].find((param: any) => param.key === key)?.formValues.type || "";
                     }
                     if (!toolParameters.value[key]) {
                         toolParameters.value[key] = createDefaultParameterValue({
-                            value: key,
+                            value: data["parameters"].find((param: any) => param.key === key)?.formValues.variable || key,
                             parameterDescription: data["parameters"].find((param: any) => param.key === key)?.formValues.parameterDescription,
                             type: data["parameters"].find((param: any) => param.key === key)?.formValues.type
                         });
@@ -460,6 +460,7 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
             // Update toolParameters: remove keys not present, and set values from data
             toolParameters = createToolParameters();
             const paramKeys = data["parameters"].map((param: any) => param.key);
+            console.log(">>> toolParameters before update", { toolParameters, paramKeys });
             if (toolParameters && typeof toolParameters.value === "object" && !Array.isArray(toolParameters.value)) {
                 Object.keys(toolParameters.value).forEach((key) => {
                     if (!paramKeys.includes(key)) {
@@ -469,13 +470,13 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
                 paramKeys.forEach((key: string) => {
                     const paramObj = toolParameters.value[key];
                     if (paramObj && paramObj.value && paramObj.value.variable) {
-                        paramObj.value.variable.value = key;
+                        paramObj.value.variable.value = data["parameters"].find((param: any) => param.key === key)?.formValues.variable || key;
                         paramObj.value.parameterDescription.value = data["parameters"].find((param: any) => param.key === key)?.formValues.parameterDescription || "";
                         paramObj.value.type.value = data["parameters"].find((param: any) => param.key === key)?.formValues.type || "";
                     }
                     if (!toolParameters.value[key]) {
                         toolParameters.value[key] = createDefaultParameterValue({
-                            value: key,
+                            value: data["parameters"].find((param: any) => param.key === key)?.formValues.variable || key,
                             parameterDescription: data["parameters"].find((param: any) => param.key === key)?.formValues.parameterDescription,
                             type: data["parameters"].find((param: any) => param.key === key)?.formValues.type
                         });
