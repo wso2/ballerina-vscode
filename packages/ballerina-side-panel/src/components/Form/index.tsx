@@ -346,6 +346,10 @@ export interface FormProps {
     onChange?: (fieldKey: string, value: any, allValues: FormValues) => void;
     mcpTools?: { name: string; description?: string }[];
     onToolsChange?: (selectedTools: string[]) => void;
+    injectedComponents?: {
+        component: React.ReactNode;
+        index: number;
+    }[];
 }
 
 export const Form = forwardRef((props: FormProps, ref) => {
@@ -383,6 +387,7 @@ export const Form = forwardRef((props: FormProps, ref) => {
         newServerUrl,
         mcpTools,
         onToolsChange,
+        injectedComponents,
     } = props;
 
     const {
@@ -738,20 +743,30 @@ export const Form = forwardRef((props: FormProps, ref) => {
                  * 2. preserveOrder = false: Render name and type fields at the bottom, and rest at top
                  */}
                 <S.CategoryRow bottomBorder={false}>
-                    {formFields
-                        .sort((a, b) => b.groupNo - a.groupNo)
-                        .filter((field) => field.type !== "VIEW")
-                        .map((field) => {
+                    {(() => {
+                        const fieldsToRender = formFields
+                            .sort((a, b) => b.groupNo - a.groupNo)
+                            .filter((field) => field.type !== "VIEW");
+
+                        const renderedComponents = fieldsToRender.reduce<React.ReactNode[]>((acc, field, index) => {
+                            if (injectedComponents) {
+                                injectedComponents.forEach((injected) => {
+                                    if (injected.index === index) {
+                                        acc.push(injected.component);
+                                    }
+                                });
+                            }
+
                             if (field.advanced || field.hidden) {
-                                return null;
+                                return acc;
                             }
                             // When preserveOrder is false, skip prioritized fields (they'll be rendered at bottom)
                             if (!preserveOrder && isPrioritizedField(field)) {
-                                return null;
+                                return acc;
                             }
 
                             const updatedField = updateFormFieldWithImports(field, formImports);
-                            return (
+                            acc.push(
                                 <S.Row key={updatedField.key}>
                                     <EditorFactory
                                         field={updatedField}
@@ -775,34 +790,46 @@ export const Form = forwardRef((props: FormProps, ref) => {
                                     {updatedField.key === "scope" && scopeFieldAddon}
                                 </S.Row>
                             );
-                        })}
+                            return acc;
+                        }, []);
+
+                        if (injectedComponents) {
+                            injectedComponents.forEach((injected) => {
+                                if (injected.index >= fieldsToRender.length) {
+                                    renderedComponents.push(injected.component);
+                                }
+                            });
+                        }
+
+                        return renderedComponents;
+                    })()}
                     {hasAdvanceFields && (
                         <S.Row>
                             Optional Configurations
-                                <S.ButtonContainer>
-                                    {!showAdvancedOptions && (
-                                        <LinkButton
-                                            onClick={handleOnShowAdvancedOptions}
-                                            sx={{ fontSize: 12, padding: 8, color: ThemeColors.PRIMARY, gap: 4 }}
-                                        >
-                                            <Codicon
-                                                name={"chevron-down"}
-                                                iconSx={{ fontSize: 12 }}
-                                                sx={{ height: 12 }}
-                                            />
-                                            Expand
-                                        </LinkButton>
-                                    )}
-                                    {showAdvancedOptions && (
-                                        <LinkButton
-                                            onClick={handleOnHideAdvancedOptions}
-                                            sx={{ fontSize: 12, padding: 8, color: ThemeColors.PRIMARY, gap: 4 }}
-                                        >
-                                            <Codicon
-                                                name={"chevron-up"}
-                                                iconSx={{ fontSize: 12 }}
-                                                sx={{ height: 12 }}
-                                            />Collapsed
+                            <S.ButtonContainer>
+                                {!showAdvancedOptions && (
+                                    <LinkButton
+                                        onClick={handleOnShowAdvancedOptions}
+                                        sx={{ fontSize: 12, padding: 8, color: ThemeColors.PRIMARY, gap: 4 }}
+                                    >
+                                        <Codicon
+                                            name={"chevron-down"}
+                                            iconSx={{ fontSize: 12 }}
+                                            sx={{ height: 12 }}
+                                        />
+                                        Expand
+                                    </LinkButton>
+                                )}
+                                {showAdvancedOptions && (
+                                    <LinkButton
+                                        onClick={handleOnHideAdvancedOptions}
+                                        sx={{ fontSize: 12, padding: 8, color: ThemeColors.PRIMARY, gap: 4 }}
+                                    >
+                                        <Codicon
+                                            name={"chevron-up"}
+                                            iconSx={{ fontSize: 12 }}
+                                            sx={{ height: 12 }}
+                                        />Collapsed
                                     </LinkButton>
                                 )}
                             </S.ButtonContainer>

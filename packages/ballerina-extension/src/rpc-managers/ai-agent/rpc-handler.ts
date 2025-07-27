@@ -24,6 +24,7 @@ import {
     AIGentToolsRequest,
     AIModelsRequest,
     AINodesRequest,
+    AIToolRequest,
     AIToolsRequest,
     createAIAgent,
     genTool,
@@ -33,6 +34,7 @@ import {
     getAllModels,
     getMcpTools,
     getModels,
+    getTool,
     getTools,
     McpToolsRequest,
     McpToolUpdateRequest,
@@ -51,6 +53,7 @@ export function registerAiAgentRpcHandlers(messenger: Messenger) {
     messenger.onRequest(getAllMemoryManagers, (args: MemoryManagersRequest) => rpcManger.getAllMemoryManagers(args));
     messenger.onRequest(getModels, (args: AIModelsRequest) => rpcManger.getModels(args));
     messenger.onRequest(getTools, (args: AIToolsRequest) => rpcManger.getTools(args));
+    messenger.onRequest(getTool, (args: AIToolRequest) => rpcManger.getTool(args));
     messenger.onRequest(getMcpTools, (args: McpToolsRequest) => rpcManger.getMcpTools(args));
     messenger.onRequest(genTool, (args: AIGentToolsRequest) => rpcManger.genTool(args));
     messenger.onRequest(createAIAgent, (args: AIAgentRequest) => rpcManger.createAIAgent(args));

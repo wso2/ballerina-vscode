@@ -28,6 +28,8 @@ import {
     AIModelsResponse,
     AINodesRequest,
     AINodesResponse,
+    AIToolRequest,
+    AIToolResponse,
     AIToolsRequest,
     AIToolsResponse,
     AgentTool,
@@ -158,7 +160,7 @@ export class AiAgentRpcManager implements AIAgentAPI {
 
                 // Create the model Second
                 const aiModuleOrg = await StateMachine.langClient().getAiModuleOrg({ projectPath: projectUri });
-                const allAgents = (await StateMachine.langClient().getAllAgents({ filePath, orgName: aiModuleOrg.orgName}));
+                const allAgents = (await StateMachine.langClient().getAllAgents({ filePath, orgName: aiModuleOrg.orgName }));
                 console.log("All Agents: ", allAgents);
 
                 const fixedAgentCodeData = allAgents.agents.at(0);
@@ -408,7 +410,7 @@ export class AiAgentRpcManager implements AIAgentAPI {
     async updateMCPToolKit(params: McpToolUpdateRequest): Promise<void> {
         const projectUri = StateMachine.context().projectUri;
         const filePath = Utils.joinPath(URI.file(projectUri), "agents.bal").fsPath;
-        
+
         // Generate the variable name from the server name
         const variableName = params.updatedNode.properties["variable"].value;
 
@@ -489,7 +491,7 @@ export class AiAgentRpcManager implements AIAgentAPI {
                 }
             }
         }
-        
+
         // 2. Update the agent's tools array to include the variable name (following updateAIAgentTools pattern)
         const agentFlowNode = params.agentFlowNode;
         let toolsValue = agentFlowNode.properties["tools"].value;
@@ -551,5 +553,17 @@ export class AiAgentRpcManager implements AIAgentAPI {
                     : word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
             )
             .join('');
+    }
+
+    async getTool(params: AIToolRequest): Promise<AIToolResponse> {
+        return new Promise(async (resolve) => {
+            const context = StateMachine.context();
+            try {
+                const res: AIToolResponse = await context.langClient.getTool(params);
+                resolve(res);
+            } catch (error) {
+                console.log(error);
+            }
+        });
     }
 }

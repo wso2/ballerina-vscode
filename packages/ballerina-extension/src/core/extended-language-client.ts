@@ -246,7 +246,9 @@ import {
     GetSubMappingCodedataRequest,
     AddSubMappingRequest,
     DeleteMappingRequest,
-    MapWithCustomFnRequest
+    MapWithCustomFnRequest,
+    AIToolResponse,
+    AIToolRequest
 } from "@wso2/ballerina-core";
 import { BallerinaExtension } from "./index";
 import { debug, handlePullModuleProgress } from "../utils";
@@ -401,6 +403,7 @@ enum EXTENDED_APIS {
     BI_AI_ALL_MEMORY_MANAGERS = 'agentManager/getAllMemoryManagers',
     BI_AI_GET_MODELS = 'agentManager/getModels',
     BI_AI_GET_TOOLS = 'agentManager/getTools',
+    BI_AI_GET_TOOL = 'agentManager/getTool',
     BI_AI_GET_MCP_TOOLS = 'agentManager/getMcpTools',
     BI_AI_GEN_TOOLS = 'agentManager/genTool',
     BI_IS_ICP_ENABLED = 'icpService/isIcpEnabled',
@@ -1184,7 +1187,7 @@ export class ExtendedLangClient extends LanguageClient implements ExtendedLangCl
         return this.sendRequest<AddImportItemResponse>(EXTENDED_APIS.BI_ADD_FUNCTION, params);
     }
 
-    async getAiModuleOrg(params: AiModuleOrgRequest) : Promise<AiModuleOrgResponse> {
+    async getAiModuleOrg(params: AiModuleOrgRequest): Promise<AiModuleOrgResponse> {
         return this.sendRequest<AiModuleOrgResponse>(EXTENDED_APIS.BI_AI_AGENT_ORG, params);
     }
 
@@ -1206,6 +1209,10 @@ export class ExtendedLangClient extends LanguageClient implements ExtendedLangCl
 
     async getTools(params: AIToolsRequest): Promise<AIToolsResponse> {
         return this.sendRequest<AIToolsResponse>(EXTENDED_APIS.BI_AI_GET_TOOLS, params);
+    }
+
+    async getTool(params: AIToolRequest): Promise<AIToolResponse> {
+        return this.sendRequest<AIToolResponse>(EXTENDED_APIS.BI_AI_GET_TOOL, params);
     }
 
     async getMcpTools(params: McpToolsRequest): Promise<McpToolsResponse> {

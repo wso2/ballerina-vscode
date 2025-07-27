@@ -31,6 +31,7 @@ import { CDModel } from "./component-diagram";
 import { DMModel, ExpandedDMModel, IntermediateClause, Mapping, VisualizableField, CustomFnMetadata } from "./inline-data-mapper";
 import { DataMapperMetadata, SCOPE } from "../state-machine-types";
 import { Attachment } from "../rpc-types/ai-panel/interfaces";
+import { ToolParameters } from "../rpc-types/ai-agent/interfaces";
 
 export interface DidOpenParams {
     textDocument: TextDocumentItem;
@@ -352,7 +353,7 @@ export interface AddArrayElementRequest {
     propertyKey?: string;
 }
 
-export interface ConvertToQueryRequest{
+export interface ConvertToQueryRequest {
     filePath: string;
     codedata: CodeData;
     varName?: string;
@@ -387,7 +388,7 @@ export interface DeleteMappingRequest {
     targetField: string;
 }
 
-export interface MapWithCustomFnRequest{
+export interface MapWithCustomFnRequest {
     filePath: string;
     codedata: CodeData;
     mapping: Mapping;
@@ -1574,6 +1575,24 @@ export interface AIToolsResponse {
     tools: string[];
 }
 
+export interface AIToolRequest {
+    toolName: string;
+    projectPath: string;
+}
+
+export interface AIToolResponse {
+    name: string;
+    source: string;
+    toolParameters: Property;
+    connection: string;
+    description: string;
+    toolDescription: string;
+    diagram: FunctionNode;
+    output: {
+        [key: string]: TextEdit[];
+    };
+}
+
 export interface McpToolsRequest {
     serviceUrl?: string;
     configs?: Record<string, string>;
@@ -1594,6 +1613,7 @@ export interface AIGentToolsRequest {
     toolName: string;
     description: string;
     connection: string;
+    toolParameters?: ToolParameters;
 }
 
 export interface AIGentToolsResponse {

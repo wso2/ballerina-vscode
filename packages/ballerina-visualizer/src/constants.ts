@@ -40,3 +40,8 @@ export const PROVIDER_NAME_MAP: Record<string, string> = {
     "ai.deepseek": "Deepseek Model Provider",
     "ai.ollama": "Ollama Model Provider",
 };
+
+export const RESOURCE_ACTION_CALL = "RESOURCE_ACTION_CALL";
+export const REMOTE_ACTION_CALL = "REMOTE_ACTION_CALL";
+export const FUNCTION_CALL = "FUNCTION_CALL";
+export const METHOD_CALL = "METHOD_CALL";
