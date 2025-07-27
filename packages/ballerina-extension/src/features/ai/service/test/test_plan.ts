@@ -210,7 +210,7 @@ export async function generateTestPlanCore(
                             content: `\n\n<code filename="tests/Config.toml" type="test">\n\`\`\`ballerina\n${testConfig}\n\`\`\`\n</code>`,
                         });
                     }
-                    eventHandler({ type: "stop" });
+                    eventHandler({ type: "stop", command: Command.Tests });
                 } else {
                     eventHandler({
                         type: "content_block",

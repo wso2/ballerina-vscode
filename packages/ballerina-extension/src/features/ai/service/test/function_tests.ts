@@ -103,7 +103,7 @@ export async function generateFunctionTestsCore(
         });
     }
 
-    eventHandler({ type: "stop" });
+    eventHandler({ type: "stop", command: Command.Tests });
 }
 
 // Main public function that uses the default event handler
