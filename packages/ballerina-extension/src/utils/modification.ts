@@ -96,6 +96,7 @@ export async function writeBallerinaFileDidOpen(filePath: string, content: strin
         // Set a timeout to reject if no notification is received within 10 seconds
         const timeoutId = setTimeout(() => {
             console.log("No artifact update notification received within 10 seconds");
+            reject(new Error("Operation timed out. Please try again."));
             unsubscribe();
         }, 10000);
 
