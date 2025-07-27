@@ -126,7 +126,6 @@ export function NewTool(props: NewToolProps): JSX.Element {
                         endLine: agentNode.codedata.lineRange.startLine,
                     };
                 }
-                updateFlowNodePropertyValuesWithKeys(data.flowNode);
                 // save tool
                 const toolResponse = await rpcClient.getAIAgentRpcClient().genTool({
                     toolName: data.toolName,
