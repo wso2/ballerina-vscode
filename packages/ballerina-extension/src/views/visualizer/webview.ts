@@ -27,6 +27,7 @@ import { StateMachine, updateView } from "../../stateMachine";
 import { LANGUAGE } from "../../core";
 import { CodeData, MACHINE_VIEW } from "@wso2/ballerina-core";
 import { refreshDataMapper } from "../../rpc-managers/inline-data-mapper/utils";
+import { AiPanelWebview } from "../ai-panel/webview";
 
 export class VisualizerWebview {
     public static currentPanel: VisualizerWebview | undefined;
@@ -78,7 +79,7 @@ export class VisualizerWebview {
 
             if (dataMapperModified) {
                 debouncedRefreshDataMapper();
-            } else if (this._panel?.active && balFileModified) {
+            } else if ((this._panel?.active || AiPanelWebview.currentPanel?.getWebview()?.active) && balFileModified) {
                 sendUpdateNotificationToWebview();
             } else if (configTomlModified) {
                 sendUpdateNotificationToWebview(true);
