@@ -19,6 +19,7 @@
 package io.ballerina.flowmodelgenerator.core.model.node;
 
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
+import io.ballerina.flowmodelgenerator.core.Constants;
 import io.ballerina.flowmodelgenerator.core.model.Codedata;
 import io.ballerina.flowmodelgenerator.core.model.FlowNode;
 import io.ballerina.flowmodelgenerator.core.model.NodeKind;
@@ -42,14 +43,17 @@ public class FunctionCall extends CallBuilder {
 
     @Override
     public Map<Path, List<TextEdit>> toSource(SourceBuilder sourceBuilder) {
-        sourceBuilder.newVariableWithInferredType();
         FlowNode flowNode = sourceBuilder.flowNode;
+        Codedata codedata = flowNode.codedata();
+        if (isGetDefaultModelCall(codedata)) {
+            sourceBuilder.token().keyword(SyntaxKind.FINAL_KEYWORD);
+        }
 
+        sourceBuilder.newVariableWithInferredType();
         if (FlowNodeUtil.hasCheckKeyFlagSet(flowNode)) {
             sourceBuilder.token().keyword(SyntaxKind.CHECK_KEYWORD);
         }
 
-        Codedata codedata = flowNode.codedata();
         if (isLocalFunction(sourceBuilder.workspaceManager, sourceBuilder.filePath, codedata)) {
             return sourceBuilder.token()
                     .name(codedata.symbol())
@@ -72,6 +76,11 @@ public class FunctionCall extends CallBuilder {
                 .textEdit()
                 .acceptImportWithVariableType()
                 .build();
+    }
+
+    private boolean isGetDefaultModelCall(Codedata codedata) {
+        return codedata != null && Constants.BALLERINA.equals(codedata.org())
+                && Constants.AI.equals(codedata.module()) && Constants.DEFAULT_MODEL_PROVIDER.equals(codedata.symbol());
     }
 
     @Override

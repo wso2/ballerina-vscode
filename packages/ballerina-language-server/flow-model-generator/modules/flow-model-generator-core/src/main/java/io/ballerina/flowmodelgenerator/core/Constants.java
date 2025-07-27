@@ -34,8 +34,10 @@ public class Constants {
     public static final String MAIN_FUNCTION_NAME = "main";
     public static final String BALLERINA = "ballerina";
     public static final String BALLERINAX = "ballerinax";
+
     // AI related constants
     public static final String AI = "ai";
+    public static final String DEFAULT_MODEL_PROVIDER = "getDefaultModelProvider";
     public static final String OPENAI_MODEL_VERSION = "1.2.0";
     public static final String OLLAMA_MODEL_VERSION = "1.1.0";
     public static final String AZURE_MODEL_VERSION = "1.1.0";
@@ -44,7 +46,6 @@ public class Constants {
     public static final String DEEPSEEK_MODEL_VERSION = "1.0.2";
     public static final String BALLERINA_AI_VERSION = "1.1.1";
     public static final String BALLERINAX_AI_VERSION = "1.0.1";
-
 
     // Constants used for Natural functions
     public static final class NaturalFunctions {
