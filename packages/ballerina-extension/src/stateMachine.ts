@@ -506,7 +506,7 @@ export function updateView(refreshTreeView?: boolean) {
         lastView = getLastHistory(); // Get the new last entry
     }
 
-    let newLocation: VisualizerLocation;
+    let newLocation: VisualizerLocation = lastView?.location;
     if (lastView && lastView.location?.artifactType && lastView.location?.identifier) {
         newLocation = { ...lastView.location };
         const currentIdentifier = lastView.location?.identifier;
