@@ -286,11 +286,13 @@ export function AddMcpServer(props: AddToolProps): JSX.Element {
                     org: "ballerina",
                     module: "mcp",
                     "packageName": "mcp",
-                    version: "0.4.2",
+                    version: "0.9.1",
                     symbol: "init",
                     object: "Client"
                 }
             });
+        // Remove defaultValue from info if it exists
+        removeDefaultValueFromInfo(mcpToolResponse.flowNode.properties);
         setMcpToolResponse(mcpToolResponse.flowNode)
         console.log(">>> response getSourceCode with template ", { mcpToolResponse });
         console.log(">>> agent node ", { agentNode });
@@ -318,7 +320,7 @@ export function AddMcpServer(props: AddToolProps): JSX.Element {
                 properties: updatedProperties,
                 codedata: mcpVariable.codedata,
             };
-
+            removeDefaultValueFromInfo(updatedMcpToolResponse.properties);
             setMcpToolResponse(updatedMcpToolResponse);
         }
         if (agentNode?.properties?.tools?.value) {
@@ -690,6 +692,12 @@ export function AddMcpServer(props: AddToolProps): JSX.Element {
     }]
     };
 
+    function removeDefaultValueFromInfo(properties: any) {
+        if (properties && properties.info && typeof properties.info === 'object' && 'defaultValue' in properties.info) {
+            delete properties.info.defaultValue;
+        }
+    }
+
     // Refactor to accept variableName as parameter
     const updateMcpToolResponseWithToolsField = (variableName?: string) => {
         if (mcpToolResponse) {
@@ -722,7 +730,7 @@ export function AddMcpServer(props: AddToolProps): JSX.Element {
                 ...mcpToolResponse,
                 properties: updatedProperties,
             };
-
+            removeDefaultValueFromInfo(updatedMcpToolResponse.properties);
             setMcpToolResponse(updatedMcpToolResponse);
         }
     };
