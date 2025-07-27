@@ -141,12 +141,12 @@ export function OperationAccordion(params: OperationAccordionProps) {
                     <>
                         {onEditFunction! && (
                             <VSCodeButton appearance="icon" title="Edit Field" onClick={handleEditFuncrion}>
-                                <Icon name="bi-edit" sx={{ marginTop: 3.5 }} />
+                                <Icon data-testid="edit-icon" name="bi-edit" sx={{ marginTop: 3.5 }} />
                             </VSCodeButton>
                         )}
                         {onDeleteFunction! && (
                             <VSCodeButton appearance="icon" title="Delete Field" onClick={handleDeleteFunction}>
-                                <Codicon name="trash" />
+                                <Codicon data-testid="delete-icon" name="trash" />
                             </VSCodeButton>
                         )}
                     </>
