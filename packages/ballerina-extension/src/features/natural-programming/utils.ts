@@ -508,7 +508,7 @@ export async function getAccessToken(): Promise<string> {
         let token: string;
         const loginMethod = await getLoginMethod();
         if (loginMethod === LoginMethod.BI_INTEL) {
-            token = await getAccesstokenFromUtils()
+            token = await getAccesstokenFromUtils();
         }
         resolve(token as string);
     });

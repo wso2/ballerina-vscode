@@ -218,12 +218,12 @@ export function PanelManager(props: PanelManagerProps) {
                         agentCallNode={selectedNode}
                         fileName={fileName}
                         lineRange={targetLineRange}
-                        onSave={handleSubmitAndClose}
+                        onSave={onClose}
                     />
                 );
 
             case SidePanelView.ADD_TOOL:
-                return <AddTool agentCallNode={selectedNode} onAddNewTool={handleOnAddTool} onSave={handleSubmitAndClose} />;
+                return <AddTool agentCallNode={selectedNode} onAddNewTool={handleOnAddTool} onSave={onClose} />;
 
             case SidePanelView.ADD_MCP_SERVER:
                 return (
@@ -241,22 +241,22 @@ export function PanelManager(props: PanelManagerProps) {
                 return <AddMcpServer editMode={true} name={selectedClientName} agentCallNode={selectedNode} onAddMcpServer={handleOnEditMcpServer} onSave={onClose} />;
 
             case SidePanelView.NEW_TOOL:
-                return <NewTool agentCallNode={selectedNode} onSave={handleSubmitAndClose} onBack={handleOnBackToAddTool} />;
+                return <NewTool agentCallNode={selectedNode} onSave={onClose} onBack={handleOnBackToAddTool} />;
 
             case SidePanelView.AGENT_TOOL:
                 const selectedTool = (selectedNode?.metadata.data as NodeMetadata).tools?.find(
                     (tool) => tool.name === selectedClientName
                 );
-                return <ToolConfig agentCallNode={selectedNode} toolData={selectedTool} onSave={handleSubmitAndClose} />;
+                return <ToolConfig agentCallNode={selectedNode} toolData={selectedTool} onSave={onClose} />;
 
             case SidePanelView.AGENT_MODEL:
-                return <ModelConfig agentCallNode={selectedNode} onSave={handleSubmitAndClose} />;
+                return <ModelConfig agentCallNode={selectedNode} onSave={onClose} />;
 
             case SidePanelView.AGENT_CONFIG:
                 return <AgentConfig agentCallNode={selectedNode} fileName={fileName} onSave={onClose} />;
 
             case SidePanelView.AGENT_MEMORY_MANAGER:
-                return <MemoryManagerConfig agentCallNode={selectedNode} onSave={handleSubmitAndClose} />;
+                return <MemoryManagerConfig agentCallNode={selectedNode} onSave={onClose} />;
 
             case SidePanelView.FUNCTION_LIST:
                 return (
