@@ -357,7 +357,6 @@ public class ExpressionEditorContext {
             }
 
             if (codedata == null) {
-                imports = null;
                 org = "";
                 module = "";
                 nodeKind = null;
