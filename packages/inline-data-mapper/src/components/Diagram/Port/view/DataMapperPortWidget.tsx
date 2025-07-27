@@ -33,7 +33,6 @@ export interface DataMapperPortWidgetProps {
 	disable?: boolean;
 	dataTestId?: string;
 	handlePortState?: (portState: PortState) => void ;
-	hasFirstSelectOutput?: (inputBeforeOutput: boolean) => void;
 }
 
 export enum PortState {
@@ -43,17 +42,31 @@ export enum PortState {
 }
 
 export const DataMapperPortWidget: React.FC<DataMapperPortWidgetProps> = (props: DataMapperPortWidgetProps) =>  {
-	const { engine, port, disable, dataTestId, handlePortState, hasFirstSelectOutput } = props;
+	const { engine, port, disable, dataTestId, handlePortState } = props;
 	const [ portState, setPortState ] = useState<PortState>(PortState.Unselected);
 	const [ disableNewLinking, setDisableNewLinking] = useState<boolean>(false);
 
 	const isDisabled = disable || (port instanceof InputOutputPortModel && port.isDisabled());
 
-	const { resetExprBarFocus } = useDMExpressionBarStore(
+	const { resetExprBarFocus, setFocusedPort, setInputPort } = useDMExpressionBarStore(
 		useShallow(state => ({
-			resetExprBarFocus: state.resetFocus
+			resetExprBarFocus: state.resetFocus,
+			setFocusedPort: state.setFocusedPort,
+			setInputPort: state.setInputPort,
 		}))
 	);
+
+	const addExprBarFocusedPort = () => {
+		if (port instanceof InputOutputPortModel && port.attributes.portType === "OUT") {
+			setInputPort(port);
+		}
+	};
+
+	const focusExpressionBar = () => {
+		if (port instanceof InputOutputPortModel && port.attributes.portType === "IN") {
+			setFocusedPort(port);
+		}
+	}
 
 	const hasLinks = Object.entries(port.links).length > 0;
 	const isPortSelected = portState === PortState.PortSelected;
@@ -86,10 +99,10 @@ export const DataMapperPortWidget: React.FC<DataMapperPortWidgetProps> = (props:
 						if (handlePortState) {
 							handlePortState(PortState.Unselected);
 						}
-						resetExprBarFocus();
-					} else if (event.function === "firstClickedOnOutput") {
-						hasFirstSelectOutput(true);
-						setTimeout(() => hasFirstSelectOutput(false), 1500);
+					} else if (event.function === "expressionBarFocused") {
+						focusExpressionBar();
+					} else if (event.function === "addToExpression") {
+						addExprBarFocusedPort();
 					} else if (event.function === "disableNewLinking") {
 						setDisableNewLinking(true);
 					} else if (event.function === "enableNewLinking") {

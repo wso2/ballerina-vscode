@@ -18,16 +18,26 @@
 import { DataMapperNodeModel } from "../Node/commons/DataMapperNode";
 import { InputNode } from "../Node";
 
-export function findInputNode(field: string, outputNode: DataMapperNodeModel): InputNode {
+export function findInputNode(field: string, outputNode: DataMapperNodeModel, focusedField?: string): InputNode {
     const nodes = outputNode.getModel().getNodes();
+    
+    // Helper function to find input node by field path
+    const findNodeByField = (fieldPath: string): InputNode | undefined => {
+        const mappingStartsWith = fieldPath.split('.')[0];
+        return nodes.find(node => {
+            if (node instanceof InputNode) {
+                return node.inputType.id === mappingStartsWith;
+            }
+        }) as InputNode | undefined;
+    };
 
-    const inputNode = nodes.find(node => {
-        if (node instanceof InputNode) {
-            const mappingStartsWith = field.split('.')[0];
-            return node.inputType.id === mappingStartsWith;
+    // try finding input node using 'field' (map from other input ports)
+    let inputNode = findNodeByField(field);
+    
+    // if not found and focusedField exists, try with focusedField (map from focused input port)
+    if (!inputNode && focusedField) {
+        inputNode = findNodeByField(focusedField);
+    }
 
-        }
-    });
-
-    return inputNode ? inputNode as InputNode : undefined;
+    return inputNode;
 }

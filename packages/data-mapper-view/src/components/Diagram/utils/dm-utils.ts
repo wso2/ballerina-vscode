@@ -115,6 +115,18 @@ import { IDataMapperContext } from "../../../utils/DataMapperContext/DataMapperC
 import { generateCustomFunction } from "../Link/link-utils";
 import { InputNode, NodeWithoutTypeDesc } from "../Actions/utils";
 
+/**
+ * Set of Ballerina types that support merge operations (string concatenation, numeric addition, etc.)
+ */
+const MERGEABLE_TYPES = new Set([
+	PrimitiveBalType.String,
+	PrimitiveBalType.Int,
+	PrimitiveBalType.Float,
+	PrimitiveBalType.Decimal,
+	"anydata",
+	"any"
+]);
+
 export function getFieldNames(expr: FieldAccess | OptionalFieldAccess) {
 	const fieldNames: { name: string, isOptional: boolean }[] = [];
 	let nextExp: FieldAccess | OptionalFieldAccess = expr;
@@ -452,35 +464,46 @@ export function modifySpecificFieldSource(
 		targetNode.updateSource();
 	}
 	else {
+		const targetPortHasLinks = Object.keys(targetPort.getLinks())
+			?.filter(linkId => linkId !== newLinkId)
+			.length > 0;
+
 		let targetPos: NodePosition;
 		let targetType: TypeField;
-		Object.keys(targetPort.getLinks()).forEach((linkId) => {
-			if (linkId !== newLinkId) {
-				const targerPortLink = targetPort.getLinks()[linkId]
-				if (sourcePort instanceof IntermediatePortModel) {
-					if (sourcePort.getParent() instanceof LinkConnectorNode) {
-						targetPos = (sourcePort.getParent() as LinkConnectorNode).valueNode.position as NodePosition
-					}
-				} else if (targerPortLink.getLabels().length > 0) {
-					targetPos = (targerPortLink.getLabels()[0] as ExpressionLabelModel).valueNode.position as NodePosition;
-					targetType = getTypeFromStore(targetPos);
-				} else if (targetNode instanceof MappingConstructorNode
-					|| targetNode instanceof PrimitiveTypeNode
-					|| targetNode instanceof ListConstructorNode)
-				{
-					const linkConnector = targetNode
-						.getModel()
-						.getNodes()
-						.find(
-							(node) =>
-								node instanceof LinkConnectorNode &&
-								node.targetPort.portName === (targerPortLink.getTargetPort() as RecordFieldPortModel).portName
-						);
-					targetPos = (linkConnector as LinkConnectorNode).valueNode.position as NodePosition;
-				}
 
-			}
-		});
+		if (targetPortHasLinks) {
+			Object.keys(targetPort.getLinks()).forEach((linkId) => {
+				if (linkId !== newLinkId) {
+					const targerPortLink = targetPort.getLinks()[linkId]
+					if (sourcePort instanceof IntermediatePortModel) {
+						if (sourcePort.getParent() instanceof LinkConnectorNode) {
+							targetPos = (sourcePort.getParent() as LinkConnectorNode).valueNode.position as NodePosition
+						}
+					} else if (targerPortLink.getLabels().length > 0) {
+						targetPos = (targerPortLink.getLabels()[0] as ExpressionLabelModel).valueNode.position as NodePosition;
+						targetType = getTypeFromStore(targetPos);
+					} else if (targetNode instanceof MappingConstructorNode
+						|| targetNode instanceof PrimitiveTypeNode
+						|| targetNode instanceof ListConstructorNode)
+					{
+						const linkConnector = targetNode
+							.getModel()
+							.getNodes()
+							.find(
+								(node) =>
+									node instanceof LinkConnectorNode &&
+									node.targetPort.portName === (targerPortLink.getTargetPort() as RecordFieldPortModel).portName
+							);
+						targetPos = (linkConnector as LinkConnectorNode).valueNode.position as NodePosition;
+					}
+
+				}
+			});
+		} else {
+			targetPos = targetPort?.editableRecordField?.value?.position as NodePosition;
+			targetType = getTypeFromStore(targetPos);
+		}
+
 		if (targetType &&
 			targetType.typeName === PrimitiveBalType.Json &&
 			(sourcePort as RecordFieldPortModel).field.typeName === PrimitiveBalType.Json) {
@@ -560,22 +583,13 @@ export async function mapUsingCustomFunction(
 
 	await context.applyModifications(modifications);
 
-	if (valueType === ValueType.Default) {
+	if (valueType === ValueType.Replaceable) {
 		await updateExistingValue(sourcePort, targetPort, functionCallExpr);
-	} else if (valueType === ValueType.NonEmpty) {
+	} else if (valueType === ValueType.Mergeable) {
 		await modifySpecificFieldSource(sourcePort, targetPort, linkId, functionCallExpr);
 	} else {
 		await createSourceForMapping(sourcePort, targetPort, functionCallExpr);
 	}
-
-	// Navigate to the data mapper function
-	// TODO: Instead creating custom function from the front-end, we should use a LS API to create the function
-	// and then navigate to the function by using the position returned by the LS API
-	context.goToSource({
-		...context.functionST.position,
-		endLine: context.functionST.position.startLine,
-		endColumn: context.functionST.position.startColumn
-	});
 }
 
 export function replaceSpecificFieldValue(targetPort: PortModel, modifications: STModification[]) {
@@ -1145,6 +1159,10 @@ export function getDefaultValue(typeName: string): string {
 	return draftParameter;
 }
 
+export function isMergeable(typeName: string): boolean {
+	return MERGEABLE_TYPES.has(typeName);
+}
+
 export function isArrayOrRecord(field: TypeField) {
 	return field.typeName === PrimitiveBalType.Array || field.typeName === PrimitiveBalType.Record;
 }
@@ -1539,8 +1557,15 @@ export function getValueType(lm: DataMapperLinkModel): ValueType {
 			value = "[]";
 		}
 
-		if (value !== undefined) {
-			return isDefaultValue(editableRecordField.type, value) ? ValueType.Default : ValueType.NonEmpty;
+		if (value !== undefined && !isEmptyValue(innerExpr?.position)) {
+			const isDefault = isDefaultValue(editableRecordField.type, value);
+			if (isDefault) {
+				return ValueType.Replaceable;
+			} else {
+				return isMergeable(editableRecordField.type.typeName)
+					? ValueType.Mergeable
+					: ValueType.Replaceable;
+			}
 		}
 	}
 
@@ -1706,8 +1731,11 @@ function getSpecificField(mappingConstruct: MappingConstructor, targetFieldName:
 }
 
 export function isComplexExpression(node: STNode): boolean {
-	return (STKindChecker.isConditionalExpression(node)
-			|| (STKindChecker.isBinaryExpression(node) && STKindChecker.isElvisToken(node.operator)))
+	return (
+		STKindChecker.isConditionalExpression(node) ||
+		(STKindChecker.isBinaryExpression(node) && STKindChecker.isElvisToken(node.operator)) ||
+		STKindChecker.isFunctionCall(node)
+	);
 }
 
 export function isIndexedExpression(node: STNode): boolean {

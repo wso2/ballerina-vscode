@@ -1,8 +1,8 @@
 
-import { ballerinaExtInstance, ExtendedLangClient } from './core';
+import { ExtendedLangClient } from './core';
 import { createMachine, assign, interpret } from 'xstate';
 import { activateBallerina } from './extension';
-import { EVENT_TYPE, SyntaxTree, History, HistoryEntry, MachineStateValue, STByRangeRequest, SyntaxTreeResponse, UndoRedoManager, VisualizerLocation, webviewReady, MACHINE_VIEW, DIRECTORY_MAP, SCOPE, ProjectStructureResponse, ArtifactData, ProjectStructureArtifactResponse } from "@wso2/ballerina-core";
+import { EVENT_TYPE, SyntaxTree, History, HistoryEntry, MachineStateValue, STByRangeRequest, SyntaxTreeResponse, UndoRedoManager, VisualizerLocation, webviewReady, MACHINE_VIEW, DIRECTORY_MAP, SCOPE, ProjectStructureResponse, ArtifactData, ProjectStructureArtifactResponse, CodeData } from "@wso2/ballerina-core";
 import { fetchAndCacheLibraryData } from './features/library-browser';
 import { VisualizerWebview } from './views/visualizer/webview';
 import { commands, extensions, Uri, window, workspace, WorkspaceFolder } from 'vscode';
@@ -91,7 +91,7 @@ const stateMachine = createMachine<MachineContext>(
                         }
                     ],
                     onError: {
-                        target: "renderInitialView"
+                        target: "activateLS"
                     }
                 }
             },
@@ -117,7 +117,10 @@ const stateMachine = createMachine<MachineContext>(
                         })
                     },
                     onError: {
-                        target: "lsError"
+                        target: "lsError",
+                        actions: () => {
+                            console.error("Error occurred while activating Language Server.");
+                        }
                     }
                 }
             },
@@ -131,7 +134,10 @@ const stateMachine = createMachine<MachineContext>(
                         })
                     },
                     onError: {
-                        target: "lsError"
+                        target: "lsError",
+                        actions: () => {
+                            console.error("Error occurred while fetching project structure.");
+                        }
                     }
                 }
             },
@@ -153,7 +159,8 @@ const stateMachine = createMachine<MachineContext>(
                             type: (context, event) => event.viewLocation?.type,
                             isGraphql: (context, event) => event.viewLocation?.isGraphql,
                             metadata: (context, event) => event.viewLocation?.metadata,
-                            addType: (context, event) => event.viewLocation?.addType
+                            addType: (context, event) => event.viewLocation?.addType,
+                            dataMapperMetadata: (context, event) => event.viewLocation?.dataMapperMetadata
                         })
                     }
                 }
@@ -187,7 +194,8 @@ const stateMachine = createMachine<MachineContext>(
                                     identifier: (context, event) => event.data.identifier,
                                     position: (context, event) => event.data.position,
                                     syntaxTree: (context, event) => event.data.syntaxTree,
-                                    focusFlowDiagramView: (context, event) => event.data.focusFlowDiagramView
+                                    focusFlowDiagramView: (context, event) => event.data.focusFlowDiagramView,
+                                    dataMapperMetadata: (context, event) => event.data.dataMapperMetadata
                                 })
                             }
                         }
@@ -205,7 +213,8 @@ const stateMachine = createMachine<MachineContext>(
                                     type: (context, event) => event.viewLocation?.type,
                                     isGraphql: (context, event) => event.viewLocation?.isGraphql,
                                     metadata: (context, event) => event.viewLocation?.metadata,
-                                    addType: (context, event) => event.viewLocation?.addType
+                                    addType: (context, event) => event.viewLocation?.addType,
+                                    dataMapperMetadata: (context, event) => event.viewLocation?.dataMapperMetadata
                                 })
                             },
                             VIEW_UPDATE: {
@@ -218,7 +227,8 @@ const stateMachine = createMachine<MachineContext>(
                                     serviceType: (context, event) => event.viewLocation.serviceType,
                                     type: (context, event) => event.viewLocation?.type,
                                     isGraphql: (context, event) => event.viewLocation?.isGraphql,
-                                    addType: (context, event) => event.viewLocation?.addType
+                                    addType: (context, event) => event.viewLocation?.addType,
+                                    dataMapperMetadata: (context, event) => event.viewLocation?.dataMapperMetadata
                                 })
                             },
                             FILE_EDIT: {
@@ -281,7 +291,7 @@ const stateMachine = createMachine<MachineContext>(
             // Get context values from the project storage so that we can restore the earlier state when user reopens vscode
             return new Promise((resolve, reject) => {
                 if (!VisualizerWebview.currentPanel) {
-                    ballerinaExtInstance.setContext(extension.context);
+                    extension.ballerinaExtInstance.setContext(extension.context);
                     VisualizerWebview.currentPanel = new VisualizerWebview();
                     RPCLayer._messenger.onNotification(webviewReady, () => {
                         history = new History();
@@ -322,7 +332,8 @@ const stateMachine = createMachine<MachineContext>(
                             identifier: context.identifier,
                             type: context?.type,
                             isGraphql: context?.isGraphql,
-                            addType: context?.addType
+                            addType: context?.addType,
+                            dataMapperMetadata: context?.dataMapperMetadata
                         }
                     });
                     return resolve();
@@ -494,10 +505,51 @@ export function updateView(refreshTreeView?: boolean) {
         history.pop(); // Remove the last entry
         lastView = getLastHistory(); // Get the new last entry
     }
-    stateService.send({ type: "VIEW_UPDATE", viewLocation: lastView ? lastView.location : { view: "Overview" } });
+
+    let newLocation: VisualizerLocation;
+    if (lastView && lastView.location?.artifactType && lastView.location?.identifier) {
+        newLocation = { ...lastView.location };
+        const currentIdentifier = lastView.location?.identifier;
+        let currentArtifact: ProjectStructureArtifactResponse;
+
+        // These changes will be revisited in the revamp
+        StateMachine.context().projectStructure.directoryMap[lastView.location.artifactType].forEach((artifact) => {
+            if (artifact.id === currentIdentifier || artifact.name === currentIdentifier) {
+                currentArtifact = artifact;
+            }
+            // Check if artifact has resources and find within those
+            if (artifact.resources && artifact.resources.length > 0) {
+                const resource = artifact.resources.find((resource) => resource.id === currentIdentifier || resource.name === currentIdentifier);
+                if (resource) {
+                    currentArtifact = resource;
+                }
+            }
+        });
+
+        const newPosition = currentArtifact?.position || lastView.location.position;
+        newLocation = { ...lastView.location, position: newPosition };
+
+        history.updateCurrentEntry({
+            ...lastView,
+            location: newLocation
+        });
+    }
+
+
+    stateService.send({ type: "VIEW_UPDATE", viewLocation: lastView ? newLocation : { view: "Overview" } });
     if (refreshTreeView) {
         buildProjectArtifactsStructure(StateMachine.context().projectUri, StateMachine.langClient(), true);
     }
+    notifyCurrentWebview();
+}
+
+export function updateInlineDataMapperView(codedata?: CodeData, variableName?: string) {
+    let lastView: HistoryEntry = getLastHistory();
+    lastView.location.dataMapperMetadata = {
+        codeData: codedata,
+        name: variableName
+    };
+    stateService.send({ type: "VIEW_UPDATE", viewLocation: lastView.location });
     notifyCurrentWebview();
 }
 

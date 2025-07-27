@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import { ballerinaExtInstance, LANGUAGE } from "../../../core";
+import { extension } from "../../../BalExtensionContext";
 import { commands, Uri, window } from "vscode";
 import {
     TM_EVENT_PROJECT_RUN, CMP_PROJECT_RUN, sendTelemetryEvent, sendTelemetryException
@@ -24,11 +24,18 @@ import {
 import { runCommand, BALLERINA_COMMANDS, PROJECT_TYPE, PALETTE_COMMANDS, runCommandWithConf, MESSAGES, getRunCommand } from "./cmd-runner";
 import { getCurrentBallerinaProject, getCurrentBallerinaFile, getCurrenDirectoryPath } from "../../../utils/project-utils";
 import { prepareAndGenerateConfig } from '../../config-generator/configGenerator';
+import { LANGUAGE } from "../../../core";
 
 function activateRunCmdCommand() {
 
     commands.registerCommand(PALETTE_COMMANDS.RUN, async (filePath: Uri) => {
-        prepareAndGenerateConfig(ballerinaExtInstance, filePath?.fsPath);
+        let actualFilePath: string | undefined;
+        if (typeof filePath === 'string') {
+            actualFilePath = Uri.parse(filePath).fsPath;
+        } else if (filePath instanceof Uri) {
+            actualFilePath = filePath.fsPath;
+        }
+        prepareAndGenerateConfig(extension.ballerinaExtInstance, actualFilePath);
     });
 
     // register ballerina run handler
@@ -38,7 +45,7 @@ function activateRunCmdCommand() {
 
     async function run(args: any[]) {
         try {
-            sendTelemetryEvent(ballerinaExtInstance, TM_EVENT_PROJECT_RUN, CMP_PROJECT_RUN);
+            sendTelemetryEvent(extension.ballerinaExtInstance, TM_EVENT_PROJECT_RUN, CMP_PROJECT_RUN);
             if (window.activeTextEditor && window.activeTextEditor.document.isDirty) {
                 await commands.executeCommand(PALETTE_COMMANDS.SAVE_ALL);
             }
@@ -51,7 +58,7 @@ function activateRunCmdCommand() {
                 }
                 currentProject = await getCurrentBallerinaProject();
             } else {
-                const document = ballerinaExtInstance.getDocumentContext().getLatestDocument();
+                const document = extension.ballerinaExtInstance.getDocumentContext().getLatestDocument();
                 if (document) {
                     currentProject = await getCurrentBallerinaProject(document.fsPath);
                 } else {
@@ -70,9 +77,9 @@ function activateRunCmdCommand() {
             }
 
             if (currentProject.kind !== PROJECT_TYPE.SINGLE_FILE) {
-                const configPath: string = ballerinaExtInstance.getBallerinaConfigPath();
-                ballerinaExtInstance.setBallerinaConfigPath('');
-                runCommandWithConf(currentProject, ballerinaExtInstance.getBallerinaCmd(),
+                const configPath: string = extension.ballerinaExtInstance.getBallerinaConfigPath();
+                extension.ballerinaExtInstance.setBallerinaConfigPath('');
+                runCommandWithConf(currentProject, extension.ballerinaExtInstance.getBallerinaCmd(),
                     getRunCommand(),
                     configPath, currentProject.path!, ...args);
             } else {
@@ -81,7 +88,7 @@ function activateRunCmdCommand() {
 
         } catch (error) {
             if (error instanceof Error) {
-                sendTelemetryException(ballerinaExtInstance, error, CMP_PROJECT_RUN);
+                sendTelemetryException(extension.ballerinaExtInstance, error, CMP_PROJECT_RUN);
                 window.showErrorMessage(error.message);
             } else {
                 window.showErrorMessage("Unkown error occurred.");
@@ -91,7 +98,7 @@ function activateRunCmdCommand() {
 }
 
 function runCurrentFile() {
-    runCommand(getCurrenDirectoryPath(), ballerinaExtInstance.getBallerinaCmd(), 
+    runCommand(getCurrenDirectoryPath(), extension.ballerinaExtInstance.getBallerinaCmd(),
         getRunCommand(),
         getCurrentBallerinaFile());
 }

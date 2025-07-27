@@ -28,9 +28,10 @@ const useStyles = () => ({
         width: `${IO_NODE_DEFAULT_WIDTH}px`,
         cursor: "default",
         padding: "16px",
-        backgroundColor: "var(--vscode-input-background)",
-        border: "1px dashed var(--vscode-input-border)",
-        borderRadius: "4px"
+        fontFamily: "GilmerRegular",
+        background: "var(--vscode-sideBar-background)",
+        border: "1.8px dashed var(--vscode-dropdown-border)",
+        borderRadius: "6px"
     }),
     unsupportedIOBanner: css({
         padding: "12px"
@@ -48,6 +49,8 @@ const useStyles = () => ({
         marginRight: '8px'
     }),
     messageTitle: css({
+        color: "var(--vscode-foreground)",
+        opacity: 0.9,
         fontWeight: 500
     }),
     divider: css({

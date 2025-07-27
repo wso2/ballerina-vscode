@@ -18,7 +18,11 @@
 
 export * from "./DataImport";
 export * from "./Input";
+export * from "./SubMapping";
 export * from "./ObjectOutput";
 export * from "./ArrayOutput";
+export * from "./PrimitiveOutput";
+export * from "./QueryOutput";
 export * from "./LinkConnector";
+export * from "./QueryExprConnector";
 export * from "./EmptyInputs";

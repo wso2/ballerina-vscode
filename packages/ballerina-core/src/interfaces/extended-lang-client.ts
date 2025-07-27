@@ -28,8 +28,9 @@ import { ConnectorRequest, ConnectorResponse } from "../rpc-types/connector-wiza
 import { SqFlow } from "../rpc-types/sequence-diagram/interfaces";
 import { FieldType, FunctionModel, ListenerModel, ServiceClassModel, ServiceModel } from "./service";
 import { CDModel } from "./component-diagram";
-import { IDMModel, Mapping } from "./inline-data-mapper";
-import { SCOPE } from "../state-machine-types";
+import { DMModel, ExpandedDMModel, IntermediateClause, Mapping, VisualizableField, CustomFnMetadata } from "./inline-data-mapper";
+import { DataMapperMetadata, SCOPE } from "../state-machine-types";
+import { Attachment } from "../rpc-types/ai-panel/interfaces";
 
 export interface DidOpenParams {
     textDocument: TextDocumentItem;
@@ -279,41 +280,148 @@ export interface TypeWithIdentifier {
     type: TypeField;
 }
 
-export interface InlineDataMapperModelRequest {
+export interface InitialIDMSourceRequest {
     filePath: string;
     flowNode: FlowNode;
-    propertyKey: string;
-    position: LinePosition;
 }
 
-export interface InlineDataMapperSourceRequest extends InlineDataMapperModelRequest {
+export interface InitialIDMSourceResponse {
+    textEdits: {
+        [key: string]: TextEdit[];
+    };
+}
+
+export interface InlineDataMapperModelRequest {
+    filePath: string;
+    codedata: CodeData;
+    position: LinePosition;
+    targetField?: string;
+}
+
+export interface InlineDataMapperBase {
+    filePath: string;
+    codedata: CodeData;
+    varName?: string;
+    targetField?: string;
+}
+
+export interface InlineDataMapperSourceRequest extends InlineDataMapperBase {
+    mapping: Mapping;
+    withinSubMapping?: boolean;
+}
+
+export interface InlineAllDataMapperSourceRequest extends InlineDataMapperBase {
     mappings: Mapping[];
+}
+
+export interface ExtendedDataMapperMetadata extends DataMapperMetadata {
+    mappingsModel: ExpandedDMModel;
+}
+
+export interface MetadataWithAttachments {
+    metadata: ExtendedDataMapperMetadata;
+    attachment?: Attachment[];
 }
 
 export interface VisualizableFieldsRequest {
     filePath: string;
-    flowNode: FlowNode;
-    position: LinePosition;
+    codedata: CodeData;
 }
 
 export interface InlineDataMapperModelResponse {
-    mappingsModel: IDMModel;
+    mappingsModel: ExpandedDMModel | DMModel;
 }
 
 export interface InlineDataMapperSourceResponse {
-    source: string;
+    textEdits?: {
+        [key: string]: TextEdit[];
+    };
+    error?: string;
+    userAborted?: boolean;
 }
 
 export interface VisualizableFieldsResponse {
-    visualizableProperties: string[];
+    visualizableProperties: VisualizableField;
 }
 
 export interface AddArrayElementRequest {
     filePath: string;
-    flowNode: FlowNode;
-    position: LinePosition;
-    propertyKey: string;
+    codedata: CodeData;
+    varName?: string;
+    targetField?: string;
+    propertyKey?: string;
+}
+
+export interface ConvertToQueryRequest{
+    filePath: string;
+    codedata: CodeData;
+    varName?: string;
+    targetField?: string;
+    propertyKey?: string;
+}
+
+export interface AddClausesRequest {
+    filePath: string;
+    codedata: CodeData;
+    index: number;
+    clause: IntermediateClause;
+    varName?: string;
     targetField: string;
+    propertyKey?: string;
+}
+
+export interface AddSubMappingRequest {
+    filePath: string;
+    codedata: CodeData;
+    index: number;
+    flowNode: FlowNode;
+    varName?: string;
+    targetField: string;
+}
+
+export interface DeleteMappingRequest {
+    filePath: string;
+    codedata: CodeData;
+    mapping: Mapping;
+    varName?: string;
+    targetField: string;
+}
+
+export interface MapWithCustomFnRequest{
+    filePath: string;
+    codedata: CodeData;
+    mapping: Mapping;
+    functionMetadata: CustomFnMetadata;
+    varName?: string;
+    targetField: string;
+}
+
+export interface GetInlineDataMapperCodedataRequest {
+    filePath: string;
+    codedata: CodeData;
+    name: string;
+}
+
+export interface GetSubMappingCodedataRequest {
+    filePath: string;
+    codedata: CodeData;
+    view: string;
+}
+
+export interface GetInlineDataMapperCodedataResponse {
+    codedata: CodeData;
+}
+
+export interface PropertyRequest {
+    filePath: string;
+    codedata: CodeData;
+    propertyKey: string,
+    targetField: string;
+    fieldId: string;
+}
+
+export interface PropertyResponse {
+    property: Property;
 }
 
 export interface GraphqlDesignServiceParams {

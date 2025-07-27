@@ -16,18 +16,21 @@
  * under the License.
  */
 
-import { IDMModel, IOType, Mapping } from "@wso2/ballerina-core";
+import { ExpandedDMModel, IOType, Mapping } from "@wso2/ballerina-core";
 
 export interface BaseVisitor {
-    beginVisit?(node: IDMModel, parent?: IDMModel): void;
-    endVisit?(node: IDMModel, parent?: IDMModel): void;
+    beginVisit?(node: ExpandedDMModel, parent?: ExpandedDMModel): void;
+    endVisit?(node: ExpandedDMModel, parent?: ExpandedDMModel): void;
     
-    beginVisitInputType?(node: IOType, parent?: IDMModel): void;
-    endVisitInputType?(node: IOType, parent?: IDMModel): void;
+    beginVisitInputType?(node: IOType, parent?: ExpandedDMModel): void;
+    endVisitInputType?(node: IOType, parent?: ExpandedDMModel): void;
 
-    beginVisitOutputType?(node: IOType, parent?: IDMModel): void;
-    endVisitOutputType?(node: IOType, parent?: IDMModel): void;
+    beginVisitOutputType?(node: IOType, parent?: ExpandedDMModel): void;
+    endVisitOutputType?(node: IOType, parent?: ExpandedDMModel): void;
 
-    beginVisitMapping?(node: Mapping, parentMapping: Mapping, parentModel?: IDMModel): void;
-    endVisitMapping?(node: Mapping, parentMapping: Mapping, parentModel?: IDMModel): void;
+    beginVisitSubMappingType?(node: IOType, parent?: ExpandedDMModel): void;
+    endVisitSubMappingType?(node: IOType, parent?: ExpandedDMModel): void;
+
+    beginVisitMapping?(node: Mapping, parentMapping: Mapping, parentModel?: ExpandedDMModel): void;
+    endVisitMapping?(node: Mapping, parentMapping: Mapping, parentModel?: ExpandedDMModel): void;
 }
