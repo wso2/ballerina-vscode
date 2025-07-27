@@ -18,6 +18,10 @@
 
 package io.ballerina.flowmodelgenerator.core.search;
 
+import io.ballerina.compiler.api.SemanticModel;
+import io.ballerina.compiler.api.symbols.Documentation;
+import io.ballerina.compiler.api.symbols.Symbol;
+import io.ballerina.compiler.api.symbols.TypeDefinitionSymbol;
 import io.ballerina.flowmodelgenerator.core.model.AvailableNode;
 import io.ballerina.flowmodelgenerator.core.model.Category;
 import io.ballerina.flowmodelgenerator.core.model.Codedata;
@@ -27,6 +31,8 @@ import io.ballerina.flowmodelgenerator.core.model.NodeKind;
 import io.ballerina.modelgenerator.commons.CommonUtils;
 import io.ballerina.modelgenerator.commons.PackageUtil;
 import io.ballerina.modelgenerator.commons.SearchResult;
+import io.ballerina.projects.Module;
+import io.ballerina.projects.ModuleName;
 import io.ballerina.projects.Package;
 import io.ballerina.projects.Project;
 import io.ballerina.tools.text.LineRange;
@@ -35,6 +41,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * Represents a command to search for types within a module. This class extends SearchCommand and provides functionality
@@ -66,7 +73,13 @@ class TypeSearchCommand extends SearchCommand {
         Package currentPackage = project.currentPackage();
         PackageUtil.getCompilation(currentPackage);
         moduleNames = currentPackage.getDefaultModule().moduleDependencies().stream()
-                .map(moduleDependency -> moduleDependency.descriptor().name().packageName().value())
+                .map(moduleDependency -> {
+                    ModuleName name = moduleDependency.descriptor().name();
+                    if (Objects.nonNull(name.moduleNamePart()) && !name.moduleNamePart().isEmpty()) {
+                        return name.packageName().value() + "." + name.moduleNamePart();
+                    }
+                    return name.packageName().value();
+                })
                 .toList();
     }
 
@@ -77,6 +90,7 @@ class TypeSearchCommand extends SearchCommand {
             searchResults.addAll(dbManager.searchTypesByPackages(moduleNames, limit, offset));
         }
         buildLibraryNodes(searchResults, false);
+        buildImportedLocalModules();
         return rootBuilder.build().items();
     }
 
@@ -84,6 +98,7 @@ class TypeSearchCommand extends SearchCommand {
     protected List<Item> search() {
         List<SearchResult> typeSearchList = dbManager.searchTypes(query, limit, offset);
         buildLibraryNodes(typeSearchList, true);
+        buildImportedLocalModules();
         return rootBuilder.build().items();
     }
 
@@ -123,6 +138,54 @@ class TypeSearchCommand extends SearchCommand {
                 builder.stepIn(packageInfo.moduleName(), "", List.of())
                         .node(new AvailableNode(metadata, codedata, true));
             }
+        }
+    }
+
+    private void buildImportedLocalModules() {
+        Iterable<Module> modules = project.currentPackage().modules();
+        for (Module module : modules) {
+            if (module.isDefaultModule()) {
+                continue;
+            }
+            SemanticModel semanticModel = PackageUtil.getCompilation(module.packageInstance())
+                    .getSemanticModel(module.moduleId());
+            if (semanticModel == null) {
+                    continue;
+            }
+            List<Symbol> symbols = semanticModel.moduleSymbols();
+            String moduleName = module.moduleName().toString();
+            Category.Builder moduleBuilder = rootBuilder.stepIn(Category.Name.IMPORTED_TYPES);
+            String orgName = module.packageInstance().packageOrg().toString();
+            String packageName = module.packageInstance().packageName().toString();
+            String version = module.packageInstance().packageVersion().toString();
+            for (Symbol symbol : symbols) {
+                if (symbol instanceof TypeDefinitionSymbol typeDefinitionSymbol) {
+                    if (typeDefinitionSymbol.getName().isEmpty()) {
+                        continue;
+                    }
+                    String typeName = typeDefinitionSymbol.getName().get();
+                    Documentation documentation = typeDefinitionSymbol.documentation()
+                            .orElse(null);
+                    String description = documentation != null ? documentation.description().orElse("") : "";
+
+                    Metadata metadata = new Metadata.Builder<>(null)
+                            .label(typeName)
+                            .description(description)
+                            .build();
+
+                    Codedata codedata = new Codedata.Builder<>(null)
+                            .org(orgName)
+                            .module(moduleName)
+                            .packageName(packageName)
+                            .symbol(typeName)
+                            .version(version)
+                            .build();
+
+                    moduleBuilder.stepIn(moduleName, "", List.of())
+                            .node(new AvailableNode(metadata, codedata, true));
+                }
+            }
+
         }
     }
 }
