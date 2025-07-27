@@ -79,13 +79,14 @@ export interface McpToolUpdateRequest {
 }
 
 export interface ToolParameters {
-    metadata:            Metadata;
-    valueType:           string;
+    metadata: Metadata;
+    valueType: string;
     valueTypeConstraint: ValueTypeConstraint;
-    value:               ToolParametersValue;
-    optional:            boolean;
-    editable:            boolean;
-    advanced:            boolean;
+    value: ToolParametersValue;
+    optional: boolean;
+    editable: boolean;
+    advanced: boolean;
+    hidden?: boolean;
 }
 
 export interface ToolParametersValue {
@@ -93,26 +94,28 @@ export interface ToolParametersValue {
 }
 
 export interface ValueTypeConstraint {
-    metadata:  Metadata;
+    metadata: Metadata;
     valueType: string;
-    value:     ValueTypeConstraintValue;
-    optional:  boolean;
-    editable:  boolean;
-    advanced:  boolean;
+    value: ValueTypeConstraintValue;
+    optional: boolean;
+    editable: boolean;
+    advanced: boolean;
+    hidden?: boolean;
 }
 
 export interface ValueTypeConstraintValue {
-    type:     ValueType;
+    type: ValueType;
     variable: ValueType;
     parameterDescription: ValueType;
 }
 
 export interface ValueType {
-    metadata:             Metadata;
-    valueType:            string;
+    metadata: Metadata;
+    valueType: string;
     valueTypeConstraint?: string;
-    value:                string;
-    optional:             boolean;
-    editable:             boolean;
-    advanced:             boolean;
+    value: string;
+    optional: boolean;
+    editable: boolean;
+    advanced: boolean;
+    hidden?: boolean;
 }

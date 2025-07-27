@@ -115,31 +115,24 @@ export function NewTool(props: NewToolProps): JSX.Element {
                 console.log(">>> response save tool", { toolResponse });
             } else {
                 // create tool from existing connection
-                // get nodeTemplate
-                const nodeTemplate = await rpcClient.getBIDiagramRpcClient().getNodeTemplate({
-                    position: { line: 0, offset: 0 },
-                    filePath: agentFilePath.current,
-                    id: data.selectedCodeData,
-                });
-                console.log(">>> node template", { nodeTemplate });
-                if (!nodeTemplate.flowNode) {
+                if (!data.flowNode) {
                     console.error("Node template not found");
                     return;
                 }
-                if (nodeTemplate.flowNode?.codedata) {
-                    nodeTemplate.flowNode.codedata.isNew = true;
-                    nodeTemplate.flowNode.codedata.lineRange = {
+                if (data.flowNode?.codedata) {
+                    data.flowNode.codedata.isNew = true;
+                    data.flowNode.codedata.lineRange = {
                         ...agentNode.codedata.lineRange,
                         endLine: agentNode.codedata.lineRange.startLine,
                     };
                 }
-                updateFlowNodePropertyValuesWithKeys(nodeTemplate.flowNode);
+                updateFlowNodePropertyValuesWithKeys(data.flowNode);
                 // save tool
                 const toolResponse = await rpcClient.getAIAgentRpcClient().genTool({
                     toolName: data.toolName,
                     description: data.description,
                     filePath: agentFilePath.current,
-                    flowNode: nodeTemplate.flowNode,
+                    flowNode: data.flowNode,
                     connection: data.selectedCodeData.parentSymbol || "",
                     toolParameters: data.toolParameters,
                 });
