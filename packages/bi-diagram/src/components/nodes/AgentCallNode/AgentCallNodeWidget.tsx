@@ -33,20 +33,11 @@ import {
     NODE_PADDING,
     NODE_WIDTH,
 } from "../../../resources/constants";
-import { Button, Icon, Item, Menu, MenuItem, Popover, ThemeColors, Tooltip } from "@wso2/ui-toolkit";
-import {
-    MoreVertIcon,
-    OpenAiIcon,
-    AzureOpenAiIcon,
-    AnthropicIcon,
-    OllamaIcon,
-    DefaultLlmIcon,
-    MistralAIIcon,
-    DeepseekIcon
-} from "../../../resources/icons";
+import { Button, Icon, Item, Menu, MenuItem, Popover, ThemeColors } from "@wso2/ui-toolkit";
+import { MoreVertIcon } from "../../../resources/icons";
 import { AgentData, FlowNode, ToolData } from "../../../utils/types";
 import NodeIcon from "../../NodeIcon";
-import ConnectorIcon from "../../ConnectorIcon";
+import ConnectorIcon, { getLlmModelIcons } from "../../ConnectorIcon";
 import { useDiagramContext } from "../../DiagramContext";
 import { DiagnosticsPopUp } from "../../DiagnosticsPopUp";
 import { nodeHasError } from "../../../utils/node";
@@ -993,31 +984,4 @@ function sanitizeAgentData(data: AgentData) {
         data.instructions = data.instructions.replace(/^['"]|['"]$/g, "").replace(/^string `|`$/g, "");
     }
     return data;
-}
-
-// get llm model icons
-// this should replace with CDN icons
-function getLlmModelIcons(modelType: string) {
-    switch (modelType) {
-        case "OpenAiProvider":
-        case "ai.openai":
-            return <OpenAiIcon />;
-        case "AzureOpenAiProvider":
-        case "ai.azure":
-            return <AzureOpenAiIcon />;
-        case "AnthropicProvider":
-        case "ai.anthropic":
-            return <AnthropicIcon />;
-        case "OllamaProvider":
-        case "ai.ollama":
-            return <OllamaIcon />;
-        case "MistralAiProvider":
-        case "ai.mistral":
-            return <MistralAIIcon />;
-        case "DeepseekProvider":
-        case "ai.deepseek":
-            return <DeepseekIcon />;
-        default:
-            return <DefaultLlmIcon />;
-    }
 }
