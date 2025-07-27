@@ -23,10 +23,10 @@ export function getTypeName(fieldType: IOType): string {
 	}
 
     let typeName = fieldType?.typeName || fieldType.kind;
-
-    if (fieldType.kind === TypeKind.Array && fieldType.member) {
-		typeName = `${getTypeName(fieldType.member)}[]`;
-	}
+    
+    if (fieldType.moduleInfo?.moduleName) {
+        typeName = `${fieldType.moduleInfo.moduleName}:${typeName}`;
+    }
 
 	return typeName;
 }
