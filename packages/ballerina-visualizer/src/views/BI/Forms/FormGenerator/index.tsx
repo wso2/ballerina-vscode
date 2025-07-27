@@ -85,6 +85,7 @@ import { FormTypeEditor } from "../../TypeEditor";
 import { getTypeHelper } from "../../TypeHelper";
 import { EXPRESSION_EXTRACTION_REGEX } from "../../../../constants";
 import MatchForm from "../MatchForm";
+import VectorKnowledgeBaseForm from "../VectorKnowledgeBaseForm";
 
 interface TypeEditorState {
     isOpen: boolean;
@@ -788,6 +789,26 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
                 updatedExpressionField={updatedExpressionField}
                 resetUpdatedExpressionField={resetUpdatedExpressionField}
                 subPanelView={subPanelView}
+            />
+        );
+    }
+
+    // handle vector knowledge base form
+    if (node?.codedata.node === "VECTOR_KNOWLEDGE_BASE") {
+        return (
+            <VectorKnowledgeBaseForm
+                fileName={fileName}
+                node={node}
+                targetLineRange={targetLineRange}
+                expressionEditor={expressionEditor}
+                showProgressIndicator={showProgressIndicator}
+                onSubmit={onSubmit}
+                openSubPanel={openSubPanel}
+                updatedExpressionField={updatedExpressionField}
+                resetUpdatedExpressionField={resetUpdatedExpressionField}
+                subPanelView={subPanelView}
+                disableSaveButton={disableSaveButton}
+                submitText={submitText}
             />
         );
     }
