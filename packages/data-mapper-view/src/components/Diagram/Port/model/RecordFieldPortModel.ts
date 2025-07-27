@@ -127,7 +127,7 @@ export class RecordFieldPortModel extends PortModel<PortModelGenerics & RecordFi
 					replaceSpecificFieldValue(targetPort, modifications);
 				} else if (valueType === ValueType.Default) {
 					updateExistingValue(sourcePort, targetPort);
-				} else if (targetPortHasLinks) {
+				} else if (valueType === ValueType.NonEmpty) {
 					modifySpecificFieldSource(sourcePort, targetPort, lm.getID());
 				} else {
 					await createSourceForMapping(sourcePort, targetPort);

@@ -29,7 +29,13 @@ import { LANGUAGE } from "../../../core";
 function activateRunCmdCommand() {
 
     commands.registerCommand(PALETTE_COMMANDS.RUN, async (filePath: Uri) => {
-        prepareAndGenerateConfig(extension.ballerinaExtInstance, filePath?.fsPath);
+        let actualFilePath: string | undefined;
+        if (typeof filePath === 'string') {
+            actualFilePath = Uri.parse(filePath).fsPath;
+        } else if (filePath instanceof Uri) {
+            actualFilePath = filePath.fsPath;
+        }
+        prepareAndGenerateConfig(extension.ballerinaExtInstance, actualFilePath);
     });
 
     // register ballerina run handler
@@ -92,7 +98,7 @@ function activateRunCmdCommand() {
 }
 
 function runCurrentFile() {
-    runCommand(getCurrenDirectoryPath(), extension.ballerinaExtInstance.getBallerinaCmd(), 
+    runCommand(getCurrenDirectoryPath(), extension.ballerinaExtInstance.getBallerinaCmd(),
         getRunCommand(),
         getCurrentBallerinaFile());
 }
