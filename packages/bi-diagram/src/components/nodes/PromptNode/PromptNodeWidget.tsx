@@ -36,11 +36,9 @@ import { useDiagramContext } from "../../DiagramContext";
 import { PromptNodeModel } from "./PromptNodeModel";
 import { ELineRange, ExpressionProperty, NodeMetadata } from "@wso2/ballerina-core";
 import { DiagnosticsPopUp } from "../../DiagnosticsPopUp";
-import { getRawTemplate, nodeHasError } from "../../../utils/node";
+import { nodeHasError } from "../../../utils/node";
 import { cloneDeep } from "lodash";
-import { OpenAiIcon } from "../../../resources/icons/OpenAiIcon";
-import { DeepseekIcon } from "../../../resources/icons/DeepseekIcon";
-import { DefaultLlmIcon, MistralAIIcon, OllamaIcon, AzureOpenAiIcon, AnthropicIcon } from "../../../resources/icons";
+import { getLlmModelIcons } from "../../ConnectorIcon";
 
 export namespace NodeStyles {
     export type NodeStyleProp = {
@@ -621,23 +619,4 @@ function isExpression(value: string, cursorPosition: number) {
     }
 
     return prefixMatch && suffixMatch;
-}
-
-function getLlmModelIcons(modelType: string) {
-    switch (modelType) {
-        case "ai.openai":
-            return <OpenAiIcon />;
-        case "ai.azure":
-            return <AzureOpenAiIcon />;
-        case "ai.anthropic":
-            return <AnthropicIcon />;
-        case "ai.ollama":
-            return <OllamaIcon />;
-        case "ai.mistral":
-            return <MistralAIIcon />;
-        case "ai.deepseek":
-            return <DeepseekIcon />;
-        default:
-            return <DefaultLlmIcon />;
-    }
 }
