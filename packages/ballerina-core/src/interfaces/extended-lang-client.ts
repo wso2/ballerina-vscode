@@ -836,6 +836,7 @@ export type SearchQueryParams = {
     limit?: number;
     offset?: number;
     includeAvailableFunctions?: string;
+    includeCurrentOrganizationInSearch?: boolean;
 }
 
 export type SearchKind = 'FUNCTION' | 'CONNECTOR' | 'TYPE' | "NP_FUNCTION" | "MODEL_PROVIDER" | "VECTOR_STORE" | "EMBEDDING_PROVIDER" | "VECTOR_KNOWLEDGE_BASE";
