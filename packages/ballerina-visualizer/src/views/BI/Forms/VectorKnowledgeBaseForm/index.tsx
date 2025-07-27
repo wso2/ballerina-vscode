@@ -16,21 +16,18 @@
  * under the License.
  */
 
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useForm } from "react-hook-form";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
     Button,
     Dropdown,
-    FormExpressionEditorRef,
     OptionProps,
-    ProgressIndicator,
     ProgressRing,
     ThemeColors,
     Typography,
 } from "@wso2/ui-toolkit";
 import styled from "@emotion/styled";
 
-import { FlowNode, LineRange, SubPanel, SubPanelView, NodePosition } from "@wso2/ballerina-core";
+import { FlowNode, LineRange, SubPanel, SubPanelView } from "@wso2/ballerina-core";
 import {
     FormValues,
     ExpressionFormField,
@@ -39,7 +36,6 @@ import {
     FormField,
     FormImports,
 } from "@wso2/ballerina-side-panel";
-import { FormStyles } from "../styles";
 import { convertNodePropertiesToFormFields, getFormProperties, getImportsForFormFields } from "../../../../utils/bi";
 import { cloneDeep } from "lodash";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
@@ -140,11 +136,6 @@ interface VectorKnowledgeBaseFormProps {
     submitText?: string;
 }
 
-interface SelectedComponents {
-    vectorStore?: FlowNode;
-    embeddingProvider?: FlowNode;
-}
-
 interface ComponentData {
     [key: string]: FlowNode;
 }
@@ -168,7 +159,7 @@ export function VectorKnowledgeBaseForm(props: VectorKnowledgeBaseFormProps) {
     const { rpcClient } = useRpcContext();
     const [vectorStoreOptions, setVectorStoreOptions] = useState<OptionProps[]>([]);
     const [embeddingProviderOptions, setEmbeddingProviderOptions] = useState<OptionProps[]>([]);
-    const [selectedComponents, setSelectedComponents] = useState<SelectedComponents>({});
+
     const [vectorStoreFields, setVectorStoreFields] = useState<FormField[]>([]);
     const [embeddingProviderFields, setEmbeddingProviderFields] = useState<FormField[]>([]);
     const [knowledgeBaseFields, setKnowledgeBaseFields] = useState<FormField[]>([]);
@@ -183,14 +174,38 @@ export function VectorKnowledgeBaseForm(props: VectorKnowledgeBaseFormProps) {
     const [vectorStoreFormValues, setVectorStoreFormValues] = useState<FormValues>({});
     const [embeddingProviderFormValues, setEmbeddingProviderFormValues] = useState<FormValues>({});
     const [knowledgeBaseFormValues, setKnowledgeBaseFormValues] = useState<FormValues>({});
+    const [isEditForm, setIsEditForm] = useState<boolean>(false);
+    const [selectedVectorStoreOption, setSelectedVectorStoreOption] = useState<string>("");
+    const [selectedEmbeddingProviderOption, setSelectedEmbeddingProviderOption] = useState<string>("");
+    const [saving, setSaving] = useState<boolean>(false);
 
-    const formRef = useRef<FormExpressionEditorRef>(null);
     const vectorStoreTemplateRef = useRef<FlowNode | null>(null);
     const embeddingProviderTemplateRef = useRef<FlowNode | null>(null);
+    const vectorStoreLineRange = useRef<LineRange | null>(null);
+    const embeddingProviderLineRange = useRef<LineRange | null>(null);
 
     useEffect(() => {
-        initializeForm();
-        fetchAvailableComponents();
+        // Check if this is an edit form
+        const formProperties = getFormProperties(node);
+        const vectorStoreValue = formProperties.vectorStore?.value as string;
+        const embeddingModelValue = formProperties.embeddingModel?.value as string;
+
+        const isEdit = !!(vectorStoreValue && embeddingModelValue);
+        setIsEditForm(isEdit);
+
+        console.log(">>> Form mode detected", {
+            isEdit,
+            vectorStoreValue,
+            embeddingModelValue,
+            formProperties,
+        });
+
+        if (isEdit) {
+            editFormInit();
+        } else {
+            initializeForm();
+            fetchAvailableComponents();
+        }
         handleFormOpen();
 
         return () => {
@@ -231,6 +246,141 @@ export function VectorKnowledgeBaseForm(props: VectorKnowledgeBaseFormProps) {
         const fields = convertNodePropertiesToFormFields(formProperties);
         setKnowledgeBaseFields(fields);
         setFormImports(getImportsForFormFields(fields));
+    };
+
+    const editFormInit = async () => {
+        try {
+            // Get the current vector store and embedding model values
+            const formProperties = getFormProperties(node);
+            const vectorStoreValue = formProperties.vectorStore?.value;
+            const embeddingModelValue = formProperties.embeddingModel?.value;
+
+            console.log(">>> Edit form init", { vectorStoreValue, embeddingModelValue });
+
+            // Fetch module nodes to find existing components
+            const moduleNodesResponse = await rpcClient.getBIDiagramRpcClient().getModuleNodes();
+
+            console.log(">>> Module nodes fetched", { moduleNodesResponse });
+
+            // Find the vector store and embedding provider nodes
+            let vectorStoreNode: FlowNode | null = null;
+            let embeddingProviderNode: FlowNode | null = null;
+
+            // Search through module nodes to find matching variable names
+            moduleNodesResponse.flowModel.connections.forEach((moduleNode) => {
+                const moduleNodeVariableValue = moduleNode.properties?.variable?.value;
+                const isStringValue = typeof moduleNodeVariableValue === "string";
+
+                if (isStringValue && moduleNodeVariableValue === vectorStoreValue) {
+                    if (
+                        moduleNode.codedata.node === "VECTOR_STORE" ||
+                        moduleNode.codedata.object?.includes("VectorStore")
+                    ) {
+                        vectorStoreNode = moduleNode;
+                        vectorStoreTemplateRef.current = moduleNode;
+                        vectorStoreLineRange.current = moduleNode.codedata.lineRange;
+                        setVectorStoreVariableName(vectorStoreValue as string);
+                        console.log(">>> Found vector store node", { vectorStoreNode });
+                    }
+                }
+
+                if (isStringValue && moduleNodeVariableValue === embeddingModelValue) {
+                    if (
+                        moduleNode.codedata.node === "EMBEDDING_PROVIDER" ||
+                        moduleNode.codedata.object?.includes("EmbeddingProvider") ||
+                        moduleNode.codedata.symbol?.includes("EmbeddingProvider")
+                    ) {
+                        embeddingProviderNode = moduleNode;
+                        embeddingProviderTemplateRef.current = moduleNode;
+                        embeddingProviderLineRange.current = moduleNode.codedata.lineRange;
+                        setEmbeddingProviderVariableName(embeddingModelValue as string);
+                        console.log(">>> Found embedding provider node", { embeddingProviderNode });
+                    }
+                }
+            });
+
+            if (vectorStoreNode && embeddingProviderNode) {
+                // Process vector store fields
+                const vectorStoreFormProperties = getFormProperties(vectorStoreNode);
+                const vectorStoreProps = vectorStoreFormProperties as any;
+                if (vectorStoreProps.variable) {
+                    vectorStoreProps.variable.hidden = true;
+                }
+                if (vectorStoreProps.type) {
+                    vectorStoreProps.type.hidden = true;
+                }
+                const vectorStoreFields = convertNodePropertiesToFormFields(vectorStoreFormProperties);
+                setVectorStoreFields(vectorStoreFields);
+
+                // Set existing vector store form values
+                const vectorStoreExistingValues: FormValues = {};
+                Object.keys(vectorStoreNode.properties || {}).forEach((key) => {
+                    if (key !== "variable" && key !== "type") {
+                        vectorStoreExistingValues[key] = (vectorStoreNode.properties as any)[key].value;
+                    }
+                });
+                setVectorStoreFormValues(vectorStoreExistingValues);
+
+                // Process embedding provider fields
+                const embeddingProviderFormProperties = getFormProperties(embeddingProviderNode);
+                const embeddingProviderProps = embeddingProviderFormProperties as any;
+                if (embeddingProviderProps.variable) {
+                    embeddingProviderProps.variable.hidden = true;
+                }
+                if (embeddingProviderProps.type) {
+                    embeddingProviderProps.type.hidden = true;
+                }
+                const embeddingProviderFields = convertNodePropertiesToFormFields(embeddingProviderFormProperties);
+                setEmbeddingProviderFields(embeddingProviderFields);
+
+                // Set existing embedding provider form values
+                const embeddingProviderExistingValues: FormValues = {};
+                Object.keys(embeddingProviderNode.properties || {}).forEach((key) => {
+                    if (key !== "variable" && key !== "type") {
+                        embeddingProviderExistingValues[key] = (embeddingProviderNode.properties as any)[key].value;
+                    }
+                });
+                setEmbeddingProviderFormValues(embeddingProviderExistingValues);
+
+                console.log(">>> Edit form initialized", {
+                    vectorStoreNode,
+                    vectorStoreExistingValues,
+                    vectorStoreFields,
+                    embeddingProviderNode,
+                    embeddingProviderFields,
+                    embeddingProviderExistingValues,
+                });
+            }
+
+            // Initialize knowledge base fields (same as create mode)
+            const knowledgeBaseProps = formProperties as any;
+            if (knowledgeBaseProps.vectorStore) {
+                knowledgeBaseProps.vectorStore.hidden = true;
+            }
+            if (knowledgeBaseProps.embeddingModel) {
+                knowledgeBaseProps.embeddingModel.hidden = true;
+            }
+            const knowledgeBaseFields = convertNodePropertiesToFormFields(formProperties);
+            setKnowledgeBaseFields(knowledgeBaseFields);
+            setFormImports(getImportsForFormFields(knowledgeBaseFields));
+
+            // Set existing knowledge base form values
+            const knowledgeBaseExistingValues: FormValues = {};
+            Object.keys(node.properties || {}).forEach((key) => {
+                if (key !== "vectorStore" && key !== "embeddingModel") {
+                    knowledgeBaseExistingValues[key] = (node.properties as any)[key].value;
+                }
+            });
+            setKnowledgeBaseFormValues(knowledgeBaseExistingValues);
+
+            // load dropdown options and default selections
+            fetchAvailableComponentsInEditMode(vectorStoreNode, embeddingProviderNode);
+
+            setIsInitialized(true);
+        } catch (error) {
+            console.error("Error initializing edit form:", error);
+            setIsInitialized(true); // Still set to prevent infinite loading
+        }
     };
 
     const fetchAvailableComponents = async () => {
@@ -339,17 +489,97 @@ export function VectorKnowledgeBaseForm(props: VectorKnowledgeBaseFormProps) {
         }
     };
 
+    const fetchAvailableComponentsInEditMode = async (vectorStoreNode: FlowNode, embeddingProviderNode: FlowNode) => {
+        try {
+            // Fetch available vector stores
+            const vectorStoreResponse = await rpcClient.getBIDiagramRpcClient().search({
+                position: { startLine: targetLineRange.startLine, endLine: targetLineRange.endLine },
+                filePath: fileName,
+                queryMap: undefined,
+                searchKind: "VECTOR_STORE",
+            });
+
+            const vectorStoreOptions: OptionProps[] = [];
+            const vectorStoreDataMap: ComponentData = {};
+
+            vectorStoreResponse.categories?.forEach((category) => {
+                category.items?.forEach((item) => {
+                    // Check if it's an AvailableNode (not a nested Category)
+                    if ("codedata" in item && "enabled" in item) {
+                        const flowNode = item as any; // AvailableNode extends FlowNode
+                        vectorStoreOptions.push({
+                            id: item.metadata.label,
+                            content: item.metadata.label,
+                            value: item.metadata.label,
+                        });
+                        vectorStoreDataMap[item.metadata.label] = flowNode;
+                        if (
+                            flowNode.codedata.module === vectorStoreNode.codedata.module &&
+                            flowNode.codedata.org === vectorStoreNode.codedata.org
+                        ) {
+                            console.log(">>> Setting vector store dropdown selection:", item.metadata.label);
+                            setSelectedVectorStoreOption(item.metadata.label);
+                        }
+                    }
+                });
+            });
+
+            setVectorStoreOptions(vectorStoreOptions);
+
+            // Fetch available embedding providers
+            const embeddingProviderResponse = await rpcClient.getBIDiagramRpcClient().search({
+                position: { startLine: targetLineRange.startLine, endLine: targetLineRange.endLine },
+                filePath: fileName,
+                queryMap: undefined,
+                searchKind: "EMBEDDING_PROVIDER",
+            });
+
+            const embeddingProviderOptions: OptionProps[] = [];
+            const embeddingProviderDataMap: ComponentData = {};
+
+            embeddingProviderResponse.categories?.forEach((category) => {
+                category.items?.forEach((item) => {
+                    // Check if it's an AvailableNode (not a nested Category)
+                    if ("codedata" in item && "enabled" in item) {
+                        const flowNode = item as any; // AvailableNode extends FlowNode
+                        embeddingProviderOptions.push({
+                            id: item.metadata.label,
+                            content: item.metadata.label,
+                            value: item.metadata.label,
+                        });
+                        embeddingProviderDataMap[item.metadata.label] = flowNode;
+                        if (
+                            flowNode.codedata.module === embeddingProviderNode.codedata.module &&
+                            flowNode.codedata.org === embeddingProviderNode.codedata.org
+                        ) {
+                            console.log(">>> Setting embedding provider dropdown selection:", item.metadata.label);
+                            setSelectedEmbeddingProviderOption(item.metadata.label);
+                        }
+                    }
+                });
+            });
+
+            setEmbeddingProviderOptions(embeddingProviderOptions);
+            const fullComponentDataMap = { ...vectorStoreDataMap, ...embeddingProviderDataMap };
+            setComponentDataMap(fullComponentDataMap);
+
+            console.log(">>> Available components loaded", {
+                vectorStoreOptions,
+                embeddingProviderOptions,
+                componentDataMap: fullComponentDataMap,
+            });
+        } catch (error) {
+            console.error("Error fetching available components:", error);
+        }
+    };
+
     const handleVectorStoreSelect = async (value: string, dataMap?: ComponentData) => {
         const currentDataMap = dataMap || componentDataMap;
         const vectorStoreNode = currentDataMap[value];
         console.log(">>> selected vector store", { value, vectorStoreNode, currentDataMap });
         if (vectorStoreNode) {
-            setSelectedComponents((prev) => ({ ...prev, vectorStore: vectorStoreNode }));
-
-            // Generate variable name for the vector store
-            const variableName = `${vectorStoreNode.codedata.object?.toLowerCase() || "vectorStore"}`;
-            setVectorStoreVariableName(variableName);
-            console.log(">>> vector store variable name:", variableName);
+            vectorStoreTemplateRef.current = vectorStoreNode;
+            setSelectedVectorStoreOption(value);
 
             // Get node template for the selected vector store to show its form
             try {
@@ -359,6 +589,10 @@ export function VectorKnowledgeBaseForm(props: VectorKnowledgeBaseFormProps) {
                     id: vectorStoreNode.codedata,
                 });
                 console.log(">>> vector store template", { template });
+
+                const variableName = `${template.flowNode.properties.variable.value || "vectorStore"}`;
+                setVectorStoreVariableName(variableName);
+                console.log(">>> vector store variable name:", variableName);
 
                 // Store template for later use in submission
                 vectorStoreTemplateRef.current = template.flowNode;
@@ -387,12 +621,8 @@ export function VectorKnowledgeBaseForm(props: VectorKnowledgeBaseFormProps) {
         const embeddingProviderNode = currentDataMap[value];
         console.log(">>> selected embedding provider", { value, embeddingProviderNode, currentDataMap });
         if (embeddingProviderNode) {
-            setSelectedComponents((prev) => ({ ...prev, embeddingProvider: embeddingProviderNode }));
-
-            // Generate variable name for the embedding provider
-            const variableName = `${embeddingProviderNode.codedata.object?.toLowerCase() || "embeddingProvider"}`;
-            setEmbeddingProviderVariableName(variableName);
-            console.log(">>> embedding provider variable name:", variableName);
+            embeddingProviderTemplateRef.current = embeddingProviderNode;
+            setSelectedEmbeddingProviderOption(value);
 
             // Get node template for the selected embedding provider to show its form
             try {
@@ -402,6 +632,9 @@ export function VectorKnowledgeBaseForm(props: VectorKnowledgeBaseFormProps) {
                     id: embeddingProviderNode.codedata,
                 });
                 console.log(">>> embedding provider template", { template });
+
+                const variableName = `${template.flowNode.properties.variable.value || "embeddingProvider"}`;
+                setEmbeddingProviderVariableName(variableName);
 
                 // Store template for later use in submission
                 embeddingProviderTemplateRef.current = template.flowNode;
@@ -461,7 +694,7 @@ export function VectorKnowledgeBaseForm(props: VectorKnowledgeBaseFormProps) {
     };
 
     const handleSubmit = async () => {
-        if (!selectedComponents.vectorStore || !selectedComponents.embeddingProvider) {
+        if (!vectorStoreTemplateRef.current || !embeddingProviderTemplateRef.current) {
             console.error("Vector store and embedding provider must be selected");
             return;
         }
@@ -472,6 +705,7 @@ export function VectorKnowledgeBaseForm(props: VectorKnowledgeBaseFormProps) {
         }
 
         try {
+            setSaving(true);
             // Use stored templates instead of fetching again
             const vectorStoreTemplate = vectorStoreTemplateRef.current;
             const embeddingProviderTemplate = embeddingProviderTemplateRef.current;
@@ -510,18 +744,51 @@ export function VectorKnowledgeBaseForm(props: VectorKnowledgeBaseFormProps) {
                 embeddingProviderNode: embeddingProviderUpdatedNode,
             });
 
-            // save the vector store and embedding provider nodes
-            const vectorStoreSourceCode = await rpcClient.getBIDiagramRpcClient().getSourceCode({
-                filePath: fileName,
-                flowNode: vectorStoreUpdatedNode,
-            });
-            console.log(">>> vector store source code", { vectorStoreSourceCode });
-            const embeddingProviderSourceCode = await rpcClient.getBIDiagramRpcClient().getSourceCode({
-                filePath: fileName,
-                flowNode: embeddingProviderUpdatedNode,
-            });
-            console.log(">>> embedding provider source code", { embeddingProviderSourceCode });
+            if (isEditForm) {
+                if (!vectorStoreLineRange.current || !embeddingProviderLineRange.current) {
+                    console.error("Vector store and embedding provider line range not found");
+                    return;
+                }
+                // new vector store node
+                const newVectorStoreNode = cloneDeep(vectorStoreUpdatedNode);
+                newVectorStoreNode.codedata.lineRange = {
+                    fileName: vectorStoreLineRange.current.fileName,
+                    startLine: vectorStoreLineRange.current.startLine,
+                    endLine: vectorStoreLineRange.current.endLine,
+                };
+                newVectorStoreNode.codedata.isNew = false;
+                const newEmbeddingProviderNode = cloneDeep(embeddingProviderUpdatedNode);
+                newEmbeddingProviderNode.codedata.lineRange = {
+                    fileName: embeddingProviderLineRange.current.fileName,
+                    startLine: embeddingProviderLineRange.current.startLine,
+                    endLine: embeddingProviderLineRange.current.endLine,
+                };
+                newEmbeddingProviderNode.codedata.isNew = false;
 
+                // save the vector store and embedding provider nodes
+                const vectorStoreSourceCode = await rpcClient.getBIDiagramRpcClient().getSourceCode({
+                    filePath: fileName,
+                    flowNode: newVectorStoreNode,
+                });
+                console.log(">>> vector store source code updated", { newVectorStoreNode, vectorStoreSourceCode });
+                const embeddingProviderSourceCode = await rpcClient.getBIDiagramRpcClient().getSourceCode({
+                    filePath: fileName,
+                    flowNode: newEmbeddingProviderNode,
+                });
+                console.log(">>> embedding provider source code updated", { newEmbeddingProviderNode, embeddingProviderSourceCode });
+            } else {
+                // save the vector store and embedding provider nodes
+                const vectorStoreSourceCode = await rpcClient.getBIDiagramRpcClient().getSourceCode({
+                    filePath: fileName,
+                    flowNode: vectorStoreUpdatedNode,
+                });
+                console.log(">>> vector store source code", { vectorStoreSourceCode });
+                const embeddingProviderSourceCode = await rpcClient.getBIDiagramRpcClient().getSourceCode({
+                    filePath: fileName,
+                    flowNode: embeddingProviderUpdatedNode,
+                });
+                console.log(">>> embedding provider source code", { embeddingProviderSourceCode });
+            }
             // Create knowledge base node with form values and references
             const combinedKnowledgeBaseData = {
                 ...knowledgeBaseFormValues,
@@ -534,13 +801,15 @@ export function VectorKnowledgeBaseForm(props: VectorKnowledgeBaseFormProps) {
             onSubmit(knowledgeBaseNode, false, formImports);
         } catch (error) {
             console.error("Error creating vector knowledge base:", error);
+        } finally {
+            setSaving(false);
         }
     };
 
     const isFormValid = useMemo(() => {
         return (
-            selectedComponents.vectorStore &&
-            selectedComponents.embeddingProvider &&
+            vectorStoreTemplateRef.current &&
+            embeddingProviderTemplateRef.current &&
             isVectorStoreFormValid &&
             isEmbeddingProviderFormValid &&
             isKnowledgeBaseFormValid &&
@@ -548,7 +817,6 @@ export function VectorKnowledgeBaseForm(props: VectorKnowledgeBaseFormProps) {
             embeddingProviderVariableName
         );
     }, [
-        selectedComponents,
         isVectorStoreFormValid,
         isEmbeddingProviderFormValid,
         isKnowledgeBaseFormValid,
@@ -579,7 +847,7 @@ export function VectorKnowledgeBaseForm(props: VectorKnowledgeBaseFormProps) {
                             items={vectorStoreOptions}
                             onChange={(e) => handleVectorStoreSelect(e.target.value)}
                             placeholder="Choose a vector store..."
-                            value={selectedComponents.vectorStore ? selectedComponents.vectorStore.metadata?.label : ""}
+                            value={selectedVectorStoreOption}
                         />
                     </S.DropdownContainer>
                     <S.FormWrapper>
@@ -588,7 +856,7 @@ export function VectorKnowledgeBaseForm(props: VectorKnowledgeBaseFormProps) {
                                 formFields={vectorStoreFields}
                                 fileName={fileName}
                                 targetLineRange={targetLineRange}
-                                selectedNode={selectedComponents.vectorStore?.codedata.node}
+                                selectedNode={vectorStoreTemplateRef.current?.codedata.node}
                                 expressionEditor={expressionEditor}
                                 openSubPanel={openSubPanel}
                                 subPanelView={subPanelView}
@@ -615,11 +883,7 @@ export function VectorKnowledgeBaseForm(props: VectorKnowledgeBaseFormProps) {
                             items={embeddingProviderOptions}
                             onChange={(e) => handleEmbeddingProviderSelect(e.target.value)}
                             placeholder="Choose an embedding provider..."
-                            value={
-                                selectedComponents.embeddingProvider
-                                    ? selectedComponents.embeddingProvider.metadata?.label
-                                    : ""
-                            }
+                            value={selectedEmbeddingProviderOption}
                         />
                     </S.DropdownContainer>
 
@@ -629,7 +893,7 @@ export function VectorKnowledgeBaseForm(props: VectorKnowledgeBaseFormProps) {
                                 formFields={embeddingProviderFields}
                                 fileName={fileName}
                                 targetLineRange={targetLineRange}
-                                selectedNode={selectedComponents.embeddingProvider?.codedata.node}
+                                selectedNode={embeddingProviderTemplateRef.current?.codedata.node}
                                 expressionEditor={expressionEditor}
                                 openSubPanel={openSubPanel}
                                 subPanelView={subPanelView}
@@ -679,9 +943,9 @@ export function VectorKnowledgeBaseForm(props: VectorKnowledgeBaseFormProps) {
                 <Button
                     appearance="primary"
                     onClick={handleSubmit}
-                    disabled={!isFormValid || showProgressIndicator || disableSaveButton}
+                    disabled={!isFormValid || showProgressIndicator || disableSaveButton || saving}
                 >
-                    {showProgressIndicator ? (
+                    {showProgressIndicator || saving ? (
                         <Typography variant="progress">{submitText || "Save..."}</Typography>
                     ) : (
                         submitText || "Save"
