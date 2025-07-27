@@ -94,7 +94,6 @@ import static io.ballerina.flowmodelgenerator.core.Constants.AI;
 import static io.ballerina.flowmodelgenerator.core.Constants.BALLERINA;
 import static io.ballerina.flowmodelgenerator.core.Constants.BALLERINAX;
 import static io.ballerina.flowmodelgenerator.core.Constants.BALLERINAX_AI_VERSION;
-import static io.ballerina.flowmodelgenerator.core.Constants.BALLERINA_AI_VERSION;
 import static io.ballerina.flowmodelgenerator.core.Constants.DEFAULT_MODEL_PROVIDER;
 import static io.ballerina.modelgenerator.commons.CommonUtils.importExists;
 import static io.ballerina.modelgenerator.commons.CommonUtils.isAiModule;
@@ -140,7 +139,7 @@ public class AgentsGenerator {
     }
 
     public ModuleInfo getAiModuleInfo(String orgName) {
-        String version = orgName.equals(BALLERINA) ? BALLERINA_AI_VERSION : BALLERINAX_AI_VERSION;
+        String version = orgName.equals(BALLERINA) ? null : BALLERINAX_AI_VERSION;
         return new ModuleInfo(orgName, AI, AI, version);
     }
 
@@ -162,7 +161,6 @@ public class AgentsGenerator {
                         .org(id.orgName())
                         .module(id.moduleName())
                         .packageName(id.packageName())
-                        .version(id.version())
                         .object(classSymbol.getName().orElse(AGENT))
                         .symbol(INIT)
                         .build());
@@ -173,24 +171,21 @@ public class AgentsGenerator {
 
     public JsonArray getNewBallerinaxModels() {
         JsonArray models = new JsonArray();
-        models.add(createModelObject(CommonUtils.AI_OPENAI, Constants.OPENAI_MODEL_VERSION));
-        models.add(createModelObject(CommonUtils.AI_ANTHROPIC, Constants.ANTHROPIC_MODEL_VERSION));
-        models.add(createModelObject(CommonUtils.AI_DEEPSEEK, Constants.DEEPSEEK_MODEL_VERSION));
-        models.add(createModelObject(CommonUtils.AI_MISTRAL, Constants.MISTRAL_MODEL_VERSION));
-        models.add(createModelObject(CommonUtils.AI_OLLAMA, Constants.OLLAMA_MODEL_VERSION));
-        models.add(createModelObject(NodeKind.CLASS_INIT, CommonUtils.AI_AZURE, OPENAI_MODEL_PROVIDER,
-                Constants.AZURE_MODEL_VERSION));
-        models.add(createModelObject(NodeKind.FUNCTION_CALL, Constants.AI, DEFAULT_MODEL_PROVIDER,
-                Constants.BALLERINA_AI_VERSION));
+        models.add(createModelObject(CommonUtils.AI_OPENAI));
+        models.add(createModelObject(CommonUtils.AI_ANTHROPIC));
+        models.add(createModelObject(CommonUtils.AI_DEEPSEEK));
+        models.add(createModelObject(CommonUtils.AI_MISTRAL));
+        models.add(createModelObject(CommonUtils.AI_OLLAMA));
+        models.add(createModelObject(NodeKind.CLASS_INIT, CommonUtils.AI_AZURE, OPENAI_MODEL_PROVIDER));
+        models.add(createModelObject(NodeKind.FUNCTION_CALL, Constants.AI, DEFAULT_MODEL_PROVIDER));
         return models;
     }
 
-    private JsonObject createModelObject(String moduleName, String version) {
-        return createModelObject(NodeKind.CLASS_INIT, moduleName, MODEL, version);
+    private JsonObject createModelObject(String moduleName) {
+        return createModelObject(NodeKind.CLASS_INIT, moduleName, MODEL);
     }
 
-    private JsonObject createModelObject(NodeKind nodeKind, String moduleName, String objectOrFuncName,
-                                         String version) {
+    private JsonObject createModelObject(NodeKind nodeKind, String moduleName, String objectOrFuncName) {
         JsonObject model = new JsonObject();
         model.addProperty("node", nodeKind.toString());
         model.addProperty("org", nodeKind.equals(NodeKind.CLASS_INIT) ?
@@ -203,7 +198,6 @@ public class AgentsGenerator {
         } else {
             model.addProperty("symbol", objectOrFuncName);
         }
-        model.addProperty("version", version);
         return model;
     }
 
@@ -272,7 +266,6 @@ public class AgentsGenerator {
                     .org(id.orgName())
                     .module(id.moduleName())
                     .packageName(id.packageName())
-                    .version(id.version())
                     .object(model.getName().orElse(MEMORY))
                     .symbol(INIT)
                     .build());

@@ -10,8 +10,7 @@
       "module": "ai.openai",
       "packageName": "ai.openai",
       "object": "ModelProvider",
-      "symbol": "init",
-      "version": "1.2.0"
+      "symbol": "init"
     },
     {
       "node": "CLASS_INIT",
@@ -19,8 +18,7 @@
       "module": "ai.anthropic",
       "packageName": "ai.anthropic",
       "object": "ModelProvider",
-      "symbol": "init",
-      "version": "1.1.0"
+      "symbol": "init"
     },
     {
       "node": "CLASS_INIT",
@@ -28,8 +26,7 @@
       "module": "ai.deepseek",
       "packageName": "ai.deepseek",
       "object": "ModelProvider",
-      "symbol": "init",
-      "version": "1.0.2"
+      "symbol": "init"
     },
     {
       "node": "CLASS_INIT",
@@ -37,8 +34,7 @@
       "module": "ai.mistral",
       "packageName": "ai.mistral",
       "object": "ModelProvider",
-      "symbol": "init",
-      "version": "1.1.0"
+      "symbol": "init"
     },
     {
       "node": "CLASS_INIT",
@@ -46,8 +42,7 @@
       "module": "ai.ollama",
       "packageName": "ai.ollama",
       "object": "ModelProvider",
-      "symbol": "init",
-      "version": "1.1.0"
+      "symbol": "init"
     },
     {
       "node": "CLASS_INIT",
@@ -55,16 +50,14 @@
       "module": "ai.azure",
       "packageName": "ai.azure",
       "object": "OpenAiModelProvider",
-      "symbol": "init",
-      "version": "1.1.0"
+      "symbol": "init"
     },
     {
       "node": "FUNCTION_CALL",
       "org": "ballerina",
       "module": "ai",
       "packageName": "ai",
-      "symbol": "getDefaultModelProvider",
-      "version": "1.1.1"
+      "symbol": "getDefaultModelProvider"
     }
   ]
 }

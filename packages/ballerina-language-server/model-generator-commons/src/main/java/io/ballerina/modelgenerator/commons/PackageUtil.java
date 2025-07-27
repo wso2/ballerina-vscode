@@ -34,7 +34,6 @@ import io.ballerina.projects.Project;
 import io.ballerina.projects.ProjectEnvironmentBuilder;
 import io.ballerina.projects.bala.BalaProject;
 import io.ballerina.projects.directory.BuildProject;
-import io.ballerina.projects.environment.PackageMetadataResponse;
 import io.ballerina.projects.environment.PackageResolver;
 import io.ballerina.projects.environment.ResolutionOptions;
 import io.ballerina.projects.environment.ResolutionRequest;
@@ -114,8 +113,14 @@ public class PackageUtil {
      * @return An Optional containing the semantic model.
      */
     public static Optional<SemanticModel> getSemanticModel(ModuleInfo moduleInfo) {
+        String version = moduleInfo.version();
+        if (version == null) {
+            CentralAPI centralApi = RemoteCentral.getInstance();
+            version = centralApi.latestPackageVersion(moduleInfo.org(), moduleInfo.packageName());
+        }
+
         Optional<Package> modulePackage = getModulePackage(getSampleProject(), moduleInfo.org(),
-                moduleInfo.packageName(), moduleInfo.version());
+                moduleInfo.packageName(), version);
         if (modulePackage.isEmpty()) {
             return Optional.empty();
         }
@@ -128,11 +133,6 @@ public class PackageUtil {
         return Optional.empty();
     }
 
-
-    public static Optional<SemanticModel> getSemanticModel(String org, String name) {
-        return getModulePackage(getSampleProject(), org, name).map(
-                pkg -> getCompilation(pkg).getSemanticModel(pkg.getDefaultModule().moduleId()));
-    }
 
     /**
      * Retrieves a package matching the specified organization, name, and version. If the package is not found in the
@@ -165,32 +165,6 @@ public class PackageUtil {
         return Optional.ofNullable(balaProject.currentPackage());
     }
 
-    public static Optional<Package> getModulePackage(BuildProject buildProject, String org, String name) {
-        ResolutionRequest resolutionRequest = ResolutionRequest.from(
-                PackageDescriptor.from(PackageOrg.from(org), PackageName.from(name)));
-        PackageResolver packageResolver = buildProject.projectEnvironmentContext().getService(PackageResolver.class);
-        Collection<PackageMetadataResponse> packageMetadataResponses = packageResolver.resolvePackageMetadata(
-                Collections.singletonList(resolutionRequest),
-                ResolutionOptions.builder().setOffline(true).build());
-        Optional<PackageMetadataResponse> pkgMetadata = packageMetadataResponses.stream().findFirst();
-        if (pkgMetadata.isEmpty()) {
-            return Optional.empty();
-        }
-
-        Collection<ResolutionResponse> resolutionResponses = packageResolver.resolvePackages(
-                Collections.singletonList(ResolutionRequest.from(pkgMetadata.get().resolvedDescriptor())),
-                ResolutionOptions.builder().setOffline(false).build());
-        Optional<ResolutionResponse> resolutionResponse = resolutionResponses.stream().findFirst();
-        if (resolutionResponse.isEmpty()) {
-            return Optional.empty();
-        }
-
-        Path balaPath = resolutionResponse.get().resolvedPackage().project().sourceRoot();
-        ProjectEnvironmentBuilder defaultBuilder = ProjectEnvironmentBuilder.getDefaultBuilder();
-        defaultBuilder.addCompilationCacheFactory(TempDirCompilationCache::from);
-        BalaProject balaProject = BalaProject.loadProject(defaultBuilder, balaPath);
-        return Optional.ofNullable(balaProject.currentPackage());
-    }
 
     public static boolean isModuleUnresolved(String org, String name, String version) {
         ResolutionRequest resolutionRequest = ResolutionRequest.from(
