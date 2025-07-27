@@ -348,13 +348,16 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
                     }
                     field.value = field.key;
                     field.optional = false;
+                    field.advanced = false;
                     includedKeys.push(field.key);
                 });
-                console.log(">>> Tool input fields", { nodeParameterFields });
+                console.log(">>> Node parameter fields", { nodeParameterFields });
 
                 const filteredNodeParameterFields = nodeParameterFields.filter(field => includedKeys.includes(field.key));
                 const toolInputFields = createToolInputFields(filteredNodeParameterFields);
                 setInjectedComponentIndex(2 + toolInputFields.length);
+
+                console.log(">>> Tool input fields", { toolInputFields });
 
                 setFields((prevFields) => {
                     return [...prevFields, ...toolInputFields, ...nodeParameterFields];
