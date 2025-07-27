@@ -35,6 +35,7 @@ import {
     RepairParams,
     RepairResponse,
     SourceFiles,
+    Command
 } from "@wso2/ballerina-core";
 import { getProjectSource, postProcess } from "../../../../rpc-managers/ai-panel/rpc-manager";
 import { CopilotEventHandler, createWebviewEventHandler } from "../event";
@@ -146,7 +147,7 @@ export async function generateCodeCore(params: GenerateCodeRequest, eventHandler
 
 // Main public function that uses the default event handler
 export async function generateCode(params: GenerateCodeRequest): Promise<void> {
-    const eventHandler = createWebviewEventHandler();
+    const eventHandler = createWebviewEventHandler(Command.Code);
     try {
         await generateCodeCore(params, eventHandler);
     } catch (error) {
@@ -293,7 +294,8 @@ ${fileInstructions}
 }
 
 export async function triggerGeneratedCodeRepair(params: RepairParams): Promise<RepairResponse> {
-    const eventHandler = createWebviewEventHandler();
+    // add null as the command since this is a repair operation is not a command
+    const eventHandler = createWebviewEventHandler(undefined);
     try {
         return await repairCodeCore(params, eventHandler);
     } catch (error) {

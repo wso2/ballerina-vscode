@@ -493,7 +493,7 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
                     let token: string;
                     const loginMethod = await getLoginMethod();
                     if (loginMethod === LoginMethod.BI_INTEL) {
-                        token = await getAccessToken()
+                        token = await getAccessToken();
                     }
 
                     if (!token) {
@@ -531,7 +531,7 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
                         let token: string;
                         const loginMethod = await getLoginMethod();
                         if (loginMethod === LoginMethod.BI_INTEL) {
-                            token = await getAccessToken()
+                            token = await getAccessToken();
                         }
                         if (!token) {
                             //TODO: Do we need to prompt to login here? If so what? Copilot or Ballerina AI?
