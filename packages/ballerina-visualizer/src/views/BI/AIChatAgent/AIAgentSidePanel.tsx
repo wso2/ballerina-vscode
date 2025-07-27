@@ -277,6 +277,10 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
         selectedNodeRef.current = node;
         setSelectedNodeCodeData(node.codedata);
 
+        let toolInputFields: FormField[] = [];
+        let functionParameterFields: FormField[] = [];
+        let nodeParameterFields: FormField[] = [];
+
         if (nodeId === FUNCTION_CALL) {
             try {
                 const functionNodeResponse = await rpcClient.getBIDiagramRpcClient().getFunctionNode({
@@ -300,7 +304,9 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
                 functionNodeResponse.functionDefinition.properties.parameters.metadata.label = "Tool Inputs";
                 functionNodeResponse.functionDefinition.properties.parameters.metadata.description = "";
 
-                const toolInputFields = convertConfig(functionNodeResponse.functionDefinition.properties);
+                if (functionNodeResponse.functionDefinition.properties) {
+                    toolInputFields = convertConfig(functionNodeResponse.functionDefinition.properties);
+                }
                 setInjectedComponentIndex(2 + toolInputFields.length);
                 console.log(">>> Tool input fields", { toolInputFields });
 
@@ -311,10 +317,13 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
                 });
                 console.log(">>> Function node template response", { functionNodeTemplate });
 
-                const functionParameterFields = convertConfig(functionNodeTemplate.flowNode.properties);
+                if (functionNodeTemplate.flowNode.properties) {
+                    functionParameterFields = convertConfig(functionNodeTemplate.flowNode.properties);
+                }
                 functionParameterFields.forEach((field) => {
                     field.value = field.key;
                     field.optional = false;
+                    field.advanced = false;
                 });
                 console.log(">>> Function parameter fields", { functionParameterFields });
 
@@ -340,7 +349,9 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
                 }
 
                 const includedKeys: string[] = [];
-                const nodeParameterFields = convertConfig(nodeTemplate.flowNode.properties);
+                if (nodeTemplate.flowNode.properties) {
+                    nodeParameterFields = convertConfig(nodeTemplate.flowNode.properties);
+                }
                 nodeParameterFields.forEach((field) => {
                     if (["type", "targetType", "variable", "checkError", "connection", "resourcePath"].includes(field.key)) {
                         field.hidden = true;
@@ -354,7 +365,7 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
                 console.log(">>> Node parameter fields", { nodeParameterFields });
 
                 const filteredNodeParameterFields = nodeParameterFields.filter(field => includedKeys.includes(field.key));
-                const toolInputFields = createToolInputFields(filteredNodeParameterFields);
+                toolInputFields = createToolInputFields(filteredNodeParameterFields);
                 setInjectedComponentIndex(2 + toolInputFields.length);
 
                 console.log(">>> Tool input fields", { toolInputFields });
