@@ -19,7 +19,6 @@
 import { useEffect, useRef, useState } from "react";
 import styled from "@emotion/styled";
 import { FlowNode } from "@wso2/ballerina-core";
-import { URI, Utils } from "vscode-uri";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { AIAgentSidePanel, ExtendedAgentToolRequest } from "./AIAgentSidePanel";
 import { RelativeLoader } from "../../../components/RelativeLoader";
@@ -33,15 +32,21 @@ const LoaderContainer = styled.div`
     height: 100%;
 `;
 
+export enum NewToolSelectionMode {
+    CONNECTION = "connection",
+    FUNCTION = "function",
+    ALL = "all",
+}
+
 interface NewToolProps {
     agentCallNode: FlowNode;
+    mode?: NewToolSelectionMode;
     onBack?: () => void;
     onSave?: () => void;
 }
 
 export function NewTool(props: NewToolProps): JSX.Element {
-    const { agentCallNode, onSave, onBack } = props;
-    console.log(">>> NewTool props", props);
+    const { agentCallNode, mode = NewToolSelectionMode.ALL, onSave, onBack } = props;
     const { rpcClient } = useRpcContext();
 
     const [agentNode, setAgentNode] = useState<FlowNode | null>(null);
@@ -66,7 +71,6 @@ export function NewTool(props: NewToolProps): JSX.Element {
     const fetchAgentNode = async () => {
         const agentNode = await findAgentNodeFromAgentCallNode(agentCallNode, rpcClient);
         setAgentNode(agentNode);
-        console.log(">>> agent node", { agentNode });
     };
 
     const handleOnSubmit = async (data: ExtendedAgentToolRequest) => {
@@ -92,7 +96,6 @@ export function NewTool(props: NewToolProps): JSX.Element {
                 // create tool from existing function
                 // get function definition
                 const functionDefinition = data.functionNode;
-                console.log(">>> response get function definition", { functionDefinition });
                 if (!functionDefinition) {
                     console.error("Function definition not found");
                     return;
@@ -149,7 +152,7 @@ export function NewTool(props: NewToolProps): JSX.Element {
     return (
         <>
             {agentFilePath.current && !savingForm && (
-                <AIAgentSidePanel projectPath={projectUri.current} onSubmit={handleOnSubmit} />
+                <AIAgentSidePanel projectPath={projectUri.current} onSubmit={handleOnSubmit} mode={mode} />
             )}
             {(!agentFilePath.current || savingForm) && (
                 <LoaderContainer>
