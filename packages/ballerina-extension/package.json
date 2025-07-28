@@ -328,11 +328,6 @@
         ],
         "commands": [
             {
-                "command": "ballerina.update-ballerina-dev-pack",
-                "title": "Update Ballerina Nightly Build",
-                "category": "Ballerina"
-            },
-            {
                 "command": "ballerina.showExamples",
                 "title": "Show Examples",
                 "category": "Ballerina"
@@ -463,6 +458,11 @@
             {
                 "command": "ballerina.verifyDocs",
                 "title": "Check drift between code and documentation (Experimental)",
+                "category": "Ballerina"
+            },
+            {
+                "command": "ballerina.configureWso2DefaultModelProvider",
+                "title": "Configure default WSO2 model provider",
                 "category": "Ballerina"
             },
             {
@@ -1103,6 +1103,8 @@
     },
     "dependencies": {
         "@types/lodash": "^4.14.200",
+        "@ai-sdk/anthropic": "^1.2.12",
+        "ai": "^4.3.16",
         "@vscode/test-electron": "^2.4.0",
         "@vscode/vsce": "^2.22.0",
         "@wso2/ballerina-core": "workspace:*",
@@ -1136,7 +1138,8 @@
         "xstate": "^4.38.3",
         "uuid": "^11.1.0",
         "jwt-decode": "^4.0.0",
-        "dotenv": "~16.5.0"
+        "dotenv": "~16.5.0",
+        "zod": "^3.25.74"
     },
     "devDependencies": {
         "@sentry/webpack-plugin": "^1.20.1",

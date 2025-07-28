@@ -198,36 +198,18 @@ export async function injectImportIfMissing(importStatement: string, filePath: s
     }
 }
 
-export async function injectAgent(name: string, projectUri: string) {
-    const agentCode = `
-final ai:OpenAiProvider _${name}Model = check new ("", ai:GPT_4O);
-final ai:Agent _${name}Agent = check new (systemPrompt = {role: "", instructions: string \`\`},
-    model = _${name}Model,
-    tools = []
-);`;
-    // Update the service function code 
-    const agentsFile = path.join(projectUri, `agents.bal`);
-    const agentEdit = new vscode.WorkspaceEdit();
-
-    // Read the file content to determine its length
-    let fileContent = '';
-    try {
-        fileContent = fs.readFileSync(agentsFile, 'utf8');
-    } catch (error) {
-        // File doesn't exist, that's fine - we'll create it
-    }
-
-    // Insert at the end of the file
-    agentEdit.insert(Uri.file(agentsFile), new Position(fileContent.split('\n').length, 0), agentCode);
-    await workspace.applyEdit(agentEdit);
-}
-
-
-export async function injectAgentCode(name: string, serviceFile: string, injectionPosition: LinePosition) {
+export async function injectAgentCode(name: string, serviceFile: string, injectionPosition: LinePosition, orgName: string) {
     // Update the service function code 
     const serviceEdit = new vscode.WorkspaceEdit();
-    const serviceSourceCode = `
-        string stringResult = check _${name}Agent->run(request.message, request.sessionId);
+    // Choose agent invocation code based on orgName
+    const serviceSourceCode =
+        orgName === "ballerina"
+            ?
+            `            string stringResult = check _${name}Agent.run(request.message, request.sessionId); 
+            return {message: stringResult};
+`
+            :
+            `        string stringResult = check _${name}Agent->run(request.message, request.sessionId);
         return {message: stringResult};
 `;
     serviceEdit.insert(Uri.file(serviceFile), new Position(injectionPosition.line, 0), serviceSourceCode);
