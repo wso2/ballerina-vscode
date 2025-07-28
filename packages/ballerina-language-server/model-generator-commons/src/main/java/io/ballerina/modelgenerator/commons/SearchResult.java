@@ -26,16 +26,22 @@ import java.util.Map;
 /**
  * Represents a search result containing package information, name, description, and additional attributes.
  *
- * @param packageInfo The package information containing organization, name and version
- * @param name        The name of the component
- * @param description The description of the component
- * @param attributes  Additional attributes as key-value pairs
+ * @param packageInfo    The package information containing organization, name and version
+ * @param name           The name of the component
+ * @param description    The description of the component
+ * @param attributes     Additional attributes as key-value pairs
+ * @param fromCurrentOrg Indicates if the result is from the current organization
  * @since 1.0.0
  */
-public record SearchResult(Package packageInfo, String name, String description, Map<String, String> attributes) {
+public record SearchResult(Package packageInfo, String name, String description, Map<String, String> attributes,
+                           boolean fromCurrentOrg) {
 
     public static SearchResult from(Package packageInfo, String name, String description) {
-        return new SearchResult(packageInfo, name, description, new HashMap<>());
+        return new SearchResult(packageInfo, name, description, new HashMap<>(), false);
+    }
+
+    public static SearchResult from(Package packageInfo, String name, String description, boolean fromCurrentOrg) {
+        return new SearchResult(packageInfo, name, description, new HashMap<>(), fromCurrentOrg);
     }
 
     public static SearchResult from(String packageOrg, String packageName, String moduleName,

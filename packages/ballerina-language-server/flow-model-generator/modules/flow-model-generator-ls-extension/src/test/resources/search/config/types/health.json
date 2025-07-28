@@ -20,11 +20,22 @@
     },
     {
       "metadata": {
-        "label": "Available Types",
-        "description": "Types available in the library",
+        "label": "Current Organization",
+        "description": "Components in the current organization",
         "keywords": [
-          "Available",
-          "Type",
+          "Organization",
+          "Function",
+          "Library"
+        ]
+      },
+      "items": []
+    },
+    {
+      "metadata": {
+        "label": "Standard Library",
+        "description": "Components supported officially by Ballerina",
+        "keywords": [
+          "Ballerina",
           "Library"
         ]
       },
