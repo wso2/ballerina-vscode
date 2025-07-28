@@ -140,13 +140,13 @@ export function OperationAccordion(params: OperationAccordionProps) {
                 <ButtonSection>
                     <>
                         {onEditFunction! && (
-                            <VSCodeButton appearance="icon" title="Edit Field" onClick={handleEditFuncrion}>
-                                <Icon data-testid="edit-icon" name="bi-edit" sx={{ marginTop: 3.5 }} />
+                            <VSCodeButton appearance="icon" title="Edit Field" onClick={handleEditFuncrion} data-testid={`edit-button-${functionModel.name.value}`}>
+                                <Icon data-testid={`edit-icon-${functionModel.name.value}`} name="bi-edit" sx={{ marginTop: 3.5 }} />
                             </VSCodeButton>
                         )}
                         {onDeleteFunction! && (
-                            <VSCodeButton appearance="icon" title="Delete Field" onClick={handleDeleteFunction}>
-                                <Codicon data-testid="delete-icon" name="trash" />
+                            <VSCodeButton appearance="icon" title="Delete Field" onClick={handleDeleteFunction} data-testid={`delete-button-${functionModel.name.value}`}>
+                                <Codicon data-testid={`delete-icon-${functionModel.name.value}`} name="trash" />
                             </VSCodeButton>
                         )}
                     </>
