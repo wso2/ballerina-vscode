@@ -143,8 +143,7 @@ class FunctionSearchCommand extends SearchCommand {
     private List<SearchResult> getOrganizationFunctions(String searchQuery) {
         List<SearchResult> organizationFunctions = new ArrayList<>();
         
-        // Only fetch from central if searchCentral is enabled and organization name is present
-        if (!searchCentral) {
+        if (!includeCurrentOrgInSearch) {
             return organizationFunctions;
         }
         

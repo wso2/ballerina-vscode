@@ -126,8 +126,7 @@ public class ConnectorSearchCommand extends SearchCommand {
     private List<SearchResult> getOrganizationConnectors(String searchQuery) {
         List<SearchResult> organizationConnectors = new ArrayList<>();
         
-        // Only fetch from central if searchCentral is enabled and organization name is present
-        if (!searchCentral) {
+        if (!includeCurrentOrgInSearch) {
             return organizationConnectors;
         }
         

@@ -50,7 +50,7 @@ public abstract class SearchCommand {
     protected final String query;
     protected final int limit;
     protected final int offset;
-    protected final boolean searchCentral;
+    protected final boolean includeCurrentOrgInSearch;
     final SearchDatabaseManager dbManager;
     final DefaultViewHolder defaultViewHolder;
 
@@ -85,12 +85,12 @@ public abstract class SearchCommand {
             this.query = "";
             this.limit = DEFAULT_LIMIT;
             this.offset = DEFAULT_OFFSET;
-            this.searchCentral = DEFAULT_INCLUDE_CURRENT_ORG_IN_SEARCH;
+            this.includeCurrentOrgInSearch = DEFAULT_INCLUDE_CURRENT_ORG_IN_SEARCH;
         } else {
             this.query = queryMap.getOrDefault("q", "");
             this.limit = parseIntParam(queryMap.get("limit"), DEFAULT_LIMIT);
             this.offset = parseIntParam(queryMap.get("offset"), DEFAULT_OFFSET);
-            this.searchCentral = parseBooleanParam(queryMap.get("includeCurrentOrganizationInSearch"),
+            this.includeCurrentOrgInSearch = parseBooleanParam(queryMap.get("includeCurrentOrganizationInSearch"),
                     DEFAULT_INCLUDE_CURRENT_ORG_IN_SEARCH);
         }
     }

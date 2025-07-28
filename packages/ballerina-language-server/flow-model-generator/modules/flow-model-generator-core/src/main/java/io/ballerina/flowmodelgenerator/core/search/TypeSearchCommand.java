@@ -126,8 +126,7 @@ class TypeSearchCommand extends SearchCommand {
     private List<SearchResult> getOrganizationTypes(String searchQuery) {
         List<SearchResult> organizationTypes = new ArrayList<>();
 
-        // Only fetch from central if searchCentral is enabled and organization name is present
-        if (!searchCentral) {
+        if (!includeCurrentOrgInSearch) {
             return organizationTypes;
         }
 
