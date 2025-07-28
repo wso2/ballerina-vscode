@@ -105,8 +105,10 @@ export function ArrayMappingOptionsWidget(props: ArrayMappingOptionsWidgetProps)
     const [inProgress, setInProgress] = React.useState(false);
     const wrapWithProgress = (onClick: () => Promise<void>) => {
         return async () => {
+            link.pendingMappingType = MappingType.Default;
             setInProgress(true);
             await onClick();
+            setInProgress(false);
         }
     };
     
