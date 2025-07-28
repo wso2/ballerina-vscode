@@ -18,8 +18,7 @@
 
 import { ArrayTypeDesc, FunctionDefinition, ModulePart, QualifiedNameReference, RequiredParam, STKindChecker } from "@wso2/syntax-tree";
 import { ErrorCode, FormField, STModification, SyntaxTree, Attachment, AttachmentStatus, RecordDefinitonObject, ParameterMetadata, ParameterDefinitions, MappingFileRecord, keywords, AIMachineEventType, DiagnosticEntry, InlineDataMapperModelResponse } from "@wso2/ballerina-core";
-import { QuickPickItem, QuickPickOptions, window, workspace } from 'vscode';
-import { UNKNOWN_ERROR } from '../../views/ai-panel/errorCodes';
+import { window } from 'vscode';
 
 import { StateMachine } from "../../stateMachine";
 import {
@@ -29,7 +28,6 @@ import {
     PARSING_ERROR,
     TIMEOUT,
     NOT_LOGGED_IN,
-    USER_ABORTED,
     SERVER_ERROR,
     TOO_MANY_REQUESTS,
     INVALID_RECORD_UNION_TYPE
@@ -41,6 +39,10 @@ import { BACKEND_URL } from "../../features/ai/utils";
 import { getAccessToken, getRefreshedAccessToken } from "../../../src/utils/ai/auth";
 import { AIStateMachine } from "../../../src/views/ai-panel/aiMachine";
 import { AIChatError } from "./utils/errors";
+import { generateAutoMappings } from "../../../src/features/ai/service/datamapper/datamapper";
+import { DatamapperResponse, Payload } from "../../../src/features/ai/service/datamapper/types";
+import { DataMapperRequest, DataMapperResponse, FileData, processDataMapperInput } from "../../../src/features/ai/service/datamapper/context_api";
+import { getAskResponse } from "../../../src/features/ai/service/ask/ask";
 
 const BACKEND_BASE_URL = BACKEND_URL.replace(/\/v2\.0$/, "");
 //TODO: Temp workaround as custom domain seem to block file uploads
@@ -53,14 +55,40 @@ export const REQUEST_TIMEOUT = 2000000;
 let abortController = new AbortController();
 const primitiveTypes = ["string", "int", "float", "decimal", "boolean"];
 
+export class AIPanelAbortController {
+    private static instance: AIPanelAbortController;
+    private abortController: AbortController;
+
+    private constructor() {
+        this.abortController = new AbortController();
+    }
+
+    public static getInstance(): AIPanelAbortController {
+        if (!AIPanelAbortController.instance) {
+            AIPanelAbortController.instance = new AIPanelAbortController();
+        }
+        return AIPanelAbortController.instance;
+    }
+
+    public get signal(): AbortSignal {
+        return this.abortController.signal;
+    }
+
+    public abort(): void {
+        this.abortController.abort();
+        // Create a new AbortController for the next operation
+        this.abortController = new AbortController();
+    }
+}
+
 export function handleStop() {
-    abortController.abort();
+    AIPanelAbortController.getInstance().abort();
 }
 
 export async function getParamDefinitions(
     fnSt: FunctionDefinition,
     fileUri: string
-): Promise<ParameterDefinitions| ErrorCode> {
+): Promise<ParameterDefinitions | ErrorCode> {
     let inputs: { [key: string]: any } = {};
     let inputMetadata: { [key: string]: any } = {};
     let output: { [key: string]: any } = {};
@@ -119,7 +147,7 @@ export async function getParamDefinitions(
         if ('types' in inputTypeDefinition && !inputTypeDefinition.types[0].hasOwnProperty('type')) {
             if (STKindChecker.isQualifiedNameReference(parameter.typeName)) {
                 throw new Error(`"${parameter.typeName["identifier"].value}" does not exist in the package "${parameter.typeName["modulePrefix"].value}". Please verify the record name or ensure that the correct package is imported.`);
-            } 
+            }
             return INVALID_PARAMETER_TYPE;
         }
 
@@ -155,7 +183,7 @@ export async function getParamDefinitions(
         if (isErrorCode(inputDefinition)) {
             return inputDefinition as ErrorCode;
         }
-        
+
         inputs = { ...inputs, [paramName]: (inputDefinition as RecordDefinitonObject).recordFields };
         inputMetadata = {
             ...inputMetadata,
@@ -212,9 +240,9 @@ export async function getParamDefinitions(
     } else {
         if (!STKindChecker.isSimpleNameReference(fnSt.functionSignature.returnTypeDesc.type) &&
             !STKindChecker.isQualifiedNameReference(fnSt.functionSignature.returnTypeDesc.type)) {
-                return INVALID_PARAMETER_TYPE;
+            return INVALID_PARAMETER_TYPE;
         }
-    }    
+    }
 
     let returnType = fnSt.functionSignature.returnTypeDesc.type;
 
@@ -252,7 +280,7 @@ export async function getParamDefinitions(
     if ('types' in outputTypeDefinition && !outputTypeDefinition.types[0].hasOwnProperty('type')) {
         if (STKindChecker.isQualifiedNameReference(returnType)) {
             throw new Error(`"${returnType["identifier"].value}" does not exist in the package "${returnType["modulePrefix"].value}". Please verify the record name or ensure that the correct package is imported.`);
-        } 
+        }
         return INVALID_PARAMETER_TYPE;
     }
 
@@ -305,7 +333,7 @@ export async function processMappings(
         if (isErrorCode(mappedResult)) {
             return mappedResult as ErrorCode;
         }
-        parameterDefinitions = mappedResult as ParameterMetadata; 
+        parameterDefinitions = mappedResult as ParameterMetadata;
     }
 
     const codeObject = await getDatamapperCode(parameterDefinitions);
@@ -360,7 +388,7 @@ export async function processMappings(
 }
 
 
-export async function generateBallerinaCode(response: object, parameterDefinitions: ParameterMetadata | ErrorCode, nestedKey: string = "", nestedKeyArray: string[]): Promise<object|ErrorCode> {
+export async function generateBallerinaCode(response: object, parameterDefinitions: ParameterMetadata | ErrorCode, nestedKey: string = "", nestedKeyArray: string[]): Promise<object | ErrorCode> {
     let recordFields: { [key: string]: any } = {};
     const arrayRecords = [
         "record[]", "record[]|()", "(readonly&record)[]", "(readonly&record)[]|()",
@@ -373,7 +401,7 @@ export async function generateBallerinaCode(response: object, parameterDefinitio
         "(record|())[]", "(record|())[]|()", "(readonly&record|())[]", "(readonly&record|())[]|()",
     ];
     const unionEnumIntersectionTypes = [
-        "enum", "union", "intersection", "enum[]", 
+        "enum", "union", "intersection", "enum[]",
         "enum[]|()", "union[]", "union[]|()", "intersection[]", "intersection[]|()"];
 
     if (response.hasOwnProperty("code") && response.hasOwnProperty("message")) {
@@ -397,7 +425,7 @@ export async function generateBallerinaCode(response: object, parameterDefinitio
         for (let index = 0; index < objectKeys.length; index++) {
             let key = objectKeys[index];
             let subRecord = response[key];
-            
+
             if (!subRecord.hasOwnProperty("operation") && !subRecord.hasOwnProperty("parameters") && !subRecord.hasOwnProperty("targetType")) {
                 nestedKeyArray.push(key);
                 let responseRecord = await generateBallerinaCode(subRecord, parameterDefinitions, key, nestedKeyArray);
@@ -445,11 +473,11 @@ function isUnionType(type: string): boolean {
     return validUnionTypes.includes(sortedType); // Check against Set
 }
 
-async function getMappingString(mapping: object, parameterDefinitions: ParameterMetadata | ErrorCode, nestedKey:string, recordTypes: string[], unionEnumIntersectionTypes: string[], arrayRecords: string[], arrayEnumUnion: string[], nestedKeyArray: string[]): Promise<string | ErrorCode>  {
+async function getMappingString(mapping: object, parameterDefinitions: ParameterMetadata | ErrorCode, nestedKey: string, recordTypes: string[], unionEnumIntersectionTypes: string[], arrayRecords: string[], arrayEnumUnion: string[], nestedKeyArray: string[]): Promise<string | ErrorCode> {
     let operation: string = mapping["operation"];
     let targetType: string = mapping["targetType"];
     let parameters: string[] = mapping["parameters"];
-    
+
     let path: string = "";
     let modifiedPaths: string[] = [];
     let inputTypeName: string = "";
@@ -488,7 +516,7 @@ async function getMappingString(mapping: object, parameterDefinitions: Parameter
         outputObject = parameterDefinitions["outputMetadata"][nestedKey];
     }
 
-    baseTargetType= targetType.replace(/\|\(\)$/, "");
+    baseTargetType = targetType.replace(/\|\(\)$/, "");
 
     inputTypeName = modifiedInput["typeName"];
     baseType = inputTypeName.replace(/\|\(\)$/, "");
@@ -508,21 +536,21 @@ async function getMappingString(mapping: object, parameterDefinitions: Parameter
         if (recordTypes.includes(baseType)) {
             // Both baseType and baseTargetType either contain "[]" or do not
             if (!(hasArrayNotation(baseType) === hasArrayNotation(baseTargetType)) && !(baseTargetType === "int")) {
-                return ""; 
-            } 
+                return "";
+            }
         } else if (unionEnumIntersectionTypes.includes(baseOutputType)) {
             // Both baseInputType and baseOutputType either contain "[]" or do not
             if (!(hasArrayNotation(baseInputType) === hasArrayNotation(baseOutputType))) {
                 return "";
-            } 
+            }
         }
         modifiedPaths = await accessMetadata(
-            paths, 
-            parameterDefinitions, 
-            outputObject, 
-            baseType, 
+            paths,
+            parameterDefinitions,
+            outputObject,
+            baseType,
             baseTargetType,
-            nestedKey, 
+            nestedKey,
             operation,
             unionEnumIntersectionTypes,
             recordTypes,
@@ -573,19 +601,19 @@ async function getMappingString(mapping: object, parameterDefinitions: Parameter
 
         function convertUnionTypes(inputType: string, targetType: string, variablePath: string) {
             const inputTypes = inputType.split("|").filter(type => primitiveTypes.includes(type));
-            
+
             if (targetType === "string") {
                 return `(${variablePath}).toString()`;
             }
-            
+
             if (inputTypes.includes("string") && ["int", "float", "decimal", "boolean"].includes(targetType)) {
                 return `(${variablePath}) is string ? check ${targetType}:fromString((${variablePath}).toString()) : check (${variablePath}).ensureType()`;
             }
-            
+
             if (["int", "float", "decimal", "boolean"].includes(targetType)) {
                 return `check (${variablePath}).ensureType()`;
             }
-            
+
             return `${variablePath}`;
         }
 
@@ -633,12 +661,12 @@ async function getMappingString(mapping: object, parameterDefinitions: Parameter
             return "";
         }
         modifiedPaths = await accessMetadata(
-            paths, 
-            parameterDefinitions, 
-            outputObject, 
-            baseType, 
+            paths,
+            parameterDefinitions,
+            outputObject,
+            baseType,
             baseTargetType,
-            nestedKey, 
+            nestedKey,
             operation,
             unionEnumIntersectionTypes,
             recordTypes,
@@ -657,12 +685,12 @@ async function getMappingString(mapping: object, parameterDefinitions: Parameter
             return "";
         }
         modifiedPaths = await accessMetadata(
-            paths, 
-            parameterDefinitions, 
-            outputObject, 
-            baseType, 
+            paths,
+            parameterDefinitions,
+            outputObject,
+            baseType,
             baseTargetType,
-            nestedKey, 
+            nestedKey,
             operation,
             unionEnumIntersectionTypes,
             recordTypes,
@@ -711,19 +739,19 @@ interface VisitorContext {
 
 // Implementation of the visitor
 class TypeInfoVisitorImpl implements TypeInfoVisitor {
-    constructor() {}
+    constructor() { }
 
     visitField(field: FormField, context: VisitorContext): void {
         // Reset state for each field
         this.resetContext(context);
-        
+
         const typeName = field.typeName;
-        
+
         if (!typeName) {
             this.handleTypeInfo(field, context);
             return;
         }
-        
+
         switch (typeName) {
             case "record":
                 this.visitRecord(field, context);
@@ -743,7 +771,7 @@ class TypeInfoVisitorImpl implements TypeInfoVisitor {
                 break;
         }
     }
-    
+
     visitMember(member: any, context: VisitorContext): { typeName: string, member: any } {
         let typeName: string;
         if (member.typeName === "record" && member.fields) {
@@ -761,11 +789,11 @@ class TypeInfoVisitorImpl implements TypeInfoVisitor {
         }
         return { typeName, member };
     }
-    
+
     visitRecord(field: FormField, context: VisitorContext): void {
         const temporaryRecord = navigateTypeInfo(field.fields, false);
         context.isRecord = true;
-        
+
         const fieldName = getBalRecFieldName(field.name);
         context.recordFields[fieldName] = (temporaryRecord as RecordDefinitonObject).recordFields;
         context.recordFieldsMetadata[fieldName] = {
@@ -777,14 +805,14 @@ class TypeInfoVisitorImpl implements TypeInfoVisitor {
             fields: (temporaryRecord as RecordDefinitonObject).recordFieldsMetadata
         };
     }
-    
+
     visitUnionOrIntersection(field: FormField, context: VisitorContext): void {
         let memberTypeNames: string[] = [];
         let resolvedTypeName: string = "";
-        
+
         // Check for record fields in union members and handle appropriately
         this.processUnionMembers(field.members, context);
-        
+
         for (const member of field.members) {
             const result = this.visitMember(member, context);
             memberTypeNames.push(result.typeName);
@@ -799,26 +827,26 @@ class TypeInfoVisitorImpl implements TypeInfoVisitor {
             context.memberFieldsMetadata = {};
             return;
         }
-        
+
         resolvedTypeName = this.getResolvedTypeName(field.typeName, memberTypeNames);
-        
+
         this.buildFieldMetadata(field, resolvedTypeName, context);
         this.setFieldAndMetadata(field, resolvedTypeName, context);
     }
-    
+
     visitArray(field: FormField, context: VisitorContext): void {
-        if (field.memberType.hasOwnProperty("members") && 
+        if (field.memberType.hasOwnProperty("members") &&
             ["union", "intersection", "enum"].includes(field.memberType.typeName)) {
-                
+
             // Handle array with union/intersection/enum member type
             this.processUnionMembers(field.memberType.members, context);
-            
+
             if (field.memberType.members.length === 0) {
                 context.memberRecordFields = {};
                 context.memberFieldsMetadata = {};
                 return;
             }
-            
+
             this.handleArrayWithCompositeType(field, context);
         } else if (field.memberType.hasOwnProperty("fields") && field.memberType.typeName === "record") {
             this.handleArrayWithRecordType(field, context);
@@ -826,24 +854,24 @@ class TypeInfoVisitorImpl implements TypeInfoVisitor {
             this.handleSimpleArray(field, context);
         }
     }
-    
+
     visitEnum(field: FormField, context: VisitorContext): void {
         let memberTypeNames: string[] = [];
-        
+
         for (const member of field.members) {
             const result = this.visitMember(member, context);
             memberTypeNames.push(result.typeName);
         }
-        
+
         const resolvedTypeName = memberTypeNames.join("|");
-        
+
         this.buildFieldMetadata(field, resolvedTypeName, context);
         this.setFieldAndMetadata(field, resolvedTypeName, context);
     }
-    
+
     visitPrimitive(field: FormField, context: VisitorContext): void {
         const typeName = field.typeName;
-        
+
         if (field.hasOwnProperty("name")) {
             const fieldName = getBalRecFieldName(field.name);
             context.recordFields[fieldName] = { type: typeName, comment: "" };
@@ -865,7 +893,7 @@ class TypeInfoVisitorImpl implements TypeInfoVisitor {
             };
         }
     }
-    
+
     private handleTypeInfo(field: FormField, context: VisitorContext): void {
         const fieldName = getBalRecFieldName(field.name);
         context.recordFields[fieldName] = { type: field.typeInfo.name, comment: "" };
@@ -877,12 +905,12 @@ class TypeInfoVisitorImpl implements TypeInfoVisitor {
             optional: field.optional
         };
     }
-    
+
     private handleRecordMember(member: any, context: VisitorContext): string {
         const temporaryRecord = navigateTypeInfo(member.fields, false);
         context.isRecord = true;
         let memberName: string;
-        
+
         if (context.isUnion && member.hasOwnProperty("name")) {
             memberName = member.name;
             const fieldName = getBalRecFieldName(memberName);
@@ -893,7 +921,7 @@ class TypeInfoVisitorImpl implements TypeInfoVisitor {
                 type: "record",
                 typeInstance: fieldName,
                 typeName: member.typeName,
-                fields: (temporaryRecord as RecordDefinitonObject).recordFieldsMetadata 
+                fields: (temporaryRecord as RecordDefinitonObject).recordFieldsMetadata
             };
         } else {
             memberName = "record";
@@ -906,14 +934,14 @@ class TypeInfoVisitorImpl implements TypeInfoVisitor {
                 ...((temporaryRecord as RecordDefinitonObject).recordFieldsMetadata)
             };
         }
-        
+
         return memberName;
     }
-    
+
     private handleArrayMember(member: any, context: VisitorContext): { typeName: string, member: any } {
         context.isArray = true;
         let memberName: string;
-        
+
         if (member.memberType.hasOwnProperty("fields") && member.memberType.typeName === "record") {
             const temporaryRecord = navigateTypeInfo(member.memberType.fields, false);
             memberName = `${member.memberType.typeName}[]`;
@@ -925,12 +953,12 @@ class TypeInfoVisitorImpl implements TypeInfoVisitor {
                 ...context.memberFieldsMetadata,
                 ...((temporaryRecord as RecordDefinitonObject).recordFieldsMetadata)
             };
-        } else if (member.memberType.hasOwnProperty("members") && 
-                  ["union", "intersection", "enum"].includes(member.memberType.typeName)) {
-            
+        } else if (member.memberType.hasOwnProperty("members") &&
+            ["union", "intersection", "enum"].includes(member.memberType.typeName)) {
+
             // Process union members to handle records appropriately
             this.processUnionMembers(member.memberType.members, context);
-            
+
             if (member.memberType.members.length === 0) {
                 memberName = "";
                 member = [];
@@ -941,73 +969,73 @@ class TypeInfoVisitorImpl implements TypeInfoVisitor {
             if (member.memberType.hasOwnProperty("name") && !member.memberType.hasOwnProperty("typeName")) {
                 memberName = `${member.memberType.name}[]`;
             } else {
-                memberName = "record[]"; 
+                memberName = "record[]";
             }
         } else {
             memberName = `${member.memberType.typeName}[]`;
         }
-        
+
         return { typeName: memberName, member };
     }
-    
+
     private handleArrayWithCompositeTypeMember(member: any, context: VisitorContext): string {
         let memberTypes: string[] = [];
         const members = member.memberType.members;
-        
+
         this.determineIfUnion(members, context);
-        
+
         for (const innerMember of members) {
             const result = this.visitMember(innerMember, context);
             memberTypes.push(result.typeName);
         }
-        
+
         context.isSimple = false;
-        
+
         if (member.memberType.typeName === "intersection") {
             return `(${memberTypes.join("&")})[]`;
         } else {
             return `(${memberTypes.join("|")})[]`;
         }
     }
-    
+
     private handleCompositeMember(member: any, context: VisitorContext): string {
         let memberTypeNames: string[] = [];
-        
+
         for (const innerMember of member.members) {
             const result = this.visitMember(innerMember, context);
             memberTypeNames.push(result.typeName);
         }
-        
+
         if (member.typeName === "intersection") {
             return `${memberTypeNames.join("&")}`;
         } else {
             return `${memberTypeNames.join("|")}`;
         }
     }
-    
+
     private handleNullMember(member: any, context: VisitorContext): string {
         const memberName = member.typeName;
-        
+
         if (context.isArray) {
             context.isArrayNullable = true;
-        } 
+        }
         if (context.isRecord) {
             context.isRecordNullable = true;
-        } 
-        if (context.isSimple) { 
+        }
+        if (context.isSimple) {
             context.isNullable = true;
         }
-        
+
         return memberName;
     }
-    
+
     private handleSimpleMember(member: any, context: VisitorContext): string {
         context.isSimple = true;
         let memberName: string;
-        
+
         if (member.hasOwnProperty("typeName")) {
             memberName = member.typeName;
-            
+
             if (member.hasOwnProperty("name")) {
                 this.addNamedSimpleMember(member, memberName, context);
             } else {
@@ -1016,10 +1044,10 @@ class TypeInfoVisitorImpl implements TypeInfoVisitor {
         } else {
             memberName = member.name;
         }
-        
+
         return memberName;
     }
-    
+
     private addNamedSimpleMember(member: any, memberName: string, context: VisitorContext): void {
         const fieldName = getBalRecFieldName(member.name);
         context.memberRecordFields = {
@@ -1040,7 +1068,7 @@ class TypeInfoVisitorImpl implements TypeInfoVisitor {
             }
         };
     }
-    
+
     private addUnnamedSimpleMember(memberName: string, member: any, context: VisitorContext): void {
         // Check if typeName is not one of the BasicTypes types
         const BasicTypes = ["int", "string", "float", "boolean", "decimal", "readonly"];
@@ -1058,18 +1086,18 @@ class TypeInfoVisitorImpl implements TypeInfoVisitor {
             };
         }
     }
-    
+
     private handleArrayWithCompositeType(field: FormField, context: VisitorContext): void {
         let memberTypeNames: string[] = [];
-        
+
         for (const member of field.memberType.members) {
             const result = this.visitMember(member, context);
             memberTypeNames.push(result.typeName);
         }
-        
+
         context.isArray = true;
         let resolvedTypeName: string = "";
-        
+
         if (field.memberType.typeName === "intersection") {
             resolvedTypeName = `${memberTypeNames.join("&")}`;
         } else {
@@ -1077,20 +1105,20 @@ class TypeInfoVisitorImpl implements TypeInfoVisitor {
         }
 
         const fieldName = getBalRecFieldName(field.name);
-        context.recordFields[fieldName] = Object.keys(context.memberRecordFields).length > 0 
-                                     ? context.memberRecordFields 
-                                     : { type: `(${resolvedTypeName})[]`, comment: "" };
-        
+        context.recordFields[fieldName] = Object.keys(context.memberRecordFields).length > 0
+            ? context.memberRecordFields
+            : { type: `(${resolvedTypeName})[]`, comment: "" };
+
         this.buildArrayFieldMetadata(field, resolvedTypeName, context);
     }
-    
+
     private handleArrayWithRecordType(field: FormField, context: VisitorContext): void {
         const temporaryRecord = navigateTypeInfo(field.memberType.fields, false);
         const fieldName = getBalRecFieldName(field.name);
         context.recordFields[fieldName] = (temporaryRecord as RecordDefinitonObject).recordFields;
         context.isArray = true;
         context.isRecord = true;
-        
+
         context.fieldMetadata = {
             optional: field.optional,
             typeName: "record[]",
@@ -1098,20 +1126,20 @@ class TypeInfoVisitorImpl implements TypeInfoVisitor {
             typeInstance: fieldName,
             fields: (temporaryRecord as RecordDefinitonObject).recordFieldsMetadata
         };
-        
+
         this.applyNullabilityToFieldMetadata(context);
         context.recordFieldsMetadata[field.name] = context.fieldMetadata;
     }
-    
+
     private handleSimpleArray(field: FormField, context: VisitorContext): void {
         let typeName: string;
-        
+
         if (field.memberType.hasOwnProperty("typeInfo")) {
             typeName = "record[]";
         } else {
             typeName = `${field.memberType.typeName}[]`;
         }
-        
+
         if (field.memberType.members && field.memberType.members.length === 0) {
             context.memberRecordFields = {};
             context.memberFieldsMetadata = {};
@@ -1127,10 +1155,10 @@ class TypeInfoVisitorImpl implements TypeInfoVisitor {
             };
         }
     }
-    
+
     private processUnionMembers(members: any[], context: VisitorContext): void {
         this.determineIfUnion(members, context);
-        
+
         if (members.length > 2) {
             // If at least one member has fields, remove that field
             for (let i = members.length - 1; i >= 0; i--) {
@@ -1149,7 +1177,7 @@ class TypeInfoVisitorImpl implements TypeInfoVisitor {
             }
         }
     }
-    
+
     private determineIfUnion(members: any[], context: VisitorContext): void {
         if (members.length > 2) {
             context.isUnion = members.some((member) => member.typeName === "()");
@@ -1159,7 +1187,7 @@ class TypeInfoVisitorImpl implements TypeInfoVisitor {
             context.isUnion = false;
         }
     }
-    
+
     private getResolvedTypeName(typeName: string, memberTypeNames: string[]): string {
         if (typeName === "intersection") {
             return `${memberTypeNames.join("&")}`;
@@ -1167,7 +1195,7 @@ class TypeInfoVisitorImpl implements TypeInfoVisitor {
             return `${memberTypeNames.join("|")}`;
         }
     }
-    
+
     private buildFieldMetadata(field: FormField, resolvedTypeName: string, context: VisitorContext): void {
         context.fieldMetadata = {
             optional: field.optional,
@@ -1179,10 +1207,10 @@ class TypeInfoVisitorImpl implements TypeInfoVisitor {
             typeInstance: field.name,
             ...(Object.keys(context.memberFieldsMetadata).length > 0 && { members: context.memberFieldsMetadata })
         };
-        
+
         this.applyNullabilityToFieldMetadata(context);
     }
-    
+
     private buildArrayFieldMetadata(field: FormField, resolvedTypeName: string, context: VisitorContext): void {
         context.fieldMetadata = {
             optional: field.optional,
@@ -1191,12 +1219,12 @@ class TypeInfoVisitorImpl implements TypeInfoVisitor {
             typeInstance: field.name,
             ...(Object.keys(context.memberFieldsMetadata).length > 0 && { members: context.memberFieldsMetadata })
         };
-        
+
         this.applyNullabilityToFieldMetadata(context);
         const fieldName = getBalRecFieldName(field.name);
         context.recordFieldsMetadata[fieldName] = context.fieldMetadata;
     }
-    
+
     private applyNullabilityToFieldMetadata(context: VisitorContext): void {
         // Apply nullableArray property
         if (context.isArray) {
@@ -1206,7 +1234,7 @@ class TypeInfoVisitorImpl implements TypeInfoVisitor {
                 context.fieldMetadata.nullableArray = context.isNullable;
             }
         }
-        
+
         // Apply nullable property
         if (context.isArray) {
             context.fieldMetadata.nullable = context.isArrayNullable;
@@ -1216,15 +1244,15 @@ class TypeInfoVisitorImpl implements TypeInfoVisitor {
             context.fieldMetadata.nullable = context.isNullable;
         }
     }
-    
+
     private setFieldAndMetadata(field: FormField, resolvedTypeName: string, context: VisitorContext): void {
         const fieldName = getBalRecFieldName(field.name);
-        context.recordFields[fieldName] = Object.keys(context.memberRecordFields).length > 0 
-                                     ? context.memberRecordFields 
-                                     : { type: resolvedTypeName, comment: "" };
+        context.recordFields[fieldName] = Object.keys(context.memberRecordFields).length > 0
+            ? context.memberRecordFields
+            : { type: resolvedTypeName, comment: "" };
         context.recordFieldsMetadata[fieldName] = context.fieldMetadata;
     }
-    
+
     private resetContext(context: VisitorContext): void {
         context.memberRecordFields = {};
         context.memberFieldsMetadata = {};
@@ -1259,16 +1287,16 @@ export function navigateTypeInfo(
         isSimple: false,
         isUnion: false
     };
-    
+
     const visitor = new TypeInfoVisitorImpl();
 
     for (const field of typeInfos) {
         visitor.visitField(field, context);
     }
-    
-    return { 
-        "recordFields": context.recordFields, 
-        "recordFieldsMetadata": context.recordFieldsMetadata 
+
+    return {
+        "recordFields": context.recordFields,
+        "recordFieldsMetadata": context.recordFieldsMetadata
     };
 }
 
@@ -1283,34 +1311,11 @@ export async function getDatamapperCode(parameterDefinitions: ErrorCode | Parame
             console.error(error);
             return NOT_LOGGED_IN;
         });
-        let response = await sendDatamapperRequest(parameterDefinitions, accessToken);
-        if (isErrorCode(response)) {
-            return (response as ErrorCode);
-        }
+        let response: DatamapperResponse = await sendDatamapperRequest(parameterDefinitions, accessToken);
 
-        response = (response as Response);
-
-        // Refresh
-        if (response.status === 401) {
-            const newAccessToken = await getRefreshedAccessToken();
-            if (!newAccessToken) {
-                AIStateMachine.service().send(AIMachineEventType.LOGOUT);
-                return;
-            }
-            let retryResponse: Response | ErrorCode = await sendDatamapperRequest(parameterDefinitions, newAccessToken);
-            
-            if (isErrorCode(retryResponse)) {
-                return (retryResponse as ErrorCode);
-            }
-
-            retryResponse = (retryResponse as Response);
-            let intermediateMapping = await filterResponse(retryResponse); 
-            let finalCode =  await generateBallerinaCode(intermediateMapping, parameterDefinitions, "", nestedKeyArray);
-            return finalCode;
-        }
-        let intermediateMapping = await filterResponse(response);
-        let finalCode =  await generateBallerinaCode(intermediateMapping, parameterDefinitions, "", nestedKeyArray);
-        return finalCode; 
+        let intermediateMapping = response.mappings;
+        let finalCode = await generateBallerinaCode(intermediateMapping, parameterDefinitions, "", nestedKeyArray);
+        return finalCode;
     } catch (error) {
         console.error(error);
         return TIMEOUT;
@@ -1318,7 +1323,7 @@ export async function getDatamapperCode(parameterDefinitions: ErrorCode | Parame
 }
 
 export async function constructRecord(codeObject: object): Promise<{ recordString: string; isCheckError: boolean; }> {
-    let recordString: string = ""; 
+    let recordString: string = "";
     let isCheckError: boolean = false;
     let objectKeys = Object.keys(codeObject);
     for (let index = 0; index < objectKeys.length; index++) {
@@ -1326,7 +1331,7 @@ export async function constructRecord(codeObject: object): Promise<{ recordStrin
         let mapping = codeObject[key];
         if (typeof mapping === "string") {
             if (mapping.includes("check ")) {
-                isCheckError = true; 
+                isCheckError = true;
             }
             if (recordString !== "") {
                 recordString += ",\n";
@@ -1335,7 +1340,7 @@ export async function constructRecord(codeObject: object): Promise<{ recordStrin
         } else {
             let subRecordResult = await constructRecord(mapping);
             if (subRecordResult.isCheckError) {
-                isCheckError = true; 
+                isCheckError = true;
             }
             if (recordString !== "") {
                 recordString += ",\n";
@@ -1359,18 +1364,8 @@ export function notifyNoGeneratedMappings() {
     window.showInformationMessage(msg);
 }
 
-async function sendDatamapperRequest(parameterDefinitions: ParameterMetadata | ErrorCode, accessToken: string | ErrorCode): Promise<Response | ErrorCode> {
-    const response = await fetchWithTimeout(BACKEND_URL + "/datamapper", {
-        method: "POST",
-        headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json',
-            'User-Agent': 'Ballerina-VSCode-Plugin',
-            'Authorization': 'Bearer ' + accessToken
-        },
-        body: JSON.stringify(parameterDefinitions)
-    }, REQUEST_TIMEOUT);
-
+async function sendDatamapperRequest(parameterDefinitions: ParameterMetadata | ErrorCode, accessToken: string | ErrorCode): Promise<DatamapperResponse> {
+    const response: DatamapperResponse = await generateAutoMappings(parameterDefinitions as Payload);
     return response;
 }
 
@@ -1385,31 +1380,29 @@ async function sendMappingFileUploadRequest(file: Blob): Promise<Response | Erro
 }
 
 export async function searchDocumentation(message: string): Promise<string> {
-    const response = await fetchWithToken(ASK_API_URL_V1 + "/documentation-assistant", {
-        method: "POST",
-        headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            "query": `${message}`
-        })
-    });
+    const resp = await getAskResponse(message,);
+    const finalResponse = resp.content.replace(/<thinking>[\s\S]*?<\/thinking>/g, '');
+    const referenceSources = resp.references;
+    let responseContent: string;
+    if (referenceSources.length > 0) {
+        responseContent = `${finalResponse}  \nreference sources:  \n${referenceSources.join('  \n')}`;
+    } else {
+        responseContent = finalResponse;
+    }
 
-    return await filterDocumentation(response as Response);
-    
+    return responseContent;
 }
 
 export async function filterDocumentation(resp: Response): Promise<string> {
     let responseContent: string;
     if (resp.status == 200 || resp.status == 201) {
         const data = (await resp.json()) as any;
-        console.log("data",data.response);
+        console.log("data", data.response);
         const finalResponse = await (data.response.content).replace(/<thinking>[\s\S]*?<\/thinking>/g, '');
         const referenceSources = data.response.references;
         if (referenceSources.length > 0) {
             responseContent = `${finalResponse}  \nreference sources:  \n${referenceSources.join('  \n')}`;
-        }else{
+        } else {
             responseContent = finalResponse;
         }
 
@@ -1418,7 +1411,7 @@ export async function filterDocumentation(resp: Response): Promise<string> {
     throw new Error(AIChatError.UNKNOWN_CONNECTION_ERROR);
 }
 
-async function filterMappingResponse(resp: Response): Promise<string| ErrorCode> {
+async function filterMappingResponse(resp: Response): Promise<string | ErrorCode> {
     if (resp.status == 200 || resp.status == 201) {
         const data = (await resp.json()) as any;
         return data.file_content;
@@ -1432,13 +1425,36 @@ async function filterMappingResponse(resp: Response): Promise<string| ErrorCode>
         return PARSING_ERROR;
     } if (resp.status == 429) {
         return TOO_MANY_REQUESTS;
-    } 
+    }
     if (resp.status == 500) {
         return SERVER_ERROR;
     } else {
         //TODO: Handle more error codes
         return { code: 4, message: `An unknown error occured. ${resp.statusText}.` };
     }
+}
+
+async function attatchmentToFileData(file: Attachment): Promise<FileData> {
+    return {
+        fileName: file.name,
+        content: file.content
+    };
+}
+
+export async function mappingFileParameterDefinitions(file: Attachment, parameterDefinitions: ErrorCode | ParameterMetadata): Promise<ParameterMetadata | ErrorCode> {
+    if (!file) { return parameterDefinitions; }
+    const fileData = await attatchmentToFileData(file);
+    const params: DataMapperRequest = {
+        file: fileData,
+        processType: "mapping_instruction"
+    };
+    const resp: DataMapperResponse = await processDataMapperInput(params);
+    let mappingFile: MappingFileRecord = JSON.parse(resp.fileContent) as MappingFileRecord;
+
+    return {
+        ...parameterDefinitions,
+        mapping_fields: mappingFile.mapping_fields,
+    };
 }
 
 export async function getMappingFromFile(file: Blob): Promise<MappingFileRecord | ErrorCode> {
@@ -1457,48 +1473,6 @@ export async function getMappingFromFile(file: Blob): Promise<MappingFileRecord 
         console.error(error);
         return TIMEOUT;
     }
-}
-
-async function sendTypesFileUploadRequest(file: Blob): Promise<Response | ErrorCode> {
-    const formData = new FormData();
-    formData.append("file", file);
-    const response = await fetchWithToken(CONTEXT_UPLOAD_URL_V1 + "/file_upload/generate_record", {
-        method: "POST",
-        body: formData
-    });
-    return response;
-}
-
-export async function getTypesFromFile(file: Blob): Promise<string | ErrorCode> {
-    try {
-        let response = await sendTypesFileUploadRequest(file);
-        if (isErrorCode(response)) {
-            return response as ErrorCode;
-        }
-        response = response as Response;
-        let typesContent = await filterMappingResponse(response) as string;
-        return typesContent;
-    } catch (error) {
-        console.error(error);
-        return TIMEOUT;
-    }
-}
-
-export async function mappingFileParameterDefinitions(file: Attachment, parameterDefinitions: ErrorCode | ParameterMetadata): Promise<ParameterMetadata | ErrorCode> {
-    if (!file) { return parameterDefinitions; }
-
-    const convertedFile = convertBase64ToBlob(file);
-    if (!convertedFile) { throw new Error("Invalid file content"); }
-
-    let mappingFile = await getMappingFromFile(convertedFile);
-    if (isErrorCode(mappingFile)) { return mappingFile as ErrorCode; }
-
-    mappingFile = mappingFile as MappingFileRecord;
-
-    return {
-        ...parameterDefinitions,
-        mapping_fields: mappingFile.mapping_fields,
-    };
 }
 
 export async function mappingFileInlineDataMapperModel(file: Attachment, inlineDataMapperResponse: ErrorCode | InlineDataMapperModelResponse): Promise<InlineDataMapperModelResponse | ErrorCode> {
@@ -1524,13 +1498,13 @@ export async function mappingFileInlineDataMapperModel(file: Attachment, inlineD
 export async function typesFileParameterDefinitions(file: Attachment): Promise<string | ErrorCode> {
     if (!file) { throw new Error("File is undefined"); }
 
-    const convertedFile = convertBase64ToBlob(file);
-    if (!convertedFile) { throw new Error("Invalid file content"); }
-
-    let typesFile = await getTypesFromFile(convertedFile);
-    if (isErrorCode(typesFile)) { return typesFile as ErrorCode; }
-
-    return typesFile;
+    const fileData = await attatchmentToFileData(file);
+    const params: DataMapperRequest = {
+        file: fileData,
+        processType: "records"
+    };
+    const resp: DataMapperResponse = await processDataMapperInput(params);
+    return resp.fileContent;
 }
 
 function convertBase64ToBlob(file: Attachment): Blob | null {
@@ -1636,7 +1610,7 @@ async function accessMetadata(
             if (!["enum", "enum|()"].includes(inputMetadataType)) {
                 isUsingDefault = false;
             }
-            
+
             if (arrayRecords.includes(metadataTypeName) || arrayEnumUnion.includes(inputMetadataType)) {
                 if (isInputRecordNullableArray) {
                     isUsingArray = true;
@@ -1665,23 +1639,23 @@ async function accessMetadata(
                     if (isInputRecordNullable && isInputRecordOptional) {
                         newPath[index - 1] = `${paths[index - 1]}?`;
                     }
-                // Handle enum, union, and intersection types    
+                    // Handle enum, union, and intersection types    
                 } else if (unionEnumIntersectionTypes.includes(inputMetadataType)) {
                     if (isInputRecordNullable && isInputRecordOptional) {
                         newPath[index - 1] = `${paths[index - 1]}?`;
-                    }  
+                    }
                     if (inputMetadataType.includes("[]") && operation === "LENGTH") {
                         let lastInputObject = await resolveMetadata(parameterDefinitions, paths, paths[paths.length - 1], "inputMetadata");
                         let inputDataType = lastInputObject["type"].replace(/\|\(\)$/, "");
                         defaultValue = await getDefaultValue(inputDataType);
                         newPath[paths.length - 1] = `${paths[paths.length - 1]}?:${defaultValue}`;
-                    } else if (!isOutputNullable && !isOutputOptional) {   
+                    } else if (!isOutputNullable && !isOutputOptional) {
                         if (unionEnumIntersectionTypes.includes(inputObject["type"]) && inputObject["members"]) {
-                            if (!isInputRecordNullableArray || isOutputRecordNullable){
+                            if (!isInputRecordNullableArray || isOutputRecordNullable) {
                                 let typeName = inputMetadataType.includes("[]")
                                     ? inputMetadataType.replace(/\|\(\)$/, "")
                                     : (inputObject as any).members[Object.keys((inputObject as any).members)[0]].typeName;
-                        
+
                                 let defaultValue = await getDefaultValue(typeName);
                                 newPath[paths.length - 1] = `${paths[paths.length - 1]}?:${defaultValue !== "void" ? defaultValue : JSON.stringify(typeName)}`;
                             }
@@ -1692,10 +1666,10 @@ async function accessMetadata(
             } else {
                 if (isUsingDefault && unionEnumIntersectionTypes.includes(inputObject["type"]) && inputObject["members"]) {
                     if (!isOutputNullable && !isOutputOptional) {
-                        let typeName = inputMetadataType.includes("[]") 
-                            ? inputMetadataType.replace("|()", "") 
+                        let typeName = inputMetadataType.includes("[]")
+                            ? inputMetadataType.replace("|()", "")
                             : (inputObject as any).members[Object.keys((inputObject as any).members)[0]].typeName;
-                        
+
                         let defaultValue = await getDefaultValue(typeName);
                         newPath[paths.length - 1] = `${paths[paths.length - 1]}?:${defaultValue !== "void" ? defaultValue : JSON.stringify(typeName)}`;
                     }
@@ -1707,11 +1681,11 @@ async function accessMetadata(
             }
             if (!primitiveTypes.includes(baseType)) {
                 if (baseType.includes("[]")) {
-                    if (!isInputNullableArray || isOutputRecordNullable){
+                    if (!isInputNullableArray || isOutputRecordNullable) {
                         defaultValue = `[]`;
                     }
                 } else {
-                    let cleanedBaseType = baseType.replace(/[\[\]()]*/g, ""); 
+                    let cleanedBaseType = baseType.replace(/[\[\]()]*/g, "");
                     if (cleanedBaseType.includes("|")) {
                         modifiedBaseType = cleanedBaseType.split("|")[0].trim();
                     } else {
@@ -1721,7 +1695,7 @@ async function accessMetadata(
                 }
             } else {
                 defaultValue = await getDefaultValue(baseType);
-            }           
+            }
 
             if (isUsingArray) {
                 newPath[index] = `${pathIndex}?:${defaultValue}`;
@@ -1729,7 +1703,7 @@ async function accessMetadata(
 
             if (isUsingDefault && !isOutputNullable && !isOutputOptional) {
                 newPath[index] = `${pathIndex}?:${defaultValue}`;
-            } else if ((isInputNullable || isInputOptional)) { 
+            } else if ((isInputNullable || isInputOptional)) {
                 if (!isOutputNullable && !isOutputOptional) {
                     if (!isInputNullableArray && isOutputRecordNullable) {
                         newPath[index] = `${pathIndex}?:${defaultValue}`;
@@ -1797,11 +1771,11 @@ async function getNestedType(paths: string[], metadata: object): Promise<object>
     return currentMetadata;
 }
 
-async function resolveMetadata(parameterDefinitions: ParameterMetadata | ErrorCode, nestedKeyArray: string[], key: string, metadataKey: "inputMetadata" | "outputMetadata"): Promise<object|null> {
+async function resolveMetadata(parameterDefinitions: ParameterMetadata | ErrorCode, nestedKeyArray: string[], key: string, metadataKey: "inputMetadata" | "outputMetadata"): Promise<object | null> {
     let metadata = parameterDefinitions[metadataKey];
     for (let nk of nestedKeyArray) {
         if (metadata[nk] && (metadata[nk]["fields"] || metadata[nk]["members"])) {
-            if (nk === key){
+            if (nk === key) {
                 return metadata[nk];
             }
             metadata = metadata[nk]["fields"] || metadata[nk]["members"];
@@ -1836,7 +1810,7 @@ async function handleRecordArrays(key: string, nestedKey: string, responseRecord
         outputMetadataType = modifiedOutput["type"];
         let isDeeplyNested = (arrayRecords.includes(outputMetadataTypeName) || arrayEnumUnion.includes(outputMetadataType));
 
-        let { itemKey: currentItemKey, combinedKey: currentCombinedKey, inputArrayNullable:currentArrayNullable } = await extractKeys(responseRecord[subObjectKey], parameterDefinitions, arrayRecords, arrayEnumUnion);
+        let { itemKey: currentItemKey, combinedKey: currentCombinedKey, inputArrayNullable: currentArrayNullable } = await extractKeys(responseRecord[subObjectKey], parameterDefinitions, arrayRecords, arrayEnumUnion);
         if (currentItemKey.includes('?')) {
             currentItemKey = currentItemKey.replace('?', '');
         }
@@ -1844,14 +1818,14 @@ async function handleRecordArrays(key: string, nestedKey: string, responseRecord
             if (isDeeplyNested) {
                 const subArrayRecord = responseRecord[subObjectKey];
                 const isCombinedKeyModified = currentCombinedKey.endsWith('?');
-                const replacementKey = currentArrayNullable || isCombinedKeyModified 
-                    ? `${currentItemKey}Item?.` 
+                const replacementKey = currentArrayNullable || isCombinedKeyModified
+                    ? `${currentItemKey}Item?.`
                     : `${currentItemKey}Item.`;
-        
+
                 const regex = new RegExp(
                     currentCombinedKey.replace(/\?/g, '\\?').replace(/\./g, '\\.') + '\\.', 'g'
                 );
-        
+
                 formattedRecordsArray.push(
                     `${subObjectKey}: ${subArrayRecord.replace(regex, replacementKey)}`
                 );
@@ -1894,10 +1868,10 @@ export async function filterResponse(resp: Response): Promise<object | ErrorCode
         const data = (await resp.json()) as any;
         console.log(data);
         return PARSING_ERROR;
-    } 
+    }
     if (resp.status == 429) {
         return TOO_MANY_REQUESTS;
-    } 
+    }
     if (resp.status == 500) {
         return SERVER_ERROR;
     } else {
@@ -1964,13 +1938,13 @@ async function extractKeys(
 }
 
 async function processParentKey(
-    innerKey: string, 
-    parameterDefinitions: ParameterMetadata | ErrorCode, 
+    innerKey: string,
+    parameterDefinitions: ParameterMetadata | ErrorCode,
     arrayRecords: string[],
     arrayEnumUnion: string[]
-): Promise<{ 
-    itemKey: string; 
-    combinedKey: string; 
+): Promise<{
+    itemKey: string;
+    combinedKey: string;
     inputArrayNullable: boolean;
 }> {
     let inputMetadataType: string = "";
@@ -2090,7 +2064,7 @@ async function processCombinedKey(
                 if (nextOptional) { isinputArrayOptional = true; }
             } else {
                 if (arrayRecords.includes(nextMetadataTypeName) || arrayEnumUnion.includes(nextMetadataType)) {
-                    if (nextNullableArray && (nextIndex === (index - 1))) {isinputNullableArray = true;}
+                    if (nextNullableArray && (nextIndex === (index - 1))) { isinputNullableArray = true; }
                 }
                 return { isinputRecordArrayNullable, isinputRecordArrayOptional, isinputArrayNullable, isinputArrayOptional, isinputNullableArray };
             }
@@ -2099,52 +2073,28 @@ async function processCombinedKey(
     return { isinputRecordArrayNullable, isinputRecordArrayOptional, isinputArrayNullable, isinputArrayOptional, isinputNullableArray };
 }
 
-async function sendRequirementFileUploadRequest(file: Blob): Promise<Response | ErrorCode> {
-    const formData = new FormData();
-    formData.append("file", file);
-    const response = await fetchWithToken(CONTEXT_UPLOAD_URL_V1 + "/file_upload/extract_requirements", {
-        method: "POST",
-        body: formData
-    });
-    return response;
-}
-
-export async function getTextFromRequirements(file: Blob): Promise<string | ErrorCode> {
-    try {
-        let response = await sendRequirementFileUploadRequest(file);
-        if (isErrorCode(response)) {
-            return response as ErrorCode;
-        }
-        response = response as Response;
-        let requirements = await filterMappingResponse(response) as string;
-        return requirements;
-    } catch (error) {
-        console.error(error);
-        return UNKNOWN_ERROR;
-    }
-}
-
 export async function requirementsSpecification(filepath: string): Promise<string | ErrorCode> {
-    if (!filepath) { 
-        throw new Error("File is undefined"); 
+    if (!filepath) {
+        throw new Error("File is undefined");
     }
-
-    const convertedFile = convertBase64ToBlob({name: path.basename(filepath), 
-                            content: getBase64FromFile(filepath), status: AttachmentStatus.UnknownError});
-    if (!convertedFile) { throw new Error("Invalid file content"); }
-
-    let requirements = await getTextFromRequirements(convertedFile);
-    if (isErrorCode(requirements)) { 
-        return requirements as ErrorCode; 
-    }
-
-    return requirements;
+    const fileData = await attatchmentToFileData({
+        name: path.basename(filepath),
+        content: getBase64FromFile(filepath), status: AttachmentStatus.UnknownError
+    });
+    const params: DataMapperRequest = {
+        file: fileData,
+        processType: "requirements",
+        isRequirementAnalysis: true
+    };
+    const resp: DataMapperResponse = await processDataMapperInput(params);
+    return resp.fileContent;
 }
 
 function getBase64FromFile(filePath) {
     const fileBuffer = fs.readFileSync(filePath);
     return fileBuffer.toString('base64');
 }
+
 
 export async function fetchWithToken(url: string, options: RequestInit) {
     const accessToken = await getAccessToken();

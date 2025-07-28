@@ -608,6 +608,11 @@ export class NodeFactoryVisitor implements BaseVisitor {
         this.beginVisitRemoteActionCall(node, parent);
     }
 
+    beginVisitVectorKnowledgeBaseCall(node: FlowNode, parent?: FlowNode): void {
+        if (!this.validateNode(node)) return;
+        this.beginVisitRemoteActionCall(node, parent);
+    }
+
     beginVisitAgentCall(node: FlowNode, parent?: FlowNode): void {
         if (!this.validateNode(node)) return;
         if (!node.id) {

@@ -25,7 +25,7 @@ import {
     Parameter,
     FormImports,
 } from "@wso2/ballerina-side-panel";
-import { AddNodeVisitor, RemoveNodeVisitor, NodeIcon, traverseFlow, ConnectorIcon } from "@wso2/bi-diagram";
+import { AddNodeVisitor, RemoveNodeVisitor, NodeIcon, traverseFlow, ConnectorIcon, AIModelIcon } from "@wso2/bi-diagram";
 import {
     Category,
     AvailableNode,
@@ -154,6 +154,28 @@ export function convertFunctionCategoriesToSidePanelCategories(
     return panelCategories;
 }
 
+export function convertModelProviderCategoriesToSidePanelCategories(categories: Category[]): PanelCategory[] {
+    const panelCategories = categories.map((category) => convertDiagramCategoryToSidePanelCategory(category));
+    panelCategories.forEach((category) => {
+        category.items?.forEach((item) => {
+            item.icon = <AIModelIcon type={(item as PanelNode).metadata.codedata.module} />;
+        });
+    });
+    return panelCategories;
+}
+
+export function convertVectorStoreCategoriesToSidePanelCategories(categories: Category[]): PanelCategory[] {
+    return categories.map((category) => convertDiagramCategoryToSidePanelCategory(category));
+}
+
+export function convertEmbeddingProviderCategoriesToSidePanelCategories(categories: Category[]): PanelCategory[] {
+    return categories.map((category) => convertDiagramCategoryToSidePanelCategory(category));
+}
+
+export function convertVectorKnowledgeBaseCategoriesToSidePanelCategories(categories: Category[]): PanelCategory[] {
+    return categories.map((category) => convertDiagramCategoryToSidePanelCategory(category));
+}
+
 export function convertNodePropertiesToFormFields(
     nodeProperties: NodeProperties,
     connections?: FlowNode[],
@@ -196,6 +218,7 @@ export function convertNodePropertyToFormField(
         advanceProps: convertNodePropertiesToFormFields(property.advanceProperties),
         valueType: property.valueType,
         items: getFormFieldItems(property, connections),
+        itemOptions: property.itemOptions,
         diagnostics: property.diagnostics?.diagnostics || [],
         valueTypeConstraint: property.valueTypeConstraint,
         lineRange: property?.codedata?.lineRange,
@@ -305,7 +328,11 @@ export function getContainerTitle(view: SidePanelView, activeNode: FlowNode, cli
         case SidePanelView.AGENT_TOOL:
             return "Configure Tool";
         case SidePanelView.ADD_TOOL:
-            return "Add Tool";
+            return "Add Tool / MCP Server";
+        case SidePanelView.ADD_MCP_SERVER:
+            return "Add MCP Server";
+        case SidePanelView.EDIT_MCP_SERVER:
+            return "Edit MCP Server";
         case SidePanelView.NEW_TOOL:
             return "Create New Tool";
         case SidePanelView.AGENT_CONFIG:

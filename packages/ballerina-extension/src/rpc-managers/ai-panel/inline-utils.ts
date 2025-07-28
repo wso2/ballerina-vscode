@@ -7,9 +7,9 @@
  * You may not alter or remove any copyright or other notice from copies of this content.
  */
 
-import { AIMachineEventType, Attachment, ErrorCode, ExpandedDMModel, FieldConfig, FormField, InlineDataMapperModelResponse, InputCategory, IOType, Mapping, MappingElement, ParameterDefinitions, ParameterField, ParameterMetadata, RecordDefinitonObject, TypeKind } from "@wso2/ballerina-core";
+import { AIMachineEventType, Attachment, ErrorCode, ExpandedDMModel, FieldConfig, FormField, InlineDataMapperModelResponse, InputCategory, IOType, LoginMethod, Mapping, MappingElement, ParameterDefinitions, ParameterField, ParameterMetadata, RecordDefinitonObject, TypeKind } from "@wso2/ballerina-core";
 import { fetchWithTimeout, filterResponse, generateBallerinaCode, isErrorCode, mappingFileInlineDataMapperModel, navigateTypeInfo, REQUEST_TIMEOUT } from "./utils";
-import { getAccessToken, getRefreshedAccessToken } from "../../utils/ai/auth";
+import { getAccessToken, getLoginMethod, getRefreshedAccessToken } from "../../utils/ai/auth";
 import { NOT_LOGGED_IN, TIMEOUT } from "../../views/ai-panel/errorCodes";
 import { AIStateMachine } from "../../views/ai-panel/aiMachine";
 import { BACKEND_URL } from "../../features/ai/utils";
@@ -103,13 +103,13 @@ function transformInputs(inputs: IOType[]): {
     configurables: Record<string, FieldConfig>;
     variables: Record<string, FieldConfig>;
     parameters: ParameterField[];
-    parameterFields: { [parameterName: string]: FormField[] }; 
+    parameterFields: { [parameterName: string]: FormField[] };
 } {
     const constants: Record<string, FieldConfig> = {};
     const configurables: Record<string, FieldConfig> = {};
     const variables: Record<string, FieldConfig> = {};
     const parameters: ParameterField[] = [];
-    const parameterFields: { [parameterName: string]: FormField[] } = {}; 
+    const parameterFields: { [parameterName: string]: FormField[] } = {};
 
     inputs.forEach((input) => {
         // Helper function to create ParameterField
@@ -182,7 +182,7 @@ function transformInputs(inputs: IOType[]): {
         if (input.category === InputCategory.Parameter) {
             const parameterField = createParameterField(input);
             parameters.push(parameterField);
-            
+
             const parameterName = input.id;
             if (input.fields) {
                 parameterFields[parameterName] = input.fields.map(transformIOType);
@@ -221,7 +221,7 @@ function cleanIOType(ioType: IOType | null | undefined): IOType | null {
             .filter(field => !isNullOrUndefined(field))
             .map(field => cleanIOType(field))
             .filter(field => field !== null) as IOType[];
-        
+
         if (cleanedFields.length > 0) {
             cleaned.fields = cleanedFields;
         }
@@ -237,12 +237,12 @@ function cleanIOType(ioType: IOType | null | undefined): IOType | null {
 
     // Clean members array - remove null/undefined elements
     if (ioType.members && Array.isArray(ioType.members)) {
-        const cleanedMembers = ioType.members.filter(member => 
-            !isNullOrUndefined(member) && 
-            !isNullOrUndefined(member.id) && 
+        const cleanedMembers = ioType.members.filter(member =>
+            !isNullOrUndefined(member) &&
+            !isNullOrUndefined(member.id) &&
             !isNullOrUndefined(member.value)
         );
-        
+
         if (cleanedMembers.length > 0) {
             cleaned.members = cleanedMembers;
         }
@@ -261,7 +261,7 @@ function cleanExpandedDMModel(model: ExpandedDMModel): ExpandedDMModel {
             .filter(input => !isNullOrUndefined(input))
             .map(input => cleanIOType(input))
             .filter(input => input !== null) as IOType[];
-        
+
         cleaned.inputs = cleanedInputs;
     }
 
@@ -279,7 +279,7 @@ function cleanExpandedDMModel(model: ExpandedDMModel): ExpandedDMModel {
             .filter(subMapping => !isNullOrUndefined(subMapping))
             .map(subMapping => cleanIOType(subMapping))
             .filter(subMapping => subMapping !== null) as IOType[];
-        
+
         if (cleanedSubMappings.length > 0) {
             cleaned.subMappings = cleanedSubMappings;
         }
@@ -287,19 +287,19 @@ function cleanExpandedDMModel(model: ExpandedDMModel): ExpandedDMModel {
 
     // Clean mappings array - remove null/undefined elements
     if (model.mappings && Array.isArray(model.mappings)) {
-        const cleanedMappings = model.mappings.filter(mapping => 
-            !isNullOrUndefined(mapping) && 
-            !isNullOrUndefined(mapping.output) && 
+        const cleanedMappings = model.mappings.filter(mapping =>
+            !isNullOrUndefined(mapping) &&
+            !isNullOrUndefined(mapping.output) &&
             !isNullOrUndefined(mapping.expression)
         );
-        
+
         // Also clean inputs array within each mapping
         cleanedMappings.forEach(mapping => {
             if (mapping.inputs && Array.isArray(mapping.inputs)) {
                 mapping.inputs = mapping.inputs.filter(input => !isNullOrUndefined(input));
             }
         });
-        
+
         cleaned.mappings = cleanedMappings;
     }
 
@@ -328,11 +328,11 @@ function cleanInlineDataMapperModelResponse(
 
 function transformCodeObjectToMappings(codeObject: any, request: InlineDataMapperModelResponse): Mapping[] {
     const mappings: Mapping[] = [];
-    
+
     // Get the output variable name from the request
     const { output: mappingOutput } = request.mappingsModel as ExpandedDMModel;
     const outputVariableName = mappingOutput.variableName || extractNameFromId(mappingOutput.id);
-    
+
     // Iterate through each property in codeObject
     Object.keys(codeObject).forEach(key => {
         const mapping: Mapping = {
@@ -341,7 +341,7 @@ function transformCodeObjectToMappings(codeObject: any, request: InlineDataMappe
         };
         mappings.push(mapping);
     });
-    
+
     return mappings;
 }
 
@@ -358,30 +358,30 @@ export async function getInlineParamDefinitions(
     let transformedInputs = transformInputs(mappingInputs);
     let transformedOutputs = transformOutput(mappingOutput);
 
-        for (const parameter of transformedInputs.parameters) {
-            const inputDefinition: ErrorCode | RecordDefinitonObject = navigateTypeInfo(transformedInputs.parameterFields[parameter.parameterName], false);
+    for (const parameter of transformedInputs.parameters) {
+        const inputDefinition: ErrorCode | RecordDefinitonObject = navigateTypeInfo(transformedInputs.parameterFields[parameter.parameterName], false);
 
-            if (isErrorCode(inputDefinition)) {
-                return inputDefinition as ErrorCode;
-            }
-
-            inputs = {
-                ...inputs,
-                [parameter.parameterName]: (inputDefinition as RecordDefinitonObject).recordFields
-            };
-
-            inputMetadata = {
-                ...inputMetadata,
-                [parameter.parameterName]: {
-                    "isArrayType": parameter.isArrayType,
-                    "parameterName": parameter.parameterName,
-                    "parameterType": parameter.parameterType,
-                    "type": parameter.type,
-                    "fields": (inputDefinition as RecordDefinitonObject).recordFieldsMetadata
-                }
-            };
+        if (isErrorCode(inputDefinition)) {
+            return inputDefinition as ErrorCode;
         }
-        
+
+        inputs = {
+            ...inputs,
+            [parameter.parameterName]: (inputDefinition as RecordDefinitonObject).recordFields
+        };
+
+        inputMetadata = {
+            ...inputMetadata,
+            [parameter.parameterName]: {
+                "isArrayType": parameter.isArrayType,
+                "parameterName": parameter.parameterName,
+                "parameterType": parameter.parameterType,
+                "type": parameter.type,
+                "fields": (inputDefinition as RecordDefinitonObject).recordFieldsMetadata
+            }
+        };
+    }
+
     const outputDefinition = navigateTypeInfo(transformedOutputs, false);
 
     if (isErrorCode(outputDefinition)) {
@@ -425,10 +425,14 @@ async function sendInlineDatamapperRequest(inlineDataMapperResponse: InlineDataM
 async function getInlineDatamapperCode(inlineDataMapperResponse: InlineDataMapperModelResponse | ErrorCode, parameterDefinitions: ParameterMetadata | ErrorCode): Promise<object | ErrorCode> {
     let nestedKeyArray: string[] = [];
     try {
-        const accessToken = await getAccessToken().catch((error) => {
-            console.error(error);
-            return NOT_LOGGED_IN;
-        });
+        let accessToken: string | ErrorCode;
+        const loginMethod = await getLoginMethod();
+        if (loginMethod === LoginMethod.BI_INTEL) {
+            accessToken = await getAccessToken().catch((error) => {
+                console.error(error);
+                return NOT_LOGGED_IN;
+            });
+        }
         let response = await sendInlineDatamapperRequest(inlineDataMapperResponse, accessToken);
         if (isErrorCode(response)) {
             return (response as ErrorCode);
