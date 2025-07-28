@@ -47,7 +47,8 @@ import {
     DEFINE_BALLERINA_INTEGRATOR_SCOPE,
     SHOW_LIBRARY_CONFIG_VARIABLES,
     LANG_SERVER_PATH,
-    USE_BALLERINA_CLI_LANG_SERVER
+    USE_BALLERINA_CLI_LANG_SERVER,
+    INCLUDE_CURRENT_ORGANIZATION_IN_SEARCH
 }
     from "./preferences";
 import TelemetryReporter from "vscode-extension-telemetry";
@@ -84,7 +85,6 @@ export enum WEBVIEW_TYPE {
     BBE,
     CONFIGURABLE
 }
-
 export interface ConstructIdentifier {
     filePath: string;
     kind: string;
@@ -1720,6 +1720,10 @@ export class BallerinaExtension {
 
     public showLibraryConfigVariables(): boolean {
         return <boolean>workspace.getConfiguration().get(SHOW_LIBRARY_CONFIG_VARIABLES);
+    }
+
+    public getIncludeCurrentOrgComponents(): boolean {
+        return <boolean>workspace.getConfiguration().get(INCLUDE_CURRENT_ORGANIZATION_IN_SEARCH);
     }
 
     public getDocumentContext(): DocumentContext {
