@@ -18,21 +18,8 @@
 
 import React from "react";
 import styled from "@emotion/styled";
-import { keyframes } from "@emotion/react";
 import { ThemeColors } from "@wso2/ui-toolkit";
-
-// Skeleton pulse animation
-const skeletonPulse = keyframes`
-    0% {
-        opacity: 0.6;
-    }
-    50% {
-        opacity: 0.8;
-    }
-    100% {
-        opacity: 0.6;
-    }
-`;
+import { SkeletonBase, skeletonPulse } from "./styles";
 
 // Diagram container with dotted background
 const DiagramSkeletonContainer = styled.div`
@@ -44,32 +31,6 @@ const DiagramSkeletonContainer = styled.div`
     font-family: "GilmerRegular";
     position: relative;
     overflow: hidden;
-`;
-
-// Base skeleton element
-const SkeletonBase = styled.div<{
-    width?: string | number;
-    height?: string | number;
-    borderRadius?: string | number;
-    margin?: string;
-    position?: string;
-    top?: string | number;
-    left?: string | number;
-}>`
-    background-color: var(--vscode-editor-inactiveSelectionBackground);
-    border-radius: ${({ borderRadius = "4px" }) =>
-        typeof borderRadius === "number" ? `${borderRadius}px` : borderRadius};
-    animation: ${skeletonPulse} 1.5s ease-in-out infinite;
-    width: ${({ width = "100%" }) =>
-        typeof width === "number" ? `${width}px` : width};
-    height: ${({ height = "16px" }) =>
-        typeof height === "number" ? `${height}px` : height};
-    margin: ${({ margin = "0" }) => margin};
-    position: ${({ position = "static" }) => position};
-    top: ${({ top }: { top?: string | number }) =>
-        typeof top === "number" ? `${top}px` : top};
-    left: ${({ left }: { left?: string | number }) =>
-        typeof left === "number" ? `${left}px` : left};
 `;
 
 // Start node skeleton (oval shape)
@@ -97,7 +58,6 @@ const MiddleNodeSkeleton = styled(SkeletonBase)`
     padding: 16px;
     gap: 12px;
 `;
-
 
 const ErrorNodeSkeleton = styled(SkeletonBase)`
     width: 52px;
@@ -149,8 +109,6 @@ const ArrowHeadSkeleton = styled.div`
     transform: translateX(-50%);
     animation: ${skeletonPulse} 1.5s ease-in-out infinite;
 `;
-
-
 
 export const DiagramSkeleton = () => {
     return (

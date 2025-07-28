@@ -18,38 +18,7 @@
 
 import React from "react";
 import styled from "@emotion/styled";
-import { keyframes } from "@emotion/react";
-
-// Skeleton pulse animation
-const skeletonPulse = keyframes`
-    0% {
-        opacity: 0.6;
-    }
-    50% {
-        opacity: 0.8;
-    }
-    100% {
-        opacity: 0.6;
-    }
-`;
-
-// Base skeleton element
-const SkeletonBase = styled.div<{
-    width?: string | number;
-    height?: string | number;
-    borderRadius?: string | number;
-    margin?: string;
-}>`
-    background-color: var(--vscode-editor-inactiveSelectionBackground);
-    border-radius: ${({ borderRadius = "4px" }) =>
-        typeof borderRadius === "number" ? `${borderRadius}px` : borderRadius};
-    animation: ${skeletonPulse} 1.5s ease-in-out infinite;
-    width: ${({ width = "100%" }) =>
-        typeof width === "number" ? `${width}px` : width};
-    height: ${({ height = "16px" }) =>
-        typeof height === "number" ? `${height}px` : height};
-    margin: ${({ margin = "0" }) => margin};
-`;
+import { SkeletonBase } from "./styles";
 
 // Switch container skeleton - matches SwitchContainer
 const SwitchSkeletonContainer = styled.div<{
