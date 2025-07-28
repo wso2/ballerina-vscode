@@ -29,6 +29,7 @@ import {
     DidOpenRequest,
     ExecutorPositionsRequest,
     PartialSTParams,
+    ProjectDiagnosticsRequest,
     RenameRequest,
     STModifyParams,
     SymbolInfoParams,
@@ -49,6 +50,7 @@ import {
     getDiagnostics,
     getExecutorPositions,
     getPackageComponentModels,
+    getProjectDiagnostics,
     getST,
     getSTByRange,
     getSTForExpression,
@@ -78,6 +80,7 @@ export function registerLangClientRpcHandlers(messenger: Messenger) {
     messenger.onRequest(getBallerinaVersion, () => rpcManger.getBallerinaVersion());
     messenger.onRequest(getCompletion, (args: CompletionRequest) => rpcManger.getCompletion(args));
     messenger.onRequest(getDiagnostics, (args: SyntaxTreeParams) => rpcManger.getDiagnostics(args));
+    messenger.onRequest(getProjectDiagnostics, (args: ProjectDiagnosticsRequest) => rpcManger.getProjectDiagnostics(args));
     messenger.onRequest(codeAction, (args: CodeActionRequest) => rpcManger.codeAction(args));
     messenger.onRequest(rename, (args: RenameRequest) => rpcManger.rename(args));
     messenger.onRequest(getDefinitionPosition, (args: DefinitionPositionRequest) => rpcManger.getDefinitionPosition(args));
