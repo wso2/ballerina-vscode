@@ -46,7 +46,6 @@ import {
     Item,
     FunctionKind,
     functionKinds,
-    TRIGGER_CHARACTERS,
     Diagnostic,
     FUNCTION_TYPE,
     FunctionNode,
@@ -159,8 +158,13 @@ export function convertModelProviderCategoriesToSidePanelCategories(categories: 
     const panelCategories = categories.map((category) => convertDiagramCategoryToSidePanelCategory(category));
     panelCategories.forEach((category) => {
         category.items?.forEach((item) => {
-            const codedata = (item as PanelNode).metadata.codedata;
-            item.icon = <AIModelIcon type={codedata?.module} codedata={codedata} />;
+            if ((item as PanelNode).metadata?.codedata) {
+                const codedata = (item as PanelNode).metadata.codedata;
+                item.icon = <AIModelIcon type={codedata?.module} codedata={codedata} />;
+            } else if (((item as PanelCategory).items.at(0) as PanelNode)?.metadata?.codedata) {
+                const codedata = ((item as PanelCategory).items.at(0) as PanelNode)?.metadata.codedata;
+                item.icon = <AIModelIcon type={codedata?.module} codedata={codedata} />;
+            }
         });
     });
     return panelCategories;
@@ -170,8 +174,13 @@ export function convertVectorStoreCategoriesToSidePanelCategories(categories: Ca
     const panelCategories = categories.map((category) => convertDiagramCategoryToSidePanelCategory(category));
     panelCategories.forEach((category) => {
         category.items?.forEach((item) => {
-            const codedata = (item as PanelNode).metadata.codedata;
-            item.icon = <NodeIcon type={codedata?.node} size={24} />;
+            if ((item as PanelNode).metadata?.codedata) {
+                const codedata = (item as PanelNode).metadata.codedata;
+                item.icon = <NodeIcon type={codedata?.node} size={24} />;
+            } else if (((item as PanelCategory).items.at(0) as PanelNode)?.metadata?.codedata) {
+                const codedata = ((item as PanelCategory).items.at(0) as PanelNode)?.metadata.codedata;
+                item.icon = <NodeIcon type={codedata?.node} size={24} />;
+            }
         });
     });
     return panelCategories;
