@@ -79,7 +79,7 @@ public class CodeGenerationTest extends AbstractLSTest {
                 .filter(entry -> entry.getKey().endsWith(CONNECTIONS_BAL_FILE_NAME)
                         || entry.getKey().endsWith(AUTOMATIONS_BAL_FILE_NAME))
                 .findFirst().orElseThrow(
-                        () -> new RuntimeException("Unable to obtain text edits related knowledge base"));
+                        () -> new RuntimeException("Unable to obtain text edits for knowledge base"));
 
         // Use only the file name as the key
         String textEditFilePath = connectionEditEntry.getKey();
