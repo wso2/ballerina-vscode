@@ -381,7 +381,7 @@ export function ApiCallNodeWidget(props: ApiCallNodeWidgetProps) {
                         : model.node.properties.connection.value as ReactNode}
                 </text>
                 <foreignObject x="68" y="12" width="24" height="24" fill={ThemeColors.ON_SURFACE}>
-                    <ConnectorIcon url={model.node.metadata.icon} style={{ width: 24, height: 24, fontSize: 24 }} />
+                    <ConnectorIcon url={model.node.metadata.icon} style={{ width: 24, height: 24, fontSize: 24 }} codedata={model.node?.codedata} />
                 </foreignObject>
                 <line
                     x1="0"
