@@ -19,6 +19,9 @@
 package io.ballerina.flowmodelgenerator.core.search;
 
 import com.google.gson.reflect.TypeToken;
+import io.ballerina.centralconnector.CentralAPI;
+import io.ballerina.centralconnector.RemoteCentral;
+import io.ballerina.centralconnector.response.ConnectorsResponse;
 import io.ballerina.compiler.api.ModuleID;
 import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.compiler.api.symbols.ClassSymbol;
@@ -41,9 +44,11 @@ import io.ballerina.projects.Module;
 import io.ballerina.projects.PackageCompilation;
 import io.ballerina.projects.Project;
 import io.ballerina.tools.text.LineRange;
+import org.ballerinalang.diagramutil.connector.models.connector.Connector;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -71,10 +76,7 @@ public class ConnectorSearchCommand extends SearchCommand {
     private static final Set<String> AGENT_SUPPORT_CONNECTORS = LocalIndexCentral.getInstance()
             .readJsonResource(AGENT_SUPPORT_CONNECTORS_JSON, AGENT_SUPPORT_CONNECTORS_LIST_TYPE);
     public static final String IS_AGENT_SUPPORT = "isAgentSupport";
-    public static final String CALLER = "Caller";
     public static final String CLIENT = "Client";
-    public static final String GRPC = "grpc";
-    public static final String PERSIST = "persist";
 
     public ConnectorSearchCommand(Project project, LineRange position, Map<String, String> queryMap) {
         super(project, position, queryMap);
@@ -85,6 +87,14 @@ public class ConnectorSearchCommand extends SearchCommand {
         List<SearchResult> localConnectors = getLocalConnectors();
         Category.Builder localCategoryBuilder = rootBuilder.stepIn("Local", null, null);
         localConnectors.forEach(connection -> localCategoryBuilder.node(generateAvailableNode(connection, true)));
+
+        // Add organization connectors to default view if any exist
+        List<SearchResult> organizationConnectors = getOrganizationConnectors("");
+        if (!organizationConnectors.isEmpty()) {
+            Category.Builder organizationCategoryBuilder = rootBuilder.stepIn(Category.Name.CURRENT_ORGANIZATION);
+            organizationConnectors.forEach(
+                    connection -> organizationCategoryBuilder.node(generateAvailableNode(connection)));
+        }
 
         Map<String, List<SearchResult>> categories = fetchPopularItems();
         for (Map.Entry<String, List<SearchResult>> entry : categories.entrySet()) {
@@ -97,13 +107,52 @@ public class ConnectorSearchCommand extends SearchCommand {
 
     @Override
     protected List<Item> search() {
-        List<SearchResult> localConnectors = getLocalConnectors();
-        localConnectors.forEach(connector -> rootBuilder.node(generateAvailableNode(connector, true)));
-
         List<SearchResult> searchResults = dbManager.searchConnectors(query, limit, offset);
-        searchResults.forEach(searchResult -> rootBuilder.node(generateAvailableNode(searchResult)));
 
+        // Get organization connectors (searchCentral flag is checked inside the method)
+        List<SearchResult> organizationConnectors = getOrganizationConnectors(query);
+        searchResults.addAll(organizationConnectors);
+
+        buildLibraryNodes(searchResults);
         return rootBuilder.build().items();
+    }
+
+    /**
+     * Fetches connectors from the current organization using Ballerina Central.
+     *
+     * @param searchQuery The search query to use
+     * @return search results containing organization connectors
+     */
+    private List<SearchResult> getOrganizationConnectors(String searchQuery) {
+        List<SearchResult> organizationConnectors = new ArrayList<>();
+
+        if (currentOrg == null || currentOrg.isEmpty()) {
+            return organizationConnectors;
+        }
+
+        CentralAPI centralClient = RemoteCentral.getInstance();
+        Map<String, String> queryMap = new HashMap<>();
+        if (!searchQuery.isEmpty()) {
+            queryMap.put("q", searchQuery);
+        }
+        queryMap.put("limit", String.valueOf(limit));
+        queryMap.put("offset", String.valueOf(offset));
+        queryMap.put("org", currentOrg);
+        ConnectorsResponse connectorsResponse = centralClient.connectors(queryMap);
+        if (connectorsResponse != null && connectorsResponse.connectors() != null) {
+            for (Connector connector : connectorsResponse.connectors()) {
+                SearchResult.Package packageInfo = new SearchResult.Package(
+                        connector.packageInfo.getOrganization(),
+                        connector.packageInfo.getName(),
+                        connector.moduleName,
+                        connector.packageInfo.getVersion()
+                );
+                SearchResult searchResult = SearchResult.from(packageInfo, connector.name,
+                        connector.packageInfo.getSummary(), true);
+                organizationConnectors.add(searchResult);
+            }
+        }
+        return organizationConnectors;
     }
 
     @Override
@@ -119,6 +168,21 @@ public class ConnectorSearchCommand extends SearchCommand {
             defaultView.put(category.getKey(), searchResults);
         }
         return defaultView;
+    }
+
+    private void buildLibraryNodes(List<SearchResult> connectorSearchList) {
+        Category.Builder currentOrgConnectorsBuilder = rootBuilder.stepIn(Category.Name.CURRENT_ORGANIZATION);
+        Category.Builder availableConnectorsBuilder = rootBuilder.stepIn(Category.Name.STANDARD_LIBRARY);
+
+        for (SearchResult searchResult : connectorSearchList) {
+            Category.Builder builder;
+            if (searchResult.fromCurrentOrg()) {
+                builder = currentOrgConnectorsBuilder;
+            } else {
+                builder = availableConnectorsBuilder;
+            }
+            builder.node(generateAvailableNode(searchResult));
+        }
     }
 
     private static AvailableNode generateAvailableNode(SearchResult searchResult) {

@@ -18,6 +18,13 @@
 
 package io.ballerina.flowmodelgenerator.core.search;
 
+import io.ballerina.centralconnector.CentralAPI;
+import io.ballerina.centralconnector.RemoteCentral;
+import io.ballerina.centralconnector.response.SymbolResponse;
+import io.ballerina.compiler.api.SemanticModel;
+import io.ballerina.compiler.api.symbols.Documentation;
+import io.ballerina.compiler.api.symbols.Symbol;
+import io.ballerina.compiler.api.symbols.TypeDefinitionSymbol;
 import io.ballerina.flowmodelgenerator.core.model.AvailableNode;
 import io.ballerina.flowmodelgenerator.core.model.Category;
 import io.ballerina.flowmodelgenerator.core.model.Codedata;
@@ -27,14 +34,18 @@ import io.ballerina.flowmodelgenerator.core.model.NodeKind;
 import io.ballerina.modelgenerator.commons.CommonUtils;
 import io.ballerina.modelgenerator.commons.PackageUtil;
 import io.ballerina.modelgenerator.commons.SearchResult;
+import io.ballerina.projects.Module;
+import io.ballerina.projects.ModuleName;
 import io.ballerina.projects.Package;
 import io.ballerina.projects.Project;
 import io.ballerina.tools.text.LineRange;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * Represents a command to search for types within a module. This class extends SearchCommand and provides functionality
@@ -66,7 +77,13 @@ class TypeSearchCommand extends SearchCommand {
         Package currentPackage = project.currentPackage();
         PackageUtil.getCompilation(currentPackage);
         moduleNames = currentPackage.getDefaultModule().moduleDependencies().stream()
-                .map(moduleDependency -> moduleDependency.descriptor().name().packageName().value())
+                .map(moduleDependency -> {
+                    ModuleName name = moduleDependency.descriptor().name();
+                    if (Objects.nonNull(name.moduleNamePart()) && !name.moduleNamePart().isEmpty()) {
+                        return name.packageName().value() + "." + name.moduleNamePart();
+                    }
+                    return name.packageName().value();
+                })
                 .toList();
     }
 
@@ -76,15 +93,68 @@ class TypeSearchCommand extends SearchCommand {
         if (!moduleNames.isEmpty()) {
             searchResults.addAll(dbManager.searchTypesByPackages(moduleNames, limit, offset));
         }
-        buildLibraryNodes(searchResults, false);
+
+        // Add organization types to default view if any exist
+        List<SearchResult> organizationTypes = getOrganizationTypes("");
+        searchResults.addAll(organizationTypes);
+
+        buildLibraryNodes(searchResults);
+        buildImportedLocalModules();
         return rootBuilder.build().items();
     }
 
     @Override
     protected List<Item> search() {
         List<SearchResult> typeSearchList = dbManager.searchTypes(query, limit, offset);
-        buildLibraryNodes(typeSearchList, true);
+
+        List<SearchResult> organizationTypes = getOrganizationTypes(query);
+        typeSearchList.addAll(organizationTypes);
+
+        buildLibraryNodes(typeSearchList);
+        buildImportedLocalModules();
         return rootBuilder.build().items();
+    }
+
+    /**
+     * Fetches types from the current organization using Ballerina Central.
+     *
+     * @param searchQuery The search query to use
+     * @return search results containing organization types
+     */
+    private List<SearchResult> getOrganizationTypes(String searchQuery) {
+        List<SearchResult> organizationTypes = new ArrayList<>();
+
+        if (currentOrg == null || currentOrg.isEmpty()) {
+            return organizationTypes;
+        }
+
+        CentralAPI centralClient = RemoteCentral.getInstance();
+        Map<String, String> queryMap = new HashMap<>();
+        String orgQuery = "org:" + currentOrg;
+        queryMap.put("q", searchQuery.isEmpty() ? orgQuery : searchQuery + " " + orgQuery);
+        queryMap.put("limit", String.valueOf(limit));
+        queryMap.put("offset", String.valueOf(offset));
+        SymbolResponse symbolResponse = centralClient.searchSymbols(queryMap);
+        if (symbolResponse != null && symbolResponse.symbols() != null) {
+            for (SymbolResponse.Symbol symbol : symbolResponse.symbols()) {
+                if (symbol.symbolType().equals("record") || symbol.symbolType().contains("type")) {
+                    SearchResult.Package packageInfo = new SearchResult.Package(
+                            symbol.organization(),
+                            symbol.name(),
+                            symbol.name(),
+                            symbol.version()
+                    );
+                    SearchResult searchResult = SearchResult.from(
+                            packageInfo,
+                            symbol.symbolName(),
+                            symbol.description(),
+                            true
+                    );
+                    organizationTypes.add(searchResult);
+                }
+            }
+        }
+        return organizationTypes;
     }
 
     @Override
@@ -93,10 +163,11 @@ class TypeSearchCommand extends SearchCommand {
         return Collections.emptyMap();
     }
 
-    private void buildLibraryNodes(List<SearchResult> typeSearchList, boolean includeAllResults) {
+    private void buildLibraryNodes(List<SearchResult> typeSearchList) {
         // Set the categories based on available flags
         Category.Builder importedTypesBuilder = rootBuilder.stepIn(Category.Name.IMPORTED_TYPES);
-        Category.Builder availableTypesBuilder = rootBuilder.stepIn(Category.Name.AVAILABLE_TYPES);
+        Category.Builder currentOrgTypesBuilder = rootBuilder.stepIn(Category.Name.CURRENT_ORGANIZATION);
+        Category.Builder availableTypesBuilder = rootBuilder.stepIn(Category.Name.STANDARD_LIBRARY);
 
         // Add the library types
         for (SearchResult searchResult : typeSearchList) {
@@ -117,12 +188,66 @@ class TypeSearchCommand extends SearchCommand {
                     .symbol(searchResult.name())
                     .version(packageInfo.version())
                     .build();
-            Category.Builder builder =
-                    moduleNames.contains(packageInfo.moduleName()) ? importedTypesBuilder : availableTypesBuilder;
+            Category.Builder builder;
+            if (moduleNames.contains(packageInfo.moduleName())) {
+                builder = importedTypesBuilder;
+            } else if (searchResult.fromCurrentOrg()) {
+                builder = currentOrgTypesBuilder;
+            } else {
+                builder = availableTypesBuilder;
+            }
             if (builder != null) {
                 builder.stepIn(packageInfo.moduleName(), "", List.of())
                         .node(new AvailableNode(metadata, codedata, true));
             }
+        }
+    }
+
+    private void buildImportedLocalModules() {
+        Iterable<Module> modules = project.currentPackage().modules();
+        for (Module module : modules) {
+            if (module.isDefaultModule()) {
+                continue;
+            }
+            SemanticModel semanticModel = PackageUtil.getCompilation(module.packageInstance())
+                    .getSemanticModel(module.moduleId());
+            if (semanticModel == null) {
+                continue;
+            }
+            List<Symbol> symbols = semanticModel.moduleSymbols();
+            String moduleName = module.moduleName().toString();
+            Category.Builder moduleBuilder = rootBuilder.stepIn(Category.Name.IMPORTED_TYPES);
+            String orgName = module.packageInstance().packageOrg().toString();
+            String packageName = module.packageInstance().packageName().toString();
+            String version = module.packageInstance().packageVersion().toString();
+            for (Symbol symbol : symbols) {
+                if (symbol instanceof TypeDefinitionSymbol typeDefinitionSymbol) {
+                    if (typeDefinitionSymbol.getName().isEmpty()) {
+                        continue;
+                    }
+                    String typeName = typeDefinitionSymbol.getName().get();
+                    Documentation documentation = typeDefinitionSymbol.documentation()
+                            .orElse(null);
+                    String description = documentation != null ? documentation.description().orElse("") : "";
+
+                    Metadata metadata = new Metadata.Builder<>(null)
+                            .label(typeName)
+                            .description(description)
+                            .build();
+
+                    Codedata codedata = new Codedata.Builder<>(null)
+                            .org(orgName)
+                            .module(moduleName)
+                            .packageName(packageName)
+                            .symbol(typeName)
+                            .version(version)
+                            .build();
+
+                    moduleBuilder.stepIn(moduleName, "", List.of())
+                            .node(new AvailableNode(metadata, codedata, true));
+                }
+            }
+
         }
     }
 }

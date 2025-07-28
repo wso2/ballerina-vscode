@@ -18,6 +18,9 @@
 
 package io.ballerina.flowmodelgenerator.core.search;
 
+import io.ballerina.centralconnector.CentralAPI;
+import io.ballerina.centralconnector.RemoteCentral;
+import io.ballerina.centralconnector.response.SymbolResponse;
 import io.ballerina.compiler.api.ModuleID;
 import io.ballerina.compiler.api.symbols.AnnotationAttachmentSymbol;
 import io.ballerina.compiler.api.symbols.AnnotationSymbol;
@@ -45,6 +48,7 @@ import io.ballerina.tools.text.LineRange;
 import org.ballerinalang.langserver.common.utils.PositionUtil;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -74,8 +78,6 @@ import static io.ballerina.modelgenerator.commons.CommonUtils.isAiModule;
 class FunctionSearchCommand extends SearchCommand {
 
     public static final String TOOL_ANNOTATION = "Tool";
-    private static final String BALLERINAX = "ballerinax";
-    private static final String AI_AGENT = "ai";
     private static final Map<String, List<String>> POPULAR_BALLERINA_FUNCTIONS = Map.of(
             "log", List.of("printInfo", "printDebug", "printError", "printWarn"),
             "time", List.of("utcNow", "utcFromString"),
@@ -111,6 +113,11 @@ class FunctionSearchCommand extends SearchCommand {
             searchResults.addAll(dbManager.searchFunctionsByPackages(moduleNames, List.of(), limit, offset));
         }
         searchResults.addAll(defaultViewHolder.get(this).getOrDefault(FETCH_KEY, List.of()));
+
+        // Add organization functions to default view if any exist
+        List<SearchResult> organizationFunctions = getOrganizationFunctions("");
+        searchResults.addAll(organizationFunctions);
+
         buildLibraryNodes(searchResults);
         return rootBuilder.build().items();
     }
@@ -119,8 +126,54 @@ class FunctionSearchCommand extends SearchCommand {
     protected List<Item> search() {
         buildProjectNodes();
         List<SearchResult> functionSearchList = dbManager.searchFunctions(query, limit, offset);
+
+        List<SearchResult> organizationFunctions = getOrganizationFunctions(query);
+        functionSearchList.addAll(organizationFunctions);
+
         buildLibraryNodes(functionSearchList);
         return rootBuilder.build().items();
+    }
+
+    /**
+     * Fetches functions from the current organization using Ballerina Central.
+     *
+     * @param searchQuery The search query to use
+     * @return search results containing organization functions
+     */
+    private List<SearchResult> getOrganizationFunctions(String searchQuery) {
+        List<SearchResult> organizationFunctions = new ArrayList<>();
+
+        if (currentOrg == null || currentOrg.isEmpty()) {
+            return organizationFunctions;
+        }
+
+        CentralAPI centralClient = RemoteCentral.getInstance();
+        Map<String, String> queryMap = new HashMap<>();
+        String orgQuery = "org:" + currentOrg;
+        queryMap.put("q", searchQuery.isEmpty() ? orgQuery : searchQuery + " " + orgQuery);
+        queryMap.put("limit", String.valueOf(limit));
+        queryMap.put("offset", String.valueOf(offset));
+        SymbolResponse symbolResponse = centralClient.searchSymbols(queryMap);
+        if (symbolResponse != null && symbolResponse.symbols() != null) {
+            for (SymbolResponse.Symbol symbol : symbolResponse.symbols()) {
+                if (symbol.symbolType().equals("function")) {
+                    SearchResult.Package packageInfo = new SearchResult.Package(
+                            symbol.organization(),
+                            symbol.name(),
+                            symbol.name(),
+                            symbol.version()
+                    );
+                    SearchResult searchResult = SearchResult.from(
+                            packageInfo,
+                            symbol.symbolName(),
+                            symbol.description(),
+                            true
+                    );
+                    organizationFunctions.add(searchResult);
+                }
+            }
+        }
+        return organizationFunctions;
     }
 
     @Override
@@ -207,7 +260,8 @@ class FunctionSearchCommand extends SearchCommand {
     private void buildLibraryNodes(List<SearchResult> functionSearchList) {
         // Set the categories based on the available flags
         Category.Builder importedFnBuilder = rootBuilder.stepIn(Category.Name.IMPORTED_FUNCTIONS);
-        Category.Builder availableFnBuilder = rootBuilder.stepIn(Category.Name.AVAILABLE_FUNCTIONS);
+        Category.Builder currentOrgFnBuilder = rootBuilder.stepIn(Category.Name.CURRENT_ORGANIZATION);
+        Category.Builder availableFnBuilder = rootBuilder.stepIn(Category.Name.STANDARD_LIBRARY);
 
         // Add the library functions
         for (SearchResult searchResult : functionSearchList) {
@@ -228,8 +282,14 @@ class FunctionSearchCommand extends SearchCommand {
                     .symbol(searchResult.name())
                     .version(packageInfo.version())
                     .build();
-            Category.Builder builder =
-                    moduleNames.contains(packageInfo.moduleName()) ? importedFnBuilder : availableFnBuilder;
+            Category.Builder builder;
+            if (moduleNames.contains(packageInfo.moduleName())) {
+                builder = importedFnBuilder;
+            } else if (searchResult.fromCurrentOrg()) {
+                builder = currentOrgFnBuilder;
+            } else {
+                builder = availableFnBuilder;
+            }
             if (builder != null) {
                 builder.stepIn(packageInfo.moduleName(), "", List.of())
                         .node(new AvailableNode(metadata, codedata, true));

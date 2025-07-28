@@ -43,6 +43,8 @@ import static io.ballerina.flowmodelgenerator.core.model.Property.VARIABLE_KEY;
  * @since 1.1.0
  */
 public class VectorKnowledgeBaseCallBuilder extends FunctionCall {
+    private static final String RETRIEVE_METHOD_NAME = "retrieve";
+
     @Override
     protected NodeKind getFunctionNodeKind() {
         return NodeKind.VECTOR_KNOWLEDGE_BASE_CALL;
@@ -59,9 +61,15 @@ public class VectorKnowledgeBaseCallBuilder extends FunctionCall {
         if (connection.isEmpty()) {
             throw new IllegalStateException("connection must be defined for a vector knowledge base");
         }
-        return sourceBuilder.token().name(connection.get().toSourceCode()).keyword(SyntaxKind.DOT_TOKEN)
-                .name(flowNode.metadata().label()).stepOut()
+        String methodName = flowNode.metadata().label();
+        SourceBuilder builder = sourceBuilder.token().name(connection.get().toSourceCode())
+                .keyword(SyntaxKind.DOT_TOKEN)
+                .name(methodName).stepOut()
                 .functionParameters(flowNode, Set.of(CONNECTION_KEY, VARIABLE_KEY, TYPE_KEY, CHECK_ERROR_KEY))
-                .textEdit().build();
+                .textEdit();
+        if (RETRIEVE_METHOD_NAME.equals(methodName)) {
+            builder.acceptImportWithVariableType();
+        }
+        return builder.build();
     }
 }

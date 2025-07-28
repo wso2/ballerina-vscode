@@ -37,6 +37,7 @@ dependencies {
     implementation project(":langserver-core")
     implementation project(":langserver-commons")
     implementation project(":diagram-util")
+    implementation project(":flow-model-generator:flow-model-central-client")
 
 
     implementation "org.ballerinalang:ballerina-lang:${ballerinaLangVersion}"

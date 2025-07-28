@@ -30,6 +30,7 @@ import io.ballerina.tools.text.LineRange;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * Abstract base class for search command operations that handles different types of searches in a module context. This
@@ -49,14 +50,15 @@ public abstract class SearchCommand {
     protected final String query;
     protected final int limit;
     protected final int offset;
+    protected String currentOrg;
     final SearchDatabaseManager dbManager;
     final DefaultViewHolder defaultViewHolder;
 
     protected static final String DATA_MAPPER_FILE_NAME = "data_mappings.bal";
     private static final Gson GSON = new Gson();
-
     private static final int DEFAULT_LIMIT = 20;
     private static final int DEFAULT_OFFSET = 0;
+    private static final boolean DEFAULT_INCLUDE_CURRENT_ORG_IN_SEARCH = false;
 
     public static SearchCommand from(Kind kind, Project module, LineRange position, Map<String, String> queryMap,
                                      Document functionsDoc) {
@@ -78,15 +80,20 @@ public abstract class SearchCommand {
         this.dbManager = SearchDatabaseManager.getInstance();
         this.defaultViewHolder = DefaultViewHolder.getInstance();
 
+        boolean includeCurrentOrgInSearch;
         if (queryMap == null) {
             this.query = "";
             this.limit = DEFAULT_LIMIT;
             this.offset = DEFAULT_OFFSET;
+            includeCurrentOrgInSearch = DEFAULT_INCLUDE_CURRENT_ORG_IN_SEARCH;
         } else {
             this.query = queryMap.getOrDefault("q", "");
             this.limit = parseIntParam(queryMap.get("limit"), DEFAULT_LIMIT);
             this.offset = parseIntParam(queryMap.get("offset"), DEFAULT_OFFSET);
+            includeCurrentOrgInSearch = parseBooleanParam(queryMap.get("includeCurrentOrganizationInSearch"),
+                    DEFAULT_INCLUDE_CURRENT_ORG_IN_SEARCH);
         }
+        this.currentOrg = includeCurrentOrgInSearch ? getOrganizationName().orElse(null) : null;
     }
 
     /**
@@ -137,6 +144,32 @@ public abstract class SearchCommand {
         } catch (NumberFormatException e) {
             return defaultValue;
         }
+    }
+
+    /**
+     * Utility method to parse boolean parameters with a default value.
+     *
+     * @param value        The string value to parse
+     * @param defaultValue Default value to use if parsing fails
+     * @return The parsed boolean or default value
+     */
+    private static boolean parseBooleanParam(String value, boolean defaultValue) {
+        if (value == null) {
+            return defaultValue;
+        }
+
+        try {
+            return Boolean.parseBoolean(value);
+        } catch (Exception e) {
+            return defaultValue;
+        }
+    }
+
+    protected Optional<String> getOrganizationName() {
+        return project.currentPackage().ballerinaToml()
+                .flatMap(toml -> toml.tomlDocument().toml().getTable("package")
+                        .flatMap(table -> table.get("org"))
+                        .flatMap(orgValue -> Optional.ofNullable(orgValue.toString())));
     }
 
     public enum Kind {

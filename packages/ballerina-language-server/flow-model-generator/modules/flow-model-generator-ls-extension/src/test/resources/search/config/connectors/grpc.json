@@ -5,5 +5,29 @@
   "queryMap": {
     "q": "grpc"
   },
-  "categories": []
+  "categories": [
+    {
+      "metadata": {
+        "label": "Current Organization",
+        "description": "Components in the current organization",
+        "keywords": [
+          "Organization",
+          "Function",
+          "Library"
+        ]
+      },
+      "items": []
+    },
+    {
+      "metadata": {
+        "label": "Standard Library",
+        "description": "Components supported officially by Ballerina",
+        "keywords": [
+          "Ballerina",
+          "Library"
+        ]
+      },
+      "items": []
+    }
+  ]
 }
