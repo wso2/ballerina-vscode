@@ -361,6 +361,11 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
                     field.value = field.key;
                     field.optional = false;
                     field.advanced = false;
+                    // hack: remove headers and additionalValues from the tool inputs and set default value to ()
+                    if (["headers", "additionalValues"].includes(field.key)) {
+                        field.value = "()";
+                        return;
+                    }
                     includedKeys.push(field.key);
                 });
                 console.log(">>> Node parameter fields", { nodeParameterFields });
