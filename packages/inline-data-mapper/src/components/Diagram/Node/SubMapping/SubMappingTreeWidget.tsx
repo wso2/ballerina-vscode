@@ -100,13 +100,11 @@ export function SubMappingTreeWidget(props: SubMappingTreeWidgetProps) {
             ) : !isFocusedView && !searchValue && (
                 <Button
                     className={classes.addSubMappingButton}
-                    appearance='icon'
-                    aria-label="add"
                     onClick={onClickAddSubMapping}
-                    data-testid={"add-sub-mappings-btn"}
+                    appearance="secondary"
                 >
-                    <Codicon name="add" iconSx={{ color: "var(--button-primary-foreground)"}} />
-                    <div>Add Sub Mapping</div>
+                    <Codicon name="add" />
+                    Add Sub Mapping
                 </Button>
             )}
         </>

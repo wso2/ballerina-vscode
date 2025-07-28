@@ -13,6 +13,8 @@ import { getAccessToken, getLoginMethod, getRefreshedAccessToken } from "../../u
 import { NOT_LOGGED_IN, TIMEOUT } from "../../views/ai-panel/errorCodes";
 import { AIStateMachine } from "../../views/ai-panel/aiMachine";
 import { BACKEND_URL } from "../../features/ai/utils";
+import { DatamapperResponse } from "../../../src/features/ai/service/datamapper/types";
+import { generateInlineAutoMappings } from "../../../src/features/ai/service/datamapper/inline_datamapper";
 
 let abortController = new AbortController();
 
@@ -407,18 +409,8 @@ export async function getInlineParamDefinitions(
     };
 }
 
-async function sendInlineDatamapperRequest(inlineDataMapperResponse: InlineDataMapperModelResponse | ErrorCode, accessToken: string | ErrorCode): Promise<Response | ErrorCode> {
-    const response = await fetchWithTimeout(BACKEND_URL + "/inline/datamapper", {
-        method: "POST",
-        headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json',
-            'User-Agent': 'Ballerina-VSCode-Plugin',
-            'Authorization': 'Bearer ' + accessToken
-        },
-        body: JSON.stringify(inlineDataMapperResponse)
-    }, REQUEST_TIMEOUT);
-
+async function sendInlineDatamapperRequest(inlineDataMapperResponse: InlineDataMapperModelResponse | ErrorCode): Promise<DatamapperResponse> {
+    const response: DatamapperResponse = await generateInlineAutoMappings(inlineDataMapperResponse as InlineDataMapperModelResponse);
     return response;
 }
 
@@ -433,32 +425,9 @@ async function getInlineDatamapperCode(inlineDataMapperResponse: InlineDataMappe
                 return NOT_LOGGED_IN;
             });
         }
-        let response = await sendInlineDatamapperRequest(inlineDataMapperResponse, accessToken);
-        if (isErrorCode(response)) {
-            return (response as ErrorCode);
-        }
+        let response: DatamapperResponse = await sendInlineDatamapperRequest(inlineDataMapperResponse);
 
-        response = (response as Response);
-
-        // Refresh
-        if (response.status === 401) {
-            const newAccessToken = await getRefreshedAccessToken();
-            if (!newAccessToken) {
-                AIStateMachine.service().send(AIMachineEventType.LOGOUT);
-                return;
-            }
-            let retryResponse: Response | ErrorCode = await sendInlineDatamapperRequest(inlineDataMapperResponse, newAccessToken);
-
-            if (isErrorCode(retryResponse)) {
-                return (retryResponse as ErrorCode);
-            }
-
-            retryResponse = (retryResponse as Response);
-            let intermediateMapping = await filterResponse(retryResponse);
-            let finalCode = await generateBallerinaCode(intermediateMapping, parameterDefinitions, "", nestedKeyArray);
-            return finalCode;
-        }
-        let intermediateMapping = await filterResponse(response);
+        let intermediateMapping = response.mappings;
         let finalCode = await generateBallerinaCode(intermediateMapping, parameterDefinitions, "", nestedKeyArray);
         return finalCode;
     } catch (error) {
