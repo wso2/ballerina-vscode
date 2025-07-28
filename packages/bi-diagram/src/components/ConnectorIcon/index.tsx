@@ -109,6 +109,8 @@ export function getLlmModelIcons(modelType: string) {
         case "DeepseekProvider":
         case "ai.deepseek":
             return <DeepseekIcon />;
+        case "Wso2ModelProvider":
+            return <Icon name="bi-wso2" sx={{ width: 24, height: 24, fontSize: 24 }} />;
         default:
             return <DefaultLlmIcon />;
     }
