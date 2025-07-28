@@ -54,6 +54,7 @@ import {
     convertModelProviderCategoriesToSidePanelCategories,
     convertVectorStoreCategoriesToSidePanelCategories,
     convertEmbeddingProviderCategoriesToSidePanelCategories,
+    convertVectorKnowledgeBaseCategoriesToSidePanelCategories,
 } from "../../../utils/bi";
 import { NodePosition, STNode } from "@wso2/syntax-tree";
 import { View, ProgressRing, ProgressIndicator, ThemeColors } from "@wso2/ui-toolkit";
@@ -246,12 +247,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                     filePath: model?.fileName,
                 });
                 console.log(">>> Refreshed model provider list", response);
-                setCategories(
-                    convertFunctionCategoriesToSidePanelCategories(
-                        response.categories as Category[],
-                        FUNCTION_TYPE.REGULAR
-                    )
-                );
+                setCategories(convertModelProviderCategoriesToSidePanelCategories(response.categories as Category[]));
                 setSidePanelView(SidePanelView.MODEL_PROVIDER_LIST);
                 setShowSidePanel(true);
             } catch (error) {
@@ -280,10 +276,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 });
                 console.log(">>> Refreshed vector store list", response);
                 setCategories(
-                    convertFunctionCategoriesToSidePanelCategories(
-                        response.categories as Category[],
-                        FUNCTION_TYPE.REGULAR
-                    )
+                    convertVectorStoreCategoriesToSidePanelCategories(response.categories as Category[])
                 );
                 setSidePanelView(SidePanelView.VECTOR_STORE_LIST);
                 setShowSidePanel(true);
@@ -313,10 +306,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 });
                 console.log(">>> Refreshed embedding provider list", response);
                 setCategories(
-                    convertFunctionCategoriesToSidePanelCategories(
-                        response.categories as Category[],
-                        FUNCTION_TYPE.REGULAR
-                    )
+                    convertEmbeddingProviderCategoriesToSidePanelCategories(response.categories as Category[])
                 );
                 setSidePanelView(SidePanelView.EMBEDDING_PROVIDER_LIST);
                 setShowSidePanel(true);

@@ -682,6 +682,7 @@ export function AddMcpServer(props: AddToolProps): JSX.Element {
                     mcpTools={mcpTools}
                     // Pass the handler to FormGenerator
                     onToolsChange={handleToolsChange}
+                    showProgressIndicator={savingForm}
                 />
             )}
         </Container>
