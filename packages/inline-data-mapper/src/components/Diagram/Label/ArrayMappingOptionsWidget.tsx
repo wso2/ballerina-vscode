@@ -20,7 +20,7 @@
 import React from 'react';
 
 import { TypeKind } from '@wso2/ballerina-core';
-import { Codicon, Item, Menu, MenuItem } from '@wso2/ui-toolkit';
+import { Codicon, Item, Menu, MenuItem, ProgressRing } from '@wso2/ui-toolkit';
 import { css } from '@emotion/css';
 
 import { InputOutputPortModel, ValueType } from '../Port';
@@ -28,6 +28,7 @@ import { genArrayElementAccessSuffix, getValueType } from '../utils/common-utils
 import { MappingType } from '../Link';
 import { ExpressionLabelModel } from './ExpressionLabelModel';
 import { mapWithCustomFn } from '../utils/modification-utils';
+import classNames from 'classnames';
 
 export const useStyles = () => ({
     arrayMappingMenu: css({
@@ -38,6 +39,34 @@ export const useStyles = () => ({
         width: '100%',
         alignItems: 'center'
     }),
+    container: css({
+        width: '100%',
+        backgroundColor: "var(--vscode-editor-background)",
+        padding: "2px",
+        borderRadius: "6px",
+        border: "1px solid var(--vscode-debugIcon-breakpointDisabledForeground)",
+        display: "flex",
+        alignItems: "center",
+        "& > vscode-button > *": {
+            margin: "0 2px"
+        }
+    }),
+    element: css({
+        padding: '10px',
+        cursor: 'pointer',
+        transitionDuration: '0.2s',
+        userSelect: 'none',
+        pointerEvents: 'auto',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        '&:hover': {
+            filter: 'brightness(0.95)',
+        },
+    }),
+    loadingContainer: css({
+        padding: '10px',
+    })
 });
 
 const a2aMenuStyles = {
@@ -67,11 +96,19 @@ export function ArrayMappingOptionsWidget(props: ArrayMappingOptionsWidgetProps)
 
     const isValueModifiable = valueType === ValueType.Default
         || valueType === ValueType.NonEmpty;
-    
-    const onClickMapArrays = async () => {
-        if (isValueModifiable) {
-        } else {
+
+    const [inProgress, setInProgress] = React.useState(false);
+    const wrapWithProgress = (onClick: () => Promise<void>) => {
+        return async () => {
+            link.pendingMappingType = MappingType.Default;
+            setInProgress(true);
+            await onClick();
+            setInProgress(false);
         }
+    };
+    
+    const onClickMapDirectly = async () => {
+        
     }
 
     const onClickMapIndividualElements = async () => {
@@ -110,12 +147,12 @@ export function ArrayMappingOptionsWidget(props: ArrayMappingOptionsWidgetProps)
         {
             id: "a2a-direct",
             label: getItemElement("a2a-direct", "Map Input Array to Output Array"),
-            onClick: onClickMapArrays
+            onClick: wrapWithProgress(onClickMapDirectly)
         },
         {
             id: "a2a-inner",
             label: getItemElement("a2a-inner", "Map Array Elements Individually"),
-            onClick: onClickMapIndividualElements
+            onClick: wrapWithProgress(onClickMapIndividualElements)
         }
     ];
 
@@ -123,12 +160,12 @@ export function ArrayMappingOptionsWidget(props: ArrayMappingOptionsWidgetProps)
         {
             id: "a2s-direct",
             label: getItemElement("a2s-direct", "Extract Single Element from Array"),
-            onClick: onClickMapArraysAccessSingleton
+            onClick: wrapWithProgress(onClickMapArraysAccessSingleton)
         },
         {
             id: "a2s-aggregate",
             label: getItemElement("a2s-aggregate", "Aggregate using Query"),
-            onClick: onClickAggregateArray
+            onClick: wrapWithProgress(onClickAggregateArray)
         }
     ];
 
@@ -137,29 +174,67 @@ export function ArrayMappingOptionsWidget(props: ArrayMappingOptionsWidgetProps)
     const a2sCollectClauseItems: Item[] = collectClauseFns.map((func) => ({
         id: `a2s-collect-${func}`,
         label: getItemElement(`a2s-collect-${func}`, `Aggregate using ${func}`),
-        onClick: () => onClickMapUsingCollectClause(func)
+        onClick: wrapWithProgress(async () => await onClickMapUsingCollectClause(func))
     }));
 
+    const defaultMenuItems: Item[] = [
+        {
+            id: "a2a-direct",
+            label: getItemElement("direct", "Map directly"),
+            onClick: wrapWithProgress(onClickMapDirectly)
+        }
+    ];
 
-    const menuItems = pendingMappingType === MappingType.ArrayToArray ? a2aMenuItems : 
-    pendingMappingType === MappingType.ArrayToSingleton ? a2sMenuItems : 
-    a2sCollectClauseItems;
+    const menuItems = pendingMappingType === MappingType.ArrayToArray ? a2aMenuItems :
+        pendingMappingType === MappingType.ArrayToSingleton ? a2sMenuItems :
+            pendingMappingType === MappingType.ArrayToSingletonWithCollect ? a2sCollectClauseItems : 
+                defaultMenuItems;
 
     menuItems.push({
         id: "a2a-a2s-func",
         label: getItemElement("a2a-a2s-func", "Map Using Custom Function"),
-        onClick: onClickMapWithCustomFunction
+        onClick: wrapWithProgress(onClickMapWithCustomFunction)
     });
-    return (
-        <div className={classes.arrayMappingMenu}>
-            <Menu sx={a2aMenuStyles}>
-                {menuItems.map((item: Item) =>
-                    <MenuItem
-                        key={`item ${item.id}`}
-                        item={item}
-                    />
-                )}
-            </Menu>
-        </div>
+    // return (
+    //     inProgress ? (
+    //         <div className={classNames(classes.container)}>
+    //             <div className={classNames(classes.element, classes.loadingContainer)}>
+    //                 <ProgressRing
+    //                     sx={{ height: '16px', width: '16px' }}
+    //                     color="red"
+    //                 />
+    //             </div>
+    //         </div>
+    //     ) : (
+    //     <div className={classes.arrayMappingMenu}>
+    //         <div className={classNames(classes.container)}>
+    //             <div className={classNames(classes.element, classes.loadingContainer)}>
+    //                 <ProgressRing
+    //                     sx={{ height: '16px', width: '16px' }}
+    //                     color="red"
+    //                 />
+    //             </div>
+    //         </div>
+    //         <Menu sx={a2aMenuStyles}>
+    //             {menuItems.map((item: Item) =>
+    //                 <MenuItem
+    //                     key={`item ${item.id}`}
+    //                     item={item}
+    //                 />
+    //             )}
+    //         </Menu>
+    //     </div>)
+    // );
+    return !inProgress && (
+            <div className={classes.arrayMappingMenu}>
+                <Menu sx={a2aMenuStyles}>
+                    {menuItems.map((item: Item) =>
+                        <MenuItem
+                            key={`item ${item.id}`}
+                            item={item}
+                        />
+                    )}
+                </Menu>
+            </div>
     );
 }
