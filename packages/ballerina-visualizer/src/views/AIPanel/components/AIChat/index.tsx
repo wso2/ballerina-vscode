@@ -1343,8 +1343,15 @@ const AIChat: React.FC = () => {
 
         assistant_response = `Here are the data mappings:\n\n`;
         assistant_response += `\n**Note**: When you click **Add to Integration**, it will override your existing mappings.\n`;
+        
+        const moduleInfo = metadata.mappingsModel.output.moduleInfo;
+        const hasModuleInfo = moduleInfo && moduleInfo.moduleName;
 
-        const formattedContent = `${typeName} ${variableName} = {\n${formatWithProperIndentation(finalContent)}\n};`;
+        const typePrefix = hasModuleInfo
+            ? `${moduleInfo.moduleName.split('.').pop()}:${typeName}`
+            : typeName;
+
+        const formattedContent = `${typePrefix} ${variableName} = {\n${formatWithProperIndentation(finalContent)}\n};`;
         
         assistant_response += `<code filename="${fileName}" type="ai_map_inline">\n\`\`\`ballerina\n${formattedContent}\n\`\`\`\n</code>`;
 

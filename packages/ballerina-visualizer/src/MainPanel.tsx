@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
     KeyboardNavigationManager,
     MachineStateValue,
@@ -27,6 +27,7 @@ import {
 } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { Global, css } from "@emotion/react";
+import { debounce } from "lodash";
 import styled from "@emotion/styled";
 import { LoadingRing } from "./components/Loader";
 import { DataMapper } from "./views/DataMapper";
@@ -179,9 +180,15 @@ const MainPanel = () => {
 
     rpcClient?.onStateChanged((newState: MachineStateValue) => {
         if (typeof newState === "object" && "viewActive" in newState && newState.viewActive === "viewReady") {
-            fetchContext();
+            debounceFetchContext();
         }
     });
+
+    const debounceFetchContext = useCallback(
+        debounce(() => {
+            fetchContext();
+        }, 200), []
+    );
 
     rpcClient?.onPopupStateChanged((newState: PopupMachineStateValue) => {
         setPopupState(newState);
@@ -465,7 +472,7 @@ const MainPanel = () => {
     };
 
     useEffect(() => {
-        fetchContext();
+        debounceFetchContext();
     }, [breakpointState]);
 
     useEffect(() => {
