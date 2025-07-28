@@ -24,13 +24,20 @@ import DeepseekIcon from "../../resources/icons/DeepseekIcon";
 import { AnthropicIcon } from "../../resources/icons/AnthropicIcon";
 import { MistralAIIcon } from "../../resources/icons/MistralAIIcon";
 import { OllamaIcon } from "../../resources/icons/OllamaIcon";
+import { Icon } from "@wso2/ui-toolkit";
+import { CodeData } from "@wso2/ballerina-core";
 
 interface AIModelIconProps {
     type: string;
+    codedata?: CodeData;
 }
 
 export function AIModelIcon(props: AIModelIconProps): React.ReactElement {
-    const { type } = props;
+    const { type, codedata } = props;
+
+    if (codedata && isWso2Module(codedata)) {
+        return <Icon name="bi-wso2" sx={{ width: 24, height: 24, fontSize: 24 }} />;
+    }
 
     switch (type) {
         case "OpenAiProvider":
@@ -54,4 +61,16 @@ export function AIModelIcon(props: AIModelIconProps): React.ReactElement {
         default:
             return <DefaultLlmIcon />;
     }
+}
+
+export function isWso2Module(codedata: CodeData): boolean {
+    if (codedata?.module === "ai") {
+        if (["Wso2ModelProvider", "Wso2EmbeddingProvider"].includes(codedata.object)) {
+            return true;
+        }
+        if (["getDefaultModelProvider", "getDefaultEmbeddingProvider"].includes(codedata.symbol)) {
+            return true;
+        }
+    }
+    return false;
 }
