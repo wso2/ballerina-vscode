@@ -38,7 +38,6 @@ public class Constants {
     // AI related constants
     public static final String AI = "ai";
     public static final String DEFAULT_MODEL_PROVIDER = "getDefaultModelProvider";
-    public static final String BALLERINAX_AI_VERSION = "1.0.1";
 
     // Constants used for Natural functions
     public static final class NaturalFunctions {

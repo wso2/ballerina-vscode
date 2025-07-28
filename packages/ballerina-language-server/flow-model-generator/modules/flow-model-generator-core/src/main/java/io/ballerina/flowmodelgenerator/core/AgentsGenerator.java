@@ -93,7 +93,6 @@ import java.util.Set;
 import static io.ballerina.flowmodelgenerator.core.Constants.AI;
 import static io.ballerina.flowmodelgenerator.core.Constants.BALLERINA;
 import static io.ballerina.flowmodelgenerator.core.Constants.BALLERINAX;
-import static io.ballerina.flowmodelgenerator.core.Constants.BALLERINAX_AI_VERSION;
 import static io.ballerina.flowmodelgenerator.core.Constants.DEFAULT_MODEL_PROVIDER;
 import static io.ballerina.modelgenerator.commons.CommonUtils.importExists;
 import static io.ballerina.modelgenerator.commons.CommonUtils.isAiModule;
@@ -136,11 +135,6 @@ public class AgentsGenerator {
         Project project = workspaceManager.loadProject(projectPath);
         BLangPackage bLangPackage = PackageUtil.getCompilation(project.currentPackage()).defaultModuleBLangPackage();
         return importExists(bLangPackage, BALLERINAX, AI) ? BALLERINAX : BALLERINA;
-    }
-
-    public ModuleInfo getAiModuleInfo(String orgName) {
-        String version = orgName.equals(BALLERINA) ? null : BALLERINAX_AI_VERSION;
-        return new ModuleInfo(orgName, AI, AI, version);
     }
 
     public JsonArray getAllAgents(SemanticModel agentSymbol) {
