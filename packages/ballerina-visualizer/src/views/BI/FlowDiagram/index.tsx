@@ -115,6 +115,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
     const [updatedExpressionField, setUpdatedExpressionField] = useState<any>(undefined);
     const [breakpointInfo, setBreakpointInfo] = useState<BreakpointInfo>();
     const [selectedMcpToolkitName, setSelectedMcpToolkitName] = useState<string | undefined>(undefined);
+    const [forceUpdate, setForceUpdate] = useState(0);
 
     // Navigation stack for back navigation
     const [navigationStack, setNavigationStack] = useState<NavigationStackItem[]>([]);
@@ -444,6 +445,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
             if (matchingNode && matchingNode.id !== selectedNodeRef.current.id) {
                 selectedNodeRef.current = matchingNode;
                 targetRef.current = matchingNode.codedata.lineRange;
+                setForceUpdate(prev => prev + 1);
             }
         }
     }, [model]);
