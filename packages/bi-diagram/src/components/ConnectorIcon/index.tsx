@@ -38,12 +38,6 @@ interface ConnectorIconProps {
 export function ConnectorIcon(props: ConnectorIconProps): React.ReactElement {
     const { url, fallbackIcon, className, style } = props;
     const [imageError, setImageError] = React.useState(false);
-    const [themeAwareColor, setThemeAwareColor] = useState<string>(getAIColor());
-
-    // Update color when theme changes
-    const handleThemeChange = () => {
-        setThemeAwareColor(getAIColor());
-    };
 
     // use custom icon for http
     if (url?.includes("ballerina_http_")) {
@@ -52,29 +46,14 @@ export function ConnectorIcon(props: ConnectorIconProps): React.ReactElement {
 
     // use custom icon for ai model providers
     const aiModules = ["ai.openai", "ai.azure", "ai.anthropic", "ai.ollama", "ai.mistral", "ai.deepseek"];
-    if (aiModules.some(module => url?.includes(module))) {
-        const selectedModule = aiModules.find(module => url?.includes(module));
+    if (aiModules.some((module) => url?.includes(module))) {
+        const selectedModule = aiModules.find((module) => url?.includes(module));
         return getLlmModelIcons(selectedModule);
     }
 
     // use custom icon for ai module
-    if (url?.includes("ballerinax_ai_")) {
-        return (
-            <>
-                <Icon 
-                    name="bi-ai-agent" 
-                    className={className} 
-                    sx={{ width: 24, height: 24, fontSize: 24, color: themeAwareColor, ...style }} 
-                />
-                <ThemeListener onThemeChange={handleThemeChange} />
-            </>
-        );
-    }
-
-    if (url?.includes("ballerina_ai")) {
-        return (
-            <DefaultLlmIcon />
-        );
+    if (url?.includes("ballerinax_ai_") || url?.includes("ballerina_ai")) {
+        return <Icon name="bi-ai-model" className={className} sx={{ width: 24, height: 24, fontSize: 24, ...style }} />;
     }
 
     if (url && isValidUrl(url) && !imageError) {
