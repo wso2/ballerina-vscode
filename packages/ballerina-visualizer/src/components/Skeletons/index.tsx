@@ -17,3 +17,6 @@
  */
 
 export { SkeletonText } from "./SkeletonText";
+export { TitleBarSkeleton } from "./TitleBarSkeleton";
+export { SwitchSkeleton } from "./SwitchSkeleton";
+export { DiagramSkeleton } from "./DiagramSkeleton";
