@@ -327,10 +327,10 @@ export function BIFocusFlowDiagram(props: BIFocusFlowDiagramProps) {
             });
     };
 
-    const updateCurrentArtifactLocation = async (artifacts: UpdatedArtifactsResponse, identifier?: string) => {
-        console.log(">>> Updating current artifact location", { artifacts, identifier });
+    const updateCurrentArtifactLocation = async (artifacts: UpdatedArtifactsResponse) => {
+        console.log(">>> Updating current artifact location", { artifacts });
         // Get the updated component and update the location
-        const currentIdentifier = identifier || (await rpcClient.getVisualizerLocation()).identifier;
+        const currentIdentifier = (await rpcClient.getVisualizerLocation()).identifier;
         // Find the correct artifact by currentIdentifier (id)
         let currentArtifact = artifacts.artifacts.at(0);
         artifacts.artifacts.forEach((artifact: any) => {

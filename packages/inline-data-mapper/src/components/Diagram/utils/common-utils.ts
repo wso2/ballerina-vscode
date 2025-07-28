@@ -41,6 +41,10 @@ export function findMappingByOutput(mappings: Mapping[], outputId: string): Mapp
     return mappings.find(mapping => (mapping.output === outputId || mapping.output.replaceAll("\"", "") === outputId));
 }
 
+export function isPendingMappingRequired(mappingType: MappingType): boolean {
+    return mappingType === MappingType.Incompatible;
+}
+
 export function getMappingType(sourcePort: PortModel, targetPort: PortModel): MappingType {
 
     if (sourcePort instanceof InputOutputPortModel
@@ -80,11 +84,6 @@ export function getValueType(lm: DataMapperLinkModel): ValueType {
     }
 
     return ValueType.Empty;
-}
-
-
-export function isPendingMappingRequired(mappingType: MappingType): boolean {
-    return false; // TODO: Implement logic when LS supports on the fly mappings
 }
 
 export function genArrayElementAccessSuffix(sourcePort: PortModel, targetPort: PortModel) {
