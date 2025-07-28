@@ -27,7 +27,7 @@ import {
     TextEdit,
     traverseFlow
 } from "@wso2/ballerina-core";
-import { updateSourceCode } from "../../utils";
+import { updateSourceCode, UpdateSourceCodeRequest } from "../../utils";
 import { StateMachine, updateInlineDataMapperView } from "../../stateMachine";
 import { VariableFindingVisitor } from "./VariableFindingVisitor";
 
@@ -88,6 +88,41 @@ export async function fetchSubMappingCodeData(
 }
 
 /**
+ * Updates the source code iteratively by applying text edits.
+ * If only one file is edited, it directly updates that file.
+ * @param updateSourceCodeRequest - The request containing text edits to apply.
+ * @returns Updated artifacts after applying the last text edits.
+ */
+    
+export async function updateSourceCodeIteratively(updateSourceCodeRequest: UpdateSourceCodeRequest){
+    const textEdits = updateSourceCodeRequest.textEdits;
+    const filePaths = Object.keys(textEdits);
+
+    if (filePaths.length == 1) {
+        return await updateSourceCode(updateSourceCodeRequest);
+    }
+
+    // need to prioritize if file path ends with functions.bal
+    filePaths.sort((a, b) => {
+        // Prioritize files ending with functions.bal
+        const aEndsWithFunctions = a.endsWith('functions.bal') ? 1 : 0;
+        const bEndsWithFunctions = b.endsWith('functions.bal') ? 1 : 0;
+        return bEndsWithFunctions - aEndsWithFunctions; // Sort descending
+    });
+
+    const requests: UpdateSourceCodeRequest[] = filePaths.map(filePath => ({
+        textEdits: { [filePath]: textEdits[filePath] }
+    }));
+
+    let updatedArtifacts: ProjectStructureArtifactResponse[];
+    for (const request of requests) {
+        updatedArtifacts = await updateSourceCode(request);
+    }
+
+    return updatedArtifacts;
+}
+
+/**
  * Updates the source code with text edits and retrieves the updated code data for the variable being edited.
  * @throws {Error} When source update fails or required data cannot be found
  */
@@ -104,7 +139,7 @@ export async function updateSource(
 
     try {
         // Update source code and get artifacts
-        const updatedArtifacts = await updateSourceCode({ textEdits });
+        const updatedArtifacts = await updateSourceCodeIteratively({ textEdits });
         
         // Find the artifact that contains our code changes
         const relevantArtifact = findRelevantArtifact(updatedArtifacts, filePath, codedata.lineRange);
