@@ -1,0 +1,605 @@
+{
+  "description": "Sample flow model",
+  "kind": "TYPE",
+  "source": "proj2/automation.bal",
+  "queryMap": {
+    "q": "",
+    "limit": "30"
+  },
+  "categories": [
+    {
+      "metadata": {
+        "label": "Imported Types",
+        "description": "Types imported from other integrations",
+        "keywords": [
+          "Imported",
+          "Type",
+          "Library"
+        ]
+      },
+      "items": [
+        {
+          "metadata": {
+            "label": "mod1.Weather",
+            "description": "",
+            "keywords": []
+          },
+          "items": [
+            {
+              "metadata": {
+                "label": "ForecastCondition",
+                "description": ""
+              },
+              "codedata": {
+                "org": "lakshanweerasinghe",
+                "module": "mod1.Weather",
+                "packageName": "mod1",
+                "symbol": "ForecastCondition",
+                "version": "0.1.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "Search",
+                "description": ""
+              },
+              "codedata": {
+                "org": "lakshanweerasinghe",
+                "module": "mod1.Weather",
+                "packageName": "mod1",
+                "symbol": "Search",
+                "version": "0.1.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "ArrayOfSearch",
+                "description": ""
+              },
+              "codedata": {
+                "org": "lakshanweerasinghe",
+                "module": "mod1.Weather",
+                "packageName": "mod1",
+                "symbol": "ArrayOfSearch",
+                "version": "0.1.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "ForecastWeatherQueries",
+                "description": "Represents the Queries record for the operation: forecast-weather"
+              },
+              "codedata": {
+                "org": "lakshanweerasinghe",
+                "module": "mod1.Weather",
+                "packageName": "mod1",
+                "symbol": "ForecastWeatherQueries",
+                "version": "0.1.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "MarineHour",
+                "description": ""
+              },
+              "codedata": {
+                "org": "lakshanweerasinghe",
+                "module": "mod1.Weather",
+                "packageName": "mod1",
+                "symbol": "MarineHour",
+                "version": "0.1.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "Ip",
+                "description": ""
+              },
+              "codedata": {
+                "org": "lakshanweerasinghe",
+                "module": "mod1.Weather",
+                "packageName": "mod1",
+                "symbol": "Ip",
+                "version": "0.1.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "CurrentAirQuality",
+                "description": ""
+              },
+              "codedata": {
+                "org": "lakshanweerasinghe",
+                "module": "mod1.Weather",
+                "packageName": "mod1",
+                "symbol": "CurrentAirQuality",
+                "version": "0.1.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "ForecastDayCondition",
+                "description": ""
+              },
+              "codedata": {
+                "org": "lakshanweerasinghe",
+                "module": "mod1.Weather",
+                "packageName": "mod1",
+                "symbol": "ForecastDayCondition",
+                "version": "0.1.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "MarineForecastday",
+                "description": ""
+              },
+              "codedata": {
+                "org": "lakshanweerasinghe",
+                "module": "mod1.Weather",
+                "packageName": "mod1",
+                "symbol": "MarineForecastday",
+                "version": "0.1.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "ForecastAstro",
+                "description": ""
+              },
+              "codedata": {
+                "org": "lakshanweerasinghe",
+                "module": "mod1.Weather",
+                "packageName": "mod1",
+                "symbol": "ForecastAstro",
+                "version": "0.1.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "ForecastDay",
+                "description": ""
+              },
+              "codedata": {
+                "org": "lakshanweerasinghe",
+                "module": "mod1.Weather",
+                "packageName": "mod1",
+                "symbol": "ForecastDay",
+                "version": "0.1.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "InlineResponse200",
+                "description": ""
+              },
+              "codedata": {
+                "org": "lakshanweerasinghe",
+                "module": "mod1.Weather",
+                "packageName": "mod1",
+                "symbol": "InlineResponse200",
+                "version": "0.1.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "Current",
+                "description": ""
+              },
+              "codedata": {
+                "org": "lakshanweerasinghe",
+                "module": "mod1.Weather",
+                "packageName": "mod1",
+                "symbol": "Current",
+                "version": "0.1.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "CurrentCondition",
+                "description": ""
+              },
+              "codedata": {
+                "org": "lakshanweerasinghe",
+                "module": "mod1.Weather",
+                "packageName": "mod1",
+                "symbol": "CurrentCondition",
+                "version": "0.1.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "Location",
+                "description": ""
+              },
+              "codedata": {
+                "org": "lakshanweerasinghe",
+                "module": "mod1.Weather",
+                "packageName": "mod1",
+                "symbol": "Location",
+                "version": "0.1.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "RealtimeWeatherQueries",
+                "description": "Represents the Queries record for the operation: realtime-weather"
+              },
+              "codedata": {
+                "org": "lakshanweerasinghe",
+                "module": "mod1.Weather",
+                "packageName": "mod1",
+                "symbol": "RealtimeWeatherQueries",
+                "version": "0.1.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "AlertsAlert",
+                "description": ""
+              },
+              "codedata": {
+                "org": "lakshanweerasinghe",
+                "module": "mod1.Weather",
+                "packageName": "mod1",
+                "symbol": "AlertsAlert",
+                "version": "0.1.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "AstronomyQueries",
+                "description": "Represents the Queries record for the operation: astronomy"
+              },
+              "codedata": {
+                "org": "lakshanweerasinghe",
+                "module": "mod1.Weather",
+                "packageName": "mod1",
+                "symbol": "AstronomyQueries",
+                "version": "0.1.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "SearchAutocompleteWeatherQueries",
+                "description": "Represents the Queries record for the operation: search-autocomplete-weather"
+              },
+              "codedata": {
+                "org": "lakshanweerasinghe",
+                "module": "mod1.Weather",
+                "packageName": "mod1",
+                "symbol": "SearchAutocompleteWeatherQueries",
+                "version": "0.1.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "Marine",
+                "description": ""
+              },
+              "codedata": {
+                "org": "lakshanweerasinghe",
+                "module": "mod1.Weather",
+                "packageName": "mod1",
+                "symbol": "Marine",
+                "version": "0.1.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "FutureWeatherQueries",
+                "description": "Represents the Queries record for the operation: future-weather"
+              },
+              "codedata": {
+                "org": "lakshanweerasinghe",
+                "module": "mod1.Weather",
+                "packageName": "mod1",
+                "symbol": "FutureWeatherQueries",
+                "version": "0.1.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "ForecastHour",
+                "description": ""
+              },
+              "codedata": {
+                "org": "lakshanweerasinghe",
+                "module": "mod1.Weather",
+                "packageName": "mod1",
+                "symbol": "ForecastHour",
+                "version": "0.1.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "HistoryWeatherQueries",
+                "description": "Represents the Queries record for the operation: history-weather"
+              },
+              "codedata": {
+                "org": "lakshanweerasinghe",
+                "module": "mod1.Weather",
+                "packageName": "mod1",
+                "symbol": "HistoryWeatherQueries",
+                "version": "0.1.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "ConnectionConfig",
+                "description": "Provides a set of configurations for controlling the behaviours when communicating with a remote HTTP endpoint."
+              },
+              "codedata": {
+                "org": "lakshanweerasinghe",
+                "module": "mod1.Weather",
+                "packageName": "mod1",
+                "symbol": "ConnectionConfig",
+                "version": "0.1.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "AstronomyAstro",
+                "description": ""
+              },
+              "codedata": {
+                "org": "lakshanweerasinghe",
+                "module": "mod1.Weather",
+                "packageName": "mod1",
+                "symbol": "AstronomyAstro",
+                "version": "0.1.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "MarineWeatherQueries",
+                "description": "Represents the Queries record for the operation: marine-weather"
+              },
+              "codedata": {
+                "org": "lakshanweerasinghe",
+                "module": "mod1.Weather",
+                "packageName": "mod1",
+                "symbol": "MarineWeatherQueries",
+                "version": "0.1.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "ForecastForecastday",
+                "description": ""
+              },
+              "codedata": {
+                "org": "lakshanweerasinghe",
+                "module": "mod1.Weather",
+                "packageName": "mod1",
+                "symbol": "ForecastForecastday",
+                "version": "0.1.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "IpLookupQueries",
+                "description": "Represents the Queries record for the operation: ip-lookup"
+              },
+              "codedata": {
+                "org": "lakshanweerasinghe",
+                "module": "mod1.Weather",
+                "packageName": "mod1",
+                "symbol": "IpLookupQueries",
+                "version": "0.1.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "TimeZoneQueries",
+                "description": "Represents the Queries record for the operation: time-zone"
+              },
+              "codedata": {
+                "org": "lakshanweerasinghe",
+                "module": "mod1.Weather",
+                "packageName": "mod1",
+                "symbol": "TimeZoneQueries",
+                "version": "0.1.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "Forecast",
+                "description": ""
+              },
+              "codedata": {
+                "org": "lakshanweerasinghe",
+                "module": "mod1.Weather",
+                "packageName": "mod1",
+                "symbol": "Forecast",
+                "version": "0.1.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "InlineResponse2001",
+                "description": ""
+              },
+              "codedata": {
+                "org": "lakshanweerasinghe",
+                "module": "mod1.Weather",
+                "packageName": "mod1",
+                "symbol": "InlineResponse2001",
+                "version": "0.1.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "Alerts",
+                "description": ""
+              },
+              "codedata": {
+                "org": "lakshanweerasinghe",
+                "module": "mod1.Weather",
+                "packageName": "mod1",
+                "symbol": "Alerts",
+                "version": "0.1.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "InlineResponse2003",
+                "description": ""
+              },
+              "codedata": {
+                "org": "lakshanweerasinghe",
+                "module": "mod1.Weather",
+                "packageName": "mod1",
+                "symbol": "InlineResponse2003",
+                "version": "0.1.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "InlineResponse2002",
+                "description": ""
+              },
+              "codedata": {
+                "org": "lakshanweerasinghe",
+                "module": "mod1.Weather",
+                "packageName": "mod1",
+                "symbol": "InlineResponse2002",
+                "version": "0.1.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "InlineResponse2004",
+                "description": ""
+              },
+              "codedata": {
+                "org": "lakshanweerasinghe",
+                "module": "mod1.Weather",
+                "packageName": "mod1",
+                "symbol": "InlineResponse2004",
+                "version": "0.1.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "Astronomy",
+                "description": ""
+              },
+              "codedata": {
+                "org": "lakshanweerasinghe",
+                "module": "mod1.Weather",
+                "packageName": "mod1",
+                "symbol": "Astronomy",
+                "version": "0.1.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "ApiKeysConfig",
+                "description": "Provides API key configurations needed when communicating with a remote HTTP endpoint."
+              },
+              "codedata": {
+                "org": "lakshanweerasinghe",
+                "module": "mod1.Weather",
+                "packageName": "mod1",
+                "symbol": "ApiKeysConfig",
+                "version": "0.1.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "SimpleBasicType",
+                "description": ""
+              },
+              "codedata": {
+                "org": "lakshanweerasinghe",
+                "module": "mod1.Weather",
+                "packageName": "mod1",
+                "symbol": "SimpleBasicType",
+                "version": "0.1.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "Encoding",
+                "description": "Represents encoding mechanism details."
+              },
+              "codedata": {
+                "org": "lakshanweerasinghe",
+                "module": "mod1.Weather",
+                "packageName": "mod1",
+                "symbol": "Encoding",
+                "version": "0.1.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "EncodingStyle",
+                "description": ""
+              },
+              "codedata": {
+                "org": "lakshanweerasinghe",
+                "module": "mod1.Weather",
+                "packageName": "mod1",
+                "symbol": "EncodingStyle",
+                "version": "0.1.0"
+              },
+              "enabled": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "metadata": {
+        "label": "Available Types",
+        "description": "Types available in the library",
+        "keywords": [
+          "Available",
+          "Type",
+          "Library"
+        ]
+      },
+      "items": []
+    }
+  ]
+}
