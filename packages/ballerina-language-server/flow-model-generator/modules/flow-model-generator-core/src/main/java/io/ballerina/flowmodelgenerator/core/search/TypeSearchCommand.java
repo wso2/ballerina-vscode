@@ -46,7 +46,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 
 /**
  * Represents a command to search for types within a module. This class extends SearchCommand and provides functionality
@@ -108,7 +107,6 @@ class TypeSearchCommand extends SearchCommand {
     protected List<Item> search() {
         List<SearchResult> typeSearchList = dbManager.searchTypes(query, limit, offset);
 
-        // Get organization types (searchCentral flag is checked inside the method)
         List<SearchResult> organizationTypes = getOrganizationTypes(query);
         typeSearchList.addAll(organizationTypes);
 
@@ -120,42 +118,39 @@ class TypeSearchCommand extends SearchCommand {
     /**
      * Fetches types from the current organization using Ballerina Central.
      *
-     * @param searchQuery The search query to use (empty string for default view)
-     * @return List of SearchResult containing organization types
+     * @param searchQuery The search query to use
+     * @return search results containing organization types
      */
     private List<SearchResult> getOrganizationTypes(String searchQuery) {
         List<SearchResult> organizationTypes = new ArrayList<>();
 
-        if (!includeCurrentOrgInSearch) {
+        if (currentOrg == null || currentOrg.isEmpty()) {
             return organizationTypes;
         }
 
-        Optional<String> organizationName = getOrganizationName();
-        if (organizationName.isPresent()) {
-            CentralAPI centralClient = RemoteCentral.getInstance();
-            Map<String, String> queryMap = new HashMap<>();
-            String orgQuery = "org:" + organizationName.get();
-            queryMap.put("q", searchQuery.isEmpty() ? orgQuery : searchQuery + " " + orgQuery);
-            queryMap.put("limit", String.valueOf(limit));
-            queryMap.put("offset", String.valueOf(offset));
-            SymbolResponse symbolResponse = centralClient.searchSymbols(queryMap);
-            if (symbolResponse != null && symbolResponse.symbols() != null) {
-                for (SymbolResponse.Symbol symbol : symbolResponse.symbols()) {
-                    if (symbol.symbolType().equals("record") || symbol.symbolType().contains("type")) {
-                        SearchResult.Package packageInfo = new SearchResult.Package(
-                                symbol.organization(),
-                                symbol.name(),
-                                symbol.name(),
-                                symbol.version()
-                        );
-                        SearchResult searchResult = SearchResult.from(
-                                packageInfo,
-                                symbol.symbolName(),
-                                symbol.description(),
-                                true
-                        );
-                        organizationTypes.add(searchResult);
-                    }
+        CentralAPI centralClient = RemoteCentral.getInstance();
+        Map<String, String> queryMap = new HashMap<>();
+        String orgQuery = "org:" + currentOrg;
+        queryMap.put("q", searchQuery.isEmpty() ? orgQuery : searchQuery + " " + orgQuery);
+        queryMap.put("limit", String.valueOf(limit));
+        queryMap.put("offset", String.valueOf(offset));
+        SymbolResponse symbolResponse = centralClient.searchSymbols(queryMap);
+        if (symbolResponse != null && symbolResponse.symbols() != null) {
+            for (SymbolResponse.Symbol symbol : symbolResponse.symbols()) {
+                if (symbol.symbolType().equals("record") || symbol.symbolType().contains("type")) {
+                    SearchResult.Package packageInfo = new SearchResult.Package(
+                            symbol.organization(),
+                            symbol.name(),
+                            symbol.name(),
+                            symbol.version()
+                    );
+                    SearchResult searchResult = SearchResult.from(
+                            packageInfo,
+                            symbol.symbolName(),
+                            symbol.description(),
+                            true
+                    );
+                    organizationTypes.add(searchResult);
                 }
             }
         }
@@ -217,7 +212,7 @@ class TypeSearchCommand extends SearchCommand {
             SemanticModel semanticModel = PackageUtil.getCompilation(module.packageInstance())
                     .getSemanticModel(module.moduleId());
             if (semanticModel == null) {
-                    continue;
+                continue;
             }
             List<Symbol> symbols = semanticModel.moduleSymbols();
             String moduleName = module.moduleName().toString();

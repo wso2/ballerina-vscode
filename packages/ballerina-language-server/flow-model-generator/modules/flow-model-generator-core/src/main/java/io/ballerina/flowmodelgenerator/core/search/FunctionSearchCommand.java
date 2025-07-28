@@ -117,7 +117,7 @@ class FunctionSearchCommand extends SearchCommand {
         // Add organization functions to default view if any exist
         List<SearchResult> organizationFunctions = getOrganizationFunctions("");
         searchResults.addAll(organizationFunctions);
-        
+
         buildLibraryNodes(searchResults);
         return rootBuilder.build().items();
     }
@@ -129,7 +129,7 @@ class FunctionSearchCommand extends SearchCommand {
 
         List<SearchResult> organizationFunctions = getOrganizationFunctions(query);
         functionSearchList.addAll(organizationFunctions);
-        
+
         buildLibraryNodes(functionSearchList);
         return rootBuilder.build().items();
     }
@@ -137,42 +137,39 @@ class FunctionSearchCommand extends SearchCommand {
     /**
      * Fetches functions from the current organization using Ballerina Central.
      *
-     * @param searchQuery The search query to use (empty string for default view)
-     * @return List of SearchResult containing organization functions
+     * @param searchQuery The search query to use
+     * @return search results containing organization functions
      */
     private List<SearchResult> getOrganizationFunctions(String searchQuery) {
         List<SearchResult> organizationFunctions = new ArrayList<>();
-        
-        if (!includeCurrentOrgInSearch) {
+
+        if (currentOrg == null || currentOrg.isEmpty()) {
             return organizationFunctions;
         }
-        
-        Optional<String> organizationName = getOrganizationName();
-        if (organizationName.isPresent()) {
-            CentralAPI centralClient = RemoteCentral.getInstance();
-            Map<String, String> queryMap = new HashMap<>();
-            String orgQuery = "org:" + organizationName.get();
-            queryMap.put("q", searchQuery.isEmpty() ? orgQuery : searchQuery + " " + orgQuery);
-            queryMap.put("limit", String.valueOf(limit));
-            queryMap.put("offset", String.valueOf(offset));
-            SymbolResponse symbolResponse = centralClient.searchSymbols(queryMap);
-            if (symbolResponse != null && symbolResponse.symbols() != null) {
-                for (SymbolResponse.Symbol symbol : symbolResponse.symbols()) {
-                    if (symbol.symbolType().equals("function")) {
-                        SearchResult.Package packageInfo = new SearchResult.Package(
-                                symbol.organization(),
-                                symbol.name(),
-                                symbol.name(),
-                                symbol.version()
-                        );
-                        SearchResult searchResult = SearchResult.from(
-                                packageInfo,
-                                symbol.symbolName(),
-                                symbol.description(),
-                                true
-                        );
-                        organizationFunctions.add(searchResult);
-                    }
+
+        CentralAPI centralClient = RemoteCentral.getInstance();
+        Map<String, String> queryMap = new HashMap<>();
+        String orgQuery = "org:" + currentOrg;
+        queryMap.put("q", searchQuery.isEmpty() ? orgQuery : searchQuery + " " + orgQuery);
+        queryMap.put("limit", String.valueOf(limit));
+        queryMap.put("offset", String.valueOf(offset));
+        SymbolResponse symbolResponse = centralClient.searchSymbols(queryMap);
+        if (symbolResponse != null && symbolResponse.symbols() != null) {
+            for (SymbolResponse.Symbol symbol : symbolResponse.symbols()) {
+                if (symbol.symbolType().equals("function")) {
+                    SearchResult.Package packageInfo = new SearchResult.Package(
+                            symbol.organization(),
+                            symbol.name(),
+                            symbol.name(),
+                            symbol.version()
+                    );
+                    SearchResult searchResult = SearchResult.from(
+                            packageInfo,
+                            symbol.symbolName(),
+                            symbol.description(),
+                            true
+                    );
+                    organizationFunctions.add(searchResult);
                 }
             }
         }

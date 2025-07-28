@@ -46,8 +46,8 @@ import java.util.Map;
 import java.util.Optional;
 
 /**
- * Represents a command to search for natural programming functions within a module. This class provides the
- * functionality to search for user defined and `ballerinax/np` library functions.
+ * Represents a command to search for natural programming functions within a module.
+ * This class provides the functionality to search for user defined and `ballerinax/np` library functions.
  *
  * @since 1.0.0
  */

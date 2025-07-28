@@ -50,7 +50,7 @@ public abstract class SearchCommand {
     protected final String query;
     protected final int limit;
     protected final int offset;
-    protected final boolean includeCurrentOrgInSearch;
+    protected String currentOrg;
     final SearchDatabaseManager dbManager;
     final DefaultViewHolder defaultViewHolder;
 
@@ -81,18 +81,20 @@ public abstract class SearchCommand {
         this.dbManager = SearchDatabaseManager.getInstance();
         this.defaultViewHolder = DefaultViewHolder.getInstance();
 
+        boolean includeCurrentOrgInSearch;
         if (queryMap == null) {
             this.query = "";
             this.limit = DEFAULT_LIMIT;
             this.offset = DEFAULT_OFFSET;
-            this.includeCurrentOrgInSearch = DEFAULT_INCLUDE_CURRENT_ORG_IN_SEARCH;
+            includeCurrentOrgInSearch = DEFAULT_INCLUDE_CURRENT_ORG_IN_SEARCH;
         } else {
             this.query = queryMap.getOrDefault("q", "");
             this.limit = parseIntParam(queryMap.get("limit"), DEFAULT_LIMIT);
             this.offset = parseIntParam(queryMap.get("offset"), DEFAULT_OFFSET);
-            this.includeCurrentOrgInSearch = parseBooleanParam(queryMap.get("includeCurrentOrganizationInSearch"),
+            includeCurrentOrgInSearch = parseBooleanParam(queryMap.get("includeCurrentOrganizationInSearch"),
                     DEFAULT_INCLUDE_CURRENT_ORG_IN_SEARCH);
         }
+        this.currentOrg = includeCurrentOrgInSearch ? getOrganizationName().orElse(null) : null;
     }
 
     /**
@@ -122,12 +124,7 @@ public abstract class SearchCommand {
      * @return List of search results
      */
     public JsonArray execute() {
-        List<Item> items;
-        if (query.isEmpty()) {
-            items = defaultView();
-        } else {
-            items = search();
-        }
+        List<Item> items = query.isEmpty() ? defaultView() : search();
         return GSON.toJsonTree(items).getAsJsonArray();
     }
 
