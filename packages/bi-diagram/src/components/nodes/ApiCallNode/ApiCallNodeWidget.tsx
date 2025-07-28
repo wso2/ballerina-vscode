@@ -210,6 +210,8 @@ export function ApiCallNodeWidget(props: ApiCallNodeWidgetProps) {
     const isMenuOpen = Boolean(anchorEl);
     const hasBreakpoint = model.hasBreakpoint();
     const isActiveBreakpoint = model.isActiveBreakpoint();
+    // show dash line if the node is a class call
+    const isClassCall = model.node.codedata.node === "VECTOR_KNOWLEDGE_BASE_CALL";
 
     useEffect(() => {
         if (model.node.suggested) {
@@ -363,7 +365,7 @@ export function ApiCallNodeWidget(props: ApiCallNodeWidgetProps) {
                     fill={ThemeColors.SURFACE_DIM}
                     stroke={isCircleHovered && !disabled ? ThemeColors.HIGHLIGHT : ThemeColors.OUTLINE_VARIANT}
                     strokeWidth={1.5}
-                    strokeDasharray={disabled ? "5 5" : "none"}
+                    strokeDasharray={disabled  ? "5 5" : "none"}
                     opacity={disabled ? 0.7 : 1}
                 />
                 <text
@@ -389,7 +391,8 @@ export function ApiCallNodeWidget(props: ApiCallNodeWidgetProps) {
                     style={{
                         stroke: disabled ? ThemeColors.ON_SURFACE : isBoxHovered ? ThemeColors.HIGHLIGHT : ThemeColors.ON_SURFACE,
                         strokeWidth: 1.5,
-                        markerEnd: `url(#${model.node.id}-arrow-head)`,
+                        strokeDasharray: isClassCall ? "5 5" : "none",
+                        markerEnd: isClassCall ? "none" : `url(#${model.node.id}-arrow-head)`,
                     }}
                 />
                 <defs>
