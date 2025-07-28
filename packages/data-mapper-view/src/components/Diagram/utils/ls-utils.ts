@@ -33,13 +33,28 @@ import { EXPR_SCHEME, FILE_SCHEME } from "../../DataMapper/ConfigPanel/utils";
 import { LangClientRpcClient } from "@wso2/ballerina-rpc-client";
 
 export async function getDiagnostics(docUri: string, langServerRpcClient: LangClientRpcClient): Promise<DiagnosticData[]> {
-    const diagnostics = await langServerRpcClient.getDiagnostics({
-        documentIdentifier: {
-            uri: docUri,
+
+    // Extract project URI from file URI by getting the directory path
+    const fileUri = URI.parse(docUri);
+    const projectUri = URI.file(fileUri.fsPath.split('/').slice(0, -1).join('/')).toString();
+
+    const projectDiagnostics = await langServerRpcClient.getProjectDiagnostics({
+        projectRootIdentifier: {
+            uri: projectUri,
         }
     });
 
-    return diagnostics.diagnostics;
+    // Convert errorDiagnosticMap to DiagnosticData array
+    const diagnosticDataArray: DiagnosticData[] = [];
+    if (projectDiagnostics.errorDiagnosticMap) {
+        for (const [uri, diagnostics] of Object.entries(projectDiagnostics.errorDiagnosticMap)) {
+            if (uri === docUri) {
+                diagnosticDataArray.push({ uri, diagnostics });
+            }
+        }
+    }
+
+    return diagnosticDataArray;
 }
 
 export const handleDiagnostics = async (fileURI: string, langServerRpcClient: LangClientRpcClient):

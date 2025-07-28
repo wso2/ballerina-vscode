@@ -18,12 +18,12 @@
 
 import { useEffect, useRef, useState } from "react";
 import styled from "@emotion/styled";
-import { AgentToolRequest, FlowNode } from "@wso2/ballerina-core";
-import { URI, Utils } from "vscode-uri";
+import { FlowNode } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
-import { AIAgentSidePanel } from "./AIAgentSidePanel";
+import { AIAgentSidePanel, ExtendedAgentToolRequest } from "./AIAgentSidePanel";
 import { RelativeLoader } from "../../../components/RelativeLoader";
 import { addToolToAgentNode, findAgentNodeFromAgentCallNode, updateFlowNodePropertyValuesWithKeys } from "./utils";
+import { FUNCTION_CALL } from "../../../constants";
 
 const LoaderContainer = styled.div`
     display: flex;
@@ -32,15 +32,21 @@ const LoaderContainer = styled.div`
     height: 100%;
 `;
 
+export enum NewToolSelectionMode {
+    CONNECTION = "connection",
+    FUNCTION = "function",
+    ALL = "all",
+}
+
 interface NewToolProps {
     agentCallNode: FlowNode;
+    mode?: NewToolSelectionMode;
     onBack?: () => void;
     onSave?: () => void;
 }
 
 export function NewTool(props: NewToolProps): JSX.Element {
-    const { agentCallNode, onSave, onBack } = props;
-    console.log(">>> NewTool props", props);
+    const { agentCallNode, mode = NewToolSelectionMode.ALL, onSave, onBack } = props;
     const { rpcClient } = useRpcContext();
 
     const [agentNode, setAgentNode] = useState<FlowNode | null>(null);
@@ -56,7 +62,7 @@ export function NewTool(props: NewToolProps): JSX.Element {
     const initPanel = async () => {
         // get agent file path
         const filePath = await rpcClient.getVisualizerLocation();
-        agentFilePath.current = Utils.joinPath(URI.file(filePath.projectUri), "agents.bal").fsPath;
+        agentFilePath.current = await rpcClient.getVisualizerRpcClient().joinProjectPath("agents.bal");
         projectUri.current = filePath.projectUri;
         // fetch tools and agent node
         await fetchAgentNode();
@@ -65,10 +71,9 @@ export function NewTool(props: NewToolProps): JSX.Element {
     const fetchAgentNode = async () => {
         const agentNode = await findAgentNodeFromAgentCallNode(agentCallNode, rpcClient);
         setAgentNode(agentNode);
-        console.log(">>> agent node", { agentNode });
     };
 
-    const handleOnSubmit = async (data: AgentToolRequest) => {
+    const handleOnSubmit = async (data: ExtendedAgentToolRequest) => {
         console.log(">>> submit value", { data });
         setSavingForm(true);
         if (!data.toolName) {
@@ -87,22 +92,17 @@ export function NewTool(props: NewToolProps): JSX.Element {
             await new Promise((resolve) => setTimeout(resolve, 2000));
 
             // add tools
-            if (data.selectedCodeData.node === "FUNCTION_CALL") {
+            if (data.selectedCodeData.node === FUNCTION_CALL) {
                 // create tool from existing function
                 // get function definition
-                const functionDefinition = await rpcClient.getBIDiagramRpcClient().getFunctionNode({
-                    functionName: data.selectedCodeData.symbol,
-                    fileName: "functions.bal",
-                    projectPath: projectUri.current,
-                });
-                console.log(">>> response get function definition", { functionDefinition });
-                if (!functionDefinition.functionDefinition) {
+                const functionDefinition = data.functionNode;
+                if (!functionDefinition) {
                     console.error("Function definition not found");
                     return;
                 }
-                if (functionDefinition.functionDefinition?.codedata) {
-                    functionDefinition.functionDefinition.codedata.isNew = true;
-                    functionDefinition.functionDefinition.codedata.lineRange = {
+                if (functionDefinition?.codedata) {
+                    functionDefinition.codedata.isNew = true;
+                    functionDefinition.codedata.lineRange = {
                         ...agentNode.codedata.lineRange,
                         endLine: agentNode.codedata.lineRange.startLine,
                     };
@@ -112,38 +112,32 @@ export function NewTool(props: NewToolProps): JSX.Element {
                     toolName: data.toolName,
                     description: data.description,
                     filePath: agentFilePath.current,
-                    flowNode: functionDefinition.functionDefinition as FlowNode,
+                    flowNode: functionDefinition as FlowNode,
                     connection: "",
+                    toolParameters: data.toolParameters,
                 });
                 console.log(">>> response save tool", { toolResponse });
             } else {
                 // create tool from existing connection
-                // get nodeTemplate
-                const nodeTemplate = await rpcClient.getBIDiagramRpcClient().getNodeTemplate({
-                    position: { line: 0, offset: 0 },
-                    filePath: agentFilePath.current,
-                    id: data.selectedCodeData,
-                });
-                console.log(">>> node template", { nodeTemplate });
-                if (!nodeTemplate.flowNode) {
+                if (!data.flowNode) {
                     console.error("Node template not found");
                     return;
                 }
-                if (nodeTemplate.flowNode?.codedata) {
-                    nodeTemplate.flowNode.codedata.isNew = true;
-                    nodeTemplate.flowNode.codedata.lineRange = {
+                if (data.flowNode?.codedata) {
+                    data.flowNode.codedata.isNew = true;
+                    data.flowNode.codedata.lineRange = {
                         ...agentNode.codedata.lineRange,
                         endLine: agentNode.codedata.lineRange.startLine,
                     };
                 }
-                updateFlowNodePropertyValuesWithKeys(nodeTemplate.flowNode);
                 // save tool
                 const toolResponse = await rpcClient.getAIAgentRpcClient().genTool({
                     toolName: data.toolName,
                     description: data.description,
                     filePath: agentFilePath.current,
-                    flowNode: nodeTemplate.flowNode,
+                    flowNode: data.flowNode,
                     connection: data.selectedCodeData.parentSymbol || "",
+                    toolParameters: data.toolParameters,
                 });
                 console.log(">>> response save tool", { toolResponse });
             }
@@ -158,7 +152,7 @@ export function NewTool(props: NewToolProps): JSX.Element {
     return (
         <>
             {agentFilePath.current && !savingForm && (
-                <AIAgentSidePanel projectPath={agentFilePath.current} onSubmit={handleOnSubmit} />
+                <AIAgentSidePanel projectPath={projectUri.current} onSubmit={handleOnSubmit} mode={mode} />
             )}
             {(!agentFilePath.current || savingForm) && (
                 <LoaderContainer>

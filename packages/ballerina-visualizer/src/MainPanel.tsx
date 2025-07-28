@@ -69,6 +69,7 @@ import { AIAgentDesigner } from "./views/BI/AIChatAgent";
 import { AIChatAgentWizard } from "./views/BI/AIChatAgent/AIChatAgentWizard";
 import { BallerinaUpdateView } from "./views/BI/BallerinaUpdateView";
 import { VSCodeProgressRing } from "@vscode/webview-ui-toolkit/react";
+import { InlineDataMapper } from "./views/InlineDataMapper";
 
 const globalStyles = css`
     *,
@@ -174,6 +175,7 @@ const MainPanel = () => {
     const [navActive, setNavActive] = useState<boolean>(true);
     const [showHome, setShowHome] = useState<boolean>(true);
     const [popupState, setPopupState] = useState<PopupMachineStateValue>("initialize");
+    const [breakpointState, setBreakpointState] = useState<boolean>(false);
 
     rpcClient?.onStateChanged((newState: MachineStateValue) => {
         if (typeof newState === "object" && "viewActive" in newState && newState.viewActive === "viewReady") {
@@ -186,7 +188,9 @@ const MainPanel = () => {
     });
 
     rpcClient?.onBreakpointChanges((state: boolean) => {
-        fetchContext();
+        setBreakpointState(pre => {
+            return !pre;
+        });
         console.log("Breakpoint changes");
     });
 
@@ -234,8 +238,9 @@ const MainPanel = () => {
 
     const fetchContext = () => {
         setNavActive(true);
-        rpcClient.getVisualizerLocation().then((value) => {
-            let defaultFunctionsFile = Utils.joinPath(URI.file(value.projectUri), 'functions.bal').fsPath;
+        rpcClient.getVisualizerLocation().then(async (value) => {
+            const configFilePath = await rpcClient.getVisualizerRpcClient().joinProjectPath('config.bal');
+            let defaultFunctionsFile = await rpcClient.getVisualizerRpcClient().joinProjectPath('functions.bal');
             if (value.documentUri) {
                 defaultFunctionsFile = value.documentUri
             }
@@ -266,14 +271,45 @@ const MainPanel = () => {
                         />);
                         break;
                     case MACHINE_VIEW.BIDiagram:
-                        setViewComponent(
-                            <DiagramWrapper
-                                key={value?.identifier}
-                                projectPath={value?.projectUri}
-                                filePath={value?.documentUri}
-                                view={value?.focusFlowDiagramView}
-                            />
-                        );
+
+                        rpcClient.getLangClientRpcClient().getSTByRange({
+                            documentIdentifier: {
+                                uri: URI.file(value.documentUri).toString(),
+                            },
+                            lineRange: {
+                                start: {
+                                    line: value?.position?.startLine,
+                                    character: value?.position?.startColumn,
+                                },
+                                end: {
+                                    line: value?.position?.endLine,
+                                    character: value?.position?.endColumn,
+                                },
+                            },
+                        }).then((st) => {
+                            setViewComponent(
+                                <DiagramWrapper
+                                    key={value?.identifier}
+                                    syntaxTree={st.syntaxTree}
+                                    projectPath={value?.projectUri}
+                                    filePath={value?.documentUri}
+                                    view={value?.focusFlowDiagramView}
+                                    breakpointState={breakpointState}
+                                />
+                            );
+                        }).catch((error) => {
+                            console.error("Error fetching ST:", error);
+                            // Fallback to render without waiting
+                            setViewComponent(
+                                <DiagramWrapper
+                                    key={value?.identifier}
+                                    projectPath={value?.projectUri}
+                                    filePath={value?.documentUri}
+                                    view={value?.focusFlowDiagramView}
+                                    breakpointState={breakpointState}
+                                />
+                            );
+                        });
                         break;
                     case MACHINE_VIEW.ERDiagram:
                         setViewComponent(<ERDiagram />);
@@ -289,6 +325,15 @@ const MainPanel = () => {
                                 model={value?.syntaxTree as FunctionDefinition}
                                 functionName={value?.identifier}
                                 applyModifications={applyModifications}
+                            />
+                        );
+                        break;
+                    case MACHINE_VIEW.InlineDataMapper:
+                        setViewComponent(
+                            <InlineDataMapper
+                                filePath={value.documentUri}
+                                codedata={value?.dataMapperMetadata?.codeData}
+                                varName={value?.dataMapperMetadata?.name}
                             />
                         );
                         break;
@@ -395,7 +440,7 @@ const MainPanel = () => {
                     case MACHINE_VIEW.ViewConfigVariables:
                         setViewComponent(
                             <ViewConfigurableVariables
-                                fileName={Utils.joinPath(URI.file(value.projectUri), 'config.bal').fsPath}
+                                fileName={configFilePath}
                                 org={value?.org}
                                 package={value?.package}
                             />
@@ -403,13 +448,13 @@ const MainPanel = () => {
                         break;
                     case MACHINE_VIEW.AddConfigVariables:
                         setViewComponent(
-                                <ViewConfigurableVariables
-                                    fileName={Utils.joinPath(URI.file(value.projectUri), 'config.bal').fsPath}
-                                    org={value?.org}
-                                    package={value?.package}
-                                    addNew={true}
-                                />
-                            );
+                            <ViewConfigurableVariables
+                                fileName={configFilePath}
+                                org={value?.org}
+                                package={value?.package}
+                                addNew={true}
+                            />
+                        );
                         break;
                     default:
                         setNavActive(false);
@@ -421,7 +466,7 @@ const MainPanel = () => {
 
     useEffect(() => {
         fetchContext();
-    }, []);
+    }, [breakpointState]);
 
     useEffect(() => {
         const mouseTrapClient = KeyboardNavigationManager.getClient();

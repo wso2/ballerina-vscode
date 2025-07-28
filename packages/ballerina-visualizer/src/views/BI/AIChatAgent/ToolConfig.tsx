@@ -69,7 +69,7 @@ export function ToolConfig(props: ToolConfigProps): JSX.Element {
         setLoading(true);
         // get agent file path
         const filePath = await rpcClient.getVisualizerLocation();
-        agentFilePath.current = Utils.joinPath(URI.file(filePath.projectUri), "agents.bal").fsPath;
+        agentFilePath.current = await rpcClient.getVisualizerRpcClient().joinProjectPath("agents.bal");
         setLoading(false);
     };
 
@@ -120,10 +120,12 @@ export function ToolConfig(props: ToolConfigProps): JSX.Element {
             )}
             {!loading && agentCallNode?.codedata?.lineRange && (
                 <ConfigForm
+                    fileName={agentFilePath.current}
                     formFields={formFields}
                     targetLineRange={agentCallNode.codedata.lineRange}
                     onSubmit={handleOnSave}
                     disableSaveButton={savingForm}
+                    isSaving={savingForm}
                 />
             )}
         </Container>

@@ -33,20 +33,11 @@ import {
     NODE_PADDING,
     NODE_WIDTH,
 } from "../../../resources/constants";
-import { Button, Icon, Item, Menu, MenuItem, Popover, ThemeColors, Tooltip } from "@wso2/ui-toolkit";
-import {
-    MoreVertIcon,
-    OpenAiIcon,
-    AzureOpenAiIcon,
-    AnthropicIcon,
-    OllamaIcon,
-    DefaultLlmIcon,
-    MistralAIIcon,
-    DeepseekIcon
-} from "../../../resources/icons";
+import { Button, Icon, Item, Menu, MenuItem, Popover, ThemeColors } from "@wso2/ui-toolkit";
+import { MoreVertIcon } from "../../../resources/icons";
 import { AgentData, FlowNode, ToolData } from "../../../utils/types";
 import NodeIcon from "../../NodeIcon";
-import ConnectorIcon from "../../ConnectorIcon";
+import ConnectorIcon, { getLlmModelIcons } from "../../ConnectorIcon";
 import { useDiagramContext } from "../../DiagramContext";
 import { DiagnosticsPopUp } from "../../DiagnosticsPopUp";
 import { nodeHasError } from "../../../utils/node";
@@ -364,14 +355,26 @@ export function AgentCallNodeWidget(props: AgentCallNodeWidgetProps) {
     };
 
     const onToolClick = (tool: ToolData) => {
-        console.log(">>> onToolClick", tool);
-        agentNode?.onSelectTool && agentNode.onSelectTool(tool, model.node);
-        setAnchorEl(null);
+        console.log(">>> on Tool Click", tool);
+        const toolType = tool.type ?? "";
+        if (toolType === "MCP Server") {
+            agentNode?.onSelectMcpToolkit && agentNode.onSelectMcpToolkit(tool, model.node);
+            setAnchorEl(null);
+        } else {
+            agentNode?.onSelectTool && agentNode.onSelectTool(tool, model.node);
+            setAnchorEl(null);
+        }
     };
 
     const onAddToolClick = () => {
         console.log(">>> onAddToolClick", model.node);
         agentNode?.onAddTool && agentNode.onAddTool(model.node);
+        setAnchorEl(null);
+    };
+
+    const onAddMcpServerClick = () => {
+        console.log(">>> onAddMcpServerClick", model.node);
+        agentNode?.onAddMcpServer && agentNode.onAddMcpServer(model.node);
         setAnchorEl(null);
     };
 
@@ -885,7 +888,7 @@ export function AgentCallNodeWidget(props: AgentCallNodeWidgetProps) {
                             }
                         `}
                     >
-                        <title>Add new tool</title>
+                        <title>Add new tool / MCP server</title>
                         <path
                             fill={ThemeColors.SURFACE_BRIGHT}
                             d="M12 0C5 0 0 5 0 12s5 12 12 12 12-5 12-12S19 0 12 0z"
@@ -915,7 +918,7 @@ export function AgentCallNodeWidget(props: AgentCallNodeWidgetProps) {
                                 font-family: "GilmerRegular";
                             `}
                         >
-                            Add new tool
+                            Add new tool / MCP server
                         </div>
                     </foreignObject>
                 </g>
@@ -981,25 +984,4 @@ function sanitizeAgentData(data: AgentData) {
         data.instructions = data.instructions.replace(/^['"]|['"]$/g, "").replace(/^string `|`$/g, "");
     }
     return data;
-}
-
-// get llm model icons
-// this should replace with CDN icons
-function getLlmModelIcons(modelType: string) {
-    switch (modelType) {
-        case "OpenAiProvider":
-            return <OpenAiIcon />;
-        case "AzureOpenAiProvider":
-            return <AzureOpenAiIcon />;
-        case "AnthropicProvider":
-            return <AnthropicIcon />;
-        case "OllamaProvider":
-            return <OllamaIcon />;
-        case "MistralAiProvider":
-            return <MistralAIIcon />;
-        case "DeepseekProvider":
-            return <DeepseekIcon />;
-        default:
-            return <DefaultLlmIcon />;
-    }
 }

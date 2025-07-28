@@ -16,16 +16,12 @@
  * under the License.
  */
 
-import { useEffect, useRef, useState } from "react";
 import styled from "@emotion/styled";
 import { FlowNode } from "@wso2/ballerina-core";
-import { useRpcContext } from "@wso2/ballerina-rpc-client";
-import { Button, Codicon, ThemeColors } from "@wso2/ui-toolkit";
-import { RelativeLoader } from "../../../components/RelativeLoader";
-import { addToolToAgentNode, findAgentNodeFromAgentCallNode, getAgentFilePath } from "./utils";
+import { Icon, ThemeColors } from "@wso2/ui-toolkit";
 
 const Container = styled.div`
-    padding: 16px;
+    padding: 20px;
     display: flex;
     flex-direction: column;
     height: 100%;
@@ -33,215 +29,133 @@ const Container = styled.div`
     box-sizing: border-box;
 `;
 
-const LoaderContainer = styled.div`
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100%;
-`;
-
 const Description = styled.div`
     font-size: var(--vscode-font-size);
     color: ${ThemeColors.ON_SURFACE_VARIANT};
-    margin-bottom: 8px;
+    margin-bottom: 24px;
+    line-height: 1.5;
 `;
 
 const Column = styled.div`
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 12px;
     flex: 1;
-    overflow-y: auto;
 `;
 
-const Row = styled.div`
+const OptionCard = styled.div`
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 14px 12px;
+    border: 1px solid ${ThemeColors.OUTLINE_VARIANT};
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    
+    &:hover {
+        background-color: ${ThemeColors.PRIMARY_CONTAINER};
+        border: 1px solid ${ThemeColors.PRIMARY};
+    }
+`;
+
+const OptionHeader = styled.div`
     display: flex;
     flex-direction: row;
     align-items: center;
-    justify-content: space-between;
-    margin-bottom: 8px;
+    gap: 12px;
 `;
 
-const Title = styled.div`
+const OptionIcon = styled.div`
+    color: ${ThemeColors.PRIMARY};
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+`;
+
+const OptionTitle = styled.div`
     font-size: 14px;
     font-family: GilmerBold;
+    color: ${ThemeColors.ON_SURFACE};
 `;
 
-const ToolItem = styled.div<{ isSelected?: boolean }>`
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    gap: 5px;
-    padding: 5px;
-    border: 1px solid
-        ${(props: { isSelected: boolean }) => (props.isSelected ? ThemeColors.PRIMARY : ThemeColors.OUTLINE_VARIANT)};
-    border-radius: 5px;
-    height: 36px;
-    cursor: "pointer";
-    font-size: 14px;
-    &:hover {
-        background-color: ${ThemeColors.PRIMARY_CONTAINER};
-        border: 1px solid ${ThemeColors.PRIMARY};
-    }
-`;
-
-const PrimaryButton = styled(Button)`
-    appearance: "primary";
-`;
-
-const HighlightedButton = styled.div`
-    margin-top: 10px;
-    width: 100%;
-    display: flex;
-    flex-direction: row;
-    justify-content: center;
-    align-items: flex-start;
-    gap: 8px;
-    padding: 6px 2px;
-    color: ${ThemeColors.PRIMARY};
-    border: 1px dashed ${ThemeColors.PRIMARY};
-    border-radius: 5px;
-    cursor: pointer;
-    &:hover {
-        border: 1px solid ${ThemeColors.PRIMARY};
-        background-color: ${ThemeColors.PRIMARY_CONTAINER};
-    }
-`;
-
-const Footer = styled.div`
-    position: fixed;
-    bottom: 0;
-    left: 0;
-
-    width: 100%;
-    display: flex;
-    justify-content: flex-end;
-    gap: 12px;
-    padding: 16px;
-    background-color: ${ThemeColors.SURFACE_DIM};
-    margin-top: auto;
+const OptionDescription = styled.div`
+    font-size: var(--vscode-font-size);
+    color: ${ThemeColors.ON_SURFACE_VARIANT};
+    margin-left: 24px;
+    line-height: 1.4;
 `;
 
 interface AddToolProps {
     agentCallNode: FlowNode;
-    onAddNewTool: () => void;
+    onUseConnection?: () => void;
+    onUseFunction?: () => void;
+    onUseMcpServer?: () => void;
     onSave?: () => void;
+    onBack?: () => void;
 }
 
 export function AddTool(props: AddToolProps): JSX.Element {
-    const { agentCallNode, onAddNewTool, onSave } = props;
-    console.log(">>> AddTool props", props);
-    const { rpcClient } = useRpcContext();
+    const { onUseConnection, onUseFunction, onUseMcpServer } = props;
 
-    const [agentNode, setAgentNode] = useState<FlowNode | null>(null);
-    const [existingTools, setExistingTools] = useState<string[]>([]);
-    const [selectedTool, setSelectedTool] = useState<string | null>(null);
-
-    const [loading, setLoading] = useState<boolean>(false);
-    const [savingForm, setSavingForm] = useState<boolean>(false);
-
-    const agentFilePath = useRef<string>("");
-
-    useEffect(() => {
-        initPanel();
-    }, [agentCallNode]);
-
-    const initPanel = async () => {
-        setLoading(true);
-        // get agent file path
-        agentFilePath.current = await getAgentFilePath(rpcClient);
-        // fetch tools and agent node
-        await fetchExistingTools();
-        await fetchAgentNode();
-        setLoading(false);
+    const handleUseConnection = () => {
+        onUseConnection?.();
     };
 
-    const fetchAgentNode = async () => {
-        // get agent node
-        const agentNode = await findAgentNodeFromAgentCallNode(agentCallNode, rpcClient);
-        setAgentNode(agentNode);
+    const handleUseFunction = () => {
+        onUseFunction?.();
     };
 
-    const fetchExistingTools = async () => {
-        const existingTools = await rpcClient.getAIAgentRpcClient().getTools({ filePath: agentFilePath.current });
-        console.log(">>> existing tools", existingTools);
-        setExistingTools(existingTools.tools);
+    const handleUseMcpServer = () => {
+        onUseMcpServer?.();
     };
-
-    const handleToolSelection = (tool: string) => {
-        setSelectedTool(tool);
-    };
-
-    const handleAddNewTool = () => {
-        onAddNewTool();
-    };
-
-    const handleOnSave = async () => {
-        console.log(">>> save value", { selectedTool });
-        setSavingForm(true);
-        // update the agent node
-        const updatedAgentNode = await addToolToAgentNode(agentNode, selectedTool);
-        // generate the source code
-        const agentResponse = await rpcClient
-            .getBIDiagramRpcClient()
-            .getSourceCode({ filePath: agentFilePath.current, flowNode: updatedAgentNode });
-        console.log(">>> response getSourceCode with template ", { agentResponse });
-
-        onSave?.();
-        setSavingForm(false);
-    };
-
-    const hasExistingTools = existingTools.length > 0;
-    const isToolSelected = selectedTool !== null;
-
-    console.log(">>> rendering conditions", { hasExistingTools, isToolSelected });
 
     return (
         <Container>
-            {loading && (
-                <LoaderContainer>
-                    <RelativeLoader />
-                </LoaderContainer>
-            )}
-            {!loading && hasExistingTools && (
-                <>
-                    <Column>
-                        <Description>Choose a tool to add to the Agent or create a new one.</Description>
-                        <Row>
-                            <Title>Tools</Title>
-                            <Button appearance="icon" tooltip={"Create New Tool"} onClick={handleAddNewTool}>
-                                <Codicon name="add" />
-                            </Button>
-                        </Row>
-                        {existingTools.map((tool) => (
-                            <ToolItem
-                                onClick={() => handleToolSelection(tool)}
-                                key={tool}
-                                isSelected={selectedTool === tool}
-                            >
-                                {tool}
-                            </ToolItem>
-                        ))}
-                    </Column>
-                    <Footer>
-                        <PrimaryButton onClick={handleOnSave} disabled={!isToolSelected || savingForm}>
-                            {"Add to Agent"}
-                        </PrimaryButton>
-                    </Footer>
-                </>
-            )}
-            {!loading && !hasExistingTools && !selectedTool && (
-                <Column>
-                    <Description>
-                        No tools are currently available in your integration. Add a new tool to improve your agent's
-                        capabilities.
-                    </Description>
-                    <HighlightedButton onClick={handleAddNewTool}>
-                        <Codicon name="add" iconSx={{ fontSize: 12 }} sx={{ display: "flex", alignItems: "center" }} />
-                        Create New Tool
-                    </HighlightedButton>
-                </Column>
-            )}
+            <Description>
+                Create and add tools to extend your agent's capabilities. Choose the method you'd like to use:
+            </Description>
+            
+            <Column>
+                <OptionCard onClick={handleUseConnection}>
+                    <OptionHeader>
+                        <OptionIcon>
+                            <Icon name="bi-connection" />
+                        </OptionIcon>
+                        <OptionTitle>Use Connection</OptionTitle>
+                    </OptionHeader>
+                    <OptionDescription>
+                        Turn an existing connection (HTTP client, database, message broker) into an agent tool. 
+                        Your agent will be able to make requests and interact with these services.
+                    </OptionDescription>
+                </OptionCard>
+
+                <OptionCard onClick={handleUseFunction}>
+                    <OptionHeader>
+                        <OptionIcon>
+                            <Icon name="bi-function" />
+                        </OptionIcon>
+                        <OptionTitle>Use Function</OptionTitle>
+                    </OptionHeader>
+                    <OptionDescription>
+                        Create a tool from an existing function in your integration or build a new custom function. 
+                        This gives your agent the ability to execute specific business logic.
+                    </OptionDescription>
+                </OptionCard>
+
+                <OptionCard onClick={handleUseMcpServer}>
+                    <OptionHeader>
+                        <OptionIcon>
+                            <Icon name="bi-mcp" />
+                        </OptionIcon>
+                        <OptionTitle>Use MCP Server</OptionTitle>
+                    </OptionHeader>
+                    <OptionDescription>
+                        Connect to a Model Context Protocol (MCP) server to access pre-built tools and resources. 
+                        MCP servers provide standardized access to external systems and data sources.
+                    </OptionDescription>
+                </OptionCard>
+            </Column>
         </Container>
     );
 }

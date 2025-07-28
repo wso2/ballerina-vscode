@@ -16,6 +16,8 @@
  * under the License.
  */
 
+import { BaseVisitor } from "@wso2/ballerina-core";
+
 import {
     COMMENT_NODE_CIRCLE_WIDTH,
     COMMENT_NODE_GAP,
@@ -28,7 +30,6 @@ import {
 } from "../resources/constants";
 import { reverseCustomNodeId } from "../utils/node";
 import { Branch, FlowNode } from "../utils/types";
-import { BaseVisitor } from "./BaseVisitor";
 
 export class PositionVisitor implements BaseVisitor {
     private skipChildrenVisit = false;
@@ -67,7 +68,7 @@ export class PositionVisitor implements BaseVisitor {
     beginVisitIf(node: FlowNode, parent?: FlowNode): void {
         if (!this.validateNode(node)) return;
         node.viewState.y = this.lastNodeY;
-        this.lastNodeY += node.viewState.h + (NODE_GAP_Y * 3) / 2;
+        this.lastNodeY += node.viewState.h + (NODE_GAP_Y * 4) / 2;
 
         const centerX = getTopNodeCenter(node, parent, this.diagramCenterX);
         node.viewState.x = centerX - node.viewState.lw;
