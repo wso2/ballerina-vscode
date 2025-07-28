@@ -69,7 +69,7 @@ import {
     removeAgentNode,
     removeToolFromAgentNode,
 } from "../AIChatAgent/utils";
-import { PROVIDER_NAME_MAP } from "../../../constants";
+import { GET_DEFAULT_MODEL_PROVIDER } from "../../../constants";
 
 const Container = styled.div`
     width: 100%;
@@ -1036,6 +1036,10 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
             .then(async (response) => {
                 console.log(">>> Updated source code", response);
                 if (response.artifacts.length > 0) {
+                    // If the selected model is the default WSO2 model provider, configure it
+                    if (updatedNode?.codedata?.symbol === GET_DEFAULT_MODEL_PROVIDER) {
+                        await rpcClient.getAIAgentRpcClient().configureDefaultModelProvider();
+                    }
                     selectedNodeRef.current = undefined;
                     await updateCurrentArtifactLocation(response);
                 } else {

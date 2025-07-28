@@ -21,10 +21,10 @@ import path from "path";
 import vscode, { Uri, workspace } from 'vscode';
 
 import { StateMachine } from "../../stateMachine";
-import { getRefreshedAccessToken, REFRESH_TOKEN_NOT_AVAILABLE_ERROR_MESSAGE, TOKEN_REFRESH_ONLY_SUPPORTED_FOR_BI_INTEL } from '../../../src/utils/ai/auth';
+import { getRefreshedAccessToken, REFRESH_TOKEN_NOT_AVAILABLE_ERROR_MESSAGE } from '../../../src/utils/ai/auth';
 import { AIStateMachine } from '../../../src/views/ai-panel/aiMachine';
 import { AIMachineEventType } from '@wso2/ballerina-core/lib/state-machine-types';
-import { CONFIG_FILE_NAME, ERROR_NO_BALLERINA_SOURCES, LOGIN_REQUIRED_WARNING, PROGRESS_BAR_MESSAGE_FROM_WSO2_DEFAULT_MODEL } from './constants';
+import { CONFIG_FILE_NAME, ERROR_NO_BALLERINA_SOURCES, PROGRESS_BAR_MESSAGE_FROM_WSO2_DEFAULT_MODEL } from './constants';
 import { getCurrentBallerinaProjectFromContext } from '../config-generator/configGenerator';
 import { BallerinaProject } from '@wso2/ballerina-core';
 import { BallerinaExtension } from 'src/core';
@@ -131,15 +131,8 @@ export async function getConfigFilePath(ballerinaExtInstance: BallerinaExtension
 export async function getTokenForDefaultModel() {
     try {
         const token = await getRefreshedAccessToken();
-        if (!token) {
-            vscode.window.showWarningMessage(LOGIN_REQUIRED_WARNING);
-            return null;
-        }
         return token;
     } catch (error) {
-        if ((error as Error).message === REFRESH_TOKEN_NOT_AVAILABLE_ERROR_MESSAGE || (error as Error).message === TOKEN_REFRESH_ONLY_SUPPORTED_FOR_BI_INTEL) {
-            vscode.window.showWarningMessage(LOGIN_REQUIRED_WARNING);
-        }
         throw error;
     }
 }
@@ -171,7 +164,7 @@ function addOrReplaceConfigLine(lines: string[], key: string, value: string) {
 }
 
 function addDefaultModelConfig(
-    projectPath: string, token: string, backendUrl: string) {
+    projectPath: string, token: string, backendUrl: string): boolean {
     const targetTable = `[ballerina.ai.wso2ProviderConfig]`;
     const SERVICE_URL_KEY = 'serviceUrl';
     const ACCESS_TOKEN_KEY = 'accessToken';
@@ -194,7 +187,7 @@ function addDefaultModelConfig(
         }
         fileContent += `\n${targetTable}\n${urlLine}\n${accessTokenLine}\n`;
         fs.writeFileSync(configFilePath, fileContent);
-        return;
+        return true;
     }
 
     // Table exists, update it
@@ -230,10 +223,11 @@ function addDefaultModelConfig(
     const updatedTableContent = lines.join('\n');
     fileContent = fileContent.substring(0, tableStartIndex) + updatedTableContent + fileContent.substring(tableEndIndex);
     fs.writeFileSync(configFilePath, fileContent);
+    return true;
 }
 
-export async function addConfigFile(configPath: string) {
-    await vscode.window.withProgress(
+export async function addConfigFile(configPath: string): Promise<boolean> {
+    const progress = await vscode.window.withProgress(
         {
             location: vscode.ProgressLocation.Notification,
             title: PROGRESS_BAR_MESSAGE_FROM_WSO2_DEFAULT_MODEL,
@@ -244,15 +238,19 @@ export async function addConfigFile(configPath: string) {
                 const token: string | null = await getTokenForDefaultModel();
                 if (token === null) {
                     AIStateMachine.service().send(AIMachineEventType.LOGOUT);
-                    return;
+                    throw new Error(REFRESH_TOKEN_NOT_AVAILABLE_ERROR_MESSAGE);
                 }
-                addDefaultModelConfig(configPath, token, await getBackendURL());
+                const success = addDefaultModelConfig(configPath, token, await getBackendURL());
+                if (success) {
+                    return true;
+                }
             } catch (error) {
                 AIStateMachine.service().send(AIMachineEventType.LOGOUT);
-                return;
+                throw error;
             }
         }
     );
+    return progress;
 }
 
 export async function isBallerinaProjectAsync(rootPath: string): Promise<boolean> {
