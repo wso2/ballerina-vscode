@@ -306,7 +306,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 });
                 console.log(">>> Refreshed embedding provider list", response);
                 setCategories(
-                    convertVectorKnowledgeBaseCategoriesToSidePanelCategories(response.categories as Category[])
+                    convertEmbeddingProviderCategoriesToSidePanelCategories(response.categories as Category[])
                 );
                 setSidePanelView(SidePanelView.EMBEDDING_PROVIDER_LIST);
                 setShowSidePanel(true);
