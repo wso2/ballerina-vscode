@@ -128,7 +128,6 @@ public class PackageUtil {
         return Optional.empty();
     }
 
-
     public static Optional<SemanticModel> getSemanticModel(String org, String name) {
         return getModulePackage(getSampleProject(), org, name).map(
                 pkg -> getCompilation(pkg).getSemanticModel(pkg.getDefaultModule().moduleId()));
@@ -173,12 +172,19 @@ public class PackageUtil {
                 Collections.singletonList(resolutionRequest),
                 ResolutionOptions.builder().setOffline(true).build());
         Optional<PackageMetadataResponse> pkgMetadata = packageMetadataResponses.stream().findFirst();
+        PackageDescriptor packageDescriptor;
         if (pkgMetadata.isEmpty()) {
-            return Optional.empty();
+            // If the package metadata is not found locally, fetch the latest version from the central repository
+            CentralAPI centralApi = RemoteCentral.getInstance();
+            String version = centralApi.latestPackageVersion(org, name);
+            packageDescriptor = PackageDescriptor.from(
+                    PackageOrg.from(org), PackageName.from(name), PackageVersion.from(version));
+        } else {
+            packageDescriptor = pkgMetadata.get().resolvedDescriptor();
         }
 
         Collection<ResolutionResponse> resolutionResponses = packageResolver.resolvePackages(
-                Collections.singletonList(ResolutionRequest.from(pkgMetadata.get().resolvedDescriptor())),
+                Collections.singletonList(ResolutionRequest.from(packageDescriptor)),
                 ResolutionOptions.builder().setOffline(false).build());
         Optional<ResolutionResponse> resolutionResponse = resolutionResponses.stream().findFirst();
         if (resolutionResponse.isEmpty()) {
