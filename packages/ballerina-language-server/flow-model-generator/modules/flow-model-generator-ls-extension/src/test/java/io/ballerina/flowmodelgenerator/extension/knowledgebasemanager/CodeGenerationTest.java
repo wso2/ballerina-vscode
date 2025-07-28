@@ -29,6 +29,7 @@ import org.testng.annotations.Test;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Map;
 
 /**
@@ -38,13 +39,16 @@ import java.util.Map;
  */
 public class CodeGenerationTest extends AbstractLSTest {
     public static final String CONNECTIONS_BAL_FILE_NAME = "connections.bal";
+    public static final String AUTOMATIONS_BAL_FILE_NAME = "automation.bal";
     public static final String TEXT_EDITS_RESPONSE_KEY_NAME = "textEdits";
 
     @DataProvider(name = "data-provider")
     @Override
     protected Object[] getConfigsList() {
         return new Object[][]{
-                {Path.of("code_generation_with_vector_store_knowledge_base.json")}
+                {Path.of("code_generation_with_vector_store_knowledge_base.json")},
+                {Path.of("code_generation_for_vector_store_knowledge_base_retrieve_call.json")},
+                {Path.of("code_generation_for_vector_store_knowledge_base_ingest_call.json")},
         };
     }
 
@@ -72,13 +76,16 @@ public class CodeGenerationTest extends AbstractLSTest {
 
         // Find the entry that ends with "connections.bal"
         Map.Entry<String, JsonElement> connectionEditEntry = textEdits.entrySet().stream()
-                .filter(entry -> entry.getKey().endsWith(CONNECTIONS_BAL_FILE_NAME))
+                .filter(entry -> entry.getKey().endsWith(CONNECTIONS_BAL_FILE_NAME)
+                        || entry.getKey().endsWith(AUTOMATIONS_BAL_FILE_NAME))
                 .findFirst().orElseThrow(
-                        () -> new RuntimeException("Unable to obtain text edits for knowledge base initialization"));
+                        () -> new RuntimeException("Unable to obtain text edits for knowledge base"));
 
-        // Rename the key to connections.bal
-        textEdits.remove(connectionEditEntry.getKey());
-        textEdits.add(CONNECTIONS_BAL_FILE_NAME, connectionEditEntry.getValue());
+        // Use only the file name as the key
+        String textEditFilePath = connectionEditEntry.getKey();
+        textEdits.remove(textEditFilePath);
+        String fileName = Paths.get(textEditFilePath).getFileName().toString();
+        textEdits.add(fileName, connectionEditEntry.getValue());
         return response;
     }
 
