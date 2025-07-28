@@ -27,7 +27,7 @@ import { InputOutputPortModel, ValueType } from '../Port';
 import { genArrayElementAccessSuffix, getValueType } from '../utils/common-utils';
 import { MappingType } from '../Link';
 import { ExpressionLabelModel } from './ExpressionLabelModel';
-import { mapWithCustomFn } from '../utils/modification-utils';
+import { createNewMapping, mapWithCustomFn } from '../utils/modification-utils';
 import classNames from 'classnames';
 
 export const useStyles = () => ({
@@ -107,12 +107,11 @@ export function ArrayMappingOptionsWidget(props: ArrayMappingOptionsWidgetProps)
         return async () => {
             setInProgress(true);
             await onClick();
-            setInProgress(false);
         }
     };
     
     const onClickMapDirectly = async () => {
-        
+        await createNewMapping(link);
     }
 
     const onClickMapIndividualElements = async () => {
