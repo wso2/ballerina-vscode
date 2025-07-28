@@ -263,7 +263,7 @@ export function InlineDataMapperView(props: InlineDataMapperProps) {
                 filePath,
                 codedata: {
                     ...viewState.codedata,
-                    isNew: true
+                    isNew
                 },
                 index,
                 clause,
