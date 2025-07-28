@@ -56,7 +56,7 @@ public record Category(Metadata metadata, List<Item> items) implements Item {
                 List.of("Project", "Local", "Function")),
         AGENT_TOOLS("Agent Tools", "Functions used as agent tools", List.of("Project", "Local", "Function")),
         CURRENT_ORGANIZATION("Current Organization", "Components in the current organization",
-                List.of( "Organization", "Function", "Library")),
+                List.of("Organization", "Function", "Library")),
         STANDARD_LIBRARY("Standard Library", "Components supported officially by Ballerina",
                 List.of("Ballerina", "Library")),
         IMPORTED_FUNCTIONS("Imported Functions", "Functions imported from other integrations",

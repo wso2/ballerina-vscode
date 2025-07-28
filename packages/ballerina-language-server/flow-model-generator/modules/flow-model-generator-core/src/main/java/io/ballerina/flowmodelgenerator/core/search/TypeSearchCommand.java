@@ -21,6 +21,10 @@ package io.ballerina.flowmodelgenerator.core.search;
 import io.ballerina.centralconnector.CentralAPI;
 import io.ballerina.centralconnector.RemoteCentral;
 import io.ballerina.centralconnector.response.SymbolResponse;
+import io.ballerina.compiler.api.SemanticModel;
+import io.ballerina.compiler.api.symbols.Documentation;
+import io.ballerina.compiler.api.symbols.Symbol;
+import io.ballerina.compiler.api.symbols.TypeDefinitionSymbol;
 import io.ballerina.flowmodelgenerator.core.model.AvailableNode;
 import io.ballerina.flowmodelgenerator.core.model.Category;
 import io.ballerina.flowmodelgenerator.core.model.Codedata;
@@ -30,6 +34,8 @@ import io.ballerina.flowmodelgenerator.core.model.NodeKind;
 import io.ballerina.modelgenerator.commons.CommonUtils;
 import io.ballerina.modelgenerator.commons.PackageUtil;
 import io.ballerina.modelgenerator.commons.SearchResult;
+import io.ballerina.projects.Module;
+import io.ballerina.projects.ModuleName;
 import io.ballerina.projects.Package;
 import io.ballerina.projects.Project;
 import io.ballerina.tools.text.LineRange;
@@ -39,6 +45,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -71,7 +78,13 @@ class TypeSearchCommand extends SearchCommand {
         Package currentPackage = project.currentPackage();
         PackageUtil.getCompilation(currentPackage);
         moduleNames = currentPackage.getDefaultModule().moduleDependencies().stream()
-                .map(moduleDependency -> moduleDependency.descriptor().name().packageName().value())
+                .map(moduleDependency -> {
+                    ModuleName name = moduleDependency.descriptor().name();
+                    if (Objects.nonNull(name.moduleNamePart()) && !name.moduleNamePart().isEmpty()) {
+                        return name.packageName().value() + "." + name.moduleNamePart();
+                    }
+                    return name.packageName().value();
+                })
                 .toList();
     }
 
@@ -81,24 +94,26 @@ class TypeSearchCommand extends SearchCommand {
         if (!moduleNames.isEmpty()) {
             searchResults.addAll(dbManager.searchTypesByPackages(moduleNames, limit, offset));
         }
-        
+
         // Add organization types to default view if any exist
         List<SearchResult> organizationTypes = getOrganizationTypes("");
         searchResults.addAll(organizationTypes);
-        
+
         buildLibraryNodes(searchResults);
+        buildImportedLocalModules();
         return rootBuilder.build().items();
     }
 
     @Override
     protected List<Item> search() {
         List<SearchResult> typeSearchList = dbManager.searchTypes(query, limit, offset);
-        
+
         // Get organization types (searchCentral flag is checked inside the method)
         List<SearchResult> organizationTypes = getOrganizationTypes(query);
         typeSearchList.addAll(organizationTypes);
-        
+
         buildLibraryNodes(typeSearchList);
+        buildImportedLocalModules();
         return rootBuilder.build().items();
     }
 
@@ -110,12 +125,12 @@ class TypeSearchCommand extends SearchCommand {
      */
     private List<SearchResult> getOrganizationTypes(String searchQuery) {
         List<SearchResult> organizationTypes = new ArrayList<>();
-        
+
         // Only fetch from central if searchCentral is enabled and organization name is present
         if (!searchCentral) {
             return organizationTypes;
         }
-        
+
         Optional<String> organizationName = getOrganizationName();
         if (organizationName.isPresent()) {
             CentralAPI centralClient = RemoteCentral.getInstance();
@@ -191,6 +206,54 @@ class TypeSearchCommand extends SearchCommand {
                 builder.stepIn(packageInfo.moduleName(), "", List.of())
                         .node(new AvailableNode(metadata, codedata, true));
             }
+        }
+    }
+
+    private void buildImportedLocalModules() {
+        Iterable<Module> modules = project.currentPackage().modules();
+        for (Module module : modules) {
+            if (module.isDefaultModule()) {
+                continue;
+            }
+            SemanticModel semanticModel = PackageUtil.getCompilation(module.packageInstance())
+                    .getSemanticModel(module.moduleId());
+            if (semanticModel == null) {
+                    continue;
+            }
+            List<Symbol> symbols = semanticModel.moduleSymbols();
+            String moduleName = module.moduleName().toString();
+            Category.Builder moduleBuilder = rootBuilder.stepIn(Category.Name.IMPORTED_TYPES);
+            String orgName = module.packageInstance().packageOrg().toString();
+            String packageName = module.packageInstance().packageName().toString();
+            String version = module.packageInstance().packageVersion().toString();
+            for (Symbol symbol : symbols) {
+                if (symbol instanceof TypeDefinitionSymbol typeDefinitionSymbol) {
+                    if (typeDefinitionSymbol.getName().isEmpty()) {
+                        continue;
+                    }
+                    String typeName = typeDefinitionSymbol.getName().get();
+                    Documentation documentation = typeDefinitionSymbol.documentation()
+                            .orElse(null);
+                    String description = documentation != null ? documentation.description().orElse("") : "";
+
+                    Metadata metadata = new Metadata.Builder<>(null)
+                            .label(typeName)
+                            .description(description)
+                            .build();
+
+                    Codedata codedata = new Codedata.Builder<>(null)
+                            .org(orgName)
+                            .module(moduleName)
+                            .packageName(packageName)
+                            .symbol(typeName)
+                            .version(version)
+                            .build();
+
+                    moduleBuilder.stepIn(moduleName, "", List.of())
+                            .node(new AvailableNode(metadata, codedata, true));
+                }
+            }
+
         }
     }
 }
