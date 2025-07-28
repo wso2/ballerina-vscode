@@ -1556,6 +1556,9 @@ public class DataMapManager {
             if (targetType == null) {
                 throw new IllegalStateException("Target type cannot be found for the variable declaration");
             }
+            if (targetType.typeKind() == TypeDescKind.TYPE_REFERENCE) {
+                targetType = CommonUtils.getRawType(targetType);
+            }
             if (targetType.typeKind() == TypeDescKind.ARRAY) {
                 targetType = ((ArrayTypeSymbol) targetType).memberTypeDescriptor();
             }
