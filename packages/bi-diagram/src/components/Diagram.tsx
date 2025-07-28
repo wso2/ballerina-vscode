@@ -62,11 +62,17 @@ export interface DiagramProps {
     agentNode?: {
         onModelSelect: (node: FlowNode) => void;
         onAddTool: (node: FlowNode) => void;
+        onAddMcpServer: (node: FlowNode) => void;
         onSelectTool: (tool: ToolData, node: FlowNode) => void;
+        onSelectMcpToolkit: (tool: ToolData, node: FlowNode) => void;
         onDeleteTool: (tool: ToolData, node: FlowNode) => void;
         goToTool: (tool: ToolData, node: FlowNode) => void;
         onSelectMemoryManager: (node: FlowNode) => void;
         onDeleteMemoryManager: (node: FlowNode) => void;
+    };
+    // ai nodes callbacks
+    aiNodes?: {
+        onModelSelect: (node: FlowNode) => void;
     };
     // ai suggestions callbacks
     suggestions?: {
@@ -93,6 +99,7 @@ export function Diagram(props: DiagramProps) {
         goToSource,
         openView,
         agentNode,
+        aiNodes,
         suggestions,
         projectPath,
         addBreakpoint,
@@ -222,6 +229,7 @@ export function Diagram(props: DiagramProps) {
         goToSource: goToSource,
         openView: openView,
         agentNode: agentNode,
+        aiNodes: aiNodes,
         suggestions: suggestions,
         projectPath: projectPath,
         readOnly: onAddNode === undefined || onDeleteNode === undefined || onNodeSelect === undefined || readOnly,

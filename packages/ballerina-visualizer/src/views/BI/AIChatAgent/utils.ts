@@ -16,10 +16,34 @@
  * under the License.
  */
 
-import { FlowNode } from "@wso2/ballerina-core";
+import { BINodeTemplateRequest, CodeData, FlowNode, LinePosition, ValueTypeConstraint } from "@wso2/ballerina-core";
 import { BallerinaRpcClient } from "@wso2/ballerina-rpc-client";
 import { cloneDeep } from "lodash";
 import { URI, Utils } from "vscode-uri";
+
+export const getNodeTemplate = async (
+    rpcClient: BallerinaRpcClient,
+    codeData: CodeData,
+    filePath: string,
+    position: LinePosition = { line: 0, offset: 0 }
+) => {
+    const response = await rpcClient.getBIDiagramRpcClient().getNodeTemplate({
+        position: position,
+        filePath: filePath,
+        id: codeData,
+    });
+    console.log(">>> get node template response", response);
+    return response?.flowNode;
+};
+
+export const getAiModuleOrg = async (rpcClient: BallerinaRpcClient) => {
+    const filePath = await rpcClient.getVisualizerLocation();
+    const aiModuleOrgResponse = await rpcClient
+        .getAIAgentRpcClient()
+        .getAiModuleOrg({ projectPath: filePath.projectUri });
+    console.log(">>> agent org", aiModuleOrgResponse.orgName);
+    return aiModuleOrgResponse.orgName;
+}
 
 export const getAgentFilePath = async (rpcClient: BallerinaRpcClient) => {
     // Get the agent file path and update the node
@@ -27,6 +51,21 @@ export const getAgentFilePath = async (rpcClient: BallerinaRpcClient) => {
     // Create the agent file path
     const agentFilePath = await rpcClient.getVisualizerRpcClient().joinProjectPath("agents.bal");
     return agentFilePath;
+};
+
+export const getNPFilePath = async (rpcClient: BallerinaRpcClient) => {
+    const filePath = await rpcClient.getVisualizerLocation();
+    // Create the NP file path
+    const agentFilePath = Utils.joinPath(URI.file(filePath.projectUri), "functions.bal").fsPath;
+    return agentFilePath;
+};
+
+export const getMainFilePath = async (rpcClient: BallerinaRpcClient) => {
+    // Get the main file path and update the node
+    const filePath = await rpcClient.getVisualizerLocation();
+    // Create the main file path
+    const mainFilePath = Utils.joinPath(URI.file(filePath.projectUri), "main.bal").fsPath;
+    return mainFilePath;
 };
 
 export const findFlowNodeByModuleVarName = async (variableName: string, rpcClient: BallerinaRpcClient) => {
@@ -98,7 +137,7 @@ export const addToolToAgentNode = async (agentNode: FlowNode, toolName: string) 
     const updatedAgentNode = cloneDeep(agentNode);
     let toolsValue = updatedAgentNode.properties.tools.value;
     // remove new lines and normalize whitespace from the tools value
-    toolsValue = toolsValue.toString().replace(/\s+/g, "");
+    // toolsValue = toolsValue.toString().replace(/\s+/g, "");
     if (typeof toolsValue === "string") {
         const toolsArray = parseToolsString(toolsValue);
         if (toolsArray.length > 0) {
@@ -115,9 +154,191 @@ export const addToolToAgentNode = async (agentNode: FlowNode, toolName: string) 
         console.error("Tools value is not a string", toolsValue);
         return agentNode;
     }
+    updatedAgentNode.properties.tools.value = toolsValue;
+    updatedAgentNode.codedata.isNew = false;
+    return updatedAgentNode;
+};
+
+export interface McpServerConfig {
+    name: string;
+    serviceUrl: string;
+    configs: Record<string, string>;
+    toolSelection: string;
+    selectedTools: string[];
+};
+
+export const updateMcpServerToAgentNode = async (
+    agentNode: FlowNode,
+    toolConfig: McpServerConfig,
+    originalToolName: string
+) => {
+    if (!agentNode || agentNode.codedata?.node !== "AGENT") return null;
+
+    const updatedAgentNode = cloneDeep(agentNode);
+    let toolsValue = updatedAgentNode.properties.tools.value;
+
+    if (typeof toolsValue === "string") {
+        console.log(">>> Current tools string", toolsValue);
+
+        // Prepare the new tool string based on tool selection
+        let newToolString;
+        if (toolConfig.toolSelection.includes("Selected")) {
+            const toolsString = toolConfig.selectedTools.map(tool => `"${tool}"`).join(", ");
+            newToolString = `check new ai:McpToolKit("${toolConfig.serviceUrl}", permittedTools = [${toolsString}], info = {name: "${toolConfig.name}", version: ""})`;
+        } else {
+            newToolString = `check new ai:McpToolKit("${toolConfig.serviceUrl}", permittedTools = (), info = {name: "${toolConfig.name}", version: ""})`;
+        }
+
+        // Fixed regex pattern that matches only the specific McpToolKit with the target name
+        // Uses negated character classes to prevent crossing boundaries
+        const pattern = new RegExp(
+            `check new ai:McpToolKit\\([^}]*name:\\s*"${originalToolName}"[^}]*\\}\\)`,
+            'g'
+        );
+
+        console.log(">>> Regex pattern:", pattern);
+        console.log(">>> Testing pattern against toolsValue:", pattern.test(toolsValue));
+
+        // Reset the regex lastIndex since test() modifies it
+        pattern.lastIndex = 0;
+
+        if (pattern.test(toolsValue)) {
+            console.log(">>> Found existing tool to replace");
+            // Reset lastIndex again before replace
+            pattern.lastIndex = 0;
+            toolsValue = toolsValue.replace(pattern, newToolString);
+        } else {
+            const trimmedValue = toolsValue.trim();
+            const isWrappedInBrackets = trimmedValue.startsWith('[') && trimmedValue.endsWith(']');
+            const innerContent = isWrappedInBrackets
+                ? trimmedValue.slice(1, -1).trim()
+                : trimmedValue;
+            toolsValue = innerContent
+                ? `[${innerContent}, ${newToolString}]`
+                : `[${newToolString}]`;
+        }
+    } else {
+        console.error("Tools value is not a string", toolsValue);
+        return agentNode;
+    }
+
+    updatedAgentNode.properties.tools.value = toolsValue;
+    updatedAgentNode.codedata.isNew = false;
+
+    console.log(">>> Final updated tools value", toolsValue);
+    return updatedAgentNode;
+};
+
+export const addMcpServerToAgentNode = async (agentNode: FlowNode, toolConfig: McpServerConfig) => {
+    if (!agentNode || agentNode.codedata?.node !== "AGENT") return null;
+    // clone the node to avoid modifying the original
+    const updatedAgentNode = cloneDeep(agentNode);
+    let toolsValue = updatedAgentNode.properties.tools.value;
+    // remove new lines and normalize whitespace from the tools value
+
+    console.log(">>> add tools", toolConfig);
+    const toolsString = toolConfig.selectedTools.map(tool => `"${tool}"`).join(", ");
+    let toolString = `check new ai:McpToolKit("${toolConfig.serviceUrl}", permittedTools = (), info = {name: "${toolConfig.name}", version: ""})`;
+    if (toolConfig.toolSelection.includes("Selected")) {
+        toolString = `check new ai:McpToolKit("${toolConfig.serviceUrl}", permittedTools = [${toolsString}], info = {name: "${toolConfig.name}", version: ""})`;
+    }
+    if (typeof toolsValue === "string") {
+        const toolsArray = parseToolsString(toolsValue);
+        if (toolsArray.length > 0) {
+            // Add the tool if not exists
+            if (!toolsArray.includes(toolString)) {
+                toolsArray.push(toolString);
+            }
+            // Update the tools value
+            toolsValue = toolsArray.length === 1 ? `[${toolsArray[0]}]` : `[${toolsArray.join(", ")}]`;
+        } else {
+            toolsValue = `[${toolString}]`;
+        }
+    } else {
+        console.error("Tools value is not a string", toolsValue);
+        return agentNode;
+    }
     // update the node
     updatedAgentNode.properties.tools.value = toolsValue;
     updatedAgentNode.codedata.isNew = false;
+    return updatedAgentNode;
+};
+
+export const removeMcpServerFromAgentNode = (
+    agentNode: FlowNode,
+    toolkitNameToRemove: string
+) => {
+    if (!agentNode || agentNode.codedata?.node !== "AGENT") return null;
+
+    const updatedAgentNode = cloneDeep(agentNode);
+    let toolsValue = updatedAgentNode.properties.tools.value;
+
+    if (typeof toolsValue !== "string") {
+        console.error("Tools value is not a string", toolsValue);
+        return agentNode;
+    }
+
+    const startPattern = 'check new ai:McpToolKit(';
+    let startIndex = 0;
+    let found = false;
+
+    while (!found && startIndex < toolsValue.length) {
+        startIndex = toolsValue.indexOf(startPattern, startIndex);
+        if (startIndex === -1) break;
+
+        let endIndex = toolsValue.indexOf('})', startIndex);
+        if (endIndex === -1) break;
+        endIndex += 2; // Include the '})'
+
+        const declaration = toolsValue.substring(startIndex, endIndex);
+        if (declaration.includes(`name: "${toolkitNameToRemove}"`)) {
+            let hasCommaAfter = false;
+            if (toolsValue[endIndex] === ',') {
+                endIndex++;
+                hasCommaAfter = true;
+            }
+            let hasCommaBefore = false;
+            let newStartIndex = startIndex;
+            if (startIndex > 0 && toolsValue[startIndex - 1] === ',') {
+                newStartIndex--;
+                hasCommaBefore = true;
+            }
+
+            let isLastItem = !hasCommaAfter;
+
+            let before = toolsValue.substring(0, newStartIndex);
+            let after = toolsValue.substring(endIndex);
+
+            if (hasCommaBefore && hasCommaAfter) {
+                after = after.trim();
+            } else if (isLastItem) {
+                before = before.trim();
+                if (before.endsWith(',')) {
+                    before = before.substring(0, before.length - 1).trim();
+                }
+            }
+
+            toolsValue = before + after;
+            found = true;
+        } else {
+            startIndex = endIndex;
+        }
+    }
+
+    toolsValue = toolsValue
+        .replace(/,+/g, ',')
+        .replace(/, ,/g, ', ')
+        .replace(/\s*,\s*/g, ', ')
+        .replace(/, $/, '')
+        .replace(/^, /, '')
+        .replace(/\s+/g, ' ')
+        .trim();
+
+    if (toolsValue === '[' || toolsValue === '[]') {
+        toolsValue = '[]';
+    }
+
+    updatedAgentNode.properties.tools.value = toolsValue;
     return updatedAgentNode;
 };
 

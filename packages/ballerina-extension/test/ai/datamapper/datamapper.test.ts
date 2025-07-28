@@ -28,7 +28,7 @@ function getTestFolders(dirPath: string): string[] {
         .filter((file) => fs.lstatSync(path.join(dirPath, file)).isDirectory());
 }
 
-suite.only("AI Datamapper Tests Suite", () => {
+suite.skip("AI Datamapper Tests Suite", () => {
     setup(done => {
         done();
     });

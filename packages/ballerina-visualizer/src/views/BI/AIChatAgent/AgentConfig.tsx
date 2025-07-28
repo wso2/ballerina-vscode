@@ -24,7 +24,7 @@ import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { convertConfig } from "../../../utils/bi";
 import ConfigForm from "./ConfigForm";
 import { cloneDeep } from "lodash";
-import { findAgentNodeFromAgentCallNode, getAgentFilePath } from "./utils";
+import { findAgentNodeFromAgentCallNode, getAgentFilePath, getMainFilePath } from "./utils";
 
 const Container = styled.div`
     padding: 16px;
@@ -54,6 +54,7 @@ export function AgentConfig(props: AgentConfigProps): JSX.Element {
     const [savingForm, setSavingForm] = useState<boolean>(false);
 
     const agentFilePath = useRef<string>("");
+    const mainFilePath = useRef<string>("");
 
     useEffect(() => {
         initPanel();
@@ -68,6 +69,8 @@ export function AgentConfig(props: AgentConfigProps): JSX.Element {
     const initPanel = async () => {
         // get agent file path
         agentFilePath.current = await getAgentFilePath(rpcClient);
+        // get main file path
+        mainFilePath.current = await getMainFilePath(rpcClient);
         // fetch agent node
         await fetchAgentNode();
         await fetchAgentCallNode();
@@ -184,7 +187,9 @@ export function AgentConfig(props: AgentConfigProps): JSX.Element {
         updatedAgentNode.properties.systemPrompt.value = systemPromptValue;
         updatedAgentNode.properties.verbose.value = rawData["verbose"];
         updatedAgentNode.properties.maxIter.value = rawData["maxIter"];
-        updatedAgentNode.properties.agentType.value = rawData["agentType"];
+        if ("agentType" in rawData) {
+            updatedAgentNode.properties.agentType.value = rawData["agentType"];
+        }
 
         const agentResponse = await rpcClient
             .getBIDiagramRpcClient()
@@ -212,10 +217,12 @@ export function AgentConfig(props: AgentConfigProps): JSX.Element {
         <Container>
             {agentCallNode?.codedata?.lineRange && (
                 <ConfigForm
+                    fileName={mainFilePath.current}
                     formFields={formFields}
                     targetLineRange={agentCallNode.codedata.lineRange}
                     onSubmit={handleOnSave}
                     disableSaveButton={savingForm}
+                    isSaving={savingForm}
                 />
             )}
         </Container>
