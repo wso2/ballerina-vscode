@@ -98,7 +98,7 @@ export async function updateSourceCodeIteratively(updateSourceCodeRequest: Updat
     const textEdits = updateSourceCodeRequest.textEdits;
     const filePaths = Object.keys(textEdits);
 
-    if (filePaths.length <= 1) {
+    if (filePaths.length == 1) {
         return await updateSourceCode(updateSourceCodeRequest);
     }
 
