@@ -66,21 +66,7 @@ export class InlineDataMapperRpcManager implements InlineDataMapperAPI {
                     const varName = params.flowNode.properties?.variable?.value as string ?? null;
                     updateSource(model.textEdits, params.filePath, params.flowNode.codedata, varName)
                         .then(codeData => {
-                            openView(EVENT_TYPE.OPEN_VIEW, {
-                                view: MACHINE_VIEW.InlineDataMapper,
-                                documentUri: params.filePath,
-                                position: {
-                                    startLine: codeData.lineRange.startLine.line,
-                                    startColumn: codeData.lineRange.startLine.offset,
-                                    endLine: codeData.lineRange.endLine.line,
-                                    endColumn: codeData.lineRange.endLine.offset
-                                },
-                                dataMapperMetadata: {
-                                    name: varName,
-                                    codeData: codeData
-                                }
-                            });
-                            resolve({ textEdits: model.textEdits });
+                            resolve({ textEdits: model.textEdits, codedata: codeData });
                         });
                 })
                 .catch((error) => {

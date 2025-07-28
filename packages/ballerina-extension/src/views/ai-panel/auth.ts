@@ -17,10 +17,10 @@
  */
 
 import axios from 'axios';
-import { extension } from '../../BalExtensionContext';
 import { AUTH_CLIENT_ID, AUTH_ORG, AUTH_REDIRECT_URL } from '../../features/ai/utils';
 import { AIStateMachine } from './aiMachine';
-import { AIMachineEventType } from '@wso2/ballerina-core';
+import { AIMachineEventType, AuthCredentials, LoginMethod } from '@wso2/ballerina-core';
+import { storeAuthCredentials } from '../../utils/ai/auth';
 
 export interface AccessToken {
     accessToken: string;
@@ -42,7 +42,7 @@ export async function getAuthUrl(callbackUri: string): Promise<string> {
     return `https://api.asgardeo.io/t/${AUTH_ORG}/oauth2/authorize?response_type=code&redirect_uri=${AUTH_REDIRECT_URL}&client_id=${AUTH_CLIENT_ID}&scope=openid%20email&state=${state}`;
 }
 
-export function getLogoutUrl() : string {
+export function getLogoutUrl(): string {
     return `https://api.asgardeo.io/t/${AUTH_ORG}/oidc/logout`;
 }
 
@@ -67,24 +67,27 @@ export async function exchangeAuthCodeNew(authCode: string): Promise<AccessToken
     }
 }
 
-
 export async function exchangeAuthCode(authCode: string) {
     if (!authCode) {
         throw new Error("Auth code is not provided.");
     } else {
         try {
-            console.log("Exchanging auth code to token...");
             const response = await exchangeAuthCodeNew(authCode);
-            let token = await extension.context.secrets.get('BallerinaAIUser');
-            await extension.context.secrets.store('BallerinaAIUser', response.accessToken);
-            await extension.context.secrets.store('BallerinaAIRefreshToken', response.refreshToken ?? '');
-            token = await extension.context.secrets.get('BallerinaAIUser');
 
-            AIStateMachine.sendEvent(AIMachineEventType.LOGIN_SUCCESS);
+            // Store credentials in structured format
+            const credentials: AuthCredentials = {
+                loginMethod: LoginMethod.BI_INTEL,
+                secrets: {
+                    accessToken: response.accessToken,
+                    refreshToken: response.refreshToken ?? ''
+                }
+            };
+            await storeAuthCredentials(credentials);
+
+            AIStateMachine.sendEvent(AIMachineEventType.COMPLETE_AUTH);
         } catch (error: any) {
             const errMsg = "Error while signing in to Copilot! " + error?.message;
             throw new Error(errMsg);
         }
     }
 }
-

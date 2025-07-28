@@ -82,7 +82,11 @@ import {
     generateOpenApiClient,
     getAiSuggestions,
     getAllImports,
+    getAvailableEmbeddingProviders,
+    getAvailableModelProviders,
     getAvailableNodes,
+    getAvailableVectorKnowledgeBases,
+    getAvailableVectorStores,
     getBreakpointInfo,
     getConfigVariableNodeTemplate,
     getConfigVariables,
@@ -142,6 +146,10 @@ export function registerBiDiagramRpcHandlers(messenger: Messenger) {
     messenger.onRequest(deleteFlowNode, (args: BISourceCodeRequest) => rpcManger.deleteFlowNode(args));
     messenger.onRequest(deleteByComponentInfo, (args: BIDeleteByComponentInfoRequest) => rpcManger.deleteByComponentInfo(args));
     messenger.onRequest(getAvailableNodes, (args: BIAvailableNodesRequest) => rpcManger.getAvailableNodes(args));
+    messenger.onRequest(getAvailableModelProviders, (args: BIAvailableNodesRequest) => rpcManger.getAvailableModelProviders(args));
+    messenger.onRequest(getAvailableVectorStores, (args: BIAvailableNodesRequest) => rpcManger.getAvailableVectorStores(args));
+    messenger.onRequest(getAvailableEmbeddingProviders, (args: BIAvailableNodesRequest) => rpcManger.getAvailableEmbeddingProviders(args));
+    messenger.onRequest(getAvailableVectorKnowledgeBases, (args: BIAvailableNodesRequest) => rpcManger.getAvailableVectorKnowledgeBases(args));
     messenger.onRequest(getEnclosedFunction, (args: BIGetEnclosedFunctionRequest) => rpcManger.getEnclosedFunction(args));
     messenger.onRequest(getNodeTemplate, (args: BINodeTemplateRequest) => rpcManger.getNodeTemplate(args));
     messenger.onRequest(getAiSuggestions, (args: BIAiSuggestionsRequest) => rpcManger.getAiSuggestions(args));
