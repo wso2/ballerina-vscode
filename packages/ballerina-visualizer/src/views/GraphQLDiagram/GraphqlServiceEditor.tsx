@@ -455,7 +455,6 @@ export function GraphqlServiceEditor(props: GraphqlServiceEditorProps) {
                         <OperationContainer>
                             {categories.query?.map((operation, index) => (
                                 <OperationAccordion
-                                    data-testid={`graphql-query-${operation.name.value}`}
                                     key={index}
                                     functionModel={operation}
                                     goToSource={goToSource}
@@ -490,7 +489,6 @@ export function GraphqlServiceEditor(props: GraphqlServiceEditorProps) {
                             {categories.mutation?.map((operation, index) => (
                                 <OperationAccordion
                                     key={index}
-                                    data-testid={`graphql-mutation-${index}`}
                                     functionModel={operation}
                                     goToSource={goToSource}
                                     onEditFunction={onEditOperation}
@@ -523,7 +521,6 @@ export function GraphqlServiceEditor(props: GraphqlServiceEditorProps) {
                         <OperationContainer>
                             {categories.subscription?.map((operation, index) => (
                                 <OperationAccordion
-                                    data-testid={`graphql-subscription-${index}`}
                                     key={index}
                                     functionModel={operation}
                                     goToSource={goToSource}
