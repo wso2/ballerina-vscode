@@ -26,6 +26,7 @@ import {
     AINodesRequest,
     AIToolRequest,
     AIToolsRequest,
+    configureDefaultModelProvider,
     createAIAgent,
     genTool,
     getAiModuleOrg,
@@ -56,6 +57,7 @@ export function registerAiAgentRpcHandlers(messenger: Messenger) {
     messenger.onRequest(getTool, (args: AIToolRequest) => rpcManger.getTool(args));
     messenger.onRequest(getMcpTools, (args: McpToolsRequest) => rpcManger.getMcpTools(args));
     messenger.onRequest(genTool, (args: AIGentToolsRequest) => rpcManger.genTool(args));
+    messenger.onNotification(configureDefaultModelProvider, () => rpcManger.configureDefaultModelProvider());
     messenger.onRequest(createAIAgent, (args: AIAgentRequest) => rpcManger.createAIAgent(args));
     messenger.onRequest(updateAIAgentTools, (args: AIAgentToolsUpdateRequest) => rpcManger.updateAIAgentTools(args));
     messenger.onNotification(updateMCPToolKit, (args: McpToolUpdateRequest) => rpcManger.updateMCPToolKit(args));
