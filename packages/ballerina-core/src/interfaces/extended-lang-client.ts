@@ -289,6 +289,7 @@ export interface InitialIDMSourceResponse {
     textEdits: {
         [key: string]: TextEdit[];
     };
+    codedata?: CodeData;
 }
 
 export interface InlineDataMapperModelRequest {
