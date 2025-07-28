@@ -81,6 +81,11 @@ class TypeSearchCommand extends SearchCommand {
         if (!moduleNames.isEmpty()) {
             searchResults.addAll(dbManager.searchTypesByPackages(moduleNames, limit, offset));
         }
+        
+        // Add organization types to default view if any exist
+        List<SearchResult> organizationTypes = getOrganizationTypes("");
+        searchResults.addAll(organizationTypes);
+        
         buildLibraryNodes(searchResults);
         return rootBuilder.build().items();
     }
@@ -89,40 +94,58 @@ class TypeSearchCommand extends SearchCommand {
     protected List<Item> search() {
         List<SearchResult> typeSearchList = dbManager.searchTypes(query, limit, offset);
         
-        // If searchCentral is enabled and organization name is present, search from central
-        if (searchCentral) {
-            Optional<String> organizationName = getOrganizationName();
-            if (organizationName.isPresent()) {
-                CentralAPI centralClient = RemoteCentral.getInstance();
-                Map<String, String> queryMap = new HashMap<>();
-                queryMap.put("q", query + " org:" + organizationName.get());
-                queryMap.put("limit", String.valueOf(limit));
-                queryMap.put("offset", String.valueOf(offset));
-                SymbolResponse symbolResponse = centralClient.searchSymbols(queryMap);
-                if (symbolResponse != null && symbolResponse.symbols() != null) {
-                    for (SymbolResponse.Symbol symbol : symbolResponse.symbols()) {
-                        if (symbol.symbolType().equals("record") || symbol.symbolType().contains("type")) {
-                            SearchResult.Package packageInfo = new SearchResult.Package(
-                                    symbol.organization(),
-                                    symbol.name(),
-                                    symbol.name(),
-                                    symbol.version()
-                            );
-                            SearchResult searchResult = SearchResult.from(
-                                    packageInfo,
-                                    symbol.symbolName(),
-                                    symbol.description(),
-                                    true
-                            );
-                            typeSearchList.add(searchResult);
-                        }
+        // Get organization types (searchCentral flag is checked inside the method)
+        List<SearchResult> organizationTypes = getOrganizationTypes(query);
+        typeSearchList.addAll(organizationTypes);
+        
+        buildLibraryNodes(typeSearchList);
+        return rootBuilder.build().items();
+    }
+
+    /**
+     * Fetches types from the current organization using Ballerina Central.
+     *
+     * @param searchQuery The search query to use (empty string for default view)
+     * @return List of SearchResult containing organization types
+     */
+    private List<SearchResult> getOrganizationTypes(String searchQuery) {
+        List<SearchResult> organizationTypes = new ArrayList<>();
+        
+        // Only fetch from central if searchCentral is enabled and organization name is present
+        if (!searchCentral) {
+            return organizationTypes;
+        }
+        
+        Optional<String> organizationName = getOrganizationName();
+        if (organizationName.isPresent()) {
+            CentralAPI centralClient = RemoteCentral.getInstance();
+            Map<String, String> queryMap = new HashMap<>();
+            String orgQuery = "org:" + organizationName.get();
+            queryMap.put("q", searchQuery.isEmpty() ? orgQuery : searchQuery + " " + orgQuery);
+            queryMap.put("limit", String.valueOf(limit));
+            queryMap.put("offset", String.valueOf(offset));
+            SymbolResponse symbolResponse = centralClient.searchSymbols(queryMap);
+            if (symbolResponse != null && symbolResponse.symbols() != null) {
+                for (SymbolResponse.Symbol symbol : symbolResponse.symbols()) {
+                    if (symbol.symbolType().equals("record") || symbol.symbolType().contains("type")) {
+                        SearchResult.Package packageInfo = new SearchResult.Package(
+                                symbol.organization(),
+                                symbol.name(),
+                                symbol.name(),
+                                symbol.version()
+                        );
+                        SearchResult searchResult = SearchResult.from(
+                                packageInfo,
+                                symbol.symbolName(),
+                                symbol.description(),
+                                true
+                        );
+                        organizationTypes.add(searchResult);
                     }
                 }
             }
         }
-        
-        buildLibraryNodes(typeSearchList);
-        return rootBuilder.build().items();
+        return organizationTypes;
     }
 
     @Override

@@ -59,7 +59,7 @@ public abstract class SearchCommand {
 
     private static final int DEFAULT_LIMIT = 20;
     private static final int DEFAULT_OFFSET = 0;
-    private static final boolean DEFAULT_SEARCH_CENTRAL = false;
+    private static final boolean DEFAULT_INCLUDE_CURRENT_ORG_IN_SEARCH = false;
 
     public static SearchCommand from(Kind kind, Project module, LineRange position, Map<String, String> queryMap,
                                      Document functionsDoc) {
@@ -85,12 +85,13 @@ public abstract class SearchCommand {
             this.query = "";
             this.limit = DEFAULT_LIMIT;
             this.offset = DEFAULT_OFFSET;
-            this.searchCentral = DEFAULT_SEARCH_CENTRAL;
+            this.searchCentral = DEFAULT_INCLUDE_CURRENT_ORG_IN_SEARCH;
         } else {
             this.query = queryMap.getOrDefault("q", "");
             this.limit = parseIntParam(queryMap.get("limit"), DEFAULT_LIMIT);
             this.offset = parseIntParam(queryMap.get("offset"), DEFAULT_OFFSET);
-            this.searchCentral = parseBooleanParam(queryMap.get("searchCentral"), DEFAULT_SEARCH_CENTRAL);
+            this.searchCentral = parseBooleanParam(queryMap.get("includeCurrentOrganizationInSearch"),
+                    DEFAULT_INCLUDE_CURRENT_ORG_IN_SEARCH);
         }
     }
 

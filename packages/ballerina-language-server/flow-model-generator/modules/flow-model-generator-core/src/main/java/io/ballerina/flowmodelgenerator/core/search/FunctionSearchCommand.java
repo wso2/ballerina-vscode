@@ -78,8 +78,6 @@ import static io.ballerina.modelgenerator.commons.CommonUtils.isAiModule;
 class FunctionSearchCommand extends SearchCommand {
 
     public static final String TOOL_ANNOTATION = "Tool";
-    private static final String BALLERINAX = "ballerinax";
-    private static final String AI_AGENT = "ai";
     private static final Map<String, List<String>> POPULAR_BALLERINA_FUNCTIONS = Map.of(
             "log", List.of("printInfo", "printDebug", "printError", "printWarn"),
             "time", List.of("utcNow", "utcFromString"),
@@ -115,6 +113,11 @@ class FunctionSearchCommand extends SearchCommand {
             searchResults.addAll(dbManager.searchFunctionsByPackages(moduleNames, List.of(), limit, offset));
         }
         searchResults.addAll(defaultViewHolder.get(this).getOrDefault(FETCH_KEY, List.of()));
+
+        // Add organization functions to default view if any exist
+        List<SearchResult> organizationFunctions = getOrganizationFunctions("");
+        searchResults.addAll(organizationFunctions);
+        
         buildLibraryNodes(searchResults);
         return rootBuilder.build().items();
     }
@@ -123,41 +126,58 @@ class FunctionSearchCommand extends SearchCommand {
     protected List<Item> search() {
         buildProjectNodes();
         List<SearchResult> functionSearchList = dbManager.searchFunctions(query, limit, offset);
+
+        List<SearchResult> organizationFunctions = getOrganizationFunctions(query);
+        functionSearchList.addAll(organizationFunctions);
         
-        // If searchCentral is enabled and organization name is present, search from central
-        if (searchCentral) {
-            Optional<String> organizationName = getOrganizationName();
-            if (organizationName.isPresent()) {
-                CentralAPI centralClient = RemoteCentral.getInstance();
-                Map<String, String> queryMap = new HashMap<>();
-                queryMap.put("q", query + " org:" + organizationName.get());
-                queryMap.put("limit", String.valueOf(limit));
-                queryMap.put("offset", String.valueOf(offset));
-                SymbolResponse symbolResponse = centralClient.searchSymbols(queryMap);
-                if (symbolResponse != null && symbolResponse.symbols() != null) {
-                    for (SymbolResponse.Symbol symbol : symbolResponse.symbols()) {
-                        if (symbol.symbolType().equals("function")) {
-                            SearchResult.Package packageInfo = new SearchResult.Package(
-                                    symbol.organization(),
-                                    symbol.name(),
-                                    symbol.name(),
-                                    symbol.version()
-                            );
-                            SearchResult searchResult = SearchResult.from(
-                                    packageInfo,
-                                    symbol.symbolName(),
-                                    symbol.description(),
-                                    true
-                            );
-                            functionSearchList.add(searchResult);
-                        }
+        buildLibraryNodes(functionSearchList);
+        return rootBuilder.build().items();
+    }
+
+    /**
+     * Fetches functions from the current organization using Ballerina Central.
+     *
+     * @param searchQuery The search query to use (empty string for default view)
+     * @return List of SearchResult containing organization functions
+     */
+    private List<SearchResult> getOrganizationFunctions(String searchQuery) {
+        List<SearchResult> organizationFunctions = new ArrayList<>();
+        
+        // Only fetch from central if searchCentral is enabled and organization name is present
+        if (!searchCentral) {
+            return organizationFunctions;
+        }
+        
+        Optional<String> organizationName = getOrganizationName();
+        if (organizationName.isPresent()) {
+            CentralAPI centralClient = RemoteCentral.getInstance();
+            Map<String, String> queryMap = new HashMap<>();
+            String orgQuery = "org:" + organizationName.get();
+            queryMap.put("q", searchQuery.isEmpty() ? orgQuery : searchQuery + " " + orgQuery);
+            queryMap.put("limit", String.valueOf(limit));
+            queryMap.put("offset", String.valueOf(offset));
+            SymbolResponse symbolResponse = centralClient.searchSymbols(queryMap);
+            if (symbolResponse != null && symbolResponse.symbols() != null) {
+                for (SymbolResponse.Symbol symbol : symbolResponse.symbols()) {
+                    if (symbol.symbolType().equals("function")) {
+                        SearchResult.Package packageInfo = new SearchResult.Package(
+                                symbol.organization(),
+                                symbol.name(),
+                                symbol.name(),
+                                symbol.version()
+                        );
+                        SearchResult searchResult = SearchResult.from(
+                                packageInfo,
+                                symbol.symbolName(),
+                                symbol.description(),
+                                true
+                        );
+                        organizationFunctions.add(searchResult);
                     }
                 }
             }
         }
-        
-        buildLibraryNodes(functionSearchList);
-        return rootBuilder.build().items();
+        return organizationFunctions;
     }
 
     @Override

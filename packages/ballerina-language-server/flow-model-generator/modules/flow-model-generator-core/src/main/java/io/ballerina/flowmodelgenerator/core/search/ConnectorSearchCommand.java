@@ -88,11 +88,56 @@ public class ConnectorSearchCommand extends SearchCommand {
         Category.Builder localCategoryBuilder = rootBuilder.stepIn("Local", null, null);
         localConnectors.forEach(connection -> localCategoryBuilder.node(generateAvailableNode(connection, true)));
 
-        Optional<String> organizationName = getOrganizationName();
+        // Add organization connectors to default view if any exist
+        List<SearchResult> organizationConnectors = getOrganizationConnectors("");
+        if (!organizationConnectors.isEmpty()) {
+            Category.Builder organizationCategoryBuilder = rootBuilder.stepIn(Category.Name.CURRENT_ORGANIZATION);
+            organizationConnectors.forEach(
+                    connection -> organizationCategoryBuilder.node(generateAvailableNode(connection)));
+        }
+
+        Map<String, List<SearchResult>> categories = fetchPopularItems();
+        for (Map.Entry<String, List<SearchResult>> entry : categories.entrySet()) {
+            Category.Builder categoryBuilder = rootBuilder.stepIn(entry.getKey(), null, null);
+            entry.getValue().forEach(searchResult -> categoryBuilder.node(generateAvailableNode(searchResult)));
+        }
+
+        return rootBuilder.build().items();
+    }
+
+    @Override
+    protected List<Item> search() {
+        List<SearchResult> searchResults = dbManager.searchConnectors(query, limit, offset);
+
+        // Get organization connectors (searchCentral flag is checked inside the method)
+        List<SearchResult> organizationConnectors = getOrganizationConnectors(query);
+        searchResults.addAll(organizationConnectors);
+        
+        buildLibraryNodes(searchResults);
+        return rootBuilder.build().items();
+    }
+
+    /**
+     * Fetches connectors from the current organization using Ballerina Central.
+     *
+     * @param searchQuery The search query to use (empty string for default view)
+     * @return List of SearchResult containing organization connectors
+     */
+    private List<SearchResult> getOrganizationConnectors(String searchQuery) {
         List<SearchResult> organizationConnectors = new ArrayList<>();
+        
+        // Only fetch from central if searchCentral is enabled and organization name is present
+        if (!searchCentral) {
+            return organizationConnectors;
+        }
+        
+        Optional<String> organizationName = getOrganizationName();
         if (organizationName.isPresent()) {
             CentralAPI centralClient = RemoteCentral.getInstance();
             Map<String, String> queryMap = new HashMap<>();
+            if (!searchQuery.isEmpty()) {
+                queryMap.put("q", searchQuery);
+            }
             queryMap.put("limit", String.valueOf(limit));
             queryMap.put("offset", String.valueOf(offset));
             queryMap.put("org", organizationName.get());
@@ -111,53 +156,7 @@ public class ConnectorSearchCommand extends SearchCommand {
                 }
             }
         }
-        Category.Builder organizationCategoryBuilder = rootBuilder.stepIn(Category.Name.CURRENT_ORGANIZATION);
-        organizationConnectors.forEach(
-                connection -> organizationCategoryBuilder.node(generateAvailableNode(connection)));
-
-        Map<String, List<SearchResult>> categories = fetchPopularItems();
-        for (Map.Entry<String, List<SearchResult>> entry : categories.entrySet()) {
-            Category.Builder categoryBuilder = rootBuilder.stepIn(entry.getKey(), null, null);
-            entry.getValue().forEach(searchResult -> categoryBuilder.node(generateAvailableNode(searchResult)));
-        }
-
-        return rootBuilder.build().items();
-    }
-
-    @Override
-    protected List<Item> search() {
-        buildLocalConnectors();
-        List<SearchResult> searchResults = dbManager.searchConnectors(query, limit, offset);
-
-        // If searchCentral is enabled and organization name is present, search from central
-        if (searchCentral) {
-            Optional<String> organizationName = getOrganizationName();
-            if (organizationName.isPresent()) {
-                CentralAPI centralClient = RemoteCentral.getInstance();
-                Map<String, String> queryMap = new HashMap<>();
-                queryMap.put("q", query);
-                queryMap.put("limit", String.valueOf(limit));
-                queryMap.put("offset", String.valueOf(offset));
-                queryMap.put("org", organizationName.get());
-                ConnectorsResponse connectorsResponse = centralClient.connectors(queryMap);
-                if (connectorsResponse != null && connectorsResponse.connectors() != null) {
-                    for (Connector connector : connectorsResponse.connectors()) {
-                        SearchResult.Package packageInfo = new SearchResult.Package(
-                                connector.packageInfo.getOrganization(),
-                                connector.packageInfo.getName(),
-                                connector.moduleName,
-                                connector.packageInfo.getVersion()
-                        );
-                        SearchResult searchResult = SearchResult.from(packageInfo, connector.name,
-                                connector.packageInfo.getSummary(), true);
-                        searchResults.add(searchResult);
-                    }
-                }
-            }
-        }
-        
-        buildLibraryNodes(searchResults);
-        return rootBuilder.build().items();
+        return organizationConnectors;
     }
 
     @Override
@@ -173,11 +172,6 @@ public class ConnectorSearchCommand extends SearchCommand {
             defaultView.put(category.getKey(), searchResults);
         }
         return defaultView;
-    }
-
-    private void buildLocalConnectors() {
-        List<SearchResult> localConnectors = getLocalConnectors();
-        localConnectors.forEach(connector -> rootBuilder.node(generateAvailableNode(connector, true)));
     }
 
     private void buildLibraryNodes(List<SearchResult> connectorSearchList) {
