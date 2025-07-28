@@ -54,6 +54,7 @@ import {
     convertModelProviderCategoriesToSidePanelCategories,
     convertVectorStoreCategoriesToSidePanelCategories,
     convertEmbeddingProviderCategoriesToSidePanelCategories,
+    convertVectorKnowledgeBaseCategoriesToSidePanelCategories,
 } from "../../../utils/bi";
 import { NodePosition, STNode } from "@wso2/syntax-tree";
 import { View, ProgressRing, ProgressIndicator, ThemeColors } from "@wso2/ui-toolkit";
@@ -69,7 +70,7 @@ import {
     removeAgentNode,
     removeToolFromAgentNode,
 } from "../AIChatAgent/utils";
-import { PROVIDER_NAME_MAP } from "../../../constants";
+import { GET_DEFAULT_MODEL_PROVIDER } from "../../../constants";
 
 const Container = styled.div`
     width: 100%;
@@ -246,12 +247,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                     filePath: model?.fileName,
                 });
                 console.log(">>> Refreshed model provider list", response);
-                setCategories(
-                    convertFunctionCategoriesToSidePanelCategories(
-                        response.categories as Category[],
-                        FUNCTION_TYPE.REGULAR
-                    )
-                );
+                setCategories(convertModelProviderCategoriesToSidePanelCategories(response.categories as Category[]));
                 setSidePanelView(SidePanelView.MODEL_PROVIDER_LIST);
                 setShowSidePanel(true);
             } catch (error) {
@@ -280,10 +276,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 });
                 console.log(">>> Refreshed vector store list", response);
                 setCategories(
-                    convertFunctionCategoriesToSidePanelCategories(
-                        response.categories as Category[],
-                        FUNCTION_TYPE.REGULAR
-                    )
+                    convertVectorStoreCategoriesToSidePanelCategories(response.categories as Category[])
                 );
                 setSidePanelView(SidePanelView.VECTOR_STORE_LIST);
                 setShowSidePanel(true);
@@ -313,10 +306,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 });
                 console.log(">>> Refreshed embedding provider list", response);
                 setCategories(
-                    convertFunctionCategoriesToSidePanelCategories(
-                        response.categories as Category[],
-                        FUNCTION_TYPE.REGULAR
-                    )
+                    convertEmbeddingProviderCategoriesToSidePanelCategories(response.categories as Category[])
                 );
                 setSidePanelView(SidePanelView.EMBEDDING_PROVIDER_LIST);
                 setShowSidePanel(true);
@@ -1036,6 +1026,10 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
             .then(async (response) => {
                 console.log(">>> Updated source code", response);
                 if (response.artifacts.length > 0) {
+                    // If the selected model is the default WSO2 model provider, configure it
+                    if (updatedNode?.codedata?.symbol === GET_DEFAULT_MODEL_PROVIDER) {
+                        await rpcClient.getAIAgentRpcClient().configureDefaultModelProvider();
+                    }
                     selectedNodeRef.current = undefined;
                     await updateCurrentArtifactLocation(response);
                 } else {

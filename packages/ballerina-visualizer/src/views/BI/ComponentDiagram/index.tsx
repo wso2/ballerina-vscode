@@ -142,7 +142,6 @@ export function ComponentDiagram(props: ComponentDiagramProps) {
     const handleDeleteComponent = async (component: CDListener | CDService | CDAutomation | CDConnection) => {
         console.log(">>> delete component", component);
         setIsDeleting(true);
-
         rpcClient
             .getBIDiagramRpcClient()
             .deleteByComponentInfo({
@@ -165,7 +164,7 @@ export function ComponentDiagram(props: ComponentDiagramProps) {
                 }
             })
             .catch((error) => {
-                console.error(">>> Error deleting component", error);
+                console.error(">>> Error deleting component", error?.message);
             })
             .finally(() => {
                 setIsDeleting(false);
