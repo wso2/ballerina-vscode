@@ -36,6 +36,7 @@ import {
     FlowNode,
     ToolParameters,
     ToolParametersValue,
+    DIRECTORY_MAP,
 } from "@wso2/ballerina-core";
 
 import {
@@ -50,6 +51,7 @@ import { URI, Utils } from "vscode-uri";
 import { cloneDeep } from "lodash";
 import { createDefaultParameterValue, createToolInputFields, createToolParameters } from "./formUtils";
 import { FUNCTION_CALL, METHOD_CALL, REMOTE_ACTION_CALL, RESOURCE_ACTION_CALL } from "../../../constants";
+import { NewToolSelectionMode } from "./NewTool";
 
 const LoaderContainer = styled.div`
     display: flex;
@@ -79,6 +81,7 @@ export enum SidePanelView {
 export interface BIFlowDiagramProps {
     projectPath: string;
     onSubmit: (data: ExtendedAgentToolRequest) => void;
+    mode?: NewToolSelectionMode;
 }
 
 export interface ExtendedAgentToolRequest extends AgentToolRequest {
@@ -87,7 +90,7 @@ export interface ExtendedAgentToolRequest extends AgentToolRequest {
 }
 
 export function AIAgentSidePanel(props: BIFlowDiagramProps) {
-    const { projectPath, onSubmit } = props;
+    const { projectPath, onSubmit, mode = NewToolSelectionMode.ALL } = props;
     const { rpcClient } = useRpcContext();
 
     const [sidePanelView, setSidePanelView] = useState<SidePanelView>(SidePanelView.NODE_LIST);
@@ -206,12 +209,20 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
                 const convertedCategories = convertBICategoriesToSidePanelCategories(connectionsCategory);
                 console.log("convertedCategories", convertedCategories);
 
-                const filteredFunctions = await handleSearchFunction("", FUNCTION_TYPE.REGULAR, false);
-                console.log("filteredFunctions", filteredFunctions);
-
-                const filteredCategories = convertedCategories.concat(filteredFunctions);
+                let filteredCategories = [];
+                
+                // Filter categories based on mode
+                if (mode === NewToolSelectionMode.CONNECTION) {
+                    filteredCategories = convertedCategories;
+                } else if (mode === NewToolSelectionMode.FUNCTION) {
+                    const filteredFunctions = await handleSearchFunction("", FUNCTION_TYPE.REGULAR, false);
+                    filteredCategories = filteredFunctions;
+                } else {
+                    const filteredFunctions = await handleSearchFunction("", FUNCTION_TYPE.REGULAR, false);
+                    filteredCategories = convertedCategories.concat(filteredFunctions);
+                }
+                
                 setCategories(filteredCategories);
-                console.log("filteredCategories", filteredCategories);
                 initialCategoriesRef.current = filteredCategories; // Store initial categories
                 setLoading(false);
             })
@@ -398,6 +409,17 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
         });
     };
 
+    const handleOnAddFunction = () => {
+        rpcClient.getVisualizerRpcClient().openView({
+            type: EVENT_TYPE.OPEN_VIEW,
+            location: {
+                view: MACHINE_VIEW.BIFunctionForm,
+                artifactType: DIRECTORY_MAP.FUNCTION,
+            },
+            isPopup: true,
+        });
+    };
+
     const handleToolSubmit = (data: FormValues) => {
         // Safely convert name to camelCase, handling any input
         const name = data["name"] || "";
@@ -533,6 +555,13 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
             "Only isolated functions can be used as tools. Isolated functions ensure predictable behavior by avoiding shared state.";
     }
 
+    let searchPlaceholder = "Search";
+    if (mode === NewToolSelectionMode.CONNECTION) {
+        searchPlaceholder = "Search connections";
+    } else if (mode === NewToolSelectionMode.FUNCTION) {
+        searchPlaceholder = "Search functions";
+    }
+
     return (
         <>
             {loading && (
@@ -545,9 +574,10 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
                     categories={categories}
                     onSelect={handleOnSelectNode}
                     onAddConnection={handleOnAddConnection}
+                    onAddFunction={handleOnAddFunction}
                     onSearchTextChange={(searchText) => handleSearchFunction(searchText, FUNCTION_TYPE.REGULAR, true)}
                     title={"Functions"}
-                    searchPlaceholder={"Search library functions"}
+                    searchPlaceholder={searchPlaceholder}
                 />
             )}
             {sidePanelView === SidePanelView.TOOL_FORM && (
