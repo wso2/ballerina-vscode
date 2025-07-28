@@ -420,6 +420,10 @@ export const Form = forwardRef((props: FormProps, ref) => {
                     defaultValues[field.key] = field.value ?? "";
                 }
 
+                if (field.key === "parameters" && field.value.length === 0) {
+                    defaultValues[field.key] = formValues[field.key] ?? [];
+                }
+
                 if (field.key === "type") {
                     // Handle the case where the type is changed via 'Add Type'
                     const existingType = formValues[field.key];
@@ -751,30 +755,30 @@ export const Form = forwardRef((props: FormProps, ref) => {
                     {hasAdvanceFields && (
                         <S.Row>
                             Optional Configurations
-                                <S.ButtonContainer>
-                                    {!showAdvancedOptions && (
-                                        <LinkButton
-                                            onClick={handleOnShowAdvancedOptions}
-                                            sx={{ fontSize: 12, padding: 8, color: ThemeColors.PRIMARY, gap: 4 }}
-                                        >
-                                            <Codicon
-                                                name={"chevron-down"}
-                                                iconSx={{ fontSize: 12 }}
-                                                sx={{ height: 12 }}
-                                            />
-                                            Expand
-                                        </LinkButton>
-                                    )}
-                                    {showAdvancedOptions && (
-                                        <LinkButton
-                                            onClick={handleOnHideAdvancedOptions}
-                                            sx={{ fontSize: 12, padding: 8, color: ThemeColors.PRIMARY, gap: 4 }}
-                                        >
-                                            <Codicon
-                                                name={"chevron-up"}
-                                                iconSx={{ fontSize: 12 }}
-                                                sx={{ height: 12 }}
-                                            />Collapsed
+                            <S.ButtonContainer>
+                                {!showAdvancedOptions && (
+                                    <LinkButton
+                                        onClick={handleOnShowAdvancedOptions}
+                                        sx={{ fontSize: 12, padding: 8, color: ThemeColors.PRIMARY, gap: 4 }}
+                                    >
+                                        <Codicon
+                                            name={"chevron-down"}
+                                            iconSx={{ fontSize: 12 }}
+                                            sx={{ height: 12 }}
+                                        />
+                                        Expand
+                                    </LinkButton>
+                                )}
+                                {showAdvancedOptions && (
+                                    <LinkButton
+                                        onClick={handleOnHideAdvancedOptions}
+                                        sx={{ fontSize: 12, padding: 8, color: ThemeColors.PRIMARY, gap: 4 }}
+                                    >
+                                        <Codicon
+                                            name={"chevron-up"}
+                                            iconSx={{ fontSize: 12 }}
+                                            sx={{ height: 12 }}
+                                        />Collapsed
                                     </LinkButton>
                                 )}
                             </S.ButtonContainer>
