@@ -21,6 +21,7 @@ import { Position, Range, Uri, WorkspaceEdit, workspace } from "vscode";
 import { URI } from "vscode-uri";
 import { writeFileSync } from "fs";
 import { StateMachine, updateView } from "../stateMachine";
+import { ArtifactNotificationHandler, ArtifactsUpdated } from "./project-artifacts-handler";
 
 interface UpdateFileContentRequest {
     filePath: string;
@@ -80,5 +81,30 @@ export async function writeBallerinaFileDidOpen(filePath: string, content: strin
             version: 1,
             text: content.trim()
         }
+    });
+
+    return new Promise((resolve, reject) => {
+        // Get the artifact notification handler instance
+        const notificationHandler = ArtifactNotificationHandler.getInstance();
+        // Subscribe to artifact updated notifications
+        let unsubscribe = notificationHandler.subscribe(ArtifactsUpdated.method, undefined, async (payload) => {
+            clearTimeout(timeoutId);
+            resolve(payload.data);
+            unsubscribe();
+        });
+
+        // Set a timeout to reject if no notification is received within 10 seconds
+        const timeoutId = setTimeout(() => {
+            console.log("No artifact update notification received within 10 seconds");
+            reject(new Error("Operation timed out. Please try again."));
+            unsubscribe();
+        }, 10000);
+
+        // Clear the timeout when notification is received
+        const originalUnsubscribe = unsubscribe;
+        unsubscribe = () => {
+            clearTimeout(timeoutId);
+            originalUnsubscribe();
+        };
     });
 }

@@ -68,13 +68,13 @@ export function ArrayMappingOptionsWidget(props: ArrayMappingOptionsWidgetProps)
     const targetPortHasLinks = Object.values(targetPort.links)
         ?.some(link => (link as DataMapperLinkModel)?.isActualLink);
 
-    const isValueModifiable = valueType === ValueType.Default
-        || (valueType === ValueType.NonEmpty && !targetPortHasLinks);
+    const isValueModifiable = valueType === ValueType.Replaceable
+        || (valueType === ValueType.Mergeable && !targetPortHasLinks);
     
     const onClickMapArrays = async () => {
-        if (valueType === ValueType.Default) {
+        if (valueType === ValueType.Replaceable) {
             await updateExistingValue(sourcePort, targetPort);
-        } else if (valueType === ValueType.NonEmpty) {
+        } else if (valueType === ValueType.Mergeable) {
             await modifySpecificFieldSource(sourcePort, targetPort, link.getID());
         } else {
             await createSourceForMapping(sourcePort, targetPort);
@@ -112,9 +112,9 @@ export function ArrayMappingOptionsWidget(props: ArrayMappingOptionsWidgetProps)
     const onClickMapArraysAccessSingleton = async () => {
         const newExpr = (sourcePort as RecordFieldPortModel).fieldFQN + genArrayElementAccessSuffix(sourcePort, targetPort);
 
-        if (valueType === ValueType.Default) {
+        if (valueType === ValueType.Replaceable) {
             await updateExistingValue(sourcePort, targetPort, newExpr);
-        } else if (valueType === ValueType.NonEmpty) {
+        } else if (valueType === ValueType.Mergeable) {
             await modifySpecificFieldSource(sourcePort, targetPort, link.getID(), newExpr);
         } else {
             await createSourceForMapping(sourcePort, targetPort, newExpr);

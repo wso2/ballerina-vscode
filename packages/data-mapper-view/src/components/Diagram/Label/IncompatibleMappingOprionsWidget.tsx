@@ -67,9 +67,9 @@ export function IncompatibleMappingOprionsWidget(props: IncompatibleMappingOprio
     const valueType = getValueType(link);
 
     const onClickMapDirectly = async () => {
-        if (valueType === ValueType.Default) {
+        if (valueType === ValueType.Replaceable) {
             await updateExistingValue(sourcePort, targetPort);
-        } else if (valueType === ValueType.NonEmpty) {
+        } else if (valueType === ValueType.Mergeable) {
             await modifySpecificFieldSource(sourcePort, targetPort, link.getID());
         } else {
             await createSourceForMapping(sourcePort, targetPort);

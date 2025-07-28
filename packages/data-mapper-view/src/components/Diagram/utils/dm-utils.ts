@@ -115,6 +115,18 @@ import { IDataMapperContext } from "../../../utils/DataMapperContext/DataMapperC
 import { generateCustomFunction } from "../Link/link-utils";
 import { InputNode, NodeWithoutTypeDesc } from "../Actions/utils";
 
+/**
+ * Set of Ballerina types that support merge operations (string concatenation, numeric addition, etc.)
+ */
+const MERGEABLE_TYPES = new Set([
+	PrimitiveBalType.String,
+	PrimitiveBalType.Int,
+	PrimitiveBalType.Float,
+	PrimitiveBalType.Decimal,
+	"anydata",
+	"any"
+]);
+
 export function getFieldNames(expr: FieldAccess | OptionalFieldAccess) {
 	const fieldNames: { name: string, isOptional: boolean }[] = [];
 	let nextExp: FieldAccess | OptionalFieldAccess = expr;
@@ -571,22 +583,13 @@ export async function mapUsingCustomFunction(
 
 	await context.applyModifications(modifications);
 
-	if (valueType === ValueType.Default) {
+	if (valueType === ValueType.Replaceable) {
 		await updateExistingValue(sourcePort, targetPort, functionCallExpr);
-	} else if (valueType === ValueType.NonEmpty) {
+	} else if (valueType === ValueType.Mergeable) {
 		await modifySpecificFieldSource(sourcePort, targetPort, linkId, functionCallExpr);
 	} else {
 		await createSourceForMapping(sourcePort, targetPort, functionCallExpr);
 	}
-
-	// Navigate to the data mapper function
-	// TODO: Instead creating custom function from the front-end, we should use a LS API to create the function
-	// and then navigate to the function by using the position returned by the LS API
-	context.goToSource({
-		...context.functionST.position,
-		endLine: context.functionST.position.startLine,
-		endColumn: context.functionST.position.startColumn
-	});
 }
 
 export function replaceSpecificFieldValue(targetPort: PortModel, modifications: STModification[]) {
@@ -1156,6 +1159,10 @@ export function getDefaultValue(typeName: string): string {
 	return draftParameter;
 }
 
+export function isMergeable(typeName: string): boolean {
+	return MERGEABLE_TYPES.has(typeName);
+}
+
 export function isArrayOrRecord(field: TypeField) {
 	return field.typeName === PrimitiveBalType.Array || field.typeName === PrimitiveBalType.Record;
 }
@@ -1551,7 +1558,14 @@ export function getValueType(lm: DataMapperLinkModel): ValueType {
 		}
 
 		if (value !== undefined && !isEmptyValue(innerExpr?.position)) {
-			return isDefaultValue(editableRecordField.type, value) ? ValueType.Default : ValueType.NonEmpty;
+			const isDefault = isDefaultValue(editableRecordField.type, value);
+			if (isDefault) {
+				return ValueType.Replaceable;
+			} else {
+				return isMergeable(editableRecordField.type.typeName)
+					? ValueType.Mergeable
+					: ValueType.Replaceable;
+			}
 		}
 	}
 
@@ -1717,8 +1731,11 @@ function getSpecificField(mappingConstruct: MappingConstructor, targetFieldName:
 }
 
 export function isComplexExpression(node: STNode): boolean {
-	return (STKindChecker.isConditionalExpression(node)
-			|| (STKindChecker.isBinaryExpression(node) && STKindChecker.isElvisToken(node.operator)))
+	return (
+		STKindChecker.isConditionalExpression(node) ||
+		(STKindChecker.isBinaryExpression(node) && STKindChecker.isElvisToken(node.operator)) ||
+		STKindChecker.isFunctionCall(node)
+	);
 }
 
 export function isIndexedExpression(node: STNode): boolean {
