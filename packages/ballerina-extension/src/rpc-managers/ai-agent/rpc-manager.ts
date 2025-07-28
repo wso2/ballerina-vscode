@@ -42,9 +42,11 @@ import {
     MemoryManagersResponse,
     NodePosition
 } from "@wso2/ballerina-core";
+import vscode from "vscode";
 import { URI, Utils } from "vscode-uri";
 import { StateMachine } from "../../stateMachine";
 import { updateSourceCode } from "../../utils/source-utils";
+import { CONFIGURE_DEFAULT_MODEL_COMMAND } from "../../features/ai/constants";
 
 
 interface EntryPosition {
@@ -565,5 +567,9 @@ export class AiAgentRpcManager implements AIAgentAPI {
                 console.log(error);
             }
         });
+    }
+
+    async configureDefaultModelProvider(): Promise<void> {
+        await vscode.commands.executeCommand(CONFIGURE_DEFAULT_MODEL_COMMAND);
     }
 }
