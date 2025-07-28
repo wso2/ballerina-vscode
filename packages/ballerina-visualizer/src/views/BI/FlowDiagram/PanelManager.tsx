@@ -17,7 +17,15 @@
  */
 
 import { PanelContainer, NodeList, CardList, ExpressionFormField } from "@wso2/ballerina-side-panel";
-import { FlowNode, LineRange, SubPanel, SubPanelView, FUNCTION_TYPE, ToolData, NodeMetadata } from "@wso2/ballerina-core";
+import {
+    FlowNode,
+    LineRange,
+    SubPanel,
+    SubPanelView,
+    FUNCTION_TYPE,
+    ToolData,
+    NodeMetadata,
+} from "@wso2/ballerina-core";
 import { HelperView } from "../HelperView";
 import FormGenerator from "../Forms/FormGenerator";
 import { getContainerTitle, getSubPanelWidth } from "../../../utils/bi";
@@ -28,7 +36,7 @@ import { NewAgent } from "../AIChatAgent/NewAgent";
 import { AddTool } from "../AIChatAgent/AddTool";
 import { AddMcpServer } from "../AIChatAgent/AddMcpServer";
 import { useEffect, useState } from "react";
-import { NewTool } from "../AIChatAgent/NewTool";
+import { NewTool, NewToolSelectionMode } from "../AIChatAgent/NewTool";
 import styled from "@emotion/styled";
 import { MemoryManagerConfig } from "../AIChatAgent/MemoryManagerConfig";
 
@@ -54,6 +62,8 @@ export enum SidePanelView {
     NEW_AGENT = "NEW_AGENT",
     ADD_TOOL = "ADD_TOOL",
     NEW_TOOL = "NEW_TOOL",
+    NEW_TOOL_FROM_CONNECTION = "NEW_TOOL_FROM_CONNECTION",
+    NEW_TOOL_FROM_FUNCTION = "NEW_TOOL_FROM_FUNCTION",
     ADD_MCP_SERVER = "ADD_MCP_SERVER",
     EDIT_MCP_SERVER = "EDIT_MCP_SERVER",
     AGENT_TOOL = "AGENT_TOOL",
@@ -157,6 +167,7 @@ export function PanelManager(props: PanelManagerProps) {
     } = props;
 
     const [panelView, setPanelView] = useState<SidePanelView>(sidePanelView);
+
     useEffect(() => {
         setPanelView(sidePanelView);
     }, [sidePanelView]);
@@ -175,6 +186,18 @@ export function PanelManager(props: PanelManagerProps) {
 
     const handleOnBackToAddTool = () => {
         setPanelView(SidePanelView.ADD_TOOL);
+    };
+
+    const handleOnUseConnection = () => {
+        setPanelView(SidePanelView.NEW_TOOL_FROM_CONNECTION);
+    };
+
+    const handleOnUseFunction = () => {
+        setPanelView(SidePanelView.NEW_TOOL_FROM_FUNCTION);
+    };
+
+    const handleOnUseMcpServer = () => {
+        setPanelView(SidePanelView.ADD_MCP_SERVER);
     };
 
     const handleSubmitAndClose = () => {
@@ -223,25 +246,67 @@ export function PanelManager(props: PanelManagerProps) {
                 );
 
             case SidePanelView.ADD_TOOL:
-                return <AddTool agentCallNode={selectedNode} onAddNewTool={handleOnAddTool} onSave={onClose} />;
+                return (
+                    <AddTool
+                        agentCallNode={selectedNode}
+                        onUseConnection={handleOnUseConnection}
+                        onUseFunction={handleOnUseFunction}
+                        onUseMcpServer={handleOnUseMcpServer}
+                        onSave={onClose}
+                    />
+                );
 
             case SidePanelView.ADD_MCP_SERVER:
                 return (
                     <AddMcpServer
                         agentCallNode={selectedNode}
-                        fileName={fileName}
                         name={selectedMcpToolkitName}
                         onAddMcpServer={onClose}
                         onSave={onClose}
-                        onBack={onBack}
+                        onBack={handleOnBackToAddTool}
                     />
                 );
 
             case SidePanelView.EDIT_MCP_SERVER:
-                return <AddMcpServer editMode={true} name={selectedClientName} agentCallNode={selectedNode} onAddMcpServer={handleOnEditMcpServer} onSave={onClose} />;
+                return (
+                    <AddMcpServer
+                        editMode={true}
+                        name={selectedClientName}
+                        agentCallNode={selectedNode}
+                        onAddMcpServer={handleOnEditMcpServer}
+                        onSave={onClose}
+                    />
+                );
 
             case SidePanelView.NEW_TOOL:
-                return <NewTool agentCallNode={selectedNode} onSave={onClose} onBack={handleOnBackToAddTool} />;
+                return (
+                    <NewTool
+                        agentCallNode={selectedNode}
+                        mode={NewToolSelectionMode.ALL}
+                        onSave={onClose}
+                        onBack={handleOnBackToAddTool}
+                    />
+                );
+
+            case SidePanelView.NEW_TOOL_FROM_CONNECTION:
+                return (
+                    <NewTool
+                        agentCallNode={selectedNode}
+                        mode={NewToolSelectionMode.CONNECTION}
+                        onSave={onClose}
+                        onBack={handleOnBackToAddTool}
+                    />
+                );
+
+            case SidePanelView.NEW_TOOL_FROM_FUNCTION:
+                return (
+                    <NewTool
+                        agentCallNode={selectedNode}
+                        mode={NewToolSelectionMode.FUNCTION}
+                        onSave={onClose}
+                        onBack={handleOnBackToAddTool}
+                    />
+                );
 
             case SidePanelView.AGENT_TOOL:
                 const selectedTool = (selectedNode?.metadata.data as NodeMetadata).tools?.find(
@@ -336,9 +401,7 @@ export function PanelManager(props: PanelManagerProps) {
                         onClose={onClose}
                         title={"Vector Stores"}
                         searchPlaceholder={"Search vector stores"}
-                        onSearchTextChange={(searchText) =>
-                            onSearchVectorStore?.(searchText, FUNCTION_TYPE.REGULAR)
-                        }
+                        onSearchTextChange={(searchText) => onSearchVectorStore?.(searchText, FUNCTION_TYPE.REGULAR)}
                         onBack={canGoBack ? onBack : undefined}
                     />
                 );
@@ -427,7 +490,10 @@ export function PanelManager(props: PanelManagerProps) {
     };
 
     const onBackCallback =
-        panelView === SidePanelView.NEW_TOOL
+        panelView === SidePanelView.NEW_TOOL ||
+        panelView === SidePanelView.NEW_TOOL_FROM_CONNECTION ||
+        panelView === SidePanelView.NEW_TOOL_FROM_FUNCTION ||
+        panelView === SidePanelView.ADD_MCP_SERVER
             ? handleOnBackToAddTool
             : panelView === SidePanelView.NEW_AGENT
             ? onBack

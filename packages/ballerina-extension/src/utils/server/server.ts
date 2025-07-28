@@ -240,7 +240,8 @@ function getServerOptionsUsingJava(extension: BallerinaExtension): ServerOptions
         'test-manager-service*',
         'language-server*',
         "bal-shell-service*",
-        "org.eclipse.lsp4j*"
+        "org.eclipse.lsp4j*",
+        "diagram-util*"
     ];
 
     // Generate paths for ballerina home jars using dynamic discovery (excluding specified patterns)
