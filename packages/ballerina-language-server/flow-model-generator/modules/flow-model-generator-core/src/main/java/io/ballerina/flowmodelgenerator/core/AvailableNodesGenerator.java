@@ -250,6 +250,9 @@ public class AvailableNodesGenerator {
                         .description(NPFunctionCall.DESCRIPTION).icon(NaturalFunctions.ICON).build(),
                 new Codedata.Builder<>(null).node(NodeKind.NP_FUNCTION).build(), true);
 
+        Category directLlmCategory = new Category.Builder(null).name(Category.Name.DIRECT_LLM)
+                .items(List.of(modelProvider, npFunction)).build();
+
         AvailableNode vectorKnowledgeBase = new AvailableNode(
                 new Metadata.Builder<>(null).label(VectorKnowledgeBaseBuilder.LABEL)
                         .description(VectorKnowledgeBaseBuilder.DESCRIPTION).build(),
@@ -271,19 +274,6 @@ public class AvailableNodesGenerator {
                         .module(Ai.AI_PACKAGE).packageName(Ai.AI_PACKAGE).symbol(Ai.AUGMENT_USER_QUERY_METHOD_NAME)
                         .build(), !disableBallerinaAiNodes);
 
-        AvailableNode agentCall = new AvailableNode(
-                new Metadata.Builder<>(null).label(AgentBuilder.LABEL)
-                        .description(AgentBuilder.DESCRIPTION).build(),
-                new Codedata.Builder<>(null).node(NodeKind.AGENT_CALL).
-                        org(disableBallerinaAiNodes ? BALLERINAX : BALLERINA).module(Ai.AI_PACKAGE)
-                        .packageName(Ai.AI_PACKAGE).symbol(Ai.AGENT_RUN_METHOD_NAME).object(Ai.AGENT_TYPE_NAME).build(),
-                true);
-
-        return List.of(modelProvider, npFunction, vectorKnowledgeBase, chunkers, augmentUserQuery, agentCall,
-                getMoreAiCategory(disableBallerinaAiNodes));
-    }
-
-    private static Category getMoreAiCategory(boolean disableBallerinaAiNodes) {
         AvailableNode vectorStore = new AvailableNode(
                 new Metadata.Builder<>(null).label(VectorStoreBuilder.LABEL)
                         .description(VectorStoreBuilder.DESCRIPTION).build(),
@@ -296,8 +286,22 @@ public class AvailableNodesGenerator {
                 new Codedata.Builder<>(null).node(NodeKind.EMBEDDING_PROVIDERS).build(),
                 !disableBallerinaAiNodes);
 
-        return new Category.Builder(null).name(Category.Name.MORE)
-                .items(List.of(vectorStore, embeddingProvider)).build();
+        Category ragCategory = new Category.Builder(null).name(Category.Name.RAG)
+                .items(List.of(vectorKnowledgeBase, chunkers, augmentUserQuery, vectorStore, embeddingProvider))
+                .build();
+
+        AvailableNode agentCall = new AvailableNode(
+                new Metadata.Builder<>(null).label(AgentBuilder.LABEL)
+                        .description(AgentBuilder.DESCRIPTION).build(),
+                new Codedata.Builder<>(null).node(NodeKind.AGENT_CALL).
+                        org(disableBallerinaAiNodes ? BALLERINAX : BALLERINA).module(Ai.AI_PACKAGE)
+                        .packageName(Ai.AI_PACKAGE).symbol(Ai.AGENT_RUN_METHOD_NAME)
+                        .object(Ai.AGENT_TYPE_NAME).build(), true);
+
+        Category agentCategory = new Category.Builder(null).name(Category.Name.AGENT)
+                .items(List.of(agentCall)).build();
+
+        return List.of(directLlmCategory, ragCategory, agentCategory);
     }
 
     private void setStopNode(NonTerminalNode node) {

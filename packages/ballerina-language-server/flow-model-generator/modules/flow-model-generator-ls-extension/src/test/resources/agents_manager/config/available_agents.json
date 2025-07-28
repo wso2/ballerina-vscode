@@ -804,94 +804,87 @@
     },
     {
       "metadata": {
-        "label": "AI Components",
+        "label": "AI",
         "description": "AI components available in the flow"
       },
       "items": [
         {
           "metadata": {
-            "label": "Model Provider",
-            "description": "Model providers available within the integration for connecting to an LLM"
-          },
-          "codedata": {
-            "node": "MODEL_PROVIDERS"
-          },
-          "enabled": false
-        },
-        {
-          "metadata": {
-            "label": "Call Natural Function",
-            "description": "Call a natural programming function",
-            "icon": "https://gist.github.com/user-attachments/assets/903c5c16-7d67-4af8-8113-ce7c59ccdaab"
-          },
-          "codedata": {
-            "node": "NP_FUNCTION"
-          },
-          "enabled": true
-        },
-        {
-          "metadata": {
-            "label": "Vector Knowledge Base",
-            "description": "Vector knowledge bases available in the integration"
-          },
-          "codedata": {
-            "node": "VECTOR_KNOWLEDGE_BASES",
-            "org": "ballerina",
-            "module": "ai",
-            "packageName": "ai",
-            "object": "VectorKnowledgeBase",
-            "symbol": "init",
-            "version": "1.1.0"
-          },
-          "enabled": false
-        },
-        {
-          "metadata": {
-            "label": "Recursive Document Chunker"
-          },
-          "codedata": {
-            "node": "FUNCTION_CALL",
-            "org": "ballerina",
-            "module": "ai",
-            "packageName": "ai",
-            "symbol": "chunkDocumentRecursively"
-          },
-          "enabled": false
-        },
-        {
-          "metadata": {
-            "label": "Augment Query"
-          },
-          "codedata": {
-            "node": "FUNCTION_CALL",
-            "org": "ballerina",
-            "module": "ai",
-            "packageName": "ai",
-            "symbol": "augmentUserQuery"
-          },
-          "enabled": false
-        },
-        {
-          "metadata": {
-            "label": "Agent",
-            "description": "Create new agent"
-          },
-          "codedata": {
-            "node": "AGENT_CALL",
-            "org": "ballerinax",
-            "module": "ai",
-            "packageName": "ai",
-            "object": "Agent",
-            "symbol": "run"
-          },
-          "enabled": true
-        },
-        {
-          "metadata": {
-            "label": "More",
-            "description": "Expandable section to view more content"
+            "label": "Direct LLM",
+            "description": "AI components that connect directly with a large language model"
           },
           "items": [
+            {
+              "metadata": {
+                "label": "Model Provider",
+                "description": "Model providers available within the integration for connecting to an LLM"
+              },
+              "codedata": {
+                "node": "MODEL_PROVIDERS"
+              },
+              "enabled": false
+            },
+            {
+              "metadata": {
+                "label": "Call Natural Function",
+                "description": "Call a natural programming function",
+                "icon": "https://gist.github.com/user-attachments/assets/903c5c16-7d67-4af8-8113-ce7c59ccdaab"
+              },
+              "codedata": {
+                "node": "NP_FUNCTION"
+              },
+              "enabled": true
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "label": "RAG",
+            "description": "AI components specific to Retrieval-Augmented Generation workflows"
+          },
+          "items": [
+            {
+              "metadata": {
+                "label": "Vector Knowledge Base",
+                "description": "Vector knowledge bases available in the integration"
+              },
+              "codedata": {
+                "node": "VECTOR_KNOWLEDGE_BASES",
+                "org": "ballerina",
+                "module": "ai",
+                "packageName": "ai",
+                "object": "VectorKnowledgeBase",
+                "symbol": "init",
+                "version": "1.1.0"
+              },
+              "enabled": false
+            },
+            {
+              "metadata": {
+                "label": "Recursive Document Chunker"
+              },
+              "codedata": {
+                "node": "FUNCTION_CALL",
+                "org": "ballerina",
+                "module": "ai",
+                "packageName": "ai",
+                "symbol": "chunkDocumentRecursively"
+              },
+              "enabled": false
+            },
+            {
+              "metadata": {
+                "label": "Augment Query"
+              },
+              "codedata": {
+                "node": "FUNCTION_CALL",
+                "org": "ballerina",
+                "module": "ai",
+                "packageName": "ai",
+                "symbol": "augmentUserQuery"
+              },
+              "enabled": false
+            },
             {
               "metadata": {
                 "label": "Vector Store",
@@ -911,6 +904,29 @@
                 "node": "EMBEDDING_PROVIDERS"
               },
               "enabled": false
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "label": "Agent",
+            "description": "Represents an AI Agent within a workflow"
+          },
+          "items": [
+            {
+              "metadata": {
+                "label": "Agent",
+                "description": "Create new agent"
+              },
+              "codedata": {
+                "node": "AGENT_CALL",
+                "org": "ballerinax",
+                "module": "ai",
+                "packageName": "ai",
+                "object": "Agent",
+                "symbol": "run"
+              },
+              "enabled": true
             }
           ]
         }
