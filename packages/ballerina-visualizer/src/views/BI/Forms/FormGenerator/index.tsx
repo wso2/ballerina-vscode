@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import { RefObject, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { RefObject, useCallback, useEffect, useMemo, useRef, useState, forwardRef, useImperativeHandle } from "react";
 import {
     EVENT_TYPE,
     ColorThemeKind,
@@ -34,7 +34,9 @@ import {
     ExpressionProperty,
     Type,
     RecordTypeField,
-    Imports
+    Imports,
+    CodeData,
+    VisualizableField
 } from "@wso2/ballerina-core";
 import {
     FormField,
@@ -64,7 +66,7 @@ import {
     filterUnsupportedDiagnostics,
     getFormProperties,
     getImportsForFormFields,
-    getInfoFromExpressionValue,
+    calculateExpressionOffsets,
     injectHighlightTheme,
     removeDuplicateDiagnostics,
     updateLineRange,
@@ -83,6 +85,7 @@ import { FormTypeEditor } from "../../TypeEditor";
 import { getTypeHelper } from "../../TypeHelper";
 import { EXPRESSION_EXTRACTION_REGEX } from "../../../../constants";
 import MatchForm from "../MatchForm";
+import VectorKnowledgeBaseForm from "../VectorKnowledgeBaseForm";
 
 interface TypeEditorState {
     isOpen: boolean;
@@ -101,7 +104,7 @@ interface FormProps {
     editForm?: boolean;
     isGraphql?: boolean;
     submitText?: string;
-    onSubmit: (node?: FlowNode, isDataMapper?: boolean, formImports?: FormImports) => void;
+    onSubmit: (node?: FlowNode, openInDataMapper?: boolean, formImports?: FormImports, rawFormValues?: FormValues) => void;
     showProgressIndicator?: boolean;
     subPanelView?: SubPanelView;
     openSubPanel?: (subPanel: SubPanel) => void;
@@ -113,6 +116,11 @@ interface FormProps {
         description?: string; // Optional description explaining what the action button does
         callback: () => void;
     };
+    scopeFieldAddon?: React.ReactNode;
+    newServerUrl?: string;
+    onChange?: (fieldKey: string, value: any, allValues: FormValues) => void;
+    mcpTools?: { name: string; description?: string }[];
+    onToolsChange?: (selectedTools: string[]) => void;
 }
 
 // Styled component for the action button description
@@ -138,7 +146,7 @@ const StyledActionButton = styled(Button)`
     }
 `;
 
-export function FormGenerator(props: FormProps) {
+export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(function FormGenerator(props: FormProps, ref: React.ForwardedRef<FormExpressionEditorRef>) {
     const {
         fileName,
         node,
@@ -147,7 +155,6 @@ export function FormGenerator(props: FormProps) {
         clientName,
         targetLineRange,
         projectPath,
-        editForm,
         showProgressIndicator,
         isGraphql,
         onSubmit,
@@ -158,6 +165,10 @@ export function FormGenerator(props: FormProps) {
         disableSaveButton,
         actionButtonConfig,
         submitText,
+        scopeFieldAddon,
+        newServerUrl,
+        onChange,
+        mcpTools,
     } = props;
 
     const { rpcClient } = useRpcContext();
@@ -165,7 +176,7 @@ export function FormGenerator(props: FormProps) {
     const [fields, setFields] = useState<FormField[]>([]);
     const [formImports, setFormImports] = useState<FormImports>({});
     const [typeEditorState, setTypeEditorState] = useState<TypeEditorState>({ isOpen: false, newTypeValue: "" });
-    const [visualizableFields, setVisualizableFields] = useState<string[]>([]);
+    const [visualizableField, setVisualizableField] = useState<VisualizableField>();
     const [recordTypeFields, setRecordTypeFields] = useState<RecordTypeField[]>([]);
 
     /* Expression editor related state and ref variables */
@@ -175,6 +186,7 @@ export function FormGenerator(props: FormProps) {
     const [types, setTypes] = useState<CompletionItem[]>([]);
     const [filteredTypes, setFilteredTypes] = useState<CompletionItem[]>([]);
     const expressionOffsetRef = useRef<number>(0); // To track the expression offset on adding import statements
+    const importsCodedataRef = useRef<any>(null); // To store codeData for getVisualizableFields
 
     useEffect(() => {
         if (rpcClient) {
@@ -254,12 +266,15 @@ export function FormGenerator(props: FormProps) {
             }
         }
 
-        rpcClient
-            .getInlineDataMapperRpcClient()
-            .getVisualizableFields({ filePath: fileName, flowNode: node, position: targetLineRange.startLine })
-            .then((res) => {
-                setVisualizableFields(res.visualizableProperties);
-            });
+        if (node.codedata.node === "VARIABLE") {
+            const codedata = importsCodedataRef.current || { symbol: formProperties?.type.value };
+            rpcClient
+                .getInlineDataMapperRpcClient()
+                .getVisualizableFields({ filePath: fileName, codedata })
+                .then((res) => {
+                    setVisualizableField(res.visualizableProperties);
+                });
+        }
 
         // Extract fields with typeMembers where kind is RECORD_TYPE
         const recordTypeFields = Object.entries(formProperties)
@@ -288,8 +303,8 @@ export function FormGenerator(props: FormProps) {
             const updatedNode = mergeFormDataWithFlowNode(data, targetLineRange, dirtyFields);
             console.log(">>> Updated node", updatedNode);
 
-            const isDataMapperFormUpdate = data["isDataMapperFormUpdate"];
-            onSubmit(updatedNode, isDataMapperFormUpdate, formImports);
+            const openInDataMapper = data["openInDataMapper"];
+            onSubmit(updatedNode, openInDataMapper, formImports);
         }
     };
 
@@ -330,8 +345,10 @@ export function FormGenerator(props: FormProps) {
         setTypeEditorState({ isOpen, fieldKey: editingField?.key, newTypeValue: f[editingField?.key] });
     };
 
-    const handleUpdateImports = (key: string, imports: Imports) => {
+    const handleUpdateImports = (key: string, imports: Imports, codedata?: CodeData) => {
+        importsCodedataRef.current = codedata;
         const importKey = Object.keys(imports)?.[0];
+
         if (Object.keys(formImports).includes(key)) {
             if (importKey && !Object.keys(formImports[key]).includes(importKey)) {
                 const updatedImports = { ...formImports, [key]: { ...formImports[key], ...imports } };
@@ -376,7 +393,7 @@ export function FormGenerator(props: FormProps) {
                         })
                         .sort((a, b) => a.sortText.localeCompare(b.sortText));
                 } else {
-                    const { lineOffset, charOffset } = getInfoFromExpressionValue(value, offset);
+                    const { lineOffset, charOffset } = calculateExpressionOffsets(value, offset);
                     let completions = await rpcClient.getBIDiagramRpcClient().getExpressionCompletions({
                         filePath: fileName,
                         context: {
@@ -487,7 +504,7 @@ export function FormGenerator(props: FormProps) {
     );
 
     const extractArgsFromFunction = async (value: string, property: ExpressionProperty, cursorPosition: number) => {
-        const { lineOffset, charOffset } = getInfoFromExpressionValue(value, cursorPosition);
+        const { lineOffset, charOffset } = calculateExpressionOffsets(value, cursorPosition);
         const signatureHelp = await rpcClient.getBIDiagramRpcClient().getSignatureHelp({
             filePath: fileName,
             context: {
@@ -709,11 +726,13 @@ export function FormGenerator(props: FormProps) {
         handleExpressionEditorCancel,
     ]);
 
-    const fetchVisualizableFields = async (filePath: string, flowNode: FlowNode, position: LinePosition) => {
+    const fetchVisualizableFields = async (filePath: string, typeName?: string) => {
+        const codedata = importsCodedataRef.current || { symbol: typeName };
         const res = await rpcClient
             .getInlineDataMapperRpcClient()
-            .getVisualizableFields({ filePath, flowNode, position });
-        setVisualizableFields(res.visualizableProperties);
+            .getVisualizableFields({ filePath, codedata});
+        setVisualizableField(res.visualizableProperties);
+        importsCodedataRef.current = {};
     };
 
     const handleTypeCreate = (typeName?: string) => {
@@ -774,6 +793,25 @@ export function FormGenerator(props: FormProps) {
         );
     }
 
+    // handle vector knowledge base form
+    if (node?.codedata.node === "VECTOR_KNOWLEDGE_BASE") {
+        return (
+            <VectorKnowledgeBaseForm
+                fileName={fileName}
+                node={node}
+                targetLineRange={targetLineRange}
+                expressionEditor={expressionEditor}
+                showProgressIndicator={showProgressIndicator}
+                onSubmit={onSubmit}
+                openSubPanel={openSubPanel}
+                updatedExpressionField={updatedExpressionField}
+                resetUpdatedExpressionField={resetUpdatedExpressionField}
+                subPanelView={subPanelView}
+                disableSaveButton={disableSaveButton}
+            />
+        );
+    }
+
     if (!node) {
         console.log(">>> Node is undefined");
         return null;
@@ -801,6 +839,7 @@ export function FormGenerator(props: FormProps) {
         <>
             {fields && fields.length > 0 && (
                 <Form
+                    ref={ref}
                     formFields={fields}
                     projectPath={projectPath}
                     selectedNode={node.codedata.node}
@@ -818,7 +857,7 @@ export function FormGenerator(props: FormProps) {
                     resetUpdatedExpressionField={resetUpdatedExpressionField}
                     mergeFormDataWithFlowNode={mergeFormDataWithFlowNode}
                     handleVisualizableFields={fetchVisualizableFields}
-                    visualizableFields={visualizableFields}
+                    visualizableField={visualizableField}
                     infoLabel={infoLabel}
                     disableSaveButton={disableSaveButton}
                     actionButton={actionButton}
@@ -826,6 +865,11 @@ export function FormGenerator(props: FormProps) {
                     isInferredReturnType={!!node.codedata?.inferredReturnType}
                     formImports={formImports}
                     preserveOrder={node.codedata.node === "VARIABLE" || node.codedata.node === "CONFIG_VARIABLE"}
+                    scopeFieldAddon={scopeFieldAddon}
+                    newServerUrl={newServerUrl}
+                    onChange={onChange}
+                    mcpTools={mcpTools}
+                    onToolsChange={props.onToolsChange}
                 />
             )}
             {typeEditorState.isOpen && (
@@ -841,6 +885,6 @@ export function FormGenerator(props: FormProps) {
             )}
         </>
     );
-}
+});
 
 export default FormGenerator;

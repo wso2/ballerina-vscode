@@ -1,1 +1,1 @@
-string st = "sample giga string";
+strixng st = "saample giga string";

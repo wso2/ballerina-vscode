@@ -29,6 +29,7 @@ import { VisualizerLocation } from "@wso2/ballerina-core";
 import { MACHINE_VIEW } from "@wso2/ballerina-core";
 import styled from "@emotion/styled";
 import { BIFocusFlowDiagram } from "../FocusFlowDiagram";
+import { getColorByMethod } from "../ServiceDesigner/components/ResourceAccordion";
 
 const ActionButton = styled(Button)`
     display: flex;
@@ -39,6 +40,7 @@ const ActionButton = styled(Button)`
 const SubTitleWrapper = styled.div`
     display: flex;
     align-items: center;
+    align-self: center;
     justify-content: flex-start;
     gap: 12px;
     width: 100%;
@@ -50,14 +52,21 @@ const LeftElementsWrapper = styled.div`
     gap: 12px;
 `;
 
-const AccessorType = styled.span`
-    background-color: ${ThemeColors.SURFACE_BRIGHT};
+const AccessorType = styled.span<{ color?: string }>`
+    background-color: ${(props: { color: any; }) => props.color};
     color: ${ThemeColors.ON_SURFACE};
     padding: 4px 8px;
     border-radius: 4px;
     font-size: 12px;
-    font-weight: 500;
     text-transform: uppercase;
+    font-family: "GilmerBold";
+    color: #FFF;
+    padding: 4px 8px;
+    border-radius: 4px;
+    min-width: 60px;
+    text-align: center;
+    align-items: center;
+    font-weight: bold;
 `;
 
 const Path = styled.span`
@@ -152,10 +161,12 @@ export interface DiagramWrapperProps {
     projectPath: string;
     filePath?: string;
     view?: FocusFlowDiagramView;
+    breakpointState?: boolean;
+    syntaxTree?: STNode;
 }
 
 export function DiagramWrapper(param: DiagramWrapperProps) {
-    const { projectPath, filePath, view } = param;
+    const { projectPath, filePath, view, breakpointState, syntaxTree } = param;
     const { rpcClient } = useRpcContext();
 
     const [showSequenceDiagram, setShowSequenceDiagram] = useState(false);
@@ -269,7 +280,11 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
         return (
             <SubTitleWrapper>
                 <LeftElementsWrapper>
-                    {isResource && <AccessorType>{parentMetadata?.accessor || ""}</AccessorType>}
+                    {isResource && (
+                        <AccessorType color={getColorByMethod(parentMetadata?.accessor || "")}>
+                            {parentMetadata?.accessor || ""}
+                        </AccessorType>
+                    )}
                     {!isAutomation && <Path>{parentMetadata?.label || ""}</Path>}
                     {parameters && (
                         <WrappedTooltip content={parameters}>
@@ -334,39 +349,49 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
         <View>
             <TopNavigationBar />
             <TitleBar title={getTitle()} subtitleElement={getSubtitleElement()} actions={getActions()} />
-            {enableSequenceDiagram && !isAgent && (
-                <Switch
-                    leftLabel="Flow"
-                    rightLabel="Sequence"
-                    checked={showSequenceDiagram}
-                    checkedColor="var(--vscode-button-background)"
-                    enableTransition={true}
-                    onChange={handleToggleDiagram}
-                    sx={{
-                        width: "250px",
-                        margin: "auto",
-                        position: "fixed",
-                        top: "120px",
-                        right: "16px",
-                        zIndex: "3",
-                        border: "unset",
-                    }}
-                    disabled={loadingDiagram}
-                />
-            )}
-            {showSequenceDiagram ? (
-                <BISequenceDiagram onUpdate={handleUpdateDiagram} onReady={handleReadyDiagram} />
-            ) : view ? (
-                <BIFocusFlowDiagram
-                    projectPath={projectPath}
-                    filePath={filePath}
-                    onUpdate={handleUpdateDiagram}
-                    onReady={handleReadyDiagram}
-                />
-            ) : (
-                <BIFlowDiagram projectPath={projectPath} onUpdate={handleUpdateDiagram} onReady={handleReadyDiagram} />
-            )}
-        </View>
+    {
+        enableSequenceDiagram && !isAgent && (
+            <Switch
+                leftLabel="Flow"
+                rightLabel="Sequence"
+                checked={showSequenceDiagram}
+                checkedColor="var(--vscode-button-background)"
+                enableTransition={true}
+                onChange={handleToggleDiagram}
+                sx={{
+                    width: "250px",
+                    margin: "auto",
+                    position: "fixed",
+                    top: "120px",
+                    right: "16px",
+                    zIndex: "3",
+                    border: "unset",
+                }}
+                disabled={loadingDiagram}
+            />
+        )
+    }
+    {
+        showSequenceDiagram ? (
+            <BISequenceDiagram onUpdate={handleUpdateDiagram} onReady={handleReadyDiagram} />
+        ) : view ? (
+            <BIFocusFlowDiagram
+                projectPath={projectPath}
+                filePath={filePath}
+                onUpdate={handleUpdateDiagram}
+                onReady={handleReadyDiagram}
+            />
+        ) : (
+            <BIFlowDiagram
+                syntaxTree={syntaxTree}
+                breakpointState={breakpointState}
+                projectPath={projectPath}
+                onUpdate={handleUpdateDiagram}
+                onReady={handleReadyDiagram}
+            />
+        )
+    }
+        </View >
     );
 }
 

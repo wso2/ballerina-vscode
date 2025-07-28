@@ -25,6 +25,9 @@ import { WebViewOptions, getComposerWebViewOptions, getLibraryWebViewContent } f
 import { extension } from "../../BalExtensionContext";
 import { StateMachine, updateView } from "../../stateMachine";
 import { LANGUAGE } from "../../core";
+import { CodeData, MACHINE_VIEW } from "@wso2/ballerina-core";
+import { refreshDataMapper } from "../../rpc-managers/inline-data-mapper/utils";
+import { AiPanelWebview } from "../ai-panel/webview";
 
 export class VisualizerWebview {
     public static currentPanel: VisualizerWebview | undefined;
@@ -47,18 +50,38 @@ export class VisualizerWebview {
             }
         }, 500);
 
+        const debouncedRefreshDataMapper = debounce(async () => {
+            const stateMachineContext = StateMachine.context();
+            const { documentUri, dataMapperMetadata: { codeData, name } } = stateMachineContext;
+            await refreshDataMapper(documentUri, codeData, name);
+        }, 500);
+
         vscode.workspace.onDidChangeTextDocument(async (document) => {
-            const state = StateMachine.state();
-            const machineReady = typeof state === 'object' && 'viewActive' in state && state.viewActive === "viewReady";
             // Save the document only if it is not already opened in a visible editor or the webview is active
             const isOpened = vscode.window.visibleTextEditors.some(editor => editor.document.uri.toString() === document.document.uri.toString());
             if (!isOpened || this._panel?.active) {
                 await document.document.save();
             }
-            if (this._panel?.active && machineReady && document && document.document.languageId === LANGUAGE.BALLERINA) {
+
+            const state = StateMachine.state();
+            const machineReady = typeof state === 'object' && 'viewActive' in state && state.viewActive === "viewReady";
+            if (document?.contentChanges.length === 0 || !machineReady) { return; }
+
+            const balFileModified = document?.document.languageId === LANGUAGE.BALLERINA;
+            const configTomlModified = document.document.languageId === LANGUAGE.TOML &&
+                document.document.fileName.endsWith("Config.toml") &&
+                vscode.window.visibleTextEditors.some(editor =>
+                    editor.document.fileName === document.document.fileName
+                );
+            const dataMapperModified = balFileModified &&
+                StateMachine.context().view === MACHINE_VIEW.InlineDataMapper &&
+                document.document.fileName === StateMachine.context().documentUri;
+
+            if (dataMapperModified) {
+                debouncedRefreshDataMapper();
+            } else if ((this._panel?.active || AiPanelWebview.currentPanel?.getWebview()?.active) && balFileModified) {
                 sendUpdateNotificationToWebview();
-            } else if (machineReady && document?.document && document.document.languageId === LANGUAGE.TOML && document.document.fileName.endsWith("Config.toml") &&
-                vscode.window.visibleTextEditors.some(editor => editor.document.fileName === document.document.fileName)) {
+            } else if (configTomlModified) {
                 sendUpdateNotificationToWebview(true);
             }
         }, extension.context);

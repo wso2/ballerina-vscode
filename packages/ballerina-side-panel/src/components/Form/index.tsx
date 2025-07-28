@@ -42,9 +42,9 @@ import {
     SubPanelView,
     FormDiagnostics,
     FlowNode,
-    LinePosition,
     ExpressionProperty,
     RecordTypeField,
+    VisualizableField,
 } from "@wso2/ballerina-core";
 import { FormContext, Provider } from "../../context";
 import {
@@ -126,11 +126,6 @@ namespace S {
         &:first {
             margin-top: 0;
         }
-    `;
-
-    export const PrimaryButton = styled(Button)`
-        appearance: "primary";
-        display: flex;
     `;
 
     export const BodyText = styled.div<{}>`
@@ -334,8 +329,8 @@ export interface FormProps {
     updatedExpressionField?: ExpressionFormField;
     resetUpdatedExpressionField?: () => void;
     mergeFormDataWithFlowNode?: (data: FormValues, targetLineRange: LineRange) => FlowNode;
-    handleVisualizableFields?: (filePath: string, flowNode: FlowNode, position: LinePosition) => void;
-    visualizableFields?: string[];
+    handleVisualizableFields?: (filePath: string, typeName?: string) => void;
+    visualizableField?: VisualizableField;
     recordTypeFields?: RecordTypeField[];
     nestedForm?: boolean;
     isInferredReturnType?: boolean;
@@ -345,6 +340,17 @@ export interface FormProps {
     concertMessage?: string;
     formImports?: FormImports;
     preserveOrder?: boolean;
+    scopeFieldAddon?: React.ReactNode;
+    newServerUrl?: string;
+    onChange?: (fieldKey: string, value: any, allValues: FormValues) => void;
+    mcpTools?: { name: string; description?: string }[]; 
+    onToolsChange?: (selectedTools: string[]) => void;
+    injectedComponents?: {
+        component: React.ReactNode;
+        index: number;
+    }[];
+    hideSaveButton?: boolean; // Option to hide the save button
+    onValidityChange?: (isValid: boolean) => void; // Callback for form validity status
 }
 
 export const Form = forwardRef((props: FormProps, ref) => {
@@ -369,7 +375,7 @@ export const Form = forwardRef((props: FormProps, ref) => {
         resetUpdatedExpressionField,
         mergeFormDataWithFlowNode,
         handleVisualizableFields,
-        visualizableFields,
+        visualizableField,
         recordTypeFields,
         nestedForm,
         compact = false,
@@ -378,6 +384,13 @@ export const Form = forwardRef((props: FormProps, ref) => {
         concertMessage,
         formImports,
         preserveOrder = false,
+        scopeFieldAddon,
+        newServerUrl,
+        mcpTools,
+        onToolsChange,
+        injectedComponents,
+        hideSaveButton = false,
+        onValidityChange,
     } = props;
 
     const {
@@ -404,8 +417,9 @@ export const Form = forwardRef((props: FormProps, ref) => {
     const markdownRef = useRef<HTMLDivElement>(null);
 
     const [isUserConcert, setIsUserConcert] = useState(false);
+    const [savingButton, setSavingButton] = useState<string | null>(null);
 
-    
+
     useEffect(() => {
         // Check if the form is a onetime usage or not. This is checked due to reset issue with nested forms in param manager
         if (!oneTimeForm) {
@@ -421,6 +435,10 @@ export const Form = forwardRef((props: FormProps, ref) => {
                     defaultValues[field.key] = formatJSONLikeString(field.value) ?? "";
                 } else {
                     defaultValues[field.key] = field.value ?? "";
+                }
+
+                if (field.key === "parameters" && field.value.length === 0) {
+                    defaultValues[field.key] = formValues[field.key] ?? [];
                 }
 
                 if (field.key === "type") {
@@ -497,6 +515,7 @@ export const Form = forwardRef((props: FormProps, ref) => {
     // Expose a method to trigger the save
     useImperativeHandle(ref, () => ({
         triggerSave: () => handleSubmit(handleOnSave)(), // Call handleSubmit with the save function
+        resetForm: (values) => reset(values),
     }));
 
     const handleOpenRecordEditor = (open: boolean, typeField?: FormField) => {
@@ -545,16 +564,12 @@ export const Form = forwardRef((props: FormProps, ref) => {
     };
 
     const handleOnTypeChange = () => {
-        if (mergeFormDataWithFlowNode) {
-            getVisualiableFields();
-        }
+        getVisualiableFields();
     };
 
     const getVisualiableFields = () => {
-        if (mergeFormDataWithFlowNode) {
-            const flowNode = mergeFormDataWithFlowNode(getValues(), targetLineRange);
-            handleVisualizableFields && handleVisualizableFields(fileName, flowNode, targetLineRange.startLine);
-        }
+        const typeName = watch("type");
+        handleVisualizableFields && handleVisualizableFields(fileName, typeName);
     };
 
     const handleGetExpressionDiagnostics = async (
@@ -580,8 +595,12 @@ export const Form = forwardRef((props: FormProps, ref) => {
     const hasAdvanceFields = formFields.some((field) => field.advanced && field.enabled && !field.hidden);
     const variableField = formFields.find((field) => field.key === "variable");
     const typeField = formFields.find((field) => field.key === "type");
+    const expressionField = formFields.find((field) => field.key === "expression");
     const targetTypeField = formFields.find((field) => field.codedata?.kind === "PARAM_FOR_TYPE_INFER");
     const hasParameters = hasRequiredParameters(formFields, selectedNode) || hasOptionalParameters(formFields);
+    const canOpenInDataMapper = selectedNode === "VARIABLE" &&
+        expressionField &&
+        visualizableField?.isDataMapped;
 
     const contextValue: FormContext = {
         form: {
@@ -644,6 +663,15 @@ export const Form = forwardRef((props: FormProps, ref) => {
         return hasDiagnostics;
     }, [diagnosticsInfo]);
 
+    // Call onValidityChange when form validity changes
+    useEffect(() => {
+        if (onValidityChange) {
+            const formIsValid = isValid && !isValidating && Object.keys(errors).length === 0 && 
+                (!concertMessage || !concertRequired || isUserConcert) && !isIdentifierEditing && !isSubComponentEnabled;
+            onValidityChange(formIsValid);
+        }
+    }, [isValid, isValidating, errors, concertMessage, concertRequired, isUserConcert, isIdentifierEditing, isSubComponentEnabled, onValidityChange]);
+
     const handleIdentifierEditingStateChange = (isEditing: boolean) => {
         setIsIdentifierEditing(isEditing);
     };
@@ -665,11 +693,40 @@ export const Form = forwardRef((props: FormProps, ref) => {
         }
     };
 
+    const prevValuesRef = useRef<FormValues>({});
+    const watchedValues = watch();
+    useEffect(() => {
+        if (props.onChange) {
+            const prevValues = prevValuesRef.current;
+            Object.entries(watchedValues).forEach(([key, value]) => {
+                if (prevValues[key] !== value) {
+                    props.onChange?.(key, value, watchedValues);
+                }
+            });
+            prevValuesRef.current = { ...watchedValues };
+        }
+    }, [watchedValues]);
+    
+    const handleOnOpenInDataMapper = () => {
+        setSavingButton('dataMapper');
+        handleSubmit((data) => {
+            if (data.expression === '' && visualizableField?.defaultValue) {
+                data.expression = visualizableField.defaultValue;
+            }
+            return handleOnSave({ ...data, openInDataMapper: true });
+        })();
+    };
+
+    const handleOnSaveClick = () => {
+        setSavingButton('save');
+        handleSubmit(handleOnSave)();
+    };
+
     return (
         <Provider {...contextValue}>
             <S.Container nestedForm={nestedForm} compact={compact} className="side-panel-body">
                 {actionButton && <S.ActionButtonContainer>{actionButton}</S.ActionButtonContainer>}
-                {infoLabel && (
+                {infoLabel && !compact && (
                     <S.MarkdownWrapper>
                         <S.MarkdownContainer ref={markdownRef} isExpanded={isMarkdownExpanded}>
                             <ReactMarkdown>{stripHtmlTags(infoLabel)}</ReactMarkdown>
@@ -691,31 +748,41 @@ export const Form = forwardRef((props: FormProps, ref) => {
                         )}
                     </S.MarkdownWrapper>
                 )}
-                {!preserveOrder && (
+                {!preserveOrder && !compact && (
                     <FormDescription formFields={formFields} selectedNode={selectedNode} />
                 )}
 
-                {/* 
+                {/*
                  * Two rendering modes based on preserveOrder prop:
-                 * 
+                 *
                  * 1. preserveOrder = true: Render all fields in original order from formFields array
                  * 2. preserveOrder = false: Render name and type fields at the bottom, and rest at top
                  */}
                 <S.CategoryRow bottomBorder={false}>
-                    {formFields
-                        .sort((a, b) => b.groupNo - a.groupNo)
-                        .filter((field) => field.type !== "VIEW")
-                        .map((field) => {
+                    {(() => {
+                        const fieldsToRender = formFields
+                            .sort((a, b) => b.groupNo - a.groupNo)
+                            .filter((field) => field.type !== "VIEW");
+
+                        const renderedComponents = fieldsToRender.reduce<React.ReactNode[]>((acc, field, index) => {
+                            if (injectedComponents) {
+                                injectedComponents.forEach((injected) => {
+                                    if (injected.index === index) {
+                                        acc.push(injected.component);
+                                    }
+                                });
+                            }
+
                             if (field.advanced || field.hidden) {
-                                return null;
+                                return acc;
                             }
                             // When preserveOrder is false, skip prioritized fields (they'll be rendered at bottom)
                             if (!preserveOrder && isPrioritizedField(field)) {
-                                return null;
+                                return acc;
                             }
 
                             const updatedField = updateFormFieldWithImports(field, formImports);
-                            return (
+                            acc.push(
                                 <S.Row key={updatedField.key}>
                                     <EditorFactory
                                         field={updatedField}
@@ -728,14 +795,30 @@ export const Form = forwardRef((props: FormProps, ref) => {
                                         subPanelView={subPanelView}
                                         handleOnFieldFocus={handleOnFieldFocus}
                                         autoFocus={firstEditableFieldIndex === formFields.indexOf(updatedField)}
-                                        visualizableFields={visualizableFields}
                                         recordTypeFields={recordTypeFields}
                                         onIdentifierEditingStateChange={handleIdentifierEditingStateChange}
+                                        handleOnTypeChange={handleOnTypeChange}
                                         setSubComponentEnabled={setIsSubComponentEnabled}
+                                        newServerUrl={newServerUrl}
+                                        mcpTools={mcpTools}
+                                        onToolsChange={onToolsChange}
                                     />
+                                    {updatedField.key === "scope" && scopeFieldAddon}
                                 </S.Row>
                             );
-                        })}
+                            return acc;
+                        }, []);
+
+                        if (injectedComponents) {
+                            injectedComponents.forEach((injected) => {
+                                if (injected.index >= fieldsToRender.length) {
+                                    renderedComponents.push(injected.component);
+                                }
+                            });
+                        }
+
+                        return renderedComponents;
+                    })()}
                     {hasAdvanceFields && (
                         <S.Row>
                             Optional Configurations
@@ -762,8 +845,7 @@ export const Form = forwardRef((props: FormProps, ref) => {
                                             name={"chevron-up"}
                                             iconSx={{ fontSize: 12 }}
                                             sx={{ height: 12 }}
-                                        />
-                                        Collapsed
+                                        />Collapsed
                                     </LinkButton>
                                 )}
                             </S.ButtonContainer>
@@ -785,9 +867,9 @@ export const Form = forwardRef((props: FormProps, ref) => {
                                             openSubPanel={handleOpenSubPanel}
                                             subPanelView={subPanelView}
                                             handleOnFieldFocus={handleOnFieldFocus}
-                                            visualizableFields={visualizableFields}
                                             recordTypeFields={recordTypeFields}
                                             onIdentifierEditingStateChange={handleIdentifierEditingStateChange}
+                                            handleOnTypeChange={handleOnTypeChange}
                                         />
                                     </S.Row>
                                 );
@@ -802,7 +884,6 @@ export const Form = forwardRef((props: FormProps, ref) => {
                             <EditorFactory
                                 field={variableField}
                                 handleOnFieldFocus={handleOnFieldFocus}
-                                visualizableFields={visualizableFields}
                                 recordTypeFields={recordTypeFields}
                                 onIdentifierEditingStateChange={handleIdentifierEditingStateChange}
                             />
@@ -816,7 +897,6 @@ export const Form = forwardRef((props: FormProps, ref) => {
                                 openSubPanel={handleOpenSubPanel}
                                 handleOnFieldFocus={handleOnFieldFocus}
                                 handleOnTypeChange={handleOnTypeChange}
-                                visualizableFields={visualizableFields}
                                 recordTypeFields={recordTypeFields}
                                 onIdentifierEditingStateChange={handleIdentifierEditingStateChange}
                             />
@@ -826,9 +906,9 @@ export const Form = forwardRef((props: FormProps, ref) => {
                                 <EditorFactory
                                     field={targetTypeField}
                                     handleOnFieldFocus={handleOnFieldFocus}
-                                    visualizableFields={visualizableFields}
                                     recordTypeFields={recordTypeFields}
                                     onIdentifierEditingStateChange={handleIdentifierEditingStateChange}
+                                    handleOnTypeChange={handleOnTypeChange}
                                 />
                                 {typeField && (
                                     <TypeHelperText
@@ -847,7 +927,7 @@ export const Form = forwardRef((props: FormProps, ref) => {
                     </S.ConcertContainer>
                 )}
 
-                {onSubmit && (
+                {onSubmit && !hideSaveButton && (
                     <S.Footer>
                         {onCancelForm && (
                             <Button appearance="secondary" onClick={onCancelForm}>
@@ -855,9 +935,26 @@ export const Form = forwardRef((props: FormProps, ref) => {
                                 {cancelText || "Cancel"}{" "}
                             </Button>
                         )}
-                        <S.PrimaryButton onClick={handleSubmit(handleOnSave)} disabled={disableSaveButton || isSaving}>
-                            {isSaving ? <Typography variant="progress">{submitText || "Saving..."}</Typography> : submitText || "Save"}
-                        </S.PrimaryButton>
+                        {canOpenInDataMapper &&
+                            <Button
+                                appearance="secondary"
+                                onClick={handleOnOpenInDataMapper}
+                                disabled={isSaving}
+                            >
+                                {isSaving && savingButton === 'dataMapper' ? (
+                                    <Typography variant="progress">{submitText || "Opening in Data Mapper..."}</Typography>
+                                ) : submitText || "Open in Data Mapper"}
+                            </Button>
+                        }
+                        <Button
+                            appearance="primary"
+                            onClick={handleOnSaveClick}
+                            disabled={disableSaveButton || isSaving}
+                        >
+                            {isSaving && savingButton === 'save' ? (
+                                <Typography variant="progress">{submitText || "Saving..."}</Typography>
+                            ) : submitText || "Save"}
+                        </Button>
                     </S.Footer>
                 )}
             </S.Container>

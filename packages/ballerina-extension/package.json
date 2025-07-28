@@ -2,7 +2,7 @@
     "name": "ballerina",
     "displayName": "Ballerina",
     "description": "Ballerina Language support, debugging, graphical visualization, AI-based data-mapping and many more.",
-    "version": "5.2.0",
+    "version": "5.2.1",
     "publisher": "wso2",
     "icon": "resources/images/ballerina.png",
     "homepage": "https://wso2.com/ballerina/vscode/docs",
@@ -212,6 +212,14 @@
                     "type": "boolean",
                     "default": true,
                     "description": "Enable AI suggestions in the Flow Diagram View."
+                },
+                "ballerina.includeCurrentOrganizationInSearch": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Include components from the current organization in the search. This queries the Ballerina Central using the organization specified in the `Ballerina.toml`.",
+                    "tags": [
+                        "experimental"
+                    ]
                 }
             }
         },
@@ -327,11 +335,6 @@
             }
         ],
         "commands": [
-            {
-                "command": "ballerina.update-ballerina-dev-pack",
-                "title": "Update Ballerina Nightly Build",
-                "category": "Ballerina"
-            },
             {
                 "command": "ballerina.showExamples",
                 "title": "Show Examples",
@@ -463,6 +466,11 @@
             {
                 "command": "ballerina.verifyDocs",
                 "title": "Check drift between code and documentation (Experimental)",
+                "category": "Ballerina"
+            },
+            {
+                "command": "ballerina.configureWso2DefaultModelProvider",
+                "title": "Configure default WSO2 model provider",
                 "category": "Ballerina"
             },
             {
@@ -933,7 +941,7 @@
                 "description": "design-view",
                 "default": {
                     "fontPath": "./resources/font-wso2-vscode/dist/wso2-vscode.woff",
-                    "fontCharacter": "\\f16b"
+                    "fontCharacter": "\\f16c"
                 }
             },
             "distro-start": {
@@ -947,7 +955,7 @@
                 "description": "debug",
                 "default": {
                     "fontPath": "./resources/font-wso2-vscode/dist/wso2-vscode.woff",
-                    "fontCharacter": "\\f16e"
+                    "fontCharacter": "\\f16f"
                 }
             },
             "distro-source-view": {
@@ -1103,6 +1111,8 @@
     },
     "dependencies": {
         "@types/lodash": "^4.14.200",
+        "@ai-sdk/anthropic": "^1.2.12",
+        "ai": "^4.3.16",
         "@vscode/test-electron": "^2.4.0",
         "@vscode/vsce": "^2.22.0",
         "@wso2/ballerina-core": "workspace:*",
@@ -1136,7 +1146,8 @@
         "xstate": "^4.38.3",
         "uuid": "^11.1.0",
         "jwt-decode": "^4.0.0",
-        "dotenv": "~16.5.0"
+        "dotenv": "~16.5.0",
+        "zod": "^3.25.74"
     },
     "devDependencies": {
         "@sentry/webpack-plugin": "^1.20.1",
@@ -1170,7 +1181,7 @@
         "vscode-extension-tester": "^5.10.0",
         "vscode-messenger": "^0.4.4",
         "webpack": "^5.89.0",
-        "webpack-cli": "^5.1.4",
+        "webpack-cli": "^6.0.1",
         "webpack-merge-and-include-globally": "^2.3.4",
         "yarn": "^1.22.19",
         "adm-zip": "^0.5.16"
