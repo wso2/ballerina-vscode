@@ -29,7 +29,7 @@ import { RelativeLoader } from '../../../components/RelativeLoader';
 import { FormHeader } from '../../../components/FormHeader';
 import { getAiModuleOrg, getNodeTemplate } from './utils';
 import { cloneDeep } from 'lodash';
-import { AI, BALLERINA } from '../../../constants';
+import { AI, BALLERINA, GET_DEFAULT_MODEL_PROVIDER } from '../../../constants';
 
 const FORM_WIDTH = 600;
 
@@ -199,6 +199,68 @@ export function AIChatAgentWizard(props: AIChatAgentWizardProps) {
                 moduleName: type,
                 listenerName: listenerName,
                 orgName: aiModuleOrg.current,
+<<<<<<< HEAD
+=======
+            }).then(res => {
+                const serviceModel = res.service;
+                console.log("Service Model: ", serviceModel);
+                serviceModel.properties["listener"].editable = true;
+                serviceModel.properties["listener"].items = [listenerName];
+                serviceModel.properties["listener"].values = [listenerName];
+                serviceModel.properties["basePath"].value = `/${agentName}`;
+                rpcClient.getServiceDesignerRpcClient().addServiceSourceCode({
+                    filePath: "",
+                    service: res.service
+                }).then(async (sourceCode) => {
+                    setCurrentStep(4);
+                    const newArtifact = sourceCode.artifacts.find(res => res.isNew);
+                    console.log(">>> agent service sourceCode", sourceCode);
+                    console.log(">>> newArtifact", newArtifact);
+                    // save model node
+                    const modelVarName = `_${agentName}Model`;
+                    defaultModelNode.properties.variable.value = modelVarName;
+                    const modelResponse = await rpcClient
+                        .getBIDiagramRpcClient()
+                        .getSourceCode({ filePath: agentFilePath.current, flowNode: defaultModelNode });
+                    console.log(">>> modelResponse getSourceCode", { modelResponse });
+
+                    // wait 2 seconds (wait until LS is updated)
+                    console.log(">>> wait 2 seconds");
+                    await new Promise((resolve) => setTimeout(resolve, 2000));
+
+                    // save the agent node
+                    const updatedAgentNode = cloneDeep(agentNode);
+                    const systemPromptValue = `{role: "", instructions: string \`\`}`;
+                    const agentVarName = `_${agentName}Agent`;
+                    updatedAgentNode.properties.systemPrompt.value = systemPromptValue;
+                    updatedAgentNode.properties.model.value = modelVarName;
+                    updatedAgentNode.properties.tools.value = [];
+                    updatedAgentNode.properties.variable.value = agentVarName;
+
+                    const agentResponse = await rpcClient
+                        .getBIDiagramRpcClient()
+                        .getSourceCode({ filePath: agentFilePath.current, flowNode: updatedAgentNode });
+                    console.log(">>> agentResponse getSourceCode", { agentResponse });
+
+                    // If the selected model is the default WSO2 model provider, configure it
+                    if (defaultModelNode?.codedata?.symbol === GET_DEFAULT_MODEL_PROVIDER) {
+                        await rpcClient.getAIAgentRpcClient().configureDefaultModelProvider();
+                    }
+            const agentResponse = await rpcClient
+                .getBIDiagramRpcClient()
+                .getSourceCode({ filePath: agentFilePath.current, flowNode: updatedAgentNode });
+            console.log(">>> agentResponse getSourceCode", { agentResponse });
+
+                    // wait 2 seconds (wait until LS is updated)
+                    console.log(">>> wait 2 seconds");
+                    await new Promise((resolve) => setTimeout(resolve, 2000));
+                    if (newArtifact) {
+                        setCurrentStep(5);
+                        rpcClient.getVisualizerRpcClient().openView({ type: EVENT_TYPE.OPEN_VIEW, location: { documentUri: newArtifact.path, position: newArtifact.position } });
+                        return;
+                    }
+                });
+>>>>>>> 80f9e657 (Add configureDefaultModelProvider method and integrate into AI Agent components)
             });
 
             const serviceModel = serviceModelResponse.service;

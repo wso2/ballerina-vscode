@@ -49,6 +49,44 @@ const Row = styled.div`
     margin-bottom: 16px;
 `;
 
+const InfoBox = styled.div`
+    font-size: 13px;
+    color: var(--vscode-foreground);
+    padding: 12px;
+    margin-bottom: 16px;
+    background-color: var(--vscode-editor-inactiveSelectionBackground);
+    border-radius: 4px;
+
+    strong {
+        font-weight: 600;
+    }
+
+    .description {
+        font-size: 12px;
+        color: var(--vscode-descriptionForeground);
+        line-height: 1.4;
+    }
+
+    .command-wrapper {
+        display: flex;
+        align-items: flex-start;
+        gap: 8px;
+        margin-bottom: 8px;
+    }
+`;
+
+const CodeBlock = styled.code`
+    font-size: 11px;
+    color: var(--vscode-foreground);
+    font-family: var(--vscode-editor-font-family);
+    background-color: var(--vscode-textCodeBlock-background);
+    padding: 2px 4px;
+    border-radius: 3px;
+    border: 1px solid var(--vscode-widget-border);
+    margin-top: 6px;
+    display: inline-block;
+`;
+
 interface ModelConfigProps {
     agentCallNode: FlowNode;
     onSave?: (response?: UpdatedArtifactsResponse) => void;
@@ -240,6 +278,12 @@ export function ModelConfig(props: ModelConfigProps): JSX.Element {
             .getBIDiagramRpcClient()
             .getSourceCode({ filePath: agentFilePath.current, flowNode: nodeTemplate });
         console.log(">>> response getSourceCode with template ", { response });
+
+        // If the selected model is the default WSO2 model provider, configure it
+        if (selectedModelCodeData?.symbol === GET_DEFAULT_MODEL_PROVIDER) {
+            await rpcClient.getAIAgentRpcClient().configureDefaultModelProvider();
+        }
+
         onSave?.(response);
         setSavingForm(false);
     };
@@ -247,39 +291,58 @@ export function ModelConfig(props: ModelConfigProps): JSX.Element {
     return (
         <Container>
             {modelsCodeData.length > 0 && (
-                <Row>
-                    <Dropdown
-                        isRequired
-                        errorMsg=""
-                        id="agent-model-dropdown"
-                        items={[
-                            { value: "Select a provider...", content: "Select a provider..." },
-                            ...[...modelsCodeData]
-                                .sort((a, b) => (b.symbol === GET_DEFAULT_MODEL_PROVIDER ? 1 : 0) - (a.symbol === GET_DEFAULT_MODEL_PROVIDER ? 1 : 0))
-                                .map((model) => ({
-                                    value: getProviderName(model),
-                                    content: model.symbol === GET_DEFAULT_MODEL_PROVIDER ? WSO2_MODEL_PROVIDER : getProviderName(model, true)
-                                })),
-                        ]}
-                        label="Select Model Provider"
-                        description={"Available Providers"}
-                        onValueChange={(value) => {
-                            if (value === "Select a provider...") {
-                                return; // Skip the init option
+                <>
+                    <Row>
+                        <Dropdown
+                            isRequired
+                            errorMsg=""
+                            id="agent-model-dropdown"
+                            items={[
+                                { value: "Select a provider...", content: "Select a provider..." },
+                                ...[...modelsCodeData]
+                                    .sort((a, b) => (b.symbol === GET_DEFAULT_MODEL_PROVIDER ? 1 : 0) - (a.symbol === GET_DEFAULT_MODEL_PROVIDER ? 1 : 0))
+                                    .map((model) => ({
+                                        value: getProviderName(model),
+                                        content: model.symbol === GET_DEFAULT_MODEL_PROVIDER ? WSO2_MODEL_PROVIDER : getProviderName(model, true)
+                                    })),
+                            ]}
+                            label="Select Model Provider"
+                            description={"Available Providers"}
+                            onValueChange={(value) => {
+                                if (value === "Select a provider...") {
+                                    return; // Skip the init option
+                                }
+                                const selectedModelCodeData = modelsCodeData.find((model) => getProviderName(model) === value);
+                                console.log("Selected Model Code Data: ", selectedModelCodeData);
+                                setSelectedModelCodeData(selectedModelCodeData);
+                                fetchModelNodeTemplate(selectedModelCodeData);
+                            }}
+                            value={
+                                selectedModelCodeData
+                                    ? getProviderName(selectedModelCodeData)
+                                    : ((agentCallNode?.metadata.data as NodeMetadata)?.model?.type as string)
                             }
-                            const selectedModelCodeData = modelsCodeData.find((model) => getProviderName(model) === value);
-                            console.log("Selected Model Code Data: ", selectedModelCodeData);
-                            setSelectedModelCodeData(selectedModelCodeData);
-                            fetchModelNodeTemplate(selectedModelCodeData);
-                        }}
-                        value={
-                            selectedModelCodeData
-                                ? getProviderName(selectedModelCodeData)
-                                : ((agentCallNode?.metadata.data as NodeMetadata)?.model?.type as string)
-                        }
-                        containerSx={{ width: "100%" }}
-                    />
-                </Row>
+                            containerSx={{ width: "100%" }}
+                        />
+                    </Row>
+                    {selectedModelCodeData?.symbol === GET_DEFAULT_MODEL_PROVIDER && (
+                        <Row>
+                            <InfoBox>
+                                <div className="command-wrapper">
+                                    <span>
+                                        Using the default WSO2 Model Provider will automatically add the necessary configuration values to <strong>Config.toml</strong>.
+                                    </span>
+                                </div>
+                                <div className="description">
+                                    This can also be done using the VSCode command palette command: <br />
+                                    <CodeBlock>
+                                        {">"} Ballerina: Configure default WSO2 model provider
+                                    </CodeBlock>
+                                </div>
+                            </InfoBox>
+                        </Row>
+                    )}
+                </>
             )}
             {loading && (
                 <LoaderContainer>
