@@ -56,7 +56,6 @@ public abstract class SearchCommand {
 
     protected static final String DATA_MAPPER_FILE_NAME = "data_mappings.bal";
     private static final Gson GSON = new Gson();
-
     private static final int DEFAULT_LIMIT = 20;
     private static final int DEFAULT_OFFSET = 0;
     private static final boolean DEFAULT_INCLUDE_CURRENT_ORG_IN_SEARCH = false;
