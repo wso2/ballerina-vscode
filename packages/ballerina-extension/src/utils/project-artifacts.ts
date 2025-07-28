@@ -64,14 +64,12 @@ export async function updateProjectArtifacts(publishedArtifacts: ArtifactsNotifi
     const isWithinProject = URI.parse(publishedArtifacts.uri).path.toLowerCase().includes(projectUri.path.toLowerCase());
     if (currentProjectStructure && isWithinProject) {
         const entryLocations = await traverseUpdatedComponents(publishedArtifacts.artifacts, currentProjectStructure);
-        if (entryLocations.length > 0) {
-            const notificationHandler = ArtifactNotificationHandler.getInstance();
-            // Publish a notification to the artifact handler
-            notificationHandler.publish(ArtifactsUpdated.method, {
-                data: entryLocations,
-                timestamp: Date.now()
-            });
-        }
+        const notificationHandler = ArtifactNotificationHandler.getInstance();
+        // Publish a notification to the artifact handler
+        notificationHandler.publish(ArtifactsUpdated.method, {
+            data: entryLocations,
+            timestamp: Date.now()
+        });
         StateMachine.updateProjectStructure({ ...currentProjectStructure }); // Update the project structure and refresh the tree
     }
 }

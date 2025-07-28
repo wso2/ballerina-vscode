@@ -339,6 +339,8 @@ export type NodePropertyKey =
     | "typeDescription"
     | "variable"
     | "verbose"
+    | "vectorStore"
+    | "embeddingModel"
     | "view";
 
 export type BranchKind = "block" | "worker";
