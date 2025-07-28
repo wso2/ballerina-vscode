@@ -42,7 +42,6 @@ public record Category(Metadata metadata, List<Item> items) implements Item {
         FLOW("Flow", "Flow control nodes", List.of("Core", "Control", "Flow")),
         STATEMENT("Statement", "Fundamental executable units in a program", null),
         CONNECTIONS("Connections", "The connections used in the flow", null),
-        AGENTS("Agents", "The agents used in the flow", null),
         BRANCH("Branch", "Branching nodes", null),
         FLOWS("Flows", "Flows that invoke local or utility functions",
                 List.of("Function", "Call", "Utility", "Local")),
@@ -70,8 +69,11 @@ public record Category(Metadata metadata, List<Item> items) implements Item {
         EMBEDDING_PROVIDER("Embedding Providers",
                 "Embedding providers used in the integration to connect to embedding models", null),
         VECTOR_STORE("Vector Stores", "Vector stores used in the integration", null),
-        AI("AI Components", "AI components available in the flow", null),
-        MORE("More", "Expandable section to view more content", null);
+        AI("AI", "AI components available in the flow", null),
+        MORE("More", "Expandable section to view more content", null),
+        DIRECT_LLM("Direct LLM", "AI components that connect directly with a large language model", null),
+        RAG("RAG", "AI components specific to Retrieval-Augmented Generation workflows", null),
+        AGENT("Agent", "Represents an AI Agent within a workflow", null);
 
         final String name;
         final String description;
