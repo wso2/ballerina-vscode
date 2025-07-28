@@ -42,7 +42,6 @@ import {
     SubPanelView,
     FormDiagnostics,
     FlowNode,
-    LinePosition,
     ExpressionProperty,
     RecordTypeField,
     VisualizableField,
@@ -344,12 +343,14 @@ export interface FormProps {
     scopeFieldAddon?: React.ReactNode;
     newServerUrl?: string;
     onChange?: (fieldKey: string, value: any, allValues: FormValues) => void;
-    mcpTools?: { name: string; description?: string }[];
+    mcpTools?: { name: string; description?: string }[]; 
     onToolsChange?: (selectedTools: string[]) => void;
     injectedComponents?: {
         component: React.ReactNode;
         index: number;
     }[];
+    hideSaveButton?: boolean; // Option to hide the save button
+    onValidityChange?: (isValid: boolean) => void; // Callback for form validity status
 }
 
 export const Form = forwardRef((props: FormProps, ref) => {
@@ -388,6 +389,8 @@ export const Form = forwardRef((props: FormProps, ref) => {
         mcpTools,
         onToolsChange,
         injectedComponents,
+        hideSaveButton = false,
+        onValidityChange,
     } = props;
 
     const {
@@ -656,6 +659,15 @@ export const Form = forwardRef((props: FormProps, ref) => {
         return hasDiagnostics;
     }, [diagnosticsInfo]);
 
+    // Call onValidityChange when form validity changes
+    useEffect(() => {
+        if (onValidityChange) {
+            const formIsValid = isValid && !isValidating && Object.keys(errors).length === 0 && 
+                (!concertMessage || !concertRequired || isUserConcert) && !isIdentifierEditing && !isSubComponentEnabled;
+            onValidityChange(formIsValid);
+        }
+    }, [isValid, isValidating, errors, concertMessage, concertRequired, isUserConcert, isIdentifierEditing, isSubComponentEnabled, onValidityChange]);
+
     const handleIdentifierEditingStateChange = (isEditing: boolean) => {
         setIsIdentifierEditing(isEditing);
     };
@@ -710,7 +722,7 @@ export const Form = forwardRef((props: FormProps, ref) => {
         <Provider {...contextValue}>
             <S.Container nestedForm={nestedForm} compact={compact} className="side-panel-body">
                 {actionButton && <S.ActionButtonContainer>{actionButton}</S.ActionButtonContainer>}
-                {infoLabel && (
+                {infoLabel && !compact && (
                     <S.MarkdownWrapper>
                         <S.MarkdownContainer ref={markdownRef} isExpanded={isMarkdownExpanded}>
                             <ReactMarkdown>{stripHtmlTags(infoLabel)}</ReactMarkdown>
@@ -732,7 +744,7 @@ export const Form = forwardRef((props: FormProps, ref) => {
                         )}
                     </S.MarkdownWrapper>
                 )}
-                {!preserveOrder && (
+                {!preserveOrder && !compact && (
                     <FormDescription formFields={formFields} selectedNode={selectedNode} />
                 )}
 
@@ -911,7 +923,7 @@ export const Form = forwardRef((props: FormProps, ref) => {
                     </S.ConcertContainer>
                 )}
 
-                {onSubmit && (
+                {onSubmit && !hideSaveButton && (
                     <S.Footer>
                         {onCancelForm && (
                             <Button appearance="secondary" onClick={onCancelForm}>
