@@ -996,6 +996,28 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                     filePath: model.fileName,
                     flowNode: updatedNode,
                 })
+                .then((response) => {
+                    console.log(">>> Updated source code", response);
+                    if (response.codedata) {
+                        rpcClient.getVisualizerRpcClient().openView({
+                            type: EVENT_TYPE.OPEN_VIEW,
+                            location: {
+                                view: MACHINE_VIEW.InlineDataMapper,
+                                documentUri: model.fileName,
+                                position: {
+                                    startLine: response.codedata.lineRange.startLine.line,
+                                    startColumn: response.codedata.lineRange.startLine.offset,
+                                    endLine: response.codedata.lineRange.endLine.line,
+                                    endColumn: response.codedata.lineRange.endLine.offset,
+                                },
+                                dataMapperMetadata: {
+                                    name: updatedNode.properties?.variable?.value as string,
+                                    codeData: response.codedata,
+                                }
+                            }
+                        });
+                    }
+                })
                 .finally(() => {
                     setShowSidePanel(false);
                     setShowProgressIndicator(false);
