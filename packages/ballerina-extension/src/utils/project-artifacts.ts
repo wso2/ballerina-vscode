@@ -23,7 +23,8 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { ExtendedLangClient } from "../core/extended-language-client";
 import { ServiceDesignerRpcManager } from "../rpc-managers/service-designer/rpc-manager";
-import { injectAgent, injectAgentCode, injectImportIfMissing } from "./source-utils";
+import { AiAgentRpcManager } from "../rpc-managers/ai-agent/rpc-manager";
+import { injectAgentCode, injectImportIfMissing } from "./source-utils";
 import { tmpdir } from "os";
 import { ArtifactsUpdated, ArtifactNotificationHandler } from "./project-artifacts-handler";
 
@@ -175,15 +176,12 @@ async function getEntryValue(artifact: BaseArtifact, icon: string, moduleName?: 
 // This is a hack to inject the AI agent code into the chat service function
 // This has to be replaced once we have a proper design for AI Agent Chat Service
 async function injectAIAgent(serviceArtifact: BaseArtifact) {
-    // Inject the import if missing
-    const importStatement = `import ballerinax/ai`;
-    await injectImportIfMissing(importStatement, path.join(StateMachine.context().projectUri, `agents.bal`));
+    // Fetch the organization name for importing the AI package
+    const aiModuleOrg = await new AiAgentRpcManager().getAiModuleOrg({ projectPath: StateMachine.context().projectUri });
 
     //get AgentName
     const agentName = serviceArtifact.name.split('-')[1].trim().replace(/\//g, '');
 
-    // Inject the agent code
-    await injectAgent(agentName, StateMachine.context().projectUri);
     // Retrieve the service model
     const targetFile = Utils.joinPath(URI.parse(StateMachine.context().projectUri), serviceArtifact.location.fileName).fsPath;
     const updatedService = await new ServiceDesignerRpcManager().getServiceModelFromCode({
@@ -202,11 +200,11 @@ async function injectAIAgent(serviceArtifact: BaseArtifact) {
     const injectionPosition = updatedService.service.functions[0].codedata.lineRange.endLine;
     const serviceFile = path.join(StateMachine.context().projectUri, `main.bal`);
     ensureFileExists(serviceFile);
-    await injectAgentCode(agentName, serviceFile, injectionPosition);
+    await injectAgentCode(agentName, serviceFile, injectionPosition, aiModuleOrg.orgName);
     const functionPosition: NodePosition = {
         startLine: updatedService.service.functions[0].codedata.lineRange.startLine.line,
         startColumn: updatedService.service.functions[0].codedata.lineRange.startLine.offset,
-        endLine: updatedService.service.functions[0].codedata.lineRange.endLine.line + 3,
+        endLine: updatedService.service.functions[0].codedata.lineRange.endLine.line + 2,
         endColumn: updatedService.service.functions[0].codedata.lineRange.endLine.offset
     };
     return {
@@ -269,6 +267,8 @@ function getDirectoryMapKeyAndIcon(artifact: BaseArtifact, artifactCategoryKey: 
             return { mapKey: DIRECTORY_MAP.CONFIGURABLE, icon: "config" };
         case ARTIFACT_TYPE.NaturalFunctions:
             return { mapKey: DIRECTORY_MAP.NP_FUNCTION, icon: "function" };
+        case ARTIFACT_TYPE.Variables:
+            return { mapKey: DIRECTORY_MAP.VARIABLE, icon: "variable" };
         default:
             console.warn(`Unhandled artifact category key: ${artifactCategoryKey}`);
             return null;

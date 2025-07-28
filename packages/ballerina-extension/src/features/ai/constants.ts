@@ -16,10 +16,7 @@
  * under the License.
  */
 
-import { Attachment } from "@wso2/ballerina-core";
-
-export interface TestGeneratorIntermediaryState {
-    content: [string, Attachment[]];
-    resourceFunction: string;
-    testPlan: string;
-}
+export const CONFIG_FILE_NAME = "Config.toml";
+export const PROGRESS_BAR_MESSAGE_FROM_WSO2_DEFAULT_MODEL = "Fetching and saving access token for WSO2 default model";
+export const ERROR_NO_BALLERINA_SOURCES = "No Ballerina sources";
+export const LOGIN_REQUIRED_WARNING = "Please sign in to BI Copilot to use this feature.";
