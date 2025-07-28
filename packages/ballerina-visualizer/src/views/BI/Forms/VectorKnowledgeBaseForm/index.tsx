@@ -800,7 +800,6 @@ export function VectorKnowledgeBaseForm(props: VectorKnowledgeBaseFormProps) {
                                 nestedForm={true}
                                 compact={true}
                                 onChange={(fieldKey, value, allValues) => {
-                                    console.log(">>> Vector Store form change", { fieldKey, value, allValues });
                                     setVectorStoreFormValues(allValues);
                                 }}
                             />
@@ -837,7 +836,6 @@ export function VectorKnowledgeBaseForm(props: VectorKnowledgeBaseFormProps) {
                                 nestedForm={true}
                                 compact={true}
                                 onChange={(fieldKey, value, allValues) => {
-                                    console.log(">>> Embedding Provider form change", { fieldKey, value, allValues });
                                     setEmbeddingProviderFormValues(allValues);
                                 }}
                             />
@@ -863,7 +861,6 @@ export function VectorKnowledgeBaseForm(props: VectorKnowledgeBaseFormProps) {
                                 nestedForm={true}
                                 compact={true}
                                 onChange={(fieldKey, value, allValues) => {
-                                    console.log(">>> Knowledge Base form change", { fieldKey, value, allValues });
                                     setKnowledgeBaseFormValues(allValues);
                                 }}
                             />
