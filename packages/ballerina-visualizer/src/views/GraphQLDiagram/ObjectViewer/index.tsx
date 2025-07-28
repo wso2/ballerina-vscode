@@ -267,9 +267,6 @@ export function GraphqlObjectViewer(props: GraphqlObjectViewerProps) {
                 });
             }
 
-            const serviceArtifact = artifacts.artifacts.find(artifact => artifact.name === serviceIdentifier);
-            // Update the state machine context to the updated service artifact
-            await rpcClient.getVisualizerRpcClient().openView({ type: EVENT_TYPE.UPDATE_PROJECT_LOCATION, location: { documentUri: serviceArtifact.path, position: serviceArtifact.position } });
 
             if (isNew) {
                 setIsNew(false);
