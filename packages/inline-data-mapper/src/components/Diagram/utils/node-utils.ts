@@ -16,7 +16,7 @@
  * under the License.
  */
 import { DataMapperNodeModel } from "../Node/commons/DataMapperNode";
-import { InputNode } from "../Node";
+import { InputNode, SubMappingNode } from "../Node";
 
 export function findInputNode(field: string, outputNode: DataMapperNodeModel, focusedField?: string): InputNode {
     const nodes = outputNode.getModel().getNodes();
@@ -27,6 +27,8 @@ export function findInputNode(field: string, outputNode: DataMapperNodeModel, fo
         return nodes.find(node => {
             if (node instanceof InputNode) {
                 return node.inputType.id === mappingStartsWith;
+            } else if (node instanceof SubMappingNode) {
+                return node.subMappings.some(subMapping => subMapping.name === mappingStartsWith);
             }
         }) as InputNode | undefined;
     };

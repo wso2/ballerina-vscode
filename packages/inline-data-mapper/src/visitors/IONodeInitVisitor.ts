@@ -60,4 +60,15 @@ export class IONodeInitVisitor implements BaseVisitor {
         }
         return [...this.inputNodes, this.outputNode];
     }
+
+    getInputNodes() {
+        if (this.inputNodes.length === 0) {
+            this.inputNodes.push(new EmptyInputsNode());
+        }
+        return this.inputNodes;
+    }
+
+    getOutputNode() {
+        return this.outputNode;
+    }
 }
