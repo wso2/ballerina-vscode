@@ -173,7 +173,8 @@ public class PackageUtil {
                 ResolutionOptions.builder().setOffline(true).build());
         Optional<PackageMetadataResponse> pkgMetadata = packageMetadataResponses.stream().findFirst();
         PackageDescriptor packageDescriptor;
-        if (pkgMetadata.isEmpty()) {
+        if (pkgMetadata.isPresent() &&
+                pkgMetadata.get().resolutionStatus() == ResolutionResponse.ResolutionStatus.UNRESOLVED) {
             // If the package metadata is not found locally, fetch the latest version from the central repository
             CentralAPI centralApi = RemoteCentral.getInstance();
             String version = centralApi.latestPackageVersion(org, name);
