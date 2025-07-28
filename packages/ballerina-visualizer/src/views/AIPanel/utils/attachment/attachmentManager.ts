@@ -51,8 +51,6 @@ const DOCUMENT_TYPES = [
     "image/heic",
     "image/heif",
     "application/pdf",
-    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-    "application/msword",
 ];
 
 /**

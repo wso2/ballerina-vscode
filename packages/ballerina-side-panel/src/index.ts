@@ -24,5 +24,6 @@ export * from "./components/Form/types";
 export * from "./components/editors";
 export * from "./components/GroupList";
 export * from "./components/ParamManager/ParamManager";
+export * from "./components/CardList";
 
 export * from "./utils/path-validations";
