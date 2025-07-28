@@ -11,18 +11,13 @@ import { useEffect, useRef, useState } from "react";
 import styled from "@emotion/styled";
 import { FlowNode } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
-import { ActionButtons, Button, Codicon, ThemeColors, Dropdown } from "@wso2/ui-toolkit";
+import { Button, ThemeColors } from "@wso2/ui-toolkit";
 import { RelativeLoader } from "../../../components/RelativeLoader";
 import FormGenerator from "../Forms/FormGenerator";
-import { addMcpServerToAgentNode, updateMcpServerToAgentNode, findAgentNodeFromAgentCallNode, getAgentFilePath } from "./utils";
-import { TextField, CheckBox } from '@wso2/ui-toolkit';
-import { FormField, FormValues } from "@wso2/ballerina-side-panel";
-import { set } from "lodash";
+import { findAgentNodeFromAgentCallNode, getAgentFilePath } from "./utils";
+import { CheckBox } from '@wso2/ui-toolkit';
+import { FormValues } from "@wso2/ballerina-side-panel";
 
-const NameContainer = styled.div`
-    display: flex;
-    flex-direction: row;
-`;
 
 export const ContentWrapper = styled.div`
     display: flex;
@@ -31,7 +26,6 @@ export const ContentWrapper = styled.div`
 `;
 
 const Container = styled.div`
-    padding: 16px;
     display: flex;
     flex-direction: column;
     height: 100%;
@@ -44,88 +38,6 @@ const LoaderContainer = styled.div`
     justify-content: center;
     align-items: center;
     height: 100%;
-`;
-
-const Description = styled.div`
-    font-size: var(--vscode-font-size);
-    color: ${ThemeColors.ON_SURFACE_VARIANT};
-    margin-bottom: 8px;
-`;
-
-const Column = styled.div`
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    flex: 1;
-    overflow-y: auto;
-`;
-
-const Row = styled.div`
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 8px;
-`;
-
-const Title = styled.div`
-    font-size: 14px;
-    font-family: GilmerBold;
-`;
-
-const ToolItem = styled.div<{ isSelected?: boolean }>`
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    gap: 5px;
-    padding: 5px;
-    border: 1px solid
-        ${(props: { isSelected: boolean }) => (props.isSelected ? ThemeColors.PRIMARY : ThemeColors.OUTLINE_VARIANT)};
-    border-radius: 5px;
-    height: 36px;
-    cursor: "pointer";
-    font-size: 14px;
-    &:hover {
-        background-color: ${ThemeColors.PRIMARY_CONTAINER};
-        border: 1px solid ${ThemeColors.PRIMARY};
-    }
-`;
-
-const PrimaryButton = styled(Button)`
-    appearance: "primary";
-`;
-
-const HighlightedButton = styled.div`
-    margin-top: 10px;
-    width: 100%;
-    display: flex;
-    flex-direction: row;
-    justify-content: center;
-    align-items: flex-start;
-    gap: 8px;
-    padding: 6px 2px;
-    color: ${ThemeColors.PRIMARY};
-    border: 1px dashed ${ThemeColors.PRIMARY};
-    border-radius: 5px;
-    cursor: pointer;
-    &:hover {
-        border: 1px solid ${ThemeColors.PRIMARY};
-        background-color: ${ThemeColors.PRIMARY_CONTAINER};
-    }
-`;
-
-const Footer = styled.div`
-    position: fixed;
-    bottom: 0;
-    left: 0;
-
-    width: 100%;
-    display: flex;
-    justify-content: flex-end;
-    gap: 12px;
-    padding: 16px;
-    background-color: ${ThemeColors.SURFACE_DIM};
-    margin-top: auto;
 `;
 
 const ToolsContainer = styled.div`
@@ -230,14 +142,6 @@ export function AddMcpServer(props: AddToolProps): JSX.Element {
     const agentFilePath = useRef<string>("");
     const hasUpdatedToolsField = useRef(false);
     const formRef = useRef<any>(null);
-
-    const handleAddNewMcpServer = () => {
-        onAddMcpServer();
-    }
-
-    const handleBack = () => {
-        props.onBack?.();
-    };
 
     useEffect(() => {
         initPanel();
@@ -578,7 +482,6 @@ export function AddMcpServer(props: AddToolProps): JSX.Element {
         return candidateValue;
     };
 
-    const computedValue = generateUniqueValue();
 
     const hasExistingTools = existingTools.length > 0;
     const isToolSelected = selectedTool !== null;
@@ -770,7 +673,7 @@ export function AddMcpServer(props: AddToolProps): JSX.Element {
                     onSubmit={handleOnSave}
                     scopeFieldAddon={renderToolsSelection(mcpTools)}
                     newServerUrl={serviceUrl}
-                    onChange={(fieldKey, value, allValues) => {
+                    onChange={(fieldKey, value) => {
                         if (fieldKey === "serverUrl") {
                             setPendingServiceUrl(value);
                             setServiceUrl(value);
