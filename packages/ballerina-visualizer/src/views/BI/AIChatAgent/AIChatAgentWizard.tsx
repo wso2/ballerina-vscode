@@ -29,7 +29,7 @@ import { RelativeLoader } from '../../../components/RelativeLoader';
 import { FormHeader } from '../../../components/FormHeader';
 import { getAiModuleOrg, getNodeTemplate } from './utils';
 import { cloneDeep } from 'lodash';
-import { AI, BALLERINA } from '../../../constants';
+import { AI, BALLERINA, GET_DEFAULT_MODEL_PROVIDER } from '../../../constants';
 
 const FORM_WIDTH = 600;
 
@@ -243,6 +243,11 @@ export function AIChatAgentWizard(props: AIChatAgentWizardProps) {
                 .getBIDiagramRpcClient()
                 .getSourceCode({ filePath: agentFilePath.current, flowNode: updatedAgentNode });
             console.log(">>> agentResponse getSourceCode", { agentResponse });
+
+             // If the selected model is the default WSO2 model provider, configure it
+            if (defaultModelNode?.codedata?.symbol === GET_DEFAULT_MODEL_PROVIDER) {
+                await rpcClient.getAIAgentRpcClient().configureDefaultModelProvider();
+            }
 
             // wait 2 seconds (wait until LS is updated)
             console.log(">>> wait 2 seconds");
