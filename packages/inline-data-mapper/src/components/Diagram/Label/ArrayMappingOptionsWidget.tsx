@@ -32,7 +32,8 @@ import classNames from 'classnames';
 
 export const useStyles = () => ({
     arrayMappingMenu: css({
-        pointerEvents: 'auto'
+        pointerEvents: 'auto',
+        position: 'relative'
     }),
     itemContainer: css({
         display: 'flex',
@@ -40,13 +41,17 @@ export const useStyles = () => ({
         alignItems: 'center'
     }),
     container: css({
-        width: '100%',
+        position: 'absolute',
+        top: '50%',
+        left: '50%',
+        transform: 'translate(-50%, -50%)',
         backgroundColor: "var(--vscode-editor-background)",
         padding: "2px",
         borderRadius: "6px",
         border: "1px solid var(--vscode-debugIcon-breakpointDisabledForeground)",
         display: "flex",
         alignItems: "center",
+        justifyContent: "center",
         "& > vscode-button > *": {
             margin: "0 2px"
         }
@@ -100,7 +105,6 @@ export function ArrayMappingOptionsWidget(props: ArrayMappingOptionsWidgetProps)
     const [inProgress, setInProgress] = React.useState(false);
     const wrapWithProgress = (onClick: () => Promise<void>) => {
         return async () => {
-            link.pendingMappingType = MappingType.Default;
             setInProgress(true);
             await onClick();
             setInProgress(false);
@@ -195,46 +199,26 @@ export function ArrayMappingOptionsWidget(props: ArrayMappingOptionsWidgetProps)
         label: getItemElement("a2a-a2s-func", "Map Using Custom Function"),
         onClick: wrapWithProgress(onClickMapWithCustomFunction)
     });
-    // return (
-    //     inProgress ? (
-    //         <div className={classNames(classes.container)}>
-    //             <div className={classNames(classes.element, classes.loadingContainer)}>
-    //                 <ProgressRing
-    //                     sx={{ height: '16px', width: '16px' }}
-    //                     color="red"
-    //                 />
-    //             </div>
-    //         </div>
-    //     ) : (
-    //     <div className={classes.arrayMappingMenu}>
-    //         <div className={classNames(classes.container)}>
-    //             <div className={classNames(classes.element, classes.loadingContainer)}>
-    //                 <ProgressRing
-    //                     sx={{ height: '16px', width: '16px' }}
-    //                     color="red"
-    //                 />
-    //             </div>
-    //         </div>
-    //         <Menu sx={a2aMenuStyles}>
-    //             {menuItems.map((item: Item) =>
-    //                 <MenuItem
-    //                     key={`item ${item.id}`}
-    //                     item={item}
-    //                 />
-    //             )}
-    //         </Menu>
-    //     </div>)
-    // );
-    return !inProgress && (
-            <div className={classes.arrayMappingMenu}>
-                <Menu sx={a2aMenuStyles}>
-                    {menuItems.map((item: Item) =>
-                        <MenuItem
-                            key={`item ${item.id}`}
-                            item={item}
+    return (
+        <div className={classes.arrayMappingMenu}>
+            <Menu sx={{...a2aMenuStyles, visibility: inProgress ? 'hidden' : 'visible'}}>
+                {menuItems.map((item: Item) =>
+                    <MenuItem
+                        key={`item ${item.id}`}
+                        item={item}
+                    />
+                )}
+            </Menu>
+            {inProgress && (
+                <div className={classNames(classes.container)}>
+                    <div className={classNames(classes.element, classes.loadingContainer)}>
+                        <ProgressRing
+                            sx={{ height: '16px', width: '16px' }}
+                            color="var(--vscode-debugIcon-breakpointDisabledForeground)"
                         />
-                    )}
-                </Menu>
-            </div>
+                    </div>
+                </div>
+            )}
+        </div>
     );
 }
