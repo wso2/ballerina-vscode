@@ -1,0 +1,109 @@
+{
+  "source": "vector_knowledge_base/automation.bal",
+  "flowNode": {
+    "id": "31",
+    "metadata": {
+      "label": "ingest",
+      "description": "Indexes a collection of chunks.\nConverts each chunk to an embedding and stores it in the vector store,\nmaking the chunk searchable through the retriever.\n",
+      "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.1.2.png"
+    },
+    "codedata": {
+      "node": "VECTOR_KNOWLEDGE_BASE_CALL",
+      "org": "ballerina",
+      "module": "ai",
+      "packageName": "ai",
+      "object": "VectorKnowledgeBase",
+      "symbol": "ingest",
+      "version": "1.1.2",
+      "isNew": true,
+      "lineRange": {
+        "startLine": {
+          "line": 4,
+          "offset": 8
+        },
+        "endLine": {
+          "line": 4,
+          "offset": 8
+        }
+      }
+    },
+    "returning": false,
+    "properties": {
+      "connection": {
+        "metadata": {
+          "label": "Connection",
+          "description": "Connection to use"
+        },
+        "valueType": "EXPRESSION",
+        "valueTypeConstraint": "ai:VectorKnowledgeBase",
+        "value": "vectorKnowledgeBase",
+        "optional": false,
+        "editable": false,
+        "advanced": false,
+        "hidden": true,
+        "modified": false
+      },
+      "chunks": {
+        "metadata": {
+          "label": "Chunks",
+          "description": "The array of chunk to index"
+        },
+        "valueType": "EXPRESSION",
+        "valueTypeConstraint": "ai:Chunk[]",
+        "placeholder": "[]",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false,
+        "codedata": {
+          "kind": "REQUIRED",
+          "originalName": "chunks"
+        },
+        "typeMembers": [
+          {
+            "type": "Chunk",
+            "packageInfo": "ballerina:ai:1.1.2",
+            "packageName": "ai",
+            "kind": "ARRAY_TYPE",
+            "selected": false
+          }
+        ],
+        "value": "[]",
+        "modified": true
+      },
+      "checkError": {
+        "metadata": {
+          "label": "Check Error",
+          "description": "Trigger error flow"
+        },
+        "valueType": "FLAG",
+        "value": true,
+        "optional": false,
+        "editable": true,
+        "advanced": true,
+        "hidden": true,
+        "modified": false
+      }
+    },
+    "flags": 0
+  },
+  "expectedResponse": {
+    "textEdits": {
+      "automation.bal": [
+        {
+          "range": {
+            "start": {
+              "line": 4,
+              "character": 8
+            },
+            "end": {
+              "line": 4,
+              "character": 8
+            }
+          },
+          "newText": "\ncheck vectorKnowledgeBase.ingest([]);"
+        }
+      ]
+    }
+  }
+}

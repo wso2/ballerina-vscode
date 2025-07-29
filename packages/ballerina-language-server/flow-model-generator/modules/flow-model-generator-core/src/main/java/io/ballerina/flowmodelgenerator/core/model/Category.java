@@ -42,7 +42,6 @@ public record Category(Metadata metadata, List<Item> items) implements Item {
         FLOW("Flow", "Flow control nodes", List.of("Core", "Control", "Flow")),
         STATEMENT("Statement", "Fundamental executable units in a program", null),
         CONNECTIONS("Connections", "The connections used in the flow", null),
-        AGENTS("Agents", "The agents used in the flow", null),
         BRANCH("Branch", "Branching nodes", null),
         FLOWS("Flows", "Flows that invoke local or utility functions",
                 List.of("Function", "Call", "Utility", "Local")),
@@ -55,14 +54,14 @@ public record Category(Metadata metadata, List<Item> items) implements Item {
         CURRENT_INTEGRATION("Current Integration", "Functions defined within the current integration",
                 List.of("Project", "Local", "Function")),
         AGENT_TOOLS("Agent Tools", "Functions used as agent tools", List.of("Project", "Local", "Function")),
+        CURRENT_ORGANIZATION("Current Organization", "Components in the current organization",
+                List.of("Organization", "Function", "Library")),
+        STANDARD_LIBRARY("Standard Library", "Components supported officially by Ballerina",
+                List.of("Ballerina", "Library")),
         IMPORTED_FUNCTIONS("Imported Functions", "Functions imported from other integrations",
                 List.of("Imported", "Function", "Library")),
-        AVAILABLE_FUNCTIONS("Available Functions", "Functions available in the library",
-                List.of("Available", "Function", "Library")),
         IMPORTED_TYPES("Imported Types", "Types imported from other integrations",
                 List.of("Imported", "Type", "Library")),
-        AVAILABLE_TYPES("Available Types", "Types available in the library",
-                List.of("Available", "Type", "Library")),
         VECTOR_KNOWLEDGE_BASE("Vector Knowledge Bases",
                 "Vector knowledge bases available in the integration", null),
         MODEL_PROVIDER("Model Providers",
@@ -70,8 +69,11 @@ public record Category(Metadata metadata, List<Item> items) implements Item {
         EMBEDDING_PROVIDER("Embedding Providers",
                 "Embedding providers used in the integration to connect to embedding models", null),
         VECTOR_STORE("Vector Stores", "Vector stores used in the integration", null),
-        AI("AI Components", "AI components available in the flow", null),
-        MORE("More", "Expandable section to view more content", null);
+        AI("AI", "AI components available in the flow", null),
+        MORE("More", "Expandable section to view more content", null),
+        DIRECT_LLM("Direct LLM", "AI components that connect directly with a large language model", null),
+        RAG("RAG", "AI components specific to Retrieval-Augmented Generation workflows", null),
+        AGENT("Agent", "Represents an AI Agent within a workflow", null);
 
         final String name;
         final String description;

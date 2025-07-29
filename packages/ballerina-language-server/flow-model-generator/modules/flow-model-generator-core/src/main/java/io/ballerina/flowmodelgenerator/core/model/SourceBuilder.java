@@ -770,7 +770,7 @@ public class SourceBuilder {
                     .append(WHITE_SPACE);
 
             appendDescription(description.split(System.lineSeparator()));
-            if (!description.endsWith(System.lineSeparator())) {
+            if (!sb.toString().endsWith(System.lineSeparator())) {
                 sb.append(System.lineSeparator());
             }
             return this;

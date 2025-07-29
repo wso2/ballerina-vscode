@@ -9,8 +9,7 @@
       "module": "ai",
       "packageName": "ai",
       "object": "MessageWindowChatMemory",
-      "symbol": "init",
-      "version": "1.1.1"
+      "symbol": "init"
     }
   ]
 }

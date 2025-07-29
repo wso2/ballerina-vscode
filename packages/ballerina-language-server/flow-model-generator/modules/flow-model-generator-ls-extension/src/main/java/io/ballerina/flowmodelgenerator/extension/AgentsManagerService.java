@@ -56,6 +56,7 @@ import java.nio.file.Path;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
+import static io.ballerina.flowmodelgenerator.core.Constants.AI;
 import static io.ballerina.flowmodelgenerator.core.Constants.BALLERINA;
 import static io.ballerina.flowmodelgenerator.core.Constants.BALLERINAX;
 
@@ -94,8 +95,7 @@ public class AgentsManagerService implements ExtendedLanguageServerService {
             try {
                 AgentsGenerator agentsGenerator  = new AgentsGenerator();
                 String orgName = request.orgName() != null ? request.orgName() : BALLERINAX;
-                Optional<SemanticModel> semanticModel = PackageUtil.getSemanticModel(
-                        agentsGenerator.getAiModuleInfo(orgName));
+                Optional<SemanticModel> semanticModel = PackageUtil.getSemanticModel(orgName, AI);
                 if (semanticModel.isEmpty()) {
                     return response;
                 }
@@ -117,8 +117,7 @@ public class AgentsManagerService implements ExtendedLanguageServerService {
                 if (BALLERINA.equals(request.orgName())) {
                     response.setModels(agentsGenerator.getNewBallerinaxModels());
                 } else {
-                    Optional<SemanticModel> semanticModel = PackageUtil.getSemanticModel(
-                            agentsGenerator.getAiModuleInfo(BALLERINAX));
+                    Optional<SemanticModel> semanticModel = PackageUtil.getSemanticModel(BALLERINAX, AI);
                     semanticModel.ifPresent(model -> response.setModels(agentsGenerator.getAllBallerinaxModels(model)));
                 }
             } catch (Throwable e) {
@@ -135,8 +134,7 @@ public class AgentsManagerService implements ExtendedLanguageServerService {
             try {
                 AgentsGenerator agentsGenerator  = new AgentsGenerator();
                 String orgName = request.orgName() != null ? request.orgName() : BALLERINAX;
-                Optional<SemanticModel> semanticModel = PackageUtil.getSemanticModel(
-                        agentsGenerator.getAiModuleInfo(orgName));
+                Optional<SemanticModel> semanticModel = PackageUtil.getSemanticModel(orgName, AI);
                 if (semanticModel.isEmpty()) {
                     return response;
                 }
