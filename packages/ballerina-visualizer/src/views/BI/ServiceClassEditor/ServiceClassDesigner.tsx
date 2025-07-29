@@ -315,10 +315,7 @@ export function ServiceClassDesigner(props: ServiceClassDesignerProps) {
                         line: serviceClassModel.codedata.lineRange.endLine.line,
                         offset: serviceClassModel.codedata.lineRange.endLine.offset
                     }
-                },
-                inListenerInit: false,
-                isBasePath: false,
-                inDisplayAnnotation: false
+                }
             },
             type: {
                 metadata: {
