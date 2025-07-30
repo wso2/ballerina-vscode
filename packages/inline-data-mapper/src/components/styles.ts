@@ -228,18 +228,9 @@ export const useIONodesStyles = () => ({
     }),
     addSubMappingButton: css({
         "& > vscode-button": {
-            ...addElementButton,
-            width: `${IO_NODE_DEFAULT_WIDTH}px`,
             height: "40px",
-            border: "1px solid var(--vscode-welcomePage-tileBorder)",
-            color: "var(--button-primary-foreground)",
-            opacity: 0.7,
-            backgroundColor: "var(--vscode-button-secondaryBackground)",
-            borderRadius: "0px",
-            textTransform: "none",
-            "&:hover": {
-                backgroundColor: "var(--vscode-button-secondaryHoverBackground)"
-            },
+            width: `${IO_NODE_DEFAULT_WIDTH}px`,
+            border: "none",
         },
         "& > vscode-button > *": {
             margin: "0px 6px"

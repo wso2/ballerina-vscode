@@ -34,6 +34,7 @@ import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { Diagram } from "@wso2/component-diagram";
 import { ProgressRing, ThemeColors } from "@wso2/ui-toolkit";
 import styled from "@emotion/styled";
+import { RelativeLoader } from "../../../components/RelativeLoader";
 
 const SpinnerContainer = styled.div`
     display: flex;
@@ -54,6 +55,7 @@ export function ComponentDiagram(props: ComponentDiagramProps) {
     const { projectStructure } = props;
 
     const [project, setProject] = useState<CDModel | null>(null);
+    const [isDeleting, setIsDeleting] = useState(false);
     const { rpcClient } = useRpcContext();
 
     useEffect(() => {
@@ -139,6 +141,7 @@ export function ComponentDiagram(props: ComponentDiagramProps) {
 
     const handleDeleteComponent = async (component: CDListener | CDService | CDAutomation | CDConnection) => {
         console.log(">>> delete component", component);
+        setIsDeleting(true);
         rpcClient
             .getBIDiagramRpcClient()
             .deleteByComponentInfo({
@@ -156,10 +159,15 @@ export function ComponentDiagram(props: ComponentDiagramProps) {
                 console.log(">>> Updated source code after delete", response);
                 if (!response.textEdits) {
                     console.error(">>> Error updating source code", response);
-                    return;
+                } else {
+                    fetchProject();
                 }
-                // Refresh the component diagram
-                fetchProject();
+            })
+            .catch((error) => {
+                console.error(">>> Error deleting component", error?.message);
+            })
+            .finally(() => {
+                setIsDeleting(false);
             });
     };
 
@@ -174,15 +182,23 @@ export function ComponentDiagram(props: ComponentDiagramProps) {
     return (
         <DiagramContainer>
             {project ? (
-                <Diagram
-                    project={project}
-                    onListenerSelect={handleGoToListener}
-                    onServiceSelect={handleGoToService}
-                    onFunctionSelect={handleGoToFunction}
-                    onAutomationSelect={handleGoToAutomation}
-                    onConnectionSelect={handleGoToConnection}
-                    onDeleteComponent={handleDeleteComponent}
-                />
+                <>
+                    {isDeleting ? (
+                        <SpinnerContainer>
+                            <RelativeLoader message="Deleting component..." />
+                        </SpinnerContainer>
+                    ) : (
+                        <Diagram
+                            project={project}
+                            onListenerSelect={handleGoToListener}
+                            onServiceSelect={handleGoToService}
+                            onFunctionSelect={handleGoToFunction}
+                            onAutomationSelect={handleGoToAutomation}
+                            onConnectionSelect={handleGoToConnection}
+                            onDeleteComponent={handleDeleteComponent}
+                        />
+                    )}
+                </>
             ) : (
                 <SpinnerContainer>
                     <ProgressRing color={ThemeColors.PRIMARY} />

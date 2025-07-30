@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import { AIMachineEventType } from "@wso2/ballerina-core";
+import { AIMachineEventType, LoginMethod } from "@wso2/ballerina-core";
 
 interface FetchWithAuthParams {
     url: string;
@@ -51,7 +51,10 @@ export const fetchWithAuth = async ({
 
     let finalToken;
     try {
-        finalToken = await rpcClient.getAiPanelRpcClient().getAccessToken();
+        const loginMethod = await rpcClient.getAiPanelRpcClient().getLoginMethod();
+        if (loginMethod === LoginMethod.BI_INTEL) {
+            finalToken = await rpcClient.getAiPanelRpcClient().getAccessToken();
+        }
     } catch (error) {
         if (isErrorWithMessage(error) && error?.message === "TOKEN_EXPIRED") {
             rpcClient.sendAIStateEvent(AIMachineEventType.SILENT_LOGOUT);

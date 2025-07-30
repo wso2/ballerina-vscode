@@ -18,7 +18,7 @@
  */
 
 import { NodePosition } from "@wso2/syntax-tree";
-import { CodeData, FlowNode } from "../../interfaces/bi";
+import { CodeData, FlowNode, Metadata } from "../../interfaces/bi";
 
 export interface AgentTool {
     toolName: string;
@@ -44,6 +44,7 @@ export interface AgentToolRequest {
     toolName: string;
     description: string;
     selectedCodeData: CodeData; // Codedata can be FUNCTION_CALL | REMOTE_ACTION_CALL
+    toolParameters?: ToolParameters; // Optional: Parameters for the tool, can be an object or array
 }
 
 export interface AIAgentRequest {
@@ -66,3 +67,55 @@ export interface AIAgentResponse {
     position: NodePosition;
 }
 
+export interface McpToolUpdateRequest {
+    agentFlowNode: FlowNode;
+    serviceUrl: string;
+    serverName: string;
+    selectedTools: string[];
+    formValues?: FlowNode; // Optional: form values from AddMcpServer
+    updatedNode?: FlowNode; // Optional: updated node for toolkit edits
+    mcpTools?: any[]; // Optional: list of MCP tools
+    codedata?: CodeData; // Optional: code data for MCP toolkit
+}
+
+export interface ToolParameters {
+    metadata: Metadata;
+    valueType: string;
+    valueTypeConstraint: ValueTypeConstraint;
+    value: ToolParametersValue;
+    optional: boolean;
+    editable: boolean;
+    advanced: boolean;
+    hidden?: boolean;
+}
+
+export interface ToolParametersValue {
+    [key: string]: ValueTypeConstraint;
+}
+
+export interface ValueTypeConstraint {
+    metadata: Metadata;
+    valueType: string;
+    value: ValueTypeConstraintValue;
+    optional: boolean;
+    editable: boolean;
+    advanced: boolean;
+    hidden?: boolean;
+}
+
+export interface ValueTypeConstraintValue {
+    type: ValueType;
+    variable: ValueType;
+    parameterDescription: ValueType;
+}
+
+export interface ValueType {
+    metadata: Metadata;
+    valueType: string;
+    valueTypeConstraint?: string;
+    value: string;
+    optional: boolean;
+    editable: boolean;
+    advanced: boolean;
+    hidden?: boolean;
+}
