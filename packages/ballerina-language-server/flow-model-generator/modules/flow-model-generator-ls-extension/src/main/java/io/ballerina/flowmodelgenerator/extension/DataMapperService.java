@@ -224,7 +224,7 @@ public class DataMapperService implements ExtendedLanguageServerService {
                 if (semanticModel.isEmpty()) {
                     return response;
                 }
-                DataMapManager dataMapManager = new DataMapManager(null);
+                DataMapManager dataMapManager = new DataMapManager(documentContext.document());
                 response.setVisualizableProperties(
                         dataMapManager.getVisualizableProperties(semanticModel.get(), request.codedata()));
             } catch (Throwable e) {

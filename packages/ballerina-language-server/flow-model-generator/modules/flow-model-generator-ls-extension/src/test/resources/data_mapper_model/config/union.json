@@ -77,22 +77,22 @@
         {
           "fields": [
             {
-              "id": "animal1.Dog.name",
+              "id": "animal1.name",
               "variableName": "name",
               "typeName": "string",
               "kind": "string",
               "optional": false
             },
             {
-              "id": "animal1.Dog.breed",
+              "id": "animal1.breed",
               "variableName": "breed",
               "typeName": "string",
               "kind": "string",
               "optional": false
             }
           ],
-          "id": "animal1.Dog",
-          "variableName": "Dog",
+          "id": "animal1",
+          "variableName": "animal1",
           "typeName": "Dog",
           "kind": "record",
           "optional": false
@@ -100,22 +100,22 @@
         {
           "fields": [
             {
-              "id": "animal1.Elephant.name",
+              "id": "animal1.name",
               "variableName": "name",
               "typeName": "string",
               "kind": "string",
               "optional": false
             },
             {
-              "id": "animal1.Elephant.cast",
+              "id": "animal1.cast",
               "variableName": "cast",
               "typeName": "string",
               "kind": "string",
               "optional": false
             }
           ],
-          "id": "animal1.Elephant",
-          "variableName": "Elephant",
+          "id": "animal1",
+          "variableName": "animal1",
           "typeName": "Elephant",
           "kind": "record",
           "optional": false
