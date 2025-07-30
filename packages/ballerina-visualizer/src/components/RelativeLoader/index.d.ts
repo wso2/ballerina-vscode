@@ -15,11 +15,8 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-
-import { Attachment } from "@wso2/ballerina-core";
-
-export interface TestGeneratorIntermediaryState {
-    content: [string, Attachment[]];
-    resourceFunction: string;
-    testPlan: string;
+interface LoadingRingProps {
+    message?: string;
 }
+export declare const RelativeLoader: ({ message }: LoadingRingProps) => JSX.Element;
+export {};

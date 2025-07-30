@@ -25,7 +25,7 @@ import {
     Parameter,
     FormImports,
 } from "@wso2/ballerina-side-panel";
-import { AddNodeVisitor, RemoveNodeVisitor, NodeIcon, traverseFlow, ConnectorIcon } from "@wso2/bi-diagram";
+import { AddNodeVisitor, RemoveNodeVisitor, NodeIcon, traverseFlow, ConnectorIcon, AIModelIcon } from "@wso2/bi-diagram";
 import {
     Category,
     AvailableNode,
@@ -46,7 +46,6 @@ import {
     Item,
     FunctionKind,
     functionKinds,
-    TRIGGER_CHARACTERS,
     Diagnostic,
     FUNCTION_TYPE,
     FunctionNode,
@@ -122,11 +121,12 @@ function convertDiagramCategoryToSidePanelCategory(category: Category, functionT
 
     // HACK: use the icon of the first item in the category
     const icon = category.items.at(0)?.metadata.icon;
+    const codedata = (category.items.at(0) as AvailableNode)?.codedata;
 
     return {
         title: category.metadata.label,
         description: category.metadata.description,
-        icon: <ConnectorIcon url={icon} style={{ width: "20px", height: "20px", fontSize: "20px" }} />,
+        icon: <ConnectorIcon url={icon} style={{ width: "20px", height: "20px", fontSize: "20px" }} codedata={codedata} />,
         items: items,
     };
 }
@@ -152,6 +152,46 @@ export function convertFunctionCategoriesToSidePanelCategories(
         functionCategory.description = "No functions defined. Click below to create a new function.";
     }
     return panelCategories;
+}
+
+export function convertModelProviderCategoriesToSidePanelCategories(categories: Category[]): PanelCategory[] {
+    const panelCategories = categories.map((category) => convertDiagramCategoryToSidePanelCategory(category));
+    panelCategories.forEach((category) => {
+        category.items?.forEach((item) => {
+            if ((item as PanelNode).metadata?.codedata) {
+                const codedata = (item as PanelNode).metadata.codedata;
+                item.icon = <AIModelIcon type={codedata?.module} codedata={codedata} />;
+            } else if (((item as PanelCategory).items.at(0) as PanelNode)?.metadata?.codedata) {
+                const codedata = ((item as PanelCategory).items.at(0) as PanelNode)?.metadata.codedata;
+                item.icon = <AIModelIcon type={codedata?.module} codedata={codedata} />;
+            }
+        });
+    });
+    return panelCategories;
+}
+
+export function convertVectorStoreCategoriesToSidePanelCategories(categories: Category[]): PanelCategory[] {
+    const panelCategories = categories.map((category) => convertDiagramCategoryToSidePanelCategory(category));
+    panelCategories.forEach((category) => {
+        category.items?.forEach((item) => {
+            if ((item as PanelNode).metadata?.codedata) {
+                const codedata = (item as PanelNode).metadata.codedata;
+                item.icon = <NodeIcon type={codedata?.node} size={24} />;
+            } else if (((item as PanelCategory).items.at(0) as PanelNode)?.metadata?.codedata) {
+                const codedata = ((item as PanelCategory).items.at(0) as PanelNode)?.metadata.codedata;
+                item.icon = <NodeIcon type={codedata?.node} size={24} />;
+            }
+        });
+    });
+    return panelCategories;
+}
+
+export function convertEmbeddingProviderCategoriesToSidePanelCategories(categories: Category[]): PanelCategory[] {
+    return convertModelProviderCategoriesToSidePanelCategories(categories);
+}
+
+export function convertVectorKnowledgeBaseCategoriesToSidePanelCategories(categories: Category[]): PanelCategory[] {
+    return convertModelProviderCategoriesToSidePanelCategories(categories);
 }
 
 export function convertNodePropertiesToFormFields(
@@ -196,6 +236,7 @@ export function convertNodePropertyToFormField(
         advanceProps: convertNodePropertiesToFormFields(property.advanceProperties),
         valueType: property.valueType,
         items: getFormFieldItems(property, connections),
+        itemOptions: property.itemOptions,
         diagnostics: property.diagnostics?.diagnostics || [],
         valueTypeConstraint: property.valueTypeConstraint,
         lineRange: property?.codedata?.lineRange,
@@ -306,8 +347,16 @@ export function getContainerTitle(view: SidePanelView, activeNode: FlowNode, cli
             return "Configure Tool";
         case SidePanelView.ADD_TOOL:
             return "Add Tool";
+        case SidePanelView.ADD_MCP_SERVER:
+            return "Add MCP Server";
+        case SidePanelView.EDIT_MCP_SERVER:
+            return "Edit MCP Server";
         case SidePanelView.NEW_TOOL:
-            return "Create New Tool";
+            return "Add New Tool";
+        case SidePanelView.NEW_TOOL_FROM_CONNECTION:
+            return "Create Tool from Connection";
+        case SidePanelView.NEW_TOOL_FROM_FUNCTION:
+            return "Create Tool from Function";
         case SidePanelView.AGENT_CONFIG:
             return "Configure Agent";
         case SidePanelView.FORM:
@@ -1034,7 +1083,7 @@ export function filterUnsupportedDiagnostics(diagnostics: Diagnostic[]): Diagnos
 
 /**
  * Check if the type is supported by the data mapper
- * 
+ *
  * @param type - The type to check
  * @returns Whether the type is supported by the data mapper
  */

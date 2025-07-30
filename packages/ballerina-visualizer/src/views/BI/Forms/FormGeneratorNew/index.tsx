@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import { RefObject, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { ReactNode, RefObject, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
     EVENT_TYPE,
     LineRange,
@@ -96,6 +96,10 @@ interface FormProps {
     concertRequired?: boolean;
     description?: string;
     preserveFieldOrder?: boolean;
+    injectedComponents?: {
+        component: ReactNode;
+        index: number;
+    }[];
 }
 
 export function FormGeneratorNew(props: FormProps) {
@@ -123,7 +127,8 @@ export function FormGeneratorNew(props: FormProps) {
         concertMessage,
         concertRequired,
         description,
-        preserveFieldOrder
+        preserveFieldOrder,
+        injectedComponents
     } = props;
 
     const { rpcClient } = useRpcContext();
@@ -702,6 +707,7 @@ export function FormGeneratorNew(props: FormProps) {
                     infoLabel={description}
                     formImports={formImports}
                     preserveOrder={preserveFieldOrder}
+                    injectedComponents={injectedComponents}
                 />
             )}
             {typeEditorState.isOpen && (
