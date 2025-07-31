@@ -1,11 +1,7 @@
 import { CoreMessage, generateText, streamText, tool } from "ai";
 import { getAnthropicClient, ANTHROPIC_SONNET_4 } from "../connection";
-import {
-    GenerationType,
-    LibraryProviderTool,
-    LibraryProviderToolSchema,
-    getAllLibraries,
-} from "../libs/libs";
+import { GenerationType, getAllLibraries } from "../libs/libs";
+import { LibraryProviderTool, LibraryProviderToolSchema } from "../libs/libraryProviderTool";
 import {
     getRewrittenPrompt,
     populateHistory,
