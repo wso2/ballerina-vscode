@@ -113,6 +113,8 @@ interface FormProps {
         description?: string; // Optional description explaining what the action button does
         callback: () => void;
     };
+    handleOnFormSubmit?: (updatedNode?: FlowNode, isDataMapperFormUpdate?: boolean) => void;
+    helperPaneZIndex?: number;
 }
 
 // Styled component for the action button description
@@ -158,6 +160,8 @@ export function FormGenerator(props: FormProps) {
         disableSaveButton,
         actionButtonConfig,
         submitText,
+        handleOnFormSubmit,
+        helperPaneZIndex,
     } = props;
 
     const { rpcClient } = useRpcContext();
@@ -633,7 +637,11 @@ export function FormGenerator(props: FormProps) {
             helperPaneHeight: helperPaneHeight,
             recordTypeField: recordTypeField,
             isAssignIdentifier: isAssignIdentifier,
-            updateImports: handleUpdateImports
+            updateImports: handleUpdateImports,
+            completions: completions,
+            projectPath: projectPath,
+            handleOnFormSubmit: handleOnFormSubmit,
+            helperPaneZIndex: helperPaneZIndex
         });
     };
 

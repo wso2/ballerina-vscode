@@ -41,6 +41,7 @@ import { ContextAwareRawExpressionEditor } from "./RawExpressionEditor";
 import { IdentifierField } from "./IdentifierField";
 import { PathEditor } from "./PathEditor";
 import { HeaderSetEditor } from "./HeaderSetEditor";
+import { CompletionItem } from "@wso2/ui-toolkit";
 
 interface FormFieldEditorProps {
     field: FormField;
@@ -55,6 +56,8 @@ interface FormFieldEditorProps {
     recordTypeFields?: RecordTypeField[];
     onIdentifierEditingStateChange?: (isEditing: boolean) => void;
     setSubComponentEnabled?: (isAdding: boolean) => void;
+    handleNewTypeSelected?: (type: CompletionItem) => void;
+
 }
 
 export const EditorFactory = (props: FormFieldEditorProps) => {
@@ -70,7 +73,8 @@ export const EditorFactory = (props: FormFieldEditorProps) => {
         visualizableFields,
         recordTypeFields,
         onIdentifierEditingStateChange,
-        setSubComponentEnabled
+        setSubComponentEnabled,
+        handleNewTypeSelected
     } = props;
     if (!field.enabled || field.hidden) {
         return <></>;
@@ -121,6 +125,8 @@ export const EditorFactory = (props: FormFieldEditorProps) => {
                 handleOnFieldFocus={handleOnFieldFocus}
                 autoFocus={autoFocus}
                 handleOnTypeChange={handleOnTypeChange}
+                handleNewTypeSelected={handleNewTypeSelected}
+
             />
         );
     } else if (!field.items && (field.type === "EXPRESSION" || field.type === "LV_EXPRESSION" || field.type == "ACTION_OR_EXPRESSION") && field.editable) {
