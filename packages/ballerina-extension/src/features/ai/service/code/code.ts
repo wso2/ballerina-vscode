@@ -2,7 +2,6 @@ import { CoreMessage, generateText, streamText, tool } from "ai";
 import { getAnthropicClient, ANTHROPIC_SONNET_4 } from "../connection";
 import {
     GenerationType,
-    getRelevantLibrariesAndFunctions,
     LibraryProviderTool,
     LibraryProviderToolSchema,
     getAllLibraries,
@@ -14,19 +13,14 @@ import {
     getErrorMessage,
     extractResourceDocumentContent,
 } from "../utils";
-import { getMaximizedSelectedLibs, selectRequiredFunctions, toMaximizedLibrariesFromLibJson } from "./../libs/funcs";
-import { GetFunctionResponse } from "./../libs/funcs_inter_types";
 import { LANGLIBS } from "./../libs/langlibs";
 import { Library } from "./../libs/libs_types";
 import {
-    ChatNotify,
     DiagnosticEntry,
     FileAttatchment,
     GenerateCodeRequest,
-    onChatNotify,
     OperationType,
     PostProcessResponse,
-    ProjectDiagnostics,
     ProjectSource,
     RepairParams,
     RepairResponse,
@@ -56,12 +50,8 @@ export async function generateCodeCore(params: GenerateCodeRequest, eventHandler
     const allMessages: CoreMessage[] = [
         {
             role: "system",
-            content: `You are an expert assistant specializing in Ballerina code generation. Your goal is to generate accurate Ballerina code based on the user query. Use the LibraryProviderTool to fetch library details (name, description, clients, functions, types) when needed. Follow these steps:
-1. Analyze the query to determine required libraries.
-2. Call LibraryProviderTool with the identified library names.
-3. Use the tool's output to select relevant functions and types.
-4. Generate syntactically correct Ballerina code, adhering to the API documentation and Ballerina conventions.
-5. Handle errors gracefully and provide diagnostics if needed.`,
+            content: `${getSystemPromptPrefix([], sourceFiles, params.operationType)}
+${getSystemPromptSuffix(LANGLIBS)}`,
         },
         ...historyMessages,
         {
@@ -341,14 +331,8 @@ export async function repairCode(params: RepairParams): Promise<RepairResponse> 
     const allMessages: CoreMessage[] = [
         {
             role: "system",
-            content: `You are an expert assistant specializing in Ballerina code repair. Your goal is to fix compiler errors in the provided Ballerina code based on diagnostics and API documentation. Use the LibraryProviderTool to fetch library details (name, description, clients, functions, types) when needed. Follow these steps:
-1. Analyze the diagnostics to identify errors in the code.
-2. Review the provided API documentation via LibraryProviderTool to ensure correct usage of libraries, functions, and types.
-3. Fix the code to resolve all diagnostics, ensuring syntactic correctness and adherence to Ballerina conventions.
-4. Provide a brief explanation of the fixes applied.
-
-Available libraries for LibraryProviderTool:
-${libraryDescriptions}`,
+            content: `${getSystemPromptPrefix([], [], "CODE_GENERATION")}
+${getSystemPromptSuffix(LANGLIBS)}`,
         },
         ...params.previousMessages,
         {
