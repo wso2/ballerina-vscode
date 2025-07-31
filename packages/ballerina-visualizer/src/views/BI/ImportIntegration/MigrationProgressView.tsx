@@ -96,39 +96,56 @@ interface ProgressProps {
     migrationState: string | null;
     migrationLogs: string[];
     migrationCompleted: boolean;
+    migrationSuccessful: boolean;
     migrationResponse: ImportIntegrationResponse | null;
     onNext: () => void;
 }
+
+const colourizeLog = (log: string, index: number) => {
+    if (log.startsWith("[SEVERE]")) {
+        return (
+            <LogEntry key={index} style={{ color: "var(--vscode-terminal-ansiRed)" }}>
+                {log}
+            </LogEntry>
+        );
+    } else if (log.startsWith("[WARN]")) {
+        return (
+            <LogEntry key={index} style={{ color: "var(--vscode-terminal-ansiYellow)" }}>
+                {log}
+            </LogEntry>
+        );
+    }
+    return <LogEntry key={index}>{log}</LogEntry>;
+};
 
 export function MigrationProgressView({
     migrationState,
     migrationLogs,
     migrationCompleted,
+    migrationSuccessful,
     migrationResponse,
     onNext,
 }: ProgressProps) {
     const [isReportOpen, setIsReportOpen] = useState(false);
     const [isLogsOpen, setIsLogsOpen] = useState(false);
-    const colourizeLog = (log: string, index: number) => {
-        if (log.startsWith("[SEVERE]")) {
-            return (
-                <LogEntry key={index} style={{ color: "var(--vscode-terminal-ansiRed)" }}>
-                    {log}
-                </LogEntry>
-            );
-        }
-        return <LogEntry key={index}>{log}</LogEntry>;
-    };
 
     return (
         <>
             <div>
-                {migrationCompleted && migrationResponse ? (
+                {migrationCompleted && migrationSuccessful ? (
                     <>
                         <Typography variant="h2">Migration Completed Successfully!</Typography>
                         <Typography sx={{ color: "var(--vscode-descriptionForeground)" }}>
                             Your integration project has been successfully migrated. You can now proceed to the final
                             step to create and open your project.
+                        </Typography>
+                    </>
+                ) : migrationCompleted && !migrationSuccessful ? (
+                    <>
+                        <Typography variant="h2">Migration Failed</Typography>
+                        <Typography sx={{ color: "var(--vscode-terminal-ansiRed)" }}>
+                            The migration process encountered errors and could not be completed. Please check the logs
+                            below for more details.
                         </Typography>
                     </>
                 ) : (
@@ -141,21 +158,19 @@ export function MigrationProgressView({
                 )}
             </div>
             <StepWrapper>
-                {migrationCompleted && migrationResponse ? (
+                {migrationCompleted && migrationSuccessful ? (
                     <Typography variant="body3" sx={{ color: "var(--vscode-terminal-ansiGreen)" }}>
                         Migration completed successfully!
                     </Typography>
+                ) : migrationCompleted && !migrationSuccessful ? (
+                    <></>
                 ) : (
                     <Typography variant="progress">{migrationState || "Starting migration..."}</Typography>
                 )}
             </StepWrapper>
 
             <ButtonWrapper>
-                <Button
-                    disabled={!migrationCompleted || migrationResponse === null}
-                    onClick={onNext}
-                    appearance="primary"
-                >
+                <Button disabled={!migrationCompleted || !migrationSuccessful} onClick={onNext} appearance="primary">
                     Proceed to Final Step
                 </Button>
             </ButtonWrapper>
