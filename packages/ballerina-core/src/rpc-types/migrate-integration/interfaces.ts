@@ -19,7 +19,10 @@
 export interface MigrationTool {
     id: string;
     title: string;
-    needsPull: boolean;
+    needToPull: boolean;
+    commandName: string;
+    description: string;
+    requiredVersion: string;
     parameters: Array<{
         key: string;
         label: string;

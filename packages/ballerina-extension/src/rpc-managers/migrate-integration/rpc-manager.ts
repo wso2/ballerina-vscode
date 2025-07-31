@@ -51,7 +51,6 @@ export class MigrateIntegrationRpcManager implements MigrateIntegrationAPI {
     }
 
     async getMigrationTools(): Promise<GetMigrationToolsResponse> {
-        // ADD YOUR IMPLEMENTATION HERE
-        throw new Error('Not implemented');
+        return StateMachine.langClient().getMigrationTools();
     }
 }

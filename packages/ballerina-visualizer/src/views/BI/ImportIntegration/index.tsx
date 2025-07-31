@@ -24,6 +24,7 @@ import {
     ImportTibcoRPCRequest,
     MACHINE_VIEW,
     MigrateRequest,
+    MigrationTool,
 } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { Icon, Typography } from "@wso2/ui-toolkit";
@@ -32,7 +33,6 @@ import { useEffect, useState } from "react";
 import { BodyText } from "../../styles";
 import { ImportIntegrationForm } from "./ImportIntegrationForm";
 import { MigrationProgressView } from "./MigrationProgressView";
-import { INTEGRATION_CONFIGS } from "./definitions";
 import { ConfigureProjectForm } from "./ConfigureProjectForm";
 
 const FormContainer = styled.div`
@@ -56,7 +56,7 @@ const IconButton = styled.div`
 // Defines the parameters that will be passed from the form to start the import
 export interface FinalIntegrationParams {
     importSourcePath: string;
-    type: keyof typeof INTEGRATION_CONFIGS;
+    type: string;
     [key: string]: any; // For other dynamic parameters
 }
 
@@ -73,29 +73,31 @@ export function ImportIntegration() {
     const [migrationToolState, setMigrationToolState] = useState<string | null>(null);
     const [migrationToolLogs, setMigrationToolLogs] = useState<string[]>([]);
     const [pullingTool, setPullingTool] = useState(false);
-    const [selectedIntegration, setSelectedIntegration] = useState<keyof typeof INTEGRATION_CONFIGS | null>(null);
+    const [selectedIntegration, setSelectedIntegration] = useState<MigrationTool | null>(null);
+    const [migrationTools, setMigrationTools] = useState<MigrationTool[]>([]);
     const [importParams, setImportParams] = useState<FinalIntegrationParams | null>(null);
     const [migrationCompleted, setMigrationCompleted] = useState(false);
+    const [migrationSuccessful, setMigrationSuccessful] = useState(false);
     const [migrationResponse, setMigrationResponse] = useState<ImportIntegrationResponse | null>(null);
 
     const defaultSteps = ["Select Source Project", "Migration Status", "Create and Open Project"];
 
-    const pullIntegrationTool = (integrationType: keyof typeof INTEGRATION_CONFIGS) => {
+    const pullIntegrationTool = (commandName: string) => {
         setPullingTool(true);
         rpcClient.getMigrateIntegrationRpcClient().pullMigrationTool({
-            toolName: integrationType,
+            toolName: commandName,
         });
     };
 
     // Handler to begin the import and switch to the loading view
-    const handleStartImport = (toolPullProgress: DownloadProgress, importParams: FinalIntegrationParams) => {
-        if (toolPullProgress.step === -1) {
+    const handleStartImport = (importParams: FinalIntegrationParams, selectedIntegration: MigrationTool, toolPullProgress: DownloadProgress) => {
+        if (selectedIntegration.needToPull && toolPullProgress && toolPullProgress.step === -1) {
             console.error("Cannot start import, tool download failed.");
         }
         setStep(1);
         console.log("Starting import with params:", importParams);
 
-        if (selectedIntegration === "tibco") {
+        if (selectedIntegration.title.toLowerCase() === "tibco") {
             const params: ImportTibcoRPCRequest = {
                 packageName: "",
                 sourcePath: importParams.importSourcePath,
@@ -104,11 +106,11 @@ export function ImportIntegration() {
                 .getMigrateIntegrationRpcClient()
                 .importTibcoToBI(params)
                 .then((response) => {
-                    console.log("TIBCO import response:", response);
-                    setTimeout(() => {
-                        setMigrationCompleted(true);
-                        setMigrationResponse(response);
-                    }, 10);
+                    setMigrationCompleted(true);
+                    setMigrationResponse(response);
+                    if (!response.error) {
+                        setMigrationSuccessful(true);
+                    }
                 })
                 .catch((error) => {
                     console.error("Error during TIBCO import:", error);
@@ -145,7 +147,19 @@ export function ImportIntegration() {
         }
     };
 
+    const getMigrationTools = () => {
+        rpcClient
+            .getMigrateIntegrationRpcClient()
+            .getMigrationTools()
+            .then((response) => {
+                console.log("Available migration tools:", response.tools);
+                setMigrationTools(response.tools);
+            });
+    };
+
     useEffect(() => {
+        getMigrationTools();
+
         rpcClient.onDownloadProgress((progressUpdate) => {
             setToolPullProgress(progressUpdate);
             if (progressUpdate.success) {
@@ -153,64 +167,20 @@ export function ImportIntegration() {
             }
         });
 
-        // TODO: Remove simulated delays in production
-        const stateQueue: string[] = [];
-        let isProcessingState = false;
-
-        const logQueue: string[] = [];
-        let isProcessingLogs = false;
-
-        const processStateQueue = () => {
-            if (stateQueue.length === 0) {
-                isProcessingState = false;
-                return;
-            }
-
-            const nextState = stateQueue.shift()!;
-            setMigrationToolState(nextState);
-
-            setTimeout(() => {
-                processStateQueue();
-            }, 10); // 0.8 second delay between each state change
-        };
-
-        const processLogQueue = () => {
-            if (logQueue.length === 0) {
-                isProcessingLogs = false;
-                return;
-            }
-
-            const nextLog = logQueue.shift()!;
-            setMigrationToolLogs((prevLogs) => [...prevLogs, nextLog]);
-
-            setTimeout(() => {
-                processLogQueue();
-            }, 10); // 0.3 second delay between each log
-        };
-
-        rpcClient.onMigrationToolStateChanged((stateUpdate) => {
-            stateQueue.push(stateUpdate);
-
-            if (!isProcessingState) {
-                isProcessingState = true;
-                processStateQueue();
-            }
+        rpcClient.onMigrationToolStateChanged((state) => {
+            setMigrationToolState(state);
         });
 
-        rpcClient.onMigrationToolLogs((logUpdate) => {
-            logQueue.push(logUpdate);
-
-            if (!isProcessingLogs) {
-                isProcessingLogs = true;
-                processLogQueue();
-            }
+        rpcClient.onMigrationToolLogs((log) => {
+            setMigrationToolLogs((prevLogs) => [...prevLogs, log]);
         });
     }, [rpcClient]);
+
     useEffect(() => {
-        if (toolPullProgress && toolPullProgress.success && importParams) {
-            handleStartImport(toolPullProgress, importParams);
+        if (selectedIntegration?.needToPull && toolPullProgress && toolPullProgress.success && importParams) {
+            handleStartImport(importParams, selectedIntegration, toolPullProgress);
         }
-    }, [toolPullProgress, importParams]);
+    }, [toolPullProgress, importParams, selectedIntegration]);
 
     return (
         <FormContainer>
@@ -223,10 +193,13 @@ export function ImportIntegration() {
             {step === 0 && (
                 <ImportIntegrationForm
                     selectedIntegration={selectedIntegration}
+                    migrationTools={migrationTools}
                     setImportParams={setImportParams}
                     pullIntegrationTool={pullIntegrationTool}
                     pullingTool={pullingTool}
+                    toolPullProgress={toolPullProgress}
                     onSelectIntegration={setSelectedIntegration}
+                    handleStartImport={handleStartImport}
                 />
             )}
             {step === 1 && (
@@ -234,6 +207,7 @@ export function ImportIntegration() {
                     migrationState={migrationToolState}
                     migrationLogs={migrationToolLogs}
                     migrationCompleted={migrationCompleted}
+                    migrationSuccessful={migrationSuccessful}
                     migrationResponse={migrationResponse}
                     onNext={() => setStep(2)}
                 />

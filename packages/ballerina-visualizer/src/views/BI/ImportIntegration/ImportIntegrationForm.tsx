@@ -17,6 +17,7 @@
  */
 
 import styled from "@emotion/styled";
+import { DownloadProgress } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { Button, CheckBox, Icon, TextField, Typography } from "@wso2/ui-toolkit";
 import { useState } from "react";
@@ -24,7 +25,7 @@ import { FinalIntegrationParams } from ".";
 import ButtonCard from "../../../components/ButtonCard";
 import { LoadingRing } from "../../../components/Loader";
 import { BodyText, LoadingOverlayContainer } from "../../styles";
-import { INTEGRATION_CONFIGS } from "./definitions";
+import { MigrationTool } from "@wso2/ballerina-core";
 
 const SELECTION_TEXT = "To begin, choose a source platform from the options above.";
 const IMPORT_DISABLED_TOOLTIP = "Please select a source project from the options above to continue.";
@@ -65,19 +66,29 @@ const ParameterItem = styled.div`
 `;
 
 interface FormProps {
-    selectedIntegration: keyof typeof INTEGRATION_CONFIGS | null;
-    pullIntegrationTool: (integrationType: keyof typeof INTEGRATION_CONFIGS) => void;
+    selectedIntegration: MigrationTool | null;
+    migrationTools: MigrationTool[];
+    pullIntegrationTool: (integrationType: string) => void;
     pullingTool: boolean;
+    toolPullProgress: DownloadProgress | null;
     setImportParams: (params: FinalIntegrationParams) => void;
-    onSelectIntegration: (type: keyof typeof INTEGRATION_CONFIGS) => void;
+    onSelectIntegration: (selectedIntegration: MigrationTool) => void;
+    handleStartImport: (
+        importParams: FinalIntegrationParams,
+        selectedIntegration: MigrationTool,
+        toolPullProgress: DownloadProgress
+    ) => void;
 }
 
 export function ImportIntegrationForm({
     selectedIntegration,
+    migrationTools,
     onSelectIntegration,
     pullIntegrationTool,
     setImportParams,
     pullingTool,
+    toolPullProgress,
+    handleStartImport,
 }: FormProps) {
     const { rpcClient } = useRpcContext();
 
@@ -86,12 +97,11 @@ export function ImportIntegrationForm({
 
     const isImportDisabled = importSourcePath.length < 2 || !selectedIntegration;
 
-    const handleIntegrationSelection = async (integrationType: keyof typeof INTEGRATION_CONFIGS) => {
+    const handleIntegrationSelection = async (integration: MigrationTool) => {
         // Reset state when a new integration is selected
         setImportSourcePath("");
-        onSelectIntegration(integrationType);
-        const config = INTEGRATION_CONFIGS[integrationType];
-        const defaultParams = config.parameters.reduce((acc, param) => {
+        onSelectIntegration(integration);
+        const defaultParams = integration.parameters.reduce((acc, param) => {
             acc[param.key] = param.defaultValue;
             return acc;
         }, {} as Record<string, any>);
@@ -108,12 +118,16 @@ export function ImportIntegrationForm({
 
         const finalParams: FinalIntegrationParams = {
             importSourcePath,
-            type: selectedIntegration,
+            type: selectedIntegration.title,
             ...integrationParams,
         };
 
         setImportParams(finalParams);
-        pullIntegrationTool(selectedIntegration);
+        if (selectedIntegration.needToPull) {
+            pullIntegrationTool(selectedIntegration.commandName);
+        } else {
+            handleStartImport(finalParams, selectedIntegration, toolPullProgress);
+        }
     };
 
     const handleParameterChange = (paramKey: string, value: any) => {
@@ -124,16 +138,14 @@ export function ImportIntegrationForm({
     };
 
     const renderIntegrationParameters = () => {
-        if (!selectedIntegration) return null;
-        const config = INTEGRATION_CONFIGS[selectedIntegration];
-        if (!config.parameters.length) return null;
+        if (!selectedIntegration || !selectedIntegration.parameters.length) return null;
 
         return (
             <ParametersSection>
                 <Typography variant="h4" sx={{ marginBottom: 12 }}>
-                    {config.title} Configuration
+                    {selectedIntegration.title} Configuration
                 </Typography>
-                {config.parameters.map((param) => (
+                {selectedIntegration.parameters.map((param) => (
                     <ParameterItem key={param.key}>
                         {param.type === "boolean" ? (
                             <CheckBox
@@ -166,18 +178,16 @@ export function ImportIntegrationForm({
                 Choose the source platform and import your project
             </Typography>
             <IntegrationCardGrid>
-                {Object.keys(INTEGRATION_CONFIGS).map((key) => {
-                    const integrationKey = key as keyof typeof INTEGRATION_CONFIGS;
-                    const config = INTEGRATION_CONFIGS[integrationKey];
+                {migrationTools.map((tool) => {
                     return (
                         <ButtonCard
-                            key={integrationKey}
-                            id={`${integrationKey}-integration-card`}
+                            key={tool.id}
+                            id={`${tool.id}-integration-card`}
                             icon={<Icon name="bi-globe" />}
-                            title={`Import from ${config.title}`}
-                            description={config.description}
-                            onClick={() => handleIntegrationSelection(integrationKey)}
-                            active={selectedIntegration === integrationKey}
+                            title={`Import from ${tool.title}`}
+                            description={tool.description}
+                            onClick={() => handleIntegrationSelection(tool)}
+                            active={selectedIntegration?.id === tool.id}
                         />
                     );
                 })}

@@ -36,20 +36,15 @@ export async function pullMigrationTool(migrationToolName: string): Promise<void
         return Promise.reject(new Error(errorMessage));
     }
 
-    const toolCommandMap: { [key: string]: string } = {
-        mulesoft: "migrate-mule",
-        tibco: "migrate-tibco",
-    };
+    const toolCommandSet = new Set(["migrate-tibco", "migrate-mule"]);
 
-    const migrationToolCommand = toolCommandMap[migrationToolName];
-
-    if (!migrationToolCommand) {
+    if (!toolCommandSet.has(migrationToolName)) {
         const errorMessage = `Unsupported migration tool: ${migrationToolName}`;
         return Promise.reject(new Error(errorMessage));
     }
 
     const ballerinaCmd = extension.ballerinaExtInstance.getBallerinaCmd();
-    const command = `${ballerinaCmd} tool pull ${migrationToolCommand}`;
+    const command = `${ballerinaCmd} tool pull ${migrationToolName}`;
     debug(`Executing migration tool pull command: ${command}`);
 
     // 2. This function now returns a promise that wraps the exec lifecycle

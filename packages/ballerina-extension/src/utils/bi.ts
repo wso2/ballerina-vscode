@@ -241,8 +241,15 @@ export async function createBIProjectFromMigration(params: MigrateRequest) {
 
     const EMPTY = "\n";
     // Write files based on keys in params.textEdits
-    for (const [fileName, content] of Object.entries(params.textEdits)) {
+    for (const [fileName, fileContent] of Object.entries(params.textEdits)) {
+        let content = fileContent;
         const filePath = path.join(projectRoot, fileName);
+
+        if (fileName === "Ballerina.toml") {
+            // Find the line with the string 'name =' and replace it with the project name
+            content = content.replace(/name = ".*?"/, `name = "${projectName}"`);
+        }
+        
         writeBallerinaFileDidOpen(filePath, content || EMPTY);
     }
 
