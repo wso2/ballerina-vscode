@@ -27,7 +27,8 @@ import {
     RequiredFormInput,
     ThemeColors,
     Tooltip,
-    Typography
+    Typography,
+    CompletionItem,
 } from "@wso2/ui-toolkit";
 import { FormField } from "../Form/types";
 import { useFormContext } from "../../context";
@@ -42,7 +43,8 @@ interface TypeEditorProps {
     field: FormField;
     openRecordEditor: (open: boolean) => void;
     handleOnFieldFocus?: (key: string) => void;
-    handleOnTypeChange?: () => void;
+    handleOnTypeChange?: (value?: string) => void;
+    handleNewTypeSelected?: (type: CompletionItem) => void;
     autoFocus?: boolean;
 }
 
@@ -66,10 +68,10 @@ const EditorRibbon = ({ onClick }: { onClick: () => void }) => {
     return (
         <Tooltip content="Add Type" containerSx={{ cursor: 'default' }}>
             <Ribbon onClick={onClick}>
-                <Icon name="bi-type" sx={{ 
-                    color: ThemeColors.ON_PRIMARY, 
-                    fontSize: '12px', 
-                    width: '12px', 
+                <Icon name="bi-type" sx={{
+                    color: ThemeColors.ON_PRIMARY,
+                    fontSize: '12px',
+                    width: '12px',
                     height: '12px'
                 }} />
             </Ribbon>
@@ -89,7 +91,7 @@ const getDefaultCompletion = (newType: string) => {
 }
 
 export function TypeEditor(props: TypeEditorProps) {
-    const { field, openRecordEditor, handleOnFieldFocus, handleOnTypeChange, autoFocus } = props;
+    const { field, openRecordEditor, handleOnFieldFocus, handleOnTypeChange, autoFocus, handleNewTypeSelected } = props;
     const { form, expressionEditor } = useFormContext();
     const { control } = form;
     const {
@@ -154,7 +156,7 @@ export function TypeEditor(props: TypeEditorProps) {
     }
 
     const handleTypeEdit = (value: string) => {
-        handleOnTypeChange && handleOnTypeChange();
+        handleOnTypeChange && handleOnTypeChange(value);
     };
 
     const debouncedTypeEdit = debounce(handleTypeEdit, 300);
@@ -228,7 +230,7 @@ export function TypeEditor(props: TypeEditorProps) {
                         {field.documentation && <ReactMarkdown>{field.documentation}</ReactMarkdown>}
                     </S.EditorMdContainer>
                 </S.Header>
-                {field.valueTypeConstraint && 
+                {field.valueTypeConstraint &&
                     <S.Type isVisible={focused} title={field.valueTypeConstraint as string}>{sanitizeType(field.valueTypeConstraint as string)}</S.Type>}
             </S.HeaderContainer>
             <Controller
@@ -265,6 +267,7 @@ export function TypeEditor(props: TypeEditorProps) {
 
                                 // Set show default completion
                                 const typeExists = referenceTypes.find((type) => type.label === updatedValue);
+                                handleNewTypeSelected && handleNewTypeSelected(typeExists)
                                 const validTypeForCreation = updatedValue.match(/^[a-zA-Z_'][a-zA-Z0-9_]*$/);
                                 if (updatedValue && !typeExists && validTypeForCreation) {
                                     setShowDefaultCompletion(true);
