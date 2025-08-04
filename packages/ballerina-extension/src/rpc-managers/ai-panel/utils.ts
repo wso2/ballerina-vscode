@@ -1796,6 +1796,7 @@ async function handleRecordArrays(key: string, nestedKey: string, responseRecord
     let modifiedOutput: object;
     let outputMetadataType: string = "";
     let outputMetadataTypeName: string = "";
+    let isOutputDeeplyNested: boolean = false;
 
     for (let subObjectKey of subObjectKeys) {
         if (!nestedKey) {
@@ -1808,20 +1809,19 @@ async function handleRecordArrays(key: string, nestedKey: string, responseRecord
         }
         outputMetadataTypeName = modifiedOutput["typeName"];
         outputMetadataType = modifiedOutput["type"];
-        let isDeeplyNested = (arrayRecords.includes(outputMetadataTypeName) || arrayEnumUnion.includes(outputMetadataType));
+        isOutputDeeplyNested = (arrayRecords.includes(outputMetadataTypeName) || arrayEnumUnion.includes(outputMetadataType));
 
-        let { itemKey: currentItemKey, combinedKey: currentCombinedKey, inputArrayNullable: currentArrayNullable } = await extractKeys(responseRecord[subObjectKey], parameterDefinitions, arrayRecords, arrayEnumUnion);
+        let { itemKey: currentItemKey, combinedKey: currentCombinedKey, inputArrayNullable: currentArrayNullable, isSet: isCurrentSet, isInputDeeplyNested: isCurrentInputDeeplyNested } = await extractKeys(responseRecord[subObjectKey], parameterDefinitions, arrayRecords, arrayEnumUnion);
         if (currentItemKey.includes('?')) {
             currentItemKey = currentItemKey.replace('?', '');
         }
         if (modifiedOutput.hasOwnProperty("fields") || modifiedOutput.hasOwnProperty("members")) {
-            if (isDeeplyNested) {
+            if (isOutputDeeplyNested) {
                 const subArrayRecord = responseRecord[subObjectKey];
                 const isCombinedKeyModified = currentCombinedKey.endsWith('?');
                 const replacementKey = currentArrayNullable || isCombinedKeyModified
                     ? `${currentItemKey}Item?.`
-                    : `${currentItemKey}Item.`;
-
+                    : `${isCurrentInputDeeplyNested ? currentItemKey + 'Item' : currentItemKey}.`;
                 const regex = new RegExp(
                     currentCombinedKey.replace(/\?/g, '\\?').replace(/\./g, '\\.') + '\\.', 'g'
                 );
@@ -1830,8 +1830,10 @@ async function handleRecordArrays(key: string, nestedKey: string, responseRecord
                     `${subObjectKey}: ${subArrayRecord.replace(regex, replacementKey)}`
                 );
 
-                itemKey = currentItemKey;
-                combinedKey = currentCombinedKey;
+                if (isCurrentSet || (itemKey === "" && combinedKey === "")) {
+                    itemKey = currentItemKey;
+                    combinedKey = currentCombinedKey;
+                }
             } else {
                 formattedRecordsArray.push(`${subObjectKey}: ${responseRecord[subObjectKey]}`);
             }
@@ -1889,11 +1891,15 @@ async function extractKeys(
     itemKey: string;
     combinedKey: string;
     inputArrayNullable: boolean;
+    isSet: boolean;
+    isInputDeeplyNested: boolean
 }> {
     let innerKey: string;
     let itemKey: string = "";
     let combinedKey: string = "";
     let inputArrayNullable: boolean = false;
+    let isSet: boolean = false;
+    let isInputDeeplyNested = false;
 
     // Handle the key for nullable and optional fields
     key = key.replace(/\?*$/, "");
@@ -1934,7 +1940,9 @@ async function extractKeys(
     itemKey = processedKeys.itemKey;
     combinedKey = processedKeys.combinedKey;
     inputArrayNullable = processedKeys.inputArrayNullable;
-    return { itemKey, combinedKey, inputArrayNullable };
+    isSet = processedKeys.isSet;
+    isInputDeeplyNested = processedKeys.isInputDeeplyNested;
+    return { itemKey, combinedKey, inputArrayNullable, isSet, isInputDeeplyNested };
 }
 
 async function processParentKey(
@@ -1946,6 +1954,8 @@ async function processParentKey(
     itemKey: string;
     combinedKey: string;
     inputArrayNullable: boolean;
+    isSet: boolean;
+    isInputDeeplyNested: boolean;
 }> {
     let inputMetadataType: string = "";
     let inputMetadataTypeName: string = "";
@@ -1954,6 +1964,7 @@ async function processParentKey(
     let refinedInnerKey: string;
     let isSet: boolean = false;
     let inputArrayNullable: boolean = false;
+    let isInputDeeplyNested: boolean = false;
 
     // Split the innerKey to get parent keys and field name
     let keys = innerKey.split(".");
@@ -1974,7 +1985,7 @@ async function processParentKey(
     if (refinedParentKey.length === 1) {
         itemKey = parentKey[0];
         combinedKey = parentKey[0];
-        return { itemKey, combinedKey, inputArrayNullable };
+        return { itemKey, combinedKey, inputArrayNullable, isSet, isInputDeeplyNested };
     }
 
     for (let index = refinedParentKey.length - 1; index > 0; index--) {
@@ -1986,13 +1997,18 @@ async function processParentKey(
         inputMetadataType = modifiedInputs["type"];
         inputArrayNullable = modifiedInputs["nullableArray"];
 
-        if (!isSet && (arrayEnumUnion.includes(inputMetadataType) || arrayRecords.includes(inputMetadataTypeName))) {
-            itemKey = parentKey[index];
-            combinedKey = parentKey.slice(0, index + 1).join(".");
-            isSet = true;
+        const isArrayType = arrayRecords.includes(inputMetadataTypeName) || arrayEnumUnion.includes(inputMetadataType);
+
+        if (isArrayType) {
+            if (!isSet) {
+                itemKey = parentKey[index];
+                combinedKey = parentKey.slice(0, index + 1).join(".");
+                isSet = true;
+            }
+            isInputDeeplyNested = true;
         }
     }
-    return { itemKey, combinedKey, inputArrayNullable };
+    return { itemKey, combinedKey, inputArrayNullable, isSet, isInputDeeplyNested };
 }
 
 async function processCombinedKey(
