@@ -26,6 +26,7 @@ import io.ballerina.projects.ProjectException;
 import io.ballerina.projects.SemanticVersion;
 import io.ballerina.projects.util.ProjectConstants;
 import io.ballerina.projects.util.ProjectUtils;
+import io.ballerina.projectservice.core.MigrationTool;
 import org.wso2.ballerinalang.util.RepoUtils;
 
 import java.io.File;
@@ -93,7 +94,7 @@ public final class BalToolsUtil {
     private static final String PROFILE_COMMAND = "profile";
     private static final String START_LANG_SERVER_COMMAND = "start-language-server";
     private static final String LANG_SERVER_SPEC = "language-server-spec";
-    private static final String START_DEBUG_ADAPTER_COMMAND =  "start-debugger-adapter";
+    private static final String START_DEBUG_ADAPTER_COMMAND = "start-debugger-adapter";
     private static final String HELP_COMMAND = "help";
     private static final String HOME_COMMAND = "home";
     private static final String GENCACHE_COMMAND = "gencache";
@@ -149,6 +150,57 @@ public final class BalToolsUtil {
         return new URLClassLoader(urls, systemClassLoader);
     }
 
+    public static List<MigrationTool> getToolsCompatibility(List<MigrationTool> migrationTools) {
+        Path userHomeDirPath = RepoUtils.createAndGetHomeReposPath();
+        Path balToolsTomlPath = userHomeDirPath.resolve(Path.of(CONFIG_DIR, BAL_TOOLS_TOML));
+        BalToolsToml balToolsToml = BalToolsToml.from(balToolsTomlPath);
+        BalToolsManifest balToolsManifest = BalToolsManifestBuilder.from(balToolsToml).build();
+
+        return migrationTools.stream()
+                .map(migrationTool -> {
+                    Optional<BalToolsManifest.Tool> toolOpt =
+                            balToolsManifest.getActiveTool(migrationTool.commandName());
+                    boolean isCompatible = toolOpt
+                            .map(tool -> isCompatible(
+                                    tool.version(),
+                                    migrationTool.requiredVersion()))
+                            .orElse(false);
+                    return MigrationTool.from(migrationTool, !isCompatible);
+                })
+                .toList();
+    }
+
+    private static boolean isCompatible(String activeVersion, String requiredVersion) {
+
+        return compareVersions(activeVersion, requiredVersion) >= 0;
+    }
+
+    private static int compareVersions(String version1, String version2) {
+        // Split the version strings into parts
+        String[] parts1 = version1.split("\\.");
+        String[] parts2 = version2.split("\\.");
+
+        // Assuming a valid "x.x.x" format, get the length of the shorter array
+        int length = Math.max(parts1.length, parts2.length);
+
+        for (int i = 0; i < length; i++) {
+            // Parse parts to integers, defaulting to 0 if a part is missing
+            int num1 = i < parts1.length ? Integer.parseInt(parts1[i]) : 0;
+            int num2 = i < parts2.length ? Integer.parseInt(parts2[i]) : 0;
+
+            // If numbers are different, we've found the result
+            if (num1 < num2) {
+                return -1;
+            }
+            if (num1 > num2) {
+                return 1;
+            }
+        }
+
+        // If all parts are equal, the versions are the same
+        return 0;
+    }
+
     private static List<File> getToolCommandJarAndDependencyJars(String commandName) {
         Path userHomeDirPath = RepoUtils.createAndGetHomeReposPath();
         Path balToolsTomlPath = userHomeDirPath.resolve(Path.of(CONFIG_DIR, BAL_TOOLS_TOML));
@@ -193,9 +245,9 @@ public final class BalToolsUtil {
     }
 
     /**
-     * Update the bal-tools.toml file with the version and the active flags.
-     * bal-tools.tomls of updates 6, 7  only has id, name and org fields. Therefore, we need to update the
-     * bal-tools.toml file when the user moves from updates 6, 7 to update 8 and above.
+     * Update the bal-tools.toml file with the version and the active flags. bal-tools.tomls of updates 6, 7  only has
+     * id, name and org fields. Therefore, we need to update the bal-tools.toml file when the user moves from updates 6,
+     * 7 to update 8 and above.
      */
     public static void updateOldBalToolsToml() {
         BalToolsToml balToolsToml = BalToolsToml.from(balToolsTomlPath);
