@@ -36,6 +36,7 @@ import { DiagnosticsPopUp } from "../../DiagnosticsPopUp";
 import { getNodeTitle, nodeHasError } from "../../../utils/node";
 import { BreakpointMenu } from "../../BreakNodeMenu/BreakNodeMenu";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
+import path from 'path';
 
 export namespace NodeStyles {
     export type NodeStyleProp = {
@@ -247,7 +248,7 @@ export function BaseNodeWidget(props: BaseNodeWidgetProps) {
         }
         const { fileName, startLine, endLine } = model.node.properties.view.value as ELineRange;
         openView &&
-            openView(projectPath + "/" + fileName, {
+            openView(path.join(projectPath, fileName), {
                 startLine: startLine.line,
                 startColumn: startLine.offset,
                 endLine: endLine.line,
@@ -261,7 +262,7 @@ export function BaseNodeWidget(props: BaseNodeWidgetProps) {
         }
         const { fileName, startLine, endLine } = model.node.properties.view.value as ELineRange;
         openView &&
-            openView(projectPath + "/" + fileName, {
+            openView(path.join(projectPath, fileName), {
                 startLine: startLine.line,
                 startColumn: startLine.offset,
                 endLine: endLine.line,
