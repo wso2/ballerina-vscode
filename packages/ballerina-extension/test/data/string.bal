@@ -1,1 +1,1 @@
-strixng st = "saample giga string";
+string st = "saample giga string";
