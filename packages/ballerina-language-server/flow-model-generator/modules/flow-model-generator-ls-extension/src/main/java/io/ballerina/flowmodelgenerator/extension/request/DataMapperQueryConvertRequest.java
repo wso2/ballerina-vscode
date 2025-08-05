@@ -25,11 +25,12 @@ import com.google.gson.JsonElement;
  *
  * @param filePath    File path of the source file
  * @param codedata    Details of the node
+ * @param mapping     Mapping of the query link
  * @param propertyKey The property that needs to consider to get the type
  * @param targetField The target field that needs to consider to get the type
  *
  * @since 1.0.0
  */
-public record DataMapperQueryConvertRequest(String filePath, JsonElement codedata, String propertyKey,
-                                            String targetField) {
+public record DataMapperQueryConvertRequest(String filePath, JsonElement codedata, JsonElement mapping,
+                                            String propertyKey, String targetField) {
 }

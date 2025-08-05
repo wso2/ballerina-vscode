@@ -67,7 +67,7 @@ public class DataMappingQueryConvertTest extends AbstractLSTest {
 
         DataMapperQueryConvertRequest request =
                 new DataMapperQueryConvertRequest(sourceDir.resolve(testConfig.source()).toAbsolutePath().toString(),
-                        testConfig.codedata(), "", testConfig.targetField());
+                        testConfig.codedata(), testConfig.mapping(), "", testConfig.targetField());
         JsonObject jsonMap = getResponseAndCloseFile(request, testConfig.source()).getAsJsonObject("textEdits");
 
         Map<String, List<TextEdit>> actualTextEdits = gson.fromJson(jsonMap, textEditListType);
@@ -96,7 +96,8 @@ public class DataMappingQueryConvertTest extends AbstractLSTest {
 
         if (assertFailure) {
             TestConfig updatedConfig = new TestConfig(testConfig.source(), testConfig.description(),
-                    testConfig.codedata(), testConfig.propertyKey(), testConfig.targetField(), newMap);
+                    testConfig.codedata(), testConfig.mapping(), testConfig.propertyKey(), testConfig.targetField(),
+                    newMap);
 //            updateConfig(configJsonPath, updatedConfig);
             Assert.fail(String.format("Failed test: '%s' (%s)", testConfig.description(), configJsonPath));
         }
@@ -128,12 +129,13 @@ public class DataMappingQueryConvertTest extends AbstractLSTest {
      * @param source      The source file name
      * @param description The description of the test
      * @param codedata    Details of the node
+     * @param mapping     Mapping of the link to get the query
      * @param propertyKey The property key to generate the source code
      * @param targetField The target field to generate the source code
      * @param output      generated source expression
      */
-    private record TestConfig(String source, String description, JsonElement codedata, String propertyKey,
-                              String targetField, Map<String, List<TextEdit>> output) {
+    private record TestConfig(String source, String description, JsonElement codedata, JsonElement mapping,
+                              String propertyKey, String targetField, Map<String, List<TextEdit>> output) {
 
         public String description() {
             return description == null ? "" : description;
