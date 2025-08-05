@@ -348,7 +348,7 @@ export interface FormProps {
     formImports?: FormImports;
     preserveOrder?: boolean;
     handleSelectedTypeChange?: (type: CompletionItem) => void;
-
+    helperPaneZIndex?:number;
 }
 
 export const Form = forwardRef((props: FormProps, ref) => {
@@ -385,7 +385,7 @@ export const Form = forwardRef((props: FormProps, ref) => {
         formImports,
         preserveOrder = false,
         handleSelectedTypeChange,
-
+        helperPaneZIndex,
     } = props;
 
     const {

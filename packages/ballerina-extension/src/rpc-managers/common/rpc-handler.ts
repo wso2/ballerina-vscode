@@ -29,6 +29,7 @@ import {
     executeCommand,
     experimentalEnabled,
     getBallerinaDiagnostics,
+    getCurrentProjectTomlValues,
     getTypeCompletions,
     getWorkspaceFiles,
     getWorkspaceRoot,
@@ -56,4 +57,5 @@ export function registerCommonRpcHandlers(messenger: Messenger) {
     messenger.onRequest(isNPSupported, () => rpcManger.isNPSupported());
     messenger.onRequest(getWorkspaceRoot, () => rpcManger.getWorkspaceRoot());
     messenger.onNotification(showErrorMessage, (args: ShowErrorMessageRequest) => rpcManger.showErrorMessage(args));
+    messenger.onRequest(getCurrentProjectTomlValues, () => rpcManger.getCurrentProjectTomlValues());
 }

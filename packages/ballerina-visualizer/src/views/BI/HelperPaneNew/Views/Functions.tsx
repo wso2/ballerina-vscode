@@ -21,6 +21,7 @@ import FooterButtons from "../Components/FooterButtons";
 import DynamicModal from "../Components/Modal";
 import { URI, Utils } from "vscode-uri";
 import { FunctionFormStatic } from "../../FunctionFormStatic";
+
 type FunctionsPageProps = {
     fieldKey: string;
     anchorRef: RefObject<HTMLDivElement>;

@@ -57,6 +57,8 @@ export type ContextAwareExpressionEditorProps = {
     autoFocus?: boolean;
     visualizable?: boolean;
     recordTypeField?: RecordTypeField;
+    helperPaneZIndex?: number;
+
 };
 
 type ExpressionEditorProps = ContextAwareExpressionEditorProps &
@@ -73,7 +75,7 @@ export namespace S {
         display: 'flex',
         flexDirection: 'column',
         gap: '4px',
-        fontFamily: 'var(--font-family)'
+        fontFamily: 'var(--font-family)',
     });
 
     export const Ribbon = styled.div({
@@ -290,6 +292,7 @@ export const ContextAwareExpressionEditor = (props: ContextAwareExpressionEditor
         <ExpressionEditor
             fileName={fileName}
             targetLineRange={targetLineRange}
+            helperPaneZIndex={props.helperPaneZIndex}
             {...props}
             {...form}
             {...expressionEditor}
@@ -329,6 +332,7 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
         helperPaneOrigin,
         helperPaneHeight,
         recordTypeField,
+        helperPaneZIndex,
         growRange = { start: 1, offset: 9 },
         rawExpression, // original expression
         sanitizedExpression // sanitized expression that will be rendered in the editor
@@ -470,7 +474,7 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
             ? field.documentation
             : `${field.documentation}.`
         : '';
-    
+
     return (
         <S.Container id={id}>
             {showHeader && (
@@ -486,11 +490,11 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
                             </S.Type>
                         )}
                     </S.HeaderContainer>
-                        <S.EditorMdContainer>
-                            {documentation && <ReactMarkdown>{documentation}</ReactMarkdown>}
-                            {defaultValueText}
-                        </S.EditorMdContainer>
-                    </S.Header>
+                    <S.EditorMdContainer>
+                        {documentation && <ReactMarkdown>{documentation}</ReactMarkdown>}
+                        {defaultValueText}
+                    </S.EditorMdContainer>
+                </S.Header>
             )}
             <Controller
                 control={control}
@@ -564,6 +568,8 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
                             sx={{ paddingInline: '0' }}
                             codeActions={codeActions}
                             placeholder={placeholder}
+                            helperPaneZIndex={helperPaneZIndex}
+
                         />
                         {error && <ErrorBanner errorMsg={error.message.toString()} />}
                     </div>
