@@ -25,7 +25,7 @@ import {
     Parameter,
     FormImports,
 } from "@wso2/ballerina-side-panel";
-import { AddNodeVisitor, RemoveNodeVisitor, NodeIcon, traverseFlow, ConnectorIcon } from "@wso2/bi-diagram";
+import { AddNodeVisitor, RemoveNodeVisitor, NodeIcon, traverseFlow, ConnectorIcon, AIModelIcon } from "@wso2/bi-diagram";
 import {
     Category,
     AvailableNode,
@@ -46,7 +46,6 @@ import {
     Item,
     FunctionKind,
     functionKinds,
-    TRIGGER_CHARACTERS,
     Diagnostic,
     FUNCTION_TYPE,
     FunctionNode,
@@ -55,6 +54,8 @@ import {
     Imports,
     ColorThemeKind,
     CompletionInsertText,
+    SubPanel,
+    SubPanelView
 } from "@wso2/ballerina-core";
 import {
     HelperPaneVariableInfo,
@@ -75,6 +76,8 @@ import { DocSection } from "../components/ExpressionEditor";
 import ballerina from "../languages/ballerina.js";
 import { FUNCTION_REGEX } from "../resources/constants";
 hljs.registerLanguage("ballerina", ballerina);
+
+export const BALLERINA_INTEGRATOR_ISSUES_URL = "https://github.com/wso2/product-ballerina-integrator/issues";
 
 function convertAvailableNodeToPanelNode(node: AvailableNode, functionType?: FUNCTION_TYPE): PanelNode {
     // Check if node should be filtered based on function type
@@ -118,11 +121,12 @@ function convertDiagramCategoryToSidePanelCategory(category: Category, functionT
 
     // HACK: use the icon of the first item in the category
     const icon = category.items.at(0)?.metadata.icon;
+    const codedata = (category.items.at(0) as AvailableNode)?.codedata;
 
     return {
         title: category.metadata.label,
         description: category.metadata.description,
-        icon: <ConnectorIcon url={icon} style={{ width: "20px", height: "20px", fontSize: "20px" }} />,
+        icon: <ConnectorIcon url={icon} style={{ width: "20px", height: "20px", fontSize: "20px" }} codedata={codedata} />,
         items: items,
     };
 }
@@ -148,6 +152,46 @@ export function convertFunctionCategoriesToSidePanelCategories(
         functionCategory.description = "No functions defined. Click below to create a new function.";
     }
     return panelCategories;
+}
+
+export function convertModelProviderCategoriesToSidePanelCategories(categories: Category[]): PanelCategory[] {
+    const panelCategories = categories.map((category) => convertDiagramCategoryToSidePanelCategory(category));
+    panelCategories.forEach((category) => {
+        category.items?.forEach((item) => {
+            if ((item as PanelNode).metadata?.codedata) {
+                const codedata = (item as PanelNode).metadata.codedata;
+                item.icon = <AIModelIcon type={codedata?.module} codedata={codedata} />;
+            } else if (((item as PanelCategory).items.at(0) as PanelNode)?.metadata?.codedata) {
+                const codedata = ((item as PanelCategory).items.at(0) as PanelNode)?.metadata.codedata;
+                item.icon = <AIModelIcon type={codedata?.module} codedata={codedata} />;
+            }
+        });
+    });
+    return panelCategories;
+}
+
+export function convertVectorStoreCategoriesToSidePanelCategories(categories: Category[]): PanelCategory[] {
+    const panelCategories = categories.map((category) => convertDiagramCategoryToSidePanelCategory(category));
+    panelCategories.forEach((category) => {
+        category.items?.forEach((item) => {
+            if ((item as PanelNode).metadata?.codedata) {
+                const codedata = (item as PanelNode).metadata.codedata;
+                item.icon = <NodeIcon type={codedata?.node} size={24} />;
+            } else if (((item as PanelCategory).items.at(0) as PanelNode)?.metadata?.codedata) {
+                const codedata = ((item as PanelCategory).items.at(0) as PanelNode)?.metadata.codedata;
+                item.icon = <NodeIcon type={codedata?.node} size={24} />;
+            }
+        });
+    });
+    return panelCategories;
+}
+
+export function convertEmbeddingProviderCategoriesToSidePanelCategories(categories: Category[]): PanelCategory[] {
+    return convertModelProviderCategoriesToSidePanelCategories(categories);
+}
+
+export function convertVectorKnowledgeBaseCategoriesToSidePanelCategories(categories: Category[]): PanelCategory[] {
+    return convertModelProviderCategoriesToSidePanelCategories(categories);
 }
 
 export function convertNodePropertiesToFormFields(
@@ -192,6 +236,7 @@ export function convertNodePropertyToFormField(
         advanceProps: convertNodePropertiesToFormFields(property.advanceProperties),
         valueType: property.valueType,
         items: getFormFieldItems(property, connections),
+        itemOptions: property.itemOptions,
         diagnostics: property.diagnostics?.diagnostics || [],
         valueTypeConstraint: property.valueTypeConstraint,
         lineRange: property?.codedata?.lineRange,
@@ -302,8 +347,16 @@ export function getContainerTitle(view: SidePanelView, activeNode: FlowNode, cli
             return "Configure Tool";
         case SidePanelView.ADD_TOOL:
             return "Add Tool";
+        case SidePanelView.ADD_MCP_SERVER:
+            return "Add MCP Server";
+        case SidePanelView.EDIT_MCP_SERVER:
+            return "Edit MCP Server";
         case SidePanelView.NEW_TOOL:
-            return "Create New Tool";
+            return "Add New Tool";
+        case SidePanelView.NEW_TOOL_FROM_CONNECTION:
+            return "Create Tool from Connection";
+        case SidePanelView.NEW_TOOL_FROM_FUNCTION:
+            return "Create Tool from Function";
         case SidePanelView.AGENT_CONFIG:
             return "Configure Agent";
         case SidePanelView.FORM:
@@ -654,7 +707,7 @@ export function injectHighlightTheme(theme: ColorThemeKind) {
             extractedTheme = "dark";
             break;
     }
-    
+
     const existingTheme = document.getElementById("hljs-theme");
     if (existingTheme) existingTheme.remove();
 
@@ -693,7 +746,7 @@ async function getDocumentation(fnDescription: string, argsDescription: string[]
                 </ReactMarkdown>
             </DocSection>
         ),
-        args: 
+        args:
             <>
                 {argsDescription.map((arg) => (
                     <DocSection key={arg}>
@@ -984,7 +1037,7 @@ export function getFlowNodeForNaturalFunction(node: FunctionNode): FlowNode {
  * @param expression
  * @returns { lineOffset: number, charOffset: number }
  */
-export function getInfoFromExpressionValue(
+export function calculateExpressionOffsets(
     expression: string,
     cursorPosition: number
 ): { lineOffset: number, charOffset: number } {
@@ -1030,7 +1083,7 @@ export function filterUnsupportedDiagnostics(diagnostics: Diagnostic[]): Diagnos
 
 /**
  * Check if the type is supported by the data mapper
- * 
+ *
  * @param type - The type to check
  * @returns Whether the type is supported by the data mapper
  */
@@ -1046,3 +1099,16 @@ export const isDMSupportedType = (type: VisibleTypeItem) => {
 
     return true;
 };
+
+export function getSubPanelWidth(subPanel: SubPanel) {
+    if (!subPanel?.view) {
+        return undefined;
+    }
+    switch (subPanel.view) {
+        case SubPanelView.ADD_NEW_FORM:
+        case SubPanelView.HELPER_PANEL:
+            return 400;
+        default:
+            return undefined;
+    }
+}

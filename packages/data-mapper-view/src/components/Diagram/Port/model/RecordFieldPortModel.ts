@@ -47,9 +47,9 @@ export interface RecordFieldNodeModelGenerics {
 export const FORM_FIELD_PORT = "form-field-port";
 
 export enum ValueType {
-	Default,
+	Replaceable,
 	Empty,
-	NonEmpty
+	Mergeable
 }
 
 export enum MappingType {
@@ -125,9 +125,9 @@ export class RecordFieldPortModel extends PortModel<PortModelGenerics & RecordFi
 					sourceField = `sum(${fieldParts[fieldParts.length - 1]})`;
 					modifications.push(getModificationForSpecificFieldValue(targetPort, sourceField));
 					replaceSpecificFieldValue(targetPort, modifications);
-				} else if (valueType === ValueType.Default) {
+				} else if (valueType === ValueType.Replaceable) {
 					updateExistingValue(sourcePort, targetPort);
-				} else if (targetPortHasLinks) {
+				} else if (valueType === ValueType.Mergeable) {
 					modifySpecificFieldSource(sourcePort, targetPort, lm.getID());
 				} else {
 					await createSourceForMapping(sourcePort, targetPort);
@@ -172,23 +172,5 @@ export class RecordFieldPortModel extends PortModel<PortModelGenerics & RecordFi
 		}
 		return this.portType !== port.portType && !isLinkExists
 				&& ((port instanceof IntermediatePortModel) || (!port.isDisabled()));
-	}
-
-	getValueType(lm: DataMapperLinkModel): ValueType {
-		const editableRecordField = (lm.getTargetPort() as RecordFieldPortModel).editableRecordField;
-
-		if (editableRecordField?.value) {
-			let expr = editableRecordField.value;
-			if (STKindChecker.isSpecificField(expr)) {
-				expr = expr.valueExpr;
-			}
-			const innerExpr = getInnermostExpressionBody(expr);
-			const value: string = innerExpr?.value || innerExpr?.source;
-			if (value !== undefined) {
-				return isDefaultValue(editableRecordField.type, value) ? ValueType.Default : ValueType.NonEmpty;
-			}
-		}
-
-		return ValueType.Empty;
 	}
 }

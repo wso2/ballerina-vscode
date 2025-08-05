@@ -19,7 +19,7 @@ import { generateObject, CoreMessage } from "ai";
 import { GetFunctionResponse, GetFunctionsRequest, GetFunctionsResponse, getFunctionsResponseSchema, MinifiedClient, MinifiedRemoteFunction, MinifiedResourceFunction } from "./funcs_inter_types";
 import { Client, GetTypeResponse, Library, RemoteFunction, ResourceFunction } from "./libs_types";
 import { TypeDefinition, AbstractFunction, Type, RecordTypeDefinition } from "./libs_types";
-import { anthropic, ANTHROPIC_HAIKU } from "../connection";
+import { getAnthropicClient, ANTHROPIC_HAIKU } from "../connection";
 import { GenerationType } from "./libs";
 import { getRequiredTypesFromLibJson } from "../healthcare/healthcare";
 import { langClient } from "../../activator";
@@ -199,7 +199,7 @@ Now, based on the provided libraries, clients, and functions, and the user query
     ];
     try {
         const { object } = await generateObject({
-            model: anthropic(ANTHROPIC_HAIKU),
+            model: await getAnthropicClient(ANTHROPIC_HAIKU),
             maxTokens: 8192,
             temperature: 0,
             messages: messages,

@@ -23,7 +23,7 @@ import {
 } from "@wso2/ballerina-core";
 import { Library } from "./libs_types";
 import { selectRequiredFunctions } from "./funcs";
-import { anthropic, ANTHROPIC_HAIKU } from "../connection";
+import { getAnthropicClient, ANTHROPIC_HAIKU } from "../connection";
 import { langClient } from "../../activator";
 import { getGenerationMode } from "../utils";
 import { AIPanelAbortController } from "../../../../../src/rpc-managers/ai-panel/utils";
@@ -80,7 +80,7 @@ export async function getSelectedLibraries(prompt: string, generationType: Gener
     //TODO: Add thinking and test with claude haiku
     const startTime = Date.now();
     const { object } = await generateObject({
-        model: anthropic(ANTHROPIC_HAIKU),
+        model: await getAnthropicClient(ANTHROPIC_HAIKU),
         maxTokens: 4096,
         temperature: 0,
         messages: messages,
@@ -136,7 +136,7 @@ Response:
 ${
     generationType === GenerationType.CODE_GENERATION
         ? ""
-        : " ALWAYS include `ballerinax/health.base`, `ballerinax/health.fhir.r4`, `ballerinax/health.fhir.r4.parser`, `ballerinax/health.fhir.r4.international401`, `ballerinax/health.hl7v2commons` and `ballerinax/health.hl7v2` libraries in the selection in addition to what you selected."
+        : " ALWAYS include `ballerinax/health.base`, `ballerinax/health.fhir.r4`, `ballerinax/health.fhir.r4.parser`, `ballerinax/health.fhir.r4utils`, `ballerinax/health.fhir.r4.international401`, `ballerinax/health.hl7v2commons` and `ballerinax/health.hl7v2` libraries in the selection in addition to what you selected."
 }`;
 }
 

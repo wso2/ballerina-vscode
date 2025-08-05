@@ -21,8 +21,6 @@ import * as fs from "fs";
 import { ChatNotify, GenerateCodeRequest } from "@wso2/ballerina-core";
 import { CopilotEventHandler } from "../../../../src/features/ai/service/event";
 import { commands, Uri, workspace } from "vscode";
-import { ExtendedLangClient } from "../../../../src/core/extended-language-client";
-import { getServerOptions } from "../../../../src/utils/server/server";
 
 const RESOURCES_PATH = path.resolve(__dirname, "../../../../../test/ai/evals/code/resources");
 

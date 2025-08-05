@@ -29,12 +29,13 @@ export const TreeContainer = styled.div`
     align-items: flex-start;
     gap: ${GAP_BETWEEN_NODE_HEADER_AND_BODY}px;
     background: var(--vscode-sideBar-background);
-    border: 1px solid var(--vscode-welcomePage-tileBorder);
+    border: 1.8px solid var(--vscode-dropdown-border);
     font-style: normal;
     font-weight: 600;
     font-size: 13px;
     line-height: 24px;
     width: ${IO_NODE_DEFAULT_WIDTH}px;
+    border-radius: 6px;
 `;
 
 export const SharedContainer = styled.div`
@@ -42,7 +43,7 @@ export const SharedContainer = styled.div`
     flex-direction: column;
     align-items: flex-start;
     background: var(--vscode-sideBar-background);
-    border: 1px solid var(--vscode-welcomePage-tileBorder);
+    border: 1.8px solid var(--vscode-dropdown-border);
     font-style: normal;
     font-weight: 600;
     font-size: 13px;
@@ -66,9 +67,8 @@ export const TreeHeader = styled.div<{ isSelected?: boolean; isDisabled?: boolea
         : 'var(--vscode-list-hoverBackground)',
     },
     color: 'var(--vscode-inputOption-activeForeground)',
-  })
-);
-
+    borderBottom: '1.8px solid var(--vscode-dropdown-border)'
+}));
 
 export const TreeBody = styled.div`
     display: flex;

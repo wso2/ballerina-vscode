@@ -21,12 +21,14 @@ import {
     abortAIGeneration,
     abortTestGeneration,
     addChatSummary,
+    addInlineCodeSegmentToWorkspace,
     addToProject,
     AddToProjectRequest,
     AIChatSummary,
     applyDoOnFailBlocks,
     checkSyntaxError,
     clearInitialPrompt,
+    CodeSegment,
     createTestDirecoryIfNotExists,
     deleteFromProject,
     DeleteFromProjectRequest,
@@ -56,6 +58,8 @@ import {
     getFromFile,
     GetFromFileRequest,
     getGeneratedTests,
+    getLoginMethod,
+    getMappingsFromModel,
     getMappingsFromRecord,
     getModuleDirectory,
     GetModuleDirParams,
@@ -74,8 +78,10 @@ import {
     isNaturalProgrammingDirectoryExists,
     isRequirementsSpecificationFileExist,
     markAlertShown,
+    MetadataWithAttachments,
     notifyAIMappings,
     NotifyAIMappingsRequest,
+    openInlineMappingChatWindow,
     postProcess,
     PostProcessRequest,
     ProjectSource,
@@ -104,6 +110,7 @@ export function registerAiPanelRpcHandlers(messenger: Messenger) {
     const rpcManger = new AiPanelRpcManager();
     messenger.onRequest(getBackendUrl, () => rpcManger.getBackendUrl());
     messenger.onRequest(getProjectUuid, () => rpcManger.getProjectUuid());
+    messenger.onRequest(getLoginMethod, () => rpcManger.getLoginMethod());
     messenger.onRequest(getAccessToken, () => rpcManger.getAccessToken());
     messenger.onRequest(getRefreshedAccessToken, () => rpcManger.getRefreshedAccessToken());
     messenger.onRequest(getDefaultPrompt, () => rpcManger.getDefaultPrompt());
@@ -119,6 +126,9 @@ export function registerAiPanelRpcHandlers(messenger: Messenger) {
     messenger.onRequest(getShadowDiagnostics, (args: ProjectSource) => rpcManger.getShadowDiagnostics(args));
     messenger.onRequest(checkSyntaxError, (args: ProjectSource) => rpcManger.checkSyntaxError(args));
     messenger.onNotification(clearInitialPrompt, () => rpcManger.clearInitialPrompt());
+    messenger.onNotification(openInlineMappingChatWindow, () => rpcManger.openInlineMappingChatWindow());
+    messenger.onRequest(getMappingsFromModel, (args: MetadataWithAttachments) => rpcManger.getMappingsFromModel(args));
+    messenger.onNotification(addInlineCodeSegmentToWorkspace, (args: CodeSegment) => rpcManger.addInlineCodeSegmentToWorkspace(args));
     messenger.onRequest(getGeneratedTests, (args: TestGenerationRequest) => rpcManger.getGeneratedTests(args));
     messenger.onRequest(getTestDiagnostics, (args: TestGenerationResponse) => rpcManger.getTestDiagnostics(args));
     messenger.onRequest(getServiceSourceForName, (args: string) => rpcManger.getServiceSourceForName(args));
