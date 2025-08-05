@@ -14,20 +14,19 @@
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations
  * under the License.
- * 
+ *
  * THIS FILE INCLUDES AUTO GENERATED CODE
  */
 import {
     GetMigrationToolsResponse,
     ImportIntegrationResponse,
-    ImportTibcoRequest,
-    ImportTibcoRPCRequest,
+    ImportIntegrationRequest,
+    ImportIntegrationRPCRequest,
     MigrateIntegrationAPI,
 } from "@wso2/ballerina-core";
 import { StateMachine } from "../../stateMachine";
 import { getUsername, sanitizeName } from "../../utils/bi";
 import { pullMigrationTool } from "../../utils/migrate-integration";
-
 
 export class MigrateIntegrationRpcManager implements MigrateIntegrationAPI {
     async pullMigrationTool(args: { toolName: string }): Promise<void> {
@@ -39,15 +38,21 @@ export class MigrateIntegrationRpcManager implements MigrateIntegrationAPI {
         }
     }
 
-    async importTibcoToBI(params: ImportTibcoRPCRequest): Promise<ImportIntegrationResponse> {
+    async importIntegration(params: ImportIntegrationRPCRequest): Promise<ImportIntegrationResponse> {
         const orgName = getUsername();
-        const langParams: ImportTibcoRequest = {
+        const langParams: ImportIntegrationRequest = {
             orgName: orgName,
             packageName: sanitizeName(params.packageName),
-            sourcePath: params.sourcePath
+            sourcePath: params.sourcePath,
         };
         StateMachine.langClient().registerMigrationToolCallbacks();
-        return StateMachine.langClient().importTibcoToBI(langParams);
+        switch (params.type) {
+            case 2:
+                return StateMachine.langClient().importTibcoToBI(langParams);
+            default:
+                console.error(`Unsupported integration type: ${params.type}`);
+                throw new Error(`Unsupported integration type: ${params.type}`);
+        }
     }
 
     async getMigrationTools(): Promise<GetMigrationToolsResponse> {
