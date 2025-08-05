@@ -20,15 +20,21 @@ import React, { useEffect, useRef, useState } from 'react';
 import styled from '@emotion/styled';
 import {
     Codicon,
+    Divider,
     getIcon,
     HelperPane,
+    HelperPaneCustom,
     HelperPaneHeight,
+    SearchBox,
+    ThemeColors,
     Typography
 } from '@wso2/ui-toolkit';
 import { TypeHelperOperator } from '..';
 import { TypeHelperCategory, TypeHelperItem } from '.';
 import { TypeBrowser } from './TypeBrowser';
 import { getTypeCreateText, isTypePanelOpen } from './utils';
+import ExpandableList from './ExpandableList';
+import { ScrollableContainer, SlidingPaneNavContainer, SlidingWindow } from '@wso2/ui-toolkit/lib/components/ExpressionEditor/components/Common/SlidingPane';
 
 /* Constants */
 const PANEL_TABS = {
@@ -173,8 +179,8 @@ export const TypeHelperComponent = (props: TypeHelperComponentProps) => {
                 const newCursorPosition = currentCursorPosition + suffixMatch[0].length;
                 onChange(
                     currentType.slice(0, newCursorPosition) +
-                        operator.insertText +
-                        currentType.slice(newCursorPosition),
+                    operator.insertText +
+                    currentType.slice(newCursorPosition),
                     newCursorPosition + operator.insertText.length
                 );
             }
@@ -235,119 +241,85 @@ export const TypeHelperComponent = (props: TypeHelperComponentProps) => {
     }, [activePanelIndex, open]);
 
     return (
-        <HelperPane helperPaneHeight={typeHelperHeight}>
-            <HelperPane.Header
-                title="Type Helper"
-                titleSx={{ fontFamily: 'GilmerRegular' }}
-                onClose={onClose}
-                searchValue={searchValue}
-                onSearch={handleHelperPaneSearch}
-            />
-            <HelperPane.Body>
-                <HelperPane.Panels>
-                    {/* Type helper tabs */}
-                    <HelperPane.PanelTab
-                        title="Types"
-                        id={PANEL_TABS.TYPES}
-                        onClick={() => setActivePanelIndex(PANEL_TABS.TYPES)}
-                    />
-                    <HelperPane.PanelTab
-                        title="Operators"
-                        id={PANEL_TABS.OPERATORS}
-                        onClick={() => setActivePanelIndex(PANEL_TABS.OPERATORS)}
-                    />
-
-                    {/* Type helper panel views */}
-                    <HelperPane.PanelView id={PANEL_TABS.TYPES}>
-                        {loading ? (
-                            <HelperPane.Loader rows={3} columns={2} sections={3} />
-                        ) : (
-                            basicTypes?.length > 0 && (
-                                <>
+        <HelperPaneCustom >
+            <SlidingWindow>
+                <HelperPane.Body>
+                    <SearchBox sx={{ width: "100%", marginBottom: '10px' }} placeholder='Search' autoFocus={true} value={searchValue} onChange={handleHelperPaneSearch} />
+                    {loading ? (
+                        <HelperPane.Loader rows={3} columns={1} sections={3} />
+                    ) : (
+                        basicTypes?.length > 0 && (
+                            <>
+                                <ScrollableContainer>
                                     {basicTypes.map((category) => (
-                                        <HelperPane.Section
-                                            key={category.category}
-                                            title={category.category}
-                                            titleSx={{ fontFamily: 'GilmerMedium' }}
-                                            columns={2}
-                                        >
-                                            {category.items.map((item) => (
-                                                <HelperPane.CompletionItem
-                                                    key={`${category.category}-${item.name}`}
-                                                    label={item.name}
-                                                    getIcon={() => getIcon(item.type)}
-                                                    onClick={() => handleTypeItemClick(item)}
-                                                />
-                                            ))}
-                                        </HelperPane.Section>
+                                        <ExpandableList.Section sx={{ marginTop: '20px' }} key={category.category} title={category.category} level={1}>
+                                            <div style={{ marginTop: '10px' }}>
+                                                {category.items.map((item) => (
+                                                    <SlidingPaneNavContainer>
+                                                        <ExpandableList.Item
+                                                            key={`${category.category}-${item.name}`}
+                                                            sx={{ color: ThemeColors.ON_SURFACE }}
+                                                            onClick={() => handleTypeItemClick(item)}
+                                                        >
+                                                            {getIcon(item.type)}
+                                                            {item.name}
+                                                        </ExpandableList.Item>
+                                                    </SlidingPaneNavContainer>
+                                                ))}
+                                            </div>
+                                        </ExpandableList.Section>
                                     ))}
                                     {importedTypes?.[0]?.subCategory?.length > 0 && (
                                         <HelperPane.CollapsibleSection title="Imported Types" defaultCollapsed={true}>
                                             {importedTypes.map((category) => (
-                                                <HelperPane.Section
-                                                    key={category.category}
-                                                    title={category.category}
-                                                    titleSx={{ fontFamily: 'GilmerMedium' }}
-                                                >
+                                                <ExpandableList.Section sx={{ marginTop: '20px' }} key={category.category} title={category.category} level={1}>
                                                     {category.subCategory?.map((subCategory) => (
-                                                        <HelperPane.SubSection
-                                                            key={subCategory.category}
-                                                            title={subCategory.category}
-                                                            columns={2}
-                                                        >
-                                                            {subCategory.items?.map((item) => (
-                                                                <HelperPane.CompletionItem
-                                                                    key={`${subCategory.category}-${item.name}`}
-                                                                    label={item.name}
-                                                                    getIcon={() => getIcon(item.type)}
-                                                                    onClick={() => handleTypeBrowserItemClick(item)}
-                                                                />
-                                                            ))}
-                                                        </HelperPane.SubSection>
+                                                        <ExpandableList.Section sx={{ marginTop: '10px' }} key={category.category} title={subCategory.category} level={0}>
+                                                            <div style={{ marginTop: '10px' }}>
+                                                                {subCategory.items?.map((item) => (
+
+                                                                    <SlidingPaneNavContainer>
+                                                                        <ExpandableList.Item
+                                                                            key={subCategory.category}
+                                                                            sx={{ color: ThemeColors.ON_SURFACE }}
+                                                                            onClick={() => handleTypeBrowserItemClick(item)}
+                                                                        >
+                                                                            {getIcon(item.type)}
+                                                                            {item.name}
+                                                                        </ExpandableList.Item>
+                                                                    </SlidingPaneNavContainer>
+
+                                                                ))}
+                                                            </div>
+                                                        </ExpandableList.Section>
                                                     ))}
-                                                </HelperPane.Section>
+                                                </ExpandableList.Section>
                                             ))}
                                         </HelperPane.CollapsibleSection>
                                     )}
-                                </>
-                            )
-                        )}
-                    </HelperPane.PanelView>
-                    
-                    <HelperPane.PanelView id={PANEL_TABS.OPERATORS}>
-                        {loading ? (
-                            <HelperPane.Loader rows={5} columns={1} sections={1} />
-                        ) : (
-                            operators?.length > 0 && (
-                                <S.OperatorContainer>
-                                    {operators.map((operator) => (
-                                        <S.Operator key={operator.name} onClick={() => handleOperatorClick(operator)}>
-                                            <S.OptionIcon>{operator.getIcon()}</S.OptionIcon>
-                                            <Typography variant="body3">{operator.name}</Typography>
-                                        </S.Operator>
-                                    ))}
-                                </S.OperatorContainer>
-                            )
-                        )}
-                    </HelperPane.PanelView>
-                </HelperPane.Panels>
-            </HelperPane.Body>
-            <HelperPane.Footer>
-                <S.FooterContainer>
-                    {onTypeCreate && (
-                        <HelperPane.IconButton
-                            title={getTypeCreateText(currentType, referenceTypes, newTypeName)}
-                            getIcon={() => <Codicon name="add" />}
-                            onClick={() => onTypeCreate(newTypeName.current)}
-                        />
+                                </ScrollableContainer>
+                            </>
+                        )
                     )}
-                    <HelperPane.IconButton
-                        title="Open type browser"
-                        getIcon={() => <Codicon name="library" />}
-                        onClick={() => setIsTypeBrowserOpen(true)}
-                    />
-                </S.FooterContainer>
-            </HelperPane.Footer>
+                    <div style={{ marginTop: "auto" }}>
+                        <Divider />
+                        <S.FooterContainer>
+                            {onTypeCreate && (
+                                <HelperPane.IconButton
+                                    title={getTypeCreateText(currentType, referenceTypes, newTypeName)}
+                                    getIcon={() => <Codicon name="add" />}
+                                    onClick={() => onTypeCreate(newTypeName.current)}
+                                />
+                            )}
+                            <HelperPane.IconButton
+                                title="Open type browser"
+                                getIcon={() => <Codicon name="library" />}
+                                onClick={() => setIsTypeBrowserOpen(true)}
+                            />
+                        </S.FooterContainer>
+                    </div>
+                </HelperPane.Body>
+            </SlidingWindow>
 
             {/* Type browser */}
             {isTypeBrowserOpen && (
@@ -360,6 +332,7 @@ export const TypeHelperComponent = (props: TypeHelperComponentProps) => {
                     onClose={() => setIsTypeBrowserOpen(false)}
                 />
             )}
-        </HelperPane>
+        </HelperPaneCustom>
     );
 };
+

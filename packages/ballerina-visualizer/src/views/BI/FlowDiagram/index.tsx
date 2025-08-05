@@ -81,6 +81,13 @@ export interface BIFlowDiagramProps {
     onReady: (fileName: string, parentMetadata?: ParentMetadata) => void;
 }
 
+export type FormSubmitOptions = {
+    shouldCloseSidePanel?: boolean;
+    updateLineRangeForRecursiveInserts?: (nodes: FlowNode[]) => void;
+    shouldUpdateTargetLine?: boolean;
+
+};
+
 export function BIFlowDiagram(props: BIFlowDiagramProps) {
     const { projectPath, onUpdate, onReady } = props;
     const { rpcClient } = useRpcContext();
@@ -106,6 +113,11 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
     const initialCategoriesRef = useRef<any[]>([]);
     const showEditForm = useRef<boolean>(false);
     const selectedNodeMetadata = useRef<{ nodeId: string, metadata: any, fileName: string }>();
+    const onRerenderRef = useRef<((nodes: FlowNode[]) => void) | null>(null);
+    const shouldUpdateLineRangeRef = useRef<boolean>(false);
+    const updatedNodeRef = useRef<FlowNode>(undefined);
+    const [targetLineRange, setTargetLineRange] = useState<LineRange>(targetRef?.current);
+
 
     useEffect(() => {
         debouncedGetFlowModel();
@@ -126,6 +138,16 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
             }
         });
     }, [rpcClient]);
+
+
+    const changeTargetRange = (range: LineRange) => {
+        targetRef.current = range;
+        setTargetLineRange(range);
+    }
+
+    useEffect(() => {
+        console.log(targetLineRange)
+    }, [targetLineRange]);
 
     const debouncedGetFlowModel = useCallback(
         debounce(() => {
@@ -153,6 +175,19 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                                 (node) => node.codedata.node === "EVENT_START"
                             )?.metadata.data as ParentMetadata | undefined;
                             onReady(model.flowModel.fileName, parentMetadata);
+                            if (onRerenderRef.current) {
+                                onRerenderRef.current(model.flowModel.nodes);
+                            }
+                            if (shouldUpdateLineRangeRef.current) {
+                                const varName = typeof updatedNodeRef.current?.properties?.variable?.value === "string"
+                                    ? updatedNodeRef.current.properties.variable.value
+                                    : "";
+                                const newNode = searchNodesByName(model.flowModel.nodes, varName)
+                                changeTargetRange({
+                                    startLine: newNode.codedata.lineRange.endLine,
+                                    endLine: newNode.codedata.lineRange.endLine
+                                })
+                            }
                         }
                     })
                     .finally(() => {
@@ -170,7 +205,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
             // Only update refs if we found a matching node and it's different from the current one
             if (matchingNode && matchingNode.id !== selectedNodeRef.current.id) {
                 selectedNodeRef.current = matchingNode;
-                targetRef.current = matchingNode.codedata.lineRange;
+                changeTargetRange(matchingNode.codedata.lineRange)
             }
         }
     }, [model]);
@@ -217,6 +252,30 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
         return searchNodes(flowModel.nodes);
     };
 
+
+    const findNodeWithName = (node: FlowNode, name: string) => {
+        return node?.properties?.variable?.value === name;
+    }
+
+    const searchNodesByName = (nodes: FlowNode[], name: string): FlowNode | undefined => {
+        for (const node of nodes) {
+            if (findNodeWithName(node, name)) {
+                return node;
+            }
+            if (node.branches && node.branches.length > 0) {
+                for (const branch of node.branches) {
+                    if (branch.children && branch.children.length > 0) {
+                        const foundNode = searchNodesByName(branch.children, name);
+                        if (foundNode) {
+                            return foundNode;
+                        }
+                    }
+                }
+            }
+        }
+        return undefined;
+    };
+
     const handleOnCloseSidePanel = () => {
         setShowSidePanel(false);
         setSidePanelView(SidePanelView.NODE_LIST);
@@ -225,6 +284,8 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
         nodeTemplateRef.current = undefined;
         topNodeRef.current = undefined;
         targetRef.current = undefined;
+        changeTargetRange(undefined);
+
         selectedClientName.current = undefined;
         showEditForm.current = false;
 
@@ -322,7 +383,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
         }
         // handle add new node
         topNodeRef.current = parent;
-        targetRef.current = target;
+        changeTargetRange(target)
         fetchNodesAndAISuggestions(parent, target);
     };
 
@@ -332,7 +393,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
             return;
         }
         topNodeRef.current = parent;
-        targetRef.current = target;
+        changeTargetRange(target)
         originalFlowModel.current = model;
         setFetchingAiSuggestions(true);
         rpcClient
@@ -555,7 +616,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
         }
     };
 
-    const handleOnFormSubmit = (updatedNode?: FlowNode, isDataMapperFormUpdate?: boolean) => {
+    const handleOnFormSubmit = (updatedNode?: FlowNode, isDataMapperFormUpdate?: boolean, options?: FormSubmitOptions) => {
         if (!updatedNode) {
             console.log(">>> No updated node found");
             updatedNode = selectedNodeRef.current;
@@ -571,9 +632,15 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
             .then(async (response) => {
                 console.log(">>> Updated source code", response);
                 if (response.artifacts.length > 0) {
-                    selectedNodeRef.current = undefined;
-                    await updateCurrentArtifactLocation(response);
-                    handleOnCloseSidePanel();
+                    if (options?.shouldCloseSidePanel) {
+                        selectedNodeRef.current = undefined;
+                        handleOnCloseSidePanel();
+                    }
+                    if (options?.updateLineRangeForRecursiveInserts) {
+                        onRerenderRef.current = options.updateLineRangeForRecursiveInserts;
+                    }
+                    shouldUpdateLineRangeRef.current = options?.shouldUpdateTargetLine;
+                    updatedNodeRef.current = updatedNode
                 } else {
                     console.error(">>> Error updating source code", response);
                 }
@@ -1113,7 +1180,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 nodeFormTemplate={nodeTemplateRef.current}
                 selectedClientName={selectedClientName.current}
                 showEditForm={showEditForm.current}
-                targetLineRange={targetRef.current}
+                targetLineRange={targetLineRange}
                 connections={model?.connections}
                 fileName={model?.fileName}
                 projectPath={projectPath}

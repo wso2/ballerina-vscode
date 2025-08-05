@@ -78,11 +78,12 @@ import {
     updateNodeWithProperties,
 } from "../form-utils";
 import ForkForm from "../ForkForm";
-import { getHelperPane } from "../../HelperPane";
 import { FormTypeEditor } from "../../TypeEditor";
 import { getTypeHelper } from "../../TypeHelper";
 import { EXPRESSION_EXTRACTION_REGEX } from "../../../../constants";
 import MatchForm from "../MatchForm";
+import { FormSubmitOptions } from "../../FlowDiagram";
+import { getHelperPaneNew } from "../../HelperPaneNew";
 
 interface TypeEditorState {
     isOpen: boolean;
@@ -113,8 +114,8 @@ interface FormProps {
         description?: string; // Optional description explaining what the action button does
         callback: () => void;
     };
-    handleOnFormSubmit?: (updatedNode?: FlowNode, isDataMapperFormUpdate?: boolean) => void;
-    helperPaneZIndex?: number;
+    handleOnFormSubmit?: (updatedNode?: FlowNode, isDataMapperFormUpdate?: boolean, options?: FormSubmitOptions) => void;
+    isInModal?: boolean;
 }
 
 // Styled component for the action button description
@@ -161,7 +162,7 @@ export function FormGenerator(props: FormProps) {
         actionButtonConfig,
         submitText,
         handleOnFormSubmit,
-        helperPaneZIndex,
+        isInModal,
     } = props;
 
     const { rpcClient } = useRpcContext();
@@ -179,6 +180,10 @@ export function FormGenerator(props: FormProps) {
     const [types, setTypes] = useState<CompletionItem[]>([]);
     const [filteredTypes, setFilteredTypes] = useState<CompletionItem[]>([]);
     const expressionOffsetRef = useRef<number>(0); // To track the expression offset on adding import statements
+
+    const [selectedType, setSelectedType] = useState<CompletionItem | null>(null);
+    const variables = completions.filter((completion) => completion.kind === 'variable')
+
 
     useEffect(() => {
         if (rpcClient) {
@@ -211,6 +216,10 @@ export function FormGenerator(props: FormProps) {
             handleFormClose();
         };
     }, [node]);
+
+    useEffect(() => {
+        console.log(targetLineRange)
+    }, [targetLineRange])
 
     const handleFormOpen = () => {
         rpcClient
@@ -296,6 +305,13 @@ export function FormGenerator(props: FormProps) {
             onSubmit(updatedNode, isDataMapperFormUpdate, formImports);
         }
     };
+
+
+    const getManuallyUpdatedNode = (data: FormValues, dirtyFields: any) => {
+        if (node && targetLineRange) {
+            return mergeFormDataWithFlowNode(data, targetLineRange, dirtyFields);
+        }
+    }
 
     const mergeFormDataWithFlowNode = (data: FormValues, targetLineRange: LineRange, dirtyFields?: any): FlowNode => {
         const clonedNode = cloneDeep(node);
@@ -624,7 +640,7 @@ export function FormGenerator(props: FormProps) {
             handleExpressionEditorCancel();
         }
 
-        return getHelperPane({
+        return getHelperPaneNew({
             fieldKey: fieldKey,
             fileName: fileName,
             targetLineRange: updateLineRange(targetLineRange, expressionOffsetRef.current),
@@ -641,7 +657,11 @@ export function FormGenerator(props: FormProps) {
             completions: completions,
             projectPath: projectPath,
             handleOnFormSubmit: handleOnFormSubmit,
-            helperPaneZIndex: helperPaneZIndex
+            helperPaneZIndex: isInModal ? 40001 : undefined,
+            selectedType: selectedType,
+            filteredCompletions: filteredCompletions,
+            variables: variables,
+            isInModal: isInModal
         });
     };
 
@@ -681,7 +701,7 @@ export function FormGenerator(props: FormProps) {
             changeTypeHelperState: changeHelperPaneState,
             updateImports: handleUpdateImports,
             onTypeCreate: handleCreateNewType,
-            onCloseCompletions: handleCloseCompletions
+            onCloseCompletions: handleCloseCompletions,
         });
     }
 
@@ -700,8 +720,9 @@ export function FormGenerator(props: FormProps) {
             onCompletionItemSelect: handleCompletionItemSelect,
             onBlur: handleExpressionEditorBlur,
             onCancel: handleExpressionEditorCancel,
-            helperPaneOrigin: "left",
-            helperPaneHeight: "full",
+            helperPaneOrigin: "vertical",
+            helperPaneHeight: "default",
+            helperPaneZIndex: isInModal ? 40001 : undefined,
         } as FormExpressionEditorProps;
     }, [
         filteredCompletions,
@@ -728,6 +749,12 @@ export function FormGenerator(props: FormProps) {
         setTypeEditorState({ isOpen: true, newTypeValue: typeName, fieldKey: typeEditorState.fieldKey });
     };
 
+    const handleSelectedTypeChange = (type: CompletionItem) => {
+        setSelectedType(type);
+    }
+        console.log("#####record type field",recordTypeFields)
+
+
     // handle if node form
     if (node?.codedata.node === "IF") {
         return (
@@ -745,6 +772,7 @@ export function FormGenerator(props: FormProps) {
             />
         );
     }
+    
 
     // handle match node form
     if (node?.codedata.node === "MATCH") {
@@ -833,6 +861,8 @@ export function FormGenerator(props: FormProps) {
                     recordTypeFields={recordTypeFields}
                     isInferredReturnType={!!node.codedata?.inferredReturnType}
                     formImports={formImports}
+                    handleSelectedTypeChange={handleSelectedTypeChange}
+                    helperPaneZIndex={isInModal? 40001: undefined}
                     preserveOrder={node.codedata.node === "VARIABLE" || node.codedata.node === "CONFIG_VARIABLE"}
                 />
             )}

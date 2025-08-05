@@ -45,6 +45,8 @@ import {
     openExternalUrl,
     runBackgroundTerminalCommand,
     selectFileOrDirPath,
+    getCurrentProjectTomlValues,
+    TomalValues,
     showErrorMessage
 } from "@wso2/ballerina-core";
 import { HOST_EXTENSION } from "vscode-messenger-common";
@@ -103,5 +105,9 @@ export class CommonRpcClient implements CommonRPCAPI {
 
     showErrorMessage(params: ShowErrorMessageRequest): void {
         return this._messenger.sendNotification(showErrorMessage, HOST_EXTENSION, params);
+    }
+    
+    getCurrentProjectTomlValues(): Promise<TomalValues> {
+        return this._messenger.sendRequest(getCurrentProjectTomlValues, HOST_EXTENSION);
     }
 }
