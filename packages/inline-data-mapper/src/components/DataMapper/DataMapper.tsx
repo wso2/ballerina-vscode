@@ -207,9 +207,10 @@ export function InlineDataMapper(props: InlineDataMapperProps) {
 
             const ioNodeInitVisitor = new IONodeInitVisitor(context);
             traverseNode(model, ioNodeInitVisitor);
-            const ioNodes = ioNodeInitVisitor.getNodes();
+            const inputNodes = ioNodeInitVisitor.getInputNodes();
+            const outputNode = ioNodeInitVisitor.getOutputNode();
 
-            const hasInputNodes = !ioNodes.some(node => node instanceof EmptyInputsNode);
+            const hasInputNodes = !inputNodes.some(node => node instanceof EmptyInputsNode);
             let subMappingNode: DataMapperNodeModel;
             if (hasInputNodes) {
                 const subMappingNodeInitVisitor = new SubMappingNodeInitVisitor(context);
@@ -224,8 +225,9 @@ export function InlineDataMapper(props: InlineDataMapperProps) {
             traverseNode(model, intermediateNodeInitVisitor);
 
             setNodes([
-                ...ioNodes,
+                ...inputNodes,
                 ...(subMappingNode ? [subMappingNode] : []),
+                outputNode,
                 ...intermediateNodeInitVisitor.getNodes()
             ]);
         } catch (error) {

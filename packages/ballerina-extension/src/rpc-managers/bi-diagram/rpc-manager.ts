@@ -135,6 +135,7 @@ import {
     DeleteConfigVariableRequestV2,
     DeleteConfigVariableResponseV2,
     LoginMethod,
+    Diagnostics,
 } from "@wso2/ballerina-core";
 import * as fs from "fs";
 import * as path from 'path';
@@ -163,6 +164,7 @@ import { README_FILE, createBIAutomation, createBIFunction, createBIProjectPure 
 import { writeBallerinaFileDidOpen } from "../../utils/modification";
 import { updateSourceCode } from "../../utils/source-utils";
 import { getAccessToken, getLoginMethod } from "../../utils/ai/auth";
+import { checkProjectDiagnostics, removeUnusedImports } from "../ai-panel/repair-utils";
 export class BiDiagramRpcManager implements BIDiagramAPI {
     OpenConfigTomlRequest: (params: OpenConfigTomlRequest) => Promise<void>;
 
@@ -1030,21 +1032,44 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
 
     async deleteByComponentInfo(params: BIDeleteByComponentInfoRequest): Promise<BIDeleteByComponentInfoResponse> {
         console.log(">>> requesting bi delete node from ls by componentInfo", params);
-        return new Promise((resolve) => {
-            StateMachine.langClient()
-                .deleteByComponentInfo(params)
-                .then(async (model) => {
-                    console.log(">>> bi delete node from ls by componentInfo", model);
-                    await updateSourceCode({ textEdits: model.textEdits });
-                    resolve(model);
-                })
-                .catch((error) => {
-                    console.log(">>> error fetching delete node from ls by componentInfo", error);
-                    return new Promise((resolve) => {
-                        resolve(undefined);
+        const projectDiags: Diagnostics[] = await checkProjectDiagnostics(StateMachine.langClient(), StateMachine.context().projectUri);
+        
+        // Helper function to perform the actual delete operation
+        const performDelete = async (): Promise<any> => {
+            return new Promise((resolve, reject) => {
+                StateMachine.langClient()
+                    .deleteByComponentInfo(params)
+                    .then(async (model) => {
+                        console.log(">>> bi delete node from ls by componentInfo", model);
+                        await updateSourceCode({ textEdits: model.textEdits });
+                        resolve(model);
+                    })
+                    .catch((error) => {
+                        console.log(">>> error fetching delete node from ls by componentInfo", error);
+                        reject("Error fetching delete node from ls by componentInfo");
                     });
-                });
-        });
+            });
+        };
+
+        // If there are diagnostics, remove unused imports first, then delete component
+        if (projectDiags.length > 0) {
+            return new Promise((resolve, reject) => {
+                removeUnusedImports(projectDiags, StateMachine.langClient())
+                    .then(() => {
+                        // After removing unused imports, proceed with component deletion
+                        return performDelete();
+                    })
+                    .then((result) => {
+                        resolve(result);
+                    })
+                    .catch((error) => {
+                        reject("Error during delete operation: " + error);
+                    });
+            });
+        } else {
+            // No diagnostics, directly delete component
+            return performDelete();
+        }
     }
 
     async getExpressionDiagnostics(params: ExpressionDiagnosticsRequest): Promise<ExpressionDiagnosticsResponse> {
