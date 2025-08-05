@@ -73,21 +73,32 @@ export function ObjectOutputFieldWidget(props: ObjectOutputFieldWidgetProps) {
 
     const typeName = getTypeName(field);
     const typeKind = field?.kind;
+
     const isArray = typeKind === TypeKind.Array;
     const isRecord = typeKind === TypeKind.Record;
+    const isEnum = typeKind === TypeKind.Enum;
 
     let updatedParentId = getSanitizedId(parentId);
     
     if (fieldIndex !== undefined) {
         updatedParentId = `${updatedParentId}.${fieldIndex}`
     }
+
     let fieldName = field?.variableName || '';
-    let portName = updatedParentId !== '' ? fieldName !== '' && fieldIndex === undefined ? `${updatedParentId}.${fieldName}` : updatedParentId : fieldName;
+    let portName = updatedParentId !== ''
+        ? fieldName !== '' && fieldIndex === undefined
+            ? `${updatedParentId}.${fieldName}`
+            : updatedParentId
+        : fieldName;
+
     const portIn = getPort(portName + ".IN");
     const mapping = portIn && portIn.attributes.value;
     const { inputs, expression, diagnostics } = mapping || {};
     const connectedViaLink = inputs?.length > 0;
-    const hasDefaultValue = expression && getDefaultValue(field?.kind) === expression.trim();
+
+    const hasDefaultValue = expression &&
+        getDefaultValue(field?.kind) === expression.trim() &&
+        !isEnum;
 
     const fields = isRecord && field?.fields?.filter(f => f !== null);
     const isWithinArray = fieldIndex !== undefined;
@@ -110,6 +121,15 @@ export function ObjectOutputFieldWidget(props: ObjectOutputFieldWidgetProps) {
         try {
             const defaultValue = getDefaultValue(field?.kind);
             await addValue(fieldFQNFromPortName(portName), defaultValue, context);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleAddEnumValue = async (value: string) => {
+        setLoading(true);
+        try {
+            await addValue(fieldFQNFromPortName(portName), value, context);
         } finally {
             setLoading(false);
         }
@@ -225,8 +245,16 @@ export function ObjectOutputFieldWidget(props: ObjectOutputFieldWidgetProps) {
         onClick: handleDeleteValue
     };
 
+    const addEnumValueMenuItems: ValueConfigMenuItem[] = expression
+        ? [{ title: ValueConfigOption.EditValue, onClick: handleEditValue }]
+        : field?.members?.map(member => ({
+            title: `Initialize as ${member.typeName}`,
+            onClick: () => handleAddEnumValue(member.typeName)
+        }));
+
     const valConfigMenuItems = [
-        !isWithinArray && addOrEditValueMenuItem,
+        !isWithinArray && !isEnum && addOrEditValueMenuItem,
+        ...(isEnum ? addEnumValueMenuItems : []),
         (expression || hasDefaultValue || isWithinArray) && deleteValueMenuItem
     ];
 
