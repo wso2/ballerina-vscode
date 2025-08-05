@@ -27,7 +27,7 @@ import ConfigForm from "./ConfigForm";
 import { cloneDeep } from "lodash";
 import { RelativeLoader } from "../../../components/RelativeLoader";
 import { getAiModuleOrg, getNodeTemplate } from "./utils";
-import { AI, BALLERINA } from "../../../constants";
+import { AI, BALLERINA, GET_DEFAULT_MODEL_PROVIDER } from "../../../constants";
 
 const Container = styled.div`
     padding: 16px;
@@ -284,6 +284,11 @@ export function NewAgent(props: NewAgentProps): JSX.Element {
             .getBIDiagramRpcClient()
             .getSourceCode({ filePath: fileName, flowNode: updatedAgentCallNode });
         console.log(">>> response getSourceCode with template ", { agentCallResponse });
+
+        // If the selected model is the default WSO2 model provider, configure it
+        if (defaultModelNode?.codedata?.symbol === GET_DEFAULT_MODEL_PROVIDER) {
+            await rpcClient.getAIAgentRpcClient().configureDefaultModelProvider();
+        }
 
         onSave?.();
         setSavingForm(false);

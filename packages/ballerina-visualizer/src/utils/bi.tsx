@@ -46,7 +46,6 @@ import {
     Item,
     FunctionKind,
     functionKinds,
-    TRIGGER_CHARACTERS,
     Diagnostic,
     FUNCTION_TYPE,
     FunctionNode,
@@ -122,11 +121,12 @@ function convertDiagramCategoryToSidePanelCategory(category: Category, functionT
 
     // HACK: use the icon of the first item in the category
     const icon = category.items.at(0)?.metadata.icon;
+    const codedata = (category.items.at(0) as AvailableNode)?.codedata;
 
     return {
         title: category.metadata.label,
         description: category.metadata.description,
-        icon: <ConnectorIcon url={icon} style={{ width: "20px", height: "20px", fontSize: "20px" }} />,
+        icon: <ConnectorIcon url={icon} style={{ width: "20px", height: "20px", fontSize: "20px" }} codedata={codedata} />,
         items: items,
     };
 }
@@ -158,22 +158,40 @@ export function convertModelProviderCategoriesToSidePanelCategories(categories: 
     const panelCategories = categories.map((category) => convertDiagramCategoryToSidePanelCategory(category));
     panelCategories.forEach((category) => {
         category.items?.forEach((item) => {
-            item.icon = <AIModelIcon type={(item as PanelNode).metadata.codedata.module} />;
+            if ((item as PanelNode).metadata?.codedata) {
+                const codedata = (item as PanelNode).metadata.codedata;
+                item.icon = <AIModelIcon type={codedata?.module} codedata={codedata} />;
+            } else if (((item as PanelCategory).items.at(0) as PanelNode)?.metadata?.codedata) {
+                const codedata = ((item as PanelCategory).items.at(0) as PanelNode)?.metadata.codedata;
+                item.icon = <AIModelIcon type={codedata?.module} codedata={codedata} />;
+            }
         });
     });
     return panelCategories;
 }
 
 export function convertVectorStoreCategoriesToSidePanelCategories(categories: Category[]): PanelCategory[] {
-    return categories.map((category) => convertDiagramCategoryToSidePanelCategory(category));
+    const panelCategories = categories.map((category) => convertDiagramCategoryToSidePanelCategory(category));
+    panelCategories.forEach((category) => {
+        category.items?.forEach((item) => {
+            if ((item as PanelNode).metadata?.codedata) {
+                const codedata = (item as PanelNode).metadata.codedata;
+                item.icon = <NodeIcon type={codedata?.node} size={24} />;
+            } else if (((item as PanelCategory).items.at(0) as PanelNode)?.metadata?.codedata) {
+                const codedata = ((item as PanelCategory).items.at(0) as PanelNode)?.metadata.codedata;
+                item.icon = <NodeIcon type={codedata?.node} size={24} />;
+            }
+        });
+    });
+    return panelCategories;
 }
 
 export function convertEmbeddingProviderCategoriesToSidePanelCategories(categories: Category[]): PanelCategory[] {
-    return categories.map((category) => convertDiagramCategoryToSidePanelCategory(category));
+    return convertModelProviderCategoriesToSidePanelCategories(categories);
 }
 
 export function convertVectorKnowledgeBaseCategoriesToSidePanelCategories(categories: Category[]): PanelCategory[] {
-    return categories.map((category) => convertDiagramCategoryToSidePanelCategory(category));
+    return convertModelProviderCategoriesToSidePanelCategories(categories);
 }
 
 export function convertNodePropertiesToFormFields(
@@ -1065,7 +1083,7 @@ export function filterUnsupportedDiagnostics(diagnostics: Diagnostic[]): Diagnos
 
 /**
  * Check if the type is supported by the data mapper
- * 
+ *
  * @param type - The type to check
  * @returns Whether the type is supported by the data mapper
  */
