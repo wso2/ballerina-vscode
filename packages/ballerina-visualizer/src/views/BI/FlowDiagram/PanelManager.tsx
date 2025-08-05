@@ -268,6 +268,8 @@ export function PanelManager(props: PanelManagerProps) {
                         openSubPanel={onSubPanel}
                         updatedExpressionField={updatedExpressionField}
                         resetUpdatedExpressionField={onResetUpdatedExpressionField}
+                        //TODO: this should be merged with onSubmit prop
+                        handleOnFormSubmit={onSubmitForm}
                     />
                 );
 
