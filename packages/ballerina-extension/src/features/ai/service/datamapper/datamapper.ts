@@ -16,7 +16,7 @@
 
 import { generateText, CoreMessage, generateObject } from "ai";
 import { getDataMappingPrompt } from "./prompt";
-import { anthropic, ANTHROPIC_SONNET_4 } from "../connection";
+import { getAnthropicClient, ANTHROPIC_SONNET_4 } from "../connection";
 import {
     Payload,
     DatamapperResponse,
@@ -35,38 +35,9 @@ import {
     Structure,
     ChatResponse,
 } from "./types";
-import {  DataMappingSchema } from "./schema";
+import {  MappingSchema } from "./schema";
 import { AIPanelAbortController } from "../../../../../src/rpc-managers/ai-panel/utils";
-
-// =============================================================================
-// OPERATION TYPE CONSTANTS
-// =============================================================================
-const DIRECT = "DIRECT";
-const LENGTH = "LENGTH";
-const SPLIT = "SPLIT";
-const ADDITION = "ADDITION";
-const SUBTRACTION = "SUBTRACTION";
-const MULTIPLICATION = "MULTIPLICATION";
-const DIVISION = "DIVISION";
-const MODULAR = "MODULAR";
-const EQUAL = "EQUAL";
-const NOTEQUAL = "NOTEQUAL";
-const LESS_THAN = "LESS_THAN";
-const LESS_THAN_OR_EQUAL = "LESS_THAN_OR_EQUAL";
-const AND = "AND";
-const OR = "OR";
-const REPLACE_ALL = "REPLACE_ALL";
-const AVERAGE = "AVERAGE";
-const MAXIMUM = "MAXIMUM";
-const MINIMUM = "MINIMUM";
-const SUMMATION = "SUMMATION";
-const ABSOLUTE = "ABSOLUTE";
-
-// Parameter constants
-const PARAMETER_1 = "PARAMETER_1";
-const PARAMETER_2 = "PARAMETER_2";
-const PARAMETER_3 = "PARAMETER_3";
-const NAME = "NAME";
+import { ADDITION, DIRECT, DIVISION, LENGTH, MODULAR, MULTIPLICATION, NAME, PARAMETER_1, PARAMETER_2, SPLIT, SUBTRACTION } from "./constant";
 
 // Operations table - In a real implementation, this would be loaded from JSON files
 const operationsTable: Map<string, Operation> = new Map([
@@ -293,15 +264,15 @@ async function getAutoMappings(
 
     try {
         const { object } = await generateObject({
-            model: anthropic(ANTHROPIC_SONNET_4),
+            model: await getAnthropicClient(ANTHROPIC_SONNET_4),
             maxTokens: 4096,
             temperature: 0,
             messages: messages,
-            schema: DataMappingSchema,
+            schema: MappingSchema,
             abortSignal: AIPanelAbortController.getInstance().signal,
         });
 
-        const generatedMappings = object as AIDataMappings;
+        const generatedMappings = object.generatedMappings as AIDataMappings;
         return generatedMappings;
     } catch (error) {
         console.error("Failed to parse response:", error);
@@ -849,30 +820,9 @@ function isValidMapping(mapping: MappingJson): boolean {
 // EXPORTS
 // =============================================================================
 
-// Export operation constants for external use
 export {
-    DIRECT,
-    LENGTH,
-    SPLIT,
-    ADDITION,
-    SUBTRACTION,
-    MULTIPLICATION,
-    DIVISION,
-    MODULAR,
-    EQUAL,
-    NOTEQUAL,
-    LESS_THAN,
-    LESS_THAN_OR_EQUAL,
-    AND,
-    OR,
-    REPLACE_ALL,
-    AVERAGE,
-    MAXIMUM,
-    MINIMUM,
-    SUMMATION,
-    ABSOLUTE,
+    operationsTable
 };
-
 // Default export for the main function
 export default generateAutoMappings;
 

@@ -14,9 +14,13 @@
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations
  * under the License.
+ * 
+ * THIS FILE INCLUDES AUTO GENERATED CODE
  */
 import {
     AIAgentAPI,
+    AiModuleOrgRequest,
+    AiModuleOrgResponse,
     AIAgentRequest,
     AIAgentResponse,
     AIAgentToolsUpdateRequest,
@@ -26,18 +30,28 @@ import {
     AIModelsResponse,
     AINodesRequest,
     AINodesResponse,
+    AIToolRequest,
+    AIToolResponse,
     AIToolsRequest,
     AIToolsResponse,
-    MemoryManagersRequest,
-    MemoryManagersResponse,
+    configureDefaultModelProvider,
     createAIAgent,
     genTool,
+    getAiModuleOrg,
     getAllAgents,
     getAllMemoryManagers,
     getAllModels,
+    getMcpTools,
     getModels,
+    getTool,
     getTools,
-    updateAIAgentTools
+    McpToolsRequest,
+    McpToolsResponse,
+    McpToolUpdateRequest,
+    MemoryManagersRequest,
+    MemoryManagersResponse,
+    updateAIAgentTools,
+    updateMCPToolKit
 } from "@wso2/ballerina-core";
 import { HOST_EXTENSION } from "vscode-messenger-common";
 import { Messenger } from "vscode-messenger-webview";
@@ -47,6 +61,10 @@ export class AiAgentRpcClient implements AIAgentAPI {
 
     constructor(messenger: Messenger) {
         this._messenger = messenger;
+    }
+
+    getAiModuleOrg(params: AiModuleOrgRequest): Promise<AiModuleOrgResponse> {
+        return this._messenger.sendRequest(getAiModuleOrg, HOST_EXTENSION, params);
     }
 
     getAllAgents(params: AINodesRequest): Promise<AINodesResponse> {
@@ -69,8 +87,21 @@ export class AiAgentRpcClient implements AIAgentAPI {
         return this._messenger.sendRequest(getTools, HOST_EXTENSION, params);
     }
 
+    getTool(params: AIToolRequest): Promise<AIToolResponse> {
+        return this._messenger.sendRequest(getTool, HOST_EXTENSION, params);
+    }
+
+    getMcpTools(params: McpToolsRequest): Promise<McpToolsResponse> {
+        return this._messenger.sendRequest(getMcpTools, HOST_EXTENSION, params);
+    }
+
     genTool(params: AIGentToolsRequest): Promise<AIGentToolsResponse> {
         return this._messenger.sendRequest(genTool, HOST_EXTENSION, params);
+    }
+
+    configureDefaultModelProvider(): Promise<void> {
+        this._messenger.sendNotification(configureDefaultModelProvider, HOST_EXTENSION);
+        return Promise.resolve();
     }
 
     createAIAgent(params: AIAgentRequest): Promise<AIAgentResponse> {
@@ -79,5 +110,9 @@ export class AiAgentRpcClient implements AIAgentAPI {
 
     updateAIAgentTools(params: AIAgentToolsUpdateRequest): Promise<AIAgentResponse> {
         return this._messenger.sendRequest(updateAIAgentTools, HOST_EXTENSION, params);
+    }
+
+    updateMCPToolKit(params: McpToolUpdateRequest): Promise<void> {
+        return this._messenger.sendRequest(updateMCPToolKit, HOST_EXTENSION, params);
     }
 }

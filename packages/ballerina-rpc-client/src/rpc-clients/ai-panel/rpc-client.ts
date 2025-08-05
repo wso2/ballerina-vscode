@@ -23,6 +23,7 @@ import {
     AIPanelAPI,
     AIPanelPrompt,
     AddToProjectRequest,
+    CodeSegment,
     DeleteFromProjectRequest,
     DeveloperDocument,
     FetchDataRequest,
@@ -37,7 +38,10 @@ import {
     GenerateTypesFromRecordResponse,
     GetFromFileRequest,
     GetModuleDirParams,
+    InlineAllDataMapperSourceRequest,
     LLMDiagnostics,
+    LoginMethod,
+    MetadataWithAttachments,
     NotifyAIMappingsRequest,
     PostProcessRequest,
     PostProcessResponse,
@@ -56,6 +60,7 @@ import {
     abortAIGeneration,
     abortTestGeneration,
     addChatSummary,
+    addInlineCodeSegmentToWorkspace,
     addToProject,
     applyDoOnFailBlocks,
     checkSyntaxError,
@@ -80,6 +85,8 @@ import {
     getFromDocumentation,
     getFromFile,
     getGeneratedTests,
+    getLoginMethod,
+    getMappingsFromModel,
     getMappingsFromRecord,
     getModuleDirectory,
     getProjectUuid,
@@ -98,6 +105,7 @@ import {
     isRequirementsSpecificationFileExist,
     markAlertShown,
     notifyAIMappings,
+    openInlineMappingChatWindow,
     postProcess,
     promptGithubAuthorize,
     promptWSO2AILogout,
@@ -125,6 +133,10 @@ export class AiPanelRpcClient implements AIPanelAPI {
 
     getProjectUuid(): Promise<string> {
         return this._messenger.sendRequest(getProjectUuid, HOST_EXTENSION);
+    }
+
+    getLoginMethod(): Promise<LoginMethod> {
+        return this._messenger.sendRequest(getLoginMethod, HOST_EXTENSION);
     }
 
     getAccessToken(): Promise<string> {
@@ -185,6 +197,18 @@ export class AiPanelRpcClient implements AIPanelAPI {
 
     clearInitialPrompt(): void {
         return this._messenger.sendNotification(clearInitialPrompt, HOST_EXTENSION);
+    }
+
+    openInlineMappingChatWindow(): void {
+        return this._messenger.sendNotification(openInlineMappingChatWindow, HOST_EXTENSION);
+    }
+
+    getMappingsFromModel(params: MetadataWithAttachments): Promise<InlineAllDataMapperSourceRequest> {
+        return this._messenger.sendRequest(getMappingsFromModel, HOST_EXTENSION, params);
+    }
+
+    addInlineCodeSegmentToWorkspace(params: CodeSegment): void {
+        return this._messenger.sendNotification(addInlineCodeSegmentToWorkspace, HOST_EXTENSION, params);
     }
 
     getGeneratedTests(params: TestGenerationRequest): Promise<TestGenerationResponse> {

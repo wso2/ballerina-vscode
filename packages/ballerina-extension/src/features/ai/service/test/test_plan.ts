@@ -15,9 +15,9 @@
 // under the License.
 
 import { CoreMessage, streamText } from "ai";
-import { anthropic, ANTHROPIC_SONNET_4 } from "../connection";
+import { getAnthropicClient, ANTHROPIC_SONNET_4 } from "../connection";
 import { getErrorMessage } from "../utils";
-import { TestGenerationTarget, TestPlanGenerationRequest } from "@wso2/ballerina-core";
+import { TestGenerationTarget, TestPlanGenerationRequest, Command } from "@wso2/ballerina-core";
 import { generateTest, getDiagnostics } from "../../testGenerator";
 import { getBallerinaProjectRoot } from "../../../../rpc-managers/ai-panel/rpc-manager";
 import { CopilotEventHandler, createWebviewEventHandler } from "../event";
@@ -122,7 +122,7 @@ export async function generateTestPlanCore(
         },
     ];
     const { fullStream } = streamText({
-        model: anthropic(ANTHROPIC_SONNET_4),
+        model: await getAnthropicClient(ANTHROPIC_SONNET_4),
         maxTokens: 8192,
         temperature: 0,
         messages: allMessages,
@@ -210,7 +210,7 @@ export async function generateTestPlanCore(
                             content: `\n\n<code filename="tests/Config.toml" type="test">\n\`\`\`ballerina\n${testConfig}\n\`\`\`\n</code>`,
                         });
                     }
-                    eventHandler({ type: "stop" });
+                    eventHandler({ type: "stop", command: Command.Tests });
                 } else {
                     eventHandler({
                         type: "content_block",
@@ -232,7 +232,7 @@ export async function generateTestPlanCore(
 
 // Main public function that uses the default event handler
 export async function generateTestPlan(params: TestPlanGenerationRequest): Promise<void> {
-    const eventHandler = createWebviewEventHandler();
+    const eventHandler = createWebviewEventHandler(Command.Tests);
     try {
         await generateTestPlanCore(params, eventHandler);
     } catch (error) {

@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import { Branch, FlowNode } from "../utils/types";
+import { Branch, FlowNode } from "../interfaces/bi";
 
 export interface BaseVisitor {
     skipChildren(): boolean;
@@ -90,9 +90,15 @@ export interface BaseVisitor {
     beginVisitAgentCall?(node: FlowNode, parent?: FlowNode): void;
     endVisitAgentCall?(node: FlowNode, parent?: FlowNode): void;
 
+    beginVisitVectorKnowledgeBaseCall?(node: FlowNode, parent?: FlowNode): void;
+    endVisitVectorKnowledgeBaseCall?(node: FlowNode, parent?: FlowNode): void;
+
     beginVisitParallelFlow?(node: FlowNode, parent?: FlowNode): void;
     endVisitParallelFlow?(node: FlowNode, parent?: FlowNode): void;
 
     beginVisitLock?(node: FlowNode, parent?: FlowNode): void;
     endVisitLock?(node: FlowNode, parent?: FlowNode): void;
+
+    beginVisitVariable?(node: FlowNode, parent?: FlowNode): void;
+    endVisitVariable?(node: FlowNode, parent?: FlowNode): void;
 }

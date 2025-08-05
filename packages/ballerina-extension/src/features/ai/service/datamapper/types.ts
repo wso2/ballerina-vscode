@@ -14,6 +14,8 @@
 // specific language governing permissions and limitations
 // under the License.
 
+import { IOType } from "@wso2/ballerina-core";
+
 // =============================================================================
 // OPERATION TYPES
 // =============================================================================
@@ -160,3 +162,17 @@ export interface ChatResponse {
     };
 }
 
+// =============================================================================
+// INLINE DATAMAPPING TYPES
+// =============================================================================
+
+export interface InlineDataMapping {
+    output: string;
+    inputs?: string[];
+    expression: string;
+}
+
+export interface InlineInputs {
+    input: IOType[];
+    output: IOType;
+}

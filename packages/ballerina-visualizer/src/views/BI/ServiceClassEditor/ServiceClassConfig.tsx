@@ -62,18 +62,22 @@ export function ServiceClassConfig(props: ServiceClassConfigProps) {
     const { rpcClient } = useRpcContext();
     const [serviceClassModel, setServiceClassModel] = useState<ServiceClassModel | null>(null);
     const [serviceClassFields, setServiceClassFields] = useState<FormField[]>([]);
+    const [filePath, setFilePath] = useState<string>("");
 
     const editTitle = `Update the configuration details for the Service Class as needed.`
 
     useEffect(() => {
         getServiceClassModel();
+        rpcClient.getVisualizerRpcClient().joinProjectPath(fileName).then((filePath) => {
+            setFilePath(filePath);
+        });
     }, [fileName, position]);
 
 
     const getServiceClassModel = async () => {
         if (!fileName || !position) return;
 
-        const currentFilePath = Utils.joinPath(URI.file(projectUri), fileName).fsPath;
+        const currentFilePath = await rpcClient.getVisualizerRpcClient().joinProjectPath(fileName);
         const serviceClassModelRequest: ModelFromCodeRequest = {
             filePath: currentFilePath,
             codedata: {
@@ -132,9 +136,9 @@ export function ServiceClassConfig(props: ServiceClassConfigProps) {
                                 {serviceClassFields?.length > 0 && (
                                     <FormContainer>
                                         <FormHeader title={`Service Class Configuration`} />
-                                        {fileName &&
+                                        {filePath &&
                                             <FormGeneratorNew
-                                                fileName={Utils.joinPath(URI.file(projectUri), fileName).fsPath}
+                                                fileName={filePath}
                                                 targetLineRange={{
                                                     startLine: { line: position.startLine, offset: position.startColumn },
                                                     endLine: { line: position.endLine, offset: position.endColumn }

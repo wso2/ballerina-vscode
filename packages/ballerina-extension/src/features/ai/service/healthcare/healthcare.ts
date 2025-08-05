@@ -14,17 +14,11 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import { CoreMessage, generateObject, generateText, streamText } from "ai";
-import { anthropic, ANTHROPIC_HAIKU, ANTHROPIC_SONNET_3_5, ANTHROPIC_SONNET_4 } from "../connection";
+import { CoreMessage, generateObject, streamText } from "ai";
+import { getAnthropicClient, ANTHROPIC_HAIKU, ANTHROPIC_SONNET_4 } from "../connection";
 import { GenerationType, getRelevantLibrariesAndFunctions } from "../libs/libs";
 import { getRewrittenPrompt, populateHistory, transformProjectSource, getErrorMessage } from "../utils";
-import {
-    getMaximizedSelectedLibs,
-    libraryContains,
-    selectRequiredFunctions,
-    toMaximizedLibrariesFromLibJson,
-} from "../libs/funcs";
-import { GetFunctionResponse, GetFunctionsRequest, getFunctionsResponseSchema } from "../libs/funcs_inter_types";
+import { libraryContains } from "../libs/funcs";
 import { LANGLIBS } from "../libs/langlibs";
 import {
     GetTypeResponse,
@@ -36,21 +30,18 @@ import {
     TypeDefinition,
 } from "../libs/libs_types";
 import {
-    ChatNotify,
-    DiagnosticEntry,
     FileAttatchment,
     GenerateCodeRequest,
-    onChatNotify,
-    PostProcessResponse,
-    ProjectDiagnostics,
     ProjectSource,
-    RepairParams,
-    RepairResponse,
     SourceFiles,
+    OperationType,
+    Command
 } from "@wso2/ballerina-core";
-import { getProjectSource, postProcess } from "../../../../rpc-managers/ai-panel/rpc-manager";
+import { getProjectSource } from "../../../../rpc-managers/ai-panel/rpc-manager";
 import { CopilotEventHandler, createWebviewEventHandler } from "../event";
 import { AIPanelAbortController } from "../../../../../src/rpc-managers/ai-panel/utils";
+import { stringifyExistingCode } from "../code/code";
+
 
 // Core healthcare code generation function that emits events
 export async function generateHealthcareCodeCore(
@@ -58,6 +49,7 @@ export async function generateHealthcareCodeCore(
     eventHandler: CopilotEventHandler
 ): Promise<void> {
     const project: ProjectSource = await getProjectSource(params.operationType);
+    const packageName = project.projectName;
     const sourceFiles: SourceFiles[] = transformProjectSource(project);
     const prompt = getRewrittenPrompt(params, sourceFiles);
     const relevantTrimmedFuncs: Library[] = (
@@ -69,11 +61,11 @@ export async function generateHealthcareCodeCore(
     const allMessages: CoreMessage[] = [
         {
             role: "system",
-            content: getSystemPromptPrefix(relevantTrimmedFuncs),
+            content: getSystemPromptPrefix(relevantTrimmedFuncs, sourceFiles),
         },
         {
             role: "system",
-            content: getSystemPromptSuffix(LANGLIBS, [], sourceFiles, params.fileAttachmentContents, prompt),
+            content: getSystemPromptSuffix(LANGLIBS),
             providerOptions: {
                 anthropic: { cacheControl: { type: "ephemeral" } },
             },
@@ -81,7 +73,7 @@ export async function generateHealthcareCodeCore(
         ...historyMessages,
         {
             role: "user",
-            content: prompt,
+            content: getUserPrompt(prompt, sourceFiles, params.fileAttachmentContents, packageName, params.operationType),
             providerOptions: {
                 anthropic: { cacheControl: { type: "ephemeral" } },
             },
@@ -89,8 +81,8 @@ export async function generateHealthcareCodeCore(
     ];
 
     const { fullStream } = streamText({
-        model: anthropic(ANTHROPIC_SONNET_3_5),
-        maxTokens: 4096*2,
+        model: await getAnthropicClient(ANTHROPIC_SONNET_4),
+        maxTokens: 4096 * 2,
         temperature: 0,
         messages: allMessages,
         abortSignal: AIPanelAbortController.getInstance().signal,
@@ -114,13 +106,12 @@ export async function generateHealthcareCodeCore(
             }
             case "finish": {
                 const finishReason = part.finishReason;
-                const postProcessedResp: PostProcessResponse = await postProcess({
-                    assistant_response: assistantResponse,
-                });
-                assistantResponse = postProcessedResp.assistant_response;
-
-                eventHandler({ type: "content_replace", content: assistantResponse });
-                eventHandler({ type: "stop" });
+                console.log("Finish reason: ", finishReason);
+                if (finishReason === "error") {
+                    // Already handled in error case.
+                    break;
+                }
+                eventHandler({ type: "stop", command: Command.Healthcare });
                 break;
             }
         }
@@ -129,7 +120,7 @@ export async function generateHealthcareCodeCore(
 
 // Main public function that uses the default event handler
 export async function generateHealthcareCode(params: GenerateCodeRequest): Promise<void> {
-    const eventHandler = createWebviewEventHandler();
+    const eventHandler = createWebviewEventHandler(Command.Healthcare);
     try {
         await generateHealthcareCodeCore(params, eventHandler);
     } catch (error) {
@@ -138,157 +129,118 @@ export async function generateHealthcareCode(params: GenerateCodeRequest): Promi
     }
 }
 
-function getSystemPromptPrefix(apidocs: Library[]) {
-    return `You are an expert assistant who specializes in writing Ballerina code for healthcare integrations. Your goal is to ONLY answer Ballerina related queries. You should always answer with accurate and functional Ballerina code that addresses the specified query while thinking step-by-step and following the instructions provided.
+export function getSystemPromptPrefix(apidocs: Library[], sourceFiles: SourceFiles[]): string {
+    return `You are an expert assistant who specializes in writing Ballerina code for healthcare integrations. Your goal is to ONLY answer Ballerina related queries. You should always answer with accurate and functional Ballerina code that addresses the specified query while adhering to the constraints of the given API documentation.
 
-First, review and learn about the Ballerina libraries available for healthcare integration scenarios:
-<healthcare_docs>
+You will be provided with following inputs:
+
+1. API_DOCS: A JSON string containing the API documentation for various Ballerina libraries and their functions, types, and clients.
+<api_docs>
 ${JSON.stringify(apidocs)}
-</healthcare_docs>
+</api_docs>
 `;
 }
 
-function getSystemPromptSuffix(
-    langlibs: Library[],
-    types: string[],
-    existingCode: SourceFiles[],
-    fileUploadContents: FileAttatchment[],
-    usecase: string
-): string {
-    return `Then, learn and understand the core Ballerina language libraries, the types and the functions they offer: 
+function getSystemPromptSuffix(langlibs: Library[]) {
+    return `2. Langlibs
 <langlibs>
 ${JSON.stringify(langlibs)}
 </langlibs>
 
-Consider the following types and their corresponding libraries when generating the code:
-<types>
-${JSON.stringify(types)}
-</types>
-If you require these types, you have to import the corresponding libraries related to the selected types. 
+If the query doesn't require code examples, answer the code by utilzing the api documentation.
+If the query requires code, Follow these steps to generate the Ballerina code:
 
-Have a look and understand the current healthcare integrations that the user is being working on:
-<existing_code>
-${JSON.stringify(existingCode)}
-</existing_code>
+1. Carefully analyze the provided API documentation:
+   - Identify the available libraries, clients, their functions and their relavant types.
 
-Read and try to understand the files user have attached to the query:
-${JSON.stringify(fileUploadContents)}
+2. Thoroughly read and understand the given query:
+   - Identify the main requirements and objectives of the integration.
+   - Determine which libraries, functions and their relavant records and types from the API documentation which are needed to achieve the query and forget about unused API docs.
+   - Note the libraries needed to achieve the query and plan the control flow of the applicaiton based input and output parameters of each function of the connector according to the API documentation.
 
-Now, consider this user query that explains the healthcare integration requirement to be considered when generating the Ballerina code:
-<query>
-${usecase}
-</query>
+3. Plan your code structure:
+   - Decide which libraries need to be imported (Avoid importing lang.string, lang.boolean, lang.float, lang.decimal, lang.int, lang.map langlibs as they are already imported by default).
+   - Determine the necessary client initialization.
+   - Define Types needed for the query in the types.bal file.
+   - Outline the service OR main function for the query.
+   - Outline the required function usages as noted in Step 2.
+   - Based on the types of identified functions, plan the data flow. Transform data as necessary.
+   - Note the special Ballerina libraries that you ALWAYS have to import into your code:
+        <imports>
+        import ballerinax/health.fhir.r4.international401 as international401;
+        import ballerinax/health.fhir.r4 as r4;
+        import ballerinax/health.fhir.r4.parser as parser;
+        import ballerina/io as io;
+        import ballerinax/health.hl7v2 as hl7v2;
+        import ballerinax/health.hl7v2commons as hl7v2commons;
+        </imports>
 
-Your goal is to generate accurate Ballerina code for the given query considering the knowledge you have, existing code and the files that are uploaded. I encourage you to plan the implementation first, before start writing code. Follow these steps in order:
-- planning_phase
-- writing_code phase
-- verify_code phase
-- generate_output phase
+4. Generate the Ballerina code:
+   - Start with the required import statements.
+   - Define required configurables for the query. Use only string, int, boolean types in configurable variables.
+   - Initialize any necessary clients with the correct configuration at the module level(before any function or service declarations).
+   - Implement the main function OR service to address the query requirements.
+   - Use defined connectors based on the query by following the API documentation.
+   - Use only the functions, types, and clients specified in the API documentation.
+   - Use dot donation to access a normal function. Use -> to access a remote function or resource function.
+   - Ensure proper error handling and type checking.
+   - Do not invoke methods on json access expressions. Always Use seperate statements.
+   - Use langlibs ONLY IF REQUIRED.
 
-<planning_phase>
-Think step-by-step and plan your code generation flow. Follow these steps when planning the code generation task:
+5. Review and refine your code:
+   - Check that all query requirements are met.
+   - Verify that you're only using elements from the provided API documentation.
+   - Ensure the code follows Ballerina best practices and conventions.
 
-1. Understand whether the query requires code generation or not. If no code generation is required, skip the planning and codegen phases and answer the query based on your current understanding. 
-2. Deeply understand the query that requires code generation. Follow these steps:
- - Carefully read and analyze the query.
- - Identify input requirements, expected outputs, and constraints.
- - Clarify any ambiguities, take judgemental calls and take necessary assumptions. Write down your assumptions.  
-3. Break the Problem Down. Follow these steps:
- - Decompose the problem into smaller, manageable parts.
- - Identify dependencies between different components.
-4. Identify Edge Cases and Constraints. Follow these steps:
- - Consider boundary conditions (e.g., empty inputs, large datasets).
- - Identify performance constraints like time complexity and memory usage.
-5. Choose the Right Approach. Follow these steps:
- - Determine if existing algorithms or data structures can be applied.
- - Select an optimal approach.
-6. Design the Solution. Follow these steps:
- - Create a high-level algorithm or flowchart.
- - Define the key functions, data structures, and logic required.
- - Identify whether these required functions, data structures are already available through the knowledge you have. 
- - Identify the model objects and use the types provided as much as possible.
- - Identify the required libraries. Note the special Ballerina libraries that you ALWAYS have to import into your code:
-      <imports>
-      import ballerinax/health.fhir.r4.international401 as international401;
-      import ballerinax/health.fhir.r4 as r4;
-      import ballerinax/health.fhir.r4.parser as parser;
-      import ballerina/io as io;
-      import ballerinax/health.hl7v2 as hl7v2;
-      import ballerinax/health.hl7v2commons as hl7v2commons;
-      </imports>
-7. Write Pseudocode. Follow these steps:
- - Draft a step-by-step logical representation of the solution.
- - This helps validate the logic before coding.
-8. Review and Iterate. Follow these steps:
- - Validate whether you covered the requirements collected in step 2. 
- - Plan any thing you missed using the steps in the planning phase.
-</planning_phase>
+Provide a brief explanation of how your code addresses the query and then output your generated ballerina code.
 
-<writing_code>
-Think step-by-step and start writing code. Adhere to the outcomes of the planning phase and follow these steps:
-  - You are writing a Ballerina program. 
-    Important reminders:
-      - Only use the libraries, functions, types, and clients specified in the provided healthcare docs and types.
-      - Always strictly respect the types given in the types section.
-      - Do not introduce any additional libraries or functions not mentioned in the healthcare docs.
-      - Only use specified fields in records according to the healthcare docs. this applies to array types of that record as well.
-      - Ensure your code is syntactically correct and follows Ballerina conventions.
-      - Do not use dynamic listener registrations.
-      - Do not write code in a way that requires updating/assigning values of function parameters.
-      - ALWAYS Use two words camel case identifiers (variable, function parameter, resource function parameter and field names).
-      - If the library name contains a . Always use an alias in the import statement. 
-        To find the alias, split the library name from . and get the last element of the array as the name of the alias.
-      - If the return parameter typedesc default value is marked as <> in the given API docs, define a custom record in the code that represents the data structure based on the use case and assign to it. 
-      - Whenever you have a Json variable, NEVER access or manipulate Json variables. ALWAYS define a record and convert the Json to that record and use it.
-      - When you are accessing fields of a record, always assign it into new variables.
-      - Avoid long comments in the code.
-      - Always use named arguments when providing values to any parameter. (eg: .get(key="value"))
-      _ Do not use var keyword (variable declarations, for loops ...). Use explicit types instead.
-      - Do not modify the README.md file unless asked to be modified explicitly in the query.
-      - Do not add/modify toml files(Config.toml/Ballerina.toml) unless asked.
-  - Start with the required import statements. Add all the must to have imports mentioned in Step 6 of the planning phase section.
-  - Define required configurables for the query. Use only string, int, boolean types in configurable variables.
-  - Initialize any necessary clients with the correct configuration at the module level (before any function or service declarations).
-  - Implement the main function OR service to address the query requirements.
-  - ALWAYS use payload bindings when implementing the resource functions of the services.
-      \`\`\
-      import ballerina/http;
-      type Album readonly & record {|
-          string title;
-          string artist;
-      |};
-      table<Album> key(title) albums = table [];
-      service / on new http:Listener(9090) {
-          // The \`album\` parameter in the payload annotation represents the entity body of the inbound request.
-          resource function post albums(Album album) returns Album {
-              albums.add(album);
-              return album;
-          }
-      }
-      \`\`\
-      Note the use of \`Album\` instead of a json payload etc.
-  - Use defined connectors based on the query by following the healthcare docs.
-  - Use only the functions, types, and clients specified in the healthcare docs.
-  - Use dot notation to access a normal function. Use -> to access a remote function or resource function.
-  - Ensure proper error handling and type checking.
-  - Do not invoke methods on json access expressions. Always Use separate statements.
-<writing_code>
+Important reminders:
+- Only use the libraries, functions, types, services and clients specified in the provided API documentation.
+- Always strictly respect the types given in the API Docs.
+- Do not introduce any additional libraries or functions not mentioned in the API docs.
+- Only use specified fields in records according to the api docs. this applies to array types of that record as well.
+- Ensure your code is syntactically correct and follows Ballerina conventions.
+- Do not use dynamic listener registrations.
+- Do not write code in a way that requires updating/assigning values of function parameters.
+- ALWAYS Use two words camel case identifiers (variable, function parameter, resource function parameter and field names).
+- If the library name contains a . Always use an alias in the import statement. (import org/package.one as one;)
+- Treat generated connectors/clients inside the generated folder as submodules.
+- A submodule MUST BE imported before being used.  The import statement should only contain the package name and submodule name.  For package my_pkg, folder strucutre generated/fooApi the import should be \`import my_pkg.fooApi;\`
+- If the return parameter typedesc default value is marked as <> in the given API docs, define a custom record in the code that represents the data structure based on the use case and assign to it.
+- Whenever you have a Json variable, NEVER access or manipulate Json variables. ALWAYS define a record and convert the Json to that record and use it.
+- When invoking resource function from a client, use the correct paths with accessor and paramters. (eg: exampleClient->/path1/["param"]/path2.get(key="value"))
+- When you are accessing a field of a record, always assign it into new variable and use that variable in the next statement.
+- Avoid long comments in the code. Use // for single line comments.
+- Always use named arguments when providing values to any parameter. (eg: .get(key="value"))
+- Mention types EXPLICITLY in variable declarations and foreach statements.
+- Do not modify the README.md file unless asked to be modified explicitly in the query.
+- Do not add/modify toml files(Config.toml/Ballerina.toml) unless asked.
+- In the library API documentation if the service type is specified as generic, adhere to the instructions specified there on writing the service.
+- ALWAYS use payload bindings when implementing the resource functions of the services.
+    \`\`\
+    import ballerina/http;
+    type Album readonly & record {|
+        string title;
+        string artist;
+    |};
+    table<Album> key(title) albums = table [];
+    service / on new http:Listener(9090) {
+        // The \`album\` parameter in the payload annotation represents the entity body of the inbound request.
+        resource function post albums(Album album) returns Album {
+            albums.add(album);
+            return album;
+        }
+    }
+    \`\`\
+    - Note the use of \`Album\` instead of a json payload.
 
-<verify_code>
-  Review and refine your code. Follow the steps below:
-    - Check that all query requirements are met.
-    - Make sure the special imports noted in step 6 of the planning phase are added in the code.
-    - Verify that you are only using elements from the provided healthcare docs.
-    - Ensure all the imports are properly specified and accurate.
-    - Make sure the types of the variables are correct based on the types specified in the types section. DOUBLE CHECK and FIX any incorrect imports. ALWAYS respect the <types> section.
-    - Ensure the code follows Ballerina best practices and conventions.
-</verify_code>
+Begin your response with the explanation, once the entire explanation is finished only, include codeblock segments(if any) in the end of the response.
+The explanation should explain the control flow decided in step 2, along with the selected libraries and their functions.
 
-<generate_output>
-  Begin your response with the very high level explanation about overall changes, then end the response with the codeblock segments(if any). Each file which needs modifications, should have a codeblock segment and it MUST have complete file content with the proposed change. Do not provide any explanation after codeblocks.
+Each file which needs modifications, should have a codeblock segment and it MUST have complete file content with the proposed change.
+The codeblock segments should only have .bal contents and it should not generate or modify any other file types. Politely decline if the query requests for such cases.
 
-
-  Example Codeblock segment:
+Example Codeblock segments:
   If the generated code is a service, use an appropriate name for the file. Use \`service\` as a prefix to the file name. Example:
   <code filename="service_abc.bal">
   \`\`\ballerina
@@ -296,13 +248,48 @@ Think step-by-step and start writing code. Adhere to the outcomes of the plannin
   \`\`\
   </code>
 
-  If the generated code is a main function, use an appropriate name for the file. Use \`service\` as a prefix to the file name. Example:
+  If the generated code is a main function, use an appropriate name for the file. Use \`main\` as a prefix to the file name. Example:
   <code filename="main_abc.bal">
   \`\`\ballerina
   //code goes here
   \`\`\
   </code>
-</generate_output>
+`;
+}
+
+function getUserPrompt(
+    usecase: string,
+    existingCode: SourceFiles[],
+    fileUploadContents: FileAttatchment[],
+    packageName: string,
+    op: OperationType
+): string {
+    let fileInstructions = "";
+    if (fileUploadContents.length > 0) {
+        fileInstructions = `4. File Upload Contents. : Contents of the file which the user uploaded as addtional information for the query.
+
+${fileUploadContents
+                .map(
+                    (file) => `File Name: ${file.fileName}
+Content: ${file.content}`
+                )
+                .join("\n")}`;
+    }
+
+    return `QUERY: The query you need to answer using the provided api documentation.
+<query>
+${usecase}
+</query>
+
+Existing Code: Users existing code.
+<existing_code>
+${stringifyExistingCode(existingCode, op)}
+</existing_code>
+
+Current Package name: ${packageName}
+
+${fileInstructions}
+
 `;
 }
 
@@ -370,7 +357,7 @@ Think step-by-step to choose the required types in order to solve the given ques
     ];
     try {
         const { object } = await generateObject({
-            model: anthropic(ANTHROPIC_HAIKU),
+            model: await getAnthropicClient(ANTHROPIC_HAIKU),
             maxTokens: 8192,
             temperature: 0,
             messages: messages,

@@ -50,7 +50,7 @@ import { AIChatInputRef } from "../AIChatInput";
 import ProgressTextSegment from "../ProgressTextSegment";
 import RoleContainer from "../RoleContainter";
 import { Attachment, AttachmentStatus } from "@wso2/ballerina-core";
-import { findRegexMatches } from "../../../../utils/utils";
+import { findRegexMatches, formatWithProperIndentation } from "../../../../utils/utils";
 
 import { AIChatView, Header, HeaderButtons, ChatMessage, Badge } from "../../styles";
 import ReferenceDropdown from "../ReferenceDropdown";
@@ -311,7 +311,8 @@ const AIChat: React.FC = () => {
             console.log("Received stop signal");
             setIsCodeLoading(false);
             setIsLoading(false);
-            addChatEntry("user", messages[messages.length - 2].content,); // Handle this in input layer?
+            const command = response.command;
+            addChatEntry("user", messages[messages.length - 2].content, command != undefined && command == Command.Code ); // Handle this in input layer?
             addChatEntry("assistant", messages[messages.length - 1].content);
         } else if (type === "error") {
             console.log("Received error signal");
@@ -432,7 +433,7 @@ const AIChat: React.FC = () => {
         }
     }
 
-    async function handleSend(content: { input: Input[]; attachments: Attachment[] }) {
+    async function handleSend(content: { input: Input[]; attachments: Attachment[]; metadata?: Record<string, any> }) {
         setCurrentGeneratingPromptIndex(otherMessages.length);
         setIsPromptExecutedInCurrentWindow(true);
         setFeedbackGiven(null);
@@ -469,10 +470,11 @@ const AIChat: React.FC = () => {
         }, message);
     }
 
-    async function processContent(content: { input: Input[]; attachments: Attachment[] }) {
+    async function processContent(content: { input: Input[]; attachments: Attachment[]; metadata?: Record<string, any> }) {
         const inputText = stringifyInputArrayWithBadges(content.input);
         const parsedInput = parseInput(content.input, commandTemplates);
         const attachments = content.attachments;
+        let metadata = content.metadata;
 
         if (parsedInput && "type" in parsedInput && parsedInput.type === "error") {
             throw new Error(parsedInput.message);
@@ -601,6 +603,13 @@ const AIChat: React.FC = () => {
                                     functionName: parsedInput.placeholderValues.functionName,
                                 },
                                 attachments
+                            );
+                            break;
+                        case "inline-mappings":
+                            await processInlineMappingParameters(
+                                inputText,
+                                metadata,
+                                attachments,
                             );
                             break;
                     }
@@ -867,6 +876,9 @@ const AIChat: React.FC = () => {
                 }
 
                 segmentText = updatedContent.trim();
+            } else if (command === "ai_map_inline") {
+                rpcClient.getAiPanelRpcClient().addInlineCodeSegmentToWorkspace({ segmentText, filePath });
+                continue;
             } else if (command === "test") {
                 segmentText = `${originalContent}\n\n${segmentText}`;
             } else {
@@ -1295,6 +1307,53 @@ const AIChat: React.FC = () => {
             finalContent = `${newImports}\n${response.mappingCode}`;
         }
         assistant_response += `<code filename="${filePath}" type="ai_map">\n\`\`\`ballerina\n${finalContent}\n\`\`\`\n</code>`;
+
+        setMessages((prevMessages) => {
+            const newMessages = [...prevMessages];
+            newMessages[newMessages.length - 1].content = assistant_response;
+            return newMessages;
+        });
+        addChatEntry("user", message);
+        addChatEntry("assistant", assistant_response);
+    }
+
+    async function processInlineMappingParameters(message: string, metadata?: Record<string, any>, attachments?: Attachment[],) {
+        let assistant_response = "";
+        let finalContent = "";
+        let fileName = metadata.codeData.lineRange.fileName
+        const variableName = metadata.name;
+        const typeName = metadata.mappingsModel.output.typeName;
+
+        setIsLoading(true);
+
+        const requestPayload: any = {
+            backendUri: "",
+            token: "",
+            metadata
+        };
+        if (attachments && attachments.length > 0) {
+            requestPayload.attachment = attachments;
+        }
+        const allMappingsRequest = await rpcClient.getAiPanelRpcClient().getMappingsFromModel(requestPayload);
+        const sourceResponse = await rpcClient.getInlineDataMapperRpcClient().getAllDataMapperSource(allMappingsRequest);
+
+        setIsLoading(false);
+
+        finalContent = sourceResponse.textEdits[allMappingsRequest.filePath]?.[0]?.newText;
+
+        assistant_response = `Here are the data mappings:\n\n`;
+        assistant_response += `\n**Note**: When you click **Add to Integration**, it will override your existing mappings.\n`;
+        
+        const moduleInfo = metadata.mappingsModel.output.moduleInfo;
+        const hasModuleInfo = moduleInfo && moduleInfo.moduleName;
+
+        const typePrefix = hasModuleInfo
+            ? `${moduleInfo.moduleName.split('.').pop()}:${typeName}`
+            : typeName;
+
+        const formattedContent = `${typePrefix} ${variableName} = {\n${formatWithProperIndentation(finalContent)}\n};`;
+        
+        assistant_response += `<code filename="${fileName}" type="ai_map_inline">\n\`\`\`ballerina\n${formattedContent}\n\`\`\`\n</code>`;
 
         setMessages((prevMessages) => {
             const newMessages = [...prevMessages];
@@ -2001,7 +2060,7 @@ function getCommand(command: string) {
 function splitHalfGeneratedCode(content: string): Segment[] {
     const segments: Segment[] = [];
     // Regex to capture filename and optional test attribute
-    const regex = /<code\s+filename="([^"]+)"(?:\s+type=("test"|"ai_map"))?>\s*```(\w+)\s*([\s\S]*?)$/g;
+    const regex = /<code\s+filename="([^"]+)"(?:\s+type=("test"|"ai_map"|"ai_map_inline"))?>\s*```(\w+)\s*([\s\S]*?)$/g;
     let match;
     let lastIndex = 0;
 
@@ -2047,7 +2106,7 @@ export function splitContent(content: string): Segment[] {
 
     // Combined regex to capture either <code ...>```<language> code ```</code> or <progress>Text</progress>
     const regex =
-        /<code\s+filename="([^"]+)"(?:\s+type=("test"|"ai_map"))?>\s*```(\w+)\s*([\s\S]*?)```\s*<\/code>|<progress>([\s\S]*?)<\/progress>|<attachment>([\s\S]*?)<\/attachment>|<scenario>([\s\S]*?)<\/scenario>|<button\s+type="([^"]+)">([\s\S]*?)<\/button>|<inlineCode>([\s\S]*?)<inlineCode>|<references>([\s\S]*?)<references>/g;
+        /<code\s+filename="([^"]+)"(?:\s+type=("test"|"ai_map"|"ai_map_inline"))?>\s*```(\w+)\s*([\s\S]*?)```\s*<\/code>|<progress>([\s\S]*?)<\/progress>|<attachment>([\s\S]*?)<\/attachment>|<scenario>([\s\S]*?)<\/scenario>|<button\s+type="([^"]+)">([\s\S]*?)<\/button>|<inlineCode>([\s\S]*?)<inlineCode>|<references>([\s\S]*?)<references>/g;
     let match;
     let lastIndex = 0;
 

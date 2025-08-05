@@ -28,6 +28,7 @@ import {
     ProjectSource,
     SourceFiles,
     TestGeneratorIntermediaryState,
+    Command
 } from "@wso2/ballerina-core";
 import { CoreMessage } from "ai";
 import { MessageRole } from "./types";
@@ -159,9 +160,10 @@ export function sendContentAppendNotification(chunk: string): void {
     sendAIPanelNotification(msg);
 }
 
-export function sendMessageStopNotification(): void {
+export function sendMessageStopNotification(command: Command): void {
     const msg: ChatNotify = {
         type: "stop",
+        command
     };
     sendAIPanelNotification(msg);
 }

@@ -14,7 +14,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import { TestGenerationTarget, TestGeneratorIntermediaryState } from "@wso2/ballerina-core";
+import { TestGenerationTarget, TestGeneratorIntermediaryState, Command } from "@wso2/ballerina-core";
 import { getErrorMessage } from "../utils";
 import { generateTest, getDiagnostics } from "../../testGenerator";
 import { getBallerinaProjectRoot } from "../../../../rpc-managers/ai-panel/rpc-manager";
@@ -103,12 +103,12 @@ export async function generateFunctionTestsCore(
         });
     }
 
-    eventHandler({ type: "stop" });
+    eventHandler({ type: "stop", command: Command.Tests });
 }
 
 // Main public function that uses the default event handler
 export async function generateFunctionTests(params: TestGeneratorIntermediaryState): Promise<void> {
-    const eventHandler = createWebviewEventHandler();
+    const eventHandler = createWebviewEventHandler(Command.Tests);
     try {
         await generateFunctionTestsCore(params, eventHandler);
     } catch (error) {

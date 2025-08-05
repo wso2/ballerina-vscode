@@ -31,7 +31,6 @@ import {
 } from "../utils/diagram";
 import { DiagramCanvas } from "./DiagramCanvas";
 import { Flow, NodeModel, FlowNode, Branch, LineRange, NodePosition, ToolData } from "../utils/types";
-import { traverseFlow } from "../utils/ast";
 import { NodeFactoryVisitor } from "../visitors/NodeFactoryVisitor";
 import { NodeLinkModel } from "./NodeLink";
 import { OverlayLayerModel } from "./OverlayLayer";
@@ -42,7 +41,7 @@ import { InitVisitor } from "../visitors/InitVisitor";
 import { LinkTargetVisitor } from "../visitors/LinkTargetVisitor";
 import { NodeTypes } from "../resources/constants";
 import Controls from "./Controls";
-import { CurrentBreakpointsResponse as BreakpointInfo } from "@wso2/ballerina-core";
+import { CurrentBreakpointsResponse as BreakpointInfo, traverseFlow } from "@wso2/ballerina-core";
 import { BreakpointVisitor } from "../visitors/BreakpointVisitor";
 import { BaseNodeModel } from "./nodes/BaseNode";
 
@@ -63,11 +62,17 @@ export interface DiagramProps {
     agentNode?: {
         onModelSelect: (node: FlowNode) => void;
         onAddTool: (node: FlowNode) => void;
+        onAddMcpServer: (node: FlowNode) => void;
         onSelectTool: (tool: ToolData, node: FlowNode) => void;
+        onSelectMcpToolkit: (tool: ToolData, node: FlowNode) => void;
         onDeleteTool: (tool: ToolData, node: FlowNode) => void;
         goToTool: (tool: ToolData, node: FlowNode) => void;
         onSelectMemoryManager: (node: FlowNode) => void;
         onDeleteMemoryManager: (node: FlowNode) => void;
+    };
+    // ai nodes callbacks
+    aiNodes?: {
+        onModelSelect: (node: FlowNode) => void;
     };
     // ai suggestions callbacks
     suggestions?: {
@@ -94,6 +99,7 @@ export function Diagram(props: DiagramProps) {
         goToSource,
         openView,
         agentNode,
+        aiNodes,
         suggestions,
         projectPath,
         addBreakpoint,
@@ -223,6 +229,7 @@ export function Diagram(props: DiagramProps) {
         goToSource: goToSource,
         openView: openView,
         agentNode: agentNode,
+        aiNodes: aiNodes,
         suggestions: suggestions,
         projectPath: projectPath,
         readOnly: onAddNode === undefined || onDeleteNode === undefined || onNodeSelect === undefined || readOnly,

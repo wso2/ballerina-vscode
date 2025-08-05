@@ -79,3 +79,12 @@ export function hasReturnType(formFields: FormField[]): boolean {
         field.key === "variable" || field.key === "type" || field.codedata?.kind === "PARAM_FOR_TYPE_INFER"
     );
 }
+
+export function isDefaultModelProvider(formFields: FormField[]): boolean {
+    return formFields.some(field => 
+        field.type === "TYPE" && 
+        field.value && 
+        field.value === "ai:Wso2ModelProvider" &&
+        field.enabled === false
+    );
+}
