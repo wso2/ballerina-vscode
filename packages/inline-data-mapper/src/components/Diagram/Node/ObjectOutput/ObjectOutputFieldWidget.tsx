@@ -27,7 +27,7 @@ import { IDataMapperContext } from "../../../../utils/DataMapperContext/DataMapp
 import { DataMapperPortWidget, PortState, InputOutputPortModel } from "../../Port";
 import { OutputSearchHighlight } from "../commons/Search";
 import { useIONodesStyles } from "../../../styles";
-import { useDMCollapsedFieldsStore } from '../../../../store/store';
+import { useDMCollapsedFieldsStore, useDMExpressionBarStore } from '../../../../store/store';
 import { getTypeName } from "../../utils/type-utils";
 import { ArrayOutputFieldWidget } from "../ArrayOutput/ArrayOuptutFieldWidget";
 import { fieldFQNFromPortName, getDefaultValue, getSanitizedId } from "../../utils/common-utils";
@@ -66,6 +66,7 @@ export function ObjectOutputFieldWidget(props: ObjectOutputFieldWidgetProps) {
     const [portState, setPortState] = useState<PortState>(PortState.Unselected);
 
     const collapsedFieldsStore = useDMCollapsedFieldsStore();
+    const setExprBarFocusedPort = useDMExpressionBarStore(state => state.setFocusedPort);
 
     let indentation = treeDepth * 16;
     let expanded = true;
@@ -124,7 +125,7 @@ export function ObjectOutputFieldWidget(props: ObjectOutputFieldWidgetProps) {
     };
 
     const handleEditValue = () => {
-        // TODO: Implement edit value
+        setExprBarFocusedPort(portIn);
     };
 
     const onMouseEnter = () => {
@@ -216,8 +217,7 @@ export function ObjectOutputFieldWidget(props: ObjectOutputFieldWidgetProps) {
     );
 
     const addOrEditValueMenuItem: ValueConfigMenuItem = expression || hasDefaultValue
-        ? undefined
-        // ? { title: ValueConfigOption.EditValue, onClick: handleEditValue } TODO: Implement edit value
+        ? { title: ValueConfigOption.EditValue, onClick: handleEditValue }
         : { title: ValueConfigOption.InitializeWithValue, onClick: handleAddValue };
 
     const deleteValueMenuItem: ValueConfigMenuItem = {
