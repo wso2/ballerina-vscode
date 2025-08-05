@@ -648,6 +648,9 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
             .finally(() => {
                 setShowProgressIndicator(false);
                 debouncedGetFlowModel();
+                if (options?.shouldCloseSidePanel === true) {
+                    setShowSidePanel(false);
+                }
             });
     };
 
