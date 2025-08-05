@@ -1,0 +1,32 @@
+{
+  "items":{
+    "date":{
+      "operation":"DIRECT",
+      "targetType":"string",
+      "parameters":[
+        "tr.Timestamp"
+      ]
+    },
+    "product_id":{
+      "operation":"DIRECT",
+      "targetType":"string",
+      "parameters":[
+        "tr.Items.Item.ProductId"
+      ]
+    },
+    "quantity":{
+      "operation":"DIRECT",
+      "targetType":"int",
+      "parameters":[
+        "tr.Items.Item.Quantity"
+      ]
+    },
+    "total":{
+      "operation":"DIRECT",
+      "targetType":"decimal",
+      "parameters":[
+        "tr.TotalAmount"
+      ]
+    }
+  }
+}
