@@ -1333,8 +1333,6 @@ const AIChat: React.FC = () => {
 
         try {
             const requestPayload: any = {
-                backendUri: "",
-                token: "",
                 metadata
             };
             if (attachments && attachments.length > 0) {
