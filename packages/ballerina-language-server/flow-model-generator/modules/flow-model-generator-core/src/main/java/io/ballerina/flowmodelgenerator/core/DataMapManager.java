@@ -890,8 +890,7 @@ public class DataMapManager {
                 MappingUnionPort unionPort = new MappingUnionPort(id, name, unionType.getName(),
                         type.getTypeName(), unionType.optional);
                 for (Type member : unionType.members) {
-                    MappingPort memberPort = getMappingPort(id + "." + member.getName(), member.getName(),
-                            member, isInputPort, visitedTypes);
+                    MappingPort memberPort = getMappingPort(id, name, member, isInputPort, visitedTypes);
                     if (memberPort != null) {
                         unionPort.members.add(memberPort);
                     }
@@ -1439,16 +1438,31 @@ public class DataMapManager {
                 DefaultValueGeneratorUtil.getDefaultValueForType(recordTypeSymbol);
     }
 
-    public Symbol getMatchedTypeDefSymbol(String prefix, String type, SemanticModel defaultModuleSM) {
-        return defaultModuleSM.moduleSymbols().stream()
-                .filter(m -> m.kind() == SymbolKind.MODULE)
-                .map(m -> (ModuleSymbol) m)
-                .filter(m -> m.id().modulePrefix().equals(prefix))
-                .flatMap(m -> m.typeDefinitions().stream()
-                        .filter(s -> s.getName().isPresent() && s.getName().get().equals(type))
-                        .findFirst().stream())
-                .findFirst()
-                .orElse(null);
+    public TypeDefinitionSymbol getMatchedTypeDefSymbol(String prefix, String type, SemanticModel defaultModuleSM) {
+        List<ModuleSymbol> modules = getModuleSymbols(defaultModuleSM);
+        for (ModuleSymbol module : modules) {
+            if (!module.id().modulePrefix().equals(prefix)) {
+                continue;
+            }
+            for (TypeDefinitionSymbol typeDefinition : module.typeDefinitions()) {
+                Optional<String> name = typeDefinition.getName();
+                if (name.isPresent() && name.get().equals(type)) {
+                    return typeDefinition;
+                }
+            }
+        }
+        return null;
+    }
+
+    private List<ModuleSymbol> getModuleSymbols(SemanticModel semanticModel) {
+        List<ModuleSymbol> modules = new ArrayList<>();
+        for (ImportDeclarationNode importNode : ((ModulePartNode) this.document.syntaxTree().rootNode()).imports()) {
+            Optional<Symbol> symbol = semanticModel.symbol(importNode);
+            if (symbol.isPresent() && symbol.get().kind() == SymbolKind.MODULE) {
+                modules.add((ModuleSymbol) symbol.get());
+            }
+        }
+        return modules;
     }
 
     public JsonElement getVisualizableProperties(SemanticModel sm, JsonElement node) {
@@ -1481,7 +1495,7 @@ public class DataMapManager {
             if (symbol.getName().isEmpty() || !symbol.getName().get().equals(type)) {
                 continue;
             }
-            return gson.toJsonTree(getDataMapCapability(symbol, isArray));
+            return gson.toJsonTree(getDataMapCapability((TypeDefinitionSymbol) symbol, isArray));
         }
 
         String[] typeSegments = type.split(":");
@@ -1489,7 +1503,7 @@ public class DataMapManager {
         if (hasModulePrefix) {
             String prefix = typeSegments[0];
             String typeName = typeSegments[1];
-            Symbol matchedSymbol = getMatchedTypeDefSymbol(prefix, typeName, semanticModel);
+            TypeDefinitionSymbol matchedSymbol = getMatchedTypeDefSymbol(prefix, typeName, semanticModel);
             if (matchedSymbol != null) {
                 return gson.toJsonTree(getDataMapCapability(matchedSymbol, isArray));
             }
@@ -1497,8 +1511,7 @@ public class DataMapManager {
         return null;
     }
 
-    private DataMapCapability getDataMapCapability(Symbol symbol, Boolean isArray) {
-        TypeDefinitionSymbol typeDefSymbol = (TypeDefinitionSymbol) symbol;
+    private DataMapCapability getDataMapCapability(TypeDefinitionSymbol typeDefSymbol, Boolean isArray) {
         TypeSymbol typeSymbol = typeDefSymbol.typeDescriptor();
         TypeSymbol rawTypeSymbol = CommonUtils.getRawType(typeSymbol);
         TypeDescKind kind = rawTypeSymbol.typeKind();
