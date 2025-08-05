@@ -1317,51 +1317,63 @@ const AIChat: React.FC = () => {
         addChatEntry("assistant", assistant_response);
     }
 
-    async function processInlineMappingParameters(message: string, metadata?: Record<string, any>, attachments?: Attachment[],) {
+    async function processInlineMappingParameters(message: string, metadata?: Record<string, any>, attachments?: Attachment[]) {
         let assistant_response = "";
         let finalContent = "";
+
+        if (!metadata || Object.keys(metadata).length === 0) {
+            throw new Error(`Please make sure variables are initialized, and then try again.`)
+        }
+
         let fileName = metadata.codeData.lineRange.fileName
         const variableName = metadata.name;
         const typeName = metadata.mappingsModel.output.typeName;
 
         setIsLoading(true);
 
-        const requestPayload: any = {
-            backendUri: "",
-            token: "",
-            metadata
-        };
-        if (attachments && attachments.length > 0) {
-            requestPayload.attachment = attachments;
+        try {
+            const requestPayload: any = {
+                backendUri: "",
+                token: "",
+                metadata
+            };
+            if (attachments && attachments.length > 0) {
+                requestPayload.attachment = attachments;
+            }
+            const allMappingsRequest = await rpcClient.getAiPanelRpcClient().getMappingsFromModel(requestPayload);
+            const sourceResponse = await rpcClient.getInlineDataMapperRpcClient().getAllDataMapperSource(allMappingsRequest);
+
+            setIsLoading(false);
+
+            finalContent = sourceResponse.textEdits[allMappingsRequest.filePath]?.[0]?.newText;
+
+            assistant_response = `Here are the data mappings:\n\n`;
+            assistant_response += `\n**Note**: When you click **Add to Integration**, it will override your existing mappings.\n`;
+
+            const moduleInfo = metadata.mappingsModel.output.moduleInfo;
+            const hasModuleInfo = moduleInfo && moduleInfo.moduleName;
+
+            const typePrefix = hasModuleInfo
+                ? `${moduleInfo.moduleName.split('.').pop()}:${typeName}`
+                : typeName;
+
+            const formattedContent = `${typePrefix} ${variableName} = {\n${formatWithProperIndentation(finalContent)}\n};`;
+
+            assistant_response += `<code filename="${fileName}" type="ai_map_inline">\n\`\`\`ballerina\n${formattedContent}\n\`\`\`\n</code>`;
+
+            setMessages((prevMessages) => {
+                const newMessages = [...prevMessages];
+                newMessages[newMessages.length - 1].content = assistant_response;
+                return newMessages;
+            });
+            addChatEntry("user", message);
+            addChatEntry("assistant", assistant_response);
+
+            return { success: true, response: assistant_response };
+        } catch (error) {
+            setIsLoading(false);
+            return { error: error instanceof Error ? error.message : "An unexpected error occurred" };
         }
-        const allMappingsRequest = await rpcClient.getAiPanelRpcClient().getMappingsFromModel(requestPayload);
-        const sourceResponse = await rpcClient.getInlineDataMapperRpcClient().getAllDataMapperSource(allMappingsRequest);
-
-        setIsLoading(false);
-
-        finalContent = sourceResponse.textEdits[allMappingsRequest.filePath]?.[0]?.newText;
-
-        assistant_response = `Here are the data mappings:\n\n`;
-        assistant_response += `\n**Note**: When you click **Add to Integration**, it will override your existing mappings.\n`;
-        
-        const moduleInfo = metadata.mappingsModel.output.moduleInfo;
-        const hasModuleInfo = moduleInfo && moduleInfo.moduleName;
-
-        const typePrefix = hasModuleInfo
-            ? `${moduleInfo.moduleName.split('.').pop()}:${typeName}`
-            : typeName;
-
-        const formattedContent = `${typePrefix} ${variableName} = {\n${formatWithProperIndentation(finalContent)}\n};`;
-        
-        assistant_response += `<code filename="${fileName}" type="ai_map_inline">\n\`\`\`ballerina\n${formattedContent}\n\`\`\`\n</code>`;
-
-        setMessages((prevMessages) => {
-            const newMessages = [...prevMessages];
-            newMessages[newMessages.length - 1].content = assistant_response;
-            return newMessages;
-        });
-        addChatEntry("user", message);
-        addChatEntry("assistant", assistant_response);
     }
 
     async function processContextTypeCreation(message: string, attachments: Attachment[]) {
