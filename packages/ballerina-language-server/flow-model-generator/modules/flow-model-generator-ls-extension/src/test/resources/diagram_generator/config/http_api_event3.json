@@ -19,6 +19,7 @@
           "data": {
             "kind": "Resource",
             "label": "menu/[int year]/[boolean... flags]",
+            "isServiceFunction": true,
             "accessor": "post",
             "parameters": [
               "string item"

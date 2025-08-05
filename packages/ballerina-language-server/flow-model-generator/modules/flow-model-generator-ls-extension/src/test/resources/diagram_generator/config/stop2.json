@@ -19,6 +19,7 @@
           "data": {
             "kind": "Function",
             "label": "testStop2",
+            "isServiceFunction": false,
             "parameters": [
               "int x"
             ],

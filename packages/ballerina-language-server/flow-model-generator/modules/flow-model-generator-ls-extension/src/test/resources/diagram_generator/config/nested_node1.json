@@ -19,6 +19,7 @@
           "data": {
             "kind": "Resource",
             "label": "path1",
+            "isServiceFunction": true,
             "accessor": "get",
             "return": "error?"
           }

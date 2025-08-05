@@ -19,6 +19,7 @@
           "data": {
             "kind": "Function",
             "label": "workersWithInitStatements",
+            "isServiceFunction": false,
             "return": "string?"
           }
         },

@@ -19,6 +19,7 @@
           "data": {
             "kind": "Resource",
             "label": "path2",
+            "isServiceFunction": true,
             "accessor": "get",
             "parameters": [
               "boolean isKandy"

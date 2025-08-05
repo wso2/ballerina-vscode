@@ -18,7 +18,8 @@
           "label": "Start",
           "data": {
             "kind": "Function",
-            "label": "commentOnStatementBody"
+            "label": "commentOnStatementBody",
+            "isServiceFunction": false
           }
         },
         "codedata": {

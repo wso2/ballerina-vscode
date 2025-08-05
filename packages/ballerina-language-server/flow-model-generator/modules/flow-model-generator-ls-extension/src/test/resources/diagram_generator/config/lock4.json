@@ -19,6 +19,7 @@
           "data": {
             "kind": "Function",
             "label": "testLockWithOnFail2",
+            "isServiceFunction": false,
             "return": "error?"
           }
         },

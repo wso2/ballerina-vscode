@@ -19,6 +19,7 @@
           "data": {
             "kind": "Resource",
             "label": "milkshake",
+            "isServiceFunction": true,
             "accessor": "post",
             "return": "json|http:ClientError"
           }

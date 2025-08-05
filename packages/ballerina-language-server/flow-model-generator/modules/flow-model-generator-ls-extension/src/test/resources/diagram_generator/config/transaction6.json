@@ -19,6 +19,7 @@
           "data": {
             "kind": "Function",
             "label": "transactionWithOnFail3",
+            "isServiceFunction": false,
             "return": "error?"
           }
         },

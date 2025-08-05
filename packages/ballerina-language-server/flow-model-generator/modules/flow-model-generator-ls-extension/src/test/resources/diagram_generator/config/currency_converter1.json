@@ -19,6 +19,7 @@
           "data": {
             "kind": "Resource",
             "label": "converter",
+            "isServiceFunction": true,
             "accessor": "get",
             "parameters": [
               "string 'from",

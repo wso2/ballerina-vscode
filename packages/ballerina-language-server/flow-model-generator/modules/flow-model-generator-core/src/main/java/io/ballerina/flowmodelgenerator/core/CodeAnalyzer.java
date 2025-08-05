@@ -208,6 +208,12 @@ public class CodeAnalyzer extends NodeVisitor {
     public static final String MCP_SERVER = "MCP Server";
     public static final String NAME = "name";
 
+    // Metadata data keys
+    private static final String KIND_KEY = "kind";
+    private static final String LABEL_KEY = "label";
+    private static final String IS_SERVICE_FUNCTION_KEY = "isServiceFunction";
+    private static final String ACCESSOR_KEY = "accessor";
+
     public CodeAnalyzer(Project project, SemanticModel semanticModel, String connectionScope,
                         Map<String, LineRange> dataMappings, Map<String, LineRange> naturalFunctions,
                         TextDocument textDocument, ModuleInfo moduleInfo, boolean forceAssign) {
@@ -234,12 +240,12 @@ public class CodeAnalyzer extends NodeVisitor {
 
         // Set the function kind to display in the flow model
         FunctionKind kind;
+        NonTerminalNode parentNode = getParentNode(functionDefinitionNode);
         String functionName = functionDefinitionNode.functionName().text();
         String accessor = null;
         if (functionDefinitionNode.kind() == SyntaxKind.RESOURCE_ACCESSOR_DEFINITION) {
             accessor = functionName;
             functionName = getPathString(functionDefinitionNode.relativeResourcePath());
-            NonTerminalNode parentNode = getParentNode(functionDefinitionNode);
             if (parentNode instanceof ServiceDeclarationNode serviceDeclarationNode &&
                     isAgent(serviceDeclarationNode)) {
                 kind = FunctionKind.AI_CHAT_AGENT;
@@ -257,10 +263,13 @@ public class CodeAnalyzer extends NodeVisitor {
                 .sourceCode(functionDefinitionNode.toSourceCode().strip());
 
         nodeBuilder.metadata()
-                .addData("kind", kind.getValue())
-                .addData("label", functionName);
+                .addData(KIND_KEY, kind.getValue())
+                .addData(LABEL_KEY, functionName)
+                .addData(IS_SERVICE_FUNCTION_KEY, parentNode != null &&
+                        (parentNode.kind() == SyntaxKind.SERVICE_DECLARATION ||
+                                parentNode.kind() == SyntaxKind.CLASS_DEFINITION));
         if (accessor != null) {
-            nodeBuilder.metadata().addData("accessor", accessor);
+            nodeBuilder.metadata().addData(ACCESSOR_KEY, accessor);
         }
 
         // Add the function signature to the metadata
@@ -546,9 +555,6 @@ public class CodeAnalyzer extends NodeVisitor {
         while (currentNode != null && currentNode.kind() != SyntaxKind.SERVICE_DECLARATION &&
                 currentNode.kind() != SyntaxKind.CLASS_DEFINITION) {
             currentNode = currentNode.parent();
-        }
-        if (currentNode == null) {
-            throw new IllegalStateException("Parent node not found");
         }
         return currentNode;
     }

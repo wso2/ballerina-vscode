@@ -18,7 +18,8 @@
           "label": "Start",
           "data": {
             "kind": "Function",
-            "label": "invalidType"
+            "label": "invalidType",
+            "isServiceFunction": false
           }
         },
         "codedata": {

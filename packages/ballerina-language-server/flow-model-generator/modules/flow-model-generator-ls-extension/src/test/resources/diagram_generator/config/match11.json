@@ -19,6 +19,7 @@
           "data": {
             "kind": "Resource",
             "label": "peaches",
+            "isServiceFunction": true,
             "accessor": "get",
             "parameters": [
               "map<anydata> data"

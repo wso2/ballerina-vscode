@@ -18,7 +18,8 @@
           "label": "Start",
           "data": {
             "kind": "Function",
-            "label": "testNewDataXml"
+            "label": "testNewDataXml",
+            "isServiceFunction": false
           }
         },
         "codedata": {

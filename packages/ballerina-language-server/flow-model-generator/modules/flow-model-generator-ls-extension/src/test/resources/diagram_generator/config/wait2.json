@@ -19,6 +19,7 @@
           "data": {
             "kind": "Function",
             "label": "waitForImportedFunction",
+            "isServiceFunction": false,
             "return": "error?"
           }
         },

@@ -19,6 +19,7 @@
           "data": {
             "kind": "Function",
             "label": "basicAlternateWaitWithOneOut",
+            "isServiceFunction": false,
             "return": "string|error"
           }
         },
