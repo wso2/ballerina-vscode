@@ -1,7 +1,7 @@
-import { CoreMessage, generateText, streamText, tool } from "ai";
+import { CoreMessage, generateText, streamText } from "ai";
 import { getAnthropicClient, ANTHROPIC_SONNET_4 } from "../connection";
 import { GenerationType, getAllLibraries } from "../libs/libs";
-import { LibraryProviderTool, LibraryProviderToolSchema } from "../libs/libraryProviderTool";
+import { getLibraryProviderTool } from "../libs/libraryProviderTool";
 import {
     getRewrittenPrompt,
     populateHistory,
@@ -63,23 +63,9 @@ ${getSystemPromptSuffix(LANGLIBS)}`,
     ];
 
     const tools = {
-        LibraryProviderTool: tool({
-            description: `Fetches detailed information about Ballerina libraries, including clients, functions, and types.
-This tool analyzes a user query and returns **all** clients and functions from the selected Ballerina libraries.
-
-Before calling this tool:
-- **Review all library descriptions** below.
-- Select only the libraries that might be needed to fulfill the user query.
-
-Available libraries:
-${libraryDescriptions}`,
-            parameters: LibraryProviderToolSchema,
-            execute: async (input: { libraryNames: string[] }) => {
-                console.log(`[LibraryProviderTool] Called with libraries: ${input.libraryNames.join(", ")}`);
-                return await LibraryProviderTool(input, GenerationType.CODE_GENERATION);
-            },
-        }),
+        LibraryProviderTool: getLibraryProviderTool(libraryDescriptions, GenerationType.CODE_GENERATION),
     };
+
 
     const { fullStream } = streamText({
         model: await getAnthropicClient(ANTHROPIC_SONNET_4),
@@ -344,22 +330,7 @@ ${getSystemPromptSuffix(LANGLIBS)}`,
     ];
 
     const tools = {
-        LibraryProviderTool: tool({
-            description: `Fetches detailed information about Ballerina libraries, including clients, functions, and types.
-This tool analyzes a user query and returns **all** clients and functions from the selected Ballerina libraries.
-
-Before calling this tool:
-- **Review all library descriptions** below.
-- Select only the libraries that might be needed to fulfill the user query.
-
-Available libraries:
-${libraryDescriptions}`,
-            parameters: LibraryProviderToolSchema,
-            execute: async (input: { libraryNames: string[] }) => {
-                console.log(`[LibraryProviderTool] Called with libraries: ${input.libraryNames.join(", ")}`);
-                return await LibraryProviderTool(input, GenerationType.CODE_GENERATION);
-            },
-        }),
+        LibraryProviderTool: getLibraryProviderTool(libraryDescriptions, GenerationType.CODE_GENERATION),
     };
 
     const { text, usage, providerMetadata } = await generateText({
