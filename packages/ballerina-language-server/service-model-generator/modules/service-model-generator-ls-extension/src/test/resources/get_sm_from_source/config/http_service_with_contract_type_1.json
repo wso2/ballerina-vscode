@@ -13,10 +13,6 @@
     "id": "0",
     "name": "HTTP Service",
     "type": "http",
-    "displayAnnotation": {
-      "label": "HTTP Service",
-      "iconPath": "http://localhost:8080/icons/http.png"
-    },
     "moduleName": "http",
     "orgName": "ballerina",
     "version": "2.14.0",
@@ -29,51 +25,39 @@
           "label": "Listeners",
           "description": ""
         },
-        "enabled": true,
-        "editable": false,
-        "value": "httpListener",
-        "values": [],
+        "codedata": {
+          "type": "LISTENER"
+        },
+        "placeholder": "",
         "valueType": "MULTIPLE_SELECT",
         "valueTypeConstraint": "http:Listener",
-        "isType": false,
-        "placeholder": "",
-        "optional": false,
-        "advanced": false,
+        "value": "httpListener",
+        "values": [],
         "items": [
           "httpListener",
           "(+) Create and use the default HTTP listener (port: 9090)"
         ],
-        "codedata": {
-          "inListenerInit": false,
-          "isBasePath": false,
-          "inDisplayAnnotation": false,
-          "type": "LISTENER"
-        },
-        "addNewButton": true,
-        "imports": {}
+        "enabled": true,
+        "editable": false,
+        "optional": false,
+        "advanced": false
       },
       "serviceTypeName": {
         "metadata": {
           "label": "Service Type Name",
           "description": "The name of the service contract type generated from the OpenAPI specification"
         },
-        "enabled": true,
-        "editable": true,
-        "value": "PizzaShop",
-        "valueType": "IDENTIFIER",
-        "valueTypeConstraint": "string",
-        "isType": false,
-        "placeholder": "",
-        "optional": false,
-        "advanced": false,
         "codedata": {
-          "inListenerInit": false,
-          "isBasePath": false,
-          "inDisplayAnnotation": false,
           "type": "SERVICE_BASEPATH"
         },
-        "addNewButton": false,
-        "imports": {}
+        "placeholder": "",
+        "valueType": "IDENTIFIER",
+        "valueTypeConstraint": "string",
+        "value": "PizzaShop",
+        "enabled": true,
+        "editable": true,
+        "optional": false,
+        "advanced": false
       }
     },
     "codedata": {
@@ -87,10 +71,7 @@
           "line": 40,
           "offset": 1
         }
-      },
-      "inListenerInit": false,
-      "isBasePath": false,
-      "inDisplayAnnotation": false
+      }
     },
     "functions": []
   }

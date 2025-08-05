@@ -18,6 +18,13 @@
 
 package io.ballerina.servicemodelgenerator.extension.model;
 
+import java.util.HashMap;
+
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.VALUE_TYPE_EXPRESSION;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.VALUE_TYPE_HEADER_SET;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.VALUE_TYPE_IDENTIFIER;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.VALUE_TYPE_SINGLE_SELECT;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.VALUE_TYPE_TYPE;
 
 /**
  * Represents a HTTP response.
@@ -47,49 +54,71 @@ public class HttpResponse {
     }
 
     public HttpResponse(String type) {
-        this.type = new Value(type, "EXPRESSION", true);
+        this.type = createValue(type, VALUE_TYPE_EXPRESSION, true);
     }
 
     public HttpResponse(String statusCode, String body, String name) {
-        this.statusCode = new Value(statusCode, "SINGLE_SELECT", true);
-        this.body = new Value(body, "EXPRESSION", true);
-        this.name = new Value(name, "EXPRESSION", true);
+        this.statusCode = createValue(statusCode, VALUE_TYPE_SINGLE_SELECT, true);
+        this.body = createValue(body, VALUE_TYPE_EXPRESSION, true);
+        this.name = createValue(name, VALUE_TYPE_EXPRESSION, true);
     }
 
     public HttpResponse(String statusCode, String type) {
-        this.statusCode = new Value(statusCode, "SINGLE_SELECT", true, true, false);
-        this.body = new Value(type, "TYPE", true, true, true);
-        this.name = new Value("", "IDENTIFIER", true, true, true);
-        this.type = new Value(type, "TYPE", true, true, true);
-        this.headers = new Value("", "HEADER_SET", true, true, true);
+        this.statusCode = createValue(statusCode, VALUE_TYPE_SINGLE_SELECT, true);
+        this.body = createOptionalValue(type, VALUE_TYPE_TYPE, true);
+        this.name = createOptionalValue("", VALUE_TYPE_IDENTIFIER, true);
+        this.type = createOptionalValue(body, VALUE_TYPE_TYPE, true);
+        this.headers = createOptionalValue("", VALUE_TYPE_HEADER_SET, true);
     }
 
     public HttpResponse(String statusCode, String type, String body, Object headers, boolean editable) {
-        this.statusCode = new Value(statusCode, "SINGLE_SELECT", true, editable, false);
-        this.body = new Value(body, "TYPE", true, editable, true);
-        this.name = new Value(type, "IDENTIFIER", true, editable, true);
-        this.type = new Value(type, "TYPE", true, editable, true);
-        this.headers = new Value(headers, "HEADER_SET", true, editable, true);
+        this.statusCode = createValue(statusCode, VALUE_TYPE_SINGLE_SELECT, editable);
+        this.body =  createOptionalValue(body, VALUE_TYPE_TYPE, editable);
+        this.name = createOptionalValue("", VALUE_TYPE_IDENTIFIER, editable);
+        this.type = createOptionalValue(type, VALUE_TYPE_TYPE, editable);
+        this.headers = createOptionalValue(headers, VALUE_TYPE_HEADER_SET, editable);
         this.editable = editable;
     }
 
     public HttpResponse(String statusCode, String type, boolean editable) {
-        this.statusCode = new Value(statusCode, "SINGLE_SELECT", true, editable, false);
-        this.body = new Value("", "TYPE", true, editable, true);
-        this.name = new Value("", "IDENTIFIER", true, editable, true);
-        this.type = new Value(type, "TYPE", true, editable, true);
-        this.headers = new Value("", "HEADER_SET", true, editable, true);
+        this.statusCode = createValue(statusCode, VALUE_TYPE_SINGLE_SELECT, editable);
+        this.body = createOptionalValue("", VALUE_TYPE_TYPE, editable);
+        this.name = createOptionalValue("", VALUE_TYPE_IDENTIFIER, editable);
+        this.type = createOptionalValue(type, VALUE_TYPE_TYPE, editable);
+        this.headers = createOptionalValue("", VALUE_TYPE_HEADER_SET, editable);
         this.editable = editable;
     }
 
     public static HttpResponse getAnonResponse(String code, String typeStr) {
-        Value statusCode = new Value(code, "SINGLE_SELECT", true);
-        Value body = new Value("", "EXPRESSION", true);
-        Value name = new Value("", "EXPRESSION", true);
-        Value type = new Value(typeStr, "EXPRESSION", true);
-        Value headers = new Value("", "HEADER_SET", true);
+        Value statusCode = createValue(code, VALUE_TYPE_SINGLE_SELECT, true);
+        Value body = createValue("", VALUE_TYPE_EXPRESSION, true);
+        Value name = createValue("", VALUE_TYPE_EXPRESSION, true);
+        Value type = createValue(typeStr, VALUE_TYPE_EXPRESSION, true);
+        Value headers = createValue("", VALUE_TYPE_HEADER_SET, true);
         return new HttpResponse(statusCode, body, name, type, headers);
     }
+
+    private static Value createValue(Object value, String valueType, boolean editable) {
+        return new Value.ValueBuilder()
+                .value(value)
+                .valueType(valueType)
+                .editable(editable)
+                .enabled(true)
+                .setImports(new HashMap<>())
+                .build();
+    }
+
+    private static Value createOptionalValue(Object value, String valueType, boolean editable) {
+        return new Value.ValueBuilder()
+                .value(value)
+                .valueType(valueType)
+                .editable(editable)
+                .enabled(true)
+                .optional(true)
+                .setImports(new HashMap<>())
+                .build();
+    }
+
 
     public Value getStatusCode() {
         return statusCode;

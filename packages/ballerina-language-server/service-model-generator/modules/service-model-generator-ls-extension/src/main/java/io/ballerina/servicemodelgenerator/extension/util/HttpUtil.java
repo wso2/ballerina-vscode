@@ -18,10 +18,8 @@
 
 package io.ballerina.servicemodelgenerator.extension.util;
 
-import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import com.google.gson.stream.JsonReader;
 import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.compiler.api.symbols.ModuleSymbol;
 import io.ballerina.compiler.api.symbols.RecordFieldSymbol;
@@ -34,27 +32,18 @@ import io.ballerina.compiler.api.symbols.TypeReferenceTypeSymbol;
 import io.ballerina.compiler.api.symbols.TypeSymbol;
 import io.ballerina.compiler.api.symbols.UnionTypeSymbol;
 import io.ballerina.compiler.syntax.tree.AnnotationNode;
-import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
 import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.compiler.syntax.tree.NodeList;
 import io.ballerina.compiler.syntax.tree.ServiceDeclarationNode;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.compiler.syntax.tree.TypeDefinitionNode;
-import io.ballerina.modelgenerator.commons.Annotation;
 import io.ballerina.modelgenerator.commons.CommonUtils;
-import io.ballerina.modelgenerator.commons.ServiceDatabaseManager;
-import io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants;
 import io.ballerina.servicemodelgenerator.extension.model.Codedata;
-import io.ballerina.servicemodelgenerator.extension.model.Function;
 import io.ballerina.servicemodelgenerator.extension.model.FunctionReturnType;
 import io.ballerina.servicemodelgenerator.extension.model.HttpResponse;
 import io.ballerina.servicemodelgenerator.extension.model.Service;
 import io.ballerina.servicemodelgenerator.extension.model.Value;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -63,12 +52,8 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.stream.Collectors;
 
-import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.KIND_RESOURCE;
-import static io.ballerina.servicemodelgenerator.extension.util.Utils.getFunctionModel;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.getPath;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.populateListenerInfo;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.populateRequiredFuncsDesignApproachAndServiceType;
@@ -277,7 +262,7 @@ public final class HttpUtil {
         Service serviceModel = Service.getEmptyServiceModel();
         Value serviceContractType = new Value.ValueBuilder()
                 .enabled(true)
-                .valueType(ServiceModelGeneratorConstants.VALUE_TYPE_IDENTIFIER)
+                .valueType(Constants.VALUE_TYPE_IDENTIFIER)
                 .value(serviceTypeNode.typeName().text().trim())
                 .build();
         serviceModel.setServiceContractTypeName(serviceContractType);
@@ -292,7 +277,7 @@ public final class HttpUtil {
                 continue;
             }
             String[] annotStrings = annotName.split(":");
-            if (!annotStrings[0].trim().equals(ServiceModelGeneratorConstants.HTTP)) {
+            if (!annotStrings[0].trim().equals(Constants.HTTP)) {
                 continue;
             }
             return Optional.of(annotStrings[annotStrings.length - 1].trim().toUpperCase(Locale.ROOT));
@@ -554,63 +539,6 @@ public final class HttpUtil {
         }
         template += "|};";
         return template;
-    }
-
-    public static Function getFunctionFromFunctionDef(FunctionDefinitionNode functionDefinitionNode,
-                                                      SemanticModel semanticModel) {
-        ServiceDatabaseManager databaseManager = ServiceDatabaseManager.getInstance();
-        List<Annotation> annotationAttachments = databaseManager.
-                getAnnotationAttachments("ballerina", "http", "OBJECT_METHOD");
-        Map<String, Value> annotations = Function.createAnnotationsMap(annotationAttachments);
-        Function functionModel = getFunctionModel(functionDefinitionNode, semanticModel, true, false,
-                annotations);
-        functionModel.setEditable(true);
-
-        if (functionModel.getKind().equals(KIND_RESOURCE)) {
-            Optional<Function> resourceFunctionOp = getResourceFunctionModel();
-            if (resourceFunctionOp.isPresent()) {
-                Function resourceFunction = resourceFunctionOp.get();
-                if (resourceFunction.getReturnType().getResponses().size() > 1) {
-                    resourceFunction.getReturnType().getResponses().remove(1);
-                }
-                updateFunctionInfo(resourceFunction, functionModel);
-                return resourceFunction;
-            }
-        } else {
-            functionModel.setAnnotations(null);
-            functionModel.getAccessor().setEnabled(false);
-        }
-        return functionModel;
-    }
-
-    private static Optional<Function> getResourceFunctionModel() {
-        InputStream resourceStream = Utils.class.getClassLoader()
-                .getResourceAsStream("functions/http_resource.json");
-        if (resourceStream == null) {
-            return Optional.empty();
-        }
-
-        try (JsonReader reader = new JsonReader(new InputStreamReader(resourceStream, StandardCharsets.UTF_8))) {
-            return Optional.of(new Gson().fromJson(reader, Function.class));
-        } catch (IOException e) {
-            return Optional.empty();
-        }
-    }
-
-    private static void updateFunctionInfo(Function functionModel, Function commonFunction) {
-        functionModel.setEditable(commonFunction.isEditable());
-        functionModel.setEnabled(true);
-        functionModel.setKind(commonFunction.getKind());
-        functionModel.setCodedata(commonFunction.getCodedata());
-        updateValue(functionModel.getAccessor(), commonFunction.getAccessor());
-        updateValue(functionModel.getName(), commonFunction.getName());
-        updateValue(functionModel.getReturnType(), commonFunction.getReturnType());
-        Set<String> existingTypes = functionModel.getParameters().stream()
-                .map(parameter -> parameter.getType().getValue())
-                .collect(Collectors.toSet());
-        commonFunction.getParameters().stream()
-                .filter(commonParam -> !existingTypes.contains(commonParam.getType().getValue()))
-                .forEach(functionModel::addParameter);
     }
 
     private static String getString(Object value) {

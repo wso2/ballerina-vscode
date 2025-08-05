@@ -20,16 +20,20 @@ package io.ballerina.servicemodelgenerator.extension.model;
 
 import io.ballerina.tools.text.LineRange;
 
+/**
+ * Represents a model to capture data related to code elements.
+ *
+ * @since 1.0.0
+ */
 public class Codedata {
     private LineRange lineRange;
-    private boolean inListenerInit;
-    private boolean isBasePath;
-    private boolean inDisplayAnnotation;
     private String type;
     private String argType;
     private String originalName;
     private String orgName;
+    private String packageName;
     private String moduleName;
+    private String version;
 
     public Codedata() {
     }
@@ -49,9 +53,6 @@ public class Codedata {
 
     public Codedata(LineRange lineRange, boolean inListenerInit, boolean isBasePath, boolean inDisplayAnnotation) {
         this.lineRange = lineRange;
-        this.inListenerInit = inListenerInit;
-        this.isBasePath = isBasePath;
-        this.inDisplayAnnotation = inDisplayAnnotation;
     }
 
     public LineRange getLineRange() {
@@ -60,30 +61,6 @@ public class Codedata {
 
     public void setLineRange(LineRange lineRange) {
         this.lineRange = lineRange;
-    }
-
-    public boolean isInListenerInit() {
-        return inListenerInit;
-    }
-
-    public void setInListenerInit(boolean inListenerInit) {
-        this.inListenerInit = inListenerInit;
-    }
-
-    public boolean isBasePath() {
-        return isBasePath;
-    }
-
-    public void setBasePath(boolean isBasePath) {
-        this.isBasePath = isBasePath;
-    }
-
-    public boolean isInDisplayAnnotation() {
-        return inDisplayAnnotation;
-    }
-
-    public void setInDisplayAnnotation(boolean inDisplayAnnotation) {
-        this.inDisplayAnnotation = inDisplayAnnotation;
     }
 
     public String getType() {
@@ -118,6 +95,14 @@ public class Codedata {
         this.orgName = orgName;
     }
 
+    public String getPackageName() {
+        return packageName;
+    }
+
+    public void setPackageName(String packageName) {
+        this.packageName = packageName;
+    }
+
     public String getModuleName() {
         return moduleName;
     }
@@ -126,37 +111,29 @@ public class Codedata {
         this.moduleName = moduleName;
     }
 
+    public String getVersion() {
+        return version;
+    }
+
+    public void setVersion(String version) {
+        this.version = version;
+    }
+
     public static class Builder {
         private LineRange lineRange;
-        private boolean inListenerInit = false;
-        private boolean isBasePath = false;
-        private boolean inDisplayAnnotation = false;
         private String type;
         private String argType;
         private String originalName;
         private String orgName;
+        private String packageName;
         private String moduleName;
+        private String version;
 
         public Builder() {
         }
 
         public Builder setLineRange(LineRange lineRange) {
             this.lineRange = lineRange;
-            return this;
-        }
-
-        public Builder setInListenerInit(boolean inListenerInit) {
-            this.inListenerInit = inListenerInit;
-            return this;
-        }
-
-        public Builder setBasePath(boolean isBasePath) {
-            this.isBasePath = isBasePath;
-            return this;
-        }
-
-        public Builder setInDisplayAnnotation(boolean inDisplayAnnotation) {
-            this.inDisplayAnnotation = inDisplayAnnotation;
             return this;
         }
 
@@ -180,22 +157,31 @@ public class Codedata {
             return this;
         }
 
+        public Builder setPackageName(String packageName) {
+            this.packageName = packageName;
+            return this;
+        }
+
         public Builder setModuleName(String moduleName) {
             this.moduleName = moduleName;
+            return this;
+        }
+
+        public Builder setVersion(String version) {
+            this.version = version;
             return this;
         }
 
         public Codedata build() {
             Codedata codedata = new Codedata();
             codedata.setLineRange(lineRange);
-            codedata.setInListenerInit(inListenerInit);
-            codedata.setBasePath(isBasePath);
-            codedata.setInDisplayAnnotation(inDisplayAnnotation);
             codedata.setType(type);
             codedata.setArgType(argType);
             codedata.setOriginalName(originalName);
             codedata.setOrgName(orgName);
+            codedata.setPackageName(packageName);
             codedata.setModuleName(moduleName);
+            codedata.setVersion(version);
             return codedata;
         }
     }

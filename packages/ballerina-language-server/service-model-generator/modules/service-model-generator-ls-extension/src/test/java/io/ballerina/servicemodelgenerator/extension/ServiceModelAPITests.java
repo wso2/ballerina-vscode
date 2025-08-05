@@ -25,26 +25,27 @@ import io.ballerina.servicemodelgenerator.extension.model.Listener;
 import io.ballerina.servicemodelgenerator.extension.model.Parameter;
 import io.ballerina.servicemodelgenerator.extension.model.Service;
 import io.ballerina.servicemodelgenerator.extension.model.Value;
-import io.ballerina.servicemodelgenerator.extension.request.CommonModelFromSourceRequest;
-import io.ballerina.servicemodelgenerator.extension.request.FunctionModelRequest;
-import io.ballerina.servicemodelgenerator.extension.request.FunctionModifierRequest;
-import io.ballerina.servicemodelgenerator.extension.request.FunctionSourceRequest;
-import io.ballerina.servicemodelgenerator.extension.request.ListenerDiscoveryRequest;
-import io.ballerina.servicemodelgenerator.extension.request.ListenerModelRequest;
-import io.ballerina.servicemodelgenerator.extension.request.ListenerModifierRequest;
-import io.ballerina.servicemodelgenerator.extension.request.ListenerSourceRequest;
-import io.ballerina.servicemodelgenerator.extension.request.ServiceModelRequest;
-import io.ballerina.servicemodelgenerator.extension.request.ServiceModifierRequest;
-import io.ballerina.servicemodelgenerator.extension.request.ServiceSourceRequest;
-import io.ballerina.servicemodelgenerator.extension.response.CommonSourceResponse;
-import io.ballerina.servicemodelgenerator.extension.response.FunctionFromSourceResponse;
-import io.ballerina.servicemodelgenerator.extension.response.FunctionModelResponse;
-import io.ballerina.servicemodelgenerator.extension.response.ListenerDiscoveryResponse;
-import io.ballerina.servicemodelgenerator.extension.response.ListenerFromSourceResponse;
-import io.ballerina.servicemodelgenerator.extension.response.ListenerModelResponse;
-import io.ballerina.servicemodelgenerator.extension.response.ServiceFromSourceResponse;
-import io.ballerina.servicemodelgenerator.extension.response.ServiceModelResponse;
-import io.ballerina.servicemodelgenerator.extension.response.TriggerListResponse;
+import io.ballerina.servicemodelgenerator.extension.model.request.CommonModelFromSourceRequest;
+import io.ballerina.servicemodelgenerator.extension.model.request.FunctionModelRequest;
+import io.ballerina.servicemodelgenerator.extension.model.request.FunctionModifierRequest;
+import io.ballerina.servicemodelgenerator.extension.model.request.FunctionSourceRequest;
+import io.ballerina.servicemodelgenerator.extension.model.request.ListenerDiscoveryRequest;
+import io.ballerina.servicemodelgenerator.extension.model.request.ListenerModelRequest;
+import io.ballerina.servicemodelgenerator.extension.model.request.ListenerModifierRequest;
+import io.ballerina.servicemodelgenerator.extension.model.request.ListenerSourceRequest;
+import io.ballerina.servicemodelgenerator.extension.model.request.ServiceModelRequest;
+import io.ballerina.servicemodelgenerator.extension.model.request.ServiceModifierRequest;
+import io.ballerina.servicemodelgenerator.extension.model.request.ServiceSourceRequest;
+import io.ballerina.servicemodelgenerator.extension.model.response.CommonSourceResponse;
+import io.ballerina.servicemodelgenerator.extension.model.response.FunctionFromSourceResponse;
+import io.ballerina.servicemodelgenerator.extension.model.response.FunctionModelResponse;
+import io.ballerina.servicemodelgenerator.extension.model.response.ListenerDiscoveryResponse;
+import io.ballerina.servicemodelgenerator.extension.model.response.ListenerFromSourceResponse;
+import io.ballerina.servicemodelgenerator.extension.model.response.ListenerModelResponse;
+import io.ballerina.servicemodelgenerator.extension.model.response.ServiceFromSourceResponse;
+import io.ballerina.servicemodelgenerator.extension.model.response.ServiceModelResponse;
+import io.ballerina.servicemodelgenerator.extension.model.response.TriggerListResponse;
+import io.ballerina.servicemodelgenerator.extension.util.Constants;
 import io.ballerina.tools.text.LinePosition;
 import io.ballerina.tools.text.LineRange;
 import org.ballerinalang.langserver.BallerinaLanguageServer;
@@ -55,6 +56,7 @@ import org.eclipse.lsp4j.TextEdit;
 import org.eclipse.lsp4j.jsonrpc.Endpoint;
 import org.testng.Assert;
 import org.testng.annotations.AfterClass;
+import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
@@ -89,7 +91,7 @@ public class ServiceModelAPITests {
         Assert.assertTrue(response.hasListeners());
         Assert.assertEquals(response.listeners().size(), 1);
         Assert.assertTrue(response.listeners().contains(
-                ServiceModelGeneratorConstants.HTTP_DEFAULT_LISTENER_ITEM_LABEL));
+                Constants.HTTP_DEFAULT_LISTENER_ITEM_LABEL));
     }
 
     @Test
@@ -102,7 +104,7 @@ public class ServiceModelAPITests {
         Assert.assertTrue(response.hasListeners());
         Assert.assertEquals(response.listeners().size(), 2);
         Assert.assertTrue(response.listeners().contains(
-                ServiceModelGeneratorConstants.HTTP_DEFAULT_LISTENER_ITEM_LABEL));
+                Constants.HTTP_DEFAULT_LISTENER_ITEM_LABEL));
         Assert.assertTrue(response.listeners().contains("httpDefaultListener"));
     }
 
@@ -274,9 +276,32 @@ public class ServiceModelAPITests {
     }
 
     @Test
-    public void testAddAiService() throws ExecutionException, InterruptedException {
+    public void testAddBallerinaAiService() throws ExecutionException, InterruptedException {
         Path filePath = resDir.resolve("sample9/main.bal");
         ServiceModelRequest modelRequest = new ServiceModelRequest(filePath.toAbsolutePath().toString(), "ballerina",
+                "ai", null);
+        CompletableFuture<?> modelResult = serviceEndpoint.request("serviceDesign/getServiceModel", modelRequest);
+        ServiceModelResponse modelResponse = (ServiceModelResponse) modelResult.get();
+        Service service = modelResponse.service();
+        Assert.assertTrue(Objects.nonNull(service));
+        service.getListener().setValues(List.of("aiListener"));
+
+        ServiceSourceRequest sourceRequest = new ServiceSourceRequest(filePath.toAbsolutePath().toString(), service);
+        CompletableFuture<?> sourceResult = serviceEndpoint.request("serviceDesign/addService", sourceRequest);
+        CommonSourceResponse sourceResponse = (CommonSourceResponse) sourceResult.get();
+        Assert.assertTrue(Objects.nonNull(sourceResponse.textEdits()));
+        Assert.assertFalse(sourceResponse.textEdits().isEmpty());
+
+        List<TextEdit> textEdits = sourceResponse.textEdits().entrySet().stream().findFirst().get().getValue();
+        Assert.assertEquals(textEdits.size(), 2);
+        serviceEndpoint.notify("textDocument/didClose",
+                new DidCloseTextDocumentParams(new TextDocumentIdentifier(filePath.toUri().toString())));
+    }
+
+    @Test
+    public void testAddBallerinaXAiService() throws ExecutionException, InterruptedException {
+        Path filePath = resDir.resolve("sample9/main.bal");
+        ServiceModelRequest modelRequest = new ServiceModelRequest(filePath.toAbsolutePath().toString(), "ballerinax",
                 "ai", null);
         CompletableFuture<?> modelResult = serviceEndpoint.request("serviceDesign/getServiceModel", modelRequest);
         ServiceModelResponse modelResponse = (ServiceModelResponse) modelResult.get();
@@ -663,6 +688,18 @@ public class ServiceModelAPITests {
         Assert.assertFalse(updateResponse.textEdits().isEmpty());
         serviceEndpoint.notify("textDocument/didClose",
                 new DidCloseTextDocumentParams(new TextDocumentIdentifier(filePath.toUri().toString())));
+    }
+
+    @AfterMethod
+    public void restartLanguageServer() {
+        this.startLanguageServer();
+        this.init();
+    }
+
+    private void startLanguageServer() {
+        this.languageServer.shutdown();
+        this.languageServer = null;
+        this.serviceEndpoint = null;
     }
 
     @AfterClass

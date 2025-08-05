@@ -44,18 +44,18 @@ import io.ballerina.modelgenerator.commons.ServiceDatabaseManager;
 import io.ballerina.projects.Document;
 import io.ballerina.projects.DocumentId;
 import io.ballerina.projects.Project;
-import io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants;
 import io.ballerina.servicemodelgenerator.extension.model.Codedata;
-import io.ballerina.servicemodelgenerator.extension.model.DisplayAnnotation;
 import io.ballerina.servicemodelgenerator.extension.model.Listener;
 import io.ballerina.servicemodelgenerator.extension.model.MetaData;
 import io.ballerina.servicemodelgenerator.extension.model.Value;
+import io.ballerina.servicemodelgenerator.extension.model.context.AddModelContext;
 import io.ballerina.tools.diagnostics.Location;
 import io.ballerina.tools.text.LinePosition;
 import io.ballerina.tools.text.TextRange;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -65,32 +65,33 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
-import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.ASB;
-import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.ASB_DEFAULT_LISTENER_EXPR;
-import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.DEFAULT_LISTENER_ITEM_LABEL;
-import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.FILE;
-import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.FILE_DEFAULT_LISTENER_EXPR;
-import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.FTP;
-import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.FTP_DEFAULT_LISTENER_EXPR;
-import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.GITHUB_DEFAULT_LISTENER_EXPR;
-import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.GRAPHQL;
-import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.GRAPHQL_DEFAULT_LISTENER_EXPR;
-import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.HTTP;
-import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.HTTP_DEFAULT_LISTENER_EXPR;
-import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.HTTP_DEFAULT_LISTENER_ITEM_LABEL;
-import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.DEFAULT_LISTENER_VAR_NAME;
-import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.KAFKA;
-import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.KAFKA_DEFAULT_LISTENER_EXPR;
-import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.MQTT;
-import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.MQTT_DEFAULT_LISTENER_EXPR;
-import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.NEW_LINE;
-import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.RABBITMQ;
-import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.RABBITMQ_DEFAULT_LISTENER_EXPR;
-import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.SF;
-import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.SF_DEFAULT_LISTENER_EXPR;
-import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.TCP;
-import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.TCP_DEFAULT_LISTENER_EXPR;
-import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.TRIGGER_GITHUB;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.ASB;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.ASB_DEFAULT_LISTENER_EXPR;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.DEFAULT_LISTENER_ITEM_LABEL;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.DEFAULT_LISTENER_VAR_NAME;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.FILE;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.FILE_DEFAULT_LISTENER_EXPR;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.FTP;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.FTP_DEFAULT_LISTENER_EXPR;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.GITHUB_DEFAULT_LISTENER_EXPR;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.GRAPHQL;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.GRAPHQL_DEFAULT_LISTENER_EXPR;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.HTTP;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.HTTP_DEFAULT_LISTENER_EXPR;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.HTTP_DEFAULT_LISTENER_ITEM_LABEL;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.KAFKA;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.KAFKA_DEFAULT_LISTENER_EXPR;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.MQTT;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.MQTT_DEFAULT_LISTENER_EXPR;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.NEW_LINE;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.RABBITMQ;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.RABBITMQ_DEFAULT_LISTENER_EXPR;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.SF;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.SF_DEFAULT_LISTENER_EXPR;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.TCP;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.TCP_DEFAULT_LISTENER_EXPR;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.TRIGGER_GITHUB;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.VALUE_TYPE_EXPRESSION;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.removeLeadingSingleQuote;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.upperCaseFirstLetter;
 
@@ -166,7 +167,7 @@ public class ListenerUtil {
                 continue;
             }
             Optional<ModuleSymbol> module = variableSymbol.typeDescriptor().getModule();
-            if (module.isEmpty() || !module.get().id().moduleName().equals("http") ||
+            if (module.isEmpty() || !module.get().id().moduleName().equals(HTTP) ||
                     variableSymbol.getName().isEmpty()) {
                 continue;
             }
@@ -199,6 +200,13 @@ public class ListenerUtil {
         }
 
         return Optional.empty();
+    }
+
+    public static DefaultListener getDefaultListener(AddModelContext context) {
+        Document document = context.document();
+        ModulePartNode node = document.syntaxTree().rootNode();
+        return getDefaultListener(context.service().getListener(), context.semanticModel(),
+                document, node, context.service().getModuleName());
     }
 
     public static DefaultListener getDefaultListener(Value listener, SemanticModel semanticModel,
@@ -291,7 +299,6 @@ public class ListenerUtil {
                 .setPackageName(functionData.packageName())
                 .setVersion(functionData.version())
                 .setIcon(icon)
-                .setDisplayAnnotation(new DisplayAnnotation(formattedModuleName, icon))
                 .setProperties(properties);
 
         properties.put("name", nameProperty());
@@ -342,16 +349,13 @@ public class ListenerUtil {
     }
 
     private static Value getHttpDefaultListenerValue() {
-        Value value = new Value();
-        value.setMetadata(new MetaData("HTTP Default Listener",
-                "The default HTTP listener"));
-        value.setEnabled(true);
-        value.setEditable(false);
-        value.setAdvanced(false);
-        value.setOptional(false);
-        value.setValueType(ServiceModelGeneratorConstants.VALUE_TYPE_EXPRESSION);
-        value.setValue(HTTP_DEFAULT_LISTENER_EXPR);
-        return value;
+        return new Value.ValueBuilder()
+                .metadata("HTTP Default Listener", "The default HTTP listener")
+                .valueType(VALUE_TYPE_EXPRESSION)
+                .value(HTTP_DEFAULT_LISTENER_EXPR)
+                .enabled(true)
+                .setImports(new HashMap<>())
+                .build();
     }
 
     private static void setParameterProperties(FunctionData function, Map<String, Value> properties) {
@@ -374,7 +378,6 @@ public class ListenerUtil {
                     .setPlaceholder(paramResult.placeholder())
                     .setValueTypeConstraint(paramResult.type().toString())
                     .editable(true)
-                    .isType(false)
                     .enabled(true)
                     .optional(paramResult.optional())
                     .setAdvanced(paramResult.optional())
@@ -450,7 +453,6 @@ public class ListenerUtil {
                 .value("")
                 .valueType("IDENTIFIER")
                 .setValueTypeConstraint("Global")
-                .isType(false)
                 .editable(true)
                 .enabled(true)
                 .optional(false)

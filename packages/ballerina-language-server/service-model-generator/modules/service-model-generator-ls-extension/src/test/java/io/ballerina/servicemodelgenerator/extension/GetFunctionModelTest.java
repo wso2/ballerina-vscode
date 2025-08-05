@@ -21,8 +21,8 @@ package io.ballerina.servicemodelgenerator.extension;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import io.ballerina.modelgenerator.commons.AbstractLSTest;
-import io.ballerina.servicemodelgenerator.extension.request.FunctionModelRequest;
-import io.ballerina.servicemodelgenerator.extension.response.FunctionModelResponse;
+import io.ballerina.servicemodelgenerator.extension.model.request.FunctionModelRequest;
+import io.ballerina.servicemodelgenerator.extension.model.response.FunctionModelResponse;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 

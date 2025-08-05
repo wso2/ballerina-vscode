@@ -98,5 +98,9 @@
   },
   "enabled": true,
   "optional": false,
-  "editable": false
+  "editable": false,
+  "codedata": {
+    "orgName": "ballerina",
+    "moduleName": "graphql"
+  }
 }
