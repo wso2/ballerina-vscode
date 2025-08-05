@@ -20,7 +20,6 @@ import styled from "@emotion/styled";
 import { ImportIntegrationResponse } from "@wso2/ballerina-core";
 import { Button, Codicon, Typography } from "@wso2/ui-toolkit";
 import { useState } from "react";
-import { FinalIntegrationParams } from ".";
 import MigrationReportContainer from "./MigrationReportContainer";
 
 const ButtonWrapper = styled.div`

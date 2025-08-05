@@ -249,7 +249,7 @@ import {
     MapWithCustomFnRequest,
     AIToolResponse,
     AIToolRequest,
-    ImportTibcoRequest,
+    ImportIntegrationRequest,
     ImportIntegrationResponse,
     onMigrationToolStateChanged,
     onMigrationToolLogs,
@@ -1294,7 +1294,7 @@ export class ExtendedLangClient extends LanguageClient implements ExtendedLangCl
         return this.sendRequest<GetMigrationToolsResponse>(EXTENDED_APIS.GET_MIGRATION_TOOLS);
     }
 
-    async importTibcoToBI(params: ImportTibcoRequest): Promise<ImportIntegrationResponse> {
+    async importTibcoToBI(params: ImportIntegrationRequest): Promise<ImportIntegrationResponse> {
         debug(`Importing Tibco to Ballerina: ${JSON.stringify(params)}`);
         return this.sendRequest<ImportIntegrationResponse>(EXTENDED_APIS.TIBCO_TO_BI, params);
     }

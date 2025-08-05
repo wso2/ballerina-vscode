@@ -21,19 +21,18 @@ import {
     DownloadProgress,
     EVENT_TYPE,
     ImportIntegrationResponse,
-    ImportTibcoRPCRequest,
+    ImportIntegrationRPCRequest,
     MACHINE_VIEW,
     MigrateRequest,
     MigrationTool,
 } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
-import { Icon, Typography } from "@wso2/ui-toolkit";
+import { Icon } from "@wso2/ui-toolkit";
 import { Stepper, StepperContainer } from "@wso2/ui-toolkit/lib/components/Stepper/Stepper";
 import { useEffect, useState } from "react";
-import { BodyText } from "../../styles";
+import { ConfigureProjectForm } from "./ConfigureProjectForm";
 import { ImportIntegrationForm } from "./ImportIntegrationForm";
 import { MigrationProgressView } from "./MigrationProgressView";
-import { ConfigureProjectForm } from "./ConfigureProjectForm";
 
 const FormContainer = styled.div`
     max-width: 660px;
@@ -90,32 +89,35 @@ export function ImportIntegration() {
     };
 
     // Handler to begin the import and switch to the loading view
-    const handleStartImport = (importParams: FinalIntegrationParams, selectedIntegration: MigrationTool, toolPullProgress: DownloadProgress) => {
+    const handleStartImport = (
+        importParams: FinalIntegrationParams,
+        selectedIntegration: MigrationTool,
+        toolPullProgress: DownloadProgress
+    ) => {
         if (selectedIntegration.needToPull && toolPullProgress && toolPullProgress.step === -1) {
             console.error("Cannot start import, tool download failed.");
         }
         setStep(1);
         console.log("Starting import with params:", importParams);
 
-        if (selectedIntegration.title.toLowerCase() === "tibco") {
-            const params: ImportTibcoRPCRequest = {
-                packageName: "",
-                sourcePath: importParams.importSourcePath,
-            };
-            rpcClient
-                .getMigrateIntegrationRpcClient()
-                .importTibcoToBI(params)
-                .then((response) => {
-                    setMigrationCompleted(true);
-                    setMigrationResponse(response);
-                    if (!response.error) {
-                        setMigrationSuccessful(true);
-                    }
-                })
-                .catch((error) => {
-                    console.error("Error during TIBCO import:", error);
-                });
-        }
+        const params: ImportIntegrationRPCRequest = {
+            packageName: "",
+            type: selectedIntegration.id,
+            sourcePath: importParams.importSourcePath,
+        };
+        rpcClient
+            .getMigrateIntegrationRpcClient()
+            .importIntegration(params)
+            .then((response) => {
+                setMigrationCompleted(true);
+                setMigrationResponse(response);
+                if (!response.error) {
+                    setMigrationSuccessful(true);
+                }
+            })
+            .catch((error) => {
+                console.error("Error during TIBCO import:", error);
+            });
     };
 
     const handleCreateIntegrationFiles = (projectName: string, projectPath: string) => {
@@ -142,9 +144,19 @@ export function ImportIntegration() {
     const handleBack = () => {
         if (step === 0) {
             gotToWelcome();
-        } else {
-            setStep(step - 1);
+            return;
         }
+
+        if (step === 1) {
+            setMigrationToolState(null);
+            setMigrationToolLogs([]);
+            setMigrationCompleted(false);
+            setMigrationSuccessful(false);
+            setMigrationResponse(null);
+            setSelectedIntegration(null);
+        }
+
+        setStep(step - 1);
     };
 
     const getMigrationTools = () => {

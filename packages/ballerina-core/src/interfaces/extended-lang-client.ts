@@ -32,7 +32,6 @@ import { DMModel, ExpandedDMModel, IntermediateClause, Mapping, VisualizableFiel
 import { DataMapperMetadata, SCOPE } from "../state-machine-types";
 import { Attachment } from "../rpc-types/ai-panel/interfaces";
 import { ToolParameters } from "../rpc-types/ai-agent/interfaces";
-import { ImportTibcoRPCRequest } from "../rpc-types/migrate-integration/interfaces";
 
 export interface DidOpenParams {
     textDocument: TextDocumentItem;
@@ -1135,8 +1134,11 @@ export interface RenameIdentifierRequest {
     newName: string;
 }
 
-export interface ImportTibcoRequest extends ImportTibcoRPCRequest {
+export interface ImportIntegrationRequest {
+    packageName: string;
     orgName: string;
+    sourcePath: string;
+    [key: string]: any;
 }
 
 export interface ImportIntegrationResponse {

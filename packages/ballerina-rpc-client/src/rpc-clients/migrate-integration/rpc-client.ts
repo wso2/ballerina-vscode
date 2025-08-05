@@ -20,9 +20,9 @@
 import {
     getMigrationTools,
     GetMigrationToolsResponse,
+    importIntegration,
     ImportIntegrationResponse,
-    ImportTibcoRPCRequest,
-    importTibcoToBI,
+    ImportIntegrationRPCRequest,
     MigrateIntegrationAPI,
     MigrationToolPullRequest,
     pullMigrationTool
@@ -45,7 +45,7 @@ export class MigrateIntegrationRpcClient implements MigrateIntegrationAPI {
         return this._messenger.sendNotification(pullMigrationTool, HOST_EXTENSION, params);
     }
 
-    importTibcoToBI(params: ImportTibcoRPCRequest): Promise<ImportIntegrationResponse> {
-        return this._messenger.sendRequest(importTibcoToBI, HOST_EXTENSION, params);
+    importIntegration(params: ImportIntegrationRPCRequest): Promise<ImportIntegrationResponse> {
+        return this._messenger.sendRequest(importIntegration, HOST_EXTENSION, params);
     }
 }

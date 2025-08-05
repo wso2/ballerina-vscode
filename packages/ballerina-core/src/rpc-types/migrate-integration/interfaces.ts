@@ -17,7 +17,7 @@
  */
 
 export interface MigrationTool {
-    id: string;
+    id: number;
     title: string;
     needToPull: boolean;
     commandName: string;
@@ -39,7 +39,9 @@ export interface MigrationToolPullRequest {
     toolName: string;
 }
 
-export interface ImportTibcoRPCRequest {
+export interface ImportIntegrationRPCRequest {
+    type: number;
     packageName: string;
     sourcePath: string;
+    [key: string]: any;
 }
