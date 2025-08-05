@@ -159,7 +159,7 @@ export interface IOTypeField {
 
 export interface EnumMember {
     id: string;
-    value: string;
+    typeName: string;
 }
 
 export interface MappingElement {
