@@ -19,12 +19,9 @@
 // tslint:disable: jsx-no-multiline-js
 import React from 'react';
 
-import { TypeKind } from '@wso2/ballerina-core';
 import { Codicon, Item, Menu, MenuItem, ProgressRing } from '@wso2/ui-toolkit';
 import { css } from '@emotion/css';
 
-import { InputOutputPortModel, ValueType } from '../Port';
-import { genArrayElementAccessSuffix, getValueType } from '../utils/common-utils';
 import { MappingType } from '../Link';
 import { ExpressionLabelModel } from './ExpressionLabelModel';
 import { createNewMapping, mapWithCustomFn } from '../utils/modification-utils';
@@ -94,13 +91,6 @@ export function ArrayMappingOptionsWidget(props: ArrayMappingOptionsWidgetProps)
     const classes = useStyles();
     const { link, context  } = props.model;
     const pendingMappingType = link.pendingMappingType;
-
-    const sourcePort = link.getSourcePort() as InputOutputPortModel;
-    const targetPort = link?.getTargetPort() as InputOutputPortModel;
-    const valueType = getValueType(link);
-
-    const isValueModifiable = valueType === ValueType.Default
-        || valueType === ValueType.NonEmpty;
 
     const [inProgress, setInProgress] = React.useState(false);
     const wrapWithProgress = (onClick: () => Promise<void>) => {
