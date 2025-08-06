@@ -250,7 +250,7 @@ export function ObjectOutputFieldWidget(props: ObjectOutputFieldWidgetProps) {
         : field?.members?.map(member => ({
             title: `Initialize as ${member.typeName}`,
             onClick: () => handleAddEnumValue(member.typeName)
-        }));
+        })) || [];
 
     const valConfigMenuItems = [
         !isWithinArray && !isEnum && addOrEditValueMenuItem,
