@@ -24,6 +24,7 @@
     "expression": "bank.userInfo",
     "diagnostics": []
   },
+  "clauseType": "select",
   "output": {
     "variable1_1.bal": [
       {

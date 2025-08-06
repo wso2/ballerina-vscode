@@ -28,9 +28,10 @@ import com.google.gson.JsonElement;
  * @param mapping     Mapping of the query link
  * @param propertyKey The property that needs to consider to get the type
  * @param targetField The target field that needs to consider to get the type
+ * @param clauseType The type of the final clause
  *
  * @since 1.0.0
  */
 public record DataMapperQueryConvertRequest(String filePath, JsonElement codedata, JsonElement mapping,
-                                            String propertyKey, String targetField) {
+                                            String propertyKey, String targetField, String clauseType) {
 }
