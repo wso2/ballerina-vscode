@@ -39,6 +39,7 @@ import io.ballerina.compiler.api.symbols.TypeSymbol;
 import io.ballerina.compiler.api.symbols.VariableSymbol;
 import io.ballerina.compiler.syntax.tree.BinaryExpressionNode;
 import io.ballerina.compiler.syntax.tree.BracedExpressionNode;
+import io.ballerina.compiler.syntax.tree.CheckExpressionNode;
 import io.ballerina.compiler.syntax.tree.ClauseNode;
 import io.ballerina.compiler.syntax.tree.CollectClauseNode;
 import io.ballerina.compiler.syntax.tree.ExpressionNode;
@@ -48,6 +49,7 @@ import io.ballerina.compiler.syntax.tree.FunctionArgumentNode;
 import io.ballerina.compiler.syntax.tree.FunctionCallExpressionNode;
 import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
 import io.ballerina.compiler.syntax.tree.ImportDeclarationNode;
+import io.ballerina.compiler.syntax.tree.IndexedExpressionNode;
 import io.ballerina.compiler.syntax.tree.IntermediateClauseNode;
 import io.ballerina.compiler.syntax.tree.LetClauseNode;
 import io.ballerina.compiler.syntax.tree.LetExpressionNode;
@@ -63,6 +65,7 @@ import io.ballerina.compiler.syntax.tree.ModuleVariableDeclarationNode;
 import io.ballerina.compiler.syntax.tree.NamedArgumentNode;
 import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.compiler.syntax.tree.NodeList;
+import io.ballerina.compiler.syntax.tree.NodeVisitor;
 import io.ballerina.compiler.syntax.tree.NonTerminalNode;
 import io.ballerina.compiler.syntax.tree.OrderByClauseNode;
 import io.ballerina.compiler.syntax.tree.OrderKeyNode;
@@ -72,7 +75,9 @@ import io.ballerina.compiler.syntax.tree.QueryPipelineNode;
 import io.ballerina.compiler.syntax.tree.RestArgumentNode;
 import io.ballerina.compiler.syntax.tree.SelectClauseNode;
 import io.ballerina.compiler.syntax.tree.SeparatedNodeList;
+import io.ballerina.compiler.syntax.tree.SimpleNameReferenceNode;
 import io.ballerina.compiler.syntax.tree.SpecificFieldNode;
+import io.ballerina.compiler.syntax.tree.SpreadMemberNode;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.compiler.syntax.tree.SyntaxTree;
 import io.ballerina.compiler.syntax.tree.Token;
@@ -246,36 +251,39 @@ public class DataMapManager {
             Optional<TypeSymbol> typeSymbol = semanticModel.typeOf(expression);
             String itemType = fromClauseNode.typedBindingPattern().typeDescriptor().toSourceCode().trim();
             String fromClauseVar = fromClauseNode.typedBindingPattern().bindingPattern().toSourceCode().trim();
-            if (typeSymbol.isPresent() && typeSymbol.get().typeKind() == TypeDescKind.ARRAY) {
-                TypeSymbol memberTypeSymbol = ((ArrayTypeSymbol) typeSymbol.get()).memberTypeDescriptor();
-                MappingPort mappingPort = getMappingPort(fromClauseVar, fromClauseVar,
-                        Type.fromSemanticSymbol(memberTypeSymbol), true, new HashMap<>());
-                if (mappingPort != null) {
-                    mappingPort.setIsFocused(true);
-                    setFocusIdForExpression(inputPorts, expression.toString().trim(), mappingPort.id);
-                    NonTerminalNode parent = expressionNode.parent();
-                    SyntaxKind parentKind = parent.kind();
-                    while (parentKind != SyntaxKind.LOCAL_VAR_DECL && parentKind != SyntaxKind.MODULE_VAR_DECL) {
-                        if (parentKind == SyntaxKind.QUERY_EXPRESSION) {
-                            QueryExpressionNode parentQueryExpr = (QueryExpressionNode) parent;
-                            FromClauseNode parentFromClause = parentQueryExpr.queryPipeline().fromClause();
-                            ExpressionNode parentExpression = parentFromClause.expression();
-                            String parentFromClauseVar = parentFromClause.typedBindingPattern().bindingPattern()
-                                    .toSourceCode().trim();
-                            Optional<TypeSymbol> expressionTypeSymbol = semanticModel.typeOf(parentExpression);
-                            if (expressionTypeSymbol.isPresent() && CommonUtils
-                                    .getRawType(expressionTypeSymbol.get()).typeKind() == TypeDescKind.ARRAY) {
-                                setIsFocusedForInputPort(inputPorts, parentFromClauseVar);
-                                setFocusIdForExpression(inputPorts, parentExpression.toString().trim(),
-                                        parentFromClauseVar);
+            if (typeSymbol.isPresent()) {
+                TypeSymbol rawTypeSymbol = CommonUtils.getRawType(typeSymbol.get());
+                if (rawTypeSymbol.typeKind() == TypeDescKind.ARRAY) {
+                    TypeSymbol memberTypeSymbol = ((ArrayTypeSymbol) rawTypeSymbol).memberTypeDescriptor();
+                    MappingPort mappingPort = getMappingPort(fromClauseVar, fromClauseVar,
+                            Type.fromSemanticSymbol(memberTypeSymbol), true, new HashMap<>());
+                    if (mappingPort != null) {
+                        mappingPort.setIsFocused(true);
+                        setFocusIdForExpression(inputPorts, expression.toString().trim(), mappingPort.id);
+                        NonTerminalNode parent = expressionNode.parent();
+                        SyntaxKind parentKind = parent.kind();
+                        while (parentKind != SyntaxKind.LOCAL_VAR_DECL && parentKind != SyntaxKind.MODULE_VAR_DECL) {
+                            if (parentKind == SyntaxKind.QUERY_EXPRESSION) {
+                                QueryExpressionNode parentQueryExpr = (QueryExpressionNode) parent;
+                                FromClauseNode parentFromClause = parentQueryExpr.queryPipeline().fromClause();
+                                ExpressionNode parentExpression = parentFromClause.expression();
+                                String parentFromClauseVar = parentFromClause.typedBindingPattern().bindingPattern()
+                                        .toSourceCode().trim();
+                                Optional<TypeSymbol> expressionTypeSymbol = semanticModel.typeOf(parentExpression);
+                                if (expressionTypeSymbol.isPresent() && CommonUtils.getRawType(
+                                        expressionTypeSymbol.get()).typeKind() == TypeDescKind.ARRAY) {
+                                    setIsFocusedForInputPort(inputPorts, parentFromClauseVar);
+                                    setFocusIdForExpression(inputPorts, parentExpression.toString().trim(),
+                                            parentFromClauseVar);
+                                }
                             }
+                            parent = parent.parent();
+                            parentKind = parent.kind();
                         }
-                        parent = parent.parent();
-                        parentKind = parent.kind();
                     }
+                    inputPorts.add(mappingPort);
+                    itemType = memberTypeSymbol.signature().trim();
                 }
-                inputPorts.add(mappingPort);
-                itemType = memberTypeSymbol.signature().trim();
             }
 
             Clause fromClause = new Clause(FROM, new Properties(fromClauseVar, itemType,
@@ -514,7 +522,7 @@ public class DataMapManager {
                     semanticModel, functionDocument, enumPorts);
         } else {
             List<String> inputs = new ArrayList<>();
-            genInputs(expressionNode, inputs, enumPorts);
+            expressionNode.accept(new GenInputsVisitor(inputs, enumPorts));
             Mapping mapping = new Mapping(name, inputs, expressionNode.toSourceCode(),
                     getDiagnostics(expressionNode.lineRange(), semanticModel), new ArrayList<>());
             mappings.add(mapping);
@@ -589,7 +597,7 @@ public class DataMapManager {
     private void genMapping(Node expr, String name, List<Mapping> elements, SemanticModel semanticModel,
                             Document functionDocument, List<MappingPort> enumPorts) {
         List<String> inputs = new ArrayList<>();
-        genInputs(expr, inputs, enumPorts);
+        expr.accept(new GenInputsVisitor(inputs, enumPorts));
         LineRange customFunctionRange = getCustomFunctionRange(expr, functionDocument);
         Mapping mapping = new Mapping(name, inputs, expr.toSourceCode(),
                 getDiagnostics(expr.lineRange(), semanticModel), new ArrayList<>(),
@@ -632,71 +640,6 @@ public class DataMapManager {
                     name, semanticModel, functinoDocument, enumPorts);
         } else {
             genMapping(expr, name, mappings, semanticModel, functinoDocument, enumPorts);
-        }
-    }
-
-    private void genInputs(Node expr, List<String> inputs, List<MappingPort> enumPorts) {
-        SyntaxKind kind = expr.kind();
-        if (kind == SyntaxKind.FIELD_ACCESS) {
-            String source = expr.toSourceCode().trim();
-            String[] split = source.split("\\[");
-            if (split.length > 1) {
-                inputs.add(split[0]);
-            } else {
-                inputs.add(source);
-            }
-        } else if (kind == SyntaxKind.SIMPLE_NAME_REFERENCE) {
-            String source = expr.toSourceCode().trim();
-            for (MappingPort enumPort : enumPorts) {
-                if (enumPort instanceof MappingEnumPort mappingEnumPort) {
-                    for (MappingPort member : mappingEnumPort.members) {
-                        if (member.typeName.equals(source) && member.kind.equals(source)) {
-                            source = member.id;
-                            break;
-                        }
-                    }
-                }
-            }
-            inputs.add(source);
-        } else if (kind == SyntaxKind.BINARY_EXPRESSION) {
-            BinaryExpressionNode binaryExpr = (BinaryExpressionNode) expr;
-            genInputs(binaryExpr.lhsExpr(), inputs, enumPorts);
-            genInputs(binaryExpr.rhsExpr(), inputs, enumPorts);
-        } else if (kind == SyntaxKind.METHOD_CALL) {
-            MethodCallExpressionNode methodCallExpr = (MethodCallExpressionNode) expr;
-            genInputs(methodCallExpr.expression(), inputs, enumPorts);
-        } else if (kind == SyntaxKind.MAPPING_CONSTRUCTOR) {
-            MappingConstructorExpressionNode mappingCtrExpr = (MappingConstructorExpressionNode) expr;
-            for (MappingFieldNode field : mappingCtrExpr.fields()) {
-                SyntaxKind fieldKind = field.kind();
-                if (fieldKind == SyntaxKind.SPECIFIC_FIELD) {
-                    Optional<ExpressionNode> optFieldExpr = ((SpecificFieldNode) field).valueExpr();
-                    optFieldExpr.ifPresent(expressionNode ->
-                            genInputs(expressionNode, inputs, enumPorts));
-                } else {
-                    genInputs(field, inputs, enumPorts);
-                }
-            }
-        } else if (kind == SyntaxKind.INDEXED_EXPRESSION) {
-            String source = expr.toSourceCode().trim();
-            inputs.add(source.replace("[", ".").substring(0, source.length() - 1));
-        } else if (kind == SyntaxKind.QUERY_EXPRESSION) {
-            QueryExpressionNode queryExpr = (QueryExpressionNode) expr;
-            inputs.add(queryExpr.queryPipeline().fromClause().expression().toSourceCode().trim());
-        } else if (kind == SyntaxKind.FUNCTION_CALL) {
-            FunctionCallExpressionNode functionCall = (FunctionCallExpressionNode) expr;
-            for (FunctionArgumentNode argument : functionCall.arguments()) {
-                if (argument.kind() == SyntaxKind.POSITIONAL_ARG) {
-                    genInputs(((PositionalArgumentNode) argument).expression(), inputs, enumPorts);
-                } else if (argument.kind() == SyntaxKind.NAMED_ARG) {
-                    genInputs(((NamedArgumentNode) argument).expression(), inputs, enumPorts);
-                } else if (argument.kind() == SyntaxKind.REST_ARG) {
-                    genInputs(((RestArgumentNode) argument).expression(), inputs, enumPorts);
-                }
-            }
-        } else if (kind == SyntaxKind.BRACED_EXPRESSION) {
-            BracedExpressionNode bracedExpressionNode = (BracedExpressionNode) expr;
-            genInputs(bracedExpressionNode.expression(), inputs, enumPorts);
         }
     }
 
@@ -1399,25 +1342,27 @@ public class DataMapManager {
         }
     }
 
-    public JsonElement getQuery(SemanticModel semanticModel, JsonElement cd, String targetField, Path filePath) {
+    public JsonElement getQuery(SemanticModel semanticModel, JsonElement cd, JsonElement mp, String targetField,
+                                Path filePath) {
         Codedata codedata = gson.fromJson(cd, Codedata.class);
         NonTerminalNode stNode = getNode(codedata.lineRange());
-
-        Map<Path, List<TextEdit>> textEditsMap = new HashMap<>();
-        List<TextEdit> textEdits = new ArrayList<>();
-        textEditsMap.put(filePath, textEdits);
-
         TargetNode targetNode = getTargetNode(stNode, targetField, semanticModel);
-        if (targetNode != null) {
-            TypeSymbol targetTypeSymbol = CommonUtils.getRawType(targetNode.typeSymbol());
-            if (targetTypeSymbol.typeKind() == TypeDescKind.ARRAY) {
-                TypeSymbol typeSymbol =
-                        CommonUtils.getRawType(((ArrayTypeSymbol) targetTypeSymbol).memberTypeDescriptor());
-                String query = getQuerySource(targetNode.expressionNode(), typeSymbol);
-                textEdits.add(new TextEdit(CommonUtils.toRange(targetNode.expressionNode().lineRange()), query));
-            }
+        if (targetNode == null) {
+            return null;
         }
 
+        Map<Path, List<TextEdit>> textEditsMap = new HashMap<>();
+        TypeSymbol targetTypeSymbol = CommonUtils.getRawType(targetNode.typeSymbol());
+        if (targetTypeSymbol.typeKind() == TypeDescKind.ARRAY) {
+            TypeSymbol typeSymbol =
+                    CommonUtils.getRawType(((ArrayTypeSymbol) targetTypeSymbol).memberTypeDescriptor());
+            Mapping mapping = gson.fromJson(mp, Mapping.class);
+            List<TextEdit> textEdits = new ArrayList<>();
+            textEditsMap.put(filePath, textEdits);
+            String query = getQuerySource(targetNode.expressionNode(), typeSymbol);
+            genSource(targetNode.expressionNode(), mapping.output().split(DOT), 1, new StringBuilder(), query, null,
+                    textEdits);
+        }
         return gson.toJsonTree(textEditsMap);
     }
 
@@ -2184,6 +2129,105 @@ public class DataMapManager {
 
         MappingUnionPort(String id, String variableName, String typeName, String kind, Boolean optional) {
             super(id, variableName, typeName, kind, optional);
+        }
+    }
+
+    private static class GenInputsVisitor extends NodeVisitor {
+        private final List<String> inputs;
+        private final List<DataMapManager.MappingPort> enumPorts;
+
+        GenInputsVisitor(List<String> inputs, List<DataMapManager.MappingPort> enumPorts) {
+            this.inputs = inputs;
+            this.enumPorts = enumPorts;
+        }
+
+        @Override
+        public void visit(FieldAccessExpressionNode node) {
+            String source = node.toSourceCode().trim();
+            String[] split = source.split("\\[");
+            if (split.length > 1) {
+                inputs.add(split[0]);
+            } else {
+                inputs.add(source);
+            }
+        }
+
+        @Override
+        public void visit(SimpleNameReferenceNode node) {
+            String source = node.toSourceCode().trim();
+            for (DataMapManager.MappingPort enumPort : enumPorts) {
+                if (enumPort instanceof DataMapManager.MappingEnumPort mappingEnumPort) {
+                    for (DataMapManager.MappingPort member : mappingEnumPort.members) {
+                        if (member.typeName.equals(source) && member.kind.equals(source)) {
+                            source = member.id;
+                            break;
+                        }
+                    }
+                }
+            }
+            inputs.add(source);
+        }
+
+        @Override
+        public void visit(BinaryExpressionNode node) {
+            node.lhsExpr().accept(this);
+            node.rhsExpr().accept(this);
+        }
+
+        @Override
+        public void visit(MethodCallExpressionNode node) {
+            node.expression().accept(this);
+        }
+
+        @Override
+        public void visit(MappingConstructorExpressionNode node) {
+            for (MappingFieldNode field : node.fields()) {
+                if (field.kind() == SyntaxKind.SPECIFIC_FIELD) {
+                    Optional<ExpressionNode> optFieldExpr = ((SpecificFieldNode) field).valueExpr();
+                    optFieldExpr.ifPresent(expr -> expr.accept(this));
+                } else {
+                    field.accept(this);
+                }
+            }
+        }
+
+        @Override
+        public void visit(IndexedExpressionNode node) {
+            String source = node.toSourceCode().trim();
+            inputs.add(source.replace("[", ".").substring(0, source.length() - 1));
+        }
+
+        @Override
+        public void visit(QueryExpressionNode node) {
+            inputs.add(node.queryPipeline().fromClause().expression().toSourceCode().trim());
+        }
+
+        @Override
+        public void visit(FunctionCallExpressionNode node) {
+            for (FunctionArgumentNode argument : node.arguments()) {
+                switch (argument.kind()) {
+                    case POSITIONAL_ARG -> ((PositionalArgumentNode) argument).expression().accept(this);
+                    case NAMED_ARG -> ((NamedArgumentNode) argument).expression().accept(this);
+                    case REST_ARG -> ((RestArgumentNode) argument).expression().accept(this);
+                    default -> {
+                    }
+                }
+            }
+        }
+
+        @Override
+        public void visit(BracedExpressionNode node) {
+            node.expression().accept(this);
+        }
+
+        @Override
+        public void visit(SpreadMemberNode node) {
+            node.expression().accept(this);
+        }
+
+        @Override
+        public void visit(CheckExpressionNode node) {
+            node.expression().accept(this);
         }
     }
 }
