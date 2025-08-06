@@ -195,11 +195,13 @@ export function ArrayMappingOptionsWidget(props: ArrayMappingOptionsWidgetProps)
             pendingMappingType === MappingType.ArrayToSingletonWithCollect ? a2sCollectClauseItems : 
                 defaultMenuItems;
 
-    menuItems.push({
-        id: "a2a-a2s-func",
-        label: getItemElement("a2a-a2s-func", "Map Using Custom Function"),
-        onClick: wrapWithProgress(onClickMapWithCustomFunction)
-    });
+    if (pendingMappingType !== MappingType.ArrayToSingletonWithCollect) {
+        menuItems.push({
+            id: "a2a-a2s-func",
+            label: getItemElement("a2a-a2s-func", "Map Using Custom Function"),
+            onClick: wrapWithProgress(onClickMapWithCustomFunction)
+        });
+    }
     return (
         <div className={classes.arrayMappingMenu}>
             <Menu sx={{...a2aMenuStyles, visibility: inProgress ? 'hidden' : 'visible'}}>

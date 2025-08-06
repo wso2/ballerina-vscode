@@ -42,7 +42,8 @@ export function findMappingByOutput(mappings: Mapping[], outputId: string): Mapp
 }
 
 export function isPendingMappingRequired(mappingType: MappingType): boolean {
-    return mappingType === MappingType.Incompatible;
+    return mappingType === MappingType.Incompatible || 
+        mappingType === MappingType.ArrayToSingletonWithCollect;
 }
 
 export function getMappingType(sourcePort: PortModel, targetPort: PortModel): MappingType {
