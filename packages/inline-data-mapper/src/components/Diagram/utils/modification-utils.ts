@@ -111,10 +111,28 @@ export async function mapWithCustomFn(link: DataMapperLinkModel, context: IDataM
 
 }
 
-export async function mapWithQuery(targetPort: InputOutputPortModel, clauseType: ResultClauseType, context: IDataMapperContext) {
-	const varName = context.views[0].targetField;
-	const viewId = context.views[context.views.length - 1].targetField;
-	await context?.convertToQuery(targetPort.attributes.fieldFQN, clauseType, viewId, varName);
+export async function mapWithQuery(link: DataMapperLinkModel, clauseType: ResultClauseType, context: IDataMapperContext) {
+	const sourcePort = link.getSourcePort();
+	const targetPort = link.getTargetPort();
+	if (!sourcePort || !targetPort) {
+		return;
+	}
+
+	const sourcePortModel = sourcePort as InputOutputPortModel;
+	const outputPortModel = targetPort as InputOutputPortModel;
+
+	const input = sourcePortModel.attributes.optionalOmittedFieldFQN;
+	const outputId = outputPortModel.attributes.fieldFQN;
+	const lastView = context.views[context.views.length - 1];
+	const viewId = lastView?.targetField || null;
+	const name  = context.views[0]?.targetField;
+
+	const mapping: Mapping = {
+		output: outputId,
+		expression: input
+	};
+	
+	await context?.convertToQuery(mapping, clauseType, viewId, name);
 }
 
 export function buildInputAccessExpr(fieldFqn: string): string {

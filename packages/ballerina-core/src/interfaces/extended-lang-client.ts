@@ -357,9 +357,10 @@ export interface AddArrayElementRequest {
 export interface ConvertToQueryRequest {
     filePath: string;
     codedata: CodeData;
+    mapping: Mapping;
+    clauseType: ResultClauseType;
     varName?: string;
     targetField: string;
-    clauseType: ResultClauseType;
     propertyKey?: string;
 }
 

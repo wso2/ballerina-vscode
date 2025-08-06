@@ -117,7 +117,7 @@ export function ArrayMappingOptionsWidget(props: ArrayMappingOptionsWidgetProps)
     }
 
     const onClickMapIndividualElements = async () => {
-        await mapWithQuery(targetPort, ResultClauseType.SELECT, context);
+        await mapWithQuery(link, ResultClauseType.SELECT, context);
     };
 
     const onClickMapArraysAccessSingleton = async () => {
@@ -125,7 +125,7 @@ export function ArrayMappingOptionsWidget(props: ArrayMappingOptionsWidgetProps)
     };
 
     const onClickAggregateArray = async () => {
-        await mapWithQuery(targetPort, ResultClauseType.COLLECT, context);
+        await mapWithQuery(link, ResultClauseType.COLLECT, context);
     };
 
     const onClickMapWithCustomFunction = async () => {

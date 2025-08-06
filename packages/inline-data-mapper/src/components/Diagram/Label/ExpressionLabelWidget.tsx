@@ -217,7 +217,7 @@ export function ExpressionLabelWidget(props: ExpressionLabelWidgetProps) {
     ];
 
     const onClickMapWithQuery = async () => {
-        await mapWithQuery(targetPort,ResultClauseType.SELECT, context);
+        await mapWithQuery(link, ResultClauseType.SELECT, context);
     };
 
     const onClickMapWithCustomFn = async () => {
