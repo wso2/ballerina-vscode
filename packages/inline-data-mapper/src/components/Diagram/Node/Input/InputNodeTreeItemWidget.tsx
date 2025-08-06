@@ -61,8 +61,6 @@ export function InputNodeTreeItemWidget(props: InputNodeTreeItemWidgetProps) {
         fields = dmType.fields;
     } else if (dmType.kind === TypeKind.Array) {
         fields = [ dmType.member ];
-    } else if (dmType.kind === TypeKind.Enum) {
-        fields = dmType?.members;
     }
 
     let expanded = true;
