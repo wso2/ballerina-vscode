@@ -12,7 +12,7 @@ type CreateValuePageProps = {
     fileName: string;
     currentValue: string;
     onChange: (value: string, isRecordConfigureChange: boolean) => void;
-    selectedType?: CompletionItem;
+    selectedType?: string | string[];
     recordTypeField?: RecordTypeField;
 }
 
@@ -66,7 +66,7 @@ export const CreateValue = (props: CreateValuePageProps) => {
                     version: tomValues.package.version,
                     packageName: propertyMember?.packageName,
                 },
-                typeConstraint: propertyMember?.type || selectedType.label,
+                typeConstraint: propertyMember?.type || Array.isArray(selectedType) ? selectedType[0] : selectedType,
             }
         }
     }
@@ -118,13 +118,13 @@ export const CreateValue = (props: CreateValuePageProps) => {
 }
 
 const NonRecordCreateValue = (props: CreateValuePageProps) => {
-    const {  selectedType } = props;
+    const {  selectedType, onChange } = props;
 
     const handleValueSelect = (value: string) => {
-        console.log("value", value)
+        onChange(value, false);
     }
 
-    const defaultValue = getDefaultValue(selectedType);
+    const defaultValue = getDefaultValue(Array.isArray(selectedType) ? selectedType[0] : selectedType);
     return (
         <>
             {defaultValue && (

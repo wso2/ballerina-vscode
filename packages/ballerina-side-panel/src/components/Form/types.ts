@@ -170,7 +170,8 @@ type FormHelperPaneConditionalProps = {
         changeHelperPaneState: (isOpen: boolean) => void,
         helperPaneHeight: HelperPaneHeight,
         recordTypeField?: RecordTypeField,
-        isAssignIdentifier?: boolean
+        isAssignIdentifier?: boolean,
+        valueTypeConstraint?: string | string[]
     ) => JSX.Element;
     helperPaneOrigin?: HelperPaneOrigin;
     helperPaneHeight: HelperPaneHeight;
