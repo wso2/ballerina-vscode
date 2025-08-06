@@ -201,7 +201,7 @@ export class NodeLinkModel extends DefaultLinkModel {
         if (isStraight) {
             // with label
             if (this.label) {
-                return { x: (source.x + target.x) / 2, y: (source.y + target.y) / 2 + 2 };
+                return { x: (source.x + target.x) / 2, y: (source.y + target.y) / 2 + NODE_GAP_Y / 2 };
             }
             // without label
             return { x: (source.x + target.x) / 2, y: (source.y + target.y) / 2 - 5 };
