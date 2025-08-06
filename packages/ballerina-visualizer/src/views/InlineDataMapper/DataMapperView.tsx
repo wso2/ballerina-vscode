@@ -37,7 +37,8 @@ import {
     CustomFnMetadata,
     NodePosition,
     EVENT_TYPE,
-    LineRange
+    LineRange,
+    ResultClauseType
 } from "@wso2/ballerina-core";
 import { CompletionItem, ProgressIndicator } from "@wso2/ui-toolkit";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
@@ -238,13 +239,14 @@ export function InlineDataMapperView(props: InlineDataMapperProps) {
         )
     }
 
-    const convertToQuery = async (outputId: string, viewId: string, name: string) => {
+    const convertToQuery = async (outputId: string, clauseType: ResultClauseType, viewId: string, name: string) => {
         try {
             const convertToQueryRequest: ConvertToQueryRequest = {
                 filePath,
                 codedata: viewState.codedata,
                 varName: name,
                 targetField: outputId,
+                clauseType,
                 propertyKey: "expression" // TODO: Remove this once the API is updated
             };
             const resp = await rpcClient
