@@ -121,7 +121,7 @@ export function ArrayMappingOptionsWidget(props: ArrayMappingOptionsWidgetProps)
     };
 
     const onClickMapArraysAccessSingleton = async () => {
-       await createNewMapping(link, "[0]");
+       await createNewMapping(link, (expr: string) => `${expr}[0]`);
     };
 
     const onClickAggregateArray = async () => {

@@ -25,7 +25,7 @@ import { getDefaultValue } from "./common-utils";
 import { CustomFnMetadata, CustomFnParams, Mapping, ResultClauseType } from "@wso2/ballerina-core";
 import { getTypeName } from "./type-utils";
 
-export async function createNewMapping(link: DataMapperLinkModel, exprSuffix: string = '') {
+export async function createNewMapping(link: DataMapperLinkModel, modifier?: (expr: string) => string) {
 	const sourcePort = link.getSourcePort();
 	const targetPort = link.getTargetPort();
 	if (!sourcePort || !targetPort) {
@@ -49,7 +49,7 @@ export async function createNewMapping(link: DataMapperLinkModel, exprSuffix: st
 	traverseNode(model, mappingFindingVisitor);
 	const targetMapping = mappingFindingVisitor.getTargetMapping();
 
-	let expression = input + exprSuffix;
+	let expression = modifier ? modifier(input) : input;
 
 	if (targetMapping && targetMapping.expression.trim() !== getDefaultValue(outputPortModel.attributes.field?.kind)) {
 		expression = `${targetMapping.expression} + ${expression}`;
