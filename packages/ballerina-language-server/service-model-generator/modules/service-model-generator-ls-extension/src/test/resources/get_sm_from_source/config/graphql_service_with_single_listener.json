@@ -122,7 +122,9 @@
           "line": 59,
           "offset": 1
         }
-      }
+      },
+      "orgName": "ballerina",
+      "moduleName": "graphql"
     },
     "functions": [
       {
@@ -137,7 +139,7 @@
             "description": "The accessor of the function"
           },
           "valueType": "IDENTIFIER",
-          "enabled": true,
+          "enabled": false,
           "editable": true,
           "optional": false,
           "advanced": false
@@ -193,7 +195,8 @@
             "enabled": true,
             "editable": true,
             "optional": false,
-            "advanced": false
+            "advanced": false,
+            "hidden": false
           }
         },
         "returnType": {
@@ -211,7 +214,7 @@
         },
         "enabled": true,
         "optional": false,
-        "editable": false,
+        "editable": true,
         "canAddParameters": true,
         "codedata": {
           "lineRange": {
@@ -224,15 +227,46 @@
               "line": 29,
               "offset": 5
             }
-          }
+          },
+          "orgName": "ballerina",
+          "moduleName": "graphql"
         },
-        "annotations": {}
+        "properties": {
+          "annotResourceConfig": {
+            "metadata": {
+              "label": "Field Configuration",
+              "description": "Define configurations such as field level cache."
+            },
+            "codedata": {
+              "type": "ANNOTATION_ATTACHMENT",
+              "originalName": "ResourceConfig",
+              "orgName": "ballerina",
+              "moduleName": "graphql"
+            },
+            "placeholder": "{}",
+            "valueType": "EXPRESSION",
+            "valueTypeConstraint": "graphql:GraphqlResourceConfig",
+            "typeMembers": [
+              {
+                "type": "GraphqlResourceConfig",
+                "packageInfo": "ballerina:graphql:1.16.0",
+                "kind": "RECORD_TYPE",
+                "selected": false
+              }
+            ],
+            "enabled": true,
+            "editable": true,
+            "optional": true,
+            "advanced": true
+          }
+        }
       },
       {
         "metadata": {
           "label": "Graphql Query",
           "description": "Graphql Query"
         },
+        "qualifiers": [],
         "kind": "QUERY",
         "accessor": {
           "metadata": {
@@ -241,8 +275,8 @@
           },
           "valueType": "IDENTIFIER",
           "value": "get",
-          "enabled": true,
-          "editable": true,
+          "enabled": false,
+          "editable": false,
           "optional": false,
           "advanced": false
         },
@@ -259,6 +293,70 @@
           "advanced": false
         },
         "parameters": [
+          {
+            "metadata": {
+              "label": "Context",
+              "description": "The Context object is used to pass meta-information of a request among the resolvers"
+            },
+            "kind": "REQUIRED",
+            "type": {
+              "placeholder": "string",
+              "valueType": "TYPE",
+              "valueTypeConstraint": "graphql:Context",
+              "value": "graphql:Context",
+              "enabled": true,
+              "editable": false,
+              "optional": false,
+              "advanced": false
+            },
+            "name": {
+              "placeholder": "context",
+              "valueType": "IDENTIFIER",
+              "valueTypeConstraint": "string",
+              "value": "context",
+              "enabled": true,
+              "editable": false,
+              "optional": false,
+              "advanced": false
+            },
+            "enabled": false,
+            "editable": false,
+            "optional": false,
+            "advanced": true,
+            "hidden": true
+          },
+          {
+            "metadata": {
+              "label": "Field",
+              "description": "The Field object is used to access the meta-information of a field in a GraphQL document"
+            },
+            "kind": "REQUIRED",
+            "type": {
+              "placeholder": "string",
+              "valueType": "TYPE",
+              "valueTypeConstraint": "graphql:Field",
+              "value": "graphql:Field",
+              "enabled": true,
+              "editable": false,
+              "optional": false,
+              "advanced": false
+            },
+            "name": {
+              "placeholder": "'field",
+              "valueType": "IDENTIFIER",
+              "valueTypeConstraint": "string",
+              "value": "'field",
+              "enabled": true,
+              "editable": false,
+              "optional": false,
+              "advanced": false
+            },
+            "enabled": false,
+            "editable": false,
+            "optional": false,
+            "advanced": true,
+            "hidden": true
+          },
           {
             "metadata": {
               "label": "name",
@@ -303,7 +401,8 @@
             "enabled": true,
             "editable": true,
             "optional": false,
-            "advanced": false
+            "advanced": false,
+            "hidden": false
           }
         ],
         "schema": {
@@ -314,6 +413,7 @@
                 "description": "The type of the argument"
               },
               "valueType": "TYPE",
+              "value": "",
               "enabled": true,
               "editable": true,
               "optional": false,
@@ -325,6 +425,7 @@
                 "description": "The name of the argument"
               },
               "valueType": "IDENTIFIER",
+              "value": "",
               "enabled": true,
               "editable": true,
               "optional": false,
@@ -335,16 +436,16 @@
                 "label": "Default Value",
                 "description": "The default value of the argument"
               },
-              "valueType": "EXPRESSION",
               "enabled": true,
               "editable": true,
               "optional": true,
               "advanced": false
             },
             "enabled": true,
-            "editable": true,
+            "editable": false,
             "optional": false,
-            "advanced": false
+            "advanced": false,
+            "hidden": false
           }
         },
         "returnType": {
@@ -357,13 +458,13 @@
           "value": "string",
           "enabled": true,
           "editable": true,
-          "optional": true,
+          "optional": false,
           "advanced": false
         },
         "enabled": true,
         "optional": false,
-        "editable": false,
-        "canAddParameters": true,
+        "editable": true,
+        "canAddParameters": false,
         "codedata": {
           "lineRange": {
             "fileName": "main.bal",
@@ -375,15 +476,102 @@
               "line": 34,
               "offset": 5
             }
-          }
+          },
+          "orgName": "ballerina",
+          "moduleName": "graphql"
         },
-        "annotations": {}
+        "properties": {
+          "annotResourceConfig": {
+            "metadata": {
+              "label": "Field Configuration",
+              "description": "Define configurations such as field level cache."
+            },
+            "codedata": {
+              "type": "ANNOTATION_ATTACHMENT",
+              "originalName": "ResourceConfig",
+              "orgName": "ballerina",
+              "moduleName": "graphql"
+            },
+            "placeholder": "{}",
+            "valueType": "EXPRESSION",
+            "valueTypeConstraint": "graphql:GraphqlResourceConfig",
+            "typeMembers": [
+              {
+                "type": "GraphqlResourceConfig",
+                "packageInfo": "ballerina:graphql:1.16.0",
+                "kind": "RECORD_TYPE",
+                "selected": false
+              }
+            ],
+            "enabled": true,
+            "editable": true,
+            "optional": true,
+            "advanced": true
+          },
+          "paramContext": {
+            "metadata": {
+              "label": "Request Context",
+              "description": "The context is used to pass meta-information of a request among the graphql resolvers."
+            },
+            "codedata": {
+              "type": "PARAMETER",
+              "originalName": "Context",
+              "orgName": "ballerina",
+              "moduleName": "graphql"
+            },
+            "placeholder": "{}",
+            "valueType": "FLAG",
+            "valueTypeConstraint": "graphql:Context",
+            "value": "",
+            "typeMembers": [
+              {
+                "type": "Context",
+                "packageInfo": "ballerina:graphql:1.16.0",
+                "kind": "OBJECT_TYPE",
+                "selected": false
+              }
+            ],
+            "enabled": true,
+            "editable": true,
+            "optional": true,
+            "advanced": true
+          },
+          "paramField": {
+            "metadata": {
+              "label": "Field Metadata",
+              "description": "The field metadata is used to access the meta-information of a field in a GraphQL document."
+            },
+            "codedata": {
+              "type": "PARAMETER",
+              "originalName": "Field",
+              "orgName": "ballerina",
+              "moduleName": "graphql"
+            },
+            "placeholder": "{}",
+            "valueType": "FLAG",
+            "valueTypeConstraint": "graphql:Field",
+            "value": "",
+            "typeMembers": [
+              {
+                "type": "Field",
+                "packageInfo": "ballerina:graphql:1.16.0",
+                "kind": "OBJECT_TYPE",
+                "selected": false
+              }
+            ],
+            "enabled": true,
+            "editable": true,
+            "optional": true,
+            "advanced": true
+          }
+        }
       },
       {
         "metadata": {
           "label": "Graphql Mutation",
           "description": "Graphql Mutation"
         },
+        "qualifiers": [],
         "kind": "MUTATION",
         "accessor": {
           "metadata": {
@@ -391,8 +579,8 @@
             "description": "The accessor of the function"
           },
           "valueType": "IDENTIFIER",
-          "enabled": true,
-          "editable": true,
+          "enabled": false,
+          "editable": false,
           "optional": false,
           "advanced": false
         },
@@ -409,6 +597,70 @@
           "advanced": false
         },
         "parameters": [
+          {
+            "metadata": {
+              "label": "Context",
+              "description": "The Context object is used to pass meta-information of a request among the resolvers"
+            },
+            "kind": "REQUIRED",
+            "type": {
+              "placeholder": "string",
+              "valueType": "TYPE",
+              "valueTypeConstraint": "graphql:Context",
+              "value": "graphql:Context",
+              "enabled": true,
+              "editable": false,
+              "optional": false,
+              "advanced": false
+            },
+            "name": {
+              "placeholder": "context",
+              "valueType": "IDENTIFIER",
+              "valueTypeConstraint": "string",
+              "value": "context",
+              "enabled": true,
+              "editable": false,
+              "optional": false,
+              "advanced": false
+            },
+            "enabled": false,
+            "editable": false,
+            "optional": false,
+            "advanced": true,
+            "hidden": true
+          },
+          {
+            "metadata": {
+              "label": "Field",
+              "description": "The Field object is used to access the meta-information of a field in a GraphQL document"
+            },
+            "kind": "REQUIRED",
+            "type": {
+              "placeholder": "string",
+              "valueType": "TYPE",
+              "valueTypeConstraint": "graphql:Field",
+              "value": "graphql:Field",
+              "enabled": true,
+              "editable": false,
+              "optional": false,
+              "advanced": false
+            },
+            "name": {
+              "placeholder": "'field",
+              "valueType": "IDENTIFIER",
+              "valueTypeConstraint": "string",
+              "value": "'field",
+              "enabled": true,
+              "editable": false,
+              "optional": false,
+              "advanced": false
+            },
+            "enabled": false,
+            "editable": false,
+            "optional": false,
+            "advanced": true,
+            "hidden": true
+          },
           {
             "metadata": {
               "label": "id",
@@ -453,7 +705,8 @@
             "enabled": true,
             "editable": true,
             "optional": false,
-            "advanced": false
+            "advanced": false,
+            "hidden": false
           },
           {
             "metadata": {
@@ -499,7 +752,8 @@
             "enabled": true,
             "editable": true,
             "optional": false,
-            "advanced": false
+            "advanced": false,
+            "hidden": false
           }
         ],
         "schema": {
@@ -510,6 +764,7 @@
                 "description": "The type of the argument"
               },
               "valueType": "TYPE",
+              "value": "",
               "enabled": true,
               "editable": true,
               "optional": false,
@@ -521,6 +776,7 @@
                 "description": "The name of the argument"
               },
               "valueType": "IDENTIFIER",
+              "value": "",
               "enabled": true,
               "editable": true,
               "optional": false,
@@ -531,16 +787,16 @@
                 "label": "Default Value",
                 "description": "The default value of the argument"
               },
-              "valueType": "EXPRESSION",
               "enabled": true,
               "editable": true,
               "optional": true,
               "advanced": false
             },
             "enabled": true,
-            "editable": true,
+            "editable": false,
             "optional": false,
-            "advanced": false
+            "advanced": false,
+            "hidden": false
           }
         },
         "returnType": {
@@ -553,13 +809,13 @@
           "value": "Profile|error",
           "enabled": true,
           "editable": true,
-          "optional": true,
+          "optional": false,
           "advanced": false
         },
         "enabled": true,
         "optional": false,
-        "editable": false,
-        "canAddParameters": true,
+        "editable": true,
+        "canAddParameters": false,
         "codedata": {
           "lineRange": {
             "fileName": "main.bal",
@@ -571,15 +827,102 @@
               "line": 49,
               "offset": 5
             }
-          }
+          },
+          "orgName": "ballerina",
+          "moduleName": "graphql"
         },
-        "annotations": {}
+        "properties": {
+          "annotResourceConfig": {
+            "metadata": {
+              "label": "Field Configuration",
+              "description": "Define configurations such as field level cache."
+            },
+            "codedata": {
+              "type": "ANNOTATION_ATTACHMENT",
+              "originalName": "ResourceConfig",
+              "orgName": "ballerina",
+              "moduleName": "graphql"
+            },
+            "placeholder": "{}",
+            "valueType": "EXPRESSION",
+            "valueTypeConstraint": "graphql:GraphqlResourceConfig",
+            "typeMembers": [
+              {
+                "type": "GraphqlResourceConfig",
+                "packageInfo": "ballerina:graphql:1.16.0",
+                "kind": "RECORD_TYPE",
+                "selected": false
+              }
+            ],
+            "enabled": true,
+            "editable": true,
+            "optional": true,
+            "advanced": true
+          },
+          "paramContext": {
+            "metadata": {
+              "label": "Request Context",
+              "description": "The context is used to pass meta-information of a request among the graphql resolvers."
+            },
+            "codedata": {
+              "type": "PARAMETER",
+              "originalName": "Context",
+              "orgName": "ballerina",
+              "moduleName": "graphql"
+            },
+            "placeholder": "{}",
+            "valueType": "FLAG",
+            "valueTypeConstraint": "graphql:Context",
+            "value": "",
+            "typeMembers": [
+              {
+                "type": "Context",
+                "packageInfo": "ballerina:graphql:1.16.0",
+                "kind": "OBJECT_TYPE",
+                "selected": false
+              }
+            ],
+            "enabled": true,
+            "editable": true,
+            "optional": true,
+            "advanced": true
+          },
+          "paramField": {
+            "metadata": {
+              "label": "Field Metadata",
+              "description": "The field metadata is used to access the meta-information of a field in a GraphQL document."
+            },
+            "codedata": {
+              "type": "PARAMETER",
+              "originalName": "Field",
+              "orgName": "ballerina",
+              "moduleName": "graphql"
+            },
+            "placeholder": "{}",
+            "valueType": "FLAG",
+            "valueTypeConstraint": "graphql:Field",
+            "value": "",
+            "typeMembers": [
+              {
+                "type": "Field",
+                "packageInfo": "ballerina:graphql:1.16.0",
+                "kind": "OBJECT_TYPE",
+                "selected": false
+              }
+            ],
+            "enabled": true,
+            "editable": true,
+            "optional": true,
+            "advanced": true
+          }
+        }
       },
       {
         "metadata": {
           "label": "Graphql Subscription",
           "description": "Graphql Subscription"
         },
+        "qualifiers": [],
         "kind": "SUBSCRIPTION",
         "accessor": {
           "metadata": {
@@ -588,8 +931,8 @@
           },
           "valueType": "IDENTIFIER",
           "value": "subscribe",
-          "enabled": true,
-          "editable": true,
+          "enabled": false,
+          "editable": false,
           "optional": false,
           "advanced": false
         },
@@ -605,7 +948,72 @@
           "optional": false,
           "advanced": false
         },
-        "parameters": [],
+        "parameters": [
+          {
+            "metadata": {
+              "label": "Context",
+              "description": "The Context object is used to pass meta-information of a request among the resolvers"
+            },
+            "kind": "REQUIRED",
+            "type": {
+              "placeholder": "string",
+              "valueType": "TYPE",
+              "valueTypeConstraint": "graphql:Context",
+              "value": "graphql:Context",
+              "enabled": true,
+              "editable": false,
+              "optional": false,
+              "advanced": false
+            },
+            "name": {
+              "placeholder": "context",
+              "valueType": "IDENTIFIER",
+              "valueTypeConstraint": "string",
+              "value": "context",
+              "enabled": true,
+              "editable": false,
+              "optional": false,
+              "advanced": false
+            },
+            "enabled": false,
+            "editable": false,
+            "optional": false,
+            "advanced": true,
+            "hidden": true
+          },
+          {
+            "metadata": {
+              "label": "Field",
+              "description": "The Field object is used to access the meta-information of a field in a GraphQL document"
+            },
+            "kind": "REQUIRED",
+            "type": {
+              "placeholder": "string",
+              "valueType": "TYPE",
+              "valueTypeConstraint": "graphql:Field",
+              "value": "graphql:Field",
+              "enabled": true,
+              "editable": false,
+              "optional": false,
+              "advanced": false
+            },
+            "name": {
+              "placeholder": "'field",
+              "valueType": "IDENTIFIER",
+              "valueTypeConstraint": "string",
+              "value": "'field",
+              "enabled": true,
+              "editable": false,
+              "optional": false,
+              "advanced": false
+            },
+            "enabled": false,
+            "editable": false,
+            "optional": false,
+            "advanced": true,
+            "hidden": true
+          }
+        ],
         "schema": {
           "parameter": {
             "type": {
@@ -614,6 +1022,7 @@
                 "description": "The type of the argument"
               },
               "valueType": "TYPE",
+              "value": "",
               "enabled": true,
               "editable": true,
               "optional": false,
@@ -625,6 +1034,7 @@
                 "description": "The name of the argument"
               },
               "valueType": "IDENTIFIER",
+              "value": "",
               "enabled": true,
               "editable": true,
               "optional": false,
@@ -635,16 +1045,16 @@
                 "label": "Default Value",
                 "description": "The default value of the argument"
               },
-              "valueType": "EXPRESSION",
               "enabled": true,
               "editable": true,
               "optional": true,
               "advanced": false
             },
             "enabled": true,
-            "editable": true,
+            "editable": false,
             "optional": false,
-            "advanced": false
+            "advanced": false,
+            "hidden": false
           }
         },
         "returnType": {
@@ -657,13 +1067,13 @@
           "value": "stream<string, error?>",
           "enabled": true,
           "editable": true,
-          "optional": true,
+          "optional": false,
           "advanced": false
         },
         "enabled": true,
         "optional": false,
-        "editable": false,
-        "canAddParameters": true,
+        "editable": true,
+        "canAddParameters": false,
         "codedata": {
           "lineRange": {
             "fileName": "main.bal",
@@ -675,9 +1085,95 @@
               "line": 58,
               "offset": 5
             }
-          }
+          },
+          "orgName": "ballerina",
+          "moduleName": "graphql"
         },
-        "annotations": {}
+        "properties": {
+          "annotResourceConfig": {
+            "metadata": {
+              "label": "Field Configuration",
+              "description": "Define configurations such as field level cache."
+            },
+            "codedata": {
+              "type": "ANNOTATION_ATTACHMENT",
+              "originalName": "ResourceConfig",
+              "orgName": "ballerina",
+              "moduleName": "graphql"
+            },
+            "placeholder": "{}",
+            "valueType": "EXPRESSION",
+            "valueTypeConstraint": "graphql:GraphqlResourceConfig",
+            "typeMembers": [
+              {
+                "type": "GraphqlResourceConfig",
+                "packageInfo": "ballerina:graphql:1.16.0",
+                "kind": "RECORD_TYPE",
+                "selected": false
+              }
+            ],
+            "enabled": true,
+            "editable": true,
+            "optional": true,
+            "advanced": true
+          },
+          "paramContext": {
+            "metadata": {
+              "label": "Request Context",
+              "description": "The context is used to pass meta-information of a request among the graphql resolvers."
+            },
+            "codedata": {
+              "type": "PARAMETER",
+              "originalName": "Context",
+              "orgName": "ballerina",
+              "moduleName": "graphql"
+            },
+            "placeholder": "{}",
+            "valueType": "FLAG",
+            "valueTypeConstraint": "graphql:Context",
+            "value": "",
+            "typeMembers": [
+              {
+                "type": "Context",
+                "packageInfo": "ballerina:graphql:1.16.0",
+                "kind": "OBJECT_TYPE",
+                "selected": false
+              }
+            ],
+            "enabled": true,
+            "editable": true,
+            "optional": true,
+            "advanced": true
+          },
+          "paramField": {
+            "metadata": {
+              "label": "Field Metadata",
+              "description": "The field metadata is used to access the meta-information of a field in a GraphQL document."
+            },
+            "codedata": {
+              "type": "PARAMETER",
+              "originalName": "Field",
+              "orgName": "ballerina",
+              "moduleName": "graphql"
+            },
+            "placeholder": "{}",
+            "valueType": "FLAG",
+            "valueTypeConstraint": "graphql:Field",
+            "value": "",
+            "typeMembers": [
+              {
+                "type": "Field",
+                "packageInfo": "ballerina:graphql:1.16.0",
+                "kind": "OBJECT_TYPE",
+                "selected": false
+              }
+            ],
+            "enabled": true,
+            "editable": true,
+            "optional": true,
+            "advanced": true
+          }
+        }
       }
     ]
   }

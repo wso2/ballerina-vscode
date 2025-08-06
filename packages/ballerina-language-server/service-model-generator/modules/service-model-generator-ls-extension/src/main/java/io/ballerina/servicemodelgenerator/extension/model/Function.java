@@ -58,12 +58,12 @@ public class Function {
     private boolean editable;
     private boolean canAddParameters;
     private Codedata codedata;
-    private Map<String, Value> annotations;
+    private Map<String, Value> properties;
 
     public Function(MetaData metadata, List<String> qualifiers, String kind, Value accessor, Value name,
                     List<Parameter> parameters, Map<String, Parameter> schema, FunctionReturnType returnType,
                     boolean enabled, boolean optional, boolean editable, boolean canAddParameters, Codedata codedata,
-                    Map<String, Value> annotations) {
+                    Map<String, Value> properties) {
         this.metadata = metadata;
         this.qualifiers = qualifiers;
         this.kind = kind;
@@ -76,8 +76,9 @@ public class Function {
         this.optional = optional;
         this.editable = editable;
         this.codedata = codedata;
-        this.annotations = annotations;
+        this.properties = properties;
     }
+
     public static Function getNewFunctionModel(ServiceClassUtil.ServiceClassContext context) {
         FunctionBuilder functionBuilder = new FunctionBuilder()
                 .metadata("", "")
@@ -91,7 +92,7 @@ public class Function {
                     .returnType(returnType(FIELD_TYPE_METADATA))
                     .schema(Map.of(Constants.PARAMETER, Parameter.graphqlParamSchema()));
         } else if (context == TYPE_DIAGRAM) {
-           functionBuilder
+            functionBuilder
                     .name(name(RESOURCE_NAME_METADATA))
                     .returnType(returnType(RESOURCE_FUNCTION_RETURN_TYPE_METADATA))
                     .schema(Map.of(Constants.PARAMETER, Parameter.functionParamSchema()));
@@ -101,7 +102,7 @@ public class Function {
                     .returnType(returnType(FUNCTION_RETURN_TYPE_METADATA));
         }
         if (context == SERVICE_DIAGRAM) {
-           functionBuilder.schema(Map.of(Constants.PARAMETER, Parameter.functionParamSchema()));
+            functionBuilder.schema(Map.of(Constants.PARAMETER, Parameter.functionParamSchema()));
         }
         return functionBuilder.build();
     }
@@ -270,15 +271,29 @@ public class Function {
         this.schema = schema;
     }
 
-    public Map<String, Value> getAnnotations() {
-        if (annotations == null) {
-            annotations = new HashMap<>();
+    public Map<String, Value> getProperties() {
+        if (properties == null) {
+            properties = new HashMap<>();
         }
-        return annotations;
+        return properties;
     }
 
-    public void setAnnotations(Map<String, Value> annotations) {
-        this.annotations = annotations;
+    public void setProperties(Map<String, Value> properties) {
+        this.properties = properties;
+    }
+
+    public void addProperty(String key, Value property) {
+        if (this.properties == null) {
+            this.properties = new HashMap<>();
+        }
+        this.properties.put(key, property);
+    }
+
+    public Value getProperty(String key) {
+        if (this.properties == null) {
+            return null;
+        }
+        return this.properties.get(key);
     }
 
     public boolean isCanAddParameters() {
@@ -303,7 +318,7 @@ public class Function {
         private boolean optional = false;
         private boolean editable = false;
         private boolean canAddParameters = false;
-        private Map<String, Value> annotations;
+        private Map<String, Value> properties;
 
         public FunctionBuilder metadata(String label, String description) {
             this.metadata = new MetaData(label, description);
@@ -375,14 +390,14 @@ public class Function {
             return this;
         }
 
-        public FunctionBuilder setAnnotations(Map<String, Value> annotations) {
-            this.annotations = annotations;
+        public FunctionBuilder setProperties(Map<String, Value> properties) {
+            this.properties = properties;
             return this;
         }
 
         public Function build() {
             return new Function(metadata, qualifiers, kind, accessor, name, parameters, schema, returnType, enabled,
-                    optional, editable, canAddParameters, codedata, annotations);
+                    optional, editable, canAddParameters, codedata, properties);
         }
     }
 }
