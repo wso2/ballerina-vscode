@@ -93,8 +93,8 @@ export function ObjectOutputFieldWidget(props: ObjectOutputFieldWidgetProps) {
 
     const portIn = getPort(portName + ".IN");
     const mapping = portIn && portIn.attributes.value;
-    const { inputs, expression, diagnostics } = mapping || {};
-    const connectedViaLink = inputs?.length > 0;
+    const { expression, diagnostics } = mapping || {};
+    const connectedViaLink = Object.values(portIn?.getLinks() || {}).length > 0;
 
     const hasDefaultValue = expression &&
         getDefaultValue(field?.kind) === expression.trim() &&
@@ -206,7 +206,7 @@ export function ObjectOutputFieldWidget(props: ObjectOutputFieldWidgetProps) {
                     {diagnostics?.length > 0 ? (
                         <DiagnosticTooltip
                             placement="right"
-                            diagnostic={diagnostics[0].message}
+                            diagnostic={diagnostics[0] as any}
                             value={expression}
                             onClick={handleEditValue}
                         >
