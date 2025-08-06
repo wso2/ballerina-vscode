@@ -79,7 +79,7 @@ const EditorRibbon = ({ onClick }: { onClick: () => void }) => {
 
 const getDefaultCompletion = (newType: string) => {
     return (
-        <S.TitleContainer>
+        <S.TitleContainer data-testid="add-type-completion">
             <Codicon name="add" />
             <Typography variant="body3" sx={{ fontWeight: 600 }}>
                 Add Type: {newType}
