@@ -19,7 +19,7 @@
 // tslint:disable: jsx-no-multiline-js
 import React from 'react';
 
-import { TypeKind } from '@wso2/ballerina-core';
+import { ResultClauseType, TypeKind } from '@wso2/ballerina-core';
 import { Codicon, Item, Menu, MenuItem, ProgressRing } from '@wso2/ui-toolkit';
 import { css } from '@emotion/css';
 
@@ -27,7 +27,7 @@ import { InputOutputPortModel, ValueType } from '../Port';
 import { genArrayElementAccessSuffix, getValueType } from '../utils/common-utils';
 import { MappingType } from '../Link';
 import { ExpressionLabelModel } from './ExpressionLabelModel';
-import { createNewMapping, mapWithCustomFn } from '../utils/modification-utils';
+import { createNewMapping, mapWithCustomFn, mapWithQuery } from '../utils/modification-utils';
 import classNames from 'classnames';
 
 export const useStyles = () => ({
@@ -117,15 +117,15 @@ export function ArrayMappingOptionsWidget(props: ArrayMappingOptionsWidgetProps)
     }
 
     const onClickMapIndividualElements = async () => {
-        
+        await mapWithQuery(targetPort, ResultClauseType.SELECT, context);
     };
 
     const onClickMapArraysAccessSingleton = async () => {
-       
+       await createNewMapping(link, "[0]");
     };
 
     const onClickAggregateArray = async () => {
-
+        await mapWithQuery(targetPort, ResultClauseType.COLLECT, context);
     };
 
     const onClickMapWithCustomFunction = async () => {
