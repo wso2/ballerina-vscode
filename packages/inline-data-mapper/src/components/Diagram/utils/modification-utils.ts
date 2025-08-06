@@ -22,7 +22,7 @@ import { IDataMapperContext } from "../../../utils/DataMapperContext/DataMapperC
 import { MappingFindingVisitor } from "../../../visitors/MappingFindingVisitor";
 import { traverseNode } from "../../../utils/model-utils";
 import { getDefaultValue } from "./common-utils";
-import { CustomFnMetadata, CustomFnParams, Mapping } from "@wso2/ballerina-core";
+import { CustomFnMetadata, CustomFnParams, Mapping, ResultClauseType } from "@wso2/ballerina-core";
 import { getTypeName } from "./type-utils";
 
 export async function createNewMapping(link: DataMapperLinkModel) {
@@ -109,6 +109,12 @@ export async function mapWithCustomFn(link: DataMapperLinkModel, context: IDataM
 
 	await context.mapWithCustomFn(mapping, metadata, viewId);
 
+}
+
+export async function mapWithQuery(targetPort: InputOutputPortModel, clauseType: ResultClauseType, context: IDataMapperContext) {
+	const varName = context.views[0].targetField;
+	const viewId = context.views[context.views.length - 1].targetField;
+	await context?.convertToQuery(targetPort.attributes.fieldFQN, clauseType, viewId, varName);
 }
 
 export function buildInputAccessExpr(fieldFqn: string): string {
