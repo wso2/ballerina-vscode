@@ -18,6 +18,12 @@
   },
   "propertyKey": "expression",
   "targetField": "stores.credentials",
+  "mapping": {
+    "output": "credentials",
+    "inputs": [],
+    "expression": "bank.userInfo",
+    "diagnostics": []
+  },
   "output": {
     "variable1_1.bal": [
       {

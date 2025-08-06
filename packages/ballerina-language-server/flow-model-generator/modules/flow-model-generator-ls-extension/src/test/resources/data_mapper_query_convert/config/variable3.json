@@ -18,6 +18,12 @@
   },
   "propertyKey": "expression",
   "targetField": "var3.arr",
+  "mapping": {
+    "output": "arr",
+    "inputs": [],
+    "expression": "var2.arr",
+    "diagnostics": []
+  },
   "output": {
     "variable2.bal": [
       {

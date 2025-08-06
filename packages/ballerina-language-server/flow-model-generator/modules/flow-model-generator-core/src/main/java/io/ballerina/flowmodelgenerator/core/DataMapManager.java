@@ -1402,25 +1402,27 @@ public class DataMapManager {
         }
     }
 
-    public JsonElement getQuery(SemanticModel semanticModel, JsonElement cd, String targetField, Path filePath) {
+    public JsonElement getQuery(SemanticModel semanticModel, JsonElement cd, JsonElement mp, String targetField,
+                                Path filePath) {
         Codedata codedata = gson.fromJson(cd, Codedata.class);
         NonTerminalNode stNode = getNode(codedata.lineRange());
-
-        Map<Path, List<TextEdit>> textEditsMap = new HashMap<>();
-        List<TextEdit> textEdits = new ArrayList<>();
-        textEditsMap.put(filePath, textEdits);
-
         TargetNode targetNode = getTargetNode(stNode, targetField, semanticModel);
-        if (targetNode != null) {
-            TypeSymbol targetTypeSymbol = CommonUtils.getRawType(targetNode.typeSymbol());
-            if (targetTypeSymbol.typeKind() == TypeDescKind.ARRAY) {
-                TypeSymbol typeSymbol =
-                        CommonUtils.getRawType(((ArrayTypeSymbol) targetTypeSymbol).memberTypeDescriptor());
-                String query = getQuerySource(targetNode.expressionNode(), typeSymbol);
-                textEdits.add(new TextEdit(CommonUtils.toRange(targetNode.expressionNode().lineRange()), query));
-            }
+        if (targetNode == null) {
+            return null;
         }
 
+        Map<Path, List<TextEdit>> textEditsMap = new HashMap<>();
+        TypeSymbol targetTypeSymbol = CommonUtils.getRawType(targetNode.typeSymbol());
+        if (targetTypeSymbol.typeKind() == TypeDescKind.ARRAY) {
+            TypeSymbol typeSymbol =
+                    CommonUtils.getRawType(((ArrayTypeSymbol) targetTypeSymbol).memberTypeDescriptor());
+            Mapping mapping = gson.fromJson(mp, Mapping.class);
+            List<TextEdit> textEdits = new ArrayList<>();
+            textEditsMap.put(filePath, textEdits);
+            String query = getQuerySource(targetNode.expressionNode(), typeSymbol);
+            genSource(targetNode.expressionNode(), mapping.output().split(DOT), 1, new StringBuilder(), query, null,
+                    textEdits);
+        }
         return gson.toJsonTree(textEditsMap);
     }
 
