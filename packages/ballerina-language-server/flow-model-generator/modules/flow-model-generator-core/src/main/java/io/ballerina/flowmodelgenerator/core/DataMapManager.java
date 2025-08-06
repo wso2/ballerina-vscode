@@ -270,8 +270,8 @@ public class DataMapManager {
                                 String parentFromClauseVar = parentFromClause.typedBindingPattern().bindingPattern()
                                         .toSourceCode().trim();
                                 Optional<TypeSymbol> expressionTypeSymbol = semanticModel.typeOf(parentExpression);
-                                if (expressionTypeSymbol.isPresent() &&
-                                        expressionTypeSymbol.get().typeKind() == TypeDescKind.ARRAY) {
+                                if (expressionTypeSymbol.isPresent() && CommonUtils.getRawType(
+                                        expressionTypeSymbol.get()).typeKind() == TypeDescKind.ARRAY) {
                                     setIsFocusedForInputPort(inputPorts, parentFromClauseVar);
                                     setFocusIdForExpression(inputPorts, parentExpression.toString().trim(),
                                             parentFromClauseVar);
@@ -1514,9 +1514,7 @@ public class DataMapManager {
             if (targetType == null) {
                 throw new IllegalStateException("Target type cannot be found for the variable declaration");
             }
-            if (targetType.typeKind() == TypeDescKind.ARRAY) {
-                targetType = ((ArrayTypeSymbol) targetType).memberTypeDescriptor();
-            }
+            targetType = resolveArrayMemberType(targetType);
             String defaultVal = DefaultValueGeneratorUtil.getDefaultValueForType(targetType);
 
             VariableDeclarationNode varDeclNode = (VariableDeclarationNode) stNode;
@@ -1575,6 +1573,14 @@ public class DataMapManager {
             }
         }
         return currentExpr;
+    }
+
+    private TypeSymbol resolveArrayMemberType(TypeSymbol typeSymbol) {
+        TypeSymbol rawType = CommonUtils.getRawType(typeSymbol);
+        if (rawType.typeKind() == TypeDescKind.ARRAY) {
+            return ((ArrayTypeSymbol) rawType).memberTypeDescriptor();
+        }
+        return rawType;
     }
 
     private TypeSymbol getTargetType(TypeSymbol typeSymbol, String targetField) {
