@@ -56,14 +56,24 @@ export function isPendingMappingRequired(mappingType: MappingType): boolean {
 
 export function getMappingType(sourcePort: PortModel, targetPort: PortModel): MappingType {
 
-    if (sourcePort instanceof InputOutputPortModel
-        && targetPort instanceof InputOutputPortModel
-        && targetPort.attributes.field && sourcePort.attributes.field) {
-
-        const sourceField = sourcePort.attributes.field;
-        const targetField = targetPort.attributes.field;
+    if (sourcePort instanceof InputOutputPortModel &&
+        targetPort instanceof InputOutputPortModel &&
+        targetPort.attributes.field &&
+        sourcePort.attributes.field
+    ) {
 
         if (targetPort.getParent() instanceof PrimitiveOutputNode) return MappingType.ArrayToSingletonWithCollect;
+
+        const sourceNode = sourcePort.getNode();
+
+        let sourceField = sourcePort.attributes.field;
+        if (sourceNode instanceof InputNode
+            && sourceNode.filteredInputType?.kind === TypeKind.Enum
+        ) {
+            sourceField = sourceNode.filteredInputType;
+        }
+
+        const targetField = targetPort.attributes.field;
             
         const sourceDim = getDMTypeDim(sourceField);
         const targetDim = getDMTypeDim(targetField);
@@ -74,9 +84,10 @@ export function getMappingType(sourcePort: PortModel, targetPort: PortModel): Ma
             if (dimDelta > 0) return MappingType.ArrayToSingleton;
         }
 
-        if ((sourceField.kind !== targetField.kind)
-            || (sourceField.typeName !== targetField.typeName)
-            || sourceField.typeName === "record") {
+        if (sourceField.kind !== targetField.kind ||
+            sourceField.typeName !== targetField.typeName ||
+            sourceField.typeName === TypeKind.Record
+        ) {
             return MappingType.Incompatible;
         }
 

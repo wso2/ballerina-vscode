@@ -180,10 +180,13 @@ export function ArrayMappingOptionsWidget(props: ArrayMappingOptionsWidgetProps)
         }
     ];
 
-    const menuItems = pendingMappingType === MappingType.ArrayToArray ? a2aMenuItems :
-        pendingMappingType === MappingType.ArrayToSingleton ? a2sMenuItems :
-            pendingMappingType === MappingType.ArrayToSingletonWithCollect ? a2sCollectClauseItems : 
-                defaultMenuItems;
+    const menuItems = pendingMappingType === MappingType.ArrayToArray
+        ? a2aMenuItems
+        : pendingMappingType === MappingType.ArrayToSingleton
+            ? a2sMenuItems
+            : pendingMappingType === MappingType.ArrayToSingletonWithCollect
+                ? a2sCollectClauseItems
+                : defaultMenuItems;
 
     menuItems.push({
         id: "a2a-a2s-func",
