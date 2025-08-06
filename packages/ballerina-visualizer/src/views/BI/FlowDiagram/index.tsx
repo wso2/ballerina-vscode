@@ -70,6 +70,7 @@ import {
     removeAgentNode,
     removeToolFromAgentNode,
 } from "../AIChatAgent/utils";
+import { DiagramSkeleton } from "../../../components/Skeletons";
 import { GET_DEFAULT_MODEL_PROVIDER } from "../../../constants";
 
 const Container = styled.div`
@@ -1780,11 +1781,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                     <ProgressIndicator color={ThemeColors.PRIMARY} />
                 )}
                 <Container>
-                    {!model && (
-                        <SpinnerContainer>
-                            <ProgressRing color={ThemeColors.PRIMARY} />
-                        </SpinnerContainer>
-                    )}
+                    {!model && <DiagramSkeleton />}
                     {model && <MemoizedDiagram {...memoizedDiagramProps} />}
                 </Container>
             </View>
