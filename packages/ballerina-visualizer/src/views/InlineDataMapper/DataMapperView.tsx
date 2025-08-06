@@ -244,10 +244,13 @@ export function InlineDataMapperView(props: InlineDataMapperProps) {
             const convertToQueryRequest: ConvertToQueryRequest = {
                 filePath,
                 codedata: viewState.codedata,
-                mapping,
+                mapping: {
+                    output: "OUTPUTID", // TODO: Remove this once the API is supporting on the fly mapping
+                    expression: mapping.expression
+                },
                 clauseType,
                 varName: name,
-                targetField: viewId,
+                targetField: mapping.output,
                 propertyKey: "expression" // TODO: Remove this once the API is updated
             };
             const resp = await rpcClient
