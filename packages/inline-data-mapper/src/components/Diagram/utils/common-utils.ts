@@ -37,6 +37,15 @@ import { IDataMapperContext } from "../../../utils/DataMapperContext/DataMapperC
 import { View } from "../../../components/DataMapper/Views/DataMapperView";
 import { useDMExpandedFieldsStore } from "../../../store/store";
 
+const MERGEABLE_TYPES = new Set([
+	TypeKind.String,
+	TypeKind.Int,
+	TypeKind.Float,
+	TypeKind.Decimal,
+	"anydata",
+	"any"
+]);
+
 export function findMappingByOutput(mappings: Mapping[], outputId: string): Mapping {
     return mappings.find(mapping => (mapping.output === outputId || mapping.output.replaceAll("\"", "") === outputId));
 }
@@ -77,14 +86,26 @@ export function getMappingType(sourcePort: PortModel, targetPort: PortModel): Ma
 }
 
 export function getValueType(lm: DataMapperLinkModel): ValueType {
-    const { attributes: { field, value } } = lm.getTargetPort() as InputOutputPortModel;
+	const { attributes: { field, value } } = lm.getTargetPort() as InputOutputPortModel;
 
-    if (value !== undefined) {
-        return isDefaultValue(field, value.expression) ? ValueType.Default : ValueType.NonEmpty;
-    }
+	if (value !== undefined) {
+        const isDefault = isDefaultValue(field, value.expression);
+        if (isDefault) {
+            return ValueType.Replaceable;
+        } else {
+            return isMergeable(field.kind)
+                ? ValueType.Mergeable
+                : ValueType.Replaceable;
+        }
+	}
 
-    return ValueType.Empty;
+	return ValueType.Empty;
 }
+
+export function isMergeable(typeName: string): boolean {
+	return MERGEABLE_TYPES.has(typeName);
+}
+
 
 export function genArrayElementAccessSuffix(sourcePort: PortModel, targetPort: PortModel) {
     if (sourcePort instanceof InputOutputPortModel && targetPort instanceof InputOutputPortModel) {
@@ -101,9 +122,23 @@ export function genArrayElementAccessSuffix(sourcePort: PortModel, targetPort: P
 };
 
 export function isDefaultValue(field: IOType, value: string): boolean {
+    // For numeric types, compare the parsed values instead of string comparison
+	if (field?.kind === TypeKind.Int || 
+		field?.kind === TypeKind.Float || 
+		field?.kind === TypeKind.Decimal
+    ) {
+
+		// Clean the value by removing suffixes like 'f' for floats and 'd' for decimals
+		const cleanValue = value?.trim().replace(/[fd]$/i, '');
+		const numericValue = parseFloat(cleanValue);
+		
+		// Check if it's a valid number and equals 0
+		return !isNaN(numericValue) && numericValue === 0;
+	}
+
 	const defaultValue = getDefaultValue(field?.kind);
     const targetValue =  value?.trim().replace(/(\r\n|\n|\r|\s)/g, "")
-	return targetValue === "null" ||  defaultValue === targetValue;
+	return targetValue === "null" || targetValue === "()" ||  defaultValue === targetValue;
 }
 
 export function getDefaultValue(typeKind: TypeKind): string {
