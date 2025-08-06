@@ -47,6 +47,7 @@ import ReactMarkdown from 'react-markdown';
 export type ContextAwareExpressionEditorProps = {
     id?: string;
     fieldKey?: string;
+    valueTypeConstraint?: string;
     placeholder?: string;
     required?: boolean;
     showHeader?: boolean;
@@ -442,7 +443,8 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
             handleChangeHelperPaneState,
             helperPaneHeight,
             recordTypeField,
-            field.type === "LV_EXPRESSION"
+            field.type === "LV_EXPRESSION",
+            field.valueTypeConstraint,
         );
     };
 

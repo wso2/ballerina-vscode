@@ -49,6 +49,7 @@ export type HelperPaneNewProps = {
     filteredCompletions?: CompletionItem[];
     variables: CompletionItem[];
     isInModal?: boolean;
+    valueTypeConstraint?: string | string[]
 };
 
 const HelperPaneNewEl = ({
@@ -72,13 +73,13 @@ const HelperPaneNewEl = ({
     selectedType,
     filteredCompletions,
     variables,
-    isInModal
+    isInModal,
+    valueTypeConstraint
 }: HelperPaneNewProps) => {
     const [position, setPosition] = useState<{ top: number, left: number }>({ top: 0, left: 0 });
     const paneRef = useRef<HTMLDivElement>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [paneWidth, setPaneWidth] = useState<number>(0);
-
     useLayoutEffect(() => {
         const trySetWidth = () => {
             const inputEl = exprRef.current?.parentElement;
@@ -151,7 +152,7 @@ const HelperPaneNewEl = ({
                 <SlidingWindow>
                     <SlidingPane name="PAGE1" paneWidth={paneWidth}>
                         <ExpandableList sx={{ paddingTop: '10px' }}>
-                            {(selectedType || recordTypeField) && (
+                            {valueTypeConstraint && (
                                 <SlidingPaneNavContainer to="CREATE_VALUE" data={recordTypeField}>
                                     <ExpandableList.Item>
                                         {getIcon(COMPLETION_ITEM_KIND.Value)}
@@ -220,7 +221,7 @@ const HelperPaneNewEl = ({
                             fileName={fileName}
                             onChange={handleChange}
                             currentValue={currentValue}
-                            selectedType={selectedType}
+                            selectedType={valueTypeConstraint}
                             recordTypeField={recordTypeField} />
                     </SlidingPane>
 
@@ -298,7 +299,8 @@ export const getHelperPaneNew = (props: HelperPaneNewProps) => {
         selectedType,
         filteredCompletions,
         variables,
-        isInModal
+        isInModal,
+        valueTypeConstraint
     } = props;
 
     return (
@@ -324,6 +326,7 @@ export const getHelperPaneNew = (props: HelperPaneNewProps) => {
             filteredCompletions={filteredCompletions}
             variables={variables}
             isInModal={isInModal}
+            valueTypeConstraint={valueTypeConstraint}
         />
     );
 };

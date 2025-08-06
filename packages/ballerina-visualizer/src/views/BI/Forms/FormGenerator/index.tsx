@@ -84,6 +84,7 @@ import { EXPRESSION_EXTRACTION_REGEX } from "../../../../constants";
 import MatchForm from "../MatchForm";
 import { FormSubmitOptions } from "../../FlowDiagram";
 import { getHelperPaneNew } from "../../HelperPaneNew";
+import { VariableForm } from "../DeclareVariableForm";
 
 interface TypeEditorState {
     isOpen: boolean;
@@ -632,7 +633,8 @@ export function FormGenerator(props: FormProps) {
         changeHelperPaneState: (isOpen: boolean) => void,
         helperPaneHeight: HelperPaneHeight,
         recordTypeField?: RecordTypeField,
-        isAssignIdentifier?: boolean
+        isAssignIdentifier?: boolean,
+        valueTypeConstraint?: string,
     ) => {
         const handleHelperPaneClose = () => {
             debouncedRetrieveCompletions.cancel();
@@ -661,7 +663,8 @@ export function FormGenerator(props: FormProps) {
             selectedType: selectedType,
             filteredCompletions: filteredCompletions,
             variables: variables,
-            isInModal: isInModal
+            isInModal: isInModal,
+            valueTypeConstraint: valueTypeConstraint,
         });
     };
 
@@ -752,8 +755,6 @@ export function FormGenerator(props: FormProps) {
     const handleSelectedTypeChange = (type: CompletionItem) => {
         setSelectedType(type);
     }
-        console.log("#####record type field",recordTypeFields)
-
 
     // handle if node form
     if (node?.codedata.node === "IF") {
@@ -831,6 +832,41 @@ export function FormGenerator(props: FormProps) {
             </StyledActionButton>
         </ActionButtonContainer>
     ) : undefined;
+
+    // handle declare variable node form
+    if (node?.codedata.node === "VARIABLE") {
+        return (
+            <VariableForm
+                 formFields={fields}
+                    projectPath={projectPath}
+                    selectedNode={node.codedata.node}
+                    openRecordEditor={handleOpenTypeEditor}
+                    onSubmit={handleOnSubmit}
+                    openView={handleOpenView}
+                    openSubPanel={openSubPanel}
+                    subPanelView={subPanelView}
+                    expressionEditor={expressionEditor}
+                    targetLineRange={targetLineRange}
+                    fileName={fileName}
+                    isSaving={showProgressIndicator}
+                    submitText={submitText}
+                    updatedExpressionField={updatedExpressionField}
+                    resetUpdatedExpressionField={resetUpdatedExpressionField}
+                    mergeFormDataWithFlowNode={mergeFormDataWithFlowNode}
+                    handleVisualizableFields={fetchVisualizableFields}
+                    visualizableFields={visualizableFields}
+                    infoLabel={infoLabel}
+                    disableSaveButton={disableSaveButton}
+                    actionButton={actionButton}
+                    recordTypeFields={recordTypeFields}
+                    isInferredReturnType={!!node.codedata?.inferredReturnType}
+                    formImports={formImports}
+                    handleSelectedTypeChange={handleSelectedTypeChange}
+                    helperPaneZIndex={isInModal? 40001: undefined}
+                    preserveOrder={node.codedata.node === "VARIABLE" || node.codedata.node === "CONFIG_VARIABLE"}
+            />
+        );
+    }
 
     // default form
     return (

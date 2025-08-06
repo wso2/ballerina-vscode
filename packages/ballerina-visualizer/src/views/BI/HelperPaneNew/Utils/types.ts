@@ -11,17 +11,15 @@ export const DEFAULT_VALUE_MAP: Record<string, string> = {
     "any": "null",
 }
 
-export const isRowType = (type: CompletionItem) => {
-    return type && type.kind === "struct";
+export const isRowType = (type: string | string[]) => {
+    return type && type === "struct";
 }
 
-export const isUnionType = (type: CompletionItem) => {
-    return type && type.kind === "enum";
+export const isUnionType = (type: string) => {
+    return type && type === "enum";
 }
 
-export const getDefaultValue = (type: CompletionItem) => {
-    const typeKind = type?.kind;
-    if (typeKind && typeKind === 'type-parameter') {
-        return DEFAULT_VALUE_MAP[type.label] || "";
-    }
+export const getDefaultValue = (type: string) => {
+    //TODO: handle this using API
+     return DEFAULT_VALUE_MAP[type] || "";
 }

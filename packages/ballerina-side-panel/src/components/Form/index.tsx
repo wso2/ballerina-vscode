@@ -747,6 +747,7 @@ export const Form = forwardRef((props: FormProps, ref) => {
                                         recordTypeFields={recordTypeFields}
                                         onIdentifierEditingStateChange={handleIdentifierEditingStateChange}
                                         setSubComponentEnabled={setIsSubComponentEnabled}
+                                        handleNewTypeSelected={handleNewTypeSelected}
                                     />
                                 </S.Row>
                             );
@@ -846,6 +847,7 @@ export const Form = forwardRef((props: FormProps, ref) => {
                                     visualizableFields={visualizableFields}
                                     recordTypeFields={recordTypeFields}
                                     onIdentifierEditingStateChange={handleIdentifierEditingStateChange}
+                                    handleNewTypeSelected={handleNewTypeSelected}
                                 />
                                 {typeField && (
                                     <TypeHelperText
