@@ -251,36 +251,39 @@ public class DataMapManager {
             Optional<TypeSymbol> typeSymbol = semanticModel.typeOf(expression);
             String itemType = fromClauseNode.typedBindingPattern().typeDescriptor().toSourceCode().trim();
             String fromClauseVar = fromClauseNode.typedBindingPattern().bindingPattern().toSourceCode().trim();
-            if (typeSymbol.isPresent() && typeSymbol.get().typeKind() == TypeDescKind.ARRAY) {
-                TypeSymbol memberTypeSymbol = ((ArrayTypeSymbol) typeSymbol.get()).memberTypeDescriptor();
-                MappingPort mappingPort = getMappingPort(fromClauseVar, fromClauseVar,
-                        Type.fromSemanticSymbol(memberTypeSymbol), true, new HashMap<>());
-                if (mappingPort != null) {
-                    mappingPort.setIsFocused(true);
-                    setFocusIdForExpression(inputPorts, expression.toString().trim(), mappingPort.id);
-                    NonTerminalNode parent = expressionNode.parent();
-                    SyntaxKind parentKind = parent.kind();
-                    while (parentKind != SyntaxKind.LOCAL_VAR_DECL && parentKind != SyntaxKind.MODULE_VAR_DECL) {
-                        if (parentKind == SyntaxKind.QUERY_EXPRESSION) {
-                            QueryExpressionNode parentQueryExpr = (QueryExpressionNode) parent;
-                            FromClauseNode parentFromClause = parentQueryExpr.queryPipeline().fromClause();
-                            ExpressionNode parentExpression = parentFromClause.expression();
-                            String parentFromClauseVar = parentFromClause.typedBindingPattern().bindingPattern()
-                                    .toSourceCode().trim();
-                            Optional<TypeSymbol> expressionTypeSymbol = semanticModel.typeOf(parentExpression);
-                            if (expressionTypeSymbol.isPresent() &&
-                                    expressionTypeSymbol.get().typeKind() == TypeDescKind.ARRAY) {
-                                setIsFocusedForInputPort(inputPorts, parentFromClauseVar);
-                                setFocusIdForExpression(inputPorts, parentExpression.toString().trim(),
-                                        parentFromClauseVar);
+            if (typeSymbol.isPresent()) {
+                TypeSymbol rawTypeSymbol = CommonUtils.getRawType(typeSymbol.get());
+                if (rawTypeSymbol.typeKind() == TypeDescKind.ARRAY) {
+                    TypeSymbol memberTypeSymbol = ((ArrayTypeSymbol) rawTypeSymbol).memberTypeDescriptor();
+                    MappingPort mappingPort = getMappingPort(fromClauseVar, fromClauseVar,
+                            Type.fromSemanticSymbol(memberTypeSymbol), true, new HashMap<>());
+                    if (mappingPort != null) {
+                        mappingPort.setIsFocused(true);
+                        setFocusIdForExpression(inputPorts, expression.toString().trim(), mappingPort.id);
+                        NonTerminalNode parent = expressionNode.parent();
+                        SyntaxKind parentKind = parent.kind();
+                        while (parentKind != SyntaxKind.LOCAL_VAR_DECL && parentKind != SyntaxKind.MODULE_VAR_DECL) {
+                            if (parentKind == SyntaxKind.QUERY_EXPRESSION) {
+                                QueryExpressionNode parentQueryExpr = (QueryExpressionNode) parent;
+                                FromClauseNode parentFromClause = parentQueryExpr.queryPipeline().fromClause();
+                                ExpressionNode parentExpression = parentFromClause.expression();
+                                String parentFromClauseVar = parentFromClause.typedBindingPattern().bindingPattern()
+                                        .toSourceCode().trim();
+                                Optional<TypeSymbol> expressionTypeSymbol = semanticModel.typeOf(parentExpression);
+                                if (expressionTypeSymbol.isPresent() &&
+                                        expressionTypeSymbol.get().typeKind() == TypeDescKind.ARRAY) {
+                                    setIsFocusedForInputPort(inputPorts, parentFromClauseVar);
+                                    setFocusIdForExpression(inputPorts, parentExpression.toString().trim(),
+                                            parentFromClauseVar);
+                                }
                             }
+                            parent = parent.parent();
+                            parentKind = parent.kind();
                         }
-                        parent = parent.parent();
-                        parentKind = parent.kind();
                     }
+                    inputPorts.add(mappingPort);
+                    itemType = memberTypeSymbol.signature().trim();
                 }
-                inputPorts.add(mappingPort);
-                itemType = memberTypeSymbol.signature().trim();
             }
 
             Clause fromClause = new Clause(FROM, new Properties(fromClauseVar, itemType,
