@@ -56,6 +56,7 @@ public class DataMappingQueryConvertTest extends AbstractLSTest {
                 {Path.of("variable3.json")},
                 {Path.of("variable4.json")},
                 {Path.of("variable5.json")},
+                {Path.of("variable6.json")},
         };
     }
 
@@ -67,7 +68,8 @@ public class DataMappingQueryConvertTest extends AbstractLSTest {
 
         DataMapperQueryConvertRequest request =
                 new DataMapperQueryConvertRequest(sourceDir.resolve(testConfig.source()).toAbsolutePath().toString(),
-                        testConfig.codedata(), testConfig.mapping(), "", testConfig.targetField());
+                        testConfig.codedata(), testConfig.mapping(), "", testConfig.targetField(),
+                        testConfig.clauseType());
         JsonObject jsonMap = getResponseAndCloseFile(request, testConfig.source()).getAsJsonObject("textEdits");
 
         Map<String, List<TextEdit>> actualTextEdits = gson.fromJson(jsonMap, textEditListType);
@@ -97,7 +99,7 @@ public class DataMappingQueryConvertTest extends AbstractLSTest {
         if (assertFailure) {
             TestConfig updatedConfig = new TestConfig(testConfig.source(), testConfig.description(),
                     testConfig.codedata(), testConfig.mapping(), testConfig.propertyKey(), testConfig.targetField(),
-                    newMap);
+                    testConfig.clauseType(), newMap);
 //            updateConfig(configJsonPath, updatedConfig);
             Assert.fail(String.format("Failed test: '%s' (%s)", testConfig.description(), configJsonPath));
         }
@@ -132,10 +134,12 @@ public class DataMappingQueryConvertTest extends AbstractLSTest {
      * @param mapping     Mapping of the link to get the query
      * @param propertyKey The property key to generate the source code
      * @param targetField The target field to generate the source code
+     * @param clauseType  The type of the clause
      * @param output      generated source expression
      */
     private record TestConfig(String source, String description, JsonElement codedata, JsonElement mapping,
-                              String propertyKey, String targetField, Map<String, List<TextEdit>> output) {
+                              String propertyKey, String targetField, String clauseType,
+                              Map<String, List<TextEdit>> output) {
 
         public String description() {
             return description == null ? "" : description;

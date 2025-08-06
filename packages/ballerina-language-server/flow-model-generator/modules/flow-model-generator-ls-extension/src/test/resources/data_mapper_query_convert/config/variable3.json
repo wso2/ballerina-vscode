@@ -24,6 +24,7 @@
     "expression": "var2.arr",
     "diagnostics": []
   },
+  "clauseType": "select",
   "output": {
     "variable2.bal": [
       {

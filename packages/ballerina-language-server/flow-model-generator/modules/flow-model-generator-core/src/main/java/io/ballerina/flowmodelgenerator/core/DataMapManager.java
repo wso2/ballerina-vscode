@@ -1403,7 +1403,7 @@ public class DataMapManager {
     }
 
     public JsonElement getQuery(SemanticModel semanticModel, JsonElement cd, JsonElement mp, String targetField,
-                                Path filePath) {
+                                String clauseType, Path filePath) {
         Codedata codedata = gson.fromJson(cd, Codedata.class);
         NonTerminalNode stNode = getNode(codedata.lineRange());
         TargetNode targetNode = getTargetNode(stNode, targetField, semanticModel);
@@ -1412,21 +1412,28 @@ public class DataMapManager {
         }
 
         Map<Path, List<TextEdit>> textEditsMap = new HashMap<>();
+        List<TextEdit> textEdits = new ArrayList<>();
+        textEditsMap.put(filePath, textEdits);
+
         TypeSymbol targetTypeSymbol = CommonUtils.getRawType(targetNode.typeSymbol());
-        if (targetTypeSymbol.typeKind() == TypeDescKind.ARRAY) {
-            TypeSymbol typeSymbol =
-                    CommonUtils.getRawType(((ArrayTypeSymbol) targetTypeSymbol).memberTypeDescriptor());
-            Mapping mapping = gson.fromJson(mp, Mapping.class);
-            List<TextEdit> textEdits = new ArrayList<>();
-            textEditsMap.put(filePath, textEdits);
-            String query = getQuerySource(targetNode.expressionNode(), typeSymbol);
+        Mapping mapping = gson.fromJson(mp, Mapping.class);
+        if (clauseType.equals("collect")) {
+            String query = getQuerySource(targetNode.expressionNode(), "collect", targetTypeSymbol);
             genSource(targetNode.expressionNode(), mapping.output().split(DOT), 1, new StringBuilder(), query, null,
                     textEdits);
+        } else {
+            if (targetTypeSymbol.typeKind() == TypeDescKind.ARRAY) {
+                TypeSymbol typeSymbol =
+                        CommonUtils.getRawType(((ArrayTypeSymbol) targetTypeSymbol).memberTypeDescriptor());
+                String query = getQuerySource(targetNode.expressionNode(), "select", typeSymbol);
+                genSource(targetNode.expressionNode(), mapping.output().split(DOT), 1, new StringBuilder(), query,
+                        null, textEdits);
+            }
         }
         return gson.toJsonTree(textEditsMap);
     }
 
-    private String getQuerySource(NonTerminalNode inputExpr, TypeSymbol recordTypeSymbol) {
+    private String getQuerySource(NonTerminalNode inputExpr, String finalClause, TypeSymbol typeSymbol) {
         String name = "item";
         SyntaxKind kind = inputExpr.kind();
         if (kind == SyntaxKind.SIMPLE_NAME_REFERENCE) {
@@ -1436,8 +1443,7 @@ public class DataMapManager {
             name = fieldAccessExpr.fieldName().toSourceCode().trim() + ITEM;
         }
         return "from var " + name + " in " + inputExpr.toSourceCode().trim() + " " +
-                SyntaxKind.SELECT_KEYWORD.stringValue() + " " +
-                DefaultValueGeneratorUtil.getDefaultValueForType(recordTypeSymbol);
+                finalClause + " " + DefaultValueGeneratorUtil.getDefaultValueForType(typeSymbol);
     }
 
     public TypeDefinitionSymbol getMatchedTypeDefSymbol(String prefix, String type, SemanticModel defaultModuleSM) {
