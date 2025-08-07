@@ -24,7 +24,7 @@ import { Button, Icon, ProgressRing, TruncatedLabel } from "@wso2/ui-toolkit";
 
 import { IDataMapperContext } from "../../../../utils/DataMapperContext/DataMapperContext";
 import { DataMapperPortWidget, PortState, InputOutputPortModel } from "../../Port";
-import { fieldFQNFromPortName, getDefaultValue, getSanitizedId } from "../../utils/common-utils";
+import { getDefaultValue, getSanitizedId } from "../../utils/common-utils";
 import { OutputSearchHighlight } from "../commons/Search";
 import { ValueConfigMenu, ValueConfigOption } from "../commons/ValueConfigButton";
 import { useIONodesStyles } from "../../../styles";
@@ -99,11 +99,10 @@ export function PrimitiveOutputElementWidget(props: PrimitiveOutputElementWidget
 
     const valueConfigMenuItems = useMemo(() => {
         const items = [
-            // {
-            //     title: ValueConfigOption.EditValue,
-            //     onClick: handleEditValue
-            // }
-            // TODO: Enable this after adding support for editing value
+            {
+                title: ValueConfigOption.EditValue,
+                onClick: handleEditValue
+            }
         ];
         if (isArrayElement) {
             items.push({
