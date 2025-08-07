@@ -57,6 +57,7 @@ public class DataMappingQueryConvertTest extends AbstractLSTest {
                 {Path.of("variable4.json")},
                 {Path.of("variable5.json")},
                 {Path.of("variable6.json")},
+                {Path.of("variable7.json")},
         };
     }
 
@@ -100,7 +101,7 @@ public class DataMappingQueryConvertTest extends AbstractLSTest {
             TestConfig updatedConfig = new TestConfig(testConfig.source(), testConfig.description(),
                     testConfig.codedata(), testConfig.mapping(), testConfig.propertyKey(), testConfig.targetField(),
                     testConfig.clauseType(), newMap);
-//            updateConfig(configJsonPath, updatedConfig);
+            updateConfig(configJsonPath, updatedConfig);
             Assert.fail(String.format("Failed test: '%s' (%s)", testConfig.description(), configJsonPath));
         }
     }
