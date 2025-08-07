@@ -52,6 +52,7 @@ export function InputNodeTreeItemWidget(props: InputNodeTreeItemWidgetProps) {
     const typeName = getTypeName(dmType);
     const fieldId = dmType.isFocused ? fieldName : `${parentId}.${fieldName}`;
     const portOut = getPort(`${fieldId}.OUT`);
+    const isUnknownType = dmType.kind === TypeKind.Unknown;
 
     const classes = useIONodesStyles();
 
@@ -78,7 +79,7 @@ export function InputNodeTreeItemWidget(props: InputNodeTreeItemWidgetProps) {
                     {dmType.optional && "?"}
                 </span>
                 {typeName && !isEnumMember(portOut?.getParent() as InputNode) && (
-                    <span className={classes.typeLabel}>
+                    <span className={isUnknownType ? classes.unknownTypeLabel : classes.typeLabel}>
                         {typeName}
                     </span>
                 )}

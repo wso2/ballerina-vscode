@@ -23,7 +23,9 @@ export function getTypeName(fieldType: IOType): string {
 		return '';
 	} else if (fieldType.kind === TypeKind.Enum) {
 		return "Enum";
-	}
+	} else if (fieldType.kind === TypeKind.Unknown) {
+        return "Unknown Type";
+	} 
 
     let typeName = fieldType?.typeName || fieldType.kind;
     

@@ -92,6 +92,7 @@ export function ObjectOutputFieldWidget(props: ObjectOutputFieldWidgetProps) {
         : fieldName;
 
     const portIn = getPort(portName + ".IN");
+    const isUnknownType = field?.kind === TypeKind.Unknown;
     const mapping = portIn && portIn.attributes.value;
     const { expression, diagnostics } = mapping || {};
     const connectedViaLink = Object.values(portIn?.getLinks() || {}).length > 0;
@@ -194,7 +195,7 @@ export function ObjectOutputFieldWidget(props: ObjectOutputFieldWidgetProps) {
             </span>
             {typeName && (
                 <span
-                    className={classnames(classes.typeLabel,
+                    className={classnames(isUnknownType ? classes.unknownTypeLabel : classes.typeLabel,
                         isDisabled && !hasHoveredParent ? classes.labelDisabled : ""
                     )}
                 >
