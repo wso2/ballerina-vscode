@@ -110,7 +110,7 @@ export class InputNode extends DataMapperNodeModel {
                     focusedFieldFQNs
                 });
             } else {
-                this.numberOfFields += this.addPortsForInputField({
+                this.addPortsForInputField({
                     field: this.filteredInputType,
                     portType: "OUT",
                     parentId: this.identifier,
