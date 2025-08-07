@@ -16,11 +16,16 @@
  * under the License.
  */
 import { IOType, TypeKind } from "@wso2/ballerina-core";
+import { InputNode } from "../Node/Input/InputNode";
 
 export function getTypeName(fieldType: IOType): string {
 	if (!fieldType) {
 		return '';
-	}
+	} else if (fieldType.kind === TypeKind.Enum) {
+		return "Enum";
+	} else if (fieldType.kind === TypeKind.Unknown) {
+        return "Unknown Type";
+	} 
 
     let typeName = fieldType?.typeName || fieldType.kind;
     
@@ -39,4 +44,11 @@ export function getDMTypeDim(fieldType: IOType) {
         currentType = currentType.member;
     }
     return dim;
+}
+
+export function isEnumMember(parent: InputNode): boolean {
+    if (!parent) {
+        return false;
+    }
+    return parent.filteredInputType.kind === TypeKind.Enum;
 }
