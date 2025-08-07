@@ -90,7 +90,7 @@
             ],
             "id": "myStudent.password",
             "variableName": "password",
-            "typeName": "password",
+            "typeName": "UserInfo|string[]",
             "kind": "union",
             "optional": false
           }
@@ -161,7 +161,7 @@
           ],
           "id": "student.password",
           "variableName": "password",
-          "typeName": "password",
+          "typeName": "UserInfo|string[]",
           "kind": "union",
           "optional": false
         }

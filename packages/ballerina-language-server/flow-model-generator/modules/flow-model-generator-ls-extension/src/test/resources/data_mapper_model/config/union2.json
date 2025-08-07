@@ -1,5 +1,5 @@
 {
-  "source": "union1.bal",
+  "source": "union2.bal",
   "description": "Sample diagram node",
   "codedata": {
     "node": "VARIABLE",
@@ -121,11 +121,18 @@
               "typeName": "Elephant",
               "kind": "record",
               "optional": false
+            },
+            {
+              "id": "animalType.animal",
+              "variableName": "animal",
+              "typeName": "()",
+              "kind": "()",
+              "optional": false
             }
           ],
           "id": "animalType.animal",
           "variableName": "animal",
-          "typeName": "Dog|Elephant",
+          "typeName": "Dog|Elephant|()",
           "kind": "union",
           "optional": false
         }
