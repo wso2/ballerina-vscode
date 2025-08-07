@@ -3,9 +3,9 @@ import { VariableTypeIndifcator } from "../Components/VariableTypeIndicator"
 import { SlidingPaneNavContainer } from "@wso2/ui-toolkit/lib/components/ExpressionEditor/components/Common/SlidingPane"
 import { useRpcContext } from "@wso2/ballerina-rpc-client"
 import { ExpressionProperty, FlowNode, LineRange, RecordTypeField } from "@wso2/ballerina-core"
-import {  Codicon, COMPLETION_ITEM_KIND, CompletionItem, Divider, getIcon, HelperPaneCustom, SearchBox, ThemeColors } from "@wso2/ui-toolkit"
+import { Codicon, COMPLETION_ITEM_KIND, CompletionItem, Divider, getIcon, HelperPaneCustom, SearchBox, ThemeColors } from "@wso2/ui-toolkit"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
-import {  HelperPaneVariableInfo } from "@wso2/ballerina-side-panel"
+import { HelperPaneVariableInfo } from "@wso2/ballerina-side-panel"
 import { debounce } from "lodash"
 import { convertToHelperPaneVariable, filterHelperPaneVariables } from "../../../../utils/bi"
 import FooterButtons from "../Components/FooterButtons"
@@ -14,6 +14,7 @@ import { FormGenerator } from "../../Forms/FormGenerator"
 import { ScrollableContainer } from "../Components/ScrollableContainer"
 import { FormSubmitOptions } from "../../FlowDiagram"
 import { URI } from "vscode-uri"
+import styled from "@emotion/styled"
 
 type VariablesPageProps = {
     fileName: string;
@@ -26,9 +27,20 @@ type VariablesPageProps = {
     filteredCompletions: CompletionItem[];
     currentValue: string;
     variables: CompletionItem[]
-    recordTypeField?:RecordTypeField;
-    isInModal?:boolean;
+    recordTypeField?: RecordTypeField;
+    isInModal?: boolean;
 }
+
+const VariablesMoreIconContainer = styled.div`
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px;
+     &:hover {
+        background-color:  ${ThemeColors.ON_SURFACE_VARIANT};
+        cursor: pointer;
+    }
+`;
 
 
 export const Variables = (props: VariablesPageProps) => {
@@ -44,14 +56,19 @@ export const Variables = (props: VariablesPageProps) => {
     const [currentlyVisitingItemType, setCurrentlyVisitingItemType] = useState<string>("")
     const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
     const [projectPathUri, setProjectPathUri] = useState<string>();
+    const initialCursorOffset = useRef<number>(0);
 
     useEffect(() => {
         getVariableInfo()
     }, [targetLineRange])
 
-    useEffect(()=>{
+    useEffect(() => {
         getProjectInfo()
-    },[]);
+    }, []);
+
+    useEffect(() => {
+        initialCursorOffset.current = currentValue.length;
+    }, []);
 
     const getProjectInfo = async () => {
         const projectPath = await rpcClient.getVisualizerLocation();
@@ -122,16 +139,8 @@ export const Variables = (props: VariablesPageProps) => {
         return objectFields && objectFields.length > 0
     }
 
-    const handleItemSelect = (value: string, type: string) => {
-        setCurrentlyVisitingItemType(type)
-        if (isSelectedYypesMatches(type)) {
-            onChange(value, false)
-        }
-        else {
-            const insertValue = currentValue + value + '.'
-            onChange(insertValue, true)
-        }
-        isMainVariablesRef.current = false
+    const handleItemSelect = (value: string) => {
+        onChange(value, true)
     }
 
     const handleFunctionItemClicked = (value: string) => {
@@ -156,12 +165,26 @@ export const Variables = (props: VariablesPageProps) => {
         onChange(newValue, true);
     }
 
+    const handleVariablesMoreIconClick = (value: string) => {
+        onChange(currentValue + value + '.', true);
+    }
+
     const objectFields = filteredCompletions.filter((completion) => completion.kind === "field")
     const objectMethods = filteredCompletions.filter((completion) => completion.kind === "function" && completion.description === selectedType?.label)
 
+    const mergedVariableItems = useMemo(() => {
+        const infoItems = filteredVariableInfo?.category
+            ? filteredVariableInfo.category.flatMap(cat => cat.items)
+            : [];
+        if (!objectFields || objectFields.length === 0) {
+            return infoItems;
+        }
+        return objectFields;
+    }, [filteredVariableInfo, objectFields]);
+
 
     const ExpandableListItems = () => {
-        if (!isSelectedYypesMatches(currentlyVisitingItemType) && !isObjectFieldsExists(objectFields) && !isMainVariablesRef.current) {
+        if (currentValue.length !== initialCursorOffset.current) {
             return (
                 <div>
                     <p style={{ color: ThemeColors.ON_SURFACE_VARIANT }}>
@@ -198,56 +221,21 @@ export const Variables = (props: VariablesPageProps) => {
         return (
             <>
                 {
-                    !isObjectFieldsExists(objectFields) ? (<>{filteredVariableInfo?.category.map((cat) => (
-                        <>
-                            {
-                                cat.items.map((item) => (
-                                    <SlidingPaneNavContainer data>
-                                        <ExpandableList.Item onClick={() => handleItemSelect(item.label, item.type)}>
-                                            <p style={{ margin: '0px' }}>{item.label} </p>
-                                            <VariableTypeIndifcator type={item.type} />
-                                            {!isSelectedYypesMatches(item.type) &&
-                                                <>
-                                                    <span style={{ color: ThemeColors.ON_SURFACE_VARIANT }}> Not assignable</span>
-                                                    <span onClick={(event) => {
-                                                        event.stopPropagation();
-                                                        handleUseAnywayClicked(item.label)
-                                                    }} style={{ color: ThemeColors.HIGHLIGHT, marginLeft: "auto" }}>
-                                                        Use anyway
-                                                    </span>
-                                                </>}
-                                        </ExpandableList.Item>
-                                    </SlidingPaneNavContainer>
-                                ))
-                            }
-                        </>
-                    ))}</>) :
-                        (
-                            <>
-                                {
-                                    objectFields.map((item) => (
-                                        <SlidingPaneNavContainer data>
-                                            <ExpandableList.Item onClick={() => handleItemSelect(item.label, item.description)}>
-                                                <span>{item.label}</span>
-                                                <VariableTypeIndifcator type={item.description} />
-                                                {!isSelectedYypesMatches(item.description) &&
-                                                    <>
-                                                        <span style={{ color: ThemeColors.ON_SURFACE_VARIANT }}> Not assignable</span>
-                                                        <span onClick={(event) => {
-                                                            event.stopPropagation();
-                                                            handleUseAnywayClicked(item.label)
-                                                        }} style={{ color: ThemeColors.HIGHLIGHT, marginLeft: "auto" }}>
-                                                            Use anyway
-                                                        </span>
-                                                    </>}
-                                            </ExpandableList.Item>
-                                        </SlidingPaneNavContainer>
-                                    ))
-                                }
-                            </>
-                        )
+                    mergedVariableItems.map((item) => (
+                        <SlidingPaneNavContainer
+                            data
+                            endIcon={
+                                <VariablesMoreIconContainer onClick={() => handleVariablesMoreIconClick(item.label)}>
+                                    <Codicon name="chevron-right" />
+                                </VariablesMoreIconContainer>}
+                        >
+                            <ExpandableList.Item onClick={() => handleItemSelect(item.label)}>
+                                <p style={{ margin: '0px' }}>{item.label} </p>
+                                <VariableTypeIndifcator type={item.label} />
+                            </ExpandableList.Item>
+                        </SlidingPaneNavContainer>
+                    ))
                 }
-
             </>
         )
     }
@@ -386,15 +374,15 @@ export const Variables = (props: VariablesPageProps) => {
                 )}
             </ScrollableContainer>
 
-           {!isInModal &&  <div style={{ marginTop: "auto" }}>
+            {!isInModal && <div style={{ marginTop: "auto" }}>
                 <Divider />
-                <DynamicModal 
-                width={400} 
-                height={600} 
-                anchorRef={anchorRef} 
-                title="Declare Variable" 
-                openState={isModalOpen} 
-                setOpenState={setIsModalOpen}>
+                <DynamicModal
+                    width={400}
+                    height={600}
+                    anchorRef={anchorRef}
+                    title="Declare Variable"
+                    openState={isModalOpen}
+                    setOpenState={setIsModalOpen}>
                     <DynamicModal.Trigger>
                         <FooterButtons startIcon='add' title="New Variable" />
                     </DynamicModal.Trigger>

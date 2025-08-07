@@ -554,7 +554,16 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
                             }}
                             extractArgsFromFunction={handleExtractArgsFromFunction}
                             onCompletionSelect={handleCompletionSelect}
-                            onFocus={handleFocus}
+                            onFocus={async () => {
+                                const rawValue = rawExpression ? rawExpression(value) : value;
+
+                                await retrieveCompletions(
+                                    rawValue,
+                                    getPropertyFromFormField(field),
+                                    value.length
+                                );
+                                handleFocus();
+                            }}
                             onBlur={handleBlur}
                             onSave={onSave}
                             onCancel={onCancel}
