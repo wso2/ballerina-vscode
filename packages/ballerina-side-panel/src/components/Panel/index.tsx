@@ -71,7 +71,7 @@ export function PanelContainer(props: PanelContainerProps) {
                         )}
                     {title}
                     </S.TitleContainer>
-                    <S.StyledButton appearance="icon" onClick={onClose}>
+                    <S.StyledButton data-testid="close-panel-btn" appearance="icon" onClick={onClose}>
                         <CloseIcon />
                     </S.StyledButton>
                 </SidePanelTitleContainer>

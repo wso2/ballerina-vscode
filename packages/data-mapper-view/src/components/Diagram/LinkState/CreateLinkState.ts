@@ -79,6 +79,13 @@ export class CreateLinkState extends State<DiagramEngine> {
 
 						if (isLinkModel(element)) {
 							element = (element as DataMapperLinkModel).getTargetPort();
+
+							if (element instanceof IntermediatePortModel) {
+								const parentNode = element.getNode();
+								if (parentNode instanceof LinkConnectorNode) {
+									element = parentNode.targetMappedPort;
+								}
+							}
 						}
 					}
 
