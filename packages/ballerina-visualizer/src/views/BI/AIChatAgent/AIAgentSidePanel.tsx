@@ -420,6 +420,39 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
         });
     };
 
+    const updateToolParameters = (params: any[], baseParams?: ToolParameters): ToolParameters => {
+        const newToolParameters = baseParams ? cloneDeep(baseParams) : createToolParameters();
+        const paramKeys = params.map((param: any) => param.formValues.variable);
+
+        if (newToolParameters.value && typeof newToolParameters.value === "object" && !Array.isArray(newToolParameters.value)) {
+            // Remove keys that are no longer present
+            Object.keys(newToolParameters.value).forEach((key) => {
+                if (!paramKeys.includes(key)) {
+                    delete (newToolParameters.value as ToolParametersValue)[key];
+                }
+            });
+
+            // Add or update parameters
+            paramKeys.forEach((key: string) => {
+                const paramData = params.find((param: any) => param.formValues.variable === key)?.formValues;
+                const existingParam = (newToolParameters.value as ToolParametersValue)[key];
+
+                if (existingParam?.value?.variable) {
+                    existingParam.value.variable.value = paramData?.variable || key;
+                    existingParam.value.parameterDescription.value = paramData?.parameterDescription || "";
+                    existingParam.value.type.value = paramData?.type || "";
+                } else {
+                    (newToolParameters.value as ToolParametersValue)[key] = createDefaultParameterValue({
+                        value: paramData?.variable || key,
+                        parameterDescription: paramData?.parameterDescription,
+                        type: paramData?.type,
+                    });
+                }
+            });
+        }
+        return newToolParameters;
+    };
+
     const handleToolSubmit = (data: FormValues) => {
         // Safely convert name to camelCase, handling any input
         const name = data["name"] || "";
@@ -441,7 +474,7 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
 
         if (toolNodeId === FUNCTION_CALL && Array.isArray(data["parameters"])) {
             clonedFunctionNode = functionNode.current ? cloneDeep(functionNode.current) : null;
-            toolParameters = cloneDeep(functionNode.current?.properties?.parameters) as unknown as ToolParameters;
+            toolParameters = updateToolParameters(data["parameters"], functionNode.current?.properties?.parameters as unknown as ToolParameters | undefined);
 
             // Update clonedFunctionNode parameter values from data["parameters"]
             const parametersValue = clonedFunctionNode?.properties?.parameters?.value;
@@ -453,33 +486,9 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
                     }
                 });
             }
-
-            // Update toolParameters: remove keys not present, and set values from data
-            const paramKeys = data["parameters"].map((param: any) => param.key);
-            if (toolParameters && typeof toolParameters.value === "object" && !Array.isArray(toolParameters.value)) {
-                Object.keys(toolParameters.value).forEach((key) => {
-                    if (!paramKeys.includes(key)) {
-                        delete toolParameters.value[key];
-                    }
-                });
-                paramKeys.forEach((key: string) => {
-                    const paramObj = toolParameters.value[key];
-                    if (paramObj && paramObj.value && paramObj.value.variable) {
-                        paramObj.value.variable.value = data["parameters"].find((param: any) => param.key === key)?.formValues.variable || key;
-                        paramObj.value.parameterDescription.value = data["parameters"].find((param: any) => param.key === key)?.formValues.parameterDescription || "";
-                        paramObj.value.type.value = data["parameters"].find((param: any) => param.key === key)?.formValues.type || "";
-                    }
-                    if (!toolParameters.value[key]) {
-                        toolParameters.value[key] = createDefaultParameterValue({
-                            value: data["parameters"].find((param: any) => param.key === key)?.formValues.variable || key,
-                            parameterDescription: data["parameters"].find((param: any) => param.key === key)?.formValues.parameterDescription,
-                            type: data["parameters"].find((param: any) => param.key === key)?.formValues.type
-                        });
-                    }
-                });
-            }
         } else if ((toolNodeId === REMOTE_ACTION_CALL || toolNodeId === RESOURCE_ACTION_CALL || toolNodeId === METHOD_CALL) && Array.isArray(data["parameters"])) {
             clonedFlowNode = flowNode.current ? cloneDeep(flowNode.current) : null;
+            toolParameters = updateToolParameters(data["parameters"]);
 
             // Update flowNode parameter values from data["parameters"]
             if (clonedFlowNode?.properties && typeof clonedFlowNode?.properties === "object" && !Array.isArray(clonedFlowNode?.properties)) {
@@ -494,33 +503,6 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
                     }
                 });
                 clonedFlowNode.properties = newProperties;
-            }
-
-            // Update toolParameters: remove keys not present, and set values from data
-            toolParameters = createToolParameters();
-            const paramKeys = data["parameters"].map((param: any) => param.key);
-            console.log(">>> toolParameters before update", { toolParameters, paramKeys });
-            if (toolParameters && typeof toolParameters.value === "object" && !Array.isArray(toolParameters.value)) {
-                Object.keys(toolParameters.value).forEach((key) => {
-                    if (!paramKeys.includes(key)) {
-                        delete toolParameters.value[key];
-                    }
-                });
-                paramKeys.forEach((key: string) => {
-                    const paramObj = toolParameters.value[key];
-                    if (paramObj && paramObj.value && paramObj.value.variable) {
-                        paramObj.value.variable.value = data["parameters"].find((param: any) => param.key === key)?.formValues.variable || key;
-                        paramObj.value.parameterDescription.value = data["parameters"].find((param: any) => param.key === key)?.formValues.parameterDescription || "";
-                        paramObj.value.type.value = data["parameters"].find((param: any) => param.key === key)?.formValues.type || "";
-                    }
-                    if (!toolParameters.value[key]) {
-                        toolParameters.value[key] = createDefaultParameterValue({
-                            value: data["parameters"].find((param: any) => param.key === key)?.formValues.variable || key,
-                            parameterDescription: data["parameters"].find((param: any) => param.key === key)?.formValues.parameterDescription,
-                            type: data["parameters"].find((param: any) => param.key === key)?.formValues.type
-                        });
-                    }
-                });
             }
         }
 
