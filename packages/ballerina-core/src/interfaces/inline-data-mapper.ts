@@ -28,7 +28,7 @@ export enum TypeKind {
     Decimal = "decimal",
     Boolean = "boolean",
     Enum = "enum",
-    Unknown = "unknown",
+    Unknown = "$CompilationError$",
     Anydata = "anydata",
     Byte = "byte",
     Json = "json"
