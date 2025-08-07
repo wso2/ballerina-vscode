@@ -27,8 +27,8 @@ import { DataMapperPortWidget, PortState, InputOutputPortModel } from "../../Por
 import { InputSearchHighlight } from "../commons/Search";
 import { useIONodesStyles } from "../../../styles";
 import { useDMCollapsedFieldsStore, useDMExpandedFieldsStore } from '../../../../store/store';
-import { getTypeName } from "../../utils/type-utils";
-
+import { getTypeName, isEnumMember } from "../../utils/type-utils";
+import { InputNode } from "../Input/InputNode";
 
 export interface InputNodeTreeItemWidgetProps {
     parentId: string;
@@ -77,7 +77,7 @@ export function InputNodeTreeItemWidget(props: InputNodeTreeItemWidgetProps) {
                     <InputSearchHighlight>{fieldName}</InputSearchHighlight>
                     {dmType.optional && "?"}
                 </span>
-                {typeName && (
+                {typeName && !isEnumMember(portOut?.getParent() as InputNode) && (
                     <span className={classes.typeLabel}>
                         {typeName}
                     </span>

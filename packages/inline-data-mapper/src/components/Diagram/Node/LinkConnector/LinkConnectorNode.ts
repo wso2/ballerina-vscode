@@ -87,7 +87,7 @@ export class LinkConnectorNode extends DataMapperNodeModel {
             const inputNode = findInputNode(field, this, focusedSourceField);
             if (inputNode) {
                 const inputPort = getInputPort(inputNode, field?.replace(/\.\d+/g, ''));
-                if (!this.sourcePorts.some(port => port.getID() === inputPort.getID())) {
+                if (!this.sourcePorts.some(port => port?.getID() === inputPort?.getID())) {
                     this.sourcePorts.push(inputPort);
                 }
             }
@@ -110,8 +110,8 @@ export class LinkConnectorNode extends DataMapperNodeModel {
                     this.hidden = this.targetMappedPort?.attributes.portName !== this.targetPort?.attributes.portName;
                     if (this.hidden !== previouslyHidden
                         || (prevSourcePorts.length !== this.sourcePorts.length
-                            || prevSourcePorts.map(port => port.getID()).join('')
-                                !== this.sourcePorts.map(port => port.getID()).join('')))
+                            || prevSourcePorts.map(port => port?.getID()).join('')
+                                !== this.sourcePorts.map(port => port?.getID()).join('')))
                     {
                         this.shouldInitLinks = true;
                     }
