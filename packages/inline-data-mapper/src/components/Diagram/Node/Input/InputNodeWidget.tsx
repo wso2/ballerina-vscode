@@ -60,8 +60,7 @@ export function InputNodeWidget(props: InputNodeWidgetProps) {
     const typeName = getTypeName(dmType);
 
     const portOut = getPort(`${id}.OUT`);
-
-    const hasFields = !!dmType?.fields?.length;
+    const isUnknownType = dmType.kind === TypeKind.Unknown;
 
     let fields: IOType[];
 
@@ -69,6 +68,8 @@ export function InputNodeWidget(props: InputNodeWidgetProps) {
         fields = dmType.fields;
     } else if (dmType.kind === TypeKind.Array) {
         fields = [ dmType.member ];
+    } else if (dmType.kind === TypeKind.Enum) {
+        fields = dmType.members;
     }
 
     let expanded = true;
@@ -82,7 +83,7 @@ export function InputNodeWidget(props: InputNodeWidgetProps) {
                 <InputSearchHighlight>{valueLabel ? valueLabel : id}</InputSearchHighlight>
             </span>
             {typeName && (
-                <span className={classes.typeLabel}>
+                <span className={isUnknownType ? classes.unknownTypeLabel : classes.typeLabel}>
                     {typeName}
                 </span>
             )}
@@ -126,7 +127,7 @@ export function InputNodeWidget(props: InputNodeWidgetProps) {
                 onMouseLeave={onMouseLeave}
             >
                 <span className={classes.label}>
-                    {hasFields && (
+                    {fields && (
                         <Button
                             id={"expand-or-collapse-" + id} 
                             appearance="icon"
@@ -146,11 +147,10 @@ export function InputNodeWidget(props: InputNodeWidgetProps) {
                     }
                 </span>
             </TreeHeader>
-            {expanded && hasFields && (
+            {expanded && fields && (
                 <TreeBody>
                     {
-                        dmType
-                            ?.fields
+                        fields
                             ?.filter(f => !!f)
                             .map((field, index) => {
                             return (

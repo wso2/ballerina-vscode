@@ -27,8 +27,8 @@ import { DataMapperPortWidget, PortState, InputOutputPortModel } from "../../Por
 import { InputSearchHighlight } from "../commons/Search";
 import { useIONodesStyles } from "../../../styles";
 import { useDMCollapsedFieldsStore, useDMExpandedFieldsStore } from '../../../../store/store';
-import { getTypeName } from "../../utils/type-utils";
-
+import { getTypeName, isEnumMember } from "../../utils/type-utils";
+import { InputNode } from "../Input/InputNode";
 
 export interface InputNodeTreeItemWidgetProps {
     parentId: string;
@@ -52,6 +52,7 @@ export function InputNodeTreeItemWidget(props: InputNodeTreeItemWidgetProps) {
     const typeName = getTypeName(dmType);
     const fieldId = dmType.isFocused ? fieldName : `${parentId}.${fieldName}`;
     const portOut = getPort(`${fieldId}.OUT`);
+    const isUnknownType = dmType.kind === TypeKind.Unknown;
 
     const classes = useIONodesStyles();
 
@@ -77,8 +78,8 @@ export function InputNodeTreeItemWidget(props: InputNodeTreeItemWidgetProps) {
                     <InputSearchHighlight>{fieldName}</InputSearchHighlight>
                     {dmType.optional && "?"}
                 </span>
-                {typeName && (
-                    <span className={classes.typeLabel}>
+                {typeName && !isEnumMember(portOut?.getParent() as InputNode) && (
+                    <span className={isUnknownType ? classes.unknownTypeLabel : classes.typeLabel}>
                         {typeName}
                     </span>
                 )}

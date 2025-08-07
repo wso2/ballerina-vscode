@@ -30,9 +30,9 @@ export interface InputOutputPortModelGenerics {
 export const INPUT_OUTPUT_PORT = "input-output-port";
 
 export enum ValueType {
-	Default,
 	Empty,
-	NonEmpty
+	Mergeable,
+	Replaceable,
 }
 
 export interface PortAttributes {
