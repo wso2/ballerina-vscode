@@ -827,14 +827,18 @@ public class DataMapManager {
                 return enumPort;
             } else if (type.getTypeName().equals("union")) {
                 UnionType unionType = (UnionType) type;
-                MappingUnionPort unionPort = new MappingUnionPort(id, name, unionType.getName(),
-                        type.getTypeName(), unionType.optional);
+                List<MappingPort> members = new ArrayList<>();
+                List<String> memberNames = new ArrayList<>();
                 for (Type member : unionType.members) {
                     MappingPort memberPort = getMappingPort(id, name, member, isInputPort, visitedTypes);
                     if (memberPort != null) {
-                        unionPort.members.add(memberPort);
+                        members.add(memberPort);
+                        memberNames.add(memberPort.typeName);
                     }
                 }
+                MappingUnionPort unionPort = new MappingUnionPort(id, name, String.join("|", memberNames),
+                        type.getTypeName(), unionType.optional);
+                unionPort.members.addAll(members);
                 return unionPort;
             } else {
                 return null;
