@@ -70,7 +70,7 @@ export function QueryOutputWidget(props: QueryOutputWidgetProps) {
 		}))
 	);
 
-	const fields = [outputType.member];
+	const fields = [outputType.member ?? outputType];
 	const hasFields = fields.length > 0;
 
 	const portIn = getPort(`${id}.IN`);
@@ -108,7 +108,7 @@ export function QueryOutputWidget(props: QueryOutputWidgetProps) {
 	const label = (
 		<TruncatedLabel style={{ marginRight: "auto" }}>
 			{valueLabel && (
-				<span className={classes.valueLabel}>
+				<span className={classes.valueLabel} style={{ color: "red" }}>
 					<OutputSearchHighlight>{valueLabel}</OutputSearchHighlight>
 					{typeName && ":"}
 				</span>
