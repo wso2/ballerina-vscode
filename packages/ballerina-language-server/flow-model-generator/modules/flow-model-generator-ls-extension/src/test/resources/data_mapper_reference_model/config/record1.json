@@ -1,0 +1,100 @@
+{
+  "source": "record1.bal",
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "record1.bal",
+      "startLine": {
+        "line": 27,
+        "offset": 12
+      },
+      "endLine": {
+        "line": 27,
+        "offset": 37
+      }
+    },
+    "sourceCode": "FinalNote finalNote = {};"
+  },
+  "position": {
+    "line": 27,
+    "offset": 12
+  },
+  "propertyKey": "expression",
+  "targetField": "finalNote",
+  "model": {
+    "inputs": [],
+    "output": {
+      "fields": [
+        {
+          "id": "finalNote.finalNote",
+          "variableName": "finalNote",
+          "typeName": "string",
+          "kind": "string",
+          "optional": false
+        },
+        {
+          "fields": [
+            {
+              "id": "finalNote.progressNote.note",
+              "variableName": "note",
+              "typeName": "string",
+              "kind": "string",
+              "optional": false
+            },
+            {
+              "fields": [
+                {
+                  "id": "finalNote.progressNote.sampleRecord.sampleRecordName",
+                  "variableName": "sampleRecordName",
+                  "typeName": "string",
+                  "kind": "string",
+                  "optional": false
+                },
+                {
+                  "fields": [
+                    {
+                      "id": "finalNote.progressNote.sampleRecord.recordType.sampleTypeName",
+                      "variableName": "sampleTypeName",
+                      "typeName": "string",
+                      "kind": "string",
+                      "optional": false
+                    },
+                    {
+                      "id": "finalNote.progressNote.sampleRecord.recordType.sampleTypeCode",
+                      "variableName": "sampleTypeCode",
+                      "typeName": "int",
+                      "kind": "int",
+                      "optional": false
+                    }
+                  ],
+                  "id": "finalNote.progressNote.sampleRecord.recordType",
+                  "variableName": "recordType",
+                  "typeName": "SampleType",
+                  "kind": "record",
+                  "optional": false
+                }
+              ],
+              "id": "finalNote.progressNote.sampleRecord",
+              "variableName": "sampleRecord",
+              "typeName": "SampleRecord",
+              "kind": "record",
+              "optional": false
+            }
+          ],
+          "id": "finalNote.progressNote",
+          "variableName": "progressNote",
+          "typeName": "ProgressNote",
+          "kind": "record",
+          "optional": false
+        }
+      ],
+      "id": "finalNote",
+      "variableName": "finalNote",
+      "typeName": "FinalNote",
+      "kind": "record",
+      "optional": false
+    },
+    "mappings": []
+  }
+}
