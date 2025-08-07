@@ -37,6 +37,7 @@ import {
     ToolParameters,
     ToolParametersValue,
     DIRECTORY_MAP,
+    Property,
 } from "@wso2/ballerina-core";
 
 import {
@@ -499,6 +500,19 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
                         (newProperties as ToolParametersValue)[key] = {
                             ...((newProperties as ToolParametersValue)[key]!),
                             value: paramValue
+                        };
+                    }
+                    // Update resourcePath for RESOURCE_ACTION_CALL nodes
+                    if (toolNodeId === RESOURCE_ACTION_CALL) {
+                        const resourcePathProperty = (newProperties as any)["resourcePath"] as Property;
+                        const path = resourcePathProperty?.value;
+                        const updatedPath = typeof path === "string" ? path.replace(key, paramValue) : path;
+                        (newProperties as any)["resourcePath"] = {
+                            ...resourcePathProperty,
+                            codedata: {
+                                originalName: updatedPath
+                            },
+                            value: updatedPath
                         };
                     }
                 });
