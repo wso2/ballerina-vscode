@@ -17,13 +17,14 @@
  */
 import { DataMapperLinkModel } from "../Link";
 import { DataMapperNodeModel } from "../Node/commons/DataMapperNode";
-import { InputOutputPortModel } from "../Port";
+import { InputOutputPortModel, ValueType } from "../Port";
 import { IDataMapperContext } from "../../../utils/DataMapperContext/DataMapperContext";
 import { MappingFindingVisitor } from "../../../visitors/MappingFindingVisitor";
 import { traverseNode } from "../../../utils/model-utils";
-import { getDefaultValue } from "./common-utils";
+import { getValueType } from "./common-utils";
 import { CustomFnMetadata, CustomFnParams, Mapping } from "@wso2/ballerina-core";
-import { getTypeName } from "./type-utils";
+import { getTypeName, isEnumMember } from "./type-utils";
+import { InputNode } from "../Node/Input/InputNode";
 
 export async function createNewMapping(link: DataMapperLinkModel) {
 	const sourcePort = link.getSourcePort();
@@ -37,7 +38,11 @@ export async function createNewMapping(link: DataMapperLinkModel) {
 
 	const targetNode = outputPortModel.getNode() as DataMapperNodeModel;
 
-	const input = sourcePortModel.attributes.optionalOmittedFieldFQN;
+	const isSourceEnumMember = isEnumMember(sourcePortModel.getNode() as InputNode);
+
+	const input = isSourceEnumMember
+		? sourcePortModel.attributes.field?.typeName
+		: sourcePortModel.attributes.optionalOmittedFieldFQN;
 	const outputId = outputPortModel.attributes.fieldFQN;
 	const lastView = targetNode.context.views[targetNode.context.views.length - 1];
 	const viewId = lastView?.targetField || null;
@@ -51,8 +56,14 @@ export async function createNewMapping(link: DataMapperLinkModel) {
 
 	let expression = input;
 
-	if (targetMapping && targetMapping.expression.trim() !== getDefaultValue(outputPortModel.attributes.field?.kind)) {
-		expression = `${targetMapping.expression} + ${input}`;
+	if (targetMapping) {
+		const valueType = getValueType(link);
+
+		if (valueType === ValueType.Mergeable) {
+			expression = `${targetMapping.expression} + ${input}`;
+		} else {
+			expression = input;
+		}
 	}
 
 	return await applyModifications(outputId, expression, viewId, name);
