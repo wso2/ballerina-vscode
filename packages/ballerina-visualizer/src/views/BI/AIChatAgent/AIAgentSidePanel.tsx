@@ -38,6 +38,8 @@ import {
     ToolParametersValue,
     DIRECTORY_MAP,
     Property,
+    ToolParameterItem,
+    NodeProperties,
 } from "@wso2/ballerina-core";
 
 import {
@@ -211,7 +213,7 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
                 console.log("convertedCategories", convertedCategories);
 
                 let filteredCategories = [];
-                
+
                 // Filter categories based on mode
                 if (mode === NewToolSelectionMode.CONNECTION) {
                     filteredCategories = convertedCategories;
@@ -222,7 +224,7 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
                     const filteredFunctions = await handleSearchFunction("", FUNCTION_TYPE.REGULAR, false);
                     filteredCategories = convertedCategories.concat(filteredFunctions);
                 }
-                
+
                 setCategories(filteredCategories);
                 initialCategoriesRef.current = filteredCategories; // Store initial categories
                 setLoading(false);
@@ -421,9 +423,9 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
         });
     };
 
-    const updateToolParameters = (params: any[], baseParams?: ToolParameters): ToolParameters => {
+    const updateToolParameters = (params: ToolParameterItem[], baseParams?: ToolParameters): ToolParameters => {
         const newToolParameters = baseParams ? cloneDeep(baseParams) : createToolParameters();
-        const paramKeys = params.map((param: any) => param.formValues.variable);
+        const paramKeys = params.map((param: ToolParameterItem) => param.formValues.variable);
 
         if (newToolParameters.value && typeof newToolParameters.value === "object" && !Array.isArray(newToolParameters.value)) {
             // Remove keys that are no longer present
@@ -435,7 +437,7 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
 
             // Add or update parameters
             paramKeys.forEach((key: string) => {
-                const paramData = params.find((param: any) => param.formValues.variable === key)?.formValues;
+                const paramData = params.find((param: ToolParameterItem) => param.formValues.variable === key)?.formValues;
                 const existingParam = (newToolParameters.value as ToolParametersValue)[key];
 
                 if (existingParam?.value?.variable) {
@@ -493,30 +495,35 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
 
             // Update flowNode parameter values from data["parameters"]
             if (clonedFlowNode?.properties && typeof clonedFlowNode?.properties === "object" && !Array.isArray(clonedFlowNode?.properties)) {
-                const newProperties = { ...clonedFlowNode.properties };
+                const newProperties = { ...clonedFlowNode.properties } as Record<string, Property>;
                 Object.keys(newProperties).forEach((key) => {
                     const paramValue = data[key];
-                    if (paramValue !== undefined) {
-                        (newProperties as ToolParametersValue)[key] = {
-                            ...((newProperties as ToolParametersValue)[key]!),
+                    if (paramValue !== undefined && newProperties[key]) {
+                        newProperties[key] = {
+                            ...newProperties[key],
                             value: paramValue
                         };
                     }
                     // Update resourcePath for RESOURCE_ACTION_CALL nodes
                     if (toolNodeId === RESOURCE_ACTION_CALL) {
-                        const resourcePathProperty = (newProperties as any)["resourcePath"] as Property;
-                        const path = resourcePathProperty?.value;
-                        const updatedPath = typeof path === "string" ? path.replace(key, paramValue) : path;
-                        (newProperties as any)["resourcePath"] = {
-                            ...resourcePathProperty,
-                            codedata: {
-                                originalName: updatedPath
-                            },
-                            value: updatedPath
-                        };
+                        const resourcePathProperty = newProperties["resourcePath"];
+                        if (resourcePathProperty) {
+                            const path = resourcePathProperty.value;
+                            const updatedPath = typeof path === "string" ? path.replace(key, paramValue) : path;
+                            newProperties["resourcePath"] = {
+                                ...resourcePathProperty,
+                                codedata: resourcePathProperty.codedata ? {
+                                    ...resourcePathProperty.codedata,
+                                    originalName: typeof updatedPath === "string" ? updatedPath : String(updatedPath)
+                                } : {
+                                    originalName: typeof updatedPath === "string" ? updatedPath : String(updatedPath)
+                                },
+                                value: updatedPath
+                            };
+                        }
                     }
                 });
-                clonedFlowNode.properties = newProperties;
+                clonedFlowNode.properties = newProperties as NodeProperties;
             }
         }
 
