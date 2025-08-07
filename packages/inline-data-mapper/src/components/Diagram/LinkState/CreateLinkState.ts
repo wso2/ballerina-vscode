@@ -29,6 +29,8 @@ import { handleExpand } from '../utils/common-utils';
 import { getMappingType, isPendingMappingRequired } from '../utils/common-utils';
 import { removePendingMappingTempLinkIfExists } from '../utils/link-utils';
 import { useDMExpressionBarStore } from '../../../store/store';
+import { IntermediatePortModel } from '../Port/IntermediatePort';
+import { LinkConnectorNode } from '../Node/LinkConnector/LinkConnectorNode';
 /**
  * This state is controlling the creation of a link.
  */
@@ -94,6 +96,13 @@ export class CreateLinkState extends State<DiagramEngine> {
 							// If a source port is already selected and clicked on a link,
 							// select the target port of the link to create a mapping
 							element = (element as DataMapperLinkModel).getTargetPort();
+
+							if (element instanceof IntermediatePortModel) {
+								const parentNode = element.getNode();
+								if (parentNode instanceof LinkConnectorNode) {
+									element = parentNode.targetMappedPort;
+								}
+							}
 						}
 					}
 
