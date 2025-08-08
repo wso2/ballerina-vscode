@@ -21,7 +21,7 @@ import { InputOutputPortModel, ValueType } from "../Port";
 import { IDataMapperContext } from "../../../utils/DataMapperContext/DataMapperContext";
 import { MappingFindingVisitor } from "../../../visitors/MappingFindingVisitor";
 import { traverseNode } from "../../../utils/model-utils";
-import { getValueType } from "./common-utils";
+import { getTargetField, getValueType } from "./common-utils";
 import { CustomFnMetadata, CustomFnParams, Mapping, ResultClauseType } from "@wso2/ballerina-core";
 import { getTypeName, isEnumMember } from "./type-utils";
 import { InputNode } from "../Node/Input/InputNode";
@@ -137,11 +137,12 @@ export async function mapWithQuery(link: DataMapperLinkModel, clauseType: Result
 	const name  = context.views[0]?.targetField;
 
 	const mapping: Mapping = {
-		output: outputId,
+		output: "OUTPUT",// TODO: Remove this once the API is updated, currently output is embedded in to targetField
 		expression: input
 	};
-	
-	await context?.convertToQuery(mapping, clauseType, viewId, name);
+	const targetField = getTargetField(viewId, outputId); // TODO: Remove this once the API is updated
+
+	await context?.convertToQuery(mapping, clauseType, targetField, name);
 }
 
 export function buildInputAccessExpr(fieldFqn: string): string {
