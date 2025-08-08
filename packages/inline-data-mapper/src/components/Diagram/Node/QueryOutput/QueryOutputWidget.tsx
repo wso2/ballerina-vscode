@@ -108,7 +108,7 @@ export function QueryOutputWidget(props: QueryOutputWidgetProps) {
 	const label = (
 		<TruncatedLabel style={{ marginRight: "auto" }}>
 			{valueLabel && (
-				<span className={classes.valueLabel} style={{ color: "red" }}>
+				<span className={classes.valueLabel}>
 					<OutputSearchHighlight>{valueLabel}</OutputSearchHighlight>
 					{typeName && ":"}
 				</span>
