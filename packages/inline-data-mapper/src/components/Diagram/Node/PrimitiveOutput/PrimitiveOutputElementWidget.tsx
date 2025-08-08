@@ -71,12 +71,11 @@ export function PrimitiveOutputElementWidget(props: PrimitiveOutputElementWidget
     const [portState, setPortState] = useState<PortState>(PortState.Unselected);
 
     const fieldName = field?.id || '';
-    const view = context.views[context.views.length - 1];
 
     let portName = getSanitizedId(parentId);
     if (fieldIndex !== undefined) {
         portName = `${portName}.${fieldIndex}`;
-    } else if (fieldName && view.subMappingInfo) {
+    } else if (fieldName) {
         portName = `${portName}.${fieldName}`;
     }
     
@@ -84,10 +83,6 @@ export function PrimitiveOutputElementWidget(props: PrimitiveOutputElementWidget
     const isExprBarFocused = exprBarFocusedPort?.getName() === portIn?.getName();
     const mapping = portIn && portIn.attributes.value;
     let { expression, diagnostics } = mapping || {};
-
-    if (portIn?.getParent() instanceof PrimitiveOutputNode && context.model.query) {
-        expression = context.model.query.resultClause.properties.expression;
-    }
 
     const handleEditValue = () => {
         if (portIn)
