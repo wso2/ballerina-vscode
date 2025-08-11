@@ -73,7 +73,11 @@ Available libraries:
 ${libraryDescriptions}`,
         parameters: LibraryProviderToolSchema,
         execute: async (input: { libraryNames: string[]; userPrompt: string }) => {
-            console.log(`[LibraryProviderTool] Called with libraries: ${input.libraryNames.join(", ")}`);
+            console.log(
+                `[LibraryProviderTool] Called with libraries: ${input.libraryNames.join(", ")} and prompt: ${
+                    input.userPrompt
+                }`
+            );
             return await LibraryProviderTool(input, generationType);
         },
     });
