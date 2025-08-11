@@ -448,7 +448,7 @@ export function GraphqlServiceEditor(props: GraphqlServiceEditorProps) {
                     <OperationCard>
                         <OperationHeader>
                             <Title>Query</Title>
-                            <Button appearance="icon" tooltip={"Add Field"} onClick={handleNewQueryOperation}>
+                            <Button appearance="icon" tooltip={"Add Field"} onClick={handleNewQueryOperation} data-testid="graphql-add-query-btn">
                                 <Codicon name="add" />
                             </Button>
                         </OperationHeader>
@@ -480,6 +480,7 @@ export function GraphqlServiceEditor(props: GraphqlServiceEditorProps) {
                                 appearance="icon"
                                 tooltip={"Add Field"}
                                 onClick={handleNewMutationOperation}
+                                data-testid="graphql-add-mutation-btn"
                             >
                                 <Codicon name="add" />
                             </Button>
@@ -512,6 +513,7 @@ export function GraphqlServiceEditor(props: GraphqlServiceEditorProps) {
                                 appearance="icon"
                                 tooltip={"Add Field"}
                                 onClick={handleNewSubscriptionOperation}
+                                data-testid="graphql-add-subscription-btn"
                             >
                                 <Codicon name="add" />
                             </Button>

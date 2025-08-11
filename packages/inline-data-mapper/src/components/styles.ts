@@ -64,6 +64,10 @@ export const useIONodesStyles = () => ({
     typeLabel: css({
         ...typeLabel
     }),
+    unknownTypeLabel: css({
+        ...typeLabel,
+        color: "var(--vscode-errorForeground)",
+    }),
     valueLabel: css({
         ...valueLabel
     }),

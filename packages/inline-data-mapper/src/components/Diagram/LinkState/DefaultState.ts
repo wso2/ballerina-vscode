@@ -33,6 +33,7 @@ import { DataMapperNodeModel } from "../Node/commons/DataMapperNode";
 import { LinkOverayContainerID } from '../OverriddenLinkLayer/LinkOverlayPortal';
 import { CreateLinkState } from './CreateLinkState';
 import { useDMExpressionBarStore } from '../../../store/store';
+import { removePendingMappingTempLinkIfExists } from '../utils/link-utils';
 
 export class DefaultState extends State<DiagramEngine> {
 	dragCanvas: DragCanvasState;
@@ -111,6 +112,7 @@ export class DefaultState extends State<DiagramEngine> {
 					// On esc press unselect any selected link
 					if ((actionEvent.event as any).keyCode === 27) {
 						this.deselectLinks();
+						this.transitionWithEvent(this.dragCanvas, actionEvent);
 					}
 				}
 			})
@@ -122,6 +124,7 @@ export class DefaultState extends State<DiagramEngine> {
 			link.setSelected(false);
 			link.getSourcePort()?.fireEvent({}, "link-unselected");
 			link.getTargetPort()?.fireEvent({}, "link-unselected");
+			removePendingMappingTempLinkIfExists(link);
 		});
 		useDMExpressionBarStore.getState().resetFocus();
 	}
