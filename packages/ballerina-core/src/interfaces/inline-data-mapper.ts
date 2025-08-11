@@ -28,7 +28,7 @@ export enum TypeKind {
     Decimal = "decimal",
     Boolean = "boolean",
     Enum = "enum",
-    Unknown = "unknown",
+    Unknown = "$CompilationError$",
     Anydata = "anydata",
     Byte = "byte",
     Json = "json"
@@ -159,7 +159,8 @@ export interface IOTypeField {
 
 export interface EnumMember {
     id: string;
-    value: string;
+    typeName: string;
+    optional?: boolean;
 }
 
 export interface MappingElement {

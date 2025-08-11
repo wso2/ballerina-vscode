@@ -265,6 +265,7 @@ export function GraphQLDiagram(props: GraphQLDiagramProps) {
             </View>
             {isServiceEditorOpen && (
                 <GraphqlServiceEditor
+                    data-testid="graphql-service-editor"
                     serviceIdentifier={serviceIdentifier}
                     filePath={filePath}
                     lineRange={{
