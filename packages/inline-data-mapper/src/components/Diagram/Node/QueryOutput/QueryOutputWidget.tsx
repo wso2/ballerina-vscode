@@ -70,7 +70,7 @@ export function QueryOutputWidget(props: QueryOutputWidgetProps) {
 		}))
 	);
 
-	const fields = [outputType.member];
+	const fields = [outputType.member ?? outputType];
 	const hasFields = fields.length > 0;
 
 	const portIn = getPort(`${id}.IN`);

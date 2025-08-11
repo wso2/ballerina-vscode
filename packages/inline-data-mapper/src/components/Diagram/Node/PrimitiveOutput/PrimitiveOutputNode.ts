@@ -68,7 +68,7 @@ export class PrimitiveOutputNode extends DataMapperNodeModel {
     
             const parentPort = this.addPortsForHeader({
                 dmType: this.outputType,
-                name: `${this.rootName}.HEADER`,
+                name: "",
                 portType: "IN",
                 portPrefix: PRIMITIVE_OUTPUT_TARGET_PORT_PREFIX,
                 mappings: this.context.model.mappings,
@@ -76,19 +76,11 @@ export class PrimitiveOutputNode extends DataMapperNodeModel {
                 expandedFields,
                 isPreview: true
             });
-
-            function getParentId(input: string): string {
-                const lastDotIndex = input.lastIndexOf(".");
-                if (lastDotIndex === -1) {
-                  return "";
-                }
-                return input.substring(0, lastDotIndex);
-            }
     
             this.addPortsForOutputField({
                 field: this.outputType,
                 type: "IN",
-                parentId: getParentId(this.rootName),
+                parentId: "",
                 mappings: this.context.model.mappings,
                 portPrefix: PRIMITIVE_OUTPUT_TARGET_PORT_PREFIX,
                 parent: parentPort,

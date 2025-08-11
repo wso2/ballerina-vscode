@@ -34,6 +34,7 @@ import FieldActionWrapper from "../commons/FieldActionWrapper";
 import { IOType } from "@wso2/ballerina-core";
 import { removeMapping } from "../../utils/modification-utils";
 import { useShallow } from "zustand/react/shallow";
+import { PrimitiveOutputNode } from ".";
 
 export interface PrimitiveOutputElementWidgetWidgetProps {
     parentId: string;
@@ -81,7 +82,7 @@ export function PrimitiveOutputElementWidget(props: PrimitiveOutputElementWidget
     const portIn = getPort(`${portName}.IN`);
     const isExprBarFocused = exprBarFocusedPort?.getName() === portIn?.getName();
     const mapping = portIn && portIn.attributes.value;
-    const { expression, diagnostics } = mapping || {};
+    let { expression, diagnostics } = mapping || {};
 
     const handleEditValue = () => {
         if (portIn)

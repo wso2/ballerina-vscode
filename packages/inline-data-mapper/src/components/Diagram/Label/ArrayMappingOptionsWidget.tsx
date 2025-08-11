@@ -19,12 +19,13 @@
 // tslint:disable: jsx-no-multiline-js
 import React from 'react';
 
+import { ResultClauseType, TypeKind } from '@wso2/ballerina-core';
 import { Codicon, Item, Menu, MenuItem, ProgressRing } from '@wso2/ui-toolkit';
 import { css } from '@emotion/css';
 
 import { MappingType } from '../Link';
 import { ExpressionLabelModel } from './ExpressionLabelModel';
-import { createNewMapping, mapWithCustomFn } from '../utils/modification-utils';
+import { createNewMapping, mapWithCustomFn, mapWithQuery } from '../utils/modification-utils';
 import classNames from 'classnames';
 
 export const useStyles = () => ({
@@ -107,15 +108,15 @@ export function ArrayMappingOptionsWidget(props: ArrayMappingOptionsWidgetProps)
     }
 
     const onClickMapIndividualElements = async () => {
-        
+        await mapWithQuery(link, ResultClauseType.SELECT, context);
     };
 
     const onClickMapArraysAccessSingleton = async () => {
-       
+       await createNewMapping(link, (expr: string) => `${expr}[0]`);
     };
 
     const onClickAggregateArray = async () => {
-
+        await mapWithQuery(link, ResultClauseType.COLLECT, context);
     };
 
     const onClickMapWithCustomFunction = async () => {
@@ -188,11 +189,13 @@ export function ArrayMappingOptionsWidget(props: ArrayMappingOptionsWidgetProps)
                 ? a2sCollectClauseItems
                 : defaultMenuItems;
 
-    menuItems.push({
-        id: "a2a-a2s-func",
-        label: getItemElement("a2a-a2s-func", "Map Using Custom Function"),
-        onClick: wrapWithProgress(onClickMapWithCustomFunction)
-    });
+    if (pendingMappingType !== MappingType.ArrayToSingletonWithCollect) {
+        menuItems.push({
+            id: "a2a-a2s-func",
+            label: getItemElement("a2a-a2s-func", "Map Using Custom Function"),
+            onClick: wrapWithProgress(onClickMapWithCustomFunction)
+        });
+    }
     return (
         <div className={classes.arrayMappingMenu}>
             <Menu sx={{...a2aMenuStyles, visibility: inProgress ? 'hidden' : 'visible'}}>
