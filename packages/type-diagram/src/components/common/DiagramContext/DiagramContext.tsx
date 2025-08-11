@@ -27,7 +27,8 @@ interface DiagramContextProps {
     selectedNodeId?: string;
     setSelectedNodeId?: (id: string) => void;
     onEditNode?: (id: string, isGraphqlRoot?: boolean) => void;
-    goToSource?: (node: Type) => void
+    goToSource?: (node: Type) => void,
+    onNodeDelete?: (typeId: string) => void;
 }
 
 interface IDiagramContext {
@@ -38,6 +39,7 @@ interface IDiagramContext {
     setSelectedNodeId?: (id: string) => void;
     onEditNode?: (id: string, isGraphqlRoot?: boolean) => void;
     goToSource?: (node: Type) => void
+    onNodeDelete?: (typeId: string) => void;
 }
 
 const defaultState: any = {};
@@ -52,7 +54,8 @@ export function DesignDiagramContext(props: DiagramContextProps) {
         selectedNodeId,
         setSelectedNodeId,
         onEditNode,
-        goToSource
+        goToSource,
+        onNodeDelete
     } = props;
 
     let context: IDiagramContext = {
@@ -62,7 +65,8 @@ export function DesignDiagramContext(props: DiagramContextProps) {
         selectedNodeId,
         setSelectedNodeId,
         onEditNode,
-        goToSource
+        goToSource,
+        onNodeDelete
     }
 
     return (

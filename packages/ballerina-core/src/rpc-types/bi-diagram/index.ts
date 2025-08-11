@@ -88,7 +88,9 @@ import {
     DeleteConfigVariableResponseV2,
     DeleteConfigVariableRequestV2,
     JsonToTypeRequest,
-    JsonToTypeResponse
+    JsonToTypeResponse,
+    DeleteTypeRequest,
+    DeleteTypeResponse
 } from "../../interfaces/extended-lang-client";
 import {
     ProjectRequest,
@@ -162,6 +164,7 @@ export interface BIDiagramAPI {
     getType: (params: GetTypeRequest) => Promise<GetTypeResponse>;
     updateType: (params: UpdateTypeRequest) => Promise<UpdateTypeResponse>;
     updateTypes: (params: UpdateTypesRequest) => Promise<UpdateTypesResponse>;
+    deleteType: (params: DeleteTypeRequest) => Promise<DeleteTypeResponse>;
     getTypeFromJson: (params: JsonToTypeRequest) => Promise<JsonToTypeResponse>;
     getServiceClassModel: (params: ModelFromCodeRequest) => Promise<ServiceClassModelResponse>;
     updateClassField: (params: ClassFieldModifierRequest) => Promise<SourceEditResponse>;

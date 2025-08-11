@@ -136,6 +136,9 @@ import {
     DeleteConfigVariableResponseV2,
     LoginMethod,
     Diagnostics,
+    DeleteTypeRequest,
+    DeleteTypeResponse,
+    ComponentInfo,
 } from "@wso2/ballerina-core";
 import * as fs from "fs";
 import * as path from 'path';
@@ -1815,6 +1818,49 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
                     console.log(">>> error getting type from json", error);
                     reject(error);
                 });
+        });
+    }
+
+    async deleteType(params: DeleteTypeRequest): Promise<DeleteTypeResponse> {
+        const componentType = 'TYPE';
+        const componentCategory = StateMachine.context().projectStructure.directoryMap[componentType];
+        if (!componentCategory) {
+            console.warn("No component category found for type deletion");
+            return Promise.resolve({ textEdits: {}, errorMsg: "No component category found for type deletion" });
+        }
+        const defaultResponse: DeleteTypeResponse = {
+            textEdits: {},
+            errorMsg: ""
+        };
+        componentCategory.forEach(async (component) => {
+            if (component.name === params.component.name ) {
+                const componentInfo: ComponentInfo = {
+                    name: component.name,
+                    filePath: component.path,
+                    startLine: component.position.startLine,
+                    startColumn: component.position.startColumn,
+                    endLine: component.position.endLine,
+                    endColumn: component.position.endColumn,
+                };
+    
+                const deleteTypeRequest: DeleteTypeRequest = {
+                    filePath: params.filePath,
+                    component: componentInfo
+                };
+
+                this.deleteByComponentInfo(deleteTypeRequest).then((response) => {
+                    console.log(">>> delete type response", response);
+                    updateSourceCode({ textEdits: response.textEdits });
+                    defaultResponse.textEdits = response.textEdits;
+                }).catch((error) => {
+                    console.error(">>> error deleting type", error);
+                    defaultResponse.errorMsg = "Error deleting type";
+                });
+            }
+        });
+              
+        return new Promise((resolve) => {
+            resolve(defaultResponse);
         });
     }
 }

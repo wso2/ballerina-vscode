@@ -43,6 +43,7 @@ interface TypeDiagramProps {
     showProblemPanel?: () => void;
     goToSource: (node: Type) => void
     onTypeEdit: (typeId: string, isGraphqlRoot?: boolean) => void;
+    onTypeDelete: (typeId: string) => void;
 }
 
 export function TypeDiagram(props: TypeDiagramProps) {
@@ -114,6 +115,11 @@ export function TypeDiagram(props: TypeDiagramProps) {
         setSelectedDiagramNode(nodeId);
     }
 
+    const onNodeDelete = (typeId: string) => {
+        console.log("Deleting node: ", selectedDiagramNode);
+        props.onTypeDelete(typeId);
+    }
+
     let ctx = {
         selectedNodeId: selectedDiagramNode,
         setSelectedNodeId: updateSelectionOnDiagram,
@@ -122,7 +128,8 @@ export function TypeDiagram(props: TypeDiagramProps) {
         focusedNodeId,
         setFocusedNodeId: updateFocusedNodeId,
         onEditNode: onTypeEdit,
-        goToSource
+        goToSource,
+        onNodeDelete
     }
 
     const refreshDiagram = () => {
