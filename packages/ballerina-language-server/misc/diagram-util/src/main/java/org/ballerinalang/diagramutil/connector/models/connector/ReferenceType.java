@@ -34,6 +34,7 @@ import org.ballerinalang.diagramutil.connector.models.connector.reftypes.RefType
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 public class ReferenceType {
     private static final Map<String, RefType> visitedTypeMap = new HashMap<>();
@@ -44,16 +45,28 @@ public class ReferenceType {
     public static RefType fromSemanticSymbol(Symbol symbol) {
         SymbolKind kind = symbol.kind();
         TypeSymbol typeSymbol = null;
+        String name = "";
         if (kind == SymbolKind.TYPE_DEFINITION) {
             typeSymbol = ((TypeDefinitionSymbol) symbol).typeDescriptor();
+            name = symbol.getName().orElse("");
         } else if (kind == SymbolKind.PARAMETER) {
             typeSymbol = ((ParameterSymbol) symbol).typeDescriptor();
+            name = typeSymbol.getName().orElse("");
         } else if (kind == SymbolKind.RECORD_FIELD) {
             typeSymbol = ((RecordFieldSymbol) symbol).typeDescriptor();
+            name = typeSymbol.getName().orElse("");
         } else if (kind == SymbolKind.VARIABLE) {
             typeSymbol = ((VariableSymbol) symbol).typeDescriptor();
+            Optional<String> nameOpt = typeSymbol.getName();
+            name = nameOpt.orElseGet(() -> symbol.getName().orElse(""));
         } else if (kind == SymbolKind.TYPE) {
             typeSymbol = (TypeSymbol) symbol;
+            Optional<String> optName = typeSymbol.getName();
+            name = optName.orElseGet(typeSymbol::signature);
+        } else if (kind == SymbolKind.CONSTANT) {
+            typeSymbol = ((VariableSymbol) symbol).typeDescriptor();
+            Optional<String> optName = typeSymbol.getName();
+            name = optName.orElseGet(() -> symbol.getName().orElseThrow());
         }
 
         if (typeSymbol == null) {
@@ -63,7 +76,7 @@ public class ReferenceType {
         String moduleId = symbol.getModule().isPresent()
                 ? symbol.getModule().get().id().toString()
                 : null;
-        RefType type = fromSemanticSymbol(typeSymbol, symbol.getName().orElseThrow(), moduleId);
+        RefType type = fromSemanticSymbol(typeSymbol, name, moduleId);
 
         for (String dependentTypeHash : type.dependentTypeHashes) {
             RefType dependentType = visitedTypeMap.get(dependentTypeHash);
@@ -165,19 +178,33 @@ public class ReferenceType {
                     : null;
             return fromSemanticSymbol(typeSymbol, name, moduleId);
         } else if (kind == TypeDescKind.INT) {
-            return new RefType("int");
+            RefType refType = new RefType("int");
+            refType.typeName = "int";
+            return refType;
         } else if (kind == TypeDescKind.STRING) {
-            return new RefType("string");
+            RefType refType = new RefType("string");
+            refType.typeName = "string";
+            return refType;
         } else if (kind == TypeDescKind.FLOAT) {
-            return new RefType("float");
+            RefType refType = new RefType("float");
+            refType.typeName = "float";
+            return refType;
         } else if (kind == TypeDescKind.BOOLEAN) {
-            return new RefType("boolean");
+            RefType refType = new RefType("boolean");
+            refType.typeName = "boolean";
+            return refType;
         } else if (kind == TypeDescKind.NIL) {
-            return new RefType("nil");
+            RefType refType = new RefType("nil");
+            refType.typeName = "nil";
+            return refType;
         } else if (kind == TypeDescKind.DECIMAL) {
-            return new RefType("decimal");
+            RefType refType = new RefType("decimal");
+            refType.typeName = "decimal";
+            return refType;
         } else if (kind == TypeDescKind.NEVER) {
-            return new RefType("never");
+            RefType refType = new RefType("never");
+            refType.typeName = "never";
+            return refType;
         }
         throw new UnsupportedOperationException(
                 "Unsupported type kind: " + kind + " for symbol: " + symbol.getName().orElse("unknown"));

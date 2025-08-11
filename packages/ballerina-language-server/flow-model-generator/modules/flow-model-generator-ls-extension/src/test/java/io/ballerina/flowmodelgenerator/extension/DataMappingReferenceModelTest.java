@@ -45,7 +45,9 @@ public class DataMappingReferenceModelTest extends AbstractLSTest {
     @Override
     protected Object[] getConfigsList() {
         return new Object[][]{
-                {Path.of("record1.json")}
+                {Path.of("record1.json")},
+                {Path.of("record2.json")},
+                {Path.of("array1.json")},
         };
     }
 
@@ -67,7 +69,7 @@ public class DataMappingReferenceModelTest extends AbstractLSTest {
             TestConfig updateConfig = new TestConfig(testConfig.source(), testConfig.description(),
                     testConfig.codedata(), testConfig.position(), testConfig.propertyKey(), testConfig.targetField(),
                     model);
-            updateConfig(configJsonPath, updateConfig);
+//            updateConfig(configJsonPath, updateConfig);
             compareJsonElements(model, testConfig.model());
             Assert.fail(String.format("Failed test: '%s' (%s)", testConfig.description(), configJsonPath));
         }
