@@ -40,7 +40,7 @@ export interface MigrationToolPullRequest {
 }
 
 export interface ImportIntegrationRPCRequest {
-    type: number;
+    commandName: string;
     packageName: string;
     sourcePath: string;
     [key: string]: any;

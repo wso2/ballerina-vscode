@@ -427,6 +427,7 @@ enum EXTENDED_APIS {
     COPILOT_FILTER_LIBRARIES = 'copilotLibraryManager/getFilteredLibraries',
     GET_MIGRATION_TOOLS = 'projectService/getMigrationTools',
     TIBCO_TO_BI = 'projectService/importTibco',
+    MULE_TO_BI = 'projectService/importMule',
     MIGRATION_TOOL_STATE = 'projectService/stateCallback',
     MIGRATION_TOOL_LOG = 'projectService/logCallback',
 }
@@ -1297,6 +1298,11 @@ export class ExtendedLangClient extends LanguageClient implements ExtendedLangCl
     async importTibcoToBI(params: ImportIntegrationRequest): Promise<ImportIntegrationResponse> {
         debug(`Importing Tibco to Ballerina: ${JSON.stringify(params)}`);
         return this.sendRequest<ImportIntegrationResponse>(EXTENDED_APIS.TIBCO_TO_BI, params);
+    }
+
+    async importMuleToBI(params: ImportIntegrationRequest): Promise<ImportIntegrationResponse> {
+        debug(`Importing Mule to Ballerina: ${JSON.stringify(params)}`);
+        return this.sendRequest<ImportIntegrationResponse>(EXTENDED_APIS.MULE_TO_BI, params);
     }
 
     // <------------ BI APIS END --------------->
