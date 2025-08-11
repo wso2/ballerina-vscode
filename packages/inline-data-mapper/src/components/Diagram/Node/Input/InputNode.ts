@@ -100,6 +100,13 @@ export class InputNode extends DataMapperNodeModel {
                     });
                 });
             } else if (this.filteredInputType.kind === TypeKind.Array) {
+                const focusedMemberId = this.filteredInputType?.focusedMemberId;
+                if (focusedMemberId) {
+                    const focusedMemberField = this.context.model.inputs.find(input => input.id === focusedMemberId);
+                    if (focusedMemberField) {
+                        this.filteredInputType.member = focusedMemberField;
+                    }
+                }
                 this.numberOfFields += this.addPortsForInputField({
                     field: this.filteredInputType?.member,
                     portType: "OUT",
