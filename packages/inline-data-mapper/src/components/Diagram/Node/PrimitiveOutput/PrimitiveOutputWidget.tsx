@@ -20,7 +20,7 @@ import React, { useState } from 'react';
 
 import { DiagramEngine } from '@projectstorm/react-diagrams';
 import { Button, Codicon, TruncatedLabel } from '@wso2/ui-toolkit';
-import { IOType } from '@wso2/ballerina-core';
+import { IOType, TypeKind } from '@wso2/ballerina-core';
 
 import { IDataMapperContext } from "../../../../utils/DataMapperContext/DataMapperContext";
 import { DataMapperPortWidget, PortState, InputOutputPortModel } from '../../Port';
@@ -66,7 +66,8 @@ export function PrimitiveOutputWidget(props: PrimitiveOutputWidgetProps) {
 		}))
 	);
 
-	const portIn = getPort(`${id}.HEADER.IN`);
+	const portIn = getPort(`${id}.IN`);
+	const isUnknownType = outputType.kind === TypeKind.Unknown;
 
 	let expanded = true;
 	if ((portIn && portIn.attributes.collapsed)) {
@@ -104,7 +105,7 @@ export function PrimitiveOutputWidget(props: PrimitiveOutputWidgetProps) {
 					<OutputSearchHighlight>{valueLabel}</OutputSearchHighlight>
 				</span>
 			)}
-			<span className={classes.typeLabel}>
+			<span className={isUnknownType ? classes.unknownTypeLabel : classes.typeLabel}>
 				{typeName || ''}
 			</span>
 		</TruncatedLabel>
@@ -127,7 +128,7 @@ export function PrimitiveOutputWidget(props: PrimitiveOutputWidgetProps) {
 					onMouseLeave={onMouseLeave}
 				>
 					<span className={classes.inPort}>
-						{portIn && (
+						{portIn && !expanded&& (
 							<DataMapperPortWidget
 								engine={engine}
 								port={portIn}

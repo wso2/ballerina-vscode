@@ -24,7 +24,7 @@ import { Button, Icon, ProgressRing, TruncatedLabel } from "@wso2/ui-toolkit";
 
 import { IDataMapperContext } from "../../../../utils/DataMapperContext/DataMapperContext";
 import { DataMapperPortWidget, PortState, InputOutputPortModel } from "../../Port";
-import { fieldFQNFromPortName, getDefaultValue, getSanitizedId } from "../../utils/common-utils";
+import { getDefaultValue, getSanitizedId } from "../../utils/common-utils";
 import { OutputSearchHighlight } from "../commons/Search";
 import { ValueConfigMenu, ValueConfigOption } from "../commons/ValueConfigButton";
 import { useIONodesStyles } from "../../../styles";
@@ -34,6 +34,7 @@ import FieldActionWrapper from "../commons/FieldActionWrapper";
 import { IOType } from "@wso2/ballerina-core";
 import { removeMapping } from "../../utils/modification-utils";
 import { useShallow } from "zustand/react/shallow";
+import { PrimitiveOutputNode } from ".";
 
 export interface PrimitiveOutputElementWidgetWidgetProps {
     parentId: string;
@@ -81,7 +82,7 @@ export function PrimitiveOutputElementWidget(props: PrimitiveOutputElementWidget
     const portIn = getPort(`${portName}.IN`);
     const isExprBarFocused = exprBarFocusedPort?.getName() === portIn?.getName();
     const mapping = portIn && portIn.attributes.value;
-    const { expression, diagnostics } = mapping || {};
+    let { expression, diagnostics } = mapping || {};
 
     const handleEditValue = () => {
         if (portIn)
@@ -99,11 +100,10 @@ export function PrimitiveOutputElementWidget(props: PrimitiveOutputElementWidget
 
     const valueConfigMenuItems = useMemo(() => {
         const items = [
-            // {
-            //     title: ValueConfigOption.EditValue,
-            //     onClick: handleEditValue
-            // }
-            // TODO: Enable this after adding support for editing value
+            {
+                title: ValueConfigOption.EditValue,
+                onClick: handleEditValue
+            }
         ];
         if (isArrayElement) {
             items.push({

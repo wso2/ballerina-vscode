@@ -177,7 +177,7 @@ const AIChat: React.FC = () => {
 
     const { feedbackGiven, setFeedbackGiven, handleFeedback } = useFeedback({
         messages,
-        currentDiagnosticsRef
+        currentDiagnosticsRef,
     });
 
     /**
@@ -213,8 +213,8 @@ const AIChat: React.FC = () => {
             chatLocation = (await rpcClient.getVisualizerLocation()).projectUri;
             setIsReqFileExists(
                 chatLocation != null &&
-                chatLocation != undefined &&
-                (await rpcClient.getAiPanelRpcClient().isRequirementsSpecificationFileExist(chatLocation))
+                    chatLocation != undefined &&
+                    (await rpcClient.getAiPanelRpcClient().isRequirementsSpecificationFileExist(chatLocation))
             );
 
             generateNaturalProgrammingTemplate(isReqFileExists);
@@ -312,14 +312,49 @@ const AIChat: React.FC = () => {
             setIsCodeLoading(false);
             setIsLoading(false);
             const command = response.command;
-            addChatEntry("user", messages[messages.length - 2].content, command != undefined && command == Command.Code ); // Handle this in input layer?
+            addChatEntry(
+                "user",
+                messages[messages.length - 2].content,
+                command != undefined && command == Command.Code
+            ); // Handle this in input layer?
             addChatEntry("assistant", messages[messages.length - 1].content);
         } else if (type === "error") {
             console.log("Received error signal");
             const errorTemplate = `\n\n<error data-system="true" data-auth="${SYSTEM_ERROR_SECRET}">${response.content}</error>`;
             setMessages((prevMessages) => {
                 const newMessages = [...prevMessages];
-                newMessages[newMessages.length - 1].content += errorTemplate;
+                let content = newMessages[newMessages.length - 1].content;
+
+                // Check if there's an unclosed code block and close it properly
+                const codeBlockPattern = /<code filename="[^"]+">[\s]*```\w+/g;
+                const openCodeBlocks = (content.match(codeBlockPattern) || []).length;
+                const closedCodeBlocks = (content.match(/<\/code>/g) || []).length;
+
+                if (openCodeBlocks > closedCodeBlocks) {
+                    // Check what's missing at the end
+                    const endsWithPartialClose = /```\s*<\/cod?e?$/.test(content.trim());
+                    const endsWithBackticks = /```\s*$/.test(content.trim());
+                    const endsWithPartialBackticks = /`{1,2}$/.test(content.trim());
+
+                    if (endsWithPartialClose) {
+                        // Remove partial closing and add complete one
+                        content = content.replace(/```\s*<\/cod?e?$/, "");
+                        content += "\n```\n</code>";
+                    } else if (endsWithBackticks) {
+                        // Already has ```, just need </code>
+                        content += "\n</code>";
+                    } else if (endsWithPartialBackticks) {
+                        // Remove partial backticks and add complete closing
+                        content = content.replace(/`{1,2}$/, "");
+                        content += "\n```\n</code>";
+                    } else {
+                        // No closing elements, add both
+                        content += "\n```\n</code>";
+                    }
+                }
+
+                newMessages[newMessages.length - 1].content = content + errorTemplate;
+                console.log(newMessages);
                 return newMessages;
             });
             setIsCodeLoading(false);
@@ -470,7 +505,11 @@ const AIChat: React.FC = () => {
         }, message);
     }
 
-    async function processContent(content: { input: Input[]; attachments: Attachment[]; metadata?: Record<string, any> }) {
+    async function processContent(content: {
+        input: Input[];
+        attachments: Attachment[];
+        metadata?: Record<string, any>;
+    }) {
         const inputText = stringifyInputArrayWithBadges(content.input);
         const parsedInput = parseInput(content.input, commandTemplates);
         const attachments = content.attachments;
@@ -479,10 +518,7 @@ const AIChat: React.FC = () => {
         if (parsedInput && "type" in parsedInput && parsedInput.type === "error") {
             throw new Error(parsedInput.message);
         } else if ("text" in parsedInput && !("command" in parsedInput)) {
-            await processCodeGeneration(
-                [parsedInput.text, attachments, CodeGenerationType.CODE_GENERATION],
-                inputText
-            );
+            await processCodeGeneration([parsedInput.text, attachments, CodeGenerationType.CODE_GENERATION], inputText);
         } else if ("command" in parsedInput) {
             switch (parsedInput.command) {
                 case Command.NaturalProgramming: {
@@ -548,10 +584,7 @@ const AIChat: React.FC = () => {
                             );
                             break;
                     }
-                    await processCodeGeneration(
-                        [useCase, attachments, CodeGenerationType.CODE_GENERATION],
-                        inputText
-                    );
+                    await processCodeGeneration([useCase, attachments, CodeGenerationType.CODE_GENERATION], inputText);
                     break;
                 }
                 case Command.Tests: {
@@ -606,11 +639,7 @@ const AIChat: React.FC = () => {
                             );
                             break;
                         case "inline-mappings":
-                            await processInlineMappingParameters(
-                                inputText,
-                                metadata,
-                                attachments,
-                            );
+                            await processInlineMappingParameters(inputText, metadata, attachments);
                             break;
                     }
                     break;
@@ -700,10 +729,10 @@ const AIChat: React.FC = () => {
             usecase: useCase,
             chatHistory: chatArray,
             operationType,
-            fileAttachmentContents: fileAttatchments
+            fileAttachmentContents: fileAttatchments,
         };
 
-        await rpcClient.getAiPanelRpcClient().generateCode(requestBody)
+        await rpcClient.getAiPanelRpcClient().generateCode(requestBody);
     }
 
     // Helper function to escape regex special characters in a string
@@ -1000,7 +1029,7 @@ const AIChat: React.FC = () => {
             const requestBody: TestPlanGenerationRequest = {
                 targetType: targetType === "service" ? TestGenerationTarget.Service : TestGenerationTarget.Function,
                 targetSource: targetSource,
-                target: target
+                target: target,
             };
 
             await rpcClient.getAiPanelRpcClient().generateTestPlan(requestBody);
@@ -1016,7 +1045,6 @@ const AIChat: React.FC = () => {
             }
         }
     }
-
 
     // Process records from another package
     function processRecordReference(
@@ -1086,14 +1114,14 @@ const AIChat: React.FC = () => {
             });
 
             const fileName = func.filePath.split("/").pop();
-            const contentLines = functionContent.split('\n');
+            const contentLines = functionContent.split("\n");
             // Filter out commented lines (both // and # style comments)
-            const nonCommentedLines = contentLines.filter(line => {
+            const nonCommentedLines = contentLines.filter((line) => {
                 const trimmedLine = line.trim();
-                return !(trimmedLine.startsWith('//') || trimmedLine.startsWith('#'));
+                return !(trimmedLine.startsWith("//") || trimmedLine.startsWith("#"));
             });
-            const cleanContent = nonCommentedLines.join('\n');
-            
+            const cleanContent = nonCommentedLines.join("\n");
+
             const signatureRegex = /function\s+(\w+)\s*\(([^)]*)\)\s*returns\s+([^{=]+)(?:\s*=>\s*)?/g;
 
             // Use matchAll to find all function signatures in the content
@@ -1317,51 +1345,67 @@ const AIChat: React.FC = () => {
         addChatEntry("assistant", assistant_response);
     }
 
-    async function processInlineMappingParameters(message: string, metadata?: Record<string, any>, attachments?: Attachment[],) {
+    async function processInlineMappingParameters(
+        message: string,
+        metadata?: Record<string, any>,
+        attachments?: Attachment[]
+    ) {
         let assistant_response = "";
         let finalContent = "";
-        let fileName = metadata.codeData.lineRange.fileName
+
+        if (!metadata || Object.keys(metadata).length === 0) {
+            throw new Error(`Please make sure variables are initialized, and then try again.`);
+        }
+
+        let fileName = metadata.codeData.lineRange.fileName;
         const variableName = metadata.name;
         const typeName = metadata.mappingsModel.output.typeName;
 
         setIsLoading(true);
 
-        const requestPayload: any = {
-            backendUri: "",
-            token: "",
-            metadata
-        };
-        if (attachments && attachments.length > 0) {
-            requestPayload.attachment = attachments;
+        try {
+            const requestPayload: any = {
+                metadata,
+            };
+            if (attachments && attachments.length > 0) {
+                requestPayload.attachment = attachments;
+            }
+            const allMappingsRequest = await rpcClient.getAiPanelRpcClient().getMappingsFromModel(requestPayload);
+            const sourceResponse = await rpcClient
+                .getInlineDataMapperRpcClient()
+                .getAllDataMapperSource(allMappingsRequest);
+
+            setIsLoading(false);
+
+            finalContent = sourceResponse.textEdits[allMappingsRequest.filePath]?.[0]?.newText;
+
+            assistant_response = `Here are the data mappings:\n\n`;
+            assistant_response += `\n**Note**: When you click **Add to Integration**, it will override your existing mappings.\n`;
+
+            const moduleInfo = metadata.mappingsModel.output.moduleInfo;
+            const hasModuleInfo = moduleInfo && moduleInfo.moduleName;
+
+            const typePrefix = hasModuleInfo ? `${moduleInfo.moduleName.split(".").pop()}:${typeName}` : typeName;
+
+            const formattedContent = `${typePrefix} ${variableName} = {\n${formatWithProperIndentation(
+                finalContent
+            )}\n};`;
+
+            assistant_response += `<code filename="${fileName}" type="ai_map_inline">\n\`\`\`ballerina\n${formattedContent}\n\`\`\`\n</code>`;
+
+            setMessages((prevMessages) => {
+                const newMessages = [...prevMessages];
+                newMessages[newMessages.length - 1].content = assistant_response;
+                return newMessages;
+            });
+            addChatEntry("user", message);
+            addChatEntry("assistant", assistant_response);
+
+            return { success: true, response: assistant_response };
+        } catch (error) {
+            setIsLoading(false);
+            return { error: error instanceof Error ? error.message : "An unexpected error occurred" };
         }
-        const allMappingsRequest = await rpcClient.getAiPanelRpcClient().getMappingsFromModel(requestPayload);
-        const sourceResponse = await rpcClient.getInlineDataMapperRpcClient().getAllDataMapperSource(allMappingsRequest);
-
-        setIsLoading(false);
-
-        finalContent = sourceResponse.textEdits[allMappingsRequest.filePath]?.[0]?.newText;
-
-        assistant_response = `Here are the data mappings:\n\n`;
-        assistant_response += `\n**Note**: When you click **Add to Integration**, it will override your existing mappings.\n`;
-        
-        const moduleInfo = metadata.mappingsModel.output.moduleInfo;
-        const hasModuleInfo = moduleInfo && moduleInfo.moduleName;
-
-        const typePrefix = hasModuleInfo
-            ? `${moduleInfo.moduleName.split('.').pop()}:${typeName}`
-            : typeName;
-
-        const formattedContent = `${typePrefix} ${variableName} = {\n${formatWithProperIndentation(finalContent)}\n};`;
-        
-        assistant_response += `<code filename="${fileName}" type="ai_map_inline">\n\`\`\`ballerina\n${formattedContent}\n\`\`\`\n</code>`;
-
-        setMessages((prevMessages) => {
-            const newMessages = [...prevMessages];
-            newMessages[newMessages.length - 1].content = assistant_response;
-            return newMessages;
-        });
-        addChatEntry("user", message);
-        addChatEntry("assistant", assistant_response);
     }
 
     async function processContextTypeCreation(message: string, attachments: Attachment[]) {
@@ -1429,17 +1473,17 @@ const AIChat: React.FC = () => {
         let formatted_response = ";";
         setIsLoading(true);
         try {
-            assistant_response = await rpcClient.getAiPanelRpcClient().getFromDocumentation(messageBody);            
+            assistant_response = await rpcClient.getAiPanelRpcClient().getFromDocumentation(messageBody);
             formatted_response = assistant_response.replace(
                 /^([ \t]*)```ballerina\s*\n([\s\S]*?)^[ \t]*```/gm,
                 (_, indent, codeBlock) => {
-                  // Remove the common indent from all lines in the code block
-                  const cleanedCode = codeBlock
-                    .split('\n')
-                    .map((line: string) => line.startsWith(indent) ? line.slice(indent.length) : line)
-                    .join('\n');
-                    
-                  return `<inlineCode>\n${cleanedCode}\n<inlineCode>`;
+                    // Remove the common indent from all lines in the code block
+                    const cleanedCode = codeBlock
+                        .split("\n")
+                        .map((line: string) => (line.startsWith(indent) ? line.slice(indent.length) : line))
+                        .join("\n");
+
+                    return `<inlineCode>\n${cleanedCode}\n<inlineCode>`;
                 }
             );
 
@@ -1467,14 +1511,13 @@ const AIChat: React.FC = () => {
     }
 
     async function processHealthcareCodeGeneration(useCase: string, message: string) {
-
         const requestBody: GenerateCodeRequest = {
             usecase: useCase,
             chatHistory: chatArray,
             fileAttachmentContents: [],
             operationType: CodeGenerationType.CODE_GENERATION,
         };
-        await rpcClient.getAiPanelRpcClient().generateHealthcareCode(requestBody)
+        await rpcClient.getAiPanelRpcClient().generateHealthcareCode(requestBody);
     }
 
     async function processOpenAPICodeGeneration(useCase: string, message: string) {
@@ -1661,7 +1704,7 @@ const AIChat: React.FC = () => {
         await rpcClient.getAiPanelRpcClient().repairGeneratedCode({
             diagnostics: currentDiagnostics,
             assistantResponse: messages[messages.length - 1].content,
-            previousMessages: messagesRef.current
+            previousMessages: messagesRef.current,
         });
     };
 
@@ -1699,7 +1742,7 @@ const AIChat: React.FC = () => {
                             const showGeneratingFiles = !codeSegmentRendered && index === currentGeneratingPromptIndex;
                             const isLastResponse = index === currentGeneratingPromptIndex;
                             const isAssistantMessage = message.role === "Copilot";
-                            const lastAssistantIndex = otherMessages.map(m => m.role).lastIndexOf("Copilot");
+                            const lastAssistantIndex = otherMessages.map((m) => m.role).lastIndexOf("Copilot");
                             const isLatestAssistantMessage = isAssistantMessage && index === lastAssistantIndex;
                             codeSegmentRendered = false;
 
@@ -1763,7 +1806,9 @@ const AIChat: React.FC = () => {
                                                         isReady={!isCodeLoading}
                                                         message={message}
                                                         buttonsActive={showGeneratingFiles}
-                                                        isSyntaxError={isContainsSyntaxError(currentDiagnosticsRef.current)}
+                                                        isSyntaxError={isContainsSyntaxError(
+                                                            currentDiagnosticsRef.current
+                                                        )}
                                                         command={segment.command}
                                                         diagnostics={currentDiagnosticsRef.current}
                                                         onRetryRepair={handleRetryRepair}
@@ -1875,14 +1920,14 @@ const AIChat: React.FC = () => {
                                             return <MarkdownRenderer key={i} markdownContent={segment.text} />;
                                         }
                                     })}
-                                                            {/* Show feedback bar only for the latest assistant message and when loading is complete */}
-                            {isAssistantMessage && isLatestAssistantMessage && !isLoading && !isCodeLoading && (
-                                <FeedbackBar 
-                                    messageIndex={index}
-                                    onFeedback={handleFeedback}
-                                    currentFeedback={feedbackGiven}
-                                />
-                            )}
+                                    {/* Show feedback bar only for the latest assistant message and when loading is complete */}
+                                    {isAssistantMessage && isLatestAssistantMessage && !isLoading && !isCodeLoading && (
+                                        <FeedbackBar
+                                            messageIndex={index}
+                                            onFeedback={handleFeedback}
+                                            currentFeedback={feedbackGiven}
+                                        />
+                                    )}
                                 </ChatMessage>
                             );
                         })}
@@ -2260,18 +2305,16 @@ function transformProjectSource(project: ProjectSource): SourceFiles[] {
     return sourceFiles;
 }
 
-
 function isContainsSyntaxError(diagnostics: DiagnosticEntry[]): boolean {
     return diagnostics.some((diag) => {
-            if (typeof diag.code === "string" && diag.code.startsWith("BCE")) {
-                const match = diag.code.match(/^BCE(\d+)$/);
-                if (match) {
-                    const codeNumber = Number(match[1]);
-                    if (codeNumber < 2000) {
-                        return true;
-                    }
+        if (typeof diag.code === "string" && diag.code.startsWith("BCE")) {
+            const match = diag.code.match(/^BCE(\d+)$/);
+            if (match) {
+                const codeNumber = Number(match[1]);
+                if (codeNumber < 2000) {
+                    return true;
                 }
             }
         }
-    );
+    });
 }

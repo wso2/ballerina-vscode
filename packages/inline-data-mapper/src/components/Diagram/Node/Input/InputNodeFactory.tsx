@@ -38,7 +38,12 @@ export class InputNodeFactory extends AbstractReactFactory<InputNode, DiagramEng
             return (
                 <InputSearchNoResultFound kind={SearchNoResultFoundKind.InputField} />
             );
-        } else if (event.model.filteredInputType && event.model.filteredInputType.kind === TypeKind.Record) {
+        } else if (event.model.filteredInputType &&
+                (event.model.filteredInputType.kind === TypeKind.Record ||
+                    event.model.filteredInputType.kind === TypeKind.Array ||
+                    event.model.filteredInputType.kind === TypeKind.Enum
+                )
+            ) {
             return (
                 <InputNodeWidget
                     engine={this.engine}

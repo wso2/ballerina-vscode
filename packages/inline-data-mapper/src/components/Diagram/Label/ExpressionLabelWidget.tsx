@@ -18,7 +18,7 @@
 // tslint:disable: jsx-no-multiline-js
 import React, { MouseEvent, ReactNode, useEffect, useState } from 'react';
 
-import { IDMType, TypeKind } from '@wso2/ballerina-core';
+import { IDMType, ResultClauseType, TypeKind } from '@wso2/ballerina-core';
 import { Button, Codicon, ProgressRing } from '@wso2/ui-toolkit';
 import { css } from '@emotion/css';
 import classNames from "classnames";
@@ -29,7 +29,7 @@ import { isSourcePortArray, isTargetPortArray } from '../utils/link-utils';
 import { DataMapperLinkModel, MappingType } from '../Link';
 import { CodeActionWidget } from '../CodeAction/CodeAction';
 import { InputOutputPortModel } from '../Port';
-import { mapWithCustomFn } from '../utils/modification-utils';
+import { mapWithCustomFn, mapWithQuery } from '../utils/modification-utils';
 import { getMappingType } from '../utils/common-utils';
 import { useDMExpressionBarStore } from "../../../store/store";
 
@@ -118,7 +118,6 @@ export function ExpressionLabelWidget(props: ExpressionLabelWidgetProps) {
     const setExprBarFocusedPort = useDMExpressionBarStore(state => state.setFocusedPort);
 
     const { link, value, deleteLink, context, collectClauseFn } = props.model;
-    const { convertToQuery } = context || {};
     const targetPort = link?.getTargetPort() as InputOutputPortModel;
     const diagnostic = link && link.hasError() ? link.diagnostics[0] || link.diagnostics[0] : null;
 
@@ -218,9 +217,7 @@ export function ExpressionLabelWidget(props: ExpressionLabelWidgetProps) {
     ];
 
     const onClickMapWithQuery = async () => {
-        const varName = context.views[0].targetField;
-        const viewId = context.views[context.views.length - 1].targetField;
-        await convertToQuery(`${targetPort.attributes.value.output}`, `${viewId}`, `${varName}`);
+        await mapWithQuery(link, ResultClauseType.SELECT, context);
     };
 
     const onClickMapWithCustomFn = async () => {

@@ -37,6 +37,15 @@ import { IDataMapperContext } from "../../../utils/DataMapperContext/DataMapperC
 import { View } from "../../../components/DataMapper/Views/DataMapperView";
 import { useDMExpandedFieldsStore } from "../../../store/store";
 
+const MERGEABLE_TYPES = new Set([
+	TypeKind.String,
+	TypeKind.Int,
+	TypeKind.Float,
+	TypeKind.Decimal,
+	"anydata",
+	"any"
+]);
+
 export function findMappingByOutput(mappings: Mapping[], outputId: string): Mapping {
     return mappings.find(mapping => (mapping.output === outputId || mapping.output.replaceAll("\"", "") === outputId));
 }
@@ -47,14 +56,24 @@ export function isPendingMappingRequired(mappingType: MappingType): boolean {
 
 export function getMappingType(sourcePort: PortModel, targetPort: PortModel): MappingType {
 
-    if (sourcePort instanceof InputOutputPortModel
-        && targetPort instanceof InputOutputPortModel
-        && targetPort.attributes.field && sourcePort.attributes.field) {
-
-        const sourceField = sourcePort.attributes.field;
-        const targetField = targetPort.attributes.field;
+    if (sourcePort instanceof InputOutputPortModel &&
+        targetPort instanceof InputOutputPortModel &&
+        targetPort.attributes.field &&
+        sourcePort.attributes.field
+    ) {
 
         if (targetPort.getParent() instanceof PrimitiveOutputNode) return MappingType.ArrayToSingletonWithCollect;
+
+        const sourceNode = sourcePort.getNode();
+
+        let sourceField = sourcePort.attributes.field;
+        if (sourceNode instanceof InputNode
+            && sourceNode.filteredInputType?.kind === TypeKind.Enum
+        ) {
+            sourceField = sourceNode.filteredInputType;
+        }
+
+        const targetField = targetPort.attributes.field;
             
         const sourceDim = getDMTypeDim(sourceField);
         const targetDim = getDMTypeDim(targetField);
@@ -65,9 +84,10 @@ export function getMappingType(sourcePort: PortModel, targetPort: PortModel): Ma
             if (dimDelta > 0) return MappingType.ArrayToSingleton;
         }
 
-        if ((sourceField.kind !== targetField.kind)
-            || (sourceField.typeName !== targetField.typeName)
-            || sourceField.typeName === "record") {
+        if (sourceField.kind !== targetField.kind ||
+            sourceField.typeName !== targetField.typeName ||
+            sourceField.typeName === TypeKind.Record
+        ) {
             return MappingType.Incompatible;
         }
 
@@ -77,14 +97,26 @@ export function getMappingType(sourcePort: PortModel, targetPort: PortModel): Ma
 }
 
 export function getValueType(lm: DataMapperLinkModel): ValueType {
-    const { attributes: { field, value } } = lm.getTargetPort() as InputOutputPortModel;
+	const { attributes: { field, value } } = lm.getTargetPort() as InputOutputPortModel;
 
-    if (value !== undefined) {
-        return isDefaultValue(field, value.expression) ? ValueType.Default : ValueType.NonEmpty;
-    }
+	if (value !== undefined) {
+        const isDefault = isDefaultValue(field, value.expression);
+        if (isDefault) {
+            return ValueType.Replaceable;
+        } else {
+            return isMergeable(field.kind)
+                ? ValueType.Mergeable
+                : ValueType.Replaceable;
+        }
+	}
 
-    return ValueType.Empty;
+	return ValueType.Empty;
 }
+
+export function isMergeable(typeName: string): boolean {
+	return MERGEABLE_TYPES.has(typeName);
+}
+
 
 export function genArrayElementAccessSuffix(sourcePort: PortModel, targetPort: PortModel) {
     if (sourcePort instanceof InputOutputPortModel && targetPort instanceof InputOutputPortModel) {
@@ -101,9 +133,23 @@ export function genArrayElementAccessSuffix(sourcePort: PortModel, targetPort: P
 };
 
 export function isDefaultValue(field: IOType, value: string): boolean {
+    // For numeric types, compare the parsed values instead of string comparison
+	if (field?.kind === TypeKind.Int || 
+		field?.kind === TypeKind.Float || 
+		field?.kind === TypeKind.Decimal
+    ) {
+
+		// Clean the value by removing suffixes like 'f' for floats and 'd' for decimals
+		const cleanValue = value?.trim().replace(/[fd]$/i, '');
+		const numericValue = parseFloat(cleanValue);
+		
+		// Check if it's a valid number and equals 0
+		return !isNaN(numericValue) && numericValue === 0;
+	}
+
 	const defaultValue = getDefaultValue(field?.kind);
     const targetValue =  value?.trim().replace(/(\r\n|\n|\r|\s)/g, "")
-	return targetValue === "null" ||  defaultValue === targetValue;
+	return targetValue === "null" || targetValue === "()" ||  defaultValue === targetValue;
 }
 
 export function getDefaultValue(typeKind: TypeKind): string {
@@ -213,4 +259,14 @@ export function handleExpand(id: string, expanded: boolean) {
 	} else {
 		useDMExpandedFieldsStore.getState().setFields([...expandedFields, id]);
 	}
+}
+
+export function isExpandable(field: IOType): boolean {
+    return field?.kind === TypeKind.Record ||
+        field?.kind === TypeKind.Array ||
+        field?.kind === TypeKind.Enum;
+}
+
+export function getTargetField(viewId: string, outputId: string){
+    return [...viewId.split("."), ...outputId.split(".").slice(1)].join(".");
 }

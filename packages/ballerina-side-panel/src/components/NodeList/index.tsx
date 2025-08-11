@@ -367,7 +367,7 @@ export function NodeList(props: NodeListProps) {
                                         if (el && el.scrollWidth > el.clientWidth) {
                                             el.style.fontSize = "13px";
                                             el.style.wordBreak = "break-word";
-                                            el.style.whiteSpace = "normal";
+                                            el.style.whiteSpace = "nowrap";
                                         }
                                     }}
                                 >
