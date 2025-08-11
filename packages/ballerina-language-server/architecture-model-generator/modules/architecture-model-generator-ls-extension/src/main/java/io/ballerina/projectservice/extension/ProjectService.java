@@ -22,10 +22,13 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
 import io.ballerina.projectservice.core.MigrationTool;
+import io.ballerina.projectservice.core.MuleImporter;
 import io.ballerina.projectservice.core.TibcoImporter;
 import io.ballerina.projectservice.core.ToolExecutionResult;
 import io.ballerina.projectservice.core.baltool.BalToolsUtil;
+import io.ballerina.projectservice.extension.request.ImportMuleRequest;
 import io.ballerina.projectservice.extension.request.ImportTibcoRequest;
+import io.ballerina.projectservice.extension.response.ImportMuleResponse;
 import io.ballerina.projectservice.extension.response.ImportTibcoResponse;
 import io.ballerina.projectservice.extension.response.MigrationToolListResponse;
 import org.ballerinalang.annotation.JavaSPIService;
@@ -104,6 +107,27 @@ public class ProjectService implements ExtendedLanguageServerService {
             ToolExecutionResult result = TibcoImporter.importTibco(request.orgName(), request.packageName(),
                     request.sourcePath(), stateCallback, logCallback);
             return ImportTibcoResponse.from(result);
+        });
+    }
+
+    /**
+     * Use a mule project or file to import a Mule project into the Ballerina project.
+     *
+     * @param request The request containing the details of the Mule project to be imported.
+     * @return A CompletableFuture that resolves to an ImportMuleResponse.
+     */
+    @JsonRequest
+    public CompletableFuture<ImportMuleResponse> importMule(ImportMuleRequest request) {
+        return CompletableFuture.supplyAsync(() -> {
+            ExtendedLanguageClient langClient = this.context.get(ExtendedLanguageClient.class);
+            if (langClient == null) {
+                new ImportMuleResponse("Language client not available", null, null);
+            }
+            Consumer<String> stateCallback = langClient::stateCallback;
+            Consumer<String> logCallback = langClient::logCallback;
+            ToolExecutionResult result = MuleImporter.importMule(request.orgName(), request.packageName(),
+                    request.sourcePath(), stateCallback, logCallback);
+            return ImportMuleResponse.from(result);
         });
     }
 

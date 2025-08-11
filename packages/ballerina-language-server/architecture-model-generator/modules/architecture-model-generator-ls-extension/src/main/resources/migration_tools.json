@@ -3,7 +3,7 @@
     "id": 1,
     "title": "MuleSoft",
     "commandName": "migrate-mule",
-    "requiredVersion": "1.3.0",
+    "requiredVersion": "1.2.0",
     "description": "Select your MuleSoft project's root folder or main configuration XML file.",
     "parameters": []
   },
@@ -14,32 +14,5 @@
     "requiredVersion": "1.2.7",
     "description": "Select your TIBCO BusinessWorks project folder or main configuration file.",
     "parameters": []
-  },
-  {
-    "id": 3,
-    "title": "Logic Apps",
-    "commandName": "migrate-logic-apps",
-    "requiredVersion": "1.0.0",
-    "description": "Select your Azure Logic Apps project folder or main configuration file.",
-    "parameters": [
-      {
-        "key": "keepStructure",
-        "label": "Preserve Original Process Flow",
-        "valueType": "boolean",
-        "defaultValue": "false"
-      },
-      {
-        "key": "multiRoot",
-        "label": "Treat each Directory as a Separate Project",
-        "valueType": "boolean",
-        "defaultValue": "false"
-      },
-      {
-        "key": "prompt",
-        "label": "Describe the Logic App for AI Conversion",
-        "valueType": "string",
-        "defaultValue": ""
-      }
-    ]
   }
 ]
