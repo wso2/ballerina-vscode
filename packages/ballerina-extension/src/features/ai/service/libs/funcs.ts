@@ -35,7 +35,7 @@ export async function selectRequiredFunctions(prompt: string, selectedLibNames: 
         const resp: GetTypeResponse[] = await getRequiredTypesFromLibJson(selectedLibNames, prompt, selectedLibs);
         typeLibraries = toTypesToLibraries(resp, selectedLibs);
     }
-    const maximizedLibraries: Library[] = toMaximizedLibrariesFromLibJson(functionsResponse, selectedLibs);
+    const maximizedLibraries: Library[] = await toMaximizedLibrariesFromLibJson(functionsResponse, selectedLibs);
     
     // Merge typeLibraries and maximizedLibraries without duplicates
     const mergedLibraries = mergeLibrariesWithoutDuplicates(maximizedLibraries, typeLibraries);
@@ -293,7 +293,7 @@ export async function getMaximizedSelectedLibs(libNames:string[], generationType
     return result.libraries as Library[];
 }
 
-export function toMaximizedLibrariesFromLibJson(functionResponses: GetFunctionResponse[], originalLibraries: Library[]): Library[] {
+export async function toMaximizedLibrariesFromLibJson(functionResponses: GetFunctionResponse[], originalLibraries: Library[]): Promise<Library[]> {
     const minifiedLibrariesWithoutRecords: Library[] = [];
     
     for (const funcResponse of functionResponses) {
@@ -321,7 +321,7 @@ export function toMaximizedLibrariesFromLibJson(functionResponses: GetFunctionRe
     
     // Handle external type references
     const externalRecordsRefs = getExternalTypeDefsRefs(minifiedLibrariesWithoutRecords);
-    getExternalRecords(minifiedLibrariesWithoutRecords, externalRecordsRefs, originalLibraries);
+    await getExternalRecords(minifiedLibrariesWithoutRecords, externalRecordsRefs, originalLibraries);
     
     return minifiedLibrariesWithoutRecords;
 }
@@ -629,27 +629,36 @@ function addLibraryRecords(externalRecords: Map<string, string[]>, libraryName: 
     }
 }
 
-function getExternalRecords(
+async function getExternalRecords(
     newLibraries: Library[], 
     libRefs: Map<string, string[]>, 
     originalLibraries: Library[]
-): void {
+): Promise<void> {
     for (const [libName, recordNames] of libRefs.entries()) {
         if (libName.startsWith("ballerina/lang.int")) {
             // TODO: find a proper solution
             continue;
         }
-        
-        const library = originalLibraries.find(lib => lib.name === libName);
+
+        let library = originalLibraries.find(lib => lib.name === libName);
         if (!library) {
-            console.warn(`Library ${libName} is not found in the context. Skipping the library.`);
-            continue;
+            console.warn(`Library ${libName} is not found in the context. Fetching library details.`);
+            const result = (await langClient.getCopilotFilteredLibraries({
+                libNames: [libName],
+                mode: getGenerationMode(GenerationType.CODE_GENERATION),
+            })) as { libraries: Library[] };
+            library = result.libraries[0];
+            if (!library) {
+                console.warn(`Library ${libName} could not be fetched. Skipping the library.`);
+                continue;
+            }
+            console.log(`[getExternalRecords] Fetched library ${libName}:`, library);
         }
-        
+
         for (const recordName of recordNames) {
             const typeDef = getTypeDefByName(recordName, library.typeDefs);
             if (!typeDef) {
-                console.warn(`Record ${recordName} is not found in the context. Skipping the record.`);
+                console.warn(`Record ${recordName} is not found in library ${libName}. Skipping the record.`);
                 continue;
             }
             
