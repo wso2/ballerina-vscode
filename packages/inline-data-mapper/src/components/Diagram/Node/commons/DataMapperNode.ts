@@ -41,6 +41,7 @@ interface InputPortAttributes {
 	collapsed?: boolean;
 	isOptional?: boolean;
 	focusedFieldFQNs?: string[];
+	isPreview?: boolean;
 };
 
 interface OutputPortAttributes {

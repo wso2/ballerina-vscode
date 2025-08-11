@@ -41,7 +41,7 @@ export class PrimitiveOutputNodeFactory extends AbstractReactFactory<PrimitiveOu
 				) : (
 					<PrimitiveOutputWidget
 						engine={this.engine}
-						id={`${PRIMITIVE_OUTPUT_TARGET_PORT_PREFIX}.${event.model.rootName}`}
+						id={PRIMITIVE_OUTPUT_TARGET_PORT_PREFIX}
 						outputType={event.model.outputType}
 						typeName={event.model.typeName}
 						getPort={(portId: string) => event.model.getPort(portId) as InputOutputPortModel}

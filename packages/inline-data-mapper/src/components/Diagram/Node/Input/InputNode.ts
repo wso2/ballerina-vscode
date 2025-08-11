@@ -54,7 +54,10 @@ export class InputNode extends DataMapperNodeModel {
         if (this.filteredInputType) {
             const collapsedFields = useDMCollapsedFieldsStore.getState().fields;
             const expandedFields = useDMExpandedFieldsStore.getState().fields;
-            const focusedFieldFQNs = this.context.model.query?.inputs || [];
+            const focusedFieldFQNs = [
+                ...this.context.views.map(view => view.sourceField).filter(Boolean),
+                ...(this.context.model.query?.inputs || [])
+            ];
             const parentPort = this.addPortsForHeader({
                 dmType: this.filteredInputType,
                 name: this.identifier,

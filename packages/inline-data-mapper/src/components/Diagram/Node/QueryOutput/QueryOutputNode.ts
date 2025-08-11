@@ -103,7 +103,7 @@ export class QueryOutputNode extends DataMapperNodeModel {
     private createLinks(mappings: Mapping[]) {
 
         const views = this.context.views;
-        const focusedSourceField = views[views.length - 1].sourceField;
+        const focusedSourceField = views[1]?.sourceField;
         const { inputs: queryInputs, output: queryOutput} = this.context.model.query;
 
         mappings.forEach((mapping) => {
@@ -158,8 +158,7 @@ export class QueryOutputNode extends DataMapperNodeModel {
             }
         });
 
-
-        const inputNode = findInputNode(queryInputs[0], this);
+        const inputNode = findInputNode(queryInputs[0], this, focusedSourceField);
         let inPort: InputOutputPortModel;
         if (inputNode) {
             inPort = getInputPort(inputNode, queryInputs[0].replace(/\.\d+/g, ''));
