@@ -446,14 +446,6 @@ public class DataMapManager {
         }
 
         ExpressionNode expr = initializer;
-        if (expr.kind() == SyntaxKind.QUERY_EXPRESSION) {
-            ClauseNode clauseNode = ((QueryExpressionNode) expr).resultClause();
-            if (clauseNode.kind() == SyntaxKind.SELECT_CLAUSE) {
-                expr = ((SelectClauseNode) clauseNode).expression();
-            } else {
-                return null;
-            }
-        }
         for (int i = 1; i < fieldSplits.length; i++) {
             String field = fieldSplits[i];
             if (expr.kind() == SyntaxKind.QUERY_EXPRESSION) {
