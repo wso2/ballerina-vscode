@@ -48,6 +48,8 @@ import {
     ConfigVariableResponse,
     CreateComponentResponse,
     CurrentBreakpointsResponse,
+    DeleteTypeRequest,
+    DeleteTypeResponse,
     DeploymentRequest,
     DeploymentResponse,
     DevantMetadata,
@@ -121,6 +123,7 @@ import {
     deleteConfigVariableV2,
     deleteFlowNode,
     deleteOpenApiGeneratedModules,
+    deleteType,
     deployProject,
     formDidClose,
     formDidOpen,
@@ -387,6 +390,10 @@ export class BiDiagramRpcClient implements BIDiagramAPI {
 
     updateTypes(params: UpdateTypesRequest): Promise<UpdateTypesResponse> {
         return this._messenger.sendRequest(updateTypes, HOST_EXTENSION, params);
+    }
+
+    deleteType(params: DeleteTypeRequest): Promise<DeleteTypeResponse> {
+        return this._messenger.sendRequest(deleteType, HOST_EXTENSION, params);
     }
 
     getTypeFromJson(params: JsonToTypeRequest): Promise<JsonToTypeResponse> {

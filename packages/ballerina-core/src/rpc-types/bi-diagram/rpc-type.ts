@@ -89,7 +89,9 @@ import {
     DeleteConfigVariableRequestV2,
     DeleteConfigVariableResponseV2,
     JsonToTypeRequest,
-    JsonToTypeResponse
+    JsonToTypeResponse,
+    DeleteTypeRequest,
+    DeleteTypeResponse
 } from "../../interfaces/extended-lang-client";
 import {
     ProjectRequest,
@@ -164,6 +166,7 @@ export const getTypes: RequestType<GetTypesRequest, GetTypesResponse> = { method
 export const getType: RequestType<GetTypeRequest, GetTypeResponse> = { method: `${_preFix}/getType` };
 export const updateType: RequestType<UpdateTypeRequest, UpdateTypeResponse> = { method: `${_preFix}/updateType` };
 export const updateTypes: RequestType<UpdateTypesRequest, UpdateTypesResponse> = { method: `${_preFix}/updateTypes` };
+export const deleteType: RequestType<DeleteTypeRequest, DeleteTypeResponse> = { method: `${_preFix}/deleteType` };
 export const getTypeFromJson: RequestType<JsonToTypeRequest, JsonToTypeResponse> = { method: `${_preFix}/getTypeFromJson` };
 export const getServiceClassModel: RequestType<ModelFromCodeRequest, ServiceClassModelResponse> = { method: `${_preFix}/getServiceClassModel` };
 export const updateClassField: RequestType<ClassFieldModifierRequest, SourceEditResponse> = { method: `${_preFix}/updateClassField` };

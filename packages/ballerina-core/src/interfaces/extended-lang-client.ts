@@ -1361,6 +1361,19 @@ export interface UpdateTypesResponse {
     stacktrace?: string;
 }
 
+export interface DeleteTypeRequest {
+    filePath: string;
+    component: ComponentInfo;
+}
+
+export interface DeleteTypeResponse {
+    textEdits: {
+        [filePath: string]: TextEdit[];
+    };
+    errorMsg?: string;
+    stacktrace?: string;
+}
+
 export interface GetTypesResponse {
     types: Type[];
 }

@@ -17,7 +17,7 @@
  */
 
 import React, { useEffect, useRef } from "react";
-import { VisualizerLocation, NodePosition, Type, EVENT_TYPE, MACHINE_VIEW, TypeNodeKind } from "@wso2/ballerina-core";
+import { VisualizerLocation, NodePosition, Type, EVENT_TYPE, MACHINE_VIEW, TypeNodeKind, ComponentInfo } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { TypeDiagram as TypeDesignDiagram } from "@wso2/type-diagram";
 import { Button, Codicon, ProgressRing, ThemeColors, View, ViewContent } from "@wso2/ui-toolkit";
@@ -168,6 +168,24 @@ export function TypeDiagram(props: TypeDiagramProps) {
         setHighlightedNodeId(typeId);
     };
 
+    const onTypeDelete = async (typeId:string) => {
+        const component = typesModel?.find((type) => type.name === typeId);
+        if (!component || !visualizerLocation?.metadata?.recordFilePath) {
+            return;
+        }
+        await rpcClient.getBIDiagramRpcClient().deleteType({
+            filePath: visualizerLocation?.metadata?.recordFilePath,
+            component: {
+                name: component.name,
+                filePath: component.codedata?.lineRange?.fileName,
+                startLine: component.codedata?.lineRange?.startLine?.line,
+                startColumn: component.codedata?.lineRange?.startLine?.offset,
+                endLine: component.codedata?.lineRange?.endLine?.line,
+                endColumn: component.codedata?.lineRange?.endLine?.offset
+            }
+        });
+    };
+
     const onTypeEditorClosed = () => {
         setTypeEditorState({
             editingTypeId: undefined,
@@ -298,6 +316,7 @@ export function TypeDiagram(props: TypeDiagramProps) {
                             showProblemPanel={showProblemPanel}
                             goToSource={handleOnGoToSource}
                             onTypeEdit={onTypeEdit}
+                            onTypeDelete={onTypeDelete}
                         />
                     ) : (
                         <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
