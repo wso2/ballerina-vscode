@@ -62,8 +62,14 @@ export async function generateCodeCore(params: GenerateCodeRequest, eventHandler
     const allMessages: CoreMessage[] = [
         {
             role: "system",
-            content: `${getSystemPromptPrefix([], sourceFiles, params.operationType)}
-${getSystemPromptSuffix(LANGLIBS)}`,
+            content: getSystemPromptPrefix(sourceFiles, params.operationType, GenerationType.CODE_GENERATION),
+        },
+        {
+            role: "system",
+            content: getSystemPromptSuffix(LANGLIBS),
+            providerOptions: {
+                anthropic: { cacheControl: { type: "ephemeral" } },
+            },
         },
         ...historyMessages,
         {
@@ -75,6 +81,9 @@ ${getSystemPromptSuffix(LANGLIBS)}`,
                 packageName,
                 params.operationType
             ),
+            providerOptions: {
+                anthropic: { cacheControl: { type: "ephemeral" } },
+            },
         },
     ];
 
@@ -163,23 +172,65 @@ export async function generateCode(params: GenerateCodeRequest): Promise<void> {
     }
 }
 
-function getSystemPromptPrefix(apidocs: Library[], sourceFiles: SourceFiles[], op: OperationType): string {
+function getSystemPromptPrefix(
+    sourceFiles: SourceFiles[],
+    op: OperationType,
+    generationType: GenerationType
+): string {
+    const basePrompt = `# QUESTION
+Analyze the user query provided in the user message to identify the relevant Ballerina libraries needed to fulfill the query. Use the LibraryProviderTool to fetch details (name, description, clients, functions, types) for only the selected libraries. The tool description contains all available libraries and their descriptions. Do not assume library contents unless provided by the tool.
+
+# Example
+**Context**:
+${JSON.stringify(
+    [
+        {
+            name: "ballerinax/azure.openai.chat",
+            description: "Provides a Ballerina client for the Azure OpenAI Chat API.",
+        },
+        {
+            name: "ballerinax/github",
+            description: "Provides a Ballerina client for the GitHub API.",
+        },
+        {
+            name: "ballerinax/slack",
+            description: "Provides a Ballerina client for the Slack API.",
+        },
+        {
+            name: "ballerinax/http",
+            description: "Allows to interact with HTTP services.",
+        },
+    ],
+    null,
+    2
+)}
+**Query**: Write an application to read GitHub issues, summarize them, and post the summary to a Slack channel.
+**LibraryProviderTool Call**: Call LibraryProviderTool with libraryNames: ["ballerinax/github", "ballerinax/slack", "ballerinax/azure.openai.chat"]
+
+# Instructions
+1. Analyze the user query to determine the required functionality.
+2. Select the minimal set of libraries that can fulfill the query based on their descriptions.
+3. Call the LibraryProviderTool with the selected libraryNames and the user query to fetch detailed information (clients, functions, types).
+4. Use the tool's output to generate accurate Ballerina code.
+5. Do not include libraries unless they are explicitly needed for the query.
+${
+    generationType === GenerationType.HEALTHCARE_GENERATION
+        ? "6. For healthcare-related queries, ALWAYS include the following libraries in the LibraryProviderTool call in addition to those selected based on the query: ballerinax/health.base, ballerinax/health.fhir.r4, ballerinax/health.fhir.r4.parser, ballerinax/health.fhir.r4utils, ballerinax/health.fhir.r4.international401, ballerinax/health.hl7v2commons, ballerinax/health.hl7v2."
+        : ""
+}
+You are an expert assistant specializing in Ballerina code generation.`;
+
     if (op === "CODE_FOR_USER_REQUIREMENT") {
-        return (
-            getRequirementAnalysisCodeGenPrefix([], extractResourceDocumentContent(sourceFiles)) +
-            `\nUse the LibraryProviderTool to fetch library details when needed. Do not assume library contents unless provided by the tool.`
-        );
+        return getRequirementAnalysisCodeGenPrefix([], extractResourceDocumentContent(sourceFiles)) + `\n${basePrompt}`;
     } else if (op === "TESTS_FOR_USER_REQUIREMENT") {
-        return (
-            getRequirementAnalysisTestGenPrefix([], extractResourceDocumentContent(sourceFiles)) +
-            `\nUse the LibraryProviderTool to fetch library details when needed. Do not assume library contents unless provided by the tool.`
-        );
+        return getRequirementAnalysisTestGenPrefix([], extractResourceDocumentContent(sourceFiles)) + `\n${basePrompt}`;
     }
-    return `You are an expert assistant specializing in Ballerina code generation. Use the LibraryProviderTool to fetch library details (name, description, clients, functions, types) when needed. Generate accurate Ballerina code based on the query and tool output, adhering to Ballerina conventions.`;
+    return basePrompt;
 }
 
 function getSystemPromptSuffix(langlibs: Library[]) {
-    return `2. Langlibs
+    return `You will be provided with default langlibs which are already imported in the Ballerina code.
+    Langlibs
 <langlibs>
 ${JSON.stringify(langlibs)}
 </langlibs>
@@ -320,18 +371,9 @@ export async function repairCodeCore(params: RepairParams, eventHandler: Copilot
 }
 
 export async function repairCode(params: RepairParams): Promise<RepairResponse> {
-    const allLibraries = await getAllLibraries(GenerationType.CODE_GENERATION);
-    const libraryDescriptions =
-        allLibraries.length > 0
-            ? allLibraries.map((lib) => `- ${lib.name}: ${lib.description}`).join("\n")
-            : "- No libraries available";
+    console.log("Repairing code with params", params);
 
     const allMessages: CoreMessage[] = [
-        {
-            role: "system",
-            content: `${getSystemPromptPrefix([], [], "CODE_GENERATION")}
-${getSystemPromptSuffix(LANGLIBS)}`,
-        },
         ...params.previousMessages,
         {
             role: "assistant",
@@ -345,9 +387,6 @@ ${getSystemPromptSuffix(LANGLIBS)}`,
         },
     ];
 
-    const tools = {
-        LibraryProviderTool: getLibraryProviderTool(libraryDescriptions, GenerationType.CODE_GENERATION),
-    };
 
     const { text, usage, providerMetadata } = await generateText({
         model: await getAnthropicClient(ANTHROPIC_SONNET_4),
