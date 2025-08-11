@@ -25,76 +25,93 @@
   "model": {
     "inputs": [],
     "output": {
-      "fields": [
-        {
-          "id": "finalNote.finalNote",
-          "variableName": "finalNote",
-          "typeName": "string",
-          "kind": "string",
-          "optional": false
-        },
-        {
-          "fields": [
-            {
-              "id": "finalNote.progressNote.note",
-              "variableName": "note",
-              "typeName": "string",
-              "kind": "string",
-              "optional": false
-            },
-            {
-              "fields": [
-                {
-                  "id": "finalNote.progressNote.sampleRecord.sampleRecordName",
-                  "variableName": "sampleRecordName",
-                  "typeName": "string",
-                  "kind": "string",
-                  "optional": false
-                },
-                {
-                  "fields": [
-                    {
-                      "id": "finalNote.progressNote.sampleRecord.recordType.sampleTypeName",
-                      "variableName": "sampleTypeName",
-                      "typeName": "string",
-                      "kind": "string",
-                      "optional": false
-                    },
-                    {
-                      "id": "finalNote.progressNote.sampleRecord.recordType.sampleTypeCode",
-                      "variableName": "sampleTypeCode",
-                      "typeName": "int",
-                      "kind": "int",
-                      "optional": false
-                    }
-                  ],
-                  "id": "finalNote.progressNote.sampleRecord.recordType",
-                  "variableName": "recordType",
-                  "typeName": "SampleType",
-                  "kind": "record",
-                  "optional": false
-                }
-              ],
-              "id": "finalNote.progressNote.sampleRecord",
-              "variableName": "sampleRecord",
-              "typeName": "SampleRecord",
-              "kind": "record",
-              "optional": false
-            }
-          ],
-          "id": "finalNote.progressNote",
-          "variableName": "progressNote",
-          "typeName": "ProgressNote",
-          "kind": "record",
-          "optional": false
-        }
-      ],
+      "fields": [],
       "id": "finalNote",
       "variableName": "finalNote",
       "typeName": "FinalNote",
       "kind": "record",
-      "optional": false
+      "reference": "1909370362"
     },
-    "mappings": []
+    "mappings": [],
+    "references": {
+      "270108429": {
+        "fields": [
+          {
+            "id": "note",
+            "variableName": "note",
+            "typeName": "string",
+            "kind": "string"
+          },
+          {
+            "fields": [],
+            "id": "sampleRecord",
+            "variableName": "sampleRecord",
+            "typeName": "SampleRecord",
+            "kind": "record",
+            "reference": "-377428503"
+          }
+        ],
+        "typeName": "ProgressNote",
+        "kind": "record"
+      },
+      "1081249490": {
+        "fields": [
+          {
+            "id": "sampleTypeName",
+            "variableName": "sampleTypeName",
+            "typeName": "string",
+            "kind": "string"
+          },
+          {
+            "id": "sampleTypeCode",
+            "variableName": "sampleTypeCode",
+            "typeName": "int",
+            "kind": "int"
+          }
+        ],
+        "typeName": "SampleType",
+        "kind": "record"
+      },
+      "-377428503": {
+        "fields": [
+          {
+            "id": "sampleRecordName",
+            "variableName": "sampleRecordName",
+            "typeName": "string",
+            "kind": "string"
+          },
+          {
+            "fields": [],
+            "id": "recordType",
+            "variableName": "recordType",
+            "typeName": "SampleType",
+            "kind": "record",
+            "reference": "1081249490"
+          }
+        ],
+        "typeName": "SampleRecord",
+        "kind": "record"
+      },
+      "1909370362": {
+        "fields": [
+          {
+            "id": "finalNote",
+            "variableName": "finalNote",
+            "typeName": "string",
+            "kind": "string"
+          },
+          {
+            "fields": [],
+            "id": "progressNote",
+            "variableName": "progressNote",
+            "typeName": "ProgressNote",
+            "kind": "record",
+            "reference": "270108429"
+          }
+        ],
+        "typeName": "FinalNote",
+        "kind": "record"
+      }
+    }
   }
 }
