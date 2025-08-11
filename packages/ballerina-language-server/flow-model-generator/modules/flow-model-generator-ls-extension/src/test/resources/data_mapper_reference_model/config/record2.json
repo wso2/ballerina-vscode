@@ -28,28 +28,28 @@
         "fields": [],
         "id": "progressNote",
         "variableName": "progressNote",
-        "typeName": "progressNote",
+        "typeName": "ProgressNote",
         "kind": "record",
         "category": "local-variable",
-        "reference": "105788141"
+        "reference": "270108429"
       },
       {
         "fields": [],
         "id": "sampleRecord",
         "variableName": "sampleRecord",
-        "typeName": "sampleRecord",
+        "typeName": "SampleRecord",
         "kind": "record",
         "category": "local-variable",
-        "reference": "-541748791"
+        "reference": "-377428503"
       },
       {
         "fields": [],
         "id": "sampleType",
         "variableName": "sampleType",
-        "typeName": "sampleType",
+        "typeName": "SampleType",
         "kind": "record",
         "category": "local-variable",
-        "reference": "-912215374"
+        "reference": "1081249490"
       }
     ],
     "output": {
@@ -62,24 +62,6 @@
     },
     "mappings": [],
     "references": {
-      "-912215374": {
-        "fields": [
-          {
-            "id": "sampleTypeName",
-            "variableName": "sampleTypeName",
-            "typeName": "string",
-            "kind": "string"
-          },
-          {
-            "id": "sampleTypeCode",
-            "variableName": "sampleTypeCode",
-            "typeName": "int",
-            "kind": "int"
-          }
-        ],
-        "typeName": "sampleType",
-        "kind": "record"
-      },
       "270108429": {
         "fields": [
           {
@@ -98,46 +80,6 @@
           }
         ],
         "typeName": "ProgressNote",
-        "kind": "record"
-      },
-      "105788141": {
-        "fields": [
-          {
-            "id": "note",
-            "variableName": "note",
-            "typeName": "string",
-            "kind": "string"
-          },
-          {
-            "fields": [],
-            "id": "sampleRecord",
-            "variableName": "sampleRecord",
-            "typeName": "SampleRecord",
-            "kind": "record",
-            "reference": "-377428503"
-          }
-        ],
-        "typeName": "progressNote",
-        "kind": "record"
-      },
-      "-541748791": {
-        "fields": [
-          {
-            "id": "sampleRecordName",
-            "variableName": "sampleRecordName",
-            "typeName": "string",
-            "kind": "string"
-          },
-          {
-            "fields": [],
-            "id": "recordType",
-            "variableName": "recordType",
-            "typeName": "SampleType",
-            "kind": "record",
-            "reference": "1081249490"
-          }
-        ],
-        "typeName": "sampleRecord",
         "kind": "record"
       },
       "1081249490": {
