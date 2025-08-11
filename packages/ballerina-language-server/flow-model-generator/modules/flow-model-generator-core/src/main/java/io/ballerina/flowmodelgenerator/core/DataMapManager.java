@@ -1020,64 +1020,8 @@ public class DataMapManager {
             } else if (type.hashCode == null || type.hashCode.isEmpty()) {
                 return new MappingPort(id, name, type.typeName, type.typeName);
             }
-
-//            else if (type instanceof PrimitiveType) {
-//                return new MappingPort(id, name, type.getTypeName(), type.getTypeName(), type.optional);
-//            } else if (type instanceof ConstType) {
-//                return new MappingPort(type.getName(), type.getName(), type.getTypeName(), type.getTypeName(),
-//                        type.optional);
-//            } else if (type.getTypeName().equals("array")) {
-//                ArrayType arrayType = (ArrayType) type;
-//                MappingPort memberPort = getMappingPort(isInputPort ? id + ".0" : id, getItemName(name),
-//                        arrayType.memberType, isInputPort, visitedTypes);
-//                if (memberPort != null && memberPort.variableName == null) {
-//                    memberPort.variableName = getItemName(name);
-//                }
-//                MappingArrayPort arrayPort = new MappingArrayPort(id, name, memberPort == null ? "record" :
-//                        memberPort.typeName + "[]", type.getTypeName(), type.optional);
-//                arrayPort.setMember(memberPort);
-//                return arrayPort;
-//            } else if (type.getTypeName().equals("enum")) {
-//                EnumType enumType = (EnumType) type;
-//                MappingEnumPort enumPort = new MappingEnumPort(id, name, enumType.getTypeInfo().name,
-//                        type.getTypeName(), enumType.optional);
-//                for (Type member : enumType.members) {
-//                    MappingPort memberPort = getMappingPort(id + "." + member.getTypeName(), member.getTypeName(),
-//                            member, isInputPort, visitedTypes);
-//                    if (memberPort != null) {
-//                        enumPort.members.add(memberPort);
-//                    }
-//                }
-//                return enumPort;
-//            } else if (type.getTypeName().equals("union")) {
-//                UnionType unionType = (UnionType) type;
-//                MappingUnionPort unionPort = new MappingUnionPort(id, name, unionType.getName(),
-//                        type.getTypeName(), unionType.optional);
-//                for (Type member : unionType.members) {
-//                    MappingPort memberPort = getMappingPort(id + "." + member.getName(), member.getName(),
-//                            member, isInputPort, visitedTypes);
-//                    if (memberPort != null) {
-//                        unionPort.members.add(memberPort);
-//                    }
-//                }
-//                return unionPort;
-//            } else {
-//                return null;
-//            }
         } else {
             return new MappingPort(id, name, type.name, type.name);
-//            TypeInfo typeInfo = type.getTypeInfo();
-//            String visitedTypeKey = typeInfo.name + ":" + typeInfo.orgName + ":" + typeInfo.moduleName +
-//                    ":" + typeInfo.version + typeInfo.packageName;
-//            if (visitedTypes.containsKey(visitedTypeKey)) {
-//                Type typeFromVisited = visitedTypes.get(visitedTypeKey);
-//                TypeInfo typeFromVisitedInfo = typeFromVisited.getTypeInfo();
-//                MappingPort recursivePort = new MappingPort(id, name, typeFromVisitedInfo != null ?
-//                        typeFromVisitedInfo.name : typeFromVisited.getTypeName(),
-//                        typeFromVisited.getTypeName(), type.optional);
-//                recursivePort.setIsRecursive(true);
-//                return recursivePort;
-//            }
         }
         return null;
     }
