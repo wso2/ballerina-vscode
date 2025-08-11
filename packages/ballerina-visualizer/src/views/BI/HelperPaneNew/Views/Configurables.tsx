@@ -10,7 +10,6 @@ import FooterButtons from "../Components/FooterButtons";
 import FormGenerator from "../../Forms/FormGenerator";
 import { URI, Utils } from "vscode-uri";
 
-
 type ConfigVariablesState = {
     [category: string]: {
         [module: string]: ConfigVariable[];
@@ -35,8 +34,6 @@ type AddNewConfigFormProps = {
     title: string;
 }
 
-
-
 export const Configurables = (props: ConfigurablesPageProps) => {
     const { onChange, anchorRef, fileName, targetLineRange } = props;
 
@@ -50,14 +47,13 @@ export const Configurables = (props: ConfigurablesPageProps) => {
     const [isImportEnv, setIsImportEnv] = useState<boolean>(false);
     const [projectPathUri, setProjectPathUri] = useState<string>();
 
-
     useEffect(() => {
         const fetchNode = async () => {
             const node = await rpcClient.getBIDiagramRpcClient().getConfigVariableNodeTemplate({
                 isNew: true,
                 isEnvVariable: isImportEnv
             });
-            console.log("node: ", node)
+            console.log("#### node value ", node, isImportEnv)
             setCofigVarNode(node.flowNode);
         };
 
@@ -68,9 +64,9 @@ export const Configurables = (props: ConfigurablesPageProps) => {
         getConfigVariables()
     }, [])
 
-    useEffect(()=>{
+    useEffect(() => {
         getProjectInfo()
-    },[]);
+    }, []);
 
     useEffect(() => {
         const fetchTomlValues = async () => {
@@ -96,7 +92,6 @@ export const Configurables = (props: ConfigurablesPageProps) => {
     }
 
     const getConfigVariables = async () => {
-
         let data: ConfigVariablesState = {};
         let errorMsg: string = '';
 
@@ -144,7 +139,6 @@ export const Configurables = (props: ConfigurablesPageProps) => {
     }
 
     const handleSubmit = (updatedNode?: FlowNode, isDataMapperFormUpdate?: boolean) => {
-
         // newNodeNameRef.current = "";
         // // Safely extract the variable name as a string, fallback to empty string if not available
         // const varName = typeof updatedNode?.properties?.variable?.value === "string"
@@ -163,109 +157,117 @@ export const Configurables = (props: ConfigurablesPageProps) => {
     }
 
     const AddNewForms = (props: AddNewConfigFormProps) => {
-        return (<DynamicModal
-            width={400}
-            height={600}
-            anchorRef={anchorRef}
-            title={props.title}
-            openState={isModalOpen}
-            setOpenState={setIsModalOpen}>
-            <DynamicModal.Trigger>
-                <FooterButtons 
-                startIcon='add' 
-                title={props.title} 
-                onClick={() => {
-                    setIsImportEnv(props.isImportEnv)
-                }} 
+        return (
+            <DynamicModal
+                width={400}
+                height={600}
+                anchorRef={anchorRef}
+                title={props.title}
+                openState={isModalOpen}
+                setOpenState={setIsModalOpen}>
+                <DynamicModal.Trigger>
+                    <FooterButtons
+                        startIcon='add'
+                        title={props.title}
+                        onClick={() => {
+                            setIsImportEnv(props.isImportEnv)
+                        }}
+                    />
+                </DynamicModal.Trigger>
+                <FormGenerator
+                    fileName={fileName}
+                    node={configVarNode}
+                    connections={[]}
+                    targetLineRange={targetLineRange}
+                    projectPath={projectPathUri}
+                    editForm={false}
+                    onSubmit={handleSave}
+                    showProgressIndicator={false}
+                    resetUpdatedExpressionField={() => { }}
+                    isInModal={true}
                 />
-            </DynamicModal.Trigger>
-            <FormGenerator
-                fileName={fileName}
-                node={configVarNode}
-                connections={[]}
-                targetLineRange={targetLineRange}
-                projectPath={projectPathUri}
-                editForm={false}
-                onSubmit={handleSave}
-                showProgressIndicator={false}
-                resetUpdatedExpressionField={() => { }}
-                isInModal={true}
-            />
-        </DynamicModal>)
+            </DynamicModal>
+        )
     }
+
     return (
-        <div>
+        <div style={{
+            display: "flex",
+            flexDirection: "column",
+            height: "100%",
+            overflow: "hidden"
+        }}>
             <ScrollableContainer>
-                <ExpandableList>
-                    {translateToArrayFormat(configVariables)
-                        .filter(category =>
-                            Array.isArray(category.items) &&
-                            category.items.some(sub => Array.isArray(sub.items) && sub.items.length > 0)
-                        )
-                        .map(category => (
-                            <ExpandableList.Section
-                                sx={{ marginTop: '20px' }}
-                                key={category.name}
-                                title={category.name}
-                                level={0}
-                            >
-                                <div style={{ marginTop: '10px' }}>
-                                    {category.items
-                                        .filter(subCategory => subCategory.items && subCategory.items.length > 0)
-                                        .map(subCategory => (
-                                            <>
-                                                {subCategory.name !== '' ? <>
-                                                    <ExpandableList.Section
-                                                        sx={{ marginTop: '20px' }}
-                                                        key={subCategory.name}
-                                                        title={subCategory.name}
-                                                        level={1}
-                                                    >
-                                                        <div style={{ marginTop: '10px' }}>
-                                                            {subCategory.items.map((item: ConfigVariable) => (
-                                                                <SlidingPaneNavContainer key={item.id}>
-                                                                    <ExpandableList.Item sx={{ color: ThemeColors.ON_SURFACE }} onClick={() => { handleItemClicked(item?.properties?.variable?.value as string) }}>
-                                                                        {getIcon(COMPLETION_ITEM_KIND.Parameter)}
-                                                                        {item?.properties?.variable?.value as ReactNode}
-                                                                    </ExpandableList.Item>
-                                                                </SlidingPaneNavContainer>
-                                                            ))}
-                                                        </div>
-                                                    </ExpandableList.Section>
-                                                </> : <>
+                {translateToArrayFormat(configVariables)
+                    .filter(category =>
+                        Array.isArray(category.items) &&
+                        category.items.some(sub => Array.isArray(sub.items) && sub.items.length > 0)
+                    )
+                    .map(category => (
+                        <ExpandableList.Section
+                            key={category.name}
+                            title={category.name}
+                            level={1}
+                        >
+                            <div style={{ marginTop: '10px' }}>
+                                {category.items
+                                    .filter(subCategory => subCategory.items && subCategory.items.length > 0)
+                                    .map(subCategory => (
+                                        <div key={subCategory.name}>
+                                            {subCategory.name !== '' ? (
+                                                <ExpandableList.Section
+                                                    sx={{ marginTop: '10px' }}
+                                                    key={subCategory.name}
+                                                    title={subCategory.name}
+                                                    level={0}
+                                                >
+                                                    <div style={{ marginTop: '10px' }}>
+                                                        {subCategory.items.map((item: ConfigVariable) => (
+                                                            <SlidingPaneNavContainer key={item.id}>
+                                                                <ExpandableList.Item
+                                                                    sx={{ color: ThemeColors.ON_SURFACE }}
+                                                                    onClick={() => { handleItemClicked(item?.properties?.variable?.value as string) }}
+                                                                >
+                                                                    {getIcon(COMPLETION_ITEM_KIND.Parameter)}
+                                                                    {item?.properties?.variable?.value as ReactNode}
+                                                                </ExpandableList.Item>
+                                                            </SlidingPaneNavContainer>
+                                                        ))}
+                                                    </div>
+                                                </ExpandableList.Section>
+                                            ) : (
+                                                <div>
                                                     {subCategory.items.map((item: ConfigVariable) => (
                                                         <SlidingPaneNavContainer key={item.id}>
-                                                            <ExpandableList.Item sx={{ color: ThemeColors.ON_SURFACE }} onClick={() => { handleItemClicked(item?.properties?.variable?.value as string) }}>
+                                                            <ExpandableList.Item
+                                                                sx={{ color: ThemeColors.ON_SURFACE }}
+                                                                onClick={() => { handleItemClicked(item?.properties?.variable?.value as string) }}
+                                                            >
                                                                 {getIcon(COMPLETION_ITEM_KIND.Parameter)}
                                                                 {item?.properties?.variable?.value as ReactNode}
                                                             </ExpandableList.Item>
                                                         </SlidingPaneNavContainer>
-                                                    ))}</>}
-                                            </>
-                                        ))}
-                                </div>
-                            </ExpandableList.Section>
-                        ))}
-                </ExpandableList>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
+                                    ))}
+                            </div>
+                        </ExpandableList.Section>
+                    ))}
             </ScrollableContainer>
-            {<div style={{ marginTop: "auto", display: 'flex', flexDirection: 'column' }}>
+
+            <div style={{ marginTop: "auto" }}>
                 <Divider />
-                <AddNewForms isImportEnv={false} title="New Configurable"/>
-                <AddNewForms isImportEnv={true} title="Import from ENV variable"/>
-                {/* <DynamicModal
-                    width={400}
-                    height={600}
-                    anchorRef={anchorRef}
-                    title="Declare Variable"
-                    openState={isModalOpen}
-                    setOpenState={setIsModalOpen}>
-                    <DynamicModal.Trigger>
-                        <FooterButtons startIcon='add' title="Import from ENV" />
-                    </DynamicModal.Trigger>
-                </DynamicModal> */}
-            </div>}
+                <div style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '8px'
+                }}>
+                    <AddNewForms isImportEnv={false} title="New Configurable" />
+                    <AddNewForms isImportEnv={true} title="Import from ENV variable" />
+                </div>
+            </div>
         </div>
-
-
     )
 }

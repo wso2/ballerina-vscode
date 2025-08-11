@@ -35,7 +35,7 @@ const ModalBox = styled.div<{ width?: number; height?: number }>`
   padding: 10px;
   display: flex;
   flex-direction: column;
-  overflow-y: auto;
+  overflow-y: hidden;
 `;
 
 const InvisibleButton = styled.button`
@@ -57,7 +57,9 @@ const InvisibleButton = styled.button`
 const Title = styled.h1`
     font-size: 1.5rem;
     font-weight: 600;
-    margin: 0;
+    margin-left: 20px;
+    margin-top: 10px;
+    margin-bottom: 10px;
     position: absolute;
     top: 8px;
     left: 8px;

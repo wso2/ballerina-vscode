@@ -244,7 +244,7 @@ export const TypeHelperComponent = (props: TypeHelperComponentProps) => {
         <HelperPaneCustom >
             <SlidingWindow>
                 <HelperPane.Body>
-                    <SearchBox sx={{ width: "100%", marginBottom: '10px' }} placeholder='Search' autoFocus={true} value={searchValue} onChange={handleHelperPaneSearch} />
+                    <SearchBox sx={{ width: "100%", marginBottom: '10px' }} placeholder='Search' value={searchValue} onChange={handleHelperPaneSearch} />
                     {loading ? (
                         <HelperPane.Loader rows={3} columns={1} sections={3} />
                     ) : (
