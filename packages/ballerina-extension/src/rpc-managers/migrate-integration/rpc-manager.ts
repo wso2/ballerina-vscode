@@ -46,12 +46,14 @@ export class MigrateIntegrationRpcManager implements MigrateIntegrationAPI {
             sourcePath: params.sourcePath,
         };
         StateMachine.langClient().registerMigrationToolCallbacks();
-        switch (params.type) {
-            case 2:
+        switch (params.commandName) {
+            case "migrate-tibco":
                 return StateMachine.langClient().importTibcoToBI(langParams);
+            case "migrate-mule":
+                return StateMachine.langClient().importMuleToBI(langParams);
             default:
-                console.error(`Unsupported integration type: ${params.type}`);
-                throw new Error(`Unsupported integration type: ${params.type}`);
+                console.error(`Unsupported integration type: ${params.commandName}`);
+                throw new Error(`Unsupported integration type: ${params.commandName}`);
         }
     }
 

@@ -102,7 +102,7 @@ export function ImportIntegration() {
 
         const params: ImportIntegrationRPCRequest = {
             packageName: "",
-            type: selectedIntegration.id,
+            commandName: selectedIntegration.commandName,
             sourcePath: importParams.importSourcePath,
         };
         rpcClient
