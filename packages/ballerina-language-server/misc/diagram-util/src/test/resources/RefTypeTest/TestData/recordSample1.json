@@ -8,7 +8,8 @@
         "fieldName": "sampleTypeName",
         "type": {
           "dependentTypeHashes": [],
-          "name": "string"
+          "name": "string",
+          "typeName": "string"
         },
         "optional": false,
         "defaultValue": ""
@@ -17,7 +18,8 @@
         "fieldName": "sampleTypeCode",
         "type": {
           "dependentTypeHashes": [],
-          "name": "int"
+          "name": "int",
+          "typeName": "int"
         },
         "optional": false,
         "defaultValue": ""
