@@ -419,25 +419,26 @@ export function removeDraftNodeFromDiagram(flowModel: Flow) {
     return newFlow;
 }
 
-export function enrichFormPropertiesWithValueConstraint(
+export function enrichFormTemplatePropertiesWithValues(
     formProperties: NodeProperties,
     formTemplateProperties: NodeProperties
 ) {
-    const enrichedFormProperties = cloneDeep(formProperties);
+    const enrichedFormTemplateProperties = cloneDeep(formTemplateProperties);
 
-    for (const key in formTemplateProperties) {
-        if (formTemplateProperties.hasOwnProperty(key)) {
-            const expression = formTemplateProperties[key as NodePropertyKey];
-            if (expression) {
-                const valConstraint = formTemplateProperties[key as NodePropertyKey]?.valueTypeConstraint;
-                if (valConstraint && enrichedFormProperties[key as NodePropertyKey]) {
-                    enrichedFormProperties[key as NodePropertyKey].valueTypeConstraint = valConstraint;
-                }
+    for (const key in formProperties) {
+        if (formProperties.hasOwnProperty(key)) {
+            const formProperty = formProperties[key as NodePropertyKey];
+            if (
+                formProperty &&
+                enrichedFormTemplateProperties[key as NodePropertyKey] != null
+            ) {
+                // Copy the value from formProperties to formTemplateProperties
+                enrichedFormTemplateProperties[key as NodePropertyKey].value = formProperty.value;
             }
         }
     }
 
-    return enrichedFormProperties;
+    return enrichedFormTemplateProperties;
 }
 
 function getEnrichedValue(kind: CompletionItemKind, value: string): CompletionInsertText {
