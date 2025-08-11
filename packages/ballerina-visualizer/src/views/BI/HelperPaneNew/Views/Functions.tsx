@@ -154,7 +154,12 @@ export const FunctionsPage = ({
     };
 
     return (
-        <div>
+         <div style={{
+            display: "flex",
+            flexDirection: "column",
+            height: "100%",
+            overflow: "hidden"
+        }}>
             <div style={{ display: "flex", justifyContent: "center", alignItems: "center", marginBottom: "10px" }}>
                 <SearchBox sx={{ width: "100%" }} placeholder='Search' value={searchValue} onChange={handleFunctionSearch} />
             </div>
