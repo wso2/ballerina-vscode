@@ -16,11 +16,13 @@
  * under the License.
  */
 
-import { downloadAndUnzipVSCode } from '@vscode/test-electron';
+import { downloadAndUnzipVSCode, resolveCliPathFromVSCodeExecutablePath } from '@vscode/test-electron';
 import { defaultCachePath } from '@vscode/test-electron/out/download';
 import { TestOptions } from '@vscode/test-electron/out/runTest';
+import { killTree } from '@vscode/test-electron/out/util';
 import * as cp from 'child_process';
 import * as path from 'path';
+const packageJson = require('../../../package.json')
 
 /**
  * Run VS Code extension test
@@ -29,23 +31,36 @@ import * as path from 'path';
  */
 export async function runTests(options: TestOptions): Promise<number> {
 	if (!options.vscodeExecutablePath) {
+		options.vscodeExecutablePath = await downloadAndUnzipVSCode();
+		const [cli, ...args] = resolveCliPathFromVSCodeExecutablePath(options.vscodeExecutablePath)
+		if (packageJson.extensionDependencies) {
+			for (const extensionId of packageJson.extensionDependencies) {
+				cp.spawnSync(cli, [...args, '--install-extension', extensionId], {
+					encoding: 'utf-8',
+					stdio: 'inherit',
+				})
+			}
+		}
+	}
+	if (!options.vscodeExecutablePath) {
 		options.vscodeExecutablePath = await downloadAndUnzipVSCode(options);
 	}
 
 	let args = [
 		// https://github.com/microsoft/vscode/issues/84238
 		'--no-sandbox',
+		// https://github.com/microsoft/vscode-test/issues/221
+		'--disable-gpu-sandbox',
 		// https://github.com/microsoft/vscode-test/issues/120
 		'--disable-updates',
 		'--skip-welcome',
 		'--skip-release-notes',
 		'--disable-workspace-trust',
-		'--extensionTestsPath=' + options.extensionTestsPath
+		'--extensionTestsPath=' + options.extensionTestsPath,
 	];
 
 	if (Array.isArray(options.extensionDevelopmentPath)) {
-		args.push(...options.extensionDevelopmentPath.map(devPath =>
-			`--extensionDevelopmentPath=${devPath}`));
+		args.push(...options.extensionDevelopmentPath.map((devPath) => `--extensionDevelopmentPath=${devPath}`));
 	} else {
 		args.push(`--extensionDevelopmentPath=${options.extensionDevelopmentPath}`);
 	}
@@ -80,6 +95,8 @@ function hasArg(argName: string, argList: readonly string[]) {
 	return argList.some(a => a === `--${argName}` || a.startsWith(`--${argName}=`));
 }
 
+const SIGINT = 'SIGINT';
+
 async function innerRunTests(
 	executable: string,
 	args: string[],
@@ -87,17 +104,33 @@ async function innerRunTests(
 		[key: string]: string | undefined;
 	}
 ): Promise<number> {
-	return new Promise<number>((resolve, reject) => {
-		const fullEnv = Object.assign({}, process.env, testRunnerEnv);
-		const cmd = cp.spawn(executable, args, { env: fullEnv });
+	const fullEnv = Object.assign({}, process.env, testRunnerEnv);
+	const shell = process.platform === 'win32';
+	const cmd = cp.spawn(shell ? `"${executable}"` : executable, args, { env: fullEnv, shell });
 
-		cmd.stdout.on('data', function (data) {
-			console.log(data.toString());
-		});
+	let exitRequested = false;
+	const ctrlc1 = () => {
+		process.removeListener(SIGINT, ctrlc1);
+		process.on(SIGINT, ctrlc2);
+		console.log('Closing VS Code gracefully. Press Ctrl+C to force close.');
+		exitRequested = true;
+		cmd.kill(SIGINT); // this should cause the returned promise to resolve
+	};
 
-		cmd.stderr.on('data', function (data) {
-			console.error(data.toString());
-		});
+	const ctrlc2 = () => {
+		console.log('Closing VS Code forcefully.');
+		process.removeListener(SIGINT, ctrlc2);
+		exitRequested = true;
+		killTree(cmd.pid!, true);
+	};
+
+	const prom = new Promise<number>((resolve, reject) => {
+		if (cmd.pid) {
+			process.on(SIGINT, ctrlc1);
+		}
+
+		cmd.stdout.on('data', (d) => process.stdout.write(d));
+		cmd.stderr.on('data', (d) => process.stderr.write(d));
 
 		cmd.on('error', function (data) {
 			console.log('Test error: ' + data.toString());
@@ -111,18 +144,40 @@ async function innerRunTests(
 			finished = true;
 			console.log(`Exit code:   ${code ?? signal}`);
 
-			if (code === null) {
-				reject(signal);
-			} else if (code !== 0) {
-				reject('Failed');
+			// fix: on windows, it seems like these descriptors can linger for an
+			// indeterminate amount of time, causing the process to hang.
+			cmd.stdout.destroy();
+			cmd.stderr.destroy();
+
+			if (code !== 0) {
+				reject(new TestRunFailedError(code ?? undefined, signal ?? undefined));
 			} else {
-				console.log('Done\n');
-				resolve(code ?? -1);
+				resolve(0);
 			}
 		}
 
 		cmd.on('close', onProcessClosed);
-
 		cmd.on('exit', onProcessClosed);
 	});
+
+	let code: number;
+	try {
+		code = await prom;
+	} finally {
+		process.removeListener(SIGINT, ctrlc1);
+		process.removeListener(SIGINT, ctrlc2);
+	}
+
+	// exit immediately if we handled a SIGINT and no one else did
+	if (exitRequested && process.listenerCount(SIGINT) === 0) {
+		process.exit(1);
+	}
+
+	return code;
+}
+
+export class TestRunFailedError extends Error {
+	constructor(public readonly code: number | undefined, public readonly signal: string | undefined) {
+		super(signal ? `Test run terminated with signal ${signal}` : `Test run failed with code ${code}`);
+	}
 }

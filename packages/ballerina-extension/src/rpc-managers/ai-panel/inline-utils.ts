@@ -242,7 +242,7 @@ function cleanIOType(ioType: IOType | null | undefined): IOType | null {
         const cleanedMembers = ioType.members.filter(member =>
             !isNullOrUndefined(member) &&
             !isNullOrUndefined(member.id) &&
-            !isNullOrUndefined(member.value)
+            !isNullOrUndefined(member.typeName)
         );
 
         if (cleanedMembers.length > 0) {
@@ -349,49 +349,47 @@ function transformCodeObjectToMappings(codeObject: any, request: InlineDataMappe
 
 export async function getInlineParamDefinitions(
     inlineDataMapperResponse: InlineDataMapperModelResponse
-): Promise<ParameterDefinitions | ErrorCode> {
+): Promise<ParameterDefinitions> {
     let inputs: { [key: string]: any } = {};
     let inputMetadata: { [key: string]: any } = {};
     let output: { [key: string]: any } = {};
     let outputMetadata: { [key: string]: any } = {};
-    let isErrorExists = false;
 
     let { inputs: mappingInputs, output: mappingOutput } = inlineDataMapperResponse.mappingsModel as ExpandedDMModel;
     let transformedInputs = transformInputs(mappingInputs);
     let transformedOutputs = transformOutput(mappingOutput);
 
     for (const parameter of transformedInputs.parameters) {
-        const inputDefinition: ErrorCode | RecordDefinitonObject = navigateTypeInfo(transformedInputs.parameterFields[parameter.parameterName], false);
-
-        if (isErrorCode(inputDefinition)) {
-            return inputDefinition as ErrorCode;
+        try {
+            const inputDefinition = navigateTypeInfo(transformedInputs.parameterFields[parameter.parameterName], false);
+            inputs = {
+                ...inputs,
+                [parameter.parameterName]: (inputDefinition as RecordDefinitonObject).recordFields
+            };
+            inputMetadata = {
+                ...inputMetadata,
+                [parameter.parameterName]: {
+                    "isArrayType": parameter.isArrayType,
+                    "parameterName": parameter.parameterName,
+                    "parameterType": parameter.parameterType,
+                    "type": parameter.type,
+                    "fields": (inputDefinition as RecordDefinitonObject).recordFieldsMetadata
+                }
+            };
+        } catch (error) {
+            console.error(`Error in process input parameter: ${parameter.parameterName}`);
+            throw new Error(`Failed to process input parameter: ${parameter.parameterName}`);
         }
-
-        inputs = {
-            ...inputs,
-            [parameter.parameterName]: (inputDefinition as RecordDefinitonObject).recordFields
-        };
-
-        inputMetadata = {
-            ...inputMetadata,
-            [parameter.parameterName]: {
-                "isArrayType": parameter.isArrayType,
-                "parameterName": parameter.parameterName,
-                "parameterType": parameter.parameterType,
-                "type": parameter.type,
-                "fields": (inputDefinition as RecordDefinitonObject).recordFieldsMetadata
-            }
-        };
     }
 
-    const outputDefinition = navigateTypeInfo(transformedOutputs, false);
-
-    if (isErrorCode(outputDefinition)) {
-        return outputDefinition as ErrorCode;
+    try {
+        const outputDefinition = navigateTypeInfo(transformedOutputs, false);
+        output = { ...(outputDefinition as RecordDefinitonObject).recordFields };
+        outputMetadata = { ...(outputDefinition as RecordDefinitonObject).recordFieldsMetadata };
+    } catch (error) {
+        console.error(`Error in process output definition: ${error}`);
+        throw new Error('Failed to process output definition');
     }
-
-    output = { ...(outputDefinition as RecordDefinitonObject).recordFields };
-    outputMetadata = { ...(outputDefinition as RecordDefinitonObject).recordFieldsMetadata };
 
     const response = {
         inputs,
@@ -405,16 +403,21 @@ export async function getInlineParamDefinitions(
 
     return {
         parameterMetadata: response,
-        errorStatus: isErrorExists
+        errorStatus: false
     };
 }
 
 async function sendInlineDatamapperRequest(inlineDataMapperResponse: InlineDataMapperModelResponse | ErrorCode): Promise<DatamapperResponse> {
-    const response: DatamapperResponse = await generateInlineAutoMappings(inlineDataMapperResponse as InlineDataMapperModelResponse);
-    return response;
+     try {
+        const response: DatamapperResponse = await generateInlineAutoMappings(inlineDataMapperResponse as InlineDataMapperModelResponse);
+        return response;
+    } catch (error) {
+        console.error(`Error in sendInlineDatamapperRequest: ${error}`);
+        throw error; 
+    }
 }
 
-async function getInlineDatamapperCode(inlineDataMapperResponse: InlineDataMapperModelResponse | ErrorCode, parameterDefinitions: ParameterMetadata | ErrorCode): Promise<object | ErrorCode> {
+async function getInlineDatamapperCode(inlineDataMapperResponse: InlineDataMapperModelResponse | ErrorCode, parameterDefinitions: ParameterMetadata | ErrorCode): Promise<object> {
     let nestedKeyArray: string[] = [];
     try {
         let accessToken: string | ErrorCode;
@@ -432,7 +435,7 @@ async function getInlineDatamapperCode(inlineDataMapperResponse: InlineDataMappe
         return finalCode;
     } catch (error) {
         console.error(error);
-        return TIMEOUT;
+        throw error; 
     }
 }
 
@@ -442,24 +445,24 @@ export async function processInlineMappings(
 ): Promise<MappingElement | ErrorCode> {
     let inlineDataMapperResponse = cleanInlineDataMapperModelResponse(request) as InlineDataMapperModelResponse;
 
-    let result = await getInlineParamDefinitions(inlineDataMapperResponse);
-    if (isErrorCode(result)) {
-        return result as ErrorCode;
-    }
-    let parameterDefinitions = (result as ParameterDefinitions).parameterMetadata;
-    if (file) {
-        let mappedResult = await mappingFileInlineDataMapperModel(file, inlineDataMapperResponse);
-        if (isErrorCode(mappedResult)) {
-            return mappedResult as ErrorCode;
+    try {
+        let result = await getInlineParamDefinitions(inlineDataMapperResponse);
+
+        let parameterDefinitions = (result as ParameterDefinitions).parameterMetadata;
+        if (file) {
+            let mappedResult = await mappingFileInlineDataMapperModel(file, inlineDataMapperResponse);
+            if (isErrorCode(mappedResult)) {
+                return mappedResult as ErrorCode;
+            }
+            inlineDataMapperResponse = mappedResult as InlineDataMapperModelResponse;
         }
-        inlineDataMapperResponse = mappedResult as InlineDataMapperModelResponse;
-    }
 
-    const codeObject = await getInlineDatamapperCode(inlineDataMapperResponse, parameterDefinitions);
-    if (isErrorCode(codeObject) || Object.keys(codeObject).length === 0) {
-        return codeObject as ErrorCode;
-    }
+        const codeObject = await getInlineDatamapperCode(inlineDataMapperResponse, parameterDefinitions);
 
-    const mappings: Mapping[] = transformCodeObjectToMappings(codeObject, inlineDataMapperResponse);
-    return { mappings };
+        const mappings: Mapping[] = transformCodeObjectToMappings(codeObject, inlineDataMapperResponse);
+        return { mappings };
+    } catch (error) {
+        console.error(error);
+        throw error; 
+    }
 }
