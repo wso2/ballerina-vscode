@@ -20,11 +20,11 @@ import React, { useState } from "react";
 
 import { Button, Codicon, TruncatedLabel } from "@wso2/ui-toolkit";
 import { DiagramEngine, PortWidget } from '@projectstorm/react-diagrams';
-import { TypeField } from "@wso2/ballerina-core";
+import { PrimitiveBalType, TypeField } from "@wso2/ballerina-core";
 
 import { DataMapperPortWidget, PortState, RecordFieldPortModel } from '../../../Port';
 import { EXPANDED_QUERY_INPUT_NODE_PREFIX } from '../../../utils/constants';
-import { getTypeName } from "../../../utils/dm-utils";
+import { getOptionalRecordField, getTypeName } from "../../../utils/dm-utils";
 import { InputSearchHighlight } from '../Search';
 import { TreeBody, TreeContainer, TreeHeader } from '../Tree/Tree';
 
@@ -56,10 +56,21 @@ export function RecordTypeTreeWidget(props: RecordTypeTreeWidgetProps) {
     const isPortDisabled = hasLinkViaCollectClause && Object.keys(portOut.getLinks()).length === 0;
     portOut.isDisabledDueToCollectClause = isPortDisabled;
 
-    const hasFields = !!typeDesc?.fields?.length;
+    let fields: TypeField[] = [];
+    let optional = false;
+
+    const optionalRecordField = getOptionalRecordField(typeDesc);
+    if (optionalRecordField) {
+        optional = true
+        fields = optionalRecordField.fields;
+    } else if (typeDesc.typeName === PrimitiveBalType.Record) {
+        fields = typeDesc.fields;
+    }
+
+    const hasFields = fields?.length > 0;
 
     let expanded = true;
-    if (portOut && portOut.collapsed) {
+    if (portOut && (portOut.collapsed || portOut.hidden)) {
         expanded = false;
     }
 
@@ -143,7 +154,7 @@ export function RecordTypeTreeWidget(props: RecordTypeTreeWidgetProps) {
             {expanded && hasFields && (
                 <TreeBody>
                     {
-                        typeDesc.fields.map((field, index) => {
+                        fields.map((field, index) => {
                             return (
                                 <RecordFieldTreeItemWidget
                                     key={index}

@@ -35,7 +35,8 @@ import {
     getFromClauseNodeLabel,
     getOptionalArrayField,
     getSearchFilteredInput,
-    getTypeFromStore
+    getTypeFromStore,
+    isOptionalAndNillableField
 } from "../../utils/dm-utils";
 import { DataMapperNodeModel } from "../commons/DataMapperNode";
 import { QueryExprMappingType } from "../QueryExpression";
@@ -128,6 +129,12 @@ export class FromClauseNode extends DataMapperNodeModel {
                             parentPort.collapsed
                         );
                     });
+                } else {
+                    const isOptional = isOptionalAndNillableField(this.typeDef);
+                    this.numberOfFields += this.addPortsForInputRecordField(
+                        this.typeDef, "OUT", this.nodeLabel, this.nodeLabel,
+                        EXPANDED_QUERY_SOURCE_PORT_PREFIX, parentPort, this.context.collapsedFields, parentPort.collapsed, isOptional
+                    );
                 }
             }
         }

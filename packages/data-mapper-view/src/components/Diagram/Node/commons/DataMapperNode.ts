@@ -130,11 +130,9 @@ export abstract class DataMapperNodeModel extends NodeModel<NodeModelGenerics & 
 		const fieldFQN = parentId
 			? `${parentId}${fieldName && isOptional
 				? `?.${fieldName}`
-				: `.${fieldName}`}`
+				: fieldName ? `.${fieldName}` : ''}`
 			: fieldName && fieldName;
-		const unsafeFieldFQN = unsafeParentId
-			? `${unsafeParentId}.${fieldName}`
-			: fieldName || '';
+		const unsafeFieldFQN = fieldFQN.replaceAll('?.', '.');
 
 		if (fieldName.startsWith("$missingNode$")) {
 			return;
