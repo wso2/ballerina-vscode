@@ -60,24 +60,6 @@
       }
     ],
     "references": {
-      "1398367398": {
-        "fields": [
-          {
-            "id": "username",
-            "variableName": "username",
-            "typeName": "string",
-            "kind": "string"
-          },
-          {
-            "id": "password",
-            "variableName": "password",
-            "typeName": "string",
-            "kind": "string"
-          }
-        ],
-        "typeName": "Student",
-        "kind": "record"
-      },
       "-1248756212": {
         "fields": [
           {
@@ -94,6 +76,24 @@
           }
         ],
         "typeName": "UserInfo",
+        "kind": "record"
+      },
+      "1398367398": {
+        "fields": [
+          {
+            "id": "username",
+            "variableName": "username",
+            "typeName": "string",
+            "kind": "string"
+          },
+          {
+            "id": "password",
+            "variableName": "password",
+            "typeName": "string",
+            "kind": "string"
+          }
+        ],
+        "typeName": "Student",
         "kind": "record"
       }
     }
