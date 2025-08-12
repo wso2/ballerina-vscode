@@ -18,7 +18,7 @@
         "fieldName": "recordType",
         "type": {
           "dependentTypeHashes": [],
-          "hashCode": "733382244",
+          "hashCode": "1451375128",
           "name": "SampleType",
           "typeName": "record"
         },
@@ -27,13 +27,13 @@
       }
     ],
     "dependentTypeHashes": [
-      "733382244"
+      "1451375128"
     ],
-    "hashCode": "329597179",
+    "hashCode": "192417391",
     "name": "SampleRecord",
     "typeName": "record",
     "dependentTypes": {
-      "733382244": {
+      "1451375128": {
         "fields": [
           {
             "fieldName": "sampleTypeName",
@@ -57,7 +57,7 @@
           }
         ],
         "dependentTypeHashes": [],
-        "hashCode": "733382244",
+        "hashCode": "1451375128",
         "name": "SampleType",
         "typeName": "record"
       }

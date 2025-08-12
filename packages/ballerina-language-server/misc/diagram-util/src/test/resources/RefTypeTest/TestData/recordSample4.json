@@ -18,7 +18,7 @@
         "fieldName": "progressNote",
         "type": {
           "dependentTypeHashes": [],
-          "hashCode": "977134111",
+          "hashCode": "477675810",
           "name": "ProgressNote",
           "typeName": "record"
         },
@@ -27,15 +27,15 @@
       }
     ],
     "dependentTypeHashes": [
-      "977134111",
-      "329597179",
-      "733382244"
+      "477675810",
+      "192417391",
+      "1451375128"
     ],
-    "hashCode": "-180061144",
+    "hashCode": "1933832810",
     "name": "FinalNote",
     "typeName": "record",
     "dependentTypes": {
-      "977134111": {
+      "477675810": {
         "fields": [
           {
             "fieldName": "note",
@@ -51,7 +51,7 @@
             "fieldName": "sampleRecord",
             "type": {
               "dependentTypeHashes": [],
-              "hashCode": "329597179",
+              "hashCode": "192417391",
               "name": "SampleRecord",
               "typeName": "record"
             },
@@ -60,14 +60,14 @@
           }
         ],
         "dependentTypeHashes": [
-          "329597179",
-          "733382244"
+          "192417391",
+          "1451375128"
         ],
-        "hashCode": "977134111",
+        "hashCode": "477675810",
         "name": "ProgressNote",
         "typeName": "record"
       },
-      "329597179": {
+      "192417391": {
         "fields": [
           {
             "fieldName": "sampleRecordName",
@@ -83,7 +83,7 @@
             "fieldName": "recordType",
             "type": {
               "dependentTypeHashes": [],
-              "hashCode": "733382244",
+              "hashCode": "1451375128",
               "name": "SampleType",
               "typeName": "record"
             },
@@ -92,13 +92,13 @@
           }
         ],
         "dependentTypeHashes": [
-          "733382244"
+          "1451375128"
         ],
-        "hashCode": "329597179",
+        "hashCode": "192417391",
         "name": "SampleRecord",
         "typeName": "record"
       },
-      "733382244": {
+      "1451375128": {
         "fields": [
           {
             "fieldName": "sampleTypeName",
@@ -122,7 +122,7 @@
           }
         ],
         "dependentTypeHashes": [],
-        "hashCode": "733382244",
+        "hashCode": "1451375128",
         "name": "SampleType",
         "typeName": "record"
       }
