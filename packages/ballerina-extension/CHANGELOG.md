@@ -3,7 +3,7 @@
 All notable changes to the "Ballerina" extension will be documented in this file.
 
 
-## Version 5.3.1 (2025-08-07)
+## Version 5.3.1 (2025-08-12)
 
 ### Fixed
 
