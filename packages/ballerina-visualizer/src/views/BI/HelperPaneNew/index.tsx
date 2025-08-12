@@ -12,7 +12,7 @@ import { RefObject, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { ExpandableList } from './Components/ExpandableList';
 import { Variables } from './Views/Variables';
 import { CompletionInsertText, ExpressionProperty, FlowNode, LineRange, RecordTypeField } from '@wso2/ballerina-core';
-import { Codicon, COMPLETION_ITEM_KIND, CompletionItem, FormExpressionEditorRef, getIcon, HelperPaneCustom, HelperPaneHeight, Typography } from '@wso2/ui-toolkit';
+import { Codicon, COMPLETION_ITEM_KIND, CompletionItem, FormExpressionEditorRef, getIcon, HELPER_PANE_EX_BTN_OFFSET, HELPER_PANE_WIDTH, HelperPaneCustom, HelperPaneHeight, Typography } from '@wso2/ui-toolkit';
 import { CopilotFooter, SlidingPane, SlidingPaneHeader, SlidingPaneNavContainer, SlidingWindow } from '@wso2/ui-toolkit/lib/components/ExpressionEditor/components/Common/SlidingPane';
 import { CreateValue } from './Views/CreateValue';
 import DynamicModal from './Components/Modal';
@@ -157,7 +157,7 @@ const HelperPaneNewEl = ({
         <HelperPaneCustom sx={{ zIndex: helperPaneZIndex }} anchorRef={anchorRef}>
             <HelperPaneCustom.Body>
                 <SlidingWindow>
-                    <SlidingPane name="PAGE1" paneWidth={paneWidth} paneHeight='150px'>
+                    <SlidingPane name="PAGE1" paneWidth={HELPER_PANE_WIDTH -  6} paneHeight='150px'>
                         <ExpandableList sx={{ paddingTop: '10px' }}>
                             {valueTypeConstraint && (
                                 <SlidingPaneNavContainer to="CREATE_VALUE" data={recordTypeField}>
@@ -214,7 +214,7 @@ const HelperPaneNewEl = ({
                     </SlidingPane>
 
                     {/* Variables Page */}
-                    <SlidingPane name="VARIABLES" paneWidth={paneWidth}>
+                    <SlidingPane name="VARIABLES" paneWidth={HELPER_PANE_WIDTH -  6}>
                         <SlidingPaneHeader>
                             Variables
                         </SlidingPaneHeader>
@@ -233,7 +233,7 @@ const HelperPaneNewEl = ({
                         />
                     </SlidingPane>
 
-                    <SlidingPane name="CREATE_VALUE" paneWidth={paneWidth}>
+                    <SlidingPane name="CREATE_VALUE" paneWidth={HELPER_PANE_WIDTH -  6}>
                         <SlidingPaneHeader> Create Value</SlidingPaneHeader>
                         <CreateValue
                             fileName={fileName}
@@ -243,7 +243,7 @@ const HelperPaneNewEl = ({
                             recordTypeField={recordTypeField} />
                     </SlidingPane>
 
-                    <SlidingPane name="FUNCTIONS" paneWidth={paneWidth}>
+                    <SlidingPane name="FUNCTIONS" paneWidth={HELPER_PANE_WIDTH -  6}>
                         <SlidingPaneHeader>
                             Functions
                         </SlidingPaneHeader>
@@ -257,7 +257,7 @@ const HelperPaneNewEl = ({
                             updateImports={updateImports} />
                     </SlidingPane>
 
-                    <SlidingPane name="CONFIGURABLES" paneWidth={paneWidth}>
+                    <SlidingPane name="CONFIGURABLES" paneWidth={HELPER_PANE_WIDTH -  6}>
                         <SlidingPaneHeader>
                             Configurables
                         </SlidingPaneHeader>
