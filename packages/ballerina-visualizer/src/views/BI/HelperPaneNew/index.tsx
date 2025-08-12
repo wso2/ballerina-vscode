@@ -50,7 +50,8 @@ export type HelperPaneNewProps = {
     filteredCompletions?: CompletionItem[];
     variables: CompletionItem[];
     isInModal?: boolean;
-    valueTypeConstraint?: string | string[]
+    valueTypeConstraint?: string | string[];
+    handleRetrieveCompletions: (value: string, property: ExpressionProperty, offset: number, triggerCharacter?: string) => Promise<void>;
 };
 
 const TitleContainer = styled.div`
@@ -81,7 +82,8 @@ const HelperPaneNewEl = ({
     filteredCompletions,
     variables,
     isInModal,
-    valueTypeConstraint
+    valueTypeConstraint,
+    handleRetrieveCompletions 
 }: HelperPaneNewProps) => {
     const [position, setPosition] = useState<{ top: number, left: number }>({ top: 0, left: 0 });
     const paneRef = useRef<HTMLDivElement>(null);
@@ -157,7 +159,7 @@ const HelperPaneNewEl = ({
         <HelperPaneCustom sx={{ zIndex: helperPaneZIndex }} anchorRef={anchorRef}>
             <HelperPaneCustom.Body>
                 <SlidingWindow>
-                    <SlidingPane name="PAGE1" paneWidth={HELPER_PANE_WIDTH -  6} paneHeight='150px'>
+                    <SlidingPane name="PAGE1" paneWidth={HELPER_PANE_WIDTH - 6} paneHeight='150px'>
                         <ExpandableList sx={{ paddingTop: '10px' }}>
                             {valueTypeConstraint && (
                                 <SlidingPaneNavContainer to="CREATE_VALUE" data={recordTypeField}>
@@ -183,8 +185,8 @@ const HelperPaneNewEl = ({
                                     <TitleContainer>
                                         {getIcon(COMPLETION_ITEM_KIND.Constant)}
                                         <Typography variant="body3" sx={{ fontWeight: 600 }}>
-                                        Configurables
-                                    </Typography>
+                                            Configurables
+                                        </Typography>
                                     </TitleContainer>
                                 </ExpandableList.Item>
                             </SlidingPaneNavContainer>
@@ -214,7 +216,7 @@ const HelperPaneNewEl = ({
                     </SlidingPane>
 
                     {/* Variables Page */}
-                    <SlidingPane name="VARIABLES" paneWidth={HELPER_PANE_WIDTH -  6}>
+                    <SlidingPane name="VARIABLES" paneWidth={HELPER_PANE_WIDTH - 6}>
                         <SlidingPaneHeader>
                             Variables
                         </SlidingPaneHeader>
@@ -230,10 +232,11 @@ const HelperPaneNewEl = ({
                             variables={variables}
                             recordTypeField={recordTypeField}
                             isInModal={isInModal}
+                            handleRetrieveCompletions={handleRetrieveCompletions}
                         />
                     </SlidingPane>
 
-                    <SlidingPane name="CREATE_VALUE" paneWidth={HELPER_PANE_WIDTH -  6}>
+                    <SlidingPane name="CREATE_VALUE" paneWidth={HELPER_PANE_WIDTH - 6}>
                         <SlidingPaneHeader> Create Value</SlidingPaneHeader>
                         <CreateValue
                             fileName={fileName}
@@ -243,7 +246,7 @@ const HelperPaneNewEl = ({
                             recordTypeField={recordTypeField} />
                     </SlidingPane>
 
-                    <SlidingPane name="FUNCTIONS" paneWidth={HELPER_PANE_WIDTH -  6}>
+                    <SlidingPane name="FUNCTIONS" paneWidth={HELPER_PANE_WIDTH - 6}>
                         <SlidingPaneHeader>
                             Functions
                         </SlidingPaneHeader>
@@ -257,7 +260,7 @@ const HelperPaneNewEl = ({
                             updateImports={updateImports} />
                     </SlidingPane>
 
-                    <SlidingPane name="CONFIGURABLES" paneWidth={HELPER_PANE_WIDTH -  6}>
+                    <SlidingPane name="CONFIGURABLES" paneWidth={HELPER_PANE_WIDTH - 6}>
                         <SlidingPaneHeader>
                             Configurables
                         </SlidingPaneHeader>
@@ -345,6 +348,7 @@ export const getHelperPaneNew = (props: HelperPaneNewProps) => {
             variables={variables}
             isInModal={isInModal}
             valueTypeConstraint={valueTypeConstraint}
+            handleRetrieveCompletions={props.handleRetrieveCompletions}
         />
     );
 };
