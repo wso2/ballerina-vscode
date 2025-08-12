@@ -47,11 +47,10 @@ export async function LibraryProviderTool(
     try {
         const startTime = Date.now();
         const libraries = await selectRequiredFunctions(params.userPrompt, params.libraryNames, generationType);
-        console.log(`[LibraryProviderTool] Fetched ${libraries.length} libraries: ${params.libraryNames.join(", ")}`);
         console.log(
-            `[LibraryProviderTool] Called with ${params.libraryNames.length} libraries, took ${
-                (Date.now() - startTime) / 1000
-            }s`
+            `[LibraryProviderTool] Fetched ${libraries.length} libraries: ${libraries
+                .map((lib) => lib.name)
+                .join(", ")}, took ${(Date.now() - startTime) / 1000}s`
         );
         return libraries;
     } catch (error) {
@@ -74,9 +73,9 @@ ${libraryDescriptions}`,
         parameters: LibraryProviderToolSchema,
         execute: async (input: { libraryNames: string[]; userPrompt: string }) => {
             console.log(
-                `[LibraryProviderTool] Called with libraries: ${input.libraryNames.join(", ")} and prompt: ${
-                    input.userPrompt
-                }`
+                `[LibraryProviderTool] Called with ${input.libraryNames.length} libraries: ${input.libraryNames.join(
+                    ", "
+                )} and prompt: ${input.userPrompt}`
             );
             return await LibraryProviderTool(input, generationType);
         },

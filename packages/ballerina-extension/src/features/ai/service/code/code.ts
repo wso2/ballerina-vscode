@@ -103,7 +103,15 @@ export async function generateCodeCore(params: GenerateCodeRequest, eventHandler
 
     eventHandler({ type: "start" });
     let assistantResponse: string = "";
+    let libraryDetails: Library[] | null = null;
     for await (const part of fullStream) {
+        if (part.type === "tool-result") {
+            libraryDetails = part.result as Library[];
+            console.log(
+                "[LibraryProviderTool] Library Relevant trimmed functions By LibraryProviderTool Result: ",
+                libraryDetails
+            );
+        }
         switch (part.type) {
             case "text-delta": {
                 const textPart = part.textDelta;
@@ -141,11 +149,14 @@ export async function generateCodeCore(params: GenerateCodeRequest, eventHandler
                     console.log("Repair iteration: ", repair_attempt);
                     console.log("Diagnostics trying to fix: ", diagnostics);
 
-                    const repairedResponse: RepairResponse = await repairCode({
-                        previousMessages: allMessages,
-                        assistantResponse: diagnosticFixResp,
-                        diagnostics: diagnostics,
-                    });
+                    const repairedResponse: RepairResponse = await repairCode(
+                        {
+                            previousMessages: allMessages,
+                            assistantResponse: diagnosticFixResp,
+                            diagnostics: diagnostics,
+                        },
+                        libraryDetails || []
+                    );
                     diagnosticFixResp = repairedResponse.repairResponse;
                     diagnostics = repairedResponse.diagnostics;
                     repair_attempt++;
@@ -366,10 +377,18 @@ export async function repairCodeCore(params: RepairParams, eventHandler: Copilot
     return resp;
 }
 
-export async function repairCode(params: RepairParams): Promise<RepairResponse> {
-    console.log("Repairing code with params", params);
-
+export async function repairCode(params: RepairParams, libraryDetails: Library[] = []): Promise<RepairResponse> {
     const allMessages: CoreMessage[] = [
+        {
+            role: "system",
+            content: `Library details used in the original code generation:
+<library_details>
+${JSON.stringify(libraryDetails)}
+</library_details>`,
+            providerOptions: {
+                anthropic: { cacheControl: { type: "ephemeral" } },
+            },
+        },
         ...params.previousMessages,
         {
             role: "assistant",
@@ -378,7 +397,7 @@ export async function repairCode(params: RepairParams): Promise<RepairResponse> 
         {
             role: "user",
             content:
-                "Generated code returns following errors. Double-check all functions, types, record field access against the API documentation again. Fix the compiler errors and return the new response. \n Errors: \n " +
+                "Generated code returns following errors. Double-check all functions, types, record field access against the provided library details. Fix the compiler errors and return the new response. \n Errors: \n " +
                 params.diagnostics.map((d) => d.message).join("\n"),
         },
     ];
