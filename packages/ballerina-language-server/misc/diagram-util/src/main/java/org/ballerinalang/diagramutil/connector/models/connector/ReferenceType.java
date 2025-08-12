@@ -66,7 +66,9 @@ public class ReferenceType {
         } else if (kind == SymbolKind.CONSTANT) {
             typeSymbol = ((VariableSymbol) symbol).typeDescriptor();
             Optional<String> optName = typeSymbol.getName();
-            name = optName.orElseGet(() -> symbol.getName().orElseThrow());
+            name = optName.orElseGet(() -> symbol.getName().orElseThrow(
+                    () -> new IllegalStateException("Symbol name is missing for symbol: " + symbol)
+            ));
         }
 
         if (typeSymbol == null) {

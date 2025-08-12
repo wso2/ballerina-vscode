@@ -985,11 +985,11 @@ public class DataMapManager {
                                 field.type(), isInputPort, visitedTypes, references);
                         recordPort.fields.add(fieldPort);
                     }
-                    MappingRecordPort inputPort = new MappingRecordPort(recordPort);
+                    MappingRecordPort simplePort = new MappingRecordPort(recordPort);
                     MappingRecordPort referenceRecordPort = new MappingRecordPort(recordPort, false);
                     references.put(recordType.hashCode, referenceRecordPort);
                     if (recordType.dependentTypes == null) {
-                        return inputPort;
+                        return simplePort;
                     }
                     Map<String, RefType> dependentTypes = recordType.dependentTypes;
                     for (Map.Entry<String, RefType> entry : dependentTypes.entrySet()) {
@@ -997,9 +997,8 @@ public class DataMapManager {
                         RefType value = entry.getValue();
                         getRefMappingPort(id + "." + key, key, value, isInputPort, visitedTypes, references);
                     }
-                    return inputPort;
+                    return simplePort;
                 } else {
-
                     return new MappingRecordPort(id, name, type.name, type.typeName, type.hashCode);
                 }
             } else if (type.typeName.equals("array")) {
