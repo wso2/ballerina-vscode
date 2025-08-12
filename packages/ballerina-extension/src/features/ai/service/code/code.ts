@@ -172,11 +172,7 @@ export async function generateCode(params: GenerateCodeRequest): Promise<void> {
     }
 }
 
-function getSystemPromptPrefix(
-    sourceFiles: SourceFiles[],
-    op: OperationType,
-    generationType: GenerationType
-): string {
+function getSystemPromptPrefix(sourceFiles: SourceFiles[], op: OperationType, generationType: GenerationType): string {
     const basePrompt = `# QUESTION
 Analyze the user query provided in the user message to identify the relevant Ballerina libraries needed to fulfill the query. Use the LibraryProviderTool to fetch details (name, description, clients, functions, types) for only the selected libraries. The tool description contains all available libraries and their descriptions. Do not assume library contents unless provided by the tool.
 
@@ -387,13 +383,11 @@ export async function repairCode(params: RepairParams): Promise<RepairResponse> 
         },
     ];
 
-
     const { text, usage, providerMetadata } = await generateText({
         model: await getAnthropicClient(ANTHROPIC_SONNET_4),
         maxTokens: 4096 * 4,
         temperature: 0,
         messages: allMessages,
-        tools,
         abortSignal: AIPanelAbortController.getInstance().signal,
     });
 
