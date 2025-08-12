@@ -564,7 +564,7 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
                             enableExIcon={false}
                             isHelperPaneOpen={isHelperPaneOpen}
                             changeHelperPaneState={handleChangeHelperPaneState}
-                            helperPaneOrigin="bottom"
+                            helperPaneOrigin="vertical"
                             getHelperPane={handleGetHelperPane}
                             helperPaneHeight={helperPaneHeight}
                             helperPaneWidth={recordTypeField ? 400 : undefined}
@@ -573,7 +573,7 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
                             codeActions={codeActions}
                             placeholder={placeholder}
                             helperPaneZIndex={helperPaneZIndex}
-
+                            rawExpression={rawExpression}
                         />
                         {error && <ErrorBanner errorMsg={error.message.toString()} />}
                     </div>

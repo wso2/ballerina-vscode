@@ -3,9 +3,9 @@ import { VariableTypeIndicator } from "../Components/VariableTypeIndicator"
 import { SlidingPaneNavContainer } from "@wso2/ui-toolkit/lib/components/ExpressionEditor/components/Common/SlidingPane"
 import { useRpcContext } from "@wso2/ballerina-rpc-client"
 import { ExpressionProperty, FlowNode, LineRange, RecordTypeField } from "@wso2/ballerina-core"
-import { Codicon, COMPLETION_ITEM_KIND, CompletionItem, Divider, getIcon, HelperPaneCustom, SearchBox, ThemeColors, Typography } from "@wso2/ui-toolkit"
+import { Codicon, COMPLETION_ITEM_KIND, CompletionItem, Divider, getIcon, HelperPaneCustom, SearchBox, ThemeColors } from "@wso2/ui-toolkit"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
-import { FormField, HelperPaneVariableInfo } from "@wso2/ballerina-side-panel"
+import { HelperPaneVariableInfo } from "@wso2/ballerina-side-panel"
 import { debounce } from "lodash"
 import { convertToHelperPaneVariable, filterHelperPaneVariables } from "../../../../utils/bi"
 import FooterButtons from "../Components/FooterButtons"
@@ -29,8 +29,11 @@ type VariablesPageProps = {
     variables: CompletionItem[]
     recordTypeField?: RecordTypeField;
     isInModal?: boolean;
-    handleRetrieveCompletions?: (value: string, property: ExpressionProperty, offset: number, triggerCharacter?: string) => Promise<void>;
+}
 
+type VariableListItemType = {
+    label: string;
+    type: string;
 }
 
 const VariablesMoreIconContainer = styled.div`
@@ -46,7 +49,7 @@ const VariablesMoreIconContainer = styled.div`
 
 
 export const Variables = (props: VariablesPageProps) => {
-    const { fileName, targetLineRange, onChange, anchorRef, handleOnFormSubmit, selectedType, filteredCompletions, currentValue, recordTypeField, isInModal, handleRetrieveCompletions } = props;
+    const { fileName, targetLineRange, onChange, anchorRef, handleOnFormSubmit, selectedType, filteredCompletions, currentValue, recordTypeField, isInModal } = props;
     const [searchValue, setSearchValue] = useState<string>("");
     const { rpcClient } = useRpcContext();
     const firstRender = useRef<boolean>(true);
@@ -54,8 +57,6 @@ export const Variables = (props: VariablesPageProps) => {
     const [filteredVariableInfo, setFilteredVariableInfo] = useState<HelperPaneVariableInfo | undefined>(undefined);
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const newNodeNameRef = useRef<string>("");
-    const isMainVariablesRef = useRef<boolean>(true)
-    const [currentlyVisitingItemType, setCurrentlyVisitingItemType] = useState<string>("")
     const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
     const [projectPathUri, setProjectPathUri] = useState<string>();
     const initialCursorOffset = useRef<number>(0);
@@ -142,7 +143,7 @@ export const Variables = (props: VariablesPageProps) => {
     }
 
     const handleItemSelect = (value: string) => {
-        onChange(currentValue + value, true);
+        onChange(value, true)
     }
 
     const handleFunctionItemClicked = (value: string) => {
@@ -167,74 +168,62 @@ export const Variables = (props: VariablesPageProps) => {
         onChange(newValue, true);
     }
 
-    function getPropertyFromFormField(field: FormField): ExpressionProperty {
-        return {
-            metadata: field.metadata,
-            valueType: field.valueType,
-            value: field.value as string,
-            optional: field.optional,
-            editable: field.editable,
-            advanced: field.advanced,
-            placeholder: field.placeholder,
-            valueTypeConstraint: field.valueTypeConstraint,
-            codedata: field.codedata,
-            imports: field.imports
-        }
-    }
-
     const handleVariablesMoreIconClick = (value: string) => {
         onChange(currentValue + value + '.', true);
     }
 
     const objectFields = filteredCompletions.filter((completion) => completion.kind === "field")
-    console.log(objectFields, "objectFields")
     const objectMethods = filteredCompletions.filter((completion) => completion.kind === "function" && completion.description === selectedType?.label)
 
-    const mergedVariableItems = useMemo(() => {
-        const infoItems = filteredVariableInfo?.category
-            ? filteredVariableInfo.category.flatMap(cat => cat.items)
-            : [];
+    const mergedVariableItems: VariableListItemType[] = useMemo(() => {
+        const infoItems = filteredVariableInfo?.category?.flatMap(category => category.items.map(item => ({
+            label: item.label,
+            type: item.type || "any"
+        }))) || [];
         if (!objectFields || objectFields.length === 0) {
             return infoItems;
         }
-        return objectFields;
+        return objectFields.map(field => ({
+            label: field.label,
+            type: field.description || "any"
+        }));
     }, [filteredVariableInfo, objectFields]);
 
 
     const ExpandableListItems = () => {
-        // if (currentValue.length !== initialCursorOffset.current) {
-        //     return (
-        //         <div>
-        //             <p style={{ color: ThemeColors.ON_SURFACE_VARIANT }}>
-        //                 This variable type is not compatible with the{" "}
-        //                 <span style={{ color: ThemeColors.HIGHLIGHT }}>
-        //                     {selectedType?.label}
-        //                 </span>{" "}
-        //                 type. Do you wish to add it in the same type, or would you prefer to convert
-        //                 it to a
-        //                 {" "}
-        //                 <span style={{ color: ThemeColors.HIGHLIGHT }}>
-        //                     {selectedType?.label}
-        //                 </span>{" "}
-        //                 value using the helpers below?
-        //             </p>
-        //             {
-        //                 !objectMethods || objectMethods.length === 0 ?
-        //                     <><span style={{ color: ThemeColors.ON_SURFACE_VARIANT }}>No helpers to show </span> <span onClick={handleNoFunctionsGoBack} style={{ color: ThemeColors.HIGHLIGHT, cursor: 'pointer' }}> Go Back</span></> : <>
-        //                         {
-        //                             objectMethods.map((item) => (
-        //                                 <SlidingPaneNavContainer data>
-        //                                     <ExpandableList.Item sx={{ height: '10px' }} onClick={() => handleFunctionItemClicked(item.label)}>
-        //                                         {getIcon(COMPLETION_ITEM_KIND.Function)} <p>{item.label} </p>
-        //                                     </ExpandableList.Item>
-        //                                 </SlidingPaneNavContainer>
-        //                             ))
-        //                         }
-        //                     </>
-        //             }
-        //         </div>
-        //     )
-        // }
+        if (currentValue.length !== initialCursorOffset.current) {
+            return (
+                <div>
+                    <p style={{ color: ThemeColors.ON_SURFACE_VARIANT }}>
+                        This variable type is not compatible with the
+                        <span style={{ color: ThemeColors.HIGHLIGHT }}>
+                            {selectedType?.label}
+                        </span>{" "}
+                        type. Do you wish to add it in the same type, or would you prefer to convert
+                        it to a
+                        {" "}
+                        <span style={{ color: ThemeColors.HIGHLIGHT }}>
+                            {selectedType?.label}
+                        </span>{" "}
+                        value using the helpers below?
+                    </p>
+                    {
+                        !objectMethods || objectMethods.length === 0 ?
+                            <><span style={{ color: ThemeColors.ON_SURFACE_VARIANT }}>No helpers to show </span> <span onClick={handleNoFunctionsGoBack} style={{ color: ThemeColors.HIGHLIGHT, cursor: 'pointer' }}> Go Back</span></> : <>
+                                {
+                                    objectMethods.map((item) => (
+                                        <SlidingPaneNavContainer data>
+                                            <ExpandableList.Item sx={{ height: '10px' }} onClick={() => handleFunctionItemClicked(item.label)}>
+                                                {getIcon(COMPLETION_ITEM_KIND.Function)} <p>{item.label} </p>
+                                            </ExpandableList.Item>
+                                        </SlidingPaneNavContainer>
+                                    ))
+                                }
+                            </>
+                    }
+                </div>
+            )
+        }
 
         return (
             <>
@@ -248,12 +237,8 @@ export const Variables = (props: VariablesPageProps) => {
                                 </VariablesMoreIconContainer>}
                         >
                             <ExpandableList.Item onClick={() => handleItemSelect(item.label)}>
-                                <Typography variant="body3" sx={{ fontWeight: 600 }}>
-                                    {item.label}
-                                </Typography>
-                                <VariableTypeIndicator>
-                                    {item.label}
-                                </VariableTypeIndicator>
+                                <p style={{ margin: '0px' }}>{item.label} </p>
+                                <VariableTypeIndicator type={item.label} />
                             </ExpandableList.Item>
                         </SlidingPaneNavContainer>
                     ))
@@ -274,7 +259,7 @@ export const Variables = (props: VariablesPageProps) => {
                 value: selectedType?.label,
                 placeholder: "var",
                 optional: false,
-                editable: false,
+                editable: true,
                 advanced: false,
                 hidden: false,
             }
@@ -362,7 +347,7 @@ export const Variables = (props: VariablesPageProps) => {
             height: "100%",
             overflow: "hidden"
         }}>
-            <div style={{ display: 'flex', color: ThemeColors.PRIMARY }}>
+            <div style={{ display: 'flex', color: ThemeColors.HIGHLIGHT, marginBottom: '10px' }}>
                 {
                     breadCrumSteps.map((item, index) => {
                         if (index === 0) {
@@ -382,7 +367,7 @@ export const Variables = (props: VariablesPageProps) => {
                     })
                 }
             </div>
-            <div style={{ display: "flex", justifyContent: "center", alignItems: "center", marginBottom: "10px" }}>
+            <div style={{ display: "flex", justifyContent: "center", alignItems: "center", marginBottom: "10px", gap: '5px' }}>
                 <SearchBox sx={{ width: "100%" }} placeholder='Search' value={searchValue} onChange={handleSearch} />
             </div>
 
@@ -408,20 +393,18 @@ export const Variables = (props: VariablesPageProps) => {
                     <DynamicModal.Trigger>
                         <FooterButtons startIcon='add' title="New Variable" />
                     </DynamicModal.Trigger>
-                    <ScrollableContainer>
-                        <FormGenerator
-                            fileName={fileName}
-                            node={selectedNode}
-                            connections={[]}
-                            targetLineRange={targetLineRange}
-                            projectPath={projectPathUri}
-                            editForm={false}
-                            onSubmit={handleSubmit}
-                            showProgressIndicator={false}
-                            resetUpdatedExpressionField={() => { }}
-                            isInModal={true}
-                        />
-                    </ScrollableContainer>
+                    <FormGenerator
+                        fileName={fileName}
+                        node={selectedNode}
+                        connections={[]}
+                        targetLineRange={targetLineRange}
+                        projectPath={projectPathUri}
+                        editForm={false}
+                        onSubmit={handleSubmit}
+                        showProgressIndicator={false}
+                        resetUpdatedExpressionField={() => { }}
+                        isInModal={true}
+                    />
                 </DynamicModal>
             </div>}
         </div>
