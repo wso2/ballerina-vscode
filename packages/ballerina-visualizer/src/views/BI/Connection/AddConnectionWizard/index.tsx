@@ -20,11 +20,13 @@ import { useEffect, useRef, useState } from "react";
 import styled from "@emotion/styled";
 import {
     AvailableNode,
+    DIRECTORY_MAP,
     EVENT_TYPE,
     FlowNode,
     LinePosition,
     LineRange,
     MACHINE_VIEW,
+    ParentPopupData,
     RunExternalCommandResponse,
     SubPanel,
     SubPanelView,
@@ -88,7 +90,7 @@ enum SavingFormStatus {
 interface AddConnectionWizardProps {
     fileName: string; // file path of `connection.bal`
     target?: LinePosition;
-    onClose?: () => void;
+    onClose?: (parent?: ParentPopupData) => void;
 }
 
 export function AddConnectionWizard(props: AddConnectionWizardProps) {
@@ -208,7 +210,8 @@ export function AddConnectionWizard(props: AddConnectionWizardProps) {
                         // clear memory
                         selectedNodeRef.current = undefined;
                         setSavingFormStatus(SavingFormStatus.SUCCESS);
-                        onClose ? onClose() : gotoHome();
+                        const newConnection = response.artifacts.find((artifact) => artifact.isNew);
+                        onClose ? onClose({ recentIdentifier: newConnection.name, artifactType: DIRECTORY_MAP.CONNECTION }) : gotoHome();
                     } else {
                         console.error(">>> Error updating source code", response);
                         setSavingFormStatus(SavingFormStatus.ERROR);
