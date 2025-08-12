@@ -147,59 +147,29 @@
         "optional": false
       },
       {
-        "fields": [
-          {
-            "id": "l3ArrItem.l4_1",
-            "variableName": "l4_1",
-            "typeName": "int",
-            "kind": "int",
-            "optional": false
-          },
-          {
-            "id": "l3ArrItem.l4_2",
-            "variableName": "l4_2",
-            "typeName": "string",
-            "kind": "string",
-            "optional": false
-          }
-        ],
+        "fields": [],
         "id": "l3ArrItem",
         "variableName": "l3ArrItem",
-        "typeName": "record",
+        "typeName": "record {|int l4_1; string l4_2; anydata...;|}",
         "kind": "record",
         "isFocused": true,
-        "optional": false
+        "reference": "879155682"
       }
     ],
     "output": {
       "member": {
-        "fields": [
-          {
-            "id": "l3Arr.l4_1",
-            "variableName": "l4_1",
-            "typeName": "int",
-            "kind": "int",
-            "optional": false
-          },
-          {
-            "id": "l3Arr.l4_2",
-            "variableName": "l4_2",
-            "typeName": "string",
-            "kind": "string",
-            "optional": false
-          }
-        ],
+        "fields": [],
         "id": "l3Arr",
         "variableName": "<l3ArrItem>",
-        "typeName": "record",
+        "typeName": "",
         "kind": "record",
-        "optional": false
+        "reference": "2044697819"
       },
       "id": "l3Arr",
       "variableName": "l3Arr",
-      "typeName": "record[]",
+      "typeName": "[]",
       "kind": "array",
-      "optional": false
+      "reference": "2044697819"
     },
     "mappings": [
       {
@@ -240,6 +210,44 @@
         "properties": {
           "expression": "{l4_1: 0, l4_2: \"aaa\"}"
         }
+      }
+    },
+    "references": {
+      "879155682": {
+        "fields": [
+          {
+            "id": "l4_1",
+            "variableName": "l4_1",
+            "typeName": "int",
+            "kind": "int"
+          },
+          {
+            "id": "l4_2",
+            "variableName": "l4_2",
+            "typeName": "string",
+            "kind": "string"
+          }
+        ],
+        "typeName": "record {|int l4_1; string l4_2; anydata...;|}",
+        "kind": "record"
+      },
+      "2044697819": {
+        "fields": [
+          {
+            "id": "l4_1",
+            "variableName": "l4_1",
+            "typeName": "int",
+            "kind": "int"
+          },
+          {
+            "id": "l4_2",
+            "variableName": "l4_2",
+            "typeName": "string",
+            "kind": "string"
+          }
+        ],
+        "typeName": "",
+        "kind": "record"
       }
     }
   }

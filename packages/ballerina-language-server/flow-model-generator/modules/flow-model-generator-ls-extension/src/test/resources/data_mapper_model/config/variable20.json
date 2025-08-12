@@ -189,66 +189,29 @@
         "optional": false
       },
       {
-        "fields": [
-          {
-            "id": "info.username",
-            "variableName": "username",
-            "typeName": "string",
-            "kind": "string",
-            "optional": false
-          },
-          {
-            "id": "info.password",
-            "variableName": "password",
-            "typeName": "string",
-            "kind": "string",
-            "optional": false
-          },
-          {
-            "id": "info.id",
-            "variableName": "id",
-            "typeName": "int",
-            "kind": "int",
-            "optional": false
-          }
-        ],
+        "fields": [],
         "id": "info",
         "variableName": "info",
         "typeName": "UserInfo",
         "kind": "record",
         "isFocused": true,
-        "optional": false
+        "reference": "694834340"
       }
     ],
     "output": {
       "member": {
-        "fields": [
-          {
-            "id": "credentials.username",
-            "variableName": "username",
-            "typeName": "string",
-            "kind": "string",
-            "optional": false
-          },
-          {
-            "id": "credentials.password",
-            "variableName": "password",
-            "typeName": "string",
-            "kind": "string",
-            "optional": false
-          }
-        ],
+        "fields": [],
         "id": "credentials",
         "variableName": "<credentialsItem>",
         "typeName": "Credentials",
         "kind": "record",
-        "optional": false
+        "reference": "879883520"
       },
       "id": "credentials",
       "variableName": "credentials",
       "typeName": "Credentials[]",
       "kind": "array",
-      "optional": false
+      "reference": "879883520"
     },
     "mappings": [
       {
@@ -295,6 +258,50 @@
         "properties": {
           "expression": "{\n                           password: ,\n                           username: info.username\n                       }"
         }
+      }
+    },
+    "references": {
+      "879883520": {
+        "fields": [
+          {
+            "id": "username",
+            "variableName": "username",
+            "typeName": "string",
+            "kind": "string"
+          },
+          {
+            "id": "password",
+            "variableName": "password",
+            "typeName": "string",
+            "kind": "string"
+          }
+        ],
+        "typeName": "Credentials",
+        "kind": "record"
+      },
+      "694834340": {
+        "fields": [
+          {
+            "id": "username",
+            "variableName": "username",
+            "typeName": "string",
+            "kind": "string"
+          },
+          {
+            "id": "password",
+            "variableName": "password",
+            "typeName": "string",
+            "kind": "string"
+          },
+          {
+            "id": "id",
+            "variableName": "id",
+            "typeName": "int",
+            "kind": "int"
+          }
+        ],
+        "typeName": "UserInfo",
+        "kind": "record"
       }
     }
   }

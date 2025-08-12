@@ -24,68 +24,22 @@
   "model": {
     "inputs": [
       {
-        "fields": [
-          {
-            "member": {
-              "id": "user.phoneNumber.0",
-              "variableName": "<phoneNumberItem>",
-              "typeName": "string",
-              "kind": "string",
-              "optional": false
-            },
-            "id": "user.phoneNumber",
-            "variableName": "phoneNumber",
-            "typeName": "string[]",
-            "kind": "array",
-            "optional": false
-          }
-        ],
+        "fields": [],
         "id": "user",
         "variableName": "user",
         "typeName": "User",
         "kind": "record",
         "category": "parameter",
-        "optional": false
+        "reference": "-2112132123"
       }
     ],
     "output": {
-      "fields": [
-        {
-          "member": {
-            "fields": [
-              {
-                "id": "var3.contacts.primaryPhone",
-                "variableName": "primaryPhone",
-                "typeName": "string",
-                "kind": "string",
-                "optional": false
-              },
-              {
-                "id": "var3.contacts.secondaryPhone",
-                "variableName": "secondaryPhone",
-                "typeName": "string",
-                "kind": "string",
-                "optional": false
-              }
-            ],
-            "id": "var3.contacts",
-            "variableName": "<contactsItem>",
-            "typeName": "Contact",
-            "kind": "record",
-            "optional": false
-          },
-          "id": "var3.contacts",
-          "variableName": "contacts",
-          "typeName": "Contact[]",
-          "kind": "array",
-          "optional": false
-        }
-      ],
+      "fields": [],
       "id": "var3",
       "variableName": "var3",
       "typeName": "Person",
       "kind": "record",
-      "optional": false
+      "reference": "-2015645809"
     },
     "mappings": [
       {
@@ -148,6 +102,57 @@
           }
         ]
       }
-    ]
+    ],
+    "references": {
+      "-2015645809": {
+        "fields": [
+          {
+            "id": "contacts",
+            "variableName": "contacts",
+            "typeName": "array[]",
+            "kind": "array",
+            "reference": "704794587"
+          }
+        ],
+        "typeName": "Person",
+        "kind": "record"
+      },
+      "-2112132123": {
+        "fields": [
+          {
+            "member": {
+              "id": "phoneNumber",
+              "variableName": "<phoneNumberItem>",
+              "typeName": "string",
+              "kind": "string"
+            },
+            "id": "phoneNumber",
+            "variableName": "phoneNumber",
+            "typeName": "string[]",
+            "kind": "array"
+          }
+        ],
+        "typeName": "User",
+        "kind": "record"
+      },
+      "704794587": {
+        "fields": [
+          {
+            "id": "primaryPhone",
+            "variableName": "primaryPhone",
+            "typeName": "string",
+            "kind": "string"
+          },
+          {
+            "id": "secondaryPhone",
+            "variableName": "secondaryPhone",
+            "typeName": "string",
+            "kind": "string"
+          }
+        ],
+        "typeName": "Contact",
+        "kind": "record"
+      }
+    }
   }
 }

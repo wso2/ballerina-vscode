@@ -24,60 +24,22 @@
   "model": {
     "inputs": [
       {
-        "id": "CONST",
-        "variableName": "CONST",
-        "typeName": "string",
-        "kind": "string",
-        "category": "constant",
-        "optional": false
-      },
-      {
-        "fields": [
-          {
-            "id": "userInfo.username",
-            "variableName": "username",
-            "typeName": "string",
-            "kind": "string",
-            "optional": false
-          },
-          {
-            "id": "userInfo.password",
-            "variableName": "password",
-            "typeName": "string",
-            "kind": "string",
-            "optional": false
-          }
-        ],
+        "fields": [],
         "id": "userInfo",
         "variableName": "userInfo",
         "typeName": "UserInfo",
         "kind": "record",
         "category": "local-variable",
-        "optional": false
+        "reference": "-1209291298"
       }
     ],
     "output": {
-      "fields": [
-        {
-          "id": "credentials.username",
-          "variableName": "username",
-          "typeName": "string",
-          "kind": "string",
-          "optional": false
-        },
-        {
-          "id": "credentials.password",
-          "variableName": "password",
-          "typeName": "string",
-          "kind": "string",
-          "optional": false
-        }
-      ],
+      "fields": [],
       "id": "credentials",
       "variableName": "credentials",
       "typeName": "Credentials",
       "kind": "record",
-      "optional": false
+      "reference": "879881598"
     },
     "mappings": [
       {
@@ -89,6 +51,44 @@
         "diagnostics": [],
         "elements": []
       }
-    ]
+    ],
+    "references": {
+      "-1209291298": {
+        "fields": [
+          {
+            "id": "username",
+            "variableName": "username",
+            "typeName": "string",
+            "kind": "string"
+          },
+          {
+            "id": "password",
+            "variableName": "password",
+            "typeName": "string",
+            "kind": "string"
+          }
+        ],
+        "typeName": "UserInfo",
+        "kind": "record"
+      },
+      "879881598": {
+        "fields": [
+          {
+            "id": "username",
+            "variableName": "username",
+            "typeName": "string",
+            "kind": "string"
+          },
+          {
+            "id": "password",
+            "variableName": "password",
+            "typeName": "string",
+            "kind": "string"
+          }
+        ],
+        "typeName": "Credentials",
+        "kind": "record"
+      }
+    }
   }
 }

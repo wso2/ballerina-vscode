@@ -25,37 +25,43 @@
   "model": {
     "inputs": [],
     "output": {
-      "fields": [
-        {
-          "id": "person.name",
-          "variableName": "name",
-          "typeName": "string",
-          "kind": "string",
-          "optional": false
-        },
-        {
-          "id": "person.father",
-          "variableName": "father",
-          "typeName": "Person",
-          "kind": "record",
-          "isRecursive": true,
-          "optional": false
-        },
-        {
-          "id": "person.mother",
-          "variableName": "mother",
-          "typeName": "Person",
-          "kind": "record",
-          "isRecursive": true,
-          "optional": false
-        }
-      ],
+      "fields": [],
       "id": "person",
       "variableName": "person",
       "typeName": "Person",
       "kind": "record",
-      "optional": false
+      "reference": "-394157000"
     },
-    "mappings": []
+    "mappings": [],
+    "references": {
+      "-394157000": {
+        "fields": [
+          {
+            "id": "name",
+            "variableName": "name",
+            "typeName": "string",
+            "kind": "string"
+          },
+          {
+            "fields": [],
+            "id": "father",
+            "variableName": "father",
+            "typeName": "Person",
+            "kind": "record",
+            "reference": "-394157000"
+          },
+          {
+            "fields": [],
+            "id": "mother",
+            "variableName": "mother",
+            "typeName": "Person",
+            "kind": "record",
+            "reference": "-394157000"
+          }
+        ],
+        "typeName": "Person",
+        "kind": "record"
+      }
+    }
   }
 }

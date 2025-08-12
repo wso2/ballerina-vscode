@@ -24,130 +24,29 @@
   "model": {
     "inputs": [
       {
-        "fields": [
-          {
-            "id": "user.name",
-            "variableName": "name",
-            "typeName": "string",
-            "kind": "string",
-            "optional": false
-          }
-        ],
+        "fields": [],
         "id": "user",
         "variableName": "user",
         "typeName": "User",
         "kind": "record",
         "category": "parameter",
-        "optional": false
+        "reference": "-1655249354"
       }
     ],
     "output": {
       "member": {
-        "fields": [
-          {
-            "fields": [
-              {
-                "member": {
-                  "id": "users4.user5.u",
-                  "variableName": "<uItem>",
-                  "typeName": "string",
-                  "kind": "string",
-                  "optional": false
-                },
-                "id": "users4.user5.u",
-                "variableName": "u",
-                "typeName": "string[]",
-                "kind": "array",
-                "optional": false
-              }
-            ],
-            "id": "users4.user5",
-            "variableName": "user5",
-            "typeName": "User5",
-            "kind": "record",
-            "optional": false
-          },
-          {
-            "member": {
-              "fields": [
-                {
-                  "id": "users4.users6.account",
-                  "variableName": "account",
-                  "typeName": "string",
-                  "kind": "string",
-                  "optional": false
-                },
-                {
-                  "id": "users4.users6.balance",
-                  "variableName": "balance",
-                  "typeName": "decimal",
-                  "kind": "decimal",
-                  "optional": false
-                },
-                {
-                  "member": {
-                    "fields": [
-                      {
-                        "member": {
-                          "fields": [
-                            {
-                              "id": "users4.users6.banks.bankInfo.bankName",
-                              "variableName": "bankName",
-                              "typeName": "string",
-                              "kind": "string",
-                              "optional": false
-                            }
-                          ],
-                          "id": "users4.users6.banks.bankInfo",
-                          "variableName": "<bankInfoItem>",
-                          "typeName": "BankInfo",
-                          "kind": "record",
-                          "optional": false
-                        },
-                        "id": "users4.users6.banks.bankInfo",
-                        "variableName": "bankInfo",
-                        "typeName": "BankInfo[]",
-                        "kind": "array",
-                        "optional": false
-                      }
-                    ],
-                    "id": "users4.users6.banks",
-                    "variableName": "<banksItem>",
-                    "typeName": "Bank",
-                    "kind": "record",
-                    "optional": false
-                  },
-                  "id": "users4.users6.banks",
-                  "variableName": "banks",
-                  "typeName": "Bank[]",
-                  "kind": "array",
-                  "optional": false
-                }
-              ],
-              "id": "users4.users6",
-              "variableName": "<users6Item>",
-              "typeName": "User6",
-              "kind": "record",
-              "optional": false
-            },
-            "id": "users4.users6",
-            "variableName": "users6",
-            "typeName": "User6[]",
-            "kind": "array",
-            "optional": false
-          }
-        ],
+        "fields": [],
         "id": "users4",
         "variableName": "<users4Item>",
         "typeName": "User4",
         "kind": "record",
-        "optional": false
+        "reference": "-244223463"
       },
       "id": "users4",
       "variableName": "users4",
       "typeName": "User4[]",
       "kind": "array",
-      "optional": false
+      "reference": "-244223463"
     },
     "mappings": [
       {
@@ -267,6 +166,77 @@
           }
         ]
       }
-    ]
+    ],
+    "references": {
+      "-244223463": {
+        "fields": [
+          {
+            "fields": [],
+            "id": "user5",
+            "variableName": "user5",
+            "typeName": "User5",
+            "kind": "record",
+            "reference": "-1629963775"
+          },
+          {
+            "id": "users6",
+            "variableName": "users6",
+            "typeName": "array[]",
+            "kind": "array",
+            "reference": "1869428971"
+          }
+        ],
+        "typeName": "User4",
+        "kind": "record"
+      },
+      "1869428971": {
+        "fields": [
+          {
+            "id": "account",
+            "variableName": "account",
+            "typeName": "string",
+            "kind": "string"
+          },
+          {
+            "id": "balance",
+            "variableName": "balance",
+            "typeName": "decimal",
+            "kind": "decimal"
+          }
+        ],
+        "typeName": "User6",
+        "kind": "record"
+      },
+      "-1629963775": {
+        "fields": [
+          {
+            "member": {
+              "id": "u",
+              "variableName": "<uItem>",
+              "typeName": "string",
+              "kind": "string"
+            },
+            "id": "u",
+            "variableName": "u",
+            "typeName": "string[]",
+            "kind": "array"
+          }
+        ],
+        "typeName": "User5",
+        "kind": "record"
+      },
+      "-1655249354": {
+        "fields": [
+          {
+            "id": "name",
+            "variableName": "name",
+            "typeName": "string",
+            "kind": "string"
+          }
+        ],
+        "typeName": "User",
+        "kind": "record"
+      }
+    }
   }
 }

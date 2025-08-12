@@ -25,61 +25,43 @@
   "model": {
     "inputs": [
       {
-        "id": "CONST",
-        "variableName": "CONST",
-        "typeName": "string",
-        "kind": "string",
-        "category": "constant",
-        "optional": false
-      },
-      {
-        "fields": [
-          {
-            "id": "myStudent.username",
-            "variableName": "username",
-            "typeName": "string",
-            "kind": "string",
-            "optional": false
-          },
-          {
-            "id": "myStudent.password",
-            "variableName": "password",
-            "typeName": "string",
-            "kind": "string",
-            "optional": false
-          }
-        ],
+        "fields": [],
         "id": "myStudent",
         "variableName": "myStudent",
         "typeName": "Student",
         "kind": "record",
         "category": "module-variable",
-        "optional": false
+        "reference": "1398367398"
       }
     ],
     "output": {
-      "fields": [
-        {
-          "id": "student.username",
-          "variableName": "username",
-          "typeName": "string",
-          "kind": "string",
-          "optional": false
-        },
-        {
-          "id": "student.password",
-          "variableName": "password",
-          "typeName": "string",
-          "kind": "string",
-          "optional": false
-        }
-      ],
+      "fields": [],
       "id": "student",
       "variableName": "student",
       "typeName": "Student",
       "kind": "record",
-      "optional": false
+      "reference": "1398367398"
     },
-    "mappings": []
+    "mappings": [],
+    "references": {
+      "1398367398": {
+        "fields": [
+          {
+            "id": "username",
+            "variableName": "username",
+            "typeName": "string",
+            "kind": "string"
+          },
+          {
+            "id": "password",
+            "variableName": "password",
+            "typeName": "string",
+            "kind": "string"
+          }
+        ],
+        "typeName": "Student",
+        "kind": "record"
+      }
+    }
   }
 }

@@ -110,66 +110,29 @@
         "optional": false
       },
       {
-        "fields": [
-          {
-            "id": "secondaryPhonesItem.code",
-            "variableName": "code",
-            "typeName": "string",
-            "kind": "string",
-            "optional": false
-          },
-          {
-            "id": "secondaryPhonesItem.number",
-            "variableName": "number",
-            "typeName": "string",
-            "kind": "string",
-            "optional": false
-          }
-        ],
+        "fields": [],
         "id": "secondaryPhonesItem",
         "variableName": "secondaryPhonesItem",
         "typeName": "SecondaryPhones",
         "kind": "record",
         "isFocused": true,
-        "optional": false
+        "reference": "-1374288716"
       }
     ],
     "output": {
       "member": {
-        "fields": [
-          {
-            "id": "phoneNumbers.code",
-            "variableName": "code",
-            "typeName": "string",
-            "kind": "string",
-            "optional": false
-          },
-          {
-            "id": "phoneNumbers.number",
-            "variableName": "number",
-            "typeName": "string",
-            "kind": "string",
-            "optional": false
-          },
-          {
-            "id": "phoneNumbers.email",
-            "variableName": "email",
-            "typeName": "string",
-            "kind": "string",
-            "optional": false
-          }
-        ],
+        "fields": [],
         "id": "phoneNumbers",
         "variableName": "<phoneNumbersItem>",
         "typeName": "SecondaryPhonesX",
         "kind": "record",
-        "optional": false
+        "reference": "1624930906"
       },
       "id": "phoneNumbers",
       "variableName": "phoneNumbers",
       "typeName": "SecondaryPhonesX[]",
       "kind": "array",
-      "optional": false
+      "reference": "1624930906"
     },
     "mappings": [
       {
@@ -240,6 +203,50 @@
         "properties": {
           "expression": "{code: secondaryPhonesItem.code, number: secondaryPhonesItem.number, email: email}"
         }
+      }
+    },
+    "references": {
+      "1624930906": {
+        "fields": [
+          {
+            "id": "code",
+            "variableName": "code",
+            "typeName": "string",
+            "kind": "string"
+          },
+          {
+            "id": "number",
+            "variableName": "number",
+            "typeName": "string",
+            "kind": "string"
+          },
+          {
+            "id": "email",
+            "variableName": "email",
+            "typeName": "string",
+            "kind": "string"
+          }
+        ],
+        "typeName": "SecondaryPhonesX",
+        "kind": "record"
+      },
+      "-1374288716": {
+        "fields": [
+          {
+            "id": "code",
+            "variableName": "code",
+            "typeName": "string",
+            "kind": "string"
+          },
+          {
+            "id": "number",
+            "variableName": "number",
+            "typeName": "string",
+            "kind": "string"
+          }
+        ],
+        "typeName": "SecondaryPhones",
+        "kind": "record"
       }
     }
   }

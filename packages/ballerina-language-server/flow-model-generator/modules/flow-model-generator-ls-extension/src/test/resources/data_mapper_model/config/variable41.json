@@ -24,37 +24,7 @@
   "model": {
     "inputs": [
       {
-        "id": "CONST",
-        "variableName": "CONST",
-        "typeName": "string",
-        "kind": "string",
-        "category": "constant",
-        "optional": false
-      },
-      {
-        "fields": [
-          {
-            "id": "var1.clientName",
-            "variableName": "clientName",
-            "typeName": "string",
-            "kind": "string",
-            "optional": true
-          },
-          {
-            "id": "var1.database",
-            "variableName": "database",
-            "typeName": "int",
-            "kind": "int",
-            "optional": false
-          },
-          {
-            "id": "var1.connectionTimeout",
-            "variableName": "connectionTimeout",
-            "typeName": "int",
-            "kind": "int",
-            "optional": false
-          }
-        ],
+        "fields": [],
         "id": "var1",
         "variableName": "var1",
         "typeName": "Options",
@@ -66,33 +36,11 @@
           "moduleName": "redis",
           "version": "3.1.0"
         },
-        "optional": false
+        "reference": "-682634810"
       }
     ],
     "output": {
-      "fields": [
-        {
-          "id": "var2.clientName",
-          "variableName": "clientName",
-          "typeName": "string",
-          "kind": "string",
-          "optional": true
-        },
-        {
-          "id": "var2.database",
-          "variableName": "database",
-          "typeName": "int",
-          "kind": "int",
-          "optional": false
-        },
-        {
-          "id": "var2.connectionTimeout",
-          "variableName": "connectionTimeout",
-          "typeName": "int",
-          "kind": "int",
-          "optional": false
-        }
-      ],
+      "fields": [],
       "id": "var2",
       "variableName": "var2",
       "typeName": "Options",
@@ -103,8 +51,34 @@
         "moduleName": "redis",
         "version": "3.1.0"
       },
-      "optional": false
+      "reference": "-682634810"
     },
-    "mappings": []
+    "mappings": [],
+    "references": {
+      "-682634810": {
+        "fields": [
+          {
+            "id": "clientName",
+            "variableName": "clientName",
+            "typeName": "string",
+            "kind": "string"
+          },
+          {
+            "id": "database",
+            "variableName": "database",
+            "typeName": "int",
+            "kind": "int"
+          },
+          {
+            "id": "connectionTimeout",
+            "variableName": "connectionTimeout",
+            "typeName": "int",
+            "kind": "int"
+          }
+        ],
+        "typeName": "Options",
+        "kind": "record"
+      }
+    }
   }
 }

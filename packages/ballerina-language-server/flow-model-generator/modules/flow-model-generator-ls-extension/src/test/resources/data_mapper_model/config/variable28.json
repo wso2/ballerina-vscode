@@ -24,76 +24,31 @@
   "model": {
     "inputs": [
       {
-        "fields": [
-          {
-            "member": {
-              "id": "u1.phoneNumber.0",
-              "variableName": "<phoneNumberItem>",
-              "typeName": "string",
-              "kind": "string",
-              "optional": false
-            },
-            "id": "u1.phoneNumber",
-            "variableName": "phoneNumber",
-            "typeName": "string[]",
-            "kind": "array",
-            "optional": false
-          }
-        ],
+        "fields": [],
         "id": "u1",
         "variableName": "u1",
         "typeName": "User",
         "kind": "record",
         "category": "local-variable",
-        "optional": false
+        "reference": "-2112132123"
       },
       {
-        "fields": [
-          {
-            "member": {
-              "id": "user.phoneNumber.0",
-              "variableName": "<phoneNumberItem>",
-              "typeName": "string",
-              "kind": "string",
-              "optional": false
-            },
-            "id": "user.phoneNumber",
-            "variableName": "phoneNumber",
-            "typeName": "string[]",
-            "kind": "array",
-            "optional": false
-          }
-        ],
+        "fields": [],
         "id": "user",
         "variableName": "user",
         "typeName": "User",
         "kind": "record",
         "category": "parameter",
-        "optional": false
+        "reference": "-2112132123"
       }
     ],
     "output": {
-      "fields": [
-        {
-          "member": {
-            "id": "u.contacts",
-            "variableName": "<contactsItem>",
-            "typeName": "string",
-            "kind": "string",
-            "optional": false
-          },
-          "id": "u.contacts",
-          "variableName": "contacts",
-          "typeName": "string[]",
-          "kind": "array",
-          "optional": false
-        }
-      ],
+      "fields": [],
       "id": "u",
       "variableName": "u",
       "typeName": "Person",
       "kind": "record",
-      "optional": false
+      "reference": "-2015646770"
     },
     "mappings": [
       {
@@ -150,6 +105,44 @@
           }
         ]
       }
-    ]
+    ],
+    "references": {
+      "-2112132123": {
+        "fields": [
+          {
+            "member": {
+              "id": "phoneNumber",
+              "variableName": "<phoneNumberItem>",
+              "typeName": "string",
+              "kind": "string"
+            },
+            "id": "phoneNumber",
+            "variableName": "phoneNumber",
+            "typeName": "string[]",
+            "kind": "array"
+          }
+        ],
+        "typeName": "User",
+        "kind": "record"
+      },
+      "-2015646770": {
+        "fields": [
+          {
+            "member": {
+              "id": "contacts",
+              "variableName": "<contactsItem>",
+              "typeName": "string",
+              "kind": "string"
+            },
+            "id": "contacts",
+            "variableName": "contacts",
+            "typeName": "string[]",
+            "kind": "array"
+          }
+        ],
+        "typeName": "Person",
+        "kind": "record"
+      }
+    }
   }
 }

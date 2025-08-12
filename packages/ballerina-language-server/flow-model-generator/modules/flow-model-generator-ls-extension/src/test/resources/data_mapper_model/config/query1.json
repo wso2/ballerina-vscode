@@ -98,8 +98,7 @@
         "variableName": "secondaryPhonesItem",
         "typeName": "string",
         "kind": "string",
-        "isFocused": true,
-        "optional": false
+        "isFocused": true
       }
     ],
     "output": {
@@ -107,14 +106,12 @@
         "id": "phoneNumbers",
         "variableName": "<phoneNumbersItem>",
         "typeName": "string",
-        "kind": "string",
-        "optional": false
+        "kind": "string"
       },
       "id": "phoneNumbers",
       "variableName": "phoneNumbers",
       "typeName": "string[]",
-      "kind": "array",
-      "optional": false
+      "kind": "array"
     },
     "mappings": [
       {
@@ -149,6 +146,7 @@
           "expression": "secondaryPhonesItem"
         }
       }
-    }
+    },
+    "references": {}
   }
 }

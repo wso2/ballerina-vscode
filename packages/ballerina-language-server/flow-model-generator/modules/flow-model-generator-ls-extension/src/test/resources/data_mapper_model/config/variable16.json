@@ -24,74 +24,36 @@
   "model": {
     "inputs": [
       {
-        "id": "CONST",
-        "variableName": "CONST",
-        "typeName": "string",
-        "kind": "string",
-        "category": "constant",
-        "optional": false
-      },
-      {
         "member": {
-          "fields": [
-            {
-              "id": "userInfo.0.username",
-              "variableName": "username",
-              "typeName": "string",
-              "kind": "string",
-              "optional": false
-            },
-            {
-              "id": "userInfo.0.password",
-              "variableName": "password",
-              "typeName": "string",
-              "kind": "string",
-              "optional": false
-            }
-          ],
-          "id": "userInfo.0",
+          "fields": [],
+          "id": "userInfo",
           "variableName": "<userInfoItem>",
           "typeName": "UserInfo",
           "kind": "record",
-          "optional": false
+          "reference": "-1209291298"
         },
         "id": "userInfo",
         "variableName": "userInfo",
         "typeName": "UserInfo[]",
         "kind": "array",
         "category": "local-variable",
-        "optional": false
+        "reference": "-1209291298"
       }
     ],
     "output": {
       "member": {
-        "fields": [
-          {
-            "id": "credentials.username",
-            "variableName": "username",
-            "typeName": "string",
-            "kind": "string",
-            "optional": false
-          },
-          {
-            "id": "credentials.password",
-            "variableName": "password",
-            "typeName": "string",
-            "kind": "string",
-            "optional": false
-          }
-        ],
+        "fields": [],
         "id": "credentials",
         "variableName": "<credentialsItem>",
         "typeName": "Credentials",
         "kind": "record",
-        "optional": false
+        "reference": "879881598"
       },
       "id": "credentials",
       "variableName": "credentials",
       "typeName": "Credentials[]",
       "kind": "array",
-      "optional": false
+      "reference": "879881598"
     },
     "mappings": [
       {
@@ -128,6 +90,44 @@
           }
         ]
       }
-    ]
+    ],
+    "references": {
+      "-1209291298": {
+        "fields": [
+          {
+            "id": "username",
+            "variableName": "username",
+            "typeName": "string",
+            "kind": "string"
+          },
+          {
+            "id": "password",
+            "variableName": "password",
+            "typeName": "string",
+            "kind": "string"
+          }
+        ],
+        "typeName": "UserInfo",
+        "kind": "record"
+      },
+      "879881598": {
+        "fields": [
+          {
+            "id": "username",
+            "variableName": "username",
+            "typeName": "string",
+            "kind": "string"
+          },
+          {
+            "id": "password",
+            "variableName": "password",
+            "typeName": "string",
+            "kind": "string"
+          }
+        ],
+        "typeName": "Credentials",
+        "kind": "record"
+      }
+    }
   }
 }

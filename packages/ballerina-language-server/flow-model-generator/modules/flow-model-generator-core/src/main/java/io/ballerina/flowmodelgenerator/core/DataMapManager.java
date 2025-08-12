@@ -123,6 +123,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -267,7 +268,7 @@ public class DataMapManager {
             if (typeSymbol.isPresent() && typeSymbol.get().typeKind() == TypeDescKind.ARRAY) {
                 TypeSymbol memberTypeSymbol = ((ArrayTypeSymbol) typeSymbol.get()).memberTypeDescriptor();
                 MappingPort mappingPort = getRefMappingPort(fromClauseVar, fromClauseVar,
-                        ReferenceType.fromSemanticSymbol(memberTypeSymbol), true, new HashMap<>(), references);
+                        Objects.requireNonNull(ReferenceType.fromSemanticSymbol(memberTypeSymbol)), true, new HashMap<>(), references);
                 if (mappingPort != null) {
                     mappingPort.setIsFocused(true);
                     setFocusIdForExpression(inputPorts, expression.toString().trim(), mappingPort.id);
@@ -321,7 +322,7 @@ public class DataMapManager {
                 }
                 Symbol symbol = optSymbol.get();
                 String letVarName = symbol.getName().orElseThrow();
-                subMappingPorts.add(getRefMappingPort(letVarName, letVarName, ReferenceType.fromSemanticSymbol(symbol),
+                subMappingPorts.add(getRefMappingPort(letVarName, letVarName, Objects.requireNonNull(ReferenceType.fromSemanticSymbol(symbol)),
                         false, new HashMap<>(), references));
             }
         } else {
@@ -1003,7 +1004,7 @@ public class DataMapManager {
                 }
             } else if (type.typeName.equals("array")) {
                 if (type instanceof RefArrayType arrayType) {
-                    MappingPort memberPort = getRefMappingPort(id, null, arrayType.elementType,
+                    MappingPort memberPort = getRefMappingPort(id, getItemName(name), arrayType.elementType,
                             isInputPort, visitedTypes, references);
                     if (memberPort != null && memberPort.variableName == null) {
                         memberPort.variableName = getItemName(name);
@@ -1011,6 +1012,9 @@ public class DataMapManager {
                     MappingArrayPort arrayPort = new MappingArrayPort(id, name, memberPort == null ? "record" :
                             memberPort.typeName + "[]", type.typeName, type.hashCode);
                     arrayPort.setMember(memberPort);
+                    if (arrayType.dependentTypes == null) {
+                        return arrayPort;
+                    }
                     Map<String, RefType> dependentTypes = arrayType.dependentTypes;
                     for (Map.Entry<String, RefType> entry : dependentTypes.entrySet()) {
                         String key = entry.getKey();
