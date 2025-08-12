@@ -3,9 +3,9 @@ import { VariableTypeIndicator } from "../Components/VariableTypeIndicator"
 import { SlidingPaneNavContainer } from "@wso2/ui-toolkit/lib/components/ExpressionEditor/components/Common/SlidingPane"
 import { useRpcContext } from "@wso2/ballerina-rpc-client"
 import { ExpressionProperty, FlowNode, LineRange, RecordTypeField } from "@wso2/ballerina-core"
-import { Codicon, COMPLETION_ITEM_KIND, CompletionItem, Divider, getIcon, HelperPaneCustom, SearchBox, ThemeColors } from "@wso2/ui-toolkit"
+import { Codicon, COMPLETION_ITEM_KIND, CompletionItem, Divider, getIcon, HelperPaneCustom, SearchBox, ThemeColors, Typography } from "@wso2/ui-toolkit"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
-import { HelperPaneVariableInfo } from "@wso2/ballerina-side-panel"
+import { getPropertyFromFormField, HelperPaneVariableInfo, useFieldContext } from "@wso2/ballerina-side-panel"
 import { debounce } from "lodash"
 import { convertToHelperPaneVariable, filterHelperPaneVariables } from "../../../../utils/bi"
 import FooterButtons from "../Components/FooterButtons"
@@ -29,15 +29,12 @@ type VariablesPageProps = {
     variables: CompletionItem[]
     recordTypeField?: RecordTypeField;
     isInModal?: boolean;
-}
-
-type VariableListItemType = {
-    label: string;
-    type: string;
+    handleRetrieveCompletions: (value: string, property: ExpressionProperty, offset: number, triggerCharacter?: string) => Promise<void>;
 }
 
 const VariablesMoreIconContainer = styled.div`
     display: flex;
+    min-wdith: 20px;
     align-items: center;
     justify-content: center;
     padding: 4px;
@@ -48,8 +45,9 @@ const VariablesMoreIconContainer = styled.div`
 `;
 
 
+
 export const Variables = (props: VariablesPageProps) => {
-    const { fileName, targetLineRange, onChange, anchorRef, handleOnFormSubmit, selectedType, filteredCompletions, currentValue, recordTypeField, isInModal } = props;
+    const { fileName, targetLineRange, onChange, anchorRef, handleOnFormSubmit, selectedType, filteredCompletions, currentValue, recordTypeField, isInModal, handleRetrieveCompletions } = props;
     const [searchValue, setSearchValue] = useState<string>("");
     const { rpcClient } = useRpcContext();
     const firstRender = useRef<boolean>(true);
@@ -57,9 +55,12 @@ export const Variables = (props: VariablesPageProps) => {
     const [filteredVariableInfo, setFilteredVariableInfo] = useState<HelperPaneVariableInfo | undefined>(undefined);
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const newNodeNameRef = useRef<string>("");
+    const isMainVariablesRef = useRef<boolean>(true)
+    const [currentlyVisitingItemType, setCurrentlyVisitingItemType] = useState<string>("")
     const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
     const [projectPathUri, setProjectPathUri] = useState<string>();
-    const initialCursorOffset = useRef<number>(0);
+
+    const { field } = useFieldContext();
 
     useEffect(() => {
         getVariableInfo()
@@ -70,13 +71,21 @@ export const Variables = (props: VariablesPageProps) => {
     }, []);
 
     useEffect(() => {
-        initialCursorOffset.current = currentValue.length;
+        const triggerCharacter = getTriggerCharacter();
+        handleRetrieveCompletions(currentValue, getPropertyFromFormField(field), 0, triggerCharacter);
     }, []);
 
     const getProjectInfo = async () => {
         const projectPath = await rpcClient.getVisualizerLocation();
         setProjectPathUri(URI.file(projectPath.projectUri).fsPath);
     }
+
+    const getTriggerCharacter = useCallback(() => {
+        if (currentValue.length === 0) {
+            return;
+        }
+        return currentValue.slice(-1);
+    }, [currentValue]);
 
     const getVariableInfo = useCallback(() => {
         setIsLoading(true);
@@ -143,8 +152,13 @@ export const Variables = (props: VariablesPageProps) => {
     }
 
     const handleItemSelect = (value: string) => {
-        onChange(value, true)
+        onChange(currentValue + value, true);
     }
+
+    const handleVariablesMoreIconClick = (value: string) => {
+        onChange(currentValue + value + '.', true);
+    }
+
 
     const handleFunctionItemClicked = (value: string) => {
         onChange(value, false)
@@ -168,81 +182,83 @@ export const Variables = (props: VariablesPageProps) => {
         onChange(newValue, true);
     }
 
-    const handleVariablesMoreIconClick = (value: string) => {
-        onChange(currentValue + value + '.', true);
-    }
+    const objectFields = filteredCompletions.filter((completion) => completion.kind === "field" || completion.kind === "variable")
+    const objectMethods = filteredCompletions.filter((completion) => completion.kind === "function")
 
-    const objectFields = filteredCompletions.filter((completion) => completion.kind === "field")
-    const objectMethods = filteredCompletions.filter((completion) => completion.kind === "function" && completion.description === selectedType?.label)
-
-    const mergedVariableItems: VariableListItemType[] = useMemo(() => {
-        const infoItems = filteredVariableInfo?.category?.flatMap(category => category.items.map(item => ({
+    const dropdownItems = objectFields.map((item) => {
+        return {
             label: item.label,
-            type: item.type || "any"
-        }))) || [];
-        if (!objectFields || objectFields.length === 0) {
-            return infoItems;
+            type: item.description,
+            kind: "variables"
         }
-        return objectFields.map(field => ({
-            label: field.label,
-            type: field.description || "any"
+    })
+        .concat(objectMethods.map((item) => {
+            return {
+                label: item.label,
+                type: item.kind,
+                kind: "function"
+            }
         }));
-    }, [filteredVariableInfo, objectFields]);
-
 
     const ExpandableListItems = () => {
-        if (currentValue.length !== initialCursorOffset.current) {
-            return (
-                <div>
-                    <p style={{ color: ThemeColors.ON_SURFACE_VARIANT }}>
-                        This variable type is not compatible with the
-                        <span style={{ color: ThemeColors.HIGHLIGHT }}>
-                            {selectedType?.label}
-                        </span>{" "}
-                        type. Do you wish to add it in the same type, or would you prefer to convert
-                        it to a
-                        {" "}
-                        <span style={{ color: ThemeColors.HIGHLIGHT }}>
-                            {selectedType?.label}
-                        </span>{" "}
-                        value using the helpers below?
-                    </p>
-                    {
-                        !objectMethods || objectMethods.length === 0 ?
-                            <><span style={{ color: ThemeColors.ON_SURFACE_VARIANT }}>No helpers to show </span> <span onClick={handleNoFunctionsGoBack} style={{ color: ThemeColors.HIGHLIGHT, cursor: 'pointer' }}> Go Back</span></> : <>
-                                {
-                                    objectMethods.map((item) => (
-                                        <SlidingPaneNavContainer data>
-                                            <ExpandableList.Item sx={{ height: '10px' }} onClick={() => handleFunctionItemClicked(item.label)}>
-                                                {getIcon(COMPLETION_ITEM_KIND.Function)} <p>{item.label} </p>
-                                            </ExpandableList.Item>
-                                        </SlidingPaneNavContainer>
-                                    ))
-                                }
-                            </>
-                    }
-                </div>
-            )
-        }
+        // if (!isSelectedYypesMatches(currentlyVisitingItemType) && !isObjectFieldsExists(objectFields) && !isMainVariablesRef.current) {
+        //     return (
+        //         <div>
+        //             <p style={{ color: ThemeColors.ON_SURFACE_VARIANT }}>
+        //                 This variable type is not compatible with the{" "}
+        //                 <span style={{ color: ThemeColors.HIGHLIGHT }}>
+        //                     {selectedType?.label}
+        //                 </span>{" "}
+        //                 type. Do you wish to add it in the same type, or would you prefer to convert
+        //                 it to a
+        //                 {" "}
+        //                 <span style={{ color: ThemeColors.HIGHLIGHT }}>
+        //                     {selectedType?.label}
+        //                 </span>{" "}
+        //                 value using the helpers below?
+        //             </p>
+        //             {
+        //                 !objectMethods || objectMethods.length === 0 ?
+        //                     <><span style={{ color: ThemeColors.ON_SURFACE_VARIANT }}>No helpers to show </span> <span onClick={handleNoFunctionsGoBack} style={{ color: ThemeColors.HIGHLIGHT, cursor: 'pointer' }}> Go Back</span></> : <>
+        //                         {
+        //                             objectMethods.map((item) => (
+        //                                 <SlidingPaneNavContainer data>
+        //                                     <ExpandableList.Item sx={{ height: '10px' }} onClick={() => handleFunctionItemClicked(item.label)}>
+        //                                         {getIcon(COMPLETION_ITEM_KIND.Function)} <p>{item.label} </p>
+        //                                     </ExpandableList.Item>
+        //                                 </SlidingPaneNavContainer>
+        //                             ))
+        //                         }
+        //                     </>
+        //             }
+        //         </div>
+        //     )
+        // }
 
         return (
             <>
                 {
-                    mergedVariableItems.map((item) => (
+                    dropdownItems.map((item) => (
                         <SlidingPaneNavContainer
                             data
                             endIcon={
                                 <VariablesMoreIconContainer onClick={() => handleVariablesMoreIconClick(item.label)}>
+                                    <VariableTypeIndicator>
+                                        {item.type}
+                                    </VariableTypeIndicator>
                                     <Codicon name="chevron-right" />
                                 </VariablesMoreIconContainer>}
                         >
                             <ExpandableList.Item onClick={() => handleItemSelect(item.label)}>
-                                <p style={{ margin: '0px' }}>{item.label} </p>
-                                <VariableTypeIndicator type={item.label} />
+                                <Typography variant="body3" sx={{ fontWeight: 600 }}>
+                                    {item.label}
+                                </Typography>
+
                             </ExpandableList.Item>
                         </SlidingPaneNavContainer>
                     ))
                 }
+
             </>
         )
     }
