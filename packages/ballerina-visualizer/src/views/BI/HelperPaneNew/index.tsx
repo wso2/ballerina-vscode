@@ -189,7 +189,7 @@ const HelperPaneNewEl = ({
                                     </TitleContainer>
                                 </ExpandableList.Item>
                             </SlidingPaneNavContainer>
-                             <SlidingPaneNavContainer to="ENVS">
+                            <SlidingPaneNavContainer to="ENVS">
                                 <ExpandableList.Item>
                                     <TitleContainer>
                                         {getIcon(COMPLETION_ITEM_KIND.EnumMember)}
@@ -252,7 +252,8 @@ const HelperPaneNewEl = ({
                             onChange={handleChange}
                             currentValue={currentValue}
                             selectedType={valueTypeConstraint}
-                            recordTypeField={recordTypeField} />
+                            recordTypeField={recordTypeField}
+                            anchorRef={anchorRef} />
                     </SlidingPane>
 
                     <SlidingPane name="FUNCTIONS" paneWidth={HELPER_PANE_WIDTH - 6}>
