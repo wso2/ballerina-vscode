@@ -83,7 +83,7 @@ const HelperPaneNewEl = ({
     variables,
     isInModal,
     valueTypeConstraint,
-    handleRetrieveCompletions 
+    handleRetrieveCompletions
 }: HelperPaneNewProps) => {
     const [position, setPosition] = useState<{ top: number, left: number }>({ top: 0, left: 0 });
     const paneRef = useRef<HTMLDivElement>(null);
@@ -159,7 +159,7 @@ const HelperPaneNewEl = ({
         <HelperPaneCustom sx={{ zIndex: helperPaneZIndex }} anchorRef={anchorRef}>
             <HelperPaneCustom.Body>
                 <SlidingWindow>
-                    <SlidingPane name="PAGE1" paneWidth={HELPER_PANE_WIDTH - 6} paneHeight='150px'>
+                    <SlidingPane name="PAGE1" paneWidth={HELPER_PANE_WIDTH - 6} paneHeight='200px'>
                         <ExpandableList sx={{ paddingTop: '10px' }}>
                             {valueTypeConstraint && (
                                 <SlidingPaneNavContainer to="CREATE_VALUE" data={recordTypeField}>
@@ -181,11 +181,20 @@ const HelperPaneNewEl = ({
                             </SlidingPaneNavContainer>
                             <SlidingPaneNavContainer to="CONFIGURABLES">
                                 <ExpandableList.Item>
-
                                     <TitleContainer>
                                         {getIcon(COMPLETION_ITEM_KIND.Constant)}
                                         <Typography variant="body3" sx={{ fontWeight: 600 }}>
                                             Configurables
+                                        </Typography>
+                                    </TitleContainer>
+                                </ExpandableList.Item>
+                            </SlidingPaneNavContainer>
+                             <SlidingPaneNavContainer to="ENVS">
+                                <ExpandableList.Item>
+                                    <TitleContainer>
+                                        {getIcon(COMPLETION_ITEM_KIND.EnumMember)}
+                                        <Typography variant="body3" sx={{ fontWeight: 600 }}>
+                                            Environment Variables
                                         </Typography>
                                     </TitleContainer>
                                 </ExpandableList.Item>

@@ -7,6 +7,7 @@ import { CompletionItem } from "@wso2/ui-toolkit";
 import { getDefaultValue, isRowType } from "../Utils/types";
 import ExpandableList from "../Components/ExpandableList";
 import SelectableItem from "../Components/SelectableItem";
+import { SlidingPaneNavContainer } from "@wso2/ui-toolkit/lib/components/ExpressionEditor/components/Common/SlidingPane";
 
 type CreateValuePageProps = {
     fileName: string;
@@ -56,7 +57,7 @@ export const CreateValue = (props: CreateValuePageProps) => {
                 typeConstraint: propertyMember?.type,
             }
         }
-        else{
+        else {
             const tomValues = await rpcClient.getCommonRpcClient().getCurrentProjectTomlValues();
             return {
                 filePath: fileName,
@@ -117,8 +118,15 @@ export const CreateValue = (props: CreateValuePageProps) => {
     )
 }
 
+const isSelectedTypeContainsType = (selectedType: string | string[], searchType: string) => {
+    if (Array.isArray(selectedType)) {
+        return selectedType.some(type => type.includes(searchType));
+    }
+    return selectedType === searchType;
+}
+
 const NonRecordCreateValue = (props: CreateValuePageProps) => {
-    const {  selectedType, onChange } = props;
+    const { selectedType, onChange } = props;
 
     const handleValueSelect = (value: string) => {
         onChange(value, false);
@@ -134,6 +142,20 @@ const NonRecordCreateValue = (props: CreateValuePageProps) => {
                             {defaultValue}
                         </ExpandableList.Item>
                     </SelectableItem>
+                </ExpandableList>
+            )}
+            {isSelectedTypeContainsType(selectedType, "string") && (
+                <ExpandableList>
+                    <SlidingPaneNavContainer>
+                        <ExpandableList.Item sx={{ width: "100%" }} onClick={() => {handleValueSelect("string ``")}}>
+                            Create a string template
+                        </ExpandableList.Item>
+                    </SlidingPaneNavContainer>
+                    <SlidingPaneNavContainer>
+                        <ExpandableList.Item sx={{ width: "100%" }} onClick={() => {handleValueSelect("\"\"")}}>
+                            Create a string value
+                        </ExpandableList.Item>
+                    </SlidingPaneNavContainer>
                 </ExpandableList>
             )}
         </>
