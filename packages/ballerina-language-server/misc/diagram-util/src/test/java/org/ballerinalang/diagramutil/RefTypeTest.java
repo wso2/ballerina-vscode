@@ -48,7 +48,7 @@ public class RefTypeTest {
     public Object[][] getConfigsList() throws IOException {
         Path testDataDir = TestUtil.RES_DIR.resolve("RefTypeTest/TestData");
         return Files.list(testDataDir)
-                .filter(path -> path.toString().endsWith(".jnsonn"))
+                .filter(path -> path.toString().endsWith(".json"))
                 .map(path -> new Object[]{path})
                 .toArray(Object[][]::new);
     }
