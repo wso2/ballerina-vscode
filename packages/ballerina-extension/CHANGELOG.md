@@ -3,13 +3,14 @@
 All notable changes to the "Ballerina" extension will be documented in this file.
 
 
-## Version 5.3.1 (2025-08-07)
+## **5.3.1** (2025-08-13)
 
 ### Fixed
 
 -   Resolved issues affecting Inline Data Mapper functionality and flow diagram rendering
 
-## Version 5.3.0 (2025-07-29)
+
+## **5.3.0** (2025-07-29)
 
 ### Major Updates
 
