@@ -18,9 +18,11 @@
 
 import { NotificationType, RequestType } from "vscode-messenger-common";
 import { NodePosition, STNode } from "@wso2/syntax-tree";
+import { Command } from "./interfaces/ai-panel";
 import { LinePosition } from "./interfaces/common";
 import { Type } from "./interfaces/extended-lang-client";
 import { CodeData, DIRECTORY_MAP, ProjectStructureArtifactResponse, ProjectStructureResponse } from "./interfaces/bi";
+import { DiagnosticEntry, TestGeneratorIntermediaryState } from "./rpc-types/ai-panel/interfaces";
 
 export type MachineStateValue =
     | 'initialize'
@@ -169,8 +171,54 @@ export interface DownloadProgress {
     step?: number;
 }
 
+export type ChatNotify =
+    | ChatStart
+    | IntermidaryState
+    | ChatContent
+    | CodeDiagnostics
+    | CodeMessages
+    | ChatStop
+    | ChatError;
+
+export interface ChatStart {
+    type: "start";
+}
+
+export interface IntermidaryState {
+    type: "intermediary_state";
+    state: TestGeneratorIntermediaryState;  // Smells off. Must revist later.
+}
+
+//TODO: Maybe rename content_block to content_append?
+export interface ChatContent {
+    type: "content_block" | "content_replace";
+    content: string;
+}
+
+export interface CodeDiagnostics {
+    type: "diagnostics";
+    diagnostics: DiagnosticEntry[];
+}
+
+//TODO: I'm not sure about messages, maybe revisit later.
+export interface CodeMessages {
+    type: "messages";
+    messages: any[];
+}
+
+export interface ChatStop {
+    type: "stop";
+    command: Command | undefined;
+}
+
+export interface ChatError {
+    type: "error";
+    content: string;
+}
+
 export const stateChanged: NotificationType<MachineStateValue> = { method: 'stateChanged' };
 export const onDownloadProgress: NotificationType<DownloadProgress> = { method: 'onDownloadProgress' };
+export const onChatNotify: NotificationType<ChatNotify> = { method: 'onChatNotify' };
 export const projectContentUpdated: NotificationType<boolean> = { method: 'projectContentUpdated' };
 export const getVisualizerLocation: RequestType<void, VisualizerLocation> = { method: 'getVisualizerLocation' };
 export const webviewReady: NotificationType<void> = { method: `webviewReady` };
@@ -190,42 +238,72 @@ export const breakpointChanged: NotificationType<boolean> = { method: 'breakpoin
 export type AIMachineStateValue =
     | 'Initialize'          // (checking auth, first load)
     | 'Unauthenticated'     // (show login window)
-    | 'Authenticating'      // (waiting for SSO login result after redirect)
+    | { Authenticating: 'determineFlow' | 'ssoFlow' | 'apiKeyFlow' | 'validatingApiKey' } // hierarchical substates
     | 'Authenticated'       // (ready, main view)
     | 'Disabled';           // (optional: if AI Chat is globally unavailable)
 
 export enum AIMachineEventType {
     CHECK_AUTH = 'CHECK_AUTH',
     LOGIN = 'LOGIN',
+    AUTH_WITH_API_KEY = 'AUTH_WITH_API_KEY',
+    SUBMIT_API_KEY = 'SUBMIT_API_KEY',
     LOGOUT = 'LOGOUT',
     SILENT_LOGOUT = "SILENT_LOGOUT",
-    LOGIN_SUCCESS = 'LOGIN_SUCCESS',
+    COMPLETE_AUTH = 'COMPLETE_AUTH',
     CANCEL_LOGIN = 'CANCEL_LOGIN',
     RETRY = 'RETRY',
     DISPOSE = 'DISPOSE',
 }
 
-export type AIMachineEventValue =
-    | { type: AIMachineEventType.CHECK_AUTH }
-    | { type: AIMachineEventType.LOGIN }
-    | { type: AIMachineEventType.LOGOUT }
-    | { type: AIMachineEventType.SILENT_LOGOUT }
-    | { type: AIMachineEventType.LOGIN_SUCCESS }
-    | { type: AIMachineEventType.CANCEL_LOGIN }
-    | { type: AIMachineEventType.RETRY }
-    | { type: AIMachineEventType.DISPOSE };
+export type AIMachineEventMap = {
+    [AIMachineEventType.CHECK_AUTH]: undefined;
+    [AIMachineEventType.LOGIN]: undefined;
+    [AIMachineEventType.AUTH_WITH_API_KEY]: undefined;
+    [AIMachineEventType.SUBMIT_API_KEY]: { apiKey: string };
+    [AIMachineEventType.LOGOUT]: undefined;
+    [AIMachineEventType.SILENT_LOGOUT]: undefined;
+    [AIMachineEventType.COMPLETE_AUTH]: undefined;
+    [AIMachineEventType.CANCEL_LOGIN]: undefined;
+    [AIMachineEventType.RETRY]: undefined;
+    [AIMachineEventType.DISPOSE]: undefined;
+};
 
-interface AIUsageTokens {
-    maxUsage: number;
-    remainingTokens: number;
+export type AIMachineSendableEvent =
+    | { [K in keyof AIMachineEventMap]: AIMachineEventMap[K] extends undefined
+        ? { type: K }
+        : { type: K; payload: AIMachineEventMap[K] }
+    }[keyof AIMachineEventMap];
+
+export enum LoginMethod {
+    BI_INTEL = 'biIntel',
+    ANTHROPIC_KEY = 'anthropic_key'
 }
 
-export interface AIUserToken {
+interface BIIntelSecrets {
     accessToken: string;
-    usageTokens?: AIUsageTokens;
+    refreshToken: string;
+}
+
+interface AnthropicKeySecrets {
+    apiKey: string;
+}
+
+export type AuthCredentials =
+    | {
+        loginMethod: LoginMethod.BI_INTEL;
+        secrets: BIIntelSecrets;
+    }
+    | {
+        loginMethod: LoginMethod.ANTHROPIC_KEY;
+        secrets: AnthropicKeySecrets;
+    };
+
+export interface AIUserToken {
+    token: string; // For BI Intel, this is the access token and for Anthropic, this is the API key
 }
 
 export interface AIMachineContext {
+    loginMethod?: LoginMethod;
     userToken?: AIUserToken;
     errorMessage?: string;
 }
@@ -238,5 +316,5 @@ export enum ColorThemeKind {
 }
 
 export const aiStateChanged: NotificationType<AIMachineStateValue> = { method: 'aiStateChanged' };
-export const sendAIStateEvent: RequestType<AIMachineEventType, void> = { method: 'sendAIStateEvent' };
+export const sendAIStateEvent: RequestType<AIMachineEventType | AIMachineSendableEvent, void> = { method: 'sendAIStateEvent' };
 export const currentThemeChanged: NotificationType<ColorThemeKind> = { method: 'currentThemeChanged' };

@@ -42,7 +42,6 @@ import {
     SubPanelView,
     FormDiagnostics,
     FlowNode,
-    LinePosition,
     ExpressionProperty,
     RecordTypeField,
     VisualizableField,
@@ -341,6 +340,17 @@ export interface FormProps {
     concertMessage?: string;
     formImports?: FormImports;
     preserveOrder?: boolean;
+    scopeFieldAddon?: React.ReactNode;
+    newServerUrl?: string;
+    onChange?: (fieldKey: string, value: any, allValues: FormValues) => void;
+    mcpTools?: { name: string; description?: string }[]; 
+    onToolsChange?: (selectedTools: string[]) => void;
+    injectedComponents?: {
+        component: React.ReactNode;
+        index: number;
+    }[];
+    hideSaveButton?: boolean; // Option to hide the save button
+    onValidityChange?: (isValid: boolean) => void; // Callback for form validity status
 }
 
 export const Form = forwardRef((props: FormProps, ref) => {
@@ -374,6 +384,13 @@ export const Form = forwardRef((props: FormProps, ref) => {
         concertMessage,
         formImports,
         preserveOrder = false,
+        scopeFieldAddon,
+        newServerUrl,
+        mcpTools,
+        onToolsChange,
+        injectedComponents,
+        hideSaveButton = false,
+        onValidityChange,
     } = props;
 
     const {
@@ -418,6 +435,10 @@ export const Form = forwardRef((props: FormProps, ref) => {
                     defaultValues[field.key] = formatJSONLikeString(field.value) ?? "";
                 } else {
                     defaultValues[field.key] = field.value ?? "";
+                }
+
+                if (field.key === "parameters" && field.value.length === 0) {
+                    defaultValues[field.key] = formValues[field.key] ?? [];
                 }
 
                 if (field.key === "type") {
@@ -494,6 +515,7 @@ export const Form = forwardRef((props: FormProps, ref) => {
     // Expose a method to trigger the save
     useImperativeHandle(ref, () => ({
         triggerSave: () => handleSubmit(handleOnSave)(), // Call handleSubmit with the save function
+        resetForm: (values) => reset(values),
     }));
 
     const handleOpenRecordEditor = (open: boolean, typeField?: FormField) => {
@@ -641,6 +663,15 @@ export const Form = forwardRef((props: FormProps, ref) => {
         return hasDiagnostics;
     }, [diagnosticsInfo]);
 
+    // Call onValidityChange when form validity changes
+    useEffect(() => {
+        if (onValidityChange) {
+            const formIsValid = isValid && !isValidating && Object.keys(errors).length === 0 && 
+                (!concertMessage || !concertRequired || isUserConcert) && !isIdentifierEditing && !isSubComponentEnabled;
+            onValidityChange(formIsValid);
+        }
+    }, [isValid, isValidating, errors, concertMessage, concertRequired, isUserConcert, isIdentifierEditing, isSubComponentEnabled, onValidityChange]);
+
     const handleIdentifierEditingStateChange = (isEditing: boolean) => {
         setIsIdentifierEditing(isEditing);
     };
@@ -662,6 +693,20 @@ export const Form = forwardRef((props: FormProps, ref) => {
         }
     };
 
+    const prevValuesRef = useRef<FormValues>({});
+    const watchedValues = watch();
+    useEffect(() => {
+        if (props.onChange) {
+            const prevValues = prevValuesRef.current;
+            Object.entries(watchedValues).forEach(([key, value]) => {
+                if (prevValues[key] !== value) {
+                    props.onChange?.(key, value, watchedValues);
+                }
+            });
+            prevValuesRef.current = { ...watchedValues };
+        }
+    }, [watchedValues]);
+    
     const handleOnOpenInDataMapper = () => {
         setSavingButton('dataMapper');
         handleSubmit((data) => {
@@ -681,7 +726,7 @@ export const Form = forwardRef((props: FormProps, ref) => {
         <Provider {...contextValue}>
             <S.Container nestedForm={nestedForm} compact={compact} className="side-panel-body">
                 {actionButton && <S.ActionButtonContainer>{actionButton}</S.ActionButtonContainer>}
-                {infoLabel && (
+                {infoLabel && !compact && (
                     <S.MarkdownWrapper>
                         <S.MarkdownContainer ref={markdownRef} isExpanded={isMarkdownExpanded}>
                             <ReactMarkdown>{stripHtmlTags(infoLabel)}</ReactMarkdown>
@@ -703,7 +748,7 @@ export const Form = forwardRef((props: FormProps, ref) => {
                         )}
                     </S.MarkdownWrapper>
                 )}
-                {!preserveOrder && (
+                {!preserveOrder && !compact && (
                     <FormDescription formFields={formFields} selectedNode={selectedNode} />
                 )}
 
@@ -714,20 +759,30 @@ export const Form = forwardRef((props: FormProps, ref) => {
                  * 2. preserveOrder = false: Render name and type fields at the bottom, and rest at top
                  */}
                 <S.CategoryRow bottomBorder={false}>
-                    {formFields
-                        .sort((a, b) => b.groupNo - a.groupNo)
-                        .filter((field) => field.type !== "VIEW")
-                        .map((field) => {
+                    {(() => {
+                        const fieldsToRender = formFields
+                            .sort((a, b) => b.groupNo - a.groupNo)
+                            .filter((field) => field.type !== "VIEW");
+
+                        const renderedComponents = fieldsToRender.reduce<React.ReactNode[]>((acc, field, index) => {
+                            if (injectedComponents) {
+                                injectedComponents.forEach((injected) => {
+                                    if (injected.index === index) {
+                                        acc.push(injected.component);
+                                    }
+                                });
+                            }
+
                             if (field.advanced || field.hidden) {
-                                return null;
+                                return acc;
                             }
                             // When preserveOrder is false, skip prioritized fields (they'll be rendered at bottom)
                             if (!preserveOrder && isPrioritizedField(field)) {
-                                return null;
+                                return acc;
                             }
 
                             const updatedField = updateFormFieldWithImports(field, formImports);
-                            return (
+                            acc.push(
                                 <S.Row key={updatedField.key}>
                                     <EditorFactory
                                         field={updatedField}
@@ -744,37 +799,53 @@ export const Form = forwardRef((props: FormProps, ref) => {
                                         onIdentifierEditingStateChange={handleIdentifierEditingStateChange}
                                         handleOnTypeChange={handleOnTypeChange}
                                         setSubComponentEnabled={setIsSubComponentEnabled}
+                                        newServerUrl={newServerUrl}
+                                        mcpTools={mcpTools}
+                                        onToolsChange={onToolsChange}
                                     />
+                                    {updatedField.key === "scope" && scopeFieldAddon}
                                 </S.Row>
                             );
-                        })}
+                            return acc;
+                        }, []);
+
+                        if (injectedComponents) {
+                            injectedComponents.forEach((injected) => {
+                                if (injected.index >= fieldsToRender.length) {
+                                    renderedComponents.push(injected.component);
+                                }
+                            });
+                        }
+
+                        return renderedComponents;
+                    })()}
                     {hasAdvanceFields && (
                         <S.Row>
                             Optional Configurations
-                                <S.ButtonContainer>
-                                    {!showAdvancedOptions && (
-                                        <LinkButton
-                                            onClick={handleOnShowAdvancedOptions}
-                                            sx={{ fontSize: 12, padding: 8, color: ThemeColors.PRIMARY, gap: 4 }}
-                                        >
-                                            <Codicon
-                                                name={"chevron-down"}
-                                                iconSx={{ fontSize: 12 }}
-                                                sx={{ height: 12 }}
-                                            />
-                                            Expand
-                                        </LinkButton>
-                                    )}
-                                    {showAdvancedOptions && (
-                                        <LinkButton
-                                            onClick={handleOnHideAdvancedOptions}
-                                            sx={{ fontSize: 12, padding: 8, color: ThemeColors.PRIMARY, gap: 4 }}
-                                        >
-                                            <Codicon
-                                                name={"chevron-up"}
-                                                iconSx={{ fontSize: 12 }}
-                                                sx={{ height: 12 }}
-                                            />Collapsed
+                            <S.ButtonContainer>
+                                {!showAdvancedOptions && (
+                                    <LinkButton
+                                        onClick={handleOnShowAdvancedOptions}
+                                        sx={{ fontSize: 12, padding: 8, color: ThemeColors.PRIMARY, gap: 4 }}
+                                    >
+                                        <Codicon
+                                            name={"chevron-down"}
+                                            iconSx={{ fontSize: 12 }}
+                                            sx={{ height: 12 }}
+                                        />
+                                        Expand
+                                    </LinkButton>
+                                )}
+                                {showAdvancedOptions && (
+                                    <LinkButton
+                                        onClick={handleOnHideAdvancedOptions}
+                                        sx={{ fontSize: 12, padding: 8, color: ThemeColors.PRIMARY, gap: 4 }}
+                                    >
+                                        <Codicon
+                                            name={"chevron-up"}
+                                            iconSx={{ fontSize: 12 }}
+                                            sx={{ height: 12 }}
+                                        />Collapsed
                                     </LinkButton>
                                 )}
                             </S.ButtonContainer>
@@ -856,7 +927,7 @@ export const Form = forwardRef((props: FormProps, ref) => {
                     </S.ConcertContainer>
                 )}
 
-                {onSubmit && (
+                {onSubmit && !hideSaveButton && (
                     <S.Footer>
                         {onCancelForm && (
                             <Button appearance="secondary" onClick={onCancelForm}>

@@ -241,13 +241,14 @@ export function BaseNodeWidget(props: BaseNodeWidgetProps) {
         setMenuAnchorEl(null);
     };
 
-    const openDataMapper = () => {
+    const openDataMapper = async () => {
         if (!model.node.properties?.view?.value) {
             return;
         }
         const { fileName, startLine, endLine } = model.node.properties.view.value as ELineRange;
+        const filePath = await rpcClient.getVisualizerRpcClient().joinProjectPath(fileName);
         openView &&
-            openView(projectPath + "/" + fileName, {
+            openView(filePath, {
                 startLine: startLine.line,
                 startColumn: startLine.offset,
                 endLine: endLine.line,
@@ -255,13 +256,14 @@ export function BaseNodeWidget(props: BaseNodeWidgetProps) {
             });
     };
 
-    const viewFunction = () => {
+    const viewFunction = async () => {
         if (!model.node.properties?.view?.value) {
             return;
         }
         const { fileName, startLine, endLine } = model.node.properties.view.value as ELineRange;
+        const filePath = await rpcClient.getVisualizerRpcClient().joinProjectPath(fileName);
         openView &&
-            openView(projectPath + "/" + fileName, {
+            openView(filePath, {
                 startLine: startLine.line,
                 startColumn: startLine.offset,
                 endLine: endLine.line,

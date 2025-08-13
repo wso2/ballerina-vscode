@@ -30,6 +30,7 @@ import { MACHINE_VIEW } from "@wso2/ballerina-core";
 import styled from "@emotion/styled";
 import { BIFocusFlowDiagram } from "../FocusFlowDiagram";
 import { getColorByMethod } from "../ServiceDesigner/components/ResourceAccordion";
+import { SwitchSkeleton, TitleBarSkeleton } from "../../../components/Skeletons";
 
 const ActionButton = styled(Button)`
     display: flex;
@@ -171,7 +172,7 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
 
     const [showSequenceDiagram, setShowSequenceDiagram] = useState(false);
     const [enableSequenceDiagram, setEnableSequenceDiagram] = useState(false);
-    const [loadingDiagram, setLoadingDiagram] = useState(false);
+    const [loadingDiagram, setLoadingDiagram] = useState(true);
     const [fileName, setFileName] = useState("");
     const [serviceType, setServiceType] = useState("");
     const [basePath, setBasePath] = useState("");
@@ -348,49 +349,68 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
     return (
         <View>
             <TopNavigationBar />
-            <TitleBar title={getTitle()} subtitleElement={getSubtitleElement()} actions={getActions()} />
-    {
-        enableSequenceDiagram && !isAgent && (
-            <Switch
-                leftLabel="Flow"
-                rightLabel="Sequence"
-                checked={showSequenceDiagram}
-                checkedColor="var(--vscode-button-background)"
-                enableTransition={true}
-                onChange={handleToggleDiagram}
-                sx={{
-                    width: "250px",
-                    margin: "auto",
-                    position: "fixed",
-                    top: "120px",
-                    right: "16px",
-                    zIndex: "3",
-                    border: "unset",
-                }}
-                disabled={loadingDiagram}
-            />
-        )
-    }
-    {
-        showSequenceDiagram ? (
-            <BISequenceDiagram onUpdate={handleUpdateDiagram} onReady={handleReadyDiagram} />
-        ) : view ? (
-            <BIFocusFlowDiagram
-                projectPath={projectPath}
-                filePath={filePath}
-                onUpdate={handleUpdateDiagram}
-                onReady={handleReadyDiagram}
-            />
-        ) : (
-            <BIFlowDiagram
-                syntaxTree={syntaxTree}
-                breakpointState={breakpointState}
-                projectPath={projectPath}
-                onUpdate={handleUpdateDiagram}
-                onReady={handleReadyDiagram}
-            />
-        )
-    }
+            {loadingDiagram ? (
+                <TitleBarSkeleton />
+            ) : (
+                <TitleBar title={getTitle()} subtitleElement={getSubtitleElement()} actions={getActions()} />
+            )}
+            {enableSequenceDiagram && !isAgent &&
+                (
+                    !loadingDiagram ? (
+                        <Switch
+                            leftLabel="Flow"
+                            rightLabel="Sequence"
+                            checked={showSequenceDiagram}
+                            checkedColor="var(--vscode-button-background)"
+                            enableTransition={true}
+                            onChange={handleToggleDiagram}
+                            sx={{
+                                width: "250px",
+                                margin: "auto",
+                                position: "fixed",
+                                top: "120px",
+                                right: "16px",
+                                zIndex: "3",
+                                border: "unset",
+                            }}
+                            disabled={loadingDiagram}
+                        />
+                    ) : (
+                        <SwitchSkeleton
+                            checked={showSequenceDiagram}
+                            sx={{
+                                width: "250px",
+                                margin: "auto",
+                                position: "fixed",
+                                top: "120px",
+                                right: "16px",
+                                zIndex: "3",
+                                border: "unset",
+                            }}
+                        />
+                    )
+                )
+            }
+            {
+                showSequenceDiagram ? (
+                    <BISequenceDiagram onUpdate={handleUpdateDiagram} onReady={handleReadyDiagram} />
+                ) : view ? (
+                    <BIFocusFlowDiagram
+                        projectPath={projectPath}
+                        filePath={filePath}
+                        onUpdate={handleUpdateDiagram}
+                        onReady={handleReadyDiagram}
+                    />
+                ) : (
+                    <BIFlowDiagram
+                        syntaxTree={syntaxTree}
+                        breakpointState={breakpointState}
+                        projectPath={projectPath}
+                        onUpdate={handleUpdateDiagram}
+                        onReady={handleReadyDiagram}
+                    />
+                )
+            }
         </View >
     );
 }

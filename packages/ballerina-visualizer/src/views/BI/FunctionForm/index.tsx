@@ -92,7 +92,6 @@ export function FunctionForm(props: FunctionFormProps) {
             setTitleSubtitle('Build reusable custom flows');
             setFormSubtitle('Define a flow that can be used within your integration');
         }
-
         if (functionName) {
             getExistingFunctionNode();
         } else {

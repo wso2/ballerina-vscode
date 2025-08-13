@@ -41,6 +41,8 @@ import {
     LangClientAPI,
     PartialST,
     PartialSTParams,
+    ProjectDiagnosticsRequest,
+    ProjectDiagnosticsResponse,
     RenameRequest,
     RenameResponse,
     STModifyParams,
@@ -288,4 +290,10 @@ export class LangClientRpcManager implements LangClientAPI {
         });
     }
 
+    async getProjectDiagnostics(params: ProjectDiagnosticsRequest): Promise<ProjectDiagnosticsResponse> {
+        return new Promise(async (resolve) => {
+            const diagnostics = await StateMachine.langClient().getProjectDiagnostics(params) as ProjectDiagnosticsResponse;
+            resolve(diagnostics);
+        });
+    }
 }
