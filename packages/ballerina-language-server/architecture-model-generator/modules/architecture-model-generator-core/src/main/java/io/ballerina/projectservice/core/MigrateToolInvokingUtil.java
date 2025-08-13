@@ -35,6 +35,7 @@ public class MigrateToolInvokingUtil {
     private static final String KEY_ERROR = "error";
     private static final String KET_TEXT_EDITS = "textEdits";
     private static final String KEY_REPORT = "report";
+    private static final String KEY_REPORT_JSON = "report-json";
 
     private MigrateToolInvokingUtil() {
     }
@@ -76,6 +77,7 @@ public class MigrateToolInvokingUtil {
                         }
                     }
                     case KEY_REPORT -> resultBuilder.report((String) value);
+                    case KEY_REPORT_JSON -> resultBuilder.jsonReport(value);
                 }
             }
         }
