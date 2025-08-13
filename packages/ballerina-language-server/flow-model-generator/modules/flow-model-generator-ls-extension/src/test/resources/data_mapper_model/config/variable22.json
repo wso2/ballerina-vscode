@@ -30,7 +30,7 @@
         "typeName": "Student",
         "kind": "record",
         "category": "local-variable",
-        "reference": "469875313"
+        "ref": "469875313"
       }
     ],
     "output": {
@@ -39,10 +39,10 @@
       "variableName": "var1909",
       "typeName": "Person",
       "kind": "record",
-      "reference": "-131491914"
+      "ref": "-131491914"
     },
     "mappings": [],
-    "references": {
+    "refs": {
       "-131491914": {
         "fields": [
           {
@@ -69,7 +69,7 @@
             "variableName": "foo",
             "typeName": "",
             "kind": "record",
-            "reference": "-744265709"
+            "ref": "-744265709"
           }
         ],
         "typeName": "Person",
@@ -83,7 +83,7 @@
             "variableName": "bar",
             "typeName": "Student",
             "kind": "record",
-            "reference": "469875313"
+            "ref": "469875313"
           }
         ],
         "typeName": "",

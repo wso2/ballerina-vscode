@@ -31,7 +31,7 @@
         "typeName": "User",
         "kind": "record",
         "category": "variable",
-        "reference": "-368198061"
+        "ref": "-368198061"
       },
       {
         "fields": [],
@@ -40,7 +40,7 @@
         "typeName": "SecondaryPhones",
         "kind": "record",
         "isFocused": true,
-        "reference": "1315650592"
+        "ref": "1315650592"
       }
     ],
     "output": {
@@ -50,13 +50,13 @@
         "variableName": "<phoneNumbersItem>",
         "typeName": "SecondaryPhonesX",
         "kind": "record",
-        "reference": "-500203070"
+        "ref": "-500203070"
       },
       "id": "phoneNumbers",
       "variableName": "phoneNumbers",
       "typeName": "SecondaryPhonesX[]",
       "kind": "array",
-      "reference": "-500203070"
+      "ref": "-500203070"
     },
     "mappings": [
       {
@@ -110,7 +110,7 @@
         }
       }
     },
-    "references": {
+    "refs": {
       "-368198061": {
         "fields": [
           {
@@ -119,7 +119,7 @@
             "variableName": "info",
             "typeName": "Info",
             "kind": "record",
-            "reference": "-1629511167"
+            "ref": "-1629511167"
           }
         ],
         "typeName": "User",

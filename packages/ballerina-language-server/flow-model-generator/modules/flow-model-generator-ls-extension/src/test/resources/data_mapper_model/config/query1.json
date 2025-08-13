@@ -31,7 +31,7 @@
         "typeName": "User",
         "kind": "record",
         "category": "variable",
-        "reference": "-368198061"
+        "ref": "-368198061"
       },
       {
         "id": "secondaryPhonesItem",
@@ -87,7 +87,7 @@
         }
       }
     },
-    "references": {
+    "refs": {
       "-368198061": {
         "fields": [
           {
@@ -96,7 +96,7 @@
             "variableName": "info",
             "typeName": "Info",
             "kind": "record",
-            "reference": "-1629511167"
+            "ref": "-1629511167"
           }
         ],
         "typeName": "User",

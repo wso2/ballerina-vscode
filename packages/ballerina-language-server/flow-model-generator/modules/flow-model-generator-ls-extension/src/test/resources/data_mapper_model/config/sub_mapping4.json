@@ -31,7 +31,7 @@
           "variableName": "<userInfoItem>",
           "typeName": "UserInfo",
           "kind": "record",
-          "reference": "465437139"
+          "ref": "465437139"
         },
         "focusedMemberId": "user",
         "id": "userInfo",
@@ -39,7 +39,7 @@
         "typeName": "UserInfo[]",
         "kind": "array",
         "category": "variable",
-        "reference": "465437139"
+        "ref": "465437139"
       },
       {
         "fields": [],
@@ -48,7 +48,7 @@
         "typeName": "UserInfo",
         "kind": "record",
         "isFocused": true,
-        "reference": "465437139"
+        "ref": "465437139"
       }
     ],
     "output": {
@@ -58,13 +58,13 @@
         "variableName": "<studentsItem>",
         "typeName": "Student",
         "kind": "record",
-        "reference": "1028677017"
+        "ref": "1028677017"
       },
       "id": "students",
       "variableName": "students",
       "typeName": "Student[]",
       "kind": "array",
-      "reference": "1028677017"
+      "ref": "1028677017"
     },
     "mappings": [
       {
@@ -111,7 +111,7 @@
         }
       }
     },
-    "references": {
+    "refs": {
       "1028677017": {
         "fields": [
           {

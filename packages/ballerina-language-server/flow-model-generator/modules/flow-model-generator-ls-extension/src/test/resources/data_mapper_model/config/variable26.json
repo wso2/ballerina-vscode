@@ -30,7 +30,7 @@
         "typeName": "Person",
         "kind": "record",
         "category": "parameter",
-        "reference": "25603108"
+        "ref": "25603108"
       },
       {
         "fields": [],
@@ -39,7 +39,7 @@
         "typeName": "User",
         "kind": "record",
         "category": "local-variable",
-        "reference": "941269625"
+        "ref": "941269625"
       }
     ],
     "output": {
@@ -48,10 +48,10 @@
       "variableName": "u",
       "typeName": "User",
       "kind": "record",
-      "reference": "941269625"
+      "ref": "941269625"
     },
     "mappings": [],
-    "references": {
+    "refs": {
       "-1653315998": {
         "fields": [
           {
@@ -96,7 +96,7 @@
             "variableName": "address",
             "typeName": "",
             "kind": "record",
-            "reference": "-1842723739"
+            "ref": "-1842723739"
           },
           {
             "id": "phoneNumber",
@@ -122,7 +122,7 @@
             "variableName": "contactDetails",
             "typeName": "",
             "kind": "record",
-            "reference": "-1521349224"
+            "ref": "-1521349224"
           },
           {
             "fields": [],
@@ -130,7 +130,7 @@
             "variableName": "location",
             "typeName": "",
             "kind": "record",
-            "reference": "-1328771588"
+            "ref": "-1328771588"
           },
           {
             "fields": [],
@@ -138,7 +138,7 @@
             "variableName": "accountInfo",
             "typeName": "",
             "kind": "record",
-            "reference": "-1653315998"
+            "ref": "-1653315998"
           },
           {
             "id": "transactionDate",
@@ -188,7 +188,7 @@
             "variableName": "customer",
             "typeName": "",
             "kind": "record",
-            "reference": "-1599327629"
+            "ref": "-1599327629"
           },
           {
             "fields": [],
@@ -196,7 +196,7 @@
             "variableName": "account",
             "typeName": "",
             "kind": "record",
-            "reference": "-10963004"
+            "ref": "-10963004"
           }
         ],
         "typeName": "User",

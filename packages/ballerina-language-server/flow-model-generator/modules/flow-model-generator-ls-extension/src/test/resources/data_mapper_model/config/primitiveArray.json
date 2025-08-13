@@ -30,7 +30,7 @@
         "typeName": "Department",
         "kind": "record",
         "category": "local-variable",
-        "reference": "-1241234485"
+        "ref": "-1241234485"
       },
       {
         "member": {
@@ -52,7 +52,7 @@
       "variableName": "alice",
       "typeName": "Employee",
       "kind": "record",
-      "reference": "-1659566102"
+      "ref": "-1659566102"
     },
     "mappings": [
       {
@@ -76,7 +76,7 @@
         "isFunctionCall": false
       }
     ],
-    "references": {
+    "refs": {
       "-1659566102": {
         "fields": [
           {
@@ -91,7 +91,7 @@
             "variableName": "department",
             "typeName": "Department",
             "kind": "record",
-            "reference": "180864539"
+            "ref": "180864539"
           }
         ],
         "typeName": "Employee",
@@ -110,7 +110,7 @@
             "variableName": "employees",
             "typeName": "array[]",
             "kind": "array",
-            "reference": "-1659566102"
+            "ref": "-1659566102"
           }
         ],
         "typeName": "Department",

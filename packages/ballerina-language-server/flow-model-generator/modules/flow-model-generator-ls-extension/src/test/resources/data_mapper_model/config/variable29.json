@@ -30,7 +30,7 @@
         "typeName": "User",
         "kind": "record",
         "category": "parameter",
-        "reference": "703687070"
+        "ref": "703687070"
       }
     ],
     "output": {
@@ -39,7 +39,7 @@
       "variableName": "td",
       "typeName": "TwoDim",
       "kind": "record",
-      "reference": "1722082677"
+      "ref": "1722082677"
     },
     "mappings": [
       {
@@ -147,7 +147,7 @@
         ]
       }
     ],
-    "references": {
+    "refs": {
       "703687070": {
         "fields": [
           {

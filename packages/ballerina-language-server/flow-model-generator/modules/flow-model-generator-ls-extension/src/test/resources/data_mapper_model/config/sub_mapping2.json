@@ -30,7 +30,7 @@
         "typeName": "Student",
         "kind": "record",
         "category": "local-variable",
-        "reference": "1028677017"
+        "ref": "1028677017"
       },
       {
         "fields": [],
@@ -39,7 +39,7 @@
         "typeName": "UserInfo",
         "kind": "record",
         "category": "local-variable",
-        "reference": "465437139"
+        "ref": "465437139"
       }
     ],
     "output": {
@@ -59,7 +59,7 @@
         "isFunctionCall": false
       }
     ],
-    "references": {
+    "refs": {
       "1028677017": {
         "fields": [
           {

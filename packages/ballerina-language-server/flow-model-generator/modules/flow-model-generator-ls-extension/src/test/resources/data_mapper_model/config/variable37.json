@@ -30,7 +30,7 @@
         "typeName": "User",
         "kind": "record",
         "category": "parameter",
-        "reference": "1396926937"
+        "ref": "1396926937"
       }
     ],
     "output": {
@@ -40,13 +40,13 @@
         "variableName": "<users4Item>",
         "typeName": "User4",
         "kind": "record",
-        "reference": "-679331081"
+        "ref": "-679331081"
       },
       "id": "users4",
       "variableName": "users4",
       "typeName": "User4[]",
       "kind": "array",
-      "reference": "-679331081"
+      "ref": "-679331081"
     },
     "mappings": [
       {
@@ -132,7 +132,7 @@
         ]
       }
     ],
-    "references": {
+    "refs": {
       "1321573925": {
         "fields": [
           {
@@ -177,14 +177,14 @@
             "variableName": "user5",
             "typeName": "User5",
             "kind": "record",
-            "reference": "1622637280"
+            "ref": "1622637280"
           },
           {
             "id": "users6",
             "variableName": "users6",
             "typeName": "array[]",
             "kind": "array",
-            "reference": "1321573925"
+            "ref": "1321573925"
           }
         ],
         "typeName": "User4",

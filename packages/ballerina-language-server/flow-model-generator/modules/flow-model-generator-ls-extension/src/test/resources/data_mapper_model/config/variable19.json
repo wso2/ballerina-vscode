@@ -30,7 +30,7 @@
           "variableName": "<userInfoItem>",
           "typeName": "UserInfo",
           "kind": "record",
-          "reference": "1853646530"
+          "ref": "1853646530"
         },
         "focusedMemberId": "item",
         "id": "userInfo",
@@ -38,7 +38,7 @@
         "typeName": "UserInfo[]",
         "kind": "array",
         "category": "variable",
-        "reference": "1853646530"
+        "ref": "1853646530"
       },
       {
         "fields": [],
@@ -47,7 +47,7 @@
         "typeName": "UserInfo",
         "kind": "record",
         "isFocused": true,
-        "reference": "1853646530"
+        "ref": "1853646530"
       }
     ],
     "output": {
@@ -57,13 +57,13 @@
         "variableName": "<credentialsItem>",
         "typeName": "Credentials",
         "kind": "record",
-        "reference": "-1644308518"
+        "ref": "-1644308518"
       },
       "id": "credentials",
       "variableName": "credentials",
       "typeName": "Credentials[]",
       "kind": "array",
-      "reference": "-1644308518"
+      "ref": "-1644308518"
     },
     "mappings": [
       {
@@ -110,7 +110,7 @@
         }
       }
     },
-    "references": {
+    "refs": {
       "1853646530": {
         "fields": [
           {

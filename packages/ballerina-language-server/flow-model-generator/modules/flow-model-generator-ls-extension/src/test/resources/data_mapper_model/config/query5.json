@@ -30,7 +30,7 @@
         "typeName": "User",
         "kind": "record",
         "category": "local-variable",
-        "reference": "-368198061"
+        "ref": "-368198061"
       }
     ],
     "output": {
@@ -39,7 +39,7 @@
       "variableName": "p",
       "typeName": "Person",
       "kind": "record",
-      "reference": "2032796937"
+      "ref": "2032796937"
     },
     "mappings": [
       {
@@ -54,7 +54,7 @@
         "isFunctionCall": false
       }
     ],
-    "references": {
+    "refs": {
       "2032796937": {
         "fields": [
           {
@@ -63,7 +63,7 @@
             "variableName": "contactDetails",
             "typeName": "ContactDetails",
             "kind": "record",
-            "reference": "1955575003"
+            "ref": "1955575003"
           }
         ],
         "typeName": "Person",
@@ -77,7 +77,7 @@
             "variableName": "info",
             "typeName": "Info",
             "kind": "record",
-            "reference": "-1629511167"
+            "ref": "-1629511167"
           }
         ],
         "typeName": "User",
@@ -108,7 +108,7 @@
             "variableName": "phoneNumbers",
             "typeName": "array[]",
             "kind": "array",
-            "reference": "-500203070"
+            "ref": "-500203070"
           },
           {
             "member": {

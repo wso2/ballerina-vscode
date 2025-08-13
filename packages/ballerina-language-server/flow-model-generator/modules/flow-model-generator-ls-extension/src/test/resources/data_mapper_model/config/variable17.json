@@ -30,14 +30,14 @@
           "variableName": "<credentialsItem>",
           "typeName": "Credentials",
           "kind": "record",
-          "reference": "-1644308518"
+          "ref": "-1644308518"
         },
         "id": "credentials",
         "variableName": "credentials",
         "typeName": "Credentials[]",
         "kind": "array",
         "category": "local-variable",
-        "reference": "-1644308518"
+        "ref": "-1644308518"
       },
       {
         "member": {
@@ -46,14 +46,14 @@
           "variableName": "<userInfoItem>",
           "typeName": "UserInfo",
           "kind": "record",
-          "reference": "465437139"
+          "ref": "465437139"
         },
         "id": "userInfo",
         "variableName": "userInfo",
         "typeName": "UserInfo[]",
         "kind": "array",
         "category": "local-variable",
-        "reference": "465437139"
+        "ref": "465437139"
       }
     ],
     "output": {
@@ -62,7 +62,7 @@
       "variableName": "student",
       "typeName": "Student",
       "kind": "record",
-      "reference": "-938007526"
+      "ref": "-938007526"
     },
     "mappings": [
       {
@@ -118,7 +118,7 @@
         "isFunctionCall": false
       }
     ],
-    "references": {
+    "refs": {
       "-938007526": {
         "fields": [
           {
@@ -132,7 +132,7 @@
             "variableName": "credentials",
             "typeName": "array[]",
             "kind": "array",
-            "reference": "-1644308518"
+            "ref": "-1644308518"
           },
           {
             "id": "length",

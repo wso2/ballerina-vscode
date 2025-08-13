@@ -30,7 +30,7 @@
         "typeName": "User",
         "kind": "record",
         "category": "parameter",
-        "reference": "1396926937"
+        "ref": "1396926937"
       }
     ],
     "output": {
@@ -39,7 +39,7 @@
       "variableName": "user1",
       "typeName": "User1",
       "kind": "record",
-      "reference": "1078186826"
+      "ref": "1078186826"
     },
     "mappings": [
       {
@@ -76,7 +76,7 @@
         "isFunctionCall": false
       }
     ],
-    "references": {
+    "refs": {
       "1078186826": {
         "fields": [
           {
@@ -85,7 +85,7 @@
             "variableName": "user2",
             "typeName": "User2",
             "kind": "record",
-            "reference": "1443283171"
+            "ref": "1443283171"
           },
           {
             "id": "s1",
@@ -117,7 +117,7 @@
             "variableName": "user5",
             "typeName": "User5",
             "kind": "record",
-            "reference": "1020566466"
+            "ref": "1020566466"
           }
         ],
         "typeName": "User4",
@@ -131,7 +131,7 @@
             "variableName": "user4",
             "typeName": "User4",
             "kind": "record",
-            "reference": "916302237"
+            "ref": "916302237"
           },
           {
             "id": "i3",
@@ -163,7 +163,7 @@
             "variableName": "user3",
             "typeName": "User3",
             "kind": "record",
-            "reference": "-2009426176"
+            "ref": "-2009426176"
           }
         ],
         "typeName": "User2",

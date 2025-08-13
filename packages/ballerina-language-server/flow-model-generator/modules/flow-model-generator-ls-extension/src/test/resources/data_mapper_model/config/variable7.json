@@ -30,7 +30,7 @@
         "typeName": "UserInfo",
         "kind": "record",
         "category": "local-variable",
-        "reference": "465437139"
+        "ref": "465437139"
       }
     ],
     "output": {
@@ -39,7 +39,7 @@
       "variableName": "student",
       "typeName": "Student",
       "kind": "record",
-      "reference": "1713896285"
+      "ref": "1713896285"
     },
     "mappings": [
       {
@@ -75,7 +75,7 @@
         "isFunctionCall": false
       }
     ],
-    "references": {
+    "refs": {
       "465437139": {
         "fields": [
           {

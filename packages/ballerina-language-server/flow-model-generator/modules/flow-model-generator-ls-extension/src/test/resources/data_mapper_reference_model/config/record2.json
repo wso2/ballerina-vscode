@@ -31,7 +31,7 @@
         "typeName": "ProgressNote",
         "kind": "record",
         "category": "local-variable",
-        "reference": "-1564251137"
+        "ref": "-1564251137"
       },
       {
         "fields": [],
@@ -40,7 +40,7 @@
         "typeName": "SampleRecord",
         "kind": "record",
         "category": "local-variable",
-        "reference": "20215816"
+        "ref": "20215816"
       },
       {
         "fields": [],
@@ -49,7 +49,7 @@
         "typeName": "SampleType",
         "kind": "record",
         "category": "local-variable",
-        "reference": "-1759664427"
+        "ref": "-1759664427"
       }
     ],
     "output": {
@@ -58,10 +58,10 @@
       "variableName": "finalNote",
       "typeName": "FinalNote",
       "kind": "record",
-      "reference": "-220776912"
+      "ref": "-220776912"
     },
     "mappings": [],
-    "references": {
+    "refs": {
       "-220776912": {
         "fields": [
           {
@@ -76,7 +76,7 @@
             "variableName": "progressNote",
             "typeName": "ProgressNote",
             "kind": "record",
-            "reference": "-1564251137"
+            "ref": "-1564251137"
           }
         ],
         "typeName": "FinalNote",
@@ -114,7 +114,7 @@
             "variableName": "sampleRecord",
             "typeName": "SampleRecord",
             "kind": "record",
-            "reference": "20215816"
+            "ref": "20215816"
           }
         ],
         "typeName": "ProgressNote",
@@ -134,7 +134,7 @@
             "variableName": "recordType",
             "typeName": "SampleType",
             "kind": "record",
-            "reference": "-1759664427"
+            "ref": "-1759664427"
           }
         ],
         "typeName": "SampleRecord",

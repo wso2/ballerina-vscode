@@ -30,7 +30,7 @@
         "typeName": "User",
         "kind": "record",
         "category": "local-variable",
-        "reference": "703687070"
+        "ref": "703687070"
       },
       {
         "fields": [],
@@ -39,7 +39,7 @@
         "typeName": "User",
         "kind": "record",
         "category": "parameter",
-        "reference": "703687070"
+        "ref": "703687070"
       }
     ],
     "output": {
@@ -48,7 +48,7 @@
       "variableName": "var3",
       "typeName": "Person5",
       "kind": "record",
-      "reference": "2022724573"
+      "ref": "2022724573"
     },
     "mappings": [
       {
@@ -109,7 +109,7 @@
         ]
       }
     ],
-    "references": {
+    "refs": {
       "703687070": {
         "fields": [
           {
@@ -159,7 +159,7 @@
             "variableName": "contacts",
             "typeName": "array[]",
             "kind": "array",
-            "reference": "-2108560642"
+            "ref": "-2108560642"
           }
         ],
         "typeName": "Person5",

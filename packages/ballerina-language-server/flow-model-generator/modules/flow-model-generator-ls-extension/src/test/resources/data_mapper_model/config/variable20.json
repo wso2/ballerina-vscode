@@ -32,7 +32,7 @@
         "kind": "record",
         "category": "variable",
         "isFocused": true,
-        "reference": "-891579209"
+        "ref": "-891579209"
       },
       {
         "member": {
@@ -41,7 +41,7 @@
           "variableName": "<banksItem>",
           "typeName": "Bank",
           "kind": "record",
-          "reference": "-891579209"
+          "ref": "-891579209"
         },
         "focusedMemberId": "bank",
         "id": "banks",
@@ -49,7 +49,7 @@
         "typeName": "Bank[]",
         "kind": "array",
         "category": "variable",
-        "reference": "-891579209"
+        "ref": "-891579209"
       },
       {
         "member": {
@@ -58,14 +58,14 @@
           "variableName": "<userInfoItem>",
           "typeName": "UserInfo",
           "kind": "record",
-          "reference": "1853646530"
+          "ref": "1853646530"
         },
         "id": "userInfo",
         "variableName": "userInfo",
         "typeName": "UserInfo[]",
         "kind": "array",
         "category": "variable",
-        "reference": "1853646530"
+        "ref": "1853646530"
       },
       {
         "fields": [],
@@ -74,7 +74,7 @@
         "typeName": "UserInfo",
         "kind": "record",
         "isFocused": true,
-        "reference": "1853646530"
+        "ref": "1853646530"
       }
     ],
     "output": {
@@ -84,13 +84,13 @@
         "variableName": "<credentialsItem>",
         "typeName": "Credentials",
         "kind": "record",
-        "reference": "-1644308518"
+        "ref": "-1644308518"
       },
       "id": "credentials",
       "variableName": "credentials",
       "typeName": "Credentials[]",
       "kind": "array",
-      "reference": "-1644308518"
+      "ref": "-1644308518"
     },
     "mappings": [
       {
@@ -139,7 +139,7 @@
         }
       }
     },
-    "references": {
+    "refs": {
       "1853646530": {
         "fields": [
           {
@@ -195,7 +195,7 @@
             "variableName": "userInfo",
             "typeName": "array[]",
             "kind": "array",
-            "reference": "1853646530"
+            "ref": "1853646530"
           }
         ],
         "typeName": "Bank",

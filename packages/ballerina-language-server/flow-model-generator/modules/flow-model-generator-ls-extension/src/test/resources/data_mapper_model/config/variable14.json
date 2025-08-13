@@ -30,7 +30,7 @@
         "typeName": "UserInfo",
         "kind": "record",
         "category": "local-variable",
-        "reference": "465437139"
+        "ref": "465437139"
       }
     ],
     "output": {
@@ -39,7 +39,7 @@
       "variableName": "credentials",
       "typeName": "Credentials",
       "kind": "record",
-      "reference": "-1644308518"
+      "ref": "-1644308518"
     },
     "mappings": [
       {
@@ -54,7 +54,7 @@
         "elements": []
       }
     ],
-    "references": {
+    "refs": {
       "465437139": {
         "fields": [
           {
