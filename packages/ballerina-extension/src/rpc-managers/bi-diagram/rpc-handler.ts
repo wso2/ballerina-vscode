@@ -136,6 +136,8 @@ import {
     UpdateRecordConfigRequest,
     UpdateTypeRequest,
     UpdateTypesRequest,
+    verifyTypeDelete,
+    VerifyTypeDeleteRequest,
     VisibleTypesRequest
 } from "@wso2/ballerina-core";
 import { Messenger } from "vscode-messenger";
@@ -193,6 +195,7 @@ export function registerBiDiagramRpcHandlers(messenger: Messenger) {
     messenger.onRequest(updateType, (args: UpdateTypeRequest) => rpcManger.updateType(args));
     messenger.onRequest(updateTypes, (args: UpdateTypesRequest) => rpcManger.updateTypes(args));
     messenger.onRequest(deleteType, (args: DeleteTypeRequest) => rpcManger.deleteType(args));
+    messenger.onRequest(verifyTypeDelete, (args: VerifyTypeDeleteRequest) => rpcManger.verifyTypeDelete(args));
     messenger.onRequest(getTypeFromJson, (args: JsonToTypeRequest) => rpcManger.getTypeFromJson(args));
     messenger.onRequest(getServiceClassModel, (args: ModelFromCodeRequest) => rpcManger.getServiceClassModel(args));
     messenger.onRequest(updateClassField, (args: ClassFieldModifierRequest) => rpcManger.updateClassField(args));

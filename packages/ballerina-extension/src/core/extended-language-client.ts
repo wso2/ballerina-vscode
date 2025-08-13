@@ -248,7 +248,11 @@ import {
     DeleteMappingRequest,
     MapWithCustomFnRequest,
     AIToolResponse,
-    AIToolRequest
+    AIToolRequest,
+    VerifyTypeDeleteRequest,
+    VerifyTypeDeleteResponse,
+    DeleteTypeRequest,
+    DeleteTypeResponse
 } from "@wso2/ballerina-core";
 import { BallerinaExtension } from "./index";
 import { debug, handlePullModuleProgress } from "../utils";
@@ -312,6 +316,8 @@ enum EXTENDED_APIS {
     BI_SOURCE_CODE = 'flowDesignService/getSourceCode',
     BI_DELETE_NODE = 'flowDesignService/deleteFlowNode',
     BI_DELETE_BY_COMPONENT_INFO = 'flowDesignService/deleteComponent',
+    BI_VERIFY_TYPE_DELETE = 'typesManager/verifyTypeDelete',
+    BI_DELETE_TYPE = 'typesManager/deleteType',
     BI_AVAILABLE_NODES = 'flowDesignService/getAvailableNodes',
     BI_AVAILABLE_MODEL_PROVIDERS = 'flowDesignService/getAvailableModelProviders',
     BI_AVAILABLE_VECTOR_STORES = 'flowDesignService/getAvailableVectorStores',
@@ -1008,6 +1014,14 @@ export class ExtendedLangClient extends LanguageClient implements ExtendedLangCl
 
     async deleteByComponentInfo(params: BIDeleteByComponentInfoRequest): Promise<BISourceCodeResponse> {
         return this.sendRequest<BISourceCodeResponse>(EXTENDED_APIS.BI_DELETE_BY_COMPONENT_INFO, params);
+    }
+
+    async verifyTypeDelete(params: VerifyTypeDeleteRequest): Promise<VerifyTypeDeleteResponse> {
+        return this.sendRequest<VerifyTypeDeleteResponse>(EXTENDED_APIS.BI_VERIFY_TYPE_DELETE, params);
+    }
+
+    async deleteType(params: DeleteTypeRequest): Promise<DeleteTypeResponse> {
+        return this.sendRequest<DeleteTypeResponse>(EXTENDED_APIS.BI_DELETE_TYPE, params);
     }
 
     async getSequenceDiagramModel(params: SequenceModelRequest): Promise<SequenceModelResponse> {

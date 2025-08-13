@@ -1374,6 +1374,18 @@ export interface DeleteTypeResponse {
     stacktrace?: string;
 }
 
+export interface VerifyTypeDeleteRequest {
+    filePath: string;
+    startLine: number;
+    startColumn: number;
+}
+
+export interface VerifyTypeDeleteResponse {
+    canDelete: boolean;
+    errorMsg?: string;
+    stacktrace?: string;
+}
+
 export interface GetTypesResponse {
     types: Type[];
 }
