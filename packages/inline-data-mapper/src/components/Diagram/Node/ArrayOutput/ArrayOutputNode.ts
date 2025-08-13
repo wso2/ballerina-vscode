@@ -88,7 +88,7 @@ export class ArrayOutputNode extends DataMapperNodeModel {
                             field: this.outputType.member,
                             type: "IN",
                             parentId: this.rootName,
-                            mappings,
+                            mappings: element.mappings,
                             portPrefix: ARRAY_OUTPUT_TARGET_PORT_PREFIX,
                             parent: parentPort,
                             collapsedFields,
@@ -128,8 +128,8 @@ export class ArrayOutputNode extends DataMapperNodeModel {
 
     private createLinks(mappings: Mapping[]) {
         mappings.forEach((mapping) => {
-            const { isComplex, inputs, output, expression, diagnostics } = mapping;
-            if (isComplex || inputs.length !== 1) {
+            const { isComplex, isQueryExpression, isFunctionCall, inputs, output, expression, diagnostics } = mapping;
+            if (isComplex || isQueryExpression || isFunctionCall || inputs.length !== 1) {
                 // Complex mappings are handled in the LinkConnectorNode
                 return;
             }

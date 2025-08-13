@@ -24,7 +24,7 @@ import type {} from "@projectstorm/react-diagrams-core";
 import type {} from "@projectstorm/react-diagrams";
 import { css, Global } from '@emotion/react';
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { IDMFormProps, ModelState, IntermediateClause, Mapping, CodeData, CustomFnMetadata, LineRange } from "@wso2/ballerina-core";
+import { IDMFormProps, ModelState, IntermediateClause, Mapping, CodeData, CustomFnMetadata, LineRange, ResultClauseType } from "@wso2/ballerina-core";
 import { CompletionItem, ErrorBoundary } from "@wso2/ui-toolkit";
 
 import { InlineDataMapper } from "./components/DataMapper/DataMapper";
@@ -64,7 +64,7 @@ export interface InlineDataMapperProps {
     applyModifications: (outputId: string, expression: string, viewId: string, name: string) => Promise<void>;
     addArrayElement: (outputId: string, viewId: string, name: string) => Promise<void>;
     generateForm: (formProps: IDMFormProps) => JSX.Element;
-    convertToQuery: (outputId: string, viewId: string, name: string) => Promise<void>;
+    convertToQuery: (mapping: Mapping, clauseType: ResultClauseType, viewId: string, name: string) => Promise<void>;
     addClauses: (clause: IntermediateClause, targetField: string, isNew: boolean, index?:number) => Promise<void>;
     addSubMapping: (subMappingName: string, type: string, index: number, targetField: string, importsCodedata?: CodeData) => Promise<void>;
     deleteMapping: (mapping: Mapping, viewId: string) => Promise<void>;

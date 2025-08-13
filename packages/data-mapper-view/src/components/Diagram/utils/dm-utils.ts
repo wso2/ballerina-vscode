@@ -1392,6 +1392,20 @@ export function isDefaultValue(field: TypeField, value: string): boolean {
 	if (value === '()'){
 		return true;
 	}
+	
+	// For numeric types, compare the parsed values instead of string comparison
+	if (field?.typeName === PrimitiveBalType.Int || 
+		field?.typeName === PrimitiveBalType.Float || 
+		field?.typeName === PrimitiveBalType.Decimal) {
+		
+		// Clean the value by removing suffixes like 'f' for floats and 'd' for decimals
+		const cleanValue = value?.trim().replace(/[fd]$/i, '');
+		const numericValue = parseFloat(cleanValue);
+		
+		// Check if it's a valid number and equals 0
+		return !isNaN(numericValue) && numericValue === 0;
+	}
+	
 	const defaultValue = getDefaultValue(field?.typeName);
 	return defaultValue === value?.trim();
 }

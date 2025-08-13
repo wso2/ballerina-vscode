@@ -354,9 +354,9 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
             ) : (
                 <TitleBar title={getTitle()} subtitleElement={getSubtitleElement()} actions={getActions()} />
             )}
-            {
-                enableSequenceDiagram && !isAgent && !loadingDiagram ?
-                    (
+            {enableSequenceDiagram && !isAgent &&
+                (
+                    !loadingDiagram ? (
                         <Switch
                             leftLabel="Flow"
                             rightLabel="Sequence"
@@ -389,6 +389,7 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
                             }}
                         />
                     )
+                )
             }
             {
                 showSequenceDiagram ? (

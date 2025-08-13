@@ -20,7 +20,7 @@ import React, { useState } from 'react';
 
 import { DiagramEngine } from '@projectstorm/react-diagrams';
 import { Button, Codicon, TruncatedLabel } from '@wso2/ui-toolkit';
-import { IOType, Mapping } from '@wso2/ballerina-core';
+import { IOType, Mapping, TypeKind } from '@wso2/ballerina-core';
 import { useShallow } from 'zustand/react/shallow';
 
 import { IDataMapperContext } from "../../../../utils/DataMapperContext/DataMapperContext";
@@ -70,10 +70,11 @@ export function QueryOutputWidget(props: QueryOutputWidgetProps) {
 		}))
 	);
 
-	const fields = [outputType.member];
+	const fields = [outputType.member ?? outputType];
 	const hasFields = fields.length > 0;
 
 	const portIn = getPort(`${id}.IN`);
+	const isUnknownType = outputType.kind === TypeKind.Unknown;
 
 	let expanded = true;
 	if ((portIn && portIn.attributes.collapsed)) {
@@ -112,7 +113,7 @@ export function QueryOutputWidget(props: QueryOutputWidgetProps) {
 					{typeName && ":"}
 				</span>
 			)}
-			<span className={classes.typeLabel}>
+			<span className={isUnknownType ? classes.unknownTypeLabel : classes.typeLabel}>
 				{typeName || ''}
 			</span>
 		</TruncatedLabel>

@@ -20,7 +20,7 @@ import React, { useState } from 'react';
 
 import { DiagramEngine } from '@projectstorm/react-diagrams';
 import { Button, Codicon, TruncatedLabel } from '@wso2/ui-toolkit';
-import { IOType, Mapping } from '@wso2/ballerina-core';
+import { IOType, Mapping, TypeKind } from '@wso2/ballerina-core';
 
 import { IDataMapperContext } from "../../../../utils/DataMapperContext/DataMapperContext";
 import { DataMapperPortWidget, PortState, InputOutputPortModel } from '../../Port';
@@ -74,6 +74,7 @@ export function ObjectOutputWidget(props: ObjectOutputWidgetProps) {
 	const hasFields = fields.length > 0;
 
 	const portIn = getPort(`${id}.IN`);
+	const isUnknownType = outputType.kind === TypeKind.Unknown;
 
 	let expanded = true;
 	if ((portIn && portIn.attributes.collapsed)) {
@@ -111,7 +112,7 @@ export function ObjectOutputWidget(props: ObjectOutputWidgetProps) {
 					<OutputSearchHighlight>{valueLabel}</OutputSearchHighlight>
 				</span>
 			)}
-			<span className={classes.typeLabel}>
+			<span className={isUnknownType ? classes.unknownTypeLabel : classes.typeLabel}>
 				{typeName || ''}
 			</span>
 		</TruncatedLabel>
