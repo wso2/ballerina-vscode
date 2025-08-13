@@ -24,43 +24,13 @@
   "model": {
     "inputs": [
       {
-        "id": "CONST",
-        "variableName": "CONST",
-        "typeName": "string",
-        "kind": "string",
-        "category": "constant",
-        "optional": false
-      },
-      {
         "member": {
-          "fields": [
-            {
-              "id": "userInfo.0.username",
-              "variableName": "username",
-              "typeName": "string",
-              "kind": "string",
-              "optional": false
-            },
-            {
-              "id": "userInfo.0.password",
-              "variableName": "password",
-              "typeName": "string",
-              "kind": "string",
-              "optional": false
-            },
-            {
-              "id": "userInfo.0.id",
-              "variableName": "id",
-              "typeName": "int",
-              "kind": "int",
-              "optional": false
-            }
-          ],
-          "id": "userInfo.0",
+          "fields": [],
+          "id": "userInfo",
           "variableName": "<userInfoItem>",
           "typeName": "UserInfo",
           "kind": "record",
-          "optional": false
+          "reference": "1853646530"
         },
         "focusedMemberId": "item",
         "id": "userInfo",
@@ -68,7 +38,7 @@
         "typeName": "UserInfo[]",
         "kind": "array",
         "category": "variable",
-        "optional": false
+        "reference": "1853646530"
       },
       {
         "fields": [],

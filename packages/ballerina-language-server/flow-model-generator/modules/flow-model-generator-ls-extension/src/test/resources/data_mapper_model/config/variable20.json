@@ -25,122 +25,23 @@
   "model": {
     "inputs": [
       {
-        "id": "CONST",
-        "variableName": "CONST",
-        "typeName": "string",
-        "kind": "string",
-        "category": "constant",
-        "optional": false
-      },
-      {
-        "fields": [
-          {
-            "id": "bank.name",
-            "variableName": "name",
-            "typeName": "string",
-            "kind": "string",
-            "optional": false
-          },
-          {
-            "member": {
-              "fields": [
-                {
-                  "id": "bank.userInfo.0.username",
-                  "variableName": "username",
-                  "typeName": "string",
-                  "kind": "string",
-                  "optional": false
-                },
-                {
-                  "id": "bank.userInfo.0.password",
-                  "variableName": "password",
-                  "typeName": "string",
-                  "kind": "string",
-                  "optional": false
-                },
-                {
-                  "id": "bank.userInfo.0.id",
-                  "variableName": "id",
-                  "typeName": "int",
-                  "kind": "int",
-                  "optional": false
-                }
-              ],
-              "id": "bank.userInfo.0",
-              "variableName": "<userInfoItem>",
-              "typeName": "UserInfo",
-              "kind": "record",
-              "optional": false
-            },
-            "focusedMemberId": "info",
-            "id": "bank.userInfo",
-            "variableName": "userInfo",
-            "typeName": "UserInfo[]",
-            "kind": "array",
-            "optional": false
-          }
-        ],
+        "fields": [],
         "id": "bank",
         "variableName": "bank",
         "typeName": "Bank",
         "kind": "record",
         "category": "variable",
         "isFocused": true,
-        "optional": false
+        "reference": "-891579209"
       },
       {
         "member": {
-          "fields": [
-            {
-              "id": "banks.0.name",
-              "variableName": "name",
-              "typeName": "string",
-              "kind": "string",
-              "optional": false
-            },
-            {
-              "member": {
-                "fields": [
-                  {
-                    "id": "banks.0.userInfo.0.username",
-                    "variableName": "username",
-                    "typeName": "string",
-                    "kind": "string",
-                    "optional": false
-                  },
-                  {
-                    "id": "banks.0.userInfo.0.password",
-                    "variableName": "password",
-                    "typeName": "string",
-                    "kind": "string",
-                    "optional": false
-                  },
-                  {
-                    "id": "banks.0.userInfo.0.id",
-                    "variableName": "id",
-                    "typeName": "int",
-                    "kind": "int",
-                    "optional": false
-                  }
-                ],
-                "id": "banks.0.userInfo.0",
-                "variableName": "<userInfoItem>",
-                "typeName": "UserInfo",
-                "kind": "record",
-                "optional": false
-              },
-              "id": "banks.0.userInfo",
-              "variableName": "userInfo",
-              "typeName": "UserInfo[]",
-              "kind": "array",
-              "optional": false
-            }
-          ],
-          "id": "banks.0",
+          "fields": [],
+          "id": "banks",
           "variableName": "<banksItem>",
           "typeName": "Bank",
           "kind": "record",
-          "optional": false
+          "reference": "-891579209"
         },
         "focusedMemberId": "bank",
         "id": "banks",
@@ -148,45 +49,23 @@
         "typeName": "Bank[]",
         "kind": "array",
         "category": "variable",
-        "optional": false
+        "reference": "-891579209"
       },
       {
         "member": {
-          "fields": [
-            {
-              "id": "userInfo.0.username",
-              "variableName": "username",
-              "typeName": "string",
-              "kind": "string",
-              "optional": false
-            },
-            {
-              "id": "userInfo.0.password",
-              "variableName": "password",
-              "typeName": "string",
-              "kind": "string",
-              "optional": false
-            },
-            {
-              "id": "userInfo.0.id",
-              "variableName": "id",
-              "typeName": "int",
-              "kind": "int",
-              "optional": false
-            }
-          ],
-          "id": "userInfo.0",
+          "fields": [],
+          "id": "userInfo",
           "variableName": "<userInfoItem>",
           "typeName": "UserInfo",
           "kind": "record",
-          "optional": false
+          "reference": "1853646530"
         },
         "id": "userInfo",
         "variableName": "userInfo",
         "typeName": "UserInfo[]",
         "kind": "array",
         "category": "variable",
-        "optional": false
+        "reference": "1853646530"
       },
       {
         "fields": [],
@@ -301,6 +180,25 @@
           }
         ],
         "typeName": "Credentials",
+        "kind": "record"
+      },
+      "-891579209": {
+        "fields": [
+          {
+            "id": "name",
+            "variableName": "name",
+            "typeName": "string",
+            "kind": "string"
+          },
+          {
+            "id": "userInfo",
+            "variableName": "userInfo",
+            "typeName": "array[]",
+            "kind": "array",
+            "reference": "1853646530"
+          }
+        ],
+        "typeName": "Bank",
         "kind": "record"
       }
     }

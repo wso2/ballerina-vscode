@@ -77,28 +77,10 @@
             "variableName": "info",
             "typeName": "Info",
             "kind": "record",
-            "reference": "-1730738303"
+            "reference": "-1629511167"
           }
         ],
         "typeName": "User",
-        "kind": "record"
-      },
-      "1315650592": {
-        "fields": [
-          {
-            "id": "code",
-            "variableName": "code",
-            "typeName": "string",
-            "kind": "string"
-          },
-          {
-            "id": "number",
-            "variableName": "number",
-            "typeName": "string",
-            "kind": "string"
-          }
-        ],
-        "typeName": "SecondaryPhones",
         "kind": "record"
       },
       "-500203070": {
@@ -119,14 +101,44 @@
         "typeName": "SecondaryPhonesX",
         "kind": "record"
       },
-      "-1730738303": {
+      "1955575003": {
         "fields": [
           {
-            "id": "secondaryPhones",
-            "variableName": "secondaryPhones",
+            "id": "phoneNumbers",
+            "variableName": "phoneNumbers",
             "typeName": "array[]",
             "kind": "array",
-            "reference": "1315650592"
+            "reference": "-500203070"
+          },
+          {
+            "member": {
+              "id": "addresses",
+              "variableName": "<addressesItem>",
+              "typeName": "string",
+              "kind": "string"
+            },
+            "id": "addresses",
+            "variableName": "addresses",
+            "typeName": "string[]",
+            "kind": "array"
+          }
+        ],
+        "typeName": "ContactDetails",
+        "kind": "record"
+      },
+      "-1629511167": {
+        "fields": [
+          {
+            "member": {
+              "id": "secondaryPhones",
+              "variableName": "<secondaryPhonesItem>",
+              "typeName": "string",
+              "kind": "string"
+            },
+            "id": "secondaryPhones",
+            "variableName": "secondaryPhones",
+            "typeName": "string[]",
+            "kind": "array"
           },
           {
             "member": {
@@ -160,31 +172,6 @@
           }
         ],
         "typeName": "Info",
-        "kind": "record"
-      },
-      "1955575003": {
-        "fields": [
-          {
-            "id": "phoneNumbers",
-            "variableName": "phoneNumbers",
-            "typeName": "array[]",
-            "kind": "array",
-            "reference": "-500203070"
-          },
-          {
-            "member": {
-              "id": "addresses",
-              "variableName": "<addressesItem>",
-              "typeName": "string",
-              "kind": "string"
-            },
-            "id": "addresses",
-            "variableName": "addresses",
-            "typeName": "string[]",
-            "kind": "array"
-          }
-        ],
-        "typeName": "ContactDetails",
         "kind": "record"
       }
     }

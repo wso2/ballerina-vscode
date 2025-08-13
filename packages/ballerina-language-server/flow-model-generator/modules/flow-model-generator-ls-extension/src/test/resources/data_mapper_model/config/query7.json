@@ -25,80 +25,13 @@
   "model": {
     "inputs": [
       {
-        "fields": [
-          {
-            "member": {
-              "fields": [
-                {
-                  "id": "info.secondaryPhones.0.code",
-                  "variableName": "code",
-                  "typeName": "string",
-                  "kind": "string",
-                  "optional": false
-                },
-                {
-                  "id": "info.secondaryPhones.0.number",
-                  "variableName": "number",
-                  "typeName": "string",
-                  "kind": "string",
-                  "optional": false
-                }
-              ],
-              "id": "info.secondaryPhones.0",
-              "variableName": "<secondaryPhonesItem>",
-              "typeName": "SecondaryPhones",
-              "kind": "record",
-              "optional": false
-            },
-            "focusedMemberId": "secondaryPhonesItem",
-            "id": "info.secondaryPhones",
-            "variableName": "secondaryPhones",
-            "typeName": "SecondaryPhones[]",
-            "kind": "array",
-            "optional": false
-          },
-          {
-            "member": {
-              "id": "info.emails.0",
-              "variableName": "<emailsItem>",
-              "typeName": "string",
-              "kind": "string",
-              "optional": false
-            },
-            "id": "info.emails",
-            "variableName": "emails",
-            "typeName": "string[]",
-            "kind": "array",
-            "optional": false
-          },
-          {
-            "member": {
-              "member": {
-                "id": "info.addresses.0.0",
-                "variableName": "<addressesItemItem>",
-                "typeName": "string",
-                "kind": "string",
-                "optional": false
-              },
-              "id": "info.addresses.0",
-              "variableName": "<addressesItem>",
-              "typeName": "string[]",
-              "kind": "array",
-              "optional": false
-            },
-            "id": "info.addresses",
-            "variableName": "addresses",
-            "typeName": "string[][]",
-            "kind": "array",
-            "optional": false
-          }
-        ],
+        "fields": [],
         "id": "info",
         "variableName": "info",
         "typeName": "Info",
         "kind": "record",
         "category": "variable",
-        "optional": false
+        "reference": "-1730738303"
       },
       {
         "fields": [],
@@ -205,6 +138,49 @@
           }
         ],
         "typeName": "SecondaryPhonesX",
+        "kind": "record"
+      },
+      "-1730738303": {
+        "fields": [
+          {
+            "id": "secondaryPhones",
+            "variableName": "secondaryPhones",
+            "typeName": "array[]",
+            "kind": "array",
+            "reference": "1315650592"
+          },
+          {
+            "member": {
+              "id": "emails",
+              "variableName": "<emailsItem>",
+              "typeName": "string",
+              "kind": "string"
+            },
+            "id": "emails",
+            "variableName": "emails",
+            "typeName": "string[]",
+            "kind": "array"
+          },
+          {
+            "member": {
+              "member": {
+                "id": "addresses",
+                "variableName": "<addressesItemItem>",
+                "typeName": "string",
+                "kind": "string"
+              },
+              "id": "addresses",
+              "variableName": "<addressesItem>",
+              "typeName": "string[]",
+              "kind": "array"
+            },
+            "id": "addresses",
+            "variableName": "addresses",
+            "typeName": "string[][]",
+            "kind": "array"
+          }
+        ],
+        "typeName": "Info",
         "kind": "record"
       }
     }
