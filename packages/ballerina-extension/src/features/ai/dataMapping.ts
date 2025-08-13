@@ -24,7 +24,7 @@ import * as fs from 'fs';
 import * as os from 'os';
 import { Uri, workspace } from "vscode";
 import { langClient } from "./activator";
-import { getFunction, isErrorCode, processMappings, typesFileParameterDefinitions } from "../../rpc-managers/ai-panel/utils";
+import { getFunction, processMappings, typesFileParameterDefinitions } from "../../rpc-managers/ai-panel/utils";
 import { MODIFIYING_ERROR } from "../../views/ai-panel/errorCodes";
 import { writeBallerinaFileDidOpen } from "../../utils/modification";
 
@@ -103,9 +103,6 @@ async function getUpdatedFunctionSource(
       fileUri,
       file
     );
-    if (isErrorCode(processedST)) {
-      throw new Error((processedST as ErrorCode).message);
-    }
   
     const { parseSuccess, source, syntaxTree } = processedST as SyntaxTree;
     if (!parseSuccess) {
