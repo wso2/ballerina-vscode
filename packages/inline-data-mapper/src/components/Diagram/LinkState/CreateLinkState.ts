@@ -25,8 +25,7 @@ import { InputOutputPortModel } from '../Port/model/InputOutputPortModel';
 import { isInputNode, isLinkModel, isOutputNode } from '../Actions/utils';
 import { DataMapperLinkModel } from '../Link/DataMapperLink';
 import { DataMapperNodeModel } from '../Node/commons/DataMapperNode';
-import { handleExpand } from '../utils/common-utils';
-import { getMappingType, isPendingMappingRequired } from '../utils/common-utils';
+import { getMappingType, handleExpand, isExpandable, isPendingMappingRequired } from '../utils/common-utils';
 import { removePendingMappingTempLinkIfExists } from '../utils/link-utils';
 import { useDMExpressionBarStore } from '../../../store/store';
 import { IntermediatePortModel } from '../Port/IntermediatePort';
@@ -79,7 +78,9 @@ export class CreateLinkState extends State<DiagramEngine> {
 							if (recordFieldElement) {
 								const fieldId = (recordFieldElement.id.split("-"))[1] + ".OUT";
 								const portModel = (element as any).getPort(fieldId) as InputOutputPortModel;
-								if (portModel?.attributes.portType === "OUT" &&
+								const isExpandableField = isExpandable(portModel.attributes?.field);
+								if (isExpandableField &&
+									portModel?.attributes.portType === "OUT" &&
 									!portModel?.attributes?.parentModel &&
 									portModel.attributes?.collapsed
 								) {

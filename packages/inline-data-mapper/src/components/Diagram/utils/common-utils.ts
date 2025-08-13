@@ -260,3 +260,13 @@ export function handleExpand(id: string, expanded: boolean) {
 		useDMExpandedFieldsStore.getState().setFields([...expandedFields, id]);
 	}
 }
+
+export function isExpandable(field: IOType): boolean {
+    return field?.kind === TypeKind.Record ||
+        field?.kind === TypeKind.Array ||
+        field?.kind === TypeKind.Enum;
+}
+
+export function getTargetField(viewId: string, outputId: string){
+    return [...viewId.split("."), ...outputId.split(".").slice(1)].join(".");
+}

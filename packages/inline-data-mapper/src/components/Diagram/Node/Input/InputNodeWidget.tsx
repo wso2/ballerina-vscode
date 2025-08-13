@@ -60,6 +60,7 @@ export function InputNodeWidget(props: InputNodeWidgetProps) {
     const typeName = getTypeName(dmType);
 
     const portOut = getPort(`${id}.OUT`);
+    const isUnknownType = dmType.kind === TypeKind.Unknown;
 
     let fields: IOType[];
 
@@ -82,7 +83,7 @@ export function InputNodeWidget(props: InputNodeWidgetProps) {
                 <InputSearchHighlight>{valueLabel ? valueLabel : id}</InputSearchHighlight>
             </span>
             {typeName && (
-                <span className={classes.typeLabel}>
+                <span className={isUnknownType ? classes.unknownTypeLabel : classes.typeLabel}>
                     {typeName}
                 </span>
             )}
