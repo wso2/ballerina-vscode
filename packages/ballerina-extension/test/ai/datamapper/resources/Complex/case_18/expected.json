@@ -1,0 +1,1 @@
+{"student":"from var personItem in AItem.person\n select {\n id: personItem.id,\nfirstName: personItem.firstName,\nlastName: personItem.lastName,\nage: (personItem.age).toString()\n}"}
