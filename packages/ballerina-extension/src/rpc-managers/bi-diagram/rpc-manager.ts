@@ -1833,7 +1833,7 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
                         resolve(deleteTypeResponse);
                     } else {
                         console.log(">>> error deleting type", deleteTypeResponse?.errorMsg);
-                        resolve(undefined);
+                        reject(deleteTypeResponse.errorMsg);
                     }
                 }).catch((error) => {
                     console.log(">>> error deleting type", error);

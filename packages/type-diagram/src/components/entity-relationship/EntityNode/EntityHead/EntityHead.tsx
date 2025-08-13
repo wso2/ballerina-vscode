@@ -90,7 +90,7 @@ export function EntityHeadWidget(props: ServiceHeadProps) {
 
     const [anchorEl, setAnchorEl] = useState<HTMLElement | SVGSVGElement>(null);
     const isMenuOpen = Boolean(anchorEl);
-    const [isConfirmOpen, setIsConfirmOpen] = useState(false); // Change setConfirmOpen to setIsConfirmOpen
+    const [isConfirmOpen, setIsConfirmOpen] = useState(false);
     const [confirmEl, setConfirmEl] = React.useState<HTMLElement | SVGSVGElement | null>(null);
     const [anchorOrigin, setAnchorOrigin] = useState<Origin>({ vertical: "bottom", horizontal: "left" });
     const [transformOrigin, setTransformOrigin] = useState<Origin>({ vertical: "top", horizontal: "right" });
@@ -114,7 +114,6 @@ export function EntityHeadWidget(props: ServiceHeadProps) {
     };
 
     const onNodeDeleteWithConfirm = async () => {
-        // Proceed with deletion only if no links exist
         if (node?.entityObject?.editable && onNodeDelete) {
             onNodeDelete(node.getID());
         }
@@ -163,7 +162,7 @@ export function EntityHeadWidget(props: ServiceHeadProps) {
                 setConfirmMessage(
                     canDelete
                         ? `Are you sure you want to delete ${idLabel}?`
-                        : `${idLabel} has usages. Are you sure you want to delete this?`
+                        : `${idLabel} has usages. Deleting it may cause errors. Are you sure you want to proceed?`
                 );
             })
             .catch(() => {
