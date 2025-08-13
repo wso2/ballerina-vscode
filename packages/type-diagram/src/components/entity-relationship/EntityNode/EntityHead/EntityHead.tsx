@@ -166,7 +166,8 @@ export function EntityHeadWidget(props: ServiceHeadProps) {
                 );
             })
             .catch(() => {
-                setConfirmMessage(`Are you sure you want to delete ${idLabel}?`);
+                setIsConfirmOpen(false);
+                setConfirmEl(null);
             })
             .finally(() => {
                 setIsVerifyingDelete(false);

@@ -177,19 +177,26 @@ export function TypeDiagram(props: TypeDiagramProps) {
             return false;
         }
         
-        // filepath is visualizerLocation.projectUri + component.codedata.lineRange.fileName
-        const response = await rpcClient.getBIDiagramRpcClient().verifyTypeDelete({
+        try {
+            const response = await rpcClient.getBIDiagramRpcClient().verifyTypeDelete({
             filePath: component.codedata?.lineRange?.fileName,
             startLine: component.codedata?.lineRange?.startLine?.line,
-            startColumn: component.codedata?.lineRange?.startLine?.offset
+            startColumn: component.codedata?.lineRange?.startLine?.offset            
         });
-        if (response.errorMsg) {
+            
+            if (response.errorMsg) {
+                rpcClient.getCommonRpcClient().showErrorMessage({
+                    message: response.errorMsg || "Failed to find usages.",
+                });
+                throw new Error(response.errorMsg);
+            }
+            return !!response.canDelete;
+        } catch (error: any) {
             rpcClient.getCommonRpcClient().showErrorMessage({
-                message: response.errorMsg || "Failed to delete type. Please check the console for more details.",
+                message: error?.message || "Failed to find usages.",
             });
-            return response.canDelete;
+            throw error;
         }
-        return response.canDelete;
     };
 
     // After user confirms in the diagram, delete without re-verifying.
@@ -208,6 +215,17 @@ export function TypeDiagram(props: TypeDiagramProps) {
                 endLine: component.codedata?.lineRange?.endLine?.line,
                 endColumn: component.codedata?.lineRange?.endLine?.offset
             }
+        }).then((response)=>{
+            if (response.errorMsg) {
+                rpcClient.getCommonRpcClient().showErrorMessage({
+                    message: response.errorMsg || "Failed to delete type. Please check the console for more details.",
+                });
+                throw new Error(response.errorMsg || "Failed to delete type. Please check the console for more details.");
+            }
+        }).catch((error) => {
+            rpcClient.getCommonRpcClient().showErrorMessage({
+                message: error.message || "Failed to delete type. Please check the console for more details.",
+            });
         });
     };
 
