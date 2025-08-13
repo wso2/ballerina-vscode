@@ -240,6 +240,11 @@ export class SizingVisitor implements BaseVisitor {
         this.createApiCallNode(node);
     }
 
+    endVisitVectorKnowledgeBaseCall(node: FlowNode, parent?: FlowNode): void {
+        if (!this.validateNode(node)) return;
+        this.createApiCallNode(node);
+    }
+
     endVisitAgentCall(node: FlowNode, parent?: FlowNode): void {
         if (!this.validateNode(node)) return;
         const nodeWidth = NODE_WIDTH;

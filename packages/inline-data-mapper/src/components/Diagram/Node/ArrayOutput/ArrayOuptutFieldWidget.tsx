@@ -75,7 +75,7 @@ export function ArrayOutputFieldWidget(props: ArrayOutputFieldWidgetProps) {
     const expandedFieldsStore = useDMExpandedFieldsStore();
     const setExprBarFocusedPort = useDMExpressionBarStore(state => state.setFocusedPort);
 
-    const arrayField = field.member;
+    const arrayField = field?.member;
     const typeName = getTypeName(field);
 
     let portName = getSanitizedId(parentId);
@@ -86,10 +86,10 @@ export function ArrayOutputFieldWidget(props: ArrayOutputFieldWidgetProps) {
 
     const portIn = getPort(`${portName}.IN`);
     const mapping = portIn && portIn.attributes.value;
-    const { inputs, expression, elements, diagnostics } = mapping || {};
+    const { expression, elements, diagnostics } = mapping || {};
     const searchValue = useDMSearchStore.getState().outputSearch;
     const hasElements = elements?.length > 0 && elements.some((element) => element.mappings.length > 0);
-    const connectedViaLink = inputs?.length > 0;
+    const connectedViaLink = Object.values(portIn?.getLinks() || {}).length > 0;
 
     let expanded = true;
     if (portIn && portIn.attributes.collapsed) {
@@ -101,7 +101,7 @@ export function ArrayOutputFieldWidget(props: ArrayOutputFieldWidgetProps) {
         indentation += 24;
     }
 
-    const hasDefaultValue = expression && getDefaultValue(field.kind) === expression.trim();
+    const hasDefaultValue = expression && getDefaultValue(field?.kind) === expression.trim();
     let isDisabled = portIn?.attributes.descendantHasValue;
 
     if (!isDisabled && !hasDefaultValue && portIn) {
@@ -382,7 +382,7 @@ export function ArrayOutputFieldWidget(props: ArrayOutputFieldWidgetProps) {
                     </div>
                 </div>
             )}
-            {(expanded && !connectedViaLink && !elements?.length) && (
+            {(expanded && !connectedViaLink && !elements?.length && arrayField) && (
                 <OutputFieldPreviewWidget
                     key={`arr-output--preview-field-${portName}`}
                     engine={engine}

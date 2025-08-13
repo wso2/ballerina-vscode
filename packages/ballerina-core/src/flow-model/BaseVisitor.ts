@@ -90,6 +90,9 @@ export interface BaseVisitor {
     beginVisitAgentCall?(node: FlowNode, parent?: FlowNode): void;
     endVisitAgentCall?(node: FlowNode, parent?: FlowNode): void;
 
+    beginVisitVectorKnowledgeBaseCall?(node: FlowNode, parent?: FlowNode): void;
+    endVisitVectorKnowledgeBaseCall?(node: FlowNode, parent?: FlowNode): void;
+
     beginVisitParallelFlow?(node: FlowNode, parent?: FlowNode): void;
     endVisitParallelFlow?(node: FlowNode, parent?: FlowNode): void;
 

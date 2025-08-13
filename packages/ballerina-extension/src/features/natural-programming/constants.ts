@@ -47,3 +47,4 @@ export const MONITERED_EXTENSIONS = [
 export const CONFIG_FILE_NAME = "Config.toml";
 export const DEFAULT_MODULE = "DEFAULT_MODULE";
 export const ERROR_NO_BALLERINA_SOURCES = "No Ballerina sources";
+export const LOGIN_REQUIRED_WARNING = "Please sign in to BI Copilot to use this feature.";

@@ -45,6 +45,7 @@ interface CodeSectionProps {
     diagnostics: any[];
     onRetryRepair: () => void;
     isPromptExecutedInCurrentWindow: boolean;
+    isErrorChunkReceived: boolean;
 }
 
 const EntryContainer = styled.div<{ hasErrors: boolean; isOpen: boolean; isHovered: boolean }>(
@@ -80,6 +81,7 @@ export const CodeSection: React.FC<CodeSectionProps> = ({
     diagnostics = [],
     onRetryRepair = () => {},
     isPromptExecutedInCurrentWindow,
+    isErrorChunkReceived
 }) => {
     const [isOpen, setIsOpen] = useState(false);
     const [isCodeAdded, setIsCodeAdded] = useState(false);
@@ -153,7 +155,7 @@ export const CodeSection: React.FC<CodeSectionProps> = ({
                                             ? "Code was generated for different session, please regenerate again"
                                             : ""
                                 }
-                                disabled={!buttonsActive || isSyntaxError || !isPromptExecutedInCurrentWindow}
+                                disabled={!buttonsActive || isSyntaxError || !isPromptExecutedInCurrentWindow || isErrorChunkReceived}
                             >
                                 <Codicon name="add" />
                                 &nbsp;&nbsp;Add to Integration

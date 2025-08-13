@@ -68,7 +68,7 @@ export class PositionVisitor implements BaseVisitor {
     beginVisitIf(node: FlowNode, parent?: FlowNode): void {
         if (!this.validateNode(node)) return;
         node.viewState.y = this.lastNodeY;
-        this.lastNodeY += node.viewState.h + (NODE_GAP_Y * 3) / 2;
+        this.lastNodeY += node.viewState.h + (NODE_GAP_Y * 4) / 2;
 
         const centerX = getTopNodeCenter(node, parent, this.diagramCenterX);
         node.viewState.x = centerX - node.viewState.lw;

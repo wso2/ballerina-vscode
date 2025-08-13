@@ -17,7 +17,7 @@
  */
 // tslint:disable: jsx-no-multiline-js
 import React, { useCallback, useEffect, useReducer, useState } from "react";
-import { css } from "@emotion/css";
+import { css, keyframes } from "@emotion/css";
 import { ExpandedDMModel } from "@wso2/ballerina-core";
 
 import { DataMapperContext } from "../../utils/DataMapperContext/DataMapperContext";
@@ -42,13 +42,8 @@ import { ErrorNodeKind } from "./Error/RenderingError";
 import { IOErrorComponent } from "./Error/DataMapperError";
 import { IntermediateNodeInitVisitor } from "../../visitors/IntermediateNodeInitVisitor";
 import {
-    ArrayOutputNode,
-    InputNode,
-    ObjectOutputNode,
     LinkConnectorNode,
     QueryExprConnectorNode,
-    QueryOutputNode,
-    SubMappingNode,
     EmptyInputsNode
 } from "../Diagram/Node";
 import { SubMappingNodeInitVisitor } from "../../visitors/SubMappingNodeInitVisitor";
@@ -56,11 +51,38 @@ import { SubMappingConfigForm } from "./SidePanel/SubMappingConfig/SubMappingCon
 import { ClausesPanel } from "./SidePanel/QueryClauses/ClausesPanel";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 
+
+const fadeIn = keyframes`
+    from { opacity: 0.5; }
+    to { opacity: 1; }
+`;
+
 const classes = {
     root: css({
         flexGrow: 1,
-        height: "100vh",
+        height: "100%",
         overflow: "hidden",
+    }),
+    overlay: css({
+        zIndex: 1,
+        position: 'absolute',
+        width: '100%',
+        height: '100%',
+        background: "var(--vscode-input-background)",
+        opacity: 0.5,
+        cursor: 'not-allowed'
+    }),
+    errorBanner: css({
+        borderColor: "var(--vscode-errorForeground)"
+    }),
+    errorMessage: css({
+        zIndex: 1,
+        position: 'absolute',
+        top: '50%',
+        left: '50%',
+        transform: 'translate(-50%, -50%)',
+        width: '500px',
+        animation: `${fadeIn} 0.5s ease-in-out`
     })
 }
 
@@ -185,9 +207,10 @@ export function InlineDataMapper(props: InlineDataMapperProps) {
 
             const ioNodeInitVisitor = new IONodeInitVisitor(context);
             traverseNode(model, ioNodeInitVisitor);
-            const ioNodes = ioNodeInitVisitor.getNodes();
+            const inputNodes = ioNodeInitVisitor.getInputNodes();
+            const outputNode = ioNodeInitVisitor.getOutputNode();
 
-            const hasInputNodes = !ioNodes.some(node => node instanceof EmptyInputsNode);
+            const hasInputNodes = !inputNodes.some(node => node instanceof EmptyInputsNode);
             let subMappingNode: DataMapperNodeModel;
             if (hasInputNodes) {
                 const subMappingNodeInitVisitor = new SubMappingNodeInitVisitor(context);
@@ -202,8 +225,9 @@ export function InlineDataMapper(props: InlineDataMapperProps) {
             traverseNode(model, intermediateNodeInitVisitor);
 
             setNodes([
-                ...ioNodes,
+                ...inputNodes,
                 ...(subMappingNode ? [subMappingNode] : []),
+                outputNode,
                 ...intermediateNodeInitVisitor.getNodes()
             ]);
         } catch (error) {
@@ -250,13 +274,13 @@ export function InlineDataMapper(props: InlineDataMapperProps) {
                     <DataMapperHeader
                         views={views}
                         switchView={switchView}
-                        hasEditDisabled={false}
+                        hasEditDisabled={!!errorKind}
                         onClose={handleOnClose}
                         autoMapWithAI={autoMapWithAI}
                     />
                 )}
                 {errorKind && <IOErrorComponent errorKind={errorKind} classes={classes} />}
-                {nodes.length > 0 && (
+                {nodes.length > 0 && !errorKind && (
                     <>
                         <DataMapperDiagram
                             nodes={nodes}

@@ -27,7 +27,7 @@ import {
     TextEdit,
     traverseFlow
 } from "@wso2/ballerina-core";
-import { updateSourceCode } from "../../utils";
+import { updateSourceCode, UpdateSourceCodeRequest } from "../../utils";
 import { StateMachine, updateInlineDataMapperView } from "../../stateMachine";
 import { VariableFindingVisitor } from "./VariableFindingVisitor";
 
@@ -88,6 +88,41 @@ export async function fetchSubMappingCodeData(
 }
 
 /**
+ * Updates the source code iteratively by applying text edits.
+ * If only one file is edited, it directly updates that file.
+ * @param updateSourceCodeRequest - The request containing text edits to apply.
+ * @returns Updated artifacts after applying the last text edits.
+ */
+    
+export async function updateSourceCodeIteratively(updateSourceCodeRequest: UpdateSourceCodeRequest){
+    const textEdits = updateSourceCodeRequest.textEdits;
+    const filePaths = Object.keys(textEdits);
+
+    if (filePaths.length == 1) {
+        return await updateSourceCode(updateSourceCodeRequest);
+    }
+
+    // need to prioritize if file path ends with functions.bal
+    filePaths.sort((a, b) => {
+        // Prioritize files ending with functions.bal
+        const aEndsWithFunctions = a.endsWith('functions.bal') ? 1 : 0;
+        const bEndsWithFunctions = b.endsWith('functions.bal') ? 1 : 0;
+        return bEndsWithFunctions - aEndsWithFunctions; // Sort descending
+    });
+
+    const requests: UpdateSourceCodeRequest[] = filePaths.map(filePath => ({
+        textEdits: { [filePath]: textEdits[filePath] }
+    }));
+
+    let updatedArtifacts: ProjectStructureArtifactResponse[];
+    for (const request of requests) {
+        updatedArtifacts = await updateSourceCode(request);
+    }
+
+    return updatedArtifacts;
+}
+
+/**
  * Updates the source code with text edits and retrieves the updated code data for the variable being edited.
  * @throws {Error} When source update fails or required data cannot be found
  */
@@ -104,7 +139,7 @@ export async function updateSource(
 
     try {
         // Update source code and get artifacts
-        const updatedArtifacts = await updateSourceCode({ textEdits });
+        const updatedArtifacts = await updateSourceCodeIteratively({ textEdits });
         
         // Find the artifact that contains our code changes
         const relevantArtifact = findRelevantArtifact(updatedArtifacts, filePath, codedata.lineRange);
@@ -152,16 +187,32 @@ export async function updateSubMappingSource(
 
 /**
  * Finds the artifact that contains the code changes within the specified line range.
+ * Recursively searches through artifact hierarchy to find the most specific match.
  */
 function findRelevantArtifact(
     artifacts: ProjectStructureArtifactResponse[], 
     filePath: string, 
     lineRange: ELineRange
 ): ProjectStructureArtifactResponse | null {
-    return artifacts.find(artifact =>
-        artifact.path === filePath && 
-        isWithinArtifact(artifact.position, lineRange)
-    ) || null;
+    if (!artifacts || artifacts.length === 0) {
+        return null;
+    }
+
+    for (const currentArtifact of artifacts) {
+        if (isWithinArtifact(currentArtifact.path, filePath, currentArtifact.position, lineRange)) {
+            // If this artifact has resources, recursively search for a more specific match
+            if (currentArtifact.resources && currentArtifact.resources.length > 0) {
+                const nestedMatch = findRelevantArtifact(currentArtifact.resources, filePath, lineRange);
+                // Return the nested match if found, otherwise return the current artifact
+                return nestedMatch || currentArtifact;
+            }
+            
+            // No nested resources
+            return currentArtifact;
+        }
+    }
+
+    return null;
 }
 
 /**
@@ -388,7 +439,16 @@ export function combineTextEdits(edits: TextEdit[]): TextEdit {
 /**
  * Determines whether a variable declaration range is completely contained within an artifact's position range.
  */
-function isWithinArtifact(artifactPosition: NodePosition, varDeclRange: ELineRange) {
+function isWithinArtifact(
+    artifactPath: string,
+    filePath: string,
+    artifactPosition: NodePosition,
+    varDeclRange: ELineRange
+) {
+    if (artifactPath !== filePath) {
+        return false;
+    }
+
     const artifactStartLine = artifactPosition.startLine;
     const artifactEndLine = artifactPosition.endLine;
     const varDeclStartLine = varDeclRange.startLine.line;

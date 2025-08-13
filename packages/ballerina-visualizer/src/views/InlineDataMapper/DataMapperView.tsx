@@ -37,7 +37,8 @@ import {
     CustomFnMetadata,
     NodePosition,
     EVENT_TYPE,
-    LineRange
+    LineRange,
+    ResultClauseType
 } from "@wso2/ballerina-core";
 import { CompletionItem, ProgressIndicator } from "@wso2/ui-toolkit";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
@@ -78,6 +79,7 @@ export function InlineDataMapperView(props: InlineDataMapperProps) {
     const prevCompletionFetchText = useRef<string>("");
     const [filteredCompletions, setFilteredCompletions] = useState<CompletionItem[]>([]);
     const expressionOffsetRef = useRef<number>(0); // To track the expression offset on adding import statements
+    const [isUpdatingSource ,setIsUpdatingSource] = useState<boolean>(false);
 
     // Keep track of previous inputs/outputs and sub mappings for comparison
     const prevSignatureRef = useRef<string>(null);
@@ -170,6 +172,12 @@ export function InlineDataMapperView(props: InlineDataMapperProps) {
         }
     };
 
+    const updateExprFromExprBar = async (outputId: string, expression: string, viewId: string, name: string) => {
+        setIsUpdatingSource(true);
+        await updateExpression(outputId, expression, viewId, name);
+        setIsUpdatingSource(false);
+    }
+
     const addArrayElement = async (outputId: string, viewId: string, name: string) => {
         try {
             const addElementRequest: AddArrayElementRequest = {
@@ -231,13 +239,19 @@ export function InlineDataMapperView(props: InlineDataMapperProps) {
         )
     }
 
-    const convertToQuery = async (outputId: string, viewId: string, name: string) => {
+    const convertToQuery = async (mapping: Mapping, clauseType: ResultClauseType, viewId: string, name: string) => {
         try {
+            const a = viewId.split(".");
+            const b = mapping.output.split(".");
+            const targetField = [...a, ...b.slice(1)].join(".");
+            console.log(">>> [Inline Data Mapper] targetField:", targetField);
             const convertToQueryRequest: ConvertToQueryRequest = {
                 filePath,
                 codedata: viewState.codedata,
+                mapping,
+                clauseType,
                 varName: name,
-                targetField: outputId,
+                targetField: viewId,
                 propertyKey: "expression" // TODO: Remove this once the API is updated
             };
             const resp = await rpcClient
@@ -256,7 +270,7 @@ export function InlineDataMapperView(props: InlineDataMapperProps) {
                 filePath,
                 codedata: {
                     ...viewState.codedata,
-                    isNew: true
+                    isNew
                 },
                 index,
                 clause,
@@ -386,9 +400,9 @@ export function InlineDataMapperView(props: InlineDataMapperProps) {
                 expressionCompletions = completions
                     .filter((completion) => {
                         const lowerCaseText = currentContent.toLowerCase();
-                        const lowerCaseLabel = completion.label.toLowerCase();
+                        const lowerCaseLabel = completion.value.toLowerCase();
 
-                        return lowerCaseLabel.includes(lowerCaseText);
+                        return lowerCaseLabel.startsWith(lowerCaseText);
                     })
                     .sort((a, b) => a.sortText.localeCompare(b.sortText));
             } else {
@@ -433,15 +447,15 @@ export function InlineDataMapperView(props: InlineDataMapperProps) {
                     expressionCompletions = convertedCompletions
                         .filter((completion) => {
                             const lowerCaseText = currentContent.toLowerCase();
-                            const lowerCaseLabel = completion.label.toLowerCase();
+                            const lowerCaseLabel = completion.value.toLowerCase();
 
-                            return lowerCaseLabel.includes(lowerCaseText);
+                            return lowerCaseLabel.startsWith(lowerCaseText);
                         })
                         .sort((a, b) => a.sortText.localeCompare(b.sortText));
                 }
                 prevCompletionFetchText.current = parentContent ?? "";
-                setFilteredCompletions(expressionCompletions);
             }
+            setFilteredCompletions(expressionCompletions);
         }, 150),
         [filePath, codedata, varName, completions]
     );
@@ -478,9 +492,10 @@ export function InlineDataMapperView(props: InlineDataMapperProps) {
                     goToFunction={goToFunction}
                     expressionBar={{
                         completions: filteredCompletions,
+                        isUpdatingSource,
                         triggerCompletions: retrieveCompeletions,
                         onCompletionSelect: handleCompletionSelect,
-                        onSave: updateExpression,
+                        onSave: updateExprFromExprBar,
                         onCancel: handleExpressionCancel,
                     }}
                 />

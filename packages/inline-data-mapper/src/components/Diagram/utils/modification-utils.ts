@@ -17,14 +17,16 @@
  */
 import { DataMapperLinkModel } from "../Link";
 import { DataMapperNodeModel } from "../Node/commons/DataMapperNode";
-import { InputOutputPortModel } from "../Port";
+import { InputOutputPortModel, ValueType } from "../Port";
 import { IDataMapperContext } from "../../../utils/DataMapperContext/DataMapperContext";
 import { MappingFindingVisitor } from "../../../visitors/MappingFindingVisitor";
 import { traverseNode } from "../../../utils/model-utils";
-import { getDefaultValue } from "./common-utils";
-import { CustomFnMetadata, CustomFnParams, Mapping } from "@wso2/ballerina-core";
+import { getTargetField, getValueType } from "./common-utils";
+import { CustomFnMetadata, CustomFnParams, Mapping, ResultClauseType } from "@wso2/ballerina-core";
+import { getTypeName, isEnumMember } from "./type-utils";
+import { InputNode } from "../Node/Input/InputNode";
 
-export async function createNewMapping(link: DataMapperLinkModel) {
+export async function createNewMapping(link: DataMapperLinkModel, modifier?: (expr: string) => string) {
 	const sourcePort = link.getSourcePort();
 	const targetPort = link.getTargetPort();
 	if (!sourcePort || !targetPort) {
@@ -36,7 +38,11 @@ export async function createNewMapping(link: DataMapperLinkModel) {
 
 	const targetNode = outputPortModel.getNode() as DataMapperNodeModel;
 
-	const input = sourcePortModel.attributes.optionalOmittedFieldFQN;
+	const isSourceEnumMember = isEnumMember(sourcePortModel.getNode() as InputNode);
+
+	const input = isSourceEnumMember
+		? sourcePortModel.attributes.field?.typeName
+		: sourcePortModel.attributes.optionalOmittedFieldFQN;
 	const outputId = outputPortModel.attributes.fieldFQN;
 	const lastView = targetNode.context.views[targetNode.context.views.length - 1];
 	const viewId = lastView?.targetField || null;
@@ -48,10 +54,14 @@ export async function createNewMapping(link: DataMapperLinkModel) {
 	traverseNode(model, mappingFindingVisitor);
 	const targetMapping = mappingFindingVisitor.getTargetMapping();
 
-	let expression = input;
+	let expression = modifier ? modifier(input) : input;
 
-	if (targetMapping && targetMapping.expression.trim() !== getDefaultValue(outputPortModel.attributes.field.kind)) {
-		expression = `${targetMapping.expression} + ${input}`;
+	if (targetMapping) {
+		const valueType = getValueType(link);
+
+		if (valueType === ValueType.Mergeable) {
+			expression = `${targetMapping.expression} + ${expression}`;
+		}
 	}
 
 	return await applyModifications(outputId, expression, viewId, name);
@@ -95,19 +105,44 @@ export async function mapWithCustomFn(link: DataMapperLinkModel, context: IDataM
 	const outputField = outputPortModel.attributes.field;
 	const inputParams: CustomFnParams[] = [{
 		name: inputField.variableName,
-		type: inputField.typeName.replace("record", "any"),
+		type: getTypeName(inputField).replace("record", "any"),
 		isOptional: false,
 		isNullable: false,
 		kind: inputField.kind
 	}];
 
 	const metadata: CustomFnMetadata = {
-		returnType: outputField.typeName.replace("record", "any"),
+		returnType: getTypeName(outputField).replace("record", "any"),
 		parameters: inputParams
 	}
 
 	await context.mapWithCustomFn(mapping, metadata, viewId);
 
+}
+
+export async function mapWithQuery(link: DataMapperLinkModel, clauseType: ResultClauseType, context: IDataMapperContext) {
+	const sourcePort = link.getSourcePort();
+	const targetPort = link.getTargetPort();
+	if (!sourcePort || !targetPort) {
+		return;
+	}
+
+	const sourcePortModel = sourcePort as InputOutputPortModel;
+	const outputPortModel = targetPort as InputOutputPortModel;
+
+	const input = sourcePortModel.attributes.optionalOmittedFieldFQN;
+	const outputId = outputPortModel.attributes.fieldFQN;
+	const lastView = context.views[context.views.length - 1];
+	const viewId = lastView?.targetField || null;
+	const name  = context.views[0]?.targetField;
+
+	const mapping: Mapping = {
+		output: "OUTPUT",// TODO: Remove this once the API is updated, currently output is embedded in to targetField
+		expression: input
+	};
+	const targetField = getTargetField(viewId, outputId); // TODO: Remove this once the API is updated
+
+	await context?.convertToQuery(mapping, clauseType, targetField, name);
 }
 
 export function buildInputAccessExpr(fieldFqn: string): string {

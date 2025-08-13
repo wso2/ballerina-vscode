@@ -62,6 +62,7 @@ export function SubMappingItemWidget(props: SubMappingItemProps) {
 
     const typeName = getTypeName(type);
     const portOut = getPort(`${id}.OUT`);
+    const isUnknownType = type.kind === TypeKind.Unknown;
     const isRecord = type.kind === TypeKind.Record;
     const hasFields = !!type?.fields?.length;
     const isFirstItem = index === 0;
@@ -74,7 +75,7 @@ export function SubMappingItemWidget(props: SubMappingItemProps) {
                 <OutputSearchHighlight>{name}</OutputSearchHighlight>
             </span>
             {typeName && (
-                <span className={classes.typeLabel}>
+                <span className={isUnknownType ? classes.unknownTypeLabel : classes.typeLabel}>
                     {typeName}
                 </span>
             )}
@@ -215,7 +216,10 @@ export function SubMappingItemWidget(props: SubMappingItemProps) {
             {
                 expanded && isRecord && hasFields && (
                     <TreeBody>
-                        {type.fields.map((field, index) => {
+                        {type
+                            ?.fields
+                            ?.filter(f => !!f)
+                            .map((field, index) => {
                             return (
                                 <InputNodeTreeItemWidget
                                     key={index}

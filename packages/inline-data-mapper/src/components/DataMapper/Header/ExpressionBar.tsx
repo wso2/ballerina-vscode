@@ -75,7 +75,7 @@ export interface ExpressionBarProps {
 
 export default function ExpressionBarWrapper({ views }: ExpressionBarProps) {
     const classes = useStyles();
-    const { completions, triggerCompletions, onCompletionSelect, onSave, onCancel } = useExpressionContext();
+    const { completions, isUpdatingSource, triggerCompletions, onCompletionSelect, onSave, onCancel } = useExpressionContext();
     const textFieldRef = useRef<HeaderExpressionEditorRef>();
     const savedTextFieldValue = useRef<string>('');
     const [textFieldValue, setTextFieldValue] = useState<string>('');
@@ -183,6 +183,7 @@ export default function ExpressionBarWrapper({ views }: ExpressionBarProps) {
         const viewId = views[views.length - 1]?.targetField;
         const name = views[0]?.targetField;
         await onSave(outputId, value, viewId, name);
+        savedTextFieldValue.current = value;
     };
 
     const handleExpressionSave = async (value: string) => {
@@ -201,9 +202,7 @@ export default function ExpressionBarWrapper({ views }: ExpressionBarProps) {
         if (e.target.closest('[id^="recordfield-"]')) {
             return;
         }
-        await saveSource(focusedPort, textFieldValue);
-        setTextFieldValue("");
-        resetExprBarFocus();
+        await textFieldRef.current.saveExpression(textFieldValue);
     };
 
     const inputProps: InputProps = {
@@ -271,6 +270,7 @@ export default function ExpressionBarWrapper({ views }: ExpressionBarProps) {
                 inputProps={inputProps}
                 autoSelectFirstItem={true}
                 completions={completions}
+                isUpdatingSource={isUpdatingSource}
                 onChange={handleChange}
                 onCompletionSelect={onCompletionSelect}
                 onSave={handleExpressionSave}

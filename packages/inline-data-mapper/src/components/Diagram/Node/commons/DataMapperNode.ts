@@ -41,6 +41,7 @@ interface InputPortAttributes {
 	collapsed?: boolean;
 	isOptional?: boolean;
 	focusedFieldFQNs?: string[];
+	isPreview?: boolean;
 };
 
 interface OutputPortAttributes {
@@ -110,10 +111,10 @@ export abstract class DataMapperNodeModel extends NodeModel<NodeModelGenerics & 
 			focusedFieldFQNs
 		} = attributes;
 
-		const fieldName = field.variableName;
+		const fieldName = field?.variableName;
 		const isArray = this.isArrayTypedField(field);
-		const fieldFQN = this.getInputFieldFQN(field.isFocused ? "" : parentId, fieldName, isOptional);
-		const unsafeFieldFQN = this.getUnsafeFieldFQN(field.isFocused ? "" : unsafeParentId, fieldName);
+		const fieldFQN = this.getInputFieldFQN(field?.isFocused ? "" : parentId, fieldName, isOptional);
+		const unsafeFieldFQN = this.getUnsafeFieldFQN(field?.isFocused ? "" : unsafeParentId, fieldName);
 		const portName = this.getPortName(portPrefix, unsafeFieldFQN);
 		const isFocused = this.isFocusedField(focusedFieldFQNs, portName);
 		const isPreview = parent.attributes.isPreview || this.isPreviewPort(focusedFieldFQNs, parent.attributes.field);
@@ -231,7 +232,7 @@ export abstract class DataMapperNodeModel extends NodeModel<NodeModelGenerics & 
 	}
 
 	private isArrayTypedField(field: IOType): boolean {
-		return field.kind === TypeKind.Array;
+		return field?.kind === TypeKind.Array;
 	}
 
 	private isFocusedField(focusedFieldFQNs: string[], fieldFQN: string): boolean {
@@ -319,8 +320,8 @@ export abstract class DataMapperNodeModel extends NodeModel<NodeModelGenerics & 
 		let numberOfFields = 1;
 
 
-		if (attributes.field.kind === TypeKind.Record) {
-			const fields = attributes.field?.fields;
+		if (attributes.field?.kind === TypeKind.Record) {
+			const fields = attributes.field?.fields?.filter(f => !!f);
 			if (fields && fields.length) {
 				fields.forEach(subField => {
 					numberOfFields += this.addPortsForInputField({
@@ -331,9 +332,9 @@ export abstract class DataMapperNodeModel extends NodeModel<NodeModelGenerics & 
 					});
 				});
 			}
-		} else if (attributes.field.kind === TypeKind.Array) {
+		} else if (attributes.field?.kind === TypeKind.Array) {
 
-			const focusedMemberId = attributes.field.focusedMemberId;
+			const focusedMemberId = attributes.field?.focusedMemberId;
 			if (focusedMemberId) {
 				const focusedMemberField = this.context.model.inputs.find(input => input.id === focusedMemberId);
 				if (focusedMemberField) {
@@ -344,22 +345,22 @@ export abstract class DataMapperNodeModel extends NodeModel<NodeModelGenerics & 
 			numberOfFields += this.addPortsForInputField({
 				...attributes,
 				hidden: isHidden,
-				field: attributes.field.member
+				field: attributes.field?.member
 			});
 		}
 		return attributes.hidden ? 0 : numberOfFields;
 	}
 
 	private processFieldKind(attributes: OutputPortAttributes) {
-		if (attributes.field.kind === TypeKind.Record) {
+		if (attributes.field?.kind === TypeKind.Record) {
 			this.processRecordField(attributes);
-		} else if (attributes.field.kind === TypeKind.Array) {
+		} else if (attributes.field?.kind === TypeKind.Array) {
 			this.processArrayField(attributes);
 		}
 	}
 
 	private processRecordField(attributes: OutputPortAttributes) {
-		const fields = attributes.field?.fields.filter(f => f !== null);
+		const fields = attributes.field?.fields?.filter(f => !!f);
 		if (fields && fields.length) {
 			fields.forEach((subField) => {
 				this.addPortsForOutputField({
@@ -377,7 +378,7 @@ export abstract class DataMapperNodeModel extends NodeModel<NodeModelGenerics & 
 			elements.forEach((element, index) => {
 				this.addPortsForOutputField({
 					...attributes,
-					field: attributes.field.member,
+					field: attributes.field?.member,
 					mappings: element.mappings,
 					elementIndex: index
 				});
@@ -385,7 +386,7 @@ export abstract class DataMapperNodeModel extends NodeModel<NodeModelGenerics & 
 		} else {
 			this.addPortsForOutputField({
 				...attributes,
-				field: attributes.field.member,
+				field: attributes.field?.member,
 				isPreview: true
 			});
 		}

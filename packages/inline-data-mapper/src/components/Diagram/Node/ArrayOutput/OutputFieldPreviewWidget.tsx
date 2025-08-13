@@ -63,7 +63,7 @@ export function OutputFieldPreviewWidget(props: OutputFieldPreviewWidgetProps) {
     let expanded = true;
 
     const typeName = getTypeName(field);
-    const typeKind = field.kind;
+    const typeKind = field?.kind;
     const isArray = typeKind === TypeKind.Array;
     const isRecord = typeKind === TypeKind.Record;
 
@@ -75,10 +75,10 @@ export function OutputFieldPreviewWidget(props: OutputFieldPreviewWidgetProps) {
     let portName = updatedParentId !== '' ? fieldName !== '' ? `${updatedParentId}.${fieldName}` : updatedParentId : fieldName;
     const portIn = getPort(portName + ".IN");
 
-    const fields = (isRecord && field.fields.filter(f => f !== null)) || (isArray && [field.member]);
+    const fields = (isRecord && field?.fields?.filter(f => f !== null)) || (isArray && [field?.member]);
 
     const handleExpand = () => {
-        if (field.kind === TypeKind.Array){
+        if (field?.kind === TypeKind.Array){
             const expandedFields = expandedFieldsStore.fields;
             if (expanded) {
                 expandedFieldsStore.setFields(expandedFields.filter((element) => element !== portName));
@@ -183,20 +183,26 @@ export function OutputFieldPreviewWidget(props: OutputFieldPreviewWidgetProps) {
                 </div>
             </Tooltip>
             {fields && expanded &&
-                fields.map((subField, index) => {
-                    return (
-                        <OutputFieldPreviewWidget
-                            key={index}
-                            engine={engine}
-                            field={subField}
-                            getPort={getPort}
-                            parentId={portName}
-                            context={context}
-                            treeDepth={treeDepth + 1}
-                            hasHoveredParent={isHovered || hasHoveredParent}
-                        />
-                    );
-                })
+                fields
+                    .filter((subField) => subField)
+                    .map((subField, index) => {
+                        const fieldKey = subField.variableName 
+                            ? `${portName}.${subField.variableName}` 
+                            : `${portName}.${index}`;
+                        
+                        return (
+                            <OutputFieldPreviewWidget
+                                key={fieldKey}
+                                engine={engine}
+                                field={subField}
+                                getPort={getPort}
+                                parentId={portName}
+                                context={context}
+                                treeDepth={treeDepth + 1}
+                                hasHoveredParent={isHovered || hasHoveredParent}
+                            />
+                        );
+                    })
             }
         </>
     );

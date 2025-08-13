@@ -114,11 +114,13 @@ export class LinkConnectorNode extends DataMapperNodeModel {
             const inputNode = getInputNodeExpr(field, this);
             if (inputNode) {
                 const inputPort = getInputPortsForExpr(inputNode, field);
-                if (!this.sourcePorts.some(port => port.getID() === inputPort.getID())) {
-                    this.sourcePorts.push(inputPort);
-                    this.sourceValues[inputPort.getID()] = [field];
-                } else {
-                    this.sourceValues[inputPort.getID()].push(field);
+                if (inputPort) {
+                    if (!this.sourcePorts.some(port => port.getID() === inputPort.getID())) {
+                        this.sourcePorts.push(inputPort);
+                        this.sourceValues[inputPort.getID()] = [field];
+                    } else {
+                        this.sourceValues[inputPort.getID()].push(field);
+                    }
                 }
             }
         })
