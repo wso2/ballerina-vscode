@@ -233,7 +233,7 @@ function cleanIOType(ioType: IOType | null | undefined): IOType | null {
         const cleanedMembers = ioType.members.filter(member =>
             !isNullOrUndefined(member) &&
             !isNullOrUndefined(member.id) &&
-            !isNullOrUndefined(member.value)
+            !isNullOrUndefined(member.typeName)
         );
 
         if (cleanedMembers.length > 0) {
