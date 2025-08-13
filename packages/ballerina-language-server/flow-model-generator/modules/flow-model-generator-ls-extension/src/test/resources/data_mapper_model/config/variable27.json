@@ -30,7 +30,7 @@
         "typeName": "User",
         "kind": "record",
         "category": "local-variable",
-        "reference": "-2112132123"
+        "reference": "703687070"
       },
       {
         "fields": [],
@@ -39,7 +39,7 @@
         "typeName": "User",
         "kind": "record",
         "category": "parameter",
-        "reference": "-2112132123"
+        "reference": "703687070"
       }
     ],
     "output": {
@@ -48,7 +48,7 @@
       "variableName": "u",
       "typeName": "Person",
       "kind": "record",
-      "reference": "-2015646770"
+      "reference": "1716521196"
     },
     "mappings": [
       {
@@ -106,25 +106,7 @@
       }
     ],
     "references": {
-      "-2112132123": {
-        "fields": [
-          {
-            "member": {
-              "id": "phoneNumber",
-              "variableName": "<phoneNumberItem>",
-              "typeName": "string",
-              "kind": "string"
-            },
-            "id": "phoneNumber",
-            "variableName": "phoneNumber",
-            "typeName": "string[]",
-            "kind": "array"
-          }
-        ],
-        "typeName": "User",
-        "kind": "record"
-      },
-      "-2015646770": {
+      "1716521196": {
         "fields": [
           {
             "member": {
@@ -140,6 +122,24 @@
           }
         ],
         "typeName": "Person",
+        "kind": "record"
+      },
+      "703687070": {
+        "fields": [
+          {
+            "member": {
+              "id": "phoneNumber",
+              "variableName": "<phoneNumberItem>",
+              "typeName": "string",
+              "kind": "string"
+            },
+            "id": "phoneNumber",
+            "variableName": "phoneNumber",
+            "typeName": "string[]",
+            "kind": "array"
+          }
+        ],
+        "typeName": "User",
         "kind": "record"
       }
     }

@@ -31,7 +31,7 @@
         "typeName": "UserInfo",
         "kind": "record",
         "category": "local-variable",
-        "reference": "130768306"
+        "reference": "465437139"
       }
     ],
     "output": {
@@ -40,7 +40,7 @@
       "variableName": "student",
       "typeName": "Student",
       "kind": "record",
-      "reference": "-104945593"
+      "reference": "1241871514"
     },
     "mappings": [
       {
@@ -88,7 +88,7 @@
       }
     ],
     "references": {
-      "130768306": {
+      "465437139": {
         "fields": [
           {
             "id": "username",
@@ -106,33 +106,7 @@
         "typeName": "UserInfo",
         "kind": "record"
       },
-      "-104945593": {
-        "fields": [
-          {
-            "id": "id",
-            "variableName": "id",
-            "typeName": "decimal",
-            "kind": "decimal"
-          },
-          {
-            "fields": [],
-            "id": "credentials",
-            "variableName": "credentials",
-            "typeName": "Credentials",
-            "kind": "record",
-            "reference": "879881598"
-          },
-          {
-            "id": "length",
-            "variableName": "length",
-            "typeName": "int",
-            "kind": "int"
-          }
-        ],
-        "typeName": "Student",
-        "kind": "record"
-      },
-      "879881598": {
+      "-1644308518": {
         "fields": [
           {
             "id": "username",
@@ -148,6 +122,32 @@
           }
         ],
         "typeName": "Credentials",
+        "kind": "record"
+      },
+      "1241871514": {
+        "fields": [
+          {
+            "id": "id",
+            "variableName": "id",
+            "typeName": "decimal",
+            "kind": "decimal"
+          },
+          {
+            "fields": [],
+            "id": "credentials",
+            "variableName": "credentials",
+            "typeName": "Credentials",
+            "kind": "record",
+            "reference": "-1644308518"
+          },
+          {
+            "id": "length",
+            "variableName": "length",
+            "typeName": "int",
+            "kind": "int"
+          }
+        ],
+        "typeName": "Student",
         "kind": "record"
       }
     }

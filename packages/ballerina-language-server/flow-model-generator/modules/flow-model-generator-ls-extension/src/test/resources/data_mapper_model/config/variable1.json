@@ -31,7 +31,7 @@
         "typeName": "Student",
         "kind": "record",
         "category": "module-variable",
-        "reference": "1398367398"
+        "reference": "1028677017"
       }
     ],
     "output": {
@@ -40,11 +40,11 @@
       "variableName": "student",
       "typeName": "Student",
       "kind": "record",
-      "reference": "1398367398"
+      "reference": "1028677017"
     },
     "mappings": [],
     "references": {
-      "1398367398": {
+      "1028677017": {
         "fields": [
           {
             "id": "username",

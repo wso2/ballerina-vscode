@@ -77,7 +77,7 @@
         "typeName": "UserInfo",
         "kind": "record",
         "isFocused": true,
-        "reference": "694834340"
+        "reference": "1853646530"
       }
     ],
     "output": {
@@ -87,13 +87,13 @@
         "variableName": "<credentialsItem>",
         "typeName": "Credentials",
         "kind": "record",
-        "reference": "879883520"
+        "reference": "-1644308518"
       },
       "id": "credentials",
       "variableName": "credentials",
       "typeName": "Credentials[]",
       "kind": "array",
-      "reference": "879883520"
+      "reference": "-1644308518"
     },
     "mappings": [
       {
@@ -141,25 +141,7 @@
       }
     },
     "references": {
-      "879883520": {
-        "fields": [
-          {
-            "id": "username",
-            "variableName": "username",
-            "typeName": "string",
-            "kind": "string"
-          },
-          {
-            "id": "password",
-            "variableName": "password",
-            "typeName": "string",
-            "kind": "string"
-          }
-        ],
-        "typeName": "Credentials",
-        "kind": "record"
-      },
-      "694834340": {
+      "1853646530": {
         "fields": [
           {
             "id": "username",
@@ -181,6 +163,24 @@
           }
         ],
         "typeName": "UserInfo",
+        "kind": "record"
+      },
+      "-1644308518": {
+        "fields": [
+          {
+            "id": "username",
+            "variableName": "username",
+            "typeName": "string",
+            "kind": "string"
+          },
+          {
+            "id": "password",
+            "variableName": "password",
+            "typeName": "string",
+            "kind": "string"
+          }
+        ],
+        "typeName": "Credentials",
         "kind": "record"
       }
     }

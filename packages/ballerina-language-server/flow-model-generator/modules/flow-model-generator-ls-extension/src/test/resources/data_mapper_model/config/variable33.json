@@ -30,7 +30,7 @@
         "typeName": "User",
         "kind": "record",
         "category": "local-variable",
-        "reference": "-2112132123"
+        "reference": "703687070"
       },
       {
         "fields": [],
@@ -39,7 +39,7 @@
         "typeName": "User",
         "kind": "record",
         "category": "parameter",
-        "reference": "-2112132123"
+        "reference": "703687070"
       }
     ],
     "output": {
@@ -48,7 +48,7 @@
       "variableName": "var3",
       "typeName": "Person5",
       "kind": "record",
-      "reference": "-988645471"
+      "reference": "2022724573"
     },
     "mappings": [
       {
@@ -110,7 +110,7 @@
       }
     ],
     "references": {
-      "-2112132123": {
+      "703687070": {
         "fields": [
           {
             "member": {
@@ -128,20 +128,7 @@
         "typeName": "User",
         "kind": "record"
       },
-      "-988645471": {
-        "fields": [
-          {
-            "id": "contacts",
-            "variableName": "contacts",
-            "typeName": "array[]",
-            "kind": "array",
-            "reference": "1805031082"
-          }
-        ],
-        "typeName": "Person5",
-        "kind": "record"
-      },
-      "1805031082": {
+      "-2108560642": {
         "fields": [
           {
             "id": "primaryPhone",
@@ -163,6 +150,19 @@
           }
         ],
         "typeName": "Temp",
+        "kind": "record"
+      },
+      "2022724573": {
+        "fields": [
+          {
+            "id": "contacts",
+            "variableName": "contacts",
+            "typeName": "array[]",
+            "kind": "array",
+            "reference": "-2108560642"
+          }
+        ],
+        "typeName": "Person5",
         "kind": "record"
       }
     }

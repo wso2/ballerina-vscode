@@ -30,7 +30,7 @@
         "typeName": "Student",
         "kind": "record",
         "category": "local-variable",
-        "reference": "-713068618"
+        "reference": "469875313"
       }
     ],
     "output": {
@@ -39,11 +39,11 @@
       "variableName": "var1909",
       "typeName": "Person",
       "kind": "record",
-      "reference": "-861272227"
+      "reference": "-131491914"
     },
     "mappings": [],
     "references": {
-      "-861272227": {
+      "-131491914": {
         "fields": [
           {
             "id": "name",
@@ -69,13 +69,27 @@
             "variableName": "foo",
             "typeName": "",
             "kind": "record",
-            "reference": "132772071"
+            "reference": "-744265709"
           }
         ],
         "typeName": "Person",
         "kind": "record"
       },
-      "-713068618": {
+      "-744265709": {
+        "fields": [
+          {
+            "fields": [],
+            "id": "bar",
+            "variableName": "bar",
+            "typeName": "Student",
+            "kind": "record",
+            "reference": "469875313"
+          }
+        ],
+        "typeName": "",
+        "kind": "record"
+      },
+      "469875313": {
         "fields": [
           {
             "id": "firstName",
@@ -97,20 +111,6 @@
           }
         ],
         "typeName": "Student",
-        "kind": "record"
-      },
-      "132772071": {
-        "fields": [
-          {
-            "fields": [],
-            "id": "bar",
-            "variableName": "bar",
-            "typeName": "Student",
-            "kind": "record",
-            "reference": "-713068618"
-          }
-        ],
-        "typeName": "",
         "kind": "record"
       }
     }

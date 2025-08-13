@@ -30,7 +30,7 @@
         "typeName": "User",
         "kind": "record",
         "category": "parameter",
-        "reference": "-2112132123"
+        "reference": "703687070"
       }
     ],
     "output": {
@@ -39,7 +39,7 @@
       "variableName": "var3",
       "typeName": "Person",
       "kind": "record",
-      "reference": "-2015645809"
+      "reference": "216267297"
     },
     "mappings": [
       {
@@ -104,20 +104,7 @@
       }
     ],
     "references": {
-      "-2015645809": {
-        "fields": [
-          {
-            "id": "contacts",
-            "variableName": "contacts",
-            "typeName": "array[]",
-            "kind": "array",
-            "reference": "704794587"
-          }
-        ],
-        "typeName": "Person",
-        "kind": "record"
-      },
-      "-2112132123": {
+      "703687070": {
         "fields": [
           {
             "member": {
@@ -135,7 +122,20 @@
         "typeName": "User",
         "kind": "record"
       },
-      "704794587": {
+      "216267297": {
+        "fields": [
+          {
+            "id": "contacts",
+            "variableName": "contacts",
+            "typeName": "array[]",
+            "kind": "array",
+            "reference": "-1265471208"
+          }
+        ],
+        "typeName": "Person",
+        "kind": "record"
+      },
+      "-1265471208": {
         "fields": [
           {
             "id": "primaryPhone",

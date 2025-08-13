@@ -71,7 +71,7 @@
         "typeName": "UserInfo",
         "kind": "record",
         "isFocused": true,
-        "reference": "-1248756212"
+        "reference": "465437139"
       }
     ],
     "output": {
@@ -81,13 +81,13 @@
         "variableName": "<studentsItem>",
         "typeName": "Student",
         "kind": "record",
-        "reference": "1398367398"
+        "reference": "1028677017"
       },
       "id": "students",
       "variableName": "students",
       "typeName": "Student[]",
       "kind": "array",
-      "reference": "1398367398"
+      "reference": "1028677017"
     },
     "mappings": [
       {
@@ -135,7 +135,7 @@
       }
     },
     "references": {
-      "1398367398": {
+      "1028677017": {
         "fields": [
           {
             "id": "username",
@@ -153,7 +153,7 @@
         "typeName": "Student",
         "kind": "record"
       },
-      "-1248756212": {
+      "465437139": {
         "fields": [
           {
             "id": "username",

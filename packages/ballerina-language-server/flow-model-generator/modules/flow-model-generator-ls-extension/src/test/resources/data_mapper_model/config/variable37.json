@@ -30,7 +30,7 @@
         "typeName": "User",
         "kind": "record",
         "category": "parameter",
-        "reference": "-1820573477"
+        "reference": "1396926937"
       }
     ],
     "output": {
@@ -40,13 +40,13 @@
         "variableName": "<users4Item>",
         "typeName": "User4",
         "kind": "record",
-        "reference": "-244223463"
+        "reference": "-679331081"
       },
       "id": "users4",
       "variableName": "users4",
       "typeName": "User4[]",
       "kind": "array",
-      "reference": "-244223463"
+      "reference": "-679331081"
     },
     "mappings": [
       {
@@ -133,28 +133,7 @@
       }
     ],
     "references": {
-      "-244223463": {
-        "fields": [
-          {
-            "fields": [],
-            "id": "user5",
-            "variableName": "user5",
-            "typeName": "User5",
-            "kind": "record",
-            "reference": "-1629963775"
-          },
-          {
-            "id": "users6",
-            "variableName": "users6",
-            "typeName": "array[]",
-            "kind": "array",
-            "reference": "1869428971"
-          }
-        ],
-        "typeName": "User4",
-        "kind": "record"
-      },
-      "1869428971": {
+      "1321573925": {
         "fields": [
           {
             "id": "account",
@@ -172,19 +151,7 @@
         "typeName": "User6",
         "kind": "record"
       },
-      "-1820573477": {
-        "fields": [
-          {
-            "id": "name",
-            "variableName": "name",
-            "typeName": "string",
-            "kind": "string"
-          }
-        ],
-        "typeName": "User",
-        "kind": "record"
-      },
-      "-1629963775": {
+      "1622637280": {
         "fields": [
           {
             "member": {
@@ -200,6 +167,39 @@
           }
         ],
         "typeName": "User5",
+        "kind": "record"
+      },
+      "-679331081": {
+        "fields": [
+          {
+            "fields": [],
+            "id": "user5",
+            "variableName": "user5",
+            "typeName": "User5",
+            "kind": "record",
+            "reference": "1622637280"
+          },
+          {
+            "id": "users6",
+            "variableName": "users6",
+            "typeName": "array[]",
+            "kind": "array",
+            "reference": "1321573925"
+          }
+        ],
+        "typeName": "User4",
+        "kind": "record"
+      },
+      "1396926937": {
+        "fields": [
+          {
+            "id": "name",
+            "variableName": "name",
+            "typeName": "string",
+            "kind": "string"
+          }
+        ],
+        "typeName": "User",
         "kind": "record"
       }
     }

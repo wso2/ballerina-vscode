@@ -30,7 +30,7 @@
         "typeName": "Department",
         "kind": "record",
         "category": "local-variable",
-        "reference": "1605672689"
+        "reference": "-1241234485"
       },
       {
         "member": {
@@ -52,7 +52,7 @@
       "variableName": "alice",
       "typeName": "Employee",
       "kind": "record",
-      "reference": "1500905677"
+      "reference": "-1659566102"
     },
     "mappings": [
       {
@@ -77,7 +77,7 @@
       }
     ],
     "references": {
-      "1500905677": {
+      "-1659566102": {
         "fields": [
           {
             "id": "name",
@@ -91,13 +91,32 @@
             "variableName": "department",
             "typeName": "Department",
             "kind": "record",
-            "reference": "1605672689"
+            "reference": "180864539"
           }
         ],
         "typeName": "Employee",
         "kind": "record"
       },
-      "1605672689": {
+      "180864539": {
+        "fields": [
+          {
+            "id": "name",
+            "variableName": "name",
+            "typeName": "string",
+            "kind": "string"
+          },
+          {
+            "id": "employees",
+            "variableName": "employees",
+            "typeName": "array[]",
+            "kind": "array",
+            "reference": "-1659566102"
+          }
+        ],
+        "typeName": "Department",
+        "kind": "record"
+      },
+      "-1241234485": {
         "fields": [
           {
             "id": "name",

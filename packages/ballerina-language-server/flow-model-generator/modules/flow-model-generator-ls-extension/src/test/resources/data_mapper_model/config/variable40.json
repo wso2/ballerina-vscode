@@ -30,7 +30,7 @@
         "typeName": "UserInfo",
         "kind": "record",
         "category": "local-variable",
-        "reference": "2101082897"
+        "reference": "313834776"
       }
     ],
     "output": {
@@ -39,7 +39,7 @@
       "variableName": "student",
       "typeName": "Student",
       "kind": "record",
-      "reference": "-631720853"
+      "reference": "-1331518028"
     },
     "mappings": [
       {
@@ -67,7 +67,7 @@
       }
     ],
     "references": {
-      "2101082897": {
+      "313834776": {
         "fields": [
           {
             "id": "username",
@@ -85,7 +85,7 @@
         "typeName": "UserInfo",
         "kind": "record"
       },
-      "-631720853": {
+      "-1331518028": {
         "fields": [
           {
             "id": "username",

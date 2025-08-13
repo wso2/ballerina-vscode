@@ -30,7 +30,7 @@
         "typeName": "User",
         "kind": "record",
         "category": "parameter",
-        "reference": "53229418"
+        "reference": "1396926937"
       }
     ],
     "output": {
@@ -39,7 +39,7 @@
       "variableName": "user1",
       "typeName": "User1",
       "kind": "record",
-      "reference": "1800574795"
+      "reference": "1078186826"
     },
     "mappings": [
       {
@@ -160,7 +160,7 @@
       }
     ],
     "references": {
-      "1800574795": {
+      "1078186826": {
         "fields": [
           {
             "fields": [],
@@ -168,7 +168,7 @@
             "variableName": "user2",
             "typeName": "User2",
             "kind": "record",
-            "reference": "-62471312"
+            "reference": "1443283171"
           },
           {
             "id": "s1",
@@ -180,35 +180,7 @@
         "typeName": "User1",
         "kind": "record"
       },
-      "-373365764": {
-        "fields": [
-          {
-            "fields": [],
-            "id": "user5",
-            "variableName": "user5",
-            "typeName": "User5",
-            "kind": "record",
-            "reference": "1837654115"
-          }
-        ],
-        "typeName": "User4",
-        "kind": "record"
-      },
-      "-62471312": {
-        "fields": [
-          {
-            "fields": [],
-            "id": "user3",
-            "variableName": "user3",
-            "typeName": "User3",
-            "kind": "record",
-            "reference": "1770688038"
-          }
-        ],
-        "typeName": "User2",
-        "kind": "record"
-      },
-      "1837654115": {
+      "1020566466": {
         "fields": [
           {
             "id": "u",
@@ -220,7 +192,41 @@
         "typeName": "User5",
         "kind": "record"
       },
-      "53229418": {
+      "916302237": {
+        "fields": [
+          {
+            "fields": [],
+            "id": "user5",
+            "variableName": "user5",
+            "typeName": "User5",
+            "kind": "record",
+            "reference": "1020566466"
+          }
+        ],
+        "typeName": "User4",
+        "kind": "record"
+      },
+      "-2009426176": {
+        "fields": [
+          {
+            "fields": [],
+            "id": "user4",
+            "variableName": "user4",
+            "typeName": "User4",
+            "kind": "record",
+            "reference": "916302237"
+          },
+          {
+            "id": "i3",
+            "variableName": "i3",
+            "typeName": "int",
+            "kind": "int"
+          }
+        ],
+        "typeName": "User3",
+        "kind": "record"
+      },
+      "1396926937": {
         "fields": [
           {
             "id": "name",
@@ -232,24 +238,18 @@
         "typeName": "User",
         "kind": "record"
       },
-      "1770688038": {
+      "1443283171": {
         "fields": [
           {
             "fields": [],
-            "id": "user4",
-            "variableName": "user4",
-            "typeName": "User4",
+            "id": "user3",
+            "variableName": "user3",
+            "typeName": "User3",
             "kind": "record",
-            "reference": "-373365764"
-          },
-          {
-            "id": "i3",
-            "variableName": "i3",
-            "typeName": "int",
-            "kind": "int"
+            "reference": "-2009426176"
           }
         ],
-        "typeName": "User3",
+        "typeName": "User2",
         "kind": "record"
       }
     }

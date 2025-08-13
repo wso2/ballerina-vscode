@@ -36,7 +36,7 @@
           "moduleName": "redis",
           "version": "3.1.0"
         },
-        "reference": "-682634810"
+        "reference": "663105246"
       }
     ],
     "output": {
@@ -51,11 +51,11 @@
         "moduleName": "redis",
         "version": "3.1.0"
       },
-      "reference": "-682634810"
+      "reference": "663105246"
     },
     "mappings": [],
     "references": {
-      "-682634810": {
+      "663105246": {
         "fields": [
           {
             "id": "clientName",

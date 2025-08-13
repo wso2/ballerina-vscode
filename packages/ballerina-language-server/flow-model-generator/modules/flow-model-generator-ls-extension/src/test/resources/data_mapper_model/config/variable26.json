@@ -30,7 +30,7 @@
         "typeName": "Person",
         "kind": "record",
         "category": "parameter",
-        "reference": "1484731016"
+        "reference": "25603108"
       },
       {
         "fields": [],
@@ -39,7 +39,7 @@
         "typeName": "User",
         "kind": "record",
         "category": "local-variable",
-        "reference": "2098380546"
+        "reference": "941269625"
       }
     ],
     "output": {
@@ -48,11 +48,29 @@
       "variableName": "u",
       "typeName": "User",
       "kind": "record",
-      "reference": "2098380546"
+      "reference": "941269625"
     },
     "mappings": [],
     "references": {
-      "-381934850": {
+      "-1653315998": {
+        "fields": [
+          {
+            "id": "accountNumber",
+            "variableName": "accountNumber",
+            "typeName": "string",
+            "kind": "string"
+          },
+          {
+            "id": "balance",
+            "variableName": "balance",
+            "typeName": "int",
+            "kind": "int"
+          }
+        ],
+        "typeName": "",
+        "kind": "record"
+      },
+      "-1599327629": {
         "fields": [
           {
             "id": "firstName",
@@ -78,7 +96,7 @@
             "variableName": "address",
             "typeName": "",
             "kind": "record",
-            "reference": "1839720103"
+            "reference": "-1842723739"
           },
           {
             "id": "phoneNumber",
@@ -90,25 +108,7 @@
         "typeName": "",
         "kind": "record"
       },
-      "1567959773": {
-        "fields": [
-          {
-            "id": "accountNumber",
-            "variableName": "accountNumber",
-            "typeName": "string",
-            "kind": "string"
-          },
-          {
-            "id": "balance",
-            "variableName": "balance",
-            "typeName": "int",
-            "kind": "int"
-          }
-        ],
-        "typeName": "",
-        "kind": "record"
-      },
-      "1484731016": {
+      "25603108": {
         "fields": [
           {
             "id": "fullName",
@@ -122,7 +122,7 @@
             "variableName": "contactDetails",
             "typeName": "",
             "kind": "record",
-            "reference": "-284400393"
+            "reference": "-1521349224"
           },
           {
             "fields": [],
@@ -130,7 +130,7 @@
             "variableName": "location",
             "typeName": "",
             "kind": "record",
-            "reference": "-280075743"
+            "reference": "-1328771588"
           },
           {
             "fields": [],
@@ -138,7 +138,7 @@
             "variableName": "accountInfo",
             "typeName": "",
             "kind": "record",
-            "reference": "1567959773"
+            "reference": "-1653315998"
           },
           {
             "id": "transactionDate",
@@ -150,71 +150,7 @@
         "typeName": "Person",
         "kind": "record"
       },
-      "2098380546": {
-        "fields": [
-          {
-            "fields": [],
-            "id": "customer",
-            "variableName": "customer",
-            "typeName": "",
-            "kind": "record",
-            "reference": "-381934850"
-          },
-          {
-            "fields": [],
-            "id": "account",
-            "variableName": "account",
-            "typeName": "",
-            "kind": "record",
-            "reference": "-1811816316"
-          }
-        ],
-        "typeName": "User",
-        "kind": "record"
-      },
-      "-284400393": {
-        "fields": [
-          {
-            "id": "email",
-            "variableName": "email",
-            "typeName": "string",
-            "kind": "string"
-          },
-          {
-            "id": "primaryPhone",
-            "variableName": "primaryPhone",
-            "typeName": "string",
-            "kind": "string"
-          }
-        ],
-        "typeName": "",
-        "kind": "record"
-      },
-      "-280075743": {
-        "fields": [
-          {
-            "id": "city",
-            "variableName": "city",
-            "typeName": "string",
-            "kind": "string"
-          },
-          {
-            "id": "state",
-            "variableName": "state",
-            "typeName": "string",
-            "kind": "string"
-          },
-          {
-            "id": "zipCode",
-            "variableName": "zipCode",
-            "typeName": "string",
-            "kind": "string"
-          }
-        ],
-        "typeName": "",
-        "kind": "record"
-      },
-      "1839720103": {
+      "-1842723739": {
         "fields": [
           {
             "id": "street",
@@ -244,7 +180,29 @@
         "typeName": "",
         "kind": "record"
       },
-      "-1811816316": {
+      "941269625": {
+        "fields": [
+          {
+            "fields": [],
+            "id": "customer",
+            "variableName": "customer",
+            "typeName": "",
+            "kind": "record",
+            "reference": "-1599327629"
+          },
+          {
+            "fields": [],
+            "id": "account",
+            "variableName": "account",
+            "typeName": "",
+            "kind": "record",
+            "reference": "-10963004"
+          }
+        ],
+        "typeName": "User",
+        "kind": "record"
+      },
+      "-10963004": {
         "fields": [
           {
             "id": "accountNumber",
@@ -261,6 +219,48 @@
           {
             "id": "lastTransaction",
             "variableName": "lastTransaction",
+            "typeName": "string",
+            "kind": "string"
+          }
+        ],
+        "typeName": "",
+        "kind": "record"
+      },
+      "-1521349224": {
+        "fields": [
+          {
+            "id": "email",
+            "variableName": "email",
+            "typeName": "string",
+            "kind": "string"
+          },
+          {
+            "id": "primaryPhone",
+            "variableName": "primaryPhone",
+            "typeName": "string",
+            "kind": "string"
+          }
+        ],
+        "typeName": "",
+        "kind": "record"
+      },
+      "-1328771588": {
+        "fields": [
+          {
+            "id": "city",
+            "variableName": "city",
+            "typeName": "string",
+            "kind": "string"
+          },
+          {
+            "id": "state",
+            "variableName": "state",
+            "typeName": "string",
+            "kind": "string"
+          },
+          {
+            "id": "zipCode",
+            "variableName": "zipCode",
             "typeName": "string",
             "kind": "string"
           }

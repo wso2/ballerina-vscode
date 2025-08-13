@@ -30,7 +30,7 @@
         "typeName": "User",
         "kind": "record",
         "category": "local-variable",
-        "reference": "-1424610939"
+        "reference": "-368198061"
       }
     ],
     "output": {
@@ -39,7 +39,7 @@
       "variableName": "p",
       "typeName": "Person",
       "kind": "record",
-      "reference": "16372873"
+      "reference": "2032796937"
     },
     "mappings": [
       {
@@ -55,7 +55,7 @@
       }
     ],
     "references": {
-      "16372873": {
+      "2032796937": {
         "fields": [
           {
             "fields": [],
@@ -63,38 +63,13 @@
             "variableName": "contactDetails",
             "typeName": "ContactDetails",
             "kind": "record",
-            "reference": "-641964219"
+            "reference": "1955575003"
           }
         ],
         "typeName": "Person",
         "kind": "record"
       },
-      "-641964219": {
-        "fields": [
-          {
-            "id": "phoneNumbers",
-            "variableName": "phoneNumbers",
-            "typeName": "array[]",
-            "kind": "array",
-            "reference": "1495790527"
-          },
-          {
-            "member": {
-              "id": "addresses",
-              "variableName": "<addressesItem>",
-              "typeName": "string",
-              "kind": "string"
-            },
-            "id": "addresses",
-            "variableName": "addresses",
-            "typeName": "string[]",
-            "kind": "array"
-          }
-        ],
-        "typeName": "ContactDetails",
-        "kind": "record"
-      },
-      "-1424610939": {
+      "-368198061": {
         "fields": [
           {
             "fields": [],
@@ -102,13 +77,13 @@
             "variableName": "info",
             "typeName": "Info",
             "kind": "record",
-            "reference": "-503376511"
+            "reference": "-1730738303"
           }
         ],
         "typeName": "User",
         "kind": "record"
       },
-      "-1374288716": {
+      "1315650592": {
         "fields": [
           {
             "id": "code",
@@ -126,7 +101,7 @@
         "typeName": "SecondaryPhones",
         "kind": "record"
       },
-      "1495790527": {
+      "-500203070": {
         "fields": [
           {
             "id": "code",
@@ -144,14 +119,14 @@
         "typeName": "SecondaryPhonesX",
         "kind": "record"
       },
-      "-503376511": {
+      "-1730738303": {
         "fields": [
           {
             "id": "secondaryPhones",
             "variableName": "secondaryPhones",
             "typeName": "array[]",
             "kind": "array",
-            "reference": "-1374288716"
+            "reference": "1315650592"
           },
           {
             "member": {
@@ -185,6 +160,31 @@
           }
         ],
         "typeName": "Info",
+        "kind": "record"
+      },
+      "1955575003": {
+        "fields": [
+          {
+            "id": "phoneNumbers",
+            "variableName": "phoneNumbers",
+            "typeName": "array[]",
+            "kind": "array",
+            "reference": "-500203070"
+          },
+          {
+            "member": {
+              "id": "addresses",
+              "variableName": "<addressesItem>",
+              "typeName": "string",
+              "kind": "string"
+            },
+            "id": "addresses",
+            "variableName": "addresses",
+            "typeName": "string[]",
+            "kind": "array"
+          }
+        ],
+        "typeName": "ContactDetails",
         "kind": "record"
       }
     }

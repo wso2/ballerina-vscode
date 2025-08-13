@@ -98,7 +98,7 @@ public class ReferenceType {
     }
 
     public static RefType fromSemanticSymbol(TypeSymbol symbol, String name, String moduleID) {
-        String hashCode = String.valueOf((moduleID + name + symbol.getLocation()).hashCode());
+        String hashCode = String.valueOf((moduleID + name + symbol.signature()).hashCode());
         RefType type = visitedTypeMap.get(hashCode);
         if (type != null) {
             return type;
