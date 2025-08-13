@@ -19,6 +19,7 @@
           "data": {
             "kind": "Resource",
             "label": "oranges",
+            "isServiceFunction": true,
             "accessor": "get",
             "parameters": [
               "int count"

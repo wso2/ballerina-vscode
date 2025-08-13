@@ -25,6 +25,7 @@
           "data": {
             "kind": "Resource",
             "label": "greeting",
+            "isServiceFunction": true,
             "accessor": "get",
             "parameters": [
               "string? name"

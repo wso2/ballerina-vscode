@@ -18,7 +18,8 @@
           "label": "Start",
           "data": {
             "kind": "Function",
-            "label": "panicFunc1"
+            "label": "panicFunc1",
+            "isServiceFunction": false
           }
         },
         "codedata": {

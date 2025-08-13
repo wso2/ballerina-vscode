@@ -19,6 +19,7 @@
           "data": {
             "kind": "Function",
             "label": "accessFutureArray",
+            "isServiceFunction": false,
             "return": "any"
           }
         },
