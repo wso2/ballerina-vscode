@@ -20,11 +20,15 @@ package io.ballerina.flowmodelgenerator.extension;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.compiler.api.symbols.Symbol;
 import io.ballerina.compiler.api.symbols.SymbolKind;
 import io.ballerina.compiler.api.symbols.TypeDescKind;
 import io.ballerina.compiler.api.symbols.TypeSymbol;
+import io.ballerina.compiler.syntax.tree.ModulePartNode;
+import io.ballerina.compiler.syntax.tree.NonTerminalNode;
+import io.ballerina.flowmodelgenerator.core.DeleteNodeHandler;
 import io.ballerina.flowmodelgenerator.core.TypesManager;
 import io.ballerina.flowmodelgenerator.core.converters.JsonToTypeMapper;
 import io.ballerina.flowmodelgenerator.core.model.Codedata;
@@ -33,24 +37,34 @@ import io.ballerina.flowmodelgenerator.core.model.TypeData;
 import io.ballerina.flowmodelgenerator.core.type.RecordValueGenerator;
 import io.ballerina.flowmodelgenerator.core.type.TypeSymbolAnalyzerFromTypeModel;
 import io.ballerina.flowmodelgenerator.core.utils.FileSystemUtils;
-import io.ballerina.flowmodelgenerator.extension.request.FilePathRequest;
+import io.ballerina.flowmodelgenerator.extension.request.ComponentInfo;
+import io.ballerina.flowmodelgenerator.extension.request.DeleteTypeRequest;
 import io.ballerina.flowmodelgenerator.extension.request.FindTypeRequest;
 import io.ballerina.flowmodelgenerator.extension.request.GetTypeRequest;
 import io.ballerina.flowmodelgenerator.extension.request.JsonToTypeRequest;
-import io.ballerina.flowmodelgenerator.extension.request.MultipleTypeUpdateRequest;
 import io.ballerina.flowmodelgenerator.extension.request.RecordConfigRequest;
-import io.ballerina.flowmodelgenerator.extension.request.RecordValueGenerateRequest;
 import io.ballerina.flowmodelgenerator.extension.request.TypeUpdateRequest;
 import io.ballerina.flowmodelgenerator.extension.request.UpdatedRecordConfigRequest;
+import io.ballerina.flowmodelgenerator.extension.request.VerifyTypeDeleteRequest;
+import io.ballerina.flowmodelgenerator.extension.request.MultipleTypeUpdateRequest;
+import io.ballerina.flowmodelgenerator.extension.request.RecordValueGenerateRequest;
+import io.ballerina.flowmodelgenerator.extension.request.FilePathRequest;
+import io.ballerina.flowmodelgenerator.extension.response.DeleteTypeResponse;
 import io.ballerina.flowmodelgenerator.extension.response.MultipleTypeUpdateResponse;
 import io.ballerina.flowmodelgenerator.extension.response.RecordConfigResponse;
 import io.ballerina.flowmodelgenerator.extension.response.RecordValueGenerateResponse;
 import io.ballerina.flowmodelgenerator.extension.response.TypeListResponse;
 import io.ballerina.flowmodelgenerator.extension.response.TypeResponse;
 import io.ballerina.flowmodelgenerator.extension.response.TypeUpdateResponse;
+import io.ballerina.flowmodelgenerator.extension.response.VerifyTypeDeleteResponse;
 import io.ballerina.modelgenerator.commons.ModuleInfo;
 import io.ballerina.modelgenerator.commons.PackageUtil;
 import io.ballerina.projects.Document;
+import io.ballerina.projects.Project;
+import io.ballerina.tools.diagnostics.Location;
+import io.ballerina.tools.text.LinePosition;
+import io.ballerina.tools.text.TextDocument;
+import io.ballerina.tools.text.TextRange;
 import org.ballerinalang.annotation.JavaSPIService;
 import org.ballerinalang.diagramutil.connector.models.connector.Type;
 import org.ballerinalang.langserver.commons.service.spi.ExtendedLanguageServerService;
@@ -62,6 +76,7 @@ import org.eclipse.lsp4j.services.LanguageServer;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -207,6 +222,105 @@ public class TypesManagerService implements ExtendedLanguageServerService {
                 response.setTextEdits(typesManager.createGraphqlClassType(filePath, typeData));
             } catch (Throwable e) {
                 throw new RuntimeException(e);
+            }
+            return response;
+        });
+    }
+
+    /**
+     * Delete a type from the specified file.
+     *
+     * @param request {@link DeleteTypeRequest}
+     * @return {@link DeleteTypeResponse} the response containing the text edits for deleting the type
+     */
+    @JsonRequest
+    public CompletableFuture<DeleteTypeResponse> deleteType(DeleteTypeRequest request) {
+        return CompletableFuture.supplyAsync(() -> {
+            DeleteTypeResponse response = new DeleteTypeResponse();
+
+            try {
+                Path filePath = Path.of(request.filePath());
+
+                // Load project and document
+                Project project = this.workspaceManager.loadProject(filePath);
+                Optional<SemanticModel> semanticModelOpt = this.workspaceManager.semanticModel(filePath);
+                Optional<Document> documentOpt = this.workspaceManager.document(filePath);
+
+                if (semanticModelOpt.isEmpty() || documentOpt.isEmpty()) {
+                    return response;
+                }
+
+                Document document = documentOpt.get();
+                ComponentInfo componentInfo = request.component();
+                TextDocument textDocument = document.textDocument();
+
+                // Compute positions
+                int startPos = textDocument.textPositionFrom(
+                        LinePosition.from(componentInfo.startLine(), componentInfo.startColumn())
+                );
+                int endPos = textDocument.textPositionFrom(
+                        LinePosition.from(componentInfo.endLine(), componentInfo.endColumn())
+                );
+
+                // Locate node
+                NonTerminalNode targetNode = ((ModulePartNode) document.syntaxTree().rootNode())
+                        .findNode(TextRange.from(startPos, endPos - startPos));
+
+                // Build JSON in one step by combining maps
+                Map<String, Object> component = Map.of(
+                        "name", componentInfo.name(),
+                        "filePath", filePath.toString(),
+                        "startLine", targetNode.lineRange().startLine().line(),
+                        "startColumn", targetNode.lineRange().startLine().offset(),
+                        "endLine", targetNode.lineRange().endLine().line(),
+                        "endColumn", targetNode.lineRange().endLine().offset()
+                );
+
+                JsonObject componentJson = new Gson()
+                        .toJsonTree(component)
+                        .getAsJsonObject();
+
+                // Set text edits
+                response.setTextEdits(DeleteNodeHandler.getTextEditsToDeletedNode(
+                        componentJson, filePath, document, project
+                ));
+
+            } catch (Throwable e) {
+                response.setError(e);
+            }
+            return response;
+        });
+    }
+
+    /**
+     * Verify if a type can be deleted from the specified file.
+     *
+     * @param request {@link VerifyTypeDeleteRequest}
+     * @return {@link VerifyTypeDeleteResponse} the response indicating whether the type can be deleted
+     */
+    @JsonRequest
+    public CompletableFuture<VerifyTypeDeleteResponse> verifyTypeDelete(VerifyTypeDeleteRequest request) {
+        return CompletableFuture.supplyAsync(() -> {
+            VerifyTypeDeleteResponse response = new VerifyTypeDeleteResponse();
+            try {
+                Path filePath = Path.of(request.filePath());
+                Project project = this.workspaceManager.loadProject(filePath);
+                Optional<SemanticModel> semanticModel = this.workspaceManager.semanticModel(filePath);
+                Optional<Document> document = this.workspaceManager.document(filePath);
+
+                if (semanticModel.isEmpty() || document.isEmpty()) {
+                    response.setCanDelete(false);
+                    response.setError(new IllegalArgumentException("Semantic model or document not found"));
+                    return response;
+                }
+
+                List<Location> locations = semanticModel.get()
+                        .references(document.get(), LinePosition.from(request.startLine(), request.startColumn()));
+
+                boolean canDelete = locations.size()<= 1;
+                response.setCanDelete(canDelete);
+            } catch (Throwable e) {
+                response.setError(e);
             }
             return response;
         });
