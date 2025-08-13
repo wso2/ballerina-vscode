@@ -27,10 +27,12 @@ import io.ballerina.compiler.api.symbols.TypeDefinitionSymbol;
 import io.ballerina.compiler.api.symbols.TypeDescKind;
 import io.ballerina.compiler.api.symbols.TypeReferenceTypeSymbol;
 import io.ballerina.compiler.api.symbols.TypeSymbol;
+import io.ballerina.compiler.api.symbols.UnionTypeSymbol;
 import io.ballerina.compiler.api.symbols.VariableSymbol;
 import org.ballerinalang.diagramutil.connector.models.connector.reftypes.RefArrayType;
 import org.ballerinalang.diagramutil.connector.models.connector.reftypes.RefRecordType;
 import org.ballerinalang.diagramutil.connector.models.connector.reftypes.RefType;
+import org.ballerinalang.diagramutil.connector.models.connector.reftypes.RefUnionType;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -185,6 +187,40 @@ public class ReferenceType {
             }
             arrayType.hashCode = arrayType.elementType.hashCode;
             return arrayType;
+        } else if (kind == TypeDescKind.UNION) {
+            UnionTypeSymbol unionTypeSymbol = (UnionTypeSymbol) symbol;
+            RefUnionType unionType = new RefUnionType(name);
+            unionType.hashCode = hashCode;
+            visitedTypeMap.put(hashCode, unionType);
+
+            for (TypeSymbol memberTypeSymbol : unionTypeSymbol.memberTypeDescriptors()) {
+                String memberTypeName = memberTypeSymbol.getName().orElse("");
+                String moduleId = memberTypeSymbol.getModule().isPresent()
+                        ? memberTypeSymbol.getModule().get().id().toString()
+                        : null;
+                RefType memberType = fromSemanticSymbol(memberTypeSymbol, memberTypeName, moduleId);
+                if (memberType.dependentTypeHashes == null || memberType.dependentTypeHashes.isEmpty()) {
+                    if (memberType.hashCode != null) {
+                        RefType t = new RefType(memberType.name);
+                        t.hashCode = memberType.hashCode;
+                        t.typeName = memberType.typeName;
+                        unionType.memberTypes.add(t);
+                    } else {
+                        unionType.memberTypes.add(memberType);
+                    }
+                } else {
+                    RefType t = new RefType(memberType.name);
+                    t.hashCode = memberType.hashCode;
+                    t.typeName = memberType.typeName;
+                    unionType.dependentTypeHashes.addAll(memberType.dependentTypeHashes);
+                    unionType.memberTypes.add(t);
+                }
+                if (memberType.hashCode != null) {
+                    unionType.dependentTypeHashes.add(memberType.hashCode);
+                }
+            }
+
+            return unionType;
         } else if (kind == TypeDescKind.TYPE_REFERENCE) {
             TypeReferenceTypeSymbol typeRefSymbol = (TypeReferenceTypeSymbol) symbol;
             TypeSymbol typeSymbol = typeRefSymbol.typeDescriptor();
