@@ -1,0 +1,155 @@
+{
+  "source": "query1.bal",
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "main.bal",
+      "startLine": {
+        "line": 21,
+        "offset": 4
+      },
+      "endLine": {
+        "line": 26,
+        "offset": 21
+      }
+    },
+    "sourceCode": ""
+  },
+  "position": {
+    "line": 21,
+    "offset": 4
+  },
+  "propertyKey": "expression",
+  "targetField": "p.contactDetails.phoneNumbers",
+  "model": {
+    "inputs": [
+      {
+        "fields": [],
+        "id": "u",
+        "variableName": "u",
+        "typeName": "User",
+        "kind": "record",
+        "category": "variable",
+        "ref": "-368198061"
+      },
+      {
+        "id": "secondaryPhonesItem",
+        "variableName": "secondaryPhonesItem",
+        "typeName": "string",
+        "kind": "string",
+        "isFocused": true
+      }
+    ],
+    "output": {
+      "member": {
+        "id": "phoneNumbers",
+        "variableName": "<phoneNumbersItem>",
+        "typeName": "string",
+        "kind": "string"
+      },
+      "id": "phoneNumbers",
+      "variableName": "phoneNumbers",
+      "typeName": "string[]",
+      "kind": "array"
+    },
+    "mappings": [
+      {
+        "output": "phoneNumbers",
+        "inputs": [
+          "secondaryPhonesItem"
+        ],
+        "expression": "secondaryPhonesItem\n",
+        "diagnostics": [],
+        "elements": [],
+        "isQueryExpression": false,
+        "isFunctionCall": false
+      }
+    ],
+    "query": {
+      "output": "phoneNumbers",
+      "inputs": [
+        "u.info.secondaryPhones"
+      ],
+      "fromClause": {
+        "type": "from",
+        "properties": {
+          "name": "secondaryPhonesItem",
+          "type": "string",
+          "expression": "u.info.secondaryPhones"
+        }
+      },
+      "intermediateClauses": [],
+      "resultClause": {
+        "type": "select",
+        "properties": {
+          "expression": "secondaryPhonesItem"
+        }
+      }
+    },
+    "refs": {
+      "-368198061": {
+        "fields": [
+          {
+            "fields": [],
+            "id": "info",
+            "variableName": "info",
+            "typeName": "Info",
+            "kind": "record",
+            "ref": "-1629511167"
+          }
+        ],
+        "typeName": "User",
+        "kind": "record"
+      },
+      "-1629511167": {
+        "fields": [
+          {
+            "member": {
+              "id": "secondaryPhones",
+              "variableName": "<secondaryPhonesItem>",
+              "typeName": "string",
+              "kind": "string"
+            },
+            "id": "secondaryPhones",
+            "variableName": "secondaryPhones",
+            "typeName": "string[]",
+            "kind": "array"
+          },
+          {
+            "member": {
+              "id": "emails",
+              "variableName": "<emailsItem>",
+              "typeName": "string",
+              "kind": "string"
+            },
+            "id": "emails",
+            "variableName": "emails",
+            "typeName": "string[]",
+            "kind": "array"
+          },
+          {
+            "member": {
+              "member": {
+                "id": "addresses",
+                "variableName": "<addressesItemItem>",
+                "typeName": "string",
+                "kind": "string"
+              },
+              "id": "addresses",
+              "variableName": "<addressesItem>",
+              "typeName": "string[]",
+              "kind": "array"
+            },
+            "id": "addresses",
+            "variableName": "addresses",
+            "typeName": "string[][]",
+            "kind": "array"
+          }
+        ],
+        "typeName": "Info",
+        "kind": "record"
+      }
+    }
+  }
+}
