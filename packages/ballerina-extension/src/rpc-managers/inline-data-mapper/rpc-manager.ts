@@ -53,6 +53,8 @@ import {
     updateAndRefreshDataMapper,
     updateSource
 } from "./utils";
+import { sampleModel } from "./sample-model";
+import path from "path";
 
 export class InlineDataMapperRpcManager implements InlineDataMapperAPI {
     async getInitialIDMSource(params: InitialIDMSourceRequest): Promise<InitialIDMSourceResponse> {
@@ -80,11 +82,15 @@ export class InlineDataMapperRpcManager implements InlineDataMapperAPI {
 
     async getDataMapperModel(params: InlineDataMapperModelRequest): Promise<InlineDataMapperModelResponse> {
         return new Promise(async (resolve) => {
-            const dataMapperModel = await StateMachine
-                .langClient()
-                .getInlineDataMapperMappings(params);
-
-            resolve(dataMapperModel as InlineDataMapperModelResponse);
+            const DATA_MAPPINGS_FILE = "data_mappings.bal";
+            if (path.basename(params.filePath).toLowerCase() === DATA_MAPPINGS_FILE) {
+                resolve({ mappingsModel: sampleModel });
+            } else {
+                const dataMapperModel = await StateMachine
+                    .langClient()
+                    .getInlineDataMapperMappings(params);
+                resolve(dataMapperModel as InlineDataMapperModelResponse);
+            }
         });
     }
 
