@@ -393,7 +393,7 @@ async function getInlineDatamapperCode(inlineDataMapperResponse: InlineDataMappe
         return finalCode;
     } catch (error) {
         console.error(error);
-        throw error; 
+        throw error;
     }
 }
 
