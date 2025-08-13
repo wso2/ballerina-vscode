@@ -3,11 +3,11 @@ import { VariableTypeIndicator } from "../Components/VariableTypeIndicator"
 import { SlidingPaneNavContainer } from "@wso2/ui-toolkit/lib/components/ExpressionEditor/components/Common/SlidingPane"
 import { useRpcContext } from "@wso2/ballerina-rpc-client"
 import { ExpressionProperty, FlowNode, LineRange, RecordTypeField } from "@wso2/ballerina-core"
-import { Codicon, COMPLETION_ITEM_KIND, CompletionItem, Divider, getIcon, HelperPaneCustom, SearchBox, ThemeColors, Typography } from "@wso2/ui-toolkit"
+import { Codicon, CompletionItem, Divider, HelperPaneCustom, SearchBox, ThemeColors, Typography } from "@wso2/ui-toolkit"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { getPropertyFromFormField, HelperPaneVariableInfo, useFieldContext } from "@wso2/ballerina-side-panel"
 import { debounce } from "lodash"
-import { convertToHelperPaneVariable, filterHelperPaneVariables } from "../../../../utils/bi"
+import { filterHelperPaneVariables } from "../../../../utils/bi"
 import FooterButtons from "../Components/FooterButtons"
 import DynamicModal from "../Components/Modal"
 import { FormGenerator } from "../../Forms/FormGenerator"
@@ -44,34 +44,30 @@ const VariablesMoreIconContainer = styled.div`
     }
 `;
 
-
-
 export const Variables = (props: VariablesPageProps) => {
     const { fileName, targetLineRange, onChange, anchorRef, handleOnFormSubmit, selectedType, filteredCompletions, currentValue, recordTypeField, isInModal, handleRetrieveCompletions } = props;
     const [searchValue, setSearchValue] = useState<string>("");
     const { rpcClient } = useRpcContext();
-    const firstRender = useRef<boolean>(true);
     const [variableInfo, setVariableInfo] = useState<HelperPaneVariableInfo | undefined>(undefined);
     const [filteredVariableInfo, setFilteredVariableInfo] = useState<HelperPaneVariableInfo | undefined>(undefined);
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const newNodeNameRef = useRef<string>("");
-    const isMainVariablesRef = useRef<boolean>(true)
-    const [currentlyVisitingItemType, setCurrentlyVisitingItemType] = useState<string>("")
     const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
     const [projectPathUri, setProjectPathUri] = useState<string>();
 
-    const { field } = useFieldContext();
-
-    useEffect(() => {
-        getVariableInfo()
-    }, [targetLineRange])
+    const { field, triggerCharacters } = useFieldContext();
 
     useEffect(() => {
         getProjectInfo()
     }, []);
 
     useEffect(() => {
-        const triggerCharacter = getTriggerCharacter();
+        const triggerCharacter =
+            currentValue.length > 0
+                ? triggerCharacters.find((char) => currentValue[currentValue.length - 1] === char)
+                : undefined;
+
+        console.log("Trigger Character:", triggerCharacter);
         handleRetrieveCompletions(currentValue, getPropertyFromFormField(field), 0, triggerCharacter);
     }, []);
 
@@ -79,34 +75,6 @@ export const Variables = (props: VariablesPageProps) => {
         const projectPath = await rpcClient.getVisualizerLocation();
         setProjectPathUri(URI.file(projectPath.projectUri).fsPath);
     }
-
-    const getTriggerCharacter = useCallback(() => {
-        if (currentValue.length === 0) {
-            return;
-        }
-        return currentValue.slice(-1);
-    }, [currentValue]);
-
-    const getVariableInfo = useCallback(() => {
-        setIsLoading(true);
-        rpcClient
-            .getBIDiagramRpcClient()
-            .getVisibleVariableTypes({
-                filePath: fileName,
-                position: {
-                    line: targetLineRange.startLine.line,
-                    offset: targetLineRange.startLine.offset
-                }
-            })
-            .then((response) => {
-                if (response.categories?.length) {
-                    const convertedHelperPaneVariable: HelperPaneVariableInfo = convertToHelperPaneVariable(response.categories);
-                    setVariableInfo(convertedHelperPaneVariable);
-                    setFilteredVariableInfo(convertedHelperPaneVariable);
-                }
-            })
-            .then(() => setIsLoading(false));
-    }, [rpcClient, fileName, targetLineRange]);
 
     const handleSubmit = (updatedNode?: FlowNode, isDataMapperFormUpdate?: boolean) => {
         newNodeNameRef.current = "";
@@ -118,17 +86,8 @@ export const Variables = (props: VariablesPageProps) => {
         handleOnFormSubmit?.(updatedNode, isDataMapperFormUpdate, { shouldCloseSidePanel: false, shouldUpdateTargetLine: true });
         if (isModalOpen) {
             setIsModalOpen(false)
-            getVariableInfo();
         }
     };
-
-    useEffect(() => {
-        if (firstRender.current) {
-            firstRender.current = false;
-            getVariableInfo();
-        }
-    }, []);
-
     const debounceFilterVariables = useCallback(
         debounce((searchText: string) => {
             setFilteredVariableInfo(filterHelperPaneVariables(variableInfo, searchText));
@@ -143,36 +102,12 @@ export const Variables = (props: VariablesPageProps) => {
         debounceFilterVariables(searchText);
     };
 
-    const isSelectedYypesMatches = (type: string) => {
-        return selectedType?.label === type
-    }
-
-    const isObjectFieldsExists = (objectFields: CompletionItem[]) => {
-        return objectFields && objectFields.length > 0
-    }
-
     const handleItemSelect = (value: string) => {
-        onChange(currentValue + value, true);
+        onChange(currentValue + value, false);
     }
 
     const handleVariablesMoreIconClick = (value: string) => {
         onChange(currentValue + value + '.', true);
-    }
-
-
-    const handleFunctionItemClicked = (value: string) => {
-        onChange(value, false)
-    }
-
-    const handleUseAnywayClicked = (type: string) => {
-        onChange(type, false)
-    }
-
-    const handleNoFunctionsGoBack = () => {
-        const parts = currentValue.split(".");
-        if (parts.length <= 2) return "";
-        parts.splice(parts.length - 2, 1);
-        onChange(parts.join("."), true);
     }
 
     const handleBreadCrumbItemClicked = (variableName: string) => {
@@ -182,59 +117,12 @@ export const Variables = (props: VariablesPageProps) => {
         onChange(newValue, true);
     }
 
-    const objectFields = filteredCompletions.filter((completion) => completion.kind === "field" || completion.kind === "variable")
-    const objectMethods = filteredCompletions.filter((completion) => completion.kind === "function")
+    const fields = filteredCompletions.filter((completion) => completion.kind === "field" || completion.kind === "variable")
+    const methods = filteredCompletions.filter((completion) => completion.kind === "function")
 
-    const dropdownItems = objectFields.map((item) => {
-        return {
-            label: item.label,
-            type: item.description,
-            kind: "variables"
-        }
-    })
-        .concat(objectMethods.map((item) => {
-            return {
-                label: item.label,
-                type: item.kind,
-                kind: "function"
-            }
-        }));
+    const dropdownItems = fields.concat(methods)
 
     const ExpandableListItems = () => {
-        // if (!isSelectedYypesMatches(currentlyVisitingItemType) && !isObjectFieldsExists(objectFields) && !isMainVariablesRef.current) {
-        //     return (
-        //         <div>
-        //             <p style={{ color: ThemeColors.ON_SURFACE_VARIANT }}>
-        //                 This variable type is not compatible with the{" "}
-        //                 <span style={{ color: ThemeColors.HIGHLIGHT }}>
-        //                     {selectedType?.label}
-        //                 </span>{" "}
-        //                 type. Do you wish to add it in the same type, or would you prefer to convert
-        //                 it to a
-        //                 {" "}
-        //                 <span style={{ color: ThemeColors.HIGHLIGHT }}>
-        //                     {selectedType?.label}
-        //                 </span>{" "}
-        //                 value using the helpers below?
-        //             </p>
-        //             {
-        //                 !objectMethods || objectMethods.length === 0 ?
-        //                     <><span style={{ color: ThemeColors.ON_SURFACE_VARIANT }}>No helpers to show </span> <span onClick={handleNoFunctionsGoBack} style={{ color: ThemeColors.HIGHLIGHT, cursor: 'pointer' }}> Go Back</span></> : <>
-        //                         {
-        //                             objectMethods.map((item) => (
-        //                                 <SlidingPaneNavContainer data>
-        //                                     <ExpandableList.Item sx={{ height: '10px' }} onClick={() => handleFunctionItemClicked(item.label)}>
-        //                                         {getIcon(COMPLETION_ITEM_KIND.Function)} <p>{item.label} </p>
-        //                                     </ExpandableList.Item>
-        //                                 </SlidingPaneNavContainer>
-        //                             ))
-        //                         }
-        //                     </>
-        //             }
-        //         </div>
-        //     )
-        // }
-
         return (
             <>
                 {
@@ -244,7 +132,7 @@ export const Variables = (props: VariablesPageProps) => {
                             endIcon={
                                 <VariablesMoreIconContainer onClick={() => handleVariablesMoreIconClick(item.label)}>
                                     <VariableTypeIndicator>
-                                        {item.type}
+                                        {item.description}
                                     </VariableTypeIndicator>
                                     <Codicon name="chevron-right" />
                                 </VariablesMoreIconContainer>}
@@ -363,27 +251,21 @@ export const Variables = (props: VariablesPageProps) => {
             height: "100%",
             overflow: "hidden"
         }}>
-            <div style={{ display: 'flex', color: ThemeColors.HIGHLIGHT, marginBottom: '10px' }}>
-                {
-                    breadCrumSteps.map((item, index) => {
-                        if (index === 0) {
-                            return (
-                                <div style={{ display: 'flex' }}>
-                                    <span onClick={() => handleBreadCrumbItemClicked(item)}>{`${item}`}</span>
-                                </div>
-                            )
-                        }
-                        else {
-                            return (
-                                <div style={{ display: 'flex', gap: '3px' }}>
-                                    <Codicon name={"chevron-right"}></Codicon>
-                                    <span onClick={() => handleBreadCrumbItemClicked(item)}>{`${item}`}</span>
-                                </div>)
-                        }
-                    })
-                }
-            </div>
-            <div style={{ display: "flex", justifyContent: "center", alignItems: "center", marginBottom: "10px", gap: '5px' }}>
+            {
+                breadCrumSteps && breadCrumSteps.length > 0 && (
+                    <div style={{ display: "flex", gap: '8px', padding: '8px' }}>
+                        {breadCrumSteps.map((step, index) => (
+                            <span
+                                key={index}
+                                onClick={() => handleBreadCrumbItemClicked(step)}
+                                style={{ cursor: 'pointer', color: ThemeColors.HIGHLIGHT }}
+                            >
+                                {step}
+                            </span>
+                        ))}
+                    </div>
+                )}
+            <div style={{ display: "flex", justifyContent: "center", alignItems: "center", margin: "8px", gap: '5px' }}>
                 <SearchBox sx={{ width: "100%" }} placeholder='Search' value={searchValue} onChange={handleSearch} />
             </div>
 

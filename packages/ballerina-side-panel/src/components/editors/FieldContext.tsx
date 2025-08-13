@@ -4,6 +4,7 @@ import { FormField } from "../Form/types";
 type FieldContextType = {
     field: FormField | null;
     setField: (field: FormField) => void;
+    triggerCharacters: readonly string[];
 };
 
 const FieldContext = createContext<FieldContextType | undefined>(undefined);
@@ -16,11 +17,11 @@ export const useFieldContext = () => {
     return context;
 };
 
-export const FieldProvider = ({ children, initialField }: { children: ReactNode; initialField?: FormField }) => {
+export const FieldProvider = ({ children, initialField, triggerCharacters }: { children: ReactNode; initialField?: FormField, triggerCharacters: readonly string[] }) => {
     const [field, setField] = useState<FormField | null>(initialField ?? null);
 
     return (
-        <FieldContext.Provider value={{ field, setField }}>
+        <FieldContext.Provider value={{ field, setField, triggerCharacters }}>
             {children}
         </FieldContext.Provider>
     );

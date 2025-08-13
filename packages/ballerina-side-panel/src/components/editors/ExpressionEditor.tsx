@@ -479,7 +479,10 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
         : '';
 
     return (
-        <FieldProvider initialField={props.field}>
+        <FieldProvider 
+        initialField={props.field} 
+        triggerCharacters={props.triggerCharacters}
+        >
             <S.Container id={id}>
                 {showHeader && (
                     <S.Header>
