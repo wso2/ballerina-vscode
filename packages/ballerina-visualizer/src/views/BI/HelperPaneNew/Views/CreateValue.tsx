@@ -1,13 +1,17 @@
 import { GetRecordConfigRequest, GetRecordConfigResponse, PropertyTypeMemberInfo, RecordSourceGenRequest, RecordSourceGenResponse, RecordTypeField, TypeField } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { useSlidingPane } from "@wso2/ui-toolkit/lib/components/ExpressionEditor/components/Common/SlidingPane/context";
-import { useEffect, useRef, useState } from "react";
+import { RefObject, useEffect, useRef, useState } from "react";
 import { RecordConfig } from "./RecordConfigView";
-import { CompletionItem } from "@wso2/ui-toolkit";
+import { Button, CompletionItem } from "@wso2/ui-toolkit";
 import { getDefaultValue, isRowType } from "../Utils/types";
 import ExpandableList from "../Components/ExpandableList";
 import SelectableItem from "../Components/SelectableItem";
 import { SlidingPaneNavContainer } from "@wso2/ui-toolkit/lib/components/ExpressionEditor/components/Common/SlidingPane";
+import DynamicModal from "../Components/Modal";
+import FooterButtons from "../Components/FooterButtons";
+import * as Types from "../Components/RecordConstructView/Types";
+import { TypeProps } from "../../HelperView/ConfigurePanel";
 
 type CreateValuePageProps = {
     fileName: string;
@@ -15,6 +19,7 @@ type CreateValuePageProps = {
     onChange: (value: string, isRecordConfigureChange: boolean) => void;
     selectedType?: string | string[];
     recordTypeField?: RecordTypeField;
+    anchorRef: RefObject<HTMLDivElement>;
 }
 
 const passPackageInfoIfExists = (recordTypeMember: PropertyTypeMemberInfo) => {
@@ -35,8 +40,9 @@ const getPropertyMember = (field: RecordTypeField) => {
 }
 
 export const CreateValue = (props: CreateValuePageProps) => {
-    const { fileName, currentValue, onChange, selectedType, recordTypeField } = props;
+    const { fileName, currentValue, onChange, selectedType, recordTypeField, anchorRef } = props;
     const [recordModel, setRecordModel] = useState<TypeField[]>([]);
+    const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
 
     const { rpcClient } = useRpcContext();
     const propertyMember = getPropertyMember(recordTypeField)
@@ -99,22 +105,42 @@ export const CreateValue = (props: CreateValuePageProps) => {
             onChange(content, true);
         }
     }
-
-
     useEffect(() => {
         fetchRecordModel()
     }, []);
 
     return (
-        (isRowType(selectedType)) || recordTypeField ? <RecordConfig
-            recordModel={recordModel}
-            onModelChange={handleModelChange}
-        /> : <NonRecordCreateValue
-            fileName={fileName}
-            currentValue={currentValue}
-            onChange={onChange}
-            selectedType={selectedType}
-        />
+        (isRowType(selectedType)) || recordTypeField ?
+            <>
+                <p style={{ color: "var(--vscode-list-deemphasizedForeground)", fontSize: "13px", margin: "8px 0" }}>
+                    Select or create a value for this record type. 
+                    Click the button below to configure complex values.
+                </p>
+                <DynamicModal
+                    width={500}
+                    height={600}
+                    anchorRef={anchorRef}
+                    title="Create Value"
+                    openState={isModalOpen}
+                    setOpenState={setIsModalOpen}>
+                    <DynamicModal.Trigger>
+                        <Button >
+                            Open in expaded view
+                        </Button>
+                    </DynamicModal.Trigger>
+                    <RecordConfig
+                        recordModel={recordModel}
+                        onModelChange={handleModelChange}
+                    />
+                </DynamicModal>
+            </>
+            : <NonRecordCreateValue
+                fileName={fileName}
+                currentValue={currentValue}
+                onChange={onChange}
+                selectedType={selectedType}
+                {...props}
+            />
     )
 }
 
@@ -147,12 +173,12 @@ const NonRecordCreateValue = (props: CreateValuePageProps) => {
             {isSelectedTypeContainsType(selectedType, "string") && (
                 <ExpandableList>
                     <SlidingPaneNavContainer>
-                        <ExpandableList.Item sx={{ width: "100%" }} onClick={() => {handleValueSelect("string ``")}}>
+                        <ExpandableList.Item sx={{ width: "100%" }} onClick={() => { handleValueSelect("string ``") }}>
                             Create a string template
                         </ExpandableList.Item>
                     </SlidingPaneNavContainer>
                     <SlidingPaneNavContainer>
-                        <ExpandableList.Item sx={{ width: "100%" }} onClick={() => {handleValueSelect("\"\"")}}>
+                        <ExpandableList.Item sx={{ width: "100%" }} onClick={() => { handleValueSelect("\"\"") }}>
                             Create a string value
                         </ExpandableList.Item>
                     </SlidingPaneNavContainer>
