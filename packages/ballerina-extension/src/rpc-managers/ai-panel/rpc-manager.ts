@@ -23,6 +23,7 @@ import {
     AIPanelAPI,
     AIPanelPrompt,
     AddToProjectRequest,
+    BIIntelSecrets,
     BIModuleNodesRequest,
     BISourceCodeResponse,
     CodeSegment,
@@ -159,11 +160,14 @@ export class AiPanelRpcManager implements AIPanelAPI {
     async getAccessToken(): Promise<string> {
         return new Promise(async (resolve, reject) => {
             try {
-                const accessToken = await getAccessToken();
-                if (!accessToken) {
+                const credentials = await getAccessToken();
+
+                if (!credentials) {
                     reject(new Error("Access Token is undefined"));
                     return;
                 }
+                const secrets = credentials.secrets as BIIntelSecrets;
+                const accessToken = secrets.accessToken;
                 resolve(accessToken);
             } catch (error) {
                 reject(error);
@@ -798,7 +802,7 @@ export class AiPanelRpcManager implements AIPanelAPI {
     async abortAIGeneration(): Promise<void> {
         AIPanelAbortController.getInstance().abort();
     }
-    
+
     async openInlineMappingChatWindow(): Promise<void> {
         try {
             let filePath = StateMachine.context().documentUri;

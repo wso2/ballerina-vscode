@@ -18,7 +18,7 @@ import { createAnthropic } from "@ai-sdk/anthropic";
 import { getAccessToken, getLoginMethod, getRefreshedAccessToken } from "../../../utils/ai/auth";
 import { AIStateMachine } from "../../../views/ai-panel/aiMachine";
 import { BACKEND_URL } from "../utils";
-import { AIMachineEventType, LoginMethod } from "@wso2/ballerina-core";
+import { AIMachineEventType, AnthropicKeySecrets, LoginMethod, BIIntelSecrets, DevantEnvSecrets } from "@wso2/ballerina-core";
 
 export const ANTHROPIC_HAIKU = "claude-3-5-haiku-20241022";
 export const ANTHROPIC_SONNET_4 = "claude-sonnet-4-20250514";
@@ -40,21 +40,44 @@ let cachedAuthMethod: LoginMethod | null = null;
  */
 export async function fetchWithAuth(input: string | URL | Request, options: RequestInit = {}): Promise<Response | undefined> {
     try {
-        const accessToken = await getAccessToken();
+        const credentials = await getAccessToken();
+        const loginMethod = credentials.loginMethod;
 
-        // Ensure headers object exists
-        options.headers = {
-            ...options.headers,
-            'Authorization': `Bearer ${accessToken}`,
+        const headers: Record<string, string> = {
+            "Content-Type": "application/json",
             'User-Agent': 'Ballerina-VSCode-Plugin',
             'Connection': 'keep-alive',
+        };
+
+        if (credentials && loginMethod === LoginMethod.DEVANT_ENV) {
+            // For DEVANT_ENV, use api-key and x-Authorization headers
+            const secrets = credentials.secrets as DevantEnvSecrets;
+            const apiKey = secrets.apiKey;
+            const stsToken = secrets.stsToken;
+
+            if (apiKey && stsToken && apiKey.trim() !== "" && stsToken.trim() !== "") {
+                headers["api-key"] = apiKey;
+                headers["x-Authorization"] = stsToken;
+            } else {
+                console.warn("DevantEnv secrets missing, this may cause authentication issues");
+            }
+        } else if (credentials && loginMethod === LoginMethod.BI_INTEL) {
+            // For BI_INTEL, use Bearer token
+            const secrets = credentials.secrets as BIIntelSecrets;
+            headers["Authorization"] = `Bearer ${secrets.accessToken}`;
+        }
+
+        // Ensure headers object exists and merge with existing headers
+        options.headers = {
+            ...options.headers,
+            ...headers,
         };
 
         let response = await fetch(input, options);
         console.log("Response status: ", response.status);
 
-        // Handle token expiration
-        if (response.status === 401) {
+        // Handle token expiration (only for BI_INTEL method)
+        if (response.status === 401 && loginMethod === LoginMethod.BI_INTEL) {
             console.log("Token expired. Refreshing token...");
             const newToken = await getRefreshedAccessToken();
             if (newToken) {
@@ -87,17 +110,18 @@ export const getAnthropicClient = async (model: AnthropicModel) => {
 
     // Recreate client if login method has changed or no cached instance
     if (!cachedAnthropic || cachedAuthMethod !== loginMethod) {
-        if (loginMethod === LoginMethod.BI_INTEL) {
+        if (loginMethod === LoginMethod.BI_INTEL || loginMethod === LoginMethod.DEVANT_ENV) {
             cachedAnthropic = createAnthropic({
                 baseURL: BACKEND_URL + "/intelligence-api/v1.0/claude",
                 apiKey: "xx", // dummy value; real auth is via fetchWithAuth
                 fetch: fetchWithAuth,
             });
         } else if (loginMethod === LoginMethod.ANTHROPIC_KEY) {
-            const apiKey = await getAccessToken();
+            const credentials = await getAccessToken();
+            const secrets = credentials.secrets as AnthropicKeySecrets;
             cachedAnthropic = createAnthropic({
                 baseURL: "https://api.anthropic.com/v1",
-                apiKey: apiKey,
+                apiKey: secrets.apiKey,
             });
         } else {
             throw new Error(`Unsupported login method: ${loginMethod}`);

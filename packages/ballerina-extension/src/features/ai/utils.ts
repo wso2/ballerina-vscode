@@ -30,13 +30,16 @@ import { BallerinaProject } from '@wso2/ballerina-core';
 import { BallerinaExtension } from 'src/core';
 
 const config = workspace.getConfiguration('ballerina');
-export const BACKEND_URL : string = config.get('rootUrl') || process.env.BALLERINA_ROOT_URL;
-export const AUTH_ORG : string = config.get('authOrg') || process.env.BALLERINA_AUTH_ORG;
-export const AUTH_CLIENT_ID : string = config.get('authClientID') || process.env.BALLERINA_AUTH_CLIENT_ID;
-export const AUTH_REDIRECT_URL : string = config.get('authRedirectURL') || process.env.BALLERINA_AUTH_REDIRECT_URL;
+export const BACKEND_URL: string = config.get('rootUrl') || process.env.BALLERINA_ROOT_URL;
+export const AUTH_ORG: string = config.get('authOrg') || process.env.BALLERINA_AUTH_ORG;
+export const AUTH_CLIENT_ID: string = config.get('authClientID') || process.env.BALLERINA_AUTH_CLIENT_ID;
+export const AUTH_REDIRECT_URL: string = config.get('authRedirectURL') || process.env.BALLERINA_AUTH_REDIRECT_URL;
+
+export const DEVANT_API_KEY: string = config.get('devantApiKey') || process.env.DEVANT_API_KEY;
+export const DEVANT_STS_TOKEN: string = config.get('cloudStsToken') || process.env.CLOUD_STS_TOKEN;
 
 // This refers to old backend before FE Migration. We need to eventually remove this.
-export const OLD_BACKEND_URL : string = BACKEND_URL + "/v2.0";
+export const OLD_BACKEND_URL: string = BACKEND_URL + "/v2.0";
 
 export async function closeAllBallerinaFiles(dirPath: string): Promise<void> {
     // Check if the directory exists
