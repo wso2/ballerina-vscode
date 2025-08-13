@@ -123,6 +123,7 @@ export function InlineDataMapper(props: InlineDataMapperProps) {
         name,
         applyModifications,
         onClose,
+        onEdit,
         addArrayElement,
         handleView,
         convertToQuery,
@@ -276,6 +277,7 @@ export function InlineDataMapper(props: InlineDataMapperProps) {
                         switchView={switchView}
                         hasEditDisabled={!!errorKind}
                         onClose={handleOnClose}
+                        onEdit={onEdit}
                         autoMapWithAI={autoMapWithAI}
                     />
                 )}

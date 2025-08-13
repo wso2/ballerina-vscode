@@ -71,6 +71,7 @@ export interface InlineDataMapperProps {
     mapWithCustomFn: (mapping: Mapping, metadata: CustomFnMetadata, viewId: string) => Promise<void>;
     goToFunction: (functionRange: LineRange) => Promise<void>;
     onClose: () => void;
+    onEdit?: () => void;
     handleView: (viewId: string, isSubMapping?: boolean) => void;
 }
 

@@ -24,6 +24,7 @@ import {
     MACHINE_VIEW,
     PopupMachineStateValue,
     EVENT_TYPE,
+    CodeData,
 } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { Global, css } from "@emotion/react";
@@ -71,6 +72,7 @@ import { AIChatAgentWizard } from "./views/BI/AIChatAgent/AIChatAgentWizard";
 import { BallerinaUpdateView } from "./views/BI/BallerinaUpdateView";
 import { VSCodeProgressRing } from "@vscode/webview-ui-toolkit/react";
 import { InlineDataMapper } from "./views/InlineDataMapper";
+import { DataMapperNew } from "./views/DataMapper/DMIndex";
 
 const globalStyles = css`
     *,
@@ -325,16 +327,39 @@ const MainPanel = () => {
                         setViewComponent(<TypeDiagram selectedTypeId={value?.identifier} projectUri={value?.projectUri} addType={value?.addType} />);
                         break;
                     case MACHINE_VIEW.DataMapper:
+                        const codeData: CodeData = {
+                            lineRange: {
+                                fileName: Utils.basename(URI.parse(value.documentUri)),
+                                startLine: {
+                                    line: value?.position?.startLine,
+                                    offset: value?.position?.startColumn,
+                                },
+                                endLine: {
+                                    line: value?.position?.endLine,
+                                    offset: value?.position?.endColumn,
+                                },
+                            },
+                            node: "DATA_MAPPER_DEFINITION"
+                        };
                         setViewComponent(
-                            <DataMapper
-                                projectPath={value.projectUri}
+                            <DataMapperNew
                                 filePath={value.documentUri}
-                                model={value?.syntaxTree as FunctionDefinition}
-                                functionName={value?.identifier}
-                                applyModifications={applyModifications}
+                                codedata={codeData}
+                                varName={value?.identifier}
                             />
                         );
                         break;
+                    // case MACHINE_VIEW.DataMapper:
+                    //     setViewComponent(
+                    //         <DataMapper
+                    //             projectPath={value.projectUri}
+                    //             filePath={value.documentUri}
+                    //             model={value?.syntaxTree as FunctionDefinition}
+                    //             functionName={value?.identifier}
+                    //             applyModifications={applyModifications}
+                    //         />
+                    //     );
+                    //     break;
                     case MACHINE_VIEW.InlineDataMapper:
                         setViewComponent(
                             <InlineDataMapper

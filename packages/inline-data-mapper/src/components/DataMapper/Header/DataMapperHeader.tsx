@@ -26,17 +26,19 @@ import { View } from "../Views/DataMapperView";
 import { VSCodeButton } from "@vscode/webview-ui-toolkit/react";
 import AutoMapButton from "./AutoMapButton";
 import ExpressionBarWrapper from "./ExpressionBar";
+import EditButton from "./EditButton";
 
 export interface DataMapperHeaderProps {
     views: View[];
     switchView: (index: number) => void;
     hasEditDisabled: boolean;
     onClose: () => void;
+    onEdit?: () => void;
     autoMapWithAI: () => Promise<void>;
 }
 
 export function DataMapperHeader(props: DataMapperHeaderProps) {
-    const { views, switchView, hasEditDisabled, onClose, autoMapWithAI } = props;
+    const { views, switchView, hasEditDisabled, onClose, onEdit, autoMapWithAI } = props;
 
     const handleAutoMap = async () => {
         await autoMapWithAI();
@@ -62,6 +64,7 @@ export function DataMapperHeader(props: DataMapperHeaderProps) {
                         <HeaderSearchBox />
                     </FilterBar>
                     <AutoMapButton onClick={handleAutoMap} disabled={false} />
+                    {onEdit && <EditButton onClick={onEdit} disabled={hasEditDisabled} />}
                 </RightContainer>
                 <VSCodeButton
                     appearance="icon"
