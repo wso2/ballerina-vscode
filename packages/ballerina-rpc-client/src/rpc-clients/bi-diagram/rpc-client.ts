@@ -185,6 +185,9 @@ import {
     updateTypes,
     DeleteConfigVariableRequestV2,
     DeleteConfigVariableResponseV2,
+    VerifyTypeDeleteRequest,
+    VerifyTypeDeleteResponse,
+    verifyTypeDelete
 } from "@wso2/ballerina-core";
 import { HOST_EXTENSION } from "vscode-messenger-common";
 import { Messenger } from "vscode-messenger-webview";
@@ -478,5 +481,9 @@ export class BiDiagramRpcClient implements BIDiagramAPI {
 
     deleteOpenApiGeneratedModules(params: OpenAPIClientDeleteRequest): Promise<OpenAPIClientDeleteResponse> {
         return this._messenger.sendRequest(deleteOpenApiGeneratedModules, HOST_EXTENSION, params);
+    }
+
+    verifyTypeDelete(params: VerifyTypeDeleteRequest): Promise<VerifyTypeDeleteResponse> {
+        return this._messenger.sendRequest(verifyTypeDelete, HOST_EXTENSION, params);
     }
 }

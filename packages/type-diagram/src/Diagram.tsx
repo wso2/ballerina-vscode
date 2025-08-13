@@ -44,10 +44,11 @@ interface TypeDiagramProps {
     goToSource: (node: Type) => void
     onTypeEdit: (typeId: string, isGraphqlRoot?: boolean) => void;
     onTypeDelete: (typeId: string) => void;
+    verifyTypeDelete: (typeId: string) => Promise<boolean>;
 }
 
 export function TypeDiagram(props: TypeDiagramProps) {
-    const { typeModel, showProblemPanel, selectedNodeId, goToSource, focusedNodeId, updateFocusedNodeId, rootService, isGraphql } = props;
+    const { typeModel, showProblemPanel, selectedNodeId, goToSource, focusedNodeId, updateFocusedNodeId, rootService, isGraphql, verifyTypeDelete } = props;
 
     const [diagramEngine] = useState<DiagramEngine>(createEntitiesEngine());
     const [diagramModel, setDiagramModel] = useState<DiagramModel>(undefined);
@@ -129,7 +130,8 @@ export function TypeDiagram(props: TypeDiagramProps) {
         setFocusedNodeId: updateFocusedNodeId,
         onEditNode: onTypeEdit,
         goToSource,
-        onNodeDelete
+        onNodeDelete,
+        verifyTypeDelete
     }
 
     const refreshDiagram = () => {

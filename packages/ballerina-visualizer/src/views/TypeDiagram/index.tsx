@@ -150,7 +150,7 @@ export function TypeDiagram(props: TypeDiagramProps) {
             return;
         }
         if (type?.codedata?.node === "CLASS") {
-            await rpcClient.getVisualizerRpcClient().openView({
+            rpcClient.getVisualizerRpcClient().openView({
                 type: EVENT_TYPE.OPEN_VIEW,
                 location: {
                     view: MACHINE_VIEW.BIServiceClassDesigner,
@@ -168,6 +168,31 @@ export function TypeDiagram(props: TypeDiagramProps) {
         setHighlightedNodeId(typeId);
     };
 
+    const verifyTypeDelete = async (typeId: string) => {
+        if (!visualizerLocation || !visualizerLocation.metadata?.recordFilePath) {
+            return false;
+        }
+        const component = typesModel?.find((type) => type.name === typeId);
+        if (!component) {
+            return false;
+        }
+        
+        // filepath is visualizerLocation.projectUri + component.codedata.lineRange.fileName
+        const response = await rpcClient.getBIDiagramRpcClient().verifyTypeDelete({
+            filePath: component.codedata?.lineRange?.fileName,
+            startLine: component.codedata?.lineRange?.startLine?.line,
+            startColumn: component.codedata?.lineRange?.startLine?.offset
+        });
+        if (response.errorMsg) {
+            rpcClient.getCommonRpcClient().showErrorMessage({
+                message: response.errorMsg || "Failed to delete type. Please check the console for more details.",
+            });
+            return response.canDelete;
+        }
+        return response.canDelete;
+    };
+
+    // After user confirms in the diagram, delete without re-verifying.
     const onTypeDelete = async (typeId:string) => {
         const component = typesModel?.find((type) => type.name === typeId);
         if (!component || !visualizerLocation?.metadata?.recordFilePath) {
@@ -317,6 +342,7 @@ export function TypeDiagram(props: TypeDiagramProps) {
                             goToSource={handleOnGoToSource}
                             onTypeEdit={onTypeEdit}
                             onTypeDelete={onTypeDelete}
+                            verifyTypeDelete={verifyTypeDelete}
                         />
                     ) : (
                         <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>

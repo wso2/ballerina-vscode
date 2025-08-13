@@ -58,18 +58,21 @@ import {
     CreateComponentResponse,
     CurrentBreakpointsResponse,
     DIRECTORY_MAP,
+    DeleteConfigVariableRequestV2,
+    DeleteConfigVariableResponseV2,
+    DeleteTypeRequest,
+    DeleteTypeResponse,
     DeploymentRequest,
     DeploymentResponse,
     DevantMetadata,
+    Diagnostics,
     EndOfFileRequest,
     ExpressionCompletionsRequest,
     ExpressionCompletionsResponse,
     ExpressionDiagnosticsRequest,
     ExpressionDiagnosticsResponse,
-    FlowNode,
     FormDidCloseParams,
     FormDidOpenParams,
-    FunctionNode,
     FunctionNodeRequest,
     FunctionNodeResponse,
     GeneratedClientSaveResponse,
@@ -87,6 +90,7 @@ import {
     JsonToTypeRequest,
     JsonToTypeResponse,
     LinePosition,
+    LoginMethod,
     ModelFromCodeRequest,
     NodeKind,
     OpenAPIClientDeleteRequest,
@@ -130,15 +134,11 @@ import {
     UpdatedArtifactsResponse,
     VisibleTypesRequest,
     VisibleTypesResponse,
+    VerifyTypeDeleteRequest,
+    VerifyTypeDeleteResponse,
     WorkspaceFolder,
     WorkspacesResponse,
-    DeleteConfigVariableRequestV2,
-    DeleteConfigVariableResponseV2,
-    LoginMethod,
-    Diagnostics,
-    DeleteTypeRequest,
-    DeleteTypeResponse,
-    ComponentInfo,
+    deleteType
 } from "@wso2/ballerina-core";
 import * as fs from "fs";
 import * as path from 'path';
@@ -162,11 +162,11 @@ import { OLD_BACKEND_URL } from "../../features/ai/utils";
 import { cleanAndValidateProject, getCurrentBIProject } from "../../features/config-generator/configGenerator";
 import { BreakpointManager } from "../../features/debugger/breakpoint-manager";
 import { StateMachine, updateView } from "../../stateMachine";
+import { getAccessToken, getLoginMethod } from "../../utils/ai/auth";
 import { getCompleteSuggestions } from '../../utils/ai/completions';
 import { README_FILE, createBIAutomation, createBIFunction, createBIProjectPure } from "../../utils/bi";
 import { writeBallerinaFileDidOpen } from "../../utils/modification";
 import { updateSourceCode } from "../../utils/source-utils";
-import { getAccessToken, getLoginMethod } from "../../utils/ai/auth";
 import { checkProjectDiagnostics, removeUnusedImports } from "../ai-panel/repair-utils";
 export class BiDiagramRpcManager implements BIDiagramAPI {
     OpenConfigTomlRequest: (params: OpenConfigTomlRequest) => Promise<void>;
@@ -1822,45 +1822,48 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
     }
 
     async deleteType(params: DeleteTypeRequest): Promise<DeleteTypeResponse> {
-        const componentType = 'TYPE';
-        const componentCategory = StateMachine.context().projectStructure.directoryMap[componentType];
-        if (!componentCategory) {
-            console.warn("No component category found for type deletion");
-            return Promise.resolve({ textEdits: {}, errorMsg: "No component category found for type deletion" });
-        }
-        const defaultResponse: DeleteTypeResponse = {
-            textEdits: {},
-            errorMsg: ""
-        };
-        componentCategory.forEach(async (component) => {
-            if (component.name === params.component.name ) {
-                const componentInfo: ComponentInfo = {
-                    name: component.name,
-                    filePath: component.path,
-                    startLine: component.position.startLine,
-                    startColumn: component.position.startColumn,
-                    endLine: component.position.endLine,
-                    endColumn: component.position.endColumn,
-                };
-    
-                const deleteTypeRequest: DeleteTypeRequest = {
-                    filePath: params.filePath,
-                    component: componentInfo
-                };
-
-                this.deleteByComponentInfo(deleteTypeRequest).then((response) => {
-                    console.log(">>> delete type response", response);
-                    updateSourceCode({ textEdits: response.textEdits });
-                    defaultResponse.textEdits = response.textEdits;
+        return new Promise((resolve, reject) => {
+            const projectUri = StateMachine.context().projectUri;
+            const filePath = path.join(projectUri, params.component.filePath);
+            StateMachine.langClient().deleteType({ filePath: filePath, component: params.component})
+                .then(async (deleteTypeResponse: DeleteTypeResponse) => {
+                    console.log(">>> delete type response", deleteTypeResponse);
+                    if (deleteTypeResponse.textEdits) {
+                        await updateSourceCode({ textEdits: deleteTypeResponse.textEdits });
+                        resolve(deleteTypeResponse);
+                    } else {
+                        console.log(">>> error deleting type", deleteTypeResponse?.errorMsg);
+                        resolve(undefined);
+                    }
                 }).catch((error) => {
-                    console.error(">>> error deleting type", error);
-                    defaultResponse.errorMsg = "Error deleting type";
+                    console.log(">>> error deleting type", error);
+                    reject(error);
                 });
-            }
         });
-              
-        return new Promise((resolve) => {
-            resolve(defaultResponse);
+    }
+
+    async verifyTypeDelete(params: VerifyTypeDeleteRequest): Promise<VerifyTypeDeleteResponse> {
+
+        const projectUri = StateMachine.context().projectUri;
+        const filePath = path.join(projectUri, params.filePath);
+
+        console.log(">>> verifying type delete", params);
+        const request: VerifyTypeDeleteRequest = {
+            filePath: filePath,
+            startLine: params.startLine,
+            startColumn: params.startColumn
+        };
+        return new Promise((resolve, reject) => {
+            StateMachine.langClient().verifyTypeDelete(request)
+                .then((response) => {
+                    console.log(">>> verify type delete response", response);
+                    
+                    resolve(response);
+                })
+                .catch((error) => {
+                    console.log(">>> error verifying type delete", error);
+                    reject(error);
+                });
         });
     }
 }

@@ -24,7 +24,7 @@ import { EntityHead, EntityName } from '../styles';
 import { CtrlClickGo2Source } from '../../../common/CtrlClickHandler/CtrlClickGo2Source';
 import { DiagramContext } from '../../../common';
 import styled from '@emotion/styled';
-import { Button, Confirm, Item, Menu, MenuItem, Popover, ThemeColors, Tooltip } from '@wso2/ui-toolkit';
+import { Button, Confirm, Item, Menu, MenuItem, Popover, ThemeColors } from '@wso2/ui-toolkit';
 import { MoreVertIcon } from '../../../../resources';
 import { GraphQLIcon } from '../../../../resources/assets/icons/GraphqlIcon';
 
@@ -83,7 +83,7 @@ interface Origin {
 
 export function EntityHeadWidget(props: ServiceHeadProps) {
     const { engine, node, isSelected } = props;
-    const { setFocusedNodeId, onEditNode, goToSource, onNodeDelete } = useContext(DiagramContext);
+    const { setFocusedNodeId, onEditNode, goToSource, onNodeDelete, verifyTypeDelete } = useContext(DiagramContext);
 
     const displayName: string = node.getID()?.slice(node.getID()?.lastIndexOf(':') + 1);
     const isImported = !node?.entityObject?.editable;
@@ -94,6 +94,9 @@ export function EntityHeadWidget(props: ServiceHeadProps) {
     const [confirmEl, setConfirmEl] = React.useState<HTMLElement | SVGSVGElement | null>(null);
     const [anchorOrigin, setAnchorOrigin] = useState<Origin>({ vertical: "bottom", horizontal: "left" });
     const [transformOrigin, setTransformOrigin] = useState<Origin>({ vertical: "top", horizontal: "right" });
+
+    const [confirmMessage, setConfirmMessage] = useState<string>("Are you sure you want to delete this?");
+    const [isVerifyingDelete, setIsVerifyingDelete] = useState(false);
 
     const handleOnMenuClick = (event: React.MouseEvent<HTMLElement | SVGSVGElement>) => {
         setAnchorEl(event.currentTarget);
@@ -110,29 +113,7 @@ export function EntityHeadWidget(props: ServiceHeadProps) {
         setAnchorEl(null);
     };
 
-    const onNodeDeleteWithConfirm = () => {
-        // Filter only the directional ports (left, right, bottom, top)
-        const directionalPorts = Object.entries(node.getPorts()).filter(([portKey, ]) => {
-            return portKey === `left-${node.getID()}` ||
-               portKey === `right-${node.getID()}` ||
-               portKey === `bottom-${node.getID()}` ||
-               portKey === `top-${node.getID()}`;
-        });
-
-        // Get all links from these directional ports
-        const links = directionalPorts.flatMap(([, port]) => {
-            return Object.values(port.getLinks());
-        });
-
-        // Check if there are any links
-        if (links.length > 0) {
-            console.log("Node has connections, cannot delete");
-
-            // You can show a message to user or just return
-            setAnchorEl(null);
-            return;
-        }
-
+    const onNodeDeleteWithConfirm = async () => {
         // Proceed with deletion only if no links exist
         if (node?.entityObject?.editable && onNodeDelete) {
             onNodeDelete(node.getID());
@@ -150,13 +131,16 @@ export function EntityHeadWidget(props: ServiceHeadProps) {
         setAnchorEl(null);
     }
 
+    // Keep this sync to satisfy Menu Item's onClick: () => void
     const handleDeleteClick = () => {
-        // Calculate position based on current anchorEl (menu button)
+        const idLabel = node.getID();
+
+        // Position the confirm near the menu button
         if (anchorEl) {
             const rect = anchorEl.getBoundingClientRect();
             const spaceBelow = window.innerHeight - rect.bottom;
             const spaceAbove = rect.top;
-            
+
             if (spaceBelow < 200 && spaceAbove > 200) {
                 setAnchorOrigin({ vertical: "top", horizontal: "left" });
                 setTransformOrigin({ vertical: "bottom", horizontal: "right" });
@@ -164,28 +148,30 @@ export function EntityHeadWidget(props: ServiceHeadProps) {
                 setAnchorOrigin({ vertical: "bottom", horizontal: "left" });
                 setTransformOrigin({ vertical: "top", horizontal: "right" });
             }
-            
-            setConfirmEl(anchorEl); // Use the menu button as anchor
+            setConfirmEl(anchorEl);
         }
-        
-        setAnchorEl(null); // Close the menu
+        setAnchorEl(null); // close menu
+
+        // Open confirm immediately in "verifying" mode
+        setIsVerifyingDelete(true);
+        setConfirmMessage("Checking usages...");
         setIsConfirmOpen(true);
-    };
 
-    // Check if node has connections
-    const hasConnections = () => {
-        const directionalPorts = Object.entries(node.getPorts()).filter(([portKey, ]) => {
-            return portKey === `left-${node.getID()}` ||
-               portKey === `right-${node.getID()}` ||
-               portKey === `bottom-${node.getID()}` ||
-               portKey === `top-${node.getID()}`;
-        });
-
-        const links = directionalPorts.flatMap(([, port]) => {
-            return Object.values(port.getLinks());
-        });
-
-        return links.length > 0;
+        // Verify asynchronously and update the message
+        verifyTypeDelete(idLabel)
+            .then((canDelete) => {
+                setConfirmMessage(
+                    canDelete
+                        ? `Are you sure you want to delete ${idLabel}?`
+                        : `${idLabel} has usages. Are you sure you want to delete this?`
+                );
+            })
+            .catch(() => {
+                setConfirmMessage(`Are you sure you want to delete ${idLabel}?`);
+            })
+            .finally(() => {
+                setIsVerifyingDelete(false);
+            });
     };
 
     const menuItems: Item[] = [
@@ -199,53 +185,27 @@ export function EntityHeadWidget(props: ServiceHeadProps) {
                 id: "goToSource", 
                 label: "Source", 
                 onClick: () => onGoToSource()
-            }
-        ] : []),
-        {
-            id: "focusView", 
-            label: "Focused View", 
-            onClick: () => onFocusedView()
-        }
-    ];
-
-    const renderDeleteMenuItem = () => {
-        const isDisabled = hasConnections();
-
-        if (isDisabled) {
-            return (
-                <Tooltip
-                    key="delete"
-                    content="This cannot be deleted unless this is unlinked"
-                    position="right"
-                >
-                    <div style={{ opacity: 0.5, cursor: 'not-allowed' }}>
-                        <MenuItem
-                            item={{
-                                id: "delete",
-                                label: "Delete",
-                                onClick: () => {} // No-op, actual handler passed to MenuItem below
-                            }}
-                        />
-                    </div>
-                </Tooltip>
-            );
-        }
-
-        return (
-            <MenuItem
-                key="delete"
-                item={{
+            },
+            ...(!node.isGraphqlRoot ? [{
                 id: "delete",
                 label: "Delete",
-                onClick: handleDeleteClick // Pass the handler here
-                }}
-            />
-        );
-    };
+                onClick: () => handleDeleteClick()
+            }] : []),
+            
+        ] : [{
+                id: "focusView", 
+                label: "Focused View", 
+                onClick: () => onFocusedView()
+            }])
+    ];
 
-    const handleConfirm = (state) => {
+    const handleConfirm = (state: boolean) => {
+        // Block confirm while verifying
+        if (isVerifyingDelete) {
+            return;
+        }
         if (state)  {
-        onNodeDeleteWithConfirm(); // Call the actual delete function
+            onNodeDeleteWithConfirm(); // Call the actual delete function
         }
         setIsConfirmOpen(false); // Close the confirmation dialog
         setConfirmEl(null);
@@ -306,14 +266,13 @@ export function EntityHeadWidget(props: ServiceHeadProps) {
                         {menuItems.map((item) => (
                             <MenuItem key={item.id} item={item} />
                         ))}
-                        {node?.entityObject?.editable && !(node?.isGraphqlRoot) && renderDeleteMenuItem()}
                     </Menu>
                 </Popover>
                 <Confirm
                     isOpen={isConfirmOpen}
                     onConfirm={handleConfirm}
-                    confirmText="Delete"
-                    message="Are you sure you want to delete this?"
+                    confirmText={isVerifyingDelete ? "Please wait..." : "Delete"}
+                    message={confirmMessage}
                     anchorEl={confirmEl}
                     anchorOrigin={anchorOrigin}
                     transformOrigin={transformOrigin}
