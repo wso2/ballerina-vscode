@@ -110,7 +110,7 @@ export function InlineDataMapperView(props: InlineDataMapperProps) {
         const hasTypesChanged = hasSignatureChanged(currentSignature, prevSignature, 'types');
 
         // Check if it's already an ExpandedDMModel
-        const isExpandedModel = !('types' in model);
+        const isExpandedModel = !('refs' in model);
         if (isExpandedModel) {
             setModelState({
                 model: model as ExpandedDMModel,
@@ -129,6 +129,7 @@ export function InlineDataMapperView(props: InlineDataMapperProps) {
                 processSubMappings: hasSubMappingsChanged || hasTypesChanged,
                 previousModel: modelState.model as ExpandedDMModel
             });
+            console.log(">>> [Inline Data Mapper] processed expandedModel:", expandedModel);
             setModelState({
                 model: expandedModel,
                 hasInputsOutputsChanged: hasInputsChanged || hasOutputChanged || hasTypesChanged,

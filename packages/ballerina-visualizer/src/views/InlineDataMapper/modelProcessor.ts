@@ -71,25 +71,27 @@ function processArray(
     member: IOTypeField,
     model: DMModel
 ): IOType {
-    const fieldId = generateFieldId(parentId, `${parentId.split(".").pop()!}Item`);
+    const variableName = `<${parentId.split(".").pop()!}Item>`;
+    const fieldId = generateFieldId(parentId, variableName);
     const ioType: IOType = {
         id: fieldId,
+        variableName: variableName,
         typeName: member.typeName!,
         kind: member.kind
     };
 
-    if (member.ref) {
-        const refType = model.types[member.ref];
-        return {
-            ...ioType,
-            ...processTypeReference(refType, fieldId, model)
-        };
-    }
-
     if (member.kind === TypeKind.Array && member.member) {
         return {
             ...ioType,
-            member: processArray(field, fieldId, member.member, model)
+            member: processArray(field, parentId, member.member, model)
+        };
+    }
+
+    if (member.ref) {
+        const refType = model.refs[member.ref];
+        return {
+            ...ioType,
+            ...processTypeReference(refType, parentId, model)
         };
     }
 
@@ -107,16 +109,16 @@ function processTypeFields(
     if (!type.fields) return [];
 
     return type.fields.map(field => {
-        const fieldId = generateFieldId(parentId, field.fieldName!);
+        const fieldId = generateFieldId(parentId, field.variableName!);
         const ioType: IOType = {
             id: fieldId,
-            variableName: field.fieldName!,
+            variableName: field.variableName!,
             typeName: field.typeName!,
             kind: field.kind
         };
 
         if (field.kind === TypeKind.Record && field.ref) {
-            const refType = model.types[field.ref];
+            const refType = model.refs[field.ref];
             return {
                 ...ioType,
                 ...processTypeReference(refType, fieldId, model)
@@ -140,7 +142,7 @@ function processTypeFields(
 function createBaseIOType(root: IORoot): IOType {
     return {
         id: root.id,
-        variableName: root.fieldName!,
+        variableName: root.variableName!,
         typeName: root.typeName,
         kind: root.kind,
         ...(root.category && { category: root.category })
@@ -153,18 +155,18 @@ function createBaseIOType(root: IORoot): IOType {
 function processIORoot(root: IORoot, model: DMModel): IOType {
     const ioType = createBaseIOType(root);
 
-    if (root.ref) {
-        const refType = model.types[root.ref];
-        return {
-            ...ioType,
-            ...processTypeReference(refType, root.id, model)
-        };
-    }
-
     if (root.kind === TypeKind.Array && root.member) {
         return {
             ...ioType,
             member: processArray(root, root.id, root.member, model)
+        };
+    }
+
+    if (root.ref) {
+        const refType = model.refs[root.ref];
+        return {
+            ...ioType,
+            ...processTypeReference(refType, root.id, model)
         };
     }
 
