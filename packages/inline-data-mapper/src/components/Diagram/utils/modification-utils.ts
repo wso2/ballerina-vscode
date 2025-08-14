@@ -42,7 +42,7 @@ export async function createNewMapping(link: DataMapperLinkModel, modifier?: (ex
 
 	const input = isSourceEnumMember
 		? sourcePortModel.attributes.field?.typeName
-		: sourcePortModel.attributes.optionalOmittedFieldFQN;
+		: sourcePortModel.attributes.fieldFQN;
 	const outputId = outputPortModel.attributes.fieldFQN;
 	const lastView = targetNode.context.views[targetNode.context.views.length - 1];
 	const viewId = lastView?.targetField || null;
