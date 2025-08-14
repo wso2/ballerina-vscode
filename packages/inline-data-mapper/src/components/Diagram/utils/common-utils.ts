@@ -17,43 +17,112 @@
  */
 import { PortModel } from "@projectstorm/react-diagrams-core";
 
-import { InputOutputPortModel, MappingType, ValueType } from "../Port";
-import { getDMTypeDim } from "./type-utils";
-import { DataMapperLinkModel } from "../Link";
+import { InputOutputPortModel, ValueType } from "../Port";
+import { getDMTypeDim, getTypeName } from "./type-utils";
+import { DataMapperLinkModel, MappingType } from "../Link";
+
 import { IOType, Mapping, TypeKind } from "@wso2/ballerina-core";
-import { useDMCollapsedFieldsStore, useDMExpandedFieldsStore } from "../../../store/store";
 import { DataMapperNodeModel } from "../Node/commons/DataMapperNode";
 import { ErrorNodeKind } from "../../../components/DataMapper/Error/RenderingError";
-import { ARRAY_OUTPUT_NODE_TYPE, INPUT_NODE_TYPE, OBJECT_OUTPUT_NODE_TYPE } from "../Node";
+import {
+    ARRAY_OUTPUT_NODE_TYPE,
+    EmptyInputsNode,
+    INPUT_NODE_TYPE,
+    InputNode,
+    OBJECT_OUTPUT_NODE_TYPE,
+    PRIMITIVE_OUTPUT_NODE_TYPE,
+    PrimitiveOutputNode
+} from "../Node";
+import { IDataMapperContext } from "../../../utils/DataMapperContext/DataMapperContext";
+import { View } from "../../../components/DataMapper/Views/DataMapperView";
+import { useDMExpandedFieldsStore } from "../../../store/store";
+
+const MERGEABLE_TYPES = new Set([
+	TypeKind.String,
+	TypeKind.Int,
+	TypeKind.Float,
+	TypeKind.Decimal,
+	"anydata",
+	"any"
+]);
 
 export function findMappingByOutput(mappings: Mapping[], outputId: string): Mapping {
     return mappings.find(mapping => (mapping.output === outputId || mapping.output.replaceAll("\"", "") === outputId));
 }
 
+export function isPendingMappingRequired(mappingType: MappingType): boolean {
+    return mappingType === MappingType.Incompatible;
+}
+
 export function getMappingType(sourcePort: PortModel, targetPort: PortModel): MappingType {
 
-    if (sourcePort instanceof InputOutputPortModel
-        && targetPort instanceof InputOutputPortModel
-        && targetPort.field && sourcePort.field) {
+    if (sourcePort instanceof InputOutputPortModel &&
+        targetPort instanceof InputOutputPortModel &&
+        targetPort.attributes.field &&
+        sourcePort.attributes.field
+    ) {
+
+        if (targetPort.getParent() instanceof PrimitiveOutputNode) return MappingType.ArrayToSingletonWithCollect;
+
+        const sourceNode = sourcePort.getNode();
+
+        let sourceField = sourcePort.attributes.field;
+        if (sourceNode instanceof InputNode
+            && sourceNode.filteredInputType?.kind === TypeKind.Enum
+        ) {
+            sourceField = sourceNode.filteredInputType;
+        }
+
+        const targetField = targetPort.attributes.field;
             
-        const sourceDim = getDMTypeDim(sourcePort.field);
-        const targetDim = getDMTypeDim(targetPort.field);
+        const sourceDim = getDMTypeDim(sourceField);
+        const targetDim = getDMTypeDim(targetField);
 
         if (sourceDim > 0) {
             const dimDelta = sourceDim - targetDim;
             if (dimDelta == 0) return MappingType.ArrayToArray;
             if (dimDelta > 0) return MappingType.ArrayToSingleton;
         }
+
+        if (sourceField.kind !== targetField.kind ||
+            sourceField.typeName !== targetField.typeName ||
+            sourceField.typeName === TypeKind.Record
+        ) {
+            return MappingType.Incompatible;
+        }
+
     }
 
     return MappingType.Default;
 }
 
+export function getValueType(lm: DataMapperLinkModel): ValueType {
+	const { attributes: { field, value } } = lm.getTargetPort() as InputOutputPortModel;
+
+	if (value !== undefined) {
+        const isDefault = isDefaultValue(field, value.expression);
+        if (isDefault) {
+            return ValueType.Replaceable;
+        } else {
+            return isMergeable(field.kind)
+                ? ValueType.Mergeable
+                : ValueType.Replaceable;
+        }
+	}
+
+	return ValueType.Empty;
+}
+
+export function isMergeable(typeName: string): boolean {
+	return MERGEABLE_TYPES.has(typeName);
+}
+
+
 export function genArrayElementAccessSuffix(sourcePort: PortModel, targetPort: PortModel) {
     if (sourcePort instanceof InputOutputPortModel && targetPort instanceof InputOutputPortModel) {
         let suffix = '';
-        const sourceDim = getDMTypeDim(sourcePort.field);
-        const targetDim = getDMTypeDim(targetPort.field);
+        const sourceDim = getDMTypeDim(sourcePort.attributes.field);
+        const targetDim = getDMTypeDim(targetPort.attributes.field);
         const dimDelta = sourceDim - targetDim;
         for (let i = 0; i < dimDelta; i++) {
             suffix += '[0]';
@@ -63,20 +132,24 @@ export function genArrayElementAccessSuffix(sourcePort: PortModel, targetPort: P
     return '';
 };
 
-export function getValueType(lm: DataMapperLinkModel): ValueType {
-    const { field, value } = lm.getTargetPort() as InputOutputPortModel;
-
-    if (value !== undefined) {
-        return isDefaultValue(field, value.expression) ? ValueType.Default : ValueType.NonEmpty;
-    }
-
-    return ValueType.Empty;
-}
-
 export function isDefaultValue(field: IOType, value: string): boolean {
-	const defaultValue = getDefaultValue(field.kind);
+    // For numeric types, compare the parsed values instead of string comparison
+	if (field?.kind === TypeKind.Int || 
+		field?.kind === TypeKind.Float || 
+		field?.kind === TypeKind.Decimal
+    ) {
+
+		// Clean the value by removing suffixes like 'f' for floats and 'd' for decimals
+		const cleanValue = value?.trim().replace(/[fd]$/i, '');
+		const numericValue = parseFloat(cleanValue);
+		
+		// Check if it's a valid number and equals 0
+		return !isNaN(numericValue) && numericValue === 0;
+	}
+
+	const defaultValue = getDefaultValue(field?.kind);
     const targetValue =  value?.trim().replace(/(\r\n|\n|\r|\s)/g, "")
-	return targetValue === "null" ||  defaultValue === targetValue;
+	return targetValue === "null" || targetValue === "()" ||  defaultValue === targetValue;
 }
 
 export function getDefaultValue(typeKind: TypeKind): string {
@@ -107,17 +180,15 @@ export function getDefaultValue(typeKind: TypeKind): string {
 	return draftParameter;
 }
 
-export function isCollapsed(portName: string, portType: "IN" | "OUT"): boolean {
-    const collapsedFields = useDMCollapsedFieldsStore.getState().fields;
-    const expandedFields = useDMExpandedFieldsStore.getState().fields;
-
-    // In Inline Data Mapper, the inputs are always collapsed by default.
-    // Hence we explicitly check expandedFields for input header ports.
-    return portType === "IN" ? collapsedFields.includes(portName) : !expandedFields.includes(portName);
-}
-
 export function fieldFQNFromPortName(portName: string): string {
     return portName.split('.').slice(1).join('.');
+}
+
+export function getSanitizedId(id: string): string {
+    if (id.endsWith('>')) {
+         return id.split('.').slice(0, -1).join('.');
+    }
+    return id;
 }
 
 export function getErrorKind(node: DataMapperNodeModel): ErrorNodeKind {
@@ -125,10 +196,77 @@ export function getErrorKind(node: DataMapperNodeModel): ErrorNodeKind {
 	switch (nodeType) {
 		case OBJECT_OUTPUT_NODE_TYPE:
 		case ARRAY_OUTPUT_NODE_TYPE:
+        case PRIMITIVE_OUTPUT_NODE_TYPE:
 			return ErrorNodeKind.Output;
 		case INPUT_NODE_TYPE:
 			return ErrorNodeKind.Input;
 		default:
 			return ErrorNodeKind.Other;
 	}
+}
+
+export function expandArrayFn(context: IDataMapperContext, sourceField: string, targetField: string){
+
+    const { addView } = context;
+
+    const newView: View = {
+        label: targetField,
+        sourceField,
+        targetField
+    };
+
+    addView(newView);
+}
+
+export function genVariableName(originalName: string, existingNames: string[]): string {
+	let modifiedName: string = originalName;
+	let index = 0;
+	while (existingNames.includes(modifiedName)) {
+		index++;
+		modifiedName = originalName + index;
+	}
+	return modifiedName;
+}
+
+export function getSubMappingViewLabel(subMappingName: string, subMappingType: IOType): string {
+    let label = subMappingName;
+    if (subMappingType.kind === TypeKind.Array) {
+        const typeName = getTypeName(subMappingType);
+        const bracketsCount = (typeName.match(/\[\]/g) || []).length; // Count the number of pairs of brackets
+        label = label + `${"[]".repeat(bracketsCount)}`;
+    }
+
+    return label;
+}
+
+export function excludeEmptyInputNodes(nodes: DataMapperNodeModel[]): DataMapperNodeModel[] {
+    const filtered = nodes.filter(node =>
+        !(node instanceof InputNode) ||
+        node instanceof InputNode && node.getSearchFilteredType() !== undefined
+    );
+    const hasInputNode = filtered.some(node => node instanceof InputNode || node instanceof EmptyInputsNode);
+    if (!hasInputNode) {
+        const inputNode = new InputNode(undefined, undefined, true);
+        filtered.unshift(inputNode);
+    }
+    return filtered;
+}
+
+export function handleExpand(id: string, expanded: boolean) {
+	const expandedFields = useDMExpandedFieldsStore.getState().fields;
+	if (expanded) {
+		useDMExpandedFieldsStore.getState().setFields(expandedFields.filter((element) => element !== id));
+	} else {
+		useDMExpandedFieldsStore.getState().setFields([...expandedFields, id]);
+	}
+}
+
+export function isExpandable(field: IOType): boolean {
+    return field?.kind === TypeKind.Record ||
+        field?.kind === TypeKind.Array ||
+        field?.kind === TypeKind.Enum;
+}
+
+export function getTargetField(viewId: string, outputId: string){
+    return [...viewId.split("."), ...outputId.split(".").slice(1)].join(".");
 }

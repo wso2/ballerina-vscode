@@ -16,7 +16,7 @@
  * under the License.
  */
 // tslint:disable: jsx-no-multiline-js jsx-no-lambda
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 
 import { SelectionBoxLayerFactory } from "@projectstorm/react-canvas-core";
 import {
@@ -36,7 +36,7 @@ import { DataMapperCanvasContainerWidget } from './Canvas/DataMapperCanvasContai
 import { DataMapperCanvasWidget } from './Canvas/DataMapperCanvasWidget';
 import { DefaultState as LinkState } from './LinkState/DefaultState';
 import { DataMapperNodeModel } from './Node/commons/DataMapperNode';
-import { LinkConnectorNode } from './Node';
+import { LinkConnectorNode, QueryExprConnectorNode } from './Node';
 import { OverlayLayerFactory } from './OverlayLayer/OverlayLayerFactory';
 import { OverriddenLinkLayerFactory } from './OverriddenLinkLayer/LinkLayerFactory';
 import { useDiagramModel, useRepositionedNodes } from '../Hooks';
@@ -46,6 +46,7 @@ import { IONodesScrollCanvasAction } from './Actions/IONodesScrollCanvasAction';
 import { useDMExpressionBarStore, useDMSearchStore } from '../../store/store';
 import { isOutputNode } from './Actions/utils';
 import { InputOutputPortModel } from './Port';
+import { calculateZoomLevel } from './utils/diagram-utils';
 import * as Nodes from "./Node";
 import * as Ports from "./Port";
 import * as Labels from "./Label";
@@ -79,9 +80,13 @@ function initDiagramEngine() {
 	engine.getLayerFactories().registerFactory(new OverlayLayerFactory());
 
 	engine.getNodeFactories().registerFactory(new Nodes.InputNodeFactory());
+	engine.getNodeFactories().registerFactory(new Nodes.SubMappingNodeFactory());
 	engine.getNodeFactories().registerFactory(new Nodes.ObjectOutputNodeFactory());
 	engine.getNodeFactories().registerFactory(new Nodes.ArrayOutputNodeFactory());
+	engine.getNodeFactories().registerFactory(new Nodes.PrimitiveOutputNodeFactory());
+	engine.getNodeFactories().registerFactory(new Nodes.QueryOutputNodeFactory());
 	engine.getNodeFactories().registerFactory(new Nodes.LinkConnectorNodeFactory());
+	engine.getNodeFactories().registerFactory(new Nodes.QueryExprConnectorNodeFactory());
 	engine.getNodeFactories().registerFactory(new Nodes.DataImportNodeFactory());
 	engine.getNodeFactories().registerFactory(new Nodes.EmptyInputsNodeFactory());
 
@@ -117,7 +122,7 @@ function DataMapperDiagram(props: DataMapperDiagramProps): React.ReactElement {
 
 	const { inputSearch, outputSearch } = useDMSearchStore.getState();
 
-	const zoomLevel = defaultModelOptions.zoom;
+	const zoomLevel = calculateZoomLevel(screenWidth);
 
 	const repositionedNodes = useRepositionedNodes(nodes, zoomLevel, diagramModel);
 	const { updatedModel, isFetching } = useDiagramModel(repositionedNodes, diagramModel, onError, zoomLevel);
@@ -149,14 +154,14 @@ function DataMapperDiagram(props: DataMapperDiagramProps): React.ReactElement {
 		if (!isFetching && engine.getModel()) {
 			const modelNodes = engine.getModel().getNodes();
 			const nodesToUpdate = modelNodes.filter(node => 
-				node instanceof LinkConnectorNode
+				node instanceof LinkConnectorNode || node instanceof QueryExprConnectorNode
 			);
 
-			nodesToUpdate.forEach((node: LinkConnectorNode) => {
+			nodesToUpdate.forEach((node: LinkConnectorNode | QueryExprConnectorNode) => {
 				node.initLinks();
 				const targetPortPosition = node.targetPort?.getPosition();
 				if (targetPortPosition) {
-					node.setPosition(targetPortPosition.x - 150, targetPortPosition.y - 6.5);
+					node.setPosition(targetPortPosition.x - 155, targetPortPosition.y - 6.5);
 				}
 			});
 	

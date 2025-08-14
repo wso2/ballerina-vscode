@@ -144,14 +144,16 @@ export function ProjectForm() {
                     placeholder="Enter a integration name"
                     autoFocus={true}
                 />
-                <PreviewContainer>
-                    <PreviewIcon name="project" iconSx={{ fontSize: 14, color: "var(--vscode-descriptionForeground)" }} />
-                        <Tooltip content="A unique identifier for your intergration">
-                            <PreviewText variant="caption">
-                                {name ? sanitizeProjectName(name) : "integration_id"}
-                            </PreviewText>
-                        </Tooltip>
-                </PreviewContainer>
+                {name && (
+                    <PreviewContainer>
+                        <PreviewIcon name="project" iconSx={{ fontSize: 14, color: "var(--vscode-descriptionForeground)" }} />
+                            <Tooltip content="A unique identifier for your intergration">
+                                <PreviewText variant="caption">
+                                    {sanitizeProjectName(name)}
+                                </PreviewText>
+                            </Tooltip>
+                    </PreviewContainer>
+                )}
             </InputPreviewWrapper>
             <LocationSelector
                 label="Select Integration Path"

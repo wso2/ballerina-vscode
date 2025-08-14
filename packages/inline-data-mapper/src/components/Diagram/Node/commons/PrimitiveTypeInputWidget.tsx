@@ -18,13 +18,14 @@
 // tslint:disable: jsx-no-multiline-js
 import React, { useState } from "react";
 import { DiagramEngine } from '@projectstorm/react-diagrams';
-import { IOType } from "@wso2/ballerina-core";
+import { IOType, TypeKind } from "@wso2/ballerina-core";
 
 import { DataMapperPortWidget, PortState, InputOutputPortModel } from '../../Port';
 import { InputSearchHighlight } from './Search';
 import { TreeContainer, TreeHeader } from './Tree/Tree';
 import { useIONodesStyles } from "../../../styles";
 import { getTypeName } from "../../utils/type-utils";
+import { TruncatedLabel } from "@wso2/ui-toolkit";
 
 export interface PrimitiveTypeItemWidgetProps {
     id: string; // this will be the root ID used to prepend for UUIDs of nested fields
@@ -43,24 +44,24 @@ export function PrimitiveTypeInputWidget(props: PrimitiveTypeItemWidgetProps) {
 
     const typeName = getTypeName(dmType);
     const portOut = getPort(`${id}.OUT`);
+    const isUnknownType = dmType.kind === TypeKind.Unknown;
 
     const handlePortState = (state: PortState) => {
         setPortState(state)
     };
 
     const label = (
-        <span style={{ marginRight: "auto" }}>
+        <TruncatedLabel style={{ marginRight: "auto" }}>
             <span className={classes.valueLabel}>
                 <InputSearchHighlight>{valueLabel ? valueLabel : id}</InputSearchHighlight>
                 {typeName && ":"}
             </span>
             {typeName && (
-                <span className={classes.inputTypeLabel}>
+                <span className={isUnknownType ? classes.unknownTypeLabel : classes.typeLabel}>
                     {typeName}
                 </span>
             )}
-
-        </span>
+        </TruncatedLabel>
     );
 
     return (

@@ -15,24 +15,34 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { IDMModel, Mapping } from "@wso2/ballerina-core";
+import { CustomFnMetadata, ExpandedDMModel, LineRange, Mapping, ResultClauseType } from "@wso2/ballerina-core";
 import { View } from "../../components/DataMapper/Views/DataMapperView";
 
 export interface IDataMapperContext {
-    model: IDMModel;
+    model: ExpandedDMModel;
     views: View[];
     addView: (view: View) => void;
-    applyModifications: (mappings: Mapping[]) => Promise<void>;
-    addArrayElement: (targetField: string) => Promise<void>;
+    applyModifications: (outputId: string, expression: string, viewId: string, name: string) => Promise<void>;
+    addArrayElement: (outputId: string, viewId: string, name: string) => Promise<void>;
+    hasInputsOutputsChanged: boolean;
+    convertToQuery: (mapping: Mapping, clauseType: ResultClauseType, viewId: string, name: string) => Promise<void>;
+    deleteMapping: (mapping: Mapping, viewId: string) => Promise<void>;
+    mapWithCustomFn: (mapping: Mapping, metadata: CustomFnMetadata, viewId: string) => Promise<void>;
+    goToFunction: (functionRange: LineRange) => Promise<void>;
 }
 
 export class DataMapperContext implements IDataMapperContext {
 
     constructor(
-        public model: IDMModel,
+        public model: ExpandedDMModel,
         public views: View[] = [],
         public addView: (view: View) => void,
-        public applyModifications: (mappings: Mapping[]) => Promise<void>,
-        public addArrayElement: (targetField: string) => Promise<void>
+        public applyModifications: (outputId: string, expression: string, viewId: string, name: string) => Promise<void>,
+        public addArrayElement: (outputId: string, viewId: string, name: string) => Promise<void>,
+        public hasInputsOutputsChanged: boolean = false,
+        public convertToQuery: (mapping: Mapping, clauseType: ResultClauseType, viewId: string, name: string) => Promise<void>,
+        public deleteMapping: (mapping: Mapping, viewId: string) => Promise<void>,
+        public mapWithCustomFn: (mapping: Mapping, metadata: CustomFnMetadata, viewId: string) => Promise<void>,
+        public goToFunction: (functionRange: LineRange) => Promise<void>
     ){}
 }

@@ -16,16 +16,16 @@
  * under the License.
  */
 
-import React, { useEffect, useState } from 'react';
-import { AIMachineStateValue } from '@wso2/ballerina-core';
-import { useRpcContext } from '@wso2/ballerina-rpc-client';
-import { VSCodeProgressRing } from '@vscode/webview-ui-toolkit/react';
-import styled from '@emotion/styled';
-import AIChat from './components/AIChat';
-import { DisabledWindow } from './DisabledSection';
-import LoginPanel from './LoginPanel';
-import { LoadingRing } from '../../components/Loader';
-import WaitingForLogin from './WaitingForLoginSection';
+import React, { useEffect, useState } from "react";
+import { AIMachineStateValue } from "@wso2/ballerina-core";
+import { useRpcContext } from "@wso2/ballerina-rpc-client";
+import { VSCodeProgressRing } from "@vscode/webview-ui-toolkit/react";
+import styled from "@emotion/styled";
+import AIChat from "./components/AIChat";
+import { DisabledWindow } from "./DisabledSection";
+import LoginPanel from "./LoginPanel";
+import { LoadingRing } from "../../components/Loader";
+import WaitingForLogin from "./WaitingForLoginSection";
 
 const LoaderWrapper = styled.div`
     display: flex;
@@ -50,43 +50,68 @@ const AIPanel = (props: { state: AIMachineStateValue }) => {
         fetchContext();
     }, [props.state]);
 
+    const renderUnknownState = (state: any) => {
+        console.warn("Unknown AI Machine State:", state);
+        return <h1>Unknown state: {JSON.stringify(state)}</h1>;
+    };
+
     const fetchContext = () => {
-        rpcClient.getAiPanelRpcClient().getAIMachineSnapshot().then((snapshot) => {
-            switch (snapshot.state) {
-                case "Initialize":
-                    setViewComponent(<LoadingRing />);
-                    break;
-                case "Unauthenticated":
-                    setViewComponent(<LoginPanel />);
-                    break;
-                case "Authenticating":
-                    setViewComponent(<WaitingForLogin />);
-                    break;
-                case "Authenticated":
-                    setViewComponent(<AIChat />);
-                    break;
-                case "Disabled":
-                    setViewComponent(<DisabledWindow />);
-                    break;
-                default:
-                    setViewComponent(<h1>{snapshot.state}</h1>);
-            }
-        });
-    }
+        rpcClient
+            .getAiPanelRpcClient()
+            .getAIMachineSnapshot()
+            .then((snapshot) => {
+                console.log("AI Machine Snapshot:", snapshot);
+                let component: React.ReactNode;
+
+                if (typeof snapshot.state === "string") {
+                    // Handle primary states
+                    const primaryStateComponents = {
+                        Initialize: <LoadingRing />,
+                        Unauthenticated: <LoginPanel />,
+                        Authenticated: <AIChat />,
+                        Disabled: <DisabledWindow />,
+                    };
+                    component = primaryStateComponents[snapshot.state] || renderUnknownState(snapshot.state);
+                } else if (typeof snapshot.state === "object" && snapshot.state.Authenticating) {
+                    // Handle hierarchical Authenticating substates
+                    const subState = snapshot.state.Authenticating;
+
+                    if (subState === "determineFlow") {
+                        component = <LoadingRing />;
+                    } else if (["ssoFlow", "apiKeyFlow", "validatingApiKey"].includes(subState)) {
+                        component = (
+                            <WaitingForLogin
+                                loginMethod={snapshot.context.loginMethod}
+                                isValidating={subState === "validatingApiKey"}
+                                errorMessage={snapshot.context.errorMessage}
+                            />
+                        );
+                    } else {
+                        component = renderUnknownState(snapshot.state);
+                    }
+                } else {
+                    component = renderUnknownState(snapshot.state);
+                }
+
+                setViewComponent(component);
+            });
+    };
 
     return (
-        <div style={{
-            height: "100%"
-        }}>
+        <div
+            style={{
+                height: "100%",
+            }}
+        >
             {!viewComponent ? (
                 <LoaderWrapper>
                     <ProgressRing />
                 </LoaderWrapper>
-            ) : <div style={{ height: "100%" }}>
-                {viewComponent}
-            </div>}
+            ) : (
+                <div style={{ height: "100%" }}>{viewComponent}</div>
+            )}
         </div>
     );
 };
 
-export default AIPanel;   
+export default AIPanel;

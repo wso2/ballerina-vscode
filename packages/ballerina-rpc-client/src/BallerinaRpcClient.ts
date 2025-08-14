@@ -46,7 +46,10 @@ import {
     onArtifactUpdatedNotification,
     onArtifactUpdatedRequest,
     ColorThemeKind,
-    currentThemeChanged
+    currentThemeChanged,
+    ChatNotify,
+    onChatNotify,
+    AIMachineSendableEvent
 } from "@wso2/ballerina-core";
 import { LangClientRpcClient } from "./rpc-clients/lang-client/rpc-client";
 import { LibraryBrowserRpcClient } from "./rpc-clients/library-browser/rpc-client";
@@ -180,7 +183,7 @@ export class BallerinaRpcClient {
         this.messenger.onNotification(aiStateChanged, callback);
     }
 
-    sendAIStateEvent(event: AIMachineEventType) {
+    sendAIStateEvent(event: AIMachineEventType | AIMachineSendableEvent) {
         this.messenger.sendRequest(sendAIStateEvent, HOST_EXTENSION, event);
     }
 
@@ -212,6 +215,10 @@ export class BallerinaRpcClient {
 
     onDownloadProgress(callback: (state: DownloadProgress) => void) {
         this.messenger.onNotification(onDownloadProgress, callback);
+    }
+
+    onChatNotify(callback: (state: ChatNotify) => void) {
+        this.messenger.onNotification(onChatNotify, callback);
     }
 
     getPopupVisualizerState(): Promise<PopupVisualizerLocation> {

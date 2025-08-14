@@ -17,7 +17,7 @@
  */
 // tslint:disable: jsx-no-multiline-js
 import React from "react";
-import { Item, Menu, MenuItem, Tooltip } from "@wso2/ui-toolkit";
+import { Item, Menu, MenuItem, ProgressRing, Tooltip } from "@wso2/ui-toolkit";
 
 import { CodeAction } from "./CodeAction";
 
@@ -32,9 +32,21 @@ export function CodeActionTooltip(props: Partial<CodeActionTooltipProps>) {
     const { codeActions, children } = props;
     const menuItems: React.ReactNode[] = [];
 
+    const [actionInProgress, setActionInProgress] = React.useState(false);
+
+    const handleOnClick = async (onClick: () => Promise<void>) => {
+        setActionInProgress(true);
+        await onClick();
+        setActionInProgress(false);
+    };
+
     if (codeActions && codeActions.length > 0) {
         codeActions.forEach((item, index) => {
-            const menuItem: Item = { id: `${item.title}-${index}`, label: item.title, onClick: item.onClick }
+            const menuItem: Item = {
+                id: `${item.title}-${index}`,
+                label: item.title,
+                onClick: () => handleOnClick(item.onClick)
+            }
             menuItems.push(
                 <MenuItem
                     key={`${item.title}-${index}`}
@@ -53,12 +65,19 @@ export function CodeActionTooltip(props: Partial<CodeActionTooltipProps>) {
     );
 
     return (
-        <Tooltip
-            content={tooltipTitleComponent}
-            position="bottom"
-            sx={{ padding: 0, fontSize: "12px" }}
-        >
-            {children}
-        </Tooltip>
-    )
+        actionInProgress ? (
+            <ProgressRing
+                sx={{ height: '16px', width: '16px' }}
+                color="var(--vscode-debugIcon-breakpointDisabledForeground)"
+            />
+        ) : (
+            <Tooltip
+                content={tooltipTitleComponent}
+                position="bottom"
+                sx={{ padding: 0, fontSize: "12px" }}
+            >
+                {children}
+            </Tooltip>
+        )
+    );
 }

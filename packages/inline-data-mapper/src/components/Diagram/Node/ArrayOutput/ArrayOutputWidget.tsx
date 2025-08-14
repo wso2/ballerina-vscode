@@ -19,8 +19,8 @@
 import React, { useState } from "react";
 
 import { DiagramEngine } from '@projectstorm/react-diagrams';
-import { Button, Codicon, ProgressRing } from "@wso2/ui-toolkit";
-import { IOType } from '@wso2/ballerina-core';
+import { Button, Codicon, ProgressRing, TruncatedLabel } from "@wso2/ui-toolkit";
+import { IOType, TypeKind } from '@wso2/ballerina-core';
 import classnames from "classnames";
 
 import { IDataMapperContext } from "../../../../utils/DataMapperContext/DataMapperContext";
@@ -28,11 +28,10 @@ import { DataMapperPortWidget, PortState, InputOutputPortModel } from '../../Por
 import { TreeBody, TreeContainer, TreeHeader } from '../commons/Tree/Tree';
 import { ArrayOutputFieldWidget } from "./ArrayOuptutFieldWidget";
 import { useIONodesStyles } from '../../../styles';
-import { useDMCollapsedFieldsStore, useDMIOConfigPanelStore } from "../../../../store/store";
+import { useDMCollapsedFieldsStore, useDMExpressionBarStore, useDMIOConfigPanelStore } from "../../../../store/store";
 import { OutputSearchHighlight } from "../commons/Search";
 import FieldActionWrapper from "../commons/FieldActionWrapper";
 import { ValueConfigMenu, ValueConfigMenuItem, ValueConfigOption } from "../commons/ValueConfigButton";
-import { OutputBeforeInputNotification } from "../commons/OutputBeforeInputNotification";
 import { useShallow } from "zustand/react/shallow";
 
 export interface ArrayOutputWidgetProps {
@@ -62,9 +61,9 @@ export function ArrayOutputWidget(props: ArrayOutputWidgetProps) {
 
 	const [portState, setPortState] = useState<PortState>(PortState.Unselected);
 	const [isLoading, setLoading] = useState(false);
-	const [hasOutputBeforeInput, setHasOutputBeforeInput] = useState(false);
 
 	const collapsedFieldsStore = useDMCollapsedFieldsStore();
+	const setExprBarFocusedPort = useDMExpressionBarStore(state => state.setFocusedPort);
 
 	const { setIsIOConfigPanelOpen, setIOConfigPanelType, setIsSchemaOverridden } = useDMIOConfigPanelStore(
 		useShallow(state => ({
@@ -83,9 +82,10 @@ export function ArrayOutputWidget(props: ArrayOutputWidgetProps) {
 	const isRootArray = context.views.length == 1;
 
 	const portIn = getPort(`${id}.IN`);
+	const isUnknownType = outputType.kind === TypeKind.Unknown;
 
 	let expanded = true;
-	if ((portIn && portIn.collapsed)) {
+	if ((portIn && portIn.attributes.collapsed)) {
 		expanded = false;
 	}
 
@@ -93,7 +93,7 @@ export function ArrayOutputWidget(props: ArrayOutputWidgetProps) {
 	const shouldPortVisible = !hasValue || !expanded || !isBodyArrayLitExpr || elements.length === 0;
 	const hasElementConnectedViaLink = elements.some(expr => expr.mappings.some(m => m.inputs.length > 0));
 
-	let isDisabled = portIn?.descendantHasValue;
+	let isDisabled = portIn?.attributes.descendantHasValue;
 	if (expanded && !isDisabled && elements.length > 0) {
 		portIn.setDescendantHasValue();
 		isDisabled = true;
@@ -112,10 +112,6 @@ export function ArrayOutputWidget(props: ArrayOutputWidgetProps) {
 
 	const handlePortState = (state: PortState) => {
 		setPortState(state)
-	};
-
-	const handlePortSelection = (outputBeforeInput: boolean) => {
-		setHasOutputBeforeInput(outputBeforeInput);
 	};
 
 	const handleArrayInitialization = async () => {
@@ -137,7 +133,7 @@ export function ArrayOutputWidget(props: ArrayOutputWidgetProps) {
 	};
 
 	const handleEditValue = () => {
-		// TODO: Implement edit value
+		setExprBarFocusedPort(portIn);
 	};
 
 	const onRightClick = (event: React.MouseEvent) => {
@@ -148,17 +144,21 @@ export function ArrayOutputWidget(props: ArrayOutputWidgetProps) {
 	};
 
 	const label = (
-		<span style={{ marginRight: "auto" }}>
+		<TruncatedLabel style={{ marginRight: "auto" }}>
 			{valueLabel && (
-				<span className={classes.valueLabel}>
+				<span className={classes.valueLabelHeader}>
 					<OutputSearchHighlight>{valueLabel}</OutputSearchHighlight>
-					{typeName && ":"}
 				</span>
 			)}
-			<span className={classnames(classes.outputTypeLabel, isDisabled ? classes.labelDisabled : "")}>
+			<span className={
+				classnames(
+					isUnknownType ? classes.unknownTypeLabel : classes.typeLabel,
+					isDisabled ? classes.labelDisabled : ""
+				)
+			}>
 				{typeName || ''}
 			</span>
-		</span>
+		</TruncatedLabel>
 	);
 
 	const valConfigMenuItems: ValueConfigMenuItem[] = [
@@ -168,11 +168,10 @@ export function ArrayOutputWidget(props: ArrayOutputWidgetProps) {
 				onClick: handleArrayInitialization
 			}]
 			: [
-				// {
-				// 	title: ValueConfigOption.EditValue,
-				// 	onClick: handleEditValue
-				// }
-				// TODO: Add edit value option once the feature is implemented
+				{
+					title: ValueConfigOption.EditValue,
+					onClick: handleEditValue
+				}
 			])
 	];
 
@@ -190,7 +189,6 @@ export function ArrayOutputWidget(props: ArrayOutputWidgetProps) {
 								port={portIn}
 								disable={isDisabled}
 								handlePortState={handlePortState}
-								hasFirstSelectOutput={handlePortSelection}
 							/>
 						)}
 					</span>
@@ -220,7 +218,6 @@ export function ArrayOutputWidget(props: ArrayOutputWidgetProps) {
 							/>
 						</FieldActionWrapper>
 					))}
-					{hasOutputBeforeInput && <OutputBeforeInputNotification />}
 				</TreeHeader>
 				{expanded && outputType && isBodyArrayLitExpr && (
 					<TreeBody>

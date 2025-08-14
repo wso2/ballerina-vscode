@@ -19,7 +19,7 @@
 import React, { useState } from "react";
 
 import { DiagramEngine } from "@projectstorm/react-diagrams-core";
-import { Button, Codicon, Icon, ProgressRing } from "@wso2/ui-toolkit";
+import { Button, Codicon, Icon, ProgressRing, TruncatedLabel } from "@wso2/ui-toolkit";
 import { IOType, TypeKind } from "@wso2/ballerina-core";
 import classnames from "classnames";
 
@@ -27,15 +27,15 @@ import { IDataMapperContext } from "../../../../utils/DataMapperContext/DataMapp
 import { DataMapperPortWidget, PortState, InputOutputPortModel } from "../../Port";
 import { OutputSearchHighlight } from "../commons/Search";
 import { useIONodesStyles } from "../../../styles";
-import { useDMCollapsedFieldsStore } from '../../../../store/store';
+import { useDMCollapsedFieldsStore, useDMExpressionBarStore } from '../../../../store/store';
 import { getTypeName } from "../../utils/type-utils";
 import { ArrayOutputFieldWidget } from "../ArrayOutput/ArrayOuptutFieldWidget";
-import { fieldFQNFromPortName, getDefaultValue } from "../../utils/common-utils";
+import { fieldFQNFromPortName, getDefaultValue, getSanitizedId } from "../../utils/common-utils";
 import { addValue, removeMapping } from "../../utils/modification-utils";
 import FieldActionWrapper from "../commons/FieldActionWrapper";
 import { ValueConfigMenu, ValueConfigMenuItem, ValueConfigOption } from "../commons/ValueConfigButton";
 import { DiagnosticTooltip } from "../../Diagnostic/DiagnosticTooltip";
-import { OutputBeforeInputNotification } from "../commons/OutputBeforeInputNotification";
+import { DataMapperLinkModel } from "../../Link";
 
 export interface ObjectOutputFieldWidgetProps {
     parentId: string;
@@ -64,31 +64,44 @@ export function ObjectOutputFieldWidget(props: ObjectOutputFieldWidgetProps) {
 
     const [isHovered, setIsHovered] = useState(false);
     const [portState, setPortState] = useState<PortState>(PortState.Unselected);
-    const [hasOutputBeforeInput, setHasOutputBeforeInput] = useState(false);
 
     const collapsedFieldsStore = useDMCollapsedFieldsStore();
+    const setExprBarFocusedPort = useDMExpressionBarStore(state => state.setFocusedPort);
 
     let indentation = treeDepth * 16;
     let expanded = true;
 
     const typeName = getTypeName(field);
-    const typeKind = field.kind;
+    const typeKind = field?.kind;
+
     const isArray = typeKind === TypeKind.Array;
     const isRecord = typeKind === TypeKind.Record;
+    const isEnum = typeKind === TypeKind.Enum;
 
-    let updatedParentId = parentId;
+    let updatedParentId = getSanitizedId(parentId);
+    
     if (fieldIndex !== undefined) {
-        updatedParentId = `${parentId}.${fieldIndex}`
+        updatedParentId = `${updatedParentId}.${fieldIndex}`
     }
-    let fieldName = field?.variableName || '';
-    let portName = updatedParentId !== '' ? fieldName !== '' ? `${updatedParentId}.${fieldName}` : updatedParentId : fieldName;
-    const portIn = getPort(portName + ".IN");
-    const mapping = portIn && portIn.value;
-    const { inputs, expression, diagnostics } = mapping || {};
-    const connectedViaLink = inputs?.length > 0;
-    const hasDefaultValue = expression && getDefaultValue(field.kind) === expression.trim();
 
-    const fields = isRecord && field.fields.filter(f => f !== null);
+    let fieldName = field?.variableName || '';
+    let portName = updatedParentId !== ''
+        ? fieldName !== '' && fieldIndex === undefined
+            ? `${updatedParentId}.${fieldName}`
+            : updatedParentId
+        : fieldName;
+
+    const portIn = getPort(portName + ".IN");
+    const isUnknownType = field?.kind === TypeKind.Unknown;
+    const mapping = portIn && portIn.attributes.value;
+    const { expression, diagnostics } = mapping || {};
+    const connectedViaLink = Object.values(portIn?.getLinks() || {}).length > 0;
+
+    const hasDefaultValue = expression &&
+        getDefaultValue(field?.kind) === expression.trim() &&
+        !isEnum;
+
+    const fields = isRecord && field?.fields?.filter(f => f !== null);
     const isWithinArray = fieldIndex !== undefined;
 
     const handleExpand = () => {
@@ -104,15 +117,20 @@ export function ObjectOutputFieldWidget(props: ObjectOutputFieldWidgetProps) {
         setPortState(state)
     };
 
-	const handlePortSelection = (outputBeforeInput: boolean) => {
-		setHasOutputBeforeInput(outputBeforeInput);
-	};
-
     const handleAddValue = async () => {
         setLoading(true);
         try {
-            const defaultValue = getDefaultValue(field.kind);
+            const defaultValue = getDefaultValue(field?.kind);
             await addValue(fieldFQNFromPortName(portName), defaultValue, context);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleAddEnumValue = async (value: string) => {
+        setLoading(true);
+        try {
+            await addValue(fieldFQNFromPortName(portName), value, context);
         } finally {
             setLoading(false);
         }
@@ -121,14 +139,14 @@ export function ObjectOutputFieldWidget(props: ObjectOutputFieldWidgetProps) {
     const handleDeleteValue = async () => {
         setLoading(true);
         try {
-            await removeMapping(fieldFQNFromPortName(portName), context);
+            await removeMapping(mapping, context);
         } finally {
             setLoading(false);
         }
     };
 
     const handleEditValue = () => {
-        // TODO: Implement edit value
+        setExprBarFocusedPort(portIn);
     };
 
     const onMouseEnter = () => {
@@ -139,18 +157,20 @@ export function ObjectOutputFieldWidget(props: ObjectOutputFieldWidgetProps) {
         setIsHovered(false);
     };
 
-    let isDisabled = portIn?.descendantHasValue;
+    let isDisabled = portIn?.attributes.descendantHasValue;
 
     if (!isDisabled) {
-        if (portIn?.parentModel
-            && (Object.entries(portIn?.parentModel.links).length > 0 || portIn?.parentModel.ancestorHasValue)
+        if (portIn?.attributes.parentModel && (
+            Object.values(portIn?.attributes.parentModel.links)
+            .filter((link)=> !(link as DataMapperLinkModel).isDashLink).length > 0 ||
+                portIn?.attributes.parentModel.attributes.ancestorHasValue)
         ) {
-            portIn.ancestorHasValue = true;
+            portIn.attributes.ancestorHasValue = true;
             isDisabled = true;
         }
     }
 
-    if (portIn && portIn.collapsed) {
+    if (portIn && portIn.attributes.collapsed) {
         expanded = false;
     }
 
@@ -163,7 +183,7 @@ export function ObjectOutputFieldWidget(props: ObjectOutputFieldWidgetProps) {
     }
 
     const label = !isArray && (
-        <span style={{ marginRight: "auto" }} data-testid={`record-widget-field-label-${portIn?.getName()}`}>
+        <TruncatedLabel style={{ marginRight: "auto" }}>
             <span
                 className={classnames(classes.valueLabel,
                     isDisabled && !hasHoveredParent ? classes.labelDisabled : ""
@@ -172,11 +192,10 @@ export function ObjectOutputFieldWidget(props: ObjectOutputFieldWidgetProps) {
             >
                 <OutputSearchHighlight>{fieldName}</OutputSearchHighlight>
                 {!field?.optional && <span className={classes.requiredMark}>*</span>}
-                {typeName && ":"}
             </span>
             {typeName && (
                 <span
-                    className={classnames(classes.outputTypeLabel,
+                    className={classnames(isUnknownType ? classes.unknownTypeLabel : classes.typeLabel,
                         isDisabled && !hasHoveredParent ? classes.labelDisabled : ""
                     )}
                 >
@@ -188,7 +207,7 @@ export function ObjectOutputFieldWidget(props: ObjectOutputFieldWidgetProps) {
                     {diagnostics?.length > 0 ? (
                         <DiagnosticTooltip
                             placement="right"
-                            diagnostic={diagnostics[0].message}
+                            diagnostic={diagnostics[0] as any}
                             value={expression}
                             onClick={handleEditValue}
                         >
@@ -215,12 +234,11 @@ export function ObjectOutputFieldWidget(props: ObjectOutputFieldWidgetProps) {
                     )}
                 </span>
             )}
-        </span>
+        </TruncatedLabel>
     );
 
     const addOrEditValueMenuItem: ValueConfigMenuItem = expression || hasDefaultValue
-        ? undefined
-        // ? { title: ValueConfigOption.EditValue, onClick: handleEditValue } TODO: Implement edit value
+        ? { title: ValueConfigOption.EditValue, onClick: handleEditValue }
         : { title: ValueConfigOption.InitializeWithValue, onClick: handleAddValue };
 
     const deleteValueMenuItem: ValueConfigMenuItem = {
@@ -228,8 +246,16 @@ export function ObjectOutputFieldWidget(props: ObjectOutputFieldWidgetProps) {
         onClick: handleDeleteValue
     };
 
+    const addEnumValueMenuItems: ValueConfigMenuItem[] = expression
+        ? [{ title: ValueConfigOption.EditValue, onClick: handleEditValue }]
+        : field?.members?.map(member => ({
+            title: `Initialize as ${member.typeName}`,
+            onClick: () => handleAddEnumValue(member.typeName)
+        })) || [];
+
     const valConfigMenuItems = [
-        !isWithinArray && addOrEditValueMenuItem,
+        !isWithinArray && !isEnum && addOrEditValueMenuItem,
+        ...(isEnum ? addEnumValueMenuItems : []),
         (expression || hasDefaultValue || isWithinArray) && deleteValueMenuItem
     ];
 
@@ -254,7 +280,6 @@ export function ObjectOutputFieldWidget(props: ObjectOutputFieldWidgetProps) {
                                 port={portIn}
                                 disable={isDisabled && expanded}
                                 handlePortState={handlePortState}
-                                hasFirstSelectOutput={handlePortSelection}
                             />
                         )}
                     </span>
@@ -283,7 +308,6 @@ export function ObjectOutputFieldWidget(props: ObjectOutputFieldWidgetProps) {
                             />
                         </FieldActionWrapper>
                     ))}
-                    {hasOutputBeforeInput && <OutputBeforeInputNotification />}
                 </div>
             )}
             {isArray && (

@@ -140,7 +140,7 @@ export const NodeLinkWidget: React.FC<NodeLinkWidgetProps> = ({ link, engine }) 
             {link.label && (
                 <foreignObject
                     x={addButtonPosition.x - NODE_WIDTH / 2}
-                    y={addButtonPosition.y - 12}
+                    y={addButtonPosition.y - 30}
                     width={NODE_WIDTH}
                     height={24}
                 >

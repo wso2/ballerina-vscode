@@ -79,35 +79,35 @@ export const getFilteredSubFields = (field: IOType, searchValue: string) => {
 		return field;
 	}
 
-	if (field.kind === TypeKind.Record) {
-		const matchedSubFields: IOType[] = field.fields
+	if (field?.kind === TypeKind.Record) {
+		const matchedSubFields: IOType[] = field?.fields
 			?.map((fieldItem) => getFilteredSubFields(fieldItem, searchValue))
 			.filter((fieldItem): fieldItem is IOType => fieldItem !== null);
 
-		const matchingName = field.variableName?.toLowerCase().includes(searchValue.toLowerCase());
+		const matchingName = field?.variableName?.toLowerCase().includes(searchValue.toLowerCase());
 		if (matchingName || matchedSubFields?.length > 0) {
 			return {
 				...field,
-				fields: matchingName ? field.fields : matchedSubFields
+				fields: matchingName ? field?.fields : matchedSubFields
 			}
 		}
-	} else if (field.kind === TypeKind.Array) {
-		const matchedSubFields: IOType[] = field.member?.fields
+	} else if (field?.kind === TypeKind.Array) {
+		const matchedSubFields: IOType[] = field?.member?.fields
 			?.map((fieldItem) => getFilteredSubFields(fieldItem, searchValue))
 			.filter((fieldItem): fieldItem is IOType => fieldItem !== null);
 
-		const matchingName = field.variableName?.toLowerCase().includes(searchValue.toLowerCase());
+		const matchingName = field?.variableName?.toLowerCase().includes(searchValue.toLowerCase());
 		if (matchingName || matchedSubFields?.length > 0) {
 			return {
 				...field,
 				memberType: {
-					...field.member,
-					fields: matchingName ? field.member?.fields : matchedSubFields
+					...field?.member,
+					fields: matchingName ? field?.member?.fields : matchedSubFields
 				}
 			}
 		}
 	} else {
-		return field.variableName?.toLowerCase()?.includes(searchValue.toLowerCase()) ? field : null
+		return field?.variableName?.toLowerCase()?.includes(searchValue.toLowerCase()) ? field : null
 	}
 
 	return null;
@@ -126,18 +126,27 @@ export function hasNoOutputMatchFound(outputType: IOType, filteredOutputType: IO
 	return false;
 }
 
-export function getFilteredMappings(mappings: Mapping[], searchValue: string): Mapping[] {
+export function getFilteredMappings(mappings: Mapping[], inputSearch: string, outputSearch: string): Mapping[] {
     return mappings.flatMap(mapping => {
+
+		const filteredInputs = mapping.inputs.filter(input => {
+			const inputField = input.split(".").pop();
+			return inputSearch === "" || 
+				inputField.toLowerCase().includes(inputSearch.toLowerCase());
+		});
+
         const outputField = mapping.output.split(".").pop();
-        const isCurrentMappingMatched = searchValue === "" || 
-            outputField.toLowerCase().includes(searchValue.toLowerCase());
+        const matchedWithOutputSearch = outputSearch === "" || 
+            outputField.toLowerCase().includes(outputSearch.toLowerCase());
         
         // Get nested mappings from elements
         const nestedMappings = mapping.elements?.flatMap(element => 
-            getFilteredMappings(element.mappings, searchValue)
+            getFilteredMappings(element.mappings, inputSearch, outputSearch)
         ) || [];
+
+		const filteredMapping = filteredInputs.length > 0 && matchedWithOutputSearch;
         
         // Return current mapping if matched, along with any nested matches
-        return isCurrentMappingMatched ? [mapping, ...nestedMappings] : nestedMappings;
+        return filteredMapping ? [mapping, ...nestedMappings] : nestedMappings;
     });
 }

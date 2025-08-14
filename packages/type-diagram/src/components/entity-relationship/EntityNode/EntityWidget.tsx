@@ -107,7 +107,7 @@ export function EntityWidget(props: EntityWidgetProps) {
             if (!hasAnyOperations) {
                 return (
                     <OperationSection>
-                        <HighlightedButton onClick={onGraphqlEdit}>
+                        <HighlightedButton onClick={onGraphqlEdit} data-testid="create-operation-button">
                             <Codicon name="plus" />
                             Create Operations
                         </HighlightedButton>

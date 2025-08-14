@@ -105,7 +105,7 @@ function isSupportedType(node: STNode,
         return [false, TypeNature.TYPE_UNAVAILABLE];
     } else if ((isUnionType || isOptionalType) && kind === 'output' && getUnsupportedTypesFromTypeDesc(node).length === 0) {
         return [true];
-    } else if (isUnionType || isMapType || isOptionalType) {
+    } else if (isMapType) {
         return [false, TypeNature.YET_TO_SUPPORT];
     } else if (isArrayType || isParenthesisedType) {
         return [getUnsupportedTypesFromTypeDesc(node).length === 0, TypeNature.BLACKLISTED]

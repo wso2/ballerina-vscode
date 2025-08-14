@@ -20,11 +20,11 @@ import React, { useMemo, useState } from "react";
 
 import { DiagramEngine } from "@projectstorm/react-diagrams-core";
 import classnames from "classnames";
-import { Button, Icon, ProgressRing } from "@wso2/ui-toolkit";
+import { Button, Icon, ProgressRing, TruncatedLabel } from "@wso2/ui-toolkit";
 
 import { IDataMapperContext } from "../../../../utils/DataMapperContext/DataMapperContext";
 import { DataMapperPortWidget, PortState, InputOutputPortModel } from "../../Port";
-import { fieldFQNFromPortName, findMappingByOutput, getDefaultValue } from "../../utils/common-utils";
+import { getDefaultValue, getSanitizedId } from "../../utils/common-utils";
 import { OutputSearchHighlight } from "../commons/Search";
 import { ValueConfigMenu, ValueConfigOption } from "../commons/ValueConfigButton";
 import { useIONodesStyles } from "../../../styles";
@@ -33,8 +33,8 @@ import { DiagnosticTooltip } from "../../Diagnostic/DiagnosticTooltip";
 import FieldActionWrapper from "../commons/FieldActionWrapper";
 import { IOType } from "@wso2/ballerina-core";
 import { removeMapping } from "../../utils/modification-utils";
-import { OutputBeforeInputNotification } from "../commons/OutputBeforeInputNotification";
 import { useShallow } from "zustand/react/shallow";
+import { PrimitiveOutputNode } from ".";
 
 export interface PrimitiveOutputElementWidgetWidgetProps {
     parentId: string;
@@ -69,25 +69,20 @@ export function PrimitiveOutputElementWidget(props: PrimitiveOutputElementWidget
 
     const [isLoading, setLoading] = useState(false);
     const [portState, setPortState] = useState<PortState>(PortState.Unselected);
-    const [hasOutputBeforeInput, setHasOutputBeforeInput] = useState(false);
 
-    const typeName = field.kind;
-    const fieldName = field?.variableName || '';
+    const fieldName = field?.id || '';
 
-    let portName = parentId;
-
+    let portName = getSanitizedId(parentId);
     if (fieldIndex !== undefined) {
-        portName = `${parentId}.${fieldIndex}${fieldName !== '' ? `.${fieldName}` : ''}`;
+        portName = `${portName}.${fieldIndex}`;
     } else if (fieldName) {
-        portName = `${parentId}.${typeName}.${fieldName}`;
-    } else {
-        portName = `${parentId}.${typeName}`;
+        portName = `${portName}.${fieldName}`;
     }
-
+    
     const portIn = getPort(`${portName}.IN`);
     const isExprBarFocused = exprBarFocusedPort?.getName() === portIn?.getName();
-    const mapping = portIn && portIn.value;
-    const { expression, diagnostics } = mapping || {};
+    const mapping = portIn && portIn.attributes.value;
+    let { expression, diagnostics } = mapping || {};
 
     const handleEditValue = () => {
         if (portIn)
@@ -97,7 +92,7 @@ export function PrimitiveOutputElementWidget(props: PrimitiveOutputElementWidget
     const handleDelete = async () => {
         setLoading(true);
         try {
-            await removeMapping(fieldFQNFromPortName(portName), context);
+            await removeMapping(mapping, context);
         } finally {
             setLoading(false);
         }
@@ -105,11 +100,10 @@ export function PrimitiveOutputElementWidget(props: PrimitiveOutputElementWidget
 
     const valueConfigMenuItems = useMemo(() => {
         const items = [
-            // {
-            //     title: ValueConfigOption.EditValue,
-            //     onClick: handleEditValue
-            // }
-            // TODO: Enable this after adding support for editing value
+            {
+                title: ValueConfigOption.EditValue,
+                onClick: handleEditValue
+            }
         ];
         if (isArrayElement) {
             items.push({
@@ -129,12 +123,8 @@ export function PrimitiveOutputElementWidget(props: PrimitiveOutputElementWidget
         setPortState(state)
     };
 
-    const handlePortSelection = (outputBeforeInput: boolean) => {
-		setHasOutputBeforeInput(outputBeforeInput);
-	};
-
     const label = (
-        <span style={{ marginRight: "auto" }} data-testid={`primitive-array-element-${portIn?.getName()}`}>
+        <TruncatedLabel style={{ marginRight: "auto" }}>
             <span className={classes.valueLabel} style={{ marginLeft: "24px" }}>
                 {diagnostics?.length > 0 ? (
                     <DiagnosticTooltip
@@ -165,7 +155,7 @@ export function PrimitiveOutputElementWidget(props: PrimitiveOutputElementWidget
                 )
                 }
             </span>
-        </span>
+        </TruncatedLabel>
     );
 
     return (
@@ -185,7 +175,6 @@ export function PrimitiveOutputElementWidget(props: PrimitiveOutputElementWidget
                                 engine={engine}
                                 port={portIn}
                                 handlePortState={handlePortState}
-                                hasFirstSelectOutput={handlePortSelection}
                             />
                         }
                     </span>
@@ -200,7 +189,6 @@ export function PrimitiveOutputElementWidget(props: PrimitiveOutputElementWidget
                             />
                         </FieldActionWrapper>
                     )}
-                    {hasOutputBeforeInput && <OutputBeforeInputNotification />}
                 </div>
             )}
         </>

@@ -49,7 +49,6 @@ export function LinkConnectorNodeWidget(props: LinkConnectorNodeWidgetProps) {
     const hasError = node.hasError();
     const diagnostic = hasError ? node.diagnostics[0] : null;
     const fnDef = node.fnDefForFnCall;
-    const isTnfFunctionCall = fnDef && fnDef.isExprBodiedFn;
     const hasFieldAccessExpr = hasFieldAccessExpression(node.valueNode);
     const connectedViaCollectClause = context?.selection.selectedST?.mappingType
         && context.selection.selectedST.mappingType === QueryExprMappingType.A2SWithCollect;
@@ -140,15 +139,15 @@ export function LinkConnectorNodeWidget(props: LinkConnectorNodeWidgetProps) {
             <div className={classes.header}>
                 <DataMapperPortWidget engine={engine} port={node.inPort} dataTestId={`link-connector-node-${node?.value}-input`}/>
                 <Tooltip
-                    content={isTnfFunctionCall ? "Transformation Function Call" : "Multi-Input Expression"}
+                    content={fnDef ? "Function Call" : "Multi-Input Expression"}
                     position="bottom-end"
                 >
-                    {isTnfFunctionCall ? (
+                    {fnDef ? (
                         <Icon name="function-icon" iconSx={{ fontSize: "15px", color: "var(--vscode-input-placeholderForeground)" }} />) : (
                         <Icon name="explicit-outlined" sx={{ height: "20px", width: "20px" }} iconSx={{ fontSize: "20px", color: "var(--vscode-input-placeholderForeground)" }} />
                     )}
                 </Tooltip>
-                {isTnfFunctionCall && (
+                {fnDef && (
                     <Button
                         appearance="icon"
                         onClick={onClickOnGoToDef}

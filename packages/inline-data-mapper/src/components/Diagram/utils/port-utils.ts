@@ -17,23 +17,27 @@
  */
 import { NodeModel } from "@projectstorm/react-diagrams";
 
-import { InputNode, ObjectOutputNode } from "../Node";
+import { InputNode, ObjectOutputNode, QueryOutputNode, SubMappingNode } from "../Node";
 import { InputOutputPortModel } from "../Port";
-import { ARRAY_OUTPUT_TARGET_PORT_PREFIX, OBJECT_OUTPUT_TARGET_PORT_PREFIX } from "./constants";
+import { ARRAY_OUTPUT_TARGET_PORT_PREFIX, OBJECT_OUTPUT_TARGET_PORT_PREFIX, PRIMITIVE_OUTPUT_TARGET_PORT_PREFIX, QUERY_OUTPUT_TARGET_PORT_PREFIX, SUB_MAPPING_INPUT_SOURCE_PORT_PREFIX } from "./constants";
 import { ArrayOutputNode } from "../Node/ArrayOutput/ArrayOutputNode";
+import { PrimitiveOutputNode } from "../Node/PrimitiveOutput/PrimitiveOutputNode";
 
 export function getInputPort(node: InputNode, inputField: string): InputOutputPortModel {
-    let port = node.getPort(`${inputField}.OUT`) as InputOutputPortModel;
+    const portId = node instanceof SubMappingNode
+        ? `${SUB_MAPPING_INPUT_SOURCE_PORT_PREFIX}.${inputField}.OUT`
+        : `${inputField}.OUT`;
+    let port = node.getPort(portId) as InputOutputPortModel;
 
-    while (port && port.hidden) {
-        port = port.parentModel;
+    while (port && port.attributes.hidden) {
+        port = port.attributes.parentModel;
     }
 
     return port;
 }
 
 export function getOutputPort(
-    node: ObjectOutputNode | ArrayOutputNode,
+    node: ObjectOutputNode | ArrayOutputNode | PrimitiveOutputNode | QueryOutputNode,
     outputField: string
 ): [InputOutputPortModel, InputOutputPortModel] {
     const portId = `${getTargetPortPrefix(node)}.${outputField}.IN`;
@@ -43,8 +47,8 @@ export function getOutputPort(
         const actualPort = port as InputOutputPortModel;
         let mappedPort = actualPort;
 
-        while (mappedPort && mappedPort.hidden) {
-            mappedPort = mappedPort.parentModel;
+        while (mappedPort && mappedPort.attributes.hidden) {
+            mappedPort = mappedPort.attributes.parentModel;
         }
 
         return [actualPort, mappedPort];
@@ -59,7 +63,10 @@ export function getTargetPortPrefix(node: NodeModel): string {
 			return OBJECT_OUTPUT_TARGET_PORT_PREFIX;
         case node instanceof ArrayOutputNode:
             return ARRAY_OUTPUT_TARGET_PORT_PREFIX;
-        // TODO: Update cases for other node types
+        case node instanceof PrimitiveOutputNode:
+            return PRIMITIVE_OUTPUT_TARGET_PORT_PREFIX;
+        case node instanceof QueryOutputNode:
+                return QUERY_OUTPUT_TARGET_PORT_PREFIX;
 		default:
 			return "";
 	}

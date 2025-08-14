@@ -69,12 +69,10 @@ export class ArtifactNotificationHandler {
                     filteredData = filteredData.filter(data => data.name === artifactData.identifier);
                 }
             }
-            if (filteredData.length > 0) {
-                callback({
-                    ...payload,
-                    data: filteredData
-                });
-            }
+            callback({
+                ...payload,
+                data: filteredData
+            });
         };
 
         subscribers.add(wrappedCallback);

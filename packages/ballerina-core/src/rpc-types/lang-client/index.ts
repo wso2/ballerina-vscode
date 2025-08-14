@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import { BallerinaPackagesParams, BallerinaProjectComponents, BallerinaSTParams, ComponentModels, ComponentModelsParams, ExecutorPositions, PartialST, PartialSTParams, STModifyParams, SymbolInfo, SymbolInfoParams, SyntaxTree, SyntaxTreeParams, TypeFromExpressionParams, TypeFromSymbolParams, TypesFromFnDefinitionParams } from "../../interfaces/extended-lang-client";
+import { BallerinaPackagesParams, BallerinaProjectComponents, BallerinaSTParams, ComponentModels, ComponentModelsParams, ExecutorPositions, PartialST, PartialSTParams, ProjectDiagnosticsRequest, ProjectDiagnosticsResponse, STModifyParams, SymbolInfo, SymbolInfoParams, SyntaxTree, SyntaxTreeParams, TypeFromExpressionParams, TypeFromSymbolParams, TypesFromFnDefinitionParams } from "../../interfaces/extended-lang-client";
 import { BallerinaVersionResponse, CompletionRequest, CompletionResponse, DiagnosticsResponse, CodeActionRequest, CodeActionResponse, RenameRequest, RenameResponse, DefinitionPositionRequest, UpdateFileContentRequest, UpdateFileContentResponse, DefinitionResponse, ExecutorPositionsRequest, DidCloseRequest, TypesFromExpressionResponse, TypesFromSymbolResponse, DidOpenRequest, DidChangeRequest } from "./interfaces";
 
 export interface LangClientAPI {
@@ -27,6 +27,7 @@ export interface LangClientAPI {
     getBallerinaVersion: () => Promise<BallerinaVersionResponse>;
     getCompletion: (params: CompletionRequest) => Promise<CompletionResponse>;
     getDiagnostics: (params: SyntaxTreeParams) => Promise<DiagnosticsResponse>;
+    getProjectDiagnostics: (params: ProjectDiagnosticsRequest) => Promise<ProjectDiagnosticsResponse>;
     codeAction: (params: CodeActionRequest) => Promise<CodeActionResponse>;
     rename: (params: RenameRequest) => Promise<RenameResponse>;
     getDefinitionPosition: (params: DefinitionPositionRequest) => Promise<SyntaxTree>;

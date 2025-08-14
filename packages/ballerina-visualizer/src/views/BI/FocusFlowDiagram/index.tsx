@@ -42,15 +42,18 @@ import {
     TRIGGER_CHARACTERS,
     TriggerCharacter,
     TextEdit,
-    ParentMetadata
+    ParentMetadata,
+    UpdatedArtifactsResponse
 } from "@wso2/ballerina-core";
+import { PanelContainer } from "@wso2/ballerina-side-panel";
+import { ModelConfig } from "../AIChatAgent/ModelConfig";
 
 import {
     addDraftNodeToDiagram,
     convertBalCompletion,
     convertBICategoriesToSidePanelCategories,
     getFlowNodeForNaturalFunction,
-    getInfoFromExpressionValue,
+    calculateExpressionOffsets,
     isNaturalFunction,
     updateLineRange,
 } from "../../../utils/bi";
@@ -85,6 +88,8 @@ export function BIFocusFlowDiagram(props: BIFocusFlowDiagramProps) {
     const [suggestedModel, setSuggestedModel] = useState<Flow>();
     const [showProgressIndicator, setShowProgressIndicator] = useState(false);
     const [breakpointInfo, setBreakpointInfo] = useState<BreakpointInfo>();
+    const [showModelConfigPanel, setShowModelConfigPanel] = useState(false);
+    const [selectedNodeForModelConfig, setSelectedNodeForModelConfig] = useState<FlowNode | undefined>();
 
     const selectedNodeRef = useRef<FlowNode>();
     const nodeTemplateRef = useRef<FlowNode>();
@@ -322,6 +327,41 @@ export function BIFocusFlowDiagram(props: BIFocusFlowDiagramProps) {
             });
     };
 
+    const updateCurrentArtifactLocation = async (artifacts: UpdatedArtifactsResponse) => {
+        console.log(">>> Updating current artifact location", { artifacts });
+        // Get the updated component and update the location
+        const currentIdentifier = (await rpcClient.getVisualizerLocation()).identifier;
+        // Find the correct artifact by currentIdentifier (id)
+        let currentArtifact = artifacts.artifacts.at(0);
+        artifacts.artifacts.forEach((artifact: any) => {
+            if (artifact.id === currentIdentifier || artifact.name === currentIdentifier) {
+                currentArtifact = artifact;
+            }
+            // Check if artifact has resources and find within those
+            if (artifact.resources && artifact.resources.length > 0) {
+                const resource = artifact.resources.find(
+                    (resource: any) => resource.id === currentIdentifier || resource.name === currentIdentifier
+                );
+                if (resource) {
+                    currentArtifact = resource;
+                }
+            }
+        });
+        
+        if (currentArtifact) {
+            console.log(">>> currentArtifact", currentArtifact);
+            await rpcClient.getVisualizerRpcClient().openView({
+                type: EVENT_TYPE.UPDATE_PROJECT_LOCATION,
+                location: {
+                    documentUri: currentArtifact.path,
+                    position: currentArtifact.position,
+                    identifier: currentIdentifier,
+                },
+            });
+        }
+        debouncedGetFlowModel();
+    };
+
     const handleOnEditNode = (node: FlowNode) => {
         console.log(">>> on edit node", node);
         selectedNodeRef.current = node;
@@ -441,13 +481,13 @@ export function BIFocusFlowDiagram(props: BIFocusFlowDiagramProps) {
                         })
                         .sort((a, b) => a.sortText.localeCompare(b.sortText));
                 } else {
-                    const { lineOffset, charOffset } = getInfoFromExpressionValue(value, offset);
+                    const { lineOffset, charOffset } = calculateExpressionOffsets(value, offset);
                     let completions = await rpcClient.getBIDiagramRpcClient().getExpressionCompletions({
                         filePath: filePath,
                         context: {
                             expression: value,
                             startLine: updateLineRange(
-                                selectedNode.properties['prompt'].codedata.lineRange, 
+                                selectedNode.properties['prompt'].codedata.lineRange,
                                 expressionOffsetRef.current
                             ).startLine,
                             lineOffset: lineOffset,
@@ -527,6 +567,25 @@ export function BIFocusFlowDiagram(props: BIFocusFlowDiagramProps) {
         handleExpressionEditorCancel();
     };
 
+    const handleOnEditAgentModel = (node: FlowNode) => {
+        console.log(">>> on edit agent model", node);
+        setSelectedNodeForModelConfig(node);
+        setShowModelConfigPanel(true);
+    };
+
+    const handleSaveModelConfigPanel = (response: UpdatedArtifactsResponse) => {
+        setShowModelConfigPanel(false);
+        setSelectedNodeForModelConfig(undefined);
+        if (response) {
+            updateCurrentArtifactLocation(response);
+        }
+    };
+
+    const handleCloseModelConfigPanel = () => {
+        setShowModelConfigPanel(false);
+        setSelectedNodeForModelConfig(undefined);
+    };
+
     const memoizedDiagramProps = useMemo(
         () => ({
             model: flowModel,
@@ -546,7 +605,10 @@ export function BIFocusFlowDiagram(props: BIFocusFlowDiagramProps) {
                 onCompletionItemSelect: handleCompletionItemSelect,
                 onBlur: handleExpressionEditorBlur,
                 onCancel: handleExpressionEditorCancel
-            }
+            },
+            aiNodes: {
+                onModelSelect: handleOnEditAgentModel,
+            },
         }),
         [flowModel, projectPath, breakpointInfo, filteredCompletions]
     );
@@ -566,6 +628,19 @@ export function BIFocusFlowDiagram(props: BIFocusFlowDiagramProps) {
                     {model && <MemoizedDiagram {...memoizedDiagramProps} />}
                 </Container>
             </View>
+
+            {showModelConfigPanel && selectedNodeForModelConfig && (
+                <PanelContainer
+                    title="Configure LLM Model"
+                    show={showModelConfigPanel}
+                    onClose={handleCloseModelConfigPanel}
+                >
+                    <ModelConfig
+                        agentCallNode={selectedNodeForModelConfig}
+                        onSave={handleSaveModelConfigPanel}
+                    />
+                </PanelContainer>
+            )}
         </>
     );
 }

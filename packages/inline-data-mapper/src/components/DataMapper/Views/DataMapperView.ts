@@ -15,10 +15,17 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-
-import { IDMModel } from "@wso2/ballerina-core";
-
 export interface View {
     label: string;
-    model: IDMModel;
+    sourceField?: string;
+    targetField?: string;
+    subMappingInfo?: SubMappingInfo;
+}
+
+export interface SubMappingInfo {
+    index: number;
+    mappingName: string;
+    mappingType: string;
+    mapFnIndex?: number;
+    focusedOnSubMappingRoot?: boolean;
 }

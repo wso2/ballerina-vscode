@@ -142,8 +142,8 @@ export const ConfigurablePage = ({ onChange }: ConfigurablePageProps) => {
         setIsLoading(true);
         setTimeout(() => {
             // Get project path
-            rpcClient.getVisualizerLocation().then((location) => {
-                const configFilePath = Utils.joinPath(URI.file(location.projectUri), 'config.bal').fsPath;
+            rpcClient.getVisualizerLocation().then(async () => {
+                const configFilePath = await rpcClient.getVisualizerRpcClient().joinProjectPath('config.bal');
                 setConfigFilePath(configFilePath);
 
                 // Get end line range

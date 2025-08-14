@@ -19,7 +19,7 @@
 import { BallerinaProject } from "@wso2/ballerina-core";
 import { Terminal, window, workspace } from "vscode";
 import { isSupportedSLVersion, isWindows } from "../../../utils";
-import { ballerinaExtInstance } from "../../../core";
+import { extension } from "../../../BalExtensionContext";
 
 
 export const PALETTE_COMMANDS = {
@@ -195,9 +195,9 @@ export function createTerminal(path: string, env?: { [key: string]: string }): v
 }
 
 export function getRunCommand(): BALLERINA_COMMANDS {
-    if (isSupportedSLVersion(ballerinaExtInstance, 2201130) && ballerinaExtInstance.enabledExperimentalFeatures()) {
+    if (isSupportedSLVersion(extension.ballerinaExtInstance, 2201130) && extension.ballerinaExtInstance.enabledExperimentalFeatures()) {
         return BALLERINA_COMMANDS.RUN_WITH_EXPERIMENTAL;
-    } else if (ballerinaExtInstance.enabledLiveReload()) {
+    } else if (extension.ballerinaExtInstance.enabledLiveReload()) {
         return BALLERINA_COMMANDS.RUN_WITH_WATCH;
     }
     return BALLERINA_COMMANDS.RUN;

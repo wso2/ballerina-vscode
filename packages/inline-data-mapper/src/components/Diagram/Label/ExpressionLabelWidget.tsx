@@ -18,7 +18,7 @@
 // tslint:disable: jsx-no-multiline-js
 import React, { MouseEvent, ReactNode, useEffect, useState } from 'react';
 
-import { IDMType, TypeKind } from '@wso2/ballerina-core';
+import { IDMType, ResultClauseType, TypeKind } from '@wso2/ballerina-core';
 import { Button, Codicon, ProgressRing } from '@wso2/ui-toolkit';
 import { css } from '@emotion/css';
 import classNames from "classnames";
@@ -26,9 +26,12 @@ import classNames from "classnames";
 import { DiagnosticWidget } from '../Diagnostic/DiagnosticWidget';
 import { ExpressionLabelModel } from './ExpressionLabelModel';
 import { isSourcePortArray, isTargetPortArray } from '../utils/link-utils';
-import { DataMapperLinkModel } from '../Link';
+import { DataMapperLinkModel, MappingType } from '../Link';
 import { CodeActionWidget } from '../CodeAction/CodeAction';
-import { set } from 'lodash';
+import { InputOutputPortModel } from '../Port';
+import { mapWithCustomFn, mapWithQuery } from '../utils/modification-utils';
+import { getMappingType } from '../utils/common-utils';
+import { useDMExpressionBarStore } from "../../../store/store";
 
 export interface ExpressionLabelWidgetProps {
     model: ExpressionLabelModel;
@@ -37,11 +40,11 @@ export interface ExpressionLabelWidgetProps {
 export const useStyles = () => ({
     container: css({
         width: '100%',
-        backgroundColor: "var(--vscode-sideBar-background)",
+        backgroundColor: "var(--vscode-editor-background)",
         padding: "2px",
         borderRadius: "6px",
+        border: "1px solid var(--vscode-debugIcon-breakpointDisabledForeground)",
         display: "flex",
-        color: "var(--vscode-checkbox-border)",
         alignItems: "center",
         "& > vscode-button > *": {
             margin: "0 2px"
@@ -60,7 +63,6 @@ export const useStyles = () => ({
         }
     }),
     element: css({
-        backgroundColor: 'var(--vscode-input-background)',
         padding: '10px',
         cursor: 'pointer',
         transitionDuration: '0.2s',
@@ -106,19 +108,17 @@ export enum LinkState {
     LinkNotSelected
 }
 
-export enum ArrayMappingType {
-    ArrayToArray,
-    ArrayToSingleton
-}
-
 export function ExpressionLabelWidget(props: ExpressionLabelWidgetProps) {
     const [isTempLink, setIsTempLink] = useState<boolean>(false);
     const [isLinkSelected, setIsLinkSelected] = useState<boolean>(false);
-    const [arrayMappingType, setArrayMappingType] = React.useState<ArrayMappingType>(undefined);
+    const [mappingType, setMappingType] = React.useState<MappingType>(MappingType.Default);
     const [deleteInProgress, setDeleteInProgress] = useState(false);
 
     const classes = useStyles();
-    const { link, value, deleteLink } = props.model;
+    const setExprBarFocusedPort = useDMExpressionBarStore(state => state.setFocusedPort);
+
+    const { link, value, deleteLink, context, collectClauseFn } = props.model;
+    const targetPort = link?.getTargetPort() as InputOutputPortModel;
     const diagnostic = link && link.hasError() ? link.diagnostics[0] || link.diagnostics[0] : null;
 
     const handleLinkStatus = (isSelected: boolean) => {
@@ -126,16 +126,14 @@ export function ExpressionLabelWidget(props: ExpressionLabelWidgetProps) {
     }
 
     useEffect(() => {
-        if (link) {
+        if (link?.isActualLink) {
             link.registerListener({
                 selectionChanged(event) {
                     handleLinkStatus(event.isSelected);
                 },
             });
-            const isSourceArray = isSourcePortArray(source);
-            const isTargetArray = isTargetPortArray(target);
-            const mappingType = getArrayMappingType(isSourceArray, isTargetArray);
-            setArrayMappingType(mappingType);
+            const mappingType = getMappingType(source, target);
+            setMappingType(mappingType);
         } else {
             setIsTempLink(true);
         }
@@ -159,11 +157,17 @@ export function ExpressionLabelWidget(props: ExpressionLabelWidgetProps) {
     };
 
     const onClickEdit = (evt?: MouseEvent<HTMLDivElement>) => {
-        // TODO: Implement
+        setExprBarFocusedPort(targetPort);
     };
 
+    const collectClauseFns = ["sum", "avg", "min", "max", "count"];
+  
+    const onClickChangeCollectClauseFn = async ( collectClauseFn: string) => {
+
+    }
+
     const loadingScreen = (
-        <ProgressRing sx={{ height: '16px', width: '16px' }} />
+        <ProgressRing sx={{ height: '16px', width: '16px' }} color="var(--vscode-debugIcon-breakpointDisabledForeground)" />
     );
 
     const elements: ReactNode[] = [
@@ -180,6 +184,21 @@ export function ExpressionLabelWidget(props: ExpressionLabelWidgetProps) {
                 >
                     <Codicon name="code" iconSx={{ color: "var(--vscode-input-placeholderForeground)" }} />
                 </Button>
+                {collectClauseFn && (
+                    <>
+                        <div className={classes.separator} />
+                        <CodeActionWidget
+                            key={`expression-label-code-action-collect-clause-fn`}
+                            codeActions={collectClauseFns.map((fn) => ({
+                                title: fn,
+                                onClick: () => onClickChangeCollectClauseFn(fn)
+                            }))}
+                            collectClauseFn={collectClauseFn}
+                            sx={{ padding: "5px", color: "var(--vscode-button-foreground)"}}
+                        />
+                    </>
+                )}
+
                 <div className={classes.separator}/>
                 {deleteInProgress ? (
                     loadingScreen
@@ -197,22 +216,30 @@ export function ExpressionLabelWidget(props: ExpressionLabelWidgetProps) {
         ),
     ];
 
-    const onClickMapViaArrayFn = async () => {
-        // TODO: Implement
+    const onClickMapWithQuery = async () => {
+        await mapWithQuery(link, ResultClauseType.SELECT, context);
     };
 
-    const applyArrayFunction = async (linkModel: DataMapperLinkModel, targetType: IDMType) => {
-        // TODO: Implement
+    const onClickMapWithCustomFn = async () => {
+        await mapWithCustomFn(link, context);
     };
 
     const codeActions = [];
-    if (arrayMappingType === ArrayMappingType.ArrayToArray) {
+
+    if (mappingType === MappingType.ArrayToArray) {
         codeActions.push({
-            title: "Map with array function",
-            onClick: onClickMapViaArrayFn
-        });
-    } else if (arrayMappingType === ArrayMappingType.ArrayToSingleton) {
+            title: "Map with query expression",
+            onClick: onClickMapWithQuery
+        }, );
+    } else if (mappingType === MappingType.ArrayToSingleton) {
         // TODO: Add impl
+    }
+
+    if (mappingType !== MappingType.Default) {
+        codeActions.push({
+            title: "Map with custom function",
+            onClick: onClickMapWithCustomFn
+        });
     }
 
     if (codeActions.length > 0) {
@@ -221,7 +248,7 @@ export function ExpressionLabelWidget(props: ExpressionLabelWidgetProps) {
             <CodeActionWidget
                 key={`expression-label-code-action-${value}`}
                 codeActions={codeActions}
-                btnSx={{ margin: "0 2px" }}
+                sx={{ margin: "0 2px" }}
             />
         );
     }
@@ -243,14 +270,9 @@ export function ExpressionLabelWidget(props: ExpressionLabelWidgetProps) {
     const source = link?.getSourcePort();
     const target = link?.getTargetPort();
 
-
     return isTempLink
         ? (
-            <div
-                className={classNames(
-                    classes.container
-                )}
-            >
+            <div className={classNames(classes.container)}>
                 <div className={classNames(classes.element, classes.loadingContainer)}>
                     {loadingScreen}
                 </div>
@@ -260,21 +282,10 @@ export function ExpressionLabelWidget(props: ExpressionLabelWidgetProps) {
                 data-testid={`expression-label-for-${link?.getSourcePort()?.getName()}-to-${link?.getTargetPort()?.getName()}`}
                 className={classNames(
                     classes.container,
-                    !isLinkSelected && !deleteInProgress && classes.containerHidden
+                    !isLinkSelected && !deleteInProgress && !collectClauseFn && classes.containerHidden
                 )}
             >
                 {elements}
             </div>
         );
-}
-
-export function getArrayMappingType(isSourceArray: boolean, isTargetArray: boolean): ArrayMappingType {
-	let mappingType: ArrayMappingType;
-	if (isSourceArray && isTargetArray) {
-		mappingType = ArrayMappingType.ArrayToArray;
-	} else if (isSourceArray && !isTargetArray) {
-		mappingType = ArrayMappingType.ArrayToSingleton;
-	}
-
-	return mappingType;
 }
