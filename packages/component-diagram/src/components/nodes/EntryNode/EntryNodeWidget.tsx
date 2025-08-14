@@ -27,6 +27,7 @@ import { HttpIcon, TaskIcon } from "../../../resources";
 import { MoreVertIcon } from "../../../resources/icons/nodes/MoreVertIcon";
 import { CDAutomation, CDFunction, CDService, CDResourceFunction } from "@wso2/ballerina-core";
 import { getEntryNodeFunctionPortName } from "../../../utils/diagram";
+import { PREVIEW_COUNT, SHOW_ALL_THRESHOLD } from "../../../utils/visibility";
 type NodeStyleProp = {
     hovered: boolean;
     inactive?: boolean;
@@ -87,10 +88,6 @@ const Title = styled(StyledText) <NodeStyleProp>`
     opacity: ${(props: NodeStyleProp) => (props.inactive && !props.hovered ? 0.7 : 1)};
 `;
 
-const Accessor = styled(StyledText)`
-    text-transform: uppercase;
-    font-family: "GilmerBold";
-`;
 
 const ResourceAccessor = styled(StyledText)<{ color?: string }>`
     text-transform: uppercase;
@@ -163,6 +160,40 @@ const StyledServiceBox = styled(ServiceBox) <NodeStyleProp>`
         ${(props: NodeStyleProp) => (props.hovered ? ThemeColors.HIGHLIGHT : ThemeColors.OUTLINE_VARIANT)};
     border-radius: 8px;
     background-color: ${ThemeColors.SURFACE_DIM};
+`;
+
+// Visually group GraphQL operations with a colored accent bar
+const GroupContainer = styled.div<{ accent: string }>`
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    width: 100%;
+    position: relative;
+    border: ${NODE_BORDER_WIDTH}px solid ${ThemeColors.OUTLINE_VARIANT};
+    border-radius: 8px;
+    background-color: ${ThemeColors.SURFACE_DIM};
+    padding: 6px;
+
+    &::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 4px;
+        background-color: ${(p) => p.accent};
+        border-radius: 8px 0 0 8px;
+        opacity: 0.9;
+    }
+`;
+
+const GroupHeader = styled.div`
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    height: 40px;
+    padding: 0 6px 0 8px;
+    cursor: pointer;
 `;
 
 const MenuButton = styled(Button)`
@@ -301,12 +332,10 @@ export function EntryNodeWidget(props: EntryNodeWidgetProps) {
     const hasMoreFunctions = serviceFunctions.length > 3;
 
     let visibleFunctions;
-    if (serviceFunctions.length <= 3 || isExpanded) {
-        // Show all functions if ≤3 total or if expanded
+    if (serviceFunctions.length <= SHOW_ALL_THRESHOLD || isExpanded) {
         visibleFunctions = serviceFunctions;
     } else {
-        // Show only first 2 functions when collapsed
-        visibleFunctions = serviceFunctions.slice(0, 2);
+        visibleFunctions = serviceFunctions.slice(0, PREVIEW_COUNT);
     }
 
     if ((model.node as CDService)?.type === "ai:Service") {
@@ -369,26 +398,32 @@ export function EntryNodeWidget(props: EntryNodeWidgetProps) {
                         <MoreVertIcon />
                     </MenuButton>
                 </ServiceBox>
-                {visibleFunctions.map((serviceFunction) => (
-                    <FunctionBox
-                        key={getEntryNodeFunctionPortName(serviceFunction)}
-                        func={serviceFunction}
-                        model={model}
-                        engine={engine}
-                    />
-                ))}
-                {hasMoreFunctions && !isExpanded && (
-                    <ViewAllButtonWrapper>
-                        <ViewAllButton onClick={handleToggleExpansion}>
-                            Show More Resources
-                        </ViewAllButton>
-                        <PortWidget port={model.getPort(VIEW_ALL_RESOURCES_PORT_NAME)!} engine={engine} />
-                    </ViewAllButtonWrapper>
-                )}
-                {hasMoreFunctions && isExpanded && (
-                    <ViewAllButton onClick={handleToggleExpansion}>
-                        Show Fewer Resources
-                    </ViewAllButton>
+                {(model.node as CDService)?.type === "graphql:Service" ? (
+                    <GraphQLGroups functions={serviceFunctions} model={model} engine={engine} />
+                ) : (
+                    <>
+                        {visibleFunctions.map((serviceFunction) => (
+                            <FunctionBox
+                                key={getEntryNodeFunctionPortName(serviceFunction)}
+                                func={serviceFunction}
+                                model={model}
+                                engine={engine}
+                            />
+                        ))}
+                        {hasMoreFunctions && !isExpanded && (
+                            <ViewAllButtonWrapper>
+                                <ViewAllButton onClick={handleToggleExpansion}>
+                                    Show More Resources
+                                </ViewAllButton>
+                                <PortWidget port={model.getPort(VIEW_ALL_RESOURCES_PORT_NAME)!} engine={engine} />
+                            </ViewAllButtonWrapper>
+                        )}
+                        {hasMoreFunctions && isExpanded && (
+                            <ViewAllButton onClick={handleToggleExpansion}>
+                                Show Fewer Resources
+                            </ViewAllButton>
+                        )}
+                    </>
                 )}
             </Box>
             <Popover
@@ -432,8 +467,8 @@ export function getColorByMethod(method: string) {
     }
 }
 
-function FunctionBox(props: { func: CDFunction | CDResourceFunction; model: EntryNodeModel; engine: DiagramEngine }) {
-    const { func, model, engine } = props;
+function FunctionBox(props: { func: CDFunction | CDResourceFunction; model: EntryNodeModel; engine: DiagramEngine, isGrouped?: boolean }) {
+    const { func, model, engine, isGrouped } = props;
     const [isHovered, setIsHovered] = useState(false);
     const { onFunctionSelect } = useDiagramContext();
     const isGraphQL = (model.node as CDService)?.type === "graphql:Service";
@@ -460,16 +495,15 @@ function FunctionBox(props: { func: CDFunction | CDResourceFunction; model: Entr
                 onMouseEnter={() => setIsHovered(true)}
                 onMouseLeave={() => setIsHovered(false)}
             >
-                {(func as CDResourceFunction).accessor && (
+                {!isGrouped && (func as CDResourceFunction).accessor && (
                     <ResourceAccessor color={getColorByMethod((func as CDResourceFunction).accessor)}>
                         {getAccessorDisplay((func as CDResourceFunction).accessor, isGraphQL)}
                     </ResourceAccessor>
                 )}
-                {isGraphQL && !(func as CDResourceFunction).accessor && (func as CDFunction).name && (
-                    <Accessor>Mutation</Accessor>
-                )}
                 {(func as CDResourceFunction).path && (
-                    <Title hovered={isHovered}>/{(func as CDResourceFunction).path}</Title>
+                    <Title hovered={isHovered}>
+                        {isGraphQL ? (func as CDResourceFunction).path : `/${(func as CDResourceFunction).path}`}
+                    </Title>
                 )}
                 {(func as CDFunction).name && <Title hovered={isHovered}>{(func as CDFunction).name}</Title>}
             </StyledServiceBox>
@@ -509,4 +543,114 @@ export function getCustomEntryNodeIcon(type: string) {
         default:
             return null;
     }
+}
+
+export function GraphQLFunctionList(props: {
+    group: "Query" | "Subscription" | "Mutation";
+    functions: Array<CDFunction | CDResourceFunction>;
+    model: EntryNodeModel;
+    engine: DiagramEngine;
+}) {
+    const { group, functions, model, engine } = props;
+    const { expandedNodes, onToggleNodeExpansion } = useDiagramContext();
+
+    // using shared constants for preview and threshold
+
+    const accent = (() => {
+        switch (group) {
+            case "Query": return colors.GET;
+            case "Subscription": return colors.PUT;
+            case "Mutation": return colors.POST;
+        }
+    })();
+
+    const isExpanded = expandedNodes.has(model.node.uuid + group);
+    const canToggleItems = functions.length > SHOW_ALL_THRESHOLD;
+
+    let visibleFunctions;
+    if (functions.length <= SHOW_ALL_THRESHOLD || isExpanded) {
+        visibleFunctions = functions;
+    } else {
+        visibleFunctions = functions.slice(0, PREVIEW_COUNT);
+    }
+
+    const handleToggleExpansion = () => {
+        onToggleNodeExpansion(model.node.uuid + group);
+    };
+
+    return (
+        <FunctionBoxWrapper>
+            <GroupContainer accent={accent}>
+                <GroupHeader>
+                    <ResourceAccessor color={accent}>{group}</ResourceAccessor>
+                </GroupHeader>
+                <>
+                    {visibleFunctions.map((fn) => (
+                        <FunctionBox
+                            key={getEntryNodeFunctionPortName(fn)}
+                            func={fn}
+                            model={model}
+                            engine={engine}
+                            isGrouped
+                        />
+                    ))}
+                    {canToggleItems && !isExpanded && (
+                    <ViewAllButtonWrapper>
+                        <ViewAllButton onClick={handleToggleExpansion}>
+                            Show More Resources
+                        </ViewAllButton>
+                        <PortWidget port={model.getPort(VIEW_ALL_RESOURCES_PORT_NAME)!} engine={engine} />
+                    </ViewAllButtonWrapper>
+                    )}
+                    {canToggleItems && isExpanded && (
+                        <ViewAllButton onClick={handleToggleExpansion}>
+                            Show Fewer Resources
+                        </ViewAllButton>
+                    )}
+                </>
+            </GroupContainer>
+        </FunctionBoxWrapper>
+    );
+}
+
+export function GraphQLGroups(props: { functions: Array<CDFunction | CDResourceFunction>; model: EntryNodeModel; engine: DiagramEngine }) {
+    const { functions, model, engine } = props;
+
+    type GroupKey = "Query" | "Subscription" | "Mutation";
+
+    const getGroupLabel = (accessor?: string, name?: string): GroupKey | null => {
+        if (accessor === "get") return "Query";
+        if (accessor === "subscribe") return "Subscription";
+        if (!accessor && name) return "Mutation";
+        return null;
+    };
+
+    // Group functions by Query / Subscription / Mutation
+    const grouped: Record<GroupKey, Array<CDFunction | CDResourceFunction>> = functions.reduce((acc, fn) => {
+        const accessor = (fn as CDResourceFunction).accessor;
+        const name = (fn as CDFunction).name;
+        const group = getGroupLabel(accessor, name);
+        if (!group) return acc;
+        (acc[group] ||= []).push(fn);
+        return acc;
+    }, {} as Record<GroupKey, Array<CDFunction | CDResourceFunction>>);
+
+    const orderedGroups: GroupKey[] = ["Query", "Subscription", "Mutation"];
+
+    return (
+        <>
+            {orderedGroups
+                .filter((g) => grouped[g]?.length)
+                .map((group) => (
+                    <React.Fragment key={`gql-accordion-${group}`}>
+                        <GraphQLFunctionList
+                            group={group}
+                            functions={grouped[group]}
+                            model={model}
+                            engine={engine}
+                        />
+                    </React.Fragment>
+                ))}
+        </>
+    );
 }

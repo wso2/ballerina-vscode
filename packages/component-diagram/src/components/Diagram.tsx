@@ -33,15 +33,8 @@ import { NodeLinkModel } from "./NodeLink";
 import { OverlayLayerModel } from "./OverlayLayer";
 import { DiagramContextProvider, DiagramContextState } from "./DiagramContext";
 import Controls from "./Controls";
-import {
-    CDAutomation,
-    CDConnection,
-    CDFunction,
-    CDListener,
-    CDModel,
-    CDService,
-    CDResourceFunction,
-} from "@wso2/ballerina-core";
+import { CDAutomation, CDConnection, CDFunction, CDListener, CDModel, CDService, CDResourceFunction } from "@wso2/ballerina-core";
+import { partitionServiceFunctions } from "../utils/visibility";
 import { EntryNodeModel } from "./nodes/EntryNode";
 import { ListenerNodeModel } from "./nodes/ListenerNode";
 import { ConnectionNodeModel } from "./nodes/ConnectionNode";
@@ -137,27 +130,8 @@ export function Diagram(props: DiagramProps) {
 
             startY += nodeHeight + 16;
 
-            // Determine visible and hidden functions based on expansion state
-            const serviceFunctions = [];
-            if (service.remoteFunctions?.length > 0) {
-                serviceFunctions.push(...service.remoteFunctions);
-            }
-            if (service.resourceFunctions?.length > 0) {
-                serviceFunctions.push(...service.resourceFunctions);
-            }
-
-            const isNodeExpanded = expandedNodes.has(service.uuid);
-            
-            let visibleFunctions, hiddenFunctions;
-            if (serviceFunctions.length <= 3 || isNodeExpanded) {
-                // Show all functions if ≤3 total or if expanded
-                visibleFunctions = serviceFunctions;
-                hiddenFunctions = [];
-            } else {
-                // Show only first 2 functions when collapsed
-                visibleFunctions = serviceFunctions.slice(0, 2);
-                hiddenFunctions = serviceFunctions.slice(2);
-            }
+            // Determine visible and hidden functions using utility (GraphQL-aware)
+            const { visible: visibleFunctions, hidden: hiddenFunctions } = partitionServiceFunctions(service, expandedNodes);
 
             // Create connections for visible functions
             visibleFunctions.forEach((func) => {
@@ -175,8 +149,10 @@ export function Diagram(props: DiagramProps) {
                 });
             });
 
-            // Create connections for hidden functions to the view all resources port (only when collapsed)
-            if (hiddenFunctions.length > 0 && !isNodeExpanded) {
+            // Create connections for hidden functions to the view all resources port
+            // If there are hidden functions (for either GraphQL per-group or non-GraphQL collapsed), attach them.
+            const shouldLinkHiddenToViewAll = hiddenFunctions.length > 0 && node.getViewAllResourcesPort();
+            if (shouldLinkHiddenToViewAll) {
                 const viewAllPort = node.getViewAllResourcesPort();
                 hiddenFunctions.forEach((func) => {
                     func.connections?.forEach((connectionUuid) => {
