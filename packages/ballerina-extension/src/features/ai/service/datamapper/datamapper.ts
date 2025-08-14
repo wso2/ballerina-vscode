@@ -467,10 +467,14 @@ function validateMappingOperation(
 
         // STEP 4: Validate SPLIT operation
     } else if (op.name === SPLIT) {
-        const paramOne = inputType[PARAMETER_1];
-        const paramTwo = mapping.PARAMETER_2;
-
-        if (!paramOne || !paramTwo) {
+        let paramOne: ParameterMetadata, paramTwo: string | MappingJson;
+        if (inputType[PARAMETER_1] && mapping.PARAMETER_2) {
+            paramOne = inputType[PARAMETER_1];
+            paramTwo = mapping.PARAMETER_2;
+        } else if (inputType[PARAMETER_2] && mapping.PARAMETER_1) {
+            paramOne = inputType[PARAMETER_2];
+            paramTwo = mapping.PARAMETER_1;
+        } else {
             throw new Error("Required parameters not found in input type for SPLIT operation");
         }
 
