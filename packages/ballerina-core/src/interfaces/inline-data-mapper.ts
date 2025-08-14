@@ -121,7 +121,7 @@ export interface DMModel {
     inputs: IORoot[];
     output: IORoot;
     subMappings?: IORoot[];
-    types: Record<string, RecordType | EnumType>;
+    refs: Record<string, RecordType | EnumType>;
     mappings: Mapping[];
     view: string;
     query?: Query;
@@ -141,6 +141,8 @@ export interface IORoot extends IOTypeField {
 
 export interface RecordType {
     fields: IOTypeField[];
+    typeName: string;
+    kind: TypeKind;
 }
 
 export interface EnumType {
@@ -150,7 +152,7 @@ export interface EnumType {
 export interface IOTypeField {
     typeName?: string;
     kind: TypeKind;
-    fieldName?: string;
+    variableName?: string;
     member?: IOTypeField;
     defaultValue?: unknown;
     optional?: boolean;
