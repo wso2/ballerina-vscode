@@ -60,8 +60,8 @@ export async function buildProjectArtifactsStructure(projectDir: string, langCli
 export async function updateProjectArtifacts(publishedArtifacts: ArtifactsNotification): Promise<void> {
     // Current project structure
     const currentProjectStructure: ProjectStructureResponse = StateMachine.context().projectStructure;
-    const projectUri = URI.parse(StateMachine.context().projectUri);
-    const isWithinProject = URI.parse(publishedArtifacts.uri).path.toLowerCase().includes(projectUri.path.toLowerCase());
+    const projectUri = URI.file(StateMachine.context().projectUri);
+    const isWithinProject = URI.parse(publishedArtifacts.uri).fsPath.toLowerCase().includes(projectUri.fsPath.toLowerCase());
     if (currentProjectStructure && isWithinProject) {
         const entryLocations = await traverseUpdatedComponents(publishedArtifacts.artifacts, currentProjectStructure);
         const notificationHandler = ArtifactNotificationHandler.getInstance();
@@ -104,7 +104,7 @@ async function getComponents(artifacts: Record<string, BaseArtifact>, artifactTy
 }
 
 async function getEntryValue(artifact: BaseArtifact, icon: string, moduleName?: string) {
-    const targetFile = Utils.joinPath(URI.parse(StateMachine.context().projectUri), artifact.location.fileName).fsPath;
+    const targetFile = Utils.joinPath(URI.file(StateMachine.context().projectUri), artifact.location.fileName).fsPath;
     const entryValue: ProjectStructureArtifactResponse = {
         id: artifact.id,
         name: artifact.name,
@@ -183,7 +183,7 @@ async function injectAIAgent(serviceArtifact: BaseArtifact) {
     const agentName = serviceArtifact.name.split('-')[1].trim().replace(/\//g, '');
 
     // Retrieve the service model
-    const targetFile = Utils.joinPath(URI.parse(StateMachine.context().projectUri), serviceArtifact.location.fileName).fsPath;
+    const targetFile = Utils.joinPath(URI.file(StateMachine.context().projectUri), serviceArtifact.location.fileName).fsPath;
     const updatedService = await new ServiceDesignerRpcManager().getServiceModelFromCode({
         filePath: targetFile,
         codedata: {
