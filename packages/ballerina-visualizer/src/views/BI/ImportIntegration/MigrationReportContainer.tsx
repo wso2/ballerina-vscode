@@ -25,7 +25,7 @@ import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { ColorThemeKind } from "@wso2/ballerina-core";
 
 interface MigrationReportContainerProps {
-    reportJSONString: string;
+    report: MigrationReportJSON;
 }
 
 interface MigrationReportJSON {
@@ -89,14 +89,14 @@ const useVSCodeTheme = () => {
 };
 
 const getPluralElement = (element: string) => {
-  if (element === "activity") {
-    return "activities";
-  }
-  return `${element}s`;
+    if (element === "activity") {
+        return "activities";
+    }
+    return `${element}s`;
 };
 
 const capitalizeFirstLetter = (str: string) => {
-  return str.charAt(0).toUpperCase() + str.slice(1);
+    return str.charAt(0).toUpperCase() + str.slice(1);
 };
 
 /**
@@ -133,17 +133,7 @@ const generateMarkdown = (data: MigrationReportJSON): string => {
     const ELEMENT_STRING_CAPITALIZED = capitalizeFirstLetter(ELEMENT_STRING);
     const ELEMENTS_STRING_CAPITALIZED = capitalizeFirstLetter(ELEMENTS_STRING);
 
-
-    // 1. Coverage Overview Section
-    const coverageSection = `
-## 📊 Migration Coverage Overview
-- **Overall Coverage:** ${data.coverageOverview.coveragePercentage}%
-- **Total ${ELEMENTS_STRING_CAPITALIZED}:** ${data.coverageOverview.totalActivities}
-- **Migratable ${ELEMENTS_STRING_CAPITALIZED}:** ${data.coverageOverview.migratableActivities}
-- **Non-migratable ${ELEMENTS_STRING_CAPITALIZED}:** ${data.coverageOverview.nonMigratableActivities}
-    `;
-
-    // 2. Manual Work Estimation Table
+    // 1. Manual Work Estimation Table
     const estimationTableRows = data.manualWorkEstimation
         .map((row) => `<tr><td>${row.scenario}</td><td>${row.workingDays}</td><td>${row.weeks}</td></tr>`)
         .join("");
@@ -195,7 +185,7 @@ const generateMarkdown = (data: MigrationReportJSON): string => {
 
     const estimationSection = estimationTable + "\n\n" + estimationNotes;
 
-    // 3. Unsupported ${ELEMENTS_STRING_CAPITALIZED} Section
+    // 2. Unsupported ${ELEMENTS_STRING_CAPITALIZED} Section
     let unsupportedSection = `## ⚠️ Currently Unsupported ${ELEMENTS_STRING_CAPITALIZED}\n`;
     if (data.unsupportedActivities.length === 0) {
         unsupportedSection += `No unsupported ${ELEMENTS_STRING} found.`;
@@ -218,8 +208,7 @@ const generateMarkdown = (data: MigrationReportJSON): string => {
         `;
 
         // Add note about unsupported ${ELEMENTS_STRING}
-        unsupportedSection +=
-            `\n- **Note:** These ${ELEMENTS_STRING} are expected to be supported in future versions of the migration tool.\n\n`;
+        unsupportedSection += `\n- **Note:** These ${ELEMENTS_STRING} are expected to be supported in future versions of the migration tool.\n\n`;
 
         // Add detailed code blocks after the table
         unsupportedSection += `\n### ${ELEMENTS_STRING_CAPITALIZED} that required manual Conversion\n`;
@@ -236,7 +225,7 @@ const generateMarkdown = (data: MigrationReportJSON): string => {
         });
     }
 
-    // 4. Manual Validation Section
+    // 3. Manual Validation Section
     let validationSection = `## ✍️ ${ELEMENTS_STRING_CAPITALIZED} that need manual validation\n`;
     if (data.manualValidationActivities.length === 0) {
         validationSection += `No ${ELEMENTS_STRING} require manual validation.`;
@@ -262,14 +251,13 @@ const generateMarkdown = (data: MigrationReportJSON): string => {
         validationSection += `\n- **Note:** These ${ELEMENTS_STRING} are converted but may require manual review or adjustments.\n\n`;
     }
 
-    return styles + [coverageSection, estimationSection, unsupportedSection, validationSection].join("\n\n---\n\n");
+    return styles + [estimationSection, unsupportedSection, validationSection].join("\n\n---\n\n");
 };
-const MigrationReportContainer: React.FC<MigrationReportContainerProps> = ({ reportJSONString }) => {
+const MigrationReportContainer: React.FC<MigrationReportContainerProps> = ({ report }) => {
     const isDark = useVSCodeTheme();
 
     try {
-        const parsedData: MigrationReportJSON = JSON.parse(reportJSONString);
-        const markdownContent = generateMarkdown(parsedData);
+        const markdownContent = generateMarkdown(report);
 
         return (
             <ReactMarkdown
