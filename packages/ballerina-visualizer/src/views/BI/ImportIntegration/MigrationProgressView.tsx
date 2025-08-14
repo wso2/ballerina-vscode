@@ -19,13 +19,13 @@
 import styled from "@emotion/styled";
 import { ImportIntegrationResponse } from "@wso2/ballerina-core";
 import { Button, Codicon, Typography } from "@wso2/ui-toolkit";
-import { useState } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import MigrationReportContainer from "./MigrationReportContainer";
 
 const ButtonWrapper = styled.div`
     margin-top: 20px;
     display: flex;
-    justify-content: flex-start;
+    justify-content: flex-end;
 `;
 
 const ProgressContainer = styled.div`
@@ -44,6 +44,7 @@ const StepWrapper = styled.div`
     flex-direction: column;
     gap: 5px;
     align-items: flex-start;
+    margin-top: 20px;
 `;
 
 const LogsContainer = styled.div`
@@ -91,7 +92,100 @@ const CardAction = styled.div`
     margin-left: auto;
 `;
 
-interface ProgressProps {
+const CoverageContainer = styled.div`
+    border: 1px solid var(--vscode-widget-border);
+    border-radius: 4px;
+    padding: 24px;
+    background-color: var(--vscode-editor-background);
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+`;
+
+const CoverageHeader = styled.div`
+    display: flex;
+    align-items: center;
+    gap: 16px;
+`;
+
+const CoveragePercentage = styled.div<{ coverageColor: string }>`
+    font-size: 48px;
+    font-weight: bold;
+    color: ${props => props.coverageColor};
+`;
+
+const CoverageLabel = styled.div`
+    font-size: 14px;
+    color: var(--vscode-descriptionForeground);
+`;
+
+const CoverageProgressBar = styled.div`
+    width: 100%;
+    height: 8px;
+    background-color: var(--vscode-progressBar-background);
+    border-radius: 4px;
+    overflow: hidden;
+`;
+
+const CoverageProgressFill = styled.div<{ percentage: number; coverageColor: string }>`
+    height: 100%;
+    width: ${props => props.percentage}%;
+    background-color: ${props => props.coverageColor};
+    transition: width 0.3s ease;
+`;
+
+const CoverageStats = styled.div`
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+`;
+
+const CoverageStat = styled.div`
+    display: flex;
+    justify-content: space-between;
+    font-size: 14px;
+`;
+
+const CoverageBadge = styled.div`
+    background-color: var(--vscode-badge-background);
+    color: var(--vscode-badge-foreground);
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 500;
+    text-transform: uppercase;
+    align-self: flex-start;
+`;
+
+
+interface MigrationReportJSON {
+    coverageOverview: {
+        coveragePercentage: number;
+        totalActivities: number;
+        migratableActivities: number;
+        nonMigratableActivities: number;
+    };
+    manualWorkEstimation: Array<{
+        scenario: string;
+        workingDays: string;
+        weeks: string;
+    }>;
+    elementType: string;
+    unsupportedActivities: Array<{
+        activityName: string;
+        frequency: number;
+        blocks: Array<{
+            fileName: string;
+            code: string;
+        }>;
+    }>;
+    manualValidationActivities: Array<{
+        activityName: string;
+        frequency: number;
+    }>;
+}
+
+interface MigrationProgressProps {
     migrationState: string | null;
     migrationLogs: string[];
     migrationCompleted: boolean;
@@ -99,6 +193,36 @@ interface ProgressProps {
     migrationResponse: ImportIntegrationResponse | null;
     onNext: () => void;
 }
+
+const migrationProgressHeader = (
+    migrationCompleted: boolean,
+    migrationSuccessful: boolean,
+    migrationResponse: ImportIntegrationResponse | null
+) => {
+    let headerText;
+    let headerDesc;
+
+    if (migrationCompleted && migrationSuccessful) {
+        headerText = "Migration Completed Successfully!";
+        headerDesc =
+            "Your integration project has been successfully migrated. You can now proceed to the final step to create and open your project.";
+    } else if (migrationCompleted && !migrationSuccessful) {
+        headerText = "Migration Failed";
+        headerDesc = "The migration process encountered errors and could not be completed.";
+    } else {
+        headerText = "Migration in Progress...";
+        headerDesc = "Please wait while we set up your new integration project.";
+    }
+
+    return (
+        <div>
+            <Typography variant="h2">
+                {headerText}
+            </Typography>
+            <Typography sx={{ color: "var(--vscode-descriptionForeground)" }}>{headerDesc}</Typography>
+        </div>
+    );
+};
 
 const colourizeLog = (log: string, index: number) => {
     if (log.startsWith("[SEVERE]")) {
@@ -117,6 +241,58 @@ const colourizeLog = (log: string, index: number) => {
     return <LogEntry key={index}>{log}</LogEntry>;
 };
 
+const getCoverageLevel = (percentage: number): string => {
+    if (percentage >= 80) return "HIGH COVERAGE";
+    if (percentage >= 50) return "MEDIUM COVERAGE";
+    return "LOW COVERAGE";
+};
+
+const getCoverageColor = (percentage: number): string => {
+    if (percentage >= 80) return "var(--vscode-charts-green)";
+    if (percentage >= 50) return "var(--vscode-charts-orange)";
+    return "var(--vscode-charts-red)";
+};
+
+const CoverageSummary: React.FC<{ reportData: MigrationReportJSON }> = ({ reportData }) => {
+    const { coverageOverview } = reportData;
+    const coverageLevel = getCoverageLevel(coverageOverview.coveragePercentage);
+    const coverageColor = getCoverageColor(coverageOverview.coveragePercentage);
+
+    return (
+        <CoverageContainer>
+            <CoverageHeader>
+                <div>
+                    <CoveragePercentage coverageColor={coverageColor}>
+                        {coverageOverview.coveragePercentage}%
+                    </CoveragePercentage>
+                    <CoverageLabel>Overall Coverage</CoverageLabel>
+                </div>
+                <CoverageStats>
+                    <CoverageStat>
+                        <span>Total activity(s):</span>
+                        <strong>{coverageOverview.totalActivities}</strong>
+                    </CoverageStat>
+                    <CoverageStat>
+                        <span>Migratable activity(s):</span>
+                        <strong>{coverageOverview.migratableActivities}</strong>
+                    </CoverageStat>
+                    <CoverageStat>
+                        <span>Non-migratable activity(s):</span>
+                        <strong>{coverageOverview.nonMigratableActivities}</strong>
+                    </CoverageStat>
+                </CoverageStats>
+            </CoverageHeader>
+            <CoverageProgressBar>
+                <CoverageProgressFill
+                    percentage={coverageOverview.coveragePercentage}
+                    coverageColor={coverageColor}
+                />
+            </CoverageProgressBar>
+            <CoverageBadge>{coverageLevel}</CoverageBadge>
+        </CoverageContainer>
+    );
+};
+
 export function MigrationProgressView({
     migrationState,
     migrationLogs,
@@ -124,43 +300,52 @@ export function MigrationProgressView({
     migrationSuccessful,
     migrationResponse,
     onNext,
-}: ProgressProps) {
+}: MigrationProgressProps) {
     const [isReportOpen, setIsReportOpen] = useState(false);
     const [isLogsOpen, setIsLogsOpen] = useState(false);
+    const logsContainerRef = useRef<HTMLDivElement>(null);
+
+    // Parse migration report JSON when available
+    const parsedReportData = useMemo(() => {
+        if (!migrationResponse?.reportJson) return null;
+        try {
+            return JSON.parse(migrationResponse.reportJson) as MigrationReportJSON;
+        } catch (error) {
+            console.error("Failed to parse migration report JSON:", error);
+            return null;
+        }
+    }, [migrationResponse?.reportJson]);
+
+    // Auto-open logs during migration and auto-collapse when completed
+    useEffect(() => {
+        if (!migrationCompleted && migrationLogs.length > 0) {
+            // Migration is in progress and we have logs - open the dropdown
+            setIsLogsOpen(true);
+        } else if (migrationCompleted) {
+            // Migration is completed - collapse the dropdown
+            setIsLogsOpen(false);
+        }
+    }, [migrationCompleted, migrationLogs.length]);
+
+    // Auto-scroll to bottom when new logs are added
+    useEffect(() => {
+        if (logsContainerRef.current && isLogsOpen && !migrationCompleted) {
+            logsContainerRef.current.scrollTop = logsContainerRef.current.scrollHeight;
+        }
+    }, [migrationLogs, isLogsOpen, migrationCompleted]);
 
     return (
         <>
-            <div>
-                {migrationCompleted && migrationSuccessful ? (
-                    <>
-                        <Typography variant="h2">Migration Completed Successfully!</Typography>
-                        <Typography sx={{ color: "var(--vscode-descriptionForeground)" }}>
-                            Your integration project has been successfully migrated. You can now proceed to the final
-                            step to create and open your project.
-                        </Typography>
-                    </>
-                ) : migrationCompleted && !migrationSuccessful ? (
-                    <>
-                        <Typography variant="h2">Migration Failed</Typography>
-                        <Typography sx={{ color: "var(--vscode-terminal-ansiRed)" }}>
-                            The migration process encountered errors and could not be completed. Please check the logs
-                            below for more details.
-                        </Typography>
-                    </>
-                ) : (
-                    <>
-                        <Typography variant="h2">Migration in Progress...</Typography>
-                        <Typography sx={{ color: "var(--vscode-descriptionForeground)" }}>
-                            Please wait while we set up your new integration project.
-                        </Typography>
-                    </>
-                )}
-            </div>
+            {migrationProgressHeader(migrationCompleted, migrationSuccessful, migrationResponse)}
             <StepWrapper>
                 {migrationCompleted && migrationSuccessful ? (
-                    <Typography variant="body3" sx={{ color: "var(--vscode-terminal-ansiGreen)" }}>
-                        Migration completed successfully!
-                    </Typography>
+                    parsedReportData ? (
+                        <CoverageSummary reportData={parsedReportData} />
+                    ) : (
+                        <Typography variant="body3" sx={{ color: "var(--vscode-terminal-ansiGreen)" }}>
+                            Migration completed successfully!
+                        </Typography>
+                    )
                 ) : migrationCompleted && !migrationSuccessful ? (
                     <></>
                 ) : (
@@ -168,25 +353,41 @@ export function MigrationProgressView({
                 )}
             </StepWrapper>
 
-            <ButtonWrapper>
-                <Button disabled={!migrationCompleted || !migrationSuccessful} onClick={onNext} appearance="primary">
-                    Proceed to Final Step
-                </Button>
-            </ButtonWrapper>
+            {/* Show button before logs when migration is completed */}
+            {migrationCompleted && (
+                <ButtonWrapper>
+                    <Button disabled={!migrationCompleted || !migrationSuccessful} onClick={onNext} appearance="primary">
+                        Proceed to Final Step
+                    </Button>
+                </ButtonWrapper>
+            )}
 
             {/* Migration Logs */}
             {migrationLogs.length > 0 && (
                 <StepWrapper>
-                    <CollapsibleHeader onClick={() => setIsLogsOpen(!isLogsOpen)}>
-                        <Typography variant="h4">View Detailed Logs</Typography>
-                        <CardAction>
-                            {isLogsOpen ? <Codicon name={"chevron-down"} /> : <Codicon name={"chevron-right"} />}
-                        </CardAction>
-                    </CollapsibleHeader>
-                    {isLogsOpen && migrationLogs.length > 0 && (
-                        <LogsContainer>{migrationLogs.map(colourizeLog)}</LogsContainer>
+                    {/* Only show header when migration is completed */}
+                    {migrationCompleted && (
+                        <CollapsibleHeader onClick={() => setIsLogsOpen(!isLogsOpen)}>
+                            <Typography variant="h4">View Detailed Logs</Typography>
+                            <CardAction>
+                                {isLogsOpen ? <Codicon name={"chevron-down"} /> : <Codicon name={"chevron-right"} />}
+                            </CardAction>
+                        </CollapsibleHeader>
+                    )}
+                    {/* Show logs container when open OR when migration is in progress */}
+                    {(isLogsOpen || !migrationCompleted) && migrationLogs.length > 0 && (
+                        <LogsContainer ref={logsContainerRef}>{migrationLogs.map(colourizeLog)}</LogsContainer>
                     )}
                 </StepWrapper>
+            )}
+
+            {/* Show button after logs when migration is in progress */}
+            {!migrationCompleted && (
+                <ButtonWrapper>
+                    <Button disabled={!migrationCompleted || !migrationSuccessful} onClick={onNext} appearance="primary">
+                        Proceed to Final Step
+                    </Button>
+                </ButtonWrapper>
             )}
             {/* Migration Report */}
             {migrationCompleted && migrationResponse?.report && (
@@ -199,7 +400,7 @@ export function MigrationProgressView({
                     </CollapsibleHeader>
                     {isReportOpen && (
                         <ReportContainer>
-                            <MigrationReportContainer htmlContent={migrationResponse.report} />
+                            <MigrationReportContainer report={parsedReportData} />
                         </ReportContainer>
                     )}
                 </StepWrapper>
