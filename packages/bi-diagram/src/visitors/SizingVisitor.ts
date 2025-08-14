@@ -16,7 +16,8 @@
  * under the License.
  */
 
-import { NodeMetadata } from "@wso2/ballerina-core";
+import { BaseVisitor, NodeMetadata } from "@wso2/ballerina-core";
+
 import {
     AGENT_NODE_ADD_TOOL_BUTTON_WIDTH,
     AGENT_NODE_TOOL_GAP,
@@ -39,7 +40,6 @@ import {
 } from "../resources/constants";
 import { reverseCustomNodeId } from "../utils/node";
 import { Branch, FlowNode } from "../utils/types";
-import { BaseVisitor } from "./BaseVisitor";
 
 export class SizingVisitor implements BaseVisitor {
     private skipChildrenVisit = false;
@@ -236,6 +236,11 @@ export class SizingVisitor implements BaseVisitor {
     }
 
     endVisitResourceActionCall(node: FlowNode, parent?: FlowNode): void {
+        if (!this.validateNode(node)) return;
+        this.createApiCallNode(node);
+    }
+
+    endVisitVectorKnowledgeBaseCall(node: FlowNode, parent?: FlowNode): void {
         if (!this.validateNode(node)) return;
         this.createApiCallNode(node);
     }

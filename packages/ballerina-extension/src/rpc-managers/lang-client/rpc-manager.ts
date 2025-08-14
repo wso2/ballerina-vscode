@@ -41,6 +41,8 @@ import {
     LangClientAPI,
     PartialST,
     PartialSTParams,
+    ProjectDiagnosticsRequest,
+    ProjectDiagnosticsResponse,
     RenameRequest,
     RenameResponse,
     STModifyParams,
@@ -58,7 +60,7 @@ import {
 } from "@wso2/ballerina-core";
 import { workspace } from "vscode";
 import { URI } from "vscode-uri";
-import { ballerinaExtInstance } from "../../core";
+import { extension } from "../../BalExtensionContext";
 import { StateMachine } from "../../stateMachine";
 import { modifyFileContent } from "../../utils/modification";
 
@@ -277,7 +279,7 @@ export class LangClientRpcManager implements LangClientAPI {
 
     async getBallerinaVersion(): Promise<BallerinaVersionResponse> {
         return new Promise(async (resolve) => {
-            resolve({ version: ballerinaExtInstance.ballerinaVersion });
+            resolve({ version: extension.ballerinaExtInstance.ballerinaVersion });
         });
     }
 
@@ -288,4 +290,10 @@ export class LangClientRpcManager implements LangClientAPI {
         });
     }
 
+    async getProjectDiagnostics(params: ProjectDiagnosticsRequest): Promise<ProjectDiagnosticsResponse> {
+        return new Promise(async (resolve) => {
+            const diagnostics = await StateMachine.langClient().getProjectDiagnostics(params) as ProjectDiagnosticsResponse;
+            resolve(diagnostics);
+        });
+    }
 }

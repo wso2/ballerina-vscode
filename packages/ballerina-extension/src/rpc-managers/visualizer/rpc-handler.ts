@@ -18,20 +18,21 @@
  * THIS FILE INCLUDES AUTO GENERATED CODE
  */
 import {
-    HistoryEntry,
-    OpenViewRequest,
-    UpdateUndoRedoMangerRequest,
     addToHistory,
     addToUndoStack,
-    getThemeKind,
     getHistory,
+    getThemeKind,
     goBack,
     goHome,
     goSelected,
+    HistoryEntry,
+    joinProjectPath,
     openView,
+    OpenViewRequest,
     redo,
     undo,
-    updateUndoRedoManager
+    updateUndoRedoManager,
+    UpdateUndoRedoMangerRequest
 } from "@wso2/ballerina-core";
 import { Messenger } from "vscode-messenger";
 import { VisualizerRpcManager } from "./rpc-manager";
@@ -47,6 +48,7 @@ export function registerVisualizerRpcHandlers(messenger: Messenger) {
     messenger.onRequest(undo, () => rpcManger.undo());
     messenger.onRequest(redo, () => rpcManger.redo());
     messenger.onNotification(addToUndoStack, (args: string) => rpcManger.addToUndoStack(args));
+    messenger.onRequest(joinProjectPath, (args: string | string[]) => rpcManger.joinProjectPath(args));
     messenger.onNotification(updateUndoRedoManager, (args: UpdateUndoRedoMangerRequest) => rpcManger.updateUndoRedoManager(args));
     messenger.onRequest(getThemeKind, () => rpcManger.getThemeKind());
 }

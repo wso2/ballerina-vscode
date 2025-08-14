@@ -92,7 +92,6 @@ export function FunctionForm(props: FunctionFormProps) {
             setTitleSubtitle('Build reusable custom flows');
             setFormSubtitle('Define a flow that can be used within your integration');
         }
-
         if (functionName) {
             getExistingFunctionNode();
         } else {
@@ -127,11 +126,12 @@ export function FunctionForm(props: FunctionFormProps) {
 
     const getFunctionNode = async (kind: NodeKind) => {
         setIsLoading(true);
+        const filePath = await rpcClient.getVisualizerRpcClient().joinProjectPath(fileName);
         const res = await rpcClient
             .getBIDiagramRpcClient()
             .getNodeTemplate({
                 position: { line: 0, offset: 0 },
-                filePath: Utils.joinPath(URI.file(projectPath), fileName).fsPath,
+                filePath: filePath,
                 id: { node: kind },
             });
         let flowNode = res.flowNode;

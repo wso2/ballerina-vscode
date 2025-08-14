@@ -78,8 +78,8 @@ export function ServiceConfigForm(props: ServiceConfigFormProps) {
     const [targetLineRange, setTargetLineRange] = useState<LineRange>();
     const [recordTypeFields, setRecordTypeFields] = useState<RecordTypeField[]>([]);
 
-    const createTitle = `Provide the necessary configuration details for the ${serviceModel.displayAnnotation.label} to complete the setup.`;
-    const editTitle = `Update the configuration details for the ${serviceModel.displayAnnotation.label} as needed.`
+    const createTitle = `Provide the necessary configuration details for the ${serviceModel.name} to complete the setup.`;
+    const editTitle = `Update the configuration details for the ${serviceModel.name} as needed.`
 
     useEffect(() => {
         // Check if the service is HTTP protocol and any properties with choices
@@ -145,7 +145,9 @@ export function ServiceConfigForm(props: ServiceConfigFormProps) {
         }
 
         serviceModel && setServiceFields(convertConfig(serviceModel));
-        rpcClient.getVisualizerLocation().then(res => { setFilePath(Utils.joinPath(URI.file(res.projectUri), 'main.bal').fsPath) });
+        rpcClient.getVisualizerRpcClient().joinProjectPath('main.bal').then((filePath) => {
+            setFilePath(filePath);
+        });
     }, [serviceModel]);
 
     const handleServiceSubmit = async (data: FormValues, formImports: FormImports) => {
@@ -195,7 +197,7 @@ export function ServiceConfigForm(props: ServiceConfigFormProps) {
                 <>
                     {serviceFields.length > 0 &&
                         <FormContainer>
-                            <FormHeader title={`${serviceModel.displayAnnotation.label} Configuration`} />
+                            <FormHeader title={`${serviceModel.name} Configuration`} />
                             {filePath && targetLineRange &&
                                 <FormGeneratorNew
                                     fileName={filePath}

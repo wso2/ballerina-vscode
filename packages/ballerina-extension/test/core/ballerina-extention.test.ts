@@ -21,7 +21,7 @@ import * as assert from 'assert';
 import * as fs from 'fs';
 // You can import and use all API from the 'vscode' module
 // as well as import your extension to test it
-import { ballerinaExtInstance } from '../../src/core';
+import { extension } from '../../src/BalExtensionContext';
 import { getBallerinaHome, getBallerinaVersion } from '../test-util';
 
 // Ballerina tools distribution will be copied to following location by maven
@@ -32,14 +32,14 @@ const testBallerinaVersion = getBallerinaVersion();
 suite("Ballerina Extension Core Tests", function () {
     test("Test autoDetectBallerinaHome", function () {
         // Following should not throw an error all times.
-        const { home } = ballerinaExtInstance.autoDetectBallerinaHome();
+        const { home } = extension.ballerinaExtInstance.autoDetectBallerinaHome();
         if (home) {
             assert.equal(fs.existsSync(home), true);
         }
     });
 
     test("Test getBallerinaVersion", function () {
-        ballerinaExtInstance.getBallerinaVersion(testBallerinaHome, true).then(detected => {
+        extension.ballerinaExtInstance.getBallerinaVersion(testBallerinaHome, true).then(detected => {
             const regex = /(s|S)wan( |-)(l|L)ake/g;
             if (detected.match(regex) && testBallerinaHome.match(regex)) {
                 let detectedLowerCase = detected.toLowerCase();

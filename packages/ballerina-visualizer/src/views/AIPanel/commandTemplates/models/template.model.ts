@@ -23,4 +23,5 @@ export interface TemplateDefinition {
     id: TemplateId;
     text: string;
     placeholders: PlaceholderDefinition[];
+    defaultVisibility?: boolean;
 }

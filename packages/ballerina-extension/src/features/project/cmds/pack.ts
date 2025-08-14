@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import { ballerinaExtInstance, LANGUAGE } from "../../../core";
+import { extension } from "../../../BalExtensionContext";
 import { commands, window } from "vscode";
 import {
     CMP_PROJECT_PACK, sendTelemetryEvent, sendTelemetryException, TM_EVENT_PROJECT_PACK
@@ -25,23 +25,24 @@ import { runCommand, BALLERINA_COMMANDS, PROJECT_TYPE, PALETTE_COMMANDS, MESSAGE
     from "./cmd-runner";
 import { getCurrentBallerinaProject }
     from "../../../utils/project-utils";
+import { LANGUAGE } from "../../../core";
 
 export function activatePackCommand() {
     // register run project build handler
     commands.registerCommand(PALETTE_COMMANDS.PACK, async () => {
         try {
-            sendTelemetryEvent(ballerinaExtInstance, TM_EVENT_PROJECT_PACK, CMP_PROJECT_PACK);
+            sendTelemetryEvent(extension.ballerinaExtInstance, TM_EVENT_PROJECT_PACK, CMP_PROJECT_PACK);
 
             if (window.activeTextEditor && window.activeTextEditor.document.languageId != LANGUAGE.BALLERINA) {
                 window.showErrorMessage(MESSAGES.NOT_IN_PROJECT);
                 return;
             }
 
-            const currentProject = ballerinaExtInstance.getDocumentContext().isActiveDiagram() ? await
-                getCurrentBallerinaProject(ballerinaExtInstance.getDocumentContext().getLatestDocument()?.toString())
+            const currentProject = extension.ballerinaExtInstance.getDocumentContext().isActiveDiagram() ? await
+                getCurrentBallerinaProject(extension.ballerinaExtInstance.getDocumentContext().getLatestDocument()?.toString())
                 : await getCurrentBallerinaProject();
             if (currentProject.kind !== PROJECT_TYPE.SINGLE_FILE) {
-                runCommand(currentProject, ballerinaExtInstance.getBallerinaCmd(), BALLERINA_COMMANDS.PACK,
+                runCommand(currentProject, extension.ballerinaExtInstance.getBallerinaCmd(), BALLERINA_COMMANDS.PACK,
                     currentProject.path!);
             } else {
                 window.showErrorMessage(MESSAGES.INVALID_PACK);
@@ -49,7 +50,7 @@ export function activatePackCommand() {
 
         } catch (error) {
             if (error instanceof Error) {
-                sendTelemetryException(ballerinaExtInstance, error, CMP_PROJECT_PACK);
+                sendTelemetryException(extension.ballerinaExtInstance, error, CMP_PROJECT_PACK);
                 window.showErrorMessage(error.message);
             } else {
                 window.showErrorMessage("Unkown error occurred.");

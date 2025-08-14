@@ -24,16 +24,17 @@ import * as gitStatus from "./git-status";
 import { INTERNAL_DEBUG_COMMAND, clearTerminal, FOCUS_DEBUG_CONSOLE_COMMAND, SOURCE_DEBUG_COMMAND, TEST_DEBUG_COMMAND } from "../project";
 import { sendTelemetryEvent, TM_EVENT_SOURCE_DEBUG_CODELENS, CMP_EXECUTOR_CODELENS, TM_EVENT_TEST_DEBUG_CODELENS } from "../telemetry";
 import { constructDebugConfig } from "../debugger";
+import { StringSplitFeature, StringSplitter } from "./split-provider";
 
 export function activate(ballerinaExtInstance: BallerinaExtension) {
     if (!ballerinaExtInstance.context || !ballerinaExtInstance.langClient) {
         return;
     }
-    // TODO: Remove this once the use cases are identified
-    // if (isSupportedVersion(ballerinaExtInstance, VERSION.ALPHA, 5)) {
-    //     ballerinaExtInstance.context!.subscriptions.push(new StringSplitFeature(new StringSplitter(),
-    //         ballerinaExtInstance));
-    // }
+
+    if (isSupportedVersion(ballerinaExtInstance, VERSION.ALPHA, 5)) {
+        ballerinaExtInstance.context!.subscriptions.push(new StringSplitFeature(new StringSplitter(),
+            ballerinaExtInstance));
+    }
 
     // Create new content provider for ballerina library files
     const blProvider = new ReadOnlyContentProvider();
