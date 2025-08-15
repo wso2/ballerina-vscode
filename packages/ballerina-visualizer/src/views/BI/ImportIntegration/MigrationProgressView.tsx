@@ -52,7 +52,7 @@ const LogsContainer = styled.div`
     border-radius: 4px;
     padding: 16px;
     background-color: var(--vscode-editor-background);
-    max-height: 200px;
+    max-height: 300px;
     overflow-y: auto;
     font-family: var(--vscode-editor-font-family);
     font-size: var(--vscode-editor-font-size);
@@ -122,7 +122,7 @@ const CoverageLabel = styled.div`
 const CoverageProgressBar = styled.div`
     width: 100%;
     height: 8px;
-    background-color: var(--vscode-progressBar-background);
+    background-color: var(--vscode-editorWidget-border);
     border-radius: 4px;
     overflow: hidden;
 `;
@@ -158,31 +158,72 @@ const CoverageBadge = styled.div`
 `;
 
 
-interface MigrationReportJSON {
-    coverageOverview: {
-        coveragePercentage: number;
-        totalActivities: number;
-        migratableActivities: number;
-        nonMigratableActivities: number;
+export interface CoverageOverview {
+    unitName: string;
+    coveragePercentage: number;
+    totalElements: number;
+    migratableElements: number;
+    nonMigratableElements: number;
+}
+
+export interface ManualWorkEstimation {
+    scenario: string;
+    workingDays: string;
+    weeks: string;
+}
+
+export interface EstimationValue {
+    value: number;
+    unit: string;
+}
+
+export interface EstimationParameters {
+    bestCase: {
+        perUniqueElement: EstimationValue;
+        perEachRepeatedElement: EstimationValue;
+        perEachLineOfCode: EstimationValue;
     };
-    manualWorkEstimation: Array<{
-        scenario: string;
-        workingDays: string;
-        weeks: string;
-    }>;
+    averageCase: {
+        perUniqueElement: EstimationValue;
+        perEachRepeatedElement: EstimationValue;
+        perEachLineOfCode: EstimationValue;
+    };
+    worstCase: {
+        perUniqueElement: EstimationValue;
+        perEachRepeatedElement: EstimationValue;
+        perEachLineOfCode: EstimationValue;
+    };
+}
+
+export interface CodeBlock {
+    fileName: string;
+    code: string;
+}
+
+export interface UnsupportedElement {
+    elementName: string;
+    frequency: number;
+    blockName: string;
+    blocks: CodeBlock[];
+}
+
+export interface ManualValidationElement {
+    elementName: string;
+    frequency: number;
+}
+
+export interface ReportElement {
     elementType: string;
-    unsupportedActivities: Array<{
-        activityName: string;
-        frequency: number;
-        blocks: Array<{
-            fileName: string;
-            code: string;
-        }>;
-    }>;
-    manualValidationActivities: Array<{
-        activityName: string;
-        frequency: number;
-    }>;
+    coverageOverview: CoverageOverview;
+    estimationParameters: EstimationParameters;
+    unsupportedElements: UnsupportedElement[];
+    manualValidationElements: ManualValidationElement[];
+}
+
+export interface MigrationReportJSON {
+    coverageOverview: CoverageOverview;
+    manualWorkEstimation: ManualWorkEstimation[];
+    elements: ReportElement[];
 }
 
 interface MigrationProgressProps {
@@ -192,6 +233,273 @@ interface MigrationProgressProps {
     migrationSuccessful: boolean;
     migrationResponse: ImportIntegrationResponse | null;
     onNext: () => void;
+}
+
+const EXAMPLE_REPORT_JSON : MigrationReportJSON = {
+    "coverageOverview": {
+        // Overview coverage that's on the top of the report
+        "unitName": "activity",
+        "coveragePercentage": 60,
+        "totalElements": 5,
+        "migratableElements": 5,
+        "nonMigratableElements": 0
+    },
+    "manualWorkEstimation": [
+        {
+            "scenario": "Best Case",
+            "workingDays": "1 day",
+            "weeks": "1 week"
+        },
+        {
+            "scenario": "Average Case",
+            "workingDays": "3 days",
+            "weeks": "1 week"
+        },
+        {
+            "scenario": "Worst Case",
+            "workingDays": "5 days",
+            "weeks": "1 week"
+        }
+    ],
+    "elements": [
+        {
+            "elementType": "Activity",
+            "coverageOverview": {
+                "unitName": "activity",
+                "coveragePercentage": 75,
+                "totalElements": 8,
+                "migratableElements": 6,
+                "nonMigratableElements": 2
+            },
+            "estimationParameters": {
+                "bestCase": {
+                    "perUniqueElement": {
+                        "value": 1.0,
+                        "unit": "hours"
+                    },
+                    "perEachRepeatedElement": {
+                        "value": 0.5,
+                        "unit": "hours"
+                    },
+                    "perEachLineOfCode": {
+                        "value": 2.0,
+                        "unit": "minutes"
+                    }
+                },
+                "averageCase": {
+                    "perUniqueElement": {
+                        "value": 2.0,
+                        "unit": "hours"
+                    },
+                    "perEachRepeatedElement": {
+                        "value": 1.0,
+                        "unit": "hours"
+                    },
+                    "perEachLineOfCode": {
+                        "value": 5.0,
+                        "unit": "minutes"
+                    }
+                },
+                "worstCase": {
+                    "perUniqueElement": {
+                        "value": 4.0,
+                        "unit": "hours"
+                    },
+                    "perEachRepeatedElement": {
+                        "value": 2.0,
+                        "unit": "hours"
+                    },
+                    "perEachLineOfCode": {
+                        "value": 10.0,
+                        "unit": "minutes"
+                    }
+                }
+            },
+            "unsupportedElements": [
+                {
+                    "elementName": "com.tibco.pe.core.LoopGroup",
+                    "frequency": 2,
+                    "blockName": "Activity Block",
+                    "blocks": [
+                        {
+                            "fileName": "split_long_string.process",
+                            "code": "<pd:group name=\"Group\" xmlns:pd=\"http://xmlns.tibco.com/bw/process/2003\">\n  <pd:type>com.tibco.pe.core.LoopGroup</pd:type>\n  <pd:description>Loop processing</pd:description>\n</pd:group>"
+                        }
+                    ]
+                },
+                {
+                    "elementName": "com.tibco.pe.core.TransitionCondition",
+                    "frequency": 1,
+                    "blockName": "Activity Block",
+                    "blocks": [
+                        {
+                            "fileName": "conditional_flow.process",
+                            "code": "<pd:transition>\n  <pd:from>Start</pd:from>\n  <pd:to>End</pd:to>\n  <pd:conditionType>always</pd:conditionType>\n</pd:transition>"
+                        }
+                    ]
+                }
+            ],
+            "manualValidationElements": [
+                {
+                    "elementName": "JDBC Query",
+                    "frequency": 3
+                },
+                {
+                    "elementName": "HTTP Request",
+                    "frequency": 1
+                }
+            ]
+        },
+        {
+            "elementType": "DataWeave",
+            "coverageOverview": {
+                "unitName": "code line",
+                "coveragePercentage": 90,
+                "totalElements": 4,
+                "migratableElements": 4,
+                "nonMigratableElements": 0
+            },
+            "estimationParameters": {
+                "bestCase": {
+                    "perUniqueElement": {
+                        "value": 0.5,
+                        "unit": "hours"
+                    },
+                    "perEachRepeatedElement": {
+                        "value": 0.25,
+                        "unit": "hours"
+                    },
+                    "perEachLineOfCode": {
+                        "value": 1.0,
+                        "unit": "minutes"
+                    }
+                },
+                "averageCase": {
+                    "perUniqueElement": {
+                        "value": 1.0,
+                        "unit": "hours"
+                    },
+                    "perEachRepeatedElement": {
+                        "value": 0.5,
+                        "unit": "hours"
+                    },
+                    "perEachLineOfCode": {
+                        "value": 3.0,
+                        "unit": "minutes"
+                    }
+                },
+                "worstCase": {
+                    "perUniqueElement": {
+                        "value": 2.0,
+                        "unit": "hours"
+                    },
+                    "perEachRepeatedElement": {
+                        "value": 1.0,
+                        "unit": "hours"
+                    },
+                    "perEachLineOfCode": {
+                        "value": 5.0,
+                        "unit": "minutes"
+                    }
+                }
+            },
+            "unsupportedElements": [],
+            "manualValidationElements": [
+                {
+                    "elementName": "Complex JSON Transform",
+                    "frequency": 2
+                }
+            ]
+        },
+        {
+            "elementType": "Connector",
+            "coverageOverview": {
+                "unitName": "connector",
+                "coveragePercentage": 40,
+                "totalElements": 5,
+                "migratableElements": 2,
+                "nonMigratableElements": 3
+            },
+            "estimationParameters": {
+                "bestCase": {
+                    "perUniqueElement": {
+                        "value": 2.0,
+                        "unit": "hours"
+                    },
+                    "perEachRepeatedElement": {
+                        "value": 1.0,
+                        "unit": "hours"
+                    },
+                    "perEachLineOfCode": {
+                        "value": 3.0,
+                        "unit": "minutes"
+                    }
+                },
+                "averageCase": {
+                    "perUniqueElement": {
+                        "value": 4.0,
+                        "unit": "hours"
+                    },
+                    "perEachRepeatedElement": {
+                        "value": 2.0,
+                        "unit": "hours"
+                    },
+                    "perEachLineOfCode": {
+                        "value": 7.0,
+                        "unit": "minutes"
+                    }
+                },
+                "worstCase": {
+                    "perUniqueElement": {
+                        "value": 8.0,
+                        "unit": "hours"
+                    },
+                    "perEachRepeatedElement": {
+                        "value": 4.0,
+                        "unit": "hours"
+                    },
+                    "perEachLineOfCode": {
+                        "value": 15.0,
+                        "unit": "minutes"
+                    }
+                }
+            },
+            "unsupportedElements": [
+                {
+                    "elementName": "com.tibco.plugin.ftp.FTPConnection",
+                    "frequency": 1,
+                    "blockName": "Connector Configuration",
+                    "blocks": [
+                        {
+                            "fileName": "ftp_config.properties",
+                            "code": "ftp.host=example.com\nftp.port=21\nftp.username=user\nftp.password=pass\nftp.timeout=30000"
+                        }
+                    ]
+                },
+                {
+                    "elementName": "com.tibco.plugin.jms.JMSQueueReceiver",
+                    "frequency": 2,
+                    "blockName": "Connector Configuration",
+                    "blocks": [
+                        {
+                            "fileName": "jms_receiver.xml",
+                            "code": "<jms:queue-receiver>\n  <jms:destination>order.queue</jms:destination>\n  <jms:connection-factory>ConnectionFactory</jms:connection-factory>\n  <jms:acknowledge-mode>AUTO_ACKNOWLEDGE</jms:acknowledge-mode>\n</jms:queue-receiver>"
+                        }
+                    ]
+                }
+            ],
+            "manualValidationElements": [
+                {
+                    "elementName": "Database Connection",
+                    "frequency": 1
+                },
+                {
+                    "elementName": "REST API Client",
+                    "frequency": 2
+                }
+            ]
+        }
+    ]
 }
 
 const migrationProgressHeader = (
@@ -269,16 +577,16 @@ const CoverageSummary: React.FC<{ reportData: MigrationReportJSON }> = ({ report
                 </div>
                 <CoverageStats>
                     <CoverageStat>
-                        <span>Total activity(s):</span>
-                        <strong>{coverageOverview.totalActivities}</strong>
+                        <span>Total {coverageOverview.unitName}(s):</span>
+                        <strong>{coverageOverview.totalElements}</strong>
                     </CoverageStat>
                     <CoverageStat>
-                        <span>Migratable activity(s):</span>
-                        <strong>{coverageOverview.migratableActivities}</strong>
+                        <span>Migratable {coverageOverview.unitName}(s):</span>
+                        <strong>{coverageOverview.migratableElements}</strong>
                     </CoverageStat>
                     <CoverageStat>
-                        <span>Non-migratable activity(s):</span>
-                        <strong>{coverageOverview.nonMigratableActivities}</strong>
+                        <span>Non-migratable {coverageOverview.unitName}(s):</span>
+                        <strong>{coverageOverview.nonMigratableElements}</strong>
                     </CoverageStat>
                 </CoverageStats>
             </CoverageHeader>
@@ -309,7 +617,8 @@ export function MigrationProgressView({
     const parsedReportData = useMemo(() => {
         if (!migrationResponse?.reportJson) return null;
         try {
-            return JSON.parse(migrationResponse.reportJson) as MigrationReportJSON;
+            // return JSON.parse(migrationResponse.reportJson) as MigrationReportJSON;
+            return EXAMPLE_REPORT_JSON;
         } catch (error) {
             console.error("Failed to parse migration report JSON:", error);
             return null;

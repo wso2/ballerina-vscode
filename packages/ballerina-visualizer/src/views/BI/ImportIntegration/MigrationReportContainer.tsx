@@ -23,37 +23,12 @@ import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { vscDarkPlus, vs } from "react-syntax-highlighter/dist/esm/styles/prism";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { ColorThemeKind } from "@wso2/ballerina-core";
+import type { MigrationReportJSON, ReportElement } from "./MigrationProgressView";
 
 interface MigrationReportContainerProps {
     report: MigrationReportJSON;
 }
 
-interface MigrationReportJSON {
-    coverageOverview: {
-        coveragePercentage: number;
-        totalActivities: number;
-        migratableActivities: number;
-        nonMigratableActivities: number;
-    };
-    manualWorkEstimation: Array<{
-        scenario: string;
-        workingDays: string;
-        weeks: string;
-    }>;
-    elementType: string;
-    unsupportedActivities: Array<{
-        activityName: string;
-        frequency: number;
-        blocks: Array<{
-            fileName: string;
-            code: string;
-        }>;
-    }>;
-    manualValidationActivities: Array<{
-        activityName: string;
-        frequency: number;
-    }>;
-}
 
 /**
  * Custom hook to manage VS Code theme integration
@@ -128,10 +103,6 @@ const generateMarkdown = (data: MigrationReportJSON): string => {
   }
 </style>
     `;
-    const ELEMENT_STRING = data.elementType.toLowerCase();
-    const ELEMENTS_STRING = getPluralElement(ELEMENT_STRING);
-    const ELEMENT_STRING_CAPITALIZED = capitalizeFirstLetter(ELEMENT_STRING);
-    const ELEMENTS_STRING_CAPITALIZED = capitalizeFirstLetter(ELEMENTS_STRING);
 
     // 1. Manual Work Estimation Table
     const estimationTableRows = data.manualWorkEstimation
@@ -153,47 +124,83 @@ const generateMarkdown = (data: MigrationReportJSON): string => {
 </table>
     `;
 
-    const estimationNotes = `- Best case scenario:
-    
-    - 1.0 day per each new unsupported ${ELEMENT_STRING} for analysis, implementation, and testing
+    // Generate estimation scenarios section based on element parameters
+    const generateEstimationNotes = () => {
+        const scenarios = ['bestCase', 'averageCase', 'worstCase'] as const;
+        const scenarioLabels = ['Best case scenario:', 'Average case scenario:', 'Worst case scenario:'];
         
-    - 1.0 hour per each repeated unsupported ${ELEMENT_STRING} for implementation
+        let estimationNotes = '**Estimation Scenarios:** Time measurement: 1 day = 8 hours, 5 working days = 1 week\n';
         
-    - 2 minutes per each line of code generated
+        scenarios.forEach((scenario, index) => {
+            estimationNotes += `- ${scenarioLabels[index]}\n\n`;
+            
+            // Collect all parameters from all elements for this scenario
+            const uniqueElementLines: string[] = [];
+            const repeatedElementLines: string[] = [];
+            const codeLines: string[] = [];
+            let complexityDescription = '';
+            
+            data.elements.forEach(element => {
+                const params = element.estimationParameters[scenario];
+                const elementType = element.elementType.toLowerCase();
+                
+                // Only add if value is not 0
+                if (params.perUniqueElement.value > 0) {
+                    uniqueElementLines.push(`${params.perUniqueElement.value} ${params.perUniqueElement.unit} per each new unsupported ${elementType} for analysis, implementation, and testing`);
+                }
+                
+                if (params.perEachRepeatedElement.value > 0) {
+                    repeatedElementLines.push(`${params.perEachRepeatedElement.value} ${params.perEachRepeatedElement.unit} per each repeated unsupported ${elementType} for implementation`);
+                }
+                
+                if (params.perEachLineOfCode.value > 0) {
+                    codeLines.push(`${params.perEachLineOfCode.value} ${params.perEachLineOfCode.unit} per each line of code generated`);
+                }
+            });
+            
+            // Add all collected lines
+            [...uniqueElementLines, ...repeatedElementLines, ...codeLines].forEach(line => {
+                estimationNotes += `    - ${line}\n        \n`;
+            });
+            
+            // Add complexity assumption
+            switch (scenario) {
+                case 'bestCase':
+                    complexityDescription = 'Assumes minimal complexity and straightforward implementations';
+                    break;
+                case 'averageCase':
+                    complexityDescription = 'Assumes medium complexity with moderate implementation challenges';
+                    break;
+                case 'worstCase':
+                    complexityDescription = 'Assumes high complexity with significant implementation challenges';
+                    break;
+            }
+            
+            estimationNotes += `    - ${complexityDescription}\n        \n`;
+        });
         
-    - Assumes minimal complexity and straightforward implementations
-        
-- Average case scenario:
-    
-    - 2.0 days per each new unsupported ${ELEMENT_STRING} for analysis, implementation, and testing
-        
-    - 2.0 hour per each repeated unsupported ${ELEMENT_STRING} for implementation
-        
-    - 5 minutes per each line of code generated
-        
-    - Assumes medium complexity with moderate implementation challenges
-        
-- Worst case scenario:
-    
-    - 3.0 days per each new unsupported ${ELEMENT_STRING} for analysis, implementation, and testing
-        
-    - 4.0 hour per each repeated unsupported ${ELEMENT_STRING} for implementation
-        
-    - 10 minutes per each line of code generated
-        
-    - Assumes high complexity with significant implementation challenges`;
+        return estimationNotes;
+    };
 
-    const estimationSection = estimationTable + "\n\n" + estimationNotes;
+    const estimationSection = estimationTable + "\n\n" + generateEstimationNotes();
+    const sections: string[] = [estimationSection];
 
-    // 2. Unsupported ${ELEMENTS_STRING_CAPITALIZED} Section
-    let unsupportedSection = `## ⚠️ Currently Unsupported ${ELEMENTS_STRING_CAPITALIZED}\n`;
-    if (data.unsupportedActivities.length === 0) {
-        unsupportedSection += `No unsupported ${ELEMENTS_STRING} found.`;
-    } else {
-        const tableRows = data.unsupportedActivities
-            .map((activity) => `<tr><td><code>${activity.activityName}</code></td><td>${activity.frequency}</td></tr>`)
-            .join("");
-        unsupportedSection += `
+    // 2. Process each element type
+    data.elements.forEach((element) => {
+        const ELEMENT_STRING = element.elementType.toLowerCase();
+        const ELEMENTS_STRING = getPluralElement(ELEMENT_STRING);
+        const ELEMENT_STRING_CAPITALIZED = capitalizeFirstLetter(ELEMENT_STRING);
+        const ELEMENTS_STRING_CAPITALIZED = capitalizeFirstLetter(ELEMENTS_STRING);
+
+        // Unsupported Elements Section
+        let unsupportedSection = `## ⚠️ Currently Unsupported ${ELEMENTS_STRING_CAPITALIZED}\n`;
+        if (element.unsupportedElements.length === 0) {
+            unsupportedSection += `No unsupported ${ELEMENTS_STRING} found.`;
+        } else {
+            const tableRows = element.unsupportedElements
+                .map((unsupportedElement) => `<tr><td><code>${unsupportedElement.elementName}</code></td><td>${unsupportedElement.frequency}</td></tr>`)
+                .join("");
+            unsupportedSection += `
 <table>
   <thead>
     <tr>
@@ -205,39 +212,40 @@ const generateMarkdown = (data: MigrationReportJSON): string => {
     ${tableRows}
   </tbody>
 </table>
-        `;
+            `;
 
-        // Add note about unsupported ${ELEMENTS_STRING}
-        unsupportedSection += `\n- **Note:** These ${ELEMENTS_STRING} are expected to be supported in future versions of the migration tool.\n\n`;
+            // Add note about unsupported elements
+            unsupportedSection += `\n- **Note:** These ${ELEMENTS_STRING} are expected to be supported in future versions of the migration tool.\n\n`;
 
-        // Add detailed code blocks after the table
-        unsupportedSection += `\n### ${ELEMENTS_STRING_CAPITALIZED} that required manual Conversion\n`;
-        data.unsupportedActivities.forEach((activity) => {
-            if (activity.blocks && activity.blocks.length > 0) {
-                unsupportedSection += `\n#### 🔸 ${activity.activityName}\n`;
-                activity.blocks.forEach((block) => {
-                    unsupportedSection += `\n**File:** \`${block.fileName}\`\n\n`;
-                    unsupportedSection += "```xml\n";
-                    unsupportedSection += block.code;
-                    unsupportedSection += "\n```\n\n";
-                });
-            }
-        });
-    }
+            // Add detailed code blocks after the table
+            unsupportedSection += `\n### ${ELEMENTS_STRING_CAPITALIZED} that required manual Conversion\n`;
+            element.unsupportedElements.forEach((unsupportedElement) => {
+                if (unsupportedElement.blocks && unsupportedElement.blocks.length > 0) {
+                    unsupportedSection += `\n#### 🔸 ${unsupportedElement.elementName}\n`;
+                    unsupportedElement.blocks.forEach((block) => {
+                        unsupportedSection += `\n**File:** \`${block.fileName}\`\n\n`;
+                        unsupportedSection += "```xml\n";
+                        unsupportedSection += block.code;
+                        unsupportedSection += "\n```\n\n";
+                    });
+                }
+            });
+        }
+        sections.push(unsupportedSection);
 
-    // 3. Manual Validation Section
-    let validationSection = `## ✍️ ${ELEMENTS_STRING_CAPITALIZED} that need manual validation\n`;
-    if (data.manualValidationActivities.length === 0) {
-        validationSection += `No ${ELEMENTS_STRING} require manual validation.`;
-    } else {
-        const tableRows = data.manualValidationActivities
-            .map((activity) => `<tr><td><code>${activity.activityName}</code></td><td>${activity.frequency}</td></tr>`)
-            .join("");
-        validationSection += `
+        // Manual Validation Section
+        let validationSection = `## ✍️ ${ELEMENTS_STRING_CAPITALIZED} that need manual validation\n`;
+        if (element.manualValidationElements.length === 0) {
+            validationSection += `No ${ELEMENTS_STRING} require manual validation.`;
+        } else {
+            const tableRows = element.manualValidationElements
+                .map((validationElement) => `<tr><td><code>${validationElement.elementName}</code></td><td>${validationElement.frequency}</td></tr>`)
+                .join("");
+            validationSection += `
 <table>
   <thead>
     <tr>
-      <th>${data.elementType} Name</th>
+      <th>${ELEMENT_STRING_CAPITALIZED} Name</th>
       <th>Frequency</th>
     </tr>
   </thead>
@@ -245,13 +253,15 @@ const generateMarkdown = (data: MigrationReportJSON): string => {
     ${tableRows}
   </tbody>
 </table>
-        `;
+            `;
 
-        // Note about manual validation ${ELEMENTS_STRING}
-        validationSection += `\n- **Note:** These ${ELEMENTS_STRING} are converted but may require manual review or adjustments.\n\n`;
-    }
+            // Note about manual validation elements
+            validationSection += `\n- **Note:** These ${ELEMENTS_STRING} are converted but may require manual review or adjustments.\n\n`;
+        }
+        sections.push(validationSection);
+    });
 
-    return styles + [estimationSection, unsupportedSection, validationSection].join("\n\n---\n\n");
+    return styles + sections.join("\n\n---\n\n");
 };
 const MigrationReportContainer: React.FC<MigrationReportContainerProps> = ({ report }) => {
     const isDark = useVSCodeTheme();
