@@ -42,10 +42,12 @@ import io.ballerina.compiler.syntax.tree.BracedExpressionNode;
 import io.ballerina.compiler.syntax.tree.CheckExpressionNode;
 import io.ballerina.compiler.syntax.tree.ClauseNode;
 import io.ballerina.compiler.syntax.tree.CollectClauseNode;
+import io.ballerina.compiler.syntax.tree.ExpressionFunctionBodyNode;
 import io.ballerina.compiler.syntax.tree.ExpressionNode;
 import io.ballerina.compiler.syntax.tree.FieldAccessExpressionNode;
 import io.ballerina.compiler.syntax.tree.FromClauseNode;
 import io.ballerina.compiler.syntax.tree.FunctionArgumentNode;
+import io.ballerina.compiler.syntax.tree.FunctionBodyNode;
 import io.ballerina.compiler.syntax.tree.FunctionCallExpressionNode;
 import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
 import io.ballerina.compiler.syntax.tree.ImportDeclarationNode;
@@ -198,22 +200,6 @@ public class DataMapManager {
                                    String targetField, Document functionDocument) {
         Codedata codedata = gson.fromJson(cd, Codedata.class);
         NonTerminalNode node = getNode(codedata.lineRange());
-        String targetFieldName;
-        if (node.kind() == SyntaxKind.LOCAL_VAR_DECL) {
-            VariableDeclarationNode variableDeclarationNode = (VariableDeclarationNode) node;
-            targetFieldName = variableDeclarationNode.typedBindingPattern().bindingPattern().toSourceCode().trim();
-        } else if (node.kind() == SyntaxKind.MODULE_VAR_DECL) {
-            ModuleVariableDeclarationNode moduleVariableDeclarationNode = (ModuleVariableDeclarationNode) node;
-            targetFieldName = moduleVariableDeclarationNode.typedBindingPattern().bindingPattern()
-                    .toSourceCode().trim();
-        } else if (node.kind() == SyntaxKind.LET_VAR_DECL) {
-            LetVariableDeclarationNode letVariableDeclarationNode = (LetVariableDeclarationNode) node;
-            targetFieldName = letVariableDeclarationNode.typedBindingPattern().bindingPattern()
-                    .toSourceCode().trim();
-        } else {
-            throw new IllegalStateException("Unsupported node kind: " + node.kind());
-        }
-
         TargetNode targetNode = getTargetNode(node, targetField, semanticModel);
         if (targetNode == null) {
             return null;
@@ -221,7 +207,6 @@ public class DataMapManager {
 
         Type type = Type.fromSemanticSymbol(targetNode.typeSymbol());
         String name = targetNode.name();
-
         MappingPort outputPort = getMappingPort(name, name, type, false, new HashMap<>());
         setModuleInfo(targetNode.typeSymbol(), outputPort);
         ExpressionNode expressionNode = targetNode.expressionNode();
@@ -230,7 +215,6 @@ public class DataMapManager {
         List<MappingPort> inputPorts;
         List<MappingPort> enumPorts = new ArrayList<>();
         List<MappingPort> subMappingPorts = null;
-
         if (expressionNode == null) {
             inputPorts = getInputPorts(semanticModel, this.document, position, enumPorts);
             inputPorts.sort(Comparator.comparing(mt -> mt.id));
@@ -241,7 +225,7 @@ public class DataMapManager {
             LinePosition fromClausePosition = fromClauseNode.lineRange().startLine();
             List<Symbol> symbols = semanticModel.visibleSymbols(document, fromClausePosition);
             symbols = symbols.stream()
-                    .filter(symbol -> !symbol.getName().orElse("").equals(targetFieldName))
+                    .filter(symbol -> !symbol.getName().orElse("").equals(getVariableName(node)))
                     .collect(Collectors.toList());
             inputPorts = getQueryInputPorts(symbols, enumPorts);
             inputPorts.sort(Comparator.comparing(mt -> mt.id));
@@ -263,7 +247,8 @@ public class DataMapManager {
                         setFocusIdForExpression(inputPorts, expression.toString().trim(), mappingPort.id);
                         NonTerminalNode parent = expressionNode.parent();
                         SyntaxKind parentKind = parent.kind();
-                        while (parentKind != SyntaxKind.LOCAL_VAR_DECL && parentKind != SyntaxKind.MODULE_VAR_DECL) {
+                        while (parentKind != SyntaxKind.LOCAL_VAR_DECL && parentKind != SyntaxKind.MODULE_VAR_DECL
+                                && parentKind != SyntaxKind.EXPRESSION_FUNCTION_BODY) {
                             if (parentKind == SyntaxKind.QUERY_EXPRESSION) {
                                 QueryExpressionNode parentQueryExpr = (QueryExpressionNode) parent;
                                 FromClauseNode parentFromClause = parentQueryExpr.queryPipeline().fromClause();
@@ -337,6 +322,21 @@ public class DataMapManager {
         return gson.toJsonTree(new Model(inputPorts, outputPort, subMappingPorts, mappings, query));
     }
 
+    private String getVariableName(NonTerminalNode node) {
+        if (node.kind() == SyntaxKind.LOCAL_VAR_DECL) {
+            VariableDeclarationNode variableDeclarationNode = (VariableDeclarationNode) node;
+            return variableDeclarationNode.typedBindingPattern().bindingPattern().toSourceCode().trim();
+        } else if (node.kind() == SyntaxKind.MODULE_VAR_DECL) {
+            ModuleVariableDeclarationNode moduleVariableDeclarationNode = (ModuleVariableDeclarationNode) node;
+            return moduleVariableDeclarationNode.typedBindingPattern().bindingPattern().toSourceCode().trim();
+        } else if (node.kind() == SyntaxKind.LET_VAR_DECL) {
+            LetVariableDeclarationNode letVariableDeclarationNode = (LetVariableDeclarationNode) node;
+            return letVariableDeclarationNode.typedBindingPattern().bindingPattern().toSourceCode().trim();
+        } else {
+            return "";
+        }
+    }
+
     private List<MappingPort> removeParentPort(NonTerminalNode node, List<MappingPort> inputPorts) {
         if (node.kind() != SyntaxKind.LET_VAR_DECL) {
             return inputPorts;
@@ -398,6 +398,20 @@ public class DataMapManager {
         } else if (kind == SyntaxKind.LET_VAR_DECL) {
             LetVariableDeclarationNode letVariableDeclNode = (LetVariableDeclarationNode) parentNode;
             optInitializer = Optional.of(letVariableDeclNode.expression());
+        } else if (kind == SyntaxKind.FUNCTION_DEFINITION) {
+            FunctionDefinitionNode funcDefNode = (FunctionDefinitionNode) parentNode;
+            FunctionBodyNode funcBodyNode = funcDefNode.functionBody();
+            if (funcBodyNode.kind() == SyntaxKind.EXPRESSION_FUNCTION_BODY) {
+                ExpressionFunctionBodyNode exprFuncBodyNode = (ExpressionFunctionBodyNode) funcBodyNode;
+                ExpressionNode expression = exprFuncBodyNode.expression();
+                if (expression.kind() == SyntaxKind.LET_EXPRESSION) {
+                    optInitializer = Optional.of(((LetExpressionNode) expression).expression());
+                } else {
+                    optInitializer = Optional.of(expression);
+                }
+            } else {
+                return null;
+            }
         } else {
             return null;
         }
@@ -407,19 +421,28 @@ public class DataMapManager {
             return null;
         }
         Symbol symbol = optSymbol.get();
-        if (symbol.kind() != SymbolKind.VARIABLE) {
+
+        String name;
+        TypeSymbol typeSymbol;
+        if (symbol.kind() == SymbolKind.VARIABLE) {
+            VariableSymbol variableSymbol = (VariableSymbol) symbol;
+            name = variableSymbol.getName().orElse("");
+            typeSymbol = variableSymbol.typeDescriptor();
+        } else if (symbol.kind() == SymbolKind.FUNCTION) {
+            FunctionSymbol functionSymbol = (FunctionSymbol) symbol;
+            name = functionSymbol.getName().orElse("");
+            typeSymbol = functionSymbol.typeDescriptor().returnTypeDescriptor().orElseThrow();
+        } else {
             return null;
         }
-        VariableSymbol variableSymbol = (VariableSymbol) symbol;
 
-        TypeSymbol typeSymbol = variableSymbol.typeDescriptor();
         if (optInitializer.isEmpty()) {
-            return new TargetNode(typeSymbol, variableSymbol.getName().get(), null);
+            return new TargetNode(typeSymbol, name, null);
         }
 
         ExpressionNode initializer = optInitializer.get();
         if (targetField == null) {
-            return new TargetNode(typeSymbol, variableSymbol.getName().get(), initializer);
+            return new TargetNode(typeSymbol, name, initializer);
         }
 
         String[] fieldSplits = targetField.split(DOT);
