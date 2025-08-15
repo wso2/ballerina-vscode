@@ -1,0 +1,84 @@
+{
+  "source": "variable29.bal",
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "variable29.bal",
+      "startLine": {
+        "line": 14,
+        "offset": 4
+      },
+      "endLine": {
+        "line": 14,
+        "offset": 55
+      }
+    },
+    "sourceCode": "Student student = {};"
+  },
+  "position": {
+    "line": 14,
+    "offset": 4
+  },
+  "propertyKey": "expression",
+  "targetField": "output",
+  "model": {
+    "inputs": [
+      {
+        "fields": [
+          {
+            "fields": [
+              {
+                "id": "input.user.firstName",
+                "variableName": "firstName",
+                "typeName": "string",
+                "kind": "string",
+                "optional": false
+              }
+            ],
+            "id": "input.user",
+            "variableName": "user",
+            "typeName": "User",
+            "kind": "record",
+            "optional": true
+          }
+        ],
+        "id": "input",
+        "variableName": "input",
+        "typeName": "Input",
+        "kind": "record",
+        "category": "local-variable",
+        "optional": false
+      }
+    ],
+    "output": {
+      "fields": [
+        {
+          "id": "output.fullName",
+          "variableName": "fullName",
+          "typeName": "string",
+          "kind": "string",
+          "optional": true
+        }
+      ],
+      "id": "output",
+      "variableName": "output",
+      "typeName": "Output",
+      "kind": "record",
+      "optional": false
+    },
+    "mappings": [
+      {
+        "output": "output.fullName",
+        "inputs": [
+          "input.user.firstName"
+        ],
+        "expression": "input?.user?.firstName",
+        "diagnostics": [],
+        "elements": [],
+        "isQueryExpression": false,
+        "isFunctionCall": false
+      }
+    ]
+  }
+}

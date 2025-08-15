@@ -67,6 +67,7 @@ import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.compiler.syntax.tree.NodeList;
 import io.ballerina.compiler.syntax.tree.NodeVisitor;
 import io.ballerina.compiler.syntax.tree.NonTerminalNode;
+import io.ballerina.compiler.syntax.tree.OptionalFieldAccessExpressionNode;
 import io.ballerina.compiler.syntax.tree.OrderByClauseNode;
 import io.ballerina.compiler.syntax.tree.OrderKeyNode;
 import io.ballerina.compiler.syntax.tree.PositionalArgumentNode;
@@ -2230,6 +2231,11 @@ public class DataMapManager {
         @Override
         public void visit(CheckExpressionNode node) {
             node.expression().accept(this);
+        }
+
+        @Override
+        public void visit(OptionalFieldAccessExpressionNode node) {
+            inputs.add(node.toSourceCode().trim().replace("?", ""));
         }
     }
 }
