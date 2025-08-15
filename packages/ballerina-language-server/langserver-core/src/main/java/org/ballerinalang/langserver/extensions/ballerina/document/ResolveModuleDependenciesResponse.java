@@ -20,11 +20,13 @@ package org.ballerinalang.langserver.extensions.ballerina.document;
 
 /**
  * Represents a response for resolving module dependencies.
- *
- * @param success  Indicates whether all the modules in the package are successfully resolved.
- *                 This is {@code true} when all the modules are either already pulled,
- *                 or after successfully pulling the unresolved modules; otherwise, {@code false}.
- * @param errorMsg The error message describing the failure. This is set only when {@code success} is {@code false}.
+ * <p>
+ * The {@code success} field indicates whether all the modules in the package are successfully resolved.
+ * This is {@code true} when all the modules are either already pulled,
+ * or after successfully pulling the unresolved modules; otherwise, {@code false}.
+ * <p>
+ * The {@code errorMsg} field contains the error message describing the failure.
+ * This is set only when {@code success} is {@code false}.
  *
  * @since 1.3.0
  */

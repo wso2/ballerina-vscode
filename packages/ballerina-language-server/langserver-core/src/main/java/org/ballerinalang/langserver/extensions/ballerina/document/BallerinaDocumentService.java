@@ -79,6 +79,8 @@ import java.util.concurrent.CompletableFuture;
 public class BallerinaDocumentService implements ExtendedLanguageServerService {
 
     protected static final String MINUTIAE = "WHITESPACE_MINUTIAE";
+    private static final String RESOLVE_MODULE_FAILURE_MESSAGE =
+            "An internal error occurred while resolving module dependencies.";
 
     private WorkspaceManagerProxy workspaceManagerProxy;
     private LSClientLogger clientLogger;
@@ -540,14 +542,14 @@ public class BallerinaDocumentService implements ExtendedLanguageServerService {
             Optional<Path> filePath = PathUtil.getPathFromURI(fileUri);
             if (filePath.isEmpty()) {
                 reply.setSuccess(false);
-                reply.setErrorMsg("Couldn't determine file path");
+                reply.setErrorMsg(RESOLVE_MODULE_FAILURE_MESSAGE);
                 return reply;
             }
             try {
                 Optional<SemanticModel> semanticModel = this.workspaceManagerProxy.get().semanticModel(filePath.get());
                 if (semanticModel.isEmpty()) {
                     reply.setSuccess(false);
-                    reply.setErrorMsg("Couldn't get semantic model");
+                    reply.setErrorMsg(RESOLVE_MODULE_FAILURE_MESSAGE);
                     return reply;
                 }
 
@@ -562,7 +564,7 @@ public class BallerinaDocumentService implements ExtendedLanguageServerService {
             } catch (Throwable e) {
                 reply.setSuccess(false);
                 reply.setErrorMsg(e.getCause() instanceof UserErrorException ? 
-                        e.getCause().getMessage() : "Failed to resolve module dependencies");
+                        e.getCause().getMessage() : RESOLVE_MODULE_FAILURE_MESSAGE);
                 String msg = "Operation 'ballerinaDocument/resolveModuleDependencies' failed!";
                 this.clientLogger.logError(DocumentContext.DC_RESOLVE_MODULE_DEPENDENCIES, msg, e,
                         request.getDocumentIdentifier(), (Position) null);

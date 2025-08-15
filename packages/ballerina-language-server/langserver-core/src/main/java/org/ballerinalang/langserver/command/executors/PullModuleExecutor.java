@@ -86,11 +86,13 @@ public class PullModuleExecutor implements LSCommandExecutor {
                 default:
             }
         }
-        return resolveModules(fileUri, context.getLanguageClient(), context.workspace(), context.languageServercontext());
+        return resolveModules(fileUri, context.getLanguageClient(), context.workspace(),
+                context.languageServercontext());
     }
 
     public static CompletableFuture<Void> resolveModules(String fileUri, ExtendedLanguageClient languageClient,
-                                                         WorkspaceManager workspaceManager, LanguageServerContext languageServerContext) {
+                                                         WorkspaceManager workspaceManager,
+                                                         LanguageServerContext languageServerContext) {
         // TODO Prevent running parallel tasks for the same project in future
         String taskId = PULL_MODULE_TASK_PREFIX + UUID.randomUUID();
         Path filePath = PathUtil.getPathFromURI(fileUri)
