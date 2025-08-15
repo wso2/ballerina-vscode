@@ -1,5 +1,5 @@
 {
-  "source": "variable2.bal",
+  "source": "variable3.bal",
   "description": "Sample diagram node",
   "codedata": {
     "node": "VARIABLE",
@@ -11,11 +11,11 @@
       },
       "endLine": {
         "line": 19,
-        "offset": 94
+        "offset": 119
       }
     },
     "sourceCode": "",
-    "isNew": true
+    "isNew": false
   },
   "diagram": {
     "id": "38830",
@@ -78,18 +78,18 @@
     },
     "flags": 0
   },
-  "index": 0,
+  "index": 1,
   "output": {
-    "variable2.bal": [
+    "variable3.bal": [
       {
         "range": {
           "start": {
             "line": 19,
-            "character": 55
+            "character": 58
           },
           "end": {
             "line": 19,
-            "character": 55
+            "character": 80
           }
         },
         "newText": ", int k = 2"

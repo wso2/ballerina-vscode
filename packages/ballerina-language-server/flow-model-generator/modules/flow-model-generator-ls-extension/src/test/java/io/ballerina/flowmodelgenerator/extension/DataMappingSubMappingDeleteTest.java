@@ -21,7 +21,7 @@ package io.ballerina.flowmodelgenerator.extension;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
-import io.ballerina.flowmodelgenerator.extension.request.DataMapperSubMappingSourceRequest;
+import io.ballerina.flowmodelgenerator.extension.request.DataMapperDeleteSubMappingRequest;
 import io.ballerina.modelgenerator.commons.AbstractLSTest;
 import org.eclipse.lsp4j.TextEdit;
 import org.testng.Assert;
@@ -38,11 +38,11 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Tests for the adding elements to array in data mapper.
+ * Tests for the delete sub mappings.
  *
- * @since 1.0.0
+ * @since 1.2.0
  */
-public class DataMappingSubMappingSourceTest extends AbstractLSTest {
+public class DataMappingSubMappingDeleteTest extends AbstractLSTest {
 
     private static final Type textEditListType = new TypeToken<Map<String, List<TextEdit>>>() {
     }.getType();
@@ -64,10 +64,10 @@ public class DataMappingSubMappingSourceTest extends AbstractLSTest {
         Path configJsonPath = configDir.resolve(config);
         TestConfig testConfig = gson.fromJson(Files.newBufferedReader(configJsonPath), TestConfig.class);
 
-        DataMapperSubMappingSourceRequest request =
-                new DataMapperSubMappingSourceRequest(
+        DataMapperDeleteSubMappingRequest request =
+                new DataMapperDeleteSubMappingRequest(
                         sourceDir.resolve(testConfig.source()).toAbsolutePath().toString(), testConfig.codedata(),
-                        testConfig.diagram(), testConfig.index());
+                        testConfig.index());
         JsonObject jsonMap = getResponseAndCloseFile(request, testConfig.source()).getAsJsonObject("textEdits");
 
         Map<String, List<TextEdit>> actualTextEdits = gson.fromJson(jsonMap, textEditListType);
@@ -96,25 +96,25 @@ public class DataMappingSubMappingSourceTest extends AbstractLSTest {
 
         if (assertFailure) {
             TestConfig updatedConfig = new TestConfig(testConfig.source(), testConfig.description(),
-                    testConfig.codedata(), testConfig.diagram(), testConfig.index(), newMap);
-            updateConfig(configJsonPath, updatedConfig);
+                    testConfig.codedata(), testConfig.index(), newMap);
+//            updateConfig(configJsonPath, updatedConfig);
             Assert.fail(String.format("Failed test: '%s' (%s)", testConfig.description(), configJsonPath));
         }
     }
 
     @Override
     protected String getResourceDir() {
-        return "data_mapper_sub_mapping_source";
+        return "data_mapper_sub_mapping_delete";
     }
 
     @Override
     protected Class<? extends AbstractLSTest> clazz() {
-        return DataMappingSubMappingSourceTest.class;
+        return DataMappingSubMappingDeleteTest.class;
     }
 
     @Override
     protected String getApiName() {
-        return "addSubMapping";
+        return "deleteSubMapping";
     }
 
     @Override
@@ -123,16 +123,15 @@ public class DataMappingSubMappingSourceTest extends AbstractLSTest {
     }
 
     /**
-     * Represents the test configuration for the source generator test.
+     * Represents the test configuration for the delete sub mapping test.
      *
      * @param source      The source file name
      * @param description The description of the test
      * @param codedata    Details of the node
-     * @param diagram     The node representation in the variable
      * @param index       The index of the let variable in the sub mapping
      * @param output      generated source expression
      */
-    private record TestConfig(String source, String description, JsonElement codedata, JsonElement diagram, int index,
+    private record TestConfig(String source, String description, JsonElement codedata, int index,
                               Map<String, List<TextEdit>> output) {
 
         public String description() {
