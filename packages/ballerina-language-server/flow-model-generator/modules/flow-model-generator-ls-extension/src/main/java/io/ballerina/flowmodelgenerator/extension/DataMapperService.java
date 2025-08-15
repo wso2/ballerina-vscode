@@ -24,6 +24,7 @@ import io.ballerina.flowmodelgenerator.core.expressioneditor.DocumentContext;
 import io.ballerina.flowmodelgenerator.extension.request.DataMapperAddClausesRequest;
 import io.ballerina.flowmodelgenerator.extension.request.DataMapperAddElementRequest;
 import io.ballerina.flowmodelgenerator.extension.request.DataMapperCustomFunctionRequest;
+import io.ballerina.flowmodelgenerator.extension.request.DataMapperDeleteSubMappingRequest;
 import io.ballerina.flowmodelgenerator.extension.request.DataMapperFieldPositionRequest;
 import io.ballerina.flowmodelgenerator.extension.request.DataMapperModelRequest;
 import io.ballerina.flowmodelgenerator.extension.request.DataMapperNodePositionRequest;
@@ -333,6 +334,26 @@ public class DataMapperService implements ExtendedLanguageServerService {
                 DataMapManager dataMapManager = new DataMapManager(document.get());
                 response.setTextEdits(dataMapManager.getSubMapping(this.workspaceManager, filePath,
                         request.codedata(), request.flowNode(), request.index()));
+            } catch (Throwable e) {
+                response.setError(e);
+            }
+            return response;
+        });
+    }
+
+    @JsonRequest
+    public CompletableFuture<DataMapperSourceResponse> deleteSubMapping(DataMapperDeleteSubMappingRequest request) {
+        return CompletableFuture.supplyAsync(() -> {
+            DataMapperSourceResponse response = new DataMapperSourceResponse();
+            try {
+                Path filePath = Path.of(request.filePath());
+                this.workspaceManager.loadProject(filePath);
+                Optional<Document> document = this.workspaceManager.document(filePath);
+                if (document.isEmpty()) {
+                    return response;
+                }
+                DataMapManager dataMapManager = new DataMapManager(document.get());
+                response.setTextEdits(dataMapManager.deleteSubMapping(filePath, request.codedata(), request.index()));
             } catch (Throwable e) {
                 response.setError(e);
             }

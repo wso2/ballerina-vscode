@@ -1815,25 +1815,74 @@ public class DataMapManager {
             }
 
             newText = newText.split(";")[0];
-            LinePosition pos;
+            Range range;
             if (initializer.kind() == SyntaxKind.LET_EXPRESSION) {
                 newText = ", " + newText;
                 LetExpressionNode letExpr = (LetExpressionNode) initializer;
                 SeparatedNodeList<LetVariableDeclarationNode> letVarDecls = letExpr.letVarDeclarations();
                 if (index >= letVarDecls.size()) {
-                    pos = letVarDecls.get(letVarDecls.size() - 1).lineRange().endLine();
+                    range = CommonUtils.toRange(letVarDecls.get(letVarDecls.size() - 1).lineRange().endLine());
                 } else {
-                    pos = letVarDecls.get(index).lineRange().endLine();
+                    LineRange lineRange = letVarDecls.get(index).lineRange();
+                    Boolean isNew = codedata.isNew();
+                    if (isNew != null && isNew) {
+                        range = CommonUtils.toRange(lineRange.endLine());
+                    } else {
+                        range = CommonUtils.toRange(lineRange);
+                    }
                 }
             } else {
                 newText = "let " + newText.split(";")[0] + " in ";
-                pos = initializer.lineRange().startLine();
+                range = CommonUtils.toRange(initializer.lineRange().startLine());
             }
             te.setNewText(newText);
-            te.setRange(CommonUtils.toRange(pos));
+            te.setRange(range);
             found = true;
         }
         return gson.toJsonTree(source);
+    }
+
+    public JsonElement deleteSubMapping(Path filePath, JsonElement cd, int index) {
+        Codedata codedata = gson.fromJson(cd, Codedata.class);
+        NonTerminalNode node = getNode(codedata.lineRange());
+        if (node.kind() != SyntaxKind.LOCAL_VAR_DECL) {
+            return null;
+        }
+
+        VariableDeclarationNode varDeclNode = (VariableDeclarationNode) node;
+        Optional<ExpressionNode> optInitializer = varDeclNode.initializer();
+        if (optInitializer.isEmpty()) {
+            return null;
+        }
+
+        Map<Path, List<TextEdit>> textEditsMap = new HashMap<>();
+        List<TextEdit> textEdits = new ArrayList<>();
+        textEditsMap.put(filePath, textEdits);
+
+        ExpressionNode initializer = optInitializer.get();
+        if (initializer.kind() != SyntaxKind.LET_EXPRESSION) {
+            return null;
+        }
+
+        LetExpressionNode letExpr = (LetExpressionNode) initializer;
+        SeparatedNodeList<LetVariableDeclarationNode> letVarDecls = letExpr.letVarDeclarations();
+        if (index >= letVarDecls.size()) {
+            return null;
+        }
+        Range range;
+        if (letVarDecls.size() == 1) {
+            range = CommonUtils.toRange(letExpr.letKeyword().lineRange().startLine(),
+                    letExpr.expression().lineRange().startLine());
+        } else {
+            LineRange lineRange = letVarDecls.get(index).lineRange();
+            if (index == letVarDecls.size() - 1) {
+                range = CommonUtils.toRange(letVarDecls.get(index - 1).lineRange().endLine(), lineRange.endLine());
+            } else {
+                range = CommonUtils.toRange(lineRange.startLine(), letVarDecls.get(index + 1).lineRange().startLine());
+            }
+        }
+        textEdits.add(new TextEdit(range, ""));
+        return gson.toJsonTree(textEditsMap);
     }
 
     public JsonElement genCustomFunction(WorkspaceManager workspaceManager, SemanticModel semanticModel,
