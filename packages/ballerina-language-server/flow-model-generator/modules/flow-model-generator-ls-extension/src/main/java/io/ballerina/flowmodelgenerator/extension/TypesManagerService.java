@@ -84,6 +84,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @JsonSegment("typesManager")
 public class TypesManagerService implements ExtendedLanguageServerService {
 
+    // A type can be deleted if it has at most one reference (the definition itself).
     public static final int MAX_REFERENCE_FOR_DELETE = 1;
     private WorkspaceManager workspaceManager;
 
@@ -308,7 +309,6 @@ public class TypesManagerService implements ExtendedLanguageServerService {
                 List<Location> locations = semanticModel.get()
                         .references(document.get(), request.startPosition());
 
-                // A type can be deleted if it has at most one reference (the definition itself).
                 boolean canDelete = locations.size() <= MAX_REFERENCE_FOR_DELETE;
                 response.setCanDelete(canDelete);
             } catch (Throwable e) {
