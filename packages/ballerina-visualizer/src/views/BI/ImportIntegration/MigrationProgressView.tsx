@@ -18,7 +18,7 @@
 
 import styled from "@emotion/styled";
 import { ImportIntegrationResponse } from "@wso2/ballerina-core";
-import { Button, Codicon, Typography } from "@wso2/ui-toolkit";
+import { Button, Codicon, Typography, ProgressRing } from "@wso2/ui-toolkit";
 import { useState, useEffect, useRef, useMemo } from "react";
 import MigrationReportContainer from "./MigrationReportContainer";
 
@@ -111,7 +111,7 @@ const CoverageHeader = styled.div`
 const CoveragePercentage = styled.div<{ coverageColor: string }>`
     font-size: 48px;
     font-weight: bold;
-    color: ${props => props.coverageColor};
+    color: ${(props: { coverageColor: string }) => props.coverageColor};
 `;
 
 const CoverageLabel = styled.div`
@@ -129,8 +129,8 @@ const CoverageProgressBar = styled.div`
 
 const CoverageProgressFill = styled.div<{ percentage: number; coverageColor: string }>`
     height: 100%;
-    width: ${props => props.percentage}%;
-    background-color: ${props => props.coverageColor};
+    width: ${(props: { percentage: number; coverageColor: string }) => props.percentage}%;
+    background-color: ${(props: { percentage: number; coverageColor: string }) => props.coverageColor};
     transition: width 0.3s ease;
 `;
 
@@ -658,7 +658,10 @@ export function MigrationProgressView({
                 ) : migrationCompleted && !migrationSuccessful ? (
                     <></>
                 ) : (
-                    <Typography variant="progress">{migrationState || "Starting migration..."}</Typography>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <ProgressRing sx={{ width: 14, height: 14 }} color="var(--vscode-foreground)" />
+                        <span style={{ color: 'var(--vscode-foreground)' }}>{migrationState || "Starting migration..."}</span>
+                    </div>
                 )}
             </StepWrapper>
 
