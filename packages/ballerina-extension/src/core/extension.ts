@@ -813,10 +813,12 @@ export class BallerinaExtension {
                 // Set the executable permissions
                 await this.setExecutablePermissions();
 
-                // Set the Ballerina version
-                const filePath = path.join(this.ballerinaInstallationDir, 'distributions', 'ballerina-version');
-                fs.writeFileSync(filePath, `ballerina-${latestDistributionVersion}`);
-                console.log(`Updated ${filePath} with version: ${latestDistributionVersion}`);
+                // Set the Ballerina version in ballerina-version files
+                const distributionFilePath = path.join(this.ballerinaInstallationDir, 'distributions', 'ballerina-version');
+                const ballerinaUserHomeFilePath = path.join(this.getBallerinaUserHome(), 'ballerina-version');
+                fs.writeFileSync(distributionFilePath, `ballerina-${latestDistributionVersion}`);
+                fs.writeFileSync(ballerinaUserHomeFilePath, `ballerina-${latestDistributionVersion}`);
+                console.log(`Updated ${distributionFilePath} and ${ballerinaUserHomeFilePath} with version: ${latestDistributionVersion}`);
 
                 // Set the Ballerina Home and Command for the user
                 this.setBallerinaCommandForUser();
