@@ -37,7 +37,6 @@ import io.ballerina.flowmodelgenerator.core.model.TypeData;
 import io.ballerina.flowmodelgenerator.core.type.RecordValueGenerator;
 import io.ballerina.flowmodelgenerator.core.type.TypeSymbolAnalyzerFromTypeModel;
 import io.ballerina.flowmodelgenerator.core.utils.FileSystemUtils;
-import io.ballerina.flowmodelgenerator.extension.request.ComponentInfo;
 import io.ballerina.flowmodelgenerator.extension.request.DeleteTypeRequest;
 import io.ballerina.flowmodelgenerator.extension.request.FindTypeRequest;
 import io.ballerina.flowmodelgenerator.extension.request.GetTypeRequest;
@@ -62,7 +61,6 @@ import io.ballerina.modelgenerator.commons.PackageUtil;
 import io.ballerina.projects.Document;
 import io.ballerina.projects.Project;
 import io.ballerina.tools.diagnostics.Location;
-import io.ballerina.tools.text.LinePosition;
 import io.ballerina.tools.text.TextDocument;
 import io.ballerina.tools.text.TextRange;
 import org.ballerinalang.annotation.JavaSPIService;
@@ -86,6 +84,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @JsonSegment("typesManager")
 public class TypesManagerService implements ExtendedLanguageServerService {
 
+    public static final int MAX_REFERENCE_FOR_DELETE = 1;
     private WorkspaceManager workspaceManager;
 
     // Cache key for SemanticModel
@@ -251,16 +250,11 @@ public class TypesManagerService implements ExtendedLanguageServerService {
                 }
 
                 Document document = documentOpt.get();
-                ComponentInfo componentInfo = request.component();
                 TextDocument textDocument = document.textDocument();
 
                 // Compute positions
-                int startPos = textDocument.textPositionFrom(
-                        LinePosition.from(componentInfo.startLine(), componentInfo.startColumn())
-                );
-                int endPos = textDocument.textPositionFrom(
-                        LinePosition.from(componentInfo.endLine(), componentInfo.endColumn())
-                );
+                int startPos = textDocument.textPositionFrom(request.lineRange().startLine());
+                int endPos = textDocument.textPositionFrom(request.lineRange().endLine());
 
                 // Locate node
                 NonTerminalNode targetNode = ((ModulePartNode) document.syntaxTree().rootNode())
@@ -268,7 +262,6 @@ public class TypesManagerService implements ExtendedLanguageServerService {
 
                 // Build JSON in one step by combining maps
                 Map<String, Object> component = Map.of(
-                        "name", componentInfo.name(),
                         "filePath", filePath.toString(),
                         "startLine", targetNode.lineRange().startLine().line(),
                         "startColumn", targetNode.lineRange().startLine().offset(),
@@ -280,7 +273,6 @@ public class TypesManagerService implements ExtendedLanguageServerService {
                         .toJsonTree(component)
                         .getAsJsonObject();
 
-                // Set text edits
                 response.setTextEdits(DeleteNodeHandler.getTextEditsToDeletedNode(
                         componentJson, filePath, document, project
                 ));
@@ -304,7 +296,6 @@ public class TypesManagerService implements ExtendedLanguageServerService {
             VerifyTypeDeleteResponse response = new VerifyTypeDeleteResponse();
             try {
                 Path filePath = Path.of(request.filePath());
-                Project project = this.workspaceManager.loadProject(filePath);
                 Optional<SemanticModel> semanticModel = this.workspaceManager.semanticModel(filePath);
                 Optional<Document> document = this.workspaceManager.document(filePath);
 
@@ -315,9 +306,10 @@ public class TypesManagerService implements ExtendedLanguageServerService {
                 }
 
                 List<Location> locations = semanticModel.get()
-                        .references(document.get(), LinePosition.from(request.startLine(), request.startColumn()));
+                        .references(document.get(), request.startPosition());
 
-                boolean canDelete = locations.size()<= 1;
+                // A type can be deleted if it has at most one reference (the definition itself).
+                boolean canDelete = locations.size() <= MAX_REFERENCE_FOR_DELETE;
                 response.setCanDelete(canDelete);
             } catch (Throwable e) {
                 response.setError(e);

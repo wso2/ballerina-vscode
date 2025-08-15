@@ -18,13 +18,15 @@
 
 package io.ballerina.flowmodelgenerator.extension.request;
 
+import io.ballerina.tools.text.LinePosition;
+
 /**
- * Represents the request to get types.
+ * Represents the request to verify type deletion.
  *
  * @param filePath path of the file
- * @param startLine
- * @param startColumn
- * @since 1.0.0
+ * @param startPosition the starting position of the typename to be deleted
+ *
+ * @since 1.3.0
  */
-public record VerifyTypeDeleteRequest(String filePath, int startLine, int startColumn) {
+public record VerifyTypeDeleteRequest(String filePath, LinePosition startPosition) {
 }

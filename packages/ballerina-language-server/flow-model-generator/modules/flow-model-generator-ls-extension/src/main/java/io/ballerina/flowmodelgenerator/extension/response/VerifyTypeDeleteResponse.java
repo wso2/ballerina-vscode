@@ -18,10 +18,13 @@
 
 package io.ballerina.flowmodelgenerator.extension.response;
 
-
+/**
+ * Represents the response containing information about whether a type can be deleted or not.
+ *
+ * @since 1.3.0
+ */
 public class VerifyTypeDeleteResponse extends AbstractFlowModelResponse  {
     private boolean canDelete;
-
 
     public boolean canDelete() {
         return canDelete;
