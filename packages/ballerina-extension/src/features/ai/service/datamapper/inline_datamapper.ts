@@ -429,11 +429,12 @@ function convertFlatToNestedMap(flatMap: { [key: string]: MappingJson }): { [key
  * Enhanced main function for AI-powered data mapping generation with inline schema support
  */
 async function mapInlineData(payload: InlineDataMapperModelResponse): Promise<DatamapperResponse> {
-    const maxRetries = 6;
+    const maxRetries = 3;
     let retries = 0;
+    let lastError: Error;
 
     while (retries < maxRetries) {
-        if (retries > 1) {
+        if (retries > 0) {
             console.debug("Retrying to generate mappings for the payload.");
         }
 
@@ -443,6 +444,13 @@ async function mapInlineData(payload: InlineDataMapperModelResponse): Promise<Da
 
             // STEP 1: Generate AI-powered mappings using Claude
             const generatedMappings = await getInlineMappings((payload.mappingsModel as ExpandedDMModel)?.inputs, (payload.mappingsModel as ExpandedDMModel)?.output, payload.mappingsModel.mappings, mappingFields);
+
+            if (Object.keys(generatedMappings).length === 0) {
+                const error = new Error("No valid fields were identified for mapping between the given input and output records.");
+                lastError = error;
+                retries += 1;
+                continue;
+            }
 
             // STEP 2: Prepare inline inputs for validation
             const inlineInputs: InlineInputs = {
@@ -462,12 +470,12 @@ async function mapInlineData(payload: InlineDataMapperModelResponse): Promise<Da
             }
         } catch (error) {
             console.error(`Error occurred while generating mappings: ${error}`);
+            lastError = error as Error;
             retries += 1;
             continue;
         }
     }
-
-    throw new Error("Failed to generate mappings for the payload after all retries.");
+    throw lastError;
 }
 
 // Import all existing functions from the original implementation
@@ -551,6 +559,6 @@ export async function generateInlineAutoMappings(payload?: InlineDataMapperModel
         return await mapInlineData(payload);
     } catch (error) {
         console.error(`Error generating auto mappings: ${error}`);
-        throw new Error(`Failed to generate auto mappings: ${error}`);
+        throw error;
     }
 }
