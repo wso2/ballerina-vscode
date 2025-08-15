@@ -319,36 +319,54 @@ export abstract class DataMapperNodeModel extends NodeModel<NodeModelGenerics & 
 		const isHidden = attributes.hidden || attributes.collapsed;
 		let numberOfFields = 1;
 
+		switch (attributes.field?.kind) {
+			case TypeKind.Record:
+				numberOfFields += this.createInputPortsForRecordField(attributes, isHidden);
+				break;
+			case TypeKind.Array:
+				numberOfFields += this.createInputPortsForArrayField(attributes, isHidden);
+				break;
+			default:
+				break;
+		}
 
-		if (attributes.field?.kind === TypeKind.Record) {
-			const fields = attributes.field?.fields?.filter(f => !!f);
-			if (fields && fields.length) {
-				fields.forEach(subField => {
-					numberOfFields += this.addPortsForInputField({
-						...attributes,
-						hidden: isHidden,
-						field: subField,
-						isOptional: subField.optional || attributes.isOptional
-					});
-				});
-			}
-		} else if (attributes.field?.kind === TypeKind.Array) {
+		return attributes.hidden ? 0 : numberOfFields;
+	}
 
-			const focusedMemberId = attributes.field?.focusedMemberId;
-			if (focusedMemberId) {
-				const focusedMemberField = this.context.model.inputs.find(input => input.id === focusedMemberId);
-				if (focusedMemberField) {
-					attributes.field.member = focusedMemberField;
-				}
-			}
-
-			numberOfFields += this.addPortsForInputField({
+	private createInputPortsForRecordField(attributes: InputPortAttributes, isHidden: boolean): number {
+		const fields = attributes.field?.fields?.filter(f => !!f) || [];
+		if (fields.length === 0) {
+			return 0;
+		}
+		return fields.reduce((total, subField) => {
+			return total + this.addPortsForInputField({
 				...attributes,
 				hidden: isHidden,
-				field: attributes.field?.member
+				field: subField,
+				isOptional: subField.optional || attributes.isOptional
 			});
+		}, 0);
+	}
+
+	private createInputPortsForArrayField(attributes: InputPortAttributes, isHidden: boolean): number {
+		const memberField = this.resolveArrayMemberField(attributes);
+		return this.addPortsForInputField({
+			...attributes,
+			hidden: isHidden,
+			field: memberField,
+			isOptional: memberField?.optional || attributes.isOptional
+		});
+	}
+
+	private resolveArrayMemberField(attributes: InputPortAttributes): IOType | undefined {
+		const focusedMemberId = attributes.field?.focusedMemberId;
+		if (focusedMemberId) {
+			const focusedMemberField = this.context.model.inputs.find(input => input.id === focusedMemberId);
+			if (focusedMemberField) {
+				return focusedMemberField;
+			}
 		}
-		return attributes.hidden ? 0 : numberOfFields;
+		return attributes.field?.member;
 	}
 
 	private processFieldKind(attributes: OutputPortAttributes) {

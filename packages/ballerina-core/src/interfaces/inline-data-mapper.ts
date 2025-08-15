@@ -28,6 +28,7 @@ export enum TypeKind {
     Decimal = "decimal",
     Boolean = "boolean",
     Enum = "enum",
+    Union = "union",
     Unknown = "$CompilationError$",
     Anydata = "anydata",
     Byte = "byte",
