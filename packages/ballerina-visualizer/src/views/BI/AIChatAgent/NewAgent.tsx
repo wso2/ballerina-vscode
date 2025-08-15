@@ -18,7 +18,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import styled from "@emotion/styled";
-import { FlowNode, LinePosition, LineRange, NodeProperties } from "@wso2/ballerina-core";
+import { AvailableNode, FlowNode, LinePosition, LineRange, NodeProperties } from "@wso2/ballerina-core";
 import { FormField, FormValues } from "@wso2/ballerina-side-panel";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { convertConfig } from "../../../utils/bi";
@@ -54,7 +54,6 @@ export function NewAgent(props: NewAgentProps): JSX.Element {
     const { rpcClient } = useRpcContext();
 
     const [agentNode, setAgentNode] = useState<FlowNode | null>(null);
-    const [defaultModelNode, setDefaultModelNode] = useState<FlowNode | null>(null);
     const [formFields, setFormFields] = useState<FormField[]>([]);
 
     const [loading, setLoading] = useState<boolean>(false);
@@ -95,41 +94,33 @@ export function NewAgent(props: NewAgentProps): JSX.Element {
     };
 
     useEffect(() => {
-        if (agentNode && defaultModelNode) {
+        if (agentNode) {
             configureFormFields();
             setLoading(false);
         }
-    }, [agentNode, defaultModelNode]);
+    }, [agentNode]);
 
     const fetchAgentNode = async () => {
-        // get the agent node
-        const allAgents = await rpcClient.getAIAgentRpcClient().getAllAgents({ filePath: agentFilePath.current, orgName: aiModuleOrg.current });
-        console.log(">>> allAgents", allAgents);
-        if (!allAgents.agents.length) {
+        // Search for agent node using search API
+        const agentSearchResponse = await rpcClient.getBIDiagramRpcClient().search({
+            filePath: agentFilePath.current,
+            position: { startLine: agentEndOfFile.current, endLine: agentEndOfFile.current },
+            queryMap: {
+                orgName: aiModuleOrg.current
+            },
+            searchKind: "AGENT"
+        });
+        console.log(">>> agentSearchResponse", agentSearchResponse);
+
+        // Validate search response structure
+        if (!agentSearchResponse?.categories?.[0]?.items?.length) {
             console.log(">>> no agents found");
             return;
         }
-        const agentCodeData = allAgents.agents.at(0);
+        const agentCodeData = (agentSearchResponse.categories[0].items[0] as AvailableNode).codedata;
         // get agent node template
         const agentNodeTemplate = await getNodeTemplate(rpcClient, agentCodeData, agentFilePath.current);
         setAgentNode(agentNodeTemplate);
-
-        // get all llm models
-        const allModels = await rpcClient
-            .getAIAgentRpcClient()
-            .getAllModels({ agent: agentCodeData.object, filePath: agentFilePath.current, orgName: aiModuleOrg.current });
-        console.log(">>> allModels", allModels);
-        // get openai model
-        const defaultModel = allModels.models.find((model) => model.object === "OpenAiProvider" || (model.org === BALLERINA && model.module === AI));
-        if (!defaultModel) {
-            console.log(">>> no default model found");
-            return;
-        }
-        // get model node template
-        const modelNodeTemplate = await getNodeTemplate(rpcClient, defaultModel, agentFilePath.current);
-        setDefaultModelNode(modelNodeTemplate);
-
-        // get agent call node template
     };
 
     const configureFormFields = () => {
@@ -231,16 +222,38 @@ export function NewAgent(props: NewAgentProps): JSX.Element {
         console.log(">>> save value", { data, rawData });
         setSavingForm(true);
 
+        // Search for model providers using search API
+        const modelProviderSearchResponse = await rpcClient.getBIDiagramRpcClient().search({
+            filePath: agentFilePath.current,
+            position: { startLine: agentEndOfFile.current, endLine: agentEndOfFile.current },
+            queryMap: {
+                q: aiModuleOrg.current === BALLERINA ? "ai" : "OpenAiProvider"
+            },
+            searchKind: aiModuleOrg.current === BALLERINA ? "MODEL_PROVIDER" : "CLASS_INIT"
+        });
+        console.log(">>> modelProviderSearchResponse", modelProviderSearchResponse);
+
+        const modelNodes = modelProviderSearchResponse.categories[0].items as AvailableNode[];
+        // get openai model
+        const defaultModelNode = modelNodes.find((model) =>
+            model.codedata.object === "OpenAiProvider" || (model.codedata.org === BALLERINA && model.codedata.module === AI)
+        );
+        const defaultModel = defaultModelNode?.codedata;
+        if (!defaultModel) {
+            console.log(">>> no default model found");
+            return;
+        }
+        // get model node template
+        const defaultModelNodeTemplate = await getNodeTemplate(rpcClient, defaultModel, agentFilePath.current);
+        defaultModelNodeTemplate.codedata.isNew = false;
+        defaultModelNodeTemplate.codedata.lineRange = { fileName: agentFilePath.current, startLine: agentEndOfFile.current, endLine: agentEndOfFile.current };
+
         // save model node
         const modelResponse = await rpcClient
             .getBIDiagramRpcClient()
-            .getSourceCode({ filePath: agentFilePath.current, flowNode: defaultModelNode });
+            .getSourceCode({ filePath: agentFilePath.current, flowNode: defaultModelNodeTemplate });
         console.log(">>> modelResponse getSourceCode", { modelResponse });
-        const modelVarName = defaultModelNode.properties.variable.value as string;
-
-        // wait 2 seconds (wait until LS is updated)
-        console.log(">>> wait 2 seconds");
-        await new Promise((resolve) => setTimeout(resolve, 2000));
+        const modelVarName = defaultModelNodeTemplate.properties.variable.value as string;
 
         // save the agent node
         const updatedAgentNode = cloneDeep(agentNode);
@@ -261,10 +274,6 @@ export function NewAgent(props: NewAgentProps): JSX.Element {
             .getSourceCode({ filePath: agentFilePath.current, flowNode: updatedAgentNode });
         console.log(">>> agentResponse getSourceCode", { agentResponse });
         const agentVarName = agentNode.properties.variable.value as string;
-
-        // wait 2 seconds (wait until LS is updated)
-        console.log(">>> wait 2 seconds");
-        await new Promise((resolve) => setTimeout(resolve, 2000));
 
         // update the agent call node
         const updatedAgentCallNode = cloneDeep(agentCallNode);
