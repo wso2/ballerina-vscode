@@ -132,7 +132,17 @@ export function Diagram(props: DiagramProps) {
     const getDiagramData = () => {
         let flowModel = cloneDeep(model);
 
-        const initVisitor = new InitVisitor(flowModel, expandedErrorHandler);
+        // Check if active breakpoint is within onFailure nodes and update expandedErrorHandler before running visitors
+        let currentExpandedErrorHandler = expandedErrorHandler;
+        if (breakpointInfo?.activeBreakpoint) {
+            const errorHandlerToExpand = getErrorHandlerIdForActiveBreakpoint(flowModel, breakpointInfo);
+            if (errorHandlerToExpand && expandedErrorHandler !== errorHandlerToExpand) {
+                currentExpandedErrorHandler = errorHandlerToExpand;
+                setExpandedErrorHandler(errorHandlerToExpand);
+            }
+        }
+
+        const initVisitor = new InitVisitor(flowModel, currentExpandedErrorHandler);
         traverseFlow(flowModel, initVisitor);
         const sizingVisitor = new SizingVisitor();
         traverseFlow(flowModel, sizingVisitor);
@@ -152,6 +162,73 @@ export function Diagram(props: DiagramProps) {
         const addTargetVisitor = new LinkTargetVisitor(model, nodes);
         traverseFlow(flowModel, addTargetVisitor);
         return { nodes, links };
+    };
+
+    // Helper function to find error handlers with active breakpoints in onFailure branches
+    const getErrorHandlerIdForActiveBreakpoint = (flow: Flow, breakpointInfo: BreakpointInfo): string | undefined => {
+        if (!breakpointInfo.activeBreakpoint) {
+            return undefined;
+        }
+
+        let errorHandlerIdToExpand: string | undefined;
+        const activeBreakpoint = breakpointInfo.activeBreakpoint;
+
+        const checkNode = (node: FlowNode): void => {
+            if (node.codedata?.node === "ERROR_HANDLER") {
+                // Find the onFailure branch
+                const onFailureBranch = node.branches?.find((branch) => branch.codedata?.node === "ON_FAILURE");
+                if (onFailureBranch) {
+                    // Check if any child nodes in the onFailure branch match the active breakpoint
+                    const hasActiveBreakpointInOnFailure = checkForActiveBreakpointInBranch(onFailureBranch, activeBreakpoint);
+                    if (hasActiveBreakpointInOnFailure) {
+                        errorHandlerIdToExpand = node.id;
+                        return;
+                    }
+                }
+            }
+
+            // Recursively check child nodes
+            if (node.branches) {
+                for (const branch of node.branches) {
+                    if (branch.children) {
+                        for (const child of branch.children) {
+                            checkNode(child);
+                            if (errorHandlerIdToExpand) return;
+                        }
+                    }
+                }
+            }
+        };
+
+        const checkForActiveBreakpointInBranch = (branch: any, activeBreakpoint: any): boolean => {
+            if (branch.children) {
+                for (const child of branch.children) {
+                    // Check if this node matches the active breakpoint
+                    if (child.codedata?.lineRange?.startLine?.line === activeBreakpoint.line) {
+                        return true;
+                    }
+                    // Recursively check nested branches
+                    if (child.branches) {
+                        for (const nestedBranch of child.branches) {
+                            if (checkForActiveBreakpointInBranch(nestedBranch, activeBreakpoint)) {
+                                return true;
+                            }
+                        }
+                    }
+                }
+            }
+            return false;
+        };
+
+        // Start checking from the root nodes
+        if (flow.nodes) {
+            for (const child of flow.nodes) {
+                checkNode(child);
+                if (errorHandlerIdToExpand) break;
+            }
+        }
+
+        return errorHandlerIdToExpand;
     };
 
     const drawDiagram = (nodes: NodeModel[], links: NodeLinkModel[]) => {

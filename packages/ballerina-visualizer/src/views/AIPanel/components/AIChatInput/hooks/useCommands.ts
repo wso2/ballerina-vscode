@@ -92,6 +92,9 @@ export function useCommands({ commandTemplate }: UseCommandsParams) {
             if (templateQuery.startsWith(" ")) {
                 const filterText = templateQuery.slice(1);
                 filtered = templates.filter((template) => {
+                    if (template.defaultVisibility === false) {
+                        return false;
+                    }
                     return (template.text.toLowerCase().startsWith(filterText) && template.id !== TemplateId.Wildcard);
                 }).map((template) => ({
                     text: template.text,
