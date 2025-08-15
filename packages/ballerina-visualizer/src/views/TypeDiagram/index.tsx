@@ -180,8 +180,7 @@ export function TypeDiagram(props: TypeDiagramProps) {
         try {
             const response = await rpcClient.getBIDiagramRpcClient().verifyTypeDelete({
             filePath: component.codedata?.lineRange?.fileName,
-            startLine: component.codedata?.lineRange?.startLine?.line,
-            startColumn: component.codedata?.lineRange?.startLine?.offset            
+            startPosition: component.codedata?.lineRange?.startLine,
         });
             
             if (response.errorMsg) {
@@ -206,14 +205,10 @@ export function TypeDiagram(props: TypeDiagramProps) {
             return;
         }
         await rpcClient.getBIDiagramRpcClient().deleteType({
-            filePath: visualizerLocation?.metadata?.recordFilePath,
-            component: {
-                name: component.name,
-                filePath: component.codedata?.lineRange?.fileName,
-                startLine: component.codedata?.lineRange?.startLine?.line,
-                startColumn: component.codedata?.lineRange?.startLine?.offset,
-                endLine: component.codedata?.lineRange?.endLine?.line,
-                endColumn: component.codedata?.lineRange?.endLine?.offset
+            filePath: component.codedata?.lineRange?.fileName,
+            lineRange: {
+                startLine: component.codedata?.lineRange?.startLine,
+                endLine: component.codedata?.lineRange?.endLine,
             }
         }).then((response)=>{
             if (response.errorMsg) {

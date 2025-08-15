@@ -1363,7 +1363,7 @@ export interface UpdateTypesResponse {
 
 export interface DeleteTypeRequest {
     filePath: string;
-    component: ComponentInfo;
+    lineRange: LineRange;
 }
 
 export interface DeleteTypeResponse {
@@ -1376,8 +1376,7 @@ export interface DeleteTypeResponse {
 
 export interface VerifyTypeDeleteRequest {
     filePath: string;
-    startLine: number;
-    startColumn: number;
+    startPosition: LinePosition;
 }
 
 export interface VerifyTypeDeleteResponse {
