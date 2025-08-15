@@ -909,6 +909,13 @@ public class DataMapManager {
         } else if (node.kind() == SyntaxKind.LET_VAR_DECL) {
             LetVariableDeclarationNode varDecl = (LetVariableDeclarationNode) node;
             expr = varDecl.expression();
+        } else if (node.kind() == SyntaxKind.FUNCTION_DEFINITION) {
+            FunctionDefinitionNode funcDefNode = (FunctionDefinitionNode) node;
+            FunctionBodyNode funcBodyNode = funcDefNode.functionBody();
+            if (funcBodyNode.kind() == SyntaxKind.EXPRESSION_FUNCTION_BODY) {
+                ExpressionFunctionBodyNode exprFuncBodyNode = (ExpressionFunctionBodyNode) funcBodyNode;
+                expr = exprFuncBodyNode.expression();
+            }
         }
 
 
