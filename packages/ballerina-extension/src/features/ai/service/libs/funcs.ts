@@ -16,7 +16,7 @@
 
 import { generateObject, CoreMessage } from "ai";
 
-import { GetFunctionResponse, GetFunctionsRequest, GetFunctionsResponse, getFunctionsResponseSchema, MinifiedClient, MinifiedRemoteFunction, MinifiedResourceFunction } from "./funcs_inter_types";
+import { GetFunctionResponse, GetFunctionsRequest, GetFunctionsResponse, getFunctionsResponseSchema, MinifiedClient, MinifiedRemoteFunction, MinifiedResourceFunction, PathParameter } from "./funcs_inter_types";
 import { Client, GetTypeResponse, Library, RemoteFunction, ResourceFunction } from "./libs_types";
 import { TypeDefinition, AbstractFunction, Type, RecordTypeDefinition } from "./libs_types";
 import { getAnthropicClient, ANTHROPIC_HAIKU } from "../connection";
@@ -417,6 +417,13 @@ function getConstructor(functions: (RemoteFunction | ResourceFunction)[]): Remot
     return null;
 }
 
+function normalizePaths(paths: (PathParameter | string)[]): string[] {
+    return paths.map((path) => {
+        const pathStr = typeof path === "string" ? path : path.name;
+        return pathStr.replace(/\\./g, ".");
+    });
+}
+
 function getCompleteFuncForMiniFunc(
     minFunc: MinifiedRemoteFunction | MinifiedResourceFunction, 
     fullFunctions: (RemoteFunction | ResourceFunction)[]
@@ -426,11 +433,14 @@ function getCompleteFuncForMiniFunc(
         return fullFunctions.find(f => 'name' in f && f.name === minFunc.name) || null;
     } else {
         // MinifiedResourceFunction
-        return fullFunctions.find(f => 
-            'accessor' in f && 
-            f.accessor === minFunc.accessor && 
-            JSON.stringify(f.paths) === JSON.stringify(minFunc.paths)
-        ) || null;
+        return (
+            fullFunctions.find(
+                (f) =>
+                    'accessor' in f &&
+                    f.accessor === minFunc.accessor &&
+                    JSON.stringify(normalizePaths(f.paths)) === JSON.stringify(normalizePaths(minFunc.paths))
+            ) || null
+        );
     }
 }
 
