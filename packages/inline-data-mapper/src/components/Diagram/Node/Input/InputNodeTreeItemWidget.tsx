@@ -48,7 +48,7 @@ export function InputNodeTreeItemWidget(props: InputNodeTreeItemWidgetProps) {
     const collapsedFieldsStore = useDMCollapsedFieldsStore();
     const expandedFieldsStore = useDMExpandedFieldsStore();
 
-    const fieldName = dmType.variableName;
+    const fieldName = dmType.name;
     const typeName = getTypeName(dmType);
     const fieldId = dmType.isFocused ? fieldName : `${parentId}.${fieldName}`;
     const portOut = getPort(`${fieldId}.OUT`);

@@ -139,7 +139,7 @@ export function InlineDataMapper(props: InlineDataMapperProps) {
     } = modelState;
 
     const initialView = [{
-        label: model.output.variableName,
+        label: model.output.name,
         targetField: name
     }];
 

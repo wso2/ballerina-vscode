@@ -84,7 +84,7 @@ export const getFilteredSubFields = (field: IOType, searchValue: string) => {
 			?.map((fieldItem) => getFilteredSubFields(fieldItem, searchValue))
 			.filter((fieldItem): fieldItem is IOType => fieldItem !== null);
 
-		const matchingName = field?.variableName?.toLowerCase().includes(searchValue.toLowerCase());
+		const matchingName = field?.name?.toLowerCase().includes(searchValue.toLowerCase());
 		if (matchingName || matchedSubFields?.length > 0) {
 			return {
 				...field,
@@ -96,7 +96,7 @@ export const getFilteredSubFields = (field: IOType, searchValue: string) => {
 			?.map((fieldItem) => getFilteredSubFields(fieldItem, searchValue))
 			.filter((fieldItem): fieldItem is IOType => fieldItem !== null);
 
-		const matchingName = field?.variableName?.toLowerCase().includes(searchValue.toLowerCase());
+		const matchingName = field?.name?.toLowerCase().includes(searchValue.toLowerCase());
 		if (matchingName || matchedSubFields?.length > 0) {
 			return {
 				...field,
@@ -107,7 +107,7 @@ export const getFilteredSubFields = (field: IOType, searchValue: string) => {
 			}
 		}
 	} else {
-		return field?.variableName?.toLowerCase()?.includes(searchValue.toLowerCase()) ? field : null
+		return field?.name?.toLowerCase()?.includes(searchValue.toLowerCase()) ? field : null
 	}
 
 	return null;

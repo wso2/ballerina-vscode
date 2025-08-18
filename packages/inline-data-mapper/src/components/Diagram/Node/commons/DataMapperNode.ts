@@ -111,7 +111,7 @@ export abstract class DataMapperNodeModel extends NodeModel<NodeModelGenerics & 
 			focusedFieldFQNs
 		} = attributes;
 
-		const fieldName = field?.variableName;
+		const fieldName = field?.name;
 		const isArray = this.isArrayTypedField(field);
 		const fieldFQN = this.getInputFieldFQN(field?.isFocused ? "" : parentId, fieldName, isOptional);
 		const unsafeFieldFQN = this.getUnsafeFieldFQN(field?.isFocused ? "" : unsafeParentId, fieldName);
@@ -257,7 +257,7 @@ export abstract class DataMapperNodeModel extends NodeModel<NodeModelGenerics & 
 		if (elementIndex !== undefined) {
 			return newParentId;
 		}
-		const fieldName = field?.variableName || '';
+		const fieldName = field?.name || '';
 		return newParentId !== '' ? fieldName !== '' ? `${newParentId}.${fieldName}` : newParentId : fieldName;
 	}
 

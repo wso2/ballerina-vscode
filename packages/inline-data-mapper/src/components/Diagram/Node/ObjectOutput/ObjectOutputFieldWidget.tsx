@@ -84,7 +84,7 @@ export function ObjectOutputFieldWidget(props: ObjectOutputFieldWidgetProps) {
         updatedParentId = `${updatedParentId}.${fieldIndex}`
     }
 
-    let fieldName = field?.variableName || '';
+    let fieldName = field?.name || '';
     let portName = updatedParentId !== ''
         ? fieldName !== '' && fieldIndex === undefined
             ? `${updatedParentId}.${fieldName}`

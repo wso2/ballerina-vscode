@@ -71,7 +71,7 @@ export function OutputFieldPreviewWidget(props: OutputFieldPreviewWidgetProps) {
     if (fieldIndex !== undefined) {
         updatedParentId = `${updatedParentId}.${fieldIndex}`
     }
-    let fieldName = field?.variableName || '';
+    let fieldName = field?.name || '';
     let portName = updatedParentId !== '' ? fieldName !== '' ? `${updatedParentId}.${fieldName}` : updatedParentId : fieldName;
     const portIn = getPort(portName + ".IN");
 
@@ -186,8 +186,8 @@ export function OutputFieldPreviewWidget(props: OutputFieldPreviewWidgetProps) {
                 fields
                     .filter((subField) => subField)
                     .map((subField, index) => {
-                        const fieldKey = subField.variableName 
-                            ? `${portName}.${subField.variableName}` 
+                        const fieldKey = subField.name 
+                            ? `${portName}.${subField.name}` 
                             : `${portName}.${index}`;
                         
                         return (
