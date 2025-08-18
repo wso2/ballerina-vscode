@@ -83,7 +83,7 @@ export interface IOType {
     category?: InputCategory;
     kind?: TypeKind;
     typeName?: string;
-    variableName?: string;
+    name?: string;
     fields?: IOType[];
     member?: IOType;
     members?: EnumMember[];
@@ -135,7 +135,6 @@ export interface ModelState {
 }
 
 export interface IORoot extends IOTypeField {
-    id: string;
     category?: InputCategory;
 }
 
@@ -152,7 +151,7 @@ export interface EnumType {
 export interface IOTypeField {
     typeName?: string;
     kind: TypeKind;
-    variableName?: string;
+    name: string;
     member?: IOTypeField;
     defaultValue?: unknown;
     optional?: boolean;

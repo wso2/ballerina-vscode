@@ -92,7 +92,7 @@ function removeArrayIndicesFromPath(path: string): string {
  * Removes output record prefix from field name
  */
 function removeOutputRecordPrefix(fieldName: string, output: IOType): string {
-    const outputRecordName = output.variableName;
+    const outputRecordName = output.name;
     if (outputRecordName) {
         const prefix = outputRecordName + ".";
         if (fieldName.startsWith(prefix)) {
@@ -372,7 +372,7 @@ function findFieldInSchemaType(schemaType: IOType, fieldId: string): IOType | nu
     const fields = schemaType.fields;
     if (fields && Array.isArray(fields)) {
         for (const field of fields) {
-            if (field.id === fieldId || field.variableName === fieldId) {
+            if (field.id === fieldId || field.name === fieldId) {
                 return field;
             }
             
@@ -385,7 +385,7 @@ function findFieldInSchemaType(schemaType: IOType, fieldId: string): IOType | nu
 
     const member = schemaType.member;
     if (member) {
-        if (member.id === fieldId || member.variableName === fieldId) {
+        if (member.id === fieldId || member.name === fieldId) {
             return member;
         }
         return findFieldInSchemaType(member, fieldId);
