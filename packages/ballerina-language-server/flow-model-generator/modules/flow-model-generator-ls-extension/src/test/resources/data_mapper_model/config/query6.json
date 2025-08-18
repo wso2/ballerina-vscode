@@ -146,20 +146,6 @@
         "typeName": "",
         "kind": "record"
       },
-      "-1795503472": {
-        "fields": [
-          {
-            "fields": [],
-            "id": "l1",
-            "variableName": "l1",
-            "typeName": "",
-            "kind": "record",
-            "ref": "-1867435692"
-          }
-        ],
-        "typeName": "MyType4",
-        "kind": "record"
-      },
       "1982785140": {
         "fields": [
           {
@@ -185,6 +171,20 @@
           }
         ],
         "typeName": "l2Item",
+        "kind": "record"
+      },
+      "-1795503472": {
+        "fields": [
+          {
+            "fields": [],
+            "id": "l1",
+            "variableName": "l1",
+            "typeName": "",
+            "kind": "record",
+            "ref": "-1867435692"
+          }
+        ],
+        "typeName": "MyType4",
         "kind": "record"
       },
       "-422613996": {
