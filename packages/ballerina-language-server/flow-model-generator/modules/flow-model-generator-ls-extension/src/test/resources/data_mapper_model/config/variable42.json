@@ -30,7 +30,7 @@
         "typeName": "UserInfo",
         "kind": "record",
         "category": "local-variable",
-        "ref": "1853646530"
+        "ref": "-481592369"
       },
       {
         "id": "x",
@@ -53,7 +53,7 @@
       "variableName": "student",
       "typeName": "Student",
       "kind": "record",
-      "ref": "-562979704"
+      "ref": "-863925971"
     },
     "mappings": [
       {
@@ -82,31 +82,7 @@
       }
     ],
     "refs": {
-      "1853646530": {
-        "fields": [
-          {
-            "id": "username",
-            "variableName": "username",
-            "typeName": "string",
-            "kind": "string"
-          },
-          {
-            "id": "password",
-            "variableName": "password",
-            "typeName": "string",
-            "kind": "string"
-          },
-          {
-            "id": "id",
-            "variableName": "id",
-            "typeName": "int",
-            "kind": "int"
-          }
-        ],
-        "typeName": "UserInfo",
-        "kind": "record"
-      },
-      "-562979704": {
+      "-863925971": {
         "fields": [
           {
             "id": "username",
@@ -128,6 +104,30 @@
           }
         ],
         "typeName": "Student",
+        "kind": "record"
+      },
+      "-481592369": {
+        "fields": [
+          {
+            "id": "username",
+            "variableName": "username",
+            "typeName": "string",
+            "kind": "string"
+          },
+          {
+            "id": "password",
+            "variableName": "password",
+            "typeName": "string",
+            "kind": "string"
+          },
+          {
+            "id": "id",
+            "variableName": "id",
+            "typeName": "int",
+            "kind": "int"
+          }
+        ],
+        "typeName": "UserInfo",
         "kind": "record"
       }
     }

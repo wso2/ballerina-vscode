@@ -32,7 +32,7 @@
         "kind": "record",
         "category": "variable",
         "isFocused": true,
-        "ref": "-891579209"
+        "ref": "668760670"
       },
       {
         "member": {
@@ -41,7 +41,7 @@
           "variableName": "<banksItem>",
           "typeName": "Bank",
           "kind": "record",
-          "ref": "-891579209"
+          "ref": "668760670"
         },
         "focusedMemberId": "bank",
         "id": "banks",
@@ -49,7 +49,7 @@
         "typeName": "Bank[]",
         "kind": "array",
         "category": "variable",
-        "ref": "-891579209"
+        "ref": "668760670"
       },
       {
         "member": {
@@ -58,14 +58,14 @@
           "variableName": "<userInfoItem>",
           "typeName": "UserInfo",
           "kind": "record",
-          "ref": "1853646530"
+          "ref": "-481592369"
         },
         "id": "userInfo",
         "variableName": "userInfo",
         "typeName": "UserInfo[]",
         "kind": "array",
         "category": "variable",
-        "ref": "1853646530"
+        "ref": "-481592369"
       },
       {
         "fields": [],
@@ -74,7 +74,7 @@
         "typeName": "UserInfo",
         "kind": "record",
         "isFocused": true,
-        "ref": "1853646530"
+        "ref": "-481592369"
       }
     ],
     "output": {
@@ -84,13 +84,13 @@
         "variableName": "<credentialsItem>",
         "typeName": "Credentials",
         "kind": "record",
-        "ref": "-1644308518"
+        "ref": "1085256861"
       },
       "id": "credentials",
       "variableName": "credentials",
       "typeName": "Credentials[]",
       "kind": "array",
-      "ref": "-1644308518"
+      "ref": "1085256861"
     },
     "mappings": [
       {
@@ -140,7 +140,34 @@
       }
     },
     "refs": {
-      "1853646530": {
+      "668760670": {
+        "fields": [
+          {
+            "id": "name",
+            "variableName": "name",
+            "typeName": "string",
+            "kind": "string"
+          },
+          {
+            "member": {
+              "fields": [],
+              "id": "userInfo",
+              "variableName": "<userInfoItem>",
+              "typeName": "UserInfo",
+              "kind": "record",
+              "ref": "-481592369"
+            },
+            "id": "userInfo",
+            "variableName": "userInfo",
+            "typeName": "UserInfo[]",
+            "kind": "array",
+            "ref": "-481592369"
+          }
+        ],
+        "typeName": "Bank",
+        "kind": "record"
+      },
+      "-481592369": {
         "fields": [
           {
             "id": "username",
@@ -164,7 +191,7 @@
         "typeName": "UserInfo",
         "kind": "record"
       },
-      "-1644308518": {
+      "1085256861": {
         "fields": [
           {
             "id": "username",
@@ -180,33 +207,6 @@
           }
         ],
         "typeName": "Credentials",
-        "kind": "record"
-      },
-      "-891579209": {
-        "fields": [
-          {
-            "id": "name",
-            "variableName": "name",
-            "typeName": "string",
-            "kind": "string"
-          },
-          {
-            "member": {
-              "fields": [],
-              "id": "userInfo",
-              "variableName": "<userInfoItem>",
-              "typeName": "UserInfo",
-              "kind": "record",
-              "ref": "1853646530"
-            },
-            "id": "userInfo",
-            "variableName": "userInfo",
-            "typeName": "UserInfo[]",
-            "kind": "array",
-            "ref": "1853646530"
-          }
-        ],
-        "typeName": "Bank",
         "kind": "record"
       }
     }

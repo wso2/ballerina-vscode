@@ -30,7 +30,7 @@
         "typeName": "UserInfo",
         "kind": "record",
         "category": "local-variable",
-        "ref": "465437139"
+        "ref": "-1418772512"
       }
     ],
     "output": {
@@ -39,7 +39,7 @@
       "variableName": "credentials",
       "typeName": "Credentials",
       "kind": "record",
-      "ref": "-1644308518"
+      "ref": "1085256861"
     },
     "mappings": [
       {
@@ -55,7 +55,7 @@
       }
     ],
     "refs": {
-      "465437139": {
+      "-1418772512": {
         "fields": [
           {
             "id": "username",
@@ -73,7 +73,7 @@
         "typeName": "UserInfo",
         "kind": "record"
       },
-      "-1644308518": {
+      "1085256861": {
         "fields": [
           {
             "id": "username",

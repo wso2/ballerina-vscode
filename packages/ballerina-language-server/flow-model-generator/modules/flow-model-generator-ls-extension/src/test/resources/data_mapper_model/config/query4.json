@@ -31,7 +31,7 @@
         "typeName": "User",
         "kind": "record",
         "category": "variable",
-        "ref": "-368198061"
+        "ref": "1409956942"
       },
       {
         "fields": [],
@@ -40,7 +40,7 @@
         "typeName": "SecondaryPhones",
         "kind": "record",
         "isFocused": true,
-        "ref": "1315650592"
+        "ref": "-1392347127"
       }
     ],
     "output": {
@@ -50,13 +50,13 @@
         "variableName": "<phoneNumbersItem>",
         "typeName": "SecondaryPhonesX",
         "kind": "record",
-        "ref": "-1439410320"
+        "ref": "297170993"
       },
       "id": "phoneNumbers",
       "variableName": "phoneNumbers",
       "typeName": "SecondaryPhonesX[]",
       "kind": "array",
-      "ref": "-1439410320"
+      "ref": "297170993"
     },
     "mappings": [
       {
@@ -130,7 +130,7 @@
       }
     },
     "refs": {
-      "-368198061": {
+      "1409956942": {
         "fields": [
           {
             "fields": [],
@@ -138,37 +138,13 @@
             "variableName": "info",
             "typeName": "Info",
             "kind": "record",
-            "ref": "-1629511167"
+            "ref": "-36697220"
           }
         ],
         "typeName": "User",
         "kind": "record"
       },
-      "-1439410320": {
-        "fields": [
-          {
-            "id": "code",
-            "variableName": "code",
-            "typeName": "string",
-            "kind": "string"
-          },
-          {
-            "id": "number",
-            "variableName": "number",
-            "typeName": "string",
-            "kind": "string"
-          },
-          {
-            "id": "email",
-            "variableName": "email",
-            "typeName": "string",
-            "kind": "string"
-          }
-        ],
-        "typeName": "SecondaryPhonesX",
-        "kind": "record"
-      },
-      "1315650592": {
+      "-1392347127": {
         "fields": [
           {
             "id": "code",
@@ -186,7 +162,7 @@
         "typeName": "SecondaryPhones",
         "kind": "record"
       },
-      "-1629511167": {
+      "-36697220": {
         "fields": [
           {
             "member": {
@@ -232,6 +208,30 @@
           }
         ],
         "typeName": "Info",
+        "kind": "record"
+      },
+      "297170993": {
+        "fields": [
+          {
+            "id": "code",
+            "variableName": "code",
+            "typeName": "string",
+            "kind": "string"
+          },
+          {
+            "id": "number",
+            "variableName": "number",
+            "typeName": "string",
+            "kind": "string"
+          },
+          {
+            "id": "email",
+            "variableName": "email",
+            "typeName": "string",
+            "kind": "string"
+          }
+        ],
+        "typeName": "SecondaryPhonesX",
         "kind": "record"
       }
     }

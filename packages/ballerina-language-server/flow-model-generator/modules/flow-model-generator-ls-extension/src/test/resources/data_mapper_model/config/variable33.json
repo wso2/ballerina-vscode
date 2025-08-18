@@ -30,7 +30,7 @@
         "typeName": "User",
         "kind": "record",
         "category": "local-variable",
-        "ref": "703687070"
+        "ref": "1177817223"
       },
       {
         "fields": [],
@@ -39,7 +39,7 @@
         "typeName": "User",
         "kind": "record",
         "category": "parameter",
-        "ref": "703687070"
+        "ref": "1177817223"
       }
     ],
     "output": {
@@ -48,7 +48,7 @@
       "variableName": "var3",
       "typeName": "Person5",
       "kind": "record",
-      "ref": "2022724573"
+      "ref": "1800505404"
     },
     "mappings": [
       {
@@ -110,25 +110,7 @@
       }
     ],
     "refs": {
-      "703687070": {
-        "fields": [
-          {
-            "member": {
-              "id": "phoneNumber",
-              "variableName": "<phoneNumberItem>",
-              "typeName": "string",
-              "kind": "string"
-            },
-            "id": "phoneNumber",
-            "variableName": "phoneNumber",
-            "typeName": "string[]",
-            "kind": "array"
-          }
-        ],
-        "typeName": "User",
-        "kind": "record"
-      },
-      "-2108560642": {
+      "-1867509383": {
         "fields": [
           {
             "id": "primaryPhone",
@@ -152,7 +134,7 @@
         "typeName": "Temp",
         "kind": "record"
       },
-      "2022724573": {
+      "1800505404": {
         "fields": [
           {
             "member": {
@@ -161,16 +143,34 @@
               "variableName": "<contactsItem>",
               "typeName": "Temp",
               "kind": "record",
-              "ref": "-2108560642"
+              "ref": "-1867509383"
             },
             "id": "contacts",
             "variableName": "contacts",
             "typeName": "Temp[]",
             "kind": "array",
-            "ref": "-2108560642"
+            "ref": "-1867509383"
           }
         ],
         "typeName": "Person5",
+        "kind": "record"
+      },
+      "1177817223": {
+        "fields": [
+          {
+            "member": {
+              "id": "phoneNumber",
+              "variableName": "<phoneNumberItem>",
+              "typeName": "string",
+              "kind": "string"
+            },
+            "id": "phoneNumber",
+            "variableName": "phoneNumber",
+            "typeName": "string[]",
+            "kind": "array"
+          }
+        ],
+        "typeName": "User",
         "kind": "record"
       }
     }

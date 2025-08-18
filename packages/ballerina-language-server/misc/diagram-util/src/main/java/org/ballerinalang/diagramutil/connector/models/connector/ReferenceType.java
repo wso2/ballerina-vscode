@@ -34,6 +34,7 @@ import org.ballerinalang.diagramutil.connector.models.connector.reftypes.RefType
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
 public class ReferenceType {
@@ -67,7 +68,11 @@ public class ReferenceType {
             typeSymbol = ((VariableSymbol) symbol).typeDescriptor();
             Optional<String> optName = typeSymbol.getName();
             name = optName.orElseGet(() -> symbol.getName().orElseThrow(
-                    () -> new IllegalStateException("Symbol name is missing for symbol: " + symbol)
+                    () -> new IllegalStateException(
+                            "Symbol name is missing for symbol. Kind: " + symbol.kind() +
+                                    ", Module: " + (symbol.getModule().isPresent() ?
+                                    symbol.getModule().get().id() : "N/A") +
+                                    ", Symbol: " + symbol)
             ));
         }
 
@@ -98,7 +103,7 @@ public class ReferenceType {
     }
 
     public static RefType fromSemanticSymbol(TypeSymbol symbol, String name, String moduleID) {
-        String hashCode = String.valueOf((moduleID + name + symbol.signature()).hashCode());
+        String hashCode = String.valueOf(Objects.hash(moduleID, name, symbol.signature()));
         RefType type = visitedTypeMap.get(hashCode);
         if (type != null) {
             return type;
@@ -219,15 +224,4 @@ public class ReferenceType {
         throw new UnsupportedOperationException(
                 "Unsupported type kind: " + kind + " for symbol: " + symbol.getName().orElse("unknown"));
     }
-
-//    public static RefType processArrayField(RefType recordType, RefType arrayField) {
-//        ArrayTypeSymbol arrayTypeSymbol = (ArrayTypeSymbol) symbol;
-//        RefArrayType arrayType = new RefArrayType(name);
-//        arrayType.hashCode = hashCode;
-//        RefType t = new RefType(refType.name);
-//        t.hashCode = refType.hashCode;
-//        t.typeName = refType.typeName;
-//        arrayType.dependentTypeHashes.addAll(refType.dependentTypeHashes);
-//        arrayType.elementType = t;
-//    }
 }

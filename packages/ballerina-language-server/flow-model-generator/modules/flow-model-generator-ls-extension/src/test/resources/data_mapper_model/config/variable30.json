@@ -30,7 +30,7 @@
         "typeName": "User",
         "kind": "record",
         "category": "parameter",
-        "ref": "703687070"
+        "ref": "1177817223"
       }
     ],
     "output": {
@@ -39,7 +39,7 @@
       "variableName": "var3",
       "typeName": "Person",
       "kind": "record",
-      "ref": "216267297"
+      "ref": "-530812682"
     },
     "mappings": [
       {
@@ -104,25 +104,7 @@
       }
     ],
     "refs": {
-      "703687070": {
-        "fields": [
-          {
-            "member": {
-              "id": "phoneNumber",
-              "variableName": "<phoneNumberItem>",
-              "typeName": "string",
-              "kind": "string"
-            },
-            "id": "phoneNumber",
-            "variableName": "phoneNumber",
-            "typeName": "string[]",
-            "kind": "array"
-          }
-        ],
-        "typeName": "User",
-        "kind": "record"
-      },
-      "216267297": {
+      "-530812682": {
         "fields": [
           {
             "member": {
@@ -131,19 +113,19 @@
               "variableName": "<contactsItem>",
               "typeName": "Contact",
               "kind": "record",
-              "ref": "-1265471208"
+              "ref": "1530779283"
             },
             "id": "contacts",
             "variableName": "contacts",
             "typeName": "Contact[]",
             "kind": "array",
-            "ref": "-1265471208"
+            "ref": "1530779283"
           }
         ],
         "typeName": "Person",
         "kind": "record"
       },
-      "-1265471208": {
+      "1530779283": {
         "fields": [
           {
             "id": "primaryPhone",
@@ -159,6 +141,24 @@
           }
         ],
         "typeName": "Contact",
+        "kind": "record"
+      },
+      "1177817223": {
+        "fields": [
+          {
+            "member": {
+              "id": "phoneNumber",
+              "variableName": "<phoneNumberItem>",
+              "typeName": "string",
+              "kind": "string"
+            },
+            "id": "phoneNumber",
+            "variableName": "phoneNumber",
+            "typeName": "string[]",
+            "kind": "array"
+          }
+        ],
+        "typeName": "User",
         "kind": "record"
       }
     }

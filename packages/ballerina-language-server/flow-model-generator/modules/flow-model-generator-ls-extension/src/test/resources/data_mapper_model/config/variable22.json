@@ -30,7 +30,7 @@
         "typeName": "Student",
         "kind": "record",
         "category": "local-variable",
-        "ref": "469875313"
+        "ref": "-235867440"
       }
     ],
     "output": {
@@ -39,11 +39,49 @@
       "variableName": "var1909",
       "typeName": "Person",
       "kind": "record",
-      "ref": "-131491914"
+      "ref": "-1781951605"
     },
     "mappings": [],
     "refs": {
-      "-131491914": {
+      "-235867440": {
+        "fields": [
+          {
+            "id": "firstName",
+            "variableName": "firstName",
+            "typeName": "string",
+            "kind": "string"
+          },
+          {
+            "id": "lastName",
+            "variableName": "lastName",
+            "typeName": "string",
+            "kind": "string"
+          },
+          {
+            "id": "stdAge",
+            "variableName": "stdAge",
+            "typeName": "int",
+            "kind": "int"
+          }
+        ],
+        "typeName": "Student",
+        "kind": "record"
+      },
+      "-263690226": {
+        "fields": [
+          {
+            "fields": [],
+            "id": "bar",
+            "variableName": "bar",
+            "typeName": "Student",
+            "kind": "record",
+            "ref": "-235867440"
+          }
+        ],
+        "typeName": "",
+        "kind": "record"
+      },
+      "-1781951605": {
         "fields": [
           {
             "id": "name",
@@ -69,48 +107,10 @@
             "variableName": "foo",
             "typeName": "",
             "kind": "record",
-            "ref": "-744265709"
+            "ref": "-263690226"
           }
         ],
         "typeName": "Person",
-        "kind": "record"
-      },
-      "-744265709": {
-        "fields": [
-          {
-            "fields": [],
-            "id": "bar",
-            "variableName": "bar",
-            "typeName": "Student",
-            "kind": "record",
-            "ref": "469875313"
-          }
-        ],
-        "typeName": "",
-        "kind": "record"
-      },
-      "469875313": {
-        "fields": [
-          {
-            "id": "firstName",
-            "variableName": "firstName",
-            "typeName": "string",
-            "kind": "string"
-          },
-          {
-            "id": "lastName",
-            "variableName": "lastName",
-            "typeName": "string",
-            "kind": "string"
-          },
-          {
-            "id": "stdAge",
-            "variableName": "stdAge",
-            "typeName": "int",
-            "kind": "int"
-          }
-        ],
-        "typeName": "Student",
         "kind": "record"
       }
     }

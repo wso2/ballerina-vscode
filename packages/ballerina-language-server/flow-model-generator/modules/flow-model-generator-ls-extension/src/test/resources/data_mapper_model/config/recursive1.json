@@ -30,11 +30,11 @@
       "variableName": "person",
       "typeName": "Person",
       "kind": "record",
-      "ref": "105738635"
+      "ref": "-999232890"
     },
     "mappings": [],
     "refs": {
-      "105738635": {
+      "-999232890": {
         "fields": [
           {
             "id": "name",
@@ -48,7 +48,7 @@
             "variableName": "father",
             "typeName": "Person",
             "kind": "record",
-            "ref": "105738635"
+            "ref": "-999232890"
           },
           {
             "fields": [],
@@ -56,7 +56,7 @@
             "variableName": "mother",
             "typeName": "Person",
             "kind": "record",
-            "ref": "105738635"
+            "ref": "-999232890"
           }
         ],
         "typeName": "Person",

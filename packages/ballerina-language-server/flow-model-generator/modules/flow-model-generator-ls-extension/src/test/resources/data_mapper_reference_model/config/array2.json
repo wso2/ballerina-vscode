@@ -30,11 +30,32 @@
       "variableName": "l1",
       "typeName": "L1",
       "kind": "record",
-      "ref": "522227643"
+      "ref": "-541564682"
     },
     "mappings": [],
     "refs": {
-      "2110351933": {
+      "-541564682": {
+        "fields": [
+          {
+            "member": {
+              "fields": [],
+              "id": "l2",
+              "variableName": "<l2Item>",
+              "typeName": "L2",
+              "kind": "record",
+              "ref": "1686465105"
+            },
+            "id": "l2",
+            "variableName": "l2",
+            "typeName": "L2[]",
+            "kind": "array",
+            "ref": "1686465105"
+          }
+        ],
+        "typeName": "L1",
+        "kind": "record"
+      },
+      "-457011656": {
         "fields": [
           {
             "id": "l4_1",
@@ -52,28 +73,7 @@
         "typeName": "L3",
         "kind": "record"
       },
-      "522227643": {
-        "fields": [
-          {
-            "member": {
-              "fields": [],
-              "id": "l2",
-              "variableName": "<l2Item>",
-              "typeName": "L2",
-              "kind": "record",
-              "ref": "-1727624194"
-            },
-            "id": "l2",
-            "variableName": "l2",
-            "typeName": "L2[]",
-            "kind": "array",
-            "ref": "-1727624194"
-          }
-        ],
-        "typeName": "L1",
-        "kind": "record"
-      },
-      "-1727624194": {
+      "1686465105": {
         "fields": [
           {
             "id": "l3",
@@ -89,19 +89,19 @@
                 "variableName": "<l3ArrItemItem>",
                 "typeName": "L3",
                 "kind": "record",
-                "ref": "2110351933"
+                "ref": "-457011656"
               },
               "id": "l3Arr",
               "variableName": "<l3ArrItem>",
               "typeName": "L3[]",
               "kind": "array",
-              "ref": "2110351933"
+              "ref": "-457011656"
             },
             "id": "l3Arr",
             "variableName": "l3Arr",
             "typeName": "L3[][]",
             "kind": "array",
-            "ref": "2110351933"
+            "ref": "-457011656"
           }
         ],
         "typeName": "L2",

@@ -29,7 +29,7 @@
         "typeName": "Department",
         "kind": "record",
         "category": "local-variable",
-        "ref": "180864539"
+        "ref": "-676835306"
       }
     ],
     "output": {
@@ -38,7 +38,7 @@
       "variableName": "alice",
       "typeName": "Employee",
       "kind": "record",
-      "ref": "-1659566102"
+      "ref": "281439725"
     },
     "mappings": [
       {
@@ -63,27 +63,7 @@
       }
     ],
     "refs": {
-      "-1659566102": {
-        "fields": [
-          {
-            "id": "name",
-            "variableName": "name",
-            "typeName": "string",
-            "kind": "string"
-          },
-          {
-            "fields": [],
-            "id": "department",
-            "variableName": "department",
-            "typeName": "Department",
-            "kind": "record",
-            "ref": "180864539"
-          }
-        ],
-        "typeName": "Employee",
-        "kind": "record"
-      },
-      "180864539": {
+      "-676835306": {
         "fields": [
           {
             "id": "name",
@@ -98,16 +78,36 @@
               "variableName": "<employeesItem>",
               "typeName": "Employee",
               "kind": "record",
-              "ref": "-1659566102"
+              "ref": "281439725"
             },
             "id": "employees",
             "variableName": "employees",
             "typeName": "Employee[]",
             "kind": "array",
-            "ref": "-1659566102"
+            "ref": "281439725"
           }
         ],
         "typeName": "Department",
+        "kind": "record"
+      },
+      "281439725": {
+        "fields": [
+          {
+            "id": "name",
+            "variableName": "name",
+            "typeName": "string",
+            "kind": "string"
+          },
+          {
+            "fields": [],
+            "id": "department",
+            "variableName": "department",
+            "typeName": "Department",
+            "kind": "record",
+            "ref": "-676835306"
+          }
+        ],
+        "typeName": "Employee",
         "kind": "record"
       }
     }

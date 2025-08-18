@@ -30,7 +30,7 @@
         "typeName": "User",
         "kind": "record",
         "category": "local-variable",
-        "ref": "-368198061"
+        "ref": "1409956942"
       }
     ],
     "output": {
@@ -39,7 +39,7 @@
       "variableName": "p",
       "typeName": "Person",
       "kind": "record",
-      "ref": "2032796937"
+      "ref": "1854789380"
     },
     "mappings": [
       {
@@ -55,21 +55,7 @@
       }
     ],
     "refs": {
-      "2032796937": {
-        "fields": [
-          {
-            "fields": [],
-            "id": "contactDetails",
-            "variableName": "contactDetails",
-            "typeName": "ContactDetails",
-            "kind": "record",
-            "ref": "1955575003"
-          }
-        ],
-        "typeName": "Person",
-        "kind": "record"
-      },
-      "-368198061": {
+      "1409956942": {
         "fields": [
           {
             "fields": [],
@@ -77,31 +63,13 @@
             "variableName": "info",
             "typeName": "Info",
             "kind": "record",
-            "ref": "-1629511167"
+            "ref": "-36697220"
           }
         ],
         "typeName": "User",
         "kind": "record"
       },
-      "-500203070": {
-        "fields": [
-          {
-            "id": "code",
-            "variableName": "code",
-            "typeName": "string",
-            "kind": "string"
-          },
-          {
-            "id": "number",
-            "variableName": "number",
-            "typeName": "string",
-            "kind": "string"
-          }
-        ],
-        "typeName": "SecondaryPhonesX",
-        "kind": "record"
-      },
-      "1955575003": {
+      "1293187030": {
         "fields": [
           {
             "member": {
@@ -110,13 +78,13 @@
               "variableName": "<phoneNumbersItem>",
               "typeName": "SecondaryPhonesX",
               "kind": "record",
-              "ref": "-500203070"
+              "ref": "1040773059"
             },
             "id": "phoneNumbers",
             "variableName": "phoneNumbers",
             "typeName": "SecondaryPhonesX[]",
             "kind": "array",
-            "ref": "-500203070"
+            "ref": "1040773059"
           },
           {
             "member": {
@@ -134,7 +102,39 @@
         "typeName": "ContactDetails",
         "kind": "record"
       },
-      "-1629511167": {
+      "1040773059": {
+        "fields": [
+          {
+            "id": "code",
+            "variableName": "code",
+            "typeName": "string",
+            "kind": "string"
+          },
+          {
+            "id": "number",
+            "variableName": "number",
+            "typeName": "string",
+            "kind": "string"
+          }
+        ],
+        "typeName": "SecondaryPhonesX",
+        "kind": "record"
+      },
+      "1854789380": {
+        "fields": [
+          {
+            "fields": [],
+            "id": "contactDetails",
+            "variableName": "contactDetails",
+            "typeName": "ContactDetails",
+            "kind": "record",
+            "ref": "1293187030"
+          }
+        ],
+        "typeName": "Person",
+        "kind": "record"
+      },
+      "-36697220": {
         "fields": [
           {
             "member": {

@@ -31,7 +31,7 @@
           "variableName": "<userInfoItem>",
           "typeName": "UserInfo",
           "kind": "record",
-          "ref": "465437139"
+          "ref": "-1418772512"
         },
         "focusedMemberId": "user",
         "id": "userInfo",
@@ -39,7 +39,7 @@
         "typeName": "UserInfo[]",
         "kind": "array",
         "category": "variable",
-        "ref": "465437139"
+        "ref": "-1418772512"
       },
       {
         "fields": [],
@@ -48,7 +48,7 @@
         "typeName": "UserInfo",
         "kind": "record",
         "isFocused": true,
-        "ref": "465437139"
+        "ref": "-1418772512"
       }
     ],
     "output": {
@@ -58,13 +58,13 @@
         "variableName": "<studentsItem>",
         "typeName": "Student",
         "kind": "record",
-        "ref": "1028677017"
+        "ref": "-1801106114"
       },
       "id": "students",
       "variableName": "students",
       "typeName": "Student[]",
       "kind": "array",
-      "ref": "1028677017"
+      "ref": "-1801106114"
     },
     "mappings": [
       {
@@ -112,25 +112,7 @@
       }
     },
     "refs": {
-      "1028677017": {
-        "fields": [
-          {
-            "id": "username",
-            "variableName": "username",
-            "typeName": "string",
-            "kind": "string"
-          },
-          {
-            "id": "password",
-            "variableName": "password",
-            "typeName": "string",
-            "kind": "string"
-          }
-        ],
-        "typeName": "Student",
-        "kind": "record"
-      },
-      "465437139": {
+      "-1418772512": {
         "fields": [
           {
             "id": "username",
@@ -146,6 +128,24 @@
           }
         ],
         "typeName": "UserInfo",
+        "kind": "record"
+      },
+      "-1801106114": {
+        "fields": [
+          {
+            "id": "username",
+            "variableName": "username",
+            "typeName": "string",
+            "kind": "string"
+          },
+          {
+            "id": "password",
+            "variableName": "password",
+            "typeName": "string",
+            "kind": "string"
+          }
+        ],
+        "typeName": "Student",
         "kind": "record"
       }
     }

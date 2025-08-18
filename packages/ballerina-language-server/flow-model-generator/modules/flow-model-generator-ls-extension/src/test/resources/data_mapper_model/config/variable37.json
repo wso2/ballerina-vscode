@@ -30,7 +30,7 @@
         "typeName": "User",
         "kind": "record",
         "category": "parameter",
-        "ref": "1396926937"
+        "ref": "-699535980"
       }
     ],
     "output": {
@@ -40,13 +40,13 @@
         "variableName": "<users4Item>",
         "typeName": "User4",
         "kind": "record",
-        "ref": "-679331081"
+        "ref": "-1258898922"
       },
       "id": "users4",
       "variableName": "users4",
       "typeName": "User4[]",
       "kind": "array",
-      "ref": "-679331081"
+      "ref": "-1258898922"
     },
     "mappings": [
       {
@@ -133,7 +133,7 @@
       }
     ],
     "refs": {
-      "1321573925": {
+      "-539589308": {
         "fields": [
           {
             "id": "account",
@@ -151,7 +151,48 @@
         "typeName": "User6",
         "kind": "record"
       },
-      "1622637280": {
+      "-1258898922": {
+        "fields": [
+          {
+            "fields": [],
+            "id": "user5",
+            "variableName": "user5",
+            "typeName": "User5",
+            "kind": "record",
+            "ref": "438943303"
+          },
+          {
+            "member": {
+              "fields": [],
+              "id": "users6",
+              "variableName": "<users6Item>",
+              "typeName": "User6",
+              "kind": "record",
+              "ref": "-539589308"
+            },
+            "id": "users6",
+            "variableName": "users6",
+            "typeName": "User6[]",
+            "kind": "array",
+            "ref": "-539589308"
+          }
+        ],
+        "typeName": "User4",
+        "kind": "record"
+      },
+      "-699535980": {
+        "fields": [
+          {
+            "id": "name",
+            "variableName": "name",
+            "typeName": "string",
+            "kind": "string"
+          }
+        ],
+        "typeName": "User",
+        "kind": "record"
+      },
+      "438943303": {
         "fields": [
           {
             "member": {
@@ -167,47 +208,6 @@
           }
         ],
         "typeName": "User5",
-        "kind": "record"
-      },
-      "-679331081": {
-        "fields": [
-          {
-            "fields": [],
-            "id": "user5",
-            "variableName": "user5",
-            "typeName": "User5",
-            "kind": "record",
-            "ref": "1622637280"
-          },
-          {
-            "member": {
-              "fields": [],
-              "id": "users6",
-              "variableName": "<users6Item>",
-              "typeName": "User6",
-              "kind": "record",
-              "ref": "1321573925"
-            },
-            "id": "users6",
-            "variableName": "users6",
-            "typeName": "User6[]",
-            "kind": "array",
-            "ref": "1321573925"
-          }
-        ],
-        "typeName": "User4",
-        "kind": "record"
-      },
-      "1396926937": {
-        "fields": [
-          {
-            "id": "name",
-            "variableName": "name",
-            "typeName": "string",
-            "kind": "string"
-          }
-        ],
-        "typeName": "User",
         "kind": "record"
       }
     }

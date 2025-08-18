@@ -32,7 +32,7 @@
         "kind": "record",
         "category": "variable",
         "isFocused": true,
-        "ref": "1982785140"
+        "ref": "2072204783"
       },
       {
         "fields": [],
@@ -41,7 +41,7 @@
         "typeName": "MyType4",
         "kind": "record",
         "category": "variable",
-        "ref": "-1795503472"
+        "ref": "360065391"
       },
       {
         "fields": [],
@@ -50,7 +50,7 @@
         "typeName": "record {|int l4_1; string l4_2; anydata...;|}",
         "kind": "record",
         "isFocused": true,
-        "ref": "1785216231"
+        "ref": "-1019813121"
       }
     ],
     "output": {
@@ -60,13 +60,13 @@
         "variableName": "<l3ArrItem>",
         "typeName": "",
         "kind": "record",
-        "ref": "1926085966"
+        "ref": "1847207892"
       },
       "id": "l3Arr",
       "variableName": "l3Arr",
       "typeName": "[]",
       "kind": "array",
-      "ref": "1926085966"
+      "ref": "1847207892"
     },
     "mappings": [
       {
@@ -110,7 +110,82 @@
       }
     },
     "refs": {
-      "1785216231": {
+      "-791387238": {
+        "fields": [
+          {
+            "id": "l3",
+            "variableName": "l3",
+            "typeName": "int",
+            "kind": "int"
+          },
+          {
+            "member": {
+              "fields": [],
+              "id": "l3Arr",
+              "variableName": "<l3ArrItem>",
+              "typeName": "",
+              "kind": "record",
+              "ref": "1847207892"
+            },
+            "id": "l3Arr",
+            "variableName": "l3Arr",
+            "typeName": "[]",
+            "kind": "array",
+            "ref": "1847207892"
+          }
+        ],
+        "typeName": "",
+        "kind": "record"
+      },
+      "2072204783": {
+        "fields": [
+          {
+            "id": "l3",
+            "variableName": "l3",
+            "typeName": "int",
+            "kind": "int"
+          },
+          {
+            "member": {
+              "fields": [],
+              "id": "l3Arr",
+              "variableName": "<l3ArrItem>",
+              "typeName": "",
+              "kind": "record",
+              "ref": "1847207892"
+            },
+            "id": "l3Arr",
+            "variableName": "l3Arr",
+            "typeName": "[]",
+            "kind": "array",
+            "ref": "1847207892"
+          }
+        ],
+        "typeName": "l2Item",
+        "kind": "record"
+      },
+      "1011837363": {
+        "fields": [
+          {
+            "member": {
+              "fields": [],
+              "id": "l2",
+              "variableName": "<l2Item>",
+              "typeName": "",
+              "kind": "record",
+              "ref": "-791387238"
+            },
+            "id": "l2",
+            "variableName": "l2",
+            "typeName": "[]",
+            "kind": "array",
+            "ref": "-791387238"
+          }
+        ],
+        "typeName": "",
+        "kind": "record"
+      },
+      "-1019813121": {
         "fields": [
           {
             "id": "l4_1",
@@ -128,7 +203,7 @@
         "typeName": "record {|int l4_1; string l4_2; anydata...;|}",
         "kind": "record"
       },
-      "1926085966": {
+      "1847207892": {
         "fields": [
           {
             "id": "l4_1",
@@ -146,7 +221,7 @@
         "typeName": "",
         "kind": "record"
       },
-      "-1795503472": {
+      "360065391": {
         "fields": [
           {
             "fields": [],
@@ -154,85 +229,10 @@
             "variableName": "l1",
             "typeName": "",
             "kind": "record",
-            "ref": "-1867435692"
+            "ref": "1011837363"
           }
         ],
         "typeName": "MyType4",
-        "kind": "record"
-      },
-      "1982785140": {
-        "fields": [
-          {
-            "id": "l3",
-            "variableName": "l3",
-            "typeName": "int",
-            "kind": "int"
-          },
-          {
-            "member": {
-              "fields": [],
-              "id": "l3Arr",
-              "variableName": "<l3ArrItem>",
-              "typeName": "",
-              "kind": "record",
-              "ref": "1926085966"
-            },
-            "id": "l3Arr",
-            "variableName": "l3Arr",
-            "typeName": "[]",
-            "kind": "array",
-            "ref": "1926085966"
-          }
-        ],
-        "typeName": "l2Item",
-        "kind": "record"
-      },
-      "-422613996": {
-        "fields": [
-          {
-            "id": "l3",
-            "variableName": "l3",
-            "typeName": "int",
-            "kind": "int"
-          },
-          {
-            "member": {
-              "fields": [],
-              "id": "l3Arr",
-              "variableName": "<l3ArrItem>",
-              "typeName": "",
-              "kind": "record",
-              "ref": "1926085966"
-            },
-            "id": "l3Arr",
-            "variableName": "l3Arr",
-            "typeName": "[]",
-            "kind": "array",
-            "ref": "1926085966"
-          }
-        ],
-        "typeName": "",
-        "kind": "record"
-      },
-      "-1867435692": {
-        "fields": [
-          {
-            "member": {
-              "fields": [],
-              "id": "l2",
-              "variableName": "<l2Item>",
-              "typeName": "",
-              "kind": "record",
-              "ref": "-422613996"
-            },
-            "id": "l2",
-            "variableName": "l2",
-            "typeName": "[]",
-            "kind": "array",
-            "ref": "-422613996"
-          }
-        ],
-        "typeName": "",
         "kind": "record"
       }
     }
