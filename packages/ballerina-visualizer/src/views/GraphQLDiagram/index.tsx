@@ -92,7 +92,7 @@ export function GraphQLDiagram(props: GraphQLDiagramProps) {
     const getTypeKindDisplayName = (typeNodeKind?: TypeNodeKind): string => {
         switch (typeNodeKind) {
             case "RECORD":
-                return "Input Object";
+                return "Object"; // In edit mode, always show as "Object"
             case "ENUM":
                 return "Enum";
             case "CLASS":
@@ -265,6 +265,7 @@ export function GraphQLDiagram(props: GraphQLDiagramProps) {
             </View>
             {isServiceEditorOpen && (
                 <GraphqlServiceEditor
+                    data-testid="graphql-service-editor"
                     serviceIdentifier={serviceIdentifier}
                     filePath={filePath}
                     lineRange={{
@@ -293,8 +294,9 @@ export function GraphQLDiagram(props: GraphQLDiagramProps) {
                         type={editingType}
                         onTypeChange={onTypeChange}
                         newType={false}
-                        isGraphql={true}
-                    />
+                        isGraphql={true} 
+                        onTypeCreate={() => { }}    
+                        />
                 </PanelContainer>
             )}
             {isTypeEditorOpen && editingType && editingType.codedata.node === "CLASS" && (

@@ -20,37 +20,37 @@ import {
     sendTelemetryEvent, sendTelemetryException, TM_EVENT_PASTE_AS_RECORD, CMP_XML_TO_RECORD,
 } from "../../telemetry";
 import { commands, window, env } from "vscode";
-import { ballerinaExtInstance, DIAGNOSTIC_SEVERITY } from "../../../core";
+import { extension } from "../../../BalExtensionContext";
 import { PALETTE_COMMANDS, MESSAGES } from "./cmd-runner";
 import { isSupportedSLVersion } from "../../../utils";
-import { XMLToRecord } from "@wso2/ballerina-core";
+import { DIAGNOSTIC_SEVERITY, XMLToRecord } from "@wso2/ballerina-core";
 
 const MSG_NOT_SUPPORT = "Paste XML as a Ballerina record feature is not supported";
 
 export function activatePasteXMLAsRecord() {
 
-    if (!ballerinaExtInstance.langClient) {
+    if (!extension.ballerinaExtInstance.langClient) {
         return;
     }
 
     commands.registerCommand(PALETTE_COMMANDS.PASTE_XML_AS_RECORD, () => {
         // This command is only available since Swan Lake Update 7 patch 2
-        if (!isSupportedSLVersion(ballerinaExtInstance, 220172)) {
-            window.showErrorMessage(`${MSG_NOT_SUPPORT} in ${ballerinaExtInstance.ballerinaVersion}`);
+        if (!isSupportedSLVersion(extension.ballerinaExtInstance, 220172)) {
+            window.showErrorMessage(`${MSG_NOT_SUPPORT} in ${extension.ballerinaExtInstance.ballerinaVersion}`);
             return;
         }
         if (!window.activeTextEditor || !window.activeTextEditor?.document.fileName.endsWith('.bal')) {
             window.showErrorMessage("Target is not a Ballerina file!");
             return;
         }
-        sendTelemetryEvent(ballerinaExtInstance, TM_EVENT_PASTE_AS_RECORD, CMP_XML_TO_RECORD);
+        sendTelemetryEvent(extension.ballerinaExtInstance, TM_EVENT_PASTE_AS_RECORD, CMP_XML_TO_RECORD);
         env.clipboard.readText()
             .then(clipboardText => {
-                if (!ballerinaExtInstance.langClient) {
+                if (!extension.ballerinaExtInstance.langClient) {
                     window.showErrorMessage("Ballerina language client not found.");
                     return;
                 }
-                ballerinaExtInstance.langClient.convertXMLToRecord({
+                extension.ballerinaExtInstance.langClient.convertXMLToRecord({
                     xmlValue: clipboardText,
                     isClosed: false,
                     isRecordTypeDesc: false,
@@ -91,13 +91,13 @@ export function activatePasteXMLAsRecord() {
                         });
                         error => {
                             window.showErrorMessage(error.message);
-                            sendTelemetryException(ballerinaExtInstance, error, CMP_XML_TO_RECORD);
+                            sendTelemetryException(extension.ballerinaExtInstance, error, CMP_XML_TO_RECORD);
                         };
                     });
             },
                 error => {
                     window.showErrorMessage(error.message);
-                    sendTelemetryException(ballerinaExtInstance, error, CMP_XML_TO_RECORD);
+                    sendTelemetryException(extension.ballerinaExtInstance, error, CMP_XML_TO_RECORD);
                 });
     });
 }

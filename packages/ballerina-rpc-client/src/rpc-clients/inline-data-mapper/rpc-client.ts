@@ -19,17 +19,40 @@
  */
 import {
     AddArrayElementRequest,
+    AddClausesRequest,
+    AddSubMappingRequest,
+    ConvertToQueryRequest,
+    DeleteMappingRequest,
+    GetInlineDataMapperCodedataRequest,
+    GetInlineDataMapperCodedataResponse,
+    GetSubMappingCodedataRequest,
+    InitialIDMSourceRequest,
+    InitialIDMSourceResponse,
+    InlineAllDataMapperSourceRequest,
     InlineDataMapperAPI,
     InlineDataMapperModelRequest,
     InlineDataMapperModelResponse,
     InlineDataMapperSourceRequest,
     InlineDataMapperSourceResponse,
+    MapWithCustomFnRequest,
+    PropertyRequest,
+    PropertyResponse,
     VisualizableFieldsRequest,
     VisualizableFieldsResponse,
+    addClauses,
     addNewArrayElement,
+    addSubMapping,
+    convertToQuery,
+    deleteMapping,
+    getAllDataMapperSource,
+    getDataMapperCodedata,
     getDataMapperModel,
     getDataMapperSource,
-    getVisualizableFields
+    getInitialIDMSource,
+    getProperty,
+    getSubMappingCodedata,
+    getVisualizableFields,
+    mapWithCustomFn
 } from "@wso2/ballerina-core";
 import { HOST_EXTENSION } from "vscode-messenger-common";
 import { Messenger } from "vscode-messenger-webview";
@@ -39,6 +62,10 @@ export class InlineDataMapperRpcClient implements InlineDataMapperAPI {
 
     constructor(messenger: Messenger) {
         this._messenger = messenger;
+    }
+
+    getInitialIDMSource(params: InitialIDMSourceRequest): Promise<InitialIDMSourceResponse> {
+        return this._messenger.sendRequest(getInitialIDMSource, HOST_EXTENSION, params);
     }
 
     getDataMapperModel(params: InlineDataMapperModelRequest): Promise<InlineDataMapperModelResponse> {
@@ -55,5 +82,41 @@ export class InlineDataMapperRpcClient implements InlineDataMapperAPI {
 
     addNewArrayElement(params: AddArrayElementRequest): Promise<InlineDataMapperSourceResponse> {
         return this._messenger.sendRequest(addNewArrayElement, HOST_EXTENSION, params);
+    }
+
+    convertToQuery(params: ConvertToQueryRequest): Promise<InlineDataMapperSourceResponse> {
+        return this._messenger.sendRequest(convertToQuery, HOST_EXTENSION, params);
+    }
+
+    addClauses(params: AddClausesRequest): Promise<InlineDataMapperSourceResponse> {
+        return this._messenger.sendRequest(addClauses, HOST_EXTENSION, params);
+    }
+
+    addSubMapping(params: AddSubMappingRequest): Promise<InlineDataMapperSourceResponse> {
+        return this._messenger.sendRequest(addSubMapping, HOST_EXTENSION, params);
+    }
+
+    deleteMapping(params: DeleteMappingRequest): Promise<InlineDataMapperSourceResponse> {
+        return this._messenger.sendRequest(deleteMapping, HOST_EXTENSION, params);
+    }
+
+    mapWithCustomFn(params: MapWithCustomFnRequest): Promise<InlineDataMapperSourceResponse> {
+        return this._messenger.sendRequest(mapWithCustomFn, HOST_EXTENSION, params);
+    }
+
+    getDataMapperCodedata(params: GetInlineDataMapperCodedataRequest): Promise<GetInlineDataMapperCodedataResponse> {
+        return this._messenger.sendRequest(getDataMapperCodedata, HOST_EXTENSION, params);
+    }
+
+    getSubMappingCodedata(params: GetSubMappingCodedataRequest): Promise<GetInlineDataMapperCodedataResponse> {
+        return this._messenger.sendRequest(getSubMappingCodedata, HOST_EXTENSION, params);
+    }
+
+    getAllDataMapperSource(params: InlineAllDataMapperSourceRequest): Promise<InlineDataMapperSourceResponse> {
+        return this._messenger.sendRequest(getAllDataMapperSource, HOST_EXTENSION, params);
+    }
+
+    getProperty(params: PropertyRequest): Promise<PropertyResponse> {
+        return this._messenger.sendRequest(getProperty, HOST_EXTENSION, params);
     }
 }

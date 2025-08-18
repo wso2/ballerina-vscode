@@ -19,21 +19,51 @@
  */
 import {
     AddArrayElementRequest,
+    addClauses,
+    AddClausesRequest,
+    addNewArrayElement,
+    convertToQuery,
+    ConvertToQueryRequest,
+    getAllDataMapperSource,
+    getDataMapperCodedata,
+    getProperty,
+    PropertyRequest,
+    getDataMapperModel,
+    getDataMapperSource,
+    getInitialIDMSource,
+    GetInlineDataMapperCodedataRequest,
+    getSubMappingCodedata,
+    GetSubMappingCodedataRequest,
+    getVisualizableFields,
+    addSubMapping,
+    AddSubMappingRequest,
+    InitialIDMSourceRequest,
+    InlineAllDataMapperSourceRequest,
     InlineDataMapperModelRequest,
     InlineDataMapperSourceRequest,
     VisualizableFieldsRequest,
-    addNewArrayElement,
-    getDataMapperModel,
-    getDataMapperSource,
-    getVisualizableFields
+    deleteMapping,
+    DeleteMappingRequest,
+    mapWithCustomFn,
+    MapWithCustomFnRequest
 } from "@wso2/ballerina-core";
 import { Messenger } from "vscode-messenger";
 import { InlineDataMapperRpcManager } from "./rpc-manager";
 
 export function registerInlineDataMapperRpcHandlers(messenger: Messenger) {
     const rpcManger = new InlineDataMapperRpcManager();
+    messenger.onRequest(getInitialIDMSource, (args: InitialIDMSourceRequest) => rpcManger.getInitialIDMSource(args));
     messenger.onRequest(getDataMapperModel, (args: InlineDataMapperModelRequest) => rpcManger.getDataMapperModel(args));
     messenger.onRequest(getDataMapperSource, (args: InlineDataMapperSourceRequest) => rpcManger.getDataMapperSource(args));
     messenger.onRequest(getVisualizableFields, (args: VisualizableFieldsRequest) => rpcManger.getVisualizableFields(args));
     messenger.onRequest(addNewArrayElement, (args: AddArrayElementRequest) => rpcManger.addNewArrayElement(args));
+    messenger.onRequest(convertToQuery, (args: ConvertToQueryRequest) => rpcManger.convertToQuery(args));
+    messenger.onRequest(addClauses, (args: AddClausesRequest) => rpcManger.addClauses(args));
+    messenger.onRequest(addSubMapping, (args: AddSubMappingRequest) => rpcManger.addSubMapping(args));
+    messenger.onRequest(deleteMapping, (args: DeleteMappingRequest) => rpcManger.deleteMapping(args));
+    messenger.onRequest(mapWithCustomFn, (args: MapWithCustomFnRequest) => rpcManger.mapWithCustomFn(args));
+    messenger.onRequest(getDataMapperCodedata, (args: GetInlineDataMapperCodedataRequest) => rpcManger.getDataMapperCodedata(args));
+    messenger.onRequest(getSubMappingCodedata, (args: GetSubMappingCodedataRequest) => rpcManger.getSubMappingCodedata(args));
+    messenger.onRequest(getAllDataMapperSource, (args: InlineAllDataMapperSourceRequest) => rpcManger.getAllDataMapperSource(args));
+    messenger.onRequest(getProperty, (args: PropertyRequest) => rpcManger.getProperty(args));
 }

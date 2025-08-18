@@ -17,7 +17,7 @@
  * 
  * THIS FILE INCLUDES AUTO GENERATED CODE
  */
-import { BallerinaPackagesParams, BallerinaProjectComponents, BallerinaSTParams, ComponentModels, ComponentModelsParams, ExecutorPositions, PartialST, PartialSTParams, STModifyParams, SymbolInfo, SymbolInfoParams, SyntaxTree, SyntaxTreeParams, TypeFromExpressionParams, TypeFromSymbolParams, TypesFromFnDefinitionParams } from "../../interfaces/extended-lang-client";
+import { BallerinaPackagesParams, BallerinaProjectComponents, BallerinaSTParams, ComponentModels, ComponentModelsParams, ExecutorPositions, PartialST, PartialSTParams, ProjectDiagnosticsRequest, ProjectDiagnosticsResponse, STModifyParams, SymbolInfo, SymbolInfoParams, SyntaxTree, SyntaxTreeParams, TypeFromExpressionParams, TypeFromSymbolParams, TypesFromFnDefinitionParams } from "../../interfaces/extended-lang-client";
 import { BallerinaVersionResponse, CompletionRequest, CompletionResponse, DiagnosticsResponse, CodeActionRequest, CodeActionResponse, RenameRequest, RenameResponse, DefinitionPositionRequest, UpdateFileContentRequest, UpdateFileContentResponse, DefinitionResponse, ExecutorPositionsRequest, DidCloseRequest, TypesFromExpressionResponse, TypesFromSymbolResponse, DidOpenRequest, DidChangeRequest } from "./interfaces";
 import { RequestType, NotificationType } from "vscode-messenger-common";
 
@@ -29,6 +29,7 @@ export const getBallerinaProjectComponents: RequestType<BallerinaPackagesParams,
 export const getBallerinaVersion: RequestType<void, BallerinaVersionResponse> = { method: `${_preFix}/getBallerinaVersion` };
 export const getCompletion: RequestType<CompletionRequest, CompletionResponse> = { method: `${_preFix}/getCompletion` };
 export const getDiagnostics: RequestType<SyntaxTreeParams, DiagnosticsResponse> = { method: `${_preFix}/getDiagnostics` };
+export const getProjectDiagnostics: RequestType<ProjectDiagnosticsRequest, ProjectDiagnosticsResponse> = { method: `${_preFix}/getProjectDiagnostics` };
 export const codeAction: RequestType<CodeActionRequest, CodeActionResponse> = { method: `${_preFix}/codeAction` };
 export const rename: RequestType<RenameRequest, RenameResponse> = { method: `${_preFix}/rename` };
 export const getDefinitionPosition: RequestType<DefinitionPositionRequest, SyntaxTree> = { method: `${_preFix}/getDefinitionPosition` };

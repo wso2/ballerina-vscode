@@ -413,6 +413,7 @@ export function TypeCreatorTab(props: TypeCreatorTabProps) {
                             type={type}
                             isAnonymous={false}
                             onChange={setType}
+                            newType={newType}
                             isGraphql={isGraphql}
                             onValidationError={handleValidationError}
                         />

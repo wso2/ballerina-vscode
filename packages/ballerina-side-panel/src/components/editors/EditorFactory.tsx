@@ -42,6 +42,7 @@ import { IdentifierField } from "./IdentifierField";
 import { PathEditor } from "./PathEditor";
 import { HeaderSetEditor } from "./HeaderSetEditor";
 import { CompletionItem } from "@wso2/ui-toolkit";
+import { CustomDropdownEditor } from "./CustomDropdownEditor";
 
 interface FormFieldEditorProps {
     field: FormField;
@@ -52,12 +53,15 @@ interface FormFieldEditorProps {
     handleOnFieldFocus?: (key: string) => void;
     autoFocus?: boolean;
     handleOnTypeChange?: () => void;
-    visualizableFields?: string[];
     recordTypeFields?: RecordTypeField[];
     onIdentifierEditingStateChange?: (isEditing: boolean) => void;
     setSubComponentEnabled?: (isAdding: boolean) => void;
     handleNewTypeSelected?: (type: CompletionItem) => void;
 
+    scopeFieldAddon?: React.ReactNode;
+    newServerUrl?: string;
+    mcpTools?: { name: string; description?: string }[];
+    onToolsChange?: (selectedTools: string[]) => void;
 }
 
 export const EditorFactory = (props: FormFieldEditorProps) => {
@@ -70,11 +74,12 @@ export const EditorFactory = (props: FormFieldEditorProps) => {
         handleOnFieldFocus,
         autoFocus,
         handleOnTypeChange,
-        visualizableFields,
         recordTypeFields,
         onIdentifierEditingStateChange,
         setSubComponentEnabled,
-        handleNewTypeSelected
+        handleNewTypeSelected,
+        scopeFieldAddon,
+        newServerUrl
     } = props;
     if (!field.enabled || field.hidden) {
         return <></>;
@@ -99,7 +104,6 @@ export const EditorFactory = (props: FormFieldEditorProps) => {
                 subPanelView={subPanelView}
                 handleOnFieldFocus={handleOnFieldFocus}
                 autoFocus={autoFocus}
-                visualizable={visualizableFields?.includes(field.key)}
                 recordTypeField={recordTypeFields?.find(recordField => recordField.key === field.key)}
             />
         );
@@ -108,13 +112,18 @@ export const EditorFactory = (props: FormFieldEditorProps) => {
     } else if (field.type === "EXPRESSION" && field.key === "resourcePath") {
         // HACK: this should fixed with the LS API. this is used to avoid the expression editor for resource path field.
         return <TextEditor field={field} handleOnFieldFocus={handleOnFieldFocus} />;
+    } else if (field.type.toUpperCase() === "ENUM" && props.mcpTools) {
+        // TODO: this is a temporary solution to handle the enum field with MCP tools.
+        return <CustomDropdownEditor field={field} mcpTools={props.mcpTools} onToolsChange={props.onToolsChange} />;
     } else if (field.type.toUpperCase() === "ENUM") {
         // Enum is a dropdown field
-        return <DropdownEditor field={field} />;
+        return <DropdownEditor field={field} openSubPanel={openSubPanel} />;
     } else if (field.type === "FILE_SELECT" && field.editable) {
         return <FileSelect field={field} />;
+    } else if (field.type === "SINGLE_SELECT" && field.editable && props.mcpTools) {
+        // TODO: this is a temporary solution to handle the single select field with MCP tools.
+        return <CustomDropdownEditor field={field} openSubPanel={openSubPanel} newServerUrl={newServerUrl} mcpTools={props.mcpTools} onToolsChange={props.onToolsChange} />;
     } else if (field.type === "SINGLE_SELECT" && field.editable) {
-        // HACK:Single select field is treat as type editor for now
         return <DropdownEditor field={field} openSubPanel={openSubPanel} />;
     } else if (!field.items && (field.key === "type" || field.type === "TYPE") && field.editable) {
         // Type field is a type editor
@@ -138,7 +147,6 @@ export const EditorFactory = (props: FormFieldEditorProps) => {
                 subPanelView={subPanelView}
                 handleOnFieldFocus={handleOnFieldFocus}
                 autoFocus={autoFocus}
-                visualizable={visualizableFields?.includes(field.key)}
                 recordTypeField={recordTypeFields?.find(recordField => recordField.key === field.key)}
             />
         );
