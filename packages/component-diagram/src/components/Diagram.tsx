@@ -34,10 +34,13 @@ import { OverlayLayerModel } from "./OverlayLayer";
 import { DiagramContextProvider, DiagramContextState } from "./DiagramContext";
 import Controls from "./Controls";
 import { CDAutomation, CDConnection, CDFunction, CDListener, CDModel, CDService, CDResourceFunction } from "@wso2/ballerina-core";
-import { partitionServiceFunctions } from "../utils/visibility";
 import { EntryNodeModel } from "./nodes/EntryNode";
 import { ListenerNodeModel } from "./nodes/ListenerNode";
 import { ConnectionNodeModel } from "./nodes/ConnectionNode";
+
+export type GroupKey = "Query" | "Subscription" | "Mutation";
+export const PREVIEW_COUNT = 2;
+export const SHOW_ALL_THRESHOLD = 3;
 
 export interface DiagramProps {
     project: CDModel;
@@ -62,6 +65,36 @@ export function Diagram(props: DiagramProps) {
     const [diagramEngine] = useState<DiagramEngine>(generateEngine());
     const [diagramModel, setDiagramModel] = useState<DiagramModel | null>(null);
     const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set());
+    const [graphQLGroupOpen, setGraphQLGroupOpen] = useState<Record<string, { Query: boolean; Subscription: boolean; Mutation: boolean }>>({
+    
+    });
+
+    // Ensure every service has a default GraphQL group open state.
+    // Defaults: Query = true, Subscription = false, Mutation = false
+    useEffect(() => {
+        if (!project) return;
+        setGraphQLGroupOpen((prev) => {
+            const next = { ...prev } as Record<string, { Query: boolean; Subscription: boolean; Mutation: boolean }>;
+            const services = project.services ?? [];
+
+            // Add defaults for missing services
+            services.forEach((svc) => {
+                if (!next[svc.uuid]) {
+                    next[svc.uuid] = { Query: true, Subscription: false, Mutation: false };
+                }
+            });
+
+            // Optionally remove entries for services no longer present
+            const serviceIds = new Set(services.map((s) => s.uuid));
+            Object.keys(next).forEach((id) => {
+                if (!serviceIds.has(id)) {
+                    delete next[id];
+                }
+            });
+
+            return next;
+        });
+    }, [project]);
 
     useEffect(() => {
         if (diagramEngine) {
@@ -69,7 +102,7 @@ export function Diagram(props: DiagramProps) {
             drawDiagram(nodes, links);
             autoDistribute(diagramEngine);
         }
-    }, [project, expandedNodes]);
+    }, [project, expandedNodes, graphQLGroupOpen]);
 
     useEffect(() => {
         const handleResize = () => {
@@ -94,6 +127,14 @@ export function Diagram(props: DiagramProps) {
                 newSet.add(nodeId);
             }
             return newSet;
+        });
+    };
+
+    const handleToggleGraphQLGroup = (serviceUuid: string, group: "Query" | "Subscription" | "Mutation") => {
+        setGraphQLGroupOpen(prev => {
+            const current = prev[serviceUuid] ?? { Query: true, Subscription: false, Mutation: false };
+            const next = { ...current, [group]: !current[group] } as { Query: boolean; Subscription: boolean; Mutation: boolean };
+            return { ...prev, [serviceUuid]: next };
         });
     };
 
@@ -130,11 +171,15 @@ export function Diagram(props: DiagramProps) {
 
             startY += nodeHeight + 16;
 
-            // Determine visible and hidden functions using utility (GraphQL-aware)
-            const { visible: visibleFunctions, hidden: hiddenFunctions } = partitionServiceFunctions(service, expandedNodes);
+            // Determine visible and hidden functions using utility (GraphQL-aware, honors open/closed group state)
+            const { visible: visibleFunctions, hidden: hiddenFunctions } = partitionServiceFunctions(
+                { service, expandedNodes, groupOpen: graphQLGroupOpen[service.uuid] ?? { Query: true, Subscription: false, Mutation: false } }            );
 
             // Create connections for visible functions
-            visibleFunctions.forEach((func) => {
+            const visibleFuncsArray = Array.isArray(visibleFunctions)
+                ? visibleFunctions
+                : Object.values(visibleFunctions).flat();
+            visibleFuncsArray.forEach((func) => {
                 func.connections?.forEach((connectionUuid) => {
                     const connectionNode = nodes.find((node) => node.getID() === connectionUuid);
                     if (connectionNode) {
@@ -149,22 +194,44 @@ export function Diagram(props: DiagramProps) {
                 });
             });
 
-            // Create connections for hidden functions to the view all resources port
-            // If there are hidden functions (for either GraphQL per-group or non-GraphQL collapsed), attach them.
-            const shouldLinkHiddenToViewAll = hiddenFunctions.length > 0 && node.getViewAllResourcesPort();
-            if (shouldLinkHiddenToViewAll) {
-                const viewAllPort = node.getViewAllResourcesPort();
-                hiddenFunctions.forEach((func) => {
-                    func.connections?.forEach((connectionUuid) => {
-                        const connectionNode = nodes.find((node) => node.getID() === connectionUuid);
-                        if (connectionNode && viewAllPort) {
-                            const link = createPortNodeLink(viewAllPort, connectionNode);
-                            if (link) {
-                                links.push(link);
+            // Create connections for hidden functions
+            const isGraphQL = service.type === "graphql:Service";
+            if (!isGraphQL) {
+                // Non-GraphQL: attach all hidden to the single view-all port
+                const shouldLinkHiddenToViewAll =
+                    Array.isArray(hiddenFunctions) &&
+                    hiddenFunctions.length > 0 &&
+                    node.getViewAllResourcesPort();
+                if (shouldLinkHiddenToViewAll) {
+                    const viewAllPort = node.getViewAllResourcesPort();
+                    hiddenFunctions.forEach((func) => {
+                        func.connections?.forEach((connectionUuid) => {
+                            const connectionNode = nodes.find((node) => node.getID() === connectionUuid);
+                            if (connectionNode && viewAllPort) {
+                                const link = createPortNodeLink(viewAllPort, connectionNode);
+                                if (link) {
+                                    links.push(link);
+                                }
                             }
-                        }
+                        });
                     });
-                });
+                }
+            } else {
+                // GraphQL: attach hidden functions per group to the corresponding group port
+                for (const group of ["Query", "Subscription", "Mutation"] as const) {
+                    const groupPort = node.getGraphQLGroupPort(group);
+                    hiddenFunctions[group].forEach((func) => {
+                        func.connections?.forEach((connectionUuid) => {
+                            const connectionNode = nodes.find((node) => node.getID() === connectionUuid);
+                            if (connectionNode && groupPort) {
+                                const link = createPortNodeLink(groupPort, connectionNode);
+                                if (link) {
+                                    links.push(link);
+                                }
+                            }
+                        });
+                    });
+                }
             }
         });
 
@@ -236,6 +303,7 @@ export function Diagram(props: DiagramProps) {
     const context: DiagramContextState = {
         project,
         expandedNodes,
+        graphQLGroupOpen,
         onListenerSelect,
         onServiceSelect,
         onFunctionSelect,
@@ -243,6 +311,7 @@ export function Diagram(props: DiagramProps) {
         onConnectionSelect,
         onDeleteComponent,
         onToggleNodeExpansion: handleToggleNodeExpansion,
+        onToggleGraphQLGroup: handleToggleGraphQLGroup,
     };
 
     return (
@@ -258,4 +327,69 @@ export function Diagram(props: DiagramProps) {
             )}
         </>
     );
+}
+
+function getGraphQLGroupLabel(accessor?: string, name?: string): GroupKey | null {
+    if (accessor === "get") return "Query";
+    if (accessor === "subscribe") return "Subscription";
+    if (!accessor && name) return "Mutation";
+    return null;
+}
+
+function partitionServiceFunctions(
+{ service, expandedNodes, groupOpen }: { service: CDService; expandedNodes: Set<string>; groupOpen?: { Query: boolean; Subscription: boolean; Mutation: boolean; }; }
+): { visible: Record<GroupKey, Array<CDFunction | CDResourceFunction>>; hidden: Record<GroupKey, Array<CDFunction | CDResourceFunction>> } | { visible: Array<CDFunction | CDResourceFunction>; hidden: Array<CDFunction | CDResourceFunction> } {
+    const serviceFunctions: Array<CDFunction | CDResourceFunction> = [];
+    if (service.remoteFunctions?.length) serviceFunctions.push(...service.remoteFunctions);
+    if (service.resourceFunctions?.length) serviceFunctions.push(...service.resourceFunctions);
+
+    const isGraphQL = service.type === "graphql:Service";
+
+    if (!isGraphQL) {
+        const isExpanded = expandedNodes.has(service.uuid);
+        if (serviceFunctions.length <= SHOW_ALL_THRESHOLD || isExpanded) {
+            return { visible: serviceFunctions, hidden: [] };
+        }
+        return { visible: serviceFunctions.slice(0, PREVIEW_COUNT), hidden: serviceFunctions.slice(PREVIEW_COUNT) };
+    }
+
+    // GraphQL: compute per-group visibility, honoring collapsed (closed) groups
+    const grouped = serviceFunctions.reduce((acc, fn) => {
+        const accessor = (fn as CDResourceFunction).accessor;
+        const name = (fn as CDFunction).name;
+        const group = getGraphQLGroupLabel(accessor, name);
+        if (!group) return acc;
+        (acc[group] ||= []).push(fn);
+        return acc;
+    }, {} as Record<GroupKey, Array<CDFunction | CDResourceFunction>>);
+
+    const visible: Record<GroupKey, Array<CDFunction | CDResourceFunction>> = {
+        Query: [],
+        Subscription: [],
+        Mutation: [],
+    };
+    const hidden: Record<GroupKey, Array<CDFunction | CDResourceFunction>> = {
+        Query: [],
+        Subscription: [],
+        Mutation: [],
+    };
+
+    (Object.keys(grouped) as GroupKey[]).forEach((group) => {
+        const items = grouped[group];
+        const isOpen = groupOpen ? !!groupOpen[group] : true; // default open if not provided
+        if (!isOpen) {
+            // collapsed group: hide all
+            hidden[group].push(...items);
+            return;
+        }
+        const groupExpanded = expandedNodes.has(service.uuid + group);
+        if (items.length <= SHOW_ALL_THRESHOLD || groupExpanded) {
+            visible[group].push(...items);
+        } else {
+            visible[group].push(...items.slice(0, PREVIEW_COUNT));
+            hidden[group].push(...items.slice(PREVIEW_COUNT));
+        }
+    });
+
+    return { visible, hidden };
 }

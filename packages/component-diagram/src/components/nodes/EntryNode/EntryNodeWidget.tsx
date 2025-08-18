@@ -19,15 +19,16 @@
 import React, { useState } from "react";
 import styled from "@emotion/styled";
 import { DiagramEngine, PortWidget } from "@projectstorm/react-diagrams-core";
-import { EntryNodeModel, VIEW_ALL_RESOURCES_PORT_NAME } from "./EntryNodeModel";
+import { EntryNodeModel, VIEW_ALL_RESOURCES_PORT_NAME, GQL_GROUP_QUERY_PORT_NAME, GQL_GROUP_MUTATION_PORT_NAME, GQL_GROUP_SUBSCRIPTION_PORT_NAME } from "./EntryNodeModel";
 import { NODE_BORDER_WIDTH, ENTRY_NODE_WIDTH, ENTRY_NODE_HEIGHT } from "../../../resources/constants";
-import { Button, Item, Menu, MenuItem, Popover, ImageWithFallback, ThemeColors, Icon } from "@wso2/ui-toolkit";
+import { Button, Item, Menu, MenuItem, Popover, ImageWithFallback, ThemeColors, Icon, Codicon } from "@wso2/ui-toolkit";
 import { useDiagramContext } from "../../DiagramContext";
 import { HttpIcon, TaskIcon } from "../../../resources";
 import { MoreVertIcon } from "../../../resources/icons/nodes/MoreVertIcon";
 import { CDAutomation, CDFunction, CDService, CDResourceFunction } from "@wso2/ballerina-core";
-import { getEntryNodeFunctionPortName } from "../../../utils/diagram";
-import { PREVIEW_COUNT, SHOW_ALL_THRESHOLD } from "../../../utils/visibility";
+import { createPortNodeLink, getEntryNodeFunctionPortName } from "../../../utils/diagram";
+import { PREVIEW_COUNT, SHOW_ALL_THRESHOLD } from "../../Diagram";
+import { create } from "lodash";
 type NodeStyleProp = {
     hovered: boolean;
     inactive?: boolean;
@@ -87,7 +88,6 @@ const Title = styled(StyledText) <NodeStyleProp>`
     color: ${(props: NodeStyleProp) => (props.hovered ? ThemeColors.HIGHLIGHT : ThemeColors.ON_SURFACE)};
     opacity: ${(props: NodeStyleProp) => (props.inactive && !props.hovered ? 0.7 : 1)};
 `;
-
 
 const ResourceAccessor = styled(StyledText)<{ color?: string }>`
     text-transform: uppercase;
@@ -167,24 +167,12 @@ const GroupContainer = styled.div<{ accent: string }>`
     display: flex;
     flex-direction: column;
     gap: 6px;
-    width: 100%;
+    width: ${ENTRY_NODE_WIDTH}px;
     position: relative;
     border: ${NODE_BORDER_WIDTH}px solid ${ThemeColors.OUTLINE_VARIANT};
     border-radius: 8px;
     background-color: ${ThemeColors.SURFACE_DIM};
     padding: 6px;
-
-    &::before {
-        content: "";
-        position: absolute;
-        left: 0;
-        top: 0;
-        bottom: 0;
-        width: 4px;
-        background-color: ${(p) => p.accent};
-        border-radius: 8px 0 0 8px;
-        opacity: 0.9;
-    }
 `;
 
 const GroupHeader = styled.div`
@@ -221,6 +209,32 @@ const ViewAllButtonWrapper = styled.div`
     width: 100%;
 `;
 
+const CollapseButton = styled(Button)`
+    border-radius: 5px;
+    padding: 2px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    min-width: 24px;
+    color: ${ThemeColors.ON_SURFACE};
+    & > div:first-of-type {
+        width: 16px;
+        height: 16px;
+        font-size: 16px;
+    }
+    svg {
+        fill: ${ThemeColors.ON_SURFACE} !important;
+    }
+    &:hover {
+        color: ${ThemeColors.HIGHLIGHT};
+    }
+    &:hover svg {
+        fill: ${ThemeColors.HIGHLIGHT} !important;
+    }
+`;
+
 const colors = {
     "GET": '#3d7eff',
     "PUT": '#fca130',
@@ -242,16 +256,19 @@ export function EntryNodeWidget(props: EntryNodeWidgetProps) {
     const { model, engine } = props;
     const [isHovered, setIsHovered] = React.useState(false);
     const {
+        graphQLGroupOpen,
         onServiceSelect,
         onAutomationSelect,
         onDeleteComponent,
         onFunctionSelect,
         expandedNodes,
-        onToggleNodeExpansion
+        onToggleNodeExpansion,
+        onToggleGraphQLGroup
     } = useDiagramContext();
     const [menuAnchorEl, setMenuAnchorEl] = useState<HTMLElement | SVGSVGElement>(null);
     const isMenuOpen = Boolean(menuAnchorEl);
 
+    
     const handleOnClick = () => {
         if (model.type === "service") {
             if ((model.node as CDService).type === "ai:Service") {
@@ -399,7 +416,7 @@ export function EntryNodeWidget(props: EntryNodeWidgetProps) {
                     </MenuButton>
                 </ServiceBox>
                 {(model.node as CDService)?.type === "graphql:Service" ? (
-                    <GraphQLGroups functions={serviceFunctions} model={model} engine={engine} />
+                    <GraphQLGroups graphQLGroupOpen={graphQLGroupOpen} functions={serviceFunctions} model={model} engine={engine} onToggleGraphQLGroup={onToggleGraphQLGroup} />
                 ) : (
                     <>
                         {visibleFunctions.map((serviceFunction) => (
@@ -550,8 +567,10 @@ export function GraphQLFunctionList(props: {
     functions: Array<CDFunction | CDResourceFunction>;
     model: EntryNodeModel;
     engine: DiagramEngine;
+    collapsed: boolean;
+    onToggleCollapse: (group: "Query" | "Subscription" | "Mutation") => void;
 }) {
-    const { group, functions, model, engine } = props;
+    const { group, functions, model, engine, collapsed, onToggleCollapse } = props;
     const { expandedNodes, onToggleNodeExpansion } = useDiagramContext();
 
     // using shared constants for preview and threshold
@@ -582,39 +601,76 @@ export function GraphQLFunctionList(props: {
         <FunctionBoxWrapper>
             <GroupContainer accent={accent}>
                 <GroupHeader>
-                    <ResourceAccessor color={accent}>{group}</ResourceAccessor>
+                    <CollapseButton
+                        appearance="icon"
+                        aria-label={collapsed ? `Expand ${group}` : `Collapse ${group}`}
+                        onClick={(e: React.MouseEvent) => {
+                            e.stopPropagation();
+                            onToggleCollapse(group);
+                        }}
+                    >
+                        {collapsed ? (
+                            <Codicon name="chevron-right" />
+                        ) : (
+                            <Codicon name="chevron-down" />
+                        )}
+                    </CollapseButton>
+                    {group}             
                 </GroupHeader>
-                <>
-                    {visibleFunctions.map((fn) => (
-                        <FunctionBox
-                            key={getEntryNodeFunctionPortName(fn)}
-                            func={fn}
-                            model={model}
-                            engine={engine}
-                            isGrouped
-                        />
-                    ))}
-                    {canToggleItems && !isExpanded && (
-                    <ViewAllButtonWrapper>
-                        <ViewAllButton onClick={handleToggleExpansion}>
-                            Show More Resources
-                        </ViewAllButton>
-                        <PortWidget port={model.getPort(VIEW_ALL_RESOURCES_PORT_NAME)!} engine={engine} />
-                    </ViewAllButtonWrapper>
-                    )}
-                    {canToggleItems && isExpanded && (
-                        <ViewAllButton onClick={handleToggleExpansion}>
-                            Show Fewer Resources
-                        </ViewAllButton>
-                    )}
-                </>
+                {!collapsed && (
+                    <>
+                        {visibleFunctions.map((fn) => (
+                            <FunctionBox
+                                key={getEntryNodeFunctionPortName(fn)}
+                                func={fn}
+                                model={model}
+                                engine={engine}
+                                isGrouped
+                            />
+                        ))}
+                        {canToggleItems && !isExpanded && (
+                            <ViewAllButtonWrapper>
+                                <ViewAllButton onClick={handleToggleExpansion}>
+                                    Show More Resources
+                                </ViewAllButton>
+                                <PortWidget
+                                    port={model.getPort(
+                                        group === "Query"
+                                            ? GQL_GROUP_QUERY_PORT_NAME
+                                            : group === "Mutation"
+                                            ? GQL_GROUP_MUTATION_PORT_NAME
+                                            : GQL_GROUP_SUBSCRIPTION_PORT_NAME
+                                    )!}
+                                    engine={engine}
+                                />
+                            </ViewAllButtonWrapper>
+                        )}
+                        {canToggleItems && isExpanded && (
+                            <ViewAllButton onClick={handleToggleExpansion}>
+                                Show Fewer Resources
+                            </ViewAllButton>
+                        )}
+                    </>
+                )}
             </GroupContainer>
+            {collapsed &&    
+                <PortWidget
+                        port={model.getPort(
+                            group === "Query"
+                                ? GQL_GROUP_QUERY_PORT_NAME
+                                : group === "Mutation"
+                                ? GQL_GROUP_MUTATION_PORT_NAME
+                                : GQL_GROUP_SUBSCRIPTION_PORT_NAME
+                        )!}
+                        engine={engine}
+                    >
+                </PortWidget>}
         </FunctionBoxWrapper>
     );
 }
 
-export function GraphQLGroups(props: { functions: Array<CDFunction | CDResourceFunction>; model: EntryNodeModel; engine: DiagramEngine }) {
-    const { functions, model, engine } = props;
+export function GraphQLGroups(props: { functions: Array<CDFunction | CDResourceFunction>; model: EntryNodeModel; engine: DiagramEngine; onToggleGraphQLGroup: (uuid: string, group: "Query" | "Subscription" | "Mutation") => void; graphQLGroupOpen: Record<string, { Query: boolean; Subscription: boolean; Mutation: boolean }> }) {
+    const { functions, model, engine, onToggleGraphQLGroup, graphQLGroupOpen } = props;
 
     type GroupKey = "Query" | "Subscription" | "Mutation";
 
@@ -635,7 +691,7 @@ export function GraphQLGroups(props: { functions: Array<CDFunction | CDResourceF
         return acc;
     }, {} as Record<GroupKey, Array<CDFunction | CDResourceFunction>>);
 
-    const orderedGroups: GroupKey[] = ["Query", "Subscription", "Mutation"];
+    const orderedGroups: GroupKey[] = ["Query",  "Mutation", "Subscription"];
 
     return (
         <>
@@ -648,6 +704,10 @@ export function GraphQLGroups(props: { functions: Array<CDFunction | CDResourceF
                             functions={grouped[group]}
                             model={model}
                             engine={engine}
+                            collapsed={graphQLGroupOpen[model.node.uuid]?.[group] === false}
+                            onToggleCollapse={(group) => {
+                                onToggleGraphQLGroup(model.node.uuid, group);
+                            }}
                         />
                     </React.Fragment>
                 ))}
