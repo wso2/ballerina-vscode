@@ -191,9 +191,17 @@
             "kind": "string"
           },
           {
+            "member": {
+              "fields": [],
+              "id": "userInfo",
+              "variableName": "<userInfoItem>",
+              "typeName": "UserInfo",
+              "kind": "record",
+              "ref": "1853646530"
+            },
             "id": "userInfo",
             "variableName": "userInfo",
-            "typeName": "array[]",
+            "typeName": "UserInfo[]",
             "kind": "array",
             "ref": "1853646530"
           }

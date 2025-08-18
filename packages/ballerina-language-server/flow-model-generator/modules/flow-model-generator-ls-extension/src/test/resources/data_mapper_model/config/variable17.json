@@ -128,9 +128,17 @@
             "kind": "int"
           },
           {
+            "member": {
+              "fields": [],
+              "id": "credentials",
+              "variableName": "<credentialsItem>",
+              "typeName": "Credentials",
+              "kind": "record",
+              "ref": "-1644308518"
+            },
             "id": "credentials",
             "variableName": "credentials",
-            "typeName": "array[]",
+            "typeName": "Credentials[]",
             "kind": "array",
             "ref": "-1644308518"
           },

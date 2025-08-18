@@ -180,9 +180,17 @@
             "ref": "1622637280"
           },
           {
+            "member": {
+              "fields": [],
+              "id": "users6",
+              "variableName": "<users6Item>",
+              "typeName": "User6",
+              "kind": "record",
+              "ref": "1321573925"
+            },
             "id": "users6",
             "variableName": "users6",
-            "typeName": "array[]",
+            "typeName": "User6[]",
             "kind": "array",
             "ref": "1321573925"
           }

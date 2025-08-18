@@ -104,9 +104,17 @@
       "1955575003": {
         "fields": [
           {
+            "member": {
+              "fields": [],
+              "id": "phoneNumbers",
+              "variableName": "<phoneNumbersItem>",
+              "typeName": "SecondaryPhonesX",
+              "kind": "record",
+              "ref": "-500203070"
+            },
             "id": "phoneNumbers",
             "variableName": "phoneNumbers",
-            "typeName": "array[]",
+            "typeName": "SecondaryPhonesX[]",
             "kind": "array",
             "ref": "-500203070"
           },

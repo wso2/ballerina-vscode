@@ -146,25 +146,6 @@
         "typeName": "",
         "kind": "record"
       },
-      "1982785140": {
-        "fields": [
-          {
-            "id": "l3",
-            "variableName": "l3",
-            "typeName": "int",
-            "kind": "int"
-          },
-          {
-            "id": "l3Arr",
-            "variableName": "l3Arr",
-            "typeName": "array[]",
-            "kind": "array",
-            "ref": "1926085966"
-          }
-        ],
-        "typeName": "l2Item",
-        "kind": "record"
-      },
       "-1795503472": {
         "fields": [
           {
@@ -179,6 +160,33 @@
         "typeName": "MyType4",
         "kind": "record"
       },
+      "1982785140": {
+        "fields": [
+          {
+            "id": "l3",
+            "variableName": "l3",
+            "typeName": "int",
+            "kind": "int"
+          },
+          {
+            "member": {
+              "fields": [],
+              "id": "l3Arr",
+              "variableName": "<l3ArrItem>",
+              "typeName": "",
+              "kind": "record",
+              "ref": "1926085966"
+            },
+            "id": "l3Arr",
+            "variableName": "l3Arr",
+            "typeName": "[]",
+            "kind": "array",
+            "ref": "1926085966"
+          }
+        ],
+        "typeName": "l2Item",
+        "kind": "record"
+      },
       "-422613996": {
         "fields": [
           {
@@ -188,9 +196,17 @@
             "kind": "int"
           },
           {
+            "member": {
+              "fields": [],
+              "id": "l3Arr",
+              "variableName": "<l3ArrItem>",
+              "typeName": "",
+              "kind": "record",
+              "ref": "1926085966"
+            },
             "id": "l3Arr",
             "variableName": "l3Arr",
-            "typeName": "array[]",
+            "typeName": "[]",
             "kind": "array",
             "ref": "1926085966"
           }
@@ -201,9 +217,17 @@
       "-1867435692": {
         "fields": [
           {
+            "member": {
+              "fields": [],
+              "id": "l2",
+              "variableName": "<l2Item>",
+              "typeName": "",
+              "kind": "record",
+              "ref": "-422613996"
+            },
             "id": "l2",
             "variableName": "l2",
-            "typeName": "array[]",
+            "typeName": "[]",
             "kind": "array",
             "ref": "-422613996"
           }

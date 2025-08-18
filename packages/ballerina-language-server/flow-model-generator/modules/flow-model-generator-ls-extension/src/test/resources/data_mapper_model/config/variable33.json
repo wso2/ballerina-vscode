@@ -155,9 +155,17 @@
       "2022724573": {
         "fields": [
           {
+            "member": {
+              "fields": [],
+              "id": "contacts",
+              "variableName": "<contactsItem>",
+              "typeName": "Temp",
+              "kind": "record",
+              "ref": "-2108560642"
+            },
             "id": "contacts",
             "variableName": "contacts",
-            "typeName": "array[]",
+            "typeName": "Temp[]",
             "kind": "array",
             "ref": "-2108560642"
           }

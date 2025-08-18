@@ -92,9 +92,17 @@
             "kind": "string"
           },
           {
+            "member": {
+              "fields": [],
+              "id": "employees",
+              "variableName": "<employeesItem>",
+              "typeName": "Employee",
+              "kind": "record",
+              "ref": "-1659566102"
+            },
             "id": "employees",
             "variableName": "employees",
-            "typeName": "array[]",
+            "typeName": "Employee[]",
             "kind": "array",
             "ref": "-1659566102"
           }

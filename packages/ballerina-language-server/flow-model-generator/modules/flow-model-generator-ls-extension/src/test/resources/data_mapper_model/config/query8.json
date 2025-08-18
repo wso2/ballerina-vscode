@@ -160,9 +160,17 @@
       "-1730738303": {
         "fields": [
           {
+            "member": {
+              "fields": [],
+              "id": "secondaryPhones",
+              "variableName": "<secondaryPhonesItem>",
+              "typeName": "SecondaryPhones",
+              "kind": "record",
+              "ref": "1315650592"
+            },
             "id": "secondaryPhones",
             "variableName": "secondaryPhones",
-            "typeName": "array[]",
+            "typeName": "SecondaryPhones[]",
             "kind": "array",
             "ref": "1315650592"
           },
