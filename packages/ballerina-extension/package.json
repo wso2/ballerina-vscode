@@ -220,6 +220,21 @@
                     "tags": [
                         "experimental"
                     ]
+                },
+                "ballerina-vscode.trace.server": {
+                    "type": "string",
+                    "default": "off",
+                    "description": "Traces the communication between VS Code and the Ballerina language server.",
+                    "enum": [
+                        "off",
+                        "messages",
+                        "verbose"
+                    ],
+                    "enumDescriptions": [
+                        "No traces",
+                        "Trace request/response messages only",
+                        "Trace request/response messages with parameters and content"
+                    ]
                 }
             }
         },
@@ -693,6 +708,11 @@
                 "title": "Add Natural Function",
                 "icon": "$(add)",
                 "group": "navigation",
+                "category": "BI"
+            },
+            {
+                "command": "BI.toggle.trace.logs",
+                "title": "Toggle Trace Logs",
                 "category": "BI"
             }
         ],
