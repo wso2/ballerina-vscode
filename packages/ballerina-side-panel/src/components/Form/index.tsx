@@ -45,7 +45,7 @@ import {
     FlowNode,
     ExpressionProperty,
     RecordTypeField,
-    Type
+    Type,
     VisualizableField,
 } from "@wso2/ballerina-core";
 import { FormContext, Provider } from "../../context";

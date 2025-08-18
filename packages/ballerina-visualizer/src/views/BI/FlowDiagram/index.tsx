@@ -1084,28 +1084,28 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 flowNode: updatedNode,
                 isFunctionNodeUpdate: openInDataMapper,
             })
-            .then(async (response) => {
+             .then(async (response) => {
                 console.log(">>> Updated source code", response);
                 if (response.artifacts.length > 0) {
                      if (updatedNode?.codedata?.symbol === GET_DEFAULT_MODEL_PROVIDER) {
                         await rpcClient.getAIAgentRpcClient().configureDefaultModelProvider();
+                    }
+                    if (options?.shouldCloseSidePanel) {
+                        selectedNodeRef.current = undefined;
+                        handleOnCloseSidePanel();
                     }
                     if (options?.updateLineRangeForRecursiveInserts) {
                         onRerenderRef.current = options.updateLineRangeForRecursiveInserts;
                     }
                     shouldUpdateLineRangeRef.current = options?.shouldUpdateTargetLine;
                     updatedNodeRef.current = updatedNode
-                    selectedNodeRef.current = undefined;
-                    await updateCurrentArtifactLocation(response);
-                     if (options?.shouldCloseSidePanel) {
-                        handleOnCloseSidePanel();
-                    }
                 } else {
                     console.error(">>> Error updating source code", response);
                 }
             })
             .finally(() => {
                 setShowProgressIndicator(false);
+                debouncedGetFlowModel();
                 if (options?.shouldCloseSidePanel === true) {
                     setShowSidePanel(false);
                 }
