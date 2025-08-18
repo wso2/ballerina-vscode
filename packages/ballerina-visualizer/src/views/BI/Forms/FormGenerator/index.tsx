@@ -118,7 +118,7 @@ interface FormProps {
         description?: string; // Optional description explaining what the action button does
         callback: () => void;
     };
-    handleOnFormSubmit?: (updatedNode?: FlowNode, isDataMapperFormUpdate?: boolean, options?: FormSubmitOptions) => void;
+    handleOnFormSubmit?: (updatedNode?: FlowNode, openInDataMapper?: boolean, options?: FormSubmitOptions) => void;
     isInModal?: boolean;
     scopeFieldAddon?: React.ReactNode;
     newServerUrl?: string;
@@ -893,7 +893,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
                     resetUpdatedExpressionField={resetUpdatedExpressionField}
                     mergeFormDataWithFlowNode={mergeFormDataWithFlowNode}
                     handleVisualizableFields={fetchVisualizableFields}
-                    visualizableFields={visualizableFields}
+                    visualizableField={visualizableField}
                     infoLabel={infoLabel}
                     disableSaveButton={disableSaveButton}
                     actionButton={actionButton}

@@ -566,7 +566,6 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
                                 helperPaneWidth={recordTypeField ? 400 : undefined}
                                 growRange={growRange}
                                 sx={{ paddingInline: '0' }}
-                                codeActions={codeActions}
                                 placeholder={placeholder}
                                 helperPaneZIndex={helperPaneZIndex}
                             />

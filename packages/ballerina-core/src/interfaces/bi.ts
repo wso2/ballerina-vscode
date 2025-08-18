@@ -414,7 +414,8 @@ export type NodeKind =
     | "VARIABLE"
     | "WAIT"
     | "WHILE"
-    | "WORKER";
+    | "WORKER"
+    | "VARIABLE";
 
 export type OverviewFlow = {
     entryPoints: EntryPoint[];

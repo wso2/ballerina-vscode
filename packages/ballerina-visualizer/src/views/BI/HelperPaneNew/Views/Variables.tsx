@@ -22,7 +22,7 @@ type VariablesPageProps = {
     onChange: (value: string, isRecordConfigureChange: boolean) => void;
     targetLineRange: LineRange;
     anchorRef: React.RefObject<HTMLDivElement>;
-    handleOnFormSubmit?: (updatedNode?: FlowNode, isDataMapperFormUpdate?: boolean, options?: FormSubmitOptions) => void;
+    handleOnFormSubmit?: (updatedNode?: FlowNode, openInDataMapper?: boolean, options?: FormSubmitOptions) => void;
     selectedType?: CompletionItem;
     filteredCompletions: CompletionItem[];
     currentValue: string;
@@ -68,38 +68,49 @@ export const Variables = (props: VariablesPageProps) => {
                 : undefined;
 
         console.log("Trigger Character:", triggerCharacter);
-        handleRetrieveCompletions(currentValue, getPropertyFromFormField(field), 0, triggerCharacter);
     }, []);
+
+    useEffect(() => {
+        const triggerCharacter =
+            currentValue.length > 0
+                ? triggerCharacters.find((char) => currentValue[currentValue.length - 1] === char)
+                : undefined;
+
+        handleRetrieveCompletions(currentValue, getPropertyFromFormField(field), 0, triggerCharacter);
+    }, [targetLineRange])
 
     const getProjectInfo = async () => {
         const projectPath = await rpcClient.getVisualizerLocation();
         setProjectPathUri(URI.file(projectPath.projectUri).fsPath);
     }
 
-    const handleSubmit = (updatedNode?: FlowNode, isDataMapperFormUpdate?: boolean) => {
+    const handleSubmit = (updatedNode?: FlowNode, openInDataMapper?: boolean) => {
         newNodeNameRef.current = "";
         // Safely extract the variable name as a string, fallback to empty string if not available
         const varName = typeof updatedNode?.properties?.variable?.value === "string"
             ? updatedNode.properties.variable.value
             : "";
         newNodeNameRef.current = varName;
-        handleOnFormSubmit?.(updatedNode, isDataMapperFormUpdate, { shouldCloseSidePanel: false, shouldUpdateTargetLine: true });
+        handleOnFormSubmit?.(updatedNode, false, { shouldCloseSidePanel: false, shouldUpdateTargetLine: true });
         if (isModalOpen) {
             setIsModalOpen(false)
         }
     };
-    const debounceFilterVariables = useCallback(
-        debounce((searchText: string) => {
-            setFilteredVariableInfo(filterHelperPaneVariables(variableInfo, searchText));
-            setIsLoading(false);
-        }, 150),
-        [variableInfo, setFilteredVariableInfo, setIsLoading, filterHelperPaneVariables, searchValue]
+    const fields = filteredCompletions.filter((completion) => (completion.kind === "field" || completion.kind === "variable") && completion.label !== 'self')
+    const methods = filteredCompletions.filter((completion) => completion.kind === "function")
+
+    const dropdownItems = fields.concat(methods)
+
+const filteredDropDownItems = useMemo(() => {
+    if (!searchValue || searchValue.length === 0) return dropdownItems;
+    return dropdownItems.filter((item) =>
+        item.label.toLowerCase().includes(searchValue.toLowerCase())
     );
+}, [searchValue, dropdownItems]);
+
 
     const handleSearch = (searchText: string) => {
         setSearchValue(searchText);
-        setIsLoading(true);
-        debounceFilterVariables(searchText);
     };
 
     const handleItemSelect = (value: string) => {
@@ -117,16 +128,11 @@ export const Variables = (props: VariablesPageProps) => {
         onChange(newValue, true);
     }
 
-    const fields = filteredCompletions.filter((completion) => completion.kind === "field" || completion.kind === "variable")
-    const methods = filteredCompletions.filter((completion) => completion.kind === "function")
-
-    const dropdownItems = fields.concat(methods)
-
     const ExpandableListItems = () => {
         return (
             <>
                 {
-                    dropdownItems.map((item) => (
+                    filteredDropDownItems.map((item) => (
                         <SlidingPaneNavContainer
                             data
                             endIcon={
@@ -163,7 +169,7 @@ export const Variables = (props: VariablesPageProps) => {
                 value: selectedType?.label,
                 placeholder: "var",
                 optional: false,
-                editable: true,
+                editable: false,
                 advanced: false,
                 hidden: false,
             }
