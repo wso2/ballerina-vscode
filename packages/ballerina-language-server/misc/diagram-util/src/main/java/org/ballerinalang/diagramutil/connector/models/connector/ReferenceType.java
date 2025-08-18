@@ -129,11 +129,15 @@ public class ReferenceType {
                         recordType.fields.add(new Field(fieldName, fieldType, fieldSymbol.isOptional(), ""));
                     }
                 } else {
-                    RefType t = new RefType(fieldType.name);
-                    t.hashCode = fieldType.hashCode;
-                    t.typeName = fieldType.typeName;
+                    if (fieldType instanceof RefRecordType) {
+                        RefType t = new RefType(fieldType.name);
+                        t.hashCode = fieldType.hashCode;
+                        t.typeName = fieldType.typeName;
+                        recordType.fields.add(new Field(fieldName, t, fieldSymbol.isOptional(), ""));
+                    } else {
+                        recordType.fields.add(new Field(fieldName, fieldType, fieldSymbol.isOptional(), ""));
+                    }
                     recordType.dependentTypeHashes.addAll(fieldType.dependentTypeHashes);
-                    recordType.fields.add(new Field(fieldName, t, fieldSymbol.isOptional(), ""));
                 }
                 if (fieldType.hashCode != null) {
                     recordType.dependentTypeHashes.add(fieldType.hashCode);
@@ -161,11 +165,15 @@ public class ReferenceType {
                     arrayType.elementType = elementType;
                 }
             } else {
-                RefType t = new RefType(elementType.name);
-                t.hashCode = elementType.hashCode;
-                t.typeName = elementType.typeName;
+                if (elementType instanceof RefRecordType) {
+                    RefType t = new RefType(elementType.name);
+                    t.hashCode = elementType.hashCode;
+                    t.typeName = elementType.typeName;
+                    arrayType.elementType = t;
+                } else {
+                    arrayType.elementType = elementType;
+                }
                 arrayType.dependentTypeHashes.addAll(elementType.dependentTypeHashes);
-                arrayType.elementType = t;
             }
             if (elementType.hashCode != null) {
                 arrayType.dependentTypeHashes.add(elementType.hashCode);
@@ -211,4 +219,15 @@ public class ReferenceType {
         throw new UnsupportedOperationException(
                 "Unsupported type kind: " + kind + " for symbol: " + symbol.getName().orElse("unknown"));
     }
+
+//    public static RefType processArrayField(RefType recordType, RefType arrayField) {
+//        ArrayTypeSymbol arrayTypeSymbol = (ArrayTypeSymbol) symbol;
+//        RefArrayType arrayType = new RefArrayType(name);
+//        arrayType.hashCode = hashCode;
+//        RefType t = new RefType(refType.name);
+//        t.hashCode = refType.hashCode;
+//        t.typeName = refType.typeName;
+//        arrayType.dependentTypeHashes.addAll(refType.dependentTypeHashes);
+//        arrayType.elementType = t;
+//    }
 }

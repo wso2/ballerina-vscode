@@ -28,7 +28,17 @@
       {
         "fieldName": "progressNotes",
         "type": {
-          "dependentTypeHashes": [],
+          "elementType": {
+            "dependentTypeHashes": [],
+            "hashCode": "37427356",
+            "name": "ProgressNote",
+            "typeName": "record"
+          },
+          "dependentTypeHashes": [
+            "37427356",
+            "1400153890",
+            "-1181438925"
+          ],
           "hashCode": "37427356",
           "name": "",
           "typeName": "array"
