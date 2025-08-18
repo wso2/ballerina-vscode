@@ -40,6 +40,16 @@ export interface AgentTool {
     connectionName: string;
 }
 
+export interface ToolParameterFormValues {
+    variable: string;
+    type: string;
+    parameterDescription: string;
+}
+
+export interface ToolParameterItem {
+    formValues: ToolParameterFormValues;
+}
+
 export interface AgentToolRequest {
     toolName: string;
     description: string;
