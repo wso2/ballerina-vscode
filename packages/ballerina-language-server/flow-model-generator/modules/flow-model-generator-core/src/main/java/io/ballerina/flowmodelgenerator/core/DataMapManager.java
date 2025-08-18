@@ -1545,37 +1545,27 @@ public class DataMapManager {
         List<TextEdit> textEdits = new ArrayList<>();
         textEditsMap.put(filePath, textEdits);
 
-        if (stNode.kind() == SyntaxKind.LOCAL_VAR_DECL) {
-            Optional<Symbol> symbol = semanticModel.symbol(stNode);
-            if (symbol.isEmpty()) {
-                throw new IllegalStateException("Symbol cannot be found for the variable declaration");
-            }
-            TypeSymbol targetType = getTargetType(((VariableSymbol) symbol.get()).typeDescriptor(), targetField);
-            if (targetType == null) {
-                throw new IllegalStateException("Target type cannot be found for the variable declaration");
-            }
-            targetType = resolveArrayMemberType(targetType);
-            String defaultVal = DefaultValueGeneratorUtil.getDefaultValueForType(targetType);
+        TypeSymbol targetType = getTargetType(semanticModel, stNode, targetField);
+        if (targetType == null) {
+            throw new IllegalStateException("Target type cannot be found for the variable declaration");
+        }
+        targetType = resolveArrayMemberType(targetType);
+        String defaultVal = DefaultValueGeneratorUtil.getDefaultValueForType(targetType);
 
-            VariableDeclarationNode varDeclNode = (VariableDeclarationNode) stNode;
-            if (varDeclNode.initializer().isEmpty()) {
-                return null;
-            }
-            ExpressionNode initializer = varDeclNode.initializer().get();
-            ExpressionNode expr = getArrayExpr(targetField, initializer);
-            if (expr == null || expr.kind() != SyntaxKind.LIST_CONSTRUCTOR) {
-                throw new IllegalStateException("Expression is not a list constructor");
-            }
-            ListConstructorExpressionNode listCtrExpr = (ListConstructorExpressionNode) expr;
-            SeparatedNodeList<Node> expressions = listCtrExpr.expressions();
-            if (expressions == null || expressions.isEmpty()) {
-                textEdits.add(new TextEdit(CommonUtils.toRange(listCtrExpr.openBracket().lineRange().endLine()),
-                        defaultVal));
-            } else {
-                defaultVal = ", " + defaultVal;
-                textEdits.add(new TextEdit(CommonUtils.toRange(
-                        expressions.get(expressions.size() - 1).lineRange().endLine()), defaultVal));
-            }
+        ExpressionNode initializer = getMappingExpr(stNode);
+        ExpressionNode expr = getArrayExpr(targetField, initializer);
+        if (expr == null || expr.kind() != SyntaxKind.LIST_CONSTRUCTOR) {
+            throw new IllegalStateException("Expression is not a list constructor");
+        }
+        ListConstructorExpressionNode listCtrExpr = (ListConstructorExpressionNode) expr;
+        SeparatedNodeList<Node> expressions = listCtrExpr.expressions();
+        if (expressions == null || expressions.isEmpty()) {
+            textEdits.add(new TextEdit(CommonUtils.toRange(listCtrExpr.openBracket().lineRange().endLine()),
+                    defaultVal));
+        } else {
+            defaultVal = ", " + defaultVal;
+            textEdits.add(new TextEdit(CommonUtils.toRange(
+                    expressions.get(expressions.size() - 1).lineRange().endLine()), defaultVal));
         }
         return gson.toJsonTree(textEditsMap);
     }
@@ -1621,6 +1611,23 @@ public class DataMapManager {
             return ((ArrayTypeSymbol) rawType).memberTypeDescriptor();
         }
         return rawType;
+    }
+
+    private TypeSymbol getTargetType(SemanticModel semanticModel, NonTerminalNode node, String targetField) {
+        Optional<Symbol> optSymbol = semanticModel.symbol(node);
+        if (optSymbol.isEmpty()) {
+            throw new IllegalStateException("Symbol cannot be found for the variable declaration");
+        }
+        Symbol symbol = optSymbol.get();
+        if (symbol.kind() == SymbolKind.VARIABLE) {
+            return getTargetType(((VariableSymbol) symbol).typeDescriptor(), targetField);
+        } else if (symbol.kind() == SymbolKind.FUNCTION) {
+            Optional<TypeSymbol> typeSymbol = ((FunctionSymbol) symbol).typeDescriptor().returnTypeDescriptor();
+            if (typeSymbol.isPresent()) {
+                return getTargetType(typeSymbol.get(), targetField);
+            }
+        }
+        return null;
     }
 
     private TypeSymbol getTargetType(TypeSymbol typeSymbol, String targetField) {
