@@ -27,7 +27,10 @@ export class RequiredParamNodeFactory extends AbstractReactFactory<RequiredParam
             return (
                 <InputSearchNoResultFound kind={SearchNoResultFoundKind.InputField} />
             );
-        } else if (event.model.typeDef && event.model.typeDef.typeName === PrimitiveBalType.Record) {
+        } else if (event.model.typeDef &&
+            (event.model.typeDef.typeName === PrimitiveBalType.Record ||
+                event.model.typeDef.typeName === PrimitiveBalType.Union)
+        ) {
             return (
                 <RecordTypeTreeWidget
                     engine={this.engine}

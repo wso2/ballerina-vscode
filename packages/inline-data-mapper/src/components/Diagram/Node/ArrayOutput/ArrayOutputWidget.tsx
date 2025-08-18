@@ -20,7 +20,7 @@ import React, { useState } from "react";
 
 import { DiagramEngine } from '@projectstorm/react-diagrams';
 import { Button, Codicon, ProgressRing, TruncatedLabel } from "@wso2/ui-toolkit";
-import { IOType } from '@wso2/ballerina-core';
+import { IOType, TypeKind } from '@wso2/ballerina-core';
 import classnames from "classnames";
 
 import { IDataMapperContext } from "../../../../utils/DataMapperContext/DataMapperContext";
@@ -28,7 +28,7 @@ import { DataMapperPortWidget, PortState, InputOutputPortModel } from '../../Por
 import { TreeBody, TreeContainer, TreeHeader } from '../commons/Tree/Tree';
 import { ArrayOutputFieldWidget } from "./ArrayOuptutFieldWidget";
 import { useIONodesStyles } from '../../../styles';
-import { useDMCollapsedFieldsStore, useDMIOConfigPanelStore } from "../../../../store/store";
+import { useDMCollapsedFieldsStore, useDMExpressionBarStore, useDMIOConfigPanelStore } from "../../../../store/store";
 import { OutputSearchHighlight } from "../commons/Search";
 import FieldActionWrapper from "../commons/FieldActionWrapper";
 import { ValueConfigMenu, ValueConfigMenuItem, ValueConfigOption } from "../commons/ValueConfigButton";
@@ -63,6 +63,7 @@ export function ArrayOutputWidget(props: ArrayOutputWidgetProps) {
 	const [isLoading, setLoading] = useState(false);
 
 	const collapsedFieldsStore = useDMCollapsedFieldsStore();
+	const setExprBarFocusedPort = useDMExpressionBarStore(state => state.setFocusedPort);
 
 	const { setIsIOConfigPanelOpen, setIOConfigPanelType, setIsSchemaOverridden } = useDMIOConfigPanelStore(
 		useShallow(state => ({
@@ -81,6 +82,7 @@ export function ArrayOutputWidget(props: ArrayOutputWidgetProps) {
 	const isRootArray = context.views.length == 1;
 
 	const portIn = getPort(`${id}.IN`);
+	const isUnknownType = outputType.kind === TypeKind.Unknown;
 
 	let expanded = true;
 	if ((portIn && portIn.attributes.collapsed)) {
@@ -131,7 +133,7 @@ export function ArrayOutputWidget(props: ArrayOutputWidgetProps) {
 	};
 
 	const handleEditValue = () => {
-		// TODO: Implement edit value
+		setExprBarFocusedPort(portIn);
 	};
 
 	const onRightClick = (event: React.MouseEvent) => {
@@ -148,7 +150,12 @@ export function ArrayOutputWidget(props: ArrayOutputWidgetProps) {
 					<OutputSearchHighlight>{valueLabel}</OutputSearchHighlight>
 				</span>
 			)}
-			<span className={classnames(classes.typeLabel, isDisabled ? classes.labelDisabled : "")}>
+			<span className={
+				classnames(
+					isUnknownType ? classes.unknownTypeLabel : classes.typeLabel,
+					isDisabled ? classes.labelDisabled : ""
+				)
+			}>
 				{typeName || ''}
 			</span>
 		</TruncatedLabel>
@@ -161,11 +168,10 @@ export function ArrayOutputWidget(props: ArrayOutputWidgetProps) {
 				onClick: handleArrayInitialization
 			}]
 			: [
-				// {
-				// 	title: ValueConfigOption.EditValue,
-				// 	onClick: handleEditValue
-				// }
-				// TODO: Add edit value option once the feature is implemented
+				{
+					title: ValueConfigOption.EditValue,
+					onClick: handleEditValue
+				}
 			])
 	];
 

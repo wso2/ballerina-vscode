@@ -100,6 +100,18 @@ const classes = {
         position: 'absolute',
         left: '50%',
         transform: 'translateX(-50%)'
+    }),
+    errorBanner: css({
+        borderColor: "var(--vscode-errorForeground)"
+    }),
+    errorMessage: css({
+        zIndex: 1,
+        position: 'absolute',
+        top: '50%',
+        left: '50%',
+        transform: 'translate(-50%, -50%)',
+        width: '500px',
+        animation: `${fadeIn} 0.5s ease-in-out`
     })
 }
 

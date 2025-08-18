@@ -54,7 +54,10 @@ export class InputNode extends DataMapperNodeModel {
         if (this.filteredInputType) {
             const collapsedFields = useDMCollapsedFieldsStore.getState().fields;
             const expandedFields = useDMExpandedFieldsStore.getState().fields;
-            const focusedFieldFQNs = this.context.model.query?.inputs || [];
+            const focusedFieldFQNs = [
+                ...this.context.views.map(view => view.sourceField).filter(Boolean),
+                ...(this.context.model.query?.inputs || [])
+            ];
             const parentPort = this.addPortsForHeader({
                 dmType: this.filteredInputType,
                 name: this.identifier,
@@ -80,6 +83,41 @@ export class InputNode extends DataMapperNodeModel {
                         isOptional: subField.optional,
                         focusedFieldFQNs
                     });
+                });
+            } else if (this.filteredInputType.kind === TypeKind.Enum) {
+                this.filteredInputType.members?.forEach(member => {
+                    this.numberOfFields += this.addPortsForInputField({
+                        field: member,
+                        portType: "OUT",
+                        parentId: this.identifier,
+                        unsafeParentId: this.identifier,
+                        parent: parentPort,
+                        collapsedFields,
+                        expandedFields,
+                        hidden: parentPort.attributes.collapsed,
+                        isOptional: member?.optional,
+                        focusedFieldFQNs
+                    });
+                });
+            } else if (this.filteredInputType.kind === TypeKind.Array) {
+                const focusedMemberId = this.filteredInputType?.focusedMemberId;
+                if (focusedMemberId) {
+                    const focusedMemberField = this.context.model.inputs.find(input => input.id === focusedMemberId);
+                    if (focusedMemberField) {
+                        this.filteredInputType.member = focusedMemberField;
+                    }
+                }
+                this.numberOfFields += this.addPortsForInputField({
+                    field: this.filteredInputType?.member,
+                    portType: "OUT",
+                    parentId: this.identifier,
+                    unsafeParentId: this.identifier,
+                    parent: parentPort,
+                    collapsedFields,
+                    expandedFields,
+                    hidden: parentPort.attributes.collapsed,
+                    isOptional: this.filteredInputType?.member?.optional,
+                    focusedFieldFQNs
                 });
             } else {
                 this.addPortsForInputField({
