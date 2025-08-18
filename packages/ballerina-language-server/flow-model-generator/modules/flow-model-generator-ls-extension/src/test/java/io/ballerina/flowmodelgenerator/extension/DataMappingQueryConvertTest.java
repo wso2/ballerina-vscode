@@ -101,7 +101,7 @@ public class DataMappingQueryConvertTest extends AbstractLSTest {
             TestConfig updatedConfig = new TestConfig(testConfig.source(), testConfig.description(),
                     testConfig.codedata(), testConfig.mapping(), testConfig.propertyKey(), testConfig.targetField(),
                     testConfig.clauseType(), newMap);
-            updateConfig(configJsonPath, updatedConfig);
+//            updateConfig(configJsonPath, updatedConfig);
             Assert.fail(String.format("Failed test: '%s' (%s)", testConfig.description(), configJsonPath));
         }
     }

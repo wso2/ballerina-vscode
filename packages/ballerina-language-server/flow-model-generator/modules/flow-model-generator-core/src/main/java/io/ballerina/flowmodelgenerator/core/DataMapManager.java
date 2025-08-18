@@ -67,6 +67,7 @@ import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.compiler.syntax.tree.NodeList;
 import io.ballerina.compiler.syntax.tree.NodeVisitor;
 import io.ballerina.compiler.syntax.tree.NonTerminalNode;
+import io.ballerina.compiler.syntax.tree.OptionalFieldAccessExpressionNode;
 import io.ballerina.compiler.syntax.tree.OrderByClauseNode;
 import io.ballerina.compiler.syntax.tree.OrderKeyNode;
 import io.ballerina.compiler.syntax.tree.PositionalArgumentNode;
@@ -446,14 +447,6 @@ public class DataMapManager {
         }
 
         ExpressionNode expr = initializer;
-        if (expr.kind() == SyntaxKind.QUERY_EXPRESSION) {
-            ClauseNode clauseNode = ((QueryExpressionNode) expr).resultClause();
-            if (clauseNode.kind() == SyntaxKind.SELECT_CLAUSE) {
-                expr = ((SelectClauseNode) clauseNode).expression();
-            } else {
-                return null;
-            }
-        }
         for (int i = 1; i < fieldSplits.length; i++) {
             String field = fieldSplits[i];
             if (expr.kind() == SyntaxKind.QUERY_EXPRESSION) {
@@ -827,14 +820,18 @@ public class DataMapManager {
                 return enumPort;
             } else if (type.getTypeName().equals("union")) {
                 UnionType unionType = (UnionType) type;
-                MappingUnionPort unionPort = new MappingUnionPort(id, name, unionType.getName(),
-                        type.getTypeName(), unionType.optional);
+                List<MappingPort> members = new ArrayList<>();
+                List<String> memberNames = new ArrayList<>();
                 for (Type member : unionType.members) {
                     MappingPort memberPort = getMappingPort(id, name, member, isInputPort, visitedTypes);
                     if (memberPort != null) {
-                        unionPort.members.add(memberPort);
+                        members.add(memberPort);
+                        memberNames.add(memberPort.typeName);
                     }
                 }
+                MappingUnionPort unionPort = new MappingUnionPort(id, name, String.join("|", memberNames),
+                        type.getTypeName(), unionType.optional);
+                unionPort.members.addAll(members);
                 return unionPort;
             } else {
                 return null;
@@ -1817,25 +1814,74 @@ public class DataMapManager {
             }
 
             newText = newText.split(";")[0];
-            LinePosition pos;
+            Range range;
             if (initializer.kind() == SyntaxKind.LET_EXPRESSION) {
                 newText = ", " + newText;
                 LetExpressionNode letExpr = (LetExpressionNode) initializer;
                 SeparatedNodeList<LetVariableDeclarationNode> letVarDecls = letExpr.letVarDeclarations();
                 if (index >= letVarDecls.size()) {
-                    pos = letVarDecls.get(letVarDecls.size() - 1).lineRange().endLine();
+                    range = CommonUtils.toRange(letVarDecls.get(letVarDecls.size() - 1).lineRange().endLine());
                 } else {
-                    pos = letVarDecls.get(index).lineRange().endLine();
+                    LineRange lineRange = letVarDecls.get(index).lineRange();
+                    Boolean isNew = codedata.isNew();
+                    if (isNew != null && isNew) {
+                        range = CommonUtils.toRange(lineRange.endLine());
+                    } else {
+                        range = CommonUtils.toRange(lineRange);
+                    }
                 }
             } else {
                 newText = "let " + newText.split(";")[0] + " in ";
-                pos = initializer.lineRange().startLine();
+                range = CommonUtils.toRange(initializer.lineRange().startLine());
             }
             te.setNewText(newText);
-            te.setRange(CommonUtils.toRange(pos));
+            te.setRange(range);
             found = true;
         }
         return gson.toJsonTree(source);
+    }
+
+    public JsonElement deleteSubMapping(Path filePath, JsonElement cd, int index) {
+        Codedata codedata = gson.fromJson(cd, Codedata.class);
+        NonTerminalNode node = getNode(codedata.lineRange());
+        if (node.kind() != SyntaxKind.LOCAL_VAR_DECL) {
+            return null;
+        }
+
+        VariableDeclarationNode varDeclNode = (VariableDeclarationNode) node;
+        Optional<ExpressionNode> optInitializer = varDeclNode.initializer();
+        if (optInitializer.isEmpty()) {
+            return null;
+        }
+
+        Map<Path, List<TextEdit>> textEditsMap = new HashMap<>();
+        List<TextEdit> textEdits = new ArrayList<>();
+        textEditsMap.put(filePath, textEdits);
+
+        ExpressionNode initializer = optInitializer.get();
+        if (initializer.kind() != SyntaxKind.LET_EXPRESSION) {
+            return null;
+        }
+
+        LetExpressionNode letExpr = (LetExpressionNode) initializer;
+        SeparatedNodeList<LetVariableDeclarationNode> letVarDecls = letExpr.letVarDeclarations();
+        if (index >= letVarDecls.size()) {
+            return null;
+        }
+        Range range;
+        if (letVarDecls.size() == 1) {
+            range = CommonUtils.toRange(letExpr.letKeyword().lineRange().startLine(),
+                    letExpr.expression().lineRange().startLine());
+        } else {
+            LineRange lineRange = letVarDecls.get(index).lineRange();
+            if (index == letVarDecls.size() - 1) {
+                range = CommonUtils.toRange(letVarDecls.get(index - 1).lineRange().endLine(), lineRange.endLine());
+            } else {
+                range = CommonUtils.toRange(lineRange.startLine(), letVarDecls.get(index + 1).lineRange().startLine());
+            }
+        }
+        textEdits.add(new TextEdit(range, ""));
+        return gson.toJsonTree(textEditsMap);
     }
 
     public JsonElement genCustomFunction(WorkspaceManager workspaceManager, SemanticModel semanticModel,
@@ -2232,6 +2278,11 @@ public class DataMapManager {
         @Override
         public void visit(CheckExpressionNode node) {
             node.expression().accept(this);
+        }
+
+        @Override
+        public void visit(OptionalFieldAccessExpressionNode node) {
+            inputs.add(node.toSourceCode().trim().replace("?", ""));
         }
     }
 }

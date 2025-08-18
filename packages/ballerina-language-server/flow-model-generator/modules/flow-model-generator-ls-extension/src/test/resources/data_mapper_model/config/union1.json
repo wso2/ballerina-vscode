@@ -125,7 +125,7 @@
           ],
           "id": "animalType.animal",
           "variableName": "animal",
-          "typeName": "animal",
+          "typeName": "Dog|Elephant",
           "kind": "union",
           "optional": false
         }
