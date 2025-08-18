@@ -29,77 +29,35 @@
             "id": "DepartmentCode.FINANCE",
             "variableName": "FINANCE",
             "typeName": "FINANCE",
-            "kind": "FINANCE",
-            "optional": false
+            "kind": "FINANCE"
           },
           {
             "id": "DepartmentCode.IT",
             "variableName": "IT",
             "typeName": "IT",
-            "kind": "IT",
-            "optional": false
+            "kind": "IT"
           },
           {
             "id": "DepartmentCode.HR",
             "variableName": "HR",
             "typeName": "HR",
-            "kind": "HR",
-            "optional": false
+            "kind": "HR"
           }
         ],
-        "id": "DepartmentCode",
+        "id": "enum",
         "variableName": "DepartmentCode",
         "typeName": "DepartmentCode",
         "kind": "enum",
-        "category": "enum",
-        "optional": false
+        "category": "enum"
       }
     ],
     "output": {
-      "fields": [
-        {
-          "id": "engineering.name",
-          "variableName": "name",
-          "typeName": "string",
-          "kind": "string",
-          "optional": false
-        },
-        {
-          "members": [
-            {
-              "id": "engineering.code.FINANCE",
-              "variableName": "FINANCE",
-              "typeName": "FINANCE",
-              "kind": "FINANCE",
-              "optional": false
-            },
-            {
-              "id": "engineering.code.IT",
-              "variableName": "IT",
-              "typeName": "IT",
-              "kind": "IT",
-              "optional": false
-            },
-            {
-              "id": "engineering.code.HR",
-              "variableName": "HR",
-              "typeName": "HR",
-              "kind": "HR",
-              "optional": false
-            }
-          ],
-          "id": "engineering.code",
-          "variableName": "code",
-          "typeName": "DepartmentCode",
-          "kind": "enum",
-          "optional": false
-        }
-      ],
+      "fields": [],
       "id": "engineering",
       "variableName": "engineering",
       "typeName": "Department",
       "kind": "record",
-      "optional": false
+      "ref": "-1148493925"
     },
     "mappings": [
       {
@@ -122,6 +80,44 @@
         "isQueryExpression": false,
         "isFunctionCall": false
       }
-    ]
+    ],
+    "refs": {
+      "-1148493925": {
+        "fields": [
+          {
+            "id": "name",
+            "variableName": "name",
+            "typeName": "string",
+            "kind": "string"
+          },
+          {
+            "members": [
+              {
+                "id": "code.null",
+                "typeName": "FINANCE",
+                "kind": "FINANCE"
+              },
+              {
+                "id": "code.null",
+                "typeName": "IT",
+                "kind": "IT"
+              },
+              {
+                "id": "code.null",
+                "typeName": "HR",
+                "kind": "HR"
+              }
+            ],
+            "id": "code",
+            "variableName": "code",
+            "typeName": "DepartmentCode",
+            "kind": "union",
+            "ref": "-757557159"
+          }
+        ],
+        "typeName": "Department",
+        "kind": "record"
+      }
+    }
   }
 }

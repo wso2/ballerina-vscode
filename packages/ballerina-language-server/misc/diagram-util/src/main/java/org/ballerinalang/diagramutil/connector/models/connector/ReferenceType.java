@@ -17,37 +17,14 @@
  */
 package org.ballerinalang.diagramutil.connector.models.connector;
 
-import io.ballerina.compiler.api.symbols.ArrayTypeSymbol;
-import io.ballerina.compiler.api.symbols.EnumSymbol;
-import io.ballerina.compiler.api.symbols.ParameterSymbol;
-import io.ballerina.compiler.api.symbols.RecordFieldSymbol;
-import io.ballerina.compiler.api.symbols.RecordTypeSymbol;
-import io.ballerina.compiler.api.symbols.SingletonTypeSymbol;
-import io.ballerina.compiler.api.symbols.Symbol;
-import io.ballerina.compiler.api.symbols.SymbolKind;
-import io.ballerina.compiler.api.symbols.TypeDefinitionSymbol;
-import io.ballerina.compiler.api.symbols.TypeDescKind;
-import io.ballerina.compiler.api.symbols.TypeReferenceTypeSymbol;
-import io.ballerina.compiler.api.symbols.TypeSymbol;
-import io.ballerina.compiler.api.symbols.UnionTypeSymbol;
-import io.ballerina.compiler.api.symbols.VariableSymbol;
-import org.ballerinalang.diagramutil.connector.models.connector.reftypes.RefArrayType;
-import org.ballerinalang.diagramutil.connector.models.connector.reftypes.RefEnumType;
-import org.ballerinalang.diagramutil.connector.models.connector.reftypes.RefRecordType;
-import org.ballerinalang.diagramutil.connector.models.connector.reftypes.RefType;
-import org.ballerinalang.diagramutil.connector.models.connector.reftypes.RefUnionType;
+import io.ballerina.compiler.api.symbols.*;
+import org.ballerinalang.diagramutil.connector.models.connector.reftypes.*;
 
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 
 public class ReferenceType {
     private static final Map<String, RefType> visitedTypeMap = new HashMap<>();
-    
+
     public record Field(String fieldName, RefType type, boolean optional, String defaultValue) {
     }
 
@@ -70,8 +47,6 @@ public class ReferenceType {
             name = nameOpt.orElseGet(() -> symbol.getName().orElse(""));
         } else if (kind == SymbolKind.TYPE) {
             typeSymbol = (TypeSymbol) symbol;
-        } else if (kind == SymbolKind.ENUM) {
-            return getEnumType((EnumSymbol) symbol);
             Optional<String> optName = typeSymbol.getName();
             name = optName.orElseGet(typeSymbol::signature);
         } else if (kind == SymbolKind.CONSTANT) {
@@ -84,6 +59,8 @@ public class ReferenceType {
                                     symbol.getModule().get().id() : "N/A") +
                                     ", Symbol: " + symbol)
             ));
+        } else if (kind == SymbolKind.ENUM) {
+            return getEnumType((EnumSymbol) symbol);
         }
 
         if (typeSymbol == null) {
@@ -135,7 +112,7 @@ public class ReferenceType {
                         : null;
                 RefType fieldType = fromSemanticSymbol(fieldTypeSymbol, fieldTypeName, fieldModuleId);
                 if (fieldType.dependentTypeHashes == null || fieldType.dependentTypeHashes.isEmpty()) {
-                    if (fieldType.hashCode != null) {
+                    if (fieldType.hashCode != null && fieldType.typeName.equals("record")) {
                         RefType t = new RefType(fieldType.name);
                         t.hashCode = fieldType.hashCode;
                         t.typeName = fieldType.typeName;
@@ -171,7 +148,7 @@ public class ReferenceType {
                     : null;
             RefType elementType = fromSemanticSymbol(elementTypeSymbol, elementTypeName, moduleId);
             if (elementType.dependentTypeHashes == null || elementType.dependentTypeHashes.isEmpty()) {
-                if (elementType.hashCode != null) {
+                if (elementType.hashCode != null&& elementType.typeName.equals("record")) {
                     RefType t = new RefType(elementType.name);
                     t.hashCode = elementType.hashCode;
                     t.typeName = elementType.typeName;
@@ -208,7 +185,7 @@ public class ReferenceType {
                         : null;
                 RefType memberType = fromSemanticSymbol(memberTypeSymbol, memberTypeName, moduleId);
                 if (memberType.dependentTypeHashes == null || memberType.dependentTypeHashes.isEmpty()) {
-                    if (memberType.hashCode != null) {
+                    if (memberType.hashCode != null&& memberType.typeName.equals("record")) {
                         RefType t = new RefType(memberType.name);
                         t.hashCode = memberType.hashCode;
                         t.typeName = memberType.typeName;
@@ -217,11 +194,16 @@ public class ReferenceType {
                         unionType.memberTypes.add(memberType);
                     }
                 } else {
-                    RefType t = new RefType(memberType.name);
-                    t.hashCode = memberType.hashCode;
-                    t.typeName = memberType.typeName;
+                    if (memberType instanceof RefRecordType) {
+                        RefType t = new RefType(memberType.name);
+                        t.hashCode = memberType.hashCode;
+                        t.typeName = memberType.typeName;
+                        unionType.memberTypes.add(t);
+                    } else {
+                        unionType.memberTypes.add(memberType);
+                    }
                     unionType.dependentTypeHashes.addAll(memberType.dependentTypeHashes);
-                    unionType.memberTypes.add(t);
+
                 }
                 if (memberType.hashCode != null) {
                     unionType.dependentTypeHashes.add(memberType.hashCode);
@@ -269,11 +251,11 @@ public class ReferenceType {
                 typeName = typeName.substring(1, typeName.length() - 1);
             }
             return new RefType(typeName);
-
         }
         throw new UnsupportedOperationException(
                 "Unsupported type kind: " + kind + " for symbol: " + symbol.getName().orElse("unknown"));
     }
+
 
     private static RefType getEnumType(EnumSymbol enumSymbol) {
         RefType type;
