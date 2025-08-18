@@ -24,10 +24,11 @@ import type {} from "@projectstorm/react-diagrams-core";
 import type {} from "@projectstorm/react-diagrams";
 import { css, Global } from '@emotion/react';
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { IDMModel, Mapping } from "@wso2/ballerina-core";
-import { ErrorBoundary } from "@wso2/ui-toolkit";
+import { IDMFormProps, ModelState, IntermediateClause, Mapping, CodeData, CustomFnMetadata, LineRange, ResultClauseType } from "@wso2/ballerina-core";
+import { CompletionItem, ErrorBoundary } from "@wso2/ui-toolkit";
 
 import { InlineDataMapper } from "./components/DataMapper/DataMapper";
+import { ExpressionProvider } from "./context/ExpressionContext";
 
 const queryClient = new QueryClient({
     defaultOptions: {
@@ -48,19 +49,43 @@ const globalStyles = css`
   }
 `;
 
-export interface DataMapperViewProps {
-    model: IDMModel;
-    applyModifications: (mappings: Mapping[]) => Promise<void>;
-    addArrayElement: (targetField: string) => Promise<void>;
-    onClose: () => void;
+export interface ExpressionBarProps {
+    completions: CompletionItem[];
+    isUpdatingSource?: boolean;
+    triggerCompletions: (outputId: string, viewId: string, value: string, cursorPosition?: number) => void;
+    onCompletionSelect: (value: string) => void;
+    onSave: (outputId: string, value: string, viewId: string, name: string) => Promise<void>;
+    onCancel: () => void;
 }
 
-export function DataMapperView(props: DataMapperViewProps) {
+export interface InlineDataMapperProps {
+    modelState: ModelState;
+    name: string;
+    applyModifications: (outputId: string, expression: string, viewId: string, name: string) => Promise<void>;
+    addArrayElement: (outputId: string, viewId: string, name: string) => Promise<void>;
+    generateForm: (formProps: IDMFormProps) => JSX.Element;
+    convertToQuery: (mapping: Mapping, clauseType: ResultClauseType, viewId: string, name: string) => Promise<void>;
+    addClauses: (clause: IntermediateClause, targetField: string, isNew: boolean, index?:number) => Promise<void>;
+    addSubMapping: (subMappingName: string, type: string, index: number, targetField: string, importsCodedata?: CodeData) => Promise<void>;
+    deleteMapping: (mapping: Mapping, viewId: string) => Promise<void>;
+    mapWithCustomFn: (mapping: Mapping, metadata: CustomFnMetadata, viewId: string) => Promise<void>;
+    goToFunction: (functionRange: LineRange) => Promise<void>;
+    onClose: () => void;
+    handleView: (viewId: string, isSubMapping?: boolean) => void;
+}
+
+export interface DataMapperViewProps extends InlineDataMapperProps {
+    expressionBar: ExpressionBarProps;
+}
+
+export function DataMapperView({ expressionBar, ...props }: DataMapperViewProps) {
     return (
-        <ErrorBoundary errorMsg="An error occurred while redering the Inline Data Mapper">
+        <ErrorBoundary errorMsg="An error occurred while rendering the Inline Data Mapper">
             <QueryClientProvider client={queryClient}>
                 <Global styles={globalStyles} />
-                <InlineDataMapper {...props}/>
+                <ExpressionProvider {...expressionBar}>
+                    <InlineDataMapper {...props} />
+                </ExpressionProvider>
             </QueryClientProvider>
         </ErrorBoundary>
     );

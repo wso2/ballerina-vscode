@@ -21,9 +21,20 @@ import { IO_NODE_DEFAULT_WIDTH, IO_NODE_FIELD_HEIGHT } from "./Diagram/utils/con
 const typeLabel = {
     marginLeft: "3px",
     marginRight: "24px",
-    padding: "5px",
+    padding: "5px 8px",
     minWidth: "100px",
-    color: "inherit",
+    color: "var(--vscode-foreground)",
+    fontFamily: "GilmerRegular",
+    verticalAlign: "middle",
+    backgroundColor: "var(--vscode-editor-inactiveSelectionBackground)",
+    borderRadius: "3px"
+};
+
+const valueLabel = {
+    padding: "5px",
+    fontFamily: "GilmerRegular",
+    fontSize: "13px",
+    color: "var(--vscode-foreground)",
     verticalAlign: "middle",
 };
 
@@ -50,20 +61,19 @@ const treeLabel = {
 };
 
 export const useIONodesStyles = () => ({
-    inputTypeLabel: css({
+    typeLabel: css({
         ...typeLabel
     }),
-    outputTypeLabel: css({
-        fontSize: "13px",
-        fontWeight: 400,
-        ...typeLabel
+    unknownTypeLabel: css({
+        ...typeLabel,
+        color: "var(--vscode-errorForeground)",
     }),
     valueLabel: css({
-        padding: "5px",
-        fontWeight: 600,
-        fontSize: "13px",
-        color: "inherit",
-        verticalAlign: "middle",
+        ...valueLabel
+    }),
+    valueLabelHeader: css({
+        ...valueLabel,
+        fontSize: "14px",
     }),
     inPort: css({
 		float: "left",
@@ -174,7 +184,7 @@ export const useIONodesStyles = () => ({
     requiredMark: css({
         color: "var(--vscode-errorForeground)",
         margin: '0 2px',
-        fontSize: '13px'
+        fontSize: '15px'
     }),
     treeLabel: css({
         ...treeLabel
@@ -184,6 +194,10 @@ export const useIONodesStyles = () => ({
         height: 'fit-content',
         flexDirection: "column"
     }),
+    subMappingItemLabel: css({
+        ...treeLabel,
+        cursor: "pointer"
+    }),
     enumHeaderTreeLabel: css({
         verticalAlign: "middle",
         padding: "5px",
@@ -192,11 +206,39 @@ export const useIONodesStyles = () => ({
         minHeight: "24px",
         backgroundColor: "var(--vscode-sideBar-background)"
     }),
+    addAnotherSubMappingButton: css({
+        width: "auto",
+        margin: 0,
+        "& > vscode-button": {
+            backgroundColor: "var(--vscode-extensionButton-background)", padding: '2px',
+            "&:hover": {
+                backgroundColor: "var(--vscode-button-hoverBackground)"
+            },
+        }
+    }),
+    subMappingItemSeparator: css({
+        height: "2px",
+        width: "100%",
+        backgroundColor: "var(--vscode-titleBar-border)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center"
+    }),
     objectFieldAdderLabel: css({
         display: "flex",
         justifyContent: "center",
         color: "var(--button-primary-foreground)",
         opacity: 0.7
+    }),
+    addSubMappingButton: css({
+        "& > vscode-button": {
+            height: "40px",
+            width: `${IO_NODE_DEFAULT_WIDTH}px`,
+            border: "none",
+        },
+        "& > vscode-button > *": {
+            margin: "0px 6px"
+        }
     }),
     addArrayElementButton: css({
         "& > vscode-button": {
@@ -228,7 +270,7 @@ export const useIntermediateNodeStyles = () => ({
         width: '100%',
         backgroundColor: "var(--vscode-sideBar-background)",
         padding: "2px",
-        borderRadius: "2px",
+        borderRadius: "3px",
         display: "flex",
         flexDirection: "column",
         gap: "5px",

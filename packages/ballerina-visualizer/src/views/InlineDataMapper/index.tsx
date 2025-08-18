@@ -16,131 +16,27 @@
  * under the License.
  */
 
-import React, { useEffect, useState } from "react";
+import React from "react";
 
-import {
-    AddArrayElementRequest,
-    FlowNode,
-    IDMModel,
-    InlineDataMapperSourceRequest,
-    LinePosition,
-    Mapping,
-    SubPanel,
-    SubPanelView
-} from "@wso2/ballerina-core";
-import { DataMapperView } from "@wso2/ballerina-inline-data-mapper";
-import { ProgressIndicator } from "@wso2/ui-toolkit";
-import { useRpcContext } from "@wso2/ballerina-rpc-client";
-import { ExpressionFormField } from "@wso2/ballerina-side-panel";
+import { CodeData } from "@wso2/ballerina-core";
+import { ErrorBoundary } from "@wso2/ui-toolkit";
 
-import { useInlineDataMapperModel } from "../../Hooks";
+import { TopNavigationBar } from "../../components/TopNavigationBar";
+import { InlineDataMapperView } from "./DataMapperView";
 
-interface InlineDataMapperProps {
+export interface InlineDataMapperProps {
     filePath: string;
-    flowNode: FlowNode;
-    propertyKey: string;
-    editorKey: string;
-    position: LinePosition;
-    onClosePanel: (subPanel: SubPanel) => void;
-    updateFormField: (data: ExpressionFormField) => void;
+    codedata: CodeData;
+    varName: string;
 }
 
 export function InlineDataMapper(props: InlineDataMapperProps) {
-    const { filePath, flowNode, propertyKey, editorKey, position, onClosePanel, updateFormField } = props;
-
-    const [isFileUpdateError, setIsFileUpdateError] = useState(false);
-    const [model, setModel] = useState<IDMModel>(null);
-
-    const { rpcClient } = useRpcContext();
-    const {
-        model: initialModel,
-        isFetching,
-        isError
-    } = useInlineDataMapperModel(filePath, flowNode, propertyKey, position);
-
-    useEffect(() => {
-        if (initialModel) {
-            setModel(initialModel);
-        }
-    }, [initialModel]);
-
-    const onClose = () => {
-        onClosePanel({ view: SubPanelView.UNDEFINED });
-    }
-
-    const updateExpression = async (mappings: Mapping[]) => {
-        try {
-            const updateSrcRequest: InlineDataMapperSourceRequest = {
-                filePath,
-                flowNode,
-                propertyKey,
-                position,
-                mappings
-            };
-            const resp = await rpcClient
-                .getInlineDataMapperRpcClient()
-                .getDataMapperSource(updateSrcRequest);
-            console.log(">>> [Inline Data Mapper] getSource response:", resp);
-            const updateData: ExpressionFormField = {
-                value: resp.source,
-                key: editorKey,
-                cursorPosition: position
-            }
-            updateFormField(updateData);
-        } catch (error) {
-            console.error(error);
-            setIsFileUpdateError(true);
-        }
-    };
-
-    const addArrayElement = async (targetField: string) => {
-        try {
-            const addElementRequest: AddArrayElementRequest = {
-                filePath,
-                flowNode,
-                propertyKey,
-                position,
-                targetField
-            };
-            const resp = await rpcClient
-                .getInlineDataMapperRpcClient()
-                .addNewArrayElement(addElementRequest);
-            console.log(">>> [Inline Data Mapper] addArrayElement response:", resp);
-            const updateData: ExpressionFormField = {
-                value: resp.source,
-                key: editorKey,
-                cursorPosition: position
-            }
-            updateFormField(updateData);
-        } catch (error) {
-            console.error(error);
-            setIsFileUpdateError(true);
-        }
-    };
-
-    useEffect(() => {
-        // Hack to hit the error boundary
-        if (isError) {
-            throw new Error("Error while fetching input/output types");
-        } else if (isFileUpdateError) {
-            throw new Error("Error while updating file content");
-        } 
-    }, [isError]);
-
     return (
         <>
-            {isFetching && (
-                 <ProgressIndicator /> 
-            )}
-            {model && (
-                <DataMapperView 
-                    model={model || initialModel}
-                    onClose={onClose} 
-                    applyModifications={updateExpression}
-                    addArrayElement={addArrayElement}
-                />
-            )}
+            <TopNavigationBar />
+            <ErrorBoundary errorMsg="Error while loading the Data Mapper">
+                <InlineDataMapperView {...props} />
+            </ErrorBoundary>
         </>
     );
 };
-

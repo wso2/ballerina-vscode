@@ -47,7 +47,8 @@ import {
     DEFINE_BALLERINA_INTEGRATOR_SCOPE,
     SHOW_LIBRARY_CONFIG_VARIABLES,
     LANG_SERVER_PATH,
-    USE_BALLERINA_CLI_LANG_SERVER
+    USE_BALLERINA_CLI_LANG_SERVER,
+    INCLUDE_CURRENT_ORGANIZATION_IN_SEARCH
 }
     from "./preferences";
 import TelemetryReporter from "vscode-extension-telemetry";
@@ -84,7 +85,6 @@ export enum WEBVIEW_TYPE {
     BBE,
     CONFIGURABLE
 }
-
 export interface ConstructIdentifier {
     filePath: string;
     kind: string;
@@ -247,10 +247,6 @@ export class BallerinaExtension {
             this.installBallerina();
         });
 
-        commands.registerCommand('ballerina.update-ballerina-dev-pack', () => { // Update developer pack from ballerina dev build and set to ballerina-home and enable plugin dev mode
-            this.updateBallerinaDeveloperPack(true);
-        });
-
         commands.registerCommand('ballerina.update-ballerina', () => { // Update release pack from ballerina update tool with terminal
             this.updateBallerina();
         });
@@ -294,7 +290,7 @@ export class BallerinaExtension {
                 debug(`Feature flags - Experimental: ${this.enabledExperimentalFeatures()}, BI: ${this.biSupported}, NP: ${this.isNPSupported}`);
 
                 if (!this.ballerinaVersion.match(SWAN_LAKE_REGEX) || (this.ballerinaVersion.match(SWAN_LAKE_REGEX) &&
-                    !isSupportedVersion(ballerinaExtInstance, VERSION.BETA, 3))) {
+                    !isSupportedVersion(this, VERSION.BETA, 3))) {
                     this.showMessageOldBallerina();
                     const message = `Ballerina version ${this.ballerinaVersion} is not supported. 
                         The extension supports Ballerina Swan Lake Beta 3+ versions.`;
@@ -817,10 +813,12 @@ export class BallerinaExtension {
                 // Set the executable permissions
                 await this.setExecutablePermissions();
 
-                // Set the Ballerina version
-                const filePath = path.join(this.ballerinaInstallationDir, 'distributions', 'ballerina-version');
-                fs.writeFileSync(filePath, `ballerina-${latestDistributionVersion}`);
-                console.log(`Updated ${filePath} with version: ${latestDistributionVersion}`);
+                // Set the Ballerina version in ballerina-version files
+                const distributionFilePath = path.join(this.ballerinaInstallationDir, 'distributions', 'ballerina-version');
+                const ballerinaUserHomeFilePath = path.join(this.getBallerinaUserHome(), 'ballerina-version');
+                fs.writeFileSync(distributionFilePath, `ballerina-${latestDistributionVersion}`);
+                fs.writeFileSync(ballerinaUserHomeFilePath, `ballerina-${latestDistributionVersion}`);
+                console.log(`Updated ${distributionFilePath} and ${ballerinaUserHomeFilePath} with version: ${latestDistributionVersion}`);
 
                 // Set the Ballerina Home and Command for the user
                 this.setBallerinaCommandForUser();
@@ -1242,213 +1240,6 @@ export class BallerinaExtension {
         }
     }
 
-    async updateBallerinaDeveloperPack(restartWindow?: boolean) {
-        try {
-            if (this.langClient?.isRunning()) {
-                window.showInformationMessage(`Stopping the ballerina language server...`);
-                await this.langClient.stop();
-                await new Promise(resolve => setTimeout(resolve, 15000)); // Wait for 15 seconds
-            }
-
-            window.showInformationMessage(`Updating Ballerina version`);
-            // Remove the existing Ballerina version
-            fs.rmSync(this.ballerinaInstallationDir, { recursive: true, force: true });
-
-            await this.downloadAndUnzipBallerina(restartWindow);
-
-            await this.setBallerinaHomeAndCommand(true);
-
-            await this.setExecutablePermissions();
-
-            let res: DownloadProgress = {
-                message: `Success..`,
-                success: true,
-                step: 6 // This is the last step
-            };
-            RPCLayer._messenger.sendNotification(onDownloadProgress, { type: 'webview', webviewType: VisualizerWebview.viewType }, res);
-
-            console.log('Ballerina home has been set successfully.');
-            if (restartWindow) {
-                commands.executeCommand('workbench.action.reloadWindow');
-            } else {
-                window.showInformationMessage("Ballerina has been set up successfully");
-            }
-        } catch (error) {
-            console.error('Error downloading or unzipping the Ballerina:', error);
-            window.showErrorMessage('Error downloading or unzipping the Ballerina:', error);
-        }
-    }
-
-    private async downloadAndUnzipBallerina(restartWindow?: boolean) {
-        try {
-            // Get the latest successful daily build run and artifacts
-            let res: DownloadProgress = {
-                downloadedSize: 0,
-                message: "Fetching Ballerina release details..",
-                percentage: 0,
-                success: false,
-                totalSize: 0,
-                step: 1
-            };
-            RPCLayer._messenger.sendNotification(onDownloadProgress, { type: 'webview', webviewType: VisualizerWebview.viewType }, res);
-            const releasesResponse = await axios.get(this.ballerinaIntegratorReleaseUrl);
-            const releases = releasesResponse.data;
-            const tags = releases.map((release: any) => release.tag_name).filter((tag: string) => tag.includes("bi-pack"));
-            if (tags.length === 0) {
-                throw new Error('No Ballerina distribution found in the releases');
-            }
-            const latestTag = tags[0];
-            console.log(`Latest release tag: ${latestTag}`);
-
-            // Get the latest successful daily build run and artifacts
-            res = {
-                downloadedSize: 0,
-                message: "Fetching latest ballerina distribution details..",
-                percentage: 0,
-                success: false,
-                totalSize: 0,
-                step: 2
-            };
-            RPCLayer._messenger.sendNotification(onDownloadProgress, { type: 'webview', webviewType: VisualizerWebview.viewType }, res);
-            const biReleaseResponse = await axios.get(`${this.ballerinaIntegratorReleaseUrl}/tags/${latestTag}`);
-            const biRelease = biReleaseResponse.data;
-            this.ballerinaIntegratorVersion = biRelease.tag_name.replace('v', '').split('-')[0];
-            console.log(`Latest release version: ${this.ballerinaIntegratorVersion}`);
-
-            const platform = os.platform();
-            const asset = biRelease.assets.find((asset: any) => {
-                if (platform === 'win32') {
-                    return asset.name.endsWith('windows.zip');
-                } else if (platform === 'linux') {
-                    return asset.name.endsWith('linux.zip');
-                } else if (platform === 'darwin') {
-                    if (os.arch() === 'arm64') {
-                        return asset.name.endsWith('macos-arm.zip');
-                    } else {
-                        return asset.name.endsWith('macos.zip');
-                    }
-                }
-            });
-            if (!asset) {
-                throw new Error('No artifact found in the release ' + this.ballerinaIntegratorVersion);
-            }
-            const artifactUrl = asset.browser_download_url;
-
-            // Create destination folder if it doesn't exist
-            if (!fs.existsSync(this.getBallerinaUserHome())) {
-                fs.mkdirSync(this.getBallerinaUserHome(), { recursive: true });
-            }
-
-            // Download the artifact and save it to the user home directory
-            console.log(`Downloading artifact from ${artifactUrl}`);
-            let response;
-            try {
-                res = {
-                    downloadedSize: 0,
-                    message: "Download starting...",
-                    percentage: 0,
-                    success: false,
-                    totalSize: 0,
-                    step: 3
-                };
-                RPCLayer._messenger.sendNotification(onDownloadProgress, { type: 'webview', webviewType: VisualizerWebview.viewType }, res);
-                const sizeMB = 1024 * 1024;
-                await window.withProgress(
-                    {
-                        location: ProgressLocation.Notification,
-                        title: `Downloading Ballerina distribution`,
-                        cancellable: false,
-                    },
-                    async (progress) => {
-                        let lastPercentageReported = 0;
-
-                        response = await axios({
-                            url: artifactUrl,
-                            method: 'GET',
-                            responseType: 'arraybuffer',
-                            onDownloadProgress: (progressEvent) => {
-                                const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
-                                console.log(`Total Size: ${progressEvent.total / sizeMB}MB`);
-                                console.log(`Download progress: ${percentCompleted}%`);
-
-                                if (percentCompleted > lastPercentageReported) {
-                                    progress.report({ increment: percentCompleted - lastPercentageReported, message: `${percentCompleted}% of ${Math.round(progressEvent.total / sizeMB)}MB` });
-                                    lastPercentageReported = percentCompleted;
-                                }
-
-                                // Sizes will be sent as MB
-                                res = {
-                                    downloadedSize: progressEvent.loaded / sizeMB,
-                                    message: "Downloading...",
-                                    percentage: percentCompleted,
-                                    success: false,
-                                    totalSize: progressEvent.total / sizeMB,
-                                    step: 2
-                                };
-                                RPCLayer._messenger.sendNotification(onDownloadProgress, { type: 'webview', webviewType: VisualizerWebview.viewType }, res);
-                            }
-                        });
-                        if (restartWindow) {
-                            window.showInformationMessage("Download complete. Please wait...");
-                        }
-                        return;
-                    }
-                );
-                // ... existing code to handle the response ...
-            } catch (error) {
-                // Sizes will be sent as MB
-                res = {
-                    ...res,
-                    message: `Failed: ${error}`,
-                    success: false,
-                    step: -1 // Error step
-                };
-                RPCLayer._messenger.sendNotification(onDownloadProgress, { type: 'webview', webviewType: VisualizerWebview.viewType }, res);
-                console.error('Error downloading artifact:', error);
-            }
-            const zipFilePath = path.join(this.getBallerinaUserHome(), asset.name);
-            await fs.writeFileSync(zipFilePath, response.data);
-            console.log(`Downloaded artifact to ${zipFilePath}`);
-
-            if (restartWindow) {
-                window.showInformationMessage("Setting the Ballerina distribution Home location...");
-            }
-            res = {
-                ...res,
-                message: `Setting the Ballerina distribution Home location...`,
-                success: false,
-                step: 4
-            };
-            RPCLayer._messenger.sendNotification(onDownloadProgress, { type: 'webview', webviewType: VisualizerWebview.viewType }, res);
-            // Unzip the artifact
-            const zip = new AdmZip(zipFilePath);
-            zip.extractAllTo(this.getBallerinaUserHome(), true);
-            console.log(`Unzipped artifact to ${this.getBallerinaUserHome()}`);
-
-            // Rename the root folder to the new name
-            const tempRootPath = path.join(this.getBallerinaUserHome(), asset.name.replace('.zip', ''));
-            fs.renameSync(tempRootPath, this.ballerinaInstallationDir);
-
-            if (restartWindow) {
-                window.showInformationMessage("Cleaning up the temp files...");
-            }
-            res = {
-                ...res,
-                message: `Cleaning up the temp files...`,
-                success: false,
-                step: 5
-            };
-            RPCLayer._messenger.sendNotification(onDownloadProgress, { type: 'webview', webviewType: VisualizerWebview.viewType }, res);
-            // Cleanup: Remove the downloaded zip file
-            fs.rmSync(zipFilePath);
-
-            console.log('Cleanup complete.');
-        } catch (error) {
-            console.error('Error downloading or unzipping Ballerina version:', error);
-            window.showErrorMessage('Error downloading or unzipping Ballerina version:', error);
-        }
-    }
-
     private async setBallerinaHomeAndCommand(isDev?: boolean) {
         let exeExtension = "";
         if (isWindows()) {
@@ -1675,7 +1466,7 @@ export class BallerinaExtension {
             if (download === selection) {
                 commands.executeCommand('vscode.open', Uri.parse(DOWNLOAD_BALLERINA));
             } else if (viewLogs === selection) {
-                const balOutput = ballerinaExtInstance.getOutPutChannel();
+                const balOutput = this.getOutPutChannel();
                 if (balOutput) {
                     balOutput.show();
                 }
@@ -1933,6 +1724,10 @@ export class BallerinaExtension {
         return <boolean>workspace.getConfiguration().get(SHOW_LIBRARY_CONFIG_VARIABLES);
     }
 
+    public getIncludeCurrentOrgComponents(): boolean {
+        return <boolean>workspace.getConfiguration().get(INCLUDE_CURRENT_ORGANIZATION_IN_SEARCH);
+    }
+
     public getDocumentContext(): DocumentContext {
         return this.documentContext;
     }
@@ -2179,5 +1974,3 @@ function getShellEnvironment(): Promise<NodeJS.ProcessEnv> {
         });
     });
 }
-
-export const ballerinaExtInstance = new BallerinaExtension();

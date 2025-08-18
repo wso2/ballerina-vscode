@@ -57,7 +57,6 @@ export type ContextAwareExpressionEditorProps = {
     subPanelView?: SubPanelView;
     handleOnFieldFocus?: (key: string) => void;
     autoFocus?: boolean;
-    visualizable?: boolean;
     recordTypeField?: RecordTypeField;
     helperPaneZIndex?: number;
 
@@ -330,7 +329,6 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
         subPanelView,
         targetLineRange,
         fileName,
-        visualizable,
         helperPaneOrigin,
         helperPaneHeight,
         recordTypeField,
@@ -461,14 +459,6 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
 
     const debouncedUpdateSubPanelData = debounce(updateSubPanelData, 300);
 
-    const codeActions = [
-        visualizable && (
-            <Button appearance="icon" onClick={() => handleInlineDataMapperOpen(false)}>
-                <S.DataMapperBtnTxt>Map Data Inline</S.DataMapperBtnTxt>
-            </Button>
-        )
-    ];
-
     const defaultValueText = field.defaultValue ?
         <S.DefaultValue>Defaults to {field.defaultValue}</S.DefaultValue> : null;
 
@@ -477,6 +467,7 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
             ? field.documentation
             : `${field.documentation}.`
         : '';
+
 
     return (
         <FieldProvider 

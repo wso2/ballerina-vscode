@@ -15,108 +15,134 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { IDMModel, Mapping } from "@wso2/ballerina-core";
 import { DataMapperLinkModel } from "../Link";
 import { DataMapperNodeModel } from "../Node/commons/DataMapperNode";
-import { InputOutputPortModel } from "../Port";
-import { IDataMapperContext } from "src/utils/DataMapperContext/DataMapperContext";
+import { InputOutputPortModel, ValueType } from "../Port";
+import { IDataMapperContext } from "../../../utils/DataMapperContext/DataMapperContext";
 import { MappingFindingVisitor } from "../../../visitors/MappingFindingVisitor";
 import { traverseNode } from "../../../utils/model-utils";
-import { MappingDeletionVisitor } from "../../../visitors/MappingDeletionVisitor";
+import { getTargetField, getValueType } from "./common-utils";
+import { CustomFnMetadata, CustomFnParams, Mapping, ResultClauseType } from "@wso2/ballerina-core";
+import { getTypeName, isEnumMember } from "./type-utils";
+import { InputNode } from "../Node/Input/InputNode";
 
-export async function createNewMapping(link: DataMapperLinkModel) {
+export async function createNewMapping(link: DataMapperLinkModel, modifier?: (expr: string) => string) {
+	const sourcePort = link.getSourcePort();
 	const targetPort = link.getTargetPort();
-	if (!targetPort) {
+	if (!sourcePort || !targetPort) {
 		return;
 	}
 
+	const sourcePortModel = sourcePort as InputOutputPortModel;
 	const outputPortModel = targetPort as InputOutputPortModel;
+
 	const targetNode = outputPortModel.getNode() as DataMapperNodeModel;
-	const { mappings } = targetNode.context.model;
-	const input = (link.getSourcePort() as InputOutputPortModel).optionalOmittedFieldFQN;
-	const outputPortParts = outputPortModel.portName.split('.');
-	const isWithinArray = outputPortParts.some(part => !isNaN(Number(part)));
-	const model = targetNode.context.model;
 
-	if (isWithinArray) {
-		createNewMappingWithinArray(outputPortParts.slice(1), input, model);
-		const updatedMappings = mappings;
-		return await targetNode.context.applyModifications(updatedMappings);
-	} else {
-		const mappingFindingVisitor = new MappingFindingVisitor(outputPortParts.slice(1).join('.'));
-        traverseNode(model, mappingFindingVisitor);
-        const targetMapping = mappingFindingVisitor.getTargetMapping();
+	const isSourceEnumMember = isEnumMember(sourcePortModel.getNode() as InputNode);
 
-		if (targetMapping) {
-			// Update the existing mapping with the new input
-			targetMapping.expression = input;
-			targetMapping.inputs.push(input);
-		} else {
-			const newMapping = {
-				output: outputPortParts.slice(1).join('.'),
-				inputs: [input],
-				expression: input
-			};
-		
-			mappings.push(newMapping);
-		}
-	}
+	const input = isSourceEnumMember
+		? sourcePortModel.attributes.field?.typeName
+		: sourcePortModel.attributes.optionalOmittedFieldFQN;
+	const outputId = outputPortModel.attributes.fieldFQN;
+	const lastView = targetNode.context.views[targetNode.context.views.length - 1];
+	const viewId = lastView?.targetField || null;
+	const name  = targetNode.context.views[0]?.targetField;
 
-	return await targetNode.context.applyModifications(mappings);
-}
+	const { model, applyModifications } = targetNode.context;
 
-export async function updateExistingMapping(link: DataMapperLinkModel) {
-	const targetPort = link.getTargetPort();
-	if (!targetPort) {
-		return;
-	}
-
-	const outputPortModel = targetPort as InputOutputPortModel;
-	const targetNode = outputPortModel.getNode() as DataMapperNodeModel;
-	const { model } = targetNode.context;
-	const input = (link.getSourcePort() as InputOutputPortModel).optionalOmittedFieldFQN;
-	const outputPortParts = outputPortModel.portName.split('.');
-	const targetId = outputPortParts.slice(1).join('.');
-
-	const mappingFindingVisitor = new MappingFindingVisitor(targetId);
+	const mappingFindingVisitor = new MappingFindingVisitor(outputId);
 	traverseNode(model, mappingFindingVisitor);
 	const targetMapping = mappingFindingVisitor.getTargetMapping();
 
+	let expression = modifier ? modifier(input) : input;
+
 	if (targetMapping) {
-		targetMapping.inputs.push(input);
-		targetMapping.expression = `${targetMapping.expression} + ${input}`;
+		const valueType = getValueType(link);
+
+		if (valueType === ValueType.Mergeable) {
+			expression = `${targetMapping.expression} + ${expression}`;
+		}
 	}
 
-	return await targetNode.context.applyModifications(model.mappings);
+	return await applyModifications(outputId, expression, viewId, name);
 }
 
 export async function addValue(fieldId: string, value: string, context: IDataMapperContext) {
-	const { mappings } = context.model;
-	const isWithinArray = fieldId.split('.').some(part => !isNaN(Number(part)));
+	const lastView = context.views[context.views.length - 1];
+	const viewId = lastView?.targetField || null;
+	const name = context.views[0]?.targetField;
 
-	if (isWithinArray) {
-		createNewMappingWithinArray(fieldId.split('.'), value, context.model);
-		const updatedMappings = mappings;
-		return await context.applyModifications(updatedMappings);
-	} else {
-		const newMapping: Mapping = {
-			output: fieldId,
-			inputs: [],
-			expression: value
-		};
-	
-		mappings.push(newMapping);
-	}
-
-	return await context.applyModifications(mappings);
+	return await context.applyModifications(fieldId, value, viewId, name);
 }
 
-export async function removeMapping(fieldId: string, context: IDataMapperContext) {
-	const deletionVisitor = new MappingDeletionVisitor(fieldId);
-	traverseNode(context.model, deletionVisitor);
-	const remainingMappings = deletionVisitor.getRemainingMappings();
+export async function removeMapping(mapping: Mapping, context: IDataMapperContext) {
+	const views=context.views;
+	const viewId = views[views.length-1].targetField;
+	return await context.deleteMapping( mapping as Mapping, viewId)
+}
 
-	return await context.applyModifications(remainingMappings);
+export async function mapWithCustomFn(link: DataMapperLinkModel, context: IDataMapperContext){
+	const sourcePort = link.getSourcePort();
+	const targetPort = link.getTargetPort();
+	if (!sourcePort || !targetPort) {
+		return;
+	}
+
+	const sourcePortModel = sourcePort as InputOutputPortModel;
+	const outputPortModel = targetPort as InputOutputPortModel;
+
+	const input = sourcePortModel.attributes.optionalOmittedFieldFQN;
+	const outputId = outputPortModel.attributes.fieldFQN;
+	const lastView = context.views[context.views.length - 1];
+	const viewId = lastView?.targetField || null;
+
+	const mapping: Mapping = {
+		output: outputId,
+		expression: input
+	};
+
+	const inputField = sourcePortModel.attributes.field;
+	const outputField = outputPortModel.attributes.field;
+	const inputParams: CustomFnParams[] = [{
+		name: inputField.variableName,
+		type: getTypeName(inputField).replace("record", "any"),
+		isOptional: false,
+		isNullable: false,
+		kind: inputField.kind
+	}];
+
+	const metadata: CustomFnMetadata = {
+		returnType: getTypeName(outputField).replace("record", "any"),
+		parameters: inputParams
+	}
+
+	await context.mapWithCustomFn(mapping, metadata, viewId);
+
+}
+
+export async function mapWithQuery(link: DataMapperLinkModel, clauseType: ResultClauseType, context: IDataMapperContext) {
+	const sourcePort = link.getSourcePort();
+	const targetPort = link.getTargetPort();
+	if (!sourcePort || !targetPort) {
+		return;
+	}
+
+	const sourcePortModel = sourcePort as InputOutputPortModel;
+	const outputPortModel = targetPort as InputOutputPortModel;
+
+	const input = sourcePortModel.attributes.optionalOmittedFieldFQN;
+	const outputId = outputPortModel.attributes.fieldFQN;
+	const lastView = context.views[context.views.length - 1];
+	const viewId = lastView?.targetField || null;
+	const name  = context.views[0]?.targetField;
+
+	const mapping: Mapping = {
+		output: "OUTPUT",// TODO: Remove this once the API is updated, currently output is embedded in to targetField
+		expression: input
+	};
+	const targetField = getTargetField(viewId, outputId); // TODO: Remove this once the API is updated
+
+	await context?.convertToQuery(mapping, clauseType, targetField, name);
 }
 
 export function buildInputAccessExpr(fieldFqn: string): string {
@@ -134,43 +160,4 @@ export function buildInputAccessExpr(fieldFqn: string): string {
     });
 
 	return result.replace(/(?<!\?)\.\[/g, '['); // Replace occurrences of '.[' with '[' to handle consecutive bracketing
-}
-
-function createNewMappingWithinArray(outputPortParts: string[], input: string, model: IDMModel) {
-	for(let i = outputPortParts.length; i >= 1; i--) {
-		const targetId = outputPortParts.slice(0, i).join('.');
-
-		const mappingFindingVisitor = new MappingFindingVisitor(targetId);
-        traverseNode(model, mappingFindingVisitor);
-        const targetMapping = mappingFindingVisitor.getTargetMapping();
-
-		if (targetMapping) {
-			const arrayIndex = Number(outputPortParts[i]);
-			const arrayElement = targetMapping.elements.length > 0 ? targetMapping.elements[arrayIndex] : undefined;
-
-			if (arrayElement) {
-				arrayElement.mappings.push({
-					output: outputPortParts.join('.'),
-					inputs: [input],
-					expression: input,
-					elements: []
-				});
-			} else if (isNaN(arrayIndex)) {
-				// When mapped directly to an array element
-				targetMapping.expression = input;
-				targetMapping.inputs.push(input);
-			} else {
-				const newMapping: Mapping = {
-					output: targetId,
-					inputs: [input],
-					expression: input,
-					elements: []
-				};
-				targetMapping.elements.push({
-					mappings: [newMapping]
-				});
-			}
-			break;
-		}
-	}
 }

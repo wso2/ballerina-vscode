@@ -18,9 +18,9 @@
 // tslint:disable: jsx-no-multiline-js
 import React, { useState } from "react";
 
-import { Button, Codicon } from "@wso2/ui-toolkit";
+import { Button, Codicon, TruncatedLabel } from "@wso2/ui-toolkit";
 import { DiagramEngine } from '@projectstorm/react-diagrams';
-import { IOType } from "@wso2/ballerina-core";
+import { IOType, TypeKind } from "@wso2/ballerina-core";
 
 import { DataMapperPortWidget, PortState, InputOutputPortModel } from '../../Port';
 import { InputSearchHighlight } from '../commons/Search';
@@ -38,10 +38,11 @@ export interface InputNodeWidgetProps {
     getPort: (portId: string) => InputOutputPortModel;
     valueLabel?: string;
     nodeHeaderSuffix?: string;
+    focusedInputs?: string[];
 }
 
 export function InputNodeWidget(props: InputNodeWidgetProps) {
-    const { engine, dmType, id, getPort, valueLabel, nodeHeaderSuffix } = props;
+    const { engine, dmType, id, getPort, valueLabel, nodeHeaderSuffix, focusedInputs } = props;
     
     const [portState, setPortState] = useState<PortState>(PortState.Unselected);
     const [isHovered, setIsHovered] = useState(false);
@@ -59,26 +60,34 @@ export function InputNodeWidget(props: InputNodeWidgetProps) {
     const typeName = getTypeName(dmType);
 
     const portOut = getPort(`${id}.OUT`);
+    const isUnknownType = dmType.kind === TypeKind.Unknown;
 
-    const hasFields = !!dmType?.fields?.length;
+    let fields: IOType[];
+
+    if (dmType.kind === TypeKind.Record) {
+        fields = dmType.fields;
+    } else if (dmType.kind === TypeKind.Array) {
+        fields = [ dmType.member ];
+    } else if (dmType.kind === TypeKind.Enum) {
+        fields = dmType.members;
+    }
 
     let expanded = true;
-    if (portOut && portOut.collapsed) {
+    if (portOut && portOut.attributes.collapsed) {
         expanded = false;
     }
 
     const label = (
-        <span style={{ marginRight: "auto" }}>
-            <span className={classes.valueLabel}>
+        <TruncatedLabel style={{ marginRight: "auto" }}>
+            <span className={classes.valueLabelHeader}>
                 <InputSearchHighlight>{valueLabel ? valueLabel : id}</InputSearchHighlight>
-                {typeName && ":"}
             </span>
             {typeName && (
-                <span className={classes.inputTypeLabel}>
+                <span className={isUnknownType ? classes.unknownTypeLabel : classes.typeLabel}>
                     {typeName}
                 </span>
             )}
-        </span>
+        </TruncatedLabel>
     );
 
     const handleExpand = () => {
@@ -118,7 +127,7 @@ export function InputNodeWidget(props: InputNodeWidgetProps) {
                 onMouseLeave={onMouseLeave}
             >
                 <span className={classes.label}>
-                    {hasFields && (
+                    {fields && (
                         <Button
                             id={"expand-or-collapse-" + id} 
                             appearance="icon"
@@ -138,10 +147,12 @@ export function InputNodeWidget(props: InputNodeWidgetProps) {
                     }
                 </span>
             </TreeHeader>
-            {expanded && hasFields && (
+            {expanded && fields && (
                 <TreeBody>
                     {
-                        dmType.fields.map((field, index) => {
+                        fields
+                            ?.filter(f => !!f)
+                            .map((field, index) => {
                             return (
                                 <InputNodeTreeItemWidget
                                     key={index}
@@ -151,6 +162,7 @@ export function InputNodeWidget(props: InputNodeWidgetProps) {
                                     parentId={id}
                                     treeDepth={0}
                                     hasHoveredParent={isHovered}
+                                    focusedInputs={focusedInputs}
                                 />
                             );
                         })

@@ -15,11 +15,11 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+import { BaseVisitor } from "@wso2/ballerina-core";
 
 import { LAST_NODE, START_NODE } from "../resources/constants";
 import { getCustomNodeId } from "../utils/node";
 import { Branch, Flow, FlowNode, Property, ViewState } from "../utils/types";
-import { BaseVisitor } from "./BaseVisitor";
 
 export class InitVisitor implements BaseVisitor {
     private skipChildrenVisit = false;
@@ -387,6 +387,18 @@ export class InitVisitor implements BaseVisitor {
         onFailureBranch.children.push(onFailureEndNode);
     }
 
+    private removeViewStateRecursively(node: FlowNode): void {
+        node.viewState = undefined;
+
+        node.branches?.forEach((branch) => {
+            branch.viewState = undefined;
+            branch.children?.forEach((child) => {
+                this.removeViewStateRecursively(child);
+            });
+        });
+
+    }
+
     endVisitErrorHandler(node: FlowNode, parent?: FlowNode): void {
         if (!this.validateNode(node)) return;
         // Remove view state of error branch and its children when not expanded
@@ -396,11 +408,12 @@ export class InitVisitor implements BaseVisitor {
             if (this.expandedErrorHandler !== node.id) {
                 errorBranch.viewState = undefined;
                 errorBranch.children.forEach((child) => {
-                    child.viewState = undefined;
+                    this.removeViewStateRecursively(child);
                 });
             }
-            this.endVisitNode(node, parent);
         }
+        
+        this.endVisitNode(node, parent);
     }
 
     private visitForkNode(node: FlowNode, parent?: FlowNode): void {

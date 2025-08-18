@@ -17,7 +17,7 @@
  */
 
 import { ExtensionContext, commands, window, Location, Uri, TextEditor, extensions } from 'vscode';
-import { ballerinaExtInstance, BallerinaExtension } from './core';
+import { BallerinaExtension } from './core';
 import { activate as activateBBE } from './views/bbe';
 import {
     activate as activateTelemetryListener, CMP_EXTENSION_CORE, sendTelemetryEvent,
@@ -94,7 +94,7 @@ function onBeforeInit(langClient: ExtendedLangClient) {
         }
         fillClientCapabilities(capabilities: ExtendedClientCapabilities): void {
             capabilities.experimental = capabilities.experimental || { introspection: false, showTextDocument: false };
-            capabilities.experimental.experimentalLanguageFeatures = ballerinaExtInstance.enabledExperimentalFeatures();
+            capabilities.experimental.experimentalLanguageFeatures = extension.ballerinaExtInstance.enabledExperimentalFeatures();
         }
         initialize(_capabilities: ServerCapabilities, _documentSelector: DocumentSelector | undefined): void {
         }
@@ -112,10 +112,12 @@ export async function activate(context: ExtensionContext) {
     // Wait for the ballerina extension to be ready
     await StateMachine.initialize();
     // Then return the ballerina extension context
-    return { ballerinaExtInstance, projectPath: StateMachine.context().projectUri };
+    return { ballerinaExtInstance: extension.ballerinaExtInstance, projectPath: StateMachine.context().projectUri };
 }
 
 export async function activateBallerina(): Promise<BallerinaExtension> {
+    const ballerinaExtInstance = new BallerinaExtension();
+    extension.ballerinaExtInstance = ballerinaExtInstance;
     debug('Active the Ballerina VS Code extension.');
     sendTelemetryEvent(ballerinaExtInstance, TM_EVENT_EXTENSION_ACTIVATE, CMP_EXTENSION_CORE);
     ballerinaExtInstance.setContext(extension.context);
@@ -242,6 +244,6 @@ export function deactivate(): Thenable<void> | undefined {
     if (!langClient) {
         return;
     }
-    ballerinaExtInstance.telemetryReporter.dispose();
+    extension.ballerinaExtInstance.telemetryReporter.dispose();
     return langClient.stop();
 }

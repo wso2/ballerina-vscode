@@ -28,8 +28,10 @@ import { ConnectorRequest, ConnectorResponse } from "../rpc-types/connector-wiza
 import { SqFlow } from "../rpc-types/sequence-diagram/interfaces";
 import { FieldType, FunctionModel, ListenerModel, ServiceClassModel, ServiceModel } from "./service";
 import { CDModel } from "./component-diagram";
-import { IDMModel, Mapping } from "./inline-data-mapper";
-import { SCOPE } from "../state-machine-types";
+import { DMModel, ExpandedDMModel, IntermediateClause, Mapping, VisualizableField, CustomFnMetadata, ResultClauseType } from "./inline-data-mapper";
+import { DataMapperMetadata, SCOPE } from "../state-machine-types";
+import { Attachment } from "../rpc-types/ai-panel/interfaces";
+import { ToolParameters } from "../rpc-types/ai-agent/interfaces";
 
 export interface DidOpenParams {
     textDocument: TextDocumentItem;
@@ -279,41 +281,151 @@ export interface TypeWithIdentifier {
     type: TypeField;
 }
 
-export interface InlineDataMapperModelRequest {
+export interface InitialIDMSourceRequest {
     filePath: string;
     flowNode: FlowNode;
-    propertyKey: string;
-    position: LinePosition;
 }
 
-export interface InlineDataMapperSourceRequest extends InlineDataMapperModelRequest {
+export interface InitialIDMSourceResponse {
+    textEdits: {
+        [key: string]: TextEdit[];
+    };
+    codedata?: CodeData;
+}
+
+export interface InlineDataMapperModelRequest {
+    filePath: string;
+    codedata: CodeData;
+    position: LinePosition;
+    targetField?: string;
+}
+
+export interface InlineDataMapperBase {
+    filePath: string;
+    codedata: CodeData;
+    varName?: string;
+    targetField?: string;
+}
+
+export interface InlineDataMapperSourceRequest extends InlineDataMapperBase {
+    mapping: Mapping;
+    withinSubMapping?: boolean;
+}
+
+export interface InlineAllDataMapperSourceRequest extends InlineDataMapperBase {
     mappings: Mapping[];
+}
+
+export interface ExtendedDataMapperMetadata extends DataMapperMetadata {
+    mappingsModel: ExpandedDMModel;
+}
+
+export interface MetadataWithAttachments {
+    metadata: ExtendedDataMapperMetadata;
+    attachment?: Attachment[];
 }
 
 export interface VisualizableFieldsRequest {
     filePath: string;
-    flowNode: FlowNode;
-    position: LinePosition;
+    codedata: CodeData;
 }
 
 export interface InlineDataMapperModelResponse {
-    mappingsModel: IDMModel;
+    mappingsModel: ExpandedDMModel | DMModel;
 }
 
 export interface InlineDataMapperSourceResponse {
-    source: string;
+    textEdits?: {
+        [key: string]: TextEdit[];
+    };
+    error?: string;
+    userAborted?: boolean;
 }
 
 export interface VisualizableFieldsResponse {
-    visualizableProperties: string[];
+    visualizableProperties: VisualizableField;
 }
 
 export interface AddArrayElementRequest {
     filePath: string;
-    flowNode: FlowNode;
-    position: LinePosition;
-    propertyKey: string;
+    codedata: CodeData;
+    varName?: string;
+    targetField?: string;
+    propertyKey?: string;
+}
+
+export interface ConvertToQueryRequest {
+    filePath: string;
+    codedata: CodeData;
+    mapping: Mapping;
+    clauseType: ResultClauseType;
+    varName?: string;
     targetField: string;
+    propertyKey?: string;
+}
+
+export interface AddClausesRequest {
+    filePath: string;
+    codedata: CodeData;
+    index: number;
+    clause: IntermediateClause;
+    varName?: string;
+    targetField: string;
+    propertyKey?: string;
+}
+
+export interface AddSubMappingRequest {
+    filePath: string;
+    codedata: CodeData;
+    index: number;
+    flowNode: FlowNode;
+    varName?: string;
+    targetField: string;
+}
+
+export interface DeleteMappingRequest {
+    filePath: string;
+    codedata: CodeData;
+    mapping: Mapping;
+    varName?: string;
+    targetField: string;
+}
+
+export interface MapWithCustomFnRequest {
+    filePath: string;
+    codedata: CodeData;
+    mapping: Mapping;
+    functionMetadata: CustomFnMetadata;
+    varName?: string;
+    targetField: string;
+}
+
+export interface GetInlineDataMapperCodedataRequest {
+    filePath: string;
+    codedata: CodeData;
+    name: string;
+}
+
+export interface GetSubMappingCodedataRequest {
+    filePath: string;
+    codedata: CodeData;
+    view: string;
+}
+
+export interface GetInlineDataMapperCodedataResponse {
+    codedata: CodeData;
+}
+
+export interface PropertyRequest {
+    filePath: string;
+    codedata: CodeData;
+    propertyKey: string,
+    targetField: string;
+    fieldId: string;
+}
+
+export interface PropertyResponse {
+    property: Property;
 }
 
 export interface GraphqlDesignServiceParams {
@@ -726,9 +838,10 @@ export type SearchQueryParams = {
     limit?: number;
     offset?: number;
     includeAvailableFunctions?: string;
+    includeCurrentOrganizationInSearch?: boolean;
 }
 
-export type SearchKind = 'FUNCTION' | 'CONNECTOR' | 'TYPE' | "NP_FUNCTION";
+export type SearchKind = 'FUNCTION' | 'CONNECTOR' | 'TYPE' | "NP_FUNCTION" | "MODEL_PROVIDER" | "VECTOR_STORE" | "EMBEDDING_PROVIDER" | "VECTOR_KNOWLEDGE_BASE";
 
 export type BISearchRequest = {
     position: LineRange;
@@ -1423,8 +1536,17 @@ export interface FunctionNodeResponse {
 
 // <-------- AI Agent Related ------->
 
+export interface AiModuleOrgRequest {
+    projectPath: string;
+}
+
+export interface AiModuleOrgResponse {
+    orgName: string;
+}
+
 export interface AINodesRequest {
     filePath: string;
+    orgName: string;
 }
 export interface AINodesResponse {
     agents?: CodeData[];
@@ -1432,6 +1554,7 @@ export interface AINodesResponse {
 }
 export interface MemoryManagersRequest {
     filePath: string;
+    orgName: string;
 }
 export interface MemoryManagersResponse {
     memoryManagers?: CodeData[];
@@ -1444,13 +1567,49 @@ export interface AIModelsResponse {
 export interface AIModelsRequest {
     agent: any;
     filePath?: string;
+    orgName: string;
 }
 
 export interface AIToolsRequest {
     filePath: string;
+    serviceUrl?: string;
+    configs?: Record<string, string>;
 }
+
 export interface AIToolsResponse {
     tools: string[];
+}
+
+export interface AIToolRequest {
+    toolName: string;
+    projectPath: string;
+}
+
+export interface AIToolResponse {
+    name: string;
+    source: string;
+    toolParameters: Property;
+    connection: string;
+    description: string;
+    toolDescription: string;
+    diagram: FunctionNode;
+    output: {
+        [key: string]: TextEdit[];
+    };
+}
+
+export interface McpToolsRequest {
+    serviceUrl?: string;
+    configs?: Record<string, string>;
+    filePath?: string;
+}
+
+export interface McpToolsResponse {
+    tools: Array<{
+        name: string;
+        description?: string;
+    }>;
+    error?: string;
 }
 
 export interface AIGentToolsRequest {
@@ -1459,6 +1618,7 @@ export interface AIGentToolsRequest {
     toolName: string;
     description: string;
     connection: string;
+    toolParameters?: ToolParameters;
 }
 
 export interface AIGentToolsResponse {
@@ -1553,7 +1713,8 @@ export enum ARTIFACT_TYPE {
     Types = "Types",
     NaturalFunctions = "Natural Functions",
     DataMappers = "Data Mappers",
-    Configurations = "Configurations"
+    Configurations = "Configurations",
+    Variables = "Variables"
 }
 
 export interface Artifacts {
@@ -1643,6 +1804,7 @@ export interface BIInterface extends BaseLangClientInterface {
     getAllModels: (params: AIModelsRequest) => Promise<AINodesResponse>;
     getModels: (params: AIModelsRequest) => Promise<AIModelsResponse>;
     getTools: (params: AIToolsRequest) => Promise<AIToolsResponse>;
+    getMcpTools: (params: McpToolsRequest) => Promise<McpToolsResponse>;
     genTool: (params: AIGentToolsRequest) => Promise<AIGentToolsResponse>;
 }
 

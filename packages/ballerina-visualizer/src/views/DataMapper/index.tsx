@@ -20,11 +20,10 @@ import React, { useMemo } from "react";
 
 import { DataMapperView } from "@wso2/data-mapper-view";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
-import { STModification, HistoryEntry } from "@wso2/ballerina-core";
+import { STModification, HistoryEntry, EVENT_TYPE } from "@wso2/ballerina-core";
 import { FunctionDefinition } from "@wso2/syntax-tree";
 import { RecordEditor, StatementEditorComponentProps } from "@wso2/record-creator";
 import { View } from "@wso2/ui-toolkit";
-import { URI, Utils } from "vscode-uri";
 import { TopNavigationBar } from "../../components/TopNavigationBar";
 import { FunctionForm } from "../BI";
 
@@ -55,7 +54,11 @@ export function DataMapper(props: DataMapperProps) {
 
 
     const goToFunction = async (entry: HistoryEntry) => {
-        rpcClient.getVisualizerRpcClient().addToHistory(entry);
+        const documentUri = entry?.location?.documentUri;
+        const position = entry?.location?.position;
+        rpcClient
+            .getVisualizerRpcClient()
+            .openView({ type: EVENT_TYPE.OPEN_VIEW, location: { documentUri, position } });
     };
 
     const applyRecordModifications = async (modifications: STModification[]) => {

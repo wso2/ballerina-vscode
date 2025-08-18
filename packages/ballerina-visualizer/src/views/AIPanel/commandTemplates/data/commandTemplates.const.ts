@@ -101,11 +101,17 @@ export const commandTemplates = {
                 }
             ],
         },
+        {
+            id: TemplateId.InlineMappings,
+            text: 'generate mappings using record fields and external values',
+            placeholders: [],
+            defaultVisibility: false
+        },
     ],
     [Command.TypeCreator]: [
         {
             id: TemplateId.TypesForAttached,
-            text: 'generate types using the attatched file',
+            text: 'generate types using the attached file',
             placeholders: []
         }
     ],

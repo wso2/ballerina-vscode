@@ -25,10 +25,10 @@ import classnames from "classnames";
 import { LinkConnectorNode } from './LinkConnectorNode';
 import { useIntermediateNodeStyles } from '../../../styles';
 import { DiagnosticWidget } from '../../Diagnostic/DiagnosticWidget';
-import { renderDeleteButton, renderEditButton, renderPortWidget } from './LinkConnectorWidgetComponents';
+import { renderDeleteButton, renderEditButton, renderIconButton, renderPortWidget } from './LinkConnectorWidgetComponents';
 import { useDMExpressionBarStore } from "../../../../store/store";
 import { InputOutputPortModel } from "../../Port";
-import { useShallow } from "zustand/react/shallow";
+
 
 export interface LinkConnectorNodeWidgetProps {
     node: LinkConnectorNode;
@@ -48,7 +48,7 @@ export function LinkConnectorNodeWidget(props: LinkConnectorNodeWidgetProps) {
 
     const onClickEdit = () => {
         const targetPort = node.targetMappedPort;
-        setExprBarFocusedPort(targetPort as InputOutputPortModel);
+        setExprBarFocusedPort(targetPort);
     };
 
     const onClickDelete = async () => {
@@ -69,11 +69,12 @@ export function LinkConnectorNodeWidget(props: LinkConnectorNodeWidgetProps) {
             <div className={classes.root} data-testid={`link-connector-node-${node?.value}`}>
                 <div className={classes.header}>
                     {renderPortWidget(engine, node.inPort, `${node?.value}-input`)}
+                    {renderIconButton(node)}
                     {renderEditButton(onClickEdit, node?.value)}
                     {deleteInProgress ? (
                         loadingScreen
                     ) : (
-                        <>{renderDeleteButton(onClickDelete, node?.value)}</>
+                        renderDeleteButton(onClickDelete, node?.value)
                     )}
                     {diagnostic && (
                         <DiagnosticWidget
