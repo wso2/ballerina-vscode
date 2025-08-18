@@ -103,10 +103,10 @@ export async function generateCodeCore(params: GenerateCodeRequest, eventHandler
 
     eventHandler({ type: "start" });
     let assistantResponse: string = "";
-    let libraryDetails: Library[] | null = null;
+    let libraryDetails: Library[] = [];
     for await (const part of fullStream) {
         if (part.type === "tool-result") {
-            libraryDetails = part.result as Library[];
+            libraryDetails.push(...(part.result as Library[]));
             console.log(
                 "[LibraryProviderTool] Library Relevant trimmed functions By LibraryProviderTool Result: ",
                 libraryDetails
