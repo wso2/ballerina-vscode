@@ -1663,9 +1663,6 @@ public class DataMapManager {
                                         String fieldId) {
         Codedata codedata = gson.fromJson(cd, Codedata.class);
         NonTerminalNode stNode = getNode(codedata.lineRange());
-        if (stNode.kind() != SyntaxKind.LOCAL_VAR_DECL) {
-            return null;
-        }
 
         TargetNode expression = getTargetNode(stNode, targetField, semanticModel);
         if (expression == null) {
@@ -1706,17 +1703,10 @@ public class DataMapManager {
     public JsonElement subMapping(JsonElement cd, String view) {
         Codedata codedata = gson.fromJson(cd, Codedata.class);
         NonTerminalNode stNode = getNode(codedata.lineRange());
-        if (stNode.kind() != SyntaxKind.LOCAL_VAR_DECL) {
+        ExpressionNode initializer = getMappingExpr(stNode);
+        if (initializer == null) {
             return null;
         }
-
-        VariableDeclarationNode varDeclNode = (VariableDeclarationNode) stNode;
-        Optional<ExpressionNode> optInitializer = varDeclNode.initializer();
-        if (optInitializer.isEmpty()) {
-            return null;
-        }
-
-        ExpressionNode initializer = optInitializer.get();
         if (initializer.kind() != SyntaxKind.LET_EXPRESSION) {
             return null;
         }
@@ -1765,6 +1755,18 @@ public class DataMapManager {
                 if (jsonElement != null) {
                     return jsonElement;
                 }
+            } else if (stNode.kind() == SyntaxKind.FUNCTION_DEFINITION) {
+                FunctionDefinitionNode funcDefNode = (FunctionDefinitionNode) stNode;
+                FunctionBodyNode funcBodyNode = funcDefNode.functionBody();
+                if (funcBodyNode.kind() == SyntaxKind.EXPRESSION_FUNCTION_BODY) {
+                    if (funcDefNode.functionName().text().equals(name)) {
+                        return gson.toJsonTree(new Codedata.Builder<>(null)
+                                .lineRange(stNode.lineRange())
+                                .node(NodeKind.VARIABLE)
+                                .build());
+                    }
+                }
+                return null;
             }
             stNode = stNode.parent();
         }
@@ -1837,16 +1839,10 @@ public class DataMapManager {
                                      int index) {
         Codedata codedata = gson.fromJson(cd, Codedata.class);
         NonTerminalNode node = getNode(codedata.lineRange());
-        if (node.kind() != SyntaxKind.LOCAL_VAR_DECL) {
+        ExpressionNode expr = getMappingExpr(node);
+        if (expr == null) {
             return null;
         }
-
-        VariableDeclarationNode varDeclNode = (VariableDeclarationNode) node;
-        Optional<ExpressionNode> optInitializer = varDeclNode.initializer();
-        if (optInitializer.isEmpty()) {
-            return null;
-        }
-        ExpressionNode initializer = optInitializer.get();
 
         FlowNode flowNode = gson.fromJson(fn, FlowNode.class);
         SourceBuilder sourceBuilder = new SourceBuilder(flowNode, workspaceManager, filePath);
@@ -1861,9 +1857,9 @@ public class DataMapManager {
 
             newText = newText.split(";")[0];
             Range range;
-            if (initializer.kind() == SyntaxKind.LET_EXPRESSION) {
+            if (expr.kind() == SyntaxKind.LET_EXPRESSION) {
                 newText = ", " + newText;
-                LetExpressionNode letExpr = (LetExpressionNode) initializer;
+                LetExpressionNode letExpr = (LetExpressionNode) expr;
                 SeparatedNodeList<LetVariableDeclarationNode> letVarDecls = letExpr.letVarDeclarations();
                 if (index >= letVarDecls.size()) {
                     range = CommonUtils.toRange(letVarDecls.get(letVarDecls.size() - 1).lineRange().endLine());
@@ -1878,7 +1874,7 @@ public class DataMapManager {
                 }
             } else {
                 newText = "let " + newText.split(";")[0] + " in ";
-                range = CommonUtils.toRange(initializer.lineRange().startLine());
+                range = CommonUtils.toRange(expr.lineRange().startLine());
             }
             te.setNewText(newText);
             te.setRange(range);
@@ -1890,13 +1886,11 @@ public class DataMapManager {
     public JsonElement deleteSubMapping(Path filePath, JsonElement cd, int index) {
         Codedata codedata = gson.fromJson(cd, Codedata.class);
         NonTerminalNode node = getNode(codedata.lineRange());
-        if (node.kind() != SyntaxKind.LOCAL_VAR_DECL) {
+        ExpressionNode expr = getMappingExpr(node);
+        if (expr == null) {
             return null;
         }
-
-        VariableDeclarationNode varDeclNode = (VariableDeclarationNode) node;
-        Optional<ExpressionNode> optInitializer = varDeclNode.initializer();
-        if (optInitializer.isEmpty()) {
+        if (expr.kind() != SyntaxKind.LET_EXPRESSION) {
             return null;
         }
 
@@ -1904,12 +1898,7 @@ public class DataMapManager {
         List<TextEdit> textEdits = new ArrayList<>();
         textEditsMap.put(filePath, textEdits);
 
-        ExpressionNode initializer = optInitializer.get();
-        if (initializer.kind() != SyntaxKind.LET_EXPRESSION) {
-            return null;
-        }
-
-        LetExpressionNode letExpr = (LetExpressionNode) initializer;
+        LetExpressionNode letExpr = (LetExpressionNode) expr;
         SeparatedNodeList<LetVariableDeclarationNode> letVarDecls = letExpr.letVarDeclarations();
         if (index >= letVarDecls.size()) {
             return null;
