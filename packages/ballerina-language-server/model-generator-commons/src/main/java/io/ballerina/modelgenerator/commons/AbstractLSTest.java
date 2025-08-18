@@ -273,7 +273,8 @@ public abstract class AbstractLSTest {
         }
     }
 
-    private boolean compareJsonElementsRecursive(JsonElement actualJson, JsonElement expectedJson, String path, Boolean needReturn) {
+    private boolean compareJsonElementsRecursive(JsonElement actualJson, JsonElement expectedJson, String path,
+                                                 Boolean needReturn) {
         if (actualJson.isJsonObject() && expectedJson.isJsonObject()) {
             return compareJsonObjects(actualJson.getAsJsonObject(), expectedJson.getAsJsonObject(), path, needReturn);
         } else if (actualJson.isJsonArray() && expectedJson.isJsonArray()) {
@@ -310,7 +311,8 @@ public abstract class AbstractLSTest {
         }
     }
 
-    private boolean compareJsonObjects(JsonObject actualJson, JsonObject expectedJson, String path, Boolean needReturn) {
+    private boolean compareJsonObjects(JsonObject actualJson, JsonObject expectedJson, String path,
+                                       Boolean needReturn) {
         Set<Map.Entry<String, JsonElement>> entrySet1 = actualJson.entrySet();
         Set<Map.Entry<String, JsonElement>> entrySet2 = expectedJson.entrySet();
 
@@ -360,13 +362,15 @@ public abstract class AbstractLSTest {
         }
     }
 
-    private boolean compareJsonArrays(JsonArray actualArray, JsonArray expectedArray, String path, Boolean needReturn) {
+    private boolean compareJsonArrays(JsonArray actualArray, JsonArray expectedArray, String path,
+                                      Boolean needReturn) {
         int size1 = actualArray.size();
         int size2 = expectedArray.size();
         int minSize = Math.min(size1, size2);
 
         for (int i = 0; i < minSize; i++) {
-            if (!compareJsonElementsRecursive(actualArray.get(i), expectedArray.get(i), path + "[" + i + "]", needReturn)) {
+            if (!compareJsonElementsRecursive(actualArray.get(i), expectedArray.get(i), path + "[" + i + "]",
+                    needReturn)) {
                 return false;
             }
         }
