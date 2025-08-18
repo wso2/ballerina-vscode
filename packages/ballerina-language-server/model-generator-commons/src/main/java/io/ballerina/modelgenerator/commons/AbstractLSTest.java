@@ -258,6 +258,11 @@ public abstract class AbstractLSTest {
         compareJsonElementsRecursive(actualJson, expectedJson, "");
     }
 
+    protected boolean isJsonPermutation(JsonElement actualJson, JsonElement expectedJson) {
+        log.info("Differences in JSON elements:");
+        return compareJsonElementsRecursive(actualJson, expectedJson, "", true);
+    }
+
     private void compareJsonElementsRecursive(JsonElement actualJson, JsonElement expectedJson, String path) {
         if (actualJson.isJsonObject() && expectedJson.isJsonObject()) {
             compareJsonObjects(actualJson.getAsJsonObject(), expectedJson.getAsJsonObject(), path);
@@ -266,6 +271,18 @@ public abstract class AbstractLSTest {
         } else if (!actualJson.equals(expectedJson)) {
             log.info("- Value mismatch at '" + path + "'\n  actual: " + actualJson + "\n  expected: " + expectedJson);
         }
+    }
+
+    private boolean compareJsonElementsRecursive(JsonElement actualJson, JsonElement expectedJson, String path, Boolean needReturn) {
+        if (actualJson.isJsonObject() && expectedJson.isJsonObject()) {
+            return compareJsonObjects(actualJson.getAsJsonObject(), expectedJson.getAsJsonObject(), path, needReturn);
+        } else if (actualJson.isJsonArray() && expectedJson.isJsonArray()) {
+            return compareJsonArrays(actualJson.getAsJsonArray(), expectedJson.getAsJsonArray(), path, needReturn);
+        } else if (!actualJson.equals(expectedJson)) {
+            log.info("- Value mismatch at '" + path + "'\n  actual: " + actualJson + "\n  expected: " + expectedJson);
+            return false;
+        }
+        return true;
     }
 
     private void compareJsonObjects(JsonObject actualJson, JsonObject expectedJson, String path) {
@@ -293,6 +310,36 @@ public abstract class AbstractLSTest {
         }
     }
 
+    private boolean compareJsonObjects(JsonObject actualJson, JsonObject expectedJson, String path, Boolean needReturn) {
+        Set<Map.Entry<String, JsonElement>> entrySet1 = actualJson.entrySet();
+        Set<Map.Entry<String, JsonElement>> entrySet2 = expectedJson.entrySet();
+
+        for (Map.Entry<String, JsonElement> entry : entrySet1) {
+            String key = entry.getKey();
+            String currentPath = path.isEmpty() ? key : path + "." + key;
+
+            if (!expectedJson.has(key)) {
+                log.info("- Key '" + currentPath + "' is missing in the expected JSON");
+                return false;
+            } else {
+                if (!compareJsonElementsRecursive(entry.getValue(), expectedJson.get(key), currentPath, needReturn)) {
+                    return false;
+                }
+            }
+        }
+
+        for (Map.Entry<String, JsonElement> entry : entrySet2) {
+            String key = entry.getKey();
+            String currentPath = path.isEmpty() ? key : path + "." + key;
+
+            if (!actualJson.has(key)) {
+                log.info("- Key '" + currentPath + "' is missing in the actual JSON");
+                return false;
+            }
+        }
+        return true;
+    }
+
     private void compareJsonArrays(JsonArray actualArray, JsonArray expectedArray, String path) {
         int size1 = actualArray.size();
         int size2 = expectedArray.size();
@@ -311,6 +358,32 @@ public abstract class AbstractLSTest {
                 log.info("- Extra element in expected JSON at '" + path + "[" + i + "]': " + expectedArray.get(i));
             }
         }
+    }
+
+    private boolean compareJsonArrays(JsonArray actualArray, JsonArray expectedArray, String path, Boolean needReturn) {
+        int size1 = actualArray.size();
+        int size2 = expectedArray.size();
+        int minSize = Math.min(size1, size2);
+
+        for (int i = 0; i < minSize; i++) {
+            if (!compareJsonElementsRecursive(actualArray.get(i), expectedArray.get(i), path + "[" + i + "]", needReturn)) {
+                return false;
+            }
+        }
+
+        if (size1 > size2) {
+            for (int i = size2; i < size1; i++) {
+                log.info("- Extra element in actual JSON at '" + path + "[" + i + "]': " + actualArray.get(i));
+            }
+            return false;
+        } else if (size2 > size1) {
+            for (int i = size1; i < size2; i++) {
+                log.info("- Extra element in expected JSON at '" + path + "[" + i + "]': " + expectedArray.get(i));
+            }
+            return false;
+        }
+
+        return true;
     }
 
     protected String getSourcePath(String source) {
