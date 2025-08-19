@@ -82,6 +82,8 @@ import {
     generateOpenApiClient,
     getAiSuggestions,
     getAllImports,
+    getAvailableChunkers,
+    getAvailableDataLoaders,
     getAvailableEmbeddingProviders,
     getAvailableModelProviders,
     getAvailableNodes,
@@ -150,6 +152,8 @@ export function registerBiDiagramRpcHandlers(messenger: Messenger) {
     messenger.onRequest(getAvailableVectorStores, (args: BIAvailableNodesRequest) => rpcManger.getAvailableVectorStores(args));
     messenger.onRequest(getAvailableEmbeddingProviders, (args: BIAvailableNodesRequest) => rpcManger.getAvailableEmbeddingProviders(args));
     messenger.onRequest(getAvailableVectorKnowledgeBases, (args: BIAvailableNodesRequest) => rpcManger.getAvailableVectorKnowledgeBases(args));
+    messenger.onRequest(getAvailableDataLoaders, (args: BIAvailableNodesRequest) => rpcManger.getAvailableDataLoaders(args));
+    messenger.onRequest(getAvailableChunkers, (args: BIAvailableNodesRequest) => rpcManger.getAvailableChunkers(args));
     messenger.onRequest(getEnclosedFunction, (args: BIGetEnclosedFunctionRequest) => rpcManger.getEnclosedFunction(args));
     messenger.onRequest(getNodeTemplate, (args: BINodeTemplateRequest) => rpcManger.getNodeTemplate(args));
     messenger.onRequest(getAiSuggestions, (args: BIAiSuggestionsRequest) => rpcManger.getAiSuggestions(args));
