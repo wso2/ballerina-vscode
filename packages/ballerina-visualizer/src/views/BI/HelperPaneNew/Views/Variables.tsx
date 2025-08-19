@@ -101,12 +101,12 @@ export const Variables = (props: VariablesPageProps) => {
 
     const dropdownItems = fields.concat(methods)
 
-const filteredDropDownItems = useMemo(() => {
-    if (!searchValue || searchValue.length === 0) return dropdownItems;
-    return dropdownItems.filter((item) =>
-        item.label.toLowerCase().includes(searchValue.toLowerCase())
-    );
-}, [searchValue, dropdownItems]);
+    const filteredDropDownItems = useMemo(() => {
+        if (!searchValue || searchValue.length === 0) return dropdownItems;
+        return dropdownItems.filter((item) =>
+            item.label.toLowerCase().includes(searchValue.toLowerCase())
+        );
+    }, [searchValue, dropdownItems]);
 
 
     const handleSearch = (searchText: string) => {
@@ -134,16 +134,20 @@ const filteredDropDownItems = useMemo(() => {
                 {
                     filteredDropDownItems.map((item) => (
                         <SlidingPaneNavContainer
+                            onClick={() => handleItemSelect(item.label)}
                             data
                             endIcon={
-                                <VariablesMoreIconContainer onClick={() => handleVariablesMoreIconClick(item.label)}>
+                                <VariablesMoreIconContainer onClick={(event) => {
+                                    event.stopPropagation()
+                                    handleVariablesMoreIconClick(item.label)
+                                }}>
                                     <VariableTypeIndicator>
                                         {item.description}
                                     </VariableTypeIndicator>
                                     <Codicon name="chevron-right" />
                                 </VariablesMoreIconContainer>}
                         >
-                            <ExpandableList.Item onClick={() => handleItemSelect(item.label)}>
+                            <ExpandableList.Item>
                                 <Typography variant="body3" sx={{ fontWeight: 600 }}>
                                     {item.label}
                                 </Typography>
