@@ -1,0 +1,38 @@
+{
+  "source": "function_definition1.bal",
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "DATA_MAPPER_DEFINITION",
+    "lineRange": {
+      "fileName": "function_definition1.bal",
+      "startLine": {
+        "line": 30,
+        "offset": 0
+      },
+      "endLine": {
+        "line": 30,
+        "offset": 109
+      }
+    },
+    "sourceCode": ""
+  },
+  "propertyKey": "expression",
+  "targetField": "transform.students",
+  "output": {
+    "function_definition1.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 30,
+            "character": 106
+          },
+          "end": {
+            "line": 30,
+            "character": 106
+          }
+        },
+        "newText": ", {username: \"\", password: \"\"}"
+      }
+    ]
+  }
+}
