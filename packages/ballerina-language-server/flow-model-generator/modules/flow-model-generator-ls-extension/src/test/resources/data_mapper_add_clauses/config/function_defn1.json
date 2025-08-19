@@ -1,0 +1,46 @@
+{
+  "source": "function_defn1.bal",
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "DATA_MAPPER_DEFINITION",
+    "lineRange": {
+      "fileName": "function_defn1.bal",
+      "startLine": {
+        "line": 17,
+        "offset": 0
+      },
+      "endLine": {
+        "line": 19,
+        "offset": 2
+      }
+    },
+    "sourceCode": "",
+    "isNew": true
+  },
+  "propertyKey": "expression",
+  "index": 0,
+  "clause": {
+    "type": "where",
+    "properties": {
+      "expression": "userInfo.username == \"Alex\""
+    }
+  },
+  "targetField": "credentials",
+  "output": {
+    "function_defn1.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 17,
+            "character": 80
+          },
+          "end": {
+            "line": 17,
+            "character": 80
+          }
+        },
+        "newText": "\nwhere userInfo.username == \"Alex\""
+      }
+    ]
+  }
+}

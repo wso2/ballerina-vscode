@@ -55,6 +55,7 @@ public class DataMappingSubMappingDeleteTest extends AbstractLSTest {
                 {Path.of("variable2.json")},
                 {Path.of("variable3.json")},
                 {Path.of("variable4.json")},
+                {Path.of("function_definition1.json")},
         };
     }
 
