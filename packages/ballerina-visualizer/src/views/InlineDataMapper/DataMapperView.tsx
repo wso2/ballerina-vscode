@@ -506,9 +506,9 @@ export function InlineDataMapperView(props: InlineDataMapperProps) {
 };
 
 const getModelSignature = (model: DMModel | ExpandedDMModel): ModelSignature => ({
-    inputs: model.inputs.map(i => i.id),
-    output: model.output.id,
-    subMappings: model.subMappings?.map(s => s.id) || [],
+    inputs: model.inputs.map(i => i.name),
+    output: model.output.name,
+    subMappings: model.subMappings?.map(s => s.name) || [],
     types: 'types' in model ? JSON.stringify(model.types) : ''
 });
 
