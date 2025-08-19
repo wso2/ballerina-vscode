@@ -328,21 +328,23 @@ function CardList(props: CardListProps) {
     return (
         <S.Container>
             <S.HeaderContainer>
-                <S.Row>
-                    {onBack && title && (
-                        <S.LeftAlignRow>
-                            <S.BackButton appearance="icon" onClick={onBack}>
-                                <BackIcon />
-                            </S.BackButton>
-                            {title}
-                        </S.LeftAlignRow>
-                    )}
-                    {onClose && (
-                        <S.CloseButton appearance="icon" onClick={onClose}>
-                            <CloseIcon />
-                        </S.CloseButton>
-                    )}
-                </S.Row>
+                {((onBack && title) || onClose) && (
+                    <S.Row>
+                        {onBack && title && (
+                            <S.LeftAlignRow>
+                                <S.BackButton appearance="icon" onClick={onBack}>
+                                    <BackIcon />
+                                </S.BackButton>
+                                {title}
+                            </S.LeftAlignRow>
+                        )}
+                        {onClose && (
+                            <S.CloseButton appearance="icon" onClick={onClose}>
+                                <CloseIcon />
+                            </S.CloseButton>
+                        )}
+                    </S.Row>
+                )}
                 <S.Row>
                     <S.StyledSearchInput
                         value={searchText}
