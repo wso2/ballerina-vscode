@@ -18,9 +18,10 @@
 
 import styled from "@emotion/styled";
 import { ImportIntegrationResponse } from "@wso2/ballerina-core";
+import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { Button, Codicon, Typography, ProgressRing } from "@wso2/ui-toolkit";
+import { VSCodeDataGrid, VSCodeDataGridCell, VSCodeDataGridRow } from "@vscode/webview-ui-toolkit/react";
 import { useState, useEffect, useRef, useMemo } from "react";
-import MigrationReportContainer from "./MigrationReportContainer";
 
 const ButtonWrapper = styled.div`
     margin-top: 20px;
@@ -63,19 +64,6 @@ const LogEntry = styled.div`
     margin-bottom: 4px;
     white-space: pre-wrap;
     word-break: break-word;
-`;
-
-const ReportContainer = styled.div`
-    border: 1px solid var(--vscode-widget-border);
-    border-radius: 4px;
-    padding: 16px;
-    background-color: var(--vscode-editor-background);
-    display: flex;
-    flex-direction: column;
-
-    & .container {
-        flex-direction: column;
-    }
 `;
 
 const CollapsibleHeader = styled.div`
@@ -157,6 +145,26 @@ const CoverageBadge = styled.div`
     align-self: flex-start;
 `;
 
+const EstimationTableContainer = styled.div`
+    border: 1px solid var(--vscode-widget-border);
+    border-radius: 4px;
+    padding: 24px;
+    background-color: var(--vscode-editor-background);
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+`;
+
+const ReportButtonsContainer = styled.div`
+    display: flex;
+    gap: 12px;
+    align-self: flex-start;
+    margin-top: 8px;
+`;
+
+const ViewReportButton = styled(Button)``;
+
+const SaveReportButton = styled(Button)``;
 
 export interface CoverageOverview {
     unitName: string;
@@ -167,63 +175,17 @@ export interface CoverageOverview {
 }
 
 export interface ManualWorkEstimation {
-    scenario: string;
-    workingDays: string;
-    weeks: string;
-}
-
-export interface EstimationValue {
-    value: number;
     unit: string;
-}
-
-export interface EstimationParameters {
-    bestCase: {
-        perUniqueElement: EstimationValue;
-        perEachRepeatedElement: EstimationValue;
-        perEachLineOfCode: EstimationValue;
-    };
-    averageCase: {
-        perUniqueElement: EstimationValue;
-        perEachRepeatedElement: EstimationValue;
-        perEachLineOfCode: EstimationValue;
-    };
-    worstCase: {
-        perUniqueElement: EstimationValue;
-        perEachRepeatedElement: EstimationValue;
-        perEachLineOfCode: EstimationValue;
-    };
-}
-
-export interface CodeBlock {
-    fileName: string;
-    code: string;
-}
-
-export interface UnsupportedElement {
-    elementName: string;
-    frequency: number;
-    blockName: string;
-    blocks: CodeBlock[];
-}
-
-export interface ManualValidationElement {
-    elementName: string;
-    frequency: number;
-}
-
-export interface ReportElement {
-    elementType: string;
-    coverageOverview: CoverageOverview;
-    estimationParameters: EstimationParameters;
-    unsupportedElements: UnsupportedElement[];
-    manualValidationElements: ManualValidationElement[];
+    headers: string[];
+    rows: {
+        label: string;
+        values: number[];
+    }[];
 }
 
 export interface MigrationReportJSON {
     coverageOverview: CoverageOverview;
-    manualWorkEstimation: ManualWorkEstimation[];
-    elements: ReportElement[];
+    manualWorkEstimation: ManualWorkEstimation;
 }
 
 interface MigrationProgressProps {
@@ -235,272 +197,29 @@ interface MigrationProgressProps {
     onNext: () => void;
 }
 
-const EXAMPLE_REPORT_JSON : MigrationReportJSON = {
-    "coverageOverview": {
-        // Overview coverage that's on the top of the report
-        "unitName": "activity",
-        "coveragePercentage": 60,
-        "totalElements": 5,
-        "migratableElements": 5,
-        "nonMigratableElements": 0
+const EXAMPLE_REPORT_JSON: MigrationReportJSON = {
+    coverageOverview: {
+        unitName: "activity", // The wording in the coverage overview part changes depending on the tool. Mule says "code lines"
+        coveragePercentage: 100,
+        totalElements: 1,
+        migratableElements: 1,
+        nonMigratableElements: 0,
     },
-    "manualWorkEstimation": [
-        {
-            "scenario": "Best Case",
-            "workingDays": "1 day",
-            "weeks": "1 week"
-        },
-        {
-            "scenario": "Average Case",
-            "workingDays": "3 days",
-            "weeks": "1 week"
-        },
-        {
-            "scenario": "Worst Case",
-            "workingDays": "5 days",
-            "weeks": "1 week"
-        }
-    ],
-    "elements": [
-        {
-            "elementType": "Activity",
-            "coverageOverview": {
-                "unitName": "activity",
-                "coveragePercentage": 75,
-                "totalElements": 8,
-                "migratableElements": 6,
-                "nonMigratableElements": 2
+    manualWorkEstimation: {
+        unit: "days", // Expects all estimates to be in this unit.
+        headers: ["Work Type", "Best Case", "Average Case", "Worst Case"],
+        rows: [
+            {
+                label: "Manual Conversion",
+                values: [0, 0, 0],
             },
-            "estimationParameters": {
-                "bestCase": {
-                    "perUniqueElement": {
-                        "value": 1.0,
-                        "unit": "hours"
-                    },
-                    "perEachRepeatedElement": {
-                        "value": 0.5,
-                        "unit": "hours"
-                    },
-                    "perEachLineOfCode": {
-                        "value": 2.0,
-                        "unit": "minutes"
-                    }
-                },
-                "averageCase": {
-                    "perUniqueElement": {
-                        "value": 2.0,
-                        "unit": "hours"
-                    },
-                    "perEachRepeatedElement": {
-                        "value": 1.0,
-                        "unit": "hours"
-                    },
-                    "perEachLineOfCode": {
-                        "value": 5.0,
-                        "unit": "minutes"
-                    }
-                },
-                "worstCase": {
-                    "perUniqueElement": {
-                        "value": 4.0,
-                        "unit": "hours"
-                    },
-                    "perEachRepeatedElement": {
-                        "value": 2.0,
-                        "unit": "hours"
-                    },
-                    "perEachLineOfCode": {
-                        "value": 10.0,
-                        "unit": "minutes"
-                    }
-                }
+            {
+                label: "Code Validation",
+                values: [1, 2, 3],
             },
-            "unsupportedElements": [
-                {
-                    "elementName": "com.tibco.pe.core.LoopGroup",
-                    "frequency": 2,
-                    "blockName": "Activity Block",
-                    "blocks": [
-                        {
-                            "fileName": "split_long_string.process",
-                            "code": "<pd:group name=\"Group\" xmlns:pd=\"http://xmlns.tibco.com/bw/process/2003\">\n  <pd:type>com.tibco.pe.core.LoopGroup</pd:type>\n  <pd:description>Loop processing</pd:description>\n</pd:group>"
-                        }
-                    ]
-                },
-                {
-                    "elementName": "com.tibco.pe.core.TransitionCondition",
-                    "frequency": 1,
-                    "blockName": "Activity Block",
-                    "blocks": [
-                        {
-                            "fileName": "conditional_flow.process",
-                            "code": "<pd:transition>\n  <pd:from>Start</pd:from>\n  <pd:to>End</pd:to>\n  <pd:conditionType>always</pd:conditionType>\n</pd:transition>"
-                        }
-                    ]
-                }
-            ],
-            "manualValidationElements": [
-                {
-                    "elementName": "JDBC Query",
-                    "frequency": 3
-                },
-                {
-                    "elementName": "HTTP Request",
-                    "frequency": 1
-                }
-            ]
-        },
-        {
-            "elementType": "DataWeave",
-            "coverageOverview": {
-                "unitName": "code line",
-                "coveragePercentage": 90,
-                "totalElements": 4,
-                "migratableElements": 4,
-                "nonMigratableElements": 0
-            },
-            "estimationParameters": {
-                "bestCase": {
-                    "perUniqueElement": {
-                        "value": 0.5,
-                        "unit": "hours"
-                    },
-                    "perEachRepeatedElement": {
-                        "value": 0.25,
-                        "unit": "hours"
-                    },
-                    "perEachLineOfCode": {
-                        "value": 1.0,
-                        "unit": "minutes"
-                    }
-                },
-                "averageCase": {
-                    "perUniqueElement": {
-                        "value": 1.0,
-                        "unit": "hours"
-                    },
-                    "perEachRepeatedElement": {
-                        "value": 0.5,
-                        "unit": "hours"
-                    },
-                    "perEachLineOfCode": {
-                        "value": 3.0,
-                        "unit": "minutes"
-                    }
-                },
-                "worstCase": {
-                    "perUniqueElement": {
-                        "value": 2.0,
-                        "unit": "hours"
-                    },
-                    "perEachRepeatedElement": {
-                        "value": 1.0,
-                        "unit": "hours"
-                    },
-                    "perEachLineOfCode": {
-                        "value": 5.0,
-                        "unit": "minutes"
-                    }
-                }
-            },
-            "unsupportedElements": [],
-            "manualValidationElements": [
-                {
-                    "elementName": "Complex JSON Transform",
-                    "frequency": 2
-                }
-            ]
-        },
-        {
-            "elementType": "Connector",
-            "coverageOverview": {
-                "unitName": "connector",
-                "coveragePercentage": 40,
-                "totalElements": 5,
-                "migratableElements": 2,
-                "nonMigratableElements": 3
-            },
-            "estimationParameters": {
-                "bestCase": {
-                    "perUniqueElement": {
-                        "value": 2.0,
-                        "unit": "hours"
-                    },
-                    "perEachRepeatedElement": {
-                        "value": 1.0,
-                        "unit": "hours"
-                    },
-                    "perEachLineOfCode": {
-                        "value": 3.0,
-                        "unit": "minutes"
-                    }
-                },
-                "averageCase": {
-                    "perUniqueElement": {
-                        "value": 4.0,
-                        "unit": "hours"
-                    },
-                    "perEachRepeatedElement": {
-                        "value": 2.0,
-                        "unit": "hours"
-                    },
-                    "perEachLineOfCode": {
-                        "value": 7.0,
-                        "unit": "minutes"
-                    }
-                },
-                "worstCase": {
-                    "perUniqueElement": {
-                        "value": 8.0,
-                        "unit": "hours"
-                    },
-                    "perEachRepeatedElement": {
-                        "value": 4.0,
-                        "unit": "hours"
-                    },
-                    "perEachLineOfCode": {
-                        "value": 15.0,
-                        "unit": "minutes"
-                    }
-                }
-            },
-            "unsupportedElements": [
-                {
-                    "elementName": "com.tibco.plugin.ftp.FTPConnection",
-                    "frequency": 1,
-                    "blockName": "Connector Configuration",
-                    "blocks": [
-                        {
-                            "fileName": "ftp_config.properties",
-                            "code": "ftp.host=example.com\nftp.port=21\nftp.username=user\nftp.password=pass\nftp.timeout=30000"
-                        }
-                    ]
-                },
-                {
-                    "elementName": "com.tibco.plugin.jms.JMSQueueReceiver",
-                    "frequency": 2,
-                    "blockName": "Connector Configuration",
-                    "blocks": [
-                        {
-                            "fileName": "jms_receiver.xml",
-                            "code": "<jms:queue-receiver>\n  <jms:destination>order.queue</jms:destination>\n  <jms:connection-factory>ConnectionFactory</jms:connection-factory>\n  <jms:acknowledge-mode>AUTO_ACKNOWLEDGE</jms:acknowledge-mode>\n</jms:queue-receiver>"
-                        }
-                    ]
-                }
-            ],
-            "manualValidationElements": [
-                {
-                    "elementName": "Database Connection",
-                    "frequency": 1
-                },
-                {
-                    "elementName": "REST API Client",
-                    "frequency": 2
-                }
-            ]
-        }
-    ]
-}
+        ],
+    },
+};
 
 const migrationProgressHeader = (
     migrationCompleted: boolean,
@@ -524,9 +243,7 @@ const migrationProgressHeader = (
 
     return (
         <div>
-            <Typography variant="h2">
-                {headerText}
-            </Typography>
+            <Typography variant="h2">{headerText}</Typography>
             <Typography sx={{ color: "var(--vscode-descriptionForeground)" }}>{headerDesc}</Typography>
         </div>
     );
@@ -591,13 +308,55 @@ const CoverageSummary: React.FC<{ reportData: MigrationReportJSON }> = ({ report
                 </CoverageStats>
             </CoverageHeader>
             <CoverageProgressBar>
-                <CoverageProgressFill
-                    percentage={coverageOverview.coveragePercentage}
-                    coverageColor={coverageColor}
-                />
+                <CoverageProgressFill percentage={coverageOverview.coveragePercentage} coverageColor={coverageColor} />
             </CoverageProgressBar>
             <CoverageBadge>{coverageLevel}</CoverageBadge>
         </CoverageContainer>
+    );
+};
+
+const ManualWorkEstimationTable: React.FC<{ 
+    reportData: MigrationReportJSON; 
+    onViewReport: () => void; 
+    onSaveReport: () => void; 
+}> = ({
+    reportData,
+    onViewReport,
+    onSaveReport,
+}) => {
+    const { manualWorkEstimation } = reportData;
+
+    return (
+        <EstimationTableContainer>
+            <Typography variant="h4">Manual Work Estimation ({manualWorkEstimation.unit})</Typography>
+            <VSCodeDataGrid>
+                <VSCodeDataGridRow row-type="header">
+                    {manualWorkEstimation.headers.map((header, index) => (
+                        <VSCodeDataGridCell key={index} cell-type="columnheader" grid-column={`${index + 1}`}>
+                            {header}
+                        </VSCodeDataGridCell>
+                    ))}
+                </VSCodeDataGridRow>
+                {manualWorkEstimation.rows.map((row, i) => (
+                    <VSCodeDataGridRow key={i}>
+                        <VSCodeDataGridCell grid-column="1">{row.label}</VSCodeDataGridCell>
+                        {row.values.map((value, j) => (
+                            <VSCodeDataGridCell key={j} grid-column={`${j + 2}`}>
+                                {value}
+                            </VSCodeDataGridCell>
+                        ))}
+                    </VSCodeDataGridRow>
+                ))}
+            </VSCodeDataGrid>
+            <ReportButtonsContainer>
+                <ViewReportButton onClick={onViewReport} appearance="secondary" >
+                    <Codicon name="file-text" />&nbsp;View Full Report
+                </ViewReportButton>
+                <SaveReportButton onClick={onSaveReport} appearance="secondary" >
+                    <Codicon name="save" />&nbsp;Save Report
+                </SaveReportButton>
+            </ReportButtonsContainer>
+        </EstimationTableContainer>
     );
 };
 
@@ -609,9 +368,9 @@ export function MigrationProgressView({
     migrationResponse,
     onNext,
 }: MigrationProgressProps) {
-    const [isReportOpen, setIsReportOpen] = useState(false);
     const [isLogsOpen, setIsLogsOpen] = useState(false);
     const logsContainerRef = useRef<HTMLDivElement>(null);
+    const { rpcClient } = useRpcContext();
 
     // Parse migration report JSON when available
     const parsedReportData = useMemo(() => {
@@ -643,13 +402,54 @@ export function MigrationProgressView({
         }
     }, [migrationLogs, isLogsOpen, migrationCompleted]);
 
+    const handleViewReport = async () => {
+        console.log('View report clicked', { migrationResponse });
+        try {
+            if (migrationResponse?.report) {
+                console.log('Report found, opening via RPC...');
+                rpcClient.getMigrateIntegrationRpcClient().openMigrationReport({
+                    reportContent: migrationResponse.report,
+                    fileName: 'migration-report.html'
+                });
+            }
+        } catch (error) {
+            console.error('Failed to open migration report:', error);
+        }
+    };
+
+    const handleSaveReport = async () => {
+        console.log('Save report clicked', { migrationResponse });
+        try {
+            if (!migrationResponse?.report) {
+                console.error('No report content available to save');
+                return;
+            }
+
+            // VSCode extension environment - use RPC to show save dialog
+            console.log('Saving report via VSCode save dialog...');
+            rpcClient.getMigrateIntegrationRpcClient().saveMigrationReport({
+                reportContent: migrationResponse.report,
+                defaultFileName: 'migration-report.html'
+            });
+        } catch (error) {
+            console.error('Failed to save migration report:', error);
+        }
+    };
+
     return (
         <>
             {migrationProgressHeader(migrationCompleted, migrationSuccessful, migrationResponse)}
             <StepWrapper>
                 {migrationCompleted && migrationSuccessful ? (
                     parsedReportData ? (
-                        <CoverageSummary reportData={parsedReportData} />
+                        <>
+                            <CoverageSummary reportData={parsedReportData} />
+                            <ManualWorkEstimationTable 
+                                reportData={parsedReportData} 
+                                onViewReport={handleViewReport} 
+                                onSaveReport={handleSaveReport} 
+                            />
+                        </>
                     ) : (
                         <Typography variant="body3" sx={{ color: "var(--vscode-terminal-ansiGreen)" }}>
                             Migration completed successfully!
@@ -658,9 +458,11 @@ export function MigrationProgressView({
                 ) : migrationCompleted && !migrationSuccessful ? (
                     <></>
                 ) : (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                         <ProgressRing sx={{ width: 14, height: 14 }} color="var(--vscode-foreground)" />
-                        <span style={{ color: 'var(--vscode-foreground)' }}>{migrationState || "Starting migration..."}</span>
+                        <span style={{ color: "var(--vscode-foreground)" }}>
+                            {migrationState || "Starting migration..."}
+                        </span>
                     </div>
                 )}
             </StepWrapper>
@@ -668,7 +470,11 @@ export function MigrationProgressView({
             {/* Show button before logs when migration is completed */}
             {migrationCompleted && (
                 <ButtonWrapper>
-                    <Button disabled={!migrationCompleted || !migrationSuccessful} onClick={onNext} appearance="primary">
+                    <Button
+                        disabled={!migrationCompleted || !migrationSuccessful}
+                        onClick={onNext}
+                        appearance="primary"
+                    >
                         Proceed to Final Step
                     </Button>
                 </ButtonWrapper>
@@ -696,26 +502,14 @@ export function MigrationProgressView({
             {/* Show button after logs when migration is in progress */}
             {!migrationCompleted && (
                 <ButtonWrapper>
-                    <Button disabled={!migrationCompleted || !migrationSuccessful} onClick={onNext} appearance="primary">
+                    <Button
+                        disabled={!migrationCompleted || !migrationSuccessful}
+                        onClick={onNext}
+                        appearance="primary"
+                    >
                         Proceed to Final Step
                     </Button>
                 </ButtonWrapper>
-            )}
-            {/* Migration Report */}
-            {migrationCompleted && migrationResponse?.report && (
-                <StepWrapper>
-                    <CollapsibleHeader onClick={() => setIsReportOpen(!isReportOpen)}>
-                        <Typography variant="h4">View Migration Report</Typography>
-                        <CardAction>
-                            {isReportOpen ? <Codicon name={"chevron-down"} /> : <Codicon name={"chevron-right"} />}
-                        </CardAction>
-                    </CollapsibleHeader>
-                    {isReportOpen && (
-                        <ReportContainer>
-                            <MigrationReportContainer report={parsedReportData} />
-                        </ReportContainer>
-                    )}
-                </StepWrapper>
             )}
         </>
     );

@@ -45,3 +45,13 @@ export interface ImportIntegrationRPCRequest {
     sourcePath: string;
     [key: string]: any;
 }
+
+export interface OpenMigrationReportRequest {
+    reportContent: string;
+    fileName: string;
+}
+
+export interface SaveMigrationReportRequest {
+    reportContent: string;
+    defaultFileName: string;
+}
