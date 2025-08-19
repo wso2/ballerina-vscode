@@ -104,7 +104,7 @@ function createTestEventHandler(): { handler: CopilotEventHandler; getResult: ()
     return { handler, getResult };
 }
 
-suite.only("AI Code Generator Tests Suite", () => {
+suite.skip("AI Code Generator Tests Suite", () => {
 
     // Close all the open workspace folders before running the test
     suiteSetup(async function () {

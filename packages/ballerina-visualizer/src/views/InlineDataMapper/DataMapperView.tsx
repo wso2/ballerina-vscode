@@ -38,7 +38,9 @@ import {
     NodePosition,
     EVENT_TYPE,
     LineRange,
-    ResultClauseType
+    ResultClauseType,
+    MACHINE_VIEW,
+    VisualizerLocation
 } from "@wso2/ballerina-core";
 import { CompletionItem, ProgressIndicator } from "@wso2/ui-toolkit";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
@@ -51,7 +53,6 @@ import { InlineDataMapperProps } from ".";
 import { EXPRESSION_EXTRACTION_REGEX } from "../../constants";
 import { calculateExpressionOffsets, convertBalCompletion, updateLineRange } from "../../utils/bi";
 import { createAddSubMappingRequest } from "./utils";
-import { URI, Utils } from "vscode-uri";
 
 // Types for model comparison
 interface ModelSignature {
@@ -62,7 +63,7 @@ interface ModelSignature {
 }
 
 export function InlineDataMapperView(props: InlineDataMapperProps) {
-    const { filePath, codedata, varName } = props;
+    const { filePath, codedata, varName, position, reusable } = props;
 
     const [isFileUpdateError, setIsFileUpdateError] = useState(false);
     const [modelState, setModelState] = useState<ModelState>({
@@ -89,7 +90,7 @@ export function InlineDataMapperView(props: InlineDataMapperProps) {
         model,
         isFetching,
         isError
-    } = useInlineDataMapperModel(filePath, viewState);
+    } = useInlineDataMapperModel(filePath, viewState, position);
 
     useEffect(() => {
         setViewState(prev => ({
@@ -148,6 +149,16 @@ export function InlineDataMapperView(props: InlineDataMapperProps) {
 
     const onClose = () => {
         rpcClient.getVisualizerRpcClient()?.goBack();
+    }
+
+    const onEdit = () => {
+        const context: VisualizerLocation = {
+            view: MACHINE_VIEW.BIDataMapperForm,
+            identifier: modelState.model.output.variableName,
+            documentUri: filePath,
+        };
+
+        rpcClient.getVisualizerRpcClient().openView({ type: EVENT_TYPE.OPEN_VIEW, location: context });
     }
 
     const updateExpression = async (outputId: string, expression: string, viewId: string, name: string) => {
@@ -480,6 +491,7 @@ export function InlineDataMapperView(props: InlineDataMapperProps) {
                     modelState={modelState}
                     name={varName}
                     onClose={onClose}
+                    onEdit={reusable ? onEdit : undefined}
                     applyModifications={updateExpression}
                     addArrayElement={addArrayElement}
                     handleView={handleView}

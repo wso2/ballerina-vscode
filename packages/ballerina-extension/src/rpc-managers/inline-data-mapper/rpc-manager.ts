@@ -53,8 +53,6 @@ import {
     updateAndRefreshDataMapper,
     updateSource
 } from "./utils";
-import { sampleModel } from "./sample-model";
-import path from "path";
 
 export class InlineDataMapperRpcManager implements InlineDataMapperAPI {
     async getInitialIDMSource(params: InitialIDMSourceRequest): Promise<InitialIDMSourceResponse> {
