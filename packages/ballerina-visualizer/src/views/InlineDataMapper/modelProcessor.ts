@@ -71,11 +71,10 @@ function processArray(
     member: IOTypeField,
     model: DMModel
 ): IOType {
-    const variableName = `<${parentId.split(".").pop()!}Item>`;
-    const fieldId = generateFieldId(parentId, variableName);
+    const fieldId = generateFieldId(parentId, member.name);
     const ioType: IOType = {
         id: fieldId,
-        variableName: variableName,
+        name: member.name,
         typeName: member.typeName!,
         kind: member.kind
     };
@@ -109,11 +108,11 @@ function processTypeFields(
     if (!type.fields) return [];
 
     return type.fields.map(field => {
-        const fieldId = generateFieldId(parentId, field.variableName!);
+        const fieldId = generateFieldId(parentId, field.name!);
         const ioType: IOType = {
             id: fieldId,
-            variableName: field.variableName!,
-            typeName: field.typeName!,
+            name: field.name,
+            typeName: field.typeName,
             kind: field.kind
         };
 
@@ -141,8 +140,8 @@ function processTypeFields(
  */
 function createBaseIOType(root: IORoot): IOType {
     return {
-        id: root.id,
-        variableName: root.variableName!,
+        id: root.name,
+        name: root.name,
         typeName: root.typeName,
         kind: root.kind,
         ...(root.category && { category: root.category })
@@ -158,7 +157,7 @@ function processIORoot(root: IORoot, model: DMModel): IOType {
     if (root.kind === TypeKind.Array && root.member) {
         return {
             ...ioType,
-            member: processArray(root, root.id, root.member, model)
+            member: processArray(root, root.name, root.member, model)
         };
     }
 
@@ -166,7 +165,7 @@ function processIORoot(root: IORoot, model: DMModel): IOType {
         const refType = model.refs[root.ref];
         return {
             ...ioType,
-            ...processTypeReference(refType, root.id, model)
+            ...processTypeReference(refType, root.name, model)
         };
     }
 
