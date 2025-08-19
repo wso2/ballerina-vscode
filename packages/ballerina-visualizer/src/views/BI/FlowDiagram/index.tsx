@@ -1084,10 +1084,10 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 flowNode: updatedNode,
                 isFunctionNodeUpdate: openInDataMapper,
             })
-             .then(async (response) => {
+            .then(async (response) => {
                 console.log(">>> Updated source code", response);
                 if (response.artifacts.length > 0) {
-                     if (updatedNode?.codedata?.symbol === GET_DEFAULT_MODEL_PROVIDER) {
+                    if (updatedNode?.codedata?.symbol === GET_DEFAULT_MODEL_PROVIDER) {
                         await rpcClient.getAIAgentRpcClient().configureDefaultModelProvider();
                     }
                     if (options?.shouldCloseSidePanel) {
@@ -1201,6 +1201,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
         } else {
             topNodeRef.current = undefined;
             targetRef.current = node.codedata.lineRange;
+            setTargetLineRange(node.codedata.lineRange)
         }
         if (!targetRef.current) {
             return;
