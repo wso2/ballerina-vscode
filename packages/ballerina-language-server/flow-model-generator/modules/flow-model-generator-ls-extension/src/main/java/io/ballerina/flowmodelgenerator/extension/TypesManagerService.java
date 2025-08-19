@@ -286,7 +286,7 @@ public class TypesManagerService implements ExtendedLanguageServerService {
     }
 
     /**
-     * Verify if a type can be deleted from the specified file.
+     * Verify if a type can be safely deleted by checking for any references.
      *
      * @param request {@link VerifyTypeDeleteRequest}
      * @return {@link VerifyTypeDeleteResponse} the response indicating whether the type can be deleted

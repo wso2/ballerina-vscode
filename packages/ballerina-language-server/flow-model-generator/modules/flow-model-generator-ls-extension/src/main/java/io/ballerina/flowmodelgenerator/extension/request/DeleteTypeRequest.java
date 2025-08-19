@@ -21,6 +21,8 @@ package io.ballerina.flowmodelgenerator.extension.request;
 import io.ballerina.tools.text.LineRange;
 
 /**
+ * Represents the request for type deletion.
+ *
  * @param lineRange the range of typename to be deleted
  * @param filePath the path of the file
  *
