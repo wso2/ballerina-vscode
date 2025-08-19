@@ -26,9 +26,8 @@ import { useDiagramContext } from "../../DiagramContext";
 import { HttpIcon, TaskIcon } from "../../../resources";
 import { MoreVertIcon } from "../../../resources/icons/nodes/MoreVertIcon";
 import { CDAutomation, CDFunction, CDService, CDResourceFunction } from "@wso2/ballerina-core";
-import { createPortNodeLink, getEntryNodeFunctionPortName } from "../../../utils/diagram";
+import { getEntryNodeFunctionPortName } from "../../../utils/diagram";
 import { GQLFuncListType, GQLState, PREVIEW_COUNT, SHOW_ALL_THRESHOLD } from "../../Diagram";
-import { create } from "lodash";
 type NodeStyleProp = {
     hovered: boolean;
     inactive?: boolean;
