@@ -194,6 +194,38 @@ export function convertVectorKnowledgeBaseCategoriesToSidePanelCategories(catego
     return convertModelProviderCategoriesToSidePanelCategories(categories);
 }
 
+export function convertDataLoaderCategoriesToSidePanelCategories(categories: Category[]): PanelCategory[] {
+    const panelCategories = categories.map((category) => convertDiagramCategoryToSidePanelCategory(category));
+    panelCategories.forEach((category) => {
+        category.items?.forEach((item) => {
+            if ((item as PanelNode).metadata?.codedata) {
+                const codedata = (item as PanelNode).metadata.codedata;
+                item.icon = <NodeIcon type={codedata?.node} size={24} />;
+            } else if (((item as PanelCategory).items.at(0) as PanelNode)?.metadata?.codedata) {
+                const codedata = ((item as PanelCategory).items.at(0) as PanelNode)?.metadata.codedata;
+                item.icon = <NodeIcon type={codedata?.node} size={24} />;
+            }
+        });
+    });
+    return panelCategories;
+}
+
+export function convertChunkerCategoriesToSidePanelCategories(categories: Category[]): PanelCategory[] {
+    const panelCategories = categories.map((category) => convertDiagramCategoryToSidePanelCategory(category));
+    panelCategories.forEach((category) => {
+        category.items?.forEach((item) => {
+            if ((item as PanelNode).metadata?.codedata) {
+                const codedata = (item as PanelNode).metadata.codedata;
+                item.icon = <NodeIcon type={codedata?.node} size={24} />;
+            } else if (((item as PanelCategory).items.at(0) as PanelNode)?.metadata?.codedata) {
+                const codedata = ((item as PanelCategory).items.at(0) as PanelNode)?.metadata.codedata;
+                item.icon = <NodeIcon type={codedata?.node} size={24} />;
+            }
+        });
+    });
+    return panelCategories;
+}
+
 export function convertNodePropertiesToFormFields(
     nodeProperties: NodeProperties,
     connections?: FlowNode[],
