@@ -24,129 +24,22 @@
   "model": {
     "inputs": [
       {
-        "members": [
-          {
-            "id": "DepartmentCode.FINANCE",
-            "variableName": "FINANCE",
-            "typeName": "FINANCE",
-            "kind": "FINANCE",
-            "optional": false
-          },
-          {
-            "id": "DepartmentCode.IT",
-            "variableName": "IT",
-            "typeName": "IT",
-            "kind": "IT",
-            "optional": false
-          },
-          {
-            "id": "DepartmentCode.HR",
-            "variableName": "HR",
-            "typeName": "HR",
-            "kind": "HR",
-            "optional": false
-          }
-        ],
-        "id": "DepartmentCode",
-        "variableName": "DepartmentCode",
-        "typeName": "DepartmentCode",
-        "kind": "enum",
-        "category": "enum",
-        "optional": false
-      },
-      {
-        "fields": [
-          {
-            "id": "engineering.name",
-            "variableName": "name",
-            "typeName": "string",
-            "kind": "string",
-            "optional": false
-          },
-          {
-            "members": [
-              {
-                "id": "engineering.code.FINANCE",
-                "variableName": "FINANCE",
-                "typeName": "FINANCE",
-                "kind": "FINANCE",
-                "optional": false
-              },
-              {
-                "id": "engineering.code.IT",
-                "variableName": "IT",
-                "typeName": "IT",
-                "kind": "IT",
-                "optional": false
-              },
-              {
-                "id": "engineering.code.HR",
-                "variableName": "HR",
-                "typeName": "HR",
-                "kind": "HR",
-                "optional": false
-              }
-            ],
-            "id": "engineering.code",
-            "variableName": "code",
-            "typeName": "DepartmentCode",
-            "kind": "enum",
-            "optional": false
-          }
-        ],
+        "fields": [],
         "id": "engineering",
         "variableName": "engineering",
         "typeName": "Department",
         "kind": "record",
         "category": "local-variable",
-        "optional": false
+        "reference": "1745735136"
       }
     ],
     "output": {
-      "fields": [
-        {
-          "id": "engineering2.name",
-          "variableName": "name",
-          "typeName": "string",
-          "kind": "string",
-          "optional": false
-        },
-        {
-          "members": [
-            {
-              "id": "engineering2.code.FINANCE",
-              "variableName": "FINANCE",
-              "typeName": "FINANCE",
-              "kind": "FINANCE",
-              "optional": false
-            },
-            {
-              "id": "engineering2.code.IT",
-              "variableName": "IT",
-              "typeName": "IT",
-              "kind": "IT",
-              "optional": false
-            },
-            {
-              "id": "engineering2.code.HR",
-              "variableName": "HR",
-              "typeName": "HR",
-              "kind": "HR",
-              "optional": false
-            }
-          ],
-          "id": "engineering2.code",
-          "variableName": "code",
-          "typeName": "DepartmentCode",
-          "kind": "enum",
-          "optional": false
-        }
-      ],
+      "fields": [],
       "id": "engineering2",
       "variableName": "engineering2",
       "typeName": "Department",
       "kind": "record",
-      "optional": false
+      "reference": "1745735136"
     },
     "mappings": [
       {
@@ -169,6 +62,20 @@
         "isQueryExpression": false,
         "isFunctionCall": false
       }
-    ]
+    ],
+    "references": {
+      "1745735136": {
+        "fields": [
+          {
+            "id": "name",
+            "variableName": "name",
+            "typeName": "string",
+            "kind": "string"
+          }
+        ],
+        "typeName": "Department",
+        "kind": "record"
+      }
+    }
   }
 }

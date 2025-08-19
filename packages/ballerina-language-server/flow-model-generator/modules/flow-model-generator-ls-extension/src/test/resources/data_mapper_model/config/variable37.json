@@ -24,91 +24,29 @@
   "model": {
     "inputs": [
       {
-        "fields": [
-          {
-            "id": "user.name",
-            "variableName": "name",
-            "typeName": "string",
-            "kind": "string",
-            "optional": false
-          }
-        ],
+        "fields": [],
         "id": "user",
         "variableName": "user",
         "typeName": "User",
         "kind": "record",
         "category": "parameter",
-        "optional": false
+        "ref": "-699535980"
       }
     ],
     "output": {
       "member": {
-        "fields": [
-          {
-            "fields": [
-              {
-                "member": {
-                  "id": "users4.user5.u",
-                  "variableName": "<uItem>",
-                  "typeName": "string",
-                  "kind": "string",
-                  "optional": false
-                },
-                "id": "users4.user5.u",
-                "variableName": "u",
-                "typeName": "string[]",
-                "kind": "array",
-                "optional": false
-              }
-            ],
-            "id": "users4.user5",
-            "variableName": "user5",
-            "typeName": "User5",
-            "kind": "record",
-            "optional": false
-          },
-          {
-            "member": {
-              "fields": [
-                {
-                  "id": "users4.users6.account",
-                  "variableName": "account",
-                  "typeName": "string",
-                  "kind": "string",
-                  "optional": false
-                },
-                {
-                  "id": "users4.users6.balance",
-                  "variableName": "balance",
-                  "typeName": "decimal",
-                  "kind": "decimal",
-                  "optional": false
-                }
-              ],
-              "id": "users4.users6",
-              "variableName": "<users6Item>",
-              "typeName": "User6",
-              "kind": "record",
-              "optional": false
-            },
-            "id": "users4.users6",
-            "variableName": "users6",
-            "typeName": "User6[]",
-            "kind": "array",
-            "optional": false
-          }
-        ],
+        "fields": [],
         "id": "users4",
         "variableName": "<users4Item>",
         "typeName": "User4",
         "kind": "record",
-        "optional": false
+        "ref": "-1258898922"
       },
       "id": "users4",
       "variableName": "users4",
       "typeName": "User4[]",
       "kind": "array",
-      "optional": false
+      "ref": "-1258898922"
     },
     "mappings": [
       {
@@ -193,6 +131,85 @@
           }
         ]
       }
-    ]
+    ],
+    "refs": {
+      "-539589308": {
+        "fields": [
+          {
+            "id": "account",
+            "variableName": "account",
+            "typeName": "string",
+            "kind": "string"
+          },
+          {
+            "id": "balance",
+            "variableName": "balance",
+            "typeName": "decimal",
+            "kind": "decimal"
+          }
+        ],
+        "typeName": "User6",
+        "kind": "record"
+      },
+      "-1258898922": {
+        "fields": [
+          {
+            "fields": [],
+            "id": "user5",
+            "variableName": "user5",
+            "typeName": "User5",
+            "kind": "record",
+            "ref": "438943303"
+          },
+          {
+            "member": {
+              "fields": [],
+              "id": "users6",
+              "variableName": "<users6Item>",
+              "typeName": "User6",
+              "kind": "record",
+              "ref": "-539589308"
+            },
+            "id": "users6",
+            "variableName": "users6",
+            "typeName": "User6[]",
+            "kind": "array",
+            "ref": "-539589308"
+          }
+        ],
+        "typeName": "User4",
+        "kind": "record"
+      },
+      "-699535980": {
+        "fields": [
+          {
+            "id": "name",
+            "variableName": "name",
+            "typeName": "string",
+            "kind": "string"
+          }
+        ],
+        "typeName": "User",
+        "kind": "record"
+      },
+      "438943303": {
+        "fields": [
+          {
+            "member": {
+              "id": "u",
+              "variableName": "<uItem>",
+              "typeName": "string",
+              "kind": "string"
+            },
+            "id": "u",
+            "variableName": "u",
+            "typeName": "string[]",
+            "kind": "array"
+          }
+        ],
+        "typeName": "User5",
+        "kind": "record"
+      }
+    }
   }
 }

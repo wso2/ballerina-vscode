@@ -1,0 +1,112 @@
+{
+  "source": "array2.bal",
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "array2.bal",
+      "startLine": {
+        "line": 22,
+        "offset": 12
+      },
+      "endLine": {
+        "line": 22,
+        "offset": 23
+      }
+    },
+    "sourceCode": "L1 l1 = {};"
+  },
+  "position": {
+    "line": 22,
+    "offset": 12
+  },
+  "propertyKey": "expression",
+  "targetField": "l1",
+  "model": {
+    "inputs": [],
+    "output": {
+      "fields": [],
+      "id": "l1",
+      "variableName": "l1",
+      "typeName": "L1",
+      "kind": "record",
+      "ref": "-541564682"
+    },
+    "mappings": [],
+    "refs": {
+      "-541564682": {
+        "fields": [
+          {
+            "member": {
+              "fields": [],
+              "id": "l2",
+              "variableName": "<l2Item>",
+              "typeName": "L2",
+              "kind": "record",
+              "ref": "1686465105"
+            },
+            "id": "l2",
+            "variableName": "l2",
+            "typeName": "L2[]",
+            "kind": "array",
+            "ref": "1686465105"
+          }
+        ],
+        "typeName": "L1",
+        "kind": "record"
+      },
+      "-457011656": {
+        "fields": [
+          {
+            "id": "l4_1",
+            "variableName": "l4_1",
+            "typeName": "int",
+            "kind": "int"
+          },
+          {
+            "id": "l4_2",
+            "variableName": "l4_2",
+            "typeName": "string",
+            "kind": "string"
+          }
+        ],
+        "typeName": "L3",
+        "kind": "record"
+      },
+      "1686465105": {
+        "fields": [
+          {
+            "id": "l3",
+            "variableName": "l3",
+            "typeName": "int",
+            "kind": "int"
+          },
+          {
+            "member": {
+              "member": {
+                "fields": [],
+                "id": "l3Arr",
+                "variableName": "<l3ArrItemItem>",
+                "typeName": "L3",
+                "kind": "record",
+                "ref": "-457011656"
+              },
+              "id": "l3Arr",
+              "variableName": "<l3ArrItem>",
+              "typeName": "L3[]",
+              "kind": "array",
+              "ref": "-457011656"
+            },
+            "id": "l3Arr",
+            "variableName": "l3Arr",
+            "typeName": "L3[][]",
+            "kind": "array",
+            "ref": "-457011656"
+          }
+        ],
+        "typeName": "L2",
+        "kind": "record"
+      }
+    }
+  }
+}

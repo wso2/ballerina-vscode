@@ -24,106 +24,95 @@
   "model": {
     "inputs": [
       {
-        "fields": [
-          {
-            "id": "std.firstName",
-            "variableName": "firstName",
-            "typeName": "string",
-            "kind": "string",
-            "optional": false
-          },
-          {
-            "id": "std.lastName",
-            "variableName": "lastName",
-            "typeName": "string",
-            "kind": "string",
-            "optional": false
-          },
-          {
-            "id": "std.stdAge",
-            "variableName": "stdAge",
-            "typeName": "int",
-            "kind": "int",
-            "optional": false
-          }
-        ],
+        "fields": [],
         "id": "std",
         "variableName": "std",
         "typeName": "Student",
         "kind": "record",
         "category": "local-variable",
-        "optional": false
+        "ref": "-235867440"
       }
     ],
     "output": {
-      "fields": [
-        {
-          "id": "var1909.name",
-          "variableName": "name",
-          "typeName": "string",
-          "kind": "string",
-          "optional": false
-        },
-        {
-          "id": "var1909.age",
-          "variableName": "age",
-          "typeName": "int",
-          "kind": "int",
-          "optional": false
-        },
-        {
-          "id": "var1909.city",
-          "variableName": "city",
-          "typeName": "string",
-          "kind": "string",
-          "optional": false
-        },
-        {
-          "fields": [
-            {
-              "fields": [
-                {
-                  "id": "var1909.foo.bar.firstName",
-                  "variableName": "firstName",
-                  "typeName": "string",
-                  "kind": "string",
-                  "optional": false
-                },
-                {
-                  "id": "var1909.foo.bar.lastName",
-                  "variableName": "lastName",
-                  "typeName": "string",
-                  "kind": "string",
-                  "optional": false
-                },
-                {
-                  "id": "var1909.foo.bar.stdAge",
-                  "variableName": "stdAge",
-                  "typeName": "int",
-                  "kind": "int",
-                  "optional": false
-                }
-              ],
-              "id": "var1909.foo.bar",
-              "variableName": "bar",
-              "typeName": "Student",
-              "kind": "record",
-              "optional": false
-            }
-          ],
-          "id": "var1909.foo",
-          "variableName": "foo",
-          "typeName": "record",
-          "kind": "record",
-          "optional": false
-        }
-      ],
+      "fields": [],
       "id": "var1909",
       "variableName": "var1909",
       "typeName": "Person",
       "kind": "record",
-      "optional": false
+      "ref": "-1781951605"
     },
-    "mappings": []
+    "mappings": [],
+    "refs": {
+      "-235867440": {
+        "fields": [
+          {
+            "id": "firstName",
+            "variableName": "firstName",
+            "typeName": "string",
+            "kind": "string"
+          },
+          {
+            "id": "lastName",
+            "variableName": "lastName",
+            "typeName": "string",
+            "kind": "string"
+          },
+          {
+            "id": "stdAge",
+            "variableName": "stdAge",
+            "typeName": "int",
+            "kind": "int"
+          }
+        ],
+        "typeName": "Student",
+        "kind": "record"
+      },
+      "-263690226": {
+        "fields": [
+          {
+            "fields": [],
+            "id": "bar",
+            "variableName": "bar",
+            "typeName": "Student",
+            "kind": "record",
+            "ref": "-235867440"
+          }
+        ],
+        "typeName": "",
+        "kind": "record"
+      },
+      "-1781951605": {
+        "fields": [
+          {
+            "id": "name",
+            "variableName": "name",
+            "typeName": "string",
+            "kind": "string"
+          },
+          {
+            "id": "age",
+            "variableName": "age",
+            "typeName": "int",
+            "kind": "int"
+          },
+          {
+            "id": "city",
+            "variableName": "city",
+            "typeName": "string",
+            "kind": "string"
+          },
+          {
+            "fields": [],
+            "id": "foo",
+            "variableName": "foo",
+            "typeName": "",
+            "kind": "record",
+            "ref": "-263690226"
+          }
+        ],
+        "typeName": "Person",
+        "kind": "record"
+      }
+    }
   }
 }

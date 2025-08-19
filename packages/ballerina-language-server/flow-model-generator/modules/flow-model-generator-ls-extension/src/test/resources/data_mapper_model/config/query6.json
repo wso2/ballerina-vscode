@@ -25,181 +25,48 @@
   "model": {
     "inputs": [
       {
-        "fields": [
-          {
-            "id": "l2Item.l3",
-            "variableName": "l3",
-            "typeName": "int",
-            "kind": "int",
-            "optional": false
-          },
-          {
-            "member": {
-              "fields": [
-                {
-                  "id": "l2Item.l3Arr.0.l4_1",
-                  "variableName": "l4_1",
-                  "typeName": "int",
-                  "kind": "int",
-                  "optional": false
-                },
-                {
-                  "id": "l2Item.l3Arr.0.l4_2",
-                  "variableName": "l4_2",
-                  "typeName": "string",
-                  "kind": "string",
-                  "optional": false
-                }
-              ],
-              "id": "l2Item.l3Arr.0",
-              "variableName": "<l3ArrItem>",
-              "typeName": "record",
-              "kind": "record",
-              "optional": false
-            },
-            "focusedMemberId": "l3ArrItem",
-            "id": "l2Item.l3Arr",
-            "variableName": "l3Arr",
-            "typeName": "record[]",
-            "kind": "array",
-            "optional": false
-          }
-        ],
+        "fields": [],
         "id": "l2Item",
         "variableName": "l2Item",
-        "typeName": "record",
+        "typeName": "l2Item",
         "kind": "record",
         "category": "variable",
         "isFocused": true,
-        "optional": false
+        "ref": "2072204783"
       },
       {
-        "fields": [
-          {
-            "fields": [
-              {
-                "member": {
-                  "fields": [
-                    {
-                      "id": "var1.l1.l2.0.l3",
-                      "variableName": "l3",
-                      "typeName": "int",
-                      "kind": "int",
-                      "optional": false
-                    },
-                    {
-                      "member": {
-                        "fields": [
-                          {
-                            "id": "var1.l1.l2.0.l3Arr.0.l4_1",
-                            "variableName": "l4_1",
-                            "typeName": "int",
-                            "kind": "int",
-                            "optional": false
-                          },
-                          {
-                            "id": "var1.l1.l2.0.l3Arr.0.l4_2",
-                            "variableName": "l4_2",
-                            "typeName": "string",
-                            "kind": "string",
-                            "optional": false
-                          }
-                        ],
-                        "id": "var1.l1.l2.0.l3Arr.0",
-                        "variableName": "<l3ArrItem>",
-                        "typeName": "record",
-                        "kind": "record",
-                        "optional": false
-                      },
-                      "id": "var1.l1.l2.0.l3Arr",
-                      "variableName": "l3Arr",
-                      "typeName": "record[]",
-                      "kind": "array",
-                      "optional": false
-                    }
-                  ],
-                  "id": "var1.l1.l2.0",
-                  "variableName": "<l2Item>",
-                  "typeName": "record",
-                  "kind": "record",
-                  "optional": false
-                },
-                "focusedMemberId": "l2Item",
-                "id": "var1.l1.l2",
-                "variableName": "l2",
-                "typeName": "record[]",
-                "kind": "array",
-                "optional": false
-              }
-            ],
-            "id": "var1.l1",
-            "variableName": "l1",
-            "typeName": "record",
-            "kind": "record",
-            "optional": false
-          }
-        ],
+        "fields": [],
         "id": "var1",
         "variableName": "var1",
         "typeName": "MyType4",
         "kind": "record",
         "category": "variable",
-        "optional": false
+        "ref": "360065391"
       },
       {
-        "fields": [
-          {
-            "id": "l3ArrItem.l4_1",
-            "variableName": "l4_1",
-            "typeName": "int",
-            "kind": "int",
-            "optional": false
-          },
-          {
-            "id": "l3ArrItem.l4_2",
-            "variableName": "l4_2",
-            "typeName": "string",
-            "kind": "string",
-            "optional": false
-          }
-        ],
+        "fields": [],
         "id": "l3ArrItem",
         "variableName": "l3ArrItem",
-        "typeName": "record",
+        "typeName": "record {|int l4_1; string l4_2; anydata...;|}",
         "kind": "record",
         "isFocused": true,
-        "optional": false
+        "ref": "-1019813121"
       }
     ],
     "output": {
       "member": {
-        "fields": [
-          {
-            "id": "l3Arr.l4_1",
-            "variableName": "l4_1",
-            "typeName": "int",
-            "kind": "int",
-            "optional": false
-          },
-          {
-            "id": "l3Arr.l4_2",
-            "variableName": "l4_2",
-            "typeName": "string",
-            "kind": "string",
-            "optional": false
-          }
-        ],
+        "fields": [],
         "id": "l3Arr",
         "variableName": "<l3ArrItem>",
-        "typeName": "record",
+        "typeName": "",
         "kind": "record",
-        "optional": false
+        "ref": "1847207892"
       },
       "id": "l3Arr",
       "variableName": "l3Arr",
-      "typeName": "record[]",
+      "typeName": "[]",
       "kind": "array",
-      "optional": false
+      "ref": "1847207892"
     },
     "mappings": [
       {
@@ -240,6 +107,133 @@
         "properties": {
           "expression": "{l4_1: 0, l4_2: \"aaa\"}"
         }
+      }
+    },
+    "refs": {
+      "-791387238": {
+        "fields": [
+          {
+            "id": "l3",
+            "variableName": "l3",
+            "typeName": "int",
+            "kind": "int"
+          },
+          {
+            "member": {
+              "fields": [],
+              "id": "l3Arr",
+              "variableName": "<l3ArrItem>",
+              "typeName": "",
+              "kind": "record",
+              "ref": "1847207892"
+            },
+            "id": "l3Arr",
+            "variableName": "l3Arr",
+            "typeName": "[]",
+            "kind": "array",
+            "ref": "1847207892"
+          }
+        ],
+        "typeName": "",
+        "kind": "record"
+      },
+      "2072204783": {
+        "fields": [
+          {
+            "id": "l3",
+            "variableName": "l3",
+            "typeName": "int",
+            "kind": "int"
+          },
+          {
+            "member": {
+              "fields": [],
+              "id": "l3Arr",
+              "variableName": "<l3ArrItem>",
+              "typeName": "",
+              "kind": "record",
+              "ref": "1847207892"
+            },
+            "id": "l3Arr",
+            "variableName": "l3Arr",
+            "typeName": "[]",
+            "kind": "array",
+            "ref": "1847207892"
+          }
+        ],
+        "typeName": "l2Item",
+        "kind": "record"
+      },
+      "1011837363": {
+        "fields": [
+          {
+            "member": {
+              "fields": [],
+              "id": "l2",
+              "variableName": "<l2Item>",
+              "typeName": "",
+              "kind": "record",
+              "ref": "-791387238"
+            },
+            "id": "l2",
+            "variableName": "l2",
+            "typeName": "[]",
+            "kind": "array",
+            "ref": "-791387238"
+          }
+        ],
+        "typeName": "",
+        "kind": "record"
+      },
+      "-1019813121": {
+        "fields": [
+          {
+            "id": "l4_1",
+            "variableName": "l4_1",
+            "typeName": "int",
+            "kind": "int"
+          },
+          {
+            "id": "l4_2",
+            "variableName": "l4_2",
+            "typeName": "string",
+            "kind": "string"
+          }
+        ],
+        "typeName": "record {|int l4_1; string l4_2; anydata...;|}",
+        "kind": "record"
+      },
+      "1847207892": {
+        "fields": [
+          {
+            "id": "l4_1",
+            "variableName": "l4_1",
+            "typeName": "int",
+            "kind": "int"
+          },
+          {
+            "id": "l4_2",
+            "variableName": "l4_2",
+            "typeName": "string",
+            "kind": "string"
+          }
+        ],
+        "typeName": "",
+        "kind": "record"
+      },
+      "360065391": {
+        "fields": [
+          {
+            "fields": [],
+            "id": "l1",
+            "variableName": "l1",
+            "typeName": "",
+            "kind": "record",
+            "ref": "1011837363"
+          }
+        ],
+        "typeName": "MyType4",
+        "kind": "record"
       }
     }
   }

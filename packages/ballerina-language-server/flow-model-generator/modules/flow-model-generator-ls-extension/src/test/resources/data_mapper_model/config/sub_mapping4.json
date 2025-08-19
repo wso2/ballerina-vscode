@@ -25,36 +25,13 @@
   "model": {
     "inputs": [
       {
-        "id": "CONST",
-        "variableName": "CONST",
-        "typeName": "string",
-        "kind": "string",
-        "category": "constant",
-        "optional": false
-      },
-      {
         "member": {
-          "fields": [
-            {
-              "id": "userInfo.0.username",
-              "variableName": "username",
-              "typeName": "string",
-              "kind": "string",
-              "optional": false
-            },
-            {
-              "id": "userInfo.0.password",
-              "variableName": "password",
-              "typeName": "string",
-              "kind": "string",
-              "optional": false
-            }
-          ],
-          "id": "userInfo.0",
+          "fields": [],
+          "id": "userInfo",
           "variableName": "<userInfoItem>",
           "typeName": "UserInfo",
           "kind": "record",
-          "optional": false
+          "ref": "-1418772512"
         },
         "focusedMemberId": "user",
         "id": "userInfo",
@@ -62,62 +39,32 @@
         "typeName": "UserInfo[]",
         "kind": "array",
         "category": "variable",
-        "optional": false
+        "ref": "-1418772512"
       },
       {
-        "fields": [
-          {
-            "id": "user.username",
-            "variableName": "username",
-            "typeName": "string",
-            "kind": "string",
-            "optional": false
-          },
-          {
-            "id": "user.password",
-            "variableName": "password",
-            "typeName": "string",
-            "kind": "string",
-            "optional": false
-          }
-        ],
+        "fields": [],
         "id": "user",
         "variableName": "user",
         "typeName": "UserInfo",
         "kind": "record",
         "isFocused": true,
-        "optional": false
+        "ref": "-1418772512"
       }
     ],
     "output": {
       "member": {
-        "fields": [
-          {
-            "id": "students.username",
-            "variableName": "username",
-            "typeName": "string",
-            "kind": "string",
-            "optional": false
-          },
-          {
-            "id": "students.password",
-            "variableName": "password",
-            "typeName": "string",
-            "kind": "string",
-            "optional": false
-          }
-        ],
+        "fields": [],
         "id": "students",
         "variableName": "<studentsItem>",
         "typeName": "Student",
         "kind": "record",
-        "optional": false
+        "ref": "-1801106114"
       },
       "id": "students",
       "variableName": "students",
       "typeName": "Student[]",
       "kind": "array",
-      "optional": false
+      "ref": "-1801106114"
     },
     "mappings": [
       {
@@ -162,6 +109,44 @@
         "properties": {
           "expression": "{username: user.username, password: user.password}"
         }
+      }
+    },
+    "refs": {
+      "-1418772512": {
+        "fields": [
+          {
+            "id": "username",
+            "variableName": "username",
+            "typeName": "string",
+            "kind": "string"
+          },
+          {
+            "id": "password",
+            "variableName": "password",
+            "typeName": "string",
+            "kind": "string"
+          }
+        ],
+        "typeName": "UserInfo",
+        "kind": "record"
+      },
+      "-1801106114": {
+        "fields": [
+          {
+            "id": "username",
+            "variableName": "username",
+            "typeName": "string",
+            "kind": "string"
+          },
+          {
+            "id": "password",
+            "variableName": "password",
+            "typeName": "string",
+            "kind": "string"
+          }
+        ],
+        "typeName": "Student",
+        "kind": "record"
       }
     }
   }

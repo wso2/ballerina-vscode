@@ -22,22 +22,12 @@
   },
   "propertyKey": "expression",
   "model": {
-    "inputs": [
-      {
-        "id": "AGE",
-        "variableName": "AGE",
-        "typeName": "int",
-        "kind": "int",
-        "category": "constant",
-        "optional": false
-      }
-    ],
+    "inputs": [],
     "output": {
       "id": "myAge",
       "variableName": "myAge",
       "typeName": "int",
-      "kind": "int",
-      "optional": false
+      "kind": "int"
     },
     "mappings": [
       {
@@ -51,6 +41,7 @@
         "isQueryExpression": false,
         "isFunctionCall": false
       }
-    ]
+    ],
+    "references": {}
   }
 }
