@@ -46,8 +46,6 @@ export const getAiModuleOrg = async (rpcClient: BallerinaRpcClient) => {
 }
 
 export const getAgentFilePath = async (rpcClient: BallerinaRpcClient) => {
-    // Get the agent file path and update the node
-    const filePath = await rpcClient.getVisualizerLocation();
     // Create the agent file path
     const agentFilePath = await rpcClient.getVisualizerRpcClient().joinProjectPath("agents.bal");
     return agentFilePath;
