@@ -574,9 +574,7 @@ export const Form = forwardRef((props: FormProps, ref) => {
     };
 
     const handleNewTypeSelected = (type: CompletionItem) => {
-        if (type) {
-            handleSelectedTypeChange && handleSelectedTypeChange(type);
-        }
+        handleSelectedTypeChange && handleSelectedTypeChange(type);
     }
 
     const getVisualiableFields = () => {
