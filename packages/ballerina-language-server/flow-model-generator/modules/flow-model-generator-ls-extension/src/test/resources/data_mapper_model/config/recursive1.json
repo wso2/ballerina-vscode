@@ -40,7 +40,8 @@
             "id": "name",
             "variableName": "name",
             "typeName": "string",
-            "kind": "string"
+            "kind": "string",
+            "optional": false
           },
           {
             "fields": [],
@@ -48,6 +49,7 @@
             "variableName": "father",
             "typeName": "Person",
             "kind": "record",
+            "optional": false,
             "ref": "-999232890"
           },
           {
@@ -56,6 +58,7 @@
             "variableName": "mother",
             "typeName": "Person",
             "kind": "record",
+            "optional": false,
             "ref": "-999232890"
           }
         ],

@@ -69,7 +69,8 @@
             "id": "name",
             "variableName": "name",
             "typeName": "string",
-            "kind": "string"
+            "kind": "string",
+            "optional": false
           },
           {
             "member": {
@@ -84,6 +85,7 @@
             "variableName": "employees",
             "typeName": "Employee[]",
             "kind": "array",
+            "optional": false,
             "ref": "281439725"
           }
         ],
@@ -96,7 +98,8 @@
             "id": "name",
             "variableName": "name",
             "typeName": "string",
-            "kind": "string"
+            "kind": "string",
+            "optional": false
           },
           {
             "fields": [],
@@ -104,6 +107,7 @@
             "variableName": "department",
             "typeName": "Department",
             "kind": "record",
+            "optional": false,
             "ref": "-676835306"
           }
         ],

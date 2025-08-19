@@ -85,13 +85,15 @@
             "id": "username",
             "variableName": "username",
             "typeName": "string",
-            "kind": "string"
+            "kind": "string",
+            "optional": false
           },
           {
             "id": "password",
             "variableName": "password",
             "typeName": "string",
-            "kind": "string"
+            "kind": "string",
+            "optional": false
           }
         ],
         "typeName": "UserInfo",
@@ -103,19 +105,22 @@
             "id": "username",
             "variableName": "username",
             "typeName": "string",
-            "kind": "string"
+            "kind": "string",
+            "optional": false
           },
           {
             "id": "password",
             "variableName": "password",
             "typeName": "string",
-            "kind": "string"
+            "kind": "string",
+            "optional": false
           },
           {
             "id": "length",
             "variableName": "length",
             "typeName": "int",
-            "kind": "int"
+            "kind": "int",
+            "optional": false
           }
         ],
         "typeName": "Student",

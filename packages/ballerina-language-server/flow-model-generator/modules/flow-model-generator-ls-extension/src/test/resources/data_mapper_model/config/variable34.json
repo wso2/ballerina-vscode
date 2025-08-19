@@ -83,7 +83,8 @@
             "id": "u",
             "variableName": "u",
             "typeName": "string",
-            "kind": "string"
+            "kind": "string",
+            "optional": false
           }
         ],
         "typeName": "User5",
@@ -97,13 +98,15 @@
             "variableName": "user2",
             "typeName": "User2",
             "kind": "record",
+            "optional": false,
             "ref": "-69405822"
           },
           {
             "id": "s1",
             "variableName": "s1",
             "typeName": "string",
-            "kind": "string"
+            "kind": "string",
+            "optional": false
           }
         ],
         "typeName": "User1",
@@ -117,13 +120,15 @@
             "variableName": "user4",
             "typeName": "User4",
             "kind": "record",
+            "optional": false,
             "ref": "-462373188"
           },
           {
             "id": "i3",
             "variableName": "i3",
             "typeName": "int",
-            "kind": "int"
+            "kind": "int",
+            "optional": false
           }
         ],
         "typeName": "User3",
@@ -135,7 +140,8 @@
             "id": "name",
             "variableName": "name",
             "typeName": "string",
-            "kind": "string"
+            "kind": "string",
+            "optional": false
           }
         ],
         "typeName": "User",
@@ -149,6 +155,7 @@
             "variableName": "user5",
             "typeName": "User5",
             "kind": "record",
+            "optional": false,
             "ref": "-1647132631"
           }
         ],
@@ -163,6 +170,7 @@
             "variableName": "user3",
             "typeName": "User3",
             "kind": "record",
+            "optional": false,
             "ref": "-2112806689"
           }
         ],

@@ -49,6 +49,7 @@
             "variableName": "l2",
             "typeName": "L2[]",
             "kind": "array",
+            "optional": false,
             "ref": "1686465105"
           }
         ],
@@ -61,13 +62,15 @@
             "id": "l4_1",
             "variableName": "l4_1",
             "typeName": "int",
-            "kind": "int"
+            "kind": "int",
+            "optional": false
           },
           {
             "id": "l4_2",
             "variableName": "l4_2",
             "typeName": "string",
-            "kind": "string"
+            "kind": "string",
+            "optional": false
           }
         ],
         "typeName": "L3",
@@ -79,7 +82,8 @@
             "id": "l3",
             "variableName": "l3",
             "typeName": "int",
-            "kind": "int"
+            "kind": "int",
+            "optional": false
           },
           {
             "member": {
@@ -101,6 +105,7 @@
             "variableName": "l3Arr",
             "typeName": "L3[][]",
             "kind": "array",
+            "optional": false,
             "ref": "-457011656"
           }
         ],

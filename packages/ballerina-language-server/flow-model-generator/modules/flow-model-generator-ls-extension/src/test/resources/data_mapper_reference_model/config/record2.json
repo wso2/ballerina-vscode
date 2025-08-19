@@ -68,13 +68,15 @@
             "id": "sampleTypeName",
             "variableName": "sampleTypeName",
             "typeName": "string",
-            "kind": "string"
+            "kind": "string",
+            "optional": false
           },
           {
             "id": "sampleTypeCode",
             "variableName": "sampleTypeCode",
             "typeName": "int",
-            "kind": "int"
+            "kind": "int",
+            "optional": false
           }
         ],
         "typeName": "SampleType",
@@ -86,7 +88,8 @@
             "id": "finalNote",
             "variableName": "finalNote",
             "typeName": "string",
-            "kind": "string"
+            "kind": "string",
+            "optional": false
           },
           {
             "fields": [],
@@ -94,6 +97,7 @@
             "variableName": "progressNote",
             "typeName": "ProgressNote",
             "kind": "record",
+            "optional": false,
             "ref": "1030185792"
           }
         ],
@@ -106,7 +110,8 @@
             "id": "note",
             "variableName": "note",
             "typeName": "string",
-            "kind": "string"
+            "kind": "string",
+            "optional": false
           },
           {
             "fields": [],
@@ -114,6 +119,7 @@
             "variableName": "sampleRecord",
             "typeName": "SampleRecord",
             "kind": "record",
+            "optional": false,
             "ref": "-757648111"
           }
         ],
@@ -126,7 +132,8 @@
             "id": "sampleRecordName",
             "variableName": "sampleRecordName",
             "typeName": "string",
-            "kind": "string"
+            "kind": "string",
+            "optional": false
           },
           {
             "fields": [],
@@ -134,6 +141,7 @@
             "variableName": "recordType",
             "typeName": "SampleType",
             "kind": "record",
+            "optional": false,
             "ref": "897207248"
           }
         ],

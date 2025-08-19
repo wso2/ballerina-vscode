@@ -71,13 +71,15 @@
             "id": "username",
             "variableName": "username",
             "typeName": "string",
-            "kind": "string"
+            "kind": "string",
+            "optional": false
           },
           {
             "id": "password",
             "variableName": "password",
             "typeName": "string",
-            "kind": "string"
+            "kind": "string",
+            "optional": false
           }
         ],
         "typeName": "UserInfo",
@@ -89,13 +91,15 @@
             "id": "username",
             "variableName": "username",
             "typeName": "string",
-            "kind": "string"
+            "kind": "string",
+            "optional": false
           },
           {
             "id": "password",
             "variableName": "password",
             "typeName": "string",
-            "kind": "string"
+            "kind": "string",
+            "optional": false
           }
         ],
         "typeName": "Credentials",

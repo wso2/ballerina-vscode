@@ -119,6 +119,7 @@
             "variableName": "contacts",
             "typeName": "Contact[]",
             "kind": "array",
+            "optional": false,
             "ref": "1530779283"
           }
         ],
@@ -131,13 +132,15 @@
             "id": "primaryPhone",
             "variableName": "primaryPhone",
             "typeName": "string",
-            "kind": "string"
+            "kind": "string",
+            "optional": false
           },
           {
             "id": "secondaryPhone",
             "variableName": "secondaryPhone",
             "typeName": "string",
-            "kind": "string"
+            "kind": "string",
+            "optional": false
           }
         ],
         "typeName": "Contact",
@@ -155,7 +158,8 @@
             "id": "phoneNumber",
             "variableName": "phoneNumber",
             "typeName": "string[]",
-            "kind": "array"
+            "kind": "array",
+            "optional": false
           }
         ],
         "typeName": "User",

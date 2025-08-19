@@ -96,6 +96,7 @@
             "variableName": "info",
             "typeName": "Info",
             "kind": "record",
+            "optional": false,
             "ref": "-36697220"
           }
         ],
@@ -114,7 +115,8 @@
             "id": "secondaryPhones",
             "variableName": "secondaryPhones",
             "typeName": "string[]",
-            "kind": "array"
+            "kind": "array",
+            "optional": false
           },
           {
             "member": {
@@ -126,7 +128,8 @@
             "id": "emails",
             "variableName": "emails",
             "typeName": "string[]",
-            "kind": "array"
+            "kind": "array",
+            "optional": false
           },
           {
             "member": {
@@ -144,7 +147,8 @@
             "id": "addresses",
             "variableName": "addresses",
             "typeName": "string[][]",
-            "kind": "array"
+            "kind": "array",
+            "optional": false
           }
         ],
         "typeName": "Info",

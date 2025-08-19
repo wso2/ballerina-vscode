@@ -139,13 +139,15 @@
             "id": "account",
             "variableName": "account",
             "typeName": "string",
-            "kind": "string"
+            "kind": "string",
+            "optional": false
           },
           {
             "id": "balance",
             "variableName": "balance",
             "typeName": "decimal",
-            "kind": "decimal"
+            "kind": "decimal",
+            "optional": false
           }
         ],
         "typeName": "User6",
@@ -159,6 +161,7 @@
             "variableName": "user5",
             "typeName": "User5",
             "kind": "record",
+            "optional": false,
             "ref": "438943303"
           },
           {
@@ -174,6 +177,7 @@
             "variableName": "users6",
             "typeName": "User6[]",
             "kind": "array",
+            "optional": false,
             "ref": "-539589308"
           }
         ],
@@ -186,7 +190,8 @@
             "id": "name",
             "variableName": "name",
             "typeName": "string",
-            "kind": "string"
+            "kind": "string",
+            "optional": false
           }
         ],
         "typeName": "User",
@@ -204,7 +209,8 @@
             "id": "u",
             "variableName": "u",
             "typeName": "string[]",
-            "kind": "array"
+            "kind": "array",
+            "optional": false
           }
         ],
         "typeName": "User5",
