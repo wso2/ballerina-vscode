@@ -25,6 +25,13 @@
   "model": {
     "inputs": [
       {
+        "id": "CONST",
+        "variableName": "CONST",
+        "typeName": "CONST",
+        "kind": "CONST",
+        "category": "constant"
+      },
+      {
         "fields": [],
         "id": "bank",
         "variableName": "bank",

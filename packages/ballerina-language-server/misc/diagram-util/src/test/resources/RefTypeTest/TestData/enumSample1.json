@@ -8,7 +8,8 @@
         "fieldName": "name",
         "type": {
           "dependentTypeHashes": [],
-          "name": "string"
+          "name": "string",
+          "typeName": "string"
         },
         "optional": false,
         "defaultValue": ""
@@ -16,8 +17,22 @@
       {
         "fieldName": "code",
         "type": {
+          "memberTypes": [
+            {
+              "dependentTypeHashes": [],
+              "name": "FINANCE"
+            },
+            {
+              "dependentTypeHashes": [],
+              "name": "IT"
+            },
+            {
+              "dependentTypeHashes": [],
+              "name": "HR"
+            }
+          ],
           "dependentTypeHashes": [],
-          "hashCode": "210120383",
+          "hashCode": "-959561237",
           "name": "DepartmentCode",
           "typeName": "union"
         },
@@ -26,13 +41,13 @@
       }
     ],
     "dependentTypeHashes": [
-      "210120383"
+      "-959561237"
     ],
-    "hashCode": "1438397874",
+    "hashCode": "1123774631",
     "name": "Department",
     "typeName": "record",
     "dependentTypes": {
-      "210120383": {
+      "-959561237": {
         "memberTypes": [
           {
             "dependentTypeHashes": [],
@@ -48,7 +63,7 @@
           }
         ],
         "dependentTypeHashes": [],
-        "hashCode": "210120383",
+        "hashCode": "-959561237",
         "name": "DepartmentCode",
         "typeName": "union"
       }
