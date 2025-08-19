@@ -147,6 +147,23 @@ export async function updateSource(
             throw new Error(`No artifact found for file: ${filePath} within the specified line range`);
         }
 
+        // If the artifact is a data mapper, return the code data for the data mapper
+        if (relevantArtifact.type === "DATA_MAPPER") {
+            return {
+                lineRange: {
+                    fileName: relevantArtifact.path,
+                    startLine: {
+                        line: relevantArtifact.position?.startLine,
+                        offset: relevantArtifact.position?.startColumn
+                    },
+                    endLine: {
+                        line: relevantArtifact.position?.endLine,
+                        offset: relevantArtifact.position?.endColumn
+                    }
+                }
+            };
+        }
+
         // Get the flow model for the updated artifact
         const flowModel = await getFlowModelForArtifact(relevantArtifact, filePath);
         if (!flowModel) {
@@ -443,7 +460,7 @@ function isWithinArtifact(
     artifactPath: string,
     filePath: string,
     artifactPosition: NodePosition,
-    varDeclRange: ELineRange
+    originalRange: ELineRange
 ) {
     if (artifactPath !== filePath) {
         return false;
@@ -451,7 +468,7 @@ function isWithinArtifact(
 
     const artifactStartLine = artifactPosition.startLine;
     const artifactEndLine = artifactPosition.endLine;
-    const varDeclStartLine = varDeclRange.startLine.line;
+    const originalStartLine = originalRange.startLine.line;
 
-    return artifactStartLine <= varDeclStartLine && artifactEndLine >= varDeclStartLine;
+    return artifactStartLine <= originalStartLine && artifactEndLine >= originalStartLine;
 }

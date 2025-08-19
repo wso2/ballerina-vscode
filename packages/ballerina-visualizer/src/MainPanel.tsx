@@ -25,6 +25,7 @@ import {
     PopupMachineStateValue,
     EVENT_TYPE,
     CodeData,
+    LinePosition,
 } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { Global, css } from "@emotion/react";
@@ -45,7 +46,7 @@ import {
     TestFunctionForm
 } from "./views/BI";
 import { handleRedo, handleUndo } from "./utils/utils";
-import { FunctionDefinition } from "@wso2/syntax-tree";
+import { STKindChecker } from "@wso2/syntax-tree";
 import { URI, Utils } from "vscode-uri";
 import { Typography } from "@wso2/ui-toolkit";
 import { PanelType, useVisualizerContext } from "./Context";
@@ -327,25 +328,41 @@ const MainPanel = () => {
                         setViewComponent(<TypeDiagram selectedTypeId={value?.identifier} projectUri={value?.projectUri} addType={value?.addType} />);
                         break;
                     case MACHINE_VIEW.DataMapper:
-                        const codeData: CodeData = {
-                            lineRange: {
-                                fileName: Utils.basename(URI.parse(value.documentUri)),
-                                startLine: {
-                                    line: value?.position?.startLine,
-                                    offset: value?.position?.startColumn,
-                                },
-                                endLine: {
-                                    line: value?.position?.endLine,
-                                    offset: value?.position?.endColumn,
-                                },
-                            },
-                            node: "DATA_MAPPER_DEFINITION"
+                        const codeData: CodeData = value?.dataMapperMetadata?.codeData
+                        // const codeData: CodeData = value?.dataMapperMetadata
+                        //     ? value?.dataMapperMetadata.codeData
+                        //     : {
+                        //         lineRange: {
+                        //             fileName: Utils.basename(URI.parse(value.documentUri)),
+                        //             startLine: {
+                        //                 line: value?.position?.startLine,
+                        //                 offset: value?.position?.startColumn,
+                        //             },
+                        //             endLine: {
+                        //                 line: value?.position?.endLine,
+                        //                 offset: value?.position?.endColumn,
+                        //             },
+                        //         },
+                        //         node: "DATA_MAPPER_DEFINITION"
+                        //     };
+                        let position: LinePosition = {
+                            line: value?.position?.startLine,
+                            offset: value?.position?.startColumn
                         };
+                        if (STKindChecker.isFunctionDefinition(value?.syntaxTree) &&
+                            STKindChecker.isExpressionFunctionBody(value?.syntaxTree.functionBody)
+                        ) {
+                            position = {
+                                line: value?.syntaxTree.functionBody.expression.position.startLine,
+                                offset: value?.syntaxTree.functionBody.expression.position.startColumn
+                            };
+                        }
                         setViewComponent(
                             <DataMapperNew
                                 filePath={value.documentUri}
                                 codedata={codeData}
                                 varName={value?.identifier}
+                                position={position}
                             />
                         );
                         break;
