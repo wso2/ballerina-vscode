@@ -19,7 +19,6 @@
 import { RefObject, useCallback, useEffect, useMemo, useRef, useState, forwardRef, useImperativeHandle } from "react";
 import {
     EVENT_TYPE,
-    ColorThemeKind,
     FlowNode,
     LineRange,
     NodePosition,
@@ -179,6 +178,8 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
 
     const { rpcClient } = useRpcContext();
 
+    console.log("target line range", targetLineRange)
+
     const [fields, setFields] = useState<FormField[]>([]);
     const [formImports, setFormImports] = useState<FormImports>({});
     const [typeEditorState, setTypeEditorState] = useState<TypeEditorState>({ isOpen: false, newTypeValue: "" });
@@ -229,10 +230,6 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
             handleFormClose();
         };
     }, [node]);
-
-    useEffect(() => {
-        console.log(targetLineRange)
-    }, [targetLineRange])
 
     const handleFormOpen = () => {
         rpcClient
@@ -320,14 +317,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
             const openInDataMapper = data["openInDataMapper"];
             onSubmit(updatedNode, openInDataMapper, formImports);
         }
-    }
-
-
-    const getManuallyUpdatedNode = (data: FormValues, dirtyFields: any) => {
-        if (node && targetLineRange) {
-            return mergeFormDataWithFlowNode(data, targetLineRange, dirtyFields);
-        }
-    }
+    };
 
     const mergeFormDataWithFlowNode = (data: FormValues, targetLineRange: LineRange, dirtyFields?: any): FlowNode => {
         const clonedNode = cloneDeep(node);
@@ -793,7 +783,6 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
             />
         );
     }
-    
 
     // handle match node form
     if (node?.codedata.node === "MATCH") {
