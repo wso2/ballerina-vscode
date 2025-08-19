@@ -1386,17 +1386,22 @@ public class DataMapManager {
         List<TextEdit> textEdits = new ArrayList<>();
         textEditsMap.put(filePath, textEdits);
 
-        TypeSymbol targetTypeSymbol = CommonUtils.getRawType(targetNode.typeSymbol());
         Mapping mapping = gson.fromJson(mp, Mapping.class);
+        TypeSymbol targetTypeSymbol = getTargetType(targetNode.typeSymbol(), mapping.output());
+        if (targetTypeSymbol == null) {
+            return null;
+        }
+        targetTypeSymbol = CommonUtils.getRawType(targetTypeSymbol);
+
         if (clauseType.equals("collect")) {
-            String query = getQuerySource(targetNode.expressionNode(), "collect", targetTypeSymbol);
+            String query = getQuerySource(mapping.expression(), "collect", targetTypeSymbol);
             genSource(targetNode.expressionNode(), mapping.output().split(DOT), 1, new StringBuilder(), query, null,
                     textEdits);
         } else {
             if (targetTypeSymbol.typeKind() == TypeDescKind.ARRAY) {
                 TypeSymbol typeSymbol =
                         CommonUtils.getRawType(((ArrayTypeSymbol) targetTypeSymbol).memberTypeDescriptor());
-                String query = getQuerySource(targetNode.expressionNode(), "select", typeSymbol);
+                String query = getQuerySource(mapping.expression(), "select", typeSymbol);
                 genSource(targetNode.expressionNode(), mapping.output().split(DOT), 1, new StringBuilder(), query,
                         null, textEdits);
             }
@@ -1404,16 +1409,9 @@ public class DataMapManager {
         return gson.toJsonTree(textEditsMap);
     }
 
-    private String getQuerySource(NonTerminalNode inputExpr, String finalClause, TypeSymbol typeSymbol) {
-        String name = "item";
-        SyntaxKind kind = inputExpr.kind();
-        if (kind == SyntaxKind.SIMPLE_NAME_REFERENCE) {
-            name = inputExpr.toSourceCode().trim() + ITEM;
-        } else if (kind == SyntaxKind.FIELD_ACCESS) {
-            FieldAccessExpressionNode fieldAccessExpr = (FieldAccessExpressionNode) inputExpr;
-            name = fieldAccessExpr.fieldName().toSourceCode().trim() + ITEM;
-        }
-        return "from var " + name + " in " + inputExpr.toSourceCode().trim() + " " +
+    private String getQuerySource(String inputExpr, String finalClause, TypeSymbol typeSymbol) {
+        String[] splits = inputExpr.split(DOT);
+        return "from var " + splits[splits.length - 1] + ITEM + " in " + inputExpr + " " +
                 finalClause + " " + DefaultValueGeneratorUtil.getDefaultValueForType(typeSymbol);
     }
 
