@@ -223,10 +223,12 @@ export const Configurables = (props: ConfigurablesPageProps) => {
                                                 >
                                                     <div style={{ marginTop: '10px' }}>
                                                         {subCategory.items.map((item: ConfigVariable) => (
-                                                            <SlidingPaneNavContainer key={item.id}>
+                                                            <SlidingPaneNavContainer
+                                                                key={item.id}
+                                                                onClick={() => { handleItemClicked(item?.properties?.variable?.value as string) }}
+                                                            >
                                                                 <ExpandableList.Item
                                                                     sx={{ color: ThemeColors.ON_SURFACE }}
-                                                                    onClick={() => { handleItemClicked(item?.properties?.variable?.value as string) }}
                                                                 >
                                                                     {getIcon(COMPLETION_ITEM_KIND.Parameter)}
                                                                     {item?.properties?.variable?.value as ReactNode}
@@ -238,10 +240,10 @@ export const Configurables = (props: ConfigurablesPageProps) => {
                                             ) : (
                                                 <div>
                                                     {subCategory.items.map((item: ConfigVariable) => (
-                                                        <SlidingPaneNavContainer key={item.id}>
+                                                        <SlidingPaneNavContainer key={item.id}
+                                                            onClick={() => { handleItemClicked(item?.properties?.variable?.value as string) }}>
                                                             <ExpandableList.Item
                                                                 sx={{ color: ThemeColors.ON_SURFACE }}
-                                                                onClick={() => { handleItemClicked(item?.properties?.variable?.value as string) }}
                                                             >
                                                                 {getIcon(COMPLETION_ITEM_KIND.Parameter)}
                                                                 {item?.properties?.variable?.value as ReactNode}

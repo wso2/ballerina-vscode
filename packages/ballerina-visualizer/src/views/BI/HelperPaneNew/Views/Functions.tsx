@@ -185,11 +185,10 @@ export const FunctionsPage = ({
                                                     <ExpandableList.Section sx={{ marginTop: '20px' }} key={category.label} title={category.label} level={0}>
                                                         <div style={{ marginTop: '10px' }}>
                                                             {category.items.map((item) => (
-                                                                <SlidingPaneNavContainer>
+                                                                <SlidingPaneNavContainer  onClick={async () => await handleFunctionItemSelect(item)}>
                                                                    <ExpandableList.Item
                                                                         key={item.label}
                                                                         sx={{ color: ThemeColors.ON_SURFACE }}
-                                                                        onClick={async () => await handleFunctionItemSelect(item)}
                                                                     >
                                                                         {getIcon(COMPLETION_ITEM_KIND.Function)}
                                                                         <FunctionItemLabel>{`${item.label}()`}</FunctionItemLabel>
@@ -213,11 +212,10 @@ export const FunctionsPage = ({
                                                     <ExpandableList.Section sx={{ marginTop: '20px' }} key={subCategory.label} title={subCategory.label} level={0}>
                                                         <div style={{ marginTop: '10px' }}>
                                                             {subCategory.items.map((item) => (
-                                                                <SlidingPaneNavContainer>
+                                                                <SlidingPaneNavContainer  onClick={async () => await handleFunctionItemSelect(item)}>
                                                                     <ExpandableList.Item
                                                                         key={item.label}
                                                                         sx={{ color: ThemeColors.ON_SURFACE }}
-                                                                        onClick={async () => await handleFunctionItemSelect(item)}
                                                                     >
                                                                         {getIcon(COMPLETION_ITEM_KIND.Function)}
                                                                         <FunctionItemLabel>{`${item.label}()`}</FunctionItemLabel>
