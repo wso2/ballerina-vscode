@@ -18,7 +18,7 @@
 
 import React from "react";
 
-import { CodeData } from "@wso2/ballerina-core";
+import { CodeData, LinePosition } from "@wso2/ballerina-core";
 import { ErrorBoundary } from "@wso2/ui-toolkit";
 
 import { TopNavigationBar } from "../../components/TopNavigationBar";
@@ -28,6 +28,7 @@ export interface DataMapperProps {
     filePath: string;
     codedata: CodeData;
     varName: string;
+    position: LinePosition;
 }
 
 export function DataMapperNew(props: DataMapperProps) {

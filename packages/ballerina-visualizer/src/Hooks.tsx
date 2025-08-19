@@ -17,11 +17,12 @@
  */
 import { useQuery } from '@tanstack/react-query';
 import { useRpcContext } from '@wso2/ballerina-rpc-client';
-import { IDMViewState } from '@wso2/ballerina-core';
+import { IDMViewState, LinePosition } from '@wso2/ballerina-core';
 
 export const useInlineDataMapperModel = (
     filePath: string,
-    viewState: IDMViewState
+    viewState: IDMViewState,
+    position: LinePosition
 ) => {
     const { rpcClient } = useRpcContext();
     const viewId = viewState?.viewId;
@@ -33,10 +34,7 @@ export const useInlineDataMapperModel = (
                 filePath,
                 codedata,
                 targetField: viewId,
-                position: {
-                    line: codedata.lineRange.startLine.line,
-                    offset: codedata.lineRange.startLine.offset
-                }
+                position
             };
             const res = await rpcClient
                 .getInlineDataMapperRpcClient()

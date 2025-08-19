@@ -82,15 +82,10 @@ export class InlineDataMapperRpcManager implements InlineDataMapperAPI {
 
     async getDataMapperModel(params: InlineDataMapperModelRequest): Promise<InlineDataMapperModelResponse> {
         return new Promise(async (resolve) => {
-            const DATA_MAPPINGS_FILE = "data_mappings.bal";
-            if (path.basename(params.filePath).toLowerCase() === DATA_MAPPINGS_FILE) {
-                resolve({ mappingsModel: sampleModel });
-            } else {
-                const dataMapperModel = await StateMachine
-                    .langClient()
-                    .getInlineDataMapperMappings(params);
-                resolve(dataMapperModel as InlineDataMapperModelResponse);
-            }
+            const dataMapperModel = await StateMachine
+                .langClient()
+                .getInlineDataMapperMappings(params);
+            resolve(dataMapperModel as InlineDataMapperModelResponse);
         });
     }
 

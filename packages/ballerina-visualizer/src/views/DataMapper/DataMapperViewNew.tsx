@@ -63,7 +63,7 @@ interface ModelSignature {
 }
 
 export function DataMapperViewNew(props: DataMapperProps) {
-    const { filePath, codedata, varName } = props;
+    const { filePath, codedata, varName, position } = props;
 
     const [isFileUpdateError, setIsFileUpdateError] = useState(false);
     const [modelState, setModelState] = useState<ModelState>({
@@ -90,7 +90,7 @@ export function DataMapperViewNew(props: DataMapperProps) {
         model,
         isFetching,
         isError
-    } = useInlineDataMapperModel(filePath, viewState);
+    } = useInlineDataMapperModel(filePath, viewState, position);
 
     useEffect(() => {
         setViewState(prev => ({
