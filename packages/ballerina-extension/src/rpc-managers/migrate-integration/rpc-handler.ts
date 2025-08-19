@@ -22,7 +22,11 @@ import {
     importIntegration,
     ImportIntegrationRPCRequest,
     MigrationToolPullRequest,
-    pullMigrationTool
+    openMigrationReport,
+    OpenMigrationReportRequest,
+    pullMigrationTool,
+    saveMigrationReport,
+    SaveMigrationReportRequest
 } from "@wso2/ballerina-core";
 import { Messenger } from "vscode-messenger";
 import { MigrateIntegrationRpcManager } from "./rpc-manager";
@@ -32,4 +36,6 @@ export function registerMigrateIntegrationRpcHandlers(messenger: Messenger) {
     messenger.onRequest(getMigrationTools, () => rpcManger.getMigrationTools());
     messenger.onNotification(pullMigrationTool, (args: MigrationToolPullRequest) => rpcManger.pullMigrationTool(args));
     messenger.onRequest(importIntegration, (args: ImportIntegrationRPCRequest) => rpcManger.importIntegration(args));
+    messenger.onNotification(openMigrationReport, (args: OpenMigrationReportRequest) => rpcManger.openMigrationReport(args));
+    messenger.onNotification(saveMigrationReport, (args: SaveMigrationReportRequest) => rpcManger.saveMigrationReport(args));
 }

@@ -17,10 +17,12 @@
  */
 
 import { ImportIntegrationResponse } from "../../interfaces/extended-lang-client";
-import { GetMigrationToolsResponse, ImportIntegrationRPCRequest, MigrationToolPullRequest } from "./interfaces";
+import { GetMigrationToolsResponse, ImportIntegrationRPCRequest, MigrationToolPullRequest, OpenMigrationReportRequest, SaveMigrationReportRequest } from "./interfaces";
 
 export interface MigrateIntegrationAPI {
     getMigrationTools: () => Promise<GetMigrationToolsResponse>;
     pullMigrationTool: (params: MigrationToolPullRequest) => void;
     importIntegration: (params: ImportIntegrationRPCRequest) => Promise<ImportIntegrationResponse>;
+    openMigrationReport: (params: OpenMigrationReportRequest) => void;
+    saveMigrationReport: (params: SaveMigrationReportRequest) => void;
 }

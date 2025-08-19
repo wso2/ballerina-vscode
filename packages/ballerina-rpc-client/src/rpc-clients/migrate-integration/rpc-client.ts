@@ -25,7 +25,11 @@ import {
     ImportIntegrationRPCRequest,
     MigrateIntegrationAPI,
     MigrationToolPullRequest,
-    pullMigrationTool
+    openMigrationReport,
+    OpenMigrationReportRequest,
+    pullMigrationTool,
+    saveMigrationReport,
+    SaveMigrationReportRequest
 } from "@wso2/ballerina-core";
 import { HOST_EXTENSION } from "vscode-messenger-common";
 import { Messenger } from "vscode-messenger-webview";
@@ -47,5 +51,13 @@ export class MigrateIntegrationRpcClient implements MigrateIntegrationAPI {
 
     importIntegration(params: ImportIntegrationRPCRequest): Promise<ImportIntegrationResponse> {
         return this._messenger.sendRequest(importIntegration, HOST_EXTENSION, params);
+    }
+
+    openMigrationReport(params: OpenMigrationReportRequest): void {
+        return this._messenger.sendNotification(openMigrationReport, HOST_EXTENSION, params);
+    }
+
+    saveMigrationReport(params: SaveMigrationReportRequest): void {
+        return this._messenger.sendNotification(saveMigrationReport, HOST_EXTENSION, params);
     }
 }

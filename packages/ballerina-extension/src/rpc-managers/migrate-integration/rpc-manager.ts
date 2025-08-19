@@ -19,14 +19,17 @@
  */
 import {
     GetMigrationToolsResponse,
-    ImportIntegrationResponse,
     ImportIntegrationRequest,
+    ImportIntegrationResponse,
     ImportIntegrationRPCRequest,
     MigrateIntegrationAPI,
+    OpenMigrationReportRequest,
+    SaveMigrationReportRequest
 } from "@wso2/ballerina-core";
 import { StateMachine } from "../../stateMachine";
 import { getUsername, sanitizeName } from "../../utils/bi";
 import { pullMigrationTool } from "../../utils/migrate-integration";
+import { MigrationReportWebview } from "../../views/migration-report/webview";
 
 export class MigrateIntegrationRpcManager implements MigrateIntegrationAPI {
     async pullMigrationTool(args: { toolName: string }): Promise<void> {
@@ -59,5 +62,28 @@ export class MigrateIntegrationRpcManager implements MigrateIntegrationAPI {
 
     async getMigrationTools(): Promise<GetMigrationToolsResponse> {
         return StateMachine.langClient().getMigrationTools();
+    }
+
+    async openMigrationReport(params: OpenMigrationReportRequest): Promise<void> {
+        MigrationReportWebview.createOrShow(params.fileName, params.reportContent);
+    }
+
+    async saveMigrationReport(params: SaveMigrationReportRequest): Promise<void> {
+        const vscode = await import('vscode');
+        
+        // Show save dialog
+        const saveUri = await vscode.window.showSaveDialog({
+            defaultUri: vscode.Uri.file(params.defaultFileName),
+            filters: {
+                'HTML files': ['html'],
+                'All files': ['*']
+            }
+        });
+        
+        if (saveUri) {
+            // Write the report content to the selected file
+            await vscode.workspace.fs.writeFile(saveUri, Buffer.from(params.reportContent, 'utf8'));
+            vscode.window.showInformationMessage(`Migration report saved to ${saveUri.fsPath}`);
+        }
     }
 }
