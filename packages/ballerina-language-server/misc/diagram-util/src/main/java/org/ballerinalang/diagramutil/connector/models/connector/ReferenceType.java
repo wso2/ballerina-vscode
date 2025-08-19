@@ -267,7 +267,7 @@ public class ReferenceType {
             RefType refType = new RefType("never");
             refType.typeName = "never";
             return refType;
-        } else if (symbol instanceof SingletonTypeSymbol) {
+        } else if (kind == TypeDescKind.SINGLETON) {
             String typeName = symbol.signature();
             if (typeName.startsWith("\"") && typeName.endsWith("\"")) {
                 typeName = typeName.substring(1, typeName.length() - 1);
