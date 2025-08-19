@@ -159,8 +159,8 @@ const HelperPaneNewEl = ({
         <HelperPaneCustom sx={{ zIndex: helperPaneZIndex }} anchorRef={anchorRef}>
             <HelperPaneCustom.Body>
                 <SlidingWindow>
-                    <SlidingPane name="PAGE1" paneWidth={HELPER_PANE_WIDTH} paneHeight='200px'>
-                        <ExpandableList sx={{ paddingTop: '10px' }}>
+                    <SlidingPane name="PAGE1" paneWidth={HELPER_PANE_WIDTH} paneHeight='170px'>
+                        <ExpandableList >
                             {valueTypeConstraint && (
                                 <SlidingPaneNavContainer to="CREATE_VALUE" data={recordTypeField}>
                                     <ExpandableList.Item>

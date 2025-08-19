@@ -15,7 +15,7 @@ export const VariableForm = (props: FormProps) => {
     }, [props.formFields]);
 
     const handleOnTypeChange = (type: CompletionItem) => {
-        updateExpressionValueTypeConstraint(type.value);
+        updateExpressionValueTypeConstraint(type?.value || '');
         handleSelectedTypeChange(type);
     };
 
