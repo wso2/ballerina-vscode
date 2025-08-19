@@ -804,7 +804,7 @@ public class DataMapManager {
                 } catch (UnsupportedOperationException e) {
                     continue;
                 }
-                MappingPort refMappingPort = getRefMappingPort(refType.typeName, refType.typeName,
+                MappingPort refMappingPort = getRefMappingPort(refType.name, refType.name,
                         refType, true, new HashMap<>(), references);
 
                 if (refMappingPort == null) {
