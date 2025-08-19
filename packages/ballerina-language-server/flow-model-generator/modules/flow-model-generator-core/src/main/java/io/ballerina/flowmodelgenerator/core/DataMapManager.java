@@ -402,13 +402,7 @@ public class DataMapManager {
             FunctionDefinitionNode funcDefNode = (FunctionDefinitionNode) parentNode;
             FunctionBodyNode funcBodyNode = funcDefNode.functionBody();
             if (funcBodyNode.kind() == SyntaxKind.EXPRESSION_FUNCTION_BODY) {
-                ExpressionFunctionBodyNode exprFuncBodyNode = (ExpressionFunctionBodyNode) funcBodyNode;
-                ExpressionNode expression = exprFuncBodyNode.expression();
-                if (expression.kind() == SyntaxKind.LET_EXPRESSION) {
-                    optInitializer = Optional.of(((LetExpressionNode) expression).expression());
-                } else {
-                    optInitializer = Optional.of(expression);
-                }
+                optInitializer = Optional.of(((ExpressionFunctionBodyNode) funcBodyNode).expression());
             } else {
                 return null;
             }
@@ -470,6 +464,9 @@ public class DataMapManager {
         }
 
         ExpressionNode expr = initializer;
+        if (fieldSplits.length > 1 && expr.kind() == SyntaxKind.LET_EXPRESSION) {
+            expr = ((LetExpressionNode) expr).expression();
+        }
         for (int i = 1; i < fieldSplits.length; i++) {
             String field = fieldSplits[i];
             if (expr.kind() == SyntaxKind.QUERY_EXPRESSION) {
