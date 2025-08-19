@@ -28,6 +28,7 @@ import { LISTENER_NODE_WIDTH, NodeTypes, NODE_GAP_X, ENTRY_NODE_WIDTH } from "..
 import { ListenerNodeModel } from "../components/nodes/ListenerNode";
 import { ConnectionNodeModel } from "../components/nodes/ConnectionNode";
 import { CDConnection, CDResourceFunction, CDFunction, CDService } from "@wso2/ballerina-core";
+import { GQLFuncListType, GQLState, PREVIEW_COUNT } from "../components/Diagram";
 
 export function generateEngine(): DiagramEngine {
     const engine = createEngine({
@@ -228,8 +229,47 @@ export const calculateEntryNodeHeight = (numFunctions: number, isExpanded: boole
     if (numFunctions <= 2) {
         return BASE_HEIGHT + numFunctions * FUNCTION_HEIGHT + PADDING;
     }
-
+    
     return BASE_HEIGHT + 2 * FUNCTION_HEIGHT + PADDING + VIEW_ALL_BUTTON_HEIGHT;
+};
+
+export const calculateGraphQLNodeHeight = (
+    visible: GQLFuncListType,
+    hidden: GQLFuncListType,
+    graphQLGroupOpen: GQLState
+) => {
+    const PADDING = 8;
+    const BASE_HEIGHT = 64 + 2 * PADDING;
+    const FUNCTION_HEIGHT = 40 + PADDING;
+    const SHOW_BUTTON_HEIGHT = 40;
+    const HEADER_HEIGHT = 45 + 2 * PADDING;
+
+    let totalHeight = BASE_HEIGHT;
+
+    Object.keys(visible).forEach((group) => {
+        const visibleCount = visible[group].length;
+        const hiddenCount = hidden[group].length;
+        const isExpanded = hiddenCount > 0;
+        const isCollapsed = !graphQLGroupOpen[group];
+
+        let sectionHeight = 0;
+
+        if (isCollapsed) {
+            sectionHeight = HEADER_HEIGHT;
+        } else {
+            if (visibleCount > 0) {
+                sectionHeight += HEADER_HEIGHT;
+                sectionHeight += visibleCount * FUNCTION_HEIGHT;
+            }
+            if (visibleCount > PREVIEW_COUNT || isExpanded) {
+                sectionHeight += SHOW_BUTTON_HEIGHT;
+            }
+        }
+
+        totalHeight += sectionHeight;
+    });
+
+    return totalHeight;
 };
 
 export const getEntryNodeFunctionPortName = (func: CDFunction | CDResourceFunction) => {

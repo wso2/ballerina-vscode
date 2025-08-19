@@ -27,7 +27,7 @@ import { HttpIcon, TaskIcon } from "../../../resources";
 import { MoreVertIcon } from "../../../resources/icons/nodes/MoreVertIcon";
 import { CDAutomation, CDFunction, CDService, CDResourceFunction } from "@wso2/ballerina-core";
 import { createPortNodeLink, getEntryNodeFunctionPortName } from "../../../utils/diagram";
-import { PREVIEW_COUNT, SHOW_ALL_THRESHOLD } from "../../Diagram";
+import { GQLFuncListType, GQLState, PREVIEW_COUNT, SHOW_ALL_THRESHOLD } from "../../Diagram";
 import { create } from "lodash";
 type NodeStyleProp = {
     hovered: boolean;
@@ -631,7 +631,7 @@ export function GraphQLFunctionList(props: {
                         {canToggleItems && !isExpanded && (
                             <ViewAllButtonWrapper>
                                 <ViewAllButton onClick={handleToggleExpansion}>
-                                    Show More Resources
+                                    Show More
                                 </ViewAllButton>
                                 <PortWidget
                                     port={model.getPort(
@@ -647,7 +647,7 @@ export function GraphQLFunctionList(props: {
                         )}
                         {canToggleItems && isExpanded && (
                             <ViewAllButton onClick={handleToggleExpansion}>
-                                Show Fewer Resources
+                                Show Fewer
                             </ViewAllButton>
                         )}
                     </>
@@ -669,7 +669,7 @@ export function GraphQLFunctionList(props: {
     );
 }
 
-export function GraphQLGroups(props: { functions: Array<CDFunction | CDResourceFunction>; model: EntryNodeModel; engine: DiagramEngine; onToggleGraphQLGroup: (uuid: string, group: "Query" | "Subscription" | "Mutation") => void; graphQLGroupOpen: Record<string, { Query: boolean; Subscription: boolean; Mutation: boolean }> }) {
+export function GraphQLGroups(props: { functions: Array<CDFunction | CDResourceFunction>; model: EntryNodeModel; engine: DiagramEngine; onToggleGraphQLGroup: (uuid: string, group: "Query" | "Subscription" | "Mutation") => void; graphQLGroupOpen: Record<string, GQLState> }) {
     const { functions, model, engine, onToggleGraphQLGroup, graphQLGroupOpen } = props;
 
     type GroupKey = "Query" | "Subscription" | "Mutation";
@@ -682,14 +682,14 @@ export function GraphQLGroups(props: { functions: Array<CDFunction | CDResourceF
     };
 
     // Group functions by Query / Subscription / Mutation
-    const grouped: Record<GroupKey, Array<CDFunction | CDResourceFunction>> = functions.reduce((acc, fn) => {
+    const grouped: GQLFuncListType = functions.reduce((acc, fn) => {
         const accessor = (fn as CDResourceFunction).accessor;
         const name = (fn as CDFunction).name;
         const group = getGroupLabel(accessor, name);
         if (!group) return acc;
         (acc[group] ||= []).push(fn);
         return acc;
-    }, {} as Record<GroupKey, Array<CDFunction | CDResourceFunction>>);
+    }, {} as GQLFuncListType);
 
     const orderedGroups: GroupKey[] = ["Query",  "Mutation", "Subscription"];
 
