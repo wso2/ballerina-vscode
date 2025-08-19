@@ -22,7 +22,7 @@ import { IDMViewState, LinePosition } from '@wso2/ballerina-core';
 export const useInlineDataMapperModel = (
     filePath: string,
     viewState: IDMViewState,
-    position: LinePosition
+    position?: LinePosition
 ) => {
     const { rpcClient } = useRpcContext();
     const viewId = viewState?.viewId;
@@ -34,7 +34,10 @@ export const useInlineDataMapperModel = (
                 filePath,
                 codedata,
                 targetField: viewId,
-                position
+                position: position ?? {
+                    line: codedata.lineRange.startLine.line,
+                    offset: codedata.lineRange.startLine.offset
+                }
             };
             const res = await rpcClient
                 .getInlineDataMapperRpcClient()

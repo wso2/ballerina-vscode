@@ -416,9 +416,10 @@ function findViewByArtifact(dir: ProjectStructureArtifactResponse, position: Nod
                                     endLine: {
                                         line: dir.position.endLine,
                                         offset: dir.position.endColumn
+                                    }
                                 }
                             }
-                        }
+                        },
                     },
                     dataMapperDepth: 0
                 };

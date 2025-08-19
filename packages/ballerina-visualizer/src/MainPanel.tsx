@@ -32,7 +32,6 @@ import { Global, css } from "@emotion/react";
 import { debounce } from "lodash";
 import styled from "@emotion/styled";
 import { LoadingRing } from "./components/Loader";
-import { DataMapper } from "./views/DataMapper";
 import { ERDiagram } from "./views/ERDiagram";
 import { GraphQLDiagram } from "./views/GraphQLDiagram";
 import { ServiceDesigner } from "./views/BI/ServiceDesigner";
@@ -73,7 +72,6 @@ import { AIChatAgentWizard } from "./views/BI/AIChatAgent/AIChatAgentWizard";
 import { BallerinaUpdateView } from "./views/BI/BallerinaUpdateView";
 import { VSCodeProgressRing } from "@vscode/webview-ui-toolkit/react";
 import { InlineDataMapper } from "./views/InlineDataMapper";
-import { DataMapperNew } from "./views/DataMapper/DMIndex";
 
 const globalStyles = css`
     *,
@@ -328,23 +326,6 @@ const MainPanel = () => {
                         setViewComponent(<TypeDiagram selectedTypeId={value?.identifier} projectUri={value?.projectUri} addType={value?.addType} />);
                         break;
                     case MACHINE_VIEW.DataMapper:
-                        const codeData: CodeData = value?.dataMapperMetadata?.codeData
-                        // const codeData: CodeData = value?.dataMapperMetadata
-                        //     ? value?.dataMapperMetadata.codeData
-                        //     : {
-                        //         lineRange: {
-                        //             fileName: Utils.basename(URI.parse(value.documentUri)),
-                        //             startLine: {
-                        //                 line: value?.position?.startLine,
-                        //                 offset: value?.position?.startColumn,
-                        //             },
-                        //             endLine: {
-                        //                 line: value?.position?.endLine,
-                        //                 offset: value?.position?.endColumn,
-                        //             },
-                        //         },
-                        //         node: "DATA_MAPPER_DEFINITION"
-                        //     };
                         let position: LinePosition = {
                             line: value?.position?.startLine,
                             offset: value?.position?.startColumn
@@ -358,25 +339,15 @@ const MainPanel = () => {
                             };
                         }
                         setViewComponent(
-                            <DataMapperNew
+                            <InlineDataMapper
                                 filePath={value.documentUri}
-                                codedata={codeData}
+                                codedata={value?.dataMapperMetadata?.codeData}
                                 varName={value?.identifier}
                                 position={position}
+                                reusable
                             />
                         );
                         break;
-                    // case MACHINE_VIEW.DataMapper:
-                    //     setViewComponent(
-                    //         <DataMapper
-                    //             projectPath={value.projectUri}
-                    //             filePath={value.documentUri}
-                    //             model={value?.syntaxTree as FunctionDefinition}
-                    //             functionName={value?.identifier}
-                    //             applyModifications={applyModifications}
-                    //         />
-                    //     );
-                    //     break;
                     case MACHINE_VIEW.InlineDataMapper:
                         setViewComponent(
                             <InlineDataMapper
