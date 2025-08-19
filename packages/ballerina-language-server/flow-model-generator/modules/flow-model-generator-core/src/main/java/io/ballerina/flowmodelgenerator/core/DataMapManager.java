@@ -589,6 +589,14 @@ public class DataMapManager {
 
     private void genMapping(Node expr, String name, List<Mapping> elements, SemanticModel semanticModel,
                             Document functionDocument, List<MappingPort> enumPorts) {
+        if (expr.kind() == SyntaxKind.QUERY_EXPRESSION) {
+            ClauseNode resultClause = ((QueryExpressionNode) expr).resultClause();
+            if (resultClause.kind() == SyntaxKind.COLLECT_CLAUSE) {
+                genMapping(((CollectClauseNode) resultClause).expression(), name, elements, semanticModel,
+                        functionDocument, enumPorts);
+                return;
+            }
+        }
         List<String> inputs = new ArrayList<>();
         expr.accept(new GenInputsVisitor(inputs, enumPorts));
         LineRange customFunctionRange = getCustomFunctionRange(expr, functionDocument);
