@@ -170,7 +170,7 @@ public class ReferenceType {
                     : null;
             RefType elementType = fromSemanticSymbol(elementTypeSymbol, elementTypeName, moduleId);
             if (elementType.dependentTypeHashes == null || elementType.dependentTypeHashes.isEmpty()) {
-                if (elementType.hashCode != null&& elementType.typeName.equals("record")) {
+                if (elementType.hashCode != null && elementType.typeName.equals("record")) {
                     RefType t = new RefType(elementType.name);
                     t.hashCode = elementType.hashCode;
                     t.typeName = elementType.typeName;
@@ -207,7 +207,7 @@ public class ReferenceType {
                         : null;
                 RefType memberType = fromSemanticSymbol(memberTypeSymbol, memberTypeName, moduleId);
                 if (memberType.dependentTypeHashes == null || memberType.dependentTypeHashes.isEmpty()) {
-                    if (memberType.hashCode != null&& memberType.typeName.equals("record")) {
+                    if (memberType.hashCode != null && memberType.typeName.equals("record")) {
                         RefType t = new RefType(memberType.name);
                         t.hashCode = memberType.hashCode;
                         t.typeName = memberType.typeName;
