@@ -53,7 +53,6 @@ const StatusCard = styled.div`
     margin: 16px 16px 0 16px;
     padding: 16px;
     border-radius: 8px;
-    background: ${ThemeColors.SURFACE_DIM_2};
     display: flex;
     flex-direction: row;
     align-items: center;
@@ -63,6 +62,13 @@ const StatusCard = styled.div`
         font-size: 24px;
         color: ${ThemeColors.ON_SURFACE};
     }
+`;
+
+const StatusContainer = styled.div`
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
 `;
 
 const StatusText = styled(Typography)`
@@ -99,7 +105,7 @@ export function AddConnectionWizard(props: AddConnectionWizardProps) {
     const { rpcClient } = useRpcContext();
 
     const [currentStep, setCurrentStep] = useState<WizardStep>(WizardStep.CONNECTOR_LIST);
-    const [pullingStatus, setPullingStatus] = useState<PullingStatus>(undefined);
+    const [pullingStatus, setPullingStatus] = useState<PullingStatus>(PullingStatus.FETCHING);
     const [savingFormStatus, setSavingFormStatus] = useState<SavingFormStatus>(undefined);
     const selectedConnectorRef = useRef<AvailableNode>();
     const selectedNodeRef = useRef<FlowNode>();
@@ -146,6 +152,10 @@ export function AddConnectionWizard(props: AddConnectionWizardProps) {
             let timer: ReturnType<typeof setTimeout> | null = null;
             let didTimeout = false;
 
+            // Set status to FETCHING before starting
+            setPullingStatus(PullingStatus.FETCHING);
+            selectedNodeRef.current = undefined;
+
             // Start a timer for 3 seconds
             const timeoutPromise = new Promise<void>((resolve) => {
                 timer = setTimeout(() => {
@@ -154,9 +164,6 @@ export function AddConnectionWizard(props: AddConnectionWizardProps) {
                     resolve();
                 }, 3000);
             });
-
-            // Set status to FETCHING before starting
-            setPullingStatus(PullingStatus.FETCHING);
 
             // Start the request
             const nodeTemplatePromise = rpcClient.getBIDiagramRpcClient().getNodeTemplate({
@@ -180,9 +187,6 @@ export function AddConnectionWizard(props: AddConnectionWizardProps) {
             if (didTimeout) {
                 // If it timed out, set status to SUCCESS
                 setPullingStatus(PullingStatus.SUCCESS);
-            } else {
-                // If it finished before 3s, briefly show FETCHING then clear
-                setTimeout(() => setPullingStatus(undefined), 500);
             }
 
             console.log(">>> FlowNode template", response);
@@ -202,7 +206,7 @@ export function AddConnectionWizard(props: AddConnectionWizardProps) {
             // After few seconds, set status to undefined
             setTimeout(() => {
                 setPullingStatus(undefined);
-            }, 3000);
+            }, 2000);
         }
     };
 
@@ -353,13 +357,11 @@ export function AddConnectionWizard(props: AddConnectionWizardProps) {
                     onBack={handleOnBack}
                 >
                     <>
-                        {pullingStatus === PullingStatus.FETCHING && (
-                            <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100%" }}>
-                                <RelativeLoader message="Loading connector package..." />
-                            </div>
-                        )}
-                        {pullingStatus !== PullingStatus.FETCHING && (
-                            <>
+                        {pullingStatus && (
+                            <StatusContainer>
+                                {pullingStatus === PullingStatus.FETCHING && (
+                                    <RelativeLoader message="Loading connector package..." />
+                                )}
                                 {pullingStatus === PullingStatus.PULLING && (
                                     <StatusCard>
                                         <DownloadIcon color={ThemeColors.ON_SURFACE} />
@@ -371,17 +373,21 @@ export function AddConnectionWizard(props: AddConnectionWizardProps) {
                                 {pullingStatus === PullingStatus.SUCCESS && (
                                     <StatusCard>
                                         <Icon name="bi-success" sx={{ color: ThemeColors.PRIMARY, fontSize: "18px" }} />
-                                        <StatusText variant="body2">Connector module pulled successfully.</StatusText>
+                                        <StatusText variant="body2">Connector package pulled successfully.</StatusText>
                                     </StatusCard>
                                 )}
                                 {pullingStatus === PullingStatus.ERROR && (
                                     <StatusCard>
                                         <Icon name="bi-error" sx={{ color: ThemeColors.ERROR, fontSize: "18px" }} />
                                         <StatusText variant="body2">
-                                            Failed to pull the connector module. Please try again.
+                                            Failed to pull the connector package. Please try again.
                                         </StatusText>
                                     </StatusCard>
                                 )}
+                            </StatusContainer>
+                        )}
+                        {!pullingStatus && selectedNodeRef.current && (
+                            <>
                                 <BodyText style={{ padding: "20px 16px 0 16px" }}>
                                     Provide the necessary configuration details for the selected connector to complete the
                                     setup.
@@ -395,11 +401,7 @@ export function AddConnectionWizard(props: AddConnectionWizardProps) {
                                     updatedExpressionField={updatedExpressionField}
                                     resetUpdatedExpressionField={handleResetUpdatedExpressionField}
                                     openSubPanel={handleSubPanel}
-                                    isPullingConnector={
-                                        pullingStatus === PullingStatus.PULLING ||
-                                        pullingStatus === PullingStatus.ERROR ||
-                                        savingFormStatus === SavingFormStatus.SAVING
-                                    }
+                                    isPullingConnector={savingFormStatus === SavingFormStatus.SAVING}
                                 />
                             </>
                         )}
