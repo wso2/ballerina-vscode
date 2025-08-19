@@ -159,7 +159,7 @@ const HelperPaneNewEl = ({
         <HelperPaneCustom sx={{ zIndex: helperPaneZIndex }} anchorRef={anchorRef}>
             <HelperPaneCustom.Body>
                 <SlidingWindow>
-                    <SlidingPane name="PAGE1" paneWidth={HELPER_PANE_WIDTH - 6} paneHeight='200px'>
+                    <SlidingPane name="PAGE1" paneWidth={HELPER_PANE_WIDTH} paneHeight='200px'>
                         <ExpandableList sx={{ paddingTop: '10px' }}>
                             {valueTypeConstraint && (
                                 <SlidingPaneNavContainer to="CREATE_VALUE" data={recordTypeField}>
@@ -270,7 +270,7 @@ const HelperPaneNewEl = ({
                             updateImports={updateImports} />
                     </SlidingPane>
 
-                    <SlidingPane name="CONFIGURABLES" paneWidth={HELPER_PANE_WIDTH - 6}>
+                    <SlidingPane name="CONFIGURABLES" paneWidth={HELPER_PANE_WIDTH}>
                         <SlidingPaneHeader>
                             Configurables
                         </SlidingPaneHeader>

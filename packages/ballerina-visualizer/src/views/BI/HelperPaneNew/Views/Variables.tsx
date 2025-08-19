@@ -288,7 +288,7 @@ const filteredDropDownItems = useMemo(() => {
             {!isInModal && <div style={{ marginTop: "auto" }}>
                 <Divider />
                 <DynamicModal
-                    width={400}
+                    width={420}
                     height={600}
                     anchorRef={anchorRef}
                     title="Declare Variable"
