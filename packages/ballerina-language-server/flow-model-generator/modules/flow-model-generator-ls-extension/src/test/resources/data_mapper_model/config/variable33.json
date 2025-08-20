@@ -116,7 +116,8 @@
             "id": "primaryPhone",
             "variableName": "primaryPhone",
             "typeName": "string",
-            "kind": "string"
+            "kind": "string",
+            "optional": false
           },
           {
             "member": {
@@ -128,7 +129,8 @@
             "id": "secondaryPhones",
             "variableName": "secondaryPhones",
             "typeName": "string[]",
-            "kind": "array"
+            "kind": "array",
+            "optional": false
           }
         ],
         "typeName": "Temp",
@@ -149,6 +151,7 @@
             "variableName": "contacts",
             "typeName": "Temp[]",
             "kind": "array",
+            "optional": false,
             "ref": "-1867509383"
           }
         ],
@@ -167,7 +170,8 @@
             "id": "phoneNumber",
             "variableName": "phoneNumber",
             "typeName": "string[]",
-            "kind": "array"
+            "kind": "array",
+            "optional": false
           }
         ],
         "typeName": "User",

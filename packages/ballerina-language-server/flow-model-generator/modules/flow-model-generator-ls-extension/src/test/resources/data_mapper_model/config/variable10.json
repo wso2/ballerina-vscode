@@ -90,7 +90,8 @@
             "id": "id",
             "variableName": "id",
             "typeName": "decimal",
-            "kind": "decimal"
+            "kind": "decimal",
+            "optional": false
           },
           {
             "fields": [],
@@ -98,13 +99,15 @@
             "variableName": "credentials",
             "typeName": "Credentials",
             "kind": "record",
+            "optional": false,
             "ref": "1085256861"
           },
           {
             "id": "length",
             "variableName": "length",
             "typeName": "int",
-            "kind": "int"
+            "kind": "int",
+            "optional": false
           }
         ],
         "typeName": "Student",
@@ -116,13 +119,15 @@
             "id": "username",
             "variableName": "username",
             "typeName": "string",
-            "kind": "string"
+            "kind": "string",
+            "optional": false
           },
           {
             "id": "password",
             "variableName": "password",
             "typeName": "string",
-            "kind": "string"
+            "kind": "string",
+            "optional": false
           }
         ],
         "typeName": "UserInfo",
@@ -134,13 +139,15 @@
             "id": "username",
             "variableName": "username",
             "typeName": "string",
-            "kind": "string"
+            "kind": "string",
+            "optional": false
           },
           {
             "id": "password",
             "variableName": "password",
             "typeName": "string",
-            "kind": "string"
+            "kind": "string",
+            "optional": false
           }
         ],
         "typeName": "Credentials",

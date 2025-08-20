@@ -116,7 +116,8 @@
             "id": "l3",
             "variableName": "l3",
             "typeName": "int",
-            "kind": "int"
+            "kind": "int",
+            "optional": false
           },
           {
             "member": {
@@ -131,6 +132,7 @@
             "variableName": "l3Arr",
             "typeName": "[]",
             "kind": "array",
+            "optional": false,
             "ref": "1847207892"
           }
         ],
@@ -143,7 +145,8 @@
             "id": "l3",
             "variableName": "l3",
             "typeName": "int",
-            "kind": "int"
+            "kind": "int",
+            "optional": false
           },
           {
             "member": {
@@ -158,6 +161,7 @@
             "variableName": "l3Arr",
             "typeName": "[]",
             "kind": "array",
+            "optional": false,
             "ref": "1847207892"
           }
         ],
@@ -179,6 +183,7 @@
             "variableName": "l2",
             "typeName": "[]",
             "kind": "array",
+            "optional": false,
             "ref": "-791387238"
           }
         ],
@@ -191,13 +196,15 @@
             "id": "l4_1",
             "variableName": "l4_1",
             "typeName": "int",
-            "kind": "int"
+            "kind": "int",
+            "optional": false
           },
           {
             "id": "l4_2",
             "variableName": "l4_2",
             "typeName": "string",
-            "kind": "string"
+            "kind": "string",
+            "optional": false
           }
         ],
         "typeName": "record {|int l4_1; string l4_2; anydata...;|}",
@@ -209,13 +216,15 @@
             "id": "l4_1",
             "variableName": "l4_1",
             "typeName": "int",
-            "kind": "int"
+            "kind": "int",
+            "optional": false
           },
           {
             "id": "l4_2",
             "variableName": "l4_2",
             "typeName": "string",
-            "kind": "string"
+            "kind": "string",
+            "optional": false
           }
         ],
         "typeName": "",
@@ -229,6 +238,7 @@
             "variableName": "l1",
             "typeName": "",
             "kind": "record",
+            "optional": false,
             "ref": "1011837363"
           }
         ],

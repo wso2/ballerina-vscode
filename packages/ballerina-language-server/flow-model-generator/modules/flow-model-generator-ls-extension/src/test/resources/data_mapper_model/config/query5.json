@@ -63,6 +63,7 @@
             "variableName": "info",
             "typeName": "Info",
             "kind": "record",
+            "optional": false,
             "ref": "-36697220"
           }
         ],
@@ -84,6 +85,7 @@
             "variableName": "phoneNumbers",
             "typeName": "SecondaryPhonesX[]",
             "kind": "array",
+            "optional": true,
             "ref": "1040773059"
           },
           {
@@ -96,7 +98,8 @@
             "id": "addresses",
             "variableName": "addresses",
             "typeName": "string[]",
-            "kind": "array"
+            "kind": "array",
+            "optional": true
           }
         ],
         "typeName": "ContactDetails",
@@ -108,13 +111,15 @@
             "id": "code",
             "variableName": "code",
             "typeName": "string",
-            "kind": "string"
+            "kind": "string",
+            "optional": false
           },
           {
             "id": "number",
             "variableName": "number",
             "typeName": "string",
-            "kind": "string"
+            "kind": "string",
+            "optional": false
           }
         ],
         "typeName": "SecondaryPhonesX",
@@ -128,6 +133,7 @@
             "variableName": "contactDetails",
             "typeName": "ContactDetails",
             "kind": "record",
+            "optional": false,
             "ref": "1293187030"
           }
         ],
@@ -146,7 +152,8 @@
             "id": "secondaryPhones",
             "variableName": "secondaryPhones",
             "typeName": "string[]",
-            "kind": "array"
+            "kind": "array",
+            "optional": false
           },
           {
             "member": {
@@ -158,7 +165,8 @@
             "id": "emails",
             "variableName": "emails",
             "typeName": "string[]",
-            "kind": "array"
+            "kind": "array",
+            "optional": false
           },
           {
             "member": {
@@ -176,7 +184,8 @@
             "id": "addresses",
             "variableName": "addresses",
             "typeName": "string[][]",
-            "kind": "array"
+            "kind": "array",
+            "optional": false
           }
         ],
         "typeName": "Info",

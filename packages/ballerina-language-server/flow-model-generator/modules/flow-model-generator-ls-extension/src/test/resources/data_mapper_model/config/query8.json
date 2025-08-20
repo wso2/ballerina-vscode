@@ -127,13 +127,15 @@
             "id": "code",
             "variableName": "code",
             "typeName": "string",
-            "kind": "string"
+            "kind": "string",
+            "optional": false
           },
           {
             "id": "number",
             "variableName": "number",
             "typeName": "string",
-            "kind": "string"
+            "kind": "string",
+            "optional": false
           }
         ],
         "typeName": "SecondaryPhones",
@@ -145,13 +147,15 @@
             "id": "code",
             "variableName": "code",
             "typeName": "string",
-            "kind": "string"
+            "kind": "string",
+            "optional": false
           },
           {
             "id": "number",
             "variableName": "number",
             "typeName": "string",
-            "kind": "string"
+            "kind": "string",
+            "optional": false
           }
         ],
         "typeName": "SecondaryPhonesX",
@@ -172,6 +176,7 @@
             "variableName": "secondaryPhones",
             "typeName": "SecondaryPhones[]",
             "kind": "array",
+            "optional": false,
             "ref": "-1392347127"
           },
           {
@@ -184,7 +189,8 @@
             "id": "emails",
             "variableName": "emails",
             "typeName": "string[]",
-            "kind": "array"
+            "kind": "array",
+            "optional": false
           },
           {
             "member": {
@@ -202,7 +208,8 @@
             "id": "addresses",
             "variableName": "addresses",
             "typeName": "string[][]",
-            "kind": "array"
+            "kind": "array",
+            "optional": false
           }
         ],
         "typeName": "Info",

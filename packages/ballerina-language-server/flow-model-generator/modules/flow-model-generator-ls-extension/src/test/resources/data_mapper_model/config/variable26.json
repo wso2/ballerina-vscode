@@ -58,19 +58,22 @@
             "id": "city",
             "variableName": "city",
             "typeName": "string",
-            "kind": "string"
+            "kind": "string",
+            "optional": false
           },
           {
             "id": "state",
             "variableName": "state",
             "typeName": "string",
-            "kind": "string"
+            "kind": "string",
+            "optional": false
           },
           {
             "id": "zipCode",
             "variableName": "zipCode",
             "typeName": "string",
-            "kind": "string"
+            "kind": "string",
+            "optional": false
           }
         ],
         "typeName": "",
@@ -82,19 +85,22 @@
             "id": "accountNumber",
             "variableName": "accountNumber",
             "typeName": "string",
-            "kind": "string"
+            "kind": "string",
+            "optional": false
           },
           {
             "id": "balance",
             "variableName": "balance",
             "typeName": "int",
-            "kind": "int"
+            "kind": "int",
+            "optional": false
           },
           {
             "id": "lastTransaction",
             "variableName": "lastTransaction",
             "typeName": "string",
-            "kind": "string"
+            "kind": "string",
+            "optional": false
           }
         ],
         "typeName": "",
@@ -106,13 +112,15 @@
             "id": "email",
             "variableName": "email",
             "typeName": "string",
-            "kind": "string"
+            "kind": "string",
+            "optional": false
           },
           {
             "id": "primaryPhone",
             "variableName": "primaryPhone",
             "typeName": "string",
-            "kind": "string"
+            "kind": "string",
+            "optional": false
           }
         ],
         "typeName": "",
@@ -124,25 +132,29 @@
             "id": "street",
             "variableName": "street",
             "typeName": "string",
-            "kind": "string"
+            "kind": "string",
+            "optional": false
           },
           {
             "id": "city",
             "variableName": "city",
             "typeName": "string",
-            "kind": "string"
+            "kind": "string",
+            "optional": false
           },
           {
             "id": "state",
             "variableName": "state",
             "typeName": "string",
-            "kind": "string"
+            "kind": "string",
+            "optional": false
           },
           {
             "id": "postalCode",
             "variableName": "postalCode",
             "typeName": "int",
-            "kind": "int"
+            "kind": "int",
+            "optional": false
           }
         ],
         "typeName": "",
@@ -154,7 +166,8 @@
             "id": "fullName",
             "variableName": "fullName",
             "typeName": "string",
-            "kind": "string"
+            "kind": "string",
+            "optional": false
           },
           {
             "fields": [],
@@ -162,6 +175,7 @@
             "variableName": "contactDetails",
             "typeName": "",
             "kind": "record",
+            "optional": false,
             "ref": "1387857683"
           },
           {
@@ -170,6 +184,7 @@
             "variableName": "location",
             "typeName": "",
             "kind": "record",
+            "optional": false,
             "ref": "-1673315977"
           },
           {
@@ -178,13 +193,15 @@
             "variableName": "accountInfo",
             "typeName": "",
             "kind": "record",
+            "optional": false,
             "ref": "1255890909"
           },
           {
             "id": "transactionDate",
             "variableName": "transactionDate",
             "typeName": "string",
-            "kind": "string"
+            "kind": "string",
+            "optional": false
           }
         ],
         "typeName": "Person",
@@ -196,19 +213,22 @@
             "id": "firstName",
             "variableName": "firstName",
             "typeName": "string",
-            "kind": "string"
+            "kind": "string",
+            "optional": false
           },
           {
             "id": "lastName",
             "variableName": "lastName",
             "typeName": "string",
-            "kind": "string"
+            "kind": "string",
+            "optional": false
           },
           {
             "id": "email",
             "variableName": "email",
             "typeName": "string",
-            "kind": "string"
+            "kind": "string",
+            "optional": false
           },
           {
             "fields": [],
@@ -216,13 +236,15 @@
             "variableName": "address",
             "typeName": "",
             "kind": "record",
+            "optional": false,
             "ref": "1012789572"
           },
           {
             "id": "phoneNumber",
             "variableName": "phoneNumber",
             "typeName": "string",
-            "kind": "string"
+            "kind": "string",
+            "optional": false
           }
         ],
         "typeName": "",
@@ -234,13 +256,15 @@
             "id": "accountNumber",
             "variableName": "accountNumber",
             "typeName": "string",
-            "kind": "string"
+            "kind": "string",
+            "optional": false
           },
           {
             "id": "balance",
             "variableName": "balance",
             "typeName": "int",
-            "kind": "int"
+            "kind": "int",
+            "optional": false
           }
         ],
         "typeName": "",
@@ -254,6 +278,7 @@
             "variableName": "customer",
             "typeName": "",
             "kind": "record",
+            "optional": false,
             "ref": "-656952594"
           },
           {
@@ -262,6 +287,7 @@
             "variableName": "account",
             "typeName": "",
             "kind": "record",
+            "optional": false,
             "ref": "-1686583489"
           }
         ],

@@ -103,7 +103,8 @@
             "id": "contacts",
             "variableName": "contacts",
             "typeName": "string[]",
-            "kind": "array"
+            "kind": "array",
+            "optional": false
           }
         ],
         "typeName": "Person",
@@ -121,7 +122,8 @@
             "id": "phoneNumber",
             "variableName": "phoneNumber",
             "typeName": "string[]",
-            "kind": "array"
+            "kind": "array",
+            "optional": false
           }
         ],
         "typeName": "User",

@@ -1027,6 +1027,9 @@ public class DataMapManager {
                         MappingPort fieldPort = getRefMappingPort(
                                 field.fieldName(), field.fieldName(),
                                 field.type(), isInputPort, visitedTypes, references);
+                        if (fieldPort != null) {
+                            fieldPort.setOptional(field.optional());
+                        }
                         recordPort.fields.add(fieldPort);
                     }
                     MappingRecordPort simplePort = new MappingRecordPort(recordPort);
@@ -2320,6 +2323,10 @@ public class DataMapManager {
 
         Boolean getOptional() {
             return this.optional;
+        }
+
+        void setOptional(Boolean optional) {
+            this.optional = optional;
         }
     }
 

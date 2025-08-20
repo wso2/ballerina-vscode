@@ -49,19 +49,22 @@
             "id": "firstName",
             "variableName": "firstName",
             "typeName": "string",
-            "kind": "string"
+            "kind": "string",
+            "optional": false
           },
           {
             "id": "lastName",
             "variableName": "lastName",
             "typeName": "string",
-            "kind": "string"
+            "kind": "string",
+            "optional": false
           },
           {
             "id": "stdAge",
             "variableName": "stdAge",
             "typeName": "int",
-            "kind": "int"
+            "kind": "int",
+            "optional": false
           }
         ],
         "typeName": "Student",
@@ -75,6 +78,7 @@
             "variableName": "bar",
             "typeName": "Student",
             "kind": "record",
+            "optional": false,
             "ref": "-235867440"
           }
         ],
@@ -87,19 +91,22 @@
             "id": "name",
             "variableName": "name",
             "typeName": "string",
-            "kind": "string"
+            "kind": "string",
+            "optional": false
           },
           {
             "id": "age",
             "variableName": "age",
             "typeName": "int",
-            "kind": "int"
+            "kind": "int",
+            "optional": false
           },
           {
             "id": "city",
             "variableName": "city",
             "typeName": "string",
-            "kind": "string"
+            "kind": "string",
+            "optional": false
           },
           {
             "fields": [],
@@ -107,6 +114,7 @@
             "variableName": "foo",
             "typeName": "",
             "kind": "record",
+            "optional": false,
             "ref": "-263690226"
           }
         ],
