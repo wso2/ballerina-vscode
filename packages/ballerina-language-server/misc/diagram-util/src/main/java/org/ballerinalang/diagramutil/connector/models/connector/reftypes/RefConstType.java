@@ -20,8 +20,7 @@ package org.ballerinalang.diagramutil.connector.models.connector.reftypes;
 /**
  * Reference-based const type model.
  */
-
-public class RefConstType extends  RefType {
+public class RefConstType extends RefType {
     public RefConstType(String name, String typeName) {
         super(name);
         this.typeName = typeName;
