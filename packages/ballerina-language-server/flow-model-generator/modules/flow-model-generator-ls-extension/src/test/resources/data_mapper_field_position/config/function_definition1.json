@@ -1,0 +1,43 @@
+{
+  "source": "function_definition1.bal",
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "function_definition1.bal",
+      "startLine": {
+        "line": 27,
+        "offset": 0
+      },
+      "endLine": {
+        "line": 30,
+        "offset": 2
+      }
+    },
+    "sourceCode": ""
+  },
+  "propertyKey": "expression",
+  "targetField": "transform",
+  "fieldId": "transform.username",
+  "property": {
+    "valueType": "EXPRESSION",
+    "valueTypeConstraint": "string",
+    "optional": false,
+    "editable": false,
+    "advanced": false,
+    "hidden": false,
+    "codedata": {
+      "lineRange": {
+        "fileName": "function_definition1.bal",
+        "startLine": {
+          "line": 28,
+          "offset": 14
+        },
+        "endLine": {
+          "line": 28,
+          "offset": 31
+        }
+      }
+    }
+  }
+}
