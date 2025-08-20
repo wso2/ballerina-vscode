@@ -249,20 +249,24 @@ export const calculateGraphQLNodeHeight = (
     Object.keys(visible).forEach((group) => {
         const visibleCount = visible[group].length;
         const hiddenCount = hidden[group].length;
-        const isExpanded = hiddenCount > 0;
+        const hasShowML = visibleCount > PREVIEW_COUNT || hiddenCount > 0;
         const isCollapsed = !graphQLGroupOpen[group];
+        const hasSection = visibleCount > 0 || hiddenCount > 0;
+        const hasFunction = visibleCount > 0;
 
         let sectionHeight = 0;
 
-        if (isCollapsed) {
-            sectionHeight = HEADER_HEIGHT;
-        } else {
-            if (visibleCount > 0) {
-                sectionHeight += HEADER_HEIGHT;
-                sectionHeight += visibleCount * FUNCTION_HEIGHT;
-            }
-            if (visibleCount > PREVIEW_COUNT || isExpanded) {
-                sectionHeight += SHOW_BUTTON_HEIGHT;
+        if (hasSection) {
+            if (isCollapsed) {
+                sectionHeight = HEADER_HEIGHT;
+            } else {
+                if (hasFunction) {
+                    sectionHeight += HEADER_HEIGHT;
+                    sectionHeight += visibleCount * FUNCTION_HEIGHT;
+                }
+                if (hasShowML) {
+                    sectionHeight += SHOW_BUTTON_HEIGHT;
+                }
             }
         }
 
