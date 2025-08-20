@@ -41,7 +41,8 @@ public class DataMappingSubMappingTest extends AbstractLSTest {
     @Override
     protected Object[] getConfigsList() {
         return new Object[][]{
-                {Path.of("variable1.json")}
+                {Path.of("variable1.json")},
+                {Path.of("function_definition1.json")}
         };
     }
 
@@ -58,7 +59,7 @@ public class DataMappingSubMappingTest extends AbstractLSTest {
         if (!testConfig.output().equals(output)) {
             TestConfig updatedConfig = new TestConfig(testConfig.source(), testConfig.description(),
                     testConfig.codedata(), testConfig.view(), output);
-            updateConfig(configJsonPath, updatedConfig);
+//            updateConfig(configJsonPath, updatedConfig);
             Assert.fail(String.format("Failed test: '%s' (%s)", testConfig.description(), configJsonPath));
         }
     }

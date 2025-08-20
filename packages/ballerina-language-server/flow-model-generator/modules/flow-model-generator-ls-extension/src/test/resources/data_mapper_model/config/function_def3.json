@@ -1,0 +1,147 @@
+{
+  "source": "function_def1.bal",
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "DATA_MAPPER_DEFINITION",
+    "lineRange": {
+      "fileName": "function_def1.bal",
+      "startLine": {
+        "line": 25,
+        "offset": 0
+      },
+      "endLine": {
+        "line": 27,
+        "offset": 2
+      }
+    },
+    "sourceCode": ""
+  },
+  "position": {
+    "line": 25,
+    "offset": 56
+  },
+  "propertyKey": "expression",
+  "targetField": "transform2",
+  "model": {
+    "inputs": [
+      {
+        "member": {
+          "fields": [],
+          "id": "inputs",
+          "variableName": "<inputsItem>",
+          "typeName": "Input",
+          "kind": "record",
+          "ref": "-1703435696"
+        },
+        "focusedMemberId": "input",
+        "id": "inputs",
+        "variableName": "inputs",
+        "typeName": "Input[]",
+        "kind": "array",
+        "category": "parameter",
+        "ref": "-1703435696"
+      },
+      {
+        "fields": [],
+        "id": "input",
+        "variableName": "input",
+        "typeName": "Input",
+        "kind": "record",
+        "isFocused": true,
+        "ref": "-1703435696"
+      }
+    ],
+    "output": {
+      "member": {
+        "fields": [],
+        "id": "transform2",
+        "variableName": "<transform2Item>",
+        "typeName": "Output",
+        "kind": "record",
+        "ref": "-1514999486"
+      },
+      "id": "transform2",
+      "variableName": "transform2",
+      "typeName": "Output[]",
+      "kind": "array",
+      "ref": "-1514999486"
+    },
+    "mappings": [
+      {
+        "output": "transform2.fullName",
+        "inputs": [
+          "input.user.firstName"
+        ],
+        "expression": "input?.user?.firstName\n",
+        "diagnostics": [],
+        "elements": [],
+        "isQueryExpression": false,
+        "isFunctionCall": false
+      }
+    ],
+    "query": {
+      "output": "transform2",
+      "inputs": [
+        "inputs"
+      ],
+      "fromClause": {
+        "type": "from",
+        "properties": {
+          "name": "input",
+          "type": "Input",
+          "expression": "inputs"
+        }
+      },
+      "intermediateClauses": [],
+      "resultClause": {
+        "type": "select",
+        "properties": {
+          "expression": "{\n    fullName: input?.user?.firstName\n}"
+        }
+      }
+    },
+    "refs": {
+      "-1514999486": {
+        "fields": [
+          {
+            "id": "fullName",
+            "variableName": "fullName",
+            "typeName": "string",
+            "kind": "string",
+            "optional": true
+          }
+        ],
+        "typeName": "Output",
+        "kind": "record"
+      },
+      "-1064739742": {
+        "fields": [
+          {
+            "id": "firstName",
+            "variableName": "firstName",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          }
+        ],
+        "typeName": "User",
+        "kind": "record"
+      },
+      "-1703435696": {
+        "fields": [
+          {
+            "fields": [],
+            "id": "user",
+            "variableName": "user",
+            "typeName": "User",
+            "kind": "record",
+            "optional": true,
+            "ref": "-1064739742"
+          }
+        ],
+        "typeName": "Input",
+        "kind": "record"
+      }
+    }
+  }
+}

@@ -1,0 +1,38 @@
+{
+  "source": "variable2.bal",
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "variable2.bal",
+      "startLine": {
+        "line": 19,
+        "offset": 12
+      },
+      "endLine": {
+        "line": 19,
+        "offset": 143
+      }
+    },
+    "sourceCode": "",
+    "isNew": true
+  },
+  "index": 1,
+  "output": {
+    "variable2.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 19,
+            "character": 58
+          },
+          "end": {
+            "line": 19,
+            "character": 82
+          }
+        },
+        "newText": ""
+      }
+    ]
+  }
+}

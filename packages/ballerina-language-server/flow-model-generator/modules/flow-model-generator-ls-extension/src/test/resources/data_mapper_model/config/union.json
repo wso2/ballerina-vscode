@@ -87,13 +87,15 @@
             "id": "name",
             "variableName": "name",
             "typeName": "string",
-            "kind": "string"
+            "kind": "string",
+            "optional": false
           },
           {
             "id": "cast",
             "variableName": "cast",
             "typeName": "string",
-            "kind": "string"
+            "kind": "string",
+            "optional": false
           }
         ],
         "typeName": "Elephant",
@@ -105,13 +107,15 @@
             "id": "name",
             "variableName": "name",
             "typeName": "string",
-            "kind": "string"
+            "kind": "string",
+            "optional": false
           },
           {
             "id": "breed",
             "variableName": "breed",
             "typeName": "string",
-            "kind": "string"
+            "kind": "string",
+            "optional": false
           }
         ],
         "typeName": "Dog",
