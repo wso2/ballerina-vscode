@@ -31,6 +31,7 @@ import io.ballerina.compiler.api.symbols.TypeSymbol;
 import io.ballerina.compiler.api.symbols.UnionTypeSymbol;
 import io.ballerina.compiler.api.symbols.VariableSymbol;
 import org.ballerinalang.diagramutil.connector.models.connector.reftypes.RefArrayType;
+import org.ballerinalang.diagramutil.connector.models.connector.reftypes.RefConstType;
 import org.ballerinalang.diagramutil.connector.models.connector.reftypes.RefEnumType;
 import org.ballerinalang.diagramutil.connector.models.connector.reftypes.RefRecordType;
 import org.ballerinalang.diagramutil.connector.models.connector.reftypes.RefType;
@@ -71,15 +72,7 @@ public class ReferenceType {
             Optional<String> optName = typeSymbol.getName();
             name = optName.orElseGet(typeSymbol::signature);
         } else if (kind == SymbolKind.CONSTANT) {
-            typeSymbol = ((VariableSymbol) symbol).typeDescriptor();
-            Optional<String> optName = typeSymbol.getName();
-            name = optName.orElseGet(() -> symbol.getName().orElseThrow(
-                    () -> new IllegalStateException(
-                            "Symbol name is missing for symbol. Kind: " + symbol.kind() +
-                                    ", Module: " + (symbol.getModule().isPresent() ?
-                                    symbol.getModule().get().id() : "N/A") +
-                                    ", Symbol: " + symbol)
-            ));
+            return new RefConstType(symbol.getName().orElse(""), "const");
         } else if (kind == SymbolKind.ENUM) {
             return getEnumType((EnumSymbol) symbol);
         }

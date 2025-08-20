@@ -26,8 +26,8 @@
       {
         "id": "CONST",
         "variableName": "CONST",
-        "typeName": "CONST",
-        "kind": "CONST",
+        "typeName": "const",
+        "kind": "const",
         "category": "constant"
       },
       {
