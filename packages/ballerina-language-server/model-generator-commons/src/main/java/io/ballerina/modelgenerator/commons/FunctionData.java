@@ -18,7 +18,9 @@
 
 package io.ballerina.modelgenerator.commons;
 
+import java.util.EnumSet;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Represents the result of a function.
@@ -137,9 +139,28 @@ public class FunctionData {
         EMBEDDING_PROVIDER,
         VECTOR_STORE,
         VECTOR_KNOWLEDGE_BASE,
+        DATA_LOADER,
+        CHUNKER,
         REMOTE,
         RESOURCE,
         LISTENER_INIT,
-        CLASS_INIT,
+        CLASS_INIT;
+
+        private static final Set<Kind> AI_CLASS_KINDS = EnumSet.of(
+                FunctionData.Kind.MODEL_PROVIDER,
+                FunctionData.Kind.EMBEDDING_PROVIDER,
+                FunctionData.Kind.VECTOR_STORE,
+                FunctionData.Kind.DATA_LOADER,
+                FunctionData.Kind.CHUNKER,
+                FunctionData.Kind.VECTOR_KNOWLEDGE_BASE
+        );
+
+        public boolean isAiClassKind() {
+            return AI_CLASS_KINDS.contains(this);
+        }
+
+        public boolean isConnector() {
+            return this == CONNECTOR;
+        }
     }
 }

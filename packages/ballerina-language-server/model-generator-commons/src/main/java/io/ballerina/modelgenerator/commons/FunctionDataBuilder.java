@@ -341,15 +341,15 @@ public class FunctionDataBuilder {
                         .orElseThrow(() -> new IllegalStateException("Function symbol not found"));
                 functionSymbol(fetchedSymbol);
             } else {
-                if (isVectorStoreOrKnowledgeBaseKind(functionKind)) {
+                if (functionKind != null && functionKind.isAiClassKind()) {
                     ClassSymbol classSymbol = (ClassSymbol) parentSymbol;
                     Optional<MethodSymbol> initMethod = classSymbol.initMethod();
                     if (initMethod.isEmpty()) {
                         throw new IllegalStateException("The init method should not be empty");
                     }
-                    // Fetch the init method if it is a vector store or vector knowledge base
+                    // Fetch the init method if it is a class related to AI
                     functionSymbol = initMethod.get();
-                } else if (isConnectorOrProviderKind(functionKind)) {
+                } else if (functionKind != null && functionKind.isConnector()) {
                     if ((parentSymbol.kind() != SymbolKind.CLASS ||
                             !parentSymbol.qualifiers().contains(Qualifier.CLIENT))) {
                         throw new IllegalStateException("The connector should be a client class");
@@ -442,16 +442,6 @@ public class FunctionDataBuilder {
         return functionData;
     }
 
-    private boolean isConnectorOrProviderKind(FunctionData.Kind functionKind) {
-        return functionKind == FunctionData.Kind.CONNECTOR || functionKind == FunctionData.Kind.MODEL_PROVIDER ||
-                functionKind == FunctionData.Kind.EMBEDDING_PROVIDER;
-    }
-
-    private boolean isVectorStoreOrKnowledgeBaseKind(FunctionData.Kind functionKind) {
-        return functionKind == FunctionData.Kind.VECTOR_KNOWLEDGE_BASE
-                || functionKind == FunctionData.Kind.VECTOR_STORE;
-    }
-
     private void checkLocalModule() {
         if (project != null && moduleInfo != null && isLocal()) {
             for (Module module : project.currentPackage().modules()) {
@@ -484,9 +474,8 @@ public class FunctionDataBuilder {
                     if (isGetDefaultEmbeddingProvider(functionKind, functionName)) {
                         return CommonUtils.getClassType(moduleInfo.moduleName(), WSO2_EMBEDDING_PROVIDER_TYPE_NAME);
                     }
-                    if (functionKind == FunctionData.Kind.CLASS_INIT
-                            || isConnectorOrProviderKind(functionKind)
-                            || isVectorStoreOrKnowledgeBaseKind(functionKind)) {
+                    if (functionKind != null && (functionKind == FunctionData.Kind.CLASS_INIT
+                            || functionKind.isConnector() || functionKind.isAiClassKind())) {
                         return CommonUtils.getClassType(moduleInfo.moduleName(),
                                 parentSymbol.getName().orElse("Client"));
                     }
@@ -1041,7 +1030,7 @@ public class FunctionDataBuilder {
 
     private String getFunctionName() {
         // Get the client name if it is the init method of the client
-        if (isConnectorOrProviderKind(functionKind) || isVectorStoreOrKnowledgeBaseKind(functionKind)) {
+        if (functionKind != null && (functionKind.isConnector() || functionKind.isAiClassKind())) {
             if (parentSymbolType != null) {
                 return parentSymbolType;
             }

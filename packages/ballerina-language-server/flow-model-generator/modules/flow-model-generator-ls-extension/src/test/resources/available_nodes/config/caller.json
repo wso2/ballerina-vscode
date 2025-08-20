@@ -194,14 +194,21 @@
             },
             {
               "metadata": {
-                "label": "Recursive Document Chunker"
+                "label": "Data Loader",
+                "description": "Data loaders available in the integration"
               },
               "codedata": {
-                "node": "FUNCTION_CALL",
-                "org": "ballerina",
-                "module": "ai",
-                "packageName": "ai",
-                "symbol": "chunkDocumentRecursively"
+                "node": "DATA_LOADERS"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "Chunker",
+                "description": "Chunkers available in the integration"
+              },
+              "codedata": {
+                "node": "CHUNKERS"
               },
               "enabled": true
             },

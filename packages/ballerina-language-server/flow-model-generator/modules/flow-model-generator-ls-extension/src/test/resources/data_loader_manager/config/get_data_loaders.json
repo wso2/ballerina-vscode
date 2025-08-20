@@ -1,0 +1,41 @@
+{
+  "source": "generated_data_loader/connections.bal",
+  "expectedDataLoaders": {
+    "categories": [
+      {
+        "metadata": {
+          "label": "Data Loaders",
+          "description": "Data loaders available in the integration"
+        },
+        "items": [
+          {
+            "metadata": {
+              "label": "loader"
+            },
+            "items": [
+              {
+                "metadata": {
+                  "label": "load",
+                  "description": "Loads documents from the specified path.\n",
+                  "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_ai.devant_1.0.0.png"
+                },
+                "codedata": {
+                  "node": "METHOD_CALL",
+                  "org": "ballerinax",
+                  "module": "ai.devant",
+                  "packageName": "ai.devant",
+                  "object": "BinaryDataLoader",
+                  "symbol": "load",
+                  "version": "1.0.0",
+                  "parentSymbol": "loader",
+                  "resourcePath": ""
+                },
+                "enabled": true
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

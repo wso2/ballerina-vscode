@@ -1,0 +1,160 @@
+{
+  "source": "generated_data_loader",
+  "flowNode": {
+    "id": "31",
+    "metadata": {
+      "label": "Data Loader",
+      "description": "Creates a new `BinaryDataLoader` instance.",
+      "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_ai.devant_1.0.0.png"
+    },
+    "codedata": {
+      "node": "DATA_LOADER",
+      "org": "ballerinax",
+      "module": "ai.devant",
+      "packageName": "ai.devant",
+      "object": "BinaryDataLoader",
+      "version": "1.0.0",
+      "isNew": true
+    },
+    "returning": false,
+    "properties": {
+      "type": {
+        "metadata": {
+          "label": "Result Type",
+          "description": "Type of the variable"
+        },
+        "valueType": "TYPE",
+        "value": "devant:BinaryDataLoader",
+        "placeholder": "var",
+        "optional": false,
+        "editable": false,
+        "advanced": false,
+        "hidden": false,
+        "codedata": {},
+        "imports": {
+          "ai": "ballerina/ai"
+        }
+      },
+      "variable": {
+        "metadata": {
+          "label": "Data Loader Name",
+          "description": "Data loader instance name"
+        },
+        "valueType": "IDENTIFIER",
+        "value": "devantBinarydataloader",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false,
+        "imports": {
+          "ai": "ballerina/ai"
+        }
+      },
+      "path": {
+        "metadata": {
+          "label": "Path",
+          "description": "The file or directory path to load documents from"
+        },
+        "valueType": "EXPRESSION",
+        "valueTypeConstraint": "string",
+        "placeholder": "\"\"",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false,
+        "codedata": {
+          "kind": "REQUIRED",
+          "originalName": "path"
+        },
+        "typeMembers": [
+          {
+            "type": "string",
+            "packageInfo": "",
+            "packageName": "",
+            "kind": "BASIC_TYPE",
+            "selected": false
+          }
+        ],
+        "imports": {
+          "ai": "ballerina/ai"
+        }
+      },
+      "scope": {
+        "metadata": {
+          "label": "Connection Scope",
+          "description": "Scope of the connection, Global or Local"
+        },
+        "valueType": "ENUM",
+        "value": "Global",
+        "optional": false,
+        "editable": true,
+        "advanced": true,
+        "hidden": true,
+        "imports": {
+          "ai": "ballerina/ai"
+        }
+      },
+      "checkError": {
+        "metadata": {
+          "label": "Check Error",
+          "description": "Terminate on error"
+        },
+        "valueType": "FLAG",
+        "value": true,
+        "optional": false,
+        "editable": false,
+        "advanced": true,
+        "hidden": true,
+        "imports": {
+          "ai": "ballerina/ai"
+        }
+      }
+    },
+    "flags": 0
+  },
+  "expectedResponse": {
+    "textEdits": {
+      "connections.bal": [
+        {
+          "range": {
+            "start": {
+              "line": 0,
+              "character": 0
+            },
+            "end": {
+              "line": 0,
+              "character": 0
+            }
+          },
+          "newText": "import ballerina/ai;"
+        },
+        {
+          "range": {
+            "start": {
+              "line": 0,
+              "character": 0
+            },
+            "end": {
+              "line": 0,
+              "character": 0
+            }
+          },
+          "newText": "import ballerinax/ai.devant;"
+        },
+        {
+          "range": {
+            "start": {
+              "line": 0,
+              "character": 0
+            },
+            "end": {
+              "line": 0,
+              "character": 0
+            }
+          },
+          "newText": "final devant:BinaryDataLoader devantBinarydataloader = new (\"\");"
+        }
+      ]
+    }
+  }
+}

@@ -170,9 +170,12 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Queue;
 import java.util.Stack;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import static io.ballerina.modelgenerator.commons.CommonUtils.isAgentClass;
+import static io.ballerina.modelgenerator.commons.CommonUtils.isAiChunker;
+import static io.ballerina.modelgenerator.commons.CommonUtils.isAiDataLoader;
 import static io.ballerina.modelgenerator.commons.CommonUtils.isAiEmbeddingProvider;
 import static io.ballerina.modelgenerator.commons.CommonUtils.isAiModelModule;
 import static io.ballerina.modelgenerator.commons.CommonUtils.isAiModelProvider;
@@ -1314,27 +1317,12 @@ public class CodeAnalyzer extends NodeVisitor {
             return;
         }
         ClassSymbol classSymbol = optClassSymbol.get();
-        if (isAgentClass(classSymbol)) {
-            startNode(NodeKind.AGENT, newExpressionNode);
-        } else if (isAiModelProvider(classSymbol)) {
-            startNode(NodeKind.MODEL_PROVIDER, newExpressionNode);
-        } else if (isAiEmbeddingProvider(classSymbol)) {
-            startNode(NodeKind.EMBEDDING_PROVIDER, newExpressionNode);
-        } else if (isAiVectorKnowledgeBase(classSymbol)) {
-            startNode(NodeKind.VECTOR_KNOWLEDGE_BASE, newExpressionNode);
-        } else if (isAiVectorStore(classSymbol)) {
-            startNode(NodeKind.VECTOR_STORE, newExpressionNode);
-        } else if (isAIModel(classSymbol)) {
-            startNode(NodeKind.CLASS_INIT, newExpressionNode);
-        } else if (classSymbol.qualifiers().contains(Qualifier.CLIENT)) {
-            startNode(NodeKind.NEW_CONNECTION, newExpressionNode);
-        } else if (classSymbol.nameEquals(MCP_TOOL_KIT)) {
-            startNode(NodeKind.MCP_TOOLKIT, newExpressionNode);
-        } else {
+        NodeKind kind = resolveNodeKind(classSymbol);
+        if (kind == null) {
             handleExpressionNode(newExpressionNode);
             return;
         }
-
+        startNode(kind, newExpressionNode);
         Optional<MethodSymbol> optMethodSymbol = classSymbol.initMethod();
         FunctionDataBuilder functionDataBuilder = new FunctionDataBuilder()
                 .parentSymbol(classSymbol)
@@ -1373,20 +1361,52 @@ public class CodeAnalyzer extends NodeVisitor {
                 .checkError(true, NewConnectionBuilder.CHECK_ERROR_DOC, false);
     }
 
-    private FunctionData.Kind getFunctionResultKind(ClassSymbol classSymbol) {
+    private NodeKind resolveNodeKind(ClassSymbol classSymbol) {
+        if (isAgentClass(classSymbol)) {
+            return NodeKind.AGENT;
+        }
         if (isAiModelProvider(classSymbol)) {
-            return FunctionData.Kind.MODEL_PROVIDER;
+            return NodeKind.MODEL_PROVIDER;
         }
         if (isAiEmbeddingProvider(classSymbol)) {
-            return FunctionData.Kind.EMBEDDING_PROVIDER;
+            return NodeKind.EMBEDDING_PROVIDER;
         }
         if (isAiVectorKnowledgeBase(classSymbol)) {
-            return FunctionData.Kind.VECTOR_KNOWLEDGE_BASE;
+            return NodeKind.VECTOR_KNOWLEDGE_BASE;
         }
         if (isAiVectorStore(classSymbol)) {
-            return FunctionData.Kind.VECTOR_STORE;
+            return NodeKind.VECTOR_STORE;
         }
-        return FunctionData.Kind.CONNECTOR;
+        if (isAiDataLoader(classSymbol)) {
+            return NodeKind.DATA_LOADER;
+        }
+        if (isAiChunker(classSymbol)) {
+            return NodeKind.CHUNKER;
+        }
+        if (isAIModel(classSymbol)) {
+            return NodeKind.CLASS_INIT;
+        }
+        if (classSymbol.qualifiers().contains(Qualifier.CLIENT)) {
+            return NodeKind.NEW_CONNECTION;
+        }
+        if (classSymbol.nameEquals(MCP_TOOL_KIT)) {
+            return NodeKind.MCP_TOOLKIT;
+        }
+        return null;
+    }
+
+    private FunctionData.Kind getFunctionResultKind(ClassSymbol classSymbol) {
+        Map<Predicate<ClassSymbol>, FunctionData.Kind> kindMappings = Map.of(
+                CommonUtils::isAiModelProvider, FunctionData.Kind.MODEL_PROVIDER,
+                CommonUtils::isAiEmbeddingProvider, FunctionData.Kind.EMBEDDING_PROVIDER,
+                CommonUtils::isAiVectorKnowledgeBase, FunctionData.Kind.VECTOR_KNOWLEDGE_BASE,
+                CommonUtils::isAiVectorStore, FunctionData.Kind.VECTOR_STORE,
+                CommonUtils::isAiDataLoader, FunctionData.Kind.DATA_LOADER,
+                CommonUtils::isAiChunker, FunctionData.Kind.CHUNKER
+        );
+
+        return kindMappings.entrySet().stream().filter(entry -> entry.getKey().test(classSymbol))
+                .map(Map.Entry::getValue).findFirst().orElse(FunctionData.Kind.CONNECTOR);
     }
 
     private Optional<ClassSymbol> getClassSymbol(ExpressionNode newExpressionNode) {
