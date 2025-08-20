@@ -88,7 +88,7 @@ const Title = styled(StyledText) <NodeStyleProp>`
     opacity: ${(props: NodeStyleProp) => (props.inactive && !props.hovered ? 0.7 : 1)};
 `;
 
-const ResourceAccessor = styled(StyledText)<{ color?: string }>`
+const ResourceAccessor = styled(StyledText) <{ color?: string }>`
     text-transform: uppercase;
     font-family: "GilmerBold";
     background-color: ${(props) => props.color};
@@ -267,7 +267,7 @@ export function EntryNodeWidget(props: EntryNodeWidgetProps) {
     const [menuAnchorEl, setMenuAnchorEl] = useState<HTMLElement | SVGSVGElement>(null);
     const isMenuOpen = Boolean(menuAnchorEl);
 
-    
+
     const handleOnClick = () => {
         if (model.type === "service") {
             if ((model.node as CDService).type === "ai:Service") {
@@ -614,7 +614,7 @@ export function GraphQLFunctionList(props: {
                             <Codicon name="chevron-down" />
                         )}
                     </CollapseButton>
-                    {group}             
+                    {group}
                 </GroupHeader>
                 {!collapsed && (
                     <>
@@ -637,8 +637,8 @@ export function GraphQLFunctionList(props: {
                                         group === "Query"
                                             ? GQL_GROUP_QUERY_PORT_NAME
                                             : group === "Mutation"
-                                            ? GQL_GROUP_MUTATION_PORT_NAME
-                                            : GQL_GROUP_SUBSCRIPTION_PORT_NAME
+                                                ? GQL_GROUP_MUTATION_PORT_NAME
+                                                : GQL_GROUP_SUBSCRIPTION_PORT_NAME
                                     )!}
                                     engine={engine}
                                 />
@@ -652,17 +652,17 @@ export function GraphQLFunctionList(props: {
                     </>
                 )}
             </GroupContainer>
-            {collapsed &&    
+            {collapsed &&
                 <PortWidget
-                        port={model.getPort(
-                            group === "Query"
-                                ? GQL_GROUP_QUERY_PORT_NAME
-                                : group === "Mutation"
+                    port={model.getPort(
+                        group === "Query"
+                            ? GQL_GROUP_QUERY_PORT_NAME
+                            : group === "Mutation"
                                 ? GQL_GROUP_MUTATION_PORT_NAME
                                 : GQL_GROUP_SUBSCRIPTION_PORT_NAME
-                        )!}
-                        engine={engine}
-                    >
+                    )!}
+                    engine={engine}
+                >
                 </PortWidget>}
         </FunctionBoxWrapper>
     );
@@ -690,7 +690,7 @@ export function GraphQLGroups(props: { functions: Array<CDFunction | CDResourceF
         return acc;
     }, {} as GQLFuncListType);
 
-    const orderedGroups: GroupKey[] = ["Query",  "Mutation", "Subscription"];
+    const orderedGroups: GroupKey[] = ["Query", "Mutation", "Subscription"];
 
     return (
         <>

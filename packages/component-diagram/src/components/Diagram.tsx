@@ -80,29 +80,35 @@ export function Diagram(props: DiagramProps) {
     // Ensure every service has a default GraphQL group open state.
     // Defaults: Query = true, Subscription = false, Mutation = false
     useEffect(() => {
-        if (!project) return;
+        if (!project?.services) return;
+
+        const graphqlServices = project.services.filter(
+            (svc) => svc.type === "graphql:Service"
+        );
+        const currentGraphqlIds = new Set(graphqlServices.map((svc) => svc.uuid));
+
         setGraphQLGroupOpen((prev) => {
-            const next = { ...prev } as Record<string, GQLState>;
-            const services = project.services ?? [];
+            const next = { ...prev };
+            let hasChanged = false;
 
-            // Only add defaults for GraphQL services
-            services.forEach((svc) => {
-                if (svc.type === "graphql:Service" && !next[svc.uuid]) {
-                    next[svc.uuid] = { Query: true, Subscription: false, Mutation: false };
-                }
-            });
-
-            // Optionally remove entries for services no longer present or not GraphQL
-            const graphqlServiceIds = new Set(
-                services.filter(s => s.type === "graphql:Service").map(s => s.uuid)
-            );
+            // Remove services that no longer exist
             Object.keys(next).forEach((id) => {
-                if (!graphqlServiceIds.has(id)) {
+                if (!currentGraphqlIds.has(id)) {
                     delete next[id];
+                    hasChanged = true;
                 }
             });
 
-            return next;
+            // Add new services that are not yet in the state
+            graphqlServices.forEach((svc) => {
+                if (!next[svc.uuid]) {
+                    next[svc.uuid] = { Query: true, Subscription: false, Mutation: false };
+                    hasChanged = true;
+                }
+            });
+
+            // Only update state if there's an actual change
+            return hasChanged ? next : prev;
         });
     }, [project]);
 
@@ -181,12 +187,12 @@ export function Diagram(props: DiagramProps) {
                 const nodeHeight = calculateGraphQLNodeHeight(
                     visible,
                     hidden,
-                    graphQLGroupOpen[service.uuid] || { Query: true, Subscription: false, Mutation: false }                );
+                    graphQLGroupOpen[service.uuid] || { Query: true, Subscription: false, Mutation: false });
 
                 node.height = nodeHeight;
                 node.setPosition(0, startY);
                 nodes.push(node);
-                
+
                 startY += nodeHeight + 16;
 
                 // For GraphQL, handle visible and hidden per group
@@ -194,11 +200,11 @@ export function Diagram(props: DiagramProps) {
                     createFunctionConnections(
                         visible[group],
                         nodes,
-                            node,
-                            (func) => node.getFunctionPort(func),
-                            links,
-                            group
-                        );
+                        node,
+                        (func) => node.getFunctionPort(func),
+                        links,
+                        group
+                    );
                 });
 
                 (Object.keys(hidden) as GroupKey[]).forEach((group) => {
@@ -224,14 +230,14 @@ export function Diagram(props: DiagramProps) {
 
                 startY += nodeHeight + 16;
 
-                const {hidden, visible} = partitionRegularServiceFunctions(service, expandedNodes);
+                const { hidden, visible } = partitionRegularServiceFunctions(service, expandedNodes);
                 createFunctionConnections(
                     visible,
                     nodes,
                     node,
-                        (func) => node.getFunctionPort(func),
-                        links
-                    );
+                    (func) => node.getFunctionPort(func),
+                    links
+                );
 
                 if (hidden.length > 0) {
                     createFunctionConnections(
@@ -364,7 +370,7 @@ function partitionGraphQLServiceFunctions(
     service: CDService,
     expandedNodes: Set<string>,
     groupOpen?: { Query: boolean; Subscription: boolean; Mutation: boolean; }
-): { visible:  GQLFuncListType; hidden: GQLFuncListType } {
+): { visible: GQLFuncListType; hidden: GQLFuncListType } {
     const serviceFunctions: Array<CDFunction | CDResourceFunction> = [];
     if (service.remoteFunctions?.length) serviceFunctions.push(...service.remoteFunctions);
     if (service.resourceFunctions?.length) serviceFunctions.push(...service.resourceFunctions);
@@ -411,25 +417,25 @@ function partitionGraphQLServiceFunctions(
 }
 
 function createFunctionConnections(
-        funcs: Array<CDFunction | CDResourceFunction>,
-        nodes: NodeModel[],
-        node: EntryNodeModel,
-        portGetter: (func: CDFunction | CDResourceFunction, group?: GroupKey) => any,
-        links: NodeLinkModel[],
-        group?: GroupKey
-    ) {
-        funcs.forEach((func) => {
-            func.connections?.forEach((connectionUuid) => {
-                const connectionNode = nodes.find((n) => n.getID() === connectionUuid);
-                if (connectionNode) {
-                    const port = portGetter(func, group);
-                    if (port) {
-                        const link = createPortNodeLink(port, connectionNode);
-                        if (link) {
-                            links.push(link);
-                        }
+    funcs: Array<CDFunction | CDResourceFunction>,
+    nodes: NodeModel[],
+    node: EntryNodeModel,
+    portGetter: (func: CDFunction | CDResourceFunction, group?: GroupKey) => any,
+    links: NodeLinkModel[],
+    group?: GroupKey
+) {
+    funcs.forEach((func) => {
+        func.connections?.forEach((connectionUuid) => {
+            const connectionNode = nodes.find((n) => n.getID() === connectionUuid);
+            if (connectionNode) {
+                const port = portGetter(func, group);
+                if (port) {
+                    const link = createPortNodeLink(port, connectionNode);
+                    if (link) {
+                        links.push(link);
                     }
                 }
-            });
+            }
+        });
     });
 }
