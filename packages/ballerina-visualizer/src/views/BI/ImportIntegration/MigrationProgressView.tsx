@@ -88,12 +88,14 @@ const CoverageContainer = styled.div`
     display: flex;
     flex-direction: column;
     gap: 16px;
+    width: 100%;
 `;
 
 const CoverageHeader = styled.div`
     display: flex;
     align-items: center;
     gap: 16px;
+    justify-content: space-between;
 `;
 
 const CoveragePercentage = styled.div<{ coverageColor: string }>`
@@ -153,6 +155,7 @@ const EstimationTableContainer = styled.div`
     display: flex;
     flex-direction: column;
     gap: 16px;
+    width: 100%;
 `;
 
 const ReportButtonsContainer = styled.div`
@@ -315,33 +318,69 @@ const CoverageSummary: React.FC<{ reportData: MigrationReportJSON }> = ({ report
     );
 };
 
-const ManualWorkEstimationTable: React.FC<{ 
-    reportData: MigrationReportJSON; 
-    onViewReport: () => void; 
-    onSaveReport: () => void; 
-}> = ({
-    reportData,
-    onViewReport,
-    onSaveReport,
-}) => {
+const ManualWorkEstimationTable: React.FC<{
+    reportData: MigrationReportJSON;
+    onViewReport: () => void;
+    onSaveReport: () => void;
+}> = ({ reportData, onViewReport, onSaveReport }) => {
     const { manualWorkEstimation } = reportData;
 
     return (
         <EstimationTableContainer>
             <Typography variant="h4">Manual Work Estimation ({manualWorkEstimation.unit})</Typography>
-            <VSCodeDataGrid>
-                <VSCodeDataGridRow row-type="header">
+            <VSCodeDataGrid
+                style={{
+                    border: "1px solid var(--vscode-widget-border)",
+                    borderRadius: "4px",
+                }}
+            >
+                <VSCodeDataGridRow row-type="header" style={{ borderBottom: "1px solid var(--vscode-widget-border)" }}>
                     {manualWorkEstimation.headers.map((header, index) => (
-                        <VSCodeDataGridCell key={index} cell-type="columnheader" grid-column={`${index + 1}`}>
+                        <VSCodeDataGridCell
+                            key={index}
+                            cell-type="columnheader"
+                            grid-column={`${index + 1}`}
+                            style={{
+                                borderRight:
+                                    index < manualWorkEstimation.headers.length - 1
+                                        ? "1px solid var(--vscode-widget-border)"
+                                        : "none",
+                                padding: "8px 12px",
+                            }}
+                        >
                             {header}
                         </VSCodeDataGridCell>
                     ))}
                 </VSCodeDataGridRow>
                 {manualWorkEstimation.rows.map((row, i) => (
-                    <VSCodeDataGridRow key={i}>
-                        <VSCodeDataGridCell grid-column="1">{row.label}</VSCodeDataGridCell>
+                    <VSCodeDataGridRow
+                        key={i}
+                        style={{
+                            borderBottom:
+                                i < manualWorkEstimation.rows.length - 1
+                                    ? "1px solid var(--vscode-widget-border)"
+                                    : "none",
+                        }}
+                    >
+                        <VSCodeDataGridCell
+                            grid-column="1"
+                            style={{
+                                borderRight: "1px solid var(--vscode-widget-border)",
+                                padding: "8px 12px",
+                            }}
+                        >
+                            {row.label}
+                        </VSCodeDataGridCell>
                         {row.values.map((value, j) => (
-                            <VSCodeDataGridCell key={j} grid-column={`${j + 2}`}>
+                            <VSCodeDataGridCell
+                                key={j}
+                                grid-column={`${j + 2}`}
+                                style={{
+                                    borderRight:
+                                        j < row.values.length - 1 ? "1px solid var(--vscode-widget-border)" : "none",
+                                    padding: "8px 12px",
+                                }}
+                            >
                                 {value}
                             </VSCodeDataGridCell>
                         ))}
@@ -349,11 +388,13 @@ const ManualWorkEstimationTable: React.FC<{
                 ))}
             </VSCodeDataGrid>
             <ReportButtonsContainer>
-                <ViewReportButton onClick={onViewReport} appearance="secondary" >
-                    <Codicon name="file-text" />&nbsp;View Full Report
+                <ViewReportButton onClick={onViewReport} appearance="secondary">
+                    <Codicon name="file-text" />
+                    &nbsp;View Full Report
                 </ViewReportButton>
-                <SaveReportButton onClick={onSaveReport} appearance="secondary" >
-                    <Codicon name="save" />&nbsp;Save Report
+                <SaveReportButton onClick={onSaveReport} appearance="secondary">
+                    <Codicon name="save" />
+                    &nbsp;Save Report
                 </SaveReportButton>
             </ReportButtonsContainer>
         </EstimationTableContainer>
@@ -403,36 +444,36 @@ export function MigrationProgressView({
     }, [migrationLogs, isLogsOpen, migrationCompleted]);
 
     const handleViewReport = async () => {
-        console.log('View report clicked', { migrationResponse });
+        console.log("View report clicked", { migrationResponse });
         try {
             if (migrationResponse?.report) {
-                console.log('Report found, opening via RPC...');
+                console.log("Report found, opening via RPC...");
                 rpcClient.getMigrateIntegrationRpcClient().openMigrationReport({
                     reportContent: migrationResponse.report,
-                    fileName: 'migration-report.html'
+                    fileName: "migration-report.html",
                 });
             }
         } catch (error) {
-            console.error('Failed to open migration report:', error);
+            console.error("Failed to open migration report:", error);
         }
     };
 
     const handleSaveReport = async () => {
-        console.log('Save report clicked', { migrationResponse });
+        console.log("Save report clicked", { migrationResponse });
         try {
             if (!migrationResponse?.report) {
-                console.error('No report content available to save');
+                console.error("No report content available to save");
                 return;
             }
 
             // VSCode extension environment - use RPC to show save dialog
-            console.log('Saving report via VSCode save dialog...');
+            console.log("Saving report via VSCode save dialog...");
             rpcClient.getMigrateIntegrationRpcClient().saveMigrationReport({
                 reportContent: migrationResponse.report,
-                defaultFileName: 'migration-report.html'
+                defaultFileName: "migration-report.html",
             });
         } catch (error) {
-            console.error('Failed to save migration report:', error);
+            console.error("Failed to save migration report:", error);
         }
     };
 
@@ -444,10 +485,10 @@ export function MigrationProgressView({
                     parsedReportData ? (
                         <>
                             <CoverageSummary reportData={parsedReportData} />
-                            <ManualWorkEstimationTable 
-                                reportData={parsedReportData} 
-                                onViewReport={handleViewReport} 
-                                onSaveReport={handleSaveReport} 
+                            <ManualWorkEstimationTable
+                                reportData={parsedReportData}
+                                onViewReport={handleViewReport}
+                                onSaveReport={handleSaveReport}
                             />
                         </>
                     ) : (
