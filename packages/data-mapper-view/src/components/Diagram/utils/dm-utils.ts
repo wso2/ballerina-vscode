@@ -891,7 +891,9 @@ export function getInputPortsForExpr(node: InputNode, expr: STNode ): RecordFiel
 		portIdBuffer = EXPANDED_QUERY_SOURCE_PORT_PREFIX + "." + (node as FromClauseNode).nodeLabel;
 	}
 
-	if (typeDesc && typeDesc.typeName === PrimitiveBalType.Record) {
+	if (typeDesc && (typeDesc.typeName === PrimitiveBalType.Record ||
+		typeDesc.typeName === PrimitiveBalType.Union)
+	) {
 		if (STKindChecker.isFieldAccess(expr) || STKindChecker.isOptionalFieldAccess(expr)) {
 			const fieldNames = getFieldNames(expr);
 			let nextTypeNode: TypeField = typeDesc;

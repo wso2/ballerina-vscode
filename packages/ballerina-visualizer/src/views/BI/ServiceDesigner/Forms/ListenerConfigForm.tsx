@@ -110,8 +110,8 @@ export function ListenerConfigForm(props: ListenerConfigFormProps) {
         onSubmit(response);
     };
 
-    const createTitle = `Provide the necessary configuration details for the ${listenerModel.displayAnnotation.label} to complete the setup.`;
-    const editTitle = `Update the configuration details for the ${listenerModel.displayAnnotation.label} as needed.`
+    const createTitle = `Provide the necessary configuration details for the ${listenerModel.name} to complete the setup.`;
+    const editTitle = `Update the configuration details for the ${listenerModel.name} as needed.`
 
     useEffect(() => {
         if (filePath && rpcClient) {
@@ -141,11 +141,11 @@ export function ListenerConfigForm(props: ListenerConfigFormProps) {
                 <>
                     {listenerFields.length > 0 &&
                         <FormContainer>
-                            {/* <Typography variant="h2" sx={{ marginTop: '16px' }}>{listenerModel.displayAnnotation.label.charAt(0).toUpperCase() + listenerModel.displayAnnotation.label.slice(1)} Configuration</Typography>
+                            {/* <Typography variant="h2" sx={{ marginTop: '16px' }}>{listenerModel.name.charAt(0).toUpperCase() + listenerModel.name.slice(1)} Configuration</Typography>
                             <BodyText>
                                 {formSubmitText === "Save" ? editTitle : createTitle}
                             </BodyText> */}
-                            <FormHeader title={`${listenerModel.displayAnnotation.label.charAt(0).toUpperCase() + listenerModel.displayAnnotation.label.slice(1)} Configuration`} />
+                            <FormHeader title={`${listenerModel.name.charAt(0).toUpperCase() + listenerModel.name.slice(1)} Configuration`} />
                             {filePath && targetLineRange &&
                                 <FormGeneratorNew
                                     fileName={filePath}

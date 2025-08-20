@@ -16,14 +16,12 @@
  * under the License.
  */
 
-import { DisplayAnnotation } from "./ballerina";
 import { DiagnosticMessage, Imports, PropertyTypeMemberInfo } from "./bi";
 import { LineRange } from "./common";
 
 
 export type ListenerModel = {
     id: number;
-    displayAnnotation?: DisplayAnnotation;
     name: string;
     type: string;
     displayName: string;
@@ -52,7 +50,6 @@ export interface ServiceModel {
     icon: string;
     properties?: ConfigProperties;
     functions?: FunctionModel[];
-    displayAnnotation?: DisplayAnnotation;
     codedata?: CodeData;
 }
 
@@ -62,7 +59,6 @@ export interface ServiceClassModel { // for Ballerina Service Classes
     type: string;
     properties?: ConfigProperties;
     functions?: FunctionModel[];
-    displayAnnotation?: DisplayAnnotation;
     codedata?: CodeData;
     fields?: FieldType[];
 }
@@ -115,15 +111,14 @@ interface MetaData {
 }
 
 interface CodeData {
-    label?: string;
-    description?: string;
-    groupNo?: number;
-    groupName?: string;
     lineRange?: LineRange;
-    inListenerInit: boolean;
-    isBasePath: boolean;
-    inDisplayAnnotation: boolean;
     type?: string;
+    argType?: string;
+    originalName?: string;
+    orgName?: string;
+    packageName?: string;
+    moduleName?: string;
+    version?: string;
 }
 
 export interface PropertyModel {

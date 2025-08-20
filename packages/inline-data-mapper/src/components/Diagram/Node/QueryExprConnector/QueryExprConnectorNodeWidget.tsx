@@ -25,7 +25,7 @@ import { useIntermediateNodeStyles } from '../../../styles';
 import { QueryExprConnectorNode } from './QueryExprConnectorNode';
 import { renderDeleteButton, renderEditButton, renderPortWidget } from "../LinkConnector/LinkConnectorWidgetComponents";
 import { DiagnosticWidget } from "../../Diagnostic/DiagnosticWidget";
-import { expandArrayFn } from "../../utils/common-utils";
+import { expandArrayFn, getTargetField } from "../../utils/common-utils";
 import { useDMCollapsedFieldsStore, useDMExpandedFieldsStore, useDMExpressionBarStore } from "../../../../store/store";
 
 export interface QueryExprConnectorNodeWidgetWidgetProps {
@@ -70,7 +70,12 @@ export function QueryExprConnectorNodeWidget(props: QueryExprConnectorNodeWidget
         collapsedFieldsStore.removeField(targetPort);
         expandedFieldsStore.removeField(targetPort);
 
-        expandArrayFn(node.context, node.sourcePorts[0].attributes.field?.id, node.targetMappedPort.attributes.value?.output);
+        const context = node.context;
+
+	    const lastView = context.views[context.views.length - 1];
+        const targetField = getTargetField(lastView.targetField, node.targetMappedPort.attributes.value?.output);
+
+        expandArrayFn(context, node.sourcePorts[0].attributes.field?.id, targetField);
     };
 
     const loadingScreen = (

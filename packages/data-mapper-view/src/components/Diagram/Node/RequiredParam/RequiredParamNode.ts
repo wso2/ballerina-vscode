@@ -69,7 +69,7 @@ export class RequiredParamNode extends DataMapperNodeModel {
                 });
             } else {
                 const isOptional = isOptionalAndNillableField(this.typeDef);
-                this.addPortsForInputRecordField(
+                this.numberOfFields += this.addPortsForInputRecordField(
                     this.typeDef, "OUT", this.value.paramName.value, this.value.paramName.value,
                     '', parentPort, this.context.collapsedFields, parentPort.collapsed, isOptional
                 );

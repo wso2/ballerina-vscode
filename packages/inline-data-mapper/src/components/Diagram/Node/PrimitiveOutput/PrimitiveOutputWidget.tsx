@@ -66,7 +66,7 @@ export function PrimitiveOutputWidget(props: PrimitiveOutputWidgetProps) {
 		}))
 	);
 
-	const portIn = getPort(`${id}.HEADER.IN`);
+	const portIn = getPort(`${id}.IN`);
 	const isUnknownType = outputType.kind === TypeKind.Unknown;
 
 	let expanded = true;
@@ -128,7 +128,7 @@ export function PrimitiveOutputWidget(props: PrimitiveOutputWidgetProps) {
 					onMouseLeave={onMouseLeave}
 				>
 					<span className={classes.inPort}>
-						{portIn && (
+						{portIn && !expanded&& (
 							<DataMapperPortWidget
 								engine={engine}
 								port={portIn}
