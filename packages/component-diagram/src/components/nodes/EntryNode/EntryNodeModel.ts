@@ -46,17 +46,17 @@ export class EntryNodeModel extends NodeModel {
         this.outPorts = [];
         this.addInPort("in");
         this.addOutPort("out");
-        
+
         const serviceFunctions = [
             ...(node as CDService).remoteFunctions ?? [],
             ...(node as CDService).resourceFunctions ?? []
         ];
-        
+
         // Add function ports
         serviceFunctions.forEach((func) => {
             this.addOutPort(getEntryNodeFunctionPortName(func));
         });
-        
+
         // Add view all resources port if there are more than 3 functions
         if (serviceFunctions.length > 3) {
             this.addOutPort(VIEW_ALL_RESOURCES_PORT_NAME);

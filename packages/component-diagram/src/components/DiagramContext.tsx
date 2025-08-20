@@ -39,14 +39,14 @@ export const DiagramContext = React.createContext<DiagramContextState>({
     project: { connections: [], listeners: [], services: [] },
     expandedNodes: new Set(),
     graphQLGroupOpen: {},
-    onListenerSelect: () => {},
-    onServiceSelect: () => {},
-    onFunctionSelect: () => {},
-    onAutomationSelect: () => {},
-    onConnectionSelect: () => {},
-    onDeleteComponent: () => {},
-    onToggleNodeExpansion: () => {},
-    onToggleGraphQLGroup: () => {},
+    onListenerSelect: () => { },
+    onServiceSelect: () => { },
+    onFunctionSelect: () => { },
+    onAutomationSelect: () => { },
+    onConnectionSelect: () => { },
+    onDeleteComponent: () => { },
+    onToggleNodeExpansion: () => { },
+    onToggleGraphQLGroup: () => { },
 });
 
 export const useDiagramContext = () => React.useContext(DiagramContext);

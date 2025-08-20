@@ -229,7 +229,7 @@ export const calculateEntryNodeHeight = (numFunctions: number, isExpanded: boole
     if (numFunctions <= 2) {
         return BASE_HEIGHT + numFunctions * FUNCTION_HEIGHT + PADDING;
     }
-    
+
     return BASE_HEIGHT + 2 * FUNCTION_HEIGHT + PADDING + VIEW_ALL_BUTTON_HEIGHT;
 };
 
