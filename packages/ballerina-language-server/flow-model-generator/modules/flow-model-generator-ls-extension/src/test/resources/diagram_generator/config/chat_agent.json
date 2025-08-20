@@ -19,6 +19,7 @@
           "data": {
             "kind": "AI Chat Agent",
             "label": "chat",
+            "isServiceFunction": true,
             "accessor": "post",
             "parameters": [
               "@http:Payload ai:ChatReqMessage request"

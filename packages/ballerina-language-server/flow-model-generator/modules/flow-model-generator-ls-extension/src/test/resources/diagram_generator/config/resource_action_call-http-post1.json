@@ -19,6 +19,7 @@
           "data": {
             "kind": "Resource",
             "label": "apples",
+            "isServiceFunction": true,
             "accessor": "post",
             "return": "http:ClientError?"
           }

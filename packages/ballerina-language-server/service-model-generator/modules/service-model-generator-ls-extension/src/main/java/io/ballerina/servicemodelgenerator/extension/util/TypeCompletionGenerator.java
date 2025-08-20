@@ -28,7 +28,7 @@ import io.ballerina.compiler.syntax.tree.TypeReferenceNode;
 import io.ballerina.projects.Document;
 import io.ballerina.projects.Module;
 import io.ballerina.projects.Project;
-import io.ballerina.servicemodelgenerator.extension.response.TypeResponse.TypeCompletion;
+import io.ballerina.servicemodelgenerator.extension.model.response.TypeResponse.TypeCompletion;
 
 import java.util.ArrayList;
 import java.util.Collections;

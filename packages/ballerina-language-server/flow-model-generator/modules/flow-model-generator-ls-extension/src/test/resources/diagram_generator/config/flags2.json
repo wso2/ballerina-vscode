@@ -19,6 +19,7 @@
           "data": {
             "kind": "Remote Function",
             "label": "onFileChange",
+            "isServiceFunction": true,
             "parameters": [
               "ftp:Caller caller",
               "ftp:WatchEvent & readonly event"

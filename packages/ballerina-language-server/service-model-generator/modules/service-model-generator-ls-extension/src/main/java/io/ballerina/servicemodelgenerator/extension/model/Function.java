@@ -19,7 +19,7 @@
 package io.ballerina.servicemodelgenerator.extension.model;
 
 import io.ballerina.modelgenerator.commons.Annotation;
-import io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants;
+import io.ballerina.servicemodelgenerator.extension.util.Constants;
 import io.ballerina.servicemodelgenerator.extension.util.ServiceClassUtil;
 
 import java.util.ArrayList;
@@ -28,13 +28,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.FIELD_NAME_METADATA;
-import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.FIELD_TYPE_METADATA;
-import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.FUNCTION_NAME_METADATA;
-import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.FUNCTION_RETURN_TYPE_METADATA;
-import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.KIND_OBJECT_METHOD;
-import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.RESOURCE_FUNCTION_RETURN_TYPE_METADATA;
-import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.RESOURCE_NAME_METADATA;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.FIELD_NAME_METADATA;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.FIELD_TYPE_METADATA;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.FUNCTION_NAME_METADATA;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.FUNCTION_RETURN_TYPE_METADATA;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.KIND_OBJECT_METHOD;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.RESOURCE_FUNCTION_RETURN_TYPE_METADATA;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.RESOURCE_NAME_METADATA;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceClassUtil.ServiceClassContext.GRAPHQL_DIAGRAM;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceClassUtil.ServiceClassContext.SERVICE_DIAGRAM;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceClassUtil.ServiceClassContext.TYPE_DIAGRAM;
@@ -89,27 +89,27 @@ public class Function {
             functionBuilder
                     .name(name(FIELD_NAME_METADATA))
                     .returnType(returnType(FIELD_TYPE_METADATA))
-                    .schema(Map.of(ServiceModelGeneratorConstants.PARAMETER, Parameter.graphQLParamSchema()));
+                    .schema(Map.of(Constants.PARAMETER, Parameter.graphqlParamSchema()));
         } else if (context == TYPE_DIAGRAM) {
            functionBuilder
                     .name(name(RESOURCE_NAME_METADATA))
                     .returnType(returnType(RESOURCE_FUNCTION_RETURN_TYPE_METADATA))
-                    .schema(Map.of(ServiceModelGeneratorConstants.PARAMETER, Parameter.functionParamSchema()));
+                    .schema(Map.of(Constants.PARAMETER, Parameter.functionParamSchema()));
         } else {
             functionBuilder
                     .name(name(FUNCTION_NAME_METADATA))
                     .returnType(returnType(FUNCTION_RETURN_TYPE_METADATA));
         }
         if (context == SERVICE_DIAGRAM) {
-           functionBuilder.schema(Map.of(ServiceModelGeneratorConstants.PARAMETER, Parameter.functionParamSchema()));
+           functionBuilder.schema(Map.of(Constants.PARAMETER, Parameter.functionParamSchema()));
         }
         return functionBuilder.build();
     }
 
     private static Value functionAccessor() {
         return new Value.ValueBuilder()
-                .setMetadata(ServiceModelGeneratorConstants.FUNCTION_ACCESSOR_METADATA)
-                .valueType(ServiceModelGeneratorConstants.VALUE_TYPE_IDENTIFIER)
+                .setMetadata(Constants.FUNCTION_ACCESSOR_METADATA)
+                .valueType(Constants.VALUE_TYPE_IDENTIFIER)
                 .enabled(true)
                 .editable(true)
                 .build();
@@ -118,7 +118,7 @@ public class Function {
     private static Value name(MetaData metadata) {
         return new Value.ValueBuilder()
                 .setMetadata(metadata)
-                .valueType(ServiceModelGeneratorConstants.VALUE_TYPE_IDENTIFIER)
+                .valueType(Constants.VALUE_TYPE_IDENTIFIER)
                 .enabled(true)
                 .editable(true)
                 .build();
@@ -127,7 +127,7 @@ public class Function {
     public static FunctionReturnType returnType(MetaData metadata) {
         Value value = new Value.ValueBuilder()
                 .setMetadata(metadata)
-                .valueType(ServiceModelGeneratorConstants.VALUE_TYPE_TYPE)
+                .valueType(Constants.VALUE_TYPE_TYPE)
                 .enabled(true)
                 .editable(true)
                 .optional(true)

@@ -19,6 +19,7 @@
           "data": {
             "kind": "Function",
             "label": "testForeachWithOnFail2",
+            "isServiceFunction": false,
             "return": "error?"
           }
         },

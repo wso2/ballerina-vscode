@@ -86,12 +86,13 @@ public class PullModuleExecutor implements LSCommandExecutor {
                 default:
             }
         }
-        resolveModules(fileUri, context.getLanguageClient(), context.workspace(), context.languageServercontext());
-        return new Object();
+        return resolveModules(fileUri, context.getLanguageClient(), context.workspace(),
+                context.languageServercontext());
     }
 
-    public static void resolveModules(String fileUri, ExtendedLanguageClient languageClient,
-                                      WorkspaceManager workspaceManager, LanguageServerContext languageServerContext) {
+    public static CompletableFuture<Void> resolveModules(String fileUri, ExtendedLanguageClient languageClient,
+                                                         WorkspaceManager workspaceManager,
+                                                         LanguageServerContext languageServerContext) {
         // TODO Prevent running parallel tasks for the same project in future
         String taskId = PULL_MODULE_TASK_PREFIX + UUID.randomUUID();
         Path filePath = PathUtil.getPathFromURI(fileUri)
@@ -100,7 +101,7 @@ public class PullModuleExecutor implements LSCommandExecutor {
                 .orElseThrow(() -> new UserErrorException("Couldn't find project to pull modules"));
 
         LSClientLogger clientLogger = LSClientLogger.getInstance(languageServerContext);
-        CompletableFuture
+        return CompletableFuture
                 .runAsync(() -> {
                     clientLogger.logTrace("Started pulling modules for project: " + project.sourceRoot().toString());
 
@@ -164,7 +165,7 @@ public class PullModuleExecutor implements LSCommandExecutor {
                         throw new UserErrorException(String.format("Failed to pull modules: %s", moduleNames));
                     }
                 })
-                .whenComplete((missingModules, t) -> {
+                .whenComplete((result, t) -> {
                     boolean failed = true;
                     if (t != null) {
                         clientLogger.logError(LSContextOperation.WS_EXEC_CMD,

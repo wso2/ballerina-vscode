@@ -16,26 +16,20 @@
       },
       "enabled": false,
       "editable": false,
-      "isType": false,
       "optional": false,
-      "advanced": false,
-      "addNewButton": false,
-      "imports": {}
+      "advanced": false
     },
     "name": {
       "metadata": {
         "label": "Field Name",
         "description": "The name of the field"
       },
+      "valueType": "IDENTIFIER",
+      "value": "",
       "enabled": true,
       "editable": true,
-      "value": "",
-      "valueType": "IDENTIFIER",
-      "isType": false,
       "optional": false,
-      "advanced": false,
-      "addNewButton": false,
-      "imports": {}
+      "advanced": false
     },
     "parameters": [],
     "schema": {
@@ -45,30 +39,24 @@
             "label": "Argument Type",
             "description": "The type of the argument"
           },
+          "valueType": "TYPE",
+          "value": "",
           "enabled": true,
           "editable": true,
-          "value": "",
-          "valueType": "TYPE",
-          "isType": true,
           "optional": false,
-          "advanced": false,
-          "addNewButton": false,
-          "imports": {}
+          "advanced": false
         },
         "name": {
           "metadata": {
             "label": "Argument Name",
             "description": "The name of the argument"
           },
+          "valueType": "IDENTIFIER",
+          "value": "",
           "enabled": true,
           "editable": true,
-          "value": "",
-          "valueType": "IDENTIFIER",
-          "isType": false,
           "optional": false,
-          "advanced": false,
-          "addNewButton": false,
-          "imports": {}
+          "advanced": false
         },
         "defaultValue": {
           "metadata": {
@@ -77,11 +65,8 @@
           },
           "enabled": true,
           "editable": true,
-          "isType": false,
           "optional": true,
-          "advanced": false,
-          "addNewButton": false,
-          "imports": {}
+          "advanced": false
         },
         "enabled": true,
         "editable": false,
@@ -95,18 +80,20 @@
         "label": "Field Type",
         "description": "The type of the field"
       },
+      "valueType": "TYPE",
+      "value": "",
       "enabled": true,
       "editable": true,
-      "value": "",
-      "valueType": "TYPE",
-      "isType": false,
       "optional": false,
-      "advanced": false,
-      "addNewButton": false
+      "advanced": false
     },
     "enabled": true,
     "optional": false,
     "editable": false,
-    "canAddParameters": false
+    "canAddParameters": false,
+    "codedata": {
+      "orgName": "ballerina",
+      "moduleName": "graphql"
+    }
   }
 }

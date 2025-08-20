@@ -19,6 +19,7 @@
           "data": {
             "kind": "Resource",
             "label": "search/doctors/[string area]",
+            "isServiceFunction": true,
             "accessor": "get",
             "return": "json|error"
           }

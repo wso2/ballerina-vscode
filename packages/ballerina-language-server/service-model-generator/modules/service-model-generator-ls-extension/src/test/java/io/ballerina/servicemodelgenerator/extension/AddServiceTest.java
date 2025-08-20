@@ -22,7 +22,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
 import io.ballerina.modelgenerator.commons.AbstractLSTest;
 import io.ballerina.servicemodelgenerator.extension.model.Service;
-import io.ballerina.servicemodelgenerator.extension.request.ServiceSourceRequest;
+import io.ballerina.servicemodelgenerator.extension.model.request.ServiceSourceRequest;
 import org.eclipse.lsp4j.TextEdit;
 import org.testng.Assert;
 import org.testng.annotations.Test;

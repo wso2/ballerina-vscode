@@ -19,6 +19,7 @@
           "data": {
             "kind": "Function",
             "label": "testRollback",
+            "isServiceFunction": false,
             "parameters": [
               "int? i"
             ],
