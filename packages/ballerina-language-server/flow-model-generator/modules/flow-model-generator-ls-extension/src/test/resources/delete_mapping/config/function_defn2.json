@@ -1,0 +1,42 @@
+{
+  "source": "function_defn1.bal",
+  "description": "",
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "function_defn1.bal",
+      "startLine": {
+        "line": 21,
+        "offset": 0
+      },
+      "endLine": {
+        "line": 23,
+        "offset": 3
+      }
+    }
+  },
+  "mapping": {
+    "output": "transform1.0.fullName",
+    "inputs": [
+      "input.user.firstName"
+    ]
+  },
+  "targetField": "transform1",
+  "output": {
+    "function_defn1.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 22,
+            "character": 4
+          },
+          "end": {
+            "line": 22,
+            "character": 36
+          }
+        },
+        "newText": ""
+      }
+    ]
+  }
+}

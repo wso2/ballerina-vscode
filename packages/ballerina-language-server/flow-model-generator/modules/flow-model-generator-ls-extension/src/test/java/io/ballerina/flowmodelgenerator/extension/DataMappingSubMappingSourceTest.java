@@ -53,7 +53,9 @@ public class DataMappingSubMappingSourceTest extends AbstractLSTest {
         return new Object[][]{
                 {Path.of("variable1.json")},
                 {Path.of("variable2.json")},
-                {Path.of("variable3.json")}
+                {Path.of("variable3.json")},
+                {Path.of("variable4.json")},
+                {Path.of("function_definition1.json")},
         };
     }
 
