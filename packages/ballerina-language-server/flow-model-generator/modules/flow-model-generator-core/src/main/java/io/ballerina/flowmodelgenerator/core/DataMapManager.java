@@ -101,8 +101,10 @@ import org.ballerinalang.diagramutil.connector.models.connector.ReferenceType;
 import org.ballerinalang.diagramutil.connector.models.connector.Type;
 import org.ballerinalang.diagramutil.connector.models.connector.TypeInfo;
 import org.ballerinalang.diagramutil.connector.models.connector.reftypes.RefArrayType;
+import org.ballerinalang.diagramutil.connector.models.connector.reftypes.RefEnumType;
 import org.ballerinalang.diagramutil.connector.models.connector.reftypes.RefRecordType;
 import org.ballerinalang.diagramutil.connector.models.connector.reftypes.RefType;
+import org.ballerinalang.diagramutil.connector.models.connector.reftypes.RefUnionType;
 import org.ballerinalang.diagramutil.connector.models.connector.types.ArrayType;
 import org.ballerinalang.diagramutil.connector.models.connector.types.ConstType;
 import org.ballerinalang.diagramutil.connector.models.connector.types.EnumType;
@@ -802,7 +804,7 @@ public class DataMapManager {
                 } catch (UnsupportedOperationException e) {
                     continue;
                 }
-                MappingPort refMappingPort = getRefMappingPort(refType.typeName, refType.typeName,
+                MappingPort refMappingPort = getRefMappingPort(refType.name, refType.name,
                         refType, true, new HashMap<>(), references);
 
                 if (refMappingPort == null) {
@@ -903,7 +905,7 @@ public class DataMapManager {
                 } catch (UnsupportedOperationException e) {
                     continue;
                 }
-                MappingPort refMappingPort = getRefMappingPort(refType.typeName, refType.typeName,
+                MappingPort refMappingPort = getRefMappingPort(refType.name, refType.name,
                         refType, true, new HashMap<>(), references);
 
                 if (refMappingPort == null) {
@@ -1017,7 +1019,7 @@ public class DataMapManager {
     }
 
     private MappingPort getRefMappingPort(String id, String name, RefType type, boolean isInputPort,
-                                       Map<String, Type> visitedTypes, Map<String, MappingPort> references) {
+                                          Map<String, Type> visitedTypes, Map<String, MappingPort> references) {
         if (type.typeName != null) {
             if (type.typeName.equals("record")) {
                 if (type instanceof RefRecordType recordType) {
@@ -1070,6 +1072,56 @@ public class DataMapManager {
                     return arrayPort;
                 } else {
                     return new MappingArrayPort(id, name, type.typeName + "[]", type.typeName, type.hashCode);
+                }
+            } else if (type.typeName.equals("enum")) {
+                if (type instanceof RefEnumType enumType) {
+                    MappingEnumPort enumPort = new MappingEnumPort(id, enumType.name, enumType.name, type.typeName,
+                            type.hashCode);
+                    for (RefType member : enumType.members) {
+                        MappingPort memberPort = getRefMappingPort(enumPort.typeName + "." + member.name, member.name,
+                                member, isInputPort, visitedTypes, references);
+                        if (memberPort != null) {
+                            enumPort.members.add(memberPort);
+                        }
+                    }
+                    if (enumType.dependentTypes == null) {
+                        return enumPort;
+                    }
+                    Map<String, RefType> dependentTypes = enumType.dependentTypes;
+                    for (Map.Entry<String, RefType> entry : dependentTypes.entrySet()) {
+                        String key = entry.getKey();
+                        RefType value = entry.getValue();
+                        getRefMappingPort(id + "." + key, key, value, isInputPort, visitedTypes, references);
+                    }
+                    return enumPort;
+                } else {
+                    return new MappingEnumPort(id, name, type.name, type.typeName, type.hashCode);
+                }
+            } else if (type.typeName.equals("union")) {
+                if (type instanceof RefUnionType unionType) {
+                    MappingUnionPort unionPort = new MappingUnionPort(id, name, unionType.name,
+                            type.typeName, type.hashCode);
+                    for (RefType member : unionType.memberTypes) {
+                        MappingPort memberPort = getRefMappingPort(id + "." + member.typeName,
+                                member.typeName, member, isInputPort, visitedTypes, references);
+                        if (memberPort != null) {
+                            unionPort.members.add(memberPort);
+                        }
+                    }
+                    if (unionType.dependentTypes == null) {
+                        return unionPort;
+                    }
+                    Map<String, RefType> dependentTypes = unionType.dependentTypes;
+                    for (Map.Entry<String, RefType> entry : dependentTypes.entrySet()) {
+                        String key = entry.getKey();
+                        RefType value = entry.getValue();
+                        getRefMappingPort(id + "." + key, key, value, isInputPort,
+                                visitedTypes, references);
+                    }
+                    return unionPort;
+                } else {
+                    return new MappingUnionPort(id, name, type.name,
+                            type.typeName, type.hashCode);
                 }
             } else if (type.hashCode == null || type.hashCode.isEmpty()) {
                 return new MappingPort(id, name, type.typeName, type.typeName);
@@ -1678,7 +1730,7 @@ public class DataMapManager {
             return new DataMapCapability(false, "false");
         } else if (kind == TypeDescKind.STRING) {
             return new DataMapCapability(false, "\"\"");
-        } 
+        }
         return null;
     }
 
@@ -2392,6 +2444,10 @@ public class DataMapManager {
         MappingEnumPort(String id, String variableName, String typeName, String kind, Boolean optional) {
             super(id, variableName, typeName, kind, optional);
         }
+
+        MappingEnumPort(String id, String variableName, String typeName, String kind, String reference) {
+            super(id, variableName, typeName, kind, reference);
+        }
     }
 
     private static class MappingUnionPort extends MappingPort {
@@ -2400,6 +2456,9 @@ public class DataMapManager {
         MappingUnionPort(String id, String variableName, String typeName, String kind, Boolean optional) {
             super(id, variableName, typeName, kind, optional);
         }
+
+        MappingUnionPort(String id, String variableName, String typeName, String kind, String reference) {
+            super(id, variableName, typeName, kind, reference);
+        }
     }
 }
-

@@ -22,7 +22,15 @@
   },
   "propertyKey": "expression",
   "model": {
-    "inputs": [],
+    "inputs": [
+      {
+        "id": "10",
+        "variableName": "10",
+        "typeName": "10",
+        "kind": "10",
+        "category": "constant"
+      }
+    ],
     "output": {
       "id": "myAge",
       "variableName": "myAge",
@@ -42,6 +50,6 @@
         "isFunctionCall": false
       }
     ],
-    "references": {}
+    "refs": {}
   }
 }
