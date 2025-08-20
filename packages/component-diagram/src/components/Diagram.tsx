@@ -85,17 +85,19 @@ export function Diagram(props: DiagramProps) {
             const next = { ...prev } as Record<string, GQLState>;
             const services = project.services ?? [];
 
-            // Add defaults for missing services
+            // Only add defaults for GraphQL services
             services.forEach((svc) => {
-                if (!next[svc.uuid]) {
+                if (svc.type === "graphql:Service" && !next[svc.uuid]) {
                     next[svc.uuid] = { Query: true, Subscription: false, Mutation: false };
                 }
             });
 
-            // Optionally remove entries for services no longer present
-            const serviceIds = new Set(services.map((s) => s.uuid));
+            // Optionally remove entries for services no longer present or not GraphQL
+            const graphqlServiceIds = new Set(
+                services.filter(s => s.type === "graphql:Service").map(s => s.uuid)
+            );
             Object.keys(next).forEach((id) => {
-                if (!serviceIds.has(id)) {
+                if (!graphqlServiceIds.has(id)) {
                     delete next[id];
                 }
             });
