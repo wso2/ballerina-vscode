@@ -82,6 +82,19 @@
             },
             {
               "metadata": {
+                "label": "Recursive Document Chunker"
+              },
+              "codedata": {
+                "node": "FUNCTION_CALL",
+                "org": "ballerina",
+                "module": "ai",
+                "packageName": "ai",
+                "symbol": "chunkDocumentRecursively"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
                 "label": "Chunker",
                 "description": "Chunkers available in the integration"
               },

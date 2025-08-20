@@ -155,12 +155,12 @@ public class FunctionData {
                 FunctionData.Kind.VECTOR_KNOWLEDGE_BASE
         );
 
-        public boolean isAiClassKind() {
-            return AI_CLASS_KINDS.contains(this);
+        public static boolean isAiClassKind(Kind kind) {
+            return AI_CLASS_KINDS.contains(kind);
         }
 
-        public boolean isConnector() {
-            return this == CONNECTOR;
+        public static boolean isConnector(Kind kind) {
+            return kind == CONNECTOR;
         }
     }
 }
