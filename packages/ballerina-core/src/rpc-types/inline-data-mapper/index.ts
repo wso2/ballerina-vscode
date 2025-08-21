@@ -19,38 +19,38 @@ import {
     AddArrayElementRequest,
     ConvertToQueryRequest,
     AddClausesRequest,
-    InlineDataMapperModelRequest,
-    InlineDataMapperModelResponse,
-    InlineDataMapperSourceRequest,
-    InlineDataMapperSourceResponse,
+    DataMapperModelRequest,
+    DataMapperModelResponse,
+    DataMapperSourceRequest,
+    DataMapperSourceResponse,
     VisualizableFieldsRequest,
     VisualizableFieldsResponse,
     PropertyRequest,
     PropertyResponse,
     InitialIDMSourceResponse,
     InitialIDMSourceRequest,
-    GetInlineDataMapperCodedataRequest,
-    GetInlineDataMapperCodedataResponse,
+    GetDataMapperCodedataRequest,
+    GetDataMapperCodedataResponse,
     GetSubMappingCodedataRequest,
-    InlineAllDataMapperSourceRequest,
+    AllDataMapperSourceRequest,
     AddSubMappingRequest,
     DeleteMappingRequest,
     MapWithCustomFnRequest
 } from "../../interfaces/extended-lang-client";
 
-export interface InlineDataMapperAPI {
+export interface DataMapperAPI {
     getInitialIDMSource: (params: InitialIDMSourceRequest) => Promise<InitialIDMSourceResponse>;
-    getDataMapperModel: (params: InlineDataMapperModelRequest) => Promise<InlineDataMapperModelResponse>;
-    getDataMapperSource: (params: InlineDataMapperSourceRequest) => Promise<InlineDataMapperSourceResponse>;
+    getDataMapperModel: (params: DataMapperModelRequest) => Promise<DataMapperModelResponse>;
+    getDataMapperSource: (params: DataMapperSourceRequest) => Promise<DataMapperSourceResponse>;
     getVisualizableFields: (params: VisualizableFieldsRequest) => Promise<VisualizableFieldsResponse>;
-    addNewArrayElement: (params: AddArrayElementRequest) => Promise<InlineDataMapperSourceResponse>;
-    convertToQuery: (params: ConvertToQueryRequest) => Promise<InlineDataMapperSourceResponse>;
-    addClauses: (params: AddClausesRequest) => Promise<InlineDataMapperSourceResponse>;
-    addSubMapping: (params: AddSubMappingRequest) => Promise<InlineDataMapperSourceResponse>;
-    deleteMapping: (params: DeleteMappingRequest) => Promise<InlineDataMapperSourceResponse>;
-    mapWithCustomFn: (params: MapWithCustomFnRequest) => Promise<InlineDataMapperSourceResponse>;
-    getDataMapperCodedata: (params: GetInlineDataMapperCodedataRequest) => Promise<GetInlineDataMapperCodedataResponse>;
-    getSubMappingCodedata: (params: GetSubMappingCodedataRequest) => Promise<GetInlineDataMapperCodedataResponse>;
-    getAllDataMapperSource: (params:InlineAllDataMapperSourceRequest) => Promise<InlineDataMapperSourceResponse>;
+    addNewArrayElement: (params: AddArrayElementRequest) => Promise<DataMapperSourceResponse>;
+    convertToQuery: (params: ConvertToQueryRequest) => Promise<DataMapperSourceResponse>;
+    addClauses: (params: AddClausesRequest) => Promise<DataMapperSourceResponse>;
+    addSubMapping: (params: AddSubMappingRequest) => Promise<DataMapperSourceResponse>;
+    deleteMapping: (params: DeleteMappingRequest) => Promise<DataMapperSourceResponse>;
+    mapWithCustomFn: (params: MapWithCustomFnRequest) => Promise<DataMapperSourceResponse>;
+    getDataMapperCodedata: (params: GetDataMapperCodedataRequest) => Promise<GetDataMapperCodedataResponse>;
+    getSubMappingCodedata: (params: GetSubMappingCodedataRequest) => Promise<GetDataMapperCodedataResponse>;
+    getAllDataMapperSource: (params:AllDataMapperSourceRequest) => Promise<DataMapperSourceResponse>;
     getProperty: (params: PropertyRequest) => Promise<PropertyResponse>;
 }

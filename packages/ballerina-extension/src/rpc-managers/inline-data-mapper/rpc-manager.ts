@@ -23,19 +23,17 @@ import {
     AddSubMappingRequest,
     ConvertToQueryRequest,
     DeleteMappingRequest,
-    EVENT_TYPE,
-    GetInlineDataMapperCodedataRequest,
-    GetInlineDataMapperCodedataResponse,
+    GetDataMapperCodedataRequest,
+    GetDataMapperCodedataResponse,
     GetSubMappingCodedataRequest,
     InitialIDMSourceRequest,
     InitialIDMSourceResponse,
-    InlineAllDataMapperSourceRequest,
-    InlineDataMapperAPI,
-    InlineDataMapperModelRequest,
-    InlineDataMapperModelResponse,
-    InlineDataMapperSourceRequest,
-    InlineDataMapperSourceResponse,
-    MACHINE_VIEW,
+    AllDataMapperSourceRequest,
+    DataMapperAPI,
+    DataMapperModelRequest,
+    DataMapperModelResponse,
+    DataMapperSourceRequest,
+    DataMapperSourceResponse,
     MapWithCustomFnRequest,
     PropertyRequest,
     PropertyResponse,
@@ -43,7 +41,7 @@ import {
     VisualizableFieldsResponse
 } from "@wso2/ballerina-core";
 
-import { openView, StateMachine } from "../../stateMachine";
+import { StateMachine } from "../../stateMachine";
 
 import {
     buildSourceRequests,
@@ -54,7 +52,7 @@ import {
     updateSource
 } from "./utils";
 
-export class InlineDataMapperRpcManager implements InlineDataMapperAPI {
+export class DataMapperRpcManager implements DataMapperAPI {
     async getInitialIDMSource(params: InitialIDMSourceRequest): Promise<InitialIDMSourceResponse> {
         console.log(">>> requesting inline data mapper initial source from ls", params);
         return new Promise((resolve) => {
@@ -78,20 +76,20 @@ export class InlineDataMapperRpcManager implements InlineDataMapperAPI {
         });
     }
 
-    async getDataMapperModel(params: InlineDataMapperModelRequest): Promise<InlineDataMapperModelResponse> {
+    async getDataMapperModel(params: DataMapperModelRequest): Promise<DataMapperModelResponse> {
         return new Promise(async (resolve) => {
             const dataMapperModel = await StateMachine
                 .langClient()
-                .getInlineDataMapperMappings(params);
-            resolve(dataMapperModel as InlineDataMapperModelResponse);
+                .getDataMapperMappings(params);
+            resolve(dataMapperModel as DataMapperModelResponse);
         });
     }
 
-    async getDataMapperSource(params: InlineDataMapperSourceRequest): Promise<InlineDataMapperSourceResponse> {
+    async getDataMapperSource(params: DataMapperSourceRequest): Promise<DataMapperSourceResponse> {
         return new Promise(async (resolve) => {
             StateMachine
                 .langClient()
-                .getInlineDataMapperSource(params)
+                .getDataMapperSource(params)
                 .then((resp) => {
                     console.log(">>> inline data mapper initial source from ls", resp);
                     updateAndRefreshDataMapper(
@@ -119,7 +117,7 @@ export class InlineDataMapperRpcManager implements InlineDataMapperAPI {
         });
     }
 
-    async addNewArrayElement(params: AddArrayElementRequest): Promise<InlineDataMapperSourceResponse> {
+    async addNewArrayElement(params: AddArrayElementRequest): Promise<DataMapperSourceResponse> {
         return new Promise(async (resolve) => {
             await StateMachine
                 .langClient()
@@ -139,7 +137,7 @@ export class InlineDataMapperRpcManager implements InlineDataMapperAPI {
         });
     }
 
-    async convertToQuery(params: ConvertToQueryRequest): Promise<InlineDataMapperSourceResponse> {
+    async convertToQuery(params: ConvertToQueryRequest): Promise<DataMapperSourceResponse> {
         return new Promise(async (resolve) => {
             await StateMachine
                 .langClient()
@@ -154,7 +152,7 @@ export class InlineDataMapperRpcManager implements InlineDataMapperAPI {
         });
     }
 
-    async addClauses(params: AddClausesRequest): Promise<InlineDataMapperSourceResponse> {
+    async addClauses(params: AddClausesRequest): Promise<DataMapperSourceResponse> {
         return new Promise(async (resolve) => {
             await StateMachine
                 .langClient()
@@ -169,7 +167,7 @@ export class InlineDataMapperRpcManager implements InlineDataMapperAPI {
         });
     }
 
-    async addSubMapping(params: AddSubMappingRequest): Promise<InlineDataMapperSourceResponse> {
+    async addSubMapping(params: AddSubMappingRequest): Promise<DataMapperSourceResponse> {
         return new Promise(async (resolve) => {
             await StateMachine
                 .langClient()
@@ -184,27 +182,27 @@ export class InlineDataMapperRpcManager implements InlineDataMapperAPI {
         });
     }
 
-    async getDataMapperCodedata(params: GetInlineDataMapperCodedataRequest): Promise<GetInlineDataMapperCodedataResponse> {
+    async getDataMapperCodedata(params: GetDataMapperCodedataRequest): Promise<GetDataMapperCodedataResponse> {
         return new Promise(async (resolve) => {
             const dataMapperCodedata = await StateMachine
                 .langClient()
-                .getDataMapperCodedata(params) as GetInlineDataMapperCodedataResponse;
+                .getDataMapperCodedata(params) as GetDataMapperCodedataResponse;
 
             resolve(dataMapperCodedata);
         });
     }
 
-    async getSubMappingCodedata(params: GetSubMappingCodedataRequest): Promise<GetInlineDataMapperCodedataResponse> {
+    async getSubMappingCodedata(params: GetSubMappingCodedataRequest): Promise<GetDataMapperCodedataResponse> {
         return new Promise(async (resolve) => {
             const dataMapperCodedata = await StateMachine
                 .langClient()
-                .getSubMappingCodedata(params) as GetInlineDataMapperCodedataResponse;
+                .getSubMappingCodedata(params) as GetDataMapperCodedataResponse;
 
             resolve(dataMapperCodedata);
         });
     }
 
-    async getAllDataMapperSource(params: InlineAllDataMapperSourceRequest): Promise<InlineDataMapperSourceResponse> {
+    async getAllDataMapperSource(params: AllDataMapperSourceRequest): Promise<DataMapperSourceResponse> {
         return new Promise(async (resolve) => {
             setHasStopped(false);
 
@@ -225,7 +223,7 @@ export class InlineDataMapperRpcManager implements InlineDataMapperAPI {
         });
     }
 
-    async deleteMapping(params: DeleteMappingRequest): Promise<InlineDataMapperSourceResponse> {
+    async deleteMapping(params: DeleteMappingRequest): Promise<DataMapperSourceResponse> {
         return new Promise(async (resolve) => {
             await StateMachine
                 .langClient()
@@ -240,7 +238,7 @@ export class InlineDataMapperRpcManager implements InlineDataMapperAPI {
         });
     }
 
-    async mapWithCustomFn(params: MapWithCustomFnRequest): Promise<InlineDataMapperSourceResponse> {
+    async mapWithCustomFn(params: MapWithCustomFnRequest): Promise<DataMapperSourceResponse> {
         return new Promise(async (resolve) => {
             await StateMachine
                 .langClient()

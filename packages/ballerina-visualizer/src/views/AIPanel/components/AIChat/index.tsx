@@ -1372,7 +1372,7 @@ const AIChat: React.FC = () => {
             }
             const allMappingsRequest = await rpcClient.getAiPanelRpcClient().getMappingsFromModel(requestPayload);
             const sourceResponse = await rpcClient
-                .getInlineDataMapperRpcClient()
+                .getDataMapperRpcClient()
                 .getAllDataMapperSource(allMappingsRequest);
 
             setIsLoading(false);

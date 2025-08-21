@@ -7,8 +7,8 @@
  * You may not alter or remove any copyright or other notice from copies of this content.
  */
 
-import { Attachment, ExpandedDMModel, FormField, InlineDataMapperModelResponse, InputCategory, IOType, Mapping, MappingElement, TypeKind } from "@wso2/ballerina-core";
-import { generateBallerinaCode, mappingFileInlineDataMapperModel, navigateTypeInfo } from "./utils";
+import { Attachment, ExpandedDMModel, FormField, DataMapperModelResponse, InputCategory, IOType, Mapping, MappingElement, TypeKind } from "@wso2/ballerina-core";
+import { generateBallerinaCode, mappingFileDataMapperModel, navigateTypeInfo } from "./utils";
 import { DatamapperResponse } from "../../../src/features/ai/service/datamapper/types";
 import { generateInlineAutoMappings } from "../../../src/features/ai/service/datamapper/inline_datamapper";
 import { FieldMetadata, ParameterDefinitions, ParameterField, ParameterMetadata } from "./types";
@@ -304,22 +304,22 @@ function cleanExpandedDMModel(model: ExpandedDMModel): ExpandedDMModel {
     return cleaned;
 }
 
-// Main function to clean the entire InlineDataMapperModelResponse
-function cleanInlineDataMapperModelResponse(
+// Main function to clean the entire DataMapperModelResponse
+function cleanDataMapperModelResponse(
     response: ExpandedDMModel
-): InlineDataMapperModelResponse {
+): DataMapperModelResponse {
     if (!response) {
         throw new Error("Invalid response: missing mappingsModel");
     }
 
-    const cleanedResponse: InlineDataMapperModelResponse = {
+    const cleanedResponse: DataMapperModelResponse = {
         mappingsModel: cleanExpandedDMModel(response as ExpandedDMModel)
     };
 
     return cleanedResponse;
 }
 
-function transformCodeObjectToMappings(codeObject: any, request: InlineDataMapperModelResponse): Mapping[] {
+function transformCodeObjectToMappings(codeObject: any, request: DataMapperModelResponse): Mapping[] {
     const mappings: Mapping[] = [];
 
     // Get the output variable name from the request
@@ -339,12 +339,12 @@ function transformCodeObjectToMappings(codeObject: any, request: InlineDataMappe
 }
 
 export async function getInlineParamDefinitions(
-    inlineDataMapperResponse: InlineDataMapperModelResponse
+    dataMapperResponse: DataMapperModelResponse
 ): Promise<ParameterDefinitions> {
     const inputs: { [key: string]: any } = {};
     const inputMetadata: { [key: string]: any } = {};
     
-    const { inputs: mappingInputs, output: mappingOutput } = inlineDataMapperResponse.mappingsModel as ExpandedDMModel;
+    const { inputs: mappingInputs, output: mappingOutput } = dataMapperResponse.mappingsModel as ExpandedDMModel;
     const transformedInputs = transformInputs(mappingInputs);
     const transformedOutputs = transformOutput(mappingOutput);
 
@@ -379,15 +379,15 @@ export async function getInlineParamDefinitions(
     };
 }
 
-async function sendInlineDatamapperRequest(inlineDataMapperResponse: InlineDataMapperModelResponse): Promise<DatamapperResponse> {
-    const response: DatamapperResponse = await generateInlineAutoMappings(inlineDataMapperResponse);
+async function sendDatamapperRequest(dataMapperResponse: DataMapperModelResponse): Promise<DatamapperResponse> {
+    const response: DatamapperResponse = await generateInlineAutoMappings(dataMapperResponse);
     return response;
 }
 
-async function getInlineDatamapperCode(inlineDataMapperResponse: InlineDataMapperModelResponse, parameterDefinitions: ParameterMetadata): Promise<Record<string, string>> {
+async function getDatamapperCode(dataMapperResponse: DataMapperModelResponse, parameterDefinitions: ParameterMetadata): Promise<Record<string, string>> {
     let nestedKeyArray: string[] = [];
     try {
-        let response: DatamapperResponse = await sendInlineDatamapperRequest(inlineDataMapperResponse);
+        let response: DatamapperResponse = await sendDatamapperRequest(dataMapperResponse);
         let intermediateMapping = response.mappings;
         let finalCode = await generateBallerinaCode(intermediateMapping, parameterDefinitions, "", nestedKeyArray);
         return finalCode;
@@ -397,20 +397,20 @@ async function getInlineDatamapperCode(inlineDataMapperResponse: InlineDataMappe
     }
 }
 
-export async function processInlineMappings(
+export async function processMappings(
     request: ExpandedDMModel,
     file?: Attachment
 ): Promise<MappingElement> {
-    let inlineDataMapperResponse = cleanInlineDataMapperModelResponse(request);
-    const result = await getInlineParamDefinitions(inlineDataMapperResponse);
+    let dataMapperResponse = cleanDataMapperModelResponse(request);
+    const result = await getInlineParamDefinitions(dataMapperResponse);
     const parameterDefinitions = (result as ParameterDefinitions).parameterMetadata;
     
     if (file) {
-        const mappedResult = await mappingFileInlineDataMapperModel(file, inlineDataMapperResponse);
-        inlineDataMapperResponse = mappedResult as InlineDataMapperModelResponse;
+        const mappedResult = await mappingFileDataMapperModel(file, dataMapperResponse);
+        dataMapperResponse = mappedResult as DataMapperModelResponse;
     }
 
-    const codeObject = await getInlineDatamapperCode(inlineDataMapperResponse, parameterDefinitions);
-    const mappings: Mapping[] = transformCodeObjectToMappings(codeObject, inlineDataMapperResponse);
+    const codeObject = await getDatamapperCode(dataMapperResponse, parameterDefinitions);
+    const mappings: Mapping[] = transformCodeObjectToMappings(codeObject, dataMapperResponse);
     return { mappings };
 }

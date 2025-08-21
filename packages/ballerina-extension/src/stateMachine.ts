@@ -543,7 +543,7 @@ export function updateView(refreshTreeView?: boolean) {
     notifyCurrentWebview();
 }
 
-export function updateInlineDataMapperView(codedata?: CodeData, variableName?: string) {
+export function updateDataMapperView(codedata?: CodeData, variableName?: string) {
     let lastView: HistoryEntry = getLastHistory();
     lastView.location.dataMapperMetadata = {
         codeData: codedata,

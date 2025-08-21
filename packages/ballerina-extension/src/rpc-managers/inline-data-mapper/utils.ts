@@ -19,16 +19,16 @@ import {
     CodeData,
     ELineRange,
     Flow,
-    InlineAllDataMapperSourceRequest,
-    InlineDataMapperSourceRequest,
-    InlineDataMapperSourceResponse,
+    AllDataMapperSourceRequest,
+    DataMapperSourceRequest,
+    DataMapperSourceResponse,
     NodePosition,
     ProjectStructureArtifactResponse,
     TextEdit,
     traverseFlow
 } from "@wso2/ballerina-core";
 import { updateSourceCode, UpdateSourceCodeRequest } from "../../utils";
-import { StateMachine, updateInlineDataMapperView } from "../../stateMachine";
+import { StateMachine, updateDataMapperView } from "../../stateMachine";
 import { VariableFindingVisitor } from "./VariableFindingVisitor";
 
 /**
@@ -147,7 +147,7 @@ export async function updateSource(
             throw new Error(`No artifact found for file: ${filePath} within the specified line range`);
         }
 
-        // If the artifact is a data mapper, return the code data for the data mapper
+        // If the artifact is a data mapper(reusable), return the code data for the data mapper
         if (relevantArtifact.type === "DATA_MAPPER") {
             return {
                 lineRange: {
@@ -289,14 +289,14 @@ function applySourceCodeHack(codeData: CodeData): void {
 /**
  * Updates the data mapper view with the provided code data after applying necessary transformations.
  */
-function updateDataMapperView(codeData: CodeData | null, varName: string): void {
+function updateView(codeData: CodeData | null, varName: string): void {
     if (!codeData) {
         console.warn(`No code data available for variable: ${varName}`);
         return;
     }
 
     applySourceCodeHack(codeData);
-    updateInlineDataMapperView(codeData, varName);
+    updateDataMapperView(codeData, varName);
 }
 
 /**
@@ -314,7 +314,7 @@ export async function updateAndRefreshDataMapper(
         const newCodeData = withinSubMapping
             ? await updateSubMappingSource(textEdits, filePath, codedata, targetField)
             : await updateSource(textEdits, filePath, codedata, varName);
-        updateDataMapperView(newCodeData, varName);
+        updateView(newCodeData, varName);
     } catch (error) {
         console.error(`Failed to update and refresh data mapper for variable "${varName}":`, error);
         throw new Error(`Data mapper update failed`);
@@ -331,7 +331,7 @@ export async function refreshDataMapper(
 ): Promise<void> {
     try {
         const newCodeData = await fetchDataMapperCodeData(filePath, codedata, varName);
-        updateDataMapperView(newCodeData, varName);
+        updateView(newCodeData, varName);
     } catch (error) {
         console.error(`Failed to refresh data mapper for variable "${varName}":`, error);
         throw new Error(`Data mapper refresh failed.`);
@@ -341,7 +341,7 @@ export async function refreshDataMapper(
 /**
  * Builds individual source requests from the provided parameters by mapping over each mapping.
  */
-export function buildSourceRequests(params: InlineAllDataMapperSourceRequest): InlineDataMapperSourceRequest[] {
+export function buildSourceRequests(params: AllDataMapperSourceRequest): DataMapperSourceRequest[] {
     return params.mappings.map(mapping => ({
         filePath: params.filePath,
         codedata: params.codedata,
@@ -354,14 +354,14 @@ export function buildSourceRequests(params: InlineAllDataMapperSourceRequest): I
 /**
  * Handles operation cancellation and error logging for each request.
  */
-export async function processSourceRequests(requests: InlineDataMapperSourceRequest[]): Promise<PromiseSettledResult<InlineDataMapperSourceResponse>[]> {
+export async function processSourceRequests(requests: DataMapperSourceRequest[]): Promise<PromiseSettledResult<DataMapperSourceResponse>[]> {
     return Promise.allSettled(
         requests.map(async (request) => {
             if (getHasStopped()) {
                 throw new Error("Operation was stopped");
             }
             try {
-                return await StateMachine.langClient().getInlineDataMapperSource(request);
+                return await StateMachine.langClient().getDataMapperSource(request);
             } catch (error) {
                 console.error("Error in getDataMapperSource:", error);
                 throw error;
@@ -374,7 +374,7 @@ export async function processSourceRequests(requests: InlineDataMapperSourceRequ
  * Consolidates text edits from multiple source responses into a single optimized collection.
  */
 export function consolidateTextEdits(
-    responses: PromiseSettledResult<InlineDataMapperSourceResponse>[],
+    responses: PromiseSettledResult<DataMapperSourceResponse>[],
     totalMappings: number
 ): { [key: string]: TextEdit[] } {
     const allTextEdits: { [key: string]: TextEdit[] } = {};

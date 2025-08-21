@@ -16,7 +16,6 @@
  * under the License.
  */
 
-import { debounce } from 'lodash';
 import React, { useEffect, useRef, useState } from 'react';
 import { Control, Controller, FieldValues, UseFormWatch } from 'react-hook-form';
 import styled from '@emotion/styled';
@@ -39,8 +38,7 @@ import {
     LineRange,
     RecordTypeField,
     SubPanel,
-    SubPanelView,
-    SubPanelViewProps
+    SubPanelView
 } from '@wso2/ballerina-core';
 import ReactMarkdown from 'react-markdown';
 
@@ -319,9 +317,7 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
         onSave,
         onCancel,
         onRemove,
-        openSubPanel,
         handleOnFieldFocus,
-        subPanelView,
         targetLineRange,
         fileName,
         helperPaneOrigin,
@@ -381,34 +377,6 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
         await onCompletionItemSelect?.(value, key, item.additionalTextEdits);
     };
 
-    const handleOpenSubPanel = (view: SubPanelView, subPanelInfo: SubPanelViewProps) => {
-        openSubPanel({
-            view: view,
-            props: view === SubPanelView.UNDEFINED ? undefined : subPanelInfo
-        });
-    };
-
-    const handleInlineDataMapperOpen = (isUpdate: boolean) => {
-        if (subPanelView === SubPanelView.INLINE_DATA_MAPPER && !isUpdate) {
-            openSubPanel({ view: SubPanelView.UNDEFINED });
-        } else {
-            handleOpenSubPanel(SubPanelView.INLINE_DATA_MAPPER, {
-                inlineDataMapper: {
-                    filePath: effectiveFileName,
-                    flowNode: undefined, // This will be updated in the Form component
-                    position: {
-                        line: effectiveTargetLineRange.startLine.line,
-                        offset: effectiveTargetLineRange.startLine.offset
-                    },
-                    propertyKey: key,
-                    editorKey: key
-                }
-            });
-            handleOnFieldFocus?.(key);
-        }
-    };
-
-
     const handleChangeHelperPaneState = (isOpen: boolean) => {
         setIsHelperPaneOpen(isOpen);
     };
@@ -440,17 +408,9 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
         );
     };
 
-    const updateSubPanelData = (value: string) => {
-        if (subPanelView === SubPanelView.INLINE_DATA_MAPPER) {
-            handleInlineDataMapperOpen(true);
-        }
-    };
-
     const handleExtractArgsFromFunction = async (value: string, cursorPosition: number) => {
         return await extractArgsFromFunction(value, getPropertyFromFormField(field), cursorPosition);
     };
-
-    const debouncedUpdateSubPanelData = debounce(updateSubPanelData, 300);
 
     const defaultValueText = field.defaultValue ?
         <S.DefaultValue>Defaults to {field.defaultValue}</S.DefaultValue> : null;
@@ -505,7 +465,6 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
 
                                 const rawValue = rawExpression ? rawExpression(updatedValue) : updatedValue;
                                 onChange(rawValue);
-                                debouncedUpdateSubPanelData(rawValue);
 
                                 if (getExpressionEditorDiagnostics) {
                                     getExpressionEditorDiagnostics(

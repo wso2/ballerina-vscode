@@ -23,17 +23,17 @@ import {
     AddSubMappingRequest,
     ConvertToQueryRequest,
     DeleteMappingRequest,
-    GetInlineDataMapperCodedataRequest,
-    GetInlineDataMapperCodedataResponse,
+    GetDataMapperCodedataRequest,
+    GetDataMapperCodedataResponse,
     GetSubMappingCodedataRequest,
     InitialIDMSourceRequest,
     InitialIDMSourceResponse,
-    InlineAllDataMapperSourceRequest,
-    InlineDataMapperAPI,
-    InlineDataMapperModelRequest,
-    InlineDataMapperModelResponse,
-    InlineDataMapperSourceRequest,
-    InlineDataMapperSourceResponse,
+    AllDataMapperSourceRequest,
+    DataMapperAPI,
+    DataMapperModelRequest,
+    DataMapperModelResponse,
+    DataMapperSourceRequest,
+    DataMapperSourceResponse,
     MapWithCustomFnRequest,
     PropertyRequest,
     PropertyResponse,
@@ -57,7 +57,7 @@ import {
 import { HOST_EXTENSION } from "vscode-messenger-common";
 import { Messenger } from "vscode-messenger-webview";
 
-export class InlineDataMapperRpcClient implements InlineDataMapperAPI {
+export class DataMapperRpcClient implements DataMapperAPI {
     private _messenger: Messenger;
 
     constructor(messenger: Messenger) {
@@ -68,11 +68,11 @@ export class InlineDataMapperRpcClient implements InlineDataMapperAPI {
         return this._messenger.sendRequest(getInitialIDMSource, HOST_EXTENSION, params);
     }
 
-    getDataMapperModel(params: InlineDataMapperModelRequest): Promise<InlineDataMapperModelResponse> {
+    getDataMapperModel(params: DataMapperModelRequest): Promise<DataMapperModelResponse> {
         return this._messenger.sendRequest(getDataMapperModel, HOST_EXTENSION, params);
     }
 
-    getDataMapperSource(params: InlineDataMapperSourceRequest): Promise<InlineDataMapperSourceResponse> {
+    getDataMapperSource(params: DataMapperSourceRequest): Promise<DataMapperSourceResponse> {
         return this._messenger.sendRequest(getDataMapperSource, HOST_EXTENSION, params);
     }
 
@@ -80,39 +80,39 @@ export class InlineDataMapperRpcClient implements InlineDataMapperAPI {
         return this._messenger.sendRequest(getVisualizableFields, HOST_EXTENSION, params);
     }
 
-    addNewArrayElement(params: AddArrayElementRequest): Promise<InlineDataMapperSourceResponse> {
+    addNewArrayElement(params: AddArrayElementRequest): Promise<DataMapperSourceResponse> {
         return this._messenger.sendRequest(addNewArrayElement, HOST_EXTENSION, params);
     }
 
-    convertToQuery(params: ConvertToQueryRequest): Promise<InlineDataMapperSourceResponse> {
+    convertToQuery(params: ConvertToQueryRequest): Promise<DataMapperSourceResponse> {
         return this._messenger.sendRequest(convertToQuery, HOST_EXTENSION, params);
     }
 
-    addClauses(params: AddClausesRequest): Promise<InlineDataMapperSourceResponse> {
+    addClauses(params: AddClausesRequest): Promise<DataMapperSourceResponse> {
         return this._messenger.sendRequest(addClauses, HOST_EXTENSION, params);
     }
 
-    addSubMapping(params: AddSubMappingRequest): Promise<InlineDataMapperSourceResponse> {
+    addSubMapping(params: AddSubMappingRequest): Promise<DataMapperSourceResponse> {
         return this._messenger.sendRequest(addSubMapping, HOST_EXTENSION, params);
     }
 
-    deleteMapping(params: DeleteMappingRequest): Promise<InlineDataMapperSourceResponse> {
+    deleteMapping(params: DeleteMappingRequest): Promise<DataMapperSourceResponse> {
         return this._messenger.sendRequest(deleteMapping, HOST_EXTENSION, params);
     }
 
-    mapWithCustomFn(params: MapWithCustomFnRequest): Promise<InlineDataMapperSourceResponse> {
+    mapWithCustomFn(params: MapWithCustomFnRequest): Promise<DataMapperSourceResponse> {
         return this._messenger.sendRequest(mapWithCustomFn, HOST_EXTENSION, params);
     }
 
-    getDataMapperCodedata(params: GetInlineDataMapperCodedataRequest): Promise<GetInlineDataMapperCodedataResponse> {
+    getDataMapperCodedata(params: GetDataMapperCodedataRequest): Promise<GetDataMapperCodedataResponse> {
         return this._messenger.sendRequest(getDataMapperCodedata, HOST_EXTENSION, params);
     }
 
-    getSubMappingCodedata(params: GetSubMappingCodedataRequest): Promise<GetInlineDataMapperCodedataResponse> {
+    getSubMappingCodedata(params: GetSubMappingCodedataRequest): Promise<GetDataMapperCodedataResponse> {
         return this._messenger.sendRequest(getSubMappingCodedata, HOST_EXTENSION, params);
     }
 
-    getAllDataMapperSource(params: InlineAllDataMapperSourceRequest): Promise<InlineDataMapperSourceResponse> {
+    getAllDataMapperSource(params: AllDataMapperSourceRequest): Promise<DataMapperSourceResponse> {
         return this._messenger.sendRequest(getAllDataMapperSource, HOST_EXTENSION, params);
     }
 

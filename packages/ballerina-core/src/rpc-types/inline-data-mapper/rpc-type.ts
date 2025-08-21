@@ -21,20 +21,20 @@ import {
     AddArrayElementRequest,
     ConvertToQueryRequest,
     AddClausesRequest,
-    InlineDataMapperModelRequest,
-    InlineDataMapperModelResponse,
-    InlineDataMapperSourceRequest,
-    InlineDataMapperSourceResponse,
+    DataMapperModelRequest,
+    DataMapperModelResponse,
+    DataMapperSourceRequest,
+    DataMapperSourceResponse,
     VisualizableFieldsRequest,
     VisualizableFieldsResponse,
     PropertyRequest,
     PropertyResponse,
     InitialIDMSourceResponse,
     InitialIDMSourceRequest,
-    GetInlineDataMapperCodedataRequest,
-    GetInlineDataMapperCodedataResponse,
+    GetDataMapperCodedataRequest,
+    GetDataMapperCodedataResponse,
     GetSubMappingCodedataRequest,
-    InlineAllDataMapperSourceRequest,
+    AllDataMapperSourceRequest,
     AddSubMappingRequest,
     DeleteMappingRequest,
     MapWithCustomFnRequest
@@ -43,16 +43,16 @@ import { RequestType } from "vscode-messenger-common";
 
 const _preFix = "inline-data-mapper";
 export const getInitialIDMSource: RequestType<InitialIDMSourceRequest, InitialIDMSourceResponse> = { method: `${_preFix}/getInitialIDMSource` };
-export const getDataMapperModel: RequestType<InlineDataMapperModelRequest, InlineDataMapperModelResponse> = { method: `${_preFix}/getDataMapperModel` };
-export const getDataMapperSource: RequestType<InlineDataMapperSourceRequest, InlineDataMapperSourceResponse> = { method: `${_preFix}/getDataMapperSource` };
+export const getDataMapperModel: RequestType<DataMapperModelRequest, DataMapperModelResponse> = { method: `${_preFix}/getDataMapperModel` };
+export const getDataMapperSource: RequestType<DataMapperSourceRequest, DataMapperSourceResponse> = { method: `${_preFix}/getDataMapperSource` };
 export const getVisualizableFields: RequestType<VisualizableFieldsRequest, VisualizableFieldsResponse> = { method: `${_preFix}/getVisualizableFields` };
-export const addNewArrayElement: RequestType<AddArrayElementRequest, InlineDataMapperSourceResponse> = { method: `${_preFix}/addNewArrayElement` };
-export const convertToQuery: RequestType<ConvertToQueryRequest, InlineDataMapperSourceResponse> = { method: `${_preFix}/convertToQuery` };
-export const addClauses: RequestType<AddClausesRequest, InlineDataMapperSourceResponse> = { method: `${_preFix}/addClauses` };
-export const addSubMapping: RequestType<AddSubMappingRequest, InlineDataMapperSourceResponse> = { method: `${_preFix}/addSubMapping` };
-export const deleteMapping: RequestType<DeleteMappingRequest, InlineDataMapperSourceResponse> = { method: `${_preFix}/deleteMapping` };
-export const mapWithCustomFn: RequestType<MapWithCustomFnRequest, InlineDataMapperSourceResponse> = { method: `${_preFix}/mapWithCustomFn` };
-export const getDataMapperCodedata: RequestType<GetInlineDataMapperCodedataRequest, GetInlineDataMapperCodedataResponse> = { method: `${_preFix}/getDataMapperCodedata` };
-export const getSubMappingCodedata: RequestType<GetSubMappingCodedataRequest, GetInlineDataMapperCodedataResponse> = { method: `${_preFix}/getSubMappingCodedata` };
-export const getAllDataMapperSource: RequestType<InlineAllDataMapperSourceRequest, InlineDataMapperSourceResponse> = { method: `${_preFix}/getAllDataMapperSource` };
+export const addNewArrayElement: RequestType<AddArrayElementRequest, DataMapperSourceResponse> = { method: `${_preFix}/addNewArrayElement` };
+export const convertToQuery: RequestType<ConvertToQueryRequest, DataMapperSourceResponse> = { method: `${_preFix}/convertToQuery` };
+export const addClauses: RequestType<AddClausesRequest, DataMapperSourceResponse> = { method: `${_preFix}/addClauses` };
+export const addSubMapping: RequestType<AddSubMappingRequest, DataMapperSourceResponse> = { method: `${_preFix}/addSubMapping` };
+export const deleteMapping: RequestType<DeleteMappingRequest, DataMapperSourceResponse> = { method: `${_preFix}/deleteMapping` };
+export const mapWithCustomFn: RequestType<MapWithCustomFnRequest, DataMapperSourceResponse> = { method: `${_preFix}/mapWithCustomFn` };
+export const getDataMapperCodedata: RequestType<GetDataMapperCodedataRequest, GetDataMapperCodedataResponse> = { method: `${_preFix}/getDataMapperCodedata` };
+export const getSubMappingCodedata: RequestType<GetSubMappingCodedataRequest, GetDataMapperCodedataResponse> = { method: `${_preFix}/getSubMappingCodedata` };
+export const getAllDataMapperSource: RequestType<AllDataMapperSourceRequest, DataMapperSourceResponse> = { method: `${_preFix}/getAllDataMapperSource` };
 export const getProperty: RequestType<PropertyRequest, PropertyResponse> = { method: `${_preFix}/getProperty` };

@@ -38,7 +38,7 @@ import {
     GenerateTypesFromRecordResponse,
     GetFromFileRequest,
     GetModuleDirParams,
-    InlineAllDataMapperSourceRequest,
+    AllDataMapperSourceRequest,
     LLMDiagnostics,
     LoginMethod,
     MetadataWithAttachments,
@@ -203,7 +203,7 @@ export class AiPanelRpcClient implements AIPanelAPI {
         return this._messenger.sendNotification(openInlineMappingChatWindow, HOST_EXTENSION);
     }
 
-    getMappingsFromModel(params: MetadataWithAttachments): Promise<InlineAllDataMapperSourceRequest> {
+    getMappingsFromModel(params: MetadataWithAttachments): Promise<AllDataMapperSourceRequest> {
         return this._messenger.sendRequest(getMappingsFromModel, HOST_EXTENSION, params);
     }
 
