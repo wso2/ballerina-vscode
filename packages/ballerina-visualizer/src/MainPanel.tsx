@@ -71,7 +71,7 @@ import { AIAgentDesigner } from "./views/BI/AIChatAgent";
 import { AIChatAgentWizard } from "./views/BI/AIChatAgent/AIChatAgentWizard";
 import { BallerinaUpdateView } from "./views/BI/BallerinaUpdateView";
 import { VSCodeProgressRing } from "@vscode/webview-ui-toolkit/react";
-import { InlineDataMapper } from "./views/InlineDataMapper";
+import { DataMapper } from "./views/DataMapper";
 
 const globalStyles = css`
     *,
@@ -339,7 +339,7 @@ const MainPanel = () => {
                             };
                         }
                         setViewComponent(
-                            <InlineDataMapper
+                            <DataMapper
                                 filePath={value.documentUri}
                                 codedata={value?.dataMapperMetadata?.codeData}
                                 varName={value?.identifier}
@@ -351,7 +351,7 @@ const MainPanel = () => {
                         break;
                     case MACHINE_VIEW.InlineDataMapper:
                         setViewComponent(
-                            <InlineDataMapper
+                            <DataMapper
                                 filePath={value.documentUri}
                                 codedata={value?.dataMapperMetadata?.codeData}
                                 varName={value?.dataMapperMetadata?.name}

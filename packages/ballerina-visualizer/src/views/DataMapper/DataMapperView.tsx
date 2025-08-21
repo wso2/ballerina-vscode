@@ -44,12 +44,12 @@ import {
 } from "@wso2/ballerina-core";
 import { CompletionItem, ProgressIndicator } from "@wso2/ui-toolkit";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
-import { DataMapperView } from "@wso2/ballerina-inline-data-mapper";
+import { DataMapper } from "@wso2/ballerina-inline-data-mapper";
 
 import { useInlineDataMapperModel } from "../../Hooks";
 import { expandDMModel } from "./modelProcessor";
 import FormGeneratorNew from "../BI/Forms/FormGeneratorNew";
-import { InlineDataMapperProps } from ".";
+import { DataMapperProps } from ".";
 import { EXPRESSION_EXTRACTION_REGEX } from "../../constants";
 import { calculateExpressionOffsets, convertBalCompletion, updateLineRange } from "../../utils/bi";
 import { createAddSubMappingRequest } from "./utils";
@@ -63,7 +63,7 @@ interface ModelSignature {
     types: string;
 }
 
-export function InlineDataMapperView(props: InlineDataMapperProps) {
+export function DataMapperView(props: DataMapperProps) {
     const { filePath, codedata, varName, projectUri, position, reusable } = props;
 
     const [isFileUpdateError, setIsFileUpdateError] = useState(false);
@@ -509,7 +509,7 @@ export function InlineDataMapperView(props: InlineDataMapperProps) {
                             isDataMapper={true}
                         />
                     ) : (
-                        <DataMapperView
+                        <DataMapper
                             modelState={modelState}
                             name={varName}
                             onClose={onClose}
