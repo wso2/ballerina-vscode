@@ -16,7 +16,6 @@
  * under the License.
  */
 
-import styled from "@emotion/styled";
 import {
     DownloadProgress,
     EVENT_TYPE,
@@ -33,36 +32,10 @@ import { useEffect, useState } from "react";
 import { ConfigureProjectForm } from "./ConfigureProjectForm";
 import { ImportIntegrationForm } from "./ImportIntegrationForm";
 import { MigrationProgressView } from "./MigrationProgressView";
+import { FormContainer, IconButton } from "./styles";
+import { FinalIntegrationParams } from "./types";
 
-const FormContainer = styled.div`
-    max-width: 660px;
-    margin: 80px 120px;
-    height: calc(100vh - 160px);
-    overflow-y: auto;
-`;
 
-const IconButton = styled.div`
-    cursor: pointer;
-    border-radius: 4px;
-    width: 20px;
-    height: 20px;
-    font-size: 20px;
-    &:hover {
-        background-color: var(--vscode-toolbar-hoverBackground);
-    }
-`;
-
-// Defines the parameters that will be passed from the form to start the import
-export interface FinalIntegrationParams {
-    importSourcePath: string;
-    type: string;
-    [key: string]: any; // For other dynamic parameters
-}
-
-/**
- * A stateful container component that manages the entire integration import flow,
- * switching between the input form and the progress view.
- */
 export function ImportIntegration() {
     const { rpcClient } = useRpcContext();
 
