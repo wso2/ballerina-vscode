@@ -175,7 +175,7 @@ export function EditConnectionWizard(props: EditConnectionWizardProps) {
                     onClose={onClose ? onClose : gotoHome}
                     width={400}
                     onBack={onClose ? onClose : gotoHome}
-                    subPanelWidth={subPanel?.view === SubPanelView.INLINE_DATA_MAPPER ? 800 : 400}
+                    subPanelWidth={400}
                     subPanel={findSubPanelComponent(subPanel)}
                 >
                     <ConnectionConfigView

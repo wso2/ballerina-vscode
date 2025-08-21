@@ -28,7 +28,7 @@ import { ConnectorRequest, ConnectorResponse } from "../rpc-types/connector-wiza
 import { SqFlow } from "../rpc-types/sequence-diagram/interfaces";
 import { FieldType, FunctionModel, ListenerModel, ServiceClassModel, ServiceModel } from "./service";
 import { CDModel } from "./component-diagram";
-import { DMModel, ExpandedDMModel, IntermediateClause, Mapping, VisualizableField, CustomFnMetadata, ResultClauseType } from "./inline-data-mapper";
+import { DMModel, ExpandedDMModel, IntermediateClause, Mapping, VisualizableField, CustomFnMetadata, ResultClauseType } from "./data-mapper";
 import { DataMapperMetadata, SCOPE } from "../state-machine-types";
 import { Attachment } from "../rpc-types/ai-panel/interfaces";
 import { ToolParameters } from "../rpc-types/ai-agent/interfaces";

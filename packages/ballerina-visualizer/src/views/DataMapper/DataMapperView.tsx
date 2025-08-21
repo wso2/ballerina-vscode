@@ -24,11 +24,11 @@ import {
     AddArrayElementRequest,
     ConvertToQueryRequest,
     ExpandedDMModel,
-    IDMFormProps,
+    DMFormProps,
     DMModel,
     ModelState,
     AddClausesRequest,
-    IDMViewState,
+    DMViewState,
     IntermediateClause,
     TriggerCharacter,
     TRIGGER_CHARACTERS,
@@ -44,7 +44,7 @@ import {
 } from "@wso2/ballerina-core";
 import { CompletionItem, ProgressIndicator } from "@wso2/ui-toolkit";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
-import { DataMapper } from "@wso2/ballerina-inline-data-mapper";
+import { DataMapper } from "@wso2/ballerina-data-mapper";
 
 import { useDataMapperModel } from "../../Hooks";
 import { expandDMModel } from "./modelProcessor";
@@ -71,7 +71,7 @@ export function DataMapperView(props: DataMapperProps) {
         model: null,
         hasInputsOutputsChanged: false
     });
-    const [viewState, setViewState] = useState<IDMViewState>({
+    const [viewState, setViewState] = useState<DMViewState>({
         viewId: varName,
         codedata: codedata
     });
@@ -189,7 +189,7 @@ export function DataMapperView(props: DataMapperProps) {
                     },
                     withinSubMapping: viewState.isSubMapping
                 });
-            console.log(">>> [Inline Data Mapper] getSource response:", resp);
+            console.log(">>> [Data Mapper] getSource response:", resp);
         } catch (error) {
             console.error(error);
             setIsFileUpdateError(true);
@@ -214,7 +214,7 @@ export function DataMapperView(props: DataMapperProps) {
             const resp = await rpcClient
                 .getDataMapperRpcClient()
                 .addNewArrayElement(addElementRequest);
-            console.log(">>> [Inline Data Mapper] addArrayElement response:", resp);
+            console.log(">>> [Data Mapper] addArrayElement response:", resp);
         } catch (error) {
             console.error(error);
             setIsFileUpdateError(true);
@@ -230,7 +230,7 @@ export function DataMapperView(props: DataMapperProps) {
                     codedata: viewState.codedata,
                     view: viewId
                 });
-            console.log(">>> [Inline Data Mapper] getSubMappingCodedata response:", resp);
+            console.log(">>> [Data Mapper] getSubMappingCodedata response:", resp);
             setViewState({ viewId, codedata: resp.codedata, isSubMapping: true });
         } else {
             if (viewState.isSubMapping) {
@@ -252,7 +252,7 @@ export function DataMapperView(props: DataMapperProps) {
         }
     };
 
-    const generateForm = (formProps: IDMFormProps) => {
+    const generateForm = (formProps: DMFormProps) => {
         return (
             <FormGeneratorNew
                 fileName={filePath}
@@ -268,7 +268,7 @@ export function DataMapperView(props: DataMapperProps) {
             const a = viewId.split(".");
             const b = mapping.output.split(".");
             const targetField = [...a, ...b.slice(1)].join(".");
-            console.log(">>> [Inline Data Mapper] targetField:", targetField);
+            console.log(">>> [Data Mapper] targetField:", targetField);
             const convertToQueryRequest: ConvertToQueryRequest = {
                 filePath,
                 codedata: viewState.codedata,
@@ -281,7 +281,7 @@ export function DataMapperView(props: DataMapperProps) {
             const resp = await rpcClient
                 .getDataMapperRpcClient()
                 .convertToQuery(convertToQueryRequest);
-            console.log(">>> [Inline Data Mapper] convertToQuery response:", resp);
+            console.log(">>> [Data Mapper] convertToQuery response:", resp);
         } catch (error) {
             console.error(error);
             setIsFileUpdateError(true);
@@ -301,12 +301,12 @@ export function DataMapperView(props: DataMapperProps) {
                 targetField,
                 varName
             };
-            console.log(">>> [Inline Data Mapper] addClauses request:", addClausesRequest);
+            console.log(">>> [Data Mapper] addClauses request:", addClausesRequest);
 
             const resp = await rpcClient
                 .getDataMapperRpcClient()
                 .addClauses(addClausesRequest);
-            console.log(">>> [Inline Data Mapper] addClauses response:", resp);
+            console.log(">>> [Data Mapper] addClauses response:", resp);
         } catch (error) {
             console.error(error);
             setIsFileUpdateError(true);
@@ -327,7 +327,7 @@ export function DataMapperView(props: DataMapperProps) {
                     filePath,
                     codedata: importsCodedata || { symbol: type }
                 });
-            console.log(">>> [Inline Data Mapper] getVisualizableFields response:", visualizableResponse);
+            console.log(">>> [Data Mapper] getVisualizableFields response:", visualizableResponse);
 
             const defaultValue = visualizableResponse.visualizableProperties.defaultValue;
             const request = createAddSubMappingRequest(
@@ -341,12 +341,12 @@ export function DataMapperView(props: DataMapperProps) {
                 defaultValue
             );
 
-            console.log(">>> [Inline Data Mapper] addSubMapping request:", request);
+            console.log(">>> [Data Mapper] addSubMapping request:", request);
 
             const response = await rpcClient
                 .getDataMapperRpcClient()
                 .addSubMapping(request);
-            console.log(">>> [Inline Data Mapper] addSubMapping response:", response);
+            console.log(">>> [Data Mapper] addSubMapping response:", response);
         } catch (error) {
             console.error(error);
             setIsFileUpdateError(true);
@@ -364,7 +364,7 @@ export function DataMapperView(props: DataMapperProps) {
                     varName,
                     targetField: viewId,
                 });
-            console.log(">>> [Inline Data Mapper] deleteMapping response:", resp);
+            console.log(">>> [Data Mapper] deleteMapping response:", resp);
         } catch (error) {
             console.error(error);
             setIsFileUpdateError(true);
@@ -383,7 +383,7 @@ export function DataMapperView(props: DataMapperProps) {
                     varName,
                     targetField: viewId,
                 });
-            console.log(">>> [Inline Data Mapper] mapWithCustomFn response:", resp);
+            console.log(">>> [Data Mapper] mapWithCustomFn response:", resp);
         } catch (error) {
             console.error(error);
             setIsFileUpdateError(true);
