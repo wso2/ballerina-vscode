@@ -981,8 +981,17 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
                     onToolsChange={props.onToolsChange}
                 />
             )}
-            {typeEditorState.isOpen && (
-                <PanelContainer title={"New Type"} show={true} onClose={onTypeEditorClosed}>
+            {
+                <DynamicModal
+                    width={420}
+                    height={600}
+                    anchorRef={undefined}
+                    title="Create New Type"
+                    openState={typeEditorState.isOpen}
+                    setOpenState={handleTypeEditorStateChange}>
+                    <DynamicModal.Trigger>
+                        <Button >hahah</Button>
+                    </DynamicModal.Trigger>
                     <FormTypeEditor
                         newType={true}
                         newTypeValue={typeEditorState.newTypeValue}
@@ -990,8 +999,8 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
                         onTypeChange={onTypeChange}
                         onTypeCreate={handleTypeCreate}
                     />
-                </PanelContainer>
-            )}
+                </DynamicModal>
+            }
         </>
     );
 });
