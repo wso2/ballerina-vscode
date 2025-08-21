@@ -4552,8 +4552,7 @@
                 "module": "ai",
                 "packageName": "ai",
                 "object": "VectorKnowledgeBase",
-                "symbol": "init",
-                "version": "1.1.0"
+                "symbol": "init"
               },
               "enabled": true
             },
