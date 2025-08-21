@@ -46,6 +46,7 @@ public class ChunkerBuilder extends CallBuilder {
     private static final String CHUNKER_NAME_LABEL = "Chunker Name";
     private static final String CHUNKER_NAME_LABEL_DOC = "Chunker instance name";
     private static final String CHECK_ERROR_DOC = "Terminate on error";
+    private static final String AI_DEVANT_PACKAGE_NAME = "ai.devant";
 
     @Override
     public void setConcreteConstData() {
@@ -65,8 +66,13 @@ public class ChunkerBuilder extends CallBuilder {
 
     @Override
     public Map<Path, List<TextEdit>> toSource(SourceBuilder sourceBuilder) {
-        return sourceBuilder.token().keyword(SyntaxKind.FINAL_KEYWORD).stepOut().newVariable()
-                .token().keyword(SyntaxKind.NEW_KEYWORD).stepOut().functionParameters(sourceBuilder.flowNode,
+        sourceBuilder.token().keyword(SyntaxKind.FINAL_KEYWORD).stepOut().newVariable();
+        if (AI_DEVANT_PACKAGE_NAME.equals(sourceBuilder.flowNode.codedata().packageName())) {
+            sourceBuilder.token().keyword(SyntaxKind.CHECK_KEYWORD);
+
+        }
+        return sourceBuilder.token().keyword(SyntaxKind.NEW_KEYWORD).stepOut()
+                .functionParameters(sourceBuilder.flowNode,
                         Set.of(Property.VARIABLE_KEY, Property.TYPE_KEY, Property.SCOPE_KEY, Property.CHECK_ERROR_KEY))
                 .textEdit().acceptImport().build();
     }

@@ -267,7 +267,7 @@ public class AvailableNodesGenerator {
                 new Metadata.Builder<>(null).label(VectorKnowledgeBaseBuilder.LABEL)
                         .description(VectorKnowledgeBaseBuilder.DESCRIPTION).build(),
                 new Codedata.Builder<>(null).node(NodeKind.VECTOR_KNOWLEDGE_BASES).org(Ai.BALLERINA_ORG)
-                        .module(Ai.AI_PACKAGE).packageName(Ai.AI_PACKAGE).version(Ai.VERSION)
+                        .module(Ai.AI_PACKAGE).packageName(Ai.AI_PACKAGE)
                         .object(Ai.VECTOR_KNOWLEDGE_BASE_TYPE_NAME).symbol("init").build(),
                 !disableBallerinaAiNodes);
 

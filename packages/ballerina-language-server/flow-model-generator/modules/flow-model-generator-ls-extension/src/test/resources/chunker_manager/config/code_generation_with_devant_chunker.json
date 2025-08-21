@@ -727,7 +727,7 @@
               "character": 0
             }
           },
-          "newText": "final devant:Chunker devantChunker = new (\"\", \"\");"
+          "newText": "final devant:Chunker devantChunker = check new (\"\", \"\");"
         }
       ]
     }

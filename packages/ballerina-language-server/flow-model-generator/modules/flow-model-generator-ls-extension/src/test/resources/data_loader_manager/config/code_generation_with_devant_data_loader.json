@@ -152,7 +152,7 @@
               "character": 0
             }
           },
-          "newText": "final devant:BinaryDataLoader devantBinarydataloader = new (\"\");"
+          "newText": "final devant:BinaryDataLoader devantBinarydataloader = check new (\"\");"
         }
       ]
     }
