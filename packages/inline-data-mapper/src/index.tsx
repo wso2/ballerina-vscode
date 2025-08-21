@@ -27,7 +27,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { IDMFormProps, ModelState, IntermediateClause, Mapping, CodeData, CustomFnMetadata, LineRange, ResultClauseType } from "@wso2/ballerina-core";
 import { CompletionItem, ErrorBoundary } from "@wso2/ui-toolkit";
 
-import { InlineDataMapper } from "./components/DataMapper/DataMapper";
+import { DataMapperEditor } from "./components/DataMapper/DataMapperEditor";
 import { ExpressionProvider } from "./context/ExpressionContext";
 
 const queryClient = new QueryClient({
@@ -58,7 +58,7 @@ export interface ExpressionBarProps {
     onCancel: () => void;
 }
 
-export interface InlineDataMapperProps {
+export interface DataMapperEditorProps {
     modelState: ModelState;
     name: string;
     applyModifications: (outputId: string, expression: string, viewId: string, name: string) => Promise<void>;
@@ -75,17 +75,17 @@ export interface InlineDataMapperProps {
     handleView: (viewId: string, isSubMapping?: boolean) => void;
 }
 
-export interface DataMapperViewProps extends InlineDataMapperProps {
+export interface DataMapperProps extends DataMapperEditorProps {
     expressionBar: ExpressionBarProps;
 }
 
-export function DataMapperView({ expressionBar, ...props }: DataMapperViewProps) {
+export function DataMapper({ expressionBar, ...props }: DataMapperProps) {
     return (
         <ErrorBoundary errorMsg="An error occurred while rendering the Inline Data Mapper">
             <QueryClientProvider client={queryClient}>
                 <Global styles={globalStyles} />
                 <ExpressionProvider {...expressionBar}>
-                    <InlineDataMapper {...props} />
+                    <DataMapperEditor {...props} />
                 </ExpressionProvider>
             </QueryClientProvider>
         </ErrorBoundary>

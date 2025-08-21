@@ -37,7 +37,7 @@ import {
     useDMExpressionBarStore
 } from "../../store/store";
 import { KeyboardNavigationManager } from "../../utils/keyboard-navigation-manager";
-import { InlineDataMapperProps } from "../../index";
+import { DataMapperEditorProps } from "../../index";
 import { ErrorNodeKind } from "./Error/RenderingError";
 import { IOErrorComponent } from "./Error/DataMapperError";
 import { IntermediateNodeInitVisitor } from "../../visitors/IntermediateNodeInitVisitor";
@@ -117,7 +117,7 @@ function viewsReducer(state: View[], action: ViewAction) {
     }
 }
 
-export function InlineDataMapper(props: InlineDataMapperProps) {
+export function DataMapperEditor(props: DataMapperEditorProps) {
     const {
         modelState,
         name,
