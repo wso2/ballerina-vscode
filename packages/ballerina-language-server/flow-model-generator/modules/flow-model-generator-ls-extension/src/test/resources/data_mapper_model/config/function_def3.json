@@ -33,7 +33,6 @@
           "kind": "record",
           "ref": "-1703435696"
         },
-        "focusedMemberId": "input",
         "id": "inputs",
         "variableName": "inputs",
         "typeName": "Input[]",
@@ -47,7 +46,7 @@
         "variableName": "input",
         "typeName": "Input",
         "kind": "record",
-        "isFocused": true,
+        "focusExpression": "inputs",
         "ref": "-1703435696"
       }
     ],

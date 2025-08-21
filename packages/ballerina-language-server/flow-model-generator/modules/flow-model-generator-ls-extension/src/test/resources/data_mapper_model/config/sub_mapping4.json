@@ -40,7 +40,6 @@
           "kind": "record",
           "ref": "-1418772512"
         },
-        "focusedMemberId": "user",
         "id": "userInfo",
         "variableName": "userInfo",
         "typeName": "UserInfo[]",
@@ -54,7 +53,7 @@
         "variableName": "user",
         "typeName": "UserInfo",
         "kind": "record",
-        "isFocused": true,
+        "focusExpression": "userInfo",
         "ref": "-1418772512"
       }
     ],

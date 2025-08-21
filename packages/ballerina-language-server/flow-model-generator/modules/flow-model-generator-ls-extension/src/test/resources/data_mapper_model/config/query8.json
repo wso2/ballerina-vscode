@@ -42,7 +42,6 @@
           "kind": "record",
           "ref": "-1392347127"
         },
-        "focusedMemberId": "secondaryPhonesItem",
         "id": "newSecondaryPhones",
         "variableName": "newSecondaryPhones",
         "typeName": "SecondaryPhones[]",
@@ -56,7 +55,7 @@
         "variableName": "secondaryPhonesItem",
         "typeName": "SecondaryPhones",
         "kind": "record",
-        "isFocused": true,
+        "focusExpression": "newSecondaryPhones",
         "ref": "-1392347127"
       }
     ],

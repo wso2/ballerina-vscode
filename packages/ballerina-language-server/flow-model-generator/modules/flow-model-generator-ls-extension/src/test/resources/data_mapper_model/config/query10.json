@@ -33,7 +33,6 @@
           "kind": "record",
           "ref": "2079019383"
         },
-        "focusedMemberId": "x",
         "id": "myType2",
         "variableName": "myType2",
         "typeName": "MyType[]",
@@ -47,7 +46,7 @@
         "variableName": "x",
         "typeName": "MyType",
         "kind": "record",
-        "isFocused": true,
+        "focusExpression": "myType2",
         "ref": "2079019383"
       }
     ],

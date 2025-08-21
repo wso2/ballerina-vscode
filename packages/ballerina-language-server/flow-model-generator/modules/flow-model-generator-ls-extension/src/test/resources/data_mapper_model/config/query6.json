@@ -31,7 +31,7 @@
         "typeName": "l2Item",
         "kind": "record",
         "category": "variable",
-        "isFocused": true,
+        "focusExpression": "var1.l1.l2",
         "ref": "2072204783"
       },
       {
@@ -49,7 +49,7 @@
         "variableName": "l3ArrItem",
         "typeName": "record {|int l4_1; string l4_2; anydata...;|}",
         "kind": "record",
-        "isFocused": true,
+        "focusExpression": "l2Item.l3Arr",
         "ref": "-1019813121"
       }
     ],

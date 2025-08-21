@@ -39,7 +39,7 @@
         "variableName": "secondaryPhonesItem",
         "typeName": "SecondaryPhones",
         "kind": "record",
-        "isFocused": true,
+        "focusExpression": "u.info.secondaryPhones",
         "ref": "-1392347127"
       }
     ],
