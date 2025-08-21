@@ -50,6 +50,7 @@ public class DataMappingReferenceModelTest extends AbstractLSTest {
                 {Path.of("array1.json")},
                 {Path.of("array2.json")},
                 {Path.of("query1.json")},
+                {Path.of("const.json")},
         };
     }
 

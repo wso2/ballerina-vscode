@@ -28,14 +28,14 @@
         "member": {
           "fields": [],
           "id": "inputs",
-          "variableName": "<inputsItem>",
+          "name": "<inputsItem>",
           "typeName": "Input",
           "kind": "record",
           "ref": "-1703435696"
         },
         "focusedMemberId": "input",
         "id": "inputs",
-        "variableName": "inputs",
+        "name": "inputs",
         "typeName": "Input[]",
         "kind": "array",
         "category": "parameter",
@@ -44,7 +44,7 @@
       {
         "fields": [],
         "id": "input",
-        "variableName": "input",
+        "name": "input",
         "typeName": "Input",
         "kind": "record",
         "isFocused": true,
@@ -55,13 +55,13 @@
       "member": {
         "fields": [],
         "id": "transform2",
-        "variableName": "<transform2Item>",
+        "name": "<transform2Item>",
         "typeName": "Output",
         "kind": "record",
         "ref": "-1514999486"
       },
       "id": "transform2",
-      "variableName": "transform2",
+      "name": "transform2",
       "typeName": "Output[]",
       "kind": "array",
       "ref": "-1514999486"
@@ -105,7 +105,7 @@
         "fields": [
           {
             "id": "fullName",
-            "variableName": "fullName",
+            "name": "fullName",
             "typeName": "string",
             "kind": "string",
             "optional": true
@@ -118,7 +118,7 @@
         "fields": [
           {
             "id": "firstName",
-            "variableName": "firstName",
+            "name": "firstName",
             "typeName": "string",
             "kind": "string",
             "optional": false
@@ -132,7 +132,7 @@
           {
             "fields": [],
             "id": "user",
-            "variableName": "user",
+            "name": "user",
             "typeName": "User",
             "kind": "record",
             "optional": true,

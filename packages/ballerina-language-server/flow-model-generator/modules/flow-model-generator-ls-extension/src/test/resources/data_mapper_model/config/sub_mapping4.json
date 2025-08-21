@@ -26,23 +26,23 @@
     "inputs": [
       {
         "id": "CONST",
-        "variableName": "CONST",
-        "typeName": "CONST",
-        "kind": "CONST",
+        "name": "CONST",
+        "typeName": "const",
+        "kind": "const",
         "category": "constant"
       },
       {
         "member": {
           "fields": [],
           "id": "userInfo",
-          "variableName": "<userInfoItem>",
+          "name": "<userInfoItem>",
           "typeName": "UserInfo",
           "kind": "record",
           "ref": "-1418772512"
         },
         "focusedMemberId": "user",
         "id": "userInfo",
-        "variableName": "userInfo",
+        "name": "userInfo",
         "typeName": "UserInfo[]",
         "kind": "array",
         "category": "variable",
@@ -51,7 +51,7 @@
       {
         "fields": [],
         "id": "user",
-        "variableName": "user",
+        "name": "user",
         "typeName": "UserInfo",
         "kind": "record",
         "isFocused": true,
@@ -62,13 +62,13 @@
       "member": {
         "fields": [],
         "id": "students",
-        "variableName": "<studentsItem>",
+        "name": "<studentsItem>",
         "typeName": "Student",
         "kind": "record",
         "ref": "-1801106114"
       },
       "id": "students",
-      "variableName": "students",
+      "name": "students",
       "typeName": "Student[]",
       "kind": "array",
       "ref": "-1801106114"
@@ -123,14 +123,14 @@
         "fields": [
           {
             "id": "username",
-            "variableName": "username",
+            "name": "username",
             "typeName": "string",
             "kind": "string",
             "optional": false
           },
           {
             "id": "password",
-            "variableName": "password",
+            "name": "password",
             "typeName": "string",
             "kind": "string",
             "optional": false
@@ -143,14 +143,14 @@
         "fields": [
           {
             "id": "username",
-            "variableName": "username",
+            "name": "username",
             "typeName": "string",
             "kind": "string",
             "optional": false
           },
           {
             "id": "password",
-            "variableName": "password",
+            "name": "password",
             "typeName": "string",
             "kind": "string",
             "optional": false
