@@ -236,16 +236,18 @@ export const FunctionsPage = ({
             </ScrollableContainer>
             <div style={{ marginTop: "auto", gap: '10px' }}>
                 <Divider />
-                <DynamicModal width={500} height={600} anchorRef={anchorRef} title="Dynamic Modal" openState={isModalOpen} setOpenState={setIsModalOpen}>
+                <DynamicModal width={500} height={800} anchorRef={anchorRef} title="Create new Function" openState={isModalOpen} setOpenState={setIsModalOpen}>
                     <DynamicModal.Trigger>
-                        <FooterButtons sx={{ display: 'flex', justifyContent: 'space-between' }} startIcon='add' title="New Function" />
+                        <FooterButtons sx={{ display: 'flex', justifyContent: 'space-between',  overflow: "hidden" }} startIcon='add' title="New Function" />
                     </DynamicModal.Trigger>
-                    <FunctionFormStatic
+                   <ScrollableContainer>
+                     <FunctionFormStatic
                         projectPath={projectUri}
                         filePath={defaultFunctionsFile}
                         functionName={undefined}
                         isDataMapper={false}
                     />
+                   </ScrollableContainer>
                 </DynamicModal>
                 <FooterButtons sx={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px', marginTop: '10px' }} startIcon='add' title="Open Function Browser" onClick={() => setIsLibraryBrowserOpen(true)} />
 

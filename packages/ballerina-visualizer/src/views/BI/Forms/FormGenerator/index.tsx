@@ -50,6 +50,7 @@ import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import {
     Button,
     CompletionItem,
+    DynamicModal,
     FormExpressionEditorRef,
     HelperPaneHeight,
     ThemeColors,
@@ -355,6 +356,10 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
         setFields(updatedFields);
         setTypeEditorState({ isOpen, fieldKey: editingField?.key, newTypeValue: f[editingField?.key] });
     };
+
+    const handleTypeEditorStateChange = (state: boolean) => {
+        setTypeEditorState({ isOpen: state })
+    }
 
     const handleUpdateImports = (key: string, imports: Imports, codedata?: CodeData) => {
         importsCodedataRef.current = codedata;
@@ -690,6 +695,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
     ) => {
         const handleCreateNewType = (typeName: string) => {
             onTypeCreate();
+            console.log("awdadwawdawd")
             setTypeEditorState({ isOpen: true, newTypeValue: typeName, fieldKey: fieldKey });
         }
 
@@ -749,17 +755,24 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
         handleExpressionEditorCancel,
     ]);
 
+    console.log("rerendering...")
+
     const fetchVisualizableFields = async (filePath: string, typeName?: string) => {
         const codedata = importsCodedataRef.current || { symbol: typeName };
         const res = await rpcClient
             .getInlineDataMapperRpcClient()
-            .getVisualizableFields({ filePath, codedata});
+            .getVisualizableFields({ filePath, codedata });
         setVisualizableField(res.visualizableProperties);
         importsCodedataRef.current = {};
     };
 
     const handleTypeCreate = (typeName?: string) => {
-        setTypeEditorState({ isOpen: true, newTypeValue: typeName, fieldKey: typeEditorState.fieldKey });
+        try {
+            setTypeEditorState({ isOpen: false, newTypeValue: typeName, fieldKey: typeEditorState.fieldKey });
+
+        } catch (e) {
+            console.error(e)
+        }
     };
 
     const handleSelectedTypeChange = (type: CompletionItem) => {
@@ -864,8 +877,9 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
     // handle declare variable node form
     if (node?.codedata.node === "VARIABLE") {
         return (
-            <VariableForm
-                 formFields={fields}
+            <>
+                <VariableForm
+                    formFields={fields}
                     projectPath={projectPath}
                     selectedNode={node.codedata.node}
                     openRecordEditor={handleOpenTypeEditor}
@@ -890,9 +904,40 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
                     isInferredReturnType={!!node.codedata?.inferredReturnType}
                     formImports={formImports}
                     handleSelectedTypeChange={handleSelectedTypeChange}
-                    helperPaneZIndex={isInModal? 40001: undefined}
+                    helperPaneZIndex={isInModal ? 40001 : undefined}
                     preserveOrder={node.codedata.node === "VARIABLE" || node.codedata.node === "CONFIG_VARIABLE"}
-            />
+                />
+                {
+                    <DynamicModal
+                        width={420}
+                        height={600}
+                        anchorRef={undefined}
+                        title="Create New Type"
+                        openState={typeEditorState.isOpen}
+                        setOpenState={handleTypeEditorStateChange}>
+                        <DynamicModal.Trigger>
+                            <Button >hahah</Button>
+                        </DynamicModal.Trigger>
+                        <FormTypeEditor
+                            newType={true}
+                            newTypeValue={typeEditorState.newTypeValue}
+                            isGraphql={isGraphql}
+                            onTypeChange={onTypeChange}
+                            onTypeCreate={handleTypeCreate}
+                        />
+                    </DynamicModal>
+                }
+                {typeEditorState.isOpen && (
+                    <PanelContainer title={"New Type"} show={true} onClose={onTypeEditorClosed}>
+                        <FormTypeEditor
+                            newType={true}
+                            newTypeValue={typeEditorState.newTypeValue}
+                            isGraphql={isGraphql}
+                            onTypeChange={onTypeChange}
+                            onTypeCreate={handleTypeCreate}
+                        />
+                    </PanelContainer>
+                )}</>
         );
     }
 
@@ -927,7 +972,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
                     isInferredReturnType={!!node.codedata?.inferredReturnType}
                     formImports={formImports}
                     handleSelectedTypeChange={handleSelectedTypeChange}
-                    helperPaneZIndex={isInModal? 40001: undefined}
+                    helperPaneZIndex={isInModal ? 40001 : undefined}
                     preserveOrder={node.codedata.node === "VARIABLE" || node.codedata.node === "CONFIG_VARIABLE"}
                     scopeFieldAddon={scopeFieldAddon}
                     newServerUrl={newServerUrl}

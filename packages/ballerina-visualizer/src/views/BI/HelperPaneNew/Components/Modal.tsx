@@ -60,9 +60,6 @@ const Title = styled.h1`
     margin-left: 20px;
     margin-top: 10px;
     margin-bottom: 10px;
-    position: absolute;
-    top: 8px;
-    left: 8px;
 `;
 
 type TriggerProps = React.ButtonHTMLAttributes<HTMLButtonElement> & { children: ReactNode };
@@ -112,7 +109,7 @@ const DynamicModal: React.FC<DynamicModalProps> & { Trigger: typeof Trigger } = 
                             <Codicon name="close" />
                         </InvisibleButton>
                         <Title>{title}</Title>
-                        <Divider sx={{marginTop: "40px"}}/>
+                        <Divider/>
                         <div>{content}</div>
                     </ModalBox>
                 </Overlay>,
