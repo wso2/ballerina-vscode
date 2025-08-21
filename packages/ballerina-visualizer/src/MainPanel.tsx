@@ -343,6 +343,7 @@ const MainPanel = () => {
                                 filePath={value.documentUri}
                                 codedata={value?.dataMapperMetadata?.codeData}
                                 varName={value?.identifier}
+                                projectUri={value.projectUri}
                                 position={position}
                                 reusable
                             />

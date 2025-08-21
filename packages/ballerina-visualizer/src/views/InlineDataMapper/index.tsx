@@ -28,6 +28,7 @@ export interface InlineDataMapperProps {
     filePath: string;
     codedata: CodeData;
     varName: string;
+    projectUri?: string;
     position?: LinePosition;
     reusable?: boolean;
 }

@@ -17,7 +17,7 @@
  */
 
 
-import React, { useEffect, useState, useRef, useCallback } from "react";
+import React, { useEffect, useState, useRef, useCallback, useMemo } from "react";
 import debounce from "lodash/debounce";
 
 import {
@@ -53,6 +53,7 @@ import { InlineDataMapperProps } from ".";
 import { EXPRESSION_EXTRACTION_REGEX } from "../../constants";
 import { calculateExpressionOffsets, convertBalCompletion, updateLineRange } from "../../utils/bi";
 import { createAddSubMappingRequest } from "./utils";
+import { FunctionForm } from "../BI/FunctionForm";
 
 // Types for model comparison
 interface ModelSignature {
@@ -63,7 +64,7 @@ interface ModelSignature {
 }
 
 export function InlineDataMapperView(props: InlineDataMapperProps) {
-    const { filePath, codedata, varName, position, reusable } = props;
+    const { filePath, codedata, varName, projectUri, position, reusable } = props;
 
     const [isFileUpdateError, setIsFileUpdateError] = useState(false);
     const [modelState, setModelState] = useState<ModelState>({
@@ -145,7 +146,19 @@ export function InlineDataMapperView(props: InlineDataMapperProps) {
         }
 
         prevSignatureRef.current = currentSignature;
+
     }, [model]);
+
+    const hasInputs = useMemo(
+        () => modelState.model?.inputs?.length > 0,
+        [modelState]
+    );
+
+    const hasOutputs = useMemo(
+        () => !!modelState.model?.output,
+        [modelState]
+    );
+
 
     const onClose = () => {
         rpcClient.getVisualizerRpcClient()?.goBack();
@@ -418,7 +431,7 @@ export function InlineDataMapperView(props: InlineDataMapperProps) {
                     .sort((a, b) => a.sortText.localeCompare(b.sortText));
             } else {
                 const { property } = await rpcClient.getInlineDataMapperRpcClient().getProperty({
-                    filePath: filePath,
+                    filePath,
                     codedata: viewState.codedata,
                     propertyKey: "expression", // TODO: Remove this once the API is updated
                     targetField: viewId,
@@ -487,30 +500,41 @@ export function InlineDataMapperView(props: InlineDataMapperProps) {
                 <ProgressIndicator />
             )}
             {modelState.model && (
-                <DataMapperView
-                    modelState={modelState}
-                    name={varName}
-                    onClose={onClose}
-                    onEdit={reusable ? onEdit : undefined}
-                    applyModifications={updateExpression}
-                    addArrayElement={addArrayElement}
-                    handleView={handleView}
-                    generateForm={generateForm}
-                    convertToQuery={convertToQuery}
-                    addClauses={addClauses}
-                    addSubMapping={addSubMapping}
-                    deleteMapping={deleteMapping}
-                    mapWithCustomFn={mapWithCustomFn}
-                    goToFunction={goToFunction}
-                    expressionBar={{
-                        completions: filteredCompletions,
-                        isUpdatingSource,
-                        triggerCompletions: retrieveCompeletions,
-                        onCompletionSelect: handleCompletionSelect,
-                        onSave: updateExprFromExprBar,
-                        onCancel: handleExpressionCancel,
-                    }}
-                />
+                <>
+                    {reusable && (!hasInputs || !hasOutputs) ? (
+                        <FunctionForm
+                            projectPath={projectUri}
+                            filePath={filePath}
+                            functionName={modelState.model.output.variableName}
+                            isDataMapper={true}
+                        />
+                    ) : (
+                        <DataMapperView
+                            modelState={modelState}
+                            name={varName}
+                            onClose={onClose}
+                            onEdit={reusable ? onEdit : undefined}
+                            applyModifications={updateExpression}
+                            addArrayElement={addArrayElement}
+                            handleView={handleView}
+                            generateForm={generateForm}
+                            convertToQuery={convertToQuery}
+                            addClauses={addClauses}
+                            addSubMapping={addSubMapping}
+                            deleteMapping={deleteMapping}
+                            mapWithCustomFn={mapWithCustomFn}
+                            goToFunction={goToFunction}
+                            expressionBar={{
+                                completions: filteredCompletions,
+                                isUpdatingSource,
+                                triggerCompletions: retrieveCompeletions,
+                                onCompletionSelect: handleCompletionSelect,
+                                onSave: updateExprFromExprBar,
+                                onCancel: handleExpressionCancel,
+                            }}
+                        />
+                    )}
+                </>
             )}
         </>
     );
