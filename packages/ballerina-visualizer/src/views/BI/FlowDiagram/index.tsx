@@ -984,7 +984,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
 
         if (openInDataMapper) {
             rpcClient
-                .getInlineDataMapperRpcClient()
+                .getDataMapperRpcClient()
                 .getInitialIDMSource({
                     filePath: model.fileName,
                     flowNode: updatedNode,

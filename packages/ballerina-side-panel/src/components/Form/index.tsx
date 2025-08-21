@@ -480,33 +480,6 @@ export const Form = forwardRef((props: FormProps, ref) => {
         }
     }, [formFields, reset]);
 
-    useEffect(() => {
-        if (updatedExpressionField) {
-            if (subPanelView === SubPanelView.INLINE_DATA_MAPPER) {
-                const { key, value } = updatedExpressionField;
-                // Update the form field value
-                setValue(key, value);
-                resetUpdatedExpressionField && resetUpdatedExpressionField();
-                // Update the inline data mapper view
-                handleOpenSubPanel({
-                    view: SubPanelView.INLINE_DATA_MAPPER,
-                    props: {
-                        inlineDataMapper: {
-                            filePath: fileName,
-                            flowNode: undefined,
-                            position: {
-                                line: updatedExpressionField.cursorPosition.line,
-                                offset: updatedExpressionField.cursorPosition.offset,
-                            },
-                            propertyKey: updatedExpressionField.key,
-                            editorKey: updatedExpressionField.key,
-                        },
-                    },
-                });
-            }
-        }
-    }, [updatedExpressionField]);
-
     const handleOnSave = (data: FormValues) => {
         console.log(">>> saved form fields", { data });
         onSubmit && onSubmit(data, dirtyFields);
@@ -542,25 +515,6 @@ export const Form = forwardRef((props: FormProps, ref) => {
     const handleSetDiagnosticsInfo = (diagnostics: FormDiagnostics) => {
         const otherDiagnostics = diagnosticsInfo?.filter((item) => item.key !== diagnostics.key) || [];
         setDiagnosticsInfo([...otherDiagnostics, diagnostics]);
-    };
-
-    const handleOpenSubPanel = (subPanel: SubPanel) => {
-        let updatedSubPanel = subPanel;
-        if (subPanel.view === SubPanelView.INLINE_DATA_MAPPER) {
-            const flowNode = mergeFormDataWithFlowNode(getValues(), targetLineRange);
-            const inlineDMProps = {
-                ...subPanel.props.inlineDataMapper,
-                flowNode: flowNode,
-            };
-            updatedSubPanel = {
-                ...subPanel,
-                props: {
-                    ...subPanel.props,
-                    inlineDataMapper: inlineDMProps,
-                },
-            };
-        }
-        openSubPanel(updatedSubPanel);
     };
 
     const handleOnTypeChange = () => {
@@ -791,7 +745,6 @@ export const Form = forwardRef((props: FormProps, ref) => {
                                             openRecordEditor &&
                                             ((open: boolean) => handleOpenRecordEditor(open, updatedField))
                                         }
-                                        openSubPanel={handleOpenSubPanel}
                                         subPanelView={subPanelView}
                                         handleOnFieldFocus={handleOnFieldFocus}
                                         autoFocus={firstEditableFieldIndex === formFields.indexOf(updatedField)}
@@ -864,7 +817,6 @@ export const Form = forwardRef((props: FormProps, ref) => {
                                                 openRecordEditor &&
                                                 ((open: boolean) => handleOpenRecordEditor(open, updatedField))
                                             }
-                                            openSubPanel={handleOpenSubPanel}
                                             subPanelView={subPanelView}
                                             handleOnFieldFocus={handleOnFieldFocus}
                                             recordTypeFields={recordTypeFields}
@@ -894,7 +846,6 @@ export const Form = forwardRef((props: FormProps, ref) => {
                                 openRecordEditor={
                                     openRecordEditor && ((open: boolean) => handleOpenRecordEditor(open, typeField))
                                 }
-                                openSubPanel={handleOpenSubPanel}
                                 handleOnFieldFocus={handleOnFieldFocus}
                                 handleOnTypeChange={handleOnTypeChange}
                                 recordTypeFields={recordTypeFields}

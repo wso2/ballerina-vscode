@@ -19,7 +19,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useRpcContext } from '@wso2/ballerina-rpc-client';
 import { IDMViewState, LinePosition } from '@wso2/ballerina-core';
 
-export const useInlineDataMapperModel = (
+export const useDataMapperModel = (
     filePath: string,
     viewState: IDMViewState,
     position?: LinePosition
@@ -40,7 +40,7 @@ export const useInlineDataMapperModel = (
                 }
             };
             const res = await rpcClient
-                .getInlineDataMapperRpcClient()
+                .getDataMapperRpcClient()
                 .getDataMapperModel(modelParams);
 
             console.log('>>> [Inline Data Mapper] Model:', res);
