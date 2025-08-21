@@ -343,7 +343,6 @@ export interface FormProps {
     formImports?: FormImports;
     preserveOrder?: boolean;
     handleSelectedTypeChange?: (type: CompletionItem) => void;
-    helperPaneZIndex?:number;
     scopeFieldAddon?: React.ReactNode;
     newServerUrl?: string;
     onChange?: (fieldKey: string, value: any, allValues: FormValues) => void;
@@ -389,7 +388,6 @@ export const Form = forwardRef((props: FormProps, ref) => {
         formImports,
         preserveOrder = false,
         handleSelectedTypeChange,
-        helperPaneZIndex,
         scopeFieldAddon,
         newServerUrl,
         mcpTools,
