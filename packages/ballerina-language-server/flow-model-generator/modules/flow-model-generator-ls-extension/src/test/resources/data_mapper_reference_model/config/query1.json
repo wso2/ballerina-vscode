@@ -38,7 +38,7 @@
         "variableName": "secondaryPhonesItem",
         "typeName": "string",
         "kind": "string",
-        "isFocused": true
+        "focusExpression": "u.info.secondaryPhones"
       }
     ],
     "output": {
