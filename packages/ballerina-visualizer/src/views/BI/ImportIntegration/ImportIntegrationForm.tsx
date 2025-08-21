@@ -16,69 +16,27 @@
  * under the License.
  */
 
-import styled from "@emotion/styled";
-import { DownloadProgress } from "@wso2/ballerina-core";
+import { MigrationTool } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { Button, CheckBox, Icon, TextField, Typography } from "@wso2/ui-toolkit";
 import { useState } from "react";
-import { FinalIntegrationParams } from ".";
 import ButtonCard from "../../../components/ButtonCard";
 import { LoadingRing } from "../../../components/Loader";
 import { BodyText, LoadingOverlayContainer } from "../../styles";
-import { MigrationTool } from "@wso2/ballerina-core";
+import {
+    ButtonWrapper,
+    IntegrationCardGrid,
+    ParameterItem,
+    ParametersSection,
+    PathText,
+} from "./styles";
+import { FinalIntegrationParams, ImportIntegrationFormProps } from "./types";
+import {
+    IMPORT_DISABLED_TOOLTIP,
+    IMPORT_ENABLED_TOOLTIP,
+    SELECTION_TEXT,
+} from "./utils";
 
-const SELECTION_TEXT = "To begin, choose a source platform from the options above.";
-const IMPORT_DISABLED_TOOLTIP = "Please select a source project from the options above to continue.";
-const IMPORT_ENABLED_TOOLTIP = "Begin converting your selected project and view the progress.";
-
-const IntegrationCardGrid = styled.div`
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    margin: 20px 0;
-`;
-
-const ButtonWrapper = styled.div`
-    margin-top: 20px;
-    display: flex;
-    justify-content: flex-end;
-`;
-
-const ParametersSection = styled.div`
-    margin: 20px 0;
-    padding: 16px;
-    border: 1px solid var(--vscode-input-border);
-    border-radius: 4px;
-    background-color: var(--vscode-editor-background);
-`;
-
-const PathText = styled.div`
-    font-family: var(--vscode-editor-font-family);
-    padding: 4px 0;
-    opacity: 0.8;
-`;
-
-const ParameterItem = styled.div`
-    margin-bottom: 12px;
-    &:last-child {
-        margin-bottom: 0;
-    }
-`;
-
-interface FormProps {
-    selectedIntegration: MigrationTool | null;
-    migrationTools: MigrationTool[];
-    pullIntegrationTool: (integrationType: string) => void;
-    pullingTool: boolean;
-    toolPullProgress: DownloadProgress | null;
-    setImportParams: (params: FinalIntegrationParams) => void;
-    onSelectIntegration: (selectedIntegration: MigrationTool) => void;
-    handleStartImport: (
-        importParams: FinalIntegrationParams,
-        selectedIntegration: MigrationTool,
-        toolPullProgress: DownloadProgress
-    ) => void;
-}
 
 export function ImportIntegrationForm({
     selectedIntegration,
@@ -89,7 +47,7 @@ export function ImportIntegrationForm({
     pullingTool,
     toolPullProgress,
     handleStartImport,
-}: FormProps) {
+}: ImportIntegrationFormProps) {
     const { rpcClient } = useRpcContext();
 
     const [importSourcePath, setImportSourcePath] = useState("");

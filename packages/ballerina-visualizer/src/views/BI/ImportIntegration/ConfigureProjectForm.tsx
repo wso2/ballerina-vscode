@@ -1,61 +1,20 @@
-import styled from "@emotion/styled";
-import { Button, Codicon, FormContainer, LocationSelector, TextField, Tooltip, Typography } from "@wso2/ui-toolkit";
-import { useEffect, useState } from "react";
-import { sanitizeProjectName } from "../ProjectForm";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
+import { Button, FormContainer, LocationSelector, TextField, Tooltip, Typography } from "@wso2/ui-toolkit";
+import { useEffect, useState } from "react";
 import { BodyText } from "../../styles";
+import {
+    ButtonWrapper,
+    InputPreviewWrapper,
+    LocationSelectorWrapper,
+    PreviewContainer,
+    PreviewIcon,
+    PreviewText,
+} from "./styles";
+import { ConfigureProjectFormProps } from "./types";
+import { sanitizeProjectName } from "./utils";
 
-const ButtonWrapper = styled.div`
-    margin-top: 20px;
-    display: flex;
-    justify-content: flex-end;
-`;
 
-const InputPreviewWrapper = styled.div`
-    display: flex;
-    flex-direction: column;
-    gap: 3px;
-    margin: 20px 0;
-`;
-
-const PreviewText = styled(Typography)`
-    color: var(--vscode-sideBarTitle-foreground);
-    opacity: 0.5;
-    font-family: var(--vscode-editor-font-family, "Monaco", "Menlo", "Ubuntu Mono", monospace);
-    word-break: break-all;
-    min-width: 100px;
-    display: flex;
-    align-items: center;
-    line-height: 1;
-`;
-
-const PreviewIcon = styled(Codicon)`
-    display: flex;
-    align-items: center;
-`;
-
-const PreviewContainer = styled.div`
-    border: 1px solid var(--vscode-input-border);
-    border-radius: 4px;
-    padding: 8px 12px;
-    display: inline-flex;
-    align-items: center;
-    width: fit-content;
-    height: 28px;
-    gap: 8px;
-    background-color: var(--vscode-editor-background);
-    * {
-        cursor: default !important;
-    }
-`;
-const LocationSelectorWrapper = styled.div`
-    margin-top: 20px;
-`;
-interface FormProps {
-    onNext: (projectName: string, projectPath: string) => void;
-}
-
-export function ConfigureProjectForm({ onNext }: FormProps) {
+export function ConfigureProjectForm({ onNext }: ConfigureProjectFormProps) {
     const { rpcClient } = useRpcContext();
     const [name, setName] = useState("");
     const [path, setPath] = useState("");
