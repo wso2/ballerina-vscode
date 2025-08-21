@@ -103,7 +103,7 @@ import { getAccessToken, getLoginMethod, getRefreshedAccessToken, loginGithubCop
 import { modifyFileContent, writeBallerinaFileDidOpen } from "../../utils/modification";
 import { updateSourceCode } from "../../utils/source-utils";
 import { PARSING_ERROR, UNKNOWN_ERROR } from "../../views/ai-panel/errorCodes";
-import { refreshDataMapper, updateAndRefreshDataMapper } from "../inline-data-mapper/utils";
+import { refreshDataMapper, updateAndRefreshDataMapper } from "../data-mapper/utils";
 import {
     DEVELOPMENT_DOCUMENT,
     NATURAL_PROGRAMMING_DIR_NAME, REQUIREMENT_DOC_PREFIX,
