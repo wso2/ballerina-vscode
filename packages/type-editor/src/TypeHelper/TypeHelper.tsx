@@ -243,7 +243,7 @@ export const TypeHelperComponent = (props: TypeHelperComponentProps) => {
     return (
         <HelperPaneCustom >
             <SlidingWindow>
-                <HelperPane.Body>
+                <HelperPane.Body sx={{padding: '10px'}}>
                     <SearchBox sx={{ width: "100%", marginBottom: '10px' }} placeholder='Search' value={searchValue} onChange={handleHelperPaneSearch} />
                     {loading ? (
                         <HelperPane.Loader rows={3} columns={1} sections={3} />
