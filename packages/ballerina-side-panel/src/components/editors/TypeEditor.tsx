@@ -298,6 +298,7 @@ export function TypeEditor(props: TypeEditorProps) {
                             placeholder={field.placeholder}
                             autoFocus={autoFocus}
                             sx={{ paddingInline: '0' }}
+                            helperPaneZIndex={40001}
                         />
                         {error?.message && <ErrorBanner errorMsg={error.message.toString()} />}
                     </div>
