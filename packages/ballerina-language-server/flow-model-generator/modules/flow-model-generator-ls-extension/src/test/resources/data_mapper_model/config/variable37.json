@@ -26,7 +26,7 @@
       {
         "fields": [],
         "id": "user",
-        "variableName": "user",
+        "name": "user",
         "typeName": "User",
         "kind": "record",
         "category": "parameter",
@@ -37,13 +37,13 @@
       "member": {
         "fields": [],
         "id": "users4",
-        "variableName": "<users4Item>",
+        "name": "<users4Item>",
         "typeName": "User4",
         "kind": "record",
         "ref": "-1258898922"
       },
       "id": "users4",
-      "variableName": "users4",
+      "name": "users4",
       "typeName": "User4[]",
       "kind": "array",
       "ref": "-1258898922"
@@ -137,14 +137,14 @@
         "fields": [
           {
             "id": "account",
-            "variableName": "account",
+            "name": "account",
             "typeName": "string",
             "kind": "string",
             "optional": false
           },
           {
             "id": "balance",
-            "variableName": "balance",
+            "name": "balance",
             "typeName": "decimal",
             "kind": "decimal",
             "optional": false
@@ -158,7 +158,7 @@
           {
             "fields": [],
             "id": "user5",
-            "variableName": "user5",
+            "name": "user5",
             "typeName": "User5",
             "kind": "record",
             "optional": false,
@@ -168,13 +168,13 @@
             "member": {
               "fields": [],
               "id": "users6",
-              "variableName": "<users6Item>",
+              "name": "<users6Item>",
               "typeName": "User6",
               "kind": "record",
               "ref": "-539589308"
             },
             "id": "users6",
-            "variableName": "users6",
+            "name": "users6",
             "typeName": "User6[]",
             "kind": "array",
             "optional": false,
@@ -188,7 +188,7 @@
         "fields": [
           {
             "id": "name",
-            "variableName": "name",
+            "name": "name",
             "typeName": "string",
             "kind": "string",
             "optional": false
@@ -202,12 +202,12 @@
           {
             "member": {
               "id": "u",
-              "variableName": "<uItem>",
+              "name": "<uItem>",
               "typeName": "string",
               "kind": "string"
             },
             "id": "u",
-            "variableName": "u",
+            "name": "u",
             "typeName": "string[]",
             "kind": "array",
             "optional": false

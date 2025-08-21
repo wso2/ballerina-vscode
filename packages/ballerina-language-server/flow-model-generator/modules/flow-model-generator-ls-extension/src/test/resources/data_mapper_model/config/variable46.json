@@ -27,7 +27,7 @@
       {
         "fields": [],
         "id": "v1",
-        "variableName": "v1",
+        "name": "v1",
         "typeName": "MyType",
         "kind": "record",
         "category": "variable",
@@ -35,7 +35,7 @@
       },
       {
         "id": "kItem",
-        "variableName": "kItem",
+        "name": "kItem",
         "typeName": "string",
         "kind": "string",
         "isFocused": true
@@ -43,7 +43,7 @@
     ],
     "output": {
       "id": "i",
-      "variableName": "i",
+      "name": "i",
       "typeName": "string",
       "kind": "string"
     },
@@ -87,19 +87,19 @@
           {
             "member": {
               "id": "k",
-              "variableName": "<kItem>",
+              "name": "<kItem>",
               "typeName": "string",
               "kind": "string"
             },
             "id": "k",
-            "variableName": "k",
+            "name": "k",
             "typeName": "string[]",
             "kind": "array",
             "optional": false
           },
           {
             "id": "i",
-            "variableName": "i",
+            "name": "i",
             "typeName": "string",
             "kind": "string",
             "optional": false

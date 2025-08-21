@@ -26,7 +26,7 @@
       {
         "fields": [],
         "id": "dog",
-        "variableName": "dog",
+        "name": "dog",
         "typeName": "Dog",
         "kind": "record",
         "category": "local-variable",
@@ -35,7 +35,7 @@
       {
         "fields": [],
         "id": "elephant",
-        "variableName": "elephant",
+        "name": "elephant",
         "typeName": "Elephant",
         "kind": "record",
         "category": "local-variable",
@@ -45,7 +45,7 @@
     "output": {
       "fields": [],
       "id": "animalType",
-      "variableName": "animalType",
+      "name": "animalType",
       "typeName": "AnimalType",
       "kind": "record",
       "ref": "880769318"
@@ -59,7 +59,7 @@
               {
                 "fields": [],
                 "id": "animal.record",
-                "variableName": "record",
+                "name": "record",
                 "typeName": "Dog",
                 "kind": "record",
                 "ref": "-27067364"
@@ -67,14 +67,14 @@
               {
                 "fields": [],
                 "id": "animal.record",
-                "variableName": "record",
+                "name": "record",
                 "typeName": "Elephant",
                 "kind": "record",
                 "ref": "252136892"
               }
             ],
             "id": "animal",
-            "variableName": "animal",
+            "name": "animal",
             "typeName": "Animal",
             "kind": "union",
             "optional": false,
@@ -88,14 +88,14 @@
         "fields": [
           {
             "id": "name",
-            "variableName": "name",
+            "name": "name",
             "typeName": "string",
             "kind": "string",
             "optional": false
           },
           {
             "id": "cast",
-            "variableName": "cast",
+            "name": "cast",
             "typeName": "string",
             "kind": "string",
             "optional": false
@@ -108,14 +108,14 @@
         "fields": [
           {
             "id": "name",
-            "variableName": "name",
+            "name": "name",
             "typeName": "string",
             "kind": "string",
             "optional": false
           },
           {
             "id": "breed",
-            "variableName": "breed",
+            "name": "breed",
             "typeName": "string",
             "kind": "string",
             "optional": false

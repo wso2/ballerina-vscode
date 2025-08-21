@@ -378,7 +378,7 @@ public class DataMapManager {
         String varName = CommonUtils.getVariableName(((VariableDeclarationNode) parentNode).typedBindingPattern());
         List<MappingPort> newInputPorts = new ArrayList<>();
         for (MappingPort inputPort : inputPorts) {
-            if (!inputPort.variableName.equals(varName)) {
+            if (!inputPort.name.equals(varName)) {
                 newInputPorts.add(inputPort);
             }
         }
@@ -932,8 +932,8 @@ public class DataMapManager {
                 ArrayType arrayType = (ArrayType) type;
                 MappingPort memberPort = getMappingPort(isInputPort ? id + ".0" : id, getItemName(name),
                         arrayType.memberType, isInputPort, visitedTypes);
-                if (memberPort != null && memberPort.variableName == null) {
-                    memberPort.variableName = getItemName(name);
+                if (memberPort != null && memberPort.name == null) {
+                    memberPort.name = getItemName(name);
                 }
                 MappingArrayPort arrayPort = new MappingArrayPort(id, name, memberPort == null ? "record" :
                         memberPort.typeName + "[]", type.getTypeName(), type.optional);
@@ -1022,8 +1022,8 @@ public class DataMapManager {
                 if (type instanceof RefArrayType arrayType) {
                     MappingPort memberPort = getRefMappingPort(id, getItemName(name), arrayType.elementType,
                             isInputPort, visitedTypes, references);
-                    if (memberPort != null && memberPort.variableName == null) {
-                        memberPort.variableName = getItemName(name);
+                    if (memberPort != null && memberPort.name == null) {
+                        memberPort.name = getItemName(name);
                     }
                     MappingArrayPort arrayPort = new MappingArrayPort(id, name, memberPort == null ? "record" :
                             memberPort.typeName + "[]", type.typeName, type.hashCode);
@@ -2343,7 +2343,7 @@ public class DataMapManager {
 
     private static class MappingPort {
         String id;
-        String variableName;
+        String name;
         String typeName;
         String kind;
         String category;
@@ -2362,24 +2362,24 @@ public class DataMapManager {
             this.typeName = typeName;
         }
 
-        MappingPort(String id, String variableName, String typeName, String kind, Boolean optional) {
+        MappingPort(String id, String name, String typeName, String kind, Boolean optional) {
             this.id = id;
-            this.variableName = variableName;
+            this.name = name;
             this.typeName = typeName;
             this.kind = kind;
             this.optional = optional;
         }
 
-        MappingPort(String id, String variableName, String typeName, String kind) {
+        MappingPort(String id, String name, String typeName, String kind) {
             this.id = id;
-            this.variableName = variableName;
+            this.name = name;
             this.typeName = typeName;
             this.kind = kind;
         }
 
-        MappingPort(String id, String variableName, String typeName, String kind, String reference) {
+        MappingPort(String id, String name, String typeName, String kind, String reference) {
             this.id = id;
-            this.variableName = variableName;
+            this.name = name;
             this.typeName = typeName;
             this.kind = kind;
             this.ref = reference;
@@ -2397,12 +2397,12 @@ public class DataMapManager {
             this.kind = kind;
         }
 
-        String getVariableName() {
-            return this.variableName;
+        String getName() {
+            return this.name;
         }
 
-        void setVariableName(String variableName) {
-            this.variableName = variableName;
+        void setName(String Name) {
+            this.name = name;
         }
 
         void setIsFocused(Boolean isFocused) {
@@ -2437,20 +2437,20 @@ public class DataMapManager {
     private static class MappingRecordPort extends MappingPort {
         List<MappingPort> fields = new ArrayList<>();
 
-        MappingRecordPort(String id, String variableName, String typeName, String kind) {
-            super(id, variableName, typeName, kind);
+        MappingRecordPort(String id, String name, String typeName, String kind) {
+            super(id, name, typeName, kind);
         }
 
-        MappingRecordPort(String id, String variableName, String typeName, String kind, String reference) {
-            super(id, variableName, typeName, kind, reference);
+        MappingRecordPort(String id, String name, String typeName, String kind, String reference) {
+            super(id, name, typeName, kind, reference);
         }
 
-        MappingRecordPort(String id, String variableName, String typeName, String kind, Boolean optional) {
-            super(id, variableName, typeName, kind, optional);
+        MappingRecordPort(String id, String name, String typeName, String kind, Boolean optional) {
+            super(id, name, typeName, kind, optional);
         }
 
         MappingRecordPort(MappingRecordPort mappingRecordPort) {
-            super(mappingRecordPort.id, mappingRecordPort.variableName, mappingRecordPort.typeName,
+            super(mappingRecordPort.id, mappingRecordPort.name, mappingRecordPort.typeName,
                     mappingRecordPort.kind, mappingRecordPort.ref);
         }
 
@@ -2465,12 +2465,12 @@ public class DataMapManager {
         MappingPort member;
         String focusedMemberId;
 
-        MappingArrayPort(String id, String variableName, String typeName, String kind, Boolean optional) {
-            super(id, variableName, typeName, kind, optional);
+        MappingArrayPort(String id, String name, String typeName, String kind, Boolean optional) {
+            super(id, name, typeName, kind, optional);
         }
 
-        MappingArrayPort(String id, String variableName, String typeName, String kind, String reference) {
-            super(id, variableName, typeName, kind, reference);
+        MappingArrayPort(String id, String name, String typeName, String kind, String reference) {
+            super(id, name, typeName, kind, reference);
         }
 
         void setMember(MappingPort member) {
@@ -2493,24 +2493,24 @@ public class DataMapManager {
     private static class MappingEnumPort extends MappingPort {
         List<MappingPort> members = new ArrayList<>();
 
-        MappingEnumPort(String id, String variableName, String typeName, String kind, Boolean optional) {
-            super(id, variableName, typeName, kind, optional);
+        MappingEnumPort(String id, String name, String typeName, String kind, Boolean optional) {
+            super(id, name, typeName, kind, optional);
         }
 
-        MappingEnumPort(String id, String variableName, String typeName, String kind, String reference) {
-            super(id, variableName, typeName, kind, reference);
+        MappingEnumPort(String id, String name, String typeName, String kind, String reference) {
+            super(id, name, typeName, kind, reference);
         }
     }
 
     private static class MappingUnionPort extends MappingPort {
         List<MappingPort> members = new ArrayList<>();
 
-        MappingUnionPort(String id, String variableName, String typeName, String kind, Boolean optional) {
-            super(id, variableName, typeName, kind, optional);
+        MappingUnionPort(String id, String name, String typeName, String kind, Boolean optional) {
+            super(id, name, typeName, kind, optional);
         }
 
-        MappingUnionPort(String id, String variableName, String typeName, String kind, String reference) {
-            super(id, variableName, typeName, kind, reference);
+        MappingUnionPort(String id, String name, String typeName, String kind, String reference) {
+            super(id, name, typeName, kind, reference);
         }
     }
 

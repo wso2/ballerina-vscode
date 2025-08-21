@@ -25,7 +25,7 @@
     "inputs": [
       {
         "id": "AGE",
-        "variableName": "AGE",
+        "name": "AGE",
         "typeName": "const",
         "kind": "const",
         "category": "constant"
@@ -33,7 +33,7 @@
     ],
     "output": {
       "id": "myAge",
-      "variableName": "myAge",
+      "name": "myAge",
       "typeName": "int",
       "kind": "int"
     },

@@ -25,7 +25,7 @@
     "inputs": [
       {
         "id": "CONST",
-        "variableName": "CONST",
+        "name": "CONST",
         "typeName": "const",
         "kind": "const",
         "category": "constant"
@@ -34,13 +34,13 @@
         "member": {
           "fields": [],
           "id": "credentials",
-          "variableName": "<credentialsItem>",
+          "name": "<credentialsItem>",
           "typeName": "Credentials",
           "kind": "record",
           "ref": "1085256861"
         },
         "id": "credentials",
-        "variableName": "credentials",
+        "name": "credentials",
         "typeName": "Credentials[]",
         "kind": "array",
         "category": "local-variable",
@@ -50,13 +50,13 @@
         "member": {
           "fields": [],
           "id": "userInfo",
-          "variableName": "<userInfoItem>",
+          "name": "<userInfoItem>",
           "typeName": "UserInfo",
           "kind": "record",
           "ref": "-1418772512"
         },
         "id": "userInfo",
-        "variableName": "userInfo",
+        "name": "userInfo",
         "typeName": "UserInfo[]",
         "kind": "array",
         "category": "local-variable",
@@ -66,7 +66,7 @@
     "output": {
       "fields": [],
       "id": "student",
-      "variableName": "student",
+      "name": "student",
       "typeName": "Student",
       "kind": "record",
       "ref": "-312915975"
@@ -130,14 +130,14 @@
         "fields": [
           {
             "id": "username",
-            "variableName": "username",
+            "name": "username",
             "typeName": "string",
             "kind": "string",
             "optional": false
           },
           {
             "id": "password",
-            "variableName": "password",
+            "name": "password",
             "typeName": "string",
             "kind": "string",
             "optional": false
@@ -150,7 +150,7 @@
         "fields": [
           {
             "id": "id",
-            "variableName": "id",
+            "name": "id",
             "typeName": "int",
             "kind": "int",
             "optional": false
@@ -159,13 +159,13 @@
             "member": {
               "fields": [],
               "id": "credentials",
-              "variableName": "<credentialsItem>",
+              "name": "<credentialsItem>",
               "typeName": "Credentials",
               "kind": "record",
               "ref": "1085256861"
             },
             "id": "credentials",
-            "variableName": "credentials",
+            "name": "credentials",
             "typeName": "Credentials[]",
             "kind": "array",
             "optional": false,
@@ -173,7 +173,7 @@
           },
           {
             "id": "length",
-            "variableName": "length",
+            "name": "length",
             "typeName": "int",
             "kind": "int",
             "optional": false
@@ -186,14 +186,14 @@
         "fields": [
           {
             "id": "username",
-            "variableName": "username",
+            "name": "username",
             "typeName": "string",
             "kind": "string",
             "optional": false
           },
           {
             "id": "password",
-            "variableName": "password",
+            "name": "password",
             "typeName": "string",
             "kind": "string",
             "optional": false

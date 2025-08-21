@@ -26,7 +26,7 @@
       {
         "fields": [],
         "id": "std",
-        "variableName": "std",
+        "name": "std",
         "typeName": "Student",
         "kind": "record",
         "category": "local-variable",
@@ -36,7 +36,7 @@
     "output": {
       "fields": [],
       "id": "var1909",
-      "variableName": "var1909",
+      "name": "var1909",
       "typeName": "Person",
       "kind": "record",
       "ref": "-1781951605"
@@ -70,21 +70,21 @@
         "fields": [
           {
             "id": "firstName",
-            "variableName": "firstName",
+            "name": "firstName",
             "typeName": "string",
             "kind": "string",
             "optional": false
           },
           {
             "id": "lastName",
-            "variableName": "lastName",
+            "name": "lastName",
             "typeName": "string",
             "kind": "string",
             "optional": false
           },
           {
             "id": "stdAge",
-            "variableName": "stdAge",
+            "name": "stdAge",
             "typeName": "int",
             "kind": "int",
             "optional": false
@@ -98,7 +98,7 @@
           {
             "fields": [],
             "id": "bar",
-            "variableName": "bar",
+            "name": "bar",
             "typeName": "Student",
             "kind": "record",
             "optional": false,
@@ -112,21 +112,21 @@
         "fields": [
           {
             "id": "name",
-            "variableName": "name",
+            "name": "name",
             "typeName": "string",
             "kind": "string",
             "optional": false
           },
           {
             "id": "age",
-            "variableName": "age",
+            "name": "age",
             "typeName": "int",
             "kind": "int",
             "optional": false
           },
           {
             "id": "city",
-            "variableName": "city",
+            "name": "city",
             "typeName": "string",
             "kind": "string",
             "optional": false
@@ -134,7 +134,7 @@
           {
             "fields": [],
             "id": "foo",
-            "variableName": "foo",
+            "name": "foo",
             "typeName": "",
             "kind": "record",
             "optional": false,

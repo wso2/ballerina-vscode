@@ -26,7 +26,7 @@
     "inputs": [
       {
         "id": "CONST",
-        "variableName": "CONST",
+        "name": "CONST",
         "typeName": "const",
         "kind": "const",
         "category": "constant"
@@ -34,7 +34,7 @@
       {
         "fields": [],
         "id": "bank",
-        "variableName": "bank",
+        "name": "bank",
         "typeName": "Bank",
         "kind": "record",
         "category": "variable",
@@ -45,14 +45,14 @@
         "member": {
           "fields": [],
           "id": "banks",
-          "variableName": "<banksItem>",
+          "name": "<banksItem>",
           "typeName": "Bank",
           "kind": "record",
           "ref": "668760670"
         },
         "focusedMemberId": "bank",
         "id": "banks",
-        "variableName": "banks",
+        "name": "banks",
         "typeName": "Bank[]",
         "kind": "array",
         "category": "variable",
@@ -62,13 +62,13 @@
         "member": {
           "fields": [],
           "id": "userInfo",
-          "variableName": "<userInfoItem>",
+          "name": "<userInfoItem>",
           "typeName": "UserInfo",
           "kind": "record",
           "ref": "-481592369"
         },
         "id": "userInfo",
-        "variableName": "userInfo",
+        "name": "userInfo",
         "typeName": "UserInfo[]",
         "kind": "array",
         "category": "variable",
@@ -77,7 +77,7 @@
       {
         "fields": [],
         "id": "info",
-        "variableName": "info",
+        "name": "info",
         "typeName": "UserInfo",
         "kind": "record",
         "isFocused": true,
@@ -88,13 +88,13 @@
       "member": {
         "fields": [],
         "id": "credentials",
-        "variableName": "<credentialsItem>",
+        "name": "<credentialsItem>",
         "typeName": "Credentials",
         "kind": "record",
         "ref": "1085256861"
       },
       "id": "credentials",
-      "variableName": "credentials",
+      "name": "credentials",
       "typeName": "Credentials[]",
       "kind": "array",
       "ref": "1085256861"
@@ -151,7 +151,7 @@
         "fields": [
           {
             "id": "name",
-            "variableName": "name",
+            "name": "name",
             "typeName": "string",
             "kind": "string",
             "optional": false
@@ -160,13 +160,13 @@
             "member": {
               "fields": [],
               "id": "userInfo",
-              "variableName": "<userInfoItem>",
+              "name": "<userInfoItem>",
               "typeName": "UserInfo",
               "kind": "record",
               "ref": "-481592369"
             },
             "id": "userInfo",
-            "variableName": "userInfo",
+            "name": "userInfo",
             "typeName": "UserInfo[]",
             "kind": "array",
             "optional": false,
@@ -180,21 +180,21 @@
         "fields": [
           {
             "id": "username",
-            "variableName": "username",
+            "name": "username",
             "typeName": "string",
             "kind": "string",
             "optional": false
           },
           {
             "id": "password",
-            "variableName": "password",
+            "name": "password",
             "typeName": "string",
             "kind": "string",
             "optional": false
           },
           {
             "id": "id",
-            "variableName": "id",
+            "name": "id",
             "typeName": "int",
             "kind": "int",
             "optional": false
@@ -207,14 +207,14 @@
         "fields": [
           {
             "id": "username",
-            "variableName": "username",
+            "name": "username",
             "typeName": "string",
             "kind": "string",
             "optional": false
           },
           {
             "id": "password",
-            "variableName": "password",
+            "name": "password",
             "typeName": "string",
             "kind": "string",
             "optional": false

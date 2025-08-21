@@ -26,7 +26,7 @@
       {
         "fields": [],
         "id": "user",
-        "variableName": "user",
+        "name": "user",
         "typeName": "User",
         "kind": "record",
         "category": "parameter",
@@ -36,7 +36,7 @@
     "output": {
       "fields": [],
       "id": "user1",
-      "variableName": "user1",
+      "name": "user1",
       "typeName": "User1",
       "kind": "record",
       "ref": "-2043998407"
@@ -106,7 +106,7 @@
         "fields": [
           {
             "id": "u",
-            "variableName": "u",
+            "name": "u",
             "typeName": "string",
             "kind": "string",
             "optional": false
@@ -120,7 +120,7 @@
           {
             "fields": [],
             "id": "user2",
-            "variableName": "user2",
+            "name": "user2",
             "typeName": "User2",
             "kind": "record",
             "optional": false,
@@ -128,7 +128,7 @@
           },
           {
             "id": "s1",
-            "variableName": "s1",
+            "name": "s1",
             "typeName": "string",
             "kind": "string",
             "optional": false
@@ -142,7 +142,7 @@
           {
             "fields": [],
             "id": "user4",
-            "variableName": "user4",
+            "name": "user4",
             "typeName": "User4",
             "kind": "record",
             "optional": false,
@@ -150,7 +150,7 @@
           },
           {
             "id": "i3",
-            "variableName": "i3",
+            "name": "i3",
             "typeName": "int",
             "kind": "int",
             "optional": false
@@ -163,7 +163,7 @@
         "fields": [
           {
             "id": "name",
-            "variableName": "name",
+            "name": "name",
             "typeName": "string",
             "kind": "string",
             "optional": false
@@ -177,7 +177,7 @@
           {
             "fields": [],
             "id": "user5",
-            "variableName": "user5",
+            "name": "user5",
             "typeName": "User5",
             "kind": "record",
             "optional": false,
@@ -192,7 +192,7 @@
           {
             "fields": [],
             "id": "user3",
-            "variableName": "user3",
+            "name": "user3",
             "typeName": "User3",
             "kind": "record",
             "optional": false,
