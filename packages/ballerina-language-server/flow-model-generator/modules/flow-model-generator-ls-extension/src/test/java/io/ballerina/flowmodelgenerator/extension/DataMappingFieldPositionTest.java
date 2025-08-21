@@ -46,6 +46,7 @@ public class DataMappingFieldPositionTest extends AbstractLSTest {
                 {Path.of("variable2.json")},
                 {Path.of("variable2_1.json")},
                 {Path.of("variable3.json")},
+                {Path.of("function_definition1.json")},
         };
     }
 
@@ -65,7 +66,7 @@ public class DataMappingFieldPositionTest extends AbstractLSTest {
             TestConfig updatedConfig = new TestConfig(testConfig.source(), testConfig.description(),
                     testConfig.codedata(), testConfig.propertyKey(), testConfig.targetField(), testConfig.fieldId(),
                     property);
-            updateConfig(configJsonPath, updatedConfig);
+//            updateConfig(configJsonPath, updatedConfig);
             Assert.fail(String.format("Failed test: '%s' (%s)", testConfig.description(), configJsonPath));
         }
     }

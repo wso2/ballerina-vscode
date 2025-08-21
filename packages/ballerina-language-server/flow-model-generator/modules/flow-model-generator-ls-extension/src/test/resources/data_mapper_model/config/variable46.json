@@ -1,0 +1,110 @@
+{
+  "source": "variable30.bal",
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "variable30.bal",
+      "startLine": {
+        "line": 7,
+        "offset": 4
+      },
+      "endLine": {
+        "line": 10,
+        "offset": 6
+      }
+    },
+    "sourceCode": ""
+  },
+  "position": {
+    "line": 7,
+    "offset": 4
+  },
+  "propertyKey": "expression",
+  "targetField": "v2.i",
+  "model": {
+    "inputs": [
+      {
+        "fields": [
+          {
+            "member": {
+              "id": "v1.k.0",
+              "variableName": "<kItem>",
+              "typeName": "string",
+              "kind": "string",
+              "optional": false
+            },
+            "focusedMemberId": "kItem",
+            "id": "v1.k",
+            "variableName": "k",
+            "typeName": "string[]",
+            "kind": "array",
+            "optional": false
+          },
+          {
+            "id": "v1.i",
+            "variableName": "i",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          }
+        ],
+        "id": "v1",
+        "variableName": "v1",
+        "typeName": "MyType",
+        "kind": "record",
+        "category": "variable",
+        "optional": false
+      },
+      {
+        "id": "kItem",
+        "variableName": "kItem",
+        "typeName": "string",
+        "kind": "string",
+        "isFocused": true,
+        "optional": false
+      }
+    ],
+    "output": {
+      "id": "i",
+      "variableName": "i",
+      "typeName": "string",
+      "kind": "string",
+      "optional": false
+    },
+    "mappings": [
+      {
+        "output": "i",
+        "inputs": [
+          "kItem"
+        ],
+        "expression": "'join(\",\", kItem)",
+        "diagnostics": [],
+        "elements": [],
+        "isQueryExpression": false,
+        "isFunctionCall": true
+      }
+    ],
+    "query": {
+      "output": "i",
+      "inputs": [
+        "v1.k"
+      ],
+      "fromClause": {
+        "type": "from",
+        "properties": {
+          "name": "kItem",
+          "type": "string",
+          "expression": "v1.k"
+        }
+      },
+      "intermediateClauses": [],
+      "resultClause": {
+        "type": "collect",
+        "properties": {
+          "expression": "'join(\",\", kItem)"
+        }
+      }
+    }
+  }
+}

@@ -25,26 +25,6 @@
       }
     },
     "Listeners": {
-      "securedEP": {
-        "id": "securedEP",
-        "location": {
-          "fileName": "http_service.bal",
-          "startLine": {
-            "line": 34,
-            "offset": 0
-          },
-          "endLine": {
-            "line": 41,
-            "offset": 2
-          }
-        },
-        "type": "LISTENER",
-        "name": "securedEP",
-        "scope": "Global",
-        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.14.3.png",
-        "module": "http",
-        "children": {}
-      },
       "refListener": {
         "id": "refListener",
         "location": {
@@ -64,49 +44,29 @@
         "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.14.3.png",
         "module": "http",
         "children": {}
-      }
-    },
-    "Entry Points": {
-      "72613459": {
-        "id": "72613459",
+      },
+      "securedEP": {
+        "id": "securedEP",
         "location": {
           "fileName": "http_service.bal",
           "startLine": {
-            "line": 66,
+            "line": 34,
             "offset": 0
           },
           "endLine": {
-            "line": 76,
-            "offset": 1
+            "line": 41,
+            "offset": 2
           }
         },
-        "type": "SERVICE",
-        "name": "HTTP Service - /api/v1",
+        "type": "LISTENER",
+        "name": "securedEP",
         "scope": "Global",
         "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.14.3.png",
         "module": "http",
-        "children": {
-          "get#path": {
-            "id": "get#path",
-            "location": {
-              "fileName": "http_service.bal",
-              "startLine": {
-                "line": 68,
-                "offset": 4
-              },
-              "endLine": {
-                "line": 75,
-                "offset": 5
-              }
-            },
-            "type": "RESOURCE",
-            "name": "path",
-            "accessor": "get",
-            "scope": "Global",
-            "children": {}
-          }
-        }
-      },
+        "children": {}
+      }
+    },
+    "Entry Points": {
       "72552513": {
         "id": "72552513",
         "location": {
@@ -275,6 +235,46 @@
             },
             "type": "RESOURCE",
             "name": "greeting",
+            "accessor": "get",
+            "scope": "Global",
+            "children": {}
+          }
+        }
+      },
+      "72613459": {
+        "id": "72613459",
+        "location": {
+          "fileName": "http_service.bal",
+          "startLine": {
+            "line": 66,
+            "offset": 0
+          },
+          "endLine": {
+            "line": 76,
+            "offset": 1
+          }
+        },
+        "type": "SERVICE",
+        "name": "HTTP Service - /api/v1",
+        "scope": "Global",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.14.3.png",
+        "module": "http",
+        "children": {
+          "get#path": {
+            "id": "get#path",
+            "location": {
+              "fileName": "http_service.bal",
+              "startLine": {
+                "line": 68,
+                "offset": 4
+              },
+              "endLine": {
+                "line": 75,
+                "offset": 5
+              }
+            },
+            "type": "RESOURCE",
+            "name": "path",
             "accessor": "get",
             "scope": "Global",
             "children": {}

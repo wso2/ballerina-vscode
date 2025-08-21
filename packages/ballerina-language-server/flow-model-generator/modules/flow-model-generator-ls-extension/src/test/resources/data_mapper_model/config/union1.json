@@ -1,0 +1,141 @@
+{
+  "source": "union1.bal",
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "union1.bal",
+      "startLine": {
+        "line": 27,
+        "offset": 4
+      },
+      "endLine": {
+        "line": 27,
+        "offset": 31
+      }
+    },
+    "sourceCode": ""
+  },
+  "position": {
+    "line": 27,
+    "offset": 4
+  },
+  "propertyKey": "expression",
+  "model": {
+    "inputs": [
+      {
+        "fields": [
+          {
+            "id": "dog.name",
+            "variableName": "name",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "id": "dog.breed",
+            "variableName": "breed",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          }
+        ],
+        "id": "dog",
+        "variableName": "dog",
+        "typeName": "Dog",
+        "kind": "record",
+        "category": "local-variable",
+        "optional": false
+      },
+      {
+        "fields": [
+          {
+            "id": "elephant.name",
+            "variableName": "name",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "id": "elephant.cast",
+            "variableName": "cast",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          }
+        ],
+        "id": "elephant",
+        "variableName": "elephant",
+        "typeName": "Elephant",
+        "kind": "record",
+        "category": "local-variable",
+        "optional": false
+      }
+    ],
+    "output": {
+      "fields": [
+        {
+          "members": [
+            {
+              "fields": [
+                {
+                  "id": "animalType.animal.name",
+                  "variableName": "name",
+                  "typeName": "string",
+                  "kind": "string",
+                  "optional": false
+                },
+                {
+                  "id": "animalType.animal.breed",
+                  "variableName": "breed",
+                  "typeName": "string",
+                  "kind": "string",
+                  "optional": false
+                }
+              ],
+              "id": "animalType.animal",
+              "variableName": "animal",
+              "typeName": "Dog",
+              "kind": "record",
+              "optional": false
+            },
+            {
+              "fields": [
+                {
+                  "id": "animalType.animal.name",
+                  "variableName": "name",
+                  "typeName": "string",
+                  "kind": "string",
+                  "optional": false
+                },
+                {
+                  "id": "animalType.animal.cast",
+                  "variableName": "cast",
+                  "typeName": "string",
+                  "kind": "string",
+                  "optional": false
+                }
+              ],
+              "id": "animalType.animal",
+              "variableName": "animal",
+              "typeName": "Elephant",
+              "kind": "record",
+              "optional": false
+            }
+          ],
+          "id": "animalType.animal",
+          "variableName": "animal",
+          "typeName": "Dog|Elephant",
+          "kind": "union",
+          "optional": false
+        }
+      ],
+      "id": "animalType",
+      "variableName": "animalType",
+      "typeName": "AnimalType",
+      "kind": "record",
+      "optional": false
+    },
+    "mappings": []
+  }
+}

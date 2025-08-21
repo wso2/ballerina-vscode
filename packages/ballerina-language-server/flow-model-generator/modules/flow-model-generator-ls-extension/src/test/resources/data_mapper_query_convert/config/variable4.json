@@ -16,6 +16,13 @@
     },
     "sourceCode": ""
   },
+  "mapping": {
+    "output": "stores",
+    "inputs": [],
+    "expression": "banks",
+    "diagnostics": []
+  },
+  "clauseType": "select",
   "propertyKey": "expression",
   "output": {
     "variable3.bal": [

@@ -45,26 +45,6 @@
       }
     },
     "Listeners": {
-      "securedEP": {
-        "id": "securedEP",
-        "location": {
-          "fileName": "BITService.bal",
-          "startLine": {
-            "line": 3,
-            "offset": 0
-          },
-          "endLine": {
-            "line": 10,
-            "offset": 2
-          }
-        },
-        "type": "LISTENER",
-        "name": "securedEP",
-        "scope": "Global",
-        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.14.3.png",
-        "module": "http",
-        "children": {}
-      },
       "ls": {
         "id": "ls",
         "location": {
@@ -80,6 +60,26 @@
         },
         "type": "LISTENER",
         "name": "ls",
+        "scope": "Global",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.14.3.png",
+        "module": "http",
+        "children": {}
+      },
+      "securedEP": {
+        "id": "securedEP",
+        "location": {
+          "fileName": "BITService.bal",
+          "startLine": {
+            "line": 3,
+            "offset": 0
+          },
+          "endLine": {
+            "line": 10,
+            "offset": 2
+          }
+        },
+        "type": "LISTENER",
+        "name": "securedEP",
         "scope": "Global",
         "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.14.3.png",
         "module": "http",
@@ -145,81 +145,45 @@
       }
     },
     "Entry Points": {
-      "-2092914893": {
-        "id": "-2092914893",
+      "-1762100471": {
+        "id": "-1762100471",
         "location": {
-          "fileName": "IITService.bal",
+          "fileName": "multi_service.bal",
           "startLine": {
-            "line": 3,
+            "line": 15,
             "offset": 0
           },
           "endLine": {
-            "line": 16,
+            "line": 20,
             "offset": 1
           }
         },
         "type": "SERVICE",
-        "name": "HTTP Service - /",
+        "name": "HTTP Service - /api2",
         "scope": "Global",
         "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.14.3.png",
         "module": "http",
         "children": {
-          "init": {
-            "id": "init",
+          "get#path": {
+            "id": "get#path",
             "location": {
-              "fileName": "IITService.bal",
+              "fileName": "multi_service.bal",
               "startLine": {
-                "line": 5,
+                "line": 17,
                 "offset": 4
               },
               "endLine": {
-                "line": 6,
-                "offset": 5
-              }
-            },
-            "type": "FUNCTION",
-            "name": "init",
-            "scope": "Global",
-            "children": {}
-          },
-          "get#greeting": {
-            "id": "get#greeting",
-            "location": {
-              "fileName": "IITService.bal",
-              "startLine": {
-                "line": 8,
-                "offset": 4
-              },
-              "endLine": {
-                "line": 15,
+                "line": 19,
                 "offset": 5
               }
             },
             "type": "RESOURCE",
-            "name": "greeting",
+            "name": "path",
             "accessor": "get",
             "scope": "Global",
             "children": {}
           }
         }
-      },
-      "automation": {
-        "id": "automation",
-        "location": {
-          "fileName": "automation.bal",
-          "startLine": {
-            "line": 3,
-            "offset": 0
-          },
-          "endLine": {
-            "line": 15,
-            "offset": 1
-          }
-        },
-        "type": "AUTOMATION",
-        "name": "automation",
-        "scope": "Global",
-        "children": {}
       },
       "-1762111259": {
         "id": "-1762111259",
@@ -279,40 +243,58 @@
           }
         }
       },
-      "-1762100471": {
-        "id": "-1762100471",
+      "-2092914893": {
+        "id": "-2092914893",
         "location": {
-          "fileName": "multi_service.bal",
+          "fileName": "IITService.bal",
           "startLine": {
-            "line": 15,
+            "line": 3,
             "offset": 0
           },
           "endLine": {
-            "line": 20,
+            "line": 16,
             "offset": 1
           }
         },
         "type": "SERVICE",
-        "name": "HTTP Service - /api2",
+        "name": "HTTP Service - /",
         "scope": "Global",
         "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.14.3.png",
         "module": "http",
         "children": {
-          "get#path": {
-            "id": "get#path",
+          "init": {
+            "id": "init",
             "location": {
-              "fileName": "multi_service.bal",
+              "fileName": "IITService.bal",
               "startLine": {
-                "line": 17,
+                "line": 5,
                 "offset": 4
               },
               "endLine": {
-                "line": 19,
+                "line": 6,
+                "offset": 5
+              }
+            },
+            "type": "FUNCTION",
+            "name": "init",
+            "scope": "Global",
+            "children": {}
+          },
+          "get#greeting": {
+            "id": "get#greeting",
+            "location": {
+              "fileName": "IITService.bal",
+              "startLine": {
+                "line": 8,
+                "offset": 4
+              },
+              "endLine": {
+                "line": 15,
                 "offset": 5
               }
             },
             "type": "RESOURCE",
-            "name": "path",
+            "name": "greeting",
             "accessor": "get",
             "scope": "Global",
             "children": {}
@@ -430,6 +412,24 @@
             "children": {}
           }
         }
+      },
+      "automation": {
+        "id": "automation",
+        "location": {
+          "fileName": "automation.bal",
+          "startLine": {
+            "line": 3,
+            "offset": 0
+          },
+          "endLine": {
+            "line": 15,
+            "offset": 1
+          }
+        },
+        "type": "AUTOMATION",
+        "name": "automation",
+        "scope": "Global",
+        "children": {}
       }
     },
     "Configurations": {

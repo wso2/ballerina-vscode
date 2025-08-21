@@ -1,0 +1,38 @@
+{
+  "source": "function_definition1.bal",
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "DATA_MAPPER_FUNCTION",
+    "lineRange": {
+      "fileName": "function_definition1.bal",
+      "startLine": {
+        "line": 14,
+        "offset": 0
+      },
+      "endLine": {
+        "line": 15,
+        "offset": 117
+      }
+    },
+    "sourceCode": "",
+    "isNew": true
+  },
+  "index": 2,
+  "output": {
+    "function_definition1.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 15,
+            "character": 54
+          },
+          "end": {
+            "line": 15,
+            "character": 78
+          }
+        },
+        "newText": ""
+      }
+    ]
+  }
+}

@@ -1,0 +1,34 @@
+{
+  "source": "function_definition1.bal",
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "DATA_MAPPER_FUNCTION",
+    "lineRange": {
+      "fileName": "function_definition1.bal",
+      "startLine": {
+        "line": 25,
+        "offset": 0
+      },
+      "endLine": {
+        "line": 26,
+        "offset": 78
+      }
+    },
+    "sourceCode": ""
+  },
+  "view": "y",
+  "output": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "function_definition1.bal",
+      "startLine": {
+        "line": 26,
+        "offset": 29
+      },
+      "endLine": {
+        "line": 26,
+        "offset": 47
+      }
+    }
+  }
+}
