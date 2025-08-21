@@ -325,7 +325,7 @@ export function ParamManager(props: ParamManagerProps) {
                             openRecordEditor={openRecordEditor}
                         />
                     )
-                } else if ((editingSegmentId !== index && (param.hidden ?? true))) {
+                } else if ((editingSegmentId !== index && !(param.hidden ?? false))) {
                     render.push(
                         <ParamItem
                             key={param.id}
