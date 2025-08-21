@@ -45,7 +45,6 @@ export type HelperPaneNewProps = {
     completions: CompletionItem[],
     projectPath?: string,
     handleOnFormSubmit?: (updatedNode?: FlowNode, isDataMapperFormUpdate?: boolean, options?: FormSubmitOptions) => void
-    helperPaneZIndex?: number;
     selectedType?: CompletionItem;
     filteredCompletions?: CompletionItem[];
     variables: CompletionItem[];
@@ -77,7 +76,6 @@ const HelperPaneNewEl = ({
     completions,
     projectPath,
     handleOnFormSubmit,
-    helperPaneZIndex,
     selectedType,
     filteredCompletions,
     variables,
@@ -156,7 +154,7 @@ const HelperPaneNewEl = ({
     };
 
     return (
-        <HelperPaneCustom sx={{ zIndex: helperPaneZIndex }} anchorRef={anchorRef}>
+        <HelperPaneCustom anchorRef={anchorRef}>
             <HelperPaneCustom.Body>
                 <SlidingWindow>
                     <SlidingPane name="PAGE1" paneWidth={HELPER_PANE_WIDTH} paneHeight='170px'>
@@ -326,7 +324,6 @@ export const getHelperPaneNew = (props: HelperPaneNewProps) => {
         completions,
         projectPath,
         handleOnFormSubmit,
-        helperPaneZIndex,
         selectedType,
         filteredCompletions,
         variables,
@@ -352,7 +349,6 @@ export const getHelperPaneNew = (props: HelperPaneNewProps) => {
             completions={completions}
             projectPath={projectPath}
             handleOnFormSubmit={handleOnFormSubmit}
-            helperPaneZIndex={helperPaneZIndex}
             selectedType={selectedType}
             filteredCompletions={filteredCompletions}
             variables={variables}

@@ -671,7 +671,6 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
             completions: completions,
             projectPath: projectPath,
             handleOnFormSubmit: handleOnFormSubmit,
-            helperPaneZIndex: isInModal ? 40001 : undefined,
             selectedType: selectedType,
             filteredCompletions: filteredCompletions,
             variables: variables,
@@ -904,7 +903,6 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
                     isInferredReturnType={!!node.codedata?.inferredReturnType}
                     formImports={formImports}
                     handleSelectedTypeChange={handleSelectedTypeChange}
-                    helperPaneZIndex={isInModal ? 40001 : undefined}
                     preserveOrder={node.codedata.node === "VARIABLE" || node.codedata.node === "CONFIG_VARIABLE"}
                 />
                 {
@@ -927,17 +925,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
                         />
                     </DynamicModal>
                 }
-                {typeEditorState.isOpen && (
-                    <PanelContainer title={"New Type"} show={true} onClose={onTypeEditorClosed}>
-                        <FormTypeEditor
-                            newType={true}
-                            newTypeValue={typeEditorState.newTypeValue}
-                            isGraphql={isGraphql}
-                            onTypeChange={onTypeChange}
-                            onTypeCreate={handleTypeCreate}
-                        />
-                    </PanelContainer>
-                )}</>
+            </>
         );
     }
 
@@ -972,7 +960,6 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
                     isInferredReturnType={!!node.codedata?.inferredReturnType}
                     formImports={formImports}
                     handleSelectedTypeChange={handleSelectedTypeChange}
-                    helperPaneZIndex={isInModal ? 40001 : undefined}
                     preserveOrder={node.codedata.node === "VARIABLE" || node.codedata.node === "CONFIG_VARIABLE"}
                     scopeFieldAddon={scopeFieldAddon}
                     newServerUrl={newServerUrl}
@@ -981,26 +968,26 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
                     onToolsChange={props.onToolsChange}
                 />
             )}
-            {
-                <DynamicModal
-                    width={420}
-                    height={600}
-                    anchorRef={undefined}
-                    title="Create New Type"
-                    openState={typeEditorState.isOpen}
-                    setOpenState={handleTypeEditorStateChange}>
-                    <DynamicModal.Trigger>
-                        <Button >hahah</Button>
-                    </DynamicModal.Trigger>
-                    <FormTypeEditor
-                        newType={true}
-                        newTypeValue={typeEditorState.newTypeValue}
-                        isGraphql={isGraphql}
-                        onTypeChange={onTypeChange}
-                        onTypeCreate={handleTypeCreate}
-                    />
-                </DynamicModal>
-            }
+             {
+                    <DynamicModal
+                        width={420}
+                        height={600}
+                        anchorRef={undefined}
+                        title="Create New Type"
+                        openState={typeEditorState.isOpen}
+                        setOpenState={handleTypeEditorStateChange}>
+                        <DynamicModal.Trigger>
+                            <Button >hahah</Button>
+                        </DynamicModal.Trigger>
+                        <FormTypeEditor
+                            newType={true}
+                            newTypeValue={typeEditorState.newTypeValue}
+                            isGraphql={isGraphql}
+                            onTypeChange={onTypeChange}
+                            onTypeCreate={handleTypeCreate}
+                        />
+                    </DynamicModal>
+                }
         </>
     );
 });
