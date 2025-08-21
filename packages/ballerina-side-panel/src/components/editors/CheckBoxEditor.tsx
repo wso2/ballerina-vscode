@@ -41,7 +41,6 @@ const LabelGroup = styled.div`
 const BoxGroup = styled.div`
     display: flex;
     flex-direction: row;
-    gap: 12px;
     width: 100%;
     align-items: flex-start;
 `;
