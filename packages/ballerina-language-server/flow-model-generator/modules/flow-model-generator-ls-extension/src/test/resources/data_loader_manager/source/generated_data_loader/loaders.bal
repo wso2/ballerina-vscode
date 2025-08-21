@@ -1,3 +1,3 @@
 import ballerinax/ai.devant;
 
-devant:BinaryDataLoader loader = new("./source/")''
+devant:BinaryDataLoader loader = new("./source/");
