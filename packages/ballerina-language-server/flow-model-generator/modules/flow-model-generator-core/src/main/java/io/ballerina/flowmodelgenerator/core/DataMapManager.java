@@ -2401,7 +2401,7 @@ public class DataMapManager {
             return this.name;
         }
 
-        void setName(String Name) {
+        void setName(String name) {
             this.name = name;
         }
 
