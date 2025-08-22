@@ -91,6 +91,9 @@ export interface IOType {
     optional?: boolean;
     focusedMemberId?: string;
     isFocused?: boolean;
+    isRecursive?: boolean;
+    isDeepNested?: boolean;
+    ref?: string;
     moduleInfo? : ModuleInfo;
 }
 

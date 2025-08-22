@@ -27,6 +27,8 @@ import {
     TypeKind,
 } from "@wso2/ballerina-core";
 
+const MAX_NESTED_DEPTH = 4;
+
 interface ExpandOptions {
     processInputs?: boolean;
     processOutput?: boolean;
@@ -44,7 +46,7 @@ function generateFieldId(parentId: string, fieldName: string): string {
 /**
  * Processes a type reference and returns the appropriate IOType structure
  */
-function processTypeReference(
+export function processTypeReference(
     ref: string,
     fieldId: string,
     model: DMModel,
@@ -54,11 +56,20 @@ function processTypeReference(
     if ('fields' in refType) {
         if (visitedRefs.has(ref)) {
             return {
+                ref: ref,
                 fields: [],
-                isRecursive: true
+                isRecursive: true,
+                isDeepNested: true,
             }
         }
         visitedRefs.add(ref);
+        if (visitedRefs.size > MAX_NESTED_DEPTH) {
+            return {
+                ref: ref,
+                fields: [],
+                isDeepNested: true
+            }
+        }
         return {
             fields: processTypeFields(refType, fieldId, model, visitedRefs)
         };
