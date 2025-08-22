@@ -21,7 +21,7 @@
     "offset": 4
   },
   "propertyKey": "expression",
-  "targetField": "v2",
+  "targetField": "v2.i",
   "model": {
     "inputs": [
       {
@@ -34,6 +34,7 @@
               "kind": "string",
               "optional": false
             },
+            "focusedMemberId": "kItem",
             "id": "v1.k",
             "variableName": "k",
             "typeName": "string[]",
@@ -52,63 +53,58 @@
         "variableName": "v1",
         "typeName": "MyType",
         "kind": "record",
-        "category": "local-variable",
+        "category": "variable",
+        "optional": false
+      },
+      {
+        "id": "kItem",
+        "variableName": "kItem",
+        "typeName": "string",
+        "kind": "string",
+        "isFocused": true,
         "optional": false
       }
     ],
     "output": {
-      "fields": [
-        {
-          "member": {
-            "id": "v2.k",
-            "variableName": "<kItem>",
-            "typeName": "string",
-            "kind": "string",
-            "optional": false
-          },
-          "id": "v2.k",
-          "variableName": "k",
-          "typeName": "string[]",
-          "kind": "array",
-          "optional": false
-        },
-        {
-          "id": "v2.i",
-          "variableName": "i",
-          "typeName": "string",
-          "kind": "string",
-          "optional": false
-        }
-      ],
-      "id": "v2",
-      "variableName": "v2",
-      "typeName": "MyType",
-      "kind": "record",
+      "id": "i",
+      "variableName": "i",
+      "typeName": "string",
+      "kind": "string",
       "optional": false
     },
     "mappings": [
       {
-        "output": "v2.i",
+        "output": "i",
         "inputs": [
-          "v1.k"
+          "kItem"
         ],
-        "expression": "from var kItem in v1.k\n            collect 'join(\",\", kItem)",
+        "expression": "'join(\",\", kItem)",
         "diagnostics": [],
         "elements": [],
-        "isQueryExpression": true,
-        "isFunctionCall": false
-      },
-      {
-        "output": "v2.k",
-        "inputs": [
-          "v1.k"
-        ],
-        "expression": "from var kItem in v1.k select kItem\n",
-        "diagnostics": [],
-        "elements": [],
-        "isQueryExpression": true,
-        "isFunctionCall": false
+        "isQueryExpression": false,
+        "isFunctionCall": true
       }
-    ]
+    ],
+    "query": {
+      "output": "i",
+      "inputs": [
+        "v1.k"
+      ],
+      "fromClause": {
+        "type": "from",
+        "properties": {
+          "name": "kItem",
+          "type": "string",
+          "expression": "v1.k"
+        }
+      },
+      "intermediateClauses": [],
+      "resultClause": {
+        "type": "collect",
+        "properties": {
+          "expression": "'join(\",\", kItem)"
+        }
+      }
+    }
   }
 }
