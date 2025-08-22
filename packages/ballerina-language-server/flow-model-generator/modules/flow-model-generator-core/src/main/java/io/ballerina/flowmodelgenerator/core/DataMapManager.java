@@ -2014,7 +2014,7 @@ public class DataMapManager {
         Parameter firstParam = parameters.getFirst();
         String functionName = "function";
         if (firstParam != null) {
-            if (firstParam.kind.equals("union")){
+            if (firstParam.kind.equals("union")) {
                 functionName = functionName + firstParam.type().replace("|", "Or") +
                         "To" + returnType.replace("|", "Or");
             } else {
