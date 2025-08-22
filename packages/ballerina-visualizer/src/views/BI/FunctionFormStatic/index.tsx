@@ -51,11 +51,12 @@ interface FunctionFormProps {
     isDataMapper?: boolean;
     isNpFunction?: boolean;
     isAutomation?: boolean;
+    defaultType?: string;
 }
 
 export function FunctionFormStatic(props: FunctionFormProps) {
     const { rpcClient } = useRpcContext();
-    const { projectPath, functionName, filePath, isDataMapper, isNpFunction, isAutomation } = props;
+    const { projectPath, functionName, filePath, isDataMapper, isNpFunction, isAutomation, defaultType } = props;
 
     const [functionFields, setFunctionFields] = useState<FormField[]>([]);
     const [functionNode, setFunctionNode] = useState<FunctionNode>(undefined);
@@ -134,6 +135,9 @@ export function FunctionFormStatic(props: FunctionFormProps) {
                 id: { node: kind },
             });
         let flowNode = res.flowNode;
+        if (defaultType && flowNode.properties && flowNode.properties.type) {
+            flowNode.properties.type.value = defaultType;
+        }
         if (isNpFunction) {
             /* 
             * TODO: Remove this once the LS is updated

@@ -7,7 +7,7 @@ import { CompletionInsertText, FunctionKind, LineRange } from "@wso2/ballerina-c
 import { useMutation } from "@tanstack/react-query";
 import { ExpandableList } from "../Components/ExpandableList";
 import { SlidingPaneNavContainer } from "@wso2/ui-toolkit/lib/components/ExpressionEditor/components/Common/SlidingPane";
-import { COMPLETION_ITEM_KIND, getIcon, HelperPaneCustom } from "@wso2/ui-toolkit/lib/components/ExpressionEditor";
+import { COMPLETION_ITEM_KIND, CompletionItem, getIcon, HelperPaneCustom } from "@wso2/ui-toolkit/lib/components/ExpressionEditor";
 import { EmptyItemsPlaceHolder } from "../Components/EmptyItemsPlaceHolder";
 import styled from "@emotion/styled";
 import { Divider, Overlay, SearchBox, ThemeColors } from "@wso2/ui-toolkit";
@@ -30,6 +30,7 @@ type FunctionsPageProps = {
     onClose: () => void;
     onChange: (insertText: CompletionInsertText) => void;
     updateImports: (key: string, imports: { [key: string]: string }) => void;
+    selectedType?: CompletionItem
 };
 
 export const FunctionsPage = ({
@@ -40,6 +41,7 @@ export const FunctionsPage = ({
     onClose,
     onChange,
     updateImports,
+    selectedType
 }: FunctionsPageProps) => {
 
     const { rpcClient } = useRpcContext();
@@ -246,6 +248,7 @@ export const FunctionsPage = ({
                         filePath={defaultFunctionsFile}
                         functionName={undefined}
                         isDataMapper={false}
+                        defaultType={selectedType.label}
                     />
                    </ScrollableContainer>
                 </DynamicModal>
