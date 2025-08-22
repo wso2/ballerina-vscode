@@ -105,12 +105,21 @@ export const CreateValue = (props: CreateValuePageProps) => {
             onChange(content, true);
         }
     }
+
+
+    const isTypePrimitive = (selectedType: string | string[]) => {
+        return isSelectedTypeContainsType(selectedType, "string") || isSelectedTypeContainsType(selectedType, "int") || isSelectedTypeContainsType(selectedType, "boolean" ) ;
+    }
+
+    console.log("selectedType", selectedType)
+
+
     useEffect(() => {
         fetchRecordModel()
     }, []);
 
     return (
-        (isRowType(selectedType)) || recordTypeField ?
+        (!isTypePrimitive(selectedType))?
             <>
 
                 <ExpandableList>
