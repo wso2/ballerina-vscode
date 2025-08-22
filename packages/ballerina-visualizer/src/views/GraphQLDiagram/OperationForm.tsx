@@ -310,6 +310,6 @@ function convertParameterToParamValue(param: ParameterModel, index: number) {
         icon: 'symbol-variable',
         identifierEditable: param.name?.editable,
         identifierRange: param.name.codedata?.lineRange,
-        hidden: param.hidden ?? true
+        hidden: param.hidden ?? false
     };
 }
