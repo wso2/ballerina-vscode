@@ -58,7 +58,7 @@ import { CommonRpcClient, GraphqlDesignerRpcClient, PersistDiagramRpcClient, Rec
 import { BiDiagramRpcClient } from "./rpc-clients/bi-diagram/rpc-client";
 import { ConnectorWizardRpcClient } from "./rpc-clients/connector-wizard/rpc-client";
 import { SequenceDiagramRpcClient } from "./rpc-clients/sequence-diagram/rpc-client";
-import { InlineDataMapperRpcClient } from "./rpc-clients/inline-data-mapper/rpc-client";
+import { DataMapperRpcClient } from "./rpc-clients/inline-data-mapper/rpc-client";
 import { TestManagerServiceRpcClient } from "./rpc-clients";
 import { AiAgentRpcClient } from "./rpc-clients/ai-agent/rpc-client";
 import { ICPServiceRpcClient } from "./rpc-clients/icp-service/rpc-client";
@@ -79,7 +79,7 @@ export class BallerinaRpcClient {
     private _SequenceDiagram: SequenceDiagramRpcClient;
     private _aiPanel: AiPanelRpcClient;
     private _connectorWizard: ConnectorWizardRpcClient;
-    private _inlineDataMapper: InlineDataMapperRpcClient;
+    private _dataMapper: DataMapperRpcClient;
     private _testManager: TestManagerServiceRpcClient;
     private _aiAgent: AiAgentRpcClient;
     private _icpManager: ICPServiceRpcClient;
@@ -100,7 +100,7 @@ export class BallerinaRpcClient {
         this._SequenceDiagram = new SequenceDiagramRpcClient(this.messenger);
         this._aiPanel = new AiPanelRpcClient(this.messenger);
         this._connectorWizard = new ConnectorWizardRpcClient(this.messenger);
-        this._inlineDataMapper = new InlineDataMapperRpcClient(this.messenger);
+        this._dataMapper = new DataMapperRpcClient(this.messenger);
         this._testManager = new TestManagerServiceRpcClient(this.messenger);
         this._aiAgent = new AiAgentRpcClient(this.messenger);
         this._icpManager = new ICPServiceRpcClient(this.messenger);
@@ -167,8 +167,8 @@ export class BallerinaRpcClient {
         return this._aiPanel;
     }
 
-    getInlineDataMapperRpcClient(): InlineDataMapperRpcClient {
-        return this._inlineDataMapper;
+    getDataMapperRpcClient(): DataMapperRpcClient {
+        return this._dataMapper;
     }
 
     getVisualizerLocation(): Promise<VisualizerLocation> {

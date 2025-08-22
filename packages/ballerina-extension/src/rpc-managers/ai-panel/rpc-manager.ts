@@ -44,8 +44,8 @@ import {
     GenerateTypesFromRecordResponse,
     GetFromFileRequest,
     GetModuleDirParams,
-    InlineAllDataMapperSourceRequest,
-    InlineDataMapperModelResponse,
+    AllDataMapperSourceRequest,
+    DataMapperModelResponse,
     LLMDiagnostics,
     LoginMethod,
     MappingElement,
@@ -103,7 +103,7 @@ import { getAccessToken, getLoginMethod, getRefreshedAccessToken, loginGithubCop
 import { modifyFileContent, writeBallerinaFileDidOpen } from "../../utils/modification";
 import { updateSourceCode } from "../../utils/source-utils";
 import { PARSING_ERROR, UNKNOWN_ERROR } from "../../views/ai-panel/errorCodes";
-import { refreshDataMapper, updateAndRefreshDataMapper } from "../inline-data-mapper/utils";
+import { refreshDataMapper, updateAndRefreshDataMapper } from "../data-mapper/utils";
 import {
     DEVELOPMENT_DOCUMENT,
     NATURAL_PROGRAMMING_DIR_NAME, REQUIREMENT_DOC_PREFIX,
@@ -111,7 +111,7 @@ import {
     REQUIREMENT_TEXT_DOCUMENT,
     REQ_KEY, TEST_DIR_NAME
 } from "./constants";
-import { processInlineMappings } from "./inline-utils";
+import { processMappings } from "./inline-utils";
 import { attemptRepairProject, checkProjectDiagnostics } from "./repair-utils";
 import { AIPanelAbortController, cleanDiagnosticMessages, handleStop, isErrorCode, requirementsSpecification, searchDocumentation } from "./utils";
 import { fetchData } from "./utils/fetch-data-utils";
@@ -805,14 +805,14 @@ export class AiPanelRpcManager implements AIPanelAPI {
             const datamapperMetadata = StateMachine.context().dataMapperMetadata;
             const dataMapperModel = await StateMachine
                 .langClient()
-                .getInlineDataMapperMappings({
+                .getDataMapperMappings({
                     filePath,
                     codedata: datamapperMetadata.codeData,
                     position: {
                         line: datamapperMetadata.codeData.lineRange.startLine.line,
                         offset: datamapperMetadata.codeData.lineRange.startLine.offset
                     }
-                }) as InlineDataMapperModelResponse;
+                }) as DataMapperModelResponse;
             commands.executeCommand("ballerina.close.ai.panel");
             commands.executeCommand("ballerina.open.ai.panel", {
                 type: 'command-template',
@@ -829,12 +829,12 @@ export class AiPanelRpcManager implements AIPanelAPI {
         }
     }
 
-    async getMappingsFromModel(params: MetadataWithAttachments): Promise<InlineAllDataMapperSourceRequest> {
+    async getMappingsFromModel(params: MetadataWithAttachments): Promise<AllDataMapperSourceRequest> {
         let filePath = StateMachine.context().documentUri;
         const file = params.attachment && params.attachment.length > 0
             ? params.attachment[0]
             : undefined;
-        const mappingElement = await processInlineMappings(params.metadata.mappingsModel as ExpandedDMModel, file);
+        const mappingElement = await processMappings(params.metadata.mappingsModel as ExpandedDMModel, file);
         const allMappingsRequest = {
             filePath,
             codedata: params.metadata.codeData,
