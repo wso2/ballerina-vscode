@@ -112,10 +112,14 @@ export const CreateValue = (props: CreateValuePageProps) => {
     return (
         (isRowType(selectedType)) || recordTypeField ?
             <>
-                <p style={{ color: "var(--vscode-list-deemphasizedForeground)", fontSize: "13px", margin: "8px 0" }}>
-                    Select or create a value for this record type. 
-                    Click the button below to configure complex values.
-                </p>
+
+                <ExpandableList>
+                    <SlidingPaneNavContainer onClick={() => setIsModalOpen(true)}>
+                        <ExpandableList.Item sx={{ width: "100%" }}>
+                            Create value for the complex type
+                        </ExpandableList.Item>
+                    </SlidingPaneNavContainer>
+                </ExpandableList>
                 <DynamicModal
                     width={500}
                     height={600}
@@ -123,11 +127,6 @@ export const CreateValue = (props: CreateValuePageProps) => {
                     title="Create Value"
                     openState={isModalOpen}
                     setOpenState={setIsModalOpen}>
-                    <DynamicModal.Trigger>
-                        <Button >
-                            Open in expaded view
-                        </Button>
-                    </DynamicModal.Trigger>
                     <RecordConfig
                         recordModel={recordModel}
                         onModelChange={handleModelChange}
