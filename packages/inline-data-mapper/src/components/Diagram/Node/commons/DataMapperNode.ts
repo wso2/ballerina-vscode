@@ -118,7 +118,11 @@ export abstract class DataMapperNodeModel extends NodeModel<NodeModelGenerics & 
 		const portName = this.getPortName(portPrefix, unsafeFieldFQN);
 		const isFocused = this.isFocusedField(focusedFieldFQNs, portName);
 		const isPreview = parent.attributes.isPreview || this.isPreviewPort(focusedFieldFQNs, parent.attributes.field);
-		const isCollapsed = this.isInputPortCollapsed(hidden, collapsedFields, expandedFields, portName, isArray, isFocused);
+		const isCollapsed = this.isInputPortCollapsed(hidden, collapsedFields, expandedFields, portName, isArray, isFocused, field.isDeepNested);
+
+		if (!isCollapsed &&!hidden && field.isDeepNested){
+			this.context.enrichChildFields(field);
+		}
 
 		const inputPort = new InputOutputPortModel({
 			field: field,
@@ -287,10 +291,14 @@ export abstract class DataMapperNodeModel extends NodeModel<NodeModelGenerics & 
 		expandedFields: string[],
 		portName: string,
 		isArray: boolean,
-		isFocused: boolean
+		isFocused: boolean,
+		isDeepNested: boolean
 	) {
 		if (isArray){
 			return isFocused ? false : expandedFields && !expandedFields.includes(portName);
+		}
+		if (isDeepNested){
+			return expandedFields && !expandedFields.includes(portName);
 		}
 		return !hidden && collapsedFields && collapsedFields.includes(portName);
 	}

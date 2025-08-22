@@ -88,7 +88,7 @@ export function InputNodeTreeItemWidget(props: InputNodeTreeItemWidgetProps) {
     );
 
     const handleExpand = () => {
-        if (dmType.kind === TypeKind.Array) {
+        if (dmType.kind === TypeKind.Array || dmType.isDeepNested) {
             const expandedFields = expandedFieldsStore.fields;
             if (expanded) {
                 expandedFieldsStore.setFields(expandedFields.filter((element) => element !== fieldId));
