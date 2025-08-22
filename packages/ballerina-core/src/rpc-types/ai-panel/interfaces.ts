@@ -87,12 +87,16 @@ export interface AddToProjectRequest {
     content: string;
     isTestCode: boolean;
 }
+
 export interface GetFromFileRequest {
     filePath: string;
 }
+
 export interface DeleteFromProjectRequest {
     filePath: string;
 }
+
+// Data-mapper related interfaces
 export interface GenerateMappingsRequest {
     position: NodePosition;
     filePath: string;
@@ -109,51 +113,6 @@ export interface NotifyAIMappingsRequest {
     newFnPosition: NodePosition;
     prevFnSource: string;
     filePath: string;
-}
-
-export interface ParameterMetadata {
-    inputs: object;
-    output: object;
-    inputMetadata: object;
-    outputMetadata: object;
-    mapping_fields?: object;
-    constants?: Record<string, FieldConfig>;
-    configurables?: Record<string, FieldConfig>;
-    variables?: Record<string, FieldConfig>;
-}
-
-export interface RecordDefinitonObject {
-    recordFields: object;
-    recordFieldsMetadata: object;
-}
-
-export interface MappingFileRecord {
-    mapping_fields: object;
-}
-
-export interface ParameterDefinitions {
-    parameterMetadata: ParameterMetadata,
-    errorStatus: boolean
-}
-
-export interface ParameterField {
-    isArrayType: boolean;
-    parameterName: string;
-    parameterType: string;
-    type: string;
-}
-
-export interface FieldDescriptor {
-    type: string;
-    comment: string;
-}
-
-export interface FieldConfig {
-    typeName: string;
-    type: string;
-    typeInstance: string;
-    nullable: boolean;
-    optional: boolean;
 }
 
 export interface CodeSegment {

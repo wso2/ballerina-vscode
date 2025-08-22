@@ -2,6 +2,45 @@
 
 All notable changes to the "Ballerina" extension will be documented in this file.
 
+
+## **5.3.1** (2025-08-13)
+
+### Fixed
+
+-   Resolved issues affecting Inline Data Mapper functionality and flow diagram rendering
+
+
+## **5.3.0** (2025-07-29)
+
+### Major Updates
+
+-   **Enhanced Inline Data Mapper:** Redesigned for improved user experience with AI-driven mapping suggestions and a sub-mapping form.
+-   **AI Copilot & RAG Workflows:** Upgraded AI Copilot now uses ballerina/ai packages, with low-code support added for advanced RAG workflows.
+
+### Added
+
+-   **AI Capabilities:**
+    -   Support for Anthropic's Claude Sonnet v4 for code generation.
+    -   Added Vector Knowledge Base node for RAG workflows.
+    -   Configuration options for default AI model providers in the Flow Diagram.
+-   **Editor & IDE Features:**
+    -   New VSCode setting to manage the visibility of the Sequence Diagram.
+    -   Option to include the current organization in search results.
+
+### Changes
+
+-   **Data Mapper:** Improved search, label positioning, and performance. Now refreshes automatically when code changes.
+-   **AI & Copilot:** Streamlined flows for user-friendliness and enhanced agent capabilities with new packages.
+-   **UI/UX:** Refined diagram rendering and title components for a more responsive interface.
+
+### Fixed
+
+-   **Data Mapper:** Corrected rendering issues and various bugs in mapping generation and type resolution.
+-   **AI & Copilot:** Resolved re-rendering bugs and authentication flow issues.
+-   **Configuration:** Fixed issues with Config.toml management and fast-run command failures.
+-   **IDE Stability:** Addressed UI freezing, improved state management, and enhanced project handling in multi-root workspaces.
+
+
 ## **5.2.0** (2025-07-14)
 
 ### Major Features

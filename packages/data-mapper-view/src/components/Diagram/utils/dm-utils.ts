@@ -891,7 +891,9 @@ export function getInputPortsForExpr(node: InputNode, expr: STNode ): RecordFiel
 		portIdBuffer = EXPANDED_QUERY_SOURCE_PORT_PREFIX + "." + (node as FromClauseNode).nodeLabel;
 	}
 
-	if (typeDesc && typeDesc.typeName === PrimitiveBalType.Record) {
+	if (typeDesc && (typeDesc.typeName === PrimitiveBalType.Record ||
+		typeDesc.typeName === PrimitiveBalType.Union)
+	) {
 		if (STKindChecker.isFieldAccess(expr) || STKindChecker.isOptionalFieldAccess(expr)) {
 			const fieldNames = getFieldNames(expr);
 			let nextTypeNode: TypeField = typeDesc;
@@ -1392,6 +1394,20 @@ export function isDefaultValue(field: TypeField, value: string): boolean {
 	if (value === '()'){
 		return true;
 	}
+	
+	// For numeric types, compare the parsed values instead of string comparison
+	if (field?.typeName === PrimitiveBalType.Int || 
+		field?.typeName === PrimitiveBalType.Float || 
+		field?.typeName === PrimitiveBalType.Decimal) {
+		
+		// Clean the value by removing suffixes like 'f' for floats and 'd' for decimals
+		const cleanValue = value?.trim().replace(/[fd]$/i, '');
+		const numericValue = parseFloat(cleanValue);
+		
+		// Check if it's a valid number and equals 0
+		return !isNaN(numericValue) && numericValue === 0;
+	}
+	
 	const defaultValue = getDefaultValue(field?.typeName);
 	return defaultValue === value?.trim();
 }

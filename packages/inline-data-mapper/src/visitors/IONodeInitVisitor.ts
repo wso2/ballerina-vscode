@@ -39,14 +39,12 @@ export class IONodeInitVisitor implements BaseVisitor {
 
     beginVisitOutputType(node: IOType, parent?: ExpandedDMModel): void {
         // Create output node
-        if (node.kind === TypeKind.Record) {
+        if (parent?.query) {
+            this.outputNode = new QueryOutputNode(this.context, node);
+        } else if (node.kind === TypeKind.Record) {
             this.outputNode = new ObjectOutputNode(this.context, node);
         } else if (node.kind === TypeKind.Array) {
-            if (parent?.query) {
-                this.outputNode = new QueryOutputNode(this.context, node);
-            } else {
-                this.outputNode = new ArrayOutputNode(this.context, node);
-            }
+            this.outputNode = new ArrayOutputNode(this.context, node);
         } else {
             this.outputNode = new PrimitiveOutputNode(this.context, node);
         }
