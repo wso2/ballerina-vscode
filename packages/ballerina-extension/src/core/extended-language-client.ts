@@ -289,6 +289,7 @@ enum EXTENDED_APIS {
     EXAMPLE_LIST = 'ballerinaExample/list',
     PERF_ANALYZER_RESOURCES_ENDPOINTS = 'performanceAnalyzer/getResourcesWithEndpoints',
     RESOLVE_MISSING_DEPENDENCIES = 'ballerinaDocument/resolveMissingDependencies',
+    RESOLVE_MODULE_DEPENDENCIES = 'ballerinaDocument/resolveModuleDependencies',
     BALLERINA_TO_OPENAPI = 'openAPILSExtension/generateOpenAPI',
     NOTEBOOK_RESULT = "balShell/getResult",
     NOTEBOOK_FILE_SOURCE = "balShell/getShellFileSource",
@@ -915,7 +916,12 @@ export class ExtendedLangClient extends LanguageClient implements ExtendedLangCl
 
     async resolveMissingDependencies(req: SyntaxTreeParams): Promise<SyntaxTree | NOT_SUPPORTED_TYPE> {
         handlePullModuleProgress();
-        return this.sendRequest(EXTENDED_APIS.RESOLVE_MISSING_DEPENDENCIES, req);
+        const response = await this.sendRequest(EXTENDED_APIS.RESOLVE_MISSING_DEPENDENCIES, req);
+        return response;
+    }
+
+    async resolveModuleDependencies(req: SyntaxTreeParams): Promise<SyntaxTree | NOT_SUPPORTED_TYPE> {
+        return this.sendRequest(EXTENDED_APIS.RESOLVE_MODULE_DEPENDENCIES, req);
     }
 
     async convertToOpenAPI(params: OpenAPIConverterParams): Promise<OpenAPISpec | NOT_SUPPORTED_TYPE> {
