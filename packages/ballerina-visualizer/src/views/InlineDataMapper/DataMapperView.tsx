@@ -38,14 +38,15 @@ import {
     NodePosition,
     EVENT_TYPE,
     LineRange,
-    ResultClauseType
+    ResultClauseType,
+    IOType
 } from "@wso2/ballerina-core";
 import { CompletionItem, ProgressIndicator } from "@wso2/ui-toolkit";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { DataMapperView } from "@wso2/ballerina-inline-data-mapper";
 
 import { useInlineDataMapperModel } from "../../Hooks";
-import { expandDMModel } from "./modelProcessor";
+import { expandDMModel, processTypeReference } from "./modelProcessor";
 import FormGeneratorNew from "../BI/Forms/FormGeneratorNew";
 import { InlineDataMapperProps } from ".";
 import { EXPRESSION_EXTRACTION_REGEX } from "../../constants";
@@ -380,6 +381,18 @@ export function InlineDataMapperView(props: InlineDataMapperProps) {
             .openView({ type: EVENT_TYPE.OPEN_VIEW, location: { documentUri, position } });
     };
 
+    const enrichChildFields = (parentField: IOType) => {
+        if (parentField.ref) {
+            parentField.fields = processTypeReference(
+                parentField.ref,
+                parentField.id,
+                model as DMModel,
+                new Set()
+            ).fields;
+            parentField.isDeepNested = false;
+        }
+    }
+
     useEffect(() => {
         // Hack to hit the error boundary
         if (isError) {
@@ -491,6 +504,7 @@ export function InlineDataMapperView(props: InlineDataMapperProps) {
                     deleteMapping={deleteMapping}
                     mapWithCustomFn={mapWithCustomFn}
                     goToFunction={goToFunction}
+                    enrichChildFields={enrichChildFields}
                     expressionBar={{
                         completions: filteredCompletions,
                         isUpdatingSource,
