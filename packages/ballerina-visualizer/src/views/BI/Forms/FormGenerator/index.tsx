@@ -204,7 +204,10 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
     const importsCodedataRef = useRef<any>(null); // To store codeData for getVisualizableFields
 
     //stack for recursive type creation
-    const [stack, setStack] = useState<StackItem[]>([]);
+    const [stack, setStack] = useState<StackItem[]>([{
+        isDirty: false,
+        type: undefined
+    }]);
 
     const pushTypeStack = (item: StackItem) => {
         setStack((prev) => [...prev, item]);
@@ -385,7 +388,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
     };
 
     const handleTypeEditorStateChange = (state: boolean) => {
-        if (stack.length !== 0) {
+        if (stack.length > 1) {
             popTypeStack();
             return;
         }
@@ -968,29 +971,6 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
                     handleSelectedTypeChange={handleSelectedTypeChange}
                     preserveOrder={node.codedata.node === "VARIABLE" || node.codedata.node === "CONFIG_VARIABLE"}
                 />
-                {
-                    <DynamicModal
-                        width={420}
-                        height={600}
-                        anchorRef={undefined}
-                        title="Create New Type"
-                        openState={typeEditorState.isOpen}
-                        setOpenState={handleTypeEditorStateChange}>
-                        <DynamicModal.Trigger>
-                            <Button >hahah</Button>
-                        </DynamicModal.Trigger>
-                        <FormTypeEditor
-                            type={peekTypeStack()?.type}
-                            newType={true}
-                            newTypeValue={typeEditorState.newTypeValue}
-                            isGraphql={isGraphql}
-                            onTypeChange={onTypeChange}
-                            onSaveType={onSaveType}
-                            onTypeCreate={handleTypeCreate}
-                            getNewTypeCreateForm={getNewTypeCreateForm}
-                        />
-                    </DynamicModal>
-                }
                 {
                     stack.map((item, i) => <DynamicModal
                         key={i}
