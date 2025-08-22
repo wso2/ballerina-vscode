@@ -59,6 +59,8 @@ public class LocalIndexCentral {
     private static final String MODEL_PROVIDERS_JSON = "model_providers.json";
     private static final String VECTOR_STORES_JSON = "vector_stores.json";
     private static final String EMBEDDING_PROVIDERS_JSON = "embedding_providers.json";
+    private static final String DATA_LOADERS_JSON = "data_loaders.json";
+    private static final String CHUNKERS_JSON = "chunkers.json";
     private static final String CONNECTIONS_JSON = "connections.json";
     private static final String FUNCTIONS_JSON = "functions.json";
 
@@ -102,6 +104,16 @@ public class LocalIndexCentral {
 
     public List<Item> getVectorStores() {
         Category vectorStores = readJsonResource(VECTOR_STORES_JSON, Category.class);
+        return vectorStores.items();
+    }
+
+    public List<Item> getDataLoaders() {
+        Category vectorStores = readJsonResource(DATA_LOADERS_JSON, Category.class);
+        return vectorStores.items();
+    }
+
+    public List<Item> getChunkers() {
+        Category vectorStores = readJsonResource(CHUNKERS_JSON, Category.class);
         return vectorStores.items();
     }
 

@@ -434,8 +434,17 @@
                 "module": "ai",
                 "packageName": "ai",
                 "object": "VectorKnowledgeBase",
-                "symbol": "init",
-                "version": "1.1.0"
+                "symbol": "init"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "Data Loader",
+                "description": "Data loaders available in the integration"
+              },
+              "codedata": {
+                "node": "DATA_LOADERS"
               },
               "enabled": true
             },
@@ -449,6 +458,16 @@
                 "module": "ai",
                 "packageName": "ai",
                 "symbol": "chunkDocumentRecursively"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "Chunker",
+                "description": "Chunkers available in the integration"
+              },
+              "codedata": {
+                "node": "CHUNKERS"
               },
               "enabled": true
             },
