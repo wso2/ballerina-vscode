@@ -1999,9 +1999,7 @@ public class DataMapManager {
             Document document = FileSystemUtils.getDocument(workspaceManager, functionsFilePath);
             String returnType = functionMetadata.returnType();
             Range functionRange = CommonUtils.toRange(document.syntaxTree().rootNode().lineRange().endLine());
-            String functionName = "function" +
-                    (parameters.isEmpty() ? "" : parameters.getFirst().type() + "To" + returnType);
-            functionName = functionName + functionRange.getStart().getLine();
+            String functionName = getFunctionName(parameters, returnType, functionRange);
             List<TextEdit> textEdits = new ArrayList<>();
             textEdits.add(new TextEdit(functionRange, System.lineSeparator() + "function " +
                     functionName + "(" + String.join(", ", paramNames) + ") returns " + returnType + " {}"));
@@ -2010,6 +2008,21 @@ public class DataMapManager {
         } catch (WorkspaceDocumentException | EventSyncException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private static String getFunctionName(List<Parameter> parameters, String returnType, Range functionRange) {
+        Parameter firstParam = parameters.getFirst();
+        String functionName = "function";
+        if (firstParam != null) {
+            if (firstParam.kind.equals("union")){
+                functionName = functionName + firstParam.type().replace("|", "Or") +
+                        "To" + returnType.replace("|", "Or");
+            } else {
+                functionName = functionName + firstParam.type() + "To" + returnType;
+            }
+        }
+        functionName = functionName + functionRange.getStart().getLine();
+        return functionName;
     }
 
     private String getDefaultValue(String kind) {

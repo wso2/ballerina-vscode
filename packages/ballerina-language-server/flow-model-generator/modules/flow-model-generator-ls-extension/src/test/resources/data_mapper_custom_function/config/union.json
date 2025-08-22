@@ -1,0 +1,68 @@
+{
+  "source": "proj2/main.bal",
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "main.bal",
+      "startLine": {
+        "line": 17,
+        "offset": 4
+      },
+      "endLine": {
+        "line": 17,
+        "offset": 23
+      }
+    },
+    "sourceCode": "Output output = {};"
+  },
+  "mapping": {
+    "output": "output.age",
+    "expression": "input.age"
+  },
+  "functionMetadata": {
+    "returnType": "int|string",
+    "parameters": [
+      {
+        "name": "age",
+        "type": "string|int",
+        "isOptional": false,
+        "isNullable": false,
+        "kind": "union"
+      }
+    ]
+  },
+  "targetField": "output",
+  "output": {
+    "proj2/main.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 17,
+            "character": 21
+          },
+          "end": {
+            "line": 17,
+            "character": 21
+          }
+        },
+        "newText": "age: functionstringOrintTointOrstring0(input.age)"
+      }
+    ],
+    "proj2/functions.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 0,
+            "character": 0
+          },
+          "end": {
+            "line": 0,
+            "character": 0
+          }
+        },
+        "newText": "\nfunction functionstringOrintTointOrstring0(string|int age) returns int|string {}"
+      }
+    ]
+  }
+}
