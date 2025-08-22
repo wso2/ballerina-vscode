@@ -35,7 +35,9 @@ import {
     RecordTypeField,
     Imports,
     CodeData,
-    VisualizableField
+    VisualizableField,
+    Member,
+    TypeNodeKind
 } from "@wso2/ballerina-core";
 import {
     FormField,
@@ -88,6 +90,7 @@ import { FormSubmitOptions } from "../../FlowDiagram";
 import { getHelperPaneNew } from "../../HelperPaneNew";
 import { VariableForm } from "../DeclareVariableForm";
 import VectorKnowledgeBaseForm from "../VectorKnowledgeBaseForm";
+import { EditorContext, StackItem } from "@wso2/type-editor";
 
 interface TypeEditorState {
     isOpen: boolean;
@@ -199,6 +202,30 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
     const variables = completions.filter((completion) => completion.kind === 'variable')
 
     const importsCodedataRef = useRef<any>(null); // To store codeData for getVisualizableFields
+
+    //stack for recursive type creation
+    const [stack, setStack] = useState<StackItem[]>([]);
+
+    const pushTypeStack = (item: StackItem) => {
+        setStack((prev) => [...prev, item]);
+    };
+
+    const popTypeStack = () => {
+        setStack((prev) => prev.slice(0, -1));
+    };
+
+    const peekTypeStack = (): StackItem | null => {
+        return stack.length > 0 ? stack[stack.length - 1] : null;
+    };
+
+    const replaceTop = (item: StackItem) => {
+        if (stack.length === 0) return;
+        setStack((prev) => {
+            const newStack = [...prev];
+            newStack[newStack.length - 1] = item;
+            return newStack;
+        });
+    }
 
     useEffect(() => {
         if (rpcClient) {
@@ -358,7 +385,12 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
     };
 
     const handleTypeEditorStateChange = (state: boolean) => {
-        setTypeEditorState({ isOpen: state })
+        if (stack.length !== 0) {
+            popTypeStack();
+            return;
+        }
+
+        setTypeEditorState({ isOpen: state });
     }
 
     const handleUpdateImports = (key: string, imports: Imports, codedata?: CodeData) => {
@@ -621,7 +653,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
     };
 
     const onTypeEditorClosed = () => {
-        setTypeEditorState({ isOpen: false });
+        setTypeEditorState({ isOpen: stack.length !== 0 });
     };
 
     const onTypeChange = async (type: Type) => {
@@ -632,7 +664,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
             return field;
         });
         setFields(updatedFields);
-        setTypeEditorState({ isOpen: false });
+        setTypeEditorState({ isOpen: true });
     };
 
     const handleGetHelperPane = (
@@ -694,7 +726,6 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
     ) => {
         const handleCreateNewType = (typeName: string) => {
             onTypeCreate();
-            console.log("awdadwawdawd")
             setTypeEditorState({ isOpen: true, newTypeValue: typeName, fieldKey: fieldKey });
         }
 
@@ -754,8 +785,6 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
         handleExpressionEditorCancel,
     ]);
 
-    console.log("rerendering...")
-
     const fetchVisualizableFields = async (filePath: string, typeName?: string) => {
         const codedata = importsCodedataRef.current || { symbol: typeName };
         const res = await rpcClient
@@ -767,15 +796,49 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
 
     const handleTypeCreate = (typeName?: string) => {
         try {
-            setTypeEditorState({ isOpen: false, newTypeValue: typeName, fieldKey: typeEditorState.fieldKey });
-
+            setTypeEditorState({ isOpen: stack.length !== 0, newTypeValue: typeName, fieldKey: typeEditorState.fieldKey });
+            popTypeStack()
         } catch (e) {
             console.error(e)
         }
     };
 
+    const onSaveType = (type: Type) => {
+        if (stack.length > 0) {
+            popTypeStack()
+        }
+        else {
+            setTypeEditorState({ isOpen: false })
+        }
+    }
+
     const handleSelectedTypeChange = (type: CompletionItem) => {
         setSelectedType(type);
+    }
+
+    const getNewTypeCreateForm = () => {
+        pushTypeStack({
+            type: {
+                name: "",
+                members: [] as Member[],
+                editable: true,
+                metadata: {
+                    description: "",
+                    label: ""
+                },
+                properties: {},
+                codedata: {
+                    node: "RECORD" as TypeNodeKind
+                },
+                includes: [] as string[],
+                allowAdditionalFields: false
+            },
+            isDirty: false
+        })
+        setTypeEditorState({
+            isOpen: true,
+            newTypeValue: "Haha Value"
+        })
     }
 
     // handle if node form
@@ -876,7 +939,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
     // handle declare variable node form
     if (node?.codedata.node === "VARIABLE") {
         return (
-            <>
+            <EditorContext.Provider value={{ stack, push: pushTypeStack, pop: popTypeStack, peek: peekTypeStack, replaceTop: replaceTop }}>
                 <VariableForm
                     formFields={fields}
                     projectPath={projectPath}
@@ -917,15 +980,42 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
                             <Button >hahah</Button>
                         </DynamicModal.Trigger>
                         <FormTypeEditor
+                            type={peekTypeStack()?.type}
                             newType={true}
                             newTypeValue={typeEditorState.newTypeValue}
                             isGraphql={isGraphql}
                             onTypeChange={onTypeChange}
+                            onSaveType={onSaveType}
                             onTypeCreate={handleTypeCreate}
+                            getNewTypeCreateForm={getNewTypeCreateForm}
                         />
                     </DynamicModal>
                 }
-            </>
+                {
+                    stack.map((item, i) => <DynamicModal
+                        key={i}
+                        width={420}
+                        height={600}
+                        anchorRef={undefined}
+                        title="Create New Type"
+                        openState={typeEditorState.isOpen}
+                        setOpenState={handleTypeEditorStateChange}>
+                        <DynamicModal.Trigger>
+                            <Button >hahah</Button>
+                        </DynamicModal.Trigger>
+                        <FormTypeEditor
+                            type={peekTypeStack()?.type }
+                            newType={peekTypeStack()? peekTypeStack().isDirty : false}
+                            newTypeValue={typeEditorState.newTypeValue}
+                            isGraphql={isGraphql}
+                            onTypeChange={onTypeChange}
+                            onSaveType={onSaveType}
+                            onTypeCreate={handleTypeCreate}
+                            getNewTypeCreateForm={getNewTypeCreateForm}
+                        />
+                    </DynamicModal>)
+                }
+            </EditorContext.Provider>
         );
     }
 
@@ -968,26 +1058,28 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
                     onToolsChange={props.onToolsChange}
                 />
             )}
-             {
-                    <DynamicModal
-                        width={420}
-                        height={600}
-                        anchorRef={undefined}
-                        title="Create New Type"
-                        openState={typeEditorState.isOpen}
-                        setOpenState={handleTypeEditorStateChange}>
-                        <DynamicModal.Trigger>
-                            <Button >hahah</Button>
-                        </DynamicModal.Trigger>
-                        <FormTypeEditor
-                            newType={true}
-                            newTypeValue={typeEditorState.newTypeValue}
-                            isGraphql={isGraphql}
-                            onTypeChange={onTypeChange}
-                            onTypeCreate={handleTypeCreate}
-                        />
-                    </DynamicModal>
-                }
+            {
+                <DynamicModal
+                    width={420}
+                    height={600}
+                    anchorRef={undefined}
+                    title="Create New Type"
+                    openState={true}
+                    setOpenState={handleTypeEditorStateChange}>
+                    <DynamicModal.Trigger>
+                        <Button >hahah</Button>
+                    </DynamicModal.Trigger>
+                    <FormTypeEditor
+                        type={peekTypeStack()?.type}
+                        newType={true}
+                        newTypeValue={typeEditorState.newTypeValue}
+                        isGraphql={isGraphql}
+                        onTypeChange={onTypeChange}
+                        onTypeCreate={handleTypeCreate}
+                        onSaveType={onSaveType}
+                        getNewTypeCreateForm={getNewTypeCreateForm} />
+                </DynamicModal>
+            }
         </>
     );
 });

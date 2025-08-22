@@ -245,7 +245,6 @@ export const TypeHelper = forwardRef<HTMLDivElement, TypeHelperProps>((props, re
                                 onClose={onClose}
                                 {...rest}
                             />
-                            <S.Arrow sx={position.arrow} />
                         </Transition>
                     </S.Container>,
                     document.body
