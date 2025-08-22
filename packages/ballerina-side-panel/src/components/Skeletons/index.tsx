@@ -16,21 +16,4 @@
  * under the License.
  */
 
-export type Item = Category | Node;
-
-export type Category = {
-    title: string;
-    description: string;
-    icon?: JSX.Element;
-    items: Item[];
-    isLoading?: boolean;
-};
-
-export type Node = {
-    id: string;
-    label: string;
-    description: string;
-    icon?: JSX.Element;
-    enabled?: boolean;
-    metadata?: any;
-};
+export { GroupListSkeleton } from "./GroupListSkeleton";

@@ -467,7 +467,9 @@ export class NodeFactoryVisitor implements BaseVisitor {
         containerStartEmptyNode.setParentFlowNode(node);
 
         this.nodes.push(containerStartEmptyNode);
-        // this.updateNodeLinks(node, containerStartEmptyNode);
+        if (!node.viewState.isTopLevel) {
+            this.updateNodeLinks(node, containerStartEmptyNode);
+        }
         this.addSuggestionsButton(node);
         this.lastNodeModel = undefined;
     }
