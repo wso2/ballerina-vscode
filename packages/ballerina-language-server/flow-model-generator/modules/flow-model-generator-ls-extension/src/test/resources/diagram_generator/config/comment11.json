@@ -19,6 +19,7 @@
           "data": {
             "kind": "Function",
             "label": "commentInDoBody",
+            "isServiceFunction": false,
             "parameters": [
               "int i"
             ]

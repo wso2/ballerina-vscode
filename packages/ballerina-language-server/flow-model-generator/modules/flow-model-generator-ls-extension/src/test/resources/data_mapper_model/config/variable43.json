@@ -1,0 +1,177 @@
+{
+  "source": "variable27.bal",
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "variable1.bal",
+      "startLine": {
+        "line": 19,
+        "offset": 12
+      },
+      "endLine": {
+        "line": 19,
+        "offset": 33
+      }
+    },
+    "sourceCode": "Student student = {};"
+  },
+  "position": {
+    "line": 17,
+    "offset": 12
+  },
+  "propertyKey": "expression",
+  "targetField": "student",
+  "model": {
+    "inputs": [
+      {
+        "id": "CONST",
+        "variableName": "CONST",
+        "typeName": "string",
+        "kind": "string",
+        "category": "constant",
+        "optional": false
+      },
+      {
+        "fields": [
+          {
+            "member": {
+              "id": "myStudent.username.0",
+              "variableName": "<usernameItem>",
+              "typeName": "string",
+              "kind": "string",
+              "optional": false
+            },
+            "id": "myStudent.username",
+            "variableName": "username",
+            "typeName": "string[]",
+            "kind": "array",
+            "optional": false
+          },
+          {
+            "members": [
+              {
+                "fields": [
+                  {
+                    "id": "myStudent.password.username",
+                    "variableName": "username",
+                    "typeName": "string",
+                    "kind": "string",
+                    "optional": false
+                  },
+                  {
+                    "id": "myStudent.password.password",
+                    "variableName": "password",
+                    "typeName": "string",
+                    "kind": "string",
+                    "optional": false
+                  }
+                ],
+                "id": "myStudent.password",
+                "variableName": "password",
+                "typeName": "UserInfo",
+                "kind": "record",
+                "optional": false
+              },
+              {
+                "member": {
+                  "id": "myStudent.password.0",
+                  "variableName": "<passwordItem>",
+                  "typeName": "string",
+                  "kind": "string",
+                  "optional": false
+                },
+                "id": "myStudent.password",
+                "variableName": "password",
+                "typeName": "string[]",
+                "kind": "array",
+                "optional": false
+              }
+            ],
+            "id": "myStudent.password",
+            "variableName": "password",
+            "typeName": "UserInfo|string[]",
+            "kind": "union",
+            "optional": false
+          }
+        ],
+        "id": "myStudent",
+        "variableName": "myStudent",
+        "typeName": "Student",
+        "kind": "record",
+        "category": "module-variable",
+        "optional": false
+      }
+    ],
+    "output": {
+      "fields": [
+        {
+          "member": {
+            "id": "student.username",
+            "variableName": "<usernameItem>",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          "id": "student.username",
+          "variableName": "username",
+          "typeName": "string[]",
+          "kind": "array",
+          "optional": false
+        },
+        {
+          "members": [
+            {
+              "fields": [
+                {
+                  "id": "student.password.username",
+                  "variableName": "username",
+                  "typeName": "string",
+                  "kind": "string",
+                  "optional": false
+                },
+                {
+                  "id": "student.password.password",
+                  "variableName": "password",
+                  "typeName": "string",
+                  "kind": "string",
+                  "optional": false
+                }
+              ],
+              "id": "student.password",
+              "variableName": "password",
+              "typeName": "UserInfo",
+              "kind": "record",
+              "optional": false
+            },
+            {
+              "member": {
+                "id": "student.password",
+                "variableName": "<passwordItem>",
+                "typeName": "string",
+                "kind": "string",
+                "optional": false
+              },
+              "id": "student.password",
+              "variableName": "password",
+              "typeName": "string[]",
+              "kind": "array",
+              "optional": false
+            }
+          ],
+          "id": "student.password",
+          "variableName": "password",
+          "typeName": "UserInfo|string[]",
+          "kind": "union",
+          "optional": false
+        }
+      ],
+      "id": "student",
+      "variableName": "student",
+      "typeName": "Student",
+      "kind": "record",
+      "optional": false
+    },
+    "mappings": []
+  }
+}

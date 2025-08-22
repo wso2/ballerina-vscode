@@ -1,0 +1,318 @@
+{
+  "source": "variable28.bal",
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "variable28.bal",
+      "startLine": {
+        "line": 20,
+        "offset": 12
+      },
+      "endLine": {
+        "line": 20,
+        "offset": 93
+      }
+    },
+    "sourceCode": "Student student = {};"
+  },
+  "position": {
+    "line": 20,
+    "offset": 12
+  },
+  "propertyKey": "expression",
+  "targetField": "student2",
+  "model": {
+    "inputs": [
+      {
+        "id": "CONST",
+        "variableName": "CONST",
+        "typeName": "string",
+        "kind": "string",
+        "category": "constant",
+        "optional": false
+      },
+      {
+        "fields": [
+          {
+            "member": {
+              "id": "myStudent.username.0",
+              "variableName": "<usernameItem>",
+              "typeName": "string",
+              "kind": "string",
+              "optional": false
+            },
+            "id": "myStudent.username",
+            "variableName": "username",
+            "typeName": "string[]",
+            "kind": "array",
+            "optional": false
+          },
+          {
+            "members": [
+              {
+                "fields": [
+                  {
+                    "id": "myStudent.password.username",
+                    "variableName": "username",
+                    "typeName": "string",
+                    "kind": "string",
+                    "optional": false
+                  },
+                  {
+                    "id": "myStudent.password.password",
+                    "variableName": "password",
+                    "typeName": "string",
+                    "kind": "string",
+                    "optional": false
+                  }
+                ],
+                "id": "myStudent.password",
+                "variableName": "password",
+                "typeName": "UserInfo",
+                "kind": "record",
+                "optional": false
+              },
+              {
+                "member": {
+                  "id": "myStudent.password.0",
+                  "variableName": "<passwordItem>",
+                  "typeName": "string",
+                  "kind": "string",
+                  "optional": false
+                },
+                "id": "myStudent.password",
+                "variableName": "password",
+                "typeName": "string[]",
+                "kind": "array",
+                "optional": false
+              }
+            ],
+            "id": "myStudent.password",
+            "variableName": "password",
+            "typeName": "UserInfo|string[]",
+            "kind": "union",
+            "optional": false
+          }
+        ],
+        "id": "myStudent",
+        "variableName": "myStudent",
+        "typeName": "Student",
+        "kind": "record",
+        "category": "module-variable",
+        "optional": false
+      },
+      {
+        "fields": [
+          {
+            "member": {
+              "id": "student1.username.0",
+              "variableName": "<usernameItem>",
+              "typeName": "string",
+              "kind": "string",
+              "optional": false
+            },
+            "id": "student1.username",
+            "variableName": "username",
+            "typeName": "string[]",
+            "kind": "array",
+            "optional": false
+          },
+          {
+            "members": [
+              {
+                "fields": [
+                  {
+                    "id": "student1.password.username",
+                    "variableName": "username",
+                    "typeName": "string",
+                    "kind": "string",
+                    "optional": false
+                  },
+                  {
+                    "id": "student1.password.password",
+                    "variableName": "password",
+                    "typeName": "string",
+                    "kind": "string",
+                    "optional": false
+                  }
+                ],
+                "id": "student1.password",
+                "variableName": "password",
+                "typeName": "UserInfo",
+                "kind": "record",
+                "optional": false
+              },
+              {
+                "member": {
+                  "id": "student1.password.0",
+                  "variableName": "<passwordItem>",
+                  "typeName": "string",
+                  "kind": "string",
+                  "optional": false
+                },
+                "id": "student1.password",
+                "variableName": "password",
+                "typeName": "string[]",
+                "kind": "array",
+                "optional": false
+              }
+            ],
+            "id": "student1.password",
+            "variableName": "password",
+            "typeName": "UserInfo|string[]",
+            "kind": "union",
+            "optional": false
+          }
+        ],
+        "id": "student1",
+        "variableName": "student1",
+        "typeName": "Student",
+        "kind": "record",
+        "category": "local-variable",
+        "optional": false
+      }
+    ],
+    "output": {
+      "fields": [
+        {
+          "member": {
+            "id": "student2.username",
+            "variableName": "<usernameItem>",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          "id": "student2.username",
+          "variableName": "username",
+          "typeName": "string[]",
+          "kind": "array",
+          "optional": false
+        },
+        {
+          "members": [
+            {
+              "fields": [
+                {
+                  "id": "student2.password.username",
+                  "variableName": "username",
+                  "typeName": "string",
+                  "kind": "string",
+                  "optional": false
+                },
+                {
+                  "id": "student2.password.password",
+                  "variableName": "password",
+                  "typeName": "string",
+                  "kind": "string",
+                  "optional": false
+                }
+              ],
+              "id": "student2.password",
+              "variableName": "password",
+              "typeName": "UserInfo",
+              "kind": "record",
+              "optional": false
+            },
+            {
+              "member": {
+                "id": "student2.password",
+                "variableName": "<passwordItem>",
+                "typeName": "string",
+                "kind": "string",
+                "optional": false
+              },
+              "id": "student2.password",
+              "variableName": "password",
+              "typeName": "string[]",
+              "kind": "array",
+              "optional": false
+            }
+          ],
+          "id": "student2.password",
+          "variableName": "password",
+          "typeName": "UserInfo|string[]",
+          "kind": "union",
+          "optional": false
+        }
+      ],
+      "id": "student2",
+      "variableName": "student2",
+      "typeName": "Student",
+      "kind": "record",
+      "optional": false
+    },
+    "mappings": [
+      {
+        "output": "student2.username",
+        "inputs": [],
+        "expression": "[...student1.username]",
+        "diagnostics": [],
+        "elements": [
+          {
+            "mappings": [
+              {
+                "output": "student2.username.0",
+                "inputs": [
+                  "student1.username"
+                ],
+                "expression": "...student1.username",
+                "diagnostics": [],
+                "elements": [],
+                "isQueryExpression": false,
+                "isFunctionCall": false
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "output": "student2.password",
+        "inputs": [],
+        "expression": "[\"A\", \"B\", \"C\"]",
+        "diagnostics": [],
+        "elements": [
+          {
+            "mappings": [
+              {
+                "output": "student2.password.0",
+                "inputs": [],
+                "expression": "\"A\"",
+                "diagnostics": [],
+                "elements": [],
+                "isQueryExpression": false,
+                "isFunctionCall": false
+              }
+            ]
+          },
+          {
+            "mappings": [
+              {
+                "output": "student2.password.1",
+                "inputs": [],
+                "expression": "\"B\"",
+                "diagnostics": [],
+                "elements": [],
+                "isQueryExpression": false,
+                "isFunctionCall": false
+              }
+            ]
+          },
+          {
+            "mappings": [
+              {
+                "output": "student2.password.2",
+                "inputs": [],
+                "expression": "\"C\"",
+                "diagnostics": [],
+                "elements": [],
+                "isQueryExpression": false,
+                "isFunctionCall": false
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

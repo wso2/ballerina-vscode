@@ -19,6 +19,7 @@
           "data": {
             "kind": "Function",
             "label": "main",
+            "isServiceFunction": false,
             "return": "error?"
           }
         },
@@ -515,7 +516,7 @@
         "metadata": {
           "label": "prettify",
           "description": "Prettifies a `json` value to print it.\n",
-          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_data.jsondata_1.1.0.png"
+          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_data.jsondata_1.1.1.png"
         },
         "codedata": {
           "node": "FUNCTION_CALL",
@@ -523,7 +524,7 @@
           "module": "data.jsondata",
           "packageName": "data.jsondata",
           "symbol": "prettify",
-          "version": "1.1.0",
+          "version": "1.1.1",
           "lineRange": {
             "fileName": "main.bal",
             "startLine": {

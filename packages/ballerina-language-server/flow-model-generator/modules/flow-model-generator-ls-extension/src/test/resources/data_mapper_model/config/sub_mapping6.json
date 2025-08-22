@@ -1,0 +1,148 @@
+{
+  "source": "variable2_4.bal",
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "variable2_1.bal",
+      "startLine": {
+        "line": 19,
+        "offset": 12
+      },
+      "endLine": {
+        "line": 19,
+        "offset": 162
+      }
+    },
+    "sourceCode": ""
+  },
+  "position": {
+    "line": 18,
+    "offset": 65
+  },
+  "propertyKey": "expression",
+  "targetField": "student.username",
+  "model": {
+    "inputs": [
+      {
+        "id": "CONST",
+        "variableName": "CONST",
+        "typeName": "string",
+        "kind": "string",
+        "category": "constant",
+        "optional": false
+      },
+      {
+        "fields": [
+          {
+            "member": {
+              "id": "s.username.0",
+              "variableName": "<usernameItem>",
+              "typeName": "string",
+              "kind": "string",
+              "optional": false
+            },
+            "id": "s.username",
+            "variableName": "username",
+            "typeName": "string[]",
+            "kind": "array",
+            "optional": false
+          },
+          {
+            "id": "s.password",
+            "variableName": "password",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          }
+        ],
+        "id": "s",
+        "variableName": "s",
+        "typeName": "Student",
+        "kind": "record",
+        "category": "variable",
+        "optional": false
+      },
+      {
+        "fields": [
+          {
+            "id": "userInfo.username",
+            "variableName": "username",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "id": "userInfo.password",
+            "variableName": "password",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          }
+        ],
+        "id": "userInfo",
+        "variableName": "userInfo",
+        "typeName": "UserInfo",
+        "kind": "record",
+        "category": "variable",
+        "optional": false
+      },
+      {
+        "id": "x",
+        "variableName": "x",
+        "typeName": "int",
+        "kind": "int",
+        "category": "variable",
+        "optional": false
+      }
+    ],
+    "output": {
+      "member": {
+        "id": "username",
+        "variableName": "<usernameItem>",
+        "typeName": "string",
+        "kind": "string",
+        "optional": false
+      },
+      "id": "username",
+      "variableName": "username",
+      "typeName": "string[]",
+      "kind": "array",
+      "optional": false
+    },
+    "mappings": [
+      {
+        "output": "username",
+        "inputs": [
+          "n"
+        ],
+        "expression": "n",
+        "diagnostics": [],
+        "elements": [],
+        "isQueryExpression": false,
+        "isFunctionCall": false
+      }
+    ],
+    "query": {
+      "output": "username",
+      "inputs": [
+        "userInfo.username"
+      ],
+      "fromClause": {
+        "type": "from",
+        "properties": {
+          "name": "n",
+          "type": "var",
+          "expression": "userInfo.username"
+        }
+      },
+      "intermediateClauses": [],
+      "resultClause": {
+        "type": "select",
+        "properties": {
+          "expression": "n"
+        }
+      }
+    }
+  }
+}

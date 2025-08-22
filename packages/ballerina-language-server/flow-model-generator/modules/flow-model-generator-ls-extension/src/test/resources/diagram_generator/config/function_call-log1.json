@@ -19,6 +19,7 @@
           "data": {
             "kind": "Resource",
             "label": "apples",
+            "isServiceFunction": true,
             "accessor": "get",
             "parameters": [
               "int count"
@@ -424,7 +425,7 @@
         "metadata": {
           "label": "get",
           "description": "Retrieve a representation of a specified resource from an HTTP endpoint.\n",
-          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.14.2.png"
+          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.14.3.png"
         },
         "codedata": {
           "node": "REMOTE_ACTION_CALL",
@@ -433,7 +434,7 @@
           "packageName": "http",
           "object": "Client",
           "symbol": "get",
-          "version": "2.14.2",
+          "version": "2.14.3",
           "lineRange": {
             "fileName": "function_call.bal",
             "startLine": {

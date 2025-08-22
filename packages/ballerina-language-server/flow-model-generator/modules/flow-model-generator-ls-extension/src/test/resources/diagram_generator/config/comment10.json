@@ -19,6 +19,7 @@
           "data": {
             "kind": "Function",
             "label": "commentInForeachBody",
+            "isServiceFunction": false,
             "parameters": [
               "int i"
             ]

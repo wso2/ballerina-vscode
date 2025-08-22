@@ -51,7 +51,8 @@ public class DataMappingAddClausesTest extends AbstractLSTest {
     protected Object[] getConfigsList() {
         return new Object[][]{
                 {Path.of("variable1.json")},
-                {Path.of("variable2.json")}
+                {Path.of("variable2.json")},
+                {Path.of("function_defn1.json")}
         };
     }
 

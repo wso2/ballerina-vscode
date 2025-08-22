@@ -19,6 +19,7 @@
           "data": {
             "kind": "Resource",
             "label": "[string country]/rate",
+            "isServiceFunction": true,
             "accessor": "get",
             "parameters": [
               "string target"

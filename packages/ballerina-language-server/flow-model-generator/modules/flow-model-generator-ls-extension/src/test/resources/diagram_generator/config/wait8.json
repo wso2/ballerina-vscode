@@ -19,6 +19,7 @@
           "data": {
             "kind": "Function",
             "label": "dynamicWaitPatterns",
+            "isServiceFunction": false,
             "parameters": [
               "boolean condition"
             ],

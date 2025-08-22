@@ -70,6 +70,8 @@ public abstract class SearchCommand {
             case MODEL_PROVIDER -> new ModelProviderSearchCommand(module, position, queryMap);
             case EMBEDDING_PROVIDER -> new EmbeddingProviderSearchCommand(module, position, queryMap);
             case VECTOR_STORE -> new VectorStoreSearchCommand(module, position, queryMap);
+            case DATA_LOADER -> new DataLoaderSearchCommand(module, position, queryMap);
+            case CHUNKER -> new ChunkerSearchCommand(module, position, queryMap);
         };
     }
 
@@ -179,6 +181,8 @@ public abstract class SearchCommand {
         NP_FUNCTION,
         MODEL_PROVIDER,
         EMBEDDING_PROVIDER,
-        VECTOR_STORE
+        VECTOR_STORE,
+        DATA_LOADER,
+        CHUNKER
     }
 }

@@ -19,6 +19,7 @@
           "data": {
             "kind": "Resource",
             "label": "apples",
+            "isServiceFunction": true,
             "accessor": "post",
             "parameters": [
               "string payload"
@@ -49,7 +50,7 @@
         "metadata": {
           "label": "toJson",
           "description": "Converts a value of type `anydata` to `json`.\n",
-          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_data.jsondata_1.1.0.png"
+          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_data.jsondata_1.1.1.png"
         },
         "codedata": {
           "node": "FUNCTION_CALL",
@@ -57,7 +58,7 @@
           "module": "data.jsondata",
           "packageName": "data.jsondata",
           "symbol": "toJson",
-          "version": "1.1.0",
+          "version": "1.1.1",
           "lineRange": {
             "fileName": "function_call.bal",
             "startLine": {
@@ -159,7 +160,7 @@
         "metadata": {
           "label": "parseAsType",
           "description": "Convert value of type `json` to subtype of `anydata`.\n",
-          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_data.jsondata_1.1.0.png"
+          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_data.jsondata_1.1.1.png"
         },
         "codedata": {
           "node": "FUNCTION_CALL",
@@ -167,7 +168,7 @@
           "module": "data.jsondata",
           "packageName": "data.jsondata",
           "symbol": "parseAsType",
-          "version": "1.1.0",
+          "version": "1.1.1",
           "lineRange": {
             "fileName": "function_call.bal",
             "startLine": {

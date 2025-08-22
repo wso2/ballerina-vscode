@@ -139,10 +139,7 @@ public class Value {
     }
 
     public Object getValueAsObject() {
-        if (Objects.nonNull(value)) {
-            return value;
-        }
-        return null;
+        return value;
     }
 
     public List<String> getValues() {

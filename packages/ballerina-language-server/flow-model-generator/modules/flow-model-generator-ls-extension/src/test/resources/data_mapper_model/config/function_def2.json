@@ -1,0 +1,103 @@
+{
+  "source": "function_def1.bal",
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "DATA_MAPPER_DEFINITION",
+    "lineRange": {
+      "fileName": "function_def1.bal",
+      "startLine": {
+        "line": 21,
+        "offset": 0
+      },
+      "endLine": {
+        "line": 23,
+        "offset": 3
+      }
+    },
+    "sourceCode": ""
+  },
+  "position": {
+    "line": 21,
+    "offset": 53
+  },
+  "propertyKey": "expression",
+  "targetField": "transform",
+  "model": {
+    "inputs": [
+      {
+        "fields": [
+          {
+            "fields": [
+              {
+                "id": "input.user.firstName",
+                "variableName": "firstName",
+                "typeName": "string",
+                "kind": "string",
+                "optional": false
+              }
+            ],
+            "id": "input.user",
+            "variableName": "user",
+            "typeName": "User",
+            "kind": "record",
+            "optional": true
+          }
+        ],
+        "id": "input",
+        "variableName": "input",
+        "typeName": "Input",
+        "kind": "record",
+        "category": "parameter",
+        "optional": false
+      }
+    ],
+    "output": {
+      "member": {
+        "fields": [
+          {
+            "id": "transform.fullName",
+            "variableName": "fullName",
+            "typeName": "string",
+            "kind": "string",
+            "optional": true
+          }
+        ],
+        "id": "transform",
+        "variableName": "<transformItem>",
+        "typeName": "Output",
+        "kind": "record",
+        "optional": false
+      },
+      "id": "transform",
+      "variableName": "transform",
+      "typeName": "Output[]",
+      "kind": "array",
+      "optional": false
+    },
+    "mappings": [
+      {
+        "output": "transform",
+        "inputs": [],
+        "expression": "[{\n    fullName: input?.user?.firstName\n}]",
+        "diagnostics": [],
+        "elements": [
+          {
+            "mappings": [
+              {
+                "output": "transform.0.fullName",
+                "inputs": [
+                  "input.user.firstName"
+                ],
+                "expression": "input?.user?.firstName\n",
+                "diagnostics": [],
+                "elements": [],
+                "isQueryExpression": false,
+                "isFunctionCall": false
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

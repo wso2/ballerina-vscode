@@ -1,0 +1,149 @@
+{
+  "source": "query8.bal",
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "query7.bal",
+      "startLine": {
+        "line": 11,
+        "offset": 4
+      },
+      "endLine": {
+        "line": 11,
+        "offset": 55
+      }
+    },
+    "sourceCode": ""
+  },
+  "position": {
+    "line": 11,
+    "offset": 4
+  },
+  "propertyKey": "expression",
+  "targetField": "myTypes2",
+  "model": {
+    "inputs": [
+      {
+        "member": {
+          "fields": [
+            {
+              "id": "myType2.0.name1",
+              "variableName": "name1",
+              "typeName": "string",
+              "kind": "string",
+              "optional": false
+            },
+            {
+              "id": "myType2.0.i",
+              "variableName": "i",
+              "typeName": "int",
+              "kind": "int",
+              "optional": false
+            }
+          ],
+          "id": "myType2.0",
+          "variableName": "<myType2Item>",
+          "typeName": "MyType",
+          "kind": "record",
+          "optional": false
+        },
+        "focusedMemberId": "x",
+        "id": "myType2",
+        "variableName": "myType2",
+        "typeName": "MyType[]",
+        "kind": "array",
+        "category": "variable",
+        "optional": false
+      },
+      {
+        "fields": [
+          {
+            "id": "x.name1",
+            "variableName": "name1",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "id": "x.i",
+            "variableName": "i",
+            "typeName": "int",
+            "kind": "int",
+            "optional": false
+          }
+        ],
+        "id": "x",
+        "variableName": "x",
+        "typeName": "MyType",
+        "kind": "record",
+        "isFocused": true,
+        "optional": false
+      }
+    ],
+    "output": {
+      "member": {
+        "fields": [
+          {
+            "id": "myTypes2.name1",
+            "variableName": "name1",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "id": "myTypes2.i",
+            "variableName": "i",
+            "typeName": "int",
+            "kind": "int",
+            "optional": false
+          }
+        ],
+        "id": "myTypes2",
+        "variableName": "<myTypes2Item>",
+        "typeName": "MyType",
+        "kind": "record",
+        "optional": false
+      },
+      "id": "myTypes2",
+      "variableName": "myTypes2",
+      "typeName": "MyType[]",
+      "kind": "array",
+      "optional": false
+    },
+    "mappings": [
+      {
+        "output": "myTypes2",
+        "inputs": [
+          "x"
+        ],
+        "expression": "x",
+        "diagnostics": [],
+        "elements": [],
+        "isQueryExpression": false,
+        "isFunctionCall": false
+      }
+    ],
+    "query": {
+      "output": "myTypes2",
+      "inputs": [
+        "myType2"
+      ],
+      "fromClause": {
+        "type": "from",
+        "properties": {
+          "name": "x",
+          "type": "MyType",
+          "expression": "myType2"
+        }
+      },
+      "intermediateClauses": [],
+      "resultClause": {
+        "type": "select",
+        "properties": {
+          "expression": "x"
+        }
+      }
+    }
+  }
+}
