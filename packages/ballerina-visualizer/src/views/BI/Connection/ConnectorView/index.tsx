@@ -82,7 +82,6 @@ interface ConnectorViewProps {
     targetLinePosition: LinePosition;
     onSelectConnector: (connector: AvailableNode) => void;
     onAddGeneratedConnector: () => void;
-    fetchingInfo: boolean;
     onClose?: () => void;
     hideTitle?: boolean;
 }
@@ -94,7 +93,6 @@ export function ConnectorView(props: ConnectorViewProps) {
         onSelectConnector,
         onAddGeneratedConnector,
         onClose,
-        fetchingInfo,
         hideTitle,
     } = props;
     const { rpcClient } = useRpcContext();
@@ -102,6 +100,7 @@ export function ConnectorView(props: ConnectorViewProps) {
     const [connectors, setConnectors] = useState<Category[]>([]);
     const [searchText, setSearchText] = useState<string>("");
     const [isSearching, setIsSearching] = useState(false);
+    const [fetchingInfo, setFetchingInfo] = useState(false);
 
     useEffect(() => {
         setIsSearching(true);
@@ -115,6 +114,7 @@ export function ConnectorView(props: ConnectorViewProps) {
     });
 
     const getConnectors = () => {
+        setFetchingInfo(true);
         rpcClient
             .getBIDiagramRpcClient()
             .search({
@@ -134,6 +134,7 @@ export function ConnectorView(props: ConnectorViewProps) {
             })
             .finally(() => {
                 setIsSearching(false);
+                setFetchingInfo(false);
             });
     };
 

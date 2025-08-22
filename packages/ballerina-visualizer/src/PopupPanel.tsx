@@ -19,7 +19,7 @@
 import styled from "@emotion/styled";
 import React, { useEffect, useState } from "react";
 import { URI, Utils } from "vscode-uri";
-import { MACHINE_VIEW, PopupMachineStateValue, PopupVisualizerLocation } from "@wso2/ballerina-core";
+import { MACHINE_VIEW, ParentPopupData, PopupMachineStateValue, PopupVisualizerLocation } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import AddConnectionWizard from "./views/BI/Connection/AddConnectionWizard";
 import { ThemeColors, Overlay } from "@wso2/ui-toolkit";
@@ -45,7 +45,7 @@ const TopBar = styled.div`
 
 interface PopupPanelProps {
     formState: PopupMachineStateValue;
-    onClose: () => void;
+    onClose: (parent?: ParentPopupData) => void;
 }
 
 const PopupPanel = (props: PopupPanelProps) => {
