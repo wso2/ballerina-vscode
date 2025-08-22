@@ -45,13 +45,22 @@ function generateFieldId(parentId: string, fieldName: string): string {
  * Processes a type reference and returns the appropriate IOType structure
  */
 function processTypeReference(
-    refType: RecordType | EnumType,
+    ref: string,
     fieldId: string,
-    model: DMModel
+    model: DMModel,
+    visitedRefs: Set<string>
 ): Partial<IOType> {
+    const refType = model.refs[ref]
     if ('fields' in refType) {
+        if (visitedRefs.has(ref)) {
+            return {
+                fields: [],
+                isRecursive: true
+            }
+        }
+        visitedRefs.add(ref);
         return {
-            fields: processTypeFields(refType, fieldId, model)
+            fields: processTypeFields(refType, fieldId, model, visitedRefs)
         };
     }
     if ('members' in refType) {
@@ -69,7 +78,8 @@ function processArray(
     field: IOTypeField,
     parentId: string,
     member: IOTypeField,
-    model: DMModel
+    model: DMModel,
+    visitedRefs: Set<string>
 ): IOType {
     const fieldId = generateFieldId(parentId, member.name);
     const ioType: IOType = {
@@ -82,15 +92,14 @@ function processArray(
     if (member.kind === TypeKind.Array && member.member) {
         return {
             ...ioType,
-            member: processArray(field, parentId, member.member, model)
+            member: processArray(field, parentId, member.member, model, visitedRefs)
         };
     }
 
     if (member.ref) {
-        const refType = model.refs[member.ref];
         return {
             ...ioType,
-            ...processTypeReference(refType, parentId, model)
+            ...processTypeReference(member.ref, parentId, model, visitedRefs)
         };
     }
 
@@ -103,7 +112,8 @@ function processArray(
 function processTypeFields(
     type: RecordType,
     parentId: string,
-    model: DMModel
+    model: DMModel,
+    visitedRefs: Set<string>
 ): IOType[] {
     if (!type.fields) return [];
 
@@ -117,17 +127,16 @@ function processTypeFields(
         };
 
         if (field.kind === TypeKind.Record && field.ref) {
-            const refType = model.refs[field.ref];
             return {
                 ...ioType,
-                ...processTypeReference(refType, fieldId, model)
+                ...processTypeReference(field.ref, fieldId, model, new Set(visitedRefs))
             };
         }
 
         if (field.kind === TypeKind.Array && field.member) {
             return {
                 ...ioType,
-                member: processArray(field, fieldId, field.member, model)
+                member: processArray(field, fieldId, field.member, model, new Set(visitedRefs))
             };
         }
 
@@ -157,15 +166,14 @@ function processIORoot(root: IORoot, model: DMModel): IOType {
     if (root.kind === TypeKind.Array && root.member) {
         return {
             ...ioType,
-            member: processArray(root, root.name, root.member, model)
+            member: processArray(root, root.name, root.member, model, new Set<string>())
         };
     }
 
     if (root.ref) {
-        const refType = model.refs[root.ref];
         return {
             ...ioType,
-            ...processTypeReference(refType, root.name, model)
+            ...processTypeReference(root.ref, root.name, model, new Set<string>())
         };
     }
 
