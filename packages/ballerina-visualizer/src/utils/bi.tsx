@@ -160,10 +160,12 @@ export function convertModelProviderCategoriesToSidePanelCategories(categories: 
         category.items?.forEach((item) => {
             if ((item as PanelNode).metadata?.codedata) {
                 const codedata = (item as PanelNode).metadata.codedata;
-                item.icon = <AIModelIcon type={codedata?.module} codedata={codedata} />;
+                const iconType = codedata?.module == "ai" ? codedata.object : codedata?.module;
+                item.icon = <AIModelIcon type={iconType} codedata={codedata} />;
             } else if (((item as PanelCategory).items.at(0) as PanelNode)?.metadata?.codedata) {
                 const codedata = ((item as PanelCategory).items.at(0) as PanelNode)?.metadata.codedata;
-                item.icon = <AIModelIcon type={codedata?.module} codedata={codedata} />;
+                const iconType = codedata?.module == "ai" ? codedata.object : codedata?.module;
+                item.icon = <AIModelIcon type={iconType} codedata={codedata} />;
             }
         });
     });
