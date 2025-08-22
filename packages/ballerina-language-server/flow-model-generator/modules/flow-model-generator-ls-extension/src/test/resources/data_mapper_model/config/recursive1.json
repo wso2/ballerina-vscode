@@ -27,7 +27,7 @@
     "output": {
       "fields": [],
       "id": "person",
-      "variableName": "person",
+      "name": "person",
       "typeName": "Person",
       "kind": "record",
       "ref": "-999232890"
@@ -38,7 +38,7 @@
         "fields": [
           {
             "id": "name",
-            "variableName": "name",
+            "name": "name",
             "typeName": "string",
             "kind": "string",
             "optional": false
@@ -46,7 +46,7 @@
           {
             "fields": [],
             "id": "father",
-            "variableName": "father",
+            "name": "father",
             "typeName": "Person",
             "kind": "record",
             "optional": false,
@@ -55,7 +55,7 @@
           {
             "fields": [],
             "id": "mother",
-            "variableName": "mother",
+            "name": "mother",
             "typeName": "Person",
             "kind": "record",
             "optional": false,

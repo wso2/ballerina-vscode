@@ -26,15 +26,15 @@
     "inputs": [
       {
         "id": "CONST",
-        "variableName": "CONST",
-        "typeName": "CONST",
-        "kind": "CONST",
+        "name": "CONST",
+        "typeName": "const",
+        "kind": "const",
         "category": "constant"
       },
       {
         "fields": [],
         "id": "myStudent",
-        "variableName": "myStudent",
+        "name": "myStudent",
         "typeName": "Student",
         "kind": "record",
         "category": "module-variable",
@@ -44,7 +44,7 @@
     "output": {
       "fields": [],
       "id": "student",
-      "variableName": "student",
+      "name": "student",
       "typeName": "Student",
       "kind": "record",
       "ref": "196591409"
@@ -55,14 +55,14 @@
         "fields": [
           {
             "id": "username",
-            "variableName": "username",
+            "name": "username",
             "typeName": "string",
             "kind": "string",
             "optional": false
           },
           {
             "id": "password",
-            "variableName": "password",
+            "name": "password",
             "typeName": "string",
             "kind": "string",
             "optional": false
@@ -76,12 +76,12 @@
           {
             "member": {
               "id": "username",
-              "variableName": "<usernameItem>",
+              "name": "<usernameItem>",
               "typeName": "string",
               "kind": "string"
             },
             "id": "username",
-            "variableName": "username",
+            "name": "username",
             "typeName": "string[]",
             "kind": "array",
             "optional": false
@@ -91,7 +91,7 @@
               {
                 "fields": [],
                 "id": "password.record",
-                "variableName": "record",
+                "name": "record",
                 "typeName": "UserInfo",
                 "kind": "record",
                 "ref": "-1418772512"
@@ -99,18 +99,18 @@
               {
                 "member": {
                   "id": "password.array",
-                  "variableName": "<arrayItem>",
+                  "name": "<arrayItem>",
                   "typeName": "string",
                   "kind": "string"
                 },
                 "id": "password.array",
-                "variableName": "array",
+                "name": "array",
                 "typeName": "string[]",
                 "kind": "array"
               }
             ],
             "id": "password",
-            "variableName": "password",
+            "name": "password",
             "typeName": "",
             "kind": "union",
             "optional": false,

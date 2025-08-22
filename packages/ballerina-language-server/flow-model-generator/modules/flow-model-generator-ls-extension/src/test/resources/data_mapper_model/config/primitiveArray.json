@@ -26,7 +26,7 @@
       {
         "fields": [],
         "id": "engineering",
-        "variableName": "engineering",
+        "name": "engineering",
         "typeName": "Department",
         "kind": "record",
         "category": "local-variable",
@@ -35,12 +35,12 @@
       {
         "member": {
           "id": "itemCodes",
-          "variableName": "<itemCodesItem>",
+          "name": "<itemCodesItem>",
           "typeName": "int",
           "kind": "int"
         },
         "id": "itemCodes",
-        "variableName": "itemCodes",
+        "name": "itemCodes",
         "typeName": "int[]",
         "kind": "array",
         "category": "local-variable"
@@ -49,7 +49,7 @@
     "output": {
       "fields": [],
       "id": "alice",
-      "variableName": "alice",
+      "name": "alice",
       "typeName": "Employee",
       "kind": "record",
       "ref": "281439725"
@@ -81,7 +81,7 @@
         "fields": [
           {
             "id": "name",
-            "variableName": "name",
+            "name": "name",
             "typeName": "string",
             "kind": "string",
             "optional": false
@@ -89,12 +89,12 @@
           {
             "member": {
               "id": "otherCodes",
-              "variableName": "<otherCodesItem>",
+              "name": "<otherCodesItem>",
               "typeName": "int",
               "kind": "int"
             },
             "id": "otherCodes",
-            "variableName": "otherCodes",
+            "name": "otherCodes",
             "typeName": "int[]",
             "kind": "array",
             "optional": false
@@ -107,7 +107,7 @@
         "fields": [
           {
             "id": "name",
-            "variableName": "name",
+            "name": "name",
             "typeName": "string",
             "kind": "string",
             "optional": false
@@ -116,13 +116,13 @@
             "member": {
               "fields": [],
               "id": "employees",
-              "variableName": "<employeesItem>",
+              "name": "<employeesItem>",
               "typeName": "Employee",
               "kind": "record",
               "ref": "281439725"
             },
             "id": "employees",
-            "variableName": "employees",
+            "name": "employees",
             "typeName": "Employee[]",
             "kind": "array",
             "optional": false,
@@ -136,7 +136,7 @@
         "fields": [
           {
             "id": "name",
-            "variableName": "name",
+            "name": "name",
             "typeName": "string",
             "kind": "string",
             "optional": false
@@ -144,7 +144,7 @@
           {
             "fields": [],
             "id": "department",
-            "variableName": "department",
+            "name": "department",
             "typeName": "Department",
             "kind": "record",
             "optional": false,

@@ -27,7 +27,7 @@
       {
         "fields": [],
         "id": "input",
-        "variableName": "input",
+        "name": "input",
         "typeName": "Input",
         "kind": "record",
         "category": "parameter",
@@ -38,13 +38,13 @@
       "member": {
         "fields": [],
         "id": "transform",
-        "variableName": "<transformItem>",
+        "name": "<transformItem>",
         "typeName": "Output",
         "kind": "record",
         "ref": "-1514999486"
       },
       "id": "transform",
-      "variableName": "transform",
+      "name": "transform",
       "typeName": "Output[]",
       "kind": "array",
       "ref": "-1514999486"
@@ -79,7 +79,7 @@
         "fields": [
           {
             "id": "fullName",
-            "variableName": "fullName",
+            "name": "fullName",
             "typeName": "string",
             "kind": "string",
             "optional": true
@@ -93,7 +93,7 @@
           {
             "fields": [],
             "id": "user",
-            "variableName": "user",
+            "name": "user",
             "typeName": "User",
             "kind": "record",
             "optional": true,
@@ -107,7 +107,7 @@
         "fields": [
           {
             "id": "firstName",
-            "variableName": "firstName",
+            "name": "firstName",
             "typeName": "string",
             "kind": "string",
             "optional": false

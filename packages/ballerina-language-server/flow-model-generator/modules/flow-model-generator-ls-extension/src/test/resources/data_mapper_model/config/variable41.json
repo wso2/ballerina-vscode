@@ -25,15 +25,15 @@
     "inputs": [
       {
         "id": "CONST",
-        "variableName": "CONST",
-        "typeName": "CONST",
-        "kind": "CONST",
+        "name": "CONST",
+        "typeName": "const",
+        "kind": "const",
         "category": "constant"
       },
       {
         "fields": [],
         "id": "var1",
-        "variableName": "var1",
+        "name": "var1",
         "typeName": "Options",
         "kind": "record",
         "category": "local-variable",
@@ -49,7 +49,7 @@
     "output": {
       "fields": [],
       "id": "var2",
-      "variableName": "var2",
+      "name": "var2",
       "typeName": "Options",
       "kind": "record",
       "moduleInfo": {
@@ -66,21 +66,21 @@
         "fields": [
           {
             "id": "clientName",
-            "variableName": "clientName",
+            "name": "clientName",
             "typeName": "string",
             "kind": "string",
             "optional": true
           },
           {
             "id": "database",
-            "variableName": "database",
+            "name": "database",
             "typeName": "int",
             "kind": "int",
             "optional": false
           },
           {
             "id": "connectionTimeout",
-            "variableName": "connectionTimeout",
+            "name": "connectionTimeout",
             "typeName": "int",
             "kind": "int",
             "optional": false

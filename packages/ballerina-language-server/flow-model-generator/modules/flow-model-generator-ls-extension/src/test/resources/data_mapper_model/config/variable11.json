@@ -26,15 +26,15 @@
     "inputs": [
       {
         "id": "CONST",
-        "variableName": "CONST",
-        "typeName": "CONST",
-        "kind": "CONST",
+        "name": "CONST",
+        "typeName": "const",
+        "kind": "const",
         "category": "constant"
       },
       {
         "fields": [],
         "id": "userInfo",
-        "variableName": "userInfo",
+        "name": "userInfo",
         "typeName": "UserInfo",
         "kind": "record",
         "category": "local-variable",
@@ -44,7 +44,7 @@
     "output": {
       "fields": [],
       "id": "student",
-      "variableName": "student",
+      "name": "student",
       "typeName": "Student",
       "kind": "record",
       "ref": "1568106809"
@@ -99,7 +99,7 @@
         "fields": [
           {
             "id": "id",
-            "variableName": "id",
+            "name": "id",
             "typeName": "decimal",
             "kind": "decimal",
             "optional": false
@@ -107,7 +107,7 @@
           {
             "fields": [],
             "id": "credentials",
-            "variableName": "credentials",
+            "name": "credentials",
             "typeName": "Credentials",
             "kind": "record",
             "optional": false,
@@ -115,7 +115,7 @@
           },
           {
             "id": "length",
-            "variableName": "length",
+            "name": "length",
             "typeName": "int",
             "kind": "int",
             "optional": false
@@ -128,14 +128,14 @@
         "fields": [
           {
             "id": "username",
-            "variableName": "username",
+            "name": "username",
             "typeName": "string",
             "kind": "string",
             "optional": false
           },
           {
             "id": "password",
-            "variableName": "password",
+            "name": "password",
             "typeName": "string",
             "kind": "string",
             "optional": false
@@ -148,14 +148,14 @@
         "fields": [
           {
             "id": "username",
-            "variableName": "username",
+            "name": "username",
             "typeName": "string",
             "kind": "string",
             "optional": false
           },
           {
             "id": "password",
-            "variableName": "password",
+            "name": "password",
             "typeName": "string",
             "kind": "string",
             "optional": false

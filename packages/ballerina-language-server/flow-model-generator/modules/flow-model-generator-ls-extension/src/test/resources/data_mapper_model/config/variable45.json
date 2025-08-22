@@ -27,7 +27,7 @@
       {
         "fields": [],
         "id": "input",
-        "variableName": "input",
+        "name": "input",
         "typeName": "Input",
         "kind": "record",
         "category": "local-variable",
@@ -37,7 +37,7 @@
     "output": {
       "fields": [],
       "id": "output",
-      "variableName": "output",
+      "name": "output",
       "typeName": "Output",
       "kind": "record",
       "ref": "-1514999486"
@@ -60,7 +60,7 @@
         "fields": [
           {
             "id": "fullName",
-            "variableName": "fullName",
+            "name": "fullName",
             "typeName": "string",
             "kind": "string",
             "optional": true
@@ -74,7 +74,7 @@
           {
             "fields": [],
             "id": "user",
-            "variableName": "user",
+            "name": "user",
             "typeName": "User",
             "kind": "record",
             "optional": true,
@@ -88,7 +88,7 @@
         "fields": [
           {
             "id": "firstName",
-            "variableName": "firstName",
+            "name": "firstName",
             "typeName": "string",
             "kind": "string",
             "optional": false
