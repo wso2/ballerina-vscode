@@ -104,9 +104,7 @@ export const Configurables = (props: ConfigurablesPageProps) => {
             });
 
         setConfigVariables(data);
-        console.log(translateToArrayFormat(data))
         setErrorMessage(errorMsg);
-        console.log(data)
     };
 
     const handleFormClose = () => {

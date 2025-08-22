@@ -980,12 +980,9 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
                         title="Create New Type"
                         openState={typeEditorState.isOpen}
                         setOpenState={handleTypeEditorStateChange}>
-                        <DynamicModal.Trigger>
-                            <Button >hahah</Button>
-                        </DynamicModal.Trigger>
                         <FormTypeEditor
-                            type={peekTypeStack()?.type }
-                            newType={peekTypeStack()? peekTypeStack().isDirty : false}
+                            type={peekTypeStack()?.type}
+                            newType={peekTypeStack() ? peekTypeStack().isDirty : false}
                             newTypeValue={typeEditorState.newTypeValue}
                             isGraphql={isGraphql}
                             onTypeChange={onTypeChange}
@@ -1039,26 +1036,25 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
                 />
             )}
             {
-                <DynamicModal
+                stack.map((item, i) => <DynamicModal
+                    key={i}
                     width={420}
                     height={600}
                     anchorRef={undefined}
                     title="Create New Type"
-                    openState={true}
+                    openState={typeEditorState.isOpen}
                     setOpenState={handleTypeEditorStateChange}>
-                    <DynamicModal.Trigger>
-                        <Button >hahah</Button>
-                    </DynamicModal.Trigger>
                     <FormTypeEditor
                         type={peekTypeStack()?.type}
-                        newType={true}
+                        newType={peekTypeStack() ? peekTypeStack().isDirty : false}
                         newTypeValue={typeEditorState.newTypeValue}
                         isGraphql={isGraphql}
                         onTypeChange={onTypeChange}
-                        onTypeCreate={handleTypeCreate}
                         onSaveType={onSaveType}
-                        getNewTypeCreateForm={getNewTypeCreateForm} />
-                </DynamicModal>
+                        onTypeCreate={handleTypeCreate}
+                        getNewTypeCreateForm={getNewTypeCreateForm}
+                    />
+                </DynamicModal>)
             }
         </>
     );
