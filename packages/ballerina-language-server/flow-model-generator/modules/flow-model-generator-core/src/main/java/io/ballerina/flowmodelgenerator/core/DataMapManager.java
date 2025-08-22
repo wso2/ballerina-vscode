@@ -2011,9 +2011,9 @@ public class DataMapManager {
     }
 
     private static String getFunctionName(List<Parameter> parameters, String returnType, Range functionRange) {
-        Parameter firstParam = parameters.getFirst();
         String functionName = "function";
-        if (firstParam != null) {
+        if (!parameters.isEmpty()) {
+            Parameter firstParam = parameters.getFirst();
             if (firstParam.kind.equals("union")) {
                 functionName = functionName + firstParam.type().replace("|", "Or") +
                         "To" + returnType.replace("|", "Or");
