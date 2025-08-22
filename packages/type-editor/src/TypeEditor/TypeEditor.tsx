@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 import { SidePanelBody, ProgressRing, Icon, TabPanel } from "@wso2/ui-toolkit";
 import styled from "@emotion/styled";
 import { BallerinaRpcClient } from "@wso2/ballerina-rpc-client";
@@ -25,6 +25,7 @@ import { TypeHelperCategory, TypeHelperItem, TypeHelperOperator } from "../TypeH
 import { TypeHelperContext } from "../Context";
 import { ImportTab } from "./Tabs/ImportTab";
 import { TypeCreatorTab } from "./Tabs/TypeCreatorTab";
+import { EditorContext } from "./Contexts/TypeEditorContext";
 
 namespace S {
     export const Container = styled(SidePanelBody)`
@@ -39,6 +40,7 @@ interface TypeEditorProps {
     imports?: Imports;
     rpcClient: BallerinaRpcClient;
     onTypeChange: (type: Type, rename?: boolean) => void;
+    onSaveType: (type: Type) => void;
     newType: boolean;
     newTypeValue?: string;
     isGraphql?: boolean;
@@ -110,6 +112,7 @@ export function TypeEditor(props: TypeEditorProps) {
                 .updateType({ filePath: type.codedata?.lineRange?.fileName || 'types.bal', type, description: "" });
         }
         props.onTypeChange(type);
+        props.onSaveType(type)
         setIsSaving(false);
     }
 
@@ -148,7 +151,7 @@ export function TypeEditor(props: TypeEditorProps) {
                         onViewChange={handleTabChange}
                         childrenSx={{ padding: '10px' }}
                     >
-                        <div id="create-from-scratch" data-testid="create-from-scratch-tab">                           
+                        <div id="create-from-scratch" data-testid="create-from-scratch-tab">
                             <TypeCreatorTab
                                 onTypeChange={props.onTypeChange}
                                 editingType={type}
@@ -160,7 +163,7 @@ export function TypeEditor(props: TypeEditorProps) {
                                 setIsSaving={setIsSaving}
                             />
                         </div>
-                        <div id="import" data-testid="import-tab">                            
+                        <div id="import" data-testid="import-tab">
                             <ImportTab
                                 type={type}
                                 onTypeSave={onTypeSave}
@@ -170,7 +173,7 @@ export function TypeEditor(props: TypeEditorProps) {
                         </div>
                     </TabPanel>
                 ) : (
-                    <div style={{ padding: '10px' }} data-testid="type-editor-content">                        
+                    <div style={{ padding: '10px' }} data-testid="type-editor-content">
                         <TypeCreatorTab
                             onTypeChange={props.onTypeChange}
                             editingType={type}

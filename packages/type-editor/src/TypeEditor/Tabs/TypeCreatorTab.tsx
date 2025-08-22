@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useContext, useEffect, useRef, useState } from "react";
 import { TextField, Dropdown, Button, ProgressRing, Icon, Typography, ThemeColors } from "@wso2/ui-toolkit";
 import styled from "@emotion/styled";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
@@ -29,6 +29,7 @@ import { AdvancedOptions } from "../AdvancedOptions";
 import { ArrayEditor } from "../ArrayEditor";
 import { debounce } from "lodash";
 import { URI, Utils } from "vscode-uri";
+import { EditorContext } from "../Contexts/TypeEditorContext";
 
 const CategoryRow = styled.div<{ showBorder?: boolean }>`
     display: flex;
@@ -153,6 +154,8 @@ export function TypeCreatorTab(props: TypeCreatorTabProps) {
         return TypeKind.RECORD;
     });
 
+    const { replaceTop } = useContext(EditorContext);
+
     const [isNewType, setIsNewType] = useState<boolean>(newType);
     const [isTypeNameValid, setIsTypeNameValid] = useState<boolean>(true);
     const [onValidationError, setOnValidationError] = useState<boolean>(false);
@@ -167,7 +170,7 @@ export function TypeCreatorTab(props: TypeCreatorTabProps) {
 
     useEffect(() => {
         if (editingType) {
-            setType(editingType);
+            handleSetType(editingType);
             validateTypeName(editingType.name);
 
             const nodeKind = editingType.codedata.node;
@@ -195,6 +198,14 @@ export function TypeCreatorTab(props: TypeCreatorTabProps) {
         setIsNewType(newType);
     }, [editingType?.name, newType]);
 
+    const handleSetType = (type: Type | ((currentType: any) => any)) => {
+        replaceTop({
+            type: typeof type === "function" ? type(type) : type,
+            isDirty: true
+        })
+        setType(type)
+    }
+
 
     const handleTypeKindChange = (value: string) => {
         // Convert display name back to internal TypeKind
@@ -221,7 +232,7 @@ export function TypeCreatorTab(props: TypeCreatorTabProps) {
         const typeValue = selectedKind === TypeKind.CLASS ? "CLASS" : selectedKind.toUpperCase();
 
         // Always create a new type with the selected kind
-        setType((currentType) => ({
+        handleSetType((currentType) => ({
             ...currentType!,
             kind: typeValue,
             members: [] as Member[],
@@ -306,8 +317,7 @@ export function TypeCreatorTab(props: TypeCreatorTabProps) {
                     }
                 }
             };
-
-            setType(renamedType);
+            handleSetType(renamedType);
             onTypeChange(renamedType, true);
             cancelEditing();
         } catch (error) {
@@ -397,7 +407,7 @@ export function TypeCreatorTab(props: TypeCreatorTabProps) {
     }
 
     const handleOnTypeNameChange = (value: string) => {
-        setType({ ...type, name: value });
+        handleSetType({ ...type, name: value });
         validateTypeName(value);
     }
 
@@ -412,19 +422,19 @@ export function TypeCreatorTab(props: TypeCreatorTabProps) {
                         <RecordEditor
                             type={type}
                             isAnonymous={false}
-                            onChange={setType}
+                            onChange={handleSetType}
                             newType={newType}
                             isGraphql={isGraphql}
                             onValidationError={handleValidationError}
                         />
-                        <AdvancedOptions type={type} onChange={setType} />
+                        <AdvancedOptions type={type} onChange={handleSetType} />
                     </>
                 );
             case TypeKind.ENUM:
                 return (
                     <EnumEditor
                         type={type}
-                        onChange={setType}
+                        onChange={handleSetType}
                         onValidationError={handleValidationError}
                     />
                 );
@@ -432,7 +442,7 @@ export function TypeCreatorTab(props: TypeCreatorTabProps) {
                 return (
                     <UnionEditor
                         type={type}
-                        onChange={setType}
+                        onChange={handleSetType}
                         rpcClient={rpcClient}
                         onValidationError={handleValidationError}
                     />
@@ -442,7 +452,7 @@ export function TypeCreatorTab(props: TypeCreatorTabProps) {
                     <ClassEditor
                         type={type}
                         isGraphql={isGraphql}
-                        onChange={setType}
+                        onChange={handleSetType}
                         onValidationError={handleValidationError}
                     />
                 );
@@ -450,7 +460,7 @@ export function TypeCreatorTab(props: TypeCreatorTabProps) {
                 return (
                     <ArrayEditor
                         type={type}
-                        onChange={setType}
+                        onChange={handleSetType}
                     />
                 );
             default:
@@ -474,7 +484,7 @@ export function TypeCreatorTab(props: TypeCreatorTabProps) {
                         onChange={(e) => handleTypeKindChange(e.target.value)}
                     />
                 )}
-                {!isNewType && !isEditing && !type.properties["name"].editable && (
+                {!isNewType && !isEditing && !type.properties["name"]?.editable && (
                     <InputWrapper>
                         <TextFieldWrapper>
                             <TextField
@@ -485,7 +495,7 @@ export function TypeCreatorTab(props: TypeCreatorTabProps) {
                                 label={type?.properties["name"]?.metadata?.label}
                                 required={!type?.properties["name"]?.optional}
                                 description={type?.properties["name"]?.metadata?.description}
-                                readOnly={!type.properties["name"].editable}
+                                readOnly={!type.properties["name"]?.editable}
                             />
                         </TextFieldWrapper>
                         <EditButton appearance="icon" onClick={startEditing} tooltip="Rename">
