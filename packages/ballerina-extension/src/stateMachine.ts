@@ -323,19 +323,22 @@ const stateMachine = createMachine<MachineContext>(
         },
         resolveMissingDependencies: (context, event) => {
             return new Promise(async (resolve, reject) => {
-                const langClient = context.langClient;
+                if (context?.projectUri) {
+                    const langClient = context.langClient;
 
-                const dependenciesResponse: any = await langClient.resolveModuleDependencies({
-                    documentIdentifier: {
-                        uri: Uri.file(context.projectUri).toString()
+                    const dependenciesResponse: any = await langClient.resolveModuleDependencies({
+                        documentIdentifier: {
+                            uri: Uri.file(context.projectUri).toString()
+                        }
+                    });
+
+                    if (dependenciesResponse?.success) {
+                        console.log("Dependencies resolved successfully.");
+                    } else {
+                        console.log("Error resolving dependencies.");
                     }
-                });
-
-                if (dependenciesResponse?.success) {
-                    console.log("Dependencies resolved successfully.");
-                } else {
-                    console.log("Error resolving dependencies.");
                 }
+
                 resolve(true);
             });
         },
