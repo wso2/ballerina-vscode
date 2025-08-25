@@ -57,9 +57,11 @@ export function hasChildMappingsForOutput(mappings: Mapping[], outputId: string)
 }
 
 export function hasChildMappingsForInput(mappings: Mapping[], inputId: string): boolean {
-    return mappings.some(mapping => mapping.inputs.some(input =>
-        input.startsWith(inputId + ".")
-    ));
+    return mappings.some(mapping => {
+        if (mapping.inputs.some(input => input.startsWith(inputId + "."))) return true;
+        return mapping.elements?.some(element => hasChildMappingsForInput(element.mappings, inputId));
+    }
+    );
 }
 
 export function isPendingMappingRequired(mappingType: MappingType): boolean {
