@@ -189,7 +189,7 @@ const HelperPaneNewEl = ({
         return insertText.cursorOffset ?? 0;
     };
 
-    const handleChange = (insertText: string | CompletionInsertText, isRecordConfigureChange?: boolean) => {
+    const handleChange = (insertText: string | CompletionInsertText, isRecordConfigureChange?: boolean, shouldKeepHelper?: boolean) => {
         const value = getInsertText(insertText);
         const cursorOffset = getCursorOffset(insertText);
         const cursorPosition = exprRef.current?.shadowRoot?.querySelector('textarea')?.selectionStart;
@@ -206,8 +206,7 @@ const HelperPaneNewEl = ({
         exprRef.current?.focus();
         // Set the cursor
         exprRef.current?.setCursor(updatedValue, updatedCursorPosition);
-        if (!isRecordConfigureChange) {
-            // Close the helper pane
+        if (!shouldKeepHelper && !isRecordConfigureChange) {
             onClose();
         }
     };
