@@ -54,6 +54,7 @@ export const Variables = (props: VariablesPageProps) => {
     const newNodeNameRef = useRef<string>("");
     const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
     const [projectPathUri, setProjectPathUri] = useState<string>();
+    const [breadCrumbSteps, setBreadCrumbSteps] = useState<string[]>(["Variables"]);
 
     const { field, triggerCharacters } = useFieldContext();
 
@@ -118,6 +119,8 @@ export const Variables = (props: VariablesPageProps) => {
     }
 
     const handleVariablesMoreIconClick = (value: string) => {
+        const newBreadCrumSteps = [...breadCrumbSteps, value];
+        setBreadCrumbSteps(newBreadCrumSteps);
         onChange(currentValue + value + '.', true);
     }
 
@@ -148,7 +151,7 @@ export const Variables = (props: VariablesPageProps) => {
                                 </VariablesMoreIconContainer>}
                         >
                             <ExpandableList.Item>
-                                <Typography variant="body3" sx={{ fontWeight: 600 }}>
+                                <Typography variant="body3">
                                     {item.label}
                                 </Typography>
 
@@ -247,13 +250,6 @@ export const Variables = (props: VariablesPageProps) => {
         return undefined;
     };
 
-    const breadCrumSteps = useMemo(() => {
-        const variableNames = currentValue.split('.');
-        if (variableNames.length < 3) return [];
-        variableNames.pop();
-        return variableNames;
-    }, [currentValue])
-
     return (
         <div style={{
             display: "flex",
@@ -261,25 +257,26 @@ export const Variables = (props: VariablesPageProps) => {
             height: "100%",
             overflow: "hidden"
         }}>
+
             {
-                breadCrumSteps && breadCrumSteps.length > 0 && (
-                    <div style={{ display: "flex", gap: '8px', padding: '8px' }}>
-                        {breadCrumSteps.map((step, index) => (
-                            <span
-                                key={index}
-                                onClick={() => handleBreadCrumbItemClicked(step)}
-                                style={{ cursor: 'pointer', color: ThemeColors.HIGHLIGHT }}
-                            >
-                                {step}
+                breadCrumbSteps.length > 1 && (
+                    <div style={{ display: "flex", gap: '8px', padding: '5px 8px', backgroundColor: ThemeColors.SURFACE_DIM_2 }}>
+                        {breadCrumbSteps.map((step, index) => (
+                            <span key={index} style={{ cursor: 'pointer', color: ThemeColors.HIGHLIGHT }}>
+                                <span onClick={() => handleBreadCrumbItemClicked(step)}>
+                                    {step}
+                                </span>
+                                {index < breadCrumbSteps.length - 1 && <span style={{ margin: '0 8px' }}>{'>'}</span>}
                             </span>
                         ))}
+
                     </div>
                 )}
-            <div style={{ display: "flex", justifyContent: "center", alignItems: "center", margin: "8px", gap: '5px' }}>
+            <div style={{ display: "flex", justifyContent: "center", alignItems: "center", margin: "3px 8px", gap: '5px' }}>
                 <SearchBox sx={{ width: "100%" }} placeholder='Search' value={searchValue} onChange={handleSearch} />
             </div>
 
-            <ScrollableContainer>
+            <ScrollableContainer style={{ margin: '8px 0px' }}>
                 {isLoading ? (
                     <HelperPaneCustom.Loader />
                 ) : (
