@@ -170,21 +170,21 @@
             "members": [
               {
                 "fields": [],
-                "id": "password.record",
-                "name": "record",
+                "id": "password",
+                "name": "password",
                 "typeName": "UserInfo",
                 "kind": "record",
                 "ref": "-1418772512"
               },
               {
                 "member": {
-                  "id": "password.array",
-                  "name": "<arrayItem>",
+                  "id": "password",
+                  "name": "<passwordItem>",
                   "typeName": "string",
                   "kind": "string"
                 },
-                "id": "password.array",
-                "name": "array",
+                "id": "password",
+                "name": "password",
                 "typeName": "string[]",
                 "kind": "array"
               }

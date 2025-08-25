@@ -94,17 +94,20 @@
           {
             "members": [
               {
-                "id": "code.null",
+                "id": "code",
+                "name": "code",
                 "typeName": "FINANCE",
                 "kind": "FINANCE"
               },
               {
-                "id": "code.null",
+                "id": "code",
+                "name": "code",
                 "typeName": "IT",
                 "kind": "IT"
               },
               {
-                "id": "code.null",
+                "id": "code",
+                "name": "code",
                 "typeName": "HR",
                 "kind": "HR"
               }

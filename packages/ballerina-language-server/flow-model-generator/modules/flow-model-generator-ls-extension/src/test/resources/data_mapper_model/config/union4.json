@@ -1,10 +1,10 @@
 {
-  "source": "union2.bal",
+  "source": "union4.bal",
   "description": "Sample diagram node",
   "codedata": {
     "node": "VARIABLE",
     "lineRange": {
-      "fileName": "union1.bal",
+      "fileName": "union4.bal",
       "startLine": {
         "line": 27,
         "offset": 4
@@ -24,19 +24,36 @@
   "model": {
     "inputs": [
       {
-        "fields": [],
+        "members": [
+          {
+            "fields": [],
+            "id": "dog",
+            "name": "dog",
+            "typeName": "Elephant",
+            "kind": "record",
+            "ref": "252136892"
+          },
+          {
+            "fields": [],
+            "id": "dog",
+            "name": "dog",
+            "typeName": "Dog",
+            "kind": "record",
+            "ref": "-27067364"
+          }
+        ],
         "id": "dog",
         "name": "dog",
-        "typeName": "Dog",
-        "kind": "record",
+        "typeName": "Elephant|Dog|()",
+        "kind": "union",
         "category": "local-variable",
-        "ref": "-27067364"
+        "ref": "1776332415"
       },
       {
         "fields": [],
         "id": "elephant",
         "name": "elephant",
-        "typeName": "Elephant",
+        "typeName": "Elephant|error",
         "kind": "record",
         "category": "local-variable",
         "ref": "252136892"
@@ -69,7 +86,7 @@
             "optional": false
           }
         ],
-        "typeName": "Elephant",
+        "typeName": "Elephant|error",
         "kind": "record"
       },
       "-27067364": {

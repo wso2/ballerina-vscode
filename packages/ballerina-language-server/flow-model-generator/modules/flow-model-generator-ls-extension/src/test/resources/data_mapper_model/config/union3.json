@@ -26,8 +26,8 @@
       {
         "fields": [],
         "id": "dog",
-        "variableName": "dog",
-        "typeName": "Dog",
+        "name": "dog",
+        "typeName": "Dog|()",
         "kind": "record",
         "category": "local-variable",
         "ref": "-27067364"
@@ -35,7 +35,7 @@
       {
         "fields": [],
         "id": "elephant",
-        "variableName": "elephant",
+        "name": "elephant",
         "typeName": "Elephant",
         "kind": "record",
         "category": "local-variable",
@@ -45,7 +45,7 @@
     "output": {
       "fields": [],
       "id": "animalType",
-      "variableName": "animalType",
+      "name": "animalType",
       "typeName": "AnimalType",
       "kind": "record",
       "ref": "-589946803"
@@ -56,14 +56,14 @@
         "fields": [
           {
             "id": "name",
-            "variableName": "name",
+            "name": "name",
             "typeName": "string",
             "kind": "string",
             "optional": false
           },
           {
             "id": "cast",
-            "variableName": "cast",
+            "name": "cast",
             "typeName": "string",
             "kind": "string",
             "optional": false
@@ -76,20 +76,20 @@
         "fields": [
           {
             "id": "name",
-            "variableName": "name",
+            "name": "name",
             "typeName": "string",
             "kind": "string",
             "optional": false
           },
           {
             "id": "breed",
-            "variableName": "breed",
+            "name": "breed",
             "typeName": "string",
             "kind": "string",
             "optional": false
           }
         ],
-        "typeName": "Dog",
+        "typeName": "Dog|()",
         "kind": "record"
       },
       "-589946803": {
@@ -98,29 +98,29 @@
             "members": [
               {
                 "fields": [],
-                "id": "animal.record",
-                "variableName": "record",
+                "id": "animal",
+                "name": "animal",
                 "typeName": "Dog",
                 "kind": "record",
                 "ref": "-27067364"
               },
               {
                 "fields": [],
-                "id": "animal.record",
-                "variableName": "record",
+                "id": "animal",
+                "name": "animal",
                 "typeName": "Elephant",
                 "kind": "record",
                 "ref": "252136892"
               },
               {
-                "id": "animal.nil",
-                "variableName": "nil",
+                "id": "animal",
+                "name": "animal",
                 "typeName": "nil",
                 "kind": "nil"
               }
             ],
             "id": "animal",
-            "variableName": "animal",
+            "name": "animal",
             "typeName": "",
             "kind": "union",
             "optional": false,
