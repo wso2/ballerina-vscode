@@ -1,0 +1,222 @@
+import styled from "@emotion/styled";
+import { PortWidget } from "@projectstorm/react-diagrams-core";
+import { Button, ThemeColors } from "@wso2/ui-toolkit";
+import { NODE_BORDER_WIDTH, ENTRY_NODE_WIDTH, ENTRY_NODE_HEIGHT } from "../../../../resources/constants";
+
+
+type NodeStyleProp = {
+    hovered: boolean;
+    inactive?: boolean;
+};
+
+export const Node = styled.div`
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    color: ${ThemeColors.ON_SURFACE};
+`;
+
+export const Header = styled.div<NodeStyleProp>`
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 6px;
+    width: 100%;
+    cursor: pointer;
+`;
+
+export const TopPortWidget = styled(PortWidget)`
+    margin-top: -3px;
+`;
+
+export const BottomPortWidget = styled(PortWidget)`
+    margin-bottom: -2px;
+`;
+
+export const FunctionPortWidget = styled(PortWidget)`
+`;
+
+export const StyledText = styled.div`
+    font-size: 14px;
+`;
+
+export const IconWrapper = styled.div`
+    padding: 4px;
+    max-width: 32px;
+    svg {
+        fill: ${ThemeColors.ON_SURFACE};
+    }
+    > div:first-child {
+        width: 24px;
+        height: 24px;
+        font-size: 24px;
+    }
+`;
+
+export const Title = styled(StyledText) <NodeStyleProp>`
+    max-width: ${ENTRY_NODE_WIDTH - 80}px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-family: "GilmerMedium";
+    color: ${(props: NodeStyleProp) => (props.hovered ? ThemeColors.HIGHLIGHT : ThemeColors.ON_SURFACE)};
+    opacity: ${(props: NodeStyleProp) => (props.inactive && !props.hovered ? 0.7 : 1)};
+`;
+
+export const ResourceAccessor = styled(StyledText) <{ color?: string }>`
+    text-transform: uppercase;
+    font-family: "GilmerBold";
+    background-color: ${(props) => props.color};
+    color: #FFF;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    justify-content: center;
+    min-width: 60px;
+    text-align: center;
+    align-items: center;
+    font-weight: bold;
+`;
+
+export const Description = styled(StyledText)`
+    font-size: 12px;
+    max-width: ${ENTRY_NODE_WIDTH - 80}px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-family: monospace;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    color: ${ThemeColors.ON_SURFACE};
+    opacity: 0.7;
+`;
+
+export const Box = styled.div<NodeStyleProp>`
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+
+    border: ${NODE_BORDER_WIDTH}px solid
+        ${(props: NodeStyleProp) => (props.hovered ? ThemeColors.HIGHLIGHT : ThemeColors.OUTLINE_VARIANT)};
+    border-radius: 8px;
+    background-color: ${ThemeColors.SURFACE_DIM};
+
+    padding: 0 8px 8px 8px;
+`;
+
+export const ServiceBox = styled.div`
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    align-items: center;
+    gap: 10px;
+    width: ${ENTRY_NODE_WIDTH}px;
+    height: ${ENTRY_NODE_HEIGHT}px;
+    cursor: pointer;
+`;
+
+export const FunctionBoxWrapper = styled.div`
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    color: ${ThemeColors.ON_SURFACE};
+`;
+
+export const StyledServiceBox = styled(ServiceBox) <NodeStyleProp>`
+    height: 40px;
+    padding: 0 12px;
+
+    border: ${NODE_BORDER_WIDTH}px solid
+        ${(props: NodeStyleProp) => (props.hovered ? ThemeColors.HIGHLIGHT : ThemeColors.OUTLINE_VARIANT)};
+    border-radius: 8px;
+    background-color: ${ThemeColors.SURFACE_DIM};
+`;
+
+// Visually group GraphQL operations with a colored accent bar
+export const GroupContainer = styled.div<{ accent: string }>`
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    width: ${ENTRY_NODE_WIDTH}px;
+    position: relative;
+    border: ${NODE_BORDER_WIDTH}px solid ${ThemeColors.OUTLINE_VARIANT};
+    border-radius: 8px;
+    background-color: ${ThemeColors.SURFACE_DIM};
+    padding: 6px;
+`;
+
+export const GroupHeader = styled.div`
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    height: 40px;
+    padding: 0 6px 0 8px;
+    cursor: pointer;
+`;
+
+export const MenuButton = styled(Button)`
+    border-radius: 5px;
+`;
+
+export const ViewAllButton = styled(FunctionBoxWrapper)`
+    color: ${ThemeColors.PRIMARY};
+    height: 40px;
+    width: 100%;
+    cursor: pointer;
+    font-family: "GilmerMedium";
+    font-size: 14px;
+    &:hover {
+        border: 1px solid ${ThemeColors.HIGHLIGHT};
+        border-radius: 8px;
+    }
+`;
+
+export const ViewAllButtonWrapper = styled.div`
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+`;
+
+export const CollapseButton = styled(Button)`
+    border-radius: 5px;
+    padding: 2px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    min-width: 24px;
+    color: ${ThemeColors.ON_SURFACE};
+    & > div:first-of-type {
+        width: 16px;
+        height: 16px;
+        font-size: 16px;
+    }
+    svg {
+        fill: ${ThemeColors.ON_SURFACE} !important;
+    }
+    &:hover {
+        color: ${ThemeColors.HIGHLIGHT};
+    }
+    &:hover svg {
+        fill: ${ThemeColors.HIGHLIGHT} !important;
+    }
+`;
+
+export const colors = {
+    "GET": '#3d7eff',
+    "PUT": '#fca130',
+    "POST": '#49cc90',
+    "DELETE": '#f93e3e',
+    "PATCH": '#986ee2',
+    "OPTIONS": '#0d5aa7',
+    "HEAD": '#9012fe'
+}
