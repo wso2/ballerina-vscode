@@ -26,7 +26,7 @@
       {
         "fields": [],
         "id": "dog",
-        "variableName": "dog",
+        "name": "dog",
         "typeName": "Dog",
         "kind": "record",
         "category": "local-variable",
@@ -35,7 +35,7 @@
       {
         "fields": [],
         "id": "elephant",
-        "variableName": "elephant",
+        "name": "elephant",
         "typeName": "Elephant",
         "kind": "record",
         "category": "local-variable",
@@ -47,7 +47,7 @@
         {
           "fields": [],
           "id": "animal1.record",
-          "variableName": "record",
+          "name": "record",
           "typeName": "Dog",
           "kind": "record",
           "ref": "-27067364"
@@ -55,14 +55,14 @@
         {
           "fields": [],
           "id": "animal1.record",
-          "variableName": "record",
+          "name": "record",
           "typeName": "Elephant",
           "kind": "record",
           "ref": "252136892"
         }
       ],
       "id": "animal1",
-      "variableName": "animal1",
+      "name": "animal1",
       "typeName": "Animal",
       "kind": "union",
       "ref": "-390580094"
@@ -85,14 +85,14 @@
         "fields": [
           {
             "id": "name",
-            "variableName": "name",
+            "name": "name",
             "typeName": "string",
             "kind": "string",
             "optional": false
           },
           {
             "id": "cast",
-            "variableName": "cast",
+            "name": "cast",
             "typeName": "string",
             "kind": "string",
             "optional": false
@@ -105,14 +105,14 @@
         "fields": [
           {
             "id": "name",
-            "variableName": "name",
+            "name": "name",
             "typeName": "string",
             "kind": "string",
             "optional": false
           },
           {
             "id": "breed",
-            "variableName": "breed",
+            "name": "breed",
             "typeName": "string",
             "kind": "string",
             "optional": false

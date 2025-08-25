@@ -27,25 +27,25 @@
         "members": [
           {
             "id": "DepartmentCode.FINANCE",
-            "variableName": "FINANCE",
+            "name": "FINANCE",
             "typeName": "FINANCE",
             "kind": "FINANCE"
           },
           {
             "id": "DepartmentCode.IT",
-            "variableName": "IT",
+            "name": "IT",
             "typeName": "IT",
             "kind": "IT"
           },
           {
             "id": "DepartmentCode.HR",
-            "variableName": "HR",
+            "name": "HR",
             "typeName": "HR",
             "kind": "HR"
           }
         ],
         "id": "enum",
-        "variableName": "DepartmentCode",
+        "name": "DepartmentCode",
         "typeName": "DepartmentCode",
         "kind": "enum",
         "category": "enum"
@@ -54,7 +54,7 @@
     "output": {
       "fields": [],
       "id": "engineering",
-      "variableName": "engineering",
+      "name": "engineering",
       "typeName": "Department",
       "kind": "record",
       "ref": "-1148493925"
@@ -86,7 +86,7 @@
         "fields": [
           {
             "id": "name",
-            "variableName": "name",
+            "name": "name",
             "typeName": "string",
             "kind": "string",
             "optional": false
@@ -110,7 +110,7 @@
               }
             ],
             "id": "code",
-            "variableName": "code",
+            "name": "code",
             "typeName": "DepartmentCode",
             "kind": "union",
             "optional": false,

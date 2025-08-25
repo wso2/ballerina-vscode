@@ -26,7 +26,7 @@
     "inputs": [
       {
         "id": "num",
-        "variableName": "num",
+        "name": "num",
         "typeName": "string",
         "kind": "string",
         "category": "variable"
@@ -34,7 +34,7 @@
       {
         "fields": [],
         "id": "u",
-        "variableName": "u",
+        "name": "u",
         "typeName": "User",
         "kind": "record",
         "category": "parameter",
@@ -43,7 +43,7 @@
       {
         "fields": [],
         "id": "secondaryPhonesItem",
-        "variableName": "secondaryPhonesItem",
+        "name": "secondaryPhonesItem",
         "typeName": "SecondaryPhones",
         "kind": "record",
         "focusExpression": "u.info.secondaryPhones",
@@ -54,13 +54,13 @@
       "member": {
         "fields": [],
         "id": "phoneNumbers",
-        "variableName": "<phoneNumbersItem>",
+        "name": "<phoneNumbersItem>",
         "typeName": "SecondaryPhonesX",
         "kind": "record",
         "ref": "1040773059"
       },
       "id": "phoneNumbers",
-      "variableName": "phoneNumbers",
+      "name": "phoneNumbers",
       "typeName": "SecondaryPhonesX[]",
       "kind": "array",
       "ref": "1040773059"
@@ -116,7 +116,7 @@
           {
             "fields": [],
             "id": "info",
-            "variableName": "info",
+            "name": "info",
             "typeName": "Info",
             "kind": "record",
             "optional": false,
@@ -130,14 +130,14 @@
         "fields": [
           {
             "id": "code",
-            "variableName": "code",
+            "name": "code",
             "typeName": "string",
             "kind": "string",
             "optional": false
           },
           {
             "id": "number",
-            "variableName": "number",
+            "name": "number",
             "typeName": "string",
             "kind": "string",
             "optional": false
@@ -150,14 +150,14 @@
         "fields": [
           {
             "id": "code",
-            "variableName": "code",
+            "name": "code",
             "typeName": "string",
             "kind": "string",
             "optional": false
           },
           {
             "id": "number",
-            "variableName": "number",
+            "name": "number",
             "typeName": "string",
             "kind": "string",
             "optional": false
@@ -171,12 +171,12 @@
           {
             "member": {
               "id": "secondaryPhones",
-              "variableName": "<secondaryPhonesItem>",
+              "name": "<secondaryPhonesItem>",
               "typeName": "string",
               "kind": "string"
             },
             "id": "secondaryPhones",
-            "variableName": "secondaryPhones",
+            "name": "secondaryPhones",
             "typeName": "string[]",
             "kind": "array",
             "optional": false
@@ -184,12 +184,12 @@
           {
             "member": {
               "id": "emails",
-              "variableName": "<emailsItem>",
+              "name": "<emailsItem>",
               "typeName": "string",
               "kind": "string"
             },
             "id": "emails",
-            "variableName": "emails",
+            "name": "emails",
             "typeName": "string[]",
             "kind": "array",
             "optional": false
@@ -198,17 +198,17 @@
             "member": {
               "member": {
                 "id": "addresses",
-                "variableName": "<addressesItemItem>",
+                "name": "<addressesItemItem>",
                 "typeName": "string",
                 "kind": "string"
               },
               "id": "addresses",
-              "variableName": "<addressesItem>",
+              "name": "<addressesItem>",
               "typeName": "string[]",
               "kind": "array"
             },
             "id": "addresses",
-            "variableName": "addresses",
+            "name": "addresses",
             "typeName": "string[][]",
             "kind": "array",
             "optional": false

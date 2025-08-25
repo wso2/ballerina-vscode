@@ -28,13 +28,13 @@
         "member": {
           "fields": [],
           "id": "myType2",
-          "variableName": "<myType2Item>",
+          "name": "<myType2Item>",
           "typeName": "MyType",
           "kind": "record",
           "ref": "2079019383"
         },
         "id": "myType2",
-        "variableName": "myType2",
+        "name": "myType2",
         "typeName": "MyType[]",
         "kind": "array",
         "category": "variable",
@@ -43,7 +43,7 @@
       {
         "fields": [],
         "id": "x",
-        "variableName": "x",
+        "name": "x",
         "typeName": "MyType",
         "kind": "record",
         "focusExpression": "myType2",
@@ -54,13 +54,13 @@
       "member": {
         "fields": [],
         "id": "myTypes2",
-        "variableName": "<myTypes2Item>",
+        "name": "<myTypes2Item>",
         "typeName": "MyType",
         "kind": "record",
         "ref": "2079019383"
       },
       "id": "myTypes2",
-      "variableName": "myTypes2",
+      "name": "myTypes2",
       "typeName": "MyType[]",
       "kind": "array",
       "ref": "2079019383"
@@ -104,14 +104,14 @@
         "fields": [
           {
             "id": "name1",
-            "variableName": "name1",
+            "name": "name1",
             "typeName": "string",
             "kind": "string",
             "optional": false
           },
           {
             "id": "i",
-            "variableName": "i",
+            "name": "i",
             "typeName": "int",
             "kind": "int",
             "optional": false

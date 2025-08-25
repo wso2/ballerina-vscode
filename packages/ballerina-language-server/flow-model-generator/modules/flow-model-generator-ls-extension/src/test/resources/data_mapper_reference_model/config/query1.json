@@ -27,7 +27,7 @@
       {
         "fields": [],
         "id": "u",
-        "variableName": "u",
+        "name": "u",
         "typeName": "User",
         "kind": "record",
         "category": "variable",
@@ -35,7 +35,7 @@
       },
       {
         "id": "secondaryPhonesItem",
-        "variableName": "secondaryPhonesItem",
+        "name": "secondaryPhonesItem",
         "typeName": "string",
         "kind": "string",
         "focusExpression": "u.info.secondaryPhones"
@@ -44,12 +44,12 @@
     "output": {
       "member": {
         "id": "phoneNumbers",
-        "variableName": "<phoneNumbersItem>",
+        "name": "<phoneNumbersItem>",
         "typeName": "string",
         "kind": "string"
       },
       "id": "phoneNumbers",
-      "variableName": "phoneNumbers",
+      "name": "phoneNumbers",
       "typeName": "string[]",
       "kind": "array"
     },
@@ -93,7 +93,7 @@
           {
             "fields": [],
             "id": "info",
-            "variableName": "info",
+            "name": "info",
             "typeName": "Info",
             "kind": "record",
             "optional": false,
@@ -108,12 +108,12 @@
           {
             "member": {
               "id": "secondaryPhones",
-              "variableName": "<secondaryPhonesItem>",
+              "name": "<secondaryPhonesItem>",
               "typeName": "string",
               "kind": "string"
             },
             "id": "secondaryPhones",
-            "variableName": "secondaryPhones",
+            "name": "secondaryPhones",
             "typeName": "string[]",
             "kind": "array",
             "optional": false
@@ -121,12 +121,12 @@
           {
             "member": {
               "id": "emails",
-              "variableName": "<emailsItem>",
+              "name": "<emailsItem>",
               "typeName": "string",
               "kind": "string"
             },
             "id": "emails",
-            "variableName": "emails",
+            "name": "emails",
             "typeName": "string[]",
             "kind": "array",
             "optional": false
@@ -135,17 +135,17 @@
             "member": {
               "member": {
                 "id": "addresses",
-                "variableName": "<addressesItemItem>",
+                "name": "<addressesItemItem>",
                 "typeName": "string",
                 "kind": "string"
               },
               "id": "addresses",
-              "variableName": "<addressesItem>",
+              "name": "<addressesItem>",
               "typeName": "string[]",
               "kind": "array"
             },
             "id": "addresses",
-            "variableName": "addresses",
+            "name": "addresses",
             "typeName": "string[][]",
             "kind": "array",
             "optional": false

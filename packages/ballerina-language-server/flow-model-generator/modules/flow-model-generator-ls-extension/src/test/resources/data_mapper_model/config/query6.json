@@ -27,7 +27,7 @@
       {
         "fields": [],
         "id": "l2Item",
-        "variableName": "l2Item",
+        "name": "l2Item",
         "typeName": "l2Item",
         "kind": "record",
         "category": "variable",
@@ -37,7 +37,7 @@
       {
         "fields": [],
         "id": "var1",
-        "variableName": "var1",
+        "name": "var1",
         "typeName": "MyType4",
         "kind": "record",
         "category": "variable",
@@ -46,7 +46,7 @@
       {
         "fields": [],
         "id": "l3ArrItem",
-        "variableName": "l3ArrItem",
+        "name": "l3ArrItem",
         "typeName": "record {|int l4_1; string l4_2; anydata...;|}",
         "kind": "record",
         "focusExpression": "l2Item.l3Arr",
@@ -57,13 +57,13 @@
       "member": {
         "fields": [],
         "id": "l3Arr",
-        "variableName": "<l3ArrItem>",
+        "name": "<l3ArrItem>",
         "typeName": "",
         "kind": "record",
         "ref": "1847207892"
       },
       "id": "l3Arr",
-      "variableName": "l3Arr",
+      "name": "l3Arr",
       "typeName": "[]",
       "kind": "array",
       "ref": "1847207892"
@@ -114,7 +114,7 @@
         "fields": [
           {
             "id": "l3",
-            "variableName": "l3",
+            "name": "l3",
             "typeName": "int",
             "kind": "int",
             "optional": false
@@ -123,13 +123,13 @@
             "member": {
               "fields": [],
               "id": "l3Arr",
-              "variableName": "<l3ArrItem>",
+              "name": "<l3ArrItem>",
               "typeName": "",
               "kind": "record",
               "ref": "1847207892"
             },
             "id": "l3Arr",
-            "variableName": "l3Arr",
+            "name": "l3Arr",
             "typeName": "[]",
             "kind": "array",
             "optional": false,
@@ -143,7 +143,7 @@
         "fields": [
           {
             "id": "l3",
-            "variableName": "l3",
+            "name": "l3",
             "typeName": "int",
             "kind": "int",
             "optional": false
@@ -152,13 +152,13 @@
             "member": {
               "fields": [],
               "id": "l3Arr",
-              "variableName": "<l3ArrItem>",
+              "name": "<l3ArrItem>",
               "typeName": "",
               "kind": "record",
               "ref": "1847207892"
             },
             "id": "l3Arr",
-            "variableName": "l3Arr",
+            "name": "l3Arr",
             "typeName": "[]",
             "kind": "array",
             "optional": false,
@@ -174,13 +174,13 @@
             "member": {
               "fields": [],
               "id": "l2",
-              "variableName": "<l2Item>",
+              "name": "<l2Item>",
               "typeName": "",
               "kind": "record",
               "ref": "-791387238"
             },
             "id": "l2",
-            "variableName": "l2",
+            "name": "l2",
             "typeName": "[]",
             "kind": "array",
             "optional": false,
@@ -194,14 +194,14 @@
         "fields": [
           {
             "id": "l4_1",
-            "variableName": "l4_1",
+            "name": "l4_1",
             "typeName": "int",
             "kind": "int",
             "optional": false
           },
           {
             "id": "l4_2",
-            "variableName": "l4_2",
+            "name": "l4_2",
             "typeName": "string",
             "kind": "string",
             "optional": false
@@ -214,14 +214,14 @@
         "fields": [
           {
             "id": "l4_1",
-            "variableName": "l4_1",
+            "name": "l4_1",
             "typeName": "int",
             "kind": "int",
             "optional": false
           },
           {
             "id": "l4_2",
-            "variableName": "l4_2",
+            "name": "l4_2",
             "typeName": "string",
             "kind": "string",
             "optional": false
@@ -235,7 +235,7 @@
           {
             "fields": [],
             "id": "l1",
-            "variableName": "l1",
+            "name": "l1",
             "typeName": "",
             "kind": "record",
             "optional": false,

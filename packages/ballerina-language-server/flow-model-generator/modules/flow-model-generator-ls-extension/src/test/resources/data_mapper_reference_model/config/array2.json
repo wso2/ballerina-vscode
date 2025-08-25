@@ -27,7 +27,7 @@
     "output": {
       "fields": [],
       "id": "l1",
-      "variableName": "l1",
+      "name": "l1",
       "typeName": "L1",
       "kind": "record",
       "ref": "-541564682"
@@ -40,13 +40,13 @@
             "member": {
               "fields": [],
               "id": "l2",
-              "variableName": "<l2Item>",
+              "name": "<l2Item>",
               "typeName": "L2",
               "kind": "record",
               "ref": "1686465105"
             },
             "id": "l2",
-            "variableName": "l2",
+            "name": "l2",
             "typeName": "L2[]",
             "kind": "array",
             "optional": false,
@@ -60,14 +60,14 @@
         "fields": [
           {
             "id": "l4_1",
-            "variableName": "l4_1",
+            "name": "l4_1",
             "typeName": "int",
             "kind": "int",
             "optional": false
           },
           {
             "id": "l4_2",
-            "variableName": "l4_2",
+            "name": "l4_2",
             "typeName": "string",
             "kind": "string",
             "optional": false
@@ -80,7 +80,7 @@
         "fields": [
           {
             "id": "l3",
-            "variableName": "l3",
+            "name": "l3",
             "typeName": "int",
             "kind": "int",
             "optional": false
@@ -90,19 +90,19 @@
               "member": {
                 "fields": [],
                 "id": "l3Arr",
-                "variableName": "<l3ArrItemItem>",
+                "name": "<l3ArrItemItem>",
                 "typeName": "L3",
                 "kind": "record",
                 "ref": "-457011656"
               },
               "id": "l3Arr",
-              "variableName": "<l3ArrItem>",
+              "name": "<l3ArrItem>",
               "typeName": "L3[]",
               "kind": "array",
               "ref": "-457011656"
             },
             "id": "l3Arr",
-            "variableName": "l3Arr",
+            "name": "l3Arr",
             "typeName": "L3[][]",
             "kind": "array",
             "optional": false,

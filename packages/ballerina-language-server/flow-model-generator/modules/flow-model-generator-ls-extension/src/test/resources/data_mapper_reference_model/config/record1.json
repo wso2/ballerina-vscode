@@ -27,7 +27,7 @@
     "output": {
       "fields": [],
       "id": "finalNote",
-      "variableName": "finalNote",
+      "name": "finalNote",
       "typeName": "FinalNote",
       "kind": "record",
       "ref": "-163075825"
@@ -38,14 +38,14 @@
         "fields": [
           {
             "id": "sampleTypeName",
-            "variableName": "sampleTypeName",
+            "name": "sampleTypeName",
             "typeName": "string",
             "kind": "string",
             "optional": false
           },
           {
             "id": "sampleTypeCode",
-            "variableName": "sampleTypeCode",
+            "name": "sampleTypeCode",
             "typeName": "int",
             "kind": "int",
             "optional": false
@@ -58,7 +58,7 @@
         "fields": [
           {
             "id": "finalNote",
-            "variableName": "finalNote",
+            "name": "finalNote",
             "typeName": "string",
             "kind": "string",
             "optional": false
@@ -66,7 +66,7 @@
           {
             "fields": [],
             "id": "progressNote",
-            "variableName": "progressNote",
+            "name": "progressNote",
             "typeName": "ProgressNote",
             "kind": "record",
             "optional": false,
@@ -80,7 +80,7 @@
         "fields": [
           {
             "id": "note",
-            "variableName": "note",
+            "name": "note",
             "typeName": "string",
             "kind": "string",
             "optional": false
@@ -88,7 +88,7 @@
           {
             "fields": [],
             "id": "sampleRecord",
-            "variableName": "sampleRecord",
+            "name": "sampleRecord",
             "typeName": "SampleRecord",
             "kind": "record",
             "optional": false,
@@ -102,7 +102,7 @@
         "fields": [
           {
             "id": "sampleRecordName",
-            "variableName": "sampleRecordName",
+            "name": "sampleRecordName",
             "typeName": "string",
             "kind": "string",
             "optional": false
@@ -110,7 +110,7 @@
           {
             "fields": [],
             "id": "recordType",
-            "variableName": "recordType",
+            "name": "recordType",
             "typeName": "SampleType",
             "kind": "record",
             "optional": false,

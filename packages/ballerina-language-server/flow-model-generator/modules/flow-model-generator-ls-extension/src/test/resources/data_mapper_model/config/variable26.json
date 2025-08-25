@@ -26,7 +26,7 @@
       {
         "fields": [],
         "id": "param",
-        "variableName": "param",
+        "name": "param",
         "typeName": "Person",
         "kind": "record",
         "category": "parameter",
@@ -35,7 +35,7 @@
       {
         "fields": [],
         "id": "user",
-        "variableName": "user",
+        "name": "user",
         "typeName": "User",
         "kind": "record",
         "category": "local-variable",
@@ -45,7 +45,7 @@
     "output": {
       "fields": [],
       "id": "u",
-      "variableName": "u",
+      "name": "u",
       "typeName": "User",
       "kind": "record",
       "ref": "677675252"
@@ -56,21 +56,21 @@
         "fields": [
           {
             "id": "city",
-            "variableName": "city",
+            "name": "city",
             "typeName": "string",
             "kind": "string",
             "optional": false
           },
           {
             "id": "state",
-            "variableName": "state",
+            "name": "state",
             "typeName": "string",
             "kind": "string",
             "optional": false
           },
           {
             "id": "zipCode",
-            "variableName": "zipCode",
+            "name": "zipCode",
             "typeName": "string",
             "kind": "string",
             "optional": false
@@ -83,21 +83,21 @@
         "fields": [
           {
             "id": "accountNumber",
-            "variableName": "accountNumber",
+            "name": "accountNumber",
             "typeName": "string",
             "kind": "string",
             "optional": false
           },
           {
             "id": "balance",
-            "variableName": "balance",
+            "name": "balance",
             "typeName": "int",
             "kind": "int",
             "optional": false
           },
           {
             "id": "lastTransaction",
-            "variableName": "lastTransaction",
+            "name": "lastTransaction",
             "typeName": "string",
             "kind": "string",
             "optional": false
@@ -110,14 +110,14 @@
         "fields": [
           {
             "id": "email",
-            "variableName": "email",
+            "name": "email",
             "typeName": "string",
             "kind": "string",
             "optional": false
           },
           {
             "id": "primaryPhone",
-            "variableName": "primaryPhone",
+            "name": "primaryPhone",
             "typeName": "string",
             "kind": "string",
             "optional": false
@@ -130,28 +130,28 @@
         "fields": [
           {
             "id": "street",
-            "variableName": "street",
+            "name": "street",
             "typeName": "string",
             "kind": "string",
             "optional": false
           },
           {
             "id": "city",
-            "variableName": "city",
+            "name": "city",
             "typeName": "string",
             "kind": "string",
             "optional": false
           },
           {
             "id": "state",
-            "variableName": "state",
+            "name": "state",
             "typeName": "string",
             "kind": "string",
             "optional": false
           },
           {
             "id": "postalCode",
-            "variableName": "postalCode",
+            "name": "postalCode",
             "typeName": "int",
             "kind": "int",
             "optional": false
@@ -164,7 +164,7 @@
         "fields": [
           {
             "id": "fullName",
-            "variableName": "fullName",
+            "name": "fullName",
             "typeName": "string",
             "kind": "string",
             "optional": false
@@ -172,7 +172,7 @@
           {
             "fields": [],
             "id": "contactDetails",
-            "variableName": "contactDetails",
+            "name": "contactDetails",
             "typeName": "",
             "kind": "record",
             "optional": false,
@@ -181,7 +181,7 @@
           {
             "fields": [],
             "id": "location",
-            "variableName": "location",
+            "name": "location",
             "typeName": "",
             "kind": "record",
             "optional": false,
@@ -190,7 +190,7 @@
           {
             "fields": [],
             "id": "accountInfo",
-            "variableName": "accountInfo",
+            "name": "accountInfo",
             "typeName": "",
             "kind": "record",
             "optional": false,
@@ -198,7 +198,7 @@
           },
           {
             "id": "transactionDate",
-            "variableName": "transactionDate",
+            "name": "transactionDate",
             "typeName": "string",
             "kind": "string",
             "optional": false
@@ -211,21 +211,21 @@
         "fields": [
           {
             "id": "firstName",
-            "variableName": "firstName",
+            "name": "firstName",
             "typeName": "string",
             "kind": "string",
             "optional": false
           },
           {
             "id": "lastName",
-            "variableName": "lastName",
+            "name": "lastName",
             "typeName": "string",
             "kind": "string",
             "optional": false
           },
           {
             "id": "email",
-            "variableName": "email",
+            "name": "email",
             "typeName": "string",
             "kind": "string",
             "optional": false
@@ -233,7 +233,7 @@
           {
             "fields": [],
             "id": "address",
-            "variableName": "address",
+            "name": "address",
             "typeName": "",
             "kind": "record",
             "optional": false,
@@ -241,7 +241,7 @@
           },
           {
             "id": "phoneNumber",
-            "variableName": "phoneNumber",
+            "name": "phoneNumber",
             "typeName": "string",
             "kind": "string",
             "optional": false
@@ -254,14 +254,14 @@
         "fields": [
           {
             "id": "accountNumber",
-            "variableName": "accountNumber",
+            "name": "accountNumber",
             "typeName": "string",
             "kind": "string",
             "optional": false
           },
           {
             "id": "balance",
-            "variableName": "balance",
+            "name": "balance",
             "typeName": "int",
             "kind": "int",
             "optional": false
@@ -275,7 +275,7 @@
           {
             "fields": [],
             "id": "customer",
-            "variableName": "customer",
+            "name": "customer",
             "typeName": "",
             "kind": "record",
             "optional": false,
@@ -284,7 +284,7 @@
           {
             "fields": [],
             "id": "account",
-            "variableName": "account",
+            "name": "account",
             "typeName": "",
             "kind": "record",
             "optional": false,

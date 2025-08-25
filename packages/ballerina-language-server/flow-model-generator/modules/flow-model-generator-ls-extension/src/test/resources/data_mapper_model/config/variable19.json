@@ -25,22 +25,22 @@
     "inputs": [
       {
         "id": "CONST",
-        "variableName": "CONST",
-        "typeName": "CONST",
-        "kind": "CONST",
+        "name": "CONST",
+        "typeName": "const",
+        "kind": "const",
         "category": "constant"
       },
       {
         "member": {
           "fields": [],
           "id": "userInfo",
-          "variableName": "<userInfoItem>",
+          "name": "<userInfoItem>",
           "typeName": "UserInfo",
           "kind": "record",
           "ref": "-481592369"
         },
         "id": "userInfo",
-        "variableName": "userInfo",
+        "name": "userInfo",
         "typeName": "UserInfo[]",
         "kind": "array",
         "category": "variable",
@@ -49,7 +49,7 @@
       {
         "fields": [],
         "id": "item",
-        "variableName": "item",
+        "name": "item",
         "typeName": "UserInfo",
         "kind": "record",
         "focusExpression": "userInfo",
@@ -60,13 +60,13 @@
       "member": {
         "fields": [],
         "id": "credentials",
-        "variableName": "<credentialsItem>",
+        "name": "<credentialsItem>",
         "typeName": "Credentials",
         "kind": "record",
         "ref": "1085256861"
       },
       "id": "credentials",
-      "variableName": "credentials",
+      "name": "credentials",
       "typeName": "Credentials[]",
       "kind": "array",
       "ref": "1085256861"
@@ -121,21 +121,21 @@
         "fields": [
           {
             "id": "username",
-            "variableName": "username",
+            "name": "username",
             "typeName": "string",
             "kind": "string",
             "optional": false
           },
           {
             "id": "password",
-            "variableName": "password",
+            "name": "password",
             "typeName": "string",
             "kind": "string",
             "optional": false
           },
           {
             "id": "id",
-            "variableName": "id",
+            "name": "id",
             "typeName": "int",
             "kind": "int",
             "optional": false
@@ -148,14 +148,14 @@
         "fields": [
           {
             "id": "username",
-            "variableName": "username",
+            "name": "username",
             "typeName": "string",
             "kind": "string",
             "optional": false
           },
           {
             "id": "password",
-            "variableName": "password",
+            "name": "password",
             "typeName": "string",
             "kind": "string",
             "optional": false
