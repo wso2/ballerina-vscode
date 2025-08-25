@@ -134,6 +134,10 @@ namespace S {
     `;
 }
 
+const FunctionItemLabel = styled.span`
+    font-size: 13px;
+`;
+
 export const TypeHelperComponent = (props: TypeHelperComponentProps) => {
     const {
         open,
@@ -241,82 +245,110 @@ export const TypeHelperComponent = (props: TypeHelperComponentProps) => {
     }, [activePanelIndex, open]);
 
     return (
-        <HelperPaneCustom >
+        <HelperPaneCustom>
             <SlidingWindow>
-                <HelperPane.Body sx={{padding: '10px'}}>
-                    <SearchBox sx={{ width: "100%", marginBottom: '10px' }} placeholder='Search' value={searchValue} onChange={handleHelperPaneSearch} />
+                <HelperPane.Body>
+                    <div style={{ 
+                        display: "flex", 
+                        justifyContent: "center", 
+                        alignItems: "center", 
+                        margin: "3px 8px" 
+                    }}>
+                        <SearchBox 
+                            sx={{ width: "100%" }} 
+                            placeholder='Search' 
+                            value={searchValue} 
+                            onChange={handleHelperPaneSearch} 
+                        />
+                    </div>
                     {loading ? (
-                        <HelperPane.Loader rows={3} columns={1} sections={3} />
+                        <HelperPane.Loader />
                     ) : (
                         basicTypes?.length > 0 && (
-                            <>
-                                <ScrollableContainer>
-                                    {basicTypes.map((category) => (
-                                        <ExpandableList.Section key={category.category} title={category.category} level={1}>
+                            <ScrollableContainer style={{ margin: '8px 0px' }}>
+                                {basicTypes.map((category) => (
+                                    <ExpandableList>
+                                        <ExpandableList.Section 
+                                            key={category.category} 
+                                            title={category.category} 
+                                            level={0}
+                                        >
                                             <div style={{ marginTop: '10px' }}>
                                                 {category.items.map((item) => (
                                                     <SlidingPaneNavContainer>
                                                         <ExpandableList.Item
                                                             key={`${category.category}-${item.name}`}
-                                                            sx={{ color: ThemeColors.ON_SURFACE }}
                                                             onClick={() => handleTypeItemClick(item)}
                                                         >
                                                             {getIcon(item.type)}
-                                                            {item.name}
+                                                            <FunctionItemLabel>{item.name}</FunctionItemLabel>
                                                         </ExpandableList.Item>
                                                     </SlidingPaneNavContainer>
                                                 ))}
                                             </div>
                                         </ExpandableList.Section>
-                                    ))}
-                                    {importedTypes?.[0]?.subCategory?.length > 0 && (
-                                        <HelperPane.CollapsibleSection title="Imported Types" defaultCollapsed={true}>
-                                            {importedTypes.map((category) => (
-                                                <ExpandableList.Section sx={{ marginTop: '20px' }} key={category.category} title={category.category} level={1}>
-                                                    {category.subCategory?.map((subCategory) => (
-                                                        <ExpandableList.Section sx={{ marginTop: '10px' }} key={category.category} title={subCategory.category} level={0}>
-                                                            <div style={{ marginTop: '10px' }}>
-                                                                {subCategory.items?.map((item) => (
-
-                                                                    <SlidingPaneNavContainer>
-                                                                        <ExpandableList.Item
-                                                                            key={subCategory.category}
-                                                                            sx={{ color: ThemeColors.ON_SURFACE }}
-                                                                            onClick={() => handleTypeBrowserItemClick(item)}
-                                                                        >
-                                                                            {getIcon(item.type)}
-                                                                            {item.name}
-                                                                        </ExpandableList.Item>
-                                                                    </SlidingPaneNavContainer>
-
-                                                                ))}
-                                                            </div>
-                                                        </ExpandableList.Section>
-                                                    ))}
-                                                </ExpandableList.Section>
-                                            ))}
-                                        </HelperPane.CollapsibleSection>
-                                    )}
-                                </ScrollableContainer>
-                            </>
+                                    </ExpandableList>
+                                ))}
+                                {importedTypes?.[0]?.subCategory?.length > 0 && (
+                                    <ExpandableList>
+                                        {importedTypes.map((category) => (
+                                            <ExpandableList.Section 
+                                                sx={{ marginTop: '20px' }} 
+                                                key={category.category} 
+                                                title={category.category} 
+                                                level={0}
+                                            >
+                                                {category.subCategory?.map((subCategory) => (
+                                                    <ExpandableList.Section 
+                                                        sx={{ marginTop: '10px' }} 
+                                                        key={subCategory.category} 
+                                                        title={subCategory.category} 
+                                                        level={0}
+                                                    >
+                                                        <div style={{ marginTop: '10px' }}>
+                                                            {subCategory.items?.map((item) => (
+                                                                <SlidingPaneNavContainer>
+                                                                    <ExpandableList.Item
+                                                                        key={`${subCategory.category}-${item.name}`}
+                                                                        onClick={() => handleTypeBrowserItemClick(item)}
+                                                                    >
+                                                                        {getIcon(item.type)}
+                                                                        <FunctionItemLabel>{item.name}</FunctionItemLabel>
+                                                                    </ExpandableList.Item>
+                                                                </SlidingPaneNavContainer>
+                                                            ))}
+                                                        </div>
+                                                    </ExpandableList.Section>
+                                                ))}
+                                            </ExpandableList.Section>
+                                        ))}
+                                    </ExpandableList>
+                                )}
+                            </ScrollableContainer>
                         )
                     )}
-                    <div style={{ marginTop: "auto" }}>
-                        <Divider />
-                        <S.FooterContainer>
-                            {onTypeCreate && (
-                                <HelperPane.IconButton
-                                    title={getTypeCreateText(currentType, referenceTypes, newTypeName)}
-                                    getIcon={() => <Codicon name="add" />}
-                                    onClick={() => onTypeCreate(newTypeName.current)}
-                                />
-                            )}
-                            <HelperPane.IconButton
-                                title="Open type browser"
-                                getIcon={() => <Codicon name="library" />}
-                                onClick={() => setIsTypeBrowserOpen(true)}
+                    <Divider sx={{ margin: '0px' }} />
+                    <div style={{ 
+                        marginTop: "auto", 
+                        display: 'flex', 
+                        flexDirection: 'column', 
+                        justifyContent: 'space-around', 
+                        paddingLeft: '8px' 
+                    }}>
+                        {onTypeCreate && (
+                            <FooterButtons 
+                                sx={{ display: 'flex', justifyContent: 'space-between' }} 
+                                startIcon='add' 
+                                title={getTypeCreateText(currentType, referenceTypes, newTypeName)}
+                                onClick={() => onTypeCreate(newTypeName.current)}
                             />
-                        </S.FooterContainer>
+                        )}
+                        <FooterButtons 
+                            sx={{ display: 'flex', justifyContent: 'space-between' }} 
+                            startIcon='library' 
+                            title="Open Type Browser" 
+                            onClick={() => setIsTypeBrowserOpen(true)} 
+                        />
                     </div>
                 </HelperPane.Body>
             </SlidingWindow>
@@ -335,4 +367,43 @@ export const TypeHelperComponent = (props: TypeHelperComponentProps) => {
         </HelperPaneCustom>
     );
 };
+
+const InvisibleButton = styled.button`
+    background: none;
+    border: none;
+    padding: 0;
+    margin: 0;
+    text-align: inherit;
+    color: inherit;
+    font: inherit;
+    cursor: pointer;
+    outline: none;
+    box-shadow: none;
+    appearance: none;
+    display: inline-flex;
+    align-items: center;
+`;
+
+type FooterButtonProps = {
+    onClick?: () => void;
+    startIcon: string;
+    title: string;
+    sx?: React.CSSProperties;
+    disabled?:boolean;
+}
+
+const FooterButtons = (props: FooterButtonProps) => {
+    const { onClick, startIcon, title, sx } = props;
+    return (
+        <div style={{ display: "flex", justifyContent: "center", alignItems: "center", margin: "5px", ...sx }}>
+            <InvisibleButton 
+            disabled={props.disabled}
+            onClick={onClick}>
+                <Codicon name={startIcon} sx={{color: ThemeColors.PRIMARY}}/>
+                <span style={{color: ThemeColors.PRIMARY, marginLeft: "10px" }}>{title}</span>
+            </InvisibleButton>
+        </div>
+    )
+}
+
 
