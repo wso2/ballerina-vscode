@@ -118,11 +118,17 @@ export abstract class DataMapperNodeModel extends NodeModel<NodeModelGenerics & 
 		const portName = this.getPortName(portPrefix, unsafeFieldFQN);
 		const isFocused = this.isFocusedField(focusedFieldFQNs, portName);
 		const isPreview = parent.attributes.isPreview || this.isPreviewPort(focusedFieldFQNs, parent.attributes.field);
-		const isCollapsed = this.isInputPortCollapsed(hidden, collapsedFields, expandedFields, 
-			portName, isArray, isFocused, 
-			field.isDeepNested, this.context.model.mappings, fieldFQN);
 
-		const isEnrichRequired = field.isDeepNested && hasChildMappingsForInput(this.context.model.mappings, fieldFQN);
+		let collapseByDefault = false;
+		let isEnrichRequired = false;
+
+		if (field.isDeepNested){
+			isEnrichRequired = hasChildMappingsForInput(this.context.model.mappings, fieldFQN);
+			collapseByDefault = !isEnrichRequired;
+		}
+
+		const isCollapsed = this.isInputPortCollapsed(hidden, collapsedFields, expandedFields, 
+			portName, isArray, isFocused, collapseByDefault);
 
 		if ((!isCollapsed &&!hidden && field.isDeepNested) || isEnrichRequired){
 			this.context.enrichChildFields(field);
@@ -300,14 +306,12 @@ export abstract class DataMapperNodeModel extends NodeModel<NodeModelGenerics & 
 		portName: string,
 		isArray: boolean,
 		isFocused: boolean,
-		isDeepNested: boolean,
-		mappings: Mapping[],
-		inputId: string
+		collapseByDefault: boolean
 	) {
 		if (isArray){
 			return isFocused ? false : expandedFields && !expandedFields.includes(portName);
 		}
-		if (isDeepNested && !hasChildMappingsForInput(mappings, inputId)) {
+		if (collapseByDefault) {
 			return expandedFields && !expandedFields.includes(portName);
 		}
 		return !hidden && collapsedFields && collapsedFields.includes(portName);
