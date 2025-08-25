@@ -35,7 +35,6 @@ import { MigrationProgressView } from "./MigrationProgressView";
 import { FormContainer, IconButton } from "./styles";
 import { FinalIntegrationParams } from "./types";
 
-
 export function ImportIntegration() {
     const { rpcClient } = useRpcContext();
 
@@ -170,7 +169,7 @@ export function ImportIntegration() {
             <IconButton onClick={handleGoHome}>
                 <Icon name="bi-home" iconSx={{ color: "var(--vscode-foreground)" }} />
             </IconButton>
-            <StepperContainer>
+            <StepperContainer style={{ marginBottom: "4%" }}>
                 <Stepper alignment="flex-start" steps={defaultSteps} currentStep={step} />
             </StepperContainer>
             {step === 0 && (
@@ -197,12 +196,7 @@ export function ImportIntegration() {
                     onBack={handleStepBack}
                 />
             )}
-            {step === 2 && (
-                <ConfigureProjectForm 
-                    onNext={handleCreateIntegrationFiles} 
-                    onBack={handleStepBack}
-                />
-            )}
+            {step === 2 && <ConfigureProjectForm onNext={handleCreateIntegrationFiles} onBack={handleStepBack} />}
         </FormContainer>
     );
 }

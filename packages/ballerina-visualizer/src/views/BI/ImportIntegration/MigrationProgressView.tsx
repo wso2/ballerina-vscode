@@ -113,11 +113,7 @@ export function MigrationProgressView({
                                 onSaveReport={handleSaveReport}
                             />
                             <NextButtonWrapper>
-                                <Button
-                                    onClick={onBack}
-                                    appearance="secondary"
-                                    sx={{ marginRight: "12px" }}
-                                >
+                                <Button onClick={onBack} appearance="secondary" sx={{ marginRight: "12px" }}>
                                     Back
                                 </Button>
                                 <Button
@@ -151,7 +147,6 @@ export function MigrationProgressView({
                 )}
             </StepWrapper>
 
-
             <MigrationLogs
                 migrationLogs={migrationLogs}
                 migrationCompleted={migrationCompleted}
@@ -163,11 +158,7 @@ export function MigrationProgressView({
             {/* Show button after logs when migration is in progress or failed */}
             {(!migrationCompleted || (migrationCompleted && !migrationSuccessful)) && (
                 <ButtonWrapper>
-                    <Button
-                        onClick={onBack}
-                        appearance="secondary"
-                        sx={{ marginRight: "12px" }}
-                    >
+                    <Button onClick={onBack} appearance="secondary" sx={{ marginRight: "12px" }}>
                         Back
                     </Button>
                     <Button
