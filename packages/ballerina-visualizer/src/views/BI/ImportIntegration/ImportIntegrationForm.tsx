@@ -18,25 +18,24 @@
 
 import { MigrationTool } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
-import { Button, CheckBox, Icon, TextField, Typography } from "@wso2/ui-toolkit";
+import { Button, Icon, Typography } from "@wso2/ui-toolkit";
 import { useState } from "react";
 import ButtonCard from "../../../components/ButtonCard";
 import { LoadingRing } from "../../../components/Loader";
 import { BodyText, LoadingOverlayContainer } from "../../styles";
+import { IntegrationParameters } from "./components/IntegrationParameters";
 import {
     ButtonWrapper,
+    FolderPathText,
+    FolderSelectionContainer,
     IntegrationCardGrid,
-    ParameterItem,
-    ParametersSection,
     PathText,
+    SelectedFolderContainer,
+    SelectedFolderDisplay,
+    StepContainer,
 } from "./styles";
 import { FinalIntegrationParams, ImportIntegrationFormProps } from "./types";
-import {
-    IMPORT_DISABLED_TOOLTIP,
-    IMPORT_ENABLED_TOOLTIP,
-    SELECTION_TEXT,
-} from "./utils";
-
+import { getImportTooltip, SELECTION_TEXT } from "./utils";
 
 export function ImportIntegrationForm({
     selectedIntegration,
@@ -52,22 +51,30 @@ export function ImportIntegrationForm({
 
     const [importSourcePath, setImportSourcePath] = useState("");
     const [integrationParams, setIntegrationParams] = useState<Record<string, any>>({});
+    const [folderSelectionStarted, setFolderSelectionStarted] = useState(false);
 
     const isImportDisabled = importSourcePath.length < 2 || !selectedIntegration;
 
-    const handleIntegrationSelection = async (integration: MigrationTool) => {
+    const handleIntegrationSelection = (integration: MigrationTool) => {
         // Reset state when a new integration is selected
         setImportSourcePath("");
+        setFolderSelectionStarted(false);
         onSelectIntegration(integration);
         const defaultParams = integration.parameters.reduce((acc, param) => {
             acc[param.key] = param.defaultValue;
             return acc;
         }, {} as Record<string, any>);
         setIntegrationParams(defaultParams);
+    };
+
+    const handleFolderSelection = async () => {
+        if (!selectedIntegration) return;
+
+        setFolderSelectionStarted(true);
         const importSource = await rpcClient.getCommonRpcClient().selectFileOrFolderPath();
         setImportSourcePath(importSource.path);
-        if (importSource.path == "") {
-            onSelectIntegration(null);
+        if (importSource.path === "") {
+            setFolderSelectionStarted(false);
         }
     };
 
@@ -95,36 +102,6 @@ export function ImportIntegrationForm({
         }));
     };
 
-    const renderIntegrationParameters = () => {
-        if (!selectedIntegration || !selectedIntegration.parameters.length) return null;
-
-        return (
-            <ParametersSection>
-                <Typography variant="h4" sx={{ marginBottom: 12 }}>
-                    {selectedIntegration.title} Configuration
-                </Typography>
-                {selectedIntegration.parameters.map((param) => (
-                    <ParameterItem key={param.key}>
-                        {param.type === "boolean" ? (
-                            <CheckBox
-                                checked={integrationParams[param.key] || false}
-                                onChange={(checked) => handleParameterChange(param.key, checked)}
-                                label={param.label}
-                            />
-                        ) : (
-                            <TextField
-                                value={integrationParams[param.key] || ""}
-                                onTextChange={(value) => handleParameterChange(param.key, value)}
-                                label={param.label}
-                                placeholder={`Enter ${param.label.toLowerCase()}`}
-                            />
-                        )}
-                    </ParameterItem>
-                ))}
-            </ParametersSection>
-        );
-    };
-
     return (
         <>
             <Typography variant="h2">Import and Migrate an Existing Integration</Typography>
@@ -133,8 +110,9 @@ export function ImportIntegrationForm({
                 ready-to-use BI project.
             </BodyText>
             <Typography variant="h3" sx={{ marginTop: 20 }}>
-                Choose the source platform and import your project
+                Step 1: Choose the source platform
             </Typography>
+            <BodyText>Select the integration platform that your current project uses:</BodyText>
             <IntegrationCardGrid>
                 {migrationTools.map((tool) => {
                     return (
@@ -142,8 +120,8 @@ export function ImportIntegrationForm({
                             key={tool.id}
                             id={`${tool.id}-integration-card`}
                             icon={<Icon name="bi-globe" />}
-                            title={`Import from ${tool.title}`}
-                            description={tool.description}
+                            title={tool.title}
+                            description=""
                             onClick={() => handleIntegrationSelection(tool)}
                             active={selectedIntegration?.id === tool.id}
                         />
@@ -151,22 +129,57 @@ export function ImportIntegrationForm({
                 })}
             </IntegrationCardGrid>
 
-            <PathText>
-                {importSourcePath ? (
-                    <span>{`Project Path: ${importSourcePath}`}</span>
-                ) : (
-                    <div style={{ color: "var(--vscode-editor-foreground)" }}>{SELECTION_TEXT}</div>
-                )}
-            </PathText>
+            {selectedIntegration && (
+                <StepContainer>
+                    <Typography variant="h3">Step 2: Select Your Project Folder</Typography>
+                    <BodyText>{selectedIntegration.description}</BodyText>
+                    {!importSourcePath ? (
+                        <FolderSelectionContainer>
+                            <Button
+                                onClick={handleFolderSelection}
+                                appearance="secondary"
+                                disabled={folderSelectionStarted}
+                            >
+                                {folderSelectionStarted ? "Selecting..." : "Select Project"}
+                            </Button>
+                        </FolderSelectionContainer>
+                    ) : (
+                        <SelectedFolderContainer>
+                            <SelectedFolderDisplay>
+                                <FolderPathText>{importSourcePath}</FolderPathText>
+                                <Button
+                                    onClick={handleFolderSelection}
+                                    appearance="secondary"
+                                    sx={{ marginLeft: "12px" }}
+                                >
+                                    Change
+                                </Button>
+                            </SelectedFolderDisplay>
+                        </SelectedFolderContainer>
+                    )}
+                </StepContainer>
+            )}
 
-            {importSourcePath.length >= 2 && renderIntegrationParameters()}
+            {!selectedIntegration && (
+                <PathText>
+                    <div style={{ color: "var(--vscode-editor-foreground)" }}>{SELECTION_TEXT}</div>
+                </PathText>
+            )}
+
+            {importSourcePath.length >= 2 && selectedIntegration && (
+                <IntegrationParameters
+                    selectedIntegration={selectedIntegration}
+                    integrationParams={integrationParams}
+                    onParameterChange={handleParameterChange}
+                />
+            )}
 
             <ButtonWrapper>
                 <Button
                     disabled={isImportDisabled}
                     onClick={handleImportIntegration}
                     appearance="primary"
-                    tooltip={isImportDisabled ? IMPORT_DISABLED_TOOLTIP : IMPORT_ENABLED_TOOLTIP}
+                    tooltip={getImportTooltip(selectedIntegration, importSourcePath)}
                 >
                     Start Migration
                 </Button>

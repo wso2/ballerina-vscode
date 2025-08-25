@@ -19,8 +19,19 @@
 import { CoverageLevel, MigrationReportJSON } from "./types";
 
 export const SELECTION_TEXT = "To begin, choose a source platform from the options above.";
-export const IMPORT_DISABLED_TOOLTIP = "Please select a source project from the options above to continue.";
-export const IMPORT_ENABLED_TOOLTIP = "Begin converting your selected project and view the progress.";
+const IMPORT_DISABLED_TOOLTIP = "Please select a source platform to continue.";
+const PATH_SELECTION_TOOLTIP = "Please select a project folder to continue.";
+const IMPORT_ENABLED_TOOLTIP = "Begin converting your selected project and view the progress.";
+
+export const getImportTooltip = (selectedIntegration: any, importSourcePath: string) => {
+    if (!selectedIntegration) {
+        return IMPORT_DISABLED_TOOLTIP;
+    }
+    if (importSourcePath.length < 2) {
+        return PATH_SELECTION_TOOLTIP;
+    }
+    return IMPORT_ENABLED_TOOLTIP;
+};
 
 export const EXAMPLE_REPORT_JSON: MigrationReportJSON = {
     coverageOverview: {
