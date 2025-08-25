@@ -128,7 +128,7 @@ export interface DMModel {
     mappings: Mapping[];
     view: string;
     query?: Query;
-    focusInputs?: Record<string, IORoot>;
+    focusInputs?: Record<string, IOTypeField>;
     mapping_fields?: Record<string, any>;
 }
 
