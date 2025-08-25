@@ -92,12 +92,25 @@ function processArray(
     model: DMModel,
     visitedRefs: Set<string>
 ): IOType {
-    const fieldId = generateFieldId(parentId, member.name);
+    let fieldId = generateFieldId(parentId, member.name);
+
+    let isFocused = false;
+    if (model.focusInputs) {
+        const focusMember = model.focusInputs[parentId];
+        if (focusMember) {
+            member = focusMember;
+            parentId = member.name;
+            fieldId = member.name;
+            isFocused = true;
+        }
+    }
+
     const ioType: IOType = {
         id: fieldId,
         name: member.name,
         typeName: member.typeName!,
-        kind: member.kind
+        kind: member.kind,
+        ...(isFocused && { isFocused })
     };
 
     if (member.kind === TypeKind.Array && member.member) {
@@ -169,6 +182,31 @@ function createBaseIOType(root: IORoot): IOType {
 }
 
 /**
+ * Preprocesses inputs of the DMModel (separates focus inputs from regular inputs)
+ * Processes each regular input into an IOType
+ */
+
+function processInputRoots(model: DMModel): IOType[]{
+    const inputs: IORoot[] = [];
+    const focusInputs: Record<string, IOTypeField> = {};
+    for (const input of model.inputs) {
+        if (input.focusExpression) {
+            focusInputs[input.focusExpression] = input as IOTypeField;
+        } else {
+            inputs.push(input);
+        }
+    }
+    const preProcessedModel: DMModel = {
+        ...model,
+        inputs,
+        focusInputs
+    };
+
+    return inputs.map(input => processIORoot(input, preProcessedModel));
+
+}
+
+/**
  * Processes an IORoot (input or output) into an IOType
  */
 function processIORoot(root: IORoot, model: DMModel): IOType {
@@ -207,7 +245,7 @@ export function expandDMModel(
 
     return {
         inputs: processInputs
-            ? model.inputs.map(input => processIORoot(input, model))
+            ? processInputRoots(model)
             : previousModel?.inputs || [],
         output: processOutput
             ? processIORoot(model.output, model)
@@ -216,6 +254,7 @@ export function expandDMModel(
             ? model.subMappings?.map(subMapping => processIORoot(subMapping, model))
             : previousModel?.subMappings || [],
         mappings: model.mappings,
+        query: model.query,
         source: "",
         view: ""
     };

@@ -128,6 +128,7 @@ export interface DMModel {
     mappings: Mapping[];
     view: string;
     query?: Query;
+    focusInputs?: Record<string, IORoot>;
     mapping_fields?: Record<string, any>;
 }
 
@@ -159,6 +160,7 @@ export interface IOTypeField {
     defaultValue?: unknown;
     optional?: boolean;
     ref?: string;
+    focusExpression?: string;
 }
 
 export interface EnumMember {
