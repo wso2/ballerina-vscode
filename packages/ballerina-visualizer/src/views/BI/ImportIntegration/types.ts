@@ -66,6 +66,7 @@ export interface ImportIntegrationFormProps {
         selectedIntegration: MigrationTool,
         toolPullProgress: DownloadProgress
     ) => void;
+    onBack: () => void;
 }
 
 export interface MigrationProgressProps {
@@ -75,8 +76,10 @@ export interface MigrationProgressProps {
     migrationSuccessful: boolean;
     migrationResponse: ImportIntegrationResponse | null;
     onNext: () => void;
+    onBack: () => void;
 }
 
 export interface ConfigureProjectFormProps {
     onNext: (projectName: string, projectPath: string) => void;
+    onBack: () => void;
 }

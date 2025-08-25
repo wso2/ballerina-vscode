@@ -46,6 +46,7 @@ export function ImportIntegrationForm({
     pullingTool,
     toolPullProgress,
     handleStartImport,
+    onBack,
 }: ImportIntegrationFormProps) {
     const { rpcClient } = useRpcContext();
 
@@ -106,7 +107,7 @@ export function ImportIntegrationForm({
         <>
             <Typography variant="h2">Import and Migrate an Existing Integration</Typography>
             <BodyText>
-                This wizard converts an existing integration project from MuleSoft, TIBCO, or Logic Apps into a
+                This wizard converts an existing integration project from MuleSoft or TIBCO into a
                 ready-to-use BI project.
             </BodyText>
             <Typography variant="h3" sx={{ marginTop: 20 }}>
@@ -175,6 +176,13 @@ export function ImportIntegrationForm({
             )}
 
             <ButtonWrapper>
+                <Button
+                    onClick={onBack}
+                    appearance="secondary"
+                    sx={{ marginRight: "12px" }}
+                >
+                    Back
+                </Button>
                 <Button
                     disabled={isImportDisabled}
                     onClick={handleImportIntegration}

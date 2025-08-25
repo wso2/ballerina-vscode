@@ -114,22 +114,20 @@ export function ImportIntegration() {
         });
     };
 
-    const handleBack = () => {
-        if (step === 0) {
-            gotToWelcome();
-            return;
-        }
-
+    const handleStepBack = () => {
         if (step === 1) {
             setMigrationToolState(null);
             setMigrationToolLogs([]);
             setMigrationCompleted(false);
             setMigrationSuccessful(false);
             setMigrationResponse(null);
-            setSelectedIntegration(null);
         }
 
         setStep(step - 1);
+    };
+
+    const handleGoHome = () => {
+        gotToWelcome();
     };
 
     const getMigrationTools = () => {
@@ -169,8 +167,8 @@ export function ImportIntegration() {
 
     return (
         <FormContainer>
-            <IconButton onClick={handleBack}>
-                <Icon name="bi-arrow-back" iconSx={{ color: "var(--vscode-foreground)" }} />
+            <IconButton onClick={handleGoHome}>
+                <Icon name="bi-home" iconSx={{ color: "var(--vscode-foreground)" }} />
             </IconButton>
             <StepperContainer>
                 <Stepper alignment="flex-start" steps={defaultSteps} currentStep={step} />
@@ -185,6 +183,7 @@ export function ImportIntegration() {
                     toolPullProgress={toolPullProgress}
                     onSelectIntegration={setSelectedIntegration}
                     handleStartImport={handleStartImport}
+                    onBack={handleGoHome}
                 />
             )}
             {step === 1 && (
@@ -195,9 +194,15 @@ export function ImportIntegration() {
                     migrationSuccessful={migrationSuccessful}
                     migrationResponse={migrationResponse}
                     onNext={() => setStep(2)}
+                    onBack={handleStepBack}
                 />
             )}
-            {step === 2 && <ConfigureProjectForm onNext={handleCreateIntegrationFiles} />}
+            {step === 2 && (
+                <ConfigureProjectForm 
+                    onNext={handleCreateIntegrationFiles} 
+                    onBack={handleStepBack}
+                />
+            )}
         </FormContainer>
     );
 }
