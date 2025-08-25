@@ -21,6 +21,7 @@ import {
     ColorThemeKind,
     HistoryEntry,
     OpenViewRequest,
+    UndoRedoStateResponse,
     UpdateUndoRedoMangerRequest,
     VisualizerAPI,
     addToHistory,
@@ -34,6 +35,7 @@ import {
     openView,
     redo,
     undo,
+    undoRedoState,
     updateUndoRedoManager
 } from "@wso2/ballerina-core";
 import { HOST_EXTENSION } from "vscode-messenger-common";
@@ -80,6 +82,10 @@ export class VisualizerRpcClient implements VisualizerAPI {
 
     addToUndoStack(source: string): void {
         return this._messenger.sendNotification(addToUndoStack, HOST_EXTENSION, source);
+    }
+
+    undoRedoState(): Promise<UndoRedoStateResponse> {
+        return this._messenger.sendRequest(undoRedoState, HOST_EXTENSION);
     }
 
     joinProjectPath(segments: string | string[]): Promise<string> {

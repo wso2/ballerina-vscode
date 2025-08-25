@@ -32,3 +32,13 @@ export interface OpenViewRequest {
 export interface GetWorkspaceContextResponse {
     context: string[];
 }
+
+export interface UndoRedoStateResponse {
+    canUndo: boolean;
+    canRedo: boolean;
+    undoCount: number;
+    redoCount: number;
+    nextUndoDescription: string | null;
+    nextRedoDescription: string | null;
+    batchInProgress: boolean;
+}

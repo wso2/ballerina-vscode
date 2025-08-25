@@ -31,6 +31,7 @@ import {
     OpenViewRequest,
     redo,
     undo,
+    undoRedoState,
     updateUndoRedoManager,
     UpdateUndoRedoMangerRequest
 } from "@wso2/ballerina-core";
@@ -48,6 +49,7 @@ export function registerVisualizerRpcHandlers(messenger: Messenger) {
     messenger.onRequest(undo, () => rpcManger.undo());
     messenger.onRequest(redo, () => rpcManger.redo());
     messenger.onNotification(addToUndoStack, (args: string) => rpcManger.addToUndoStack(args));
+    messenger.onRequest(undoRedoState, () => rpcManger.undoRedoState());
     messenger.onRequest(joinProjectPath, (args: string | string[]) => rpcManger.joinProjectPath(args));
     messenger.onNotification(updateUndoRedoManager, (args: UpdateUndoRedoMangerRequest) => rpcManger.updateUndoRedoManager(args));
     messenger.onRequest(getThemeKind, () => rpcManger.getThemeKind());

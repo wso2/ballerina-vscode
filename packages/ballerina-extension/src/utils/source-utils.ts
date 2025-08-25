@@ -22,7 +22,7 @@ import { workspace } from 'vscode';
 import { Uri, Position } from 'vscode';
 import { ArtifactData, EVENT_TYPE, LinePosition, MACHINE_VIEW, ProjectStructureArtifactResponse, STModification, SyntaxTree, TextEdit } from '@wso2/ballerina-core';
 import path from 'path';
-import { openView, StateMachine } from '../stateMachine';
+import { openView, StateMachine, undoRedoManager } from '../stateMachine';
 import { ArtifactsUpdated, ArtifactNotificationHandler } from './project-artifacts-handler';
 import { existsSync, writeFileSync } from 'fs';
 import { notifyCurrentWebview } from '../RPCLayer';
@@ -114,6 +114,7 @@ export async function updateSourceCode(updateSourceCodeRequest: UpdateSourceCode
 
         // <-------- Format the document after applying all changes using the native formatting API-------->
         const formattedWorkspaceEdit = new vscode.WorkspaceEdit();
+        undoRedoManager.startBatchOperation("Update Source Code");
         for (const [fileUriString, request] of Object.entries(modificationRequests)) {
             const fileUri = Uri.file(request.filePath);
             const formattedSources: { newText: string, range: { start: { line: number, character: number }, end: { line: number, character: number } } }[] = await StateMachine.langClient().sendRequest("textDocument/formatting", {
@@ -133,8 +134,10 @@ export async function updateSourceCode(updateSourceCodeRequest: UpdateSourceCode
                     ),
                     formattedSource.newText
                 );
+                undoRedoManager.addFileToBatch(fileUri.fsPath, formattedSource.newText);
             }
         }
+        undoRedoManager.commitBatchOperation("Update Source Code");
 
         // Apply all formatted changes at once
         await workspace.applyEdit(formattedWorkspaceEdit);
