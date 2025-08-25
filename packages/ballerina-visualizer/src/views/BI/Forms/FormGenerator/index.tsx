@@ -62,7 +62,7 @@ import {
     convertNodePropertiesToFormFields,
     convertToFnSignature,
     convertToVisibleTypes,
-    enrichFormPropertiesWithValueConstraint,
+    enrichFormTemplatePropertiesWithValues,
     filterUnsupportedDiagnostics,
     getFormProperties,
     getImportsForFormFields,
@@ -243,7 +243,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
         let enrichedNodeProperties;
         if (nodeFormTemplate) {
             const formTemplateProperties = getFormProperties(nodeFormTemplate);
-            enrichedNodeProperties = enrichFormPropertiesWithValueConstraint(formProperties, formTemplateProperties);
+            enrichedNodeProperties = enrichFormTemplatePropertiesWithValues(formProperties, formTemplateProperties);
             console.log(">>> Form properties", { formProperties, formTemplateProperties, enrichedNodeProperties });
         }
         if (Object.keys(formProperties).length === 0) {

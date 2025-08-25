@@ -55,12 +55,12 @@ export const ENDPOINT_REMOVED: ErrorCode = {
 
 export const INVALID_PARAMETER_TYPE: ErrorCode = {
     code: 8,
-    message: "AI data mapper only supports records as inputs and outputs."
+    message: "AI data mapper supports records as inputs and outputs."
 };
 
 export const INVALID_PARAMETER_TYPE_MULTIPLE_ARRAY: ErrorCode = {
     code: 9,
-    message: "AI data mapper only supports mappings between single input and output arrays."
+    message: "AI data mapper supports mappings between single input and output arrays."
 };
 
 export const SERVER_ERROR: ErrorCode = {
