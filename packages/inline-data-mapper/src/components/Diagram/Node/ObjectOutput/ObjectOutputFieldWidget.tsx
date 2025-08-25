@@ -27,7 +27,7 @@ import { IDataMapperContext } from "../../../../utils/DataMapperContext/DataMapp
 import { DataMapperPortWidget, PortState, InputOutputPortModel } from "../../Port";
 import { OutputSearchHighlight } from "../commons/Search";
 import { useIONodesStyles } from "../../../styles";
-import { useDMCollapsedFieldsStore, useDMExpressionBarStore } from '../../../../store/store';
+import { useDMCollapsedFieldsStore, useDMExpandedFieldsStore, useDMExpressionBarStore } from '../../../../store/store';
 import { getTypeName } from "../../utils/type-utils";
 import { ArrayOutputFieldWidget } from "../ArrayOutput/ArrayOuptutFieldWidget";
 import { fieldFQNFromPortName, getDefaultValue, getSanitizedId } from "../../utils/common-utils";
@@ -66,6 +66,8 @@ export function ObjectOutputFieldWidget(props: ObjectOutputFieldWidgetProps) {
     const [portState, setPortState] = useState<PortState>(PortState.Unselected);
 
     const collapsedFieldsStore = useDMCollapsedFieldsStore();
+    const expandedFieldsStore = useDMExpandedFieldsStore();
+
     const setExprBarFocusedPort = useDMExpressionBarStore(state => state.setFocusedPort);
 
     let indentation = treeDepth * 16;
@@ -105,11 +107,14 @@ export function ObjectOutputFieldWidget(props: ObjectOutputFieldWidgetProps) {
     const isWithinArray = fieldIndex !== undefined;
 
     const handleExpand = () => {
-		const collapsedFields = collapsedFieldsStore.fields;
-        if (!expanded) {
-            collapsedFieldsStore.setFields(collapsedFields.filter((element) => element !== portName));
-        } else {
+		const expandedFields = expandedFieldsStore.fields;
+        const collapsedFields = collapsedFieldsStore.fields;
+        if (expanded) {
+            expandedFieldsStore.setFields(expandedFields.filter((element) => element !== portName));
             collapsedFieldsStore.setFields([...collapsedFields, portName]);
+        } else {
+            expandedFieldsStore.setFields([...expandedFields, portName]);
+            collapsedFieldsStore.setFields(collapsedFields.filter((element) => element !== portName));
         }
     };
 
