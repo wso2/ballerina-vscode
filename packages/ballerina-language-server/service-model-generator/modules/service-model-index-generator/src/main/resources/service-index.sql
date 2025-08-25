@@ -1,4 +1,6 @@
 -- Drop tables if they already exist to prevent conflicts
+DROP TABLE IF EXISTS ServiceInitializerPropertyMemberType;
+DROP TABLE IF EXISTS ServiceInitializerProperty;
 DROP TABLE IF EXISTS ServiceTypeFunctionParameter;
 DROP TABLE IF EXISTS ServiceTypeFunction;
 DROP TABLE IF EXISTS ServiceType;
@@ -127,4 +129,28 @@ CREATE TABLE ServiceTypeFunctionParameter (
     editable_type INTEGER,
     function_id INTEGER,
     FOREIGN KEY (function_id) REFERENCES ServiceTypeFunction(function_id) ON DELETE CASCADE
+);
+
+CREATE TABLE ServiceInitializerProperty (
+    initializer_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    package_id INTEGER,
+    key_name TEXT NOT NULL,
+    label TEXT NOT NULL,
+    description TEXT NOT NULL,
+    default_value TEXT,
+    value_type TEXT CHECK(value_type IN ('TYPE', 'FLAG', 'EXPRESSION')),
+    type_constrain TEXT,
+    source_kind TEXT CHECK(source_kind IN ('SERVICE_TYPE_DESCRIPTOR', 'SERVICE_BASE_PATH', 'LISTENER_PARAMETER')),
+    selections TEXT, -- Comma-separated values for selection options
+    FOREIGN KEY (package_id) REFERENCES Package(package_id) ON DELETE CASCADE
+);
+
+-- Create Parameter Member Type table
+CREATE TABLE ServiceInitializerPropertyMemberType (
+    member_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    type JSON, -- JSON type for parameter type information
+    kind TEXT,
+    initializer_id INTEGER,
+    packageInfo TEXT, -- format of the package is org:name:version
+    FOREIGN KEY (initializer_id) REFERENCES ServiceInitializerProperty(initializer_id) ON DELETE CASCADE
 );
