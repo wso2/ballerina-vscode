@@ -17,15 +17,14 @@
  */
 
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
-import { Button, Typography, ProgressRing, Codicon } from "@wso2/ui-toolkit";
-import { useState, useEffect, useMemo } from "react";
+import { Button, ProgressRing, Typography } from "@wso2/ui-toolkit";
+import { useEffect, useMemo, useState } from "react";
 import { CoverageSummary } from "./components/CoverageSummary";
-import { ManualWorkEstimationTable } from "./components/ManualWorkEstimationTable";
 import { MigrationLogs } from "./components/MigrationLogs";
+import { ReportButtons } from "./components/ReportButtons";
+import { ButtonWrapper, StepWrapper } from "./styles";
 import { MigrationProgressProps } from "./types";
 import { EXAMPLE_REPORT_JSON, getMigrationProgressHeaderData } from "./utils";
-import { StepWrapper, ButtonWrapper, ReportButtonsContainer, ViewReportButton, SaveReportButton } from "./styles";
-
 
 export function MigrationProgressView({
     migrationState,
@@ -95,10 +94,7 @@ export function MigrationProgressView({
         }
     };
 
-    const { headerText, headerDesc } = getMigrationProgressHeaderData(
-        migrationCompleted,
-        migrationSuccessful
-    );
+    const { headerText, headerDesc } = getMigrationProgressHeaderData(migrationCompleted, migrationSuccessful);
 
     return (
         <>
@@ -111,11 +107,7 @@ export function MigrationProgressView({
                     parsedReportData ? (
                         <>
                             <CoverageSummary reportData={parsedReportData} />
-                            <ManualWorkEstimationTable
-                                reportData={parsedReportData}
-                                onViewReport={handleViewReport}
-                                onSaveReport={handleSaveReport}
-                            />
+                            <ReportButtons onViewReport={handleViewReport} onSaveReport={handleSaveReport} />
                         </>
                     ) : (
                         <>
@@ -123,19 +115,9 @@ export function MigrationProgressView({
                                 Migration completed successfully!
                             </Typography>
                             {migrationResponse.report && (
-                                <ReportButtonsContainer>
-                                    <ViewReportButton onClick={handleViewReport} appearance="secondary">
-                                        <Codicon name="file-text" />
-                                        &nbsp;View Full Report
-                                    </ViewReportButton>
-                                    <SaveReportButton onClick={handleSaveReport} appearance="secondary">
-                                        <Codicon name="save" />
-                                        &nbsp;Save Report
-                                    </SaveReportButton>
-                                </ReportButtonsContainer>
+                                <ReportButtons onViewReport={handleViewReport} onSaveReport={handleSaveReport} />
                             )}
                         </>
-
                     )
                 ) : migrationCompleted && !migrationSuccessful ? (
                     <></>
