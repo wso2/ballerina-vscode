@@ -16,6 +16,7 @@
  * under the License.
  */
 
+import { Codicon } from "@wso2/ui-toolkit";
 import React from "react";
 import {
     CoverageBadge,
@@ -27,6 +28,9 @@ import {
     CoverageProgressFill,
     CoverageStat,
     CoverageStats,
+    ReportButtonsContainer,
+    SaveReportButton,
+    ViewReportButton,
 } from "../styles";
 import { MigrationReportJSON } from "../types";
 import { getCoverageColor, getCoverageLevel } from "../utils";
@@ -34,9 +38,11 @@ import { getCoverageColor, getCoverageLevel } from "../utils";
 
 interface CoverageSummaryProps {
     reportData: MigrationReportJSON;
+    onViewReport: () => void;
+    onSaveReport: () => void;
 }
 
-export const CoverageSummary: React.FC<CoverageSummaryProps> = ({ reportData }) => {
+export const CoverageSummary: React.FC<CoverageSummaryProps> = ({ reportData, onViewReport, onSaveReport }) => {
     const { coverageOverview } = reportData;
     const coverageLevel = getCoverageLevel(coverageOverview.coverageLevel);
     const coverageColor = getCoverageColor(coverageOverview.coverageLevel);
@@ -48,7 +54,7 @@ export const CoverageSummary: React.FC<CoverageSummaryProps> = ({ reportData }) 
                     <CoveragePercentage coverageColor={coverageColor}>
                         {coverageOverview.coveragePercentage}%
                     </CoveragePercentage>
-                    <CoverageLabel>Overall Coverage</CoverageLabel>
+                    <CoverageLabel>Migration Coverage</CoverageLabel>
                 </div>
                 <CoverageStats>
                     <CoverageStat>
@@ -69,6 +75,16 @@ export const CoverageSummary: React.FC<CoverageSummaryProps> = ({ reportData }) 
                 <CoverageProgressFill percentage={coverageOverview.coveragePercentage} coverageColor={coverageColor} />
             </CoverageProgressBar>
             <CoverageBadge>{coverageLevel}</CoverageBadge>
+            <ReportButtonsContainer>
+                <ViewReportButton onClick={onViewReport} appearance="secondary">
+                    <Codicon name="file-text" />
+                    &nbsp;View Full Report
+                </ViewReportButton>
+                <SaveReportButton onClick={onSaveReport} appearance="secondary">
+                    <Codicon name="save" />
+                    &nbsp;Save Report
+                </SaveReportButton>
+            </ReportButtonsContainer>
         </CoverageContainer>
     );
 };
