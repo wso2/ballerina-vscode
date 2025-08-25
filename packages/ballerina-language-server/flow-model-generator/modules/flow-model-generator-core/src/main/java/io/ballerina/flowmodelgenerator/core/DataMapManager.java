@@ -384,7 +384,7 @@ public class DataMapManager {
 
     private void setFocusExpressionForInputPort(List<MappingPort> inputPorts, String id, String expression) {
         for (MappingPort port : inputPorts) {
-            if (port.variableName.equals(id)) {
+            if (port.name.equals(id)) {
                 port.setFocusExpression(expression);
                 return;
             }
