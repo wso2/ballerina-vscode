@@ -35,7 +35,6 @@ import { AgentConfig } from "../AIChatAgent/AgentConfig";
 import { NewAgent } from "../AIChatAgent/NewAgent";
 import { AddTool } from "../AIChatAgent/AddTool";
 import { AddMcpServer } from "../AIChatAgent/AddMcpServer";
-import { useEffect, useState } from "react";
 import { NewTool, NewToolSelectionMode } from "../AIChatAgent/NewTool";
 import styled from "@emotion/styled";
 import { MemoryManagerConfig } from "../AIChatAgent/MemoryManagerConfig";
@@ -115,6 +114,7 @@ interface PanelManagerProps {
     onSearchEmbeddingProvider?: (searchText: string, functionType: FUNCTION_TYPE) => void;
     onSearchVectorKnowledgeBase?: (searchText: string, functionType: FUNCTION_TYPE) => void;
     onEditAgent?: () => void;
+    setSidePanelView: (view: SidePanelView) => void;
 
     // AI Agent handlers
     onSelectTool?: (tool: ToolData, node: FlowNode) => void;
@@ -143,6 +143,7 @@ export function PanelManager(props: PanelManagerProps) {
         showProgressIndicator,
         canGoBack,
         selectedMcpToolkitName,
+        setSidePanelView,
         onClose,
         onBack,
         onSelectNode,
@@ -166,38 +167,32 @@ export function PanelManager(props: PanelManagerProps) {
         onSearchVectorKnowledgeBase,
     } = props;
 
-    const [panelView, setPanelView] = useState<SidePanelView>(sidePanelView);
-
-    useEffect(() => {
-        setPanelView(sidePanelView);
-    }, [sidePanelView]);
-
     const handleOnAddTool = () => {
-        setPanelView(SidePanelView.NEW_TOOL);
+        setSidePanelView(SidePanelView.NEW_TOOL);
     };
 
     const handleOnAddMcpServer = () => {
-        setPanelView(SidePanelView.ADD_MCP_SERVER);
+        setSidePanelView(SidePanelView.ADD_MCP_SERVER);
     };
 
     const handleOnEditMcpServer = () => {
-        setPanelView(SidePanelView.EDIT_MCP_SERVER);
+        setSidePanelView(SidePanelView.EDIT_MCP_SERVER);
     };
 
     const handleOnBackToAddTool = () => {
-        setPanelView(SidePanelView.ADD_TOOL);
+        setSidePanelView(SidePanelView.ADD_TOOL);
     };
 
     const handleOnUseConnection = () => {
-        setPanelView(SidePanelView.NEW_TOOL_FROM_CONNECTION);
+        setSidePanelView(SidePanelView.NEW_TOOL_FROM_CONNECTION);
     };
 
     const handleOnUseFunction = () => {
-        setPanelView(SidePanelView.NEW_TOOL_FROM_FUNCTION);
+        setSidePanelView(SidePanelView.NEW_TOOL_FROM_FUNCTION);
     };
 
     const handleOnUseMcpServer = () => {
-        setPanelView(SidePanelView.ADD_MCP_SERVER);
+        setSidePanelView(SidePanelView.ADD_MCP_SERVER);
     };
 
     const handleSubmitAndClose = () => {
@@ -224,7 +219,7 @@ export function PanelManager(props: PanelManagerProps) {
     };
 
     const renderPanelContent = () => {
-        switch (panelView) {
+        switch (sidePanelView) {
             case SidePanelView.NODE_LIST:
                 return (
                     <NodeList
@@ -490,20 +485,20 @@ export function PanelManager(props: PanelManagerProps) {
     };
 
     const onBackCallback =
-        panelView === SidePanelView.NEW_TOOL ||
-        panelView === SidePanelView.NEW_TOOL_FROM_CONNECTION ||
-        panelView === SidePanelView.NEW_TOOL_FROM_FUNCTION ||
-        panelView === SidePanelView.ADD_MCP_SERVER
+        sidePanelView === SidePanelView.NEW_TOOL ||
+        sidePanelView === SidePanelView.NEW_TOOL_FROM_CONNECTION ||
+        sidePanelView === SidePanelView.NEW_TOOL_FROM_FUNCTION ||
+        sidePanelView === SidePanelView.ADD_MCP_SERVER
             ? handleOnBackToAddTool
-            : panelView === SidePanelView.NEW_AGENT
+            : sidePanelView === SidePanelView.NEW_AGENT
             ? onBack
-            : panelView === SidePanelView.FORM && !showEditForm
+            : sidePanelView === SidePanelView.FORM && !showEditForm
             ? onBack
             : undefined;
 
     return (
         <PanelContainer
-            title={getContainerTitle(panelView, selectedNode, selectedClientName)}
+            title={getContainerTitle(sidePanelView, selectedNode, selectedClientName)}
             show={showSidePanel}
             onClose={onClose}
             onBack={onBackCallback}

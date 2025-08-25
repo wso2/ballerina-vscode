@@ -1826,6 +1826,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 editForm={showEditForm.current}
                 updatedExpressionField={updatedExpressionField}
                 canGoBack={navigationStack.length > 0}
+                setSidePanelView={setSidePanelView}
                 // Regular callbacks
                 onClose={handleOnCloseSidePanel}
                 onBack={handleOnFormBack}
