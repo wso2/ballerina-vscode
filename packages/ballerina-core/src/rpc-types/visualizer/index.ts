@@ -18,7 +18,7 @@
 
 import { HistoryEntry } from "../../history";
 import { ColorThemeKind } from "../../state-machine-types";
-import { OpenViewRequest, UpdateUndoRedoMangerRequest } from "./interfaces";
+import { OpenViewRequest, UndoRedoStateResponse, UpdateUndoRedoMangerRequest } from "./interfaces";
 
 export interface VisualizerAPI {
     openView: (params: OpenViewRequest) => void;
@@ -30,6 +30,7 @@ export interface VisualizerAPI {
     undo: () => Promise<string>;
     redo: () => Promise<string>;
     addToUndoStack: (source: string) => void;
+    undoRedoState: () => Promise<UndoRedoStateResponse>;
     joinProjectPath: (segments: string | string[]) => Promise<string>;
     updateUndoRedoManager: (params: UpdateUndoRedoMangerRequest) => void;
     getThemeKind: () => Promise<ColorThemeKind>;

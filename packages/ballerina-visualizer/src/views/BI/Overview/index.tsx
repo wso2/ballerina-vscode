@@ -40,6 +40,7 @@ import { useQuery } from '@tanstack/react-query'
 import { IOpenInConsoleCmdParams, CommandIds as PlatformExtCommandIds } from "@wso2/wso2-platform-core";
 import { AlertBoxWithClose } from "../../AIPanel/AlertBoxWithClose";
 import { findScopeByModule } from "./utils";
+import { UndoRedoGroup } from "../../../components/UndoRedoGroup";
 
 const SpinnerContainer = styled.div`
     display: flex;
@@ -720,6 +721,7 @@ export function Overview(props: ComponentDiagramProps) {
                     <ProjectSubtitle>Integration</ProjectSubtitle>
                 </TitleContainer>
                 <HeaderControls>
+                    <UndoRedoGroup />
                     <Button appearance="icon" onClick={handleLocalConfigure} buttonSx={{ padding: "4px 8px" }}>
                         <Codicon name="settings-gear" sx={{ marginRight: 5 }} /> Configure
                     </Button>

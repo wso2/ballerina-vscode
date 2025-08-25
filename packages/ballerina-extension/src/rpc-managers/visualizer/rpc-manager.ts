@@ -23,14 +23,18 @@ import {
     OpenViewRequest,
     PopupVisualizerLocation,
     SHARED_COMMANDS,
+    UndoRedoStateResponse,
     UpdateUndoRedoMangerRequest,
     VisualizerAPI,
-    VisualizerLocation
+    VisualizerLocation,
+    vscode,
 } from "@wso2/ballerina-core";
-import { commands, window } from "vscode";
+import { commands, Range, Uri, window, workspace, WorkspaceEdit } from "vscode";
+import { URI, Utils } from "vscode-uri";
 import { history, openView, StateMachine, undoRedoManager, updateView } from "../../stateMachine";
 import { openPopupView } from "../../stateMachinePopup";
-import { URI, Utils } from "vscode-uri";
+import { ArtifactNotificationHandler, ArtifactsUpdated } from "../../utils/project-artifacts-handler";
+import { notifyCurrentWebview } from "../../RPCLayer";
 
 export class VisualizerRpcManager implements VisualizerAPI {
 
@@ -76,11 +80,89 @@ export class VisualizerRpcManager implements VisualizerAPI {
     }
 
     async undo(): Promise<string> {
-        return undoRedoManager.undo();
+        // Handle the undo batch operation here. Use the vscode vscode.WorkspaceEdit() to revert the changes.
+        return new Promise((resolve, reject) => {
+            StateMachine.setEditMode();
+            const workspaceEdit = new WorkspaceEdit();
+            const revertedFiles = undoRedoManager.undoBatch();
+            if (revertedFiles) {
+                for (const [filePath, content] of revertedFiles.entries()) {
+                    workspaceEdit.replace(Uri.file(filePath), new Range(0, 0, Number.MAX_SAFE_INTEGER, Number.MAX_SAFE_INTEGER), content);
+                }
+            }
+            workspace.applyEdit(workspaceEdit);
+
+            // Get the artifact notification handler instance
+            const notificationHandler = ArtifactNotificationHandler.getInstance();
+            // Subscribe to artifact updated notifications
+            let unsubscribe = notificationHandler.subscribe(ArtifactsUpdated.method, undefined, async (payload) => {
+                console.log("Received notification:", payload);
+                clearTimeout(timeoutId);
+                StateMachine.setReadyMode();
+                notifyCurrentWebview();
+                unsubscribe();
+                resolve("Undo successful"); // resolve the undo string
+            });
+
+            // Set a timeout to reject if no notification is received within 10 seconds
+            const timeoutId = setTimeout(() => {
+                console.log("No artifact update notification received within 10 seconds");
+                unsubscribe();
+                StateMachine.setReadyMode();
+                openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.Overview });
+                reject(new Error("Operation timed out. Please try again."));
+            }, 10000);
+
+            // Clear the timeout when notification is received
+            const originalUnsubscribe = unsubscribe;
+            unsubscribe = () => {
+                clearTimeout(timeoutId);
+                originalUnsubscribe();
+            };
+        });
     }
 
     async redo(): Promise<string> {
-        return undoRedoManager.redo();
+        // Handle the redo batch operation here. Use the vscode vscode.WorkspaceEdit() to revert the changes.
+        return new Promise((resolve, reject) => {
+            StateMachine.setEditMode();
+            const workspaceEdit = new WorkspaceEdit();
+            const revertedFiles = undoRedoManager.redoBatch();
+            if (revertedFiles) {
+                for (const [filePath, content] of revertedFiles.entries()) {
+                    workspaceEdit.replace(Uri.file(filePath), new Range(0, 0, Number.MAX_SAFE_INTEGER, Number.MAX_SAFE_INTEGER), content);
+                }
+            }
+            workspace.applyEdit(workspaceEdit);
+
+            // Get the artifact notification handler instance
+            const notificationHandler = ArtifactNotificationHandler.getInstance();
+            // Subscribe to artifact updated notifications
+            let unsubscribe = notificationHandler.subscribe(ArtifactsUpdated.method, undefined, async (payload) => {
+                console.log("Received notification:", payload);
+                clearTimeout(timeoutId);
+                StateMachine.setReadyMode();
+                notifyCurrentWebview();
+                unsubscribe();
+                resolve("Redo successful");
+            });
+
+            // Set a timeout to reject if no notification is received within 10 seconds
+            const timeoutId = setTimeout(() => {
+                console.log("No artifact update notification received within 10 seconds");
+                unsubscribe();
+                StateMachine.setReadyMode();
+                openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.Overview });
+                reject(new Error("Operation timed out. Please try again."));
+            }, 10000);
+
+            // Clear the timeout when notification is received
+            const originalUnsubscribe = unsubscribe;
+            unsubscribe = () => {
+                clearTimeout(timeoutId);
+                originalUnsubscribe();
+            };
+        });
     }
 
     addToUndoStack(source: string): void {
@@ -103,5 +185,8 @@ export class VisualizerRpcManager implements VisualizerAPI {
             const filePath = Array.isArray(segments) ? Utils.joinPath(URI.file(projectPath), ...segments) : Utils.joinPath(URI.file(projectPath), segments);
             resolve(filePath.fsPath);
         });
+    }
+    async undoRedoState(): Promise<UndoRedoStateResponse> {
+        return undoRedoManager.getUIState();
     }
 }

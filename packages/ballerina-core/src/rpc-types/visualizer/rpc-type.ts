@@ -19,7 +19,7 @@
  */
 import { HistoryEntry } from "../../history";
 import { ColorThemeKind } from "../../state-machine-types";
-import { OpenViewRequest, UpdateUndoRedoMangerRequest } from "./interfaces";
+import { OpenViewRequest, UndoRedoStateResponse, UpdateUndoRedoMangerRequest } from "./interfaces";
 import { NotificationType, RequestType } from "vscode-messenger-common";
 
 const _preFix = "visualizer";
@@ -32,6 +32,7 @@ export const goSelected: NotificationType<number> = { method: `${_preFix}/goSele
 export const undo: RequestType<void, string> = { method: `${_preFix}/undo` };
 export const redo: RequestType<void, string> = { method: `${_preFix}/redo` };
 export const addToUndoStack: NotificationType<string> = { method: `${_preFix}/addToUndoStack` };
+export const undoRedoState: RequestType<void, UndoRedoStateResponse> = { method: `${_preFix}/undoRedoState` };
 export const joinProjectPath: RequestType<string | string[], string> = { method: `${_preFix}/joinProjectPath` };
 export const updateUndoRedoManager: NotificationType<UpdateUndoRedoMangerRequest> = { method: `${_preFix}/updateUndoRedoManager` };
 export const getThemeKind: RequestType<void, ColorThemeKind> = { method: `${_preFix}/getThemeKind` };
