@@ -105,9 +105,9 @@ export function ImportIntegrationForm({
 
     return (
         <>
-            <Typography variant="h2">Import and Migrate an Existing Integration</Typography>
+            <Typography variant="h2">Import and Migrate an External Integration</Typography>
             <BodyText>
-                This wizard converts an existing integration project from MuleSoft or TIBCO into a
+                This wizard converts an external integration project from MuleSoft or TIBCO into a
                 ready-to-use BI project.
             </BodyText>
             <Typography variant="h3" sx={{ marginTop: 20 }}>

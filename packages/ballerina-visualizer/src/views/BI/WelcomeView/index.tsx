@@ -286,9 +286,9 @@ export function WelcomeView(props: WelcomeViewProps) {
                 </Row>
                 <Row>
                     <Column>
-                        <StepTitle>Import Your Existing Integration</StepTitle>
+                        <StepTitle>Import Your External Integration</StepTitle>
                         <StepDescription>
-                            Already have an integration? Import your existing Mule, TIBCO, or Logic Apps integration project and continue building with the graphical designer.
+                            Have an integration from another platform? Import your MuleSoft or TIBCO integration project and continue building with the graphical designer.
                         </StepDescription>
                         <Row>
                             <StyledButton disabled={!props.isBISupported} appearance="secondary" onClick={() => goToImportExternalIntegration()}>
