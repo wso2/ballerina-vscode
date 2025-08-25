@@ -47,7 +47,8 @@ export const ButtonWrapper = styled.div`
 // Form-specific styles
 export const IntegrationCardGrid = styled.div`
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
+    flex-wrap: wrap;
     gap: 12px;
     margin: 20px 0;
 `;
@@ -264,4 +265,33 @@ export const NextButtonWrapper = styled.div`
     justify-content: flex-end;
     margin-top: 16px;
     width: 100%;
+`;
+
+// ImportIntegrationForm specific styles
+export const FolderSelectionContainer = styled.div`
+    display: flex;
+    justify-content: flex-start;
+    margin: 16px 0;
+`;
+
+export const SelectedFolderContainer = styled.div`
+    margin: 16px 0;
+`;
+
+export const SelectedFolderDisplay = styled.div`
+    padding: 12px 16px;
+    background-color: var(--vscode-editor-background);
+    border: 1px solid var(--vscode-input-border);
+    border-radius: 4px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+`;
+
+export const FolderPathText = styled.span`
+    font-family: var(--vscode-editor-font-family);
+`;
+
+export const StepContainer = styled.div`
+    margin-top: 20px;
 `;
