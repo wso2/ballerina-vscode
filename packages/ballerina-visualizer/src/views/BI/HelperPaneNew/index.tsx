@@ -12,7 +12,7 @@ import { RefObject, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { ExpandableList } from './Components/ExpandableList';
 import { Variables } from './Views/Variables';
 import { CompletionInsertText, ExpressionProperty, FlowNode, LineRange, RecordTypeField } from '@wso2/ballerina-core';
-import { Codicon, COMPLETION_ITEM_KIND, CompletionItem, FormExpressionEditorRef, getIcon, HELPER_PANE_EX_BTN_OFFSET, HELPER_PANE_WIDTH, HelperPaneCustom, HelperPaneHeight, Typography } from '@wso2/ui-toolkit';
+import { Codicon, COMPLETION_ITEM_KIND, CompletionItem, FormExpressionEditorRef, getIcon, HELPER_PANE_EX_BTN_OFFSET, HELPER_PANE_WIDTH, HelperPaneCustom, HelperPaneHeight, ThemeColors, Typography } from '@wso2/ui-toolkit';
 import { CopilotFooter, SlidingPane, SlidingPaneHeader, SlidingPaneNavContainer, SlidingWindow } from '@wso2/ui-toolkit/lib/components/ExpressionEditor/components/Common/SlidingPane';
 import { CreateValue } from './Views/CreateValue';
 import DynamicModal from './Components/Modal';
@@ -27,6 +27,8 @@ import styled from '@emotion/styled';
 const getRecordType = (recordTypeField: RecordTypeField) => {
     return recordTypeField;
 }
+
+const MAX_MENU_ITEM_COUNT = 4;
 
 export type HelperPaneNewProps = {
     fieldKey: string;
@@ -87,6 +89,12 @@ const HelperPaneNewEl = ({
     const paneRef = useRef<HTMLDivElement>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [paneWidth, setPaneWidth] = useState<number>(0);
+    const [selectedItem, setSelectedItem] = useState<number>();
+    const currentMenuItemCount = valueTypeConstraint ? 4 : 3
+    const selectedItemRef = useRef<HTMLDivElement>(null);
+    // Create refs array for all menu items
+    const menuItemRefs = useRef<(HTMLDivElement | null)[]>([]);
+
     useLayoutEffect(() => {
         const trySetWidth = () => {
             const inputEl = exprRef.current?.parentElement;
@@ -115,6 +123,57 @@ const HelperPaneNewEl = ({
             }
         }
     }, [anchorRef]);
+
+    const ifCTRLandUP = (e: KeyboardEvent) => {
+        return (
+            (e.ctrlKey || e.metaKey) && e.key === "ArrowUp"
+        );
+    };
+
+    const ifCTRLandDown = (e: KeyboardEvent) => {
+        return (
+            (e.ctrlKey || e.metaKey) && e.key === "ArrowDown"
+        );
+    };
+
+    const ifCTRLandENTER = (e: KeyboardEvent) => {
+        return (
+            (e.ctrlKey || e.metaKey) && e.key === "Enter"
+        );
+    };
+
+    const handleKeyPress = (event: KeyboardEvent) => {
+        if (ifCTRLandUP(event)) {
+            setSelectedItem((prev) => {
+                const current = prev ?? 0; // if prev is undefined, use 0
+                return current > 0 ? current - 1 : current;
+            });
+        } else if (ifCTRLandENTER(event)) {
+            const selectedMenuRef = menuItemRefs.current[selectedItem ?? 0]; // fallback to 0
+            if (selectedMenuRef) {
+                selectedMenuRef.click();
+                event.preventDefault();
+            }
+        } else if (ifCTRLandDown(event)) {
+            setSelectedItem((prev) => {
+                const current = prev ?? 0;
+                return current < currentMenuItemCount - 1 ? current + 1 : current;
+            });
+        }
+    };
+
+
+    useEffect(() => {
+        const handleKeyDown = (event: KeyboardEvent) => {
+            event?.key && handleKeyPress(event);
+        };
+
+        window.addEventListener("keydown", handleKeyDown);
+
+        return () => {
+            window.removeEventListener("keydown", handleKeyDown);
+        };
+    }, []);
 
     const getInsertText = (insertText: string | CompletionInsertText): string => {
         if (typeof insertText === 'string') {
@@ -153,6 +212,25 @@ const HelperPaneNewEl = ({
         }
     };
 
+    const isItemSelected = (currentCount: number, itemIndex: number) => {
+        const trueItemIndex = currentCount - MAX_MENU_ITEM_COUNT + itemIndex;
+        return (trueItemIndex >= 0) && (selectedItem === trueItemIndex);
+    }
+
+    const getMenuItemColor = (currentCount: number, itemIndex: number) => {
+        return isItemSelected(currentCount, itemIndex) ? ThemeColors.SURFACE_DIM_2 : "transparent";
+    }
+
+    // Scroll selected item into view when selection changes
+    useEffect(() => {
+        if (menuItemRefs.current[selectedItem]) {
+            menuItemRefs.current[selectedItem]?.scrollIntoView({
+                behavior: 'smooth',
+                block: 'nearest'
+            });
+        }
+    }, [selectedItem]);
+
     return (
         <HelperPaneCustom anchorRef={anchorRef}>
             <HelperPaneCustom.Body>
@@ -160,7 +238,12 @@ const HelperPaneNewEl = ({
                     <SlidingPane name="PAGE1" paneWidth={HELPER_PANE_WIDTH} paneHeight='170px'>
                         <ExpandableList >
                             {valueTypeConstraint && (
-                                <SlidingPaneNavContainer to="CREATE_VALUE" data={recordTypeField}>
+                                <SlidingPaneNavContainer
+                                    ref={el => menuItemRefs.current[0] = el}
+                                    to="CREATE_VALUE"
+                                    data={recordTypeField}
+                                    sx={{ backgroundColor: getMenuItemColor(currentMenuItemCount, 0) }}
+                                >
                                     <ExpandableList.Item>
                                         {getIcon(COMPLETION_ITEM_KIND.Value)}
                                         <Typography variant="body3" sx={{ fontWeight: 600 }}>
@@ -169,7 +252,11 @@ const HelperPaneNewEl = ({
                                     </ExpandableList.Item>
                                 </SlidingPaneNavContainer>
                             )}
-                            <SlidingPaneNavContainer to="VARIABLES">
+                            <SlidingPaneNavContainer
+                                ref={el => menuItemRefs.current[1] = el}
+                                to="VARIABLES"
+                                sx={{ backgroundColor: getMenuItemColor(currentMenuItemCount, 1) }}
+                            >
                                 <ExpandableList.Item>
                                     {getIcon(COMPLETION_ITEM_KIND.Variable)}
                                     <Typography variant="body3" sx={{ fontWeight: 600 }}>
@@ -177,7 +264,11 @@ const HelperPaneNewEl = ({
                                     </Typography>
                                 </ExpandableList.Item>
                             </SlidingPaneNavContainer>
-                            <SlidingPaneNavContainer to="CONFIGURABLES">
+                            <SlidingPaneNavContainer
+                                ref={el => menuItemRefs.current[2] = el}
+                                to="CONFIGURABLES"
+                                sx={{ backgroundColor: getMenuItemColor(currentMenuItemCount, 2) }}
+                            >
                                 <ExpandableList.Item>
                                     <TitleContainer>
                                         {getIcon(COMPLETION_ITEM_KIND.Constant)}
@@ -197,7 +288,11 @@ const HelperPaneNewEl = ({
                                     </TitleContainer>
                                 </ExpandableList.Item>
                             </SlidingPaneNavContainer> */}
-                            <SlidingPaneNavContainer to="FUNCTIONS">
+                            <SlidingPaneNavContainer
+                                ref={el => menuItemRefs.current[3] = el}
+                                to="FUNCTIONS"
+                                sx={{ backgroundColor: getMenuItemColor(currentMenuItemCount, 3) }}
+                            >
                                 <ExpandableList.Item>
                                     {getIcon(COMPLETION_ITEM_KIND.Function)}
                                     <Typography variant="body3" sx={{ fontWeight: 600 }}>
