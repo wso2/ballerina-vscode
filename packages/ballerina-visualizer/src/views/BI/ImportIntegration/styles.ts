@@ -258,3 +258,10 @@ export const ReportButtonsContainer = styled.div`
 export const ViewReportButton = styled(Button)``;
 
 export const SaveReportButton = styled(Button)``;
+
+export const NextButtonWrapper = styled.div`
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 16px;
+    width: 100%;
+`;

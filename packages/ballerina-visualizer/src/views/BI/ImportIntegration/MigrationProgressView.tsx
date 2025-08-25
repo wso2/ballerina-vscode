@@ -22,7 +22,7 @@ import { useEffect, useMemo, useState } from "react";
 import { CoverageSummary } from "./components/CoverageSummary";
 import { MigrationLogs } from "./components/MigrationLogs";
 import { ReportButtons } from "./components/ReportButtons";
-import { ButtonWrapper, StepWrapper } from "./styles";
+import { ButtonWrapper, NextButtonWrapper, StepWrapper } from "./styles";
 import { MigrationProgressProps } from "./types";
 import { EXAMPLE_REPORT_JSON, getMigrationProgressHeaderData } from "./utils";
 
@@ -106,8 +106,20 @@ export function MigrationProgressView({
                 {migrationCompleted && migrationSuccessful ? (
                     parsedReportData ? (
                         <>
-                            <CoverageSummary reportData={parsedReportData} />
-                            <ReportButtons onViewReport={handleViewReport} onSaveReport={handleSaveReport} />
+                            <CoverageSummary
+                                reportData={parsedReportData}
+                                onViewReport={handleViewReport}
+                                onSaveReport={handleSaveReport}
+                            />
+                            <NextButtonWrapper>
+                                <Button
+                                    disabled={!migrationCompleted || !migrationSuccessful}
+                                    onClick={onNext}
+                                    appearance="primary"
+                                >
+                                    Next
+                                </Button>
+                            </NextButtonWrapper>
                         </>
                     ) : (
                         <>
@@ -131,18 +143,6 @@ export function MigrationProgressView({
                 )}
             </StepWrapper>
 
-            {/* Show button before logs when migration is completed successfully */}
-            {migrationCompleted && migrationSuccessful && (
-                <ButtonWrapper>
-                    <Button
-                        disabled={!migrationCompleted || !migrationSuccessful}
-                        onClick={onNext}
-                        appearance="primary"
-                    >
-                        Proceed to Final Step
-                    </Button>
-                </ButtonWrapper>
-            )}
 
             <MigrationLogs
                 migrationLogs={migrationLogs}
@@ -160,7 +160,7 @@ export function MigrationProgressView({
                         onClick={onNext}
                         appearance="primary"
                     >
-                        Proceed to Final Step
+                        Next
                     </Button>
                 </ButtonWrapper>
             )}
