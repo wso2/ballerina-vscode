@@ -46,7 +46,7 @@
             "character": 21
           }
         },
-        "newText": "age: functionstringOrintTointOrstring0(input.age)"
+        "newText": "age: mapstringOrintTointOrstring(input.age)"
       }
     ],
     "proj2/functions.bal": [
@@ -61,7 +61,7 @@
             "character": 0
           }
         },
-        "newText": "\nfunction functionstringOrintTointOrstring0(string|int age) returns int|string {}"
+        "newText": "\nfunction mapstringOrintTointOrstring(string|int age) returns int|string {}"
       }
     ]
   }

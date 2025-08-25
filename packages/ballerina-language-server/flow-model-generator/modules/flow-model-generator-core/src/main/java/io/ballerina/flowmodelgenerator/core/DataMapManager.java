@@ -2011,7 +2011,7 @@ public class DataMapManager {
     }
 
     private static String getFunctionName(List<Parameter> parameters, String returnType, Range functionRange) {
-        String functionName = "function";
+        String functionName = "map";
         if (!parameters.isEmpty()) {
             Parameter firstParam = parameters.getFirst();
             if (firstParam.kind.equals("union")) {
@@ -2021,7 +2021,6 @@ public class DataMapManager {
                 functionName = functionName + firstParam.type() + "To" + returnType;
             }
         }
-        functionName = functionName + functionRange.getStart().getLine();
         return functionName;
     }
 
