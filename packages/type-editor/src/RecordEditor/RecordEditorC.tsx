@@ -23,7 +23,7 @@ import { NodePosition } from "@wso2/syntax-tree";
 import { createPropertyStatement } from "../utils";
 
 import { CreateRecord } from "../CreateRecord";
-import { UndoRedoManager } from "../components/UndoRedoManager";
+import { UndoRedoManager } from "@wso2/ballerina-core";
 import { StatementEditorWrapper } from "@wso2/ballerina-statement-editor";
 import { Context } from "../Context";
 import { FormContainer } from "../style";

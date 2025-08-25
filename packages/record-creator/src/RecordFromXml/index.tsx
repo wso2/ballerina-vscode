@@ -18,7 +18,7 @@
 // tslint:disable: jsx-no-multiline-js
 import React, { useContext, useEffect, useReducer } from "react";
 
-import { DIAGNOSTIC_SEVERITY, XMLToRecord } from "@wso2/ballerina-core";
+import { DIAGNOSTIC_SEVERITY, XMLToRecord, UndoRedoManager } from "@wso2/ballerina-core";
 import { ModulePart, NodePosition, STKindChecker, STNode, TypeDefinition } from "@wso2/syntax-tree";
 
 import { TextPreloaderVertical } from "../PreLoader/TextPerloaderVertical";
@@ -26,7 +26,6 @@ import { convertXmlToRecordUtil, getModulePartST, getRecordST, getRootRecord } f
 import { FileSelector } from "../components/FileSelector";
 import { FormActionButtons } from "../components/FormComponents/FormFieldComponents/FormActionButtons";
 import { FormTextArea } from "../components/FormComponents/FormFieldComponents/TextField/FormTextArea";
-import { UndoRedoManager } from "../components/UndoRedoManager";
 import { RecordOverview } from "../RecordOverview";
 import { Context } from "../Context";
 import {

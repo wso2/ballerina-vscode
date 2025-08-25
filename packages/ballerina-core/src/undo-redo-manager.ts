@@ -44,7 +44,7 @@ export class UndoRedoManager {
                 this.redoStack.set(this.path, redoSourceStack);
             }
             const lastsource = this.undoStack.get(this.path).pop();
-            this.updateContent(this.path, lastsource)
+            this.updateContent(this.path, lastsource);
             return lastsource;
         }
     }
@@ -58,7 +58,7 @@ export class UndoRedoManager {
             }
             this.undoStack.set(this.path, undoSourceStack);
             const lastUndoSource = this.redoStack.get(this.path).pop();
-            this.updateContent(this.path, lastUndoSource)
+            this.updateContent(this.path, lastUndoSource);
             return lastUndoSource;
         }
     }
@@ -78,6 +78,6 @@ export class UndoRedoManager {
     }
 
     public getFilePath() {
-        return(this.path);
+        return this.path;
     }
 }
