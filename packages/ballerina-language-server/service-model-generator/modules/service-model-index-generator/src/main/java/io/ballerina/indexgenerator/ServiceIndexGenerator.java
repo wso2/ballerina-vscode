@@ -213,6 +213,22 @@ class ServiceIndexGenerator {
                         annotation.description(), annotation.typeConstrain(), pkgInfo);
             }
         }
+
+        // service initializer properties
+        if (Objects.nonNull(packageMetadataInfo.initForm())) {
+            for (Map.Entry<String, ServiceInitializerProperty> entry : packageMetadataInfo.initForm().entrySet()) {
+                String propertyName = entry.getKey();
+                ServiceInitializerProperty property = entry.getValue();
+                int id = DatabaseManager.insertServiceInitializerProperty(packageId, propertyName,
+                        property.label(), property.description(), property.defaultValue(), property.valueType(),
+                        property.typeConstrain(), property.sourceKind(),
+                        String.join(",", property.selections()));
+                for (ServiceInitializerPropertyMemberType memberType : property.typeMembers()) {
+                    DatabaseManager.insertServiceInitializerPropertyMemberType(id, memberType.type(),
+                            memberType.kind(), memberType.packageInfo());
+                }
+            }
+        }
     }
 
     private static void processListenerInit(SemanticModel semanticModel, FunctionSymbol functionSymbol,
@@ -621,7 +637,8 @@ class ServiceIndexGenerator {
 
     private record PackageMetadataInfo(String name, String version, List<String> serviceTypeSkipList,
                                        ServiceDeclaration serviceDeclaration,
-                                       Map<String, ServiceType> serviceTypes, Map<String, Annotation> annotations) {
+                                       Map<String, ServiceType> serviceTypes, Map<String, Annotation> annotations,
+                                       Map<String, ServiceInitializerProperty> initForm) {
     }
 
     record ServiceDeclaration(int optionalTypeDescriptor, String displayName, String typeDescriptorLabel,
@@ -631,6 +648,14 @@ class ServiceIndexGenerator {
                               String absoluteResourcePathDefaultValue, int optionalStringLiteral,
                               String stringLiteralLabel, String stringLiteralDescription,
                               String stringLiteralDefaultValue, String listenerKind, String kind) {
+    }
+
+    record ServiceInitializerProperty(String label, String description, String defaultValue, String valueType,
+                                      String typeConstrain, List<ServiceInitializerPropertyMemberType> typeMembers,
+                                      String sourceKind, List<String> selections) {
+    }
+
+    record ServiceInitializerPropertyMemberType(String type, String packageInfo, String kind) {
     }
 
     record Annotation(List<String> attachmentPoints, String displayName, String description, String typeConstrain) {
