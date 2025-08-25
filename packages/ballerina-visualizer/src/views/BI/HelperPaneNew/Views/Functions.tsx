@@ -162,10 +162,10 @@ export const FunctionsPage = ({
             height: "100%",
             overflow: "hidden"
         }}>
-            <div style={{ display: "flex", justifyContent: "center", alignItems: "center", marginBottom: "10px" }}>
+            <div style={{ display: "flex", justifyContent: "center", alignItems: "center"}}>
                 <SearchBox sx={{ width: "100%" }} placeholder='Search' value={searchValue} onChange={handleFunctionSearch} />
             </div>
-            <ScrollableContainer>
+            <ScrollableContainer style={{ margin: '8px 0px' }}>
                 {
 
                     isLoading ? (
@@ -184,7 +184,7 @@ export const FunctionsPage = ({
 
                                             return (
                                                 <ExpandableList>
-                                                    <ExpandableList.Section sx={{ marginTop: '20px' }} key={category.label} title={category.label} level={0}>
+                                                    <ExpandableList.Section key={category.label} title={category.label} level={0}>
                                                         <div style={{ marginTop: '10px' }}>
                                                             {category.items.map((item) => (
                                                                 <SlidingPaneNavContainer  onClick={async () => await handleFunctionItemSelect(item)}>
@@ -236,8 +236,8 @@ export const FunctionsPage = ({
                     )
                 }
             </ScrollableContainer>
-            <div style={{ marginTop: "auto", gap: '10px' }}>
-                <Divider />
+            <Divider sx={{margin: '0px'}}/>
+            <div style={{ marginTop: "auto", display: 'flex', flexDirection: 'column', justifyContent: 'space-around' }}>
                 <DynamicModal width={500} height={800} anchorRef={anchorRef} title="Create new Function" openState={isModalOpen} setOpenState={setIsModalOpen}>
                     <DynamicModal.Trigger>
                         <FooterButtons sx={{ display: 'flex', justifyContent: 'space-between',  overflow: "hidden" }} startIcon='add' title="New Function" />
@@ -248,11 +248,11 @@ export const FunctionsPage = ({
                         filePath={defaultFunctionsFile}
                         functionName={undefined}
                         isDataMapper={false}
-                        defaultType={selectedType.label}
+                        defaultType={selectedType?.label}
                     />
                    </ScrollableContainer>
                 </DynamicModal>
-                <FooterButtons sx={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px', marginTop: '10px' }} startIcon='add' title="Open Function Browser" onClick={() => setIsLibraryBrowserOpen(true)} />
+                <FooterButtons sx={{ display: 'flex', justifyContent: 'space-between'}} startIcon='add' title="Open Function Browser" onClick={() => setIsLibraryBrowserOpen(true)} />
 
             </div>
             {isLibraryBrowserOpen && (
@@ -267,13 +267,13 @@ export const FunctionsPage = ({
                     onFunctionItemSelect={onFunctionItemSelect}
                 />
             )}
-            {isAddingFunction && createPortal(
+            {/* {isAddingFunction && createPortal(
                 <>
                     <Overlay sx={{ background: `${ThemeColors.SURFACE_CONTAINER}`, opacity: `0.3`, zIndex: 5000 }} />
                     <LoadingContainer> <LoadingRing /> </LoadingContainer>
                 </>
                 , document.body
-            )}
+            )} */}
         </div>
     )
 }

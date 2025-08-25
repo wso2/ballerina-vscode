@@ -195,7 +195,7 @@ export const Configurables = (props: ConfigurablesPageProps) => {
             height: "100%",
             overflow: "hidden"
         }}>
-            <ScrollableContainer>
+            <ScrollableContainer style={{ margin: '8px 0px' }}>
                 {translateToArrayFormat(configVariables)
                     .filter(category =>
                         Array.isArray(category.items) &&

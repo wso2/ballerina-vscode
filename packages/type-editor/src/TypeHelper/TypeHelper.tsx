@@ -252,7 +252,7 @@ export const TypeHelperComponent = (props: TypeHelperComponentProps) => {
                             <>
                                 <ScrollableContainer>
                                     {basicTypes.map((category) => (
-                                        <ExpandableList.Section sx={{ marginTop: '20px' }} key={category.category} title={category.category} level={1}>
+                                        <ExpandableList.Section key={category.category} title={category.category} level={1}>
                                             <div style={{ marginTop: '10px' }}>
                                                 {category.items.map((item) => (
                                                     <SlidingPaneNavContainer>
