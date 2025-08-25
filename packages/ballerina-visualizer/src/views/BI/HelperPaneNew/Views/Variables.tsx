@@ -19,7 +19,7 @@ import styled from "@emotion/styled"
 type VariablesPageProps = {
     fileName: string;
     debouncedRetrieveCompletions?: (value: string, property: ExpressionProperty, offset: number, triggerCharacter?: string) => Promise<void>;
-    onChange: (value: string, isRecordConfigureChange: boolean) => void;
+    onChange: (value: string, isRecordConfigureChange: boolean, shouldKeepHelper?: boolean) => void;
     targetLineRange: LineRange;
     anchorRef: React.RefObject<HTMLDivElement>;
     handleOnFormSubmit?: (updatedNode?: FlowNode, openInDataMapper?: boolean, options?: FormSubmitOptions) => void;
@@ -115,13 +115,13 @@ export const Variables = (props: VariablesPageProps) => {
     };
 
     const handleItemSelect = (value: string) => {
-        onChange(currentValue + value, false);
+        onChange(value, false);
     }
 
     const handleVariablesMoreIconClick = (value: string) => {
         const newBreadCrumSteps = [...breadCrumbSteps, value];
         setBreadCrumbSteps(newBreadCrumSteps);
-        onChange(currentValue + value + '.', true);
+        onChange(value + '.', false, true);
     }
 
     const handleBreadCrumbItemClicked = (variableName: string) => {
