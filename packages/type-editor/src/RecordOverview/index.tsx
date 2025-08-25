@@ -21,7 +21,7 @@ import { useIntl } from "react-intl";
 import { ModulePart, STKindChecker, STNode, TypeDefinition } from "@wso2/syntax-tree";
 
 import { updatePropertyStatement } from "../utils";
-import { UndoRedoManager } from "../components/UndoRedoManager";
+import { UndoRedoManager } from "@wso2/ballerina-core";
 import { RecordItemModel } from "../types";
 import {
     extractImportedRecordNames,

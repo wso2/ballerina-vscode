@@ -23,7 +23,7 @@ import { RecordConfigTypeSelector } from "../RecordConfigTypeSelector";
 import { RecordFromJson } from "../RecordFromJson";
 import { RecordFromXml } from "../RecordFromXml";
 import { Context } from "../Context";
-import { UndoRedoManager } from "../components/UndoRedoManager";
+import { UndoRedoManager } from "@wso2/ballerina-core";
 import { isSupportedSLVersion } from "../components/FormComponents/Utils";
 import { FormContainer } from "../style";
 
