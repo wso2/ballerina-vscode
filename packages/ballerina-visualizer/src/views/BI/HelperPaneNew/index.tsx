@@ -187,7 +187,7 @@ const HelperPaneNewEl = ({
                                     </TitleContainer>
                                 </ExpandableList.Item>
                             </SlidingPaneNavContainer>
-                            <SlidingPaneNavContainer to="ENVS">
+                            {/* <SlidingPaneNavContainer to="ENVS">
                                 <ExpandableList.Item>
                                     <TitleContainer>
                                         {getIcon(COMPLETION_ITEM_KIND.EnumMember)}
@@ -196,7 +196,7 @@ const HelperPaneNewEl = ({
                                         </Typography>
                                     </TitleContainer>
                                 </ExpandableList.Item>
-                            </SlidingPaneNavContainer>
+                            </SlidingPaneNavContainer> */}
                             <SlidingPaneNavContainer to="FUNCTIONS">
                                 <ExpandableList.Item>
                                     {getIcon(COMPLETION_ITEM_KIND.Function)}
