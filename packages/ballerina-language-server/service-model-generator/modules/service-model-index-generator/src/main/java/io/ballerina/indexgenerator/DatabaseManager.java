@@ -173,4 +173,19 @@ class DatabaseManager {
         insertEntry(sql, new Object[]{packageId, annotName, attachmentPoints, displayName, description, typeConstrain,
                 pkg});
     }
+    public static int insertServiceInitializerProperty(int packageId, String keyName, String label, String description,
+                                                      String defaultValue, String valueType, String typeConstrain,
+                                                      String sourceKind, String selections) {
+        String sql = "INSERT INTO ServiceInitializerProperty (package_id, key_name, label, description, default_value, " +
+                "value_type, type_constrain, source_kind, selections) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        return insertEntry(sql, new Object[]{packageId, keyName, label, description, defaultValue, valueType,
+                typeConstrain, sourceKind, selections});
+    }
+
+    public static void insertServiceInitializerPropertyMemberType(int initializerId, String type, String kind,
+                                                                  String packageInfo) {
+        String sql = "INSERT INTO ServiceInitializerPropertyMemberType (initializer_id, type, kind, package) " +
+                "VALUES (?, ?, ?, ?)";
+        insertEntry(sql, new Object[]{initializerId, type, kind, packageInfo});
+    }
 }
