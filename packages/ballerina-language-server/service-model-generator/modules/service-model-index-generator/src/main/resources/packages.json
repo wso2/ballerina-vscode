@@ -3,8 +3,15 @@
     {
       "name": "http",
       "version": "2.14.0",
-      "serviceTypeSkipList": ["Service", "ServiceContract", "RequestInterceptor", "ResponseInterceptor",
-        "RequestErrorInterceptor", "ResponseErrorInterceptor", "InterceptableService"],
+      "serviceTypeSkipList": [
+        "Service",
+        "ServiceContract",
+        "RequestInterceptor",
+        "ResponseInterceptor",
+        "RequestErrorInterceptor",
+        "ResponseErrorInterceptor",
+        "InterceptableService"
+      ],
       "serviceDeclaration": {
         "displayName": "HTTP Service",
         "optionalTypeDescriptor": 1,
@@ -32,23 +39,32 @@
       },
       "annotations": {
         "ServiceConfig": {
-          "attachmentPoints": ["SERVICE"],
+          "attachmentPoints": [
+            "SERVICE"
+          ],
           "displayName": "Service Configuration",
           "description": "Define advanced configurations like service level security, etc.",
           "typeConstrain": "http:HttpServiceConfig"
         },
         "ResourceConfig": {
-          "attachmentPoints": ["OBJECT_METHOD"],
+          "attachmentPoints": [
+            "OBJECT_METHOD"
+          ],
           "displayName": "Resource Configuration",
           "description": "Define advanced configurations like resource level media types, security, etc.",
           "typeConstrain": "http:HttpResourceConfig"
         }
+      },
+      "initForm": {
       }
     },
     {
       "name": "graphql",
       "version": "1.16.0",
-      "serviceTypeSkipList": ["Interceptor", "Service"],
+      "serviceTypeSkipList": [
+        "Interceptor",
+        "Service"
+      ],
       "serviceDeclaration": {
         "displayName": "GraphQL Service",
         "optionalTypeDescriptor": 1,
@@ -91,12 +107,26 @@
           "description": "Define configurations such as field level cache.",
           "typeConstrain": "graphql:GraphqlResourceConfig"
         }
+      },
+      "initForm": {
+        "basePath": {
+          "label": "Base Path",
+          "description": "The base path of the GraphQL service",
+          "defaultValue": "/graphql",
+          "valueType": "EXPRESSION",
+          "typeConstrain": "string",
+          "typeMembers": [],
+          "sourceKind": "SERVICE_BASE_PATH",
+          "selections": []
+        }
       }
     },
     {
       "name": "tcp",
       "version": "1.13.0",
-      "serviceTypeSkipList": ["ConnectionService"],
+      "serviceTypeSkipList": [
+        "ConnectionService"
+      ],
       "serviceDeclaration": {
         "displayName": "TCP Service",
         "optionalTypeDescriptor": 1,
@@ -145,12 +175,26 @@
             }
           ]
         }
+      },
+      "initForm": {
+        "tcpPort": {
+          "label": "TCP Port",
+          "description": "The port on which the TCP service listens",
+          "defaultValue": "80",
+          "valueType": "EXPRESSION",
+          "typeConstrain": "int",
+          "typeMembers": [],
+          "sourceKind": "LISTENER_PARAMETER",
+          "selections": []
+        }
       }
     },
     {
       "name": "file",
       "version": "1.12.0",
-      "serviceTypeSkipList": ["Service"],
+      "serviceTypeSkipList": [
+        "Service"
+      ],
       "serviceDeclaration": {
         "displayName": "Directory Service",
         "optionalTypeDescriptor": 1,
@@ -243,15 +287,38 @@
                 }
               ]
             }
-
           ]
+        }
+      },
+      "initForm": {
+        "path": {
+          "label": "Path",
+          "description": "Directory path to be monitored",
+          "defaultValue": "\"/tmp\"",
+          "valueType": "EXPRESSION",
+          "typeConstrain": "string",
+          "typeMembers": [],
+          "sourceKind": "LISTENER_PARAMETER",
+          "selections": []
+        },
+        "recursive": {
+          "label": "Recursive",
+          "description": "Recursively monitor all sub-directories",
+          "defaultValue": "false",
+          "valueType": "FLAG",
+          "typeConstrain": "boolean",
+          "typeMembers": [],
+          "sourceKind": "LISTENER_PARAMETER",
+          "selections": []
         }
       }
     },
     {
       "name": "ftp",
       "version": "2.13.0",
-      "serviceTypeSkipList": ["Service"],
+      "serviceTypeSkipList": [
+        "Service"
+      ],
       "serviceDeclaration": {
         "displayName": "FTP Service",
         "optionalTypeDescriptor": 1,
@@ -311,6 +378,51 @@
             }
           ]
         }
+      },
+      "initForm": {
+        "host": {
+          "label": "Host",
+          "description": "Target FTP server url",
+          "defaultValue": "\"127.0.0.1\"",
+          "valueType": "EXPRESSION",
+          "typeConstrain": "string",
+          "typeMembers": [],
+          "sourceKind": "LISTENER_PARAMETER",
+          "selections": []
+        },
+        "port": {
+          "label": "Port",
+          "description": "Target FTP server port",
+          "defaultValue": "21",
+          "valueType": "EXPRESSION",
+          "typeConstrain": "int",
+          "typeMembers": [],
+          "sourceKind": "LISTENER_PARAMETER",
+          "selections": []
+        },
+        "protocol": {
+          "label": "Protocol",
+          "description": "The protocol to connect to the FTP server",
+          "defaultValue": "\"FTP\"",
+          "valueType": "EXPRESSION",
+          "typeConstrain": "string",
+          "typeMembers": [],
+          "sourceKind": "LISTENER_PARAMETER",
+          "selections": [
+            "\"FTP\"",
+            "\"SFTP\""
+          ]
+        },
+        "path": {
+          "label": "Path",
+          "description": "The path to be monitored",
+          "defaultValue": "\"/tmp\"",
+          "valueType": "EXPRESSION",
+          "typeConstrain": "string",
+          "typeMembers": [],
+          "sourceKind": "LISTENER_PARAMETER",
+          "selections": []
+        }
       }
     },
     {
@@ -364,8 +476,39 @@
                 }
               ]
             }
-
           ]
+        }
+      },
+      "initForm": {
+        "serviceUri": {
+          "label": "Service URI",
+          "description": "The URI of the MQTT broker",
+          "defaultValue": "\"mqtt://localhost:1883\"",
+          "valueType": "EXPRESSION",
+          "typeConstrain": "string",
+          "typeMembers": [],
+          "sourceKind": "LISTENER_PARAMETER",
+          "selections": []
+        },
+        "clientId": {
+          "label": "Client ID",
+          "description": "A unique identifier to identify by the MQTT broker",
+          "defaultValue": "\"unique_client_001\"",
+          "valueType": "EXPRESSION",
+          "typeConstrain": "string",
+          "typeMembers": [],
+          "sourceKind": "LISTENER_PARAMETER",
+          "selections": []
+        },
+        "subscriptions": {
+          "label": "Subscriptions",
+          "description": "The topics to subscribe to",
+          "defaultValue": "",
+          "valueType": "EXPRESSION",
+          "typeConstrain": "string|string[]",
+          "typeMembers": [],
+          "sourceKind": "LISTENER_PARAMETER",
+          "selections": []
         }
       }
     },
@@ -470,6 +613,41 @@
               ]
             }
           ]
+        }
+      },
+      "initForm": {
+        "connectionString": {
+          "label": "Connection String",
+          "description": "The connection string to connect to the Azure Service Bus namespace",
+          "defaultValue": "\"\"",
+          "valueType": "EXPRESSION",
+          "typeConstrain": "string",
+          "typeMembers": [],
+          "sourceKind": "LISTENER_PARAMETER",
+          "selections": []
+        },
+        "entityConfig": {
+          "label": "Entity Config",
+          "description": "The entity configuration to connect to the Azure Service Bus",
+          "defaultValue": "{}",
+          "valueType": "EXPRESSION",
+          "typeConstrain": "asb:TopicSubsConfig|asb:QueueConfig",
+          "typeMembers": [
+            {
+              "type": "TopicSubsConfig",
+              "packageInfo": "ballerinax:asb:3.9.0",
+              "kind": "RECORD_TYPE",
+              "selected": false
+            },
+            {
+              "type": "QueueConfig",
+              "packageInfo": "ballerinax:asb:3.9.0",
+              "kind": "RECORD_TYPE",
+              "selected": false
+            }
+          ],
+          "sourceKind": "LISTENER_PARAMETER",
+          "selections": []
         }
       }
     },
@@ -603,15 +781,48 @@
               ]
             }
           ]
-
         }
       },
       "annotations": {
         "ServiceConfig": {
-          "attachmentPoints": ["SERVICE"],
+          "attachmentPoints": [
+            "SERVICE"
+          ],
           "displayName": "Service Configuration",
           "description": "Define advanced queue configurations ",
           "typeConstrain": "rabbitmq:RabbitMQServiceConfig"
+        }
+      },
+      "initForm": {
+        "host": {
+          "label": "Host",
+          "description": "The host used for establishing the connection",
+          "defaultValue": "\"localhost\"",
+          "valueType": "EXPRESSION",
+          "typeConstrain": "string",
+          "typeMembers": [],
+          "sourceKind": "LISTENER_PARAMETER",
+          "selections": []
+        },
+        "port": {
+          "label": "Port",
+          "description": "The port used for establishing the connection",
+          "defaultValue": "5672",
+          "valueType": "EXPRESSION",
+          "typeConstrain": "int",
+          "typeMembers": [],
+          "sourceKind": "LISTENER_PARAMETER",
+          "selections": []
+        },
+        "queueName": {
+          "label": "Queue Name",
+          "description": "The name of the queue to listen to",
+          "defaultValue": "\"\"",
+          "valueType": "EXPRESSION",
+          "typeConstrain": "string",
+          "typeMembers": [],
+          "sourceKind": "LISTENER_PARAMETER",
+          "selections": []
         }
       }
     },
@@ -701,6 +912,17 @@
             }
           ]
         }
+      },
+      "initForm": {
+        "boostrapServers": {
+          "label": "Bootstrap Servers",
+          "description": "List of remote server endpoints of the Kafka brokers",
+          "defaultValue": "\"\"",
+          "valueType": "EXPRESSION",
+          "typeConstrain": "string",
+          "typeMembers": [],
+          "sourceKind": "LISTENER_PARAMETER"
+        }
       }
     },
     {
@@ -726,6 +948,25 @@
         "kind": "event"
       },
       "serviceTypes": {
+      },
+      "initForm": {
+        "auth": {
+          "label": "Auth",
+          "description": "Configurations related to username/password authentication",
+          "defaultValue": "{username: \"\", password: \"\"}",
+          "valueType": "EXPRESSION",
+          "typeConstrain": "salesforce:CredentialsConfig",
+          "typeMembers": [
+            {
+              "type": "CredentialsConfig",
+              "packageInfo": "ballerinax:salesforce:8.2.0",
+              "kind": "RECORD_TYPE",
+              "selected": false
+            }
+          ],
+          "sourceKind": "LISTENER_PARAMETER",
+          "selections": []
+        }
       }
     },
     {
@@ -751,6 +992,29 @@
         "kind": "event"
       },
       "serviceTypes": {
+      },
+      "initForm": {
+        "eventChannel": {
+          "label": "Event Channel",
+          "description": "The event channel name",
+          "defaultValue": "",
+          "valueType": "TYPE",
+          "typeConstrain": "github:GenericServiceType",
+          "typeMembers": [],
+          "sourceKind": "SERVICE_TYPE_DESCRIPTOR",
+          "selections": [
+            "IssuesService",
+            "IssueCommentService",
+            "PullRequestService",
+            "PullRequestReviewService",
+            "PullRequestReviewCommentService",
+            "ReleaseService",
+            "LabelService",
+            "MilestoneService",
+            "PushService",
+            "ProjectCardService"
+            ]
+        }
       }
     },
     {
@@ -801,6 +1065,21 @@
         "kind": "event"
       },
       "serviceTypes": {
+      },
+      "initForm": {
+        "eventChannel": {
+          "label": "Event Channel",
+          "description": "The event channel name",
+          "defaultValue": "",
+          "valueType": "TYPE",
+          "typeConstrain": "twilio:GenericServiceType",
+          "typeMembers": [],
+          "sourceKind": "SERVICE_TYPE_DESCRIPTOR",
+          "selections": [
+            "CallStatusService",
+            "SmsStatusService"
+          ]
+        }
       }
     }
   ]
