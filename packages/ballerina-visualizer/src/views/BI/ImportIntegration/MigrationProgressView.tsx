@@ -33,6 +33,7 @@ export function MigrationProgressView({
     migrationSuccessful,
     migrationResponse,
     onNext,
+    onBack,
 }: MigrationProgressProps) {
     const [isLogsOpen, setIsLogsOpen] = useState(false);
     const { rpcClient } = useRpcContext();
@@ -113,6 +114,13 @@ export function MigrationProgressView({
                             />
                             <NextButtonWrapper>
                                 <Button
+                                    onClick={onBack}
+                                    appearance="secondary"
+                                    sx={{ marginRight: "12px" }}
+                                >
+                                    Back
+                                </Button>
+                                <Button
                                     disabled={!migrationCompleted || !migrationSuccessful}
                                     onClick={onNext}
                                     appearance="primary"
@@ -155,6 +163,13 @@ export function MigrationProgressView({
             {/* Show button after logs when migration is in progress or failed */}
             {(!migrationCompleted || (migrationCompleted && !migrationSuccessful)) && (
                 <ButtonWrapper>
+                    <Button
+                        onClick={onBack}
+                        appearance="secondary"
+                        sx={{ marginRight: "12px" }}
+                    >
+                        Back
+                    </Button>
                     <Button
                         disabled={!migrationCompleted || !migrationSuccessful}
                         onClick={onNext}

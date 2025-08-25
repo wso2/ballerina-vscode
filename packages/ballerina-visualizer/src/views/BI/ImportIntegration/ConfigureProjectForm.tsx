@@ -14,7 +14,7 @@ import { ConfigureProjectFormProps } from "./types";
 import { sanitizeProjectName } from "./utils";
 
 
-export function ConfigureProjectForm({ onNext }: ConfigureProjectFormProps) {
+export function ConfigureProjectForm({ onNext, onBack }: ConfigureProjectFormProps) {
     const { rpcClient } = useRpcContext();
     const [name, setName] = useState("");
     const [path, setPath] = useState("");
@@ -67,6 +67,13 @@ export function ConfigureProjectForm({ onNext }: ConfigureProjectFormProps) {
                 />
             </LocationSelectorWrapper>
             <ButtonWrapper>
+                <Button
+                    onClick={onBack}
+                    appearance="secondary"
+                    sx={{ marginRight: "12px" }}
+                >
+                    Back
+                </Button>
                 <Button disabled={isCreateProjectDisabled} onClick={() => onNext(name, path)} appearance="primary">
                     Create and Open Project
                 </Button>
