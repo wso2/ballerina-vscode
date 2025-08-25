@@ -40,7 +40,7 @@ export const EXAMPLE_REPORT_JSON: MigrationReportJSON = {
         coverageLevel: CoverageLevel.MEDIUM,
         totalElements: 22,
         migratableElements: 19,
-        nonMigratableElements: 3
+        nonMigratableElements: 3,
     },
     manualWorkEstimation: {
         unit: "days",
@@ -59,7 +59,7 @@ export const EXAMPLE_REPORT_JSON: MigrationReportJSON = {
 };
 
 export const sanitizeProjectName = (name: string): string => {
-    return name.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+    return name.replace(/[^a-z0-9]/gi, "_").toLowerCase();
 };
 
 export const getCoverageLevel = (level: CoverageLevel): string => {
@@ -74,10 +74,7 @@ export const getCoverageColor = (level: CoverageLevel): string => {
     return "var(--vscode-charts-red)";
 };
 
-export const getMigrationProgressHeaderData = (
-    migrationCompleted: boolean,
-    migrationSuccessful: boolean
-) => {
+export const getMigrationProgressHeaderData = (migrationCompleted: boolean, migrationSuccessful: boolean) => {
     let headerText;
     let headerDesc;
 
