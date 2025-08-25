@@ -257,16 +257,10 @@ export const Configurables = (props: ConfigurablesPageProps) => {
                     ))}
             </ScrollableContainer>
 
-            <div style={{ marginTop: "auto" }}>
-                <Divider />
-                <div style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '8px'
-                }}>
-                    <AddNewForms isImportEnv={false} title="New Configurable" />
-                    <AddNewForms isImportEnv={true} title="Import from ENV variable" />
-                </div>
+            <Divider sx={{ margin: "0px" }} />
+            <div style={{ marginTop: "auto", display: 'flex', flexDirection: 'column', justifyContent: 'space-around', paddingLeft: '8px' }}>
+                <AddNewForms isImportEnv={false} title="New Configurable" />
+                <AddNewForms isImportEnv={true} title="Import from ENV variable" />
             </div>
         </div>
     )

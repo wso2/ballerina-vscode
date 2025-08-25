@@ -286,8 +286,9 @@ export const Variables = (props: VariablesPageProps) => {
                 )}
             </ScrollableContainer>
 
-            {!isInModal && <div style={{ marginTop: "auto" }}>
-                <Divider />
+            <Divider sx={{margin: "0px"}}/>
+            {!isInModal && 
+            <div style={{ marginTop: "auto", padding: '8px' }}>
                 <DynamicModal
                     width={420}
                     height={600}
