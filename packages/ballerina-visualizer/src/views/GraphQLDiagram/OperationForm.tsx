@@ -17,7 +17,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { FunctionModel, LineRange, ParameterModel, ConfigProperties, PropertyModel, RecordTypeField, Property } from '@wso2/ballerina-core';
+import { FunctionModel, LineRange, ParameterModel, ConfigProperties, PropertyModel, RecordTypeField, Property, PropertyTypeMemberInfo } from '@wso2/ballerina-core';
 import { FormGeneratorNew } from '../BI/Forms/FormGeneratorNew';
 import { FormField, FormImports, FormValues, Parameter } from '@wso2/ballerina-side-panel';
 import { getImportsForProperty } from '../../utils/bi';
@@ -164,7 +164,7 @@ export function OperationForm(props: OperationFormProps) {
             const recordTypeFields: RecordTypeField[] = Object.entries(model?.properties)
                 .filter(([_, property]) =>
                     property.typeMembers &&
-                    property.typeMembers.some((member: any) => member.kind === "RECORD_TYPE")
+                    property.typeMembers.some((member: PropertyTypeMemberInfo) => member.kind === "RECORD_TYPE")
                 )
                 .map(([key, property]) => ({
                     key,
@@ -180,7 +180,7 @@ export function OperationForm(props: OperationFormProps) {
                             diagnostics: property.diagnostics
                         }
                     } as Property,
-                    recordTypeMembers: property.typeMembers.filter((member: any) => member.kind === "RECORD_TYPE")
+                    recordTypeMembers: property.typeMembers.filter((member: PropertyTypeMemberInfo) => member.kind === "RECORD_TYPE")
                 }));
             console.log(">>> recordTypeFields of model.advanceProperties", recordTypeFields);
 
