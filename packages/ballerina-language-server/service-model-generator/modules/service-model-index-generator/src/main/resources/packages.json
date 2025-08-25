@@ -636,14 +636,12 @@
             {
               "type": "TopicSubsConfig",
               "packageInfo": "ballerinax:asb:3.9.0",
-              "kind": "RECORD_TYPE",
-              "selected": false
+              "kind": "RECORD_TYPE"
             },
             {
               "type": "QueueConfig",
               "packageInfo": "ballerinax:asb:3.9.0",
-              "kind": "RECORD_TYPE",
-              "selected": false
+              "kind": "RECORD_TYPE"
             }
           ],
           "sourceKind": "LISTENER_PARAMETER",
@@ -921,7 +919,8 @@
           "valueType": "EXPRESSION",
           "typeConstrain": "string",
           "typeMembers": [],
-          "sourceKind": "LISTENER_PARAMETER"
+          "sourceKind": "LISTENER_PARAMETER",
+          "selections": []
         }
       }
     },
@@ -960,8 +959,7 @@
             {
               "type": "CredentialsConfig",
               "packageInfo": "ballerinax:salesforce:8.2.0",
-              "kind": "RECORD_TYPE",
-              "selected": false
+              "kind": "RECORD_TYPE"
             }
           ],
           "sourceKind": "LISTENER_PARAMETER",

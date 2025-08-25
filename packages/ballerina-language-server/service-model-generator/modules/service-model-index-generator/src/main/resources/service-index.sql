@@ -151,6 +151,6 @@ CREATE TABLE ServiceInitializerPropertyMemberType (
     type JSON, -- JSON type for parameter type information
     kind TEXT,
     initializer_id INTEGER,
-    packageInfo TEXT, -- format of the package is org:name:version
+    package TEXT, -- format of the package is org:name:version
     FOREIGN KEY (initializer_id) REFERENCES ServiceInitializerProperty(initializer_id) ON DELETE CASCADE
 );
