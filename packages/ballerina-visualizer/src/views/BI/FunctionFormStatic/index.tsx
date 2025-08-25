@@ -30,12 +30,33 @@ import { FormHeader } from "../../../components/FormHeader";
 import { convertConfig, getImportsForProperty } from "../../../utils/bi";
 import { LoadingContainer } from "../../styles";
 import { LoadingRing } from "../../../components/Loader";
+import { ScrollableContainer } from "../HelperPaneNew/Components/ScrollableContainer";
 
 const FormContainer = styled.div`
     display: flex;
     flex-direction: column;
     max-width: 600px;
+    height: 400px;
     gap: 20px;
+    overflow-y: auto;
+    padding-right: 16px;
+
+    /* Add smooth scrolling */
+    scroll-behavior: smooth;
+    
+    /* Style the scrollbar */
+    &::-webkit-scrollbar {
+        width: 8px;
+    }
+    
+    &::-webkit-scrollbar-track {
+        background: transparent;
+    }
+    
+    &::-webkit-scrollbar-thumb {
+        background-color: rgba(0, 0, 0, 0.2);
+        border-radius: 4px;
+    }
 `;
 
 const Container = styled.div`
@@ -357,7 +378,7 @@ export function FunctionFormStatic(props: FunctionFormProps) {
     });
 
     return (
-        <div style={{ overflowY: 'hidden' }}>
+        <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
             <FormHeader
                 title={`${functionName ? 'Edit' : 'Create New'} ${formType.current}`}
                 subtitle={formSubtitle}

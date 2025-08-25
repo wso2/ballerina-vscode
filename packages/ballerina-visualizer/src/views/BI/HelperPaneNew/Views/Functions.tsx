@@ -133,7 +133,7 @@ export const FunctionsPage = ({
     }, []);
 
     const setDefaultFunctionsPath = () => {
-        rpcClient.getVisualizerLocation().then((location)=> {
+        rpcClient.getVisualizerLocation().then((location) => {
             setProjectUri(location?.projectUri || '')
         })
     }
@@ -156,13 +156,13 @@ export const FunctionsPage = ({
     };
 
     return (
-         <div style={{
+        <div style={{
             display: "flex",
             flexDirection: "column",
             height: "100%",
             overflow: "hidden"
         }}>
-            <div style={{ display: "flex", justifyContent: "center", alignItems: "center"}}>
+            <div style={{ display: "flex", justifyContent: "center", alignItems: "center", margin: "3px 8px" }}>
                 <SearchBox sx={{ width: "100%" }} placeholder='Search' value={searchValue} onChange={handleFunctionSearch} />
             </div>
             <ScrollableContainer style={{ margin: '8px 0px' }}>
@@ -187,10 +187,9 @@ export const FunctionsPage = ({
                                                     <ExpandableList.Section key={category.label} title={category.label} level={0}>
                                                         <div style={{ marginTop: '10px' }}>
                                                             {category.items.map((item) => (
-                                                                <SlidingPaneNavContainer  onClick={async () => await handleFunctionItemSelect(item)}>
-                                                                   <ExpandableList.Item
+                                                                <SlidingPaneNavContainer onClick={async () => await handleFunctionItemSelect(item)}>
+                                                                    <ExpandableList.Item
                                                                         key={item.label}
-                                                                        sx={{ color: ThemeColors.ON_SURFACE }}
                                                                     >
                                                                         {getIcon(COMPLETION_ITEM_KIND.Function)}
                                                                         <FunctionItemLabel>{`${item.label}()`}</FunctionItemLabel>
@@ -214,10 +213,9 @@ export const FunctionsPage = ({
                                                     <ExpandableList.Section sx={{ marginTop: '20px' }} key={subCategory.label} title={subCategory.label} level={0}>
                                                         <div style={{ marginTop: '10px' }}>
                                                             {subCategory.items.map((item) => (
-                                                                <SlidingPaneNavContainer  onClick={async () => await handleFunctionItemSelect(item)}>
+                                                                <SlidingPaneNavContainer onClick={async () => await handleFunctionItemSelect(item)}>
                                                                     <ExpandableList.Item
                                                                         key={item.label}
-                                                                        sx={{ color: ThemeColors.ON_SURFACE }}
                                                                     >
                                                                         {getIcon(COMPLETION_ITEM_KIND.Function)}
                                                                         <FunctionItemLabel>{`${item.label}()`}</FunctionItemLabel>
@@ -236,23 +234,21 @@ export const FunctionsPage = ({
                     )
                 }
             </ScrollableContainer>
-            <Divider sx={{margin: '0px'}}/>
-            <div style={{ marginTop: "auto", display: 'flex', flexDirection: 'column', justifyContent: 'space-around', paddingLeft: '8px'  }}>
-                <DynamicModal width={500} height={800} anchorRef={anchorRef} title="Create new Function" openState={isModalOpen} setOpenState={setIsModalOpen}>
+            <Divider sx={{ margin: '0px' }} />
+            <div style={{ marginTop: "auto", display: 'flex', flexDirection: 'column', justifyContent: 'space-around', paddingLeft: '8px' }}>
+                <DynamicModal width={500} height={600} anchorRef={anchorRef} title="Create new Function" openState={isModalOpen} setOpenState={setIsModalOpen}>
                     <DynamicModal.Trigger>
-                        <FooterButtons sx={{ display: 'flex', justifyContent: 'space-between',  overflow: "hidden" }} startIcon='add' title="New Function" />
+                        <FooterButtons sx={{ display: 'flex', justifyContent: 'space-between', overflow: "hidden" }} startIcon='add' title="New Function" />
                     </DynamicModal.Trigger>
-                   <ScrollableContainer>
-                     <FunctionFormStatic
+                    <FunctionFormStatic
                         projectPath={projectUri}
                         filePath={defaultFunctionsFile}
                         functionName={undefined}
                         isDataMapper={false}
                         defaultType={selectedType?.label}
                     />
-                   </ScrollableContainer>
                 </DynamicModal>
-                <FooterButtons sx={{ display: 'flex', justifyContent: 'space-between'}} startIcon='add' title="Open Function Browser" onClick={() => setIsLibraryBrowserOpen(true)} />
+                <FooterButtons sx={{ display: 'flex', justifyContent: 'space-between' }} startIcon='add' title="Open Function Browser" onClick={() => setIsLibraryBrowserOpen(true)} />
 
             </div>
             {isLibraryBrowserOpen && (

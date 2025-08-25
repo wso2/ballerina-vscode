@@ -226,7 +226,6 @@ export const Configurables = (props: ConfigurablesPageProps) => {
                                                                 onClick={() => { handleItemClicked(item?.properties?.variable?.value as string) }}
                                                             >
                                                                 <ExpandableList.Item
-                                                                    sx={{ color: ThemeColors.ON_SURFACE }}
                                                                 >
                                                                     {getIcon(COMPLETION_ITEM_KIND.Parameter)}
                                                                     {item?.properties?.variable?.value as ReactNode}
@@ -241,7 +240,6 @@ export const Configurables = (props: ConfigurablesPageProps) => {
                                                         <SlidingPaneNavContainer key={item.id}
                                                             onClick={() => { handleItemClicked(item?.properties?.variable?.value as string) }}>
                                                             <ExpandableList.Item
-                                                                sx={{ color: ThemeColors.ON_SURFACE }}
                                                             >
                                                                 {getIcon(COMPLETION_ITEM_KIND.Parameter)}
                                                                 {item?.properties?.variable?.value as ReactNode}
