@@ -260,7 +260,7 @@ export function getHelperPanePosition(typeFieldRef: RefObject<HTMLElement>, offs
     const rect = typeFieldRef.current.getBoundingClientRect();
     const position: Position = {
         top: rect.top + rect.height,
-        left: rect.left - HELPER_PANE_WIDTH - ARROW_HEIGHT + offset.left
+        left: rect.left 
     };
 
     return position;
