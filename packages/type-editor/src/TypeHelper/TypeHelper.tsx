@@ -204,6 +204,8 @@ export const TypeHelperComponent = (props: TypeHelperComponentProps) => {
             prefixCursorPosition + item.insertText.length
         );
 
+        onClose();
+
         onCloseCompletions?.();
     };
 

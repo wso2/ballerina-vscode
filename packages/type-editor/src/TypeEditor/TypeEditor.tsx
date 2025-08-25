@@ -122,7 +122,7 @@ export function TypeEditor(props: TypeEditorProps) {
 
     return (
         <TypeHelperContext.Provider value={props.typeHelper}>
-            <S.Container data-testid="type-editor-container">
+            <S.Container style={{height: '100%'}} data-testid="type-editor-container">
                 {!type ? (
                     <ProgressRing />
                 ) : newType ? (

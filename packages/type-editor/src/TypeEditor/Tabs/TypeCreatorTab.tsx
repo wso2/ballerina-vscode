@@ -565,7 +565,9 @@ export function TypeCreatorTab(props: TypeCreatorTabProps) {
                 )}
             </CategoryRow>
 
-            {renderEditor()}
+           <div style={{overflow: 'auto', maxHeight: '300px'}}>
+             {renderEditor()}
+           </div>
             <Footer>
                 <Button
                     data-testid="type-create-save"
