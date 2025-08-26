@@ -70,19 +70,18 @@ export function QueryOutputWidget(props: QueryOutputWidgetProps) {
 		}))
 	);
 
-	const fields = [outputType.member ?? outputType];
-	const hasFields = fields.length > 0;
+	const field = outputType.member ?? outputType;
 
-	const portIn = getPort(`${id}.IN`);
+	const portIn = getPort(`${id}.HEADER.IN`);
 	const isUnknownType = outputType.kind === TypeKind.Unknown;
 
 	let expanded = true;
-	if ((portIn && portIn.attributes.collapsed)) {
-		expanded = false;
-	}
+	// if ((portIn && portIn.attributes.collapsed)) {
+	// 	expanded = false;
+	// }
 	const isDisabled = portIn?.attributes.descendantHasValue;
 
-	const indentation = (portIn && (!hasFields || !expanded)) ? 0 : 24;
+	const indentation = (portIn && (!field || !expanded)) ? 0 : 24;
 
 	const handleExpand = () => {
 		const collapsedFields = collapsedFieldsStore.fields;
@@ -146,7 +145,7 @@ export function QueryOutputWidget(props: QueryOutputWidgetProps) {
 						}
 					</span>
 					<span className={classes.label}>
-						<Button
+						{/* <Button
 							id={"expand-or-collapse-" + id} 
 							appearance="icon"
 							tooltip="Expand/Collapse"
@@ -155,26 +154,22 @@ export function QueryOutputWidget(props: QueryOutputWidgetProps) {
 							data-testid={`${id}-expand-icon-mapping-target-node`}
 						>
 							{expanded ? <Codicon name="chevron-down" /> : <Codicon name="chevron-right" />}
-						</Button>
+						</Button> */}
 						{label}
 					</span>
 				</TreeHeader>
-				{(expanded && fields) && (
+				{(expanded && field) && (
 					<TreeBody>
-						{fields?.map((item, index) => {
-							return (
-								<ObjectOutputFieldWidget
-									key={index}
-									engine={engine}
-									field={item}
-									getPort={getPort}
-									parentId={id}
-									context={context}
-									treeDepth={0}
-									hasHoveredParent={isHovered}
-								/>
-							);
-						})}
+						<ObjectOutputFieldWidget
+							engine={engine}
+							field={field}
+							getPort={getPort}
+							parentId={id}
+							context={context}
+							treeDepth={0}
+							hasHoveredParent={isHovered}
+							isPortParent={true}
+						/>
 					</TreeBody>
 				)}
 			</TreeContainer>

@@ -46,6 +46,7 @@ export interface ObjectOutputFieldWidgetProps {
     fieldIndex?: number;
     treeDepth?: number;
     hasHoveredParent?: boolean;
+    isPortParent?: boolean;
 }
 
 export function ObjectOutputFieldWidget(props: ObjectOutputFieldWidgetProps) {
@@ -57,7 +58,8 @@ export function ObjectOutputFieldWidget(props: ObjectOutputFieldWidgetProps) {
         context,
         fieldIndex,
         treeDepth = 0,
-        hasHoveredParent
+        hasHoveredParent,
+        isPortParent = false
     } = props;
     const classes = useIONodesStyles();
     const [isLoading, setLoading] = useState(false);
@@ -90,6 +92,8 @@ export function ObjectOutputFieldWidget(props: ObjectOutputFieldWidgetProps) {
             ? `${updatedParentId}.${fieldName}`
             : updatedParentId
         : fieldName;
+
+    if (isPortParent) portName = parentId;
 
     const portIn = getPort(portName + ".IN");
     const isUnknownType = field?.kind === TypeKind.Unknown;

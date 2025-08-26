@@ -185,9 +185,9 @@ export function fieldFQNFromPortName(portName: string): string {
 }
 
 export function getSanitizedId(id: string): string {
-    if (id.endsWith('>')) {
-         return id.split('.').slice(0, -1).join('.');
-    }
+    // if (id.endsWith('>')) {
+    //      return id.split('.').slice(0, -1).join('.');
+    // }
     return id;
 }
 
