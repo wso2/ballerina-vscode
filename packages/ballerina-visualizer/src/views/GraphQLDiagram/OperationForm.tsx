@@ -17,7 +17,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { FunctionModel, LineRange, ParameterModel, ConfigProperties, Type, PropertyModel } from '@wso2/ballerina-core';
+import { FunctionModel, LineRange, ParameterModel, ConfigProperties, PropertyModel, RecordTypeField, Property, PropertyTypeMemberInfo } from '@wso2/ballerina-core';
 import { FormGeneratorNew } from '../BI/Forms/FormGeneratorNew';
 import { FormField, FormImports, FormValues, Parameter } from '@wso2/ballerina-side-panel';
 import { getImportsForProperty } from '../../utils/bi';
@@ -37,6 +37,7 @@ export function OperationForm(props: OperationFormProps) {
     console.log("OperationForm props: ", props);
     const { model, onSave, onClose, filePath, lineRange, isGraphqlView, isServiceClass, isSaving } = props;
     const [fields, setFields] = useState<FormField[]>([]);
+    const [recordTypeFields, setRecordTypeFields] = useState<RecordTypeField[]>([]);
 
     const handleParamChange = (param: Parameter) => {
         const name = `${param.formValues['variable']}`;
@@ -110,7 +111,7 @@ export function OperationForm(props: OperationFormProps) {
 
     // Initialize form fields
     useEffect(() => {
-        const initialFields = [
+        const initialFields: FormField[] = [
             {
                 key: 'name',
                 label: model.name.metadata?.label || 'Operation Name',
@@ -155,6 +156,37 @@ export function OperationForm(props: OperationFormProps) {
                 valueTypeConstraint: model.returnType.valueTypeConstraint || ''
             }
         ];
+
+        const properties = convertConfigToFormFields(model);
+        initialFields.push(...properties);
+
+        if (model?.properties) {
+            const recordTypeFields: RecordTypeField[] = Object.entries(model?.properties)
+                .filter(([_, property]) =>
+                    property.typeMembers &&
+                    property.typeMembers.some((member: PropertyTypeMemberInfo) => member.kind === "RECORD_TYPE")
+                )
+                .map(([key, property]) => ({
+                    key,
+                    property: {
+                        ...property,
+                        metadata: {
+                            label: property.metadata?.label || key,
+                            description: property.metadata?.description || ''
+                        },
+                        valueType: property?.valueType || 'string',
+                        diagnostics: {
+                            hasDiagnostics: property.diagnostics && property.diagnostics.length > 0,
+                            diagnostics: property.diagnostics
+                        }
+                    } as Property,
+                    recordTypeMembers: property.typeMembers.filter((member: PropertyTypeMemberInfo) => member.kind === "RECORD_TYPE")
+                }));
+            console.log(">>> recordTypeFields of model.advanceProperties", recordTypeFields);
+
+            setRecordTypeFields(recordTypeFields);
+        }
+
         setFields(initialFields);
     }, [model]);
 
@@ -167,6 +199,11 @@ export function OperationForm(props: OperationFormProps) {
         newFunctionModel.returnType.value = returnType;
         newFunctionModel.parameters = paramList;
         newFunctionModel.returnType.imports = getImportsForProperty('returnType', formImports);
+        Object.entries(data).forEach(([key, value]) => {
+            if (newFunctionModel?.properties?.[key]) {
+                newFunctionModel.properties[key].value = value as string;
+            }
+        });
         onSave(newFunctionModel);
     };
 
@@ -184,6 +221,7 @@ export function OperationForm(props: OperationFormProps) {
                     helperPaneSide="left"
                     isSaving={isSaving}
                     preserveFieldOrder={true}
+                    recordTypeFields={recordTypeFields}
                 />
             )}
         </>
@@ -229,6 +267,36 @@ export function convertParameterToFormField(key: string, param: ParameterModel):
     };
 }
 
+
+function convertConfigToFormFields(model: FunctionModel): FormField[] {
+    const formFields: FormField[] = [];
+    for (const key in model?.properties) {
+        const property = model?.properties[key];
+        const formField: FormField = {
+            key: key,
+            label: property?.metadata.label || key,
+            type: property.valueType,
+            documentation: property?.metadata.description || "",
+            valueType: property.valueTypeConstraint,
+            editable: property.editable,
+            enabled: property.enabled ?? true,
+            optional: property.optional,
+            value: property.value,
+            valueTypeConstraint: property.valueTypeConstraint,
+            advanced: property.advanced,
+            diagnostics: [],
+            items: property.items,
+            choices: property.choices,
+            placeholder: property.placeholder,
+            addNewButton: property.addNewButton,
+            lineRange: property?.codedata?.lineRange
+        }
+
+        formFields.push(formField);
+    }
+    return formFields;
+}
+
 function convertParameterToParamValue(param: ParameterModel, index: number) {
     return {
         id: index,
@@ -241,6 +309,7 @@ function convertParameterToParamValue(param: ParameterModel, index: number) {
         },
         icon: 'symbol-variable',
         identifierEditable: param.name?.editable,
-        identifierRange: param.name.codedata?.lineRange
+        identifierRange: param.name.codedata?.lineRange,
+        hidden: param.hidden ?? false
     };
 }

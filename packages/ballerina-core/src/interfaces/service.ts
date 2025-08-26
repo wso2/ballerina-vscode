@@ -83,6 +83,7 @@ export interface FunctionModel {
     // accessor will be used by resource functions
     accessor?: PropertyModel;
 
+    properties?: ConfigProperties;
     name: PropertyModel;
     parameters: ParameterModel[];
     schema?: ConfigProperties;
@@ -144,6 +145,7 @@ export interface PropertyModel {
     httpParamType?: "QUERY" | "Header" | "PAYLOAD";
     diagnostics?: DiagnosticMessage[];
     imports?: Imports;
+    hidden?: boolean;
 }
 
 export interface ParameterModel extends PropertyModel {

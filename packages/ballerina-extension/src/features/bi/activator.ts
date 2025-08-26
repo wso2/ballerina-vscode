@@ -15,7 +15,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { commands, Uri } from "vscode";
+import { commands, Uri, workspace, window, ConfigurationTarget } from "vscode";
 import {
     BI_COMMANDS,
     BIDeleteByComponentInfoRequest,
@@ -28,6 +28,7 @@ import {
 } from "@wso2/ballerina-core";
 import { BallerinaExtension } from "../../core";
 import { openView } from "../../stateMachine";
+import { ENABLE_DEBUG_LOG, ENABLE_TRACE_LOG, TRACE_SERVER } from "../../core/preferences";
 import { prepareAndGenerateConfig } from "../config-generator/configGenerator";
 import { StateMachine } from "../../stateMachine";
 import { BiDiagramRpcManager } from "../../rpc-managers/bi-diagram/rpc-manager";
@@ -37,6 +38,8 @@ import { isPositionEqual, isPositionWithinDeletedComponent } from "../../utils/h
 import { startDebugging } from "../editor-support/activator";
 
 const FOCUS_DEBUG_CONSOLE_COMMAND = 'workbench.debug.action.focusRepl';
+const TRACE_SERVER_OFF = "off";
+const TRACE_SERVER_VERBOSE = "verbose";
 
 export function activate(context: BallerinaExtension) {
     commands.registerCommand(BI_COMMANDS.BI_RUN_PROJECT, () => {
@@ -97,6 +100,8 @@ export function activate(context: BallerinaExtension) {
         // This is a temporary solution until we provide the support for multi root workspaces.
         commands.executeCommand('workbench.action.reloadWindow');
     });
+
+    commands.registerCommand(BI_COMMANDS.TOGGLE_TRACE_LOGS, toggleTraceLogs);
 
     commands.registerCommand(BI_COMMANDS.DELETE_COMPONENT, async (item: any) => {
         console.log(">>> delete component", item);
@@ -294,4 +299,26 @@ function hasNoComponentsOpenInDiagram() {
 
 function isFilePathsEqual(filePath1: string, filePath2: string) {
     return path.normalize(filePath1) === path.normalize(filePath2);
+}
+
+function toggleTraceLogs() {
+    const config = workspace.getConfiguration();
+    
+    const currentTraceServer = config.get<string>(TRACE_SERVER);
+    const currentDebugLog = config.get<boolean>(ENABLE_DEBUG_LOG);
+    const currentTraceLog = config.get<boolean>(ENABLE_TRACE_LOG);
+    
+    const isTraceEnabled = currentTraceServer === TRACE_SERVER_VERBOSE && currentDebugLog && currentTraceLog;
+    
+    if (isTraceEnabled) {
+        config.update(TRACE_SERVER, TRACE_SERVER_OFF, ConfigurationTarget.Global);
+        config.update(ENABLE_DEBUG_LOG, false, ConfigurationTarget.Global);
+        config.update(ENABLE_TRACE_LOG, false, ConfigurationTarget.Global);
+        window.showInformationMessage('BI extension trace logs disabled');
+    } else {
+        config.update(TRACE_SERVER, TRACE_SERVER_VERBOSE, ConfigurationTarget.Global);
+        config.update(ENABLE_DEBUG_LOG, true, ConfigurationTarget.Global);
+        config.update(ENABLE_TRACE_LOG, true, ConfigurationTarget.Global);
+        window.showInformationMessage('BI extension trace logs enabled');
+    }
 }
