@@ -3,7 +3,7 @@ import { VariableTypeIndicator } from "../Components/VariableTypeIndicator"
 import { SlidingPaneNavContainer } from "@wso2/ui-toolkit/lib/components/ExpressionEditor/components/Common/SlidingPane"
 import { useRpcContext } from "@wso2/ballerina-rpc-client"
 import { ExpressionProperty, FlowNode, LineRange, RecordTypeField } from "@wso2/ballerina-core"
-import { Codicon, CompletionItem, Divider, HelperPaneCustom, SearchBox, ThemeColors, Typography } from "@wso2/ui-toolkit"
+import { Codicon, COMPLETION_ITEM_KIND, CompletionItem, Divider, getIcon, HelperPaneCustom, SearchBox, ThemeColors, Typography } from "@wso2/ui-toolkit"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { getPropertyFromFormField, HelperPaneVariableInfo, useFieldContext } from "@wso2/ballerina-side-panel"
 import { debounce } from "lodash"
@@ -100,7 +100,10 @@ export const Variables = (props: VariablesPageProps) => {
     const fields = filteredCompletions.filter((completion) => (completion.kind === "field" || completion.kind === "variable") && completion.label !== 'self')
     const methods = filteredCompletions.filter((completion) => completion.kind === "function")
 
-    const dropdownItems = fields.concat(methods)
+    const dropdownItems =
+        currentValue.length >0
+            ? fields.concat(methods)
+            : fields;
 
     const filteredDropDownItems = useMemo(() => {
         if (!searchValue || searchValue.length === 0) return dropdownItems;
@@ -151,6 +154,7 @@ export const Variables = (props: VariablesPageProps) => {
                                 </VariablesMoreIconContainer>}
                         >
                             <ExpandableList.Item>
+                                {getIcon(item.kind)}
                                 <Typography variant="body3">
                                     {item.label}
                                 </Typography>
@@ -286,33 +290,33 @@ export const Variables = (props: VariablesPageProps) => {
                 )}
             </ScrollableContainer>
 
-            <Divider sx={{margin: "0px"}}/>
-            {!isInModal && 
-            <div style={{ marginTop: "auto", padding: '8px' }}>
-                <DynamicModal
-                    width={420}
-                    height={600}
-                    anchorRef={anchorRef}
-                    title="Declare Variable"
-                    openState={isModalOpen}
-                    setOpenState={setIsModalOpen}>
-                    <DynamicModal.Trigger>
-                        <FooterButtons startIcon='add' title="New Variable" />
-                    </DynamicModal.Trigger>
-                    <FormGenerator
-                        fileName={fileName}
-                        node={selectedNode}
-                        connections={[]}
-                        targetLineRange={targetLineRange}
-                        projectPath={projectPathUri}
-                        editForm={false}
-                        onSubmit={handleSubmit}
-                        showProgressIndicator={false}
-                        resetUpdatedExpressionField={() => { }}
-                        isInModal={true}
-                    />
-                </DynamicModal>
-            </div>}
+            <Divider sx={{ margin: "0px" }} />
+            {!isInModal &&
+                <div style={{ marginTop: "auto", padding: '8px' }}>
+                    <DynamicModal
+                        width={420}
+                        height={600}
+                        anchorRef={anchorRef}
+                        title="Declare Variable"
+                        openState={isModalOpen}
+                        setOpenState={setIsModalOpen}>
+                        <DynamicModal.Trigger>
+                            <FooterButtons startIcon='add' title="New Variable" />
+                        </DynamicModal.Trigger>
+                        <FormGenerator
+                            fileName={fileName}
+                            node={selectedNode}
+                            connections={[]}
+                            targetLineRange={targetLineRange}
+                            projectPath={projectPathUri}
+                            editForm={false}
+                            onSubmit={handleSubmit}
+                            showProgressIndicator={false}
+                            resetUpdatedExpressionField={() => { }}
+                            isInModal={true}
+                        />
+                    </DynamicModal>
+                </div>}
         </div>
     )
 }
