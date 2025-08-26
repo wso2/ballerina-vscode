@@ -16,23 +16,25 @@
  * under the License.
  */
 
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { CDFunction, CDResourceFunction, CDService } from "@wso2/ballerina-core";
-import { Button, Item, Menu, MenuItem, Popover, ImageWithFallback, Icon } from "@wso2/ui-toolkit";
-import { EntryNodeModel, GQL_GROUP_MUTATION_PORT_NAME, GQL_GROUP_QUERY_PORT_NAME, GQL_GROUP_SUBSCRIPTION_PORT_NAME } from "../EntryNodeModel";
+import { Item, Menu, MenuItem, Popover, Icon } from "@wso2/ui-toolkit";
+import { EntryNodeModel } from "../EntryNodeModel";
 import { DiagramEngine, PortWidget } from "@projectstorm/react-diagrams-core";
 import { useDiagramContext } from "../../../DiagramContext";
-import { GQLFuncListType, GQLState, PREVIEW_COUNT, SHOW_ALL_THRESHOLD } from "../../../Diagram";
-import { CollapseButton, FunctionBoxWrapper, GroupContainer, GroupHeader, ViewAllButton, ViewAllButtonWrapper, Node, Box, ServiceBox, Header, Title, Description, IconWrapper, MenuButton, TopPortWidget, BottomPortWidget, FunctionPortWidget, ResourceAccessor, StyledServiceBox, colors } from "./StyledComponents";
+import { GQLFuncListType, PREVIEW_COUNT, SHOW_ALL_THRESHOLD } from "../../../Diagram";
+import { CollapseButton, FunctionBoxWrapper, GroupContainer, GroupHeader, ViewAllButton, ViewAllButtonWrapper, Node, Box, ServiceBox, Header, Title, Description, IconWrapper, MenuButton, TopPortWidget, BottomPortWidget, StyledServiceBox, colors } from "./StyledComponents";
 import { Codicon } from "@wso2/ui-toolkit/lib/components/Codicon/Codicon";
 import { getEntryNodeFunctionPortName } from "../../../../utils/diagram";
 import { BaseNodeWidgetProps } from "../EntryNodeModel";
 import { MoreVertIcon } from "../../../../resources/icons/nodes/MoreVertIcon";
 
+type GroupKey = "Query" | "Subscription" | "Mutation";
+
 const getNodeTitle = (model: EntryNodeModel) => {
-    return (model.node as any)?.serviceName ||
-        (model.node as any)?.name ||
-        "GraphQL Service";
+    return (model.node as any)?.serviceName || 
+           (model.node as any)?.name || 
+           "GraphQL Service";
 };
 
 const getNodeDescription = (model: EntryNodeModel) => {
@@ -63,7 +65,7 @@ function FunctionBox(props: { func: any; model: EntryNodeModel; engine: any; }) 
                 )}
                 {func.name && <Title hovered={isHovered}>{func.name}</Title>}
             </StyledServiceBox>
-            <FunctionPortWidget port={model.getPort(getEntryNodeFunctionPortName(func))!} engine={engine} />
+            <PortWidget port={model.getPort(getEntryNodeFunctionPortName(func))!} engine={engine} />
         </FunctionBoxWrapper>
     );
 }
@@ -74,12 +76,10 @@ function GraphQLFunctionList(props: {
     model: EntryNodeModel;
     engine: DiagramEngine;
     collapsed: boolean;
-    onToggleCollapse: (group: "Query" | "Subscription" | "Mutation") => void;
+    onToggleCollapse: (group: GroupKey) => void;
 }) {
     const { group, functions, model, engine, collapsed, onToggleCollapse } = props;
     const { expandedNodes, onToggleNodeExpansion } = useDiagramContext();
-
-    // using shared constants for preview and threshold
 
     const accent = (() => {
         switch (group) {
@@ -139,13 +139,7 @@ function GraphQLFunctionList(props: {
                                     Show More
                                 </ViewAllButton>
                                 <PortWidget
-                                    port={model.getPort(
-                                        group === "Query"
-                                            ? GQL_GROUP_QUERY_PORT_NAME
-                                            : group === "Mutation"
-                                                ? GQL_GROUP_MUTATION_PORT_NAME
-                                                : GQL_GROUP_SUBSCRIPTION_PORT_NAME
-                                    )!}
+                                    port={model.getGraphQLGroupPort(group)}
                                     engine={engine}
                                 />
                             </ViewAllButtonWrapper>
@@ -160,13 +154,7 @@ function GraphQLFunctionList(props: {
             </GroupContainer>
             {collapsed &&
                 <PortWidget
-                    port={model.getPort(
-                        group === "Query"
-                            ? GQL_GROUP_QUERY_PORT_NAME
-                            : group === "Mutation"
-                                ? GQL_GROUP_MUTATION_PORT_NAME
-                                : GQL_GROUP_SUBSCRIPTION_PORT_NAME
-                    )!}
+                    port={ model.getGraphQLGroupPort(group)}
                     engine={engine}
                 >
                 </PortWidget>}
@@ -174,56 +162,10 @@ function GraphQLFunctionList(props: {
     );
 }
 
-function GraphQLGroups(props: { functions: Array<CDFunction | CDResourceFunction>; model: EntryNodeModel; engine: DiagramEngine; onToggleGraphQLGroup: (uuid: string, group: "Query" | "Subscription" | "Mutation") => void; graphQLGroupOpen: Record<string, GQLState> }) {
-    const { functions, model, engine, onToggleGraphQLGroup, graphQLGroupOpen } = props;
-
-    type GroupKey = "Query" | "Subscription" | "Mutation";
-
-    const getGroupLabel = (accessor?: string, name?: string): GroupKey | null => {
-        if (accessor === "get") return "Query";
-        if (accessor === "subscribe") return "Subscription";
-        if (!accessor && name) return "Mutation";
-        return null;
-    };
-
-    // Group functions by Query / Subscription / Mutation
-    const grouped: GQLFuncListType = functions.reduce((acc, fn) => {
-        const accessor = (fn as CDResourceFunction).accessor;
-        const name = (fn as CDFunction).name;
-        const group = getGroupLabel(accessor, name);
-        if (!group) return acc;
-        (acc[group] ||= []).push(fn);
-        return acc;
-    }, {} as GQLFuncListType);
-
-    const orderedGroups: GroupKey[] = ["Query", "Mutation", "Subscription"];
-
-    return (
-        <>
-            {orderedGroups
-                .filter((g) => grouped[g]?.length)
-                .map((group) => (
-                    <React.Fragment key={`gql-accordion-${group}`}>
-                        <GraphQLFunctionList
-                            group={group}
-                            functions={grouped[group]}
-                            model={model}
-                            engine={engine}
-                            collapsed={graphQLGroupOpen[model.node.uuid]?.[group] === false}
-                            onToggleCollapse={(group) => {
-                                onToggleGraphQLGroup(model.node.uuid, group);
-                            }}
-                        />
-                    </React.Fragment>
-                ))}
-        </>
-    );
-}
-
 export function GraphQLServiceWidget({ model, engine }: BaseNodeWidgetProps) {
     const [isHovered, setIsHovered] = useState(false);
     const [menuAnchorEl, setMenuAnchorEl] = useState<HTMLElement | SVGSVGElement>(null);
-
+    
     const {
         graphQLGroupOpen,
         onServiceSelect,
@@ -251,13 +193,39 @@ export function GraphQLServiceWidget({ model, engine }: BaseNodeWidgetProps) {
         { id: "delete", label: "Delete", onClick: () => onDeleteComponent(model.node) },
     ];
 
-    const serviceFunctions = [];
-    if ((model.node as CDService).remoteFunctions?.length > 0) {
-        serviceFunctions.push(...(model.node as CDService).remoteFunctions);
-    }
-    if ((model.node as CDService).resourceFunctions?.length > 0) {
-        serviceFunctions.push(...(model.node as CDService).resourceFunctions);
-    }
+    const serviceFunctions = useMemo(() => {
+        const functions: Array<CDFunction | CDResourceFunction> = [];
+        const service = model.node as CDService;
+
+        if (service.remoteFunctions?.length) {
+            functions.push(...service.remoteFunctions);
+        }
+        if (service.resourceFunctions?.length) {
+            functions.push(...service.resourceFunctions);
+        }
+
+        return functions;
+    }, [model.node]);
+
+    const getGroupLabel = (accessor?: string, name?: string): GroupKey | null => {
+        if (accessor === "get") return "Query";
+        if (accessor === "subscribe") return "Subscription";
+        if (!accessor && name) return "Mutation";
+        return null;
+    };
+
+    const grouped: GQLFuncListType = useMemo(() => {
+        return serviceFunctions.reduce((acc, fn) => {
+            const accessor = (fn as CDResourceFunction).accessor;
+            const name = (fn as CDFunction).name;
+            const group = getGroupLabel(accessor, name);
+            if (!group) return acc;
+            (acc[group] ||= []).push(fn);
+            return acc;
+        }, {} as GQLFuncListType);
+    }, [serviceFunctions]);
+
+    const orderedGroups: GroupKey[] = ["Query", "Mutation", "Subscription"];
 
     return (
         <Node>
@@ -277,13 +245,22 @@ export function GraphQLServiceWidget({ model, engine }: BaseNodeWidgetProps) {
                         <MoreVertIcon />
                     </MenuButton>
                 </ServiceBox>
-                <GraphQLGroups
-                    graphQLGroupOpen={graphQLGroupOpen}
-                    functions={serviceFunctions}
-                    model={model}
-                    engine={engine}
-                    onToggleGraphQLGroup={onToggleGraphQLGroup}
-                />
+                {orderedGroups
+                    .filter((g) => grouped[g]?.length)
+                    .map((group) => (
+                        <React.Fragment key={`gql-accordion-${group}`}>
+                            <GraphQLFunctionList
+                                group={group}
+                                functions={grouped[group]}
+                                model={model}
+                                engine={engine}
+                                collapsed={graphQLGroupOpen[model.node.uuid]?.[group] === false}
+                                onToggleCollapse={(group) => {
+                                    onToggleGraphQLGroup(model.node.uuid, group);
+                                }}
+                            />
+                        </React.Fragment>
+                ))}
             </Box>
             <Popover
                 open={isMenuOpen}

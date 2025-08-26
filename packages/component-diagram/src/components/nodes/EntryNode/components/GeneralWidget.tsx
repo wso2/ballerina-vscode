@@ -19,7 +19,7 @@
 import React, { useState } from "react";
 import { PortWidget } from "@projectstorm/react-diagrams-core";
 import { CDAutomation, CDService } from "@wso2/ballerina-core";
-import { Button, Item, Menu, MenuItem, Popover, ImageWithFallback, Icon } from "@wso2/ui-toolkit";
+import { Item, Menu, MenuItem, Popover, ImageWithFallback, Icon } from "@wso2/ui-toolkit";
 import { useDiagramContext } from "../../../DiagramContext";
 import { HttpIcon, TaskIcon } from "../../../../resources";
 import { MoreVertIcon } from "../../../../resources/icons/nodes/MoreVertIcon";
@@ -42,10 +42,8 @@ import {
     FunctionBoxWrapper,
     StyledServiceBox,
     ResourceAccessor,
-    FunctionPortWidget,
-    colors,
+    colors
 } from "./StyledComponents";
-
 
 const getNodeTitle = (model: EntryNodeModel) => {
     if (model.node.displayName) {
@@ -151,7 +149,7 @@ function FunctionBox(props: { func: any; model: EntryNodeModel; engine: any }) {
                 )}
                 {func.name && <Title hovered={isHovered}>{func.name}</Title>}
             </StyledServiceBox>
-            <FunctionPortWidget port={model.getPort(getEntryNodeFunctionPortName(func))!} engine={engine} />
+            <PortWidget port={model.getPort(getEntryNodeFunctionPortName(func))!} engine={engine} />
         </FunctionBoxWrapper>
     );
 }

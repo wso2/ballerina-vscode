@@ -74,8 +74,7 @@ export function Diagram(props: DiagramProps) {
     const [diagramEngine] = useState<DiagramEngine>(generateEngine());
     const [diagramModel, setDiagramModel] = useState<DiagramModel | null>(null);
     const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set());
-    const [graphQLGroupOpen, setGraphQLGroupOpen] = useState<Record<string, GQLState>>({
-    });
+    const [graphQLGroupOpen, setGraphQLGroupOpen] = useState<Record<string, GQLState>>({} as Record<string, GQLState>);
 
     // Ensure every service has a default GraphQL group open state.
     // Defaults: Query = true, Subscription = false, Mutation = false
