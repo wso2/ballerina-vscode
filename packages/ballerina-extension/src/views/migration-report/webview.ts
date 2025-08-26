@@ -46,15 +46,15 @@ export class MigrationReportWebview {
 
     public static createOrShow(fileName: string, reportContent: string): void {
         if (MigrationReportWebview.currentPanel) {
-            MigrationReportWebview.currentPanel._panel.reveal(ViewColumn.Beside);
+            MigrationReportWebview.currentPanel._panel.reveal(ViewColumn.Active);
             MigrationReportWebview.currentPanel.updateContent(reportContent);
             return;
         }
 
         const panel = window.createWebviewPanel(
             "migrationReport",
-            `Migration Report - ${fileName}`,
-            ViewColumn.Beside,
+            `Migration Report`,
+            ViewColumn.Active,
             {
                 enableScripts: true,
                 retainContextWhenHidden: true,
