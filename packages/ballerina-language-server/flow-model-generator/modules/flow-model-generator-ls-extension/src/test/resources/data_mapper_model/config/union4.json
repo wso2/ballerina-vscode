@@ -86,7 +86,7 @@
             "optional": false
           }
         ],
-        "typeName": "Elephant|error",
+        "typeName": "Elephant",
         "kind": "record"
       },
       "-27067364": {

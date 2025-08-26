@@ -931,88 +931,6 @@ public class DataMapManager {
         return mappingPorts;
     }
 
-    private MappingPort getMappingPort(String id, String name, Type type, boolean isInputPort,
-                                       Map<String, Type> visitedTypes) {
-        if (type.typeName != null) {
-            if (type.getTypeName().equals("record")) {
-                RecordType recordType = (RecordType) type;
-                TypeInfo typeInfo = type.getTypeInfo();
-                MappingRecordPort recordPort = new MappingRecordPort(id, name, typeInfo != null ?
-                        typeInfo.name : type.getTypeName(), type.getTypeName(), type.optional);
-                if (typeInfo != null) {
-                    String visitedTypeKey = typeInfo.name + ":" + typeInfo.orgName + ":" +
-                            typeInfo.moduleName +
-                            ":" + typeInfo.version + typeInfo.packageName;
-                    visitedTypes.put(visitedTypeKey, type);
-                }
-                for (Type field : recordType.fields) {
-                    recordPort.fields.add(getMappingPort(id + "." + field.getName(), field.getName(), field,
-                            isInputPort, visitedTypes));
-                }
-                return recordPort;
-            } else if (type instanceof PrimitiveType) {
-                return new MappingPort(id, name, type.getTypeName(), type.getTypeName(), type.optional);
-            } else if (type instanceof ConstType) {
-                return new MappingPort(type.getName(), type.getName(), type.getTypeName(), type.getTypeName(),
-                        type.optional);
-            } else if (type.getTypeName().equals("array")) {
-                ArrayType arrayType = (ArrayType) type;
-                MappingPort memberPort = getMappingPort(isInputPort ? id + ".0" : id, getItemName(name),
-                        arrayType.memberType, isInputPort, visitedTypes);
-                if (memberPort != null && memberPort.name == null) {
-                    memberPort.name = getItemName(name);
-                }
-                MappingArrayPort arrayPort = new MappingArrayPort(id, name, memberPort == null ? "record" :
-                        memberPort.typeName + "[]", type.getTypeName(), type.optional);
-                arrayPort.setMember(memberPort);
-                return arrayPort;
-            } else if (type.getTypeName().equals("enum")) {
-                EnumType enumType = (EnumType) type;
-                MappingEnumPort enumPort = new MappingEnumPort(id, name, enumType.getTypeInfo().name,
-                        type.getTypeName(), enumType.optional);
-                for (Type member : enumType.members) {
-                    MappingPort memberPort = getMappingPort(id + "." + member.getTypeName(), member.getTypeName(),
-                            member, isInputPort, visitedTypes);
-                    if (memberPort != null) {
-                        enumPort.members.add(memberPort);
-                    }
-                }
-                return enumPort;
-            } else if (type.getTypeName().equals("union")) {
-                UnionType unionType = (UnionType) type;
-                List<MappingPort> members = new ArrayList<>();
-                List<String> memberNames = new ArrayList<>();
-                for (Type member : unionType.members) {
-                    MappingPort memberPort = getMappingPort(id, name, member, isInputPort, visitedTypes);
-                    if (memberPort != null) {
-                        members.add(memberPort);
-                        memberNames.add(memberPort.typeName);
-                    }
-                }
-                MappingUnionPort unionPort = new MappingUnionPort(id, name, String.join("|", memberNames),
-                        type.getTypeName(), unionType.optional);
-                unionPort.members.addAll(members);
-                return unionPort;
-            } else {
-                return null;
-            }
-        } else {
-            TypeInfo typeInfo = type.getTypeInfo();
-            String visitedTypeKey = typeInfo.name + ":" + typeInfo.orgName + ":" + typeInfo.moduleName +
-                    ":" + typeInfo.version + typeInfo.packageName;
-            if (visitedTypes.containsKey(visitedTypeKey)) {
-                Type typeFromVisited = visitedTypes.get(visitedTypeKey);
-                TypeInfo typeFromVisitedInfo = typeFromVisited.getTypeInfo();
-                MappingPort recursivePort = new MappingPort(id, name, typeFromVisitedInfo != null ?
-                        typeFromVisitedInfo.name : typeFromVisited.getTypeName(),
-                        typeFromVisited.getTypeName(), type.optional);
-                recursivePort.setIsRecursive(true);
-                return recursivePort;
-            }
-        }
-        return null;
-    }
-
     private MappingPort getRefMappingPort(String id, String name, RefType type, boolean isInputPort,
                                           Map<String, Type> visitedTypes, Map<String, MappingPort> references) {
         return getRefMappingPort(id, name, type.name, type, isInputPort, visitedTypes, references);
@@ -1023,30 +941,30 @@ public class DataMapManager {
         if (type.typeName != null) {
             if (type.typeName.equals("record")) {
                 if (type instanceof RefRecordType recordType) {
+                    String hashCode = recordType.hashCode;
                     MappingRecordPort recordPort = new MappingRecordPort(id, name, typeName != null ?
-                            typeName : "record", "record", recordType.hashCode);
+                            typeName : "record", "record", hashCode);
                     for (ReferenceType.Field field : recordType.fields) {
-                        MappingPort fieldPort = getRefMappingPort(
-                                field.fieldName(), field.fieldName(),
+                        MappingPort fieldPort = getRefMappingPort(field.fieldName(), field.fieldName(),
                                 field.type(), isInputPort, visitedTypes, references);
                         if (fieldPort != null) {
                             fieldPort.setOptional(field.optional());
                         }
                         recordPort.fields.add(fieldPort);
                     }
-                    MappingRecordPort simplePort = new MappingRecordPort(recordPort);
-                    MappingRecordPort referenceRecordPort = new MappingRecordPort(recordPort, false);
-                    references.put(recordType.hashCode, referenceRecordPort);
-                    if (recordType.dependentTypes == null) {
-                        return simplePort;
+                    if (!references.containsKey(hashCode)) {
+                        MappingRecordPort referenceRecordPort = new MappingRecordPort(recordPort, false);
+                        references.put(hashCode, referenceRecordPort);
                     }
-                    Map<String, RefType> dependentTypes = recordType.dependentTypes;
-                    for (Map.Entry<String, RefType> entry : dependentTypes.entrySet()) {
-                        String key = entry.getKey();
-                        RefType value = entry.getValue();
-                        getRefMappingPort(id + "." + key, key, value, isInputPort, visitedTypes, references);
+                    if (recordType.dependentTypes != null) {
+                        Map<String, RefType> dependentTypes = recordType.dependentTypes;
+                        for (Map.Entry<String, RefType> entry : dependentTypes.entrySet()) {
+                            String key = entry.getKey();
+                            RefType value = entry.getValue();
+                            getRefMappingPort(id + "." + key, key, value, isInputPort, visitedTypes, references);
+                        }
                     }
-                    return simplePort;
+                    return new MappingRecordPort(recordPort);
                 } else {
                     return new MappingRecordPort(id, name, typeName, "record", type.hashCode);
                 }
@@ -1075,8 +993,7 @@ public class DataMapManager {
                 }
             } else if (type.typeName.equals("enum")) {
                 if (type instanceof RefEnumType enumType) {
-                    MappingEnumPort enumPort = new MappingEnumPort(id, typeName, typeName, "enum",
-                            type.hashCode);
+                    MappingEnumPort enumPort = new MappingEnumPort(id, typeName, typeName, "enum", type.hashCode);
                     for (RefType member : enumType.members) {
                         MappingPort memberPort = getRefMappingPort(enumPort.typeName + "." + member.name, member.name,
                                 member, isInputPort, visitedTypes, references);
@@ -1099,8 +1016,7 @@ public class DataMapManager {
                 }
             } else if (type.typeName.equals("union")) {
                 if (type instanceof RefUnionType unionType) {
-                    MappingUnionPort unionPort = new MappingUnionPort(id, name, typeName, "union",
-                            type.hashCode);
+                    MappingUnionPort unionPort = new MappingUnionPort(id, name, typeName, "union", type.hashCode);
                     for (RefType member : unionType.memberTypes) {
                         MappingPort memberPort = getRefMappingPort(id, name, member, isInputPort, visitedTypes,
                                 references);
@@ -1130,7 +1046,6 @@ public class DataMapManager {
         }
         return null;
     }
-
 
     private String getItemName(String name) {
         if (name.startsWith("<") && name.endsWith(">")) {

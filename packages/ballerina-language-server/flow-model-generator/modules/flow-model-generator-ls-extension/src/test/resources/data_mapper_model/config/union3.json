@@ -89,7 +89,7 @@
             "optional": false
           }
         ],
-        "typeName": "Dog|()",
+        "typeName": "Dog",
         "kind": "record"
       },
       "-589946803": {
