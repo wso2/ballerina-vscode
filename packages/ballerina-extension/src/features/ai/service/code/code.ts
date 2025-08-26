@@ -44,6 +44,30 @@ import { CopilotEventHandler, createWebviewEventHandler } from "../event";
 import { AIPanelAbortController } from "../../../../../src/rpc-managers/ai-panel/utils";
 import { getRequirementAnalysisCodeGenPrefix, getRequirementAnalysisTestGenPrefix } from "./np_prompts";
 
+const ANTHROPIC_CACHE_BLOCK_LIMIT = 20;
+const knownIds = new Set<string>();
+
+function appendFinalMessages(history: CoreMessage[], finalMessages: CoreMessage[]): void {
+    for (let i = 0; i < finalMessages.length - 1; i++) {
+        const message = finalMessages[i];
+        const messageId = (message as any).id;
+
+        if ((message.role === "assistant" || message.role === "tool") && messageId && !knownIds.has(messageId)) {
+            knownIds.add(messageId);
+
+            if (i === finalMessages.length - 2) {
+                message.providerOptions = {
+                    anthropic: { cacheControl: { type: "ephemeral" } },
+                };
+            }
+
+            history.push(message);
+        }
+    }
+}
+
+let libraryDescriptions = "";
+
 // Core code generation function that emits events
 export async function generateCodeCore(params: GenerateCodeRequest, eventHandler: CopilotEventHandler): Promise<void> {
     const project: ProjectSource = await getProjectSource(params.operationType);
@@ -54,7 +78,7 @@ export async function generateCodeCore(params: GenerateCodeRequest, eventHandler
 
     // Fetch all libraries for tool description
     const allLibraries = await getAllLibraries(GenerationType.CODE_GENERATION);
-    const libraryDescriptions =
+    libraryDescriptions =
         allLibraries.length > 0
             ? allLibraries.map((lib) => `- ${lib.name}: ${lib.description}`).join("\n")
             : "- No libraries available";
@@ -67,9 +91,12 @@ export async function generateCodeCore(params: GenerateCodeRequest, eventHandler
         {
             role: "system",
             content: getSystemPromptSuffix(LANGLIBS),
-            providerOptions: {
-                anthropic: { cacheControl: { type: "ephemeral" } },
-            },
+            providerOptions:
+                historyMessages.length >= ANTHROPIC_CACHE_BLOCK_LIMIT - 2
+                    ? {
+                          anthropic: { cacheControl: { type: "ephemeral" } },
+                      }
+                    : undefined,
         },
         ...historyMessages,
         {
@@ -84,6 +111,7 @@ export async function generateCodeCore(params: GenerateCodeRequest, eventHandler
             providerOptions: {
                 anthropic: { cacheControl: { type: "ephemeral" } },
             },
+            // Note: This cache control block can be removed if needed, as we use 3 out of 4 allowed cache blocks.
         },
     ];
 
@@ -91,7 +119,7 @@ export async function generateCodeCore(params: GenerateCodeRequest, eventHandler
         LibraryProviderTool: getLibraryProviderTool(libraryDescriptions, GenerationType.CODE_GENERATION),
     };
 
-    const { fullStream } = streamText({
+    const { fullStream, response } = streamText({
         model: await getAnthropicClient(ANTHROPIC_SONNET_4),
         maxTokens: 4096 * 4,
         temperature: 0,
@@ -114,7 +142,6 @@ export async function generateCodeCore(params: GenerateCodeRequest, eventHandler
         switch (part.type) {
             case "text-delta": {
                 const textPart = part.textDelta;
-                assistantResponse += textPart;
                 eventHandler({ type: "content_block", content: textPart });
                 break;
             }
@@ -131,6 +158,18 @@ export async function generateCodeCore(params: GenerateCodeRequest, eventHandler
                     // Already handled in error case.
                     break;
                 }
+
+                const { messages: finalMessages } = await response;
+                appendFinalMessages(allMessages, finalMessages);
+
+                const lastAssistantMessage = finalMessages
+                    .slice()
+                    .reverse()
+                    .find((msg) => msg.role === "assistant");
+                assistantResponse = lastAssistantMessage
+                    ? (lastAssistantMessage.content as any[]).find((c) => c.type === "text")?.text || assistantResponse
+                    : assistantResponse;
+
                 const postProcessedResp: PostProcessResponse = await postProcess({
                     assistant_response: assistantResponse,
                 });
@@ -148,13 +187,11 @@ export async function generateCodeCore(params: GenerateCodeRequest, eventHandler
                     console.log("Repair iteration: ", repair_attempt);
                     console.log("Diagnostics trying to fix: ", diagnostics);
 
-                    const repairedResponse: RepairResponse = await repairCode(
-                        {
-                            previousMessages: allMessages,
-                            assistantResponse: diagnosticFixResp,
-                            diagnostics: diagnostics,
-                        },
-                    );
+                    const repairedResponse: RepairResponse = await repairCode({
+                        previousMessages: allMessages,
+                        assistantResponse: diagnosticFixResp,
+                        diagnostics: diagnostics,
+                    });
                     diagnosticFixResp = repairedResponse.repairResponse;
                     diagnostics = repairedResponse.diagnostics;
                     repair_attempt++;
@@ -375,18 +412,8 @@ export async function repairCodeCore(params: RepairParams, eventHandler: Copilot
     return resp;
 }
 
-export async function repairCode(params: RepairParams, libraryDetails: Library[] = []): Promise<RepairResponse> {
+export async function repairCode(params: RepairParams): Promise<RepairResponse> {
     const allMessages: CoreMessage[] = [
-        {
-            role: "system",
-            content: `Library details used in the original code generation:
-<library_details>
-${JSON.stringify(libraryDetails)}
-</library_details>`,
-            providerOptions: {
-                anthropic: { cacheControl: { type: "ephemeral" } },
-            },
-        },
         ...params.previousMessages,
         {
             role: "assistant",
@@ -395,15 +422,21 @@ ${JSON.stringify(libraryDetails)}
         {
             role: "user",
             content:
-                "Generated code returns following errors. Double-check all functions, types, record field access against the provided library details. Fix the compiler errors and return the new response. \n Errors: \n " +
+                "Generated code returns the following errors. Use the context from previous messages, including tool calls and tool results, to identify relevant library details (functions, types, clients). Double-check all functions, types, and record field access against these details to fix the compiler errors and return the corrected response. \n Errors: \n " +
                 params.diagnostics.map((d) => d.message).join("\n"),
         },
     ];
+
+    const tools = {
+        LibraryProviderTool: getLibraryProviderTool(libraryDescriptions, GenerationType.CODE_GENERATION),
+    };
 
     const { text, usage, providerMetadata } = await generateText({
         model: await getAnthropicClient(ANTHROPIC_SONNET_4),
         maxTokens: 4096 * 4,
         temperature: 0,
+        tools,
+        toolChoice: "none",
         messages: allMessages,
         abortSignal: AIPanelAbortController.getInstance().signal,
     });
