@@ -250,17 +250,17 @@ export const TypeHelperComponent = (props: TypeHelperComponentProps) => {
         <HelperPaneCustom>
             <SlidingWindow>
                 <HelperPane.Body>
-                    <div style={{ 
-                        display: "flex", 
-                        justifyContent: "center", 
-                        alignItems: "center", 
-                        margin: "3px 8px" 
+                    <div style={{
+                        display: "flex",
+                        justifyContent: "center",
+                        alignItems: "center",
+                        margin: "3px 8px"
                     }}>
-                        <SearchBox 
-                            sx={{ width: "100%" }} 
-                            placeholder='Search' 
-                            value={searchValue} 
-                            onChange={handleHelperPaneSearch} 
+                        <SearchBox
+                            sx={{ width: "100%" }}
+                            placeholder='Search'
+                            value={searchValue}
+                            onChange={handleHelperPaneSearch}
                         />
                     </div>
                     {loading ? (
@@ -270,17 +270,17 @@ export const TypeHelperComponent = (props: TypeHelperComponentProps) => {
                             <ScrollableContainer style={{ margin: '8px 0px' }}>
                                 {basicTypes.map((category) => (
                                     <ExpandableList>
-                                        <ExpandableList.Section 
-                                            key={category.category} 
-                                            title={category.category} 
+                                        <ExpandableList.Section
+                                            key={category.category}
+                                            title={category.category}
                                             level={0}
                                         >
                                             <div style={{ marginTop: '10px' }}>
                                                 {category.items.map((item) => (
-                                                    <SlidingPaneNavContainer>
+                                                    <SlidingPaneNavContainer onClick={() => handleTypeItemClick(item)}
+                                                    >
                                                         <ExpandableList.Item
                                                             key={`${category.category}-${item.name}`}
-                                                            onClick={() => handleTypeItemClick(item)}
                                                         >
                                                             {getIcon(item.type)}
                                                             <FunctionItemLabel>{item.name}</FunctionItemLabel>
@@ -294,25 +294,24 @@ export const TypeHelperComponent = (props: TypeHelperComponentProps) => {
                                 {importedTypes?.[0]?.subCategory?.length > 0 && (
                                     <ExpandableList>
                                         {importedTypes.map((category) => (
-                                            <ExpandableList.Section 
-                                                sx={{ marginTop: '20px' }} 
-                                                key={category.category} 
-                                                title={category.category} 
+                                            <ExpandableList.Section
+                                                sx={{ marginTop: '20px' }}
+                                                key={category.category}
+                                                title={category.category}
                                                 level={0}
                                             >
                                                 {category.subCategory?.map((subCategory) => (
-                                                    <ExpandableList.Section 
-                                                        sx={{ marginTop: '10px' }} 
-                                                        key={subCategory.category} 
-                                                        title={subCategory.category} 
+                                                    <ExpandableList.Section
+                                                        sx={{ marginTop: '10px' }}
+                                                        key={subCategory.category}
+                                                        title={subCategory.category}
                                                         level={0}
                                                     >
                                                         <div style={{ marginTop: '10px' }}>
                                                             {subCategory.items?.map((item) => (
-                                                                <SlidingPaneNavContainer>
+                                                                <SlidingPaneNavContainer onClick={() => handleTypeBrowserItemClick(item)}>
                                                                     <ExpandableList.Item
                                                                         key={`${subCategory.category}-${item.name}`}
-                                                                        onClick={() => handleTypeBrowserItemClick(item)}
                                                                     >
                                                                         {getIcon(item.type)}
                                                                         <FunctionItemLabel>{item.name}</FunctionItemLabel>
@@ -330,26 +329,26 @@ export const TypeHelperComponent = (props: TypeHelperComponentProps) => {
                         )
                     )}
                     <Divider sx={{ margin: '0px' }} />
-                    <div style={{ 
-                        marginTop: "auto", 
-                        display: 'flex', 
-                        flexDirection: 'column', 
-                        justifyContent: 'space-around', 
-                        padding: '8px' 
+                    <div style={{
+                        marginTop: "auto",
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'space-around',
+                        padding: '8px'
                     }}>
                         {onTypeCreate && (
-                            <FooterButtons 
-                                sx={{ display: 'flex', justifyContent: 'space-between' }} 
-                                startIcon='add' 
+                            <FooterButtons
+                                sx={{ display: 'flex', justifyContent: 'space-between' }}
+                                startIcon='add'
                                 title={getTypeCreateText(currentType, referenceTypes, newTypeName)}
                                 onClick={() => onTypeCreate(newTypeName.current)}
                             />
                         )}
-                        <FooterButtons 
-                            sx={{ display: 'flex', justifyContent: 'space-between' }} 
-                            startIcon='library' 
-                            title="Open Type Browser" 
-                            onClick={() => setIsTypeBrowserOpen(true)} 
+                        <FooterButtons
+                            sx={{ display: 'flex', justifyContent: 'space-between' }}
+                            startIcon='library'
+                            title="Open Type Browser"
+                            onClick={() => setIsTypeBrowserOpen(true)}
                         />
                     </div>
                 </HelperPane.Body>
@@ -391,18 +390,18 @@ type FooterButtonProps = {
     startIcon: string;
     title: string;
     sx?: React.CSSProperties;
-    disabled?:boolean;
+    disabled?: boolean;
 }
 
 const FooterButtons = (props: FooterButtonProps) => {
     const { onClick, startIcon, title, sx } = props;
     return (
         <div style={{ display: "flex", justifyContent: "center", alignItems: "center", margin: "5px", ...sx }}>
-            <InvisibleButton 
-            disabled={props.disabled}
-            onClick={onClick}>
-                <Codicon name={startIcon} sx={{color: ThemeColors.PRIMARY}}/>
-                <span style={{color: ThemeColors.PRIMARY, marginLeft: "10px" }}>{title}</span>
+            <InvisibleButton
+                disabled={props.disabled}
+                onClick={onClick}>
+                <Codicon name={startIcon} sx={{ color: ThemeColors.PRIMARY }} />
+                <span style={{ color: ThemeColors.PRIMARY, marginLeft: "10px" }}>{title}</span>
             </InvisibleButton>
         </div>
     )
