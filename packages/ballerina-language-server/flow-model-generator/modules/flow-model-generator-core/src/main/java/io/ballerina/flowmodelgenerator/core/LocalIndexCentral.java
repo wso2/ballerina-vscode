@@ -63,6 +63,9 @@ public class LocalIndexCentral {
     private static final String CHUNKERS_JSON = "chunkers.json";
     private static final String CONNECTIONS_JSON = "connections.json";
     private static final String FUNCTIONS_JSON = "functions.json";
+    private static final String AGENTS_JSON = "agents.json";
+    private static final String CLASS_INITS_JSON = "class_inits.json";
+    private static final String MEMORY_MANAGERS_JSON = "memory_managers.json";
 
     private static final class CentralProxyHolder {
 
@@ -120,6 +123,21 @@ public class LocalIndexCentral {
     public List<Item> getFunctions() {
         Category functions = readJsonResource(FUNCTIONS_JSON, Category.class);
         return functions.items();
+    }
+
+    public List<Item> getAgents() {
+        Category agents = readJsonResource(AGENTS_JSON, Category.class);
+        return agents.items();
+    }
+
+    public List<Item> getClassInits() {
+        Category classInits = readJsonResource(CLASS_INITS_JSON, Category.class);
+        return classInits.items();
+    }
+
+    public List<Item> getMemoryManagers() {
+        Category memoryManagers = readJsonResource(MEMORY_MANAGERS_JSON, Category.class);
+        return memoryManagers.items();
     }
 
     public List<Item> getConnectorActions(Codedata codedata) {
