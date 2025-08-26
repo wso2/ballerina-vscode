@@ -38,6 +38,7 @@ export interface Parameter {
     icon: string;
     identifierEditable: boolean;
     identifierRange: any;
+    hidden?: boolean;
 }
 
 
@@ -324,7 +325,7 @@ export function ParamManager(props: ParamManagerProps) {
                             openRecordEditor={openRecordEditor}
                         />
                     )
-                } else if ((editingSegmentId !== index)) {
+                } else if ((editingSegmentId !== index && !(param.hidden ?? false))) {
                     render.push(
                         <ParamItem
                             key={param.id}
