@@ -42,21 +42,7 @@ export const EXAMPLE_REPORT_JSON: MigrationReportJSON = {
         migratableElements: 19,
         nonMigratableElements: 3,
     },
-    manualWorkEstimation: {
-        unit: "days",
-        headers: ["Work Type", "Best Case", "Average Case", "Worst Case"],
-        rows: [
-            {
-                label: "Manual Conversion",
-                values: [0, 0, 0],
-            },
-            {
-                label: "Code Validation",
-                values: [1, 2, 3],
-            },
-        ],
-    },
-};
+ };
 
 export const sanitizeProjectName = (name: string): string => {
     return name.replace(/[^a-z0-9]/gi, "_").toLowerCase();

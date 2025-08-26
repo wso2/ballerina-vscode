@@ -23,7 +23,7 @@ import { CoverageSummary } from "./components/CoverageSummary";
 import { MigrationLogs } from "./components/MigrationLogs";
 import { ReportButtons } from "./components/ReportButtons";
 import { ButtonWrapper, NextButtonWrapper, StepWrapper } from "./styles";
-import { MigrationProgressProps } from "./types";
+import { MigrationProgressProps, MigrationReportJSON } from "./types";
 import { EXAMPLE_REPORT_JSON, getMigrationProgressHeaderData } from "./utils";
 
 export function MigrationProgressView({
@@ -42,11 +42,10 @@ export function MigrationProgressView({
     const parsedReportData = useMemo(() => {
         if (!migrationResponse?.reportJson) return null;
         try {
-            // return JSON.parse(migrationResponse.reportJson) as MigrationReportJSON;
-            return EXAMPLE_REPORT_JSON;
+            return JSON.parse(migrationResponse.reportJson) as MigrationReportJSON;
         } catch (error) {
             console.error("Failed to parse migration report JSON:", error);
-            return null;
+            return EXAMPLE_REPORT_JSON;
         }
     }, [migrationResponse?.reportJson]);
 
