@@ -58,10 +58,10 @@ import {
     updateLineRange
 } from "../../../../utils/bi";
 import { debounce, set } from "lodash";
-import { getHelperPane } from "../../HelperPane";
 import { FormTypeEditor } from "../../TypeEditor";
 import { getTypeHelper } from "../../TypeHelper";
 import { EXPRESSION_EXTRACTION_REGEX } from "../../../../constants";
+import { getHelperPaneNew } from "../../HelperPaneNew";
 
 interface TypeEditorState {
     isOpen: boolean;
@@ -146,6 +146,8 @@ export function FormGeneratorNew(props: FormProps) {
 
     const [fieldsValues, setFields] = useState<FormField[]>(fields);
     const [formImports, setFormImports] = useState<FormImports>({});
+    const [selectedType, setSelectedType] = useState<CompletionItem | null>(null);
+
 
     useEffect(() => {
         if (rpcClient) {
@@ -408,7 +410,7 @@ export function FormGeneratorNew(props: FormProps) {
                         let uniqueDiagnostics = removeDuplicateDiagnostics(response.diagnostics);
                         // HACK: filter unknown module and undefined type diagnostics for local connections
                         uniqueDiagnostics = filterUnsupportedDiagnostics(uniqueDiagnostics);
-                        
+
                         setDiagnosticsInfo({ key, diagnostics: uniqueDiagnostics });
                     }
                 } catch (error) {
@@ -433,14 +435,16 @@ export function FormGeneratorNew(props: FormProps) {
         changeHelperPaneState: (isOpen: boolean) => void,
         helperPaneHeight: HelperPaneHeight,
         recordTypeField?: RecordTypeField,
-        isAssignIdentifier?: boolean
+        isAssignIdentifier?: boolean,
+        valueTypeConstraint?: string,
     ) => {
         const handleHelperPaneClose = () => {
+            debouncedRetrieveCompletions.cancel();
             changeHelperPaneState(false);
             handleExpressionEditorCancel();
         }
 
-        return getHelperPane({
+        return getHelperPaneNew({
             fieldKey: fieldKey,
             fileName: fileName,
             targetLineRange: updateLineRange(targetLineRange, expressionOffsetRef.current),
@@ -453,7 +457,14 @@ export function FormGeneratorNew(props: FormProps) {
             helperPaneHeight: helperPaneHeight,
             recordTypeField: recordTypeField,
             isAssignIdentifier: isAssignIdentifier,
-            updateImports: handleUpdateImports
+            updateImports: handleUpdateImports,
+            completions: completions,
+            projectPath: projectPath,
+            selectedType: selectedType,
+            filteredCompletions: filteredCompletions,
+            isInModal: false,
+            valueTypeConstraint: valueTypeConstraint,
+            handleRetrieveCompletions: handleRetrieveCompletions,
         });
     };
 
@@ -557,6 +568,10 @@ export function FormGeneratorNew(props: FormProps) {
             const updatedImports = { ...formImports, [key]: imports };
             setFormImports(updatedImports);
         }
+    }
+
+    const handleSelectedTypeChange = (type: CompletionItem) => {
+        setSelectedType(type);
     }
 
     const defaultType = (): Type => {
@@ -708,6 +723,7 @@ export function FormGeneratorNew(props: FormProps) {
                     formImports={formImports}
                     preserveOrder={preserveFieldOrder}
                     injectedComponents={injectedComponents}
+                    handleSelectedTypeChange={handleSelectedTypeChange}
                 />
             )}
             {typeEditorState.isOpen && (

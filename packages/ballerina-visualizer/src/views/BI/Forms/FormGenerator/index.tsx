@@ -708,7 +708,6 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
             handleOnFormSubmit: handleOnFormSubmit,
             selectedType: selectedType,
             filteredCompletions: filteredCompletions,
-            variables: variables,
             isInModal: isInModal,
             valueTypeConstraint: valueTypeConstraint,
             handleRetrieveCompletions: handleRetrieveCompletions,
