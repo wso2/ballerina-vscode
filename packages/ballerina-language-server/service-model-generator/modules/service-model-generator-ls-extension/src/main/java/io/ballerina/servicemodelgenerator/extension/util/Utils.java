@@ -446,6 +446,7 @@ public final class Utils {
             if (function.getProperties().containsKey(propertyName)) {
                 Value property = function.getProperties().get(propertyName);
                 property.setValue(annotationNode.annotValue().get().toSourceCode().trim());
+                property.setEnabled(true);
             }
         });
     }
@@ -501,7 +502,7 @@ public final class Utils {
         return annots;
     }
 
-    public static List<String> getAnnotationEdits(Function function) {
+    public static List<String> getAnnotationEdits(Function function, Map<String, String> imports) {
         Map<String, Value> properties = function.getProperties().entrySet().stream()
                         .filter(entry -> entry.getKey().startsWith("annot"))
                         .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
@@ -518,6 +519,9 @@ public final class Utils {
                 String ref = codedata.getModuleName() + ":" + codedata.getOriginalName();
                 String annotTemplate = "@%s%s".formatted(ref, value.getValue());
                 annots.add(annotTemplate);
+                if (Objects.nonNull(value.getImports())) {
+                    imports.putAll(value.getImports());
+                }
             }
         }
         return annots;
@@ -565,11 +569,11 @@ public final class Utils {
     }
 
     public static void addFunctionAnnotationTextEdits(Function function, FunctionDefinitionNode functionDef,
-                                                      List<TextEdit> edits) {
+                                                      List<TextEdit> edits, Map<String, String> imports) {
         Token firstToken = functionDef.qualifierList().isEmpty() ? functionDef.functionKeyword()
                 : functionDef.qualifierList().get(0);
 
-        List<String> annots = getAnnotationEdits(function);
+        List<String> annots = getAnnotationEdits(function, imports);
         String annotEdit = String.join(System.lineSeparator(), annots);
 
         Optional<MetadataNode> metadata = functionDef.metadata();
@@ -650,7 +654,7 @@ public final class Utils {
                                                    Map<String, String> imports) {
         StringBuilder builder = new StringBuilder();
 
-        List<String> functionAnnotations = getAnnotationEdits(function);
+        List<String> functionAnnotations = getAnnotationEdits(function, imports);
         if (!functionAnnotations.isEmpty()) {
             builder.append(String.join(NEW_LINE, functionAnnotations)).append(NEW_LINE);
         }

@@ -96,6 +96,12 @@ public class Function {
                     .name(name(RESOURCE_NAME_METADATA))
                     .returnType(returnType(RESOURCE_FUNCTION_RETURN_TYPE_METADATA))
                     .schema(Map.of(Constants.PARAMETER, Parameter.functionParamSchema()));
+            Annotation annotation = new Annotation("ResourceConfig",
+                    "Resource Configuration",
+                    "Configuration related to the resource function.", "ResourceConfig", null, null, null);
+            Value annot = createAnnotation(annotation);
+            annot.setEnabled(false);
+            functionBuilder.setProperties(Map.of("annot" + annotation.annotationName(), annot));
         } else {
             functionBuilder
                     .name(name(FUNCTION_NAME_METADATA))
@@ -139,32 +145,35 @@ public class Function {
     public static Map<String, Value> createAnnotationsMap(List<Annotation> annotations) {
         Map<String, Value> annotationMap = new HashMap<>();
         for (Annotation annotation : annotations) {
-            Codedata codedata = new Codedata.Builder()
-                    .setType("ANNOTATION_ATTACHMENT")
-                    .setOriginalName(annotation.annotationName())
-                    .setOrgName(annotation.orgName())
-                    .setModuleName(annotation.moduleName())
-                    .build();
-            String[] parts = annotation.typeConstrain().split(":");
-            String type = parts.length > 1 ? parts[1] : parts[0];
-            Value value = new Value.ValueBuilder()
-                    .setMetadata(new MetaData(annotation.displayName(), annotation.description()))
-                    .setCodedata(codedata)
-                    .valueType("EXPRESSION")
-                    .setPlaceholder("{}")
-                    .setValueTypeConstraint(annotation.typeConstrain())
-                    .enabled(true)
-                    .editable(true)
-                    .optional(true)
-                    .setAdvanced(true)
-                    .setMembers(List.of(new PropertyTypeMemberInfo(type,
-                            annotation.packageIdentifier(), "RECORD_TYPE", false)))
-                    .build();
-
+            Value value = createAnnotation(annotation);
             String annotKey = "annot" + annotation.annotationName();
             annotationMap.put(annotKey, value);
         }
         return annotationMap;
+    }
+
+    public static Value createAnnotation(Annotation annotation) {
+        Codedata codedata = new Codedata.Builder()
+                .setType("ANNOTATION_ATTACHMENT")
+                .setOriginalName(annotation.annotationName())
+                .setOrgName(annotation.orgName())
+                .setModuleName(annotation.moduleName())
+                .build();
+        String[] parts = annotation.typeConstrain().split(":");
+        String type = parts.length > 1 ? parts[1] : parts[0];
+        return new Value.ValueBuilder()
+                .setMetadata(new MetaData(annotation.displayName(), annotation.description()))
+                .setCodedata(codedata)
+                .valueType("EXPRESSION")
+                .setPlaceholder("{}")
+                .setValueTypeConstraint(annotation.typeConstrain())
+                .enabled(true)
+                .editable(true)
+                .optional(true)
+                .setAdvanced(true)
+                .setMembers(List.of(new PropertyTypeMemberInfo(type,
+                        annotation.packageIdentifier(), "RECORD_TYPE", false)))
+                .build();
     }
 
     public MetaData getMetadata() {

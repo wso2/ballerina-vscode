@@ -44,6 +44,9 @@
           "valueType": "TYPE",
           "valueTypeConstraint": "graphql:Context",
           "value": "graphql:Context",
+          "imports": {
+            "graphql": "ballerina/graphql:1.16.0"
+          },
           "enabled": true,
           "editable": false,
           "optional": false,
@@ -76,6 +79,9 @@
           "valueType": "TYPE",
           "valueTypeConstraint": "graphql:Field",
           "value": "graphql:Field",
+          "imports": {
+            "graphql": "ballerina/graphql:1.16.0"
+          },
           "enabled": true,
           "editable": false,
           "optional": false,
@@ -186,6 +192,9 @@
             "selected": true
           }
         ],
+        "imports": {
+          "graphql": "ballerina/graphql:1.16.0"
+        },
         "enabled": true,
         "editable": true,
         "optional": true,
