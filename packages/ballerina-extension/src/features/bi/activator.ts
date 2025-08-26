@@ -27,7 +27,7 @@ import {
     MACHINE_VIEW
 } from "@wso2/ballerina-core";
 import { BallerinaExtension } from "../../core";
-import { openView } from "../../stateMachine";
+import { openView, switchProject } from "../../stateMachine";
 import { prepareAndGenerateConfig } from "../config-generator/configGenerator";
 import { StateMachine } from "../../stateMachine";
 import { BiDiagramRpcManager } from "../../rpc-managers/bi-diagram/rpc-manager";
@@ -95,7 +95,9 @@ export function activate(context: BallerinaExtension) {
     commands.registerCommand(BI_COMMANDS.SWITCH_PROJECT, async () => {
         // Hack to switch the project. This will reload the window and prompt the user to select the project.
         // This is a temporary solution until we provide the support for multi root workspaces.
-        commands.executeCommand('workbench.action.reloadWindow');
+        // commands.executeCommand('workbench.action.reloadWindow');
+        StateMachine.sendEvent("SWITCH_PROJECT" as any);
+        // switchProject();
     });
 
     commands.registerCommand(BI_COMMANDS.DELETE_COMPONENT, async (item: any) => {
