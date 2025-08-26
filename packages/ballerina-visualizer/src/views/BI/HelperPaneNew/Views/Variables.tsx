@@ -24,7 +24,6 @@ type VariablesPageProps = {
     selectedType?: CompletionItem;
     filteredCompletions: CompletionItem[];
     currentValue: string;
-    variables: CompletionItem[]
     recordTypeField?: RecordTypeField;
     isInModal?: boolean;
     handleRetrieveCompletions: (value: string, property: ExpressionProperty, offset: number, triggerCharacter?: string) => Promise<void>;

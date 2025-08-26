@@ -49,7 +49,6 @@ export type HelperPaneNewProps = {
     handleOnFormSubmit?: (updatedNode?: FlowNode, isDataMapperFormUpdate?: boolean, options?: FormSubmitOptions) => void
     selectedType?: CompletionItem;
     filteredCompletions?: CompletionItem[];
-    variables: CompletionItem[];
     isInModal?: boolean;
     valueTypeConstraint?: string | string[];
     handleRetrieveCompletions: (value: string, property: ExpressionProperty, offset: number, triggerCharacter?: string) => Promise<void>;
@@ -80,7 +79,6 @@ const HelperPaneNewEl = ({
     handleOnFormSubmit,
     selectedType,
     filteredCompletions,
-    variables,
     isInModal,
     valueTypeConstraint,
     handleRetrieveCompletions
@@ -94,6 +92,8 @@ const HelperPaneNewEl = ({
     const selectedItemRef = useRef<HTMLDivElement>(null);
     // Create refs array for all menu items
     const menuItemRefs = useRef<(HTMLDivElement | null)[]>([]);
+
+    const rect = exprRef.current?.parentElement?.getBoundingClientRect();
 
     const { rpcClient } = useRpcContext();
 
@@ -250,7 +250,7 @@ const HelperPaneNewEl = ({
         <HelperPaneCustom anchorRef={anchorRef}>
             <HelperPaneCustom.Body>
                 <SlidingWindow>
-                    <SlidingPane name="PAGE1" paneWidth={HELPER_PANE_WIDTH} paneHeight='170px'>
+                    <SlidingPane name="PAGE1" paneWidth={rect.width + HELPER_PANE_EX_BTN_OFFSET} paneHeight='170px'>
                         <ExpandableList >
                             {valueTypeConstraint && (
                                 recordTypeField ?
@@ -342,7 +342,7 @@ const HelperPaneNewEl = ({
                     </SlidingPane>
 
                     {/* Variables Page */}
-                    <SlidingPane name="VARIABLES" paneWidth={HELPER_PANE_WIDTH - 6}>
+                    <SlidingPane name="VARIABLES" paneWidth={rect.width + HELPER_PANE_EX_BTN_OFFSET}>
                         <SlidingPaneHeader>
                             Variables
                         </SlidingPaneHeader>
@@ -355,14 +355,13 @@ const HelperPaneNewEl = ({
                             selectedType={selectedType}
                             filteredCompletions={filteredCompletions}
                             currentValue={currentValue}
-                            variables={variables}
                             recordTypeField={recordTypeField}
                             isInModal={isInModal}
                             handleRetrieveCompletions={handleRetrieveCompletions}
                         />
                     </SlidingPane>
 
-                    <SlidingPane name="CREATE_VALUE" paneWidth={HELPER_PANE_WIDTH - 6}>
+                    <SlidingPane name="CREATE_VALUE" paneWidth={rect.width + HELPER_PANE_EX_BTN_OFFSET}>
                         <SlidingPaneHeader> Create Value</SlidingPaneHeader>
                         <CreateValue
                             fileName={fileName}
@@ -373,7 +372,7 @@ const HelperPaneNewEl = ({
                             anchorRef={anchorRef} />
                     </SlidingPane>
 
-                    <SlidingPane name="FUNCTIONS" paneWidth={HELPER_PANE_WIDTH - 6}>
+                    <SlidingPane name="FUNCTIONS" paneWidth={rect.width + HELPER_PANE_EX_BTN_OFFSET}>
                         <SlidingPaneHeader>
                             Functions
                         </SlidingPaneHeader>
@@ -388,7 +387,7 @@ const HelperPaneNewEl = ({
                             selectedType={selectedType} />
                     </SlidingPane>
 
-                    <SlidingPane name="CONFIGURABLES" paneWidth={HELPER_PANE_WIDTH}>
+                    <SlidingPane name="CONFIGURABLES" paneWidth={rect.width + HELPER_PANE_EX_BTN_OFFSET}>
                         <SlidingPaneHeader>
                             Configurables
                         </SlidingPaneHeader>
