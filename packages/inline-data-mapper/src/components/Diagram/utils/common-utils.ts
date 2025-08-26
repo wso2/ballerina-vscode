@@ -31,7 +31,8 @@ import {
     InputNode,
     OBJECT_OUTPUT_NODE_TYPE,
     PRIMITIVE_OUTPUT_NODE_TYPE,
-    PrimitiveOutputNode
+    PrimitiveOutputNode,
+    QueryOutputNode
 } from "../Node";
 import { IDataMapperContext } from "../../../utils/DataMapperContext/DataMapperContext";
 import { View } from "../../../components/DataMapper/Views/DataMapperView";
@@ -62,7 +63,11 @@ export function getMappingType(sourcePort: PortModel, targetPort: PortModel): Ma
         sourcePort.attributes.field
     ) {
 
-        if (targetPort.getParent() instanceof PrimitiveOutputNode) return MappingType.ArrayToSingletonWithCollect;
+        
+        const targetNode = targetPort.getNode();
+        if (targetNode instanceof QueryOutputNode && targetNode.outputType.kind !== TypeKind.Array) {
+            return MappingType.ArrayToSingletonAggregate;
+        }
 
         const sourceNode = sourcePort.getNode();
 
