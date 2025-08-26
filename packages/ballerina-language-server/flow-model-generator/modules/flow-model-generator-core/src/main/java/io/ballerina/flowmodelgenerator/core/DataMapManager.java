@@ -1939,7 +1939,8 @@ public class DataMapManager {
 
         Map<Path, List<TextEdit>> textEditsMap = new HashMap<>();
         ExpressionNode expressionNode = targetNode.expressionNode();
-        String functionName = genCustomFunctionDef(workspaceManager, filePath, functionMetadata, textEditsMap);
+        String functionName = genCustomFunctionDef(workspaceManager,
+                filePath, functionMetadata, textEditsMap, semanticModel);
 
         List<TextEdit> textEdits = new ArrayList<>();
         textEditsMap.put(filePath, textEdits);
@@ -1978,7 +1979,8 @@ public class DataMapManager {
     }
 
     private String genCustomFunctionDef(WorkspaceManager workspaceManager, Path filePath,
-                                        FunctionMetadata functionMetadata, Map<Path, List<TextEdit>> textEditsMap) {
+                                        FunctionMetadata functionMetadata, Map<Path,
+                    List<TextEdit>> textEditsMap, SemanticModel semanticModel) {
         List<Parameter> parameters = functionMetadata.parameters();
         List<String> paramNames = new ArrayList<>();
         for (Parameter parameter : parameters) {
@@ -1999,7 +2001,7 @@ public class DataMapManager {
             Document document = FileSystemUtils.getDocument(workspaceManager, functionsFilePath);
             String returnType = functionMetadata.returnType();
             Range functionRange = CommonUtils.toRange(document.syntaxTree().rootNode().lineRange().endLine());
-            String functionName = getFunctionName(parameters, returnType, functionRange);
+            String functionName = getFunctionName(parameters, returnType, semanticModel);
             List<TextEdit> textEdits = new ArrayList<>();
             textEdits.add(new TextEdit(functionRange, System.lineSeparator() + "function " +
                     functionName + "(" + String.join(", ", paramNames) + ") returns " + returnType + " {}"));
@@ -2010,17 +2012,34 @@ public class DataMapManager {
         }
     }
 
-    private static String getFunctionName(List<Parameter> parameters, String returnType, Range functionRange) {
+    private static String getFunctionName(List<Parameter> parameters, String returnType, SemanticModel semanticModel) {
         String functionName = "map";
+
         if (!parameters.isEmpty()) {
             Parameter firstParam = parameters.getFirst();
             if (firstParam.kind.equals("union")) {
-                functionName = functionName + firstParam.type().replace("|", "Or") +
-                        "To" + returnType.replace("|", "Or");
+                int highestNumber = 0;
+                for (Symbol symbol : semanticModel.moduleSymbols()) {
+                    if (symbol.kind() == SymbolKind.FUNCTION) {
+                        Optional<String> name = symbol.getName();
+                        if (name.isPresent() && name.get().startsWith("mapUnion")) {
+                            String suffix = name.get().substring("mapUnion".length());
+                            if (suffix.matches("\\d+")) {
+                                int number = Integer.parseInt(suffix);
+                                if (number > highestNumber) {
+                                    highestNumber = number;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                return "mapUnion" + (highestNumber + 1);
             } else {
                 functionName = functionName + firstParam.type() + "To" + returnType;
             }
         }
+
         return functionName;
     }
 

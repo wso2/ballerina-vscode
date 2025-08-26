@@ -46,7 +46,7 @@
             "character": 21
           }
         },
-        "newText": "age: mapstringOrintTointOrstring(input.age)"
+        "newText": "age: mapUnion1(input.age)"
       }
     ],
     "proj2/functions.bal": [
@@ -61,7 +61,7 @@
             "character": 0
           }
         },
-        "newText": "\nfunction mapstringOrintTointOrstring(string|int age) returns int|string {}"
+        "newText": "\nfunction mapUnion1(string|int age) returns int|string {}"
       }
     ]
   }
