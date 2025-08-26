@@ -32,7 +32,7 @@ import { OutputSearchHighlight } from "../commons/Search";
 import { ObjectOutputFieldWidget } from "../ObjectOutput/ObjectOutputFieldWidget";
 import { ValueConfigMenu, ValueConfigOption } from "../commons/ValueConfigButton";
 import { ValueConfigMenuItem } from "../commons/ValueConfigButton/ValueConfigMenuItem";
-import { fieldFQNFromPortName, getDefaultValue, getSanitizedId } from "../../utils/common-utils";
+import { fieldFQNFromPortName, getDefaultValue } from "../../utils/common-utils";
 import { DiagnosticTooltip } from "../../Diagnostic/DiagnosticTooltip";
 import { TreeBody } from "../commons/Tree/Tree";
 import { getTypeName } from "../../utils/type-utils";
@@ -80,13 +80,9 @@ export function ArrayOutputFieldWidget(props: ArrayOutputFieldWidgetProps) {
     const arrayField = field?.member;
     const typeName = getTypeName(field);
 
-    let portName = getSanitizedId(parentId);
-    if (fieldIndex !== undefined) {
+    let portName = parentId;
+    if (fieldIndex !== undefined && !isPortParent) {
         portName = `${portName}.${fieldIndex}`
-    }
-
-    if (isPortParent) {
-        portName = parentId;
     }
 
     const fieldName = field?.variableName || '';
