@@ -39,18 +39,9 @@ export interface CoverageOverview {
     nonMigratableElements: number;
 }
 
-export interface ManualWorkEstimation {
-    unit: string;
-    headers: string[];
-    rows: {
-        label: string;
-        values: number[];
-    }[];
-}
 
 export interface MigrationReportJSON {
     coverageOverview: CoverageOverview;
-    manualWorkEstimation: ManualWorkEstimation;
 }
 
 export interface ImportIntegrationFormProps {
