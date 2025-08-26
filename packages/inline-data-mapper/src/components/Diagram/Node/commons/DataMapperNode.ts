@@ -130,7 +130,7 @@ export abstract class DataMapperNodeModel extends NodeModel<NodeModelGenerics & 
 		const isCollapsed = this.isInputPortCollapsed(hidden, collapsedFields, expandedFields, 
 			portName, isArray, isFocused, collapseByDefault);
 
-		if ((!isCollapsed &&!hidden && field.isDeepNested) || isEnrichRequired){
+		if (isEnrichRequired || (!isCollapsed && !hidden && field.isDeepNested)) {
 			this.context.enrichChildFields(field);
 		}
 
