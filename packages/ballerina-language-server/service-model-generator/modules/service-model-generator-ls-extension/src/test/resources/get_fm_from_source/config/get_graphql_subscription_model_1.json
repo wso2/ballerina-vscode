@@ -1,21 +1,28 @@
 {
-  "description": "Test query function model",
-  "type": "graphql",
-  "functionName": "query",
+  "filePath": "sample3/main.bal",
+  "description": "",
+  "start": {
+    "line": 32,
+    "offset": 4
+  },
+  "end": {
+    "line": 40,
+    "offset": 5
+  },
   "response": {
     "metadata": {
-      "label": "Graphql Query",
-      "description": "Graphql Query"
+      "label": "Graphql Subscription",
+      "description": "Graphql Subscription"
     },
     "qualifiers": [],
-    "kind": "QUERY",
+    "kind": "SUBSCRIPTION",
     "accessor": {
       "metadata": {
         "label": "Accessor",
         "description": "The accessor of the function"
       },
       "valueType": "IDENTIFIER",
-      "value": "get",
+      "value": "subscribe",
       "enabled": false,
       "editable": false,
       "optional": false,
@@ -27,7 +34,7 @@
         "description": "The name of the field"
       },
       "valueType": "IDENTIFIER",
-      "value": "",
+      "value": "notifications",
       "enabled": true,
       "editable": true,
       "optional": false,
@@ -149,7 +156,7 @@
         "description": "The type of the field"
       },
       "valueType": "TYPE",
-      "value": "",
+      "value": "stream<string, error?>",
       "enabled": true,
       "editable": true,
       "optional": false,
@@ -160,6 +167,17 @@
     "editable": true,
     "canAddParameters": false,
     "codedata": {
+      "lineRange": {
+        "fileName": "main.bal",
+        "startLine": {
+          "line": 32,
+          "offset": 4
+        },
+        "endLine": {
+          "line": 40,
+          "offset": 5
+        }
+      },
       "orgName": "ballerina",
       "moduleName": "graphql"
     },
@@ -178,13 +196,13 @@
         "placeholder": "{}",
         "valueType": "EXPRESSION",
         "valueTypeConstraint": "graphql:GraphqlResourceConfig",
-        "value": "",
+        "value": "{\n        cacheConfig: {\n            enabled: true\n        }\n    }",
         "typeMembers": [
           {
             "type": "GraphqlResourceConfig",
             "packageInfo": "ballerina:graphql:1.16.0",
             "kind": "RECORD_TYPE",
-            "selected": true
+            "selected": false
           }
         ],
         "enabled": true,
@@ -206,7 +224,7 @@
         "placeholder": "{}",
         "valueType": "FLAG",
         "valueTypeConstraint": "graphql:Context",
-        "value": "",
+        "value": true,
         "typeMembers": [
           {
             "type": "Context",

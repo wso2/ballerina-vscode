@@ -27,7 +27,7 @@ service /graphql on graphQLListener {
     }
 
     // GraphQL `Query`
-    resource function get greeting(string name) returns string {
+    resource function get greeting(graphql:Context context, string name) returns string {
             return string `Hello, ${name}`;
     }
 

@@ -610,8 +610,8 @@ public class ServiceModelGeneratorService implements ExtendedLanguageServerServi
                 if (!(node instanceof ServiceDeclarationNode || node instanceof ClassDefinitionNode)) {
                     return new CommonSourceResponse();
                 }
-                String moduleName = (request.codedata().getModuleName() != null) ?
-                        request.codedata().getModuleName() : DEFAULT;
+                String moduleName = (request.function().getCodedata().getModuleName() != null) ?
+                        request.function().getCodedata().getModuleName() : DEFAULT;
                 Map<String, List<TextEdit>> textEdits = FunctionBuilderRouter.addFunction(moduleName,
                         request.function(), request.filePath(), document.get(), node);
                 return new CommonSourceResponse(textEdits);

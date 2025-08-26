@@ -1,21 +1,27 @@
 {
-  "description": "Test query function model",
-  "type": "graphql",
-  "functionName": "query",
+  "filePath": "sample3/main.bal",
+  "description": "",
+  "start": {
+    "line": 22,
+    "offset": 4
+  },
+  "end": {
+    "line": 30,
+    "offset": 5
+  },
   "response": {
     "metadata": {
-      "label": "Graphql Query",
-      "description": "Graphql Query"
+      "label": "Graphql Mutation",
+      "description": "Graphql Mutation"
     },
     "qualifiers": [],
-    "kind": "QUERY",
+    "kind": "MUTATION",
     "accessor": {
       "metadata": {
         "label": "Accessor",
         "description": "The accessor of the function"
       },
       "valueType": "IDENTIFIER",
-      "value": "get",
       "enabled": false,
       "editable": false,
       "optional": false,
@@ -27,7 +33,7 @@
         "description": "The name of the field"
       },
       "valueType": "IDENTIFIER",
-      "value": "",
+      "value": "greet",
       "enabled": true,
       "editable": true,
       "optional": false,
@@ -97,6 +103,53 @@
         "optional": false,
         "advanced": true,
         "hidden": true
+      },
+      {
+        "metadata": {
+          "label": "name",
+          "description": "name"
+        },
+        "kind": "REQUIRED",
+        "type": {
+          "metadata": {
+            "label": "Argument Type",
+            "description": "The type of the argument"
+          },
+          "valueType": "TYPE",
+          "value": "string",
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "name": {
+          "metadata": {
+            "label": "Argument Name",
+            "description": "The name of the argument"
+          },
+          "valueType": "IDENTIFIER",
+          "value": "name",
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "defaultValue": {
+          "metadata": {
+            "label": "Default Value",
+            "description": "The default value of the argument"
+          },
+          "valueType": "EXPRESSION",
+          "enabled": true,
+          "editable": true,
+          "optional": true,
+          "advanced": false
+        },
+        "enabled": true,
+        "editable": true,
+        "optional": false,
+        "advanced": false,
+        "hidden": false
       }
     ],
     "schema": {
@@ -149,7 +202,7 @@
         "description": "The type of the field"
       },
       "valueType": "TYPE",
-      "value": "",
+      "value": "string",
       "enabled": true,
       "editable": true,
       "optional": false,
@@ -160,6 +213,17 @@
     "editable": true,
     "canAddParameters": false,
     "codedata": {
+      "lineRange": {
+        "fileName": "main.bal",
+        "startLine": {
+          "line": 22,
+          "offset": 4
+        },
+        "endLine": {
+          "line": 30,
+          "offset": 5
+        }
+      },
       "orgName": "ballerina",
       "moduleName": "graphql"
     },
@@ -178,13 +242,13 @@
         "placeholder": "{}",
         "valueType": "EXPRESSION",
         "valueTypeConstraint": "graphql:GraphqlResourceConfig",
-        "value": "",
+        "value": "{\n        cacheConfig: {\n            enabled: true,\n            maxAge: 300\n        }\n    }",
         "typeMembers": [
           {
             "type": "GraphqlResourceConfig",
             "packageInfo": "ballerina:graphql:1.16.0",
             "kind": "RECORD_TYPE",
-            "selected": true
+            "selected": false
           }
         ],
         "enabled": true,
@@ -206,7 +270,7 @@
         "placeholder": "{}",
         "valueType": "FLAG",
         "valueTypeConstraint": "graphql:Context",
-        "value": "",
+        "value": true,
         "typeMembers": [
           {
             "type": "Context",
@@ -234,7 +298,7 @@
         "placeholder": "{}",
         "valueType": "FLAG",
         "valueTypeConstraint": "graphql:Field",
-        "value": "",
+        "value": true,
         "typeMembers": [
           {
             "type": "Field",

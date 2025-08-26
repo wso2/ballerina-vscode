@@ -459,7 +459,11 @@
       }
     }
   },
-  "annotations": {
+  "codedata": {
+    "orgName": "ballerina",
+    "moduleName": "http"
+  },
+  "properties": {
     "annotResourceConfig": {
       "metadata": {
         "label": "Resource Configuration",
@@ -493,9 +497,5 @@
         }
       ]
     }
-  },
-  "codedata": {
-    "orgName": "ballerina",
-    "moduleName": "http"
   }
 }

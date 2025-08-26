@@ -52,9 +52,10 @@ public class Parameter {
     private boolean optional;
     private boolean advanced;
     private String httpParamType;
+    private boolean hidden;
 
     public Parameter(MetaData metadata, String kind, Value type, Value name, Value defaultValue, boolean enabled,
-                     boolean editable, boolean optional, boolean advanced, String httpParamType) {
+                     boolean editable, boolean optional, boolean advanced, String httpParamType, boolean hidden) {
         this.metadata = metadata;
         this.kind = kind;
         this.type = type;
@@ -65,6 +66,7 @@ public class Parameter {
         this.optional = optional;
         this.advanced = advanced;
         this.httpParamType = httpParamType;
+        this.hidden = hidden;
     }
 
     public Parameter(Parameter parameter) {
@@ -78,6 +80,7 @@ public class Parameter {
         this.optional = parameter.optional;
         this.advanced = parameter.advanced;
         this.httpParamType = parameter.httpParamType;
+        this.hidden = parameter.hidden;
     }
 
     public MetaData getMetadata() {
@@ -161,6 +164,14 @@ public class Parameter {
 
     public void setHttpParamType(String httpParamType) {
         this.httpParamType = httpParamType;
+    }
+
+    public void setHidden(boolean hidden) {
+        this.hidden = hidden;
+    }
+
+    public boolean isHidden() {
+        return hidden;
     }
 
     private static Value name(MetaData metadata) {
@@ -269,6 +280,7 @@ public class Parameter {
         private boolean optional;
         private boolean advanced;
         private String httpParamType;
+        private boolean hidden;
 
         public Builder metadata(MetaData metadata) {
             this.metadata = metadata;
@@ -320,9 +332,14 @@ public class Parameter {
             return this;
         }
 
+        public Builder hidden(boolean hidden) {
+            this.hidden = hidden;
+            return this;
+        }
+
         public Parameter build() {
             return new Parameter(metadata, kind, type, name, defaultValue, enabled, editable, optional, advanced,
-                    httpParamType);
+                    httpParamType, hidden);
         }
     }
 }

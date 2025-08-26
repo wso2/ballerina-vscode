@@ -87,8 +87,8 @@
           "attachmentPoints": [
             "OBJECT_METHOD"
           ],
-          "displayName": "Resource Configuration",
-          "description": "Define resource configurations such as field level cache.",
+          "displayName": "Field Configuration",
+          "description": "Define configurations such as field level cache.",
           "typeConstrain": "graphql:GraphqlResourceConfig"
         }
       }
