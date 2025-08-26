@@ -168,12 +168,12 @@ async function getSuggestedFunctions(prompt: string, libraryList: GetFunctionsRe
     
     console.log(`[AI Request Start] Libraries: [${libraryNames}], Function Count: ${functionCount}`);
     
-    const getLibSystemPrompt = `You are an AI assistant tasked with filtering and removing unwanted functions and clients from a provided set of libraries and clients based on a user query. Your goal is to return ONLY the relevant libraries, clients, and functions from the provided context that match the user's needs. Do NOT include any libraries or functions not explicitly listed in the provided Library_Context_JSON.
+    const getLibSystemPrompt = `You are an AI assistant tasked with filtering and removing unwanted functions and clients from a provided set of libraries and clients based on a user query. The provided libraries are a subset of the full requirements for the query. Your goal is to return ONLY the relevant libraries, clients, and functions from the provided context that match the user's needs.
 
 Rules:
-1. Use ONLY the libraries listed in Library_Context_JSON (e.g., ${libraryNames}).
-2. Do NOT create or infer new libraries or functions.
-`;
+1. Use ONLY the libraries listed in Library_Context_JSON.
+2. Do NOT create or infer new libraries or functions.`;
+
 const getLibUserPrompt = `You will be provided with a list of libraries, clients, and their functions, and a user query.
 
 <QUERY>
@@ -186,11 +186,11 @@ ${JSON.stringify(libraryList)}
 
 To process the user query and filter the libraries, clients, and functions, follow these steps:
 
-1. Analyze the user query to understand the specific requirements or needs
+1. Analyze the user query to understand the specific requirements or needs.
 2. Review the provided libraries, clients, and functions in Library_Context_JSON.
 3. Select only the libraries, clients, and functions that directly match the query's needs.
 4. Exclude any irrelevant libraries, clients, or functions.
-5. If no relevant functions are found, return an empty array for the library's functions or clients.
+5. If no relevant functions are found, return an empty array for the libraries.
 6. Organize the remaining relevant information.
 
 Now, based on the provided libraries, clients, and functions, and the user query, please filter and return the relevant information.
