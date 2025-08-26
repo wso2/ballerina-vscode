@@ -23,15 +23,12 @@ import { useState } from "react";
 import ButtonCard from "../../../components/ButtonCard";
 import { LoadingRing } from "../../../components/Loader";
 import { BodyText, LoadingOverlayContainer } from "../../styles";
+import { FolderPicker } from "./components/FolderPicker";
 import { IntegrationParameters } from "./components/IntegrationParameters";
 import {
     ButtonWrapper,
-    FolderPathText,
-    FolderSelectionContainer,
     IntegrationCardGrid,
     PathText,
-    SelectedFolderContainer,
-    SelectedFolderDisplay,
     StepContainer,
 } from "./styles";
 import { FinalIntegrationParams, ImportIntegrationFormProps } from "./types";
@@ -52,14 +49,12 @@ export function ImportIntegrationForm({
 
     const [importSourcePath, setImportSourcePath] = useState("");
     const [integrationParams, setIntegrationParams] = useState<Record<string, any>>({});
-    const [folderSelectionStarted, setFolderSelectionStarted] = useState(false);
 
     const isImportDisabled = importSourcePath.length < 2 || !selectedIntegration;
 
     const handleIntegrationSelection = (integration: MigrationTool) => {
         // Reset state when a new integration is selected
         setImportSourcePath("");
-        setFolderSelectionStarted(false);
         onSelectIntegration(integration);
         const defaultParams = integration.parameters.reduce((acc, param) => {
             acc[param.key] = param.defaultValue;
@@ -69,14 +64,7 @@ export function ImportIntegrationForm({
     };
 
     const handleFolderSelection = async () => {
-        if (!selectedIntegration) return;
-
-        setFolderSelectionStarted(true);
-        const importSource = await rpcClient.getCommonRpcClient().selectFileOrFolderPath();
-        setImportSourcePath(importSource.path);
-        if (importSource.path === "") {
-            setFolderSelectionStarted(false);
-        }
+        return await rpcClient.getCommonRpcClient().selectFileOrFolderPath();
     };
 
     const handleImportIntegration = () => {
@@ -133,30 +121,11 @@ export function ImportIntegrationForm({
                 <StepContainer>
                     <Typography variant="h3">Step 2: Select Your Project Folder</Typography>
                     <BodyText>{selectedIntegration.description}</BodyText>
-                    {!importSourcePath ? (
-                        <FolderSelectionContainer>
-                            <Button
-                                onClick={handleFolderSelection}
-                                appearance="secondary"
-                                disabled={folderSelectionStarted}
-                            >
-                                {folderSelectionStarted ? "Selecting..." : "Select Project"}
-                            </Button>
-                        </FolderSelectionContainer>
-                    ) : (
-                        <SelectedFolderContainer>
-                            <SelectedFolderDisplay>
-                                <FolderPathText>{importSourcePath}</FolderPathText>
-                                <Button
-                                    onClick={handleFolderSelection}
-                                    appearance="secondary"
-                                    sx={{ marginLeft: "12px" }}
-                                >
-                                    Change
-                                </Button>
-                            </SelectedFolderDisplay>
-                        </SelectedFolderContainer>
-                    )}
+                    <FolderPicker
+                        selectedPath={importSourcePath}
+                        onPathChange={setImportSourcePath}
+                        onSelectPath={handleFolderSelection}
+                    />
                 </StepContainer>
             )}
 

@@ -1,14 +1,15 @@
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
-import { Button, LocationSelector, TextField, Tooltip, Typography } from "@wso2/ui-toolkit";
+import { Button, TextField, Tooltip, Typography } from "@wso2/ui-toolkit";
 import { useEffect, useState } from "react";
 import { BodyText } from "../../styles";
+import { FolderPicker } from "./components/FolderPicker";
 import {
     ButtonWrapper,
     InputPreviewWrapper,
-    LocationSelectorWrapper,
     PreviewContainer,
     PreviewIcon,
     PreviewText,
+    StepContainer
 } from "./styles";
 import { ConfigureProjectFormProps } from "./types";
 import { sanitizeProjectName } from "./utils";
@@ -22,8 +23,7 @@ export function ConfigureProjectForm({ onNext, onBack }: ConfigureProjectFormPro
     const isCreateProjectDisabled = !isPathValid || name.length < 2;
 
     const handleProjectDirSelection = async () => {
-        const projectDirectory = await rpcClient.getCommonRpcClient().selectFileOrDirPath({});
-        setPath(projectDirectory.path);
+        return await rpcClient.getCommonRpcClient().selectFileOrDirPath({});
     };
 
     useEffect(() => {
@@ -57,14 +57,16 @@ export function ConfigureProjectForm({ onNext, onBack }: ConfigureProjectFormPro
                     </Tooltip>
                 </PreviewContainer>
             </InputPreviewWrapper>
-            <LocationSelectorWrapper>
-                <LocationSelector
-                    label="Project Location"
-                    selectedFile={path}
-                    btnText={isPathValid ? "Change Path" : "Select Path"}
-                    onSelect={handleProjectDirSelection}
+            <StepContainer>
+                <Typography variant="body3">Project Location</Typography>
+                <BodyText style={{ marginTop: "8px" }}>Select where to create the project.</BodyText>
+                <FolderPicker
+                    selectedPath={path}
+                    onPathChange={setPath}
+                    onSelectPath={handleProjectDirSelection}
+                    buttonText="Select Path"
                 />
-            </LocationSelectorWrapper>
+            </StepContainer>
             <ButtonWrapper>
                 <Button onClick={onBack} appearance="secondary" sx={{ marginRight: "12px" }}>
                     Back

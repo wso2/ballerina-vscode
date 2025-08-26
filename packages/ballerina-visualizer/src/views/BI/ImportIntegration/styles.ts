@@ -115,6 +115,9 @@ export const PreviewContainer = styled.div`
 
 export const LocationSelectorWrapper = styled.div`
     margin-top: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
 `;
 
 // Migration Progress styles
