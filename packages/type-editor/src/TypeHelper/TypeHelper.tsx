@@ -335,7 +335,7 @@ export const TypeHelperComponent = (props: TypeHelperComponentProps) => {
                         display: 'flex', 
                         flexDirection: 'column', 
                         justifyContent: 'space-around', 
-                        paddingLeft: '8px' 
+                        padding: '8px' 
                     }}>
                         {onTypeCreate && (
                             <FooterButtons 

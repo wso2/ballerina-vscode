@@ -11,7 +11,7 @@ import { RefObject, useEffect, useLayoutEffect, useRef, useState } from 'react';
 
 import { ExpandableList } from './Components/ExpandableList';
 import { Variables } from './Views/Variables';
-import { CompletionInsertText, ExpressionProperty, FlowNode, LineRange, RecordTypeField } from '@wso2/ballerina-core';
+import { CompletionInsertText, ExpressionProperty, FlowNode, GetRecordConfigResponse, LineRange, PropertyTypeMemberInfo, RecordSourceGenRequest, RecordSourceGenResponse, RecordTypeField, TypeField } from '@wso2/ballerina-core';
 import { Codicon, COMPLETION_ITEM_KIND, CompletionItem, FormExpressionEditorRef, getIcon, HELPER_PANE_EX_BTN_OFFSET, HELPER_PANE_WIDTH, HelperPaneCustom, HelperPaneHeight, ThemeColors, Typography } from '@wso2/ui-toolkit';
 import { CopilotFooter, SlidingPane, SlidingPaneHeader, SlidingPaneNavContainer, SlidingWindow } from '@wso2/ui-toolkit/lib/components/ExpressionEditor/components/Common/SlidingPane';
 import { CreateValue } from './Views/CreateValue';
@@ -24,9 +24,9 @@ import { FormSubmitOptions } from '../FlowDiagram';
 import { EXPR_ICON_WIDTH } from '@wso2/ui-toolkit/lib/components/ExpressionEditor/components/Form';
 import { Configurables } from './Views/Configurables';
 import styled from '@emotion/styled';
-const getRecordType = (recordTypeField: RecordTypeField) => {
-    return recordTypeField;
-}
+import { RecordConfig } from './Views/RecordConfigView';
+import { useRpcContext } from '@wso2/ballerina-rpc-client';
+import { RecordConfigModal } from './Views/RecordConfigModal';
 
 const MAX_MENU_ITEM_COUNT = 4;
 
@@ -94,6 +94,8 @@ const HelperPaneNewEl = ({
     const selectedItemRef = useRef<HTMLDivElement>(null);
     // Create refs array for all menu items
     const menuItemRefs = useRef<(HTMLDivElement | null)[]>([]);
+
+    const { rpcClient } = useRpcContext();
 
     useLayoutEffect(() => {
         const trySetWidth = () => {
@@ -220,6 +222,20 @@ const HelperPaneNewEl = ({
         return isItemSelected(currentCount, itemIndex) ? ThemeColors.SURFACE_DIM_2 : "transparent";
     }
 
+    const handleModalChange = async (updatedModel: TypeField[]) => {
+        const request: RecordSourceGenRequest = {
+            filePath: fileName,
+            type: updatedModel[0]
+        }
+        const recordSourceResponse: RecordSourceGenResponse = await rpcClient.getBIDiagramRpcClient().getRecordSource(request);
+        console.log(">>> recordSourceResponse", recordSourceResponse);
+
+        if (recordSourceResponse.recordValue !== undefined) {
+            const content = recordSourceResponse.recordValue;
+            handleChange(content, true);
+        }
+    }
+
     // Scroll selected item into view when selection changes
     useEffect(() => {
         if (menuItemRefs.current[selectedItem]) {
@@ -237,19 +253,28 @@ const HelperPaneNewEl = ({
                     <SlidingPane name="PAGE1" paneWidth={HELPER_PANE_WIDTH} paneHeight='170px'>
                         <ExpandableList >
                             {valueTypeConstraint && (
-                                <SlidingPaneNavContainer
-                                    ref={el => menuItemRefs.current[0] = el}
-                                    to="CREATE_VALUE"
-                                    data={recordTypeField}
-                                    sx={{ backgroundColor: getMenuItemColor(currentMenuItemCount, 0) }}
-                                >
-                                    <ExpandableList.Item>
-                                        {getIcon(COMPLETION_ITEM_KIND.Value)}
-                                        <Typography variant="body3" sx={{ fontWeight: 600 }}>
-                                            Create Value
-                                        </Typography>
-                                    </ExpandableList.Item>
-                                </SlidingPaneNavContainer>
+                                recordTypeField ?
+                                    <SlidingPaneNavContainer onClick={() => setIsModalOpen(true)}>
+                                          <ExpandableList.Item>
+                                            {getIcon(COMPLETION_ITEM_KIND.Value)}
+                                            <Typography variant="body3" sx={{ fontWeight: 600 }}>
+                                                 Create value
+                                            </Typography>
+                                        </ExpandableList.Item>
+                                    </SlidingPaneNavContainer> :
+                                    <SlidingPaneNavContainer
+                                        ref={el => menuItemRefs.current[0] = el}
+                                        to="CREATE_VALUE"
+                                        data={recordTypeField}
+                                        sx={{ backgroundColor: getMenuItemColor(currentMenuItemCount, 0) }}
+                                    >
+                                        <ExpandableList.Item>
+                                            {getIcon(COMPLETION_ITEM_KIND.Value)}
+                                            <Typography variant="body3" sx={{ fontWeight: 600 }}>
+                                                Create Value
+                                            </Typography>
+                                        </ExpandableList.Item>
+                                    </SlidingPaneNavContainer>
                             )}
                             <SlidingPaneNavContainer
                                 ref={el => menuItemRefs.current[1] = el}
@@ -376,6 +401,21 @@ const HelperPaneNewEl = ({
                         />
                     </SlidingPane>
                 </SlidingWindow>
+
+                <DynamicModal
+                    width={500}
+                    height={600}
+                    anchorRef={anchorRef}
+                    title="Record Configuration"
+                    openState={isModalOpen}
+                    setOpenState={setIsModalOpen}>
+                    <RecordConfigModal
+                        valueTypeConstraint={valueTypeConstraint}
+                        fileName={fileName}
+                        recordTypeField={recordTypeField}
+                        handleModalChange={handleModalChange}
+                    />
+                </DynamicModal>
             </HelperPaneCustom.Body>
         </HelperPaneCustom>
     );
