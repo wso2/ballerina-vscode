@@ -59,7 +59,7 @@ interface ModelSignature {
     inputs: string[];
     output: string;
     subMappings: string[];
-    types: string;
+    refs: string;
 }
 
 export function InlineDataMapperView(props: InlineDataMapperProps) {
@@ -108,7 +108,7 @@ export function InlineDataMapperView(props: InlineDataMapperProps) {
         const hasInputsChanged = hasSignatureChanged(currentSignature, prevSignature, 'inputs');
         const hasOutputChanged = hasSignatureChanged(currentSignature, prevSignature, 'output');
         const hasSubMappingsChanged = hasSignatureChanged(currentSignature, prevSignature, 'subMappings');
-        const hasTypesChanged = hasSignatureChanged(currentSignature, prevSignature, 'types');
+        const hasRefsChanged = hasSignatureChanged(currentSignature, prevSignature, 'refs');
 
         // Check if it's already an ExpandedDMModel
         const isExpandedModel = !('refs' in model);
@@ -123,18 +123,18 @@ export function InlineDataMapperView(props: InlineDataMapperProps) {
         }
 
         // If types changed, we need to reprocess everything
-        if (hasTypesChanged || hasInputsChanged || hasOutputChanged || hasSubMappingsChanged) {
+        if (hasRefsChanged || hasInputsChanged || hasOutputChanged || hasSubMappingsChanged) {
             const expandedModel = expandDMModel(model as DMModel, {
-                processInputs: hasInputsChanged || hasTypesChanged,
-                processOutput: hasOutputChanged || hasTypesChanged,
-                processSubMappings: hasSubMappingsChanged || hasTypesChanged,
+                processInputs: hasInputsChanged || hasRefsChanged,
+                processOutput: hasOutputChanged || hasRefsChanged,
+                processSubMappings: hasSubMappingsChanged || hasRefsChanged,
                 previousModel: modelState.model as ExpandedDMModel
             });
             console.log(">>> [Inline Data Mapper] processed expandedModel:", expandedModel);
             setModelState({
                 model: expandedModel,
-                hasInputsOutputsChanged: hasInputsChanged || hasOutputChanged || hasTypesChanged,
-                hasSubMappingsChanged: hasSubMappingsChanged || hasTypesChanged
+                hasInputsOutputsChanged: hasInputsChanged || hasOutputChanged || hasRefsChanged,
+                hasSubMappingsChanged: hasSubMappingsChanged || hasRefsChanged
             });
         } else {
             setModelState(prev => ({
@@ -523,7 +523,7 @@ const getModelSignature = (model: DMModel | ExpandedDMModel): ModelSignature => 
     inputs: model.inputs.map(i => i.name),
     output: model.output.name,
     subMappings: model.subMappings?.map(s => s.name) || [],
-    types: 'types' in model ? JSON.stringify(model.types) : ''
+    refs: 'refs' in model ? JSON.stringify(model.refs) : ''
 });
 
 const hasSignatureChanged = (
