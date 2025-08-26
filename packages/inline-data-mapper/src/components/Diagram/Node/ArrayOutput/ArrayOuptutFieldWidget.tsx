@@ -51,6 +51,7 @@ export interface ArrayOutputFieldWidgetProps {
     treeDepth?: number;
     asOutput?: boolean;
     hasHoveredParent?: boolean;
+    isPortParent?: boolean;
 }
 
 export function ArrayOutputFieldWidget(props: ArrayOutputFieldWidgetProps) {
@@ -63,7 +64,8 @@ export function ArrayOutputFieldWidget(props: ArrayOutputFieldWidgetProps) {
         fieldIndex,
         treeDepth = 0,
         asOutput,
-        hasHoveredParent
+        hasHoveredParent,
+        isPortParent
     } = props;
     const classes = useIONodesStyles();
 
@@ -82,6 +84,11 @@ export function ArrayOutputFieldWidget(props: ArrayOutputFieldWidgetProps) {
     if (fieldIndex !== undefined) {
         portName = `${portName}.${fieldIndex}`
     }
+
+    if (isPortParent) {
+        portName = parentId;
+    }
+
     const fieldName = field?.variableName || '';
 
     const portIn = getPort(`${portName}.IN`);

@@ -30,6 +30,8 @@ import { ObjectOutputFieldWidget } from "../ObjectOutput/ObjectOutputFieldWidget
 import { useIONodesStyles } from '../../../styles';
 import { useDMCollapsedFieldsStore, useDMIOConfigPanelStore } from '../../../../store/store';
 import { OutputSearchHighlight } from '../commons/Search';
+import { ArrayOutputFieldWidget } from '../ArrayOutput/ArrayOuptutFieldWidget';
+import { PrimitiveOutputElementWidget } from '../PrimitiveOutput/PrimitiveOutputElementWidget';
 
 export interface QueryOutputWidgetProps {
 	id: string; // this will be the root ID used to prepend for UUIDs of nested fields
@@ -160,16 +162,41 @@ export function QueryOutputWidget(props: QueryOutputWidgetProps) {
 				</TreeHeader>
 				{(expanded && field) && (
 					<TreeBody>
-						<ObjectOutputFieldWidget
-							engine={engine}
-							field={field}
-							getPort={getPort}
-							parentId={id}
-							context={context}
-							treeDepth={0}
-							hasHoveredParent={isHovered}
-							isPortParent={true}
-						/>
+						{field.kind === TypeKind.Record ? (
+							<ObjectOutputFieldWidget
+								engine={engine}
+								field={field}
+								getPort={getPort}
+								parentId={id}
+								context={context}
+								treeDepth={0}
+								hasHoveredParent={isHovered}
+								isPortParent={true}
+							/>
+						) : field.kind === TypeKind.Array ? (
+							<ArrayOutputFieldWidget
+								key={id}
+								engine={engine}
+								field={field}
+								getPort={getPort}
+								parentId={id}
+								context={context}
+								fieldIndex={undefined}
+								treeDepth={0}
+								hasHoveredParent={isHovered}
+							/>
+						) : (
+							<PrimitiveOutputElementWidget
+								key={id}
+								engine={engine}
+								field={field}
+								getPort={getPort}
+								parentId={id}
+								context={context}
+								hasHoveredParent={isHovered}
+								isPortParent={true}
+							/>
+						)}
 					</TreeBody>
 				)}
 			</TreeContainer>

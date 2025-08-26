@@ -59,7 +59,7 @@ export function ObjectOutputFieldWidget(props: ObjectOutputFieldWidgetProps) {
         fieldIndex,
         treeDepth = 0,
         hasHoveredParent,
-        isPortParent = false
+        isPortParent
     } = props;
     const classes = useIONodesStyles();
     const [isLoading, setLoading] = useState(false);
@@ -93,7 +93,9 @@ export function ObjectOutputFieldWidget(props: ObjectOutputFieldWidgetProps) {
             : updatedParentId
         : fieldName;
 
-    if (isPortParent) portName = parentId;
+    if (isPortParent) {
+        portName = parentId;
+    }
 
     const portIn = getPort(portName + ".IN");
     const isUnknownType = field?.kind === TypeKind.Unknown;

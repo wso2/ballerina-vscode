@@ -45,6 +45,7 @@ export interface PrimitiveOutputElementWidgetWidgetProps {
     fieldIndex?: number;
     isArrayElement?: boolean;
     hasHoveredParent?: boolean;
+    isPortParent?: boolean;
 }
 
 export function PrimitiveOutputElementWidget(props: PrimitiveOutputElementWidgetWidgetProps) {
@@ -56,7 +57,8 @@ export function PrimitiveOutputElementWidget(props: PrimitiveOutputElementWidget
         context,
         fieldIndex,
         isArrayElement,
-        hasHoveredParent
+        hasHoveredParent,
+        isPortParent
     } = props;
     const classes = useIONodesStyles();
     
@@ -77,6 +79,10 @@ export function PrimitiveOutputElementWidget(props: PrimitiveOutputElementWidget
         portName = `${portName}.${fieldIndex}`;
     } else if (fieldName) {
         portName = `${portName}.${fieldName}`;
+    }
+
+    if (isPortParent) {
+        portName = parentId;
     }
     
     const portIn = getPort(`${portName}.IN`);
