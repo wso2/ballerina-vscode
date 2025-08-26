@@ -105,7 +105,6 @@ export function ImportIntegrationForm({
 
     return (
         <>
-            <Typography variant="h2">Import and Migrate an External Integration</Typography>
             <BodyText>
                 This wizard converts an external integration project from MuleSoft or TIBCO into a ready-to-use BI
                 project.
