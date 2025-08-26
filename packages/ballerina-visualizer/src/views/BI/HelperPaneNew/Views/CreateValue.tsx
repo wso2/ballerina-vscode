@@ -119,7 +119,7 @@ export const CreateValue = (props: CreateValuePageProps) => {
     }, []);
 
     return (
-        (!isTypePrimitive(selectedType))?
+        (recordTypeField)?
             <>
 
                 <ExpandableList>
@@ -133,7 +133,7 @@ export const CreateValue = (props: CreateValuePageProps) => {
                     width={500}
                     height={600}
                     anchorRef={anchorRef}
-                    title="Create Value"
+                    title="Record Configuration"
                     openState={isModalOpen}
                     setOpenState={setIsModalOpen}>
                     <RecordConfig
@@ -156,7 +156,8 @@ const isSelectedTypeContainsType = (selectedType: string | string[], searchType:
     if (Array.isArray(selectedType)) {
         return selectedType.some(type => type.includes(searchType));
     }
-    return selectedType === searchType;
+    const unionTypes = selectedType.split("|").map(type => type.trim());
+    return unionTypes.includes(searchType);
 }
 
 const NonRecordCreateValue = (props: CreateValuePageProps) => {
@@ -173,7 +174,7 @@ const NonRecordCreateValue = (props: CreateValuePageProps) => {
                 <ExpandableList>
                     <SelectableItem onClick={() => { handleValueSelect(defaultValue) }} className="selectable-list-item">
                         <ExpandableList.Item sx={{ width: "100%" }}>
-                            {defaultValue}
+                            Initialize to {defaultValue}
                         </ExpandableList.Item>
                     </SelectableItem>
                 </ExpandableList>
@@ -188,6 +189,24 @@ const NonRecordCreateValue = (props: CreateValuePageProps) => {
                     <SlidingPaneNavContainer onClick={() => { handleValueSelect("\"\"") }}>
                         <ExpandableList.Item sx={{ width: "100%" }}>
                             Create a string value
+                        </ExpandableList.Item>
+                    </SlidingPaneNavContainer>
+                </ExpandableList>
+            )}
+            {isSelectedTypeContainsType(selectedType, "string[]") && (
+                <ExpandableList>
+                    <SlidingPaneNavContainer onClick={() => { handleValueSelect("[\"\"]") }}>
+                        <ExpandableList.Item sx={{ width: "100%" }}>
+                            Create a string array
+                        </ExpandableList.Item>
+                    </SlidingPaneNavContainer>
+                </ExpandableList>
+            )}
+             {isSelectedTypeContainsType(selectedType, "log:PrintableRawTemplate") && (
+                <ExpandableList>
+                    <SlidingPaneNavContainer onClick={() => { handleValueSelect("string ``") }}>
+                        <ExpandableList.Item sx={{ width: "100%" }}>
+                            Create a printable template
                         </ExpandableList.Item>
                     </SlidingPaneNavContainer>
                 </ExpandableList>
