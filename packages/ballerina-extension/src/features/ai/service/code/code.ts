@@ -103,13 +103,12 @@ export async function generateCodeCore(params: GenerateCodeRequest, eventHandler
 
     eventHandler({ type: "start" });
     let assistantResponse: string = "";
-    let libraryDetails: Library[] = [];
+
     for await (const part of fullStream) {
         if (part.type === "tool-result") {
-            libraryDetails.push(...(part.result as Library[]));
             console.log(
                 "[LibraryProviderTool] Library Relevant trimmed functions By LibraryProviderTool Result: ",
-                libraryDetails
+                part.result as Library[]
             );
         }
         switch (part.type) {
@@ -155,7 +154,6 @@ export async function generateCodeCore(params: GenerateCodeRequest, eventHandler
                             assistantResponse: diagnosticFixResp,
                             diagnostics: diagnostics,
                         },
-                        libraryDetails || []
                     );
                     diagnosticFixResp = repairedResponse.repairResponse;
                     diagnostics = repairedResponse.diagnostics;
