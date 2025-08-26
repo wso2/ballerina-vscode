@@ -26,7 +26,7 @@ import {
     MigrationTool,
 } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
-import { Icon } from "@wso2/ui-toolkit";
+import { Icon, Typography } from "@wso2/ui-toolkit";
 import { Stepper, StepperContainer } from "@wso2/ui-toolkit/lib/components/Stepper/Stepper";
 import { useEffect, useState } from "react";
 import { ConfigureProjectForm } from "./ConfigureProjectForm";
@@ -169,6 +169,7 @@ export function ImportIntegration() {
             <IconButton onClick={handleGoHome}>
                 <Icon name="bi-home" iconSx={{ color: "var(--vscode-foreground)" }} />
             </IconButton>
+            <Typography variant="h1">Migrate External Integration</Typography>
             <StepperContainer style={{ marginBottom: "4%" }}>
                 <Stepper alignment="flex-start" steps={defaultSteps} currentStep={step} />
             </StepperContainer>

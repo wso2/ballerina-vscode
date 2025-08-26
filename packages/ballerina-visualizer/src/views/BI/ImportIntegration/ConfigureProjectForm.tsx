@@ -1,5 +1,5 @@
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
-import { Button, FormContainer, LocationSelector, TextField, Tooltip, Typography } from "@wso2/ui-toolkit";
+import { Button, LocationSelector, TextField, Tooltip, Typography } from "@wso2/ui-toolkit";
 import { useEffect, useState } from "react";
 import { BodyText } from "../../styles";
 import {
@@ -34,7 +34,7 @@ export function ConfigureProjectForm({ onNext, onBack }: ConfigureProjectFormPro
     }, []);
 
     return (
-        <FormContainer>
+        <>
             <Typography variant="h2">Configure Your Integration Project</Typography>
             <BodyText>Please provide the necessary details to create your integration project.</BodyText>
             <InputPreviewWrapper>
@@ -73,6 +73,6 @@ export function ConfigureProjectForm({ onNext, onBack }: ConfigureProjectFormPro
                     Create and Open Project
                 </Button>
             </ButtonWrapper>
-        </FormContainer>
+        </>
     );
 }
