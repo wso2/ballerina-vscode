@@ -34,7 +34,7 @@ import {
     MenuButton,
     TopPortWidget,
     BottomPortWidget
-} from "./StyledComponents";
+} from "./styles";
 
 // Utility functions specific to AI Service
 const getNodeTitle = (model: EntryNodeModel) => {

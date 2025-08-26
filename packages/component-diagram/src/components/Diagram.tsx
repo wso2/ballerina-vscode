@@ -86,28 +86,24 @@ export function Diagram(props: DiagramProps) {
         );
         const currentGraphqlIds = new Set(graphqlServices.map((svc) => svc.uuid));
 
-        setGraphQLGroupOpen((prev) => {
-            const next = { ...prev };
-            let hasChanged = false;
+        setGraphQLGroupOpen((previousState) => {
+            const updatedState = { ...previousState };
 
             // Remove services that no longer exist
-            Object.keys(next).forEach((id) => {
+            Object.keys(updatedState).forEach((id) => {
                 if (!currentGraphqlIds.has(id)) {
-                    delete next[id];
-                    hasChanged = true;
+                    delete updatedState[id];
                 }
             });
 
             // Add new services that are not yet in the state
-            graphqlServices.forEach((svc) => {
-                if (!next[svc.uuid]) {
-                    next[svc.uuid] = { Query: true, Subscription: false, Mutation: false };
-                    hasChanged = true;
+            graphqlServices.forEach((service) => {
+                if (!updatedState[service.uuid]) {
+                    updatedState[service.uuid] = { Query: true, Subscription: false, Mutation: false };
                 }
             });
 
-            // Only update state if there's an actual change
-            return hasChanged ? next : prev;
+            return updatedState;
         });
     }, [project]);
 

@@ -21,7 +21,6 @@ import { PortWidget } from "@projectstorm/react-diagrams-core";
 import { Button, ThemeColors } from "@wso2/ui-toolkit";
 import { NODE_BORDER_WIDTH, ENTRY_NODE_WIDTH, ENTRY_NODE_HEIGHT } from "../../../../resources/constants";
 
-
 type NodeStyleProp = {
     hovered: boolean;
     inactive?: boolean;
@@ -150,7 +149,6 @@ export const StyledServiceBox = styled(ServiceBox) <NodeStyleProp>`
     background-color: ${ThemeColors.SURFACE_DIM};
 `;
 
-// Visually group GraphQL operations with a colored accent bar
 export const GroupContainer = styled.div<{ accent: string }>`
     display: flex;
     flex-direction: column;

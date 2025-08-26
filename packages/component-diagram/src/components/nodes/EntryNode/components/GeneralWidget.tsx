@@ -43,7 +43,7 @@ import {
     StyledServiceBox,
     ResourceAccessor,
     colors
-} from "./StyledComponents";
+} from "./styles";
 
 const getNodeTitle = (model: EntryNodeModel) => {
     if (model.node.displayName) {
