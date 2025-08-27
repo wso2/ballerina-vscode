@@ -40,14 +40,14 @@ export function MigrationProgressView({
 
     // Parse migration report JSON when available
     const parsedReportData = useMemo(() => {
-        if (!migrationResponse?.reportJson) return null;
+        if (!migrationResponse?.jsonReport) return null;
         try {
-            return JSON.parse(migrationResponse.reportJson) as MigrationReportJSON;
+            return JSON.parse(migrationResponse.jsonReport) as MigrationReportJSON;
         } catch (error) {
             console.error("Failed to parse migration report JSON:", error);
             return EXAMPLE_REPORT_JSON;
         }
-    }, [migrationResponse?.reportJson]);
+    }, [migrationResponse?.jsonReport]);
 
     // Auto-open logs during migration and auto-collapse when completed
     useEffect(() => {
