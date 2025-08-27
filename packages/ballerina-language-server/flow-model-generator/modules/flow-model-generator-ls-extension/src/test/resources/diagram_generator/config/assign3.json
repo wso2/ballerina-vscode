@@ -18,7 +18,8 @@
           "label": "Start",
           "data": {
             "kind": "Function",
-            "label": "testNewDataJson"
+            "label": "testNewDataJson",
+            "isServiceFunction": false
           }
         },
         "codedata": {

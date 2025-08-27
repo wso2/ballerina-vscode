@@ -1,0 +1,59 @@
+{
+  "source": "generated_chunker/connections.bal",
+  "expectedChunkers": {
+    "categories": [
+      {
+        "metadata": {
+          "label": "Chunkers"
+        },
+        "items": [
+          {
+            "metadata": {
+              "label": "Devant Chunker",
+              "description": "Splits documents loaded by the `devant:BinaryDataLoader` into smaller chunks using the Devant AI service."
+            },
+            "codedata": {
+              "node": "CHUNKER",
+              "org": "ballerinax",
+              "module": "ai.devant",
+              "packageName": "ai.devant",
+              "object": "Chunker",
+              "symbol": "init"
+            },
+            "enabled": true
+          },
+          {
+            "metadata": {
+              "label": "MarkdownChunker",
+              "description": "Represents a Markdown document chunker. Provides functionality to recursively chunk a markdown document using a configurable strategy.\n\nThe chunking process begins with the specified strategy and recursively falls back to finer-grained strategies if the content exceeds the configured `maxChunkSize`. Overlapping content between chunks can be controlled using `maxOverlapSize`."
+            },
+            "codedata": {
+              "node": "CHUNKER",
+              "org": "ballerina",
+              "module": "ai",
+              "packageName": "ai",
+              "object": "MarkdownChunker",
+              "symbol": "init"
+            },
+            "enabled": true
+          },
+          {
+            "metadata": {
+              "label": "GenericRecursiveChunker",
+              "description": "Represents a Genereric document chunker. Provides functionality to recursively chunk a text document using a configurable strategy.\n\nThe chunking process begins with the specified strategy and recursively falls back to finer-grained strategies if the content exceeds the configured `maxChunkSize`. Overlapping content between chunks can be controlled using `maxOverlapSize`."
+            },
+            "codedata": {
+              "node": "CHUNKER",
+              "org": "ballerina",
+              "module": "ai",
+              "packageName": "ai",
+              "object": "GenericRecursiveChunker",
+              "symbol": "init"
+            },
+            "enabled": true
+          }
+        ]
+      }
+    ]
+  }
+}

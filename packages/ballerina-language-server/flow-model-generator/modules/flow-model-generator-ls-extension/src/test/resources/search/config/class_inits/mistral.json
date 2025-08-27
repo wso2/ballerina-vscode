@@ -1,0 +1,32 @@
+{
+  "description": "Mistral AI provider search test",
+  "kind": "CLASS_INIT",
+  "source": "empty.bal",
+  "queryMap": {
+    "q": "Mistral"
+  },
+  "categories": [
+    {
+      "metadata": {
+        "label": "Class Initializers"
+      },
+      "items": [
+        {
+          "metadata": {
+            "label": "Mistral AI Provider",
+            "description": "Initializes the Mistral AI LLM provider."
+          },
+          "codedata": {
+            "node": "CLASS_INIT",
+            "org": "ballerinax",
+            "module": "ai",
+            "packageName": "ai",
+            "object": "MistralAiProvider",
+            "symbol": "init"
+          },
+          "enabled": true
+        }
+      ]
+    }
+  ]
+}

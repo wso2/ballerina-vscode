@@ -108,7 +108,7 @@ public class HttpFunctionBuilder extends AbstractFunctionBuilder {
             throw new RuntimeException("Failed to load HTTP resource function model");
         }
         Function functionModel = httpFunctionModel.get();
-        functionModel.setAnnotations(annotations);
+        annotations.forEach(functionModel::addProperty);
         functionModel.getAccessor().setValue(functionDefinitionNode.functionName().text().trim());
         functionModel.getName().setValue(getPath(functionDefinitionNode.relativeResourcePath()));
 

@@ -340,7 +340,12 @@ public class DataMapManager {
             generateArrayVariableDataMapping(expressionNode, mappings, name, semanticModel,
                     functionDocument, enumPorts);
         } else {
-            genMapping(expressionNode, name, mappings, semanticModel, functionDocument, enumPorts);
+            if (expressionNode.kind() == SyntaxKind.QUERY_EXPRESSION) {
+                genMapping((QueryExpressionNode) expressionNode, mappings, name, semanticModel, functionDocument,
+                        enumPorts);
+            } else {
+                genMapping(expressionNode, name, mappings, semanticModel, functionDocument, enumPorts);
+            }
         }
 
         return gson.toJsonTree(new Model(inputPorts, refOutputPort, subMappingPorts, mappings, query, references));
@@ -495,8 +500,11 @@ public class DataMapManager {
             String field = fieldSplits[i];
             if (expr.kind() == SyntaxKind.QUERY_EXPRESSION) {
                 ClauseNode clauseNode = ((QueryExpressionNode) expr).resultClause();
-                if (clauseNode.kind() == SyntaxKind.SELECT_CLAUSE) {
+                SyntaxKind clauseKind = clauseNode.kind();
+                if (clauseKind == SyntaxKind.SELECT_CLAUSE) {
                     expr = ((SelectClauseNode) clauseNode).expression();
+                } else if (clauseKind == SyntaxKind.COLLECT_CLAUSE) {
+                    expr = ((CollectClauseNode) clauseNode).expression();
                 } else {
                     break;
                 }
@@ -633,14 +641,6 @@ public class DataMapManager {
 
     private void genMapping(Node expr, String name, List<Mapping> elements, SemanticModel semanticModel,
                             Document functionDocument, List<MappingPort> enumPorts) {
-        if (expr.kind() == SyntaxKind.QUERY_EXPRESSION) {
-            ClauseNode resultClause = ((QueryExpressionNode) expr).resultClause();
-            if (resultClause.kind() == SyntaxKind.COLLECT_CLAUSE) {
-                genMapping(((CollectClauseNode) resultClause).expression(), name, elements, semanticModel,
-                        functionDocument, enumPorts);
-                return;
-            }
-        }
         List<String> inputs = new ArrayList<>();
         expr.accept(new GenInputsVisitor(inputs, enumPorts));
         LineRange customFunctionRange = getCustomFunctionRange(expr, functionDocument);
@@ -673,18 +673,20 @@ public class DataMapManager {
     }
 
     private void genMapping(QueryExpressionNode queryExpr, List<Mapping> mappings, String name,
-                            SemanticModel semanticModel, Document functinoDocument, List<MappingPort> enumPorts) {
+                            SemanticModel semanticModel, Document functionDocument, List<MappingPort> enumPorts) {
         ClauseNode clauseNode = queryExpr.resultClause();
-        if (clauseNode.kind() != SyntaxKind.SELECT_CLAUSE) {
-            return;
-        }
-        SelectClauseNode selectClauseNode = (SelectClauseNode) clauseNode;
-        ExpressionNode expr = selectClauseNode.expression();
-        if (expr.kind() == SyntaxKind.MAPPING_CONSTRUCTOR) {
-            genMapping((MappingConstructorExpressionNode) expr, mappings,
-                    name, semanticModel, functinoDocument, enumPorts);
+        if (clauseNode.kind() == SyntaxKind.SELECT_CLAUSE) {
+            SelectClauseNode selectClauseNode = (SelectClauseNode) clauseNode;
+            ExpressionNode expr = selectClauseNode.expression();
+            if (expr.kind() == SyntaxKind.MAPPING_CONSTRUCTOR) {
+                genMapping((MappingConstructorExpressionNode) expr, mappings,
+                        name, semanticModel, functionDocument, enumPorts);
+            } else {
+                genMapping(expr, name, mappings, semanticModel, functionDocument, enumPorts);
+            }
         } else {
-            genMapping(expr, name, mappings, semanticModel, functinoDocument, enumPorts);
+            genMapping(((CollectClauseNode) clauseNode).expression(), name, mappings, semanticModel, functionDocument,
+                    enumPorts);
         }
     }
 

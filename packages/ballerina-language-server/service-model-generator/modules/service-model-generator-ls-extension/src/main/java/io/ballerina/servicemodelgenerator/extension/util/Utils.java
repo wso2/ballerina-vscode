@@ -39,7 +39,6 @@ import io.ballerina.compiler.syntax.tree.ModulePartNode;
 import io.ballerina.compiler.syntax.tree.NameReferenceNode;
 import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.compiler.syntax.tree.NodeList;
-import io.ballerina.compiler.syntax.tree.NonTerminalNode;
 import io.ballerina.compiler.syntax.tree.ParameterNode;
 import io.ballerina.compiler.syntax.tree.RequiredParameterNode;
 import io.ballerina.compiler.syntax.tree.ReturnTypeDescriptorNode;
@@ -47,7 +46,6 @@ import io.ballerina.compiler.syntax.tree.SeparatedNodeList;
 import io.ballerina.compiler.syntax.tree.ServiceDeclarationNode;
 import io.ballerina.compiler.syntax.tree.SpecificFieldNode;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
-import io.ballerina.compiler.syntax.tree.SyntaxTree;
 import io.ballerina.compiler.syntax.tree.Token;
 import io.ballerina.compiler.syntax.tree.TypeDefinitionNode;
 import io.ballerina.compiler.syntax.tree.TypeDescriptorNode;
@@ -65,8 +63,6 @@ import io.ballerina.servicemodelgenerator.extension.model.request.TriggerListReq
 import io.ballerina.servicemodelgenerator.extension.model.request.TriggerRequest;
 import io.ballerina.tools.text.LinePosition;
 import io.ballerina.tools.text.LineRange;
-import io.ballerina.tools.text.TextDocument;
-import io.ballerina.tools.text.TextRange;
 import org.ballerinalang.langserver.common.utils.NameUtil;
 import org.eclipse.lsp4j.Position;
 import org.eclipse.lsp4j.Range;
@@ -142,16 +138,6 @@ public final class Utils {
      */
     public static Position toPosition(LinePosition linePosition) {
         return new Position(linePosition.line(), linePosition.offset());
-    }
-
-    public static NonTerminalNode findNonTerminalNode(Codedata codedata, Document document) {
-        SyntaxTree syntaxTree = document.syntaxTree();
-        ModulePartNode modulePartNode = syntaxTree.rootNode();
-        TextDocument textDocument = syntaxTree.textDocument();
-        LineRange lineRange = codedata.getLineRange();
-        int start = textDocument.textPositionFrom(lineRange.startLine());
-        int end = textDocument.textPositionFrom(lineRange.endLine());
-        return modulePartNode.findNode(TextRange.from(start, end - start), true);
     }
 
     public static void populateRequiredFuncsDesignApproachAndServiceType(Service service) {
@@ -239,7 +225,7 @@ public final class Utils {
     public static Function getFunctionModel(MethodDeclarationNode methodDeclarationNode,
                                             Map<String, Value> annotations) {
         Function functionModel = Function.getNewFunctionModel(SERVICE_DIAGRAM);
-        functionModel.setAnnotations(annotations);
+        annotations.forEach(functionModel.getProperties()::put);
 
         Value functionName = functionModel.getName();
         functionName.setValue(methodDeclarationNode.methodName().text().trim());
@@ -276,7 +262,7 @@ public final class Utils {
     public static Function getFunctionModel(FunctionDefinitionNode functionDefinitionNode,
                                             Map<String, Value> annotations) {
         Function functionModel = Function.getNewFunctionModel(SERVICE_DIAGRAM);
-        functionModel.setAnnotations(annotations);
+        annotations.forEach(functionModel.getProperties()::put);
         functionModel.setKind(KIND_DEFAULT);
         Value functionName = functionModel.getName();
         functionName.setValue(functionDefinitionNode.functionName().text().trim());
@@ -457,8 +443,8 @@ public final class Utils {
             String[] split = annotName.split(":");
             annotName = split[split.length - 1];
             String propertyName = "annot" + annotName;
-            if (function.getAnnotations().containsKey(propertyName)) {
-                Value property = function.getAnnotations().get(propertyName);
+            if (function.getProperties().containsKey(propertyName)) {
+                Value property = function.getProperties().get(propertyName);
                 property.setValue(annotationNode.annotValue().get().toSourceCode().trim());
             }
         });
@@ -516,8 +502,14 @@ public final class Utils {
     }
 
     public static List<String> getAnnotationEdits(Function function) {
-        Map<String, Value> properties = function.getAnnotations();
+        Map<String, Value> properties = function.getProperties().entrySet().stream()
+                        .filter(entry -> entry.getKey().startsWith("annot"))
+                        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+
         List<String> annots = new ArrayList<>();
+        if (properties.isEmpty()) {
+            return annots;
+        }
         for (Map.Entry<String, Value> property : properties.entrySet()) {
             Value value = property.getValue();
             if (Objects.nonNull(value.getCodedata()) && Objects.nonNull(value.getCodedata().getType()) &&
@@ -572,8 +564,8 @@ public final class Utils {
         return annots.size();
     }
 
-    public static int addFunctionAnnotationTextEdits(Function function, FunctionDefinitionNode functionDef,
-                                                    List<TextEdit> edits) {
+    public static void addFunctionAnnotationTextEdits(Function function, FunctionDefinitionNode functionDef,
+                                                      List<TextEdit> edits) {
         Token firstToken = functionDef.qualifierList().isEmpty() ? functionDef.functionKeyword()
                 : functionDef.qualifierList().get(0);
 
@@ -586,7 +578,7 @@ public final class Utils {
                 annotEdit += System.lineSeparator();
                 edits.add(new TextEdit(toRange(firstToken.lineRange().startLine()), annotEdit));
             }
-            return annots.size();
+            return;
         }
         NodeList<AnnotationNode> annotations = metadata.get().annotations();
         if (annotations.isEmpty()) { // metadata is present but no annotations
@@ -594,7 +586,7 @@ public final class Utils {
                 annotEdit += System.lineSeparator();
                 edits.add(new TextEdit(toRange(metadata.get().lineRange()), annotEdit));
             }
-            return annots.size();
+            return;
         }
 
         // first annotation end line range
@@ -611,7 +603,6 @@ public final class Utils {
             edits.add(new TextEdit(toRange(range), annotEdit));
         }
 
-        return annots.size();
     }
 
     public static String getValueString(Value value) {

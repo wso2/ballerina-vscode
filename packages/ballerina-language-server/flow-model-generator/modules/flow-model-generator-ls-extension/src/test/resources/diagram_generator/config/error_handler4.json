@@ -19,6 +19,7 @@
           "data": {
             "kind": "Function",
             "label": "failInDoOnFail1",
+            "isServiceFunction": false,
             "return": "error?"
           }
         },
