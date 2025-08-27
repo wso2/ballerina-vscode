@@ -266,5 +266,10 @@ export function isExpandable(field: IOType): boolean {
 }
 
 export function getTargetField(viewId: string, outputId: string){
-    return [...viewId.split("."), ...outputId.split(".").slice(1)].join(".");
+    const outputIdParts = outputId.split(".").slice(1);
+    // Added to support multi dimensional arrays
+    if (outputIdParts.length === 0) {
+        outputIdParts.push("0");
+    }
+    return [...viewId.split("."), ...outputIdParts].join(".");
 }
