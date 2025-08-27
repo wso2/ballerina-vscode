@@ -440,12 +440,15 @@ export function TypeCreatorTab(props: TypeCreatorTabProps) {
                 );
             case TypeKind.UNION:
                 return (
+                    <>
                     <UnionEditor
                         type={type}
                         onChange={handleSetType}
                         rpcClient={rpcClient}
                         onValidationError={handleValidationError}
                     />
+                    <AdvancedOptions type={type} onChange={setType} />
+                    </>
                 );
             case TypeKind.CLASS:
                 return (
@@ -458,10 +461,13 @@ export function TypeCreatorTab(props: TypeCreatorTabProps) {
                 );
             case TypeKind.ARRAY:
                 return (
+                    <>
                     <ArrayEditor
                         type={type}
                         onChange={handleSetType}
                     />
+                    <AdvancedOptions type={type} onChange={setType} />
+                    </>
                 );
             default:
                 return <div>Editor for {selectedTypeKind} type is not implemented yet</div>;
