@@ -163,7 +163,6 @@ export abstract class DataMapperNodeModel extends NodeModel<NodeModelGenerics & 
 		let fieldFQN = this.getOutputFieldFQN(newParentId, field, elementIndex);
 		const portName = this.getPortName(portPrefix, fieldFQN);
 		
-		// if(fieldFQN.endsWith('>')) fieldFQN = fieldFQN.split('.').slice(0, -1).join('.');
 		const mapping = findMappingByOutput(mappings, fieldFQN);
 		const isCollapsed = this.isOutputPortCollapsed(hidden, collapsedFields, expandedFields, 
 			portName, type, isArray, false, mapping?.elements);

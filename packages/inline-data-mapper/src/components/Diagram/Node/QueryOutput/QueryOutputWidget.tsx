@@ -72,27 +72,14 @@ export function QueryOutputWidget(props: QueryOutputWidgetProps) {
 		}))
 	);
 
-	const field = outputType.member ?? outputType;
+	const field = outputType.member || outputType;
 
 	const portIn = getPort(`${id}.#.IN`);
 	const isUnknownType = outputType.kind === TypeKind.Unknown;
 
 	let expanded = true;
-	// if ((portIn && portIn.attributes.collapsed)) {
-	// 	expanded = false;
-	// }
+	
 	const isDisabled = portIn?.attributes.descendantHasValue;
-
-	const indentation = (portIn && (!field || !expanded)) ? 0 : 24;
-
-	const handleExpand = () => {
-		const collapsedFields = collapsedFieldsStore.fields;
-        if (!expanded) {
-            collapsedFieldsStore.setFields(collapsedFields.filter((element) => element !== id));
-        } else {
-            collapsedFieldsStore.setFields([...collapsedFields, id]);
-        }
-	};
 
 	const handlePortState = (state: PortState) => {
 		setPortState(state)
@@ -147,16 +134,6 @@ export function QueryOutputWidget(props: QueryOutputWidgetProps) {
 						}
 					</span>
 					<span className={classes.label}>
-						{/* <Button
-							id={"expand-or-collapse-" + id} 
-							appearance="icon"
-							tooltip="Expand/Collapse"
-							sx={{ marginLeft: indentation }}
-							onClick={handleExpand}
-							data-testid={`${id}-expand-icon-mapping-target-node`}
-						>
-							{expanded ? <Codicon name="chevron-down" /> : <Codicon name="chevron-right" />}
-						</Button> */}
 						{label}
 					</span>
 				</TreeHeader>
