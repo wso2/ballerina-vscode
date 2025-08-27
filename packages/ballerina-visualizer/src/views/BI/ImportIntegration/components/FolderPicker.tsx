@@ -1,5 +1,5 @@
 import { Button } from "@wso2/ui-toolkit";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
     FolderPathText,
     FolderSelectionContainer,
@@ -23,6 +23,13 @@ export function FolderPicker({
     selectingText = "Selecting...",
 }: FolderPickerProps) {
     const [folderSelectionStarted, setFolderSelectionStarted] = useState(false);
+
+    // Reset folderSelectionStarted when selectedPath changes (e.g., when switching integration platforms)
+    useEffect(() => {
+        if (selectedPath === "") {
+            setFolderSelectionStarted(false);
+        }
+    }, [selectedPath]);
 
     const handleFolderSelection = async () => {
         setFolderSelectionStarted(true);
