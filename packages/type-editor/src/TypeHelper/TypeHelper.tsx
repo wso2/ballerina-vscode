@@ -197,7 +197,7 @@ export const TypeHelperComponent = (props: TypeHelperComponentProps) => {
     };
 
     const handleTypeItemClick = (item: TypeHelperItem) => {
-       
+
         // Use this after implementing operators
         const prefixRegex =  /[a-zA-Z0-9_':| ]*$/;
         const suffixRegex = /^[a-zA-Z0-9_':]*/;
@@ -255,7 +255,7 @@ export const TypeHelperComponent = (props: TypeHelperComponentProps) => {
         <HelperPaneCustom>
             <HelperPaneCustom.Body>
                 <SlidingWindow>
-                     <SlidingPane name="PAGE1" paneWidth={typeFieldRef?.width} paneHeight='170px'>
+                    <SlidingPane name="PAGE1" paneWidth={typeFieldRef?.width} paneHeight='170px'>
                         <div style={{
                             display: "flex",
                             justifyContent: "center",
@@ -287,7 +287,7 @@ export const TypeHelperComponent = (props: TypeHelperComponentProps) => {
                                                 >
                                                     <div style={{ marginTop: '10px' }}>
                                                         {category.items.map((item) => (
-                                                            <SlidingPaneNavContainer 
+                                                            <SlidingPaneNavContainer
                                                                 key={`${category.category}-${item.name}`}
                                                                 onClick={() => handleTypeItemClick(item)}
                                                             >

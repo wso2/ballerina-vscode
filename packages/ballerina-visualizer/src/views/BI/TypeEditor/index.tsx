@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { MutableRefObject, useCallback, useEffect, useRef, useState } from 'react';
 import { debounce } from 'lodash';
 import { LineRange, Type } from '@wso2/ballerina-core';
 import { useRpcContext } from '@wso2/ballerina-rpc-client';
@@ -48,10 +48,11 @@ type FormTypeEditorProps = {
     onTypeCreate: (typeName?: string) => void;
     getNewTypeCreateForm: () => void;
     onSaveType: (type: Type) => void
+    refetchTypes: boolean;
 };
 
 export const FormTypeEditor = (props: FormTypeEditorProps) => {
-    const { type, onTypeChange, newType, newTypeValue, isGraphql, onCloseCompletions, onTypeCreate, getNewTypeCreateForm, onSaveType } = props;
+    const { type, onTypeChange, newType, newTypeValue, isGraphql, onCloseCompletions, onTypeCreate, getNewTypeCreateForm, onSaveType, refetchTypes } = props;
     const { rpcClient } = useRpcContext();
 
     const [filePath, setFilePath] = useState<string | undefined>(undefined);
@@ -87,17 +88,27 @@ export const FormTypeEditor = (props: FormTypeEditorProps) => {
         }
     }, [rpcClient]);
 
+    const prevRefetchRef = useRef(false);
+
+    useEffect(() => {
+        if (refetchTypes && !prevRefetchRef.current) {
+            fetchedInitialTypes.current = false; 
+            handleSearchTypeHelper('', true); 
+        }
+        prevRefetchRef.current = refetchTypes;
+    }, [refetchTypes]);
+
     const debouncedSearchTypeHelper = useCallback(
         debounce((searchText: string, isType: boolean) => {
-            if (isType && !fetchedInitialTypes.current) {
+            if (isType && (!fetchedInitialTypes.current || refetchTypes)) {
                 if (rpcClient) {
                     rpcClient
                         .getBIDiagramRpcClient()
                         .getVisibleTypes({
                             filePath: filePath,
                             position: {
-                                line: targetLineRange.startLine.line,
-                                offset: targetLineRange.startLine.offset
+                                line: targetLineRange?.startLine.line,
+                                offset: targetLineRange?.startLine.offset
                             },
                         })
                         .then((types) => {
@@ -157,7 +168,7 @@ export const FormTypeEditor = (props: FormTypeEditorProps) => {
                 setLoading(false);
             }
         }, 150),
-        [basicTypes, filePath, targetLineRange]
+        [basicTypes, filePath, targetLineRange, refetchTypes]
     );
 
     const handleSearchTypeHelper = useCallback(

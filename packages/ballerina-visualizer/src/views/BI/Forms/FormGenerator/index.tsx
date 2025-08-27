@@ -52,7 +52,6 @@ import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import {
     Button,
     CompletionItem,
-    DynamicModal,
     FormExpressionEditorRef,
     HelperPaneHeight,
     ThemeColors,
@@ -91,6 +90,8 @@ import { getHelperPaneNew } from "../../HelperPaneNew";
 import { VariableForm } from "../DeclareVariableForm";
 import VectorKnowledgeBaseForm from "../VectorKnowledgeBaseForm";
 import { EditorContext, StackItem } from "@wso2/type-editor";
+import DynamicModal from "../../HelperPaneNew/Components/Modal";
+import React from "react";
 
 interface TypeEditorState {
     isOpen: boolean;
@@ -153,6 +154,30 @@ const StyledActionButton = styled(Button)`
     }
 `;
 
+const BreadcrumbContainer = styled.div`
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 20px;
+    background: ${ThemeColors.SURFACE_CONTAINER};
+    border-bottom: 1px solid ${ThemeColors.OUTLINE_VARIANT};
+`;
+
+const BreadcrumbItem = styled.span`
+    color: ${ThemeColors.ON_SURFACE_VARIANT};
+    font-size: var(--vscode-font-size);
+    
+    &:last-child {
+        color: ${ThemeColors.ON_SURFACE};
+        font-weight: 500;
+    }
+`;
+
+const BreadcrumbSeparator = styled.span`
+    color: ${ThemeColors.ON_SURFACE_VARIANT};
+    font-size: var(--vscode-font-size);
+`;
+
 export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(function FormGenerator(props: FormProps, ref: React.ForwardedRef<FormExpressionEditorRef>) {
     const {
         fileName,
@@ -182,8 +207,6 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
 
     const { rpcClient } = useRpcContext();
 
-    console.log("target line range", targetLineRange)
-
     const [fields, setFields] = useState<FormField[]>([]);
     const [formImports, setFormImports] = useState<FormImports>({});
     const [typeEditorState, setTypeEditorState] = useState<TypeEditorState>({ isOpen: false, newTypeValue: "" });
@@ -199,7 +222,6 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
     const expressionOffsetRef = useRef<number>(0); // To track the expression offset on adding import statements
 
     const [selectedType, setSelectedType] = useState<CompletionItem | null>(null);
-    const variables = completions.filter((completion) => completion.kind === 'variable')
 
     const importsCodedataRef = useRef<any>(null); // To store codeData for getVisualizableFields
 
@@ -208,13 +230,23 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
         isDirty: false,
         type: undefined
     }]);
+    const [refetchStates, setRefetchStates] = useState<boolean[]>([false]);
 
     const pushTypeStack = (item: StackItem) => {
         setStack((prev) => [...prev, item]);
+        setRefetchStates((prev) => [...prev, false]);
     };
 
     const popTypeStack = () => {
         setStack((prev) => prev.slice(0, -1));
+        setRefetchStates((prev) => {
+            const newStates = [...prev];
+            const currentState = newStates.pop();
+            if (currentState && newStates.length > 0) {
+                newStates[newStates.length - 1] = true;
+            }
+            return newStates;
+        });
     };
 
     const peekTypeStack = (): StackItem | null => {
@@ -229,6 +261,16 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
             return newStack;
         });
     }
+
+    const setRefetchForCurrentModal = (shouldRefetch: boolean) => {
+        setRefetchStates((prev) => {
+            const newStates = [...prev];
+            if (newStates.length > 0) {
+                newStates[newStates.length - 1] = shouldRefetch;
+            }
+            return newStates;
+        });
+    };
 
     useEffect(() => {
         if (rpcClient) {
@@ -388,11 +430,13 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
     };
 
     const handleTypeEditorStateChange = (state: boolean) => {
-        if (stack.length > 1) {
-            popTypeStack();
-            return;
+        if (!state) {
+            if (stack.length > 1) {
+                popTypeStack();
+                return;
+            }
+            stack[0].type = undefined
         }
-
         setTypeEditorState({ isOpen: state });
     }
 
@@ -809,10 +853,10 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
 
     const onSaveType = (type: Type) => {
         if (stack.length > 0) {
-            popTypeStack()
-        }
-        else {
-            setTypeEditorState({ isOpen: false })
+            setRefetchForCurrentModal(true);
+            popTypeStack();
+        } else {
+            setTypeEditorState({ isOpen: false });
         }
     }
 
@@ -981,16 +1025,29 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
                         title="Create New Type"
                         openState={typeEditorState.isOpen}
                         setOpenState={handleTypeEditorStateChange}>
-                        <FormTypeEditor
-                            type={peekTypeStack()?.type}
-                            newType={peekTypeStack() ? peekTypeStack().isDirty : false}
-                            newTypeValue={typeEditorState.newTypeValue}
-                            isGraphql={isGraphql}
-                            onTypeChange={onTypeChange}
-                            onSaveType={onSaveType}
-                            onTypeCreate={handleTypeCreate}
-                            getNewTypeCreateForm={getNewTypeCreateForm}
-                        />
+                        <div style={{ padding: '0px 15px' }}>
+                            <BreadcrumbContainer>
+                                {stack.slice(0, i + 1).map((stackItem, index) => (
+                                    <React.Fragment key={index}>
+                                        {index > 0 && <BreadcrumbSeparator>/</BreadcrumbSeparator>}
+                                        <BreadcrumbItem>
+                                            {stackItem?.type?.name || "New Type"}
+                                        </BreadcrumbItem>
+                                    </React.Fragment>
+                                ))}
+                            </BreadcrumbContainer>
+                            <FormTypeEditor
+                                type={peekTypeStack()?.type}
+                                newType={peekTypeStack() ? peekTypeStack().isDirty : false}
+                                newTypeValue={typeEditorState.newTypeValue}
+                                isGraphql={isGraphql}
+                                onTypeChange={onTypeChange}
+                                onSaveType={onSaveType}
+                                onTypeCreate={handleTypeCreate}
+                                getNewTypeCreateForm={getNewTypeCreateForm}
+                                refetchTypes={refetchStates[i]}
+                            />
+                        </div>
                     </DynamicModal>)
                 }
             </EditorContext.Provider>
@@ -1045,16 +1102,29 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
                     title="Create New Type"
                     openState={typeEditorState.isOpen}
                     setOpenState={handleTypeEditorStateChange}>
-                    <FormTypeEditor
-                        type={peekTypeStack()?.type}
-                        newType={peekTypeStack() ? peekTypeStack().isDirty : false}
-                        newTypeValue={typeEditorState.newTypeValue}
-                        isGraphql={isGraphql}
-                        onTypeChange={onTypeChange}
-                        onSaveType={onSaveType}
-                        onTypeCreate={handleTypeCreate}
-                        getNewTypeCreateForm={getNewTypeCreateForm}
-                    />
+                    <div style={{ padding: '0px 20px' }}>
+                        <BreadcrumbContainer>
+                            {stack.slice(0, i + 1).map((stackItem, index) => (
+                                <React.Fragment key={index}>
+                                    {index > 0 && <BreadcrumbSeparator>/</BreadcrumbSeparator>}
+                                    <BreadcrumbItem>
+                                         {stackItem?.type?.name || "New Type"}
+                                    </BreadcrumbItem>
+                                </React.Fragment>
+                            ))}
+                        </BreadcrumbContainer>
+                        <FormTypeEditor
+                            type={peekTypeStack()?.type}
+                            newType={peekTypeStack() ? peekTypeStack().isDirty : false}
+                            newTypeValue={typeEditorState.newTypeValue}
+                            isGraphql={isGraphql}
+                            onTypeChange={onTypeChange}
+                            onSaveType={onSaveType}
+                            onTypeCreate={handleTypeCreate}
+                            getNewTypeCreateForm={getNewTypeCreateForm}
+                            refetchTypes={refetchStates[i]}
+                        />
+                    </div>
                 </DynamicModal>)
             }
         </>
