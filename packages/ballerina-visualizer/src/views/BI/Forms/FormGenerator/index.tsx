@@ -725,6 +725,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
         changeHelperPaneState: (isOpen: boolean) => void,
         typeHelperHeight: HelperPaneHeight,
         onTypeCreate: () => void,
+        exprRef?: RefObject<FormExpressionEditorRef>,
     ) => {
         const handleCreateNewType = (typeName: string) => {
             onTypeCreate();
@@ -751,6 +752,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
             updateImports: handleUpdateImports,
             onTypeCreate: handleCreateNewType,
             onCloseCompletions: handleCloseCompletions,
+            exprRef: exprRef,
         });
     }
 

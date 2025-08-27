@@ -479,6 +479,7 @@ export function FormGeneratorNew(props: FormProps) {
         changeHelperPaneState: (isOpen: boolean) => void,
         typeHelperHeight: HelperPaneHeight,
         onTypeCreate: () => void,
+        exprRef: RefObject<FormExpressionEditorRef>,
     ) => {
         const formField = fieldsValues.find(f => f.key === fieldKey);
         const handleCreateNewType = (typeName: string) => {
@@ -505,7 +506,8 @@ export function FormGeneratorNew(props: FormProps) {
             changeTypeHelperState: changeHelperPaneState,
             updateImports: handleUpdateImports,
             onTypeCreate: handleCreateNewType,
-            onCloseCompletions: handleCloseCompletions
+            onCloseCompletions: handleCloseCompletions,
+            exprRef: exprRef,
         });
     }
 
