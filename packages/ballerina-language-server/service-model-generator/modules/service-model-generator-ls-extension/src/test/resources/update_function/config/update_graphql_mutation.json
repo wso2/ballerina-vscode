@@ -25,6 +25,72 @@
     "parameters": [
       {
         "metadata": {
+          "label": "Context",
+          "description": "The GraphQL context object"
+        },
+        "kind": "REQUIRED",
+        "type": {
+          "enabled": true,
+          "editable": false,
+          "value": "",
+          "valueType": "TYPE",
+          "valueTypeConstraint": "graphql:Context",
+          "isType": true,
+          "placeholder": "string",
+          "optional": false,
+          "advanced": false
+        },
+        "name": {
+          "enabled": true,
+          "editable": true,
+          "value": "",
+          "valueType": "IDENTIFIER",
+          "valueTypeConstraint": "string",
+          "isType": false,
+          "placeholder": "context",
+          "optional": false,
+          "advanced": false
+        },
+        "enabled": false,
+        "editable": true,
+        "optional": true,
+        "advanced": true
+      },
+      {
+        "metadata": {
+          "label": "Field",
+          "description": "The GraphQL field object"
+        },
+        "kind": "REQUIRED",
+        "type": {
+          "enabled": true,
+          "editable": false,
+          "value": "",
+          "valueType": "TYPE",
+          "valueTypeConstraint": "graphql:Field",
+          "isType": true,
+          "placeholder": "string",
+          "optional": false,
+          "advanced": false
+        },
+        "name": {
+          "enabled": true,
+          "editable": true,
+          "value": "",
+          "valueType": "IDENTIFIER",
+          "valueTypeConstraint": "string",
+          "isType": false,
+          "placeholder": "'field",
+          "optional": false,
+          "advanced": false
+        },
+        "enabled": false,
+        "editable": true,
+        "optional": true,
+        "advanced": true
+      },
+      {
+        "metadata": {
           "label": "id",
           "description": "id"
         },
@@ -130,7 +196,8 @@
       "inListenerInit": false,
       "isBasePath": false,
       "inDisplayAnnotation": false
-    }
+    },
+    "properties": {}
   },
   "output": {
     "update_graphql.bal": [

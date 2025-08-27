@@ -55,6 +55,12 @@ public class Codedata {
         this.lineRange = lineRange;
     }
 
+    public Codedata(LineRange lineRange, String moduleName, String orgName) {
+        this.lineRange = lineRange;
+        this.moduleName = moduleName;
+        this.orgName = orgName;
+    }
+
     public LineRange getLineRange() {
         return lineRange;
     }

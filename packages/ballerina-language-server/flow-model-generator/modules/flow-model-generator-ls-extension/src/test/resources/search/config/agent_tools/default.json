@@ -1,0 +1,85 @@
+{
+  "description": "Default agent tools search",
+  "kind": "AGENT_TOOL",
+  "source": "agent_project/agents.bal",
+  "position": {
+    "startLine": {
+      "line": 1,
+      "offset": 1
+    },
+    "endLine": {
+      "line": 1,
+      "offset": 1
+    }
+  },
+  "queryMap": {},
+  "categories": [
+    {
+      "metadata": {
+        "label": "Agent Tools",
+        "description": "Functions used as agent tools",
+        "keywords": [
+          "Project",
+          "Local",
+          "Function"
+        ]
+      },
+      "items": [
+        {
+          "metadata": {
+            "label": "calculateSum",
+            "description": "Agent tool function",
+            "data": {
+              "isAgentTool": true,
+              "isIsolatedFunction": true
+            }
+          },
+          "codedata": {
+            "node": "FUNCTION_CALL",
+            "org": "testorg",
+            "module": "agent_project",
+            "symbol": "calculateSum",
+            "version": "0.1.0"
+          },
+          "enabled": true
+        },
+        {
+          "metadata": {
+            "label": "getWeather",
+            "description": "Agent tool function",
+            "data": {
+              "isAgentTool": true,
+              "isIsolatedFunction": true
+            }
+          },
+          "codedata": {
+            "node": "FUNCTION_CALL",
+            "org": "testorg",
+            "module": "agent_project",
+            "symbol": "getWeather",
+            "version": "0.1.0"
+          },
+          "enabled": true
+        },
+        {
+          "metadata": {
+            "label": "processData",
+            "description": "Agent tool function",
+            "data": {
+              "isAgentTool": true,
+              "isIsolatedFunction": true
+            }
+          },
+          "codedata": {
+            "node": "FUNCTION_CALL",
+            "org": "testorg",
+            "module": "agent_project",
+            "symbol": "processData",
+            "version": "0.1.0"
+          },
+          "enabled": true
+        }
+      ]
+    }
+  ]
+}

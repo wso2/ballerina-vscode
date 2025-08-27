@@ -138,6 +138,10 @@ public class Value {
         return null;
     }
 
+    public Object getValueAsObject() {
+        return value;
+    }
+
     public List<String> getValues() {
         if (Objects.nonNull(values) && !values.isEmpty()) {
             Object firstValue = values.getFirst();

@@ -18,7 +18,8 @@
           "label": "Start",
           "data": {
             "kind": "Function",
-            "label": "testStart2"
+            "label": "testStart2",
+            "isServiceFunction": false
           }
         },
         "codedata": {
