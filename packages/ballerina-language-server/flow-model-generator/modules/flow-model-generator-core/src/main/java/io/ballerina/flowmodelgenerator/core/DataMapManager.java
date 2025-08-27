@@ -479,15 +479,23 @@ public class DataMapManager {
             }
             if (field.matches("\\d+")) {
                 int index = Integer.parseInt(field);
-                if (expr.kind() != SyntaxKind.LIST_CONSTRUCTOR) {
+                if (expr.kind() == SyntaxKind.LIST_CONSTRUCTOR) {
+                    ListConstructorExpressionNode listCtrExpressionNode = (ListConstructorExpressionNode) expr;
+                    SeparatedNodeList<Node> expressions = listCtrExpressionNode.expressions();
+                    if (index >= expressions.size()) {
+                        return null;
+                    }
+                    expr = (ExpressionNode) expressions.get(index);
+                } else if (expr.kind() == SyntaxKind.QUERY_EXPRESSION) {
+                    ClauseNode clauseNode = ((QueryExpressionNode) expr).resultClause();
+                    if (clauseNode.kind() == SyntaxKind.SELECT_CLAUSE) {
+                        expr = ((SelectClauseNode) clauseNode).expression();
+                    } else {
+                        expr = ((CollectClauseNode) clauseNode).expression();
+                    }
+                } else {
                     return null;
                 }
-                ListConstructorExpressionNode listCtrExpressionNode = (ListConstructorExpressionNode) expr;
-                SeparatedNodeList<Node> expressions = listCtrExpressionNode.expressions();
-                if (index >= expressions.size()) {
-                    return null;
-                }
-                expr = (ExpressionNode) expressions.get(index);
             } else {
                 if (expr.kind() != SyntaxKind.MAPPING_CONSTRUCTOR) {
                     return null;
@@ -1034,6 +1042,14 @@ public class DataMapManager {
                             mappingExpr, null, textEdits);
                 }
             }
+        } else if (expr.kind() == SyntaxKind.QUERY_EXPRESSION) {
+            ClauseNode clauseNode = ((QueryExpressionNode) expr).resultClause();
+            if (clauseNode.kind() == SyntaxKind.SELECT_CLAUSE) {
+                expr = ((SelectClauseNode) clauseNode).expression();
+            } else {
+                expr = ((CollectClauseNode) clauseNode).expression();
+            }
+            genSource(expr, names, idx, stringBuilder, mappingExpr, position, textEdits);
         }
     }
 
@@ -1652,6 +1668,9 @@ public class DataMapManager {
                 }
                 targetType = ((ArrayTypeSymbol) targetType).memberTypeDescriptor();
             } else {
+                if (targetType.typeKind() == TypeDescKind.ARRAY) {
+                    targetType = CommonUtils.getRawType(((ArrayTypeSymbol) targetType).memberTypeDescriptor());
+                }
                 if (targetType.typeKind() != TypeDescKind.RECORD) {
                     return null;
                 }
