@@ -26,7 +26,7 @@ import { convertConnectionCategories, getSearchConfig } from "./utils";
 import { getAiModuleOrg } from "../../views/BI/AIChatAgent/utils";
 
 export function ConnectionSelectionList(props: ConnectionSelectionListProps): JSX.Element {
-    const { connectionKind, onSelect } = props;
+    const { connectionKind, selectedNode, onSelect } = props;
 
     const { rpcClient } = useRpcContext();
     const [connectionCategories, setConnectionCategories] = useState<Category[]>([]);
@@ -43,7 +43,7 @@ export function ConnectionSelectionList(props: ConnectionSelectionListProps): JS
     const initPanel = async () => {
         setLoading(true);
         projectPath.current = await rpcClient.getVisualizerLocation().then((location) => location.projectUri);
-        aiModuleOrg.current = await getAiModuleOrg(rpcClient);
+        aiModuleOrg.current = await getAiModuleOrg(rpcClient, selectedNode?.codedata?.node);
         searchConfig.current = getSearchConfig(connectionKind, aiModuleOrg.current);
         await fetchConnections();
         setLoading(false);

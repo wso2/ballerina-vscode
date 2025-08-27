@@ -569,8 +569,8 @@ export function BIFocusFlowDiagram(props: BIFocusFlowDiagramProps) {
         handleExpressionEditorCancel();
     };
 
-    const handleOnEditAgentModel = (node: FlowNode) => {
-        console.log(">>> on edit agent model", node);
+    const handleOnEditNPFunctionModel = (node: FlowNode) => {
+        console.log(">>> on edit np function model provider", node);
         setSelectedNodeForConnection(node);
         setSelectedConnectionKind('MODEL_PROVIDER');
         setConnectionView(SidePanelView.CONNECTION_CONFIG);
@@ -653,7 +653,7 @@ export function BIFocusFlowDiagram(props: BIFocusFlowDiagramProps) {
                 onCancel: handleExpressionEditorCancel
             },
             aiNodes: {
-                onModelSelect: handleOnEditAgentModel,
+                onModelSelect: handleOnEditNPFunctionModel,
             },
         }),
         [flowModel, projectPath, breakpointInfo, filteredCompletions]
@@ -695,6 +695,7 @@ export function BIFocusFlowDiagram(props: BIFocusFlowDiagramProps) {
                     {connectionView === SidePanelView.CONNECTION_SELECT && (
                         <ConnectionSelectionList
                             connectionKind={selectedConnectionKind}
+                            selectedNode={selectedNodeForConnection}
                             onSelect={handleSelectConnection}
                         />
                     )}
