@@ -21,6 +21,10 @@ import { Codicon, Confirm, Icon } from '@wso2/ui-toolkit';
 import { VSCodeButton } from "@vscode/webview-ui-toolkit/react";
 import { FieldType } from '@wso2/ballerina-core';
 
+const COLORS = {
+    METHOD_BOX_BACKGROUND: '#845a23ff'
+} as const;
+
 type ContainerProps = {
     borderColor?: string;
     haveErrors?: boolean;
@@ -77,7 +81,7 @@ const MethodBox = styled.div`
     width: auto;
     text-align: center;
     padding: 3px 5px 3px 5px;
-    background-color: #845a23ff;
+    background-color: ${COLORS.METHOD_BOX_BACKGROUND};
     color: var(--vscode-button-foreground);
     align-items: center;
     font-weight: bold;
@@ -138,12 +142,20 @@ export function VariableCard(params: VariableCardProps) {
                 <ButtonSection>
                     <>
                         {onEditVariable! && (
-                            <VSCodeButton data-testid={`edit-variable-button-${fieldModel.name.value}`} appearance="icon" title="Edit Variable" onClick={handleEditResource}>
+                            <VSCodeButton
+                                data-testid={`edit-variable-button-${fieldModel.name.value}`}
+                                appearance="icon"
+                                title="Edit Variable"
+                                onClick={handleEditResource}>
                                 <Icon name="bi-edit" sx={{ marginTop: 3.5 }} />
                             </VSCodeButton>
                         )}
                         {onDeleteVariable! && (
-                            <VSCodeButton data-testid={`delete-variable-button-${fieldModel.name.value}`} appearance="icon" title="Delete Variable" onClick={handleDeleteResource}>
+                            <VSCodeButton
+                                data-testid={`delete-variable-button-${fieldModel.name.value}`}
+                                appearance="icon"
+                                title="Delete Variable"
+                                onClick={handleDeleteResource}>
                                 <Codicon name="trash" />
                             </VSCodeButton>
                         )}
