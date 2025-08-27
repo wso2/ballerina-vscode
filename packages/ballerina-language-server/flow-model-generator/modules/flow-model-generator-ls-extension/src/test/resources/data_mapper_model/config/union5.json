@@ -25,18 +25,18 @@
     "inputs": [
       {
         "fields": [],
-        "id": "dog",
-        "name": "dog",
-        "typeName": "Elephant|()",
+        "id": "elephant",
+        "name": "elephant",
+        "typeName": "Elephant|InvalidIntError",
         "kind": "record",
         "category": "local-variable",
         "ref": "252136892"
       },
       {
         "fields": [],
-        "id": "elephant",
-        "name": "elephant",
-        "typeName": "Elephant|InvalidIntError",
+        "id": "elephantOrNil",
+        "name": "elephantOrNil",
+        "typeName": "Elephant|()",
         "kind": "record",
         "category": "local-variable",
         "ref": "252136892"

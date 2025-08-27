@@ -30,7 +30,7 @@ function fn1() {
         cast: "Asian"
     };
 
-    Elephant? dog = {
+    Elephant? elephantOrNil = {
         name: "Dog",
         breed: "Husky"
     };
