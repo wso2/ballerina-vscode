@@ -141,9 +141,8 @@ export const Configurables = (props: ConfigurablesPageProps) => {
             packageName: `${packageInfo.org}/${packageInfo.name}`,
             moduleName: "",
         }).finally(() => {
-            handleFormClose()
             setIsSaving(false);
-            getConfigVariables
+            getConfigVariables();
         });
     };
 
