@@ -197,7 +197,9 @@ export const TypeHelperComponent = (props: TypeHelperComponentProps) => {
     };
 
     const handleTypeItemClick = (item: TypeHelperItem) => {
-        const prefixRegex = /[a-zA-Z0-9_':]*$/;
+       
+        // Use this after implementing operators
+        const prefixRegex =  /[a-zA-Z0-9_':| ]*$/;
         const suffixRegex = /^[a-zA-Z0-9_':]*/;
         const prefixMatch = currentType.slice(0, currentCursorPosition).match(prefixRegex);
         const suffixMatch = currentType.slice(currentCursorPosition).match(suffixRegex);
@@ -208,8 +210,6 @@ export const TypeHelperComponent = (props: TypeHelperComponentProps) => {
             currentType.slice(0, prefixCursorPosition) + item.insertText + currentType.slice(suffixCursorPosition),
             prefixCursorPosition + item.insertText.length
         );
-
-        onClose();
 
         onCloseCompletions?.();
     };
@@ -276,10 +276,10 @@ export const TypeHelperComponent = (props: TypeHelperComponentProps) => {
                             ) : (
                                 basicTypes?.length > 0 && (
                                     <ScrollableContainer style={{ margin: '8px 0px' }}>
-                                        {basicTypes.map((category) => (
-                                            <ExpandableList>
+                                        {basicTypes.map((category, index) => (
+                                            <ExpandableList key={category.category}>
                                                 <ExpandableList.Section
-                                                    key={category.category}
+                                                    sx={{ marginTop: index === 0 ? '0px' : '20px' }}
                                                     title={
                                                         <span style={{ padding: '10px' }}>{category.category}</span>
                                                     }
@@ -287,11 +287,11 @@ export const TypeHelperComponent = (props: TypeHelperComponentProps) => {
                                                 >
                                                     <div style={{ marginTop: '10px' }}>
                                                         {category.items.map((item) => (
-                                                            <SlidingPaneNavContainer onClick={() => handleTypeItemClick(item)}
+                                                            <SlidingPaneNavContainer 
+                                                                key={`${category.category}-${item.name}`}
+                                                                onClick={() => handleTypeItemClick(item)}
                                                             >
-                                                                <ExpandableList.Item
-                                                                    key={`${category.category}-${item.name}`}
-                                                                >
+                                                                <ExpandableList.Item>
                                                                     {getIcon(item.type)}
                                                                     <FunctionItemLabel>{item.name}</FunctionItemLabel>
                                                                 </ExpandableList.Item>
