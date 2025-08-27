@@ -38,7 +38,7 @@ export const IntegrationParameters: React.FC<IntegrationParametersProps> = ({
     return (
         <ParametersSection>
             <Typography variant="h3" sx={{ marginBottom: 12 }}>
-                Step 3: Configure {selectedIntegration.title} Settings
+                Configure {selectedIntegration.title} Settings
             </Typography>
             <BodyText>{`Configure additional settings for ${selectedIntegration.title} migration.`}</BodyText>
             {selectedIntegration.parameters.map((param) => (
