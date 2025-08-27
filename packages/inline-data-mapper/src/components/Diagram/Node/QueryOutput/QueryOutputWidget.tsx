@@ -137,7 +137,7 @@ export function QueryOutputWidget(props: QueryOutputWidgetProps) {
 				</TreeHeader>
 				{(expanded && field) && (
 					<TreeBody>
-						{outputType.member ? (
+						{outputType.kind === TypeKind.Array ? (
 							<ObjectOutputFieldWidget
 								engine={engine}
 								field={field}
