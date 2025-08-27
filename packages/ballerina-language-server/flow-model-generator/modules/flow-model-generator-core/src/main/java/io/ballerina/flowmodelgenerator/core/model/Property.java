@@ -154,6 +154,10 @@ public record Property(Metadata metadata, String valueType, Object valueTypeCons
     public static final String CONDITION_LABEL = "Condition";
     public static final String CONDITION_DOC = "Boolean Condition";
 
+    public static final String MATCH_TARGET_KEY = "matchTarget";
+    public static final String MATCH_TARGET_LABEL = "Target";
+    public static final String MATCH_TARGET_DOC = "Match target expression";
+
     public static final String IGNORE_KEY = "ignore";
     public static final String IGNORE_LABEL = "Ignore";
     public static final String IGNORE_DOC = "Ignore the error value";

@@ -630,9 +630,24 @@ public class FormBuilder<T> extends FacetedBuilder<T> {
                 .value(expressionNode == null ? "" : expressionNode.toSourceCode())
                 .placeholder("true")
                 .type(Property.ValueType.EXPRESSION)
+                .typeConstraint("boolean")
                 .editable();
         addProperty(Property.CONDITION_KEY, expressionNode);
         return this;
+    }
+
+    public void matchTarget(ExpressionNode expressionNode) {
+        propertyBuilder
+                .metadata()
+                    .label(Property.MATCH_TARGET_LABEL)
+                    .description(Property.MATCH_TARGET_DOC)
+                    .stepOut()
+                .value(expressionNode == null ? "" : expressionNode.toSourceCode())
+                .placeholder("true")
+                .type(Property.ValueType.EXPRESSION)
+                .typeConstraint("any|error")
+                .editable();
+        addProperty(Property.MATCH_TARGET_KEY, expressionNode);
     }
 
     public FormBuilder<T> retryCount(int retryCount) {
@@ -981,7 +996,8 @@ public class FormBuilder<T> extends FacetedBuilder<T> {
                 .placeholder("[]")
                 .value(expressionNode == null ? "" : expressionNode.kind() == SyntaxKind.CHECK_EXPRESSION ?
                         ((CheckExpressionNode) expressionNode).expression().toString() : expressionNode.toString())
-                .type(Property.ValueType.ACTION_OR_EXPRESSION);
+                .type(Property.ValueType.ACTION_OR_EXPRESSION)
+                .typeConstraint("(any|error)[]|stream<any|error, ()>|string|map<any|error>|json");
         addProperty(Property.COLLECTION_KEY, expressionNode);
         return this;
     }
