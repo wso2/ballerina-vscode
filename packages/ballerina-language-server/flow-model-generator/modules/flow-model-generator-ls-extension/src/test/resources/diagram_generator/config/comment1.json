@@ -19,6 +19,7 @@
           "data": {
             "kind": "Function",
             "label": "commentOnStatement",
+            "isServiceFunction": false,
             "return": "int"
           }
         },

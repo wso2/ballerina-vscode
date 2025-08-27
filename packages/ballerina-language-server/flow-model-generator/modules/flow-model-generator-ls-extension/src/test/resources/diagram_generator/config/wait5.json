@@ -19,6 +19,7 @@
           "data": {
             "kind": "Function",
             "label": "multipleWait",
+            "isServiceFunction": false,
             "return": "map<string|error>"
           }
         },

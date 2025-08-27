@@ -1,0 +1,16 @@
+{
+  "description": "Non-existent org name search test",
+  "kind": "AGENT",
+  "source": "empty.bal",
+  "queryMap": {
+    "orgName": "nonexistent"
+  },
+  "categories": [
+    {
+      "metadata": {
+        "label": "Agents"
+      },
+      "items": []
+    }
+  ]
+}

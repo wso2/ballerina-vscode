@@ -651,7 +651,8 @@
       "inListenerInit": false,
       "isBasePath": false,
       "inDisplayAnnotation": false
-    }
+    },
+    "properties": {}
   },
   "output": {
     "update_resource_path.bal": [

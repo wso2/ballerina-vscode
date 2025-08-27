@@ -25,24 +25,28 @@ import java.util.Objects;
 
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.getValueString;
 
+/**
+ * Represents a model use to render a Listener in UI.
+ *
+ * @since 1.0.0
+ */
 public class Listener {
-    private String id;
-    private String name;
-    private String type;
-    private String displayName;
-    private String description;
-    private DisplayAnnotation displayAnnotation;
-    private String moduleName;
-    private String orgName;
-    private String version;
-    private String packageName;
-    private String listenerProtocol;
-    private String icon;
+    private final String id;
+    private final String name;
+    private final String type;
+    private final String displayName;
+    private final String description;
+    private final String moduleName;
+    private final String orgName;
+    private final String version;
+    private final String packageName;
+    private final String listenerProtocol;
+    private final String icon;
     private Map<String, Value> properties;
     private Codedata codedata;
 
     public Listener(String id, String name, String type, String displayName, String description,
-                    DisplayAnnotation displayAnnotation, String moduleName, String orgName, String version,
+                    String moduleName, String orgName, String version,
                     String packageName, String listenerProtocol, String icon, Map<String, Value> properties,
                     Codedata codedata) {
         this.id = id;
@@ -50,7 +54,6 @@ public class Listener {
         this.type = type;
         this.displayName = displayName;
         this.description = description;
-        this.displayAnnotation = displayAnnotation;
         this.moduleName = moduleName;
         this.orgName = orgName;
         this.version = version;
@@ -140,10 +143,6 @@ public class Listener {
         return description;
     }
 
-    public DisplayAnnotation getDisplayAnnotation() {
-        return displayAnnotation;
-    }
-
     public String getVersion() {
         return version;
     }
@@ -170,7 +169,6 @@ public class Listener {
         private String type;
         private String displayName;
         private String description;
-        private DisplayAnnotation displayAnnotation;
         private String moduleName;
         private String orgName;
         private String version;
@@ -202,11 +200,6 @@ public class Listener {
 
         public ListenerBuilder setDescription(String description) {
             this.description = description;
-            return this;
-        }
-
-        public ListenerBuilder setDisplayAnnotation(DisplayAnnotation displayAnnotation) {
-            this.displayAnnotation = displayAnnotation;
             return this;
         }
 
@@ -251,7 +244,7 @@ public class Listener {
         }
 
         public Listener build() {
-            return new Listener(id, name, type, displayName, description, displayAnnotation, moduleName, orgName,
+            return new Listener(id, name, type, displayName, description, moduleName, orgName,
                     version, packageName, listenerProtocol, icon, properties, codedata);
         }
     }

@@ -11,10 +11,6 @@
       "type": "graphql",
       "displayName": "GraphQL Service",
       "description": "Add the service documentation",
-      "displayAnnotation": {
-        "label": "GraphQL Service",
-        "iconPath": "https://bcentral-packageicons.azureedge.net/images/ballerina_graphql_1.16.0.png"
-      },
       "moduleName": "graphql",
       "orgName": "ballerina",
       "version": "1.16.0",
@@ -27,75 +23,87 @@
             "label": "Listeners",
             "description": "The Listeners to be bound with the service"
           },
-          "enabled": true,
-          "editable": true,
-          "value": "",
-          "values": [],
+          "codedata": {
+            "type": "LISTENER"
+          },
+          "placeholder": "",
           "valueType": "MULTIPLE_SELECT",
           "valueTypeConstraint": "graphql:Listener",
-          "isType": false,
-          "placeholder": "",
-          "optional": false,
-          "advanced": false,
+          "value": "",
+          "values": [],
           "items": [
             "(+) Create and use a graphql listener with default configurations"
           ],
-          "codedata": {
-            "inListenerInit": false,
-            "isBasePath": false,
-            "inDisplayAnnotation": false,
-            "type": "LISTENER"
-          },
-          "addNewButton": true
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
         },
         "serviceType": {
           "metadata": {
             "label": "GraphQL Service Type",
             "description": "The name of the service contract type"
           },
-          "enabled": false,
-          "editable": true,
-          "value": "Service",
+          "codedata": {
+            "type": "SERVICE_TYPE"
+          },
+          "placeholder": "Service",
           "valueType": "SINGLE_SELECT",
           "valueTypeConstraint": "string",
-          "isType": false,
-          "placeholder": "Service",
-          "optional": false,
-          "advanced": false,
+          "value": "Service",
           "items": [
             "",
             "Service"
           ],
-          "codedata": {
-            "inListenerInit": false,
-            "isBasePath": false,
-            "inDisplayAnnotation": false,
-            "type": "SERVICE_TYPE"
-          },
-          "addNewButton": false
+          "enabled": false,
+          "editable": true,
+          "optional": false,
+          "advanced": false
         },
         "basePath": {
           "metadata": {
             "label": "Service Base Path",
             "description": ""
           },
-          "enabled": true,
-          "editable": true,
-          "value": "/graphql",
-          "values": [],
-          "valueType": "SERVICE_PATH",
-          "valueTypeConstraint": "string",
-          "isType": false,
-          "placeholder": "/graphql",
-          "optional": false,
-          "advanced": false,
           "codedata": {
-            "inListenerInit": false,
-            "isBasePath": false,
-            "inDisplayAnnotation": false,
             "type": "SERVICE_BASE_PATH"
           },
-          "addNewButton": false
+          "placeholder": "/graphql",
+          "valueType": "SERVICE_PATH",
+          "valueTypeConstraint": "string",
+          "value": "/graphql",
+          "values": [],
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "annotServiceConfig": {
+          "metadata": {
+            "label": "Service Configuration",
+            "description": "Define service configurations such as maximum query depth."
+          },
+          "codedata": {
+            "type": "ANNOTATION_ATTACHMENT",
+            "originalName": "ServiceConfig"
+          },
+          "placeholder": "{}",
+          "valueType": "EXPRESSION",
+          "valueTypeConstraint": "graphql:GraphqlServiceConfig",
+          "value": "",
+          "values": [],
+          "typeMembers": [
+            {
+              "type": "GraphqlServiceConfig",
+              "packageInfo": "ballerina:graphql:1.16.0",
+              "kind": "RECORD_TYPE",
+              "selected": true
+            }
+          ],
+          "enabled": true,
+          "editable": true,
+          "optional": true,
+          "advanced": true
         }
       },
       "functions": []

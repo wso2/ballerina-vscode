@@ -19,6 +19,7 @@
           "data": {
             "kind": "Function",
             "label": "getMusicMood",
+            "isServiceFunction": false,
             "parameters": [
               "int weatherCode"
             ],

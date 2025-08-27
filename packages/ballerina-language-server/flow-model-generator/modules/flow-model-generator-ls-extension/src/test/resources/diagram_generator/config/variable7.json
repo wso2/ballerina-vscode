@@ -19,6 +19,7 @@
           "data": {
             "kind": "Function",
             "label": "testNewDataWithoutExpression",
+            "isServiceFunction": false,
             "return": "error?"
           }
         },
