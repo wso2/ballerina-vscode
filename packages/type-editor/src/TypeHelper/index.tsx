@@ -243,6 +243,7 @@ export const TypeHelper = forwardRef<HTMLDivElement, TypeHelperProps>((props, re
                                 open={open}
                                 typeBrowserRef={typeBrowserRef}
                                 onClose={onClose}
+                                exprRef={undefined}
                                 {...rest}
                             />
                         </Transition>
