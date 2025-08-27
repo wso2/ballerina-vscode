@@ -98,7 +98,7 @@ export function ImportIntegrationForm({
                 project.
             </BodyText>
             <Typography variant="h3" sx={{ marginTop: 20 }}>
-                Step 1: Choose the source platform
+                Choose the source platform
             </Typography>
             <BodyText>Select the integration platform that your current project uses:</BodyText>
             <IntegrationCardGrid>
@@ -119,7 +119,7 @@ export function ImportIntegrationForm({
 
             {selectedIntegration && (
                 <StepContainer>
-                    <Typography variant="h3">Step 2: Select Your Project Folder</Typography>
+                    <Typography variant="h3">Select Your Project Folder</Typography>
                     <BodyText>{selectedIntegration.description}</BodyText>
                     <FolderPicker
                         selectedPath={importSourcePath}
@@ -135,7 +135,7 @@ export function ImportIntegrationForm({
                 </PathText>
             )}
 
-            {importSourcePath.length >= 2 && selectedIntegration && (
+            {selectedIntegration && (
                 <IntegrationParameters
                     selectedIntegration={selectedIntegration}
                     integrationParams={integrationParams}
