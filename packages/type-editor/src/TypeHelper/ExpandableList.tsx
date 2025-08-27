@@ -34,7 +34,7 @@ const Item = ({ children, onClick, sx }: ExpandableListItemProps) => {
 
 interface ExpandableListSectionProps {
     children: React.ReactNode;
-    title: string;
+    title: React.ReactNode;
     level?: number;
     sx?: React.CSSProperties;
 }

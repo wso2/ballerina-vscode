@@ -280,7 +280,9 @@ export const TypeHelperComponent = (props: TypeHelperComponentProps) => {
                                             <ExpandableList>
                                                 <ExpandableList.Section
                                                     key={category.category}
-                                                    title={category.category}
+                                                    title={
+                                                        <span style={{ padding: '10px' }}>{category.category}</span>
+                                                    }
                                                     level={0}
                                                 >
                                                     <div style={{ marginTop: '10px' }}>
