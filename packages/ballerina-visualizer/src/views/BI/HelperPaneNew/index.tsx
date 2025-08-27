@@ -251,58 +251,60 @@ const HelperPaneNewEl = ({
             <HelperPaneCustom.Body>
                 <SlidingWindow>
                     <SlidingPane name="PAGE1" paneWidth={rect.width} paneHeight='170px'>
-                        <ExpandableList >
-                            {valueTypeConstraint && (
-                                recordTypeField ?
-                                    <SlidingPaneNavContainer onClick={() => setIsModalOpen(true)}>
-                                          <ExpandableList.Item>
-                                            {getIcon(COMPLETION_ITEM_KIND.Value)}
-                                            <Typography variant="body3" sx={{ fontWeight: 600 }}>
-                                                 Create value
-                                            </Typography>
-                                        </ExpandableList.Item>
-                                    </SlidingPaneNavContainer> :
-                                    <SlidingPaneNavContainer
-                                        ref={el => menuItemRefs.current[0] = el}
-                                        to="CREATE_VALUE"
-                                        data={recordTypeField}
-                                        sx={{ backgroundColor: getMenuItemColor(currentMenuItemCount, 0) }}
-                                    >
-                                        <ExpandableList.Item>
-                                            {getIcon(COMPLETION_ITEM_KIND.Value)}
-                                            <Typography variant="body3" sx={{ fontWeight: 600 }}>
-                                                Create Value
-                                            </Typography>
-                                        </ExpandableList.Item>
-                                    </SlidingPaneNavContainer>
-                            )}
-                            <SlidingPaneNavContainer
-                                ref={el => menuItemRefs.current[1] = el}
-                                to="VARIABLES"
-                                sx={{ backgroundColor: getMenuItemColor(currentMenuItemCount, 1) }}
-                            >
-                                <ExpandableList.Item>
-                                    {getIcon(COMPLETION_ITEM_KIND.Variable)}
-                                    <Typography variant="body3" sx={{ fontWeight: 600 }}>
-                                        Variables
-                                    </Typography>
-                                </ExpandableList.Item>
-                            </SlidingPaneNavContainer>
-                            <SlidingPaneNavContainer
-                                ref={el => menuItemRefs.current[2] = el}
-                                to="CONFIGURABLES"
-                                sx={{ backgroundColor: getMenuItemColor(currentMenuItemCount, 2) }}
-                            >
-                                <ExpandableList.Item>
-                                    <TitleContainer>
-                                        {getIcon(COMPLETION_ITEM_KIND.Constant)}
+                        <div style={{ padding: '8px 0px' }}>
+                            <ExpandableList >
+
+                                {valueTypeConstraint && (
+                                    recordTypeField ?
+                                        <SlidingPaneNavContainer onClick={() => setIsModalOpen(true)}>
+                                            <ExpandableList.Item>
+                                                {getIcon(COMPLETION_ITEM_KIND.Value)}
+                                                <Typography variant="body3" sx={{ fontWeight: 600 }}>
+                                                    Create value
+                                                </Typography>
+                                            </ExpandableList.Item>
+                                        </SlidingPaneNavContainer> :
+                                        <SlidingPaneNavContainer
+                                            ref={el => menuItemRefs.current[0] = el}
+                                            to="CREATE_VALUE"
+                                            data={recordTypeField}
+                                            sx={{ backgroundColor: getMenuItemColor(currentMenuItemCount, 0) }}
+                                        >
+                                            <ExpandableList.Item>
+                                                {getIcon(COMPLETION_ITEM_KIND.Value)}
+                                                <Typography variant="body3" sx={{ fontWeight: 600 }}>
+                                                    Create Value
+                                                </Typography>
+                                            </ExpandableList.Item>
+                                        </SlidingPaneNavContainer>
+                                )}
+                                <SlidingPaneNavContainer
+                                    ref={el => menuItemRefs.current[1] = el}
+                                    to="VARIABLES"
+                                    sx={{ backgroundColor: getMenuItemColor(currentMenuItemCount, 1) }}
+                                >
+                                    <ExpandableList.Item>
+                                        {getIcon(COMPLETION_ITEM_KIND.Variable)}
                                         <Typography variant="body3" sx={{ fontWeight: 600 }}>
-                                            Configurables
+                                            Variables
                                         </Typography>
-                                    </TitleContainer>
-                                </ExpandableList.Item>
-                            </SlidingPaneNavContainer>
-                            {/* <SlidingPaneNavContainer to="ENVS">
+                                    </ExpandableList.Item>
+                                </SlidingPaneNavContainer>
+                                <SlidingPaneNavContainer
+                                    ref={el => menuItemRefs.current[2] = el}
+                                    to="CONFIGURABLES"
+                                    sx={{ backgroundColor: getMenuItemColor(currentMenuItemCount, 2) }}
+                                >
+                                    <ExpandableList.Item>
+                                        <TitleContainer>
+                                            {getIcon(COMPLETION_ITEM_KIND.Constant)}
+                                            <Typography variant="body3" sx={{ fontWeight: 600 }}>
+                                                Configurables
+                                            </Typography>
+                                        </TitleContainer>
+                                    </ExpandableList.Item>
+                                </SlidingPaneNavContainer>
+                                {/* <SlidingPaneNavContainer to="ENVS">
                                 <ExpandableList.Item>
                                     <TitleContainer>
                                         {getIcon(COMPLETION_ITEM_KIND.EnumMember)}
@@ -312,20 +314,21 @@ const HelperPaneNewEl = ({
                                     </TitleContainer>
                                 </ExpandableList.Item>
                             </SlidingPaneNavContainer> */}
-                            <SlidingPaneNavContainer
-                                ref={el => menuItemRefs.current[3] = el}
-                                to="FUNCTIONS"
-                                sx={{ backgroundColor: getMenuItemColor(currentMenuItemCount, 3) }}
-                            >
-                                <ExpandableList.Item>
-                                    {getIcon(COMPLETION_ITEM_KIND.Function)}
-                                    <Typography variant="body3" sx={{ fontWeight: 600 }}>
-                                        Functions
-                                    </Typography>
-                                </ExpandableList.Item>
-                            </SlidingPaneNavContainer>
-                        </ExpandableList>
+                                <SlidingPaneNavContainer
+                                    ref={el => menuItemRefs.current[3] = el}
+                                    to="FUNCTIONS"
+                                    sx={{ backgroundColor: getMenuItemColor(currentMenuItemCount, 3) }}
+                                >
+                                    <ExpandableList.Item>
+                                        {getIcon(COMPLETION_ITEM_KIND.Function)}
+                                        <Typography variant="body3" sx={{ fontWeight: 600 }}>
+                                            Functions
+                                        </Typography>
+                                    </ExpandableList.Item>
+                                </SlidingPaneNavContainer>
+                            </ExpandableList>
 
+                        </div>
                         {/* <div style={{ marginTop: "auto", gap: '10px' }}>
                             <Divider />
                             <DynamicModal width={600} height={400} anchorRef={anchorRef} title="Build Expression with BI Copilot" openState={isModalOpen} setOpenState={setIsModalOpen}>
@@ -387,7 +390,7 @@ const HelperPaneNewEl = ({
                             selectedType={selectedType} />
                     </SlidingPane>
 
-                    <SlidingPane name="CONFIGURABLES" paneWidth={rect.width }>
+                    <SlidingPane name="CONFIGURABLES" paneWidth={rect.width}>
                         <SlidingPaneHeader>
                             Configurables
                         </SlidingPaneHeader>
@@ -416,7 +419,7 @@ const HelperPaneNewEl = ({
                     />
                 </DynamicModal>
             </HelperPaneCustom.Body>
-        </HelperPaneCustom>
+        </HelperPaneCustom >
     );
 };
 

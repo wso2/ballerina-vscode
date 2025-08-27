@@ -53,7 +53,6 @@ export const Configurables = (props: ConfigurablesPageProps) => {
                 isNew: true,
                 isEnvVariable: isImportEnv
             });
-            console.log("#### node value ", node, isImportEnv)
             setCofigVarNode(node.flowNode);
         };
 
@@ -224,7 +223,7 @@ export const Configurables = (props: ConfigurablesPageProps) => {
                                                         >
                                                             <ExpandableList.Item
                                                             >
-                                                                {getIcon(COMPLETION_ITEM_KIND.Parameter)}
+                                                                {getIcon(COMPLETION_ITEM_KIND.Constant)}
                                                                 {item?.properties?.variable?.value as ReactNode}
                                                             </ExpandableList.Item>
                                                         </SlidingPaneNavContainer>
@@ -238,7 +237,7 @@ export const Configurables = (props: ConfigurablesPageProps) => {
                                                         onClick={() => { handleItemClicked(item?.properties?.variable?.value as string) }}>
                                                         <ExpandableList.Item
                                                         >
-                                                            {getIcon(COMPLETION_ITEM_KIND.Parameter)}
+                                                            {getIcon(COMPLETION_ITEM_KIND.Constant)}
                                                             {item?.properties?.variable?.value as ReactNode}
                                                         </ExpandableList.Item>
                                                     </SlidingPaneNavContainer>

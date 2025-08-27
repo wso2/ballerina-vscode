@@ -17,7 +17,11 @@
  */
 
 import { useEffect, useRef, useState } from "react";
-import { FunctionNode, LineRange, NodeKind, NodeProperties, NodePropertyKey, DIRECTORY_MAP, EVENT_TYPE } from "@wso2/ballerina-core";
+import { FunctionNode, LineRange, NodeKind, NodeProperties as OriginalNodeProperties, NodePropertyKey, DIRECTORY_MAP, EVENT_TYPE } from "@wso2/ballerina-core";
+
+type NodeProperties = OriginalNodeProperties & {
+    [key: string]: any;
+};
 import { View, ViewContent } from "@wso2/ui-toolkit";
 import styled from "@emotion/styled";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
@@ -156,6 +160,18 @@ export function FunctionFormStatic(props: FunctionFormProps) {
                 id: { node: kind },
             });
         let flowNode = res.flowNode;
+
+        let properties = flowNode.properties as NodeProperties;
+
+        // Remove the description fields from properties
+        properties = Object.keys(properties).reduce((acc, key) => {
+            if (!key.toLowerCase().includes('functionnamedescription') && !key.toLowerCase().includes('typedescription')) {
+                acc[key] = properties[key];
+            }
+            return acc;
+        }, {} as NodeProperties);
+        flowNode.properties = properties;
+
         if (defaultType && flowNode.properties && flowNode.properties.type) {
             flowNode.properties.type.value = defaultType;
         }
@@ -165,7 +181,6 @@ export function FunctionFormStatic(props: FunctionFormProps) {
             * HACK: Add the advanced fields under parameters.advanceProperties
             */
             // Get all the advanced fields
-            let properties = flowNode.properties as NodeProperties;
             const advancedProperties = Object.fromEntries(
                 Object.entries(properties).filter(([_, property]) => property.advanced)
             );
