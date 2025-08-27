@@ -147,6 +147,7 @@ type FormTypeConditionalProps = {
         changeTypeHelperState: (isOpen: boolean) => void,
         helperPaneHeight: HelperPaneHeight,
         onTypeCreate: () => void,
+        exprRef?: RefObject<FormExpressionEditorRef>,
     ) => JSX.Element;
     helperPaneOrigin?: HelperPaneOrigin;
     helperPaneHeight: HelperPaneHeight;

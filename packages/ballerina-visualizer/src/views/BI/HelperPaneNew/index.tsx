@@ -250,7 +250,7 @@ const HelperPaneNewEl = ({
         <HelperPaneCustom anchorRef={anchorRef}>
             <HelperPaneCustom.Body>
                 <SlidingWindow>
-                    <SlidingPane name="PAGE1" paneWidth={rect.width + HELPER_PANE_EX_BTN_OFFSET} paneHeight='170px'>
+                    <SlidingPane name="PAGE1" paneWidth={rect.width} paneHeight='170px'>
                         <ExpandableList >
                             {valueTypeConstraint && (
                                 recordTypeField ?
@@ -342,7 +342,7 @@ const HelperPaneNewEl = ({
                     </SlidingPane>
 
                     {/* Variables Page */}
-                    <SlidingPane name="VARIABLES" paneWidth={rect.width + HELPER_PANE_EX_BTN_OFFSET}>
+                    <SlidingPane name="VARIABLES" paneWidth={rect.width}>
                         <SlidingPaneHeader>
                             Variables
                         </SlidingPaneHeader>
@@ -361,7 +361,7 @@ const HelperPaneNewEl = ({
                         />
                     </SlidingPane>
 
-                    <SlidingPane name="CREATE_VALUE" paneWidth={rect.width + HELPER_PANE_EX_BTN_OFFSET}>
+                    <SlidingPane name="CREATE_VALUE" paneWidth={rect.width}>
                         <SlidingPaneHeader> Create Value</SlidingPaneHeader>
                         <CreateValue
                             fileName={fileName}
@@ -372,7 +372,7 @@ const HelperPaneNewEl = ({
                             anchorRef={anchorRef} />
                     </SlidingPane>
 
-                    <SlidingPane name="FUNCTIONS" paneWidth={rect.width + HELPER_PANE_EX_BTN_OFFSET}>
+                    <SlidingPane name="FUNCTIONS" paneWidth={rect.width}>
                         <SlidingPaneHeader>
                             Functions
                         </SlidingPaneHeader>
@@ -387,7 +387,7 @@ const HelperPaneNewEl = ({
                             selectedType={selectedType} />
                     </SlidingPane>
 
-                    <SlidingPane name="CONFIGURABLES" paneWidth={rect.width + HELPER_PANE_EX_BTN_OFFSET}>
+                    <SlidingPane name="CONFIGURABLES" paneWidth={rect.width }>
                         <SlidingPaneHeader>
                             Configurables
                         </SlidingPaneHeader>
@@ -460,7 +460,6 @@ export const getHelperPaneNew = (props: HelperPaneNewProps) => {
         handleOnFormSubmit,
         selectedType,
         filteredCompletions,
-        variables,
         isInModal,
         valueTypeConstraint
     } = props;
@@ -485,7 +484,6 @@ export const getHelperPaneNew = (props: HelperPaneNewProps) => {
             handleOnFormSubmit={handleOnFormSubmit}
             selectedType={selectedType}
             filteredCompletions={filteredCompletions}
-            variables={variables}
             isInModal={isInModal}
             valueTypeConstraint={valueTypeConstraint}
             handleRetrieveCompletions={props.handleRetrieveCompletions}

@@ -105,7 +105,7 @@ export function TypeEditor(props: TypeEditorProps) {
         onBlur,
         onCompletionItemSelect,
         onSave,
-        onCancel,
+        onCancel
     } = expressionEditor;
 
     const exprRef = useRef<FormExpressionEditorRef>(null);
@@ -188,7 +188,8 @@ export function TypeEditor(props: TypeEditorProps) {
             onChange,
             handleChangeTypeHelperState,
             helperPaneHeight,
-            handleCancel
+            handleCancel,
+            exprRef
         );
     }
 
