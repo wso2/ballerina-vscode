@@ -148,6 +148,11 @@ export function ImportIntegration() {
             if (progressUpdate.success) {
                 setPullingTool(false);
             }
+
+            if (progressUpdate.step === -1) {
+                setPullingTool(false);
+                rpcClient.getCommonRpcClient().showErrorMessage({ message: progressUpdate.message })
+            }
         });
 
         rpcClient.onMigrationToolStateChanged((state) => {
