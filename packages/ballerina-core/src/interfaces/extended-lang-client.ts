@@ -1138,7 +1138,7 @@ export interface ImportIntegrationRequest {
     packageName: string;
     orgName: string;
     sourcePath: string;
-    [key: string]: any;
+    parameters?: Record<string, any>;
 }
 
 export interface ImportIntegrationResponse {

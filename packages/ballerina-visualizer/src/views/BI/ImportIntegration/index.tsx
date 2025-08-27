@@ -60,7 +60,7 @@ export function ImportIntegration() {
         });
     };
 
-    // Handler to begin the import and switch to the loading view
+    // Handler to begin the import and switch to the migration progress view
     const handleStartImport = (
         importParams: FinalIntegrationParams,
         selectedIntegration: MigrationTool,
@@ -76,6 +76,7 @@ export function ImportIntegration() {
             packageName: "",
             commandName: selectedIntegration.commandName,
             sourcePath: importParams.importSourcePath,
+            parameters: importParams.parameters,
         };
         rpcClient
             .getMigrateIntegrationRpcClient()

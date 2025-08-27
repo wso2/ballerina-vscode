@@ -44,7 +44,7 @@ export interface ImportIntegrationRPCRequest {
     commandName: string;
     packageName: string;
     sourcePath: string;
-    [key: string]: any;
+    parameters?: Record<string, any>;
 }
 
 export interface OpenMigrationReportRequest {
