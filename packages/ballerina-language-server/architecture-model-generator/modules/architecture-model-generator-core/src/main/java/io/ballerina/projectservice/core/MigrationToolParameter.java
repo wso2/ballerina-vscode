@@ -18,4 +18,6 @@
 
 package io.ballerina.projectservice.core;
 
-public record MigrationToolParameter(String key, String label, String valueType, String defaultValue) { }
+import java.util.List;
+
+public record MigrationToolParameter(String key, String label, String valueType, String defaultValue, List<String> options) { }
