@@ -62,8 +62,6 @@ export function QueryOutputWidget(props: QueryOutputWidgetProps) {
 	const [portState, setPortState] = useState<PortState>(PortState.Unselected);
 	const [isHovered, setIsHovered] = useState(false);
 
-	const collapsedFieldsStore = useDMCollapsedFieldsStore();
-
 	const { setIsIOConfigPanelOpen, setIOConfigPanelType, setIsSchemaOverridden } = useDMIOConfigPanelStore(
 		useShallow(state => ({
 			setIsIOConfigPanelOpen: state.setIsIOConfigPanelOpen,
@@ -139,7 +137,7 @@ export function QueryOutputWidget(props: QueryOutputWidgetProps) {
 				</TreeHeader>
 				{(expanded && field) && (
 					<TreeBody>
-						{field.kind === TypeKind.Record ? (
+						{outputType.member ? (
 							<ObjectOutputFieldWidget
 								engine={engine}
 								field={field}
@@ -149,18 +147,6 @@ export function QueryOutputWidget(props: QueryOutputWidgetProps) {
 								treeDepth={0}
 								hasHoveredParent={isHovered}
 								isPortParent={true}
-							/>
-						) : field.kind === TypeKind.Array ? (
-							<ArrayOutputFieldWidget
-								key={id}
-								engine={engine}
-								field={field}
-								getPort={getPort}
-								parentId={id}
-								context={context}
-								fieldIndex={undefined}
-								treeDepth={0}
-								hasHoveredParent={isHovered}
 							/>
 						) : (
 							<PrimitiveOutputElementWidget
