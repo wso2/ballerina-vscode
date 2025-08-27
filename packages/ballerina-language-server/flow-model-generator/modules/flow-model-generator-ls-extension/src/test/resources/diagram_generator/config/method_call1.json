@@ -18,7 +18,8 @@
           "label": "Start",
           "data": {
             "kind": "Function",
-            "label": "userMethods"
+            "label": "userMethods",
+            "isServiceFunction": false
           }
         },
         "codedata": {

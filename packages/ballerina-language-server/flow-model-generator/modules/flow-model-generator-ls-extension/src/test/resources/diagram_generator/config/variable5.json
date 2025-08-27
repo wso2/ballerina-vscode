@@ -19,6 +19,7 @@
           "data": {
             "kind": "Function",
             "label": "testNewDataJson2",
+            "isServiceFunction": false,
             "parameters": [
               "int amount"
             ],

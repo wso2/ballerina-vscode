@@ -652,7 +652,10 @@
         "optional": false,
         "editable": true,
         "canAddParameters": false,
-        "annotations": {}
+        "advanceProperties": {
+          "annotations": {},
+          "parameters": []
+        }
       }
     ]
   },

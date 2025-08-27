@@ -35,6 +35,72 @@
     "parameters": [
       {
         "metadata": {
+          "label": "Context",
+          "description": "The GraphQL context object"
+        },
+        "kind": "REQUIRED",
+        "type": {
+          "enabled": true,
+          "editable": false,
+          "value": "graphql:Context",
+          "valueType": "TYPE",
+          "valueTypeConstraint": "graphql:Context",
+          "isType": true,
+          "placeholder": "string",
+          "optional": false,
+          "advanced": false
+        },
+        "name": {
+          "enabled": true,
+          "editable": false,
+          "value": "context",
+          "valueType": "IDENTIFIER",
+          "valueTypeConstraint": "string",
+          "isType": false,
+          "placeholder": "context",
+          "optional": false,
+          "advanced": false
+        },
+        "enabled": true,
+        "editable": false,
+        "optional": false,
+        "advanced": false
+      },
+      {
+        "metadata": {
+          "label": "Field",
+          "description": "The GraphQL field object"
+        },
+        "kind": "REQUIRED",
+        "type": {
+          "enabled": true,
+          "editable": false,
+          "value": "graphql:Field",
+          "valueType": "TYPE",
+          "valueTypeConstraint": "graphql:Field",
+          "isType": true,
+          "placeholder": "string",
+          "optional": false,
+          "advanced": false
+        },
+        "name": {
+          "enabled": true,
+          "editable": false,
+          "value": "'field",
+          "valueType": "IDENTIFIER",
+          "valueTypeConstraint": "string",
+          "isType": false,
+          "placeholder": "'field",
+          "optional": false,
+          "advanced": false
+        },
+        "enabled": false,
+        "editable": false,
+        "optional": false,
+        "advanced": false
+      },
+      {
+        "metadata": {
           "label": "name",
           "description": "name"
         },
@@ -110,9 +176,72 @@
           "offset": 5
         }
       },
+      "moduleName": "graphql",
       "inListenerInit": false,
       "isBasePath": false,
       "inDisplayAnnotation": false
+    },
+    "properties": {
+      "paramContext": {
+        "metadata": {
+          "label": "Context",
+          "description": "The GraphQL context object"
+        },
+        "enabled": true,
+        "editable": true,
+        "value": false,
+        "valueType": "FLAG",
+        "valueTypeConstraint": "graphql:Context",
+        "isType": false,
+        "placeholder": "{}",
+        "optional": true,
+        "advanced": true,
+        "codedata": {
+          "type": "PARAMETER",
+          "originalName": "Context",
+          "orgName": "ballerina",
+          "moduleName": "graphql"
+        },
+        "addNewButton": false,
+        "typeMembers": [
+          {
+            "type": "Context",
+            "packageInfo": "ballerina:graphql:1.16.0",
+            "kind": "OBJECT_TYPE",
+            "selected": false
+          }
+        ]
+      },
+      "paramField": {
+        "metadata": {
+          "label": "Field",
+          "description": "The GraphQL field object"
+        },
+        "enabled": true,
+        "editable": true,
+        "value": true,
+        "valueType": "FLAG",
+        "valueTypeConstraint": "graphql:Field",
+        "isType": false,
+        "placeholder": "{}",
+        "optional": true,
+        "advanced": true,
+        "codedata": {
+          "type": "PARAMETER",
+          "originalName": "Field",
+          "orgName": "ballerina",
+          "moduleName": "graphql"
+        },
+        "addNewButton": false,
+        "typeMembers": [
+          {
+            "type": "Field",
+            "packageInfo": "ballerina:graphql:1.16.0",
+            "kind": "OBJECT_TYPE",
+            "selected": false
+          }
+        ]
+      }
     }
   },
   "output": {
@@ -138,10 +267,10 @@
           },
           "end": {
             "line": 29,
-            "character": 62
+            "character": 87
           }
         },
-        "newText": "(string id) returns string|int "
+        "newText": "(graphql:Field 'field, string id) returns string|int "
       }
     ]
   }

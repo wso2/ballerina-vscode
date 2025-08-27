@@ -1,0 +1,167 @@
+{
+  "source": "chunker/chunker.bal",
+  "codedata": {
+    "node": "CHUNKER",
+    "module": "ai",
+    "packageName": "ai",
+    "symbol": "init",
+    "org": "ballerina",
+    "importStmt": "import ballerina/ai",
+    "object": "MarkdownChunker",
+    "flags": 1
+  },
+  "expectedTemplate": {
+    "flowNode": {
+      "id": "31",
+      "metadata": {
+        "label": "Chunker",
+        "description": "Initializes a new instance of the `MarkdownChunker`.\n",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.4.1.png"
+      },
+      "codedata": {
+        "node": "CHUNKER",
+        "org": "ballerina",
+        "module": "ai",
+        "packageName": "ai",
+        "object": "MarkdownChunker",
+        "version": "1.4.1",
+        "isNew": true
+      },
+      "returning": false,
+      "properties": {
+        "type": {
+          "metadata": {
+            "label": "Result Type",
+            "description": "Type of the variable"
+          },
+          "valueType": "TYPE",
+          "value": "ai:MarkdownChunker",
+          "placeholder": "var",
+          "optional": false,
+          "editable": false,
+          "advanced": false,
+          "hidden": false,
+          "codedata": {}
+        },
+        "variable": {
+          "metadata": {
+            "label": "Chunker Name",
+            "description": "Chunker instance name"
+          },
+          "valueType": "IDENTIFIER",
+          "value": "aiMarkdownchunker",
+          "optional": false,
+          "editable": true,
+          "advanced": false,
+          "hidden": false
+        },
+        "maxChunkSize": {
+          "metadata": {
+            "label": "Max Chunk Size",
+            "description": "Maximum number of characters allowed per chunk"
+          },
+          "valueType": "EXPRESSION",
+          "valueTypeConstraint": "int",
+          "placeholder": "0",
+          "optional": true,
+          "editable": true,
+          "advanced": true,
+          "hidden": false,
+          "codedata": {
+            "kind": "DEFAULTABLE",
+            "originalName": "maxChunkSize"
+          },
+          "typeMembers": [
+            {
+              "type": "int",
+              "packageInfo": "",
+              "packageName": "",
+              "kind": "BASIC_TYPE",
+              "selected": false
+            }
+          ],
+          "defaultValue": "0"
+        },
+        "maxOverlapSize": {
+          "metadata": {
+            "label": "Max Overlap Size",
+            "description": "Maximum number of characters to reuse from the end of the previous chunk when creating\nthe next one."
+          },
+          "valueType": "EXPRESSION",
+          "valueTypeConstraint": "int",
+          "placeholder": "0",
+          "optional": true,
+          "editable": true,
+          "advanced": true,
+          "hidden": false,
+          "codedata": {
+            "kind": "DEFAULTABLE",
+            "originalName": "maxOverlapSize"
+          },
+          "typeMembers": [
+            {
+              "type": "int",
+              "packageInfo": "",
+              "packageName": "",
+              "kind": "BASIC_TYPE",
+              "selected": false
+            }
+          ],
+          "defaultValue": "0"
+        },
+        "strategy": {
+          "metadata": {
+            "label": "Strategy",
+            "description": "The markdown chunking strategy to use. Defaults to `MARKDOWN_HEADER`"
+          },
+          "valueType": "EXPRESSION",
+          "valueTypeConstraint": "ai:MarkdownChunkStrategy",
+          "placeholder": "\"CHARACTER\"",
+          "optional": true,
+          "editable": true,
+          "advanced": true,
+          "hidden": false,
+          "codedata": {
+            "kind": "DEFAULTABLE",
+            "originalName": "strategy"
+          },
+          "typeMembers": [
+            {
+              "type": "MarkdownChunkStrategy",
+              "packageInfo": "ballerina:ai:1.4.1",
+              "packageName": "ai",
+              "kind": "BASIC_TYPE",
+              "selected": false
+            }
+          ],
+          "defaultValue": "\"CHARACTER\""
+        },
+        "scope": {
+          "metadata": {
+            "label": "Connection Scope",
+            "description": "Scope of the connection, Global or Local"
+          },
+          "valueType": "ENUM",
+          "value": "Global",
+          "optional": false,
+          "editable": true,
+          "advanced": true,
+          "hidden": true
+        },
+        "checkError": {
+          "metadata": {
+            "label": "Check Error",
+            "description": "Terminate on error"
+          },
+          "valueType": "FLAG",
+          "value": true,
+          "optional": false,
+          "editable": false,
+          "advanced": true,
+          "hidden": true
+        }
+      },
+      "flags": 0
+    }
+  }
+}

@@ -69,6 +69,8 @@ public record Category(Metadata metadata, List<Item> items) implements Item {
         EMBEDDING_PROVIDER("Embedding Providers",
                 "Embedding providers used in the integration to connect to embedding models", null),
         VECTOR_STORE("Vector Stores", "Vector stores used in the integration", null),
+        DATA_LOADER("Data Loaders", "Data loaders available in the integration", null),
+        CHUNKER("Chunkers", "Document chunkers available in the integration", null),
         AI("AI", "AI components available in the flow", null),
         MORE("More", "Expandable section to view more content", null),
         DIRECT_LLM("Direct LLM", "AI components that connect directly with a large language model", null),

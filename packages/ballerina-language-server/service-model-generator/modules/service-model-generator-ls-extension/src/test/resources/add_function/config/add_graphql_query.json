@@ -12,10 +12,7 @@
         "line": 28,
         "offset": 0
       }
-    },
-    "inListenerInit": false,
-    "isBasePath": false,
-    "inDisplayAnnotation": false
+    }
   },
   "function": {
     "qualifiers": [],
@@ -25,30 +22,90 @@
         "label": "",
         "description": ""
       },
+      "valueType": "IDENTIFIER",
+      "value": "get",
       "enabled": true,
       "editable": true,
-      "value": "get",
-      "valueType": "IDENTIFIER",
-      "isType": false,
       "optional": false,
-      "advanced": false,
-      "addNewButton": false
+      "advanced": false
     },
     "name": {
       "metadata": {
         "label": "",
         "description": ""
       },
+      "valueType": "IDENTIFIER",
+      "value": "greeting",
       "enabled": true,
       "editable": true,
-      "value": "greeting",
-      "valueType": "IDENTIFIER",
-      "isType": false,
       "optional": false,
-      "advanced": false,
-      "addNewButton": false
+      "advanced": false
     },
     "parameters": [
+      {
+        "metadata": {
+          "label": "Context",
+          "description": "The GraphQL context object"
+        },
+        "kind": "REQUIRED",
+        "type": {
+          "placeholder": "string",
+          "valueType": "TYPE",
+          "valueTypeConstraint": "graphql:Context",
+          "value": "graphql:Context",
+          "enabled": true,
+          "editable": false,
+          "optional": false,
+          "advanced": false
+        },
+        "name": {
+          "placeholder": "context",
+          "valueType": "IDENTIFIER",
+          "valueTypeConstraint": "string",
+          "value": "context",
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "enabled": false,
+        "editable": true,
+        "optional": true,
+        "advanced": true,
+        "hidden": true
+      },
+      {
+        "metadata": {
+          "label": "Field",
+          "description": "The GraphQL field object"
+        },
+        "kind": "REQUIRED",
+        "type": {
+          "placeholder": "string",
+          "valueType": "TYPE",
+          "valueTypeConstraint": "graphql:Field",
+          "value": "graphql:Field",
+          "enabled": true,
+          "editable": false,
+          "optional": false,
+          "advanced": false
+        },
+        "name": {
+          "placeholder": "'field",
+          "valueType": "IDENTIFIER",
+          "valueTypeConstraint": "string",
+          "value": "'field",
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "enabled": false,
+        "editable": true,
+        "optional": true,
+        "advanced": true,
+        "hidden": true
+      },
       {
         "metadata": {
           "label": "name",
@@ -98,7 +155,8 @@
         "enabled": true,
         "editable": false,
         "optional": false,
-        "advanced": false
+        "advanced": false,
+        "hidden": false
       }
     ],
     "returnType": {
@@ -131,11 +189,94 @@
           "offset": 5
         }
       },
-      "inListenerInit": false,
-      "isBasePath": false,
-      "inDisplayAnnotation": false
+      "moduleName": "graphql"
     },
-    "annotations": {}
+    "properties": {
+      "annotResourceConfig": {
+        "metadata": {
+          "label": "Configuration",
+          "description": "Define configurations such as field level cache."
+        },
+        "codedata": {
+          "type": "ANNOTATION_ATTACHMENT",
+          "originalName": "ResourceConfig",
+          "orgName": "ballerina",
+          "moduleName": "graphql"
+        },
+        "placeholder": "{}",
+        "valueType": "EXPRESSION",
+        "valueTypeConstraint": "graphql:GraphqlResourceConfig",
+        "value": "",
+        "typeMembers": [
+          {
+            "type": "GraphqlResourceConfig",
+            "packageInfo": "ballerina:graphql:1.16.0",
+            "kind": "RECORD_TYPE",
+            "selected": true
+          }
+        ],
+        "enabled": true,
+        "editable": true,
+        "optional": true,
+        "advanced": true
+      },
+      "paramContext": {
+        "metadata": {
+          "label": "Context",
+          "description": "The GraphQL context object"
+        },
+        "codedata": {
+          "type": "PARAMETER",
+          "originalName": "Context",
+          "orgName": "ballerina",
+          "moduleName": "graphql"
+        },
+        "placeholder": "{}",
+        "valueType": "FLAG",
+        "valueTypeConstraint": "graphql:Context",
+        "value": true,
+        "typeMembers": [
+          {
+            "type": "Context",
+            "packageInfo": "ballerina:graphql:1.16.0",
+            "kind": "OBJECT_TYPE",
+            "selected": false
+          }
+        ],
+        "enabled": true,
+        "editable": true,
+        "optional": true,
+        "advanced": true
+      },
+      "paramField": {
+        "metadata": {
+          "label": "Field",
+          "description": "The GraphQL field object"
+        },
+        "codedata": {
+          "type": "PARAMETER",
+          "originalName": "Field",
+          "orgName": "ballerina",
+          "moduleName": "graphql"
+        },
+        "placeholder": "{}",
+        "valueType": "FLAG",
+        "valueTypeConstraint": "graphql:Field",
+        "value": true,
+        "typeMembers": [
+          {
+            "type": "Field",
+            "packageInfo": "ballerina:graphql:1.16.0",
+            "kind": "OBJECT_TYPE",
+            "selected": false
+          }
+        ],
+        "enabled": true,
+        "editable": true,
+        "optional": true,
+        "advanced": true
+      }
+    }
   },
   "output": {
     "add_functions_for_graphql.bal": [
@@ -150,7 +291,7 @@
             "character": 5
           }
         },
-        "newText": "\n\tresource function get greeting(string name) returns string {\n\t}"
+        "newText": "\n\tresource function get greeting(graphql:Context context, graphql:Field 'field, string name) returns string {\n\t}"
       }
     ]
   }

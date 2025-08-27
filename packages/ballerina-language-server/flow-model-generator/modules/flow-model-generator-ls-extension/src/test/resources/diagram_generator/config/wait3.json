@@ -19,6 +19,7 @@
           "data": {
             "kind": "Function",
             "label": "basic2AlternateWait",
+            "isServiceFunction": false,
             "return": "string|error"
           }
         },

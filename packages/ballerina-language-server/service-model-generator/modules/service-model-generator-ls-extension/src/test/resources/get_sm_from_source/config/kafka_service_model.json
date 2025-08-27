@@ -154,7 +154,8 @@
             "enabled": true,
             "editable": true,
             "optional": false,
-            "advanced": false
+            "advanced": false,
+            "hidden": false
           },
           {
             "metadata": {
@@ -207,7 +208,8 @@
             "enabled": false,
             "editable": true,
             "optional": true,
-            "advanced": false
+            "advanced": false,
+            "hidden": false
           }
         ],
         "returnType": {
@@ -317,7 +319,8 @@
             "enabled": true,
             "editable": true,
             "optional": false,
-            "advanced": false
+            "advanced": false,
+            "hidden": false
           }
         ],
         "returnType": {
