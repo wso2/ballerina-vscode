@@ -28,12 +28,13 @@ import java.util.Map;
  * @param error     Error message if the operation failed, else null.
  * @param textEdits Text edits to be applied to the Ballerina files.
  * @param report    Report of the import operation.
+ * @param jsonReport JSON report of the import operation.
  *
  * @since 1.2.0
  */
-public record ImportTibcoResponse(String error, Map<String, String> textEdits, String report) {
+public record ImportTibcoResponse(String error, Map<String, String> textEdits, String report, Object jsonReport) {
 
     public static ImportTibcoResponse from(ToolExecutionResult result) {
-        return new ImportTibcoResponse(result.error(), result.textEdits(), result.report());
+        return new ImportTibcoResponse(result.error(), result.textEdits(), result.report(), result.jsonReport());
     }
 }
