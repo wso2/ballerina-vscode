@@ -25,8 +25,9 @@ import { debug } from "./logger";
 
 /**
  * Executes the `bal tool pull` command and sends progress notifications to the webview client via RPC.
+ * Includes 5-minute timeout.
  *
- * @param migrationToolName The alias for the Ballerina tool to pull (e.g., "tibco").
+ * @param migrationToolName The alias for the Ballerina tool to pull (e.g., "migrate-tibco", "migrate-mule").
  * @returns A promise that resolves when the operation is complete or rejects on failure.
  */
 export async function pullMigrationTool(migrationToolName: string): Promise<void> {
@@ -60,21 +61,34 @@ export async function pullMigrationTool(migrationToolName: string): Promise<void
 
         // Send initial progress update
         sendProgress({
-            message: "Initializing...",
+            message: "Initializing tool download...",
             percentage: 0,
             success: false,
             step: 1,
         });
 
-        const childProcess = exec(command, { maxBuffer: 1024 * 1024 });
+        const childProcess = exec(command, {
+            maxBuffer: 1024 * 1024,
+            timeout: 300000 // 5 minutes timeout
+        });
+
         let accumulatedStdout = "";
         let progressReported = 0;
+        let isResolved = false;
 
-        // 3. Process the command's standard output
-        childProcess.stdout?.on("data", (data: string) => {
+        const cleanup = () => {
+            isResolved = true;
+        };
+
+        // 3. Process the command's standard output with carriage return handling
+        childProcess.stdout?.on("data", (data: Buffer) => {
             const output = data.toString();
             accumulatedStdout += output;
-            debug(`Tool pull stdout: ${output.trim()}`);
+            debug(`Tool pull stdout chunk: ${output.replace(/\r/g, '\\r').replace(/\n/g, '\\n')}`);
+
+            // Handle carriage return progress updates - split by \r and take the last meaningful line
+            const lines = output.split('\r');
+            const lastLine = lines[lines.length - 1] || lines[lines.length - 2] || '';
 
             // Case A: Tool is already installed (high-priority check)
             if (accumulatedStdout.includes("is already available locally")) {
@@ -88,10 +102,9 @@ export async function pullMigrationTool(migrationToolName: string): Promise<void
                     });
                 }
             }
-            // Case B: Download is complete (next-priority check)
+            // Case B: Download is complete (check for success message)
             else if (accumulatedStdout.includes("pulled from central successfully")) {
                 if (progressReported < 100) {
-                    // We jump to 100 here because the final "pulled" message confirms completion.
                     progressReported = 100;
                     sendProgress({
                         message: "Download complete. Finalizing...",
@@ -101,54 +114,108 @@ export async function pullMigrationTool(migrationToolName: string): Promise<void
                     });
                 }
             }
-            // Case C: Parse the percentage from the ongoing download stream
+            // Case C: Parse the percentage from the progress bar output
             else {
-                // Regex to find all sequences of digits followed by a '%' sign.
-                const percentageMatches = output.match(/(\d{1,3})\s*%/g);
+                // Look for percentage in the current line (handles carriage return updates)
+                const percentageMatch = lastLine.match(/\s+(\d{1,3})\s*%/);
 
-                if (percentageMatches) {
-                    // Get the last percentage found in this chunk, as it's the most recent.
-                    const lastMatch = percentageMatches[percentageMatches.length - 1];
-                    const currentPercentage = parseInt(lastMatch, 10);
+                if (percentageMatch) {
+                    const currentPercentage = parseInt(percentageMatch[1], 10);
 
-                    // Update progress if it's a valid number and it's moving forward.
-                    if (!isNaN(currentPercentage) && currentPercentage > progressReported) {
+                    // Update progress if it's a valid number and moving forward
+                    if (!isNaN(currentPercentage) && currentPercentage > progressReported && currentPercentage <= 100) {
                         progressReported = currentPercentage;
+
+                        // Extract download info from progress line if available
+                        const sizeMatch = lastLine.match(/(\d+)\/(\d+)\s+KB/);
+                        let message = `Downloading... ${currentPercentage}%`;
+
+                        if (sizeMatch) {
+                            const downloaded = parseInt(sizeMatch[1], 10);
+                            const total = parseInt(sizeMatch[2], 10);
+                            message = `Downloading... ${currentPercentage}% (${Math.round(downloaded / 1024)}/${Math.round(total / 1024)} MB)`;
+                        }
+
                         sendProgress({
-                            message: `Downloading... ${currentPercentage}%`,
+                            message,
                             percentage: currentPercentage,
                             success: false,
                             step: 2,
                         });
                     }
                 }
+                // Also check for any percentage in the accumulated output as fallback
+                else {
+                    const allPercentageMatches = output.match(/(\d{1,3})\s*%/g);
+                    if (allPercentageMatches) {
+                        const lastMatch = allPercentageMatches[allPercentageMatches.length - 1];
+                        const currentPercentage = parseInt(lastMatch, 10);
+
+                        if (!isNaN(currentPercentage) && currentPercentage > progressReported && currentPercentage <= 100) {
+                            progressReported = currentPercentage;
+                            sendProgress({
+                                message: `Downloading... ${currentPercentage}%`,
+                                percentage: currentPercentage,
+                                success: false,
+                                step: 2,
+                            });
+                        }
+                    }
+                }
             }
         });
 
-        // 4. Treat any standard error output as a failure
-        childProcess.stderr?.on("data", (data: string) => {
+        // 4. Handle standard error output with improved filtering
+        childProcess.stderr?.on("data", (data: Buffer) => {
             const errorOutput = data.toString().trim();
             debug(`Tool pull stderr: ${errorOutput}`);
-            // Check if it's a non-fatal warning about being active
-            if (errorOutput.includes("is already active")) {
-                debug("Ignoring 'already active' warning.");
+
+            // Filter out non-critical messages that shouldn't cause failure
+            const nonCriticalPatterns = [
+                /is already active/i,
+                /warning:/i,
+                /deprecated/i
+            ];
+
+            const isNonCritical = nonCriticalPatterns.some(pattern => pattern.test(errorOutput));
+
+            if (isNonCritical) {
+                debug(`Ignoring non-critical stderr: ${errorOutput}`);
                 return;
             }
-            sendProgress({
-                message: errorOutput,
-                success: false,
-                step: -1,
-            });
-            reject(new Error(errorOutput));
+
+            // Only treat as error if it's a real error message
+            if (errorOutput.length > 0) {
+                sendProgress({
+                    message: `Error: ${errorOutput}`,
+                    success: false,
+                    step: -1,
+                });
+                cleanup();
+                reject(new Error(errorOutput));
+            }
         });
 
         // 5. Handle the definitive end of the process
         childProcess.on("close", (code) => {
             debug(`Tool pull command exited with code ${code}`);
-            if (code === 0 || (code === 1 && accumulatedStdout.includes("is already available locally"))) {
-                const finalMessage = accumulatedStdout.includes("is already available locally")
-                    ? `Tool '${migrationToolName}' is already installed.`
-                    : `Successfully pulled '${migrationToolName}'.`;
+            cleanup();
+
+            // Success conditions: code 0, or code 1 with "already available" message
+            const isAlreadyInstalled = accumulatedStdout.includes("is already available locally");
+            const isSuccessfulDownload = accumulatedStdout.includes("pulled from central successfully") ||
+                accumulatedStdout.includes("successfully set as the active version");
+
+            if (code === 0 || (code === 1 && isAlreadyInstalled)) {
+                let finalMessage: string;
+
+                if (isAlreadyInstalled) {
+                    finalMessage = `Tool '${migrationToolName}' is already installed.`;
+                } else if (isSuccessfulDownload) {
+                    finalMessage = `Successfully pulled '${migrationToolName}'.`;
+                } else {
+                    finalMessage = `Tool pull completed with code ${code}.`;
+                }
 
                 sendProgress({
                     message: finalMessage,
@@ -158,7 +225,7 @@ export async function pullMigrationTool(migrationToolName: string): Promise<void
                 });
                 resolve();
             } else {
-                const errorMessage = `Operation failed. Process exited with code ${code}.`;
+                const errorMessage = `Tool pull failed with exit code ${code}. Check logs for details.`;
                 sendProgress({
                     message: errorMessage,
                     success: false,
@@ -168,15 +235,32 @@ export async function pullMigrationTool(migrationToolName: string): Promise<void
             }
         });
 
-        // Handle errors in the process execution itself
+        // Handle process execution errors (e.g., command not found)
         childProcess.on("error", (error) => {
             debug(`Tool pull process error: ${error.message}`);
+            cleanup();
+
+            const errorMessage = `Failed to execute command: ${error.message}`;
             sendProgress({
-                message: `Failed to execute command: ${error.message}`,
+                message: errorMessage,
                 success: false,
                 step: -1,
             });
-            reject(error);
+            reject(new Error(errorMessage));
+        });
+
+        // Handle timeout from exec options
+        childProcess.on("timeout", () => {
+            debug("Tool pull process timed out after 5 minutes");
+            cleanup();
+
+            const errorMessage = "Download timed out after 5 minutes";
+            sendProgress({
+                message: errorMessage,
+                success: false,
+                step: -1,
+            });
+            reject(new Error("Migration tool pull timed out after 5 minutes"));
         });
     });
 }
