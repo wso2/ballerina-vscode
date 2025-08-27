@@ -2015,32 +2015,41 @@ public class DataMapManager {
     private static String getFunctionName(List<Parameter> parameters, String returnType, SemanticModel semanticModel) {
         String functionName = "map";
 
-        if (!parameters.isEmpty()) {
-            Parameter firstParam = parameters.getFirst();
-            if (firstParam.kind.equals("union")) {
-                int highestNumber = 0;
-                for (Symbol symbol : semanticModel.moduleSymbols()) {
-                    if (symbol.kind() == SymbolKind.FUNCTION) {
-                        Optional<String> name = symbol.getName();
-                        if (name.isPresent() && name.get().startsWith("mapUnion")) {
-                            String suffix = name.get().substring("mapUnion".length());
-                            if (suffix.matches("\\d+")) {
-                                int number = Integer.parseInt(suffix);
-                                if (number > highestNumber) {
-                                    highestNumber = number;
-                                }
-                            }
-                        }
-                    }
-                }
-
-                return "mapUnion" + (highestNumber + 1);
-            } else {
-                functionName = functionName + firstParam.type() + "To" + returnType;
-            }
+        if (parameters.isEmpty()) {
+            return functionName;
+        }
+        Parameter firstParam = parameters.getFirst();
+        if (firstParam.kind.equals("union")) {
+            return getUnionFunctionName(semanticModel);
         }
 
-        return functionName;
+        return functionName + firstParam.type() + "To" + returnType;
+    }
+
+    private static String getUnionFunctionName(SemanticModel semanticModel) {
+        int highestNumber = findHighestUnionNumber(semanticModel);
+        return "mapUnion" + (highestNumber + 1);
+    }
+
+    private static int findHighestUnionNumber(SemanticModel semanticModel) {
+        int highestNumber = 0;
+
+        for (Symbol symbol : semanticModel.moduleSymbols()) {
+            if (symbol.kind() != SymbolKind.FUNCTION) {
+                continue;
+            }
+            Optional<String> name = symbol.getName();
+            if (name.isEmpty() || !name.get().startsWith("mapUnion")) {
+                continue;
+            }
+            String suffix = name.get().substring("mapUnion".length());
+            if (!suffix.matches("\\d+")) {
+                continue;
+            }
+            int number = Integer.parseInt(suffix);
+            highestNumber = Math.max(highestNumber, number);
+        }
+        return highestNumber;
     }
 
     private String getDefaultValue(String kind) {
