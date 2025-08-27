@@ -25,6 +25,10 @@ export const FormContainer = styled.div`
     margin: 80px 120px;
     height: calc(100vh - 160px);
     overflow-y: auto;
+    
+    /* Ensure dropdowns have proper stacking context */
+    position: relative;
+    z-index: 1;
 `;
 
 export const IconButton = styled.div`
@@ -55,10 +59,6 @@ export const IntegrationCardGrid = styled.div`
 
 export const ParametersSection = styled.div`
     margin: 20px 0;
-    padding: 16px;
-    border: 1px solid var(--vscode-input-border);
-    border-radius: 4px;
-    background-color: var(--vscode-editor-background);
 `;
 
 export const PathText = styled.div`
