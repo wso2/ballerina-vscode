@@ -1,0 +1,97 @@
+{
+  "source": "variable47.bal",
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "variable47.bal",
+      "startLine": {
+        "line": 6,
+        "offset": 0
+      },
+      "endLine": {
+        "line": 6,
+        "offset": 35
+      }
+    },
+    "sourceCode": ""
+  },
+  "position": {
+    "line": 6,
+    "offset": 0
+  },
+  "propertyKey": "expression",
+  "targetField": "fs2.name",
+  "model": {
+    "inputs": [
+      {
+        "fields": [
+          {
+            "id": "fs1.name",
+            "variableName": "name",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "id": "fs1.'type",
+            "variableName": "'type",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          }
+        ],
+        "id": "fs1",
+        "variableName": "fs1",
+        "typeName": "FileSystem",
+        "kind": "record",
+        "category": "module-variable",
+        "optional": false
+      },
+      {
+        "fields": [
+          {
+            "id": "fs2.name",
+            "variableName": "name",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "id": "fs2.'type",
+            "variableName": "'type",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          }
+        ],
+        "id": "fs2",
+        "variableName": "fs2",
+        "typeName": "FileSystem",
+        "kind": "record",
+        "category": "module-variable",
+        "optional": false
+      }
+    ],
+    "output": {
+      "id": "name",
+      "variableName": "name",
+      "typeName": "string",
+      "kind": "string",
+      "optional": false
+    },
+    "mappings": [
+      {
+        "output": "name",
+        "inputs": [
+          "fs1.'type"
+        ],
+        "expression": "fs1.'type",
+        "diagnostics": [],
+        "elements": [],
+        "isQueryExpression": false,
+        "isFunctionCall": false
+      }
+    ]
+  }
+}

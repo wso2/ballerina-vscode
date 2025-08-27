@@ -1,97 +1,110 @@
 {
-  "source": "variable47.bal",
+  "source": "variable30.bal",
   "description": "Sample diagram node",
   "codedata": {
     "node": "VARIABLE",
     "lineRange": {
-      "fileName": "variable47.bal",
+      "fileName": "variable30.bal",
       "startLine": {
-        "line": 6,
-        "offset": 0
+        "line": 7,
+        "offset": 4
       },
       "endLine": {
-        "line": 6,
-        "offset": 35
+        "line": 10,
+        "offset": 6
       }
     },
     "sourceCode": ""
   },
   "position": {
-    "line": 6,
-    "offset": 0
+    "line": 7,
+    "offset": 4
   },
   "propertyKey": "expression",
-  "targetField": "fs2.name",
+  "targetField": "v2.i",
   "model": {
     "inputs": [
       {
         "fields": [
           {
-            "id": "fs1.name",
-            "variableName": "name",
-            "typeName": "string",
-            "kind": "string",
+            "member": {
+              "id": "v1.k.0",
+              "variableName": "<kItem>",
+              "typeName": "string",
+              "kind": "string",
+              "optional": false
+            },
+            "focusedMemberId": "kItem",
+            "id": "v1.k",
+            "variableName": "k",
+            "typeName": "string[]",
+            "kind": "array",
             "optional": false
           },
           {
-            "id": "fs1.'type",
-            "variableName": "'type",
+            "id": "v1.i",
+            "variableName": "i",
             "typeName": "string",
             "kind": "string",
             "optional": false
           }
         ],
-        "id": "fs1",
-        "variableName": "fs1",
-        "typeName": "FileSystem",
+        "id": "v1",
+        "variableName": "v1",
+        "typeName": "MyType",
         "kind": "record",
-        "category": "module-variable",
+        "category": "variable",
         "optional": false
       },
       {
-        "fields": [
-          {
-            "id": "fs2.name",
-            "variableName": "name",
-            "typeName": "string",
-            "kind": "string",
-            "optional": false
-          },
-          {
-            "id": "fs2.'type",
-            "variableName": "'type",
-            "typeName": "string",
-            "kind": "string",
-            "optional": false
-          }
-        ],
-        "id": "fs2",
-        "variableName": "fs2",
-        "typeName": "FileSystem",
-        "kind": "record",
-        "category": "module-variable",
+        "id": "kItem",
+        "variableName": "kItem",
+        "typeName": "string",
+        "kind": "string",
+        "isFocused": true,
         "optional": false
       }
     ],
     "output": {
-      "id": "name",
-      "variableName": "name",
+      "id": "i",
+      "variableName": "i",
       "typeName": "string",
       "kind": "string",
       "optional": false
     },
     "mappings": [
       {
-        "output": "name",
+        "output": "i",
         "inputs": [
-          "fs1.'type"
+          "kItem"
         ],
-        "expression": "fs1.'type",
+        "expression": "'join(\",\", kItem)",
         "diagnostics": [],
         "elements": [],
         "isQueryExpression": false,
-        "isFunctionCall": false
+        "isFunctionCall": true
       }
-    ]
+    ],
+    "query": {
+      "output": "i",
+      "inputs": [
+        "v1.k"
+      ],
+      "fromClause": {
+        "type": "from",
+        "properties": {
+          "name": "kItem",
+          "type": "string",
+          "expression": "v1.k"
+        }
+      },
+      "intermediateClauses": [],
+      "resultClause": {
+        "type": "collect",
+        "properties": {
+          "expression": "'join(\",\", kItem)"
+        }
+      }
+    }
   }
 }
