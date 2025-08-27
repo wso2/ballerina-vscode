@@ -35,6 +35,7 @@ import static io.ballerina.servicemodelgenerator.extension.util.Constants.FUNCTI
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.KIND_OBJECT_METHOD;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.RESOURCE_FUNCTION_RETURN_TYPE_METADATA;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.RESOURCE_NAME_METADATA;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.VALUE_TYPE_EXPRESSION;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceClassUtil.ServiceClassContext.GRAPHQL_DIAGRAM;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceClassUtil.ServiceClassContext.SERVICE_DIAGRAM;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceClassUtil.ServiceClassContext.TYPE_DIAGRAM;
@@ -164,7 +165,7 @@ public class Function {
         return new Value.ValueBuilder()
                 .setMetadata(new MetaData(annotation.displayName(), annotation.description()))
                 .setCodedata(codedata)
-                .valueType("EXPRESSION")
+                .valueType(VALUE_TYPE_EXPRESSION)
                 .setPlaceholder("{}")
                 .setValueTypeConstraint(annotation.typeConstrain())
                 .enabled(true)
