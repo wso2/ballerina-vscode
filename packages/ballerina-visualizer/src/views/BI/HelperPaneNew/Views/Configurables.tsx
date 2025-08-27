@@ -114,6 +114,8 @@ export const Configurables = (props: ConfigurablesPageProps) => {
     }
 
     const handleSave = async (node: FlowNode) => {
+        setIsModalOpen(false);
+        //TODO: Need to disable the form before saving and move form close to finally block
         setIsSaving(true);
         await rpcClient.getBIDiagramRpcClient().updateConfigVariablesV2({
             configFilePath: Utils.joinPath(URI.file(projectPathUri), 'config.bal').fsPath,
@@ -160,7 +162,7 @@ export const Configurables = (props: ConfigurablesPageProps) => {
         return (
             <DynamicModal
                 width={400}
-                height={600}
+                height={650}
                 anchorRef={anchorRef}
                 title={props.title}
                 openState={isModalOpen}
