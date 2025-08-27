@@ -187,7 +187,6 @@ export function Diagram(props: DiagramProps) {
                 node.height = nodeHeight;
                 node.setPosition(0, startY);
                 nodes.push(node);
-
                 startY += nodeHeight + 16;
 
                 // For GraphQL, handle visible and hidden per group
