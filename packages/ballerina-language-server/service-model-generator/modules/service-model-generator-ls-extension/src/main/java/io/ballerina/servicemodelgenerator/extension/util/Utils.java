@@ -21,7 +21,6 @@ package io.ballerina.servicemodelgenerator.extension.util;
 import com.google.gson.Gson;
 import com.google.gson.stream.JsonReader;
 import io.ballerina.compiler.api.SemanticModel;
-import io.ballerina.compiler.api.symbols.ResourceMethodSymbol;
 import io.ballerina.compiler.api.symbols.Symbol;
 import io.ballerina.compiler.api.symbols.TypeDefinitionSymbol;
 import io.ballerina.compiler.api.symbols.TypeReferenceTypeSymbol;
@@ -51,7 +50,6 @@ import io.ballerina.compiler.syntax.tree.Token;
 import io.ballerina.compiler.syntax.tree.TypeDefinitionNode;
 import io.ballerina.compiler.syntax.tree.TypeDescriptorNode;
 import io.ballerina.projects.Document;
-import io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants;
 import io.ballerina.servicemodelgenerator.extension.model.Codedata;
 import io.ballerina.servicemodelgenerator.extension.model.Function;
 import io.ballerina.servicemodelgenerator.extension.model.FunctionReturnType;
@@ -61,8 +59,8 @@ import io.ballerina.servicemodelgenerator.extension.model.Parameter;
 import io.ballerina.servicemodelgenerator.extension.model.Service;
 import io.ballerina.servicemodelgenerator.extension.model.TriggerProperty;
 import io.ballerina.servicemodelgenerator.extension.model.Value;
-import io.ballerina.servicemodelgenerator.extension.request.TriggerListRequest;
-import io.ballerina.servicemodelgenerator.extension.request.TriggerRequest;
+import io.ballerina.servicemodelgenerator.extension.model.request.TriggerListRequest;
+import io.ballerina.servicemodelgenerator.extension.model.request.TriggerRequest;
 import io.ballerina.tools.text.LinePosition;
 import io.ballerina.tools.text.LineRange;
 import org.ballerinalang.langserver.common.utils.NameUtil;
@@ -84,26 +82,22 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static io.ballerina.modelgenerator.commons.CommonUtils.isAiModule;
-import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.GET;
-import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.KIND_DEFAULT;
-import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.KIND_DEFAULTABLE;
-import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.KIND_MUTATION;
-import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.KIND_QUERY;
-import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.KIND_REMOTE;
-import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.KIND_REQUIRED;
-import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.KIND_RESOURCE;
-import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.KIND_SUBSCRIPTION;
-import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.NEW_LINE;
-import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.REMOTE;
-import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.RESOURCE;
-import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.SPACE;
-import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.SUBSCRIBE;
-import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.VALUE_TYPE_EXPRESSION;
-import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.VALUE_TYPE_IDENTIFIER;
-import static io.ballerina.servicemodelgenerator.extension.util.HttpUtil.getHttpParameterType;
-import static io.ballerina.servicemodelgenerator.extension.util.ServiceClassUtil.ServiceClassContext.GRAPHQL_DIAGRAM;
-import static io.ballerina.servicemodelgenerator.extension.util.ServiceClassUtil.ServiceClassContext.HTTP_DIAGRAM;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.GET;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.KIND_DEFAULT;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.KIND_DEFAULTABLE;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.KIND_MUTATION;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.KIND_QUERY;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.KIND_REMOTE;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.KIND_REQUIRED;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.KIND_RESOURCE;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.KIND_SUBSCRIPTION;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.NEW_LINE;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.REMOTE;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.RESOURCE;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.SPACE;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.SUBSCRIBE;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.VALUE_TYPE_EXPRESSION;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.VALUE_TYPE_IDENTIFIER;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceClassUtil.ServiceClassContext.SERVICE_DIAGRAM;
 
 /**
@@ -153,7 +147,7 @@ public final class Utils {
     }
 
     public static void populateRequiredFunctions(Service service) {
-        Value value = service.getProperty(ServiceModelGeneratorConstants.PROPERTY_REQUIRED_FUNCTIONS);
+        Value value = service.getProperty(Constants.PROPERTY_REQUIRED_FUNCTIONS);
         if (Objects.nonNull(value) && value.isEnabledWithValue()) {
             String requiredFunction = value.getValue();
             service.getFunctions()
@@ -180,7 +174,7 @@ public final class Utils {
             designApproach.getChoices().stream()
                     .filter(Value::isEnabled).findFirst()
                     .ifPresent(selectedApproach -> service.addProperties(selectedApproach.getProperties()));
-            service.getProperties().remove(ServiceModelGeneratorConstants.PROPERTY_DESIGN_APPROACH);
+            service.getProperties().remove(Constants.PROPERTY_DESIGN_APPROACH);
         }
     }
 
@@ -228,60 +222,48 @@ public final class Utils {
         return paths.stream().map(Node::toString).map(String::trim).collect(Collectors.joining(""));
     }
 
-    public static Function getFunctionModel(MethodDeclarationNode functionDefinitionNode, SemanticModel semanticModel,
-                                            boolean isHttp, boolean isGraphQL, Map<String, Value> annotations) {
-        boolean isInit = isInitFunction(functionDefinitionNode);
-        ServiceClassUtil.ServiceClassContext context = deriveContext(isGraphQL, isHttp, isInit);
-        Function functionModel = Function.getNewFunctionModel(context);
-        functionModel.setAnnotations(annotations);
+    public static Function getFunctionModel(MethodDeclarationNode methodDeclarationNode,
+                                            Map<String, Value> annotations) {
+        Function functionModel = Function.getNewFunctionModel(SERVICE_DIAGRAM);
+        annotations.forEach(functionModel.getProperties()::put);
 
         Value functionName = functionModel.getName();
-        functionName.setValue(functionDefinitionNode.methodName().text().trim());
+        functionName.setValue(methodDeclarationNode.methodName().text().trim());
         functionName.setValueType(VALUE_TYPE_IDENTIFIER);
 
         Value accessor = functionModel.getAccessor();
-        for (Token qualifier : functionDefinitionNode.qualifierList()) {
+        for (Token qualifier : methodDeclarationNode.qualifierList()) {
             String qualifierText = qualifier.text().trim();
             if (qualifierText.matches(REMOTE)) {
                 functionModel.setKind(KIND_REMOTE);
             } else if (qualifierText.matches(RESOURCE)) {
                 functionModel.setKind(KIND_RESOURCE);
-                accessor.setValue(functionDefinitionNode.methodName().text().trim());
-                functionName.setValue(getPath(functionDefinitionNode.relativeResourcePath()));
+                accessor.setValue(methodDeclarationNode.methodName().text().trim());
+                functionName.setValue(getPath(methodDeclarationNode.relativeResourcePath()));
             }
         }
-        FunctionSignatureNode functionSignatureNode = functionDefinitionNode.methodSignature();
+        FunctionSignatureNode functionSignatureNode = methodDeclarationNode.methodSignature();
         Optional<ReturnTypeDescriptorNode> returnTypeDesc = functionSignatureNode.returnTypeDesc();
         if (returnTypeDesc.isPresent()) {
             FunctionReturnType returnType = functionModel.getReturnType();
             returnType.setValue(returnTypeDesc.get().type().toString().trim());
-            if (isHttp) {
-                populateHttpResponses(functionDefinitionNode, returnType, semanticModel);
-            }
         }
         SeparatedNodeList<ParameterNode> parameters = functionSignatureNode.parameters();
         List<Parameter> parameterModels = new ArrayList<>();
         parameters.forEach(parameterNode -> {
-            Optional<Parameter> parameterModel = getParameterModel(parameterNode, isHttp, isGraphQL);
+            Optional<Parameter> parameterModel = getParameterModel(parameterNode);
             parameterModel.ifPresent(parameterModels::add);
         });
         functionModel.setParameters(parameterModels);
-        functionModel.setCodedata(new Codedata(functionDefinitionNode.lineRange()));
+        functionModel.setCodedata(new Codedata(methodDeclarationNode.lineRange()));
         return functionModel;
     }
 
-    public static Function getFunctionModel(FunctionDefinitionNode functionDefinitionNode, SemanticModel semanticModel,
-                                            boolean isHttp, boolean isGraphQL, Map<String, Value> annotations) {
-        boolean isInit = isInitFunction(functionDefinitionNode);
-        ServiceClassUtil.ServiceClassContext context = deriveContext(isGraphQL, isHttp, isInit);
-
-        Function functionModel = Function.getNewFunctionModel(context);
-        functionModel.setAnnotations(annotations);
-
-        if (isInit) {
-            functionModel.setKind(KIND_DEFAULT);
-        }
-
+    public static Function getFunctionModel(FunctionDefinitionNode functionDefinitionNode,
+                                            Map<String, Value> annotations) {
+        Function functionModel = Function.getNewFunctionModel(SERVICE_DIAGRAM);
+        annotations.forEach(functionModel.getProperties()::put);
+        functionModel.setKind(KIND_DEFAULT);
         Value functionName = functionModel.getName();
         functionName.setValue(functionDefinitionNode.functionName().text().trim());
         functionName.setValueType(VALUE_TYPE_IDENTIFIER);
@@ -290,14 +272,10 @@ public final class Utils {
         for (Token qualifier : functionDefinitionNode.qualifierList()) {
             String qualifierText = qualifier.text().trim();
             if (qualifierText.matches(REMOTE)) {
-                functionModel.setKind(isGraphQL ? KIND_MUTATION : KIND_REMOTE);
+                functionModel.setKind(KIND_REMOTE);
                 break;
             } else if (qualifierText.matches(RESOURCE)) {
-                if (isGraphQL) {
-                    functionModel.setKind(functionName.getValue().equals(SUBSCRIBE) ? KIND_SUBSCRIPTION : KIND_QUERY);
-                } else {
-                    functionModel.setKind(KIND_RESOURCE);
-                }
+                functionModel.setKind(KIND_RESOURCE);
                 accessor.setValue(functionDefinitionNode.functionName().text().trim());
                 functionName.setValue(getPath(functionDefinitionNode.relativeResourcePath()));
                 break;
@@ -309,14 +287,11 @@ public final class Utils {
         if (returnTypeDesc.isPresent()) {
             FunctionReturnType returnType = functionModel.getReturnType();
             returnType.setValue(returnTypeDesc.get().type().toString().trim());
-            if (isHttp) {
-                populateHttpResponses(functionDefinitionNode, returnType, semanticModel);
-            }
         }
         SeparatedNodeList<ParameterNode> parameters = functionSignatureNode.parameters();
         List<Parameter> parameterModels = new ArrayList<>();
         parameters.forEach(parameterNode -> {
-            Optional<Parameter> parameterModel = getParameterModel(parameterNode, isHttp, isGraphQL);
+            Optional<Parameter> parameterModel = getParameterModel(parameterNode);
             parameterModel.ifPresent(parameterModels::add);
         });
         functionModel.setParameters(parameterModels);
@@ -326,51 +301,22 @@ public final class Utils {
         return functionModel;
     }
 
-    private static ServiceClassUtil.ServiceClassContext deriveContext(boolean isGraphQL, boolean isHttp,
-                                                                      boolean isInit) {
-        if (isGraphQL && !isInit) {
-            return GRAPHQL_DIAGRAM;
-        } else if (isHttp && isInit) {
-            return HTTP_DIAGRAM;
-        }
-        return SERVICE_DIAGRAM;
+    public static boolean isInitFunction(FunctionDefinitionNode functionDefinitionNode) {
+        return functionDefinitionNode.functionName().text().trim().equals(Constants.INIT);
     }
 
-    private static boolean isInitFunction(FunctionDefinitionNode functionDefinitionNode) {
-        return functionDefinitionNode.functionName().text().trim().equals(ServiceModelGeneratorConstants.INIT);
+    public static boolean isInitFunction(MethodDeclarationNode functionDefinitionNode) {
+        return functionDefinitionNode.methodName().text().trim().equals(Constants.INIT);
     }
 
-    private static boolean isInitFunction(MethodDeclarationNode functionDefinitionNode) {
-        return functionDefinitionNode.methodName().text().trim().equals(ServiceModelGeneratorConstants.INIT);
-    }
-
-    private static void populateHttpResponses(MethodDeclarationNode functionDefinitionNode,
-                                              FunctionReturnType returnType, SemanticModel semanticModel) {
-        Optional<Symbol> functionDefSymbol = semanticModel.symbol(functionDefinitionNode);
-        if (functionDefSymbol.isEmpty() || !(functionDefSymbol.get() instanceof ResourceMethodSymbol resource)) {
-            return;
-        }
-        HttpUtil.populateHttpResponses(returnType, semanticModel, resource);
-    }
-
-    private static void populateHttpResponses(FunctionDefinitionNode functionDefinitionNode,
-                                              FunctionReturnType returnType, SemanticModel semanticModel) {
-        Optional<Symbol> functionDefSymbol = semanticModel.symbol(functionDefinitionNode);
-        if (functionDefSymbol.isEmpty() || !(functionDefSymbol.get() instanceof ResourceMethodSymbol resource)) {
-            return;
-        }
-        HttpUtil.populateHttpResponses(returnType, semanticModel, resource);
-    }
-
-    public static Optional<Parameter> getParameterModel(ParameterNode parameterNode, boolean isHttp,
-                                                        boolean isGraphQL) {
+    public static Optional<Parameter> getParameterModel(ParameterNode parameterNode) {
         if (parameterNode instanceof RequiredParameterNode parameter) {
             if (parameter.paramName().isEmpty()) {
                 return Optional.empty();
             }
             String paramName = parameter.paramName().get().text().trim();
-            Parameter parameterModel = createParameter(paramName, KIND_REQUIRED, parameter.typeName().toString().trim(),
-                    parameter.annotations(), isHttp, isGraphQL);
+            Parameter parameterModel = createParameter(paramName, KIND_REQUIRED,
+                    parameter.typeName().toString().trim());
             return Optional.of(parameterModel);
         } else if (parameterNode instanceof DefaultableParameterNode parameter) {
             if (parameter.paramName().isEmpty()) {
@@ -378,7 +324,7 @@ public final class Utils {
             }
             String paramName = parameter.paramName().get().text().trim();
             Parameter parameterModel = createParameter(paramName, KIND_DEFAULTABLE,
-                    parameter.typeName().toString().trim(), parameter.annotations(), isHttp, isGraphQL);
+                    parameter.typeName().toString().trim());
             Value defaultValue = parameterModel.getDefaultValue();
             defaultValue.setValue(parameter.expression().toString().trim());
             defaultValue.setValueType(VALUE_TYPE_EXPRESSION);
@@ -389,28 +335,12 @@ public final class Utils {
     }
 
 
-    private static Parameter createParameter(String paramName, String paramKind, String typeName,
-                                             NodeList<AnnotationNode> annotationNodes, boolean isHttp,
-                                             boolean isGraphQL) {
-        Parameter parameterModel = Parameter.getNewParameter(isGraphQL);
+    private static Parameter createParameter(String paramName, String paramKind, String typeName) {
+        Parameter parameterModel = Parameter.getNewFunctionParameter();
         parameterModel.setMetadata(new MetaData(paramName, paramName));
         parameterModel.setKind(paramKind);
         parameterModel.getType().setValue(typeName);
         parameterModel.getName().setValue(paramName);
-
-        if (isHttp) {
-            Optional<String> httpParameterType = getHttpParameterType(annotationNodes);
-            if (httpParameterType.isPresent()) {
-                parameterModel.setHttpParamType(httpParameterType.get());
-            } else {
-                if (!(typeName.equals("http:Request") || typeName.equals("http:Caller")
-                        || typeName.equals("http:Headers") || typeName.equals("http:RequestContext"))) {
-                    parameterModel.setHttpParamType(ServiceModelGeneratorConstants.HTTP_PARAM_TYPE_QUERY);
-                    parameterModel.setEditable(true);
-                }
-            }
-        }
-
         return parameterModel;
     }
 
@@ -421,7 +351,7 @@ public final class Utils {
         }
         Optional<AnnotationNode> httpServiceConfig = metadata.get().annotations().stream()
                 .filter(annotation -> annotation.annotReference().toString().trim().equals(
-                        ServiceModelGeneratorConstants.TYPE_HTTP_SERVICE_CONFIG))
+                        Constants.TYPE_HTTP_SERVICE_CONFIG))
                 .findFirst();
         if (httpServiceConfig.isEmpty()) {
             return Optional.empty();
@@ -434,7 +364,7 @@ public final class Utils {
                 .filter(fieldNode -> fieldNode.kind().equals(SyntaxKind.SPECIFIC_FIELD))
                 .map(fieldNode -> (SpecificFieldNode) fieldNode)
                 .filter(fieldNode -> fieldNode.fieldName().toString().trim()
-                        .equals(ServiceModelGeneratorConstants.BASE_PATH))
+                        .equals(Constants.BASE_PATH))
                 .findFirst();
         if (basePathField.isEmpty()) {
             return Optional.empty();
@@ -513,8 +443,8 @@ public final class Utils {
             String[] split = annotName.split(":");
             annotName = split[split.length - 1];
             String propertyName = "annot" + annotName;
-            if (function.getAnnotations().containsKey(propertyName)) {
-                Value property = function.getAnnotations().get(propertyName);
+            if (function.getProperties().containsKey(propertyName)) {
+                Value property = function.getProperties().get(propertyName);
                 property.setValue(annotationNode.annotValue().get().toSourceCode().trim());
             }
         });
@@ -556,75 +486,6 @@ public final class Utils {
         }
     }
 
-    public static String getServiceDeclarationNode(Service service, FunctionAddContext context,
-                                                   Map<String, String> imports) {
-        StringBuilder builder = new StringBuilder();
-        List<String> annots = getAnnotationEdits(service);
-
-        if (!annots.isEmpty()) {
-            builder.append(String.join(NEW_LINE, annots));
-            builder.append(System.lineSeparator());
-        }
-
-        builder.append(ServiceModelGeneratorConstants.SERVICE).append(ServiceModelGeneratorConstants.SPACE);
-        if (Objects.nonNull(service.getServiceType()) && service.getServiceType().isEnabledWithValue()) {
-            builder.append(service.getServiceTypeName());
-            builder.append(ServiceModelGeneratorConstants.SPACE);
-        }
-        if (Objects.nonNull(service.getServiceContractTypeNameValue()) &&
-                service.getServiceContractTypeNameValue().isEnabledWithValue()) {
-            builder.append(service.getServiceContractTypeName());
-            builder.append(ServiceModelGeneratorConstants.SPACE);
-        } else if (Objects.nonNull(service.getBasePath()) && service.getBasePath().isEnabledWithValue()) {
-            builder.append(getValueString(service.getBasePath()));
-            builder.append(ServiceModelGeneratorConstants.SPACE);
-        } else if (Objects.nonNull(service.getStringLiteralProperty()) &&
-                service.getStringLiteralProperty().isEnabledWithValue()) {
-            builder.append(getValueString(service.getStringLiteralProperty()));
-            builder.append(ServiceModelGeneratorConstants.SPACE);
-        }
-
-        builder.append(ServiceModelGeneratorConstants.ON).append(ServiceModelGeneratorConstants.SPACE);
-        if (Objects.nonNull(service.getListener()) && service.getListener().isEnabledWithValue()) {
-            builder.append(service.getListener().getValue());
-        }
-        builder.append(ServiceModelGeneratorConstants.SPACE).append(ServiceModelGeneratorConstants.OPEN_BRACE);
-        builder.append(System.lineSeparator());
-        List<String> functions = new ArrayList<>();
-        boolean isNewTcpService = Utils.isTcpService(service.getOrgName(), service.getPackageName())
-                && service.getProperties().containsKey("returningServiceClass");
-
-        boolean isAiAgent = isAiModule(service.getOrgName(), service.getPackageName());
-
-        if (isNewTcpService) {
-            String serviceClassName = service.getProperties().get("returningServiceClass").getValue();
-            String onConnectFunc = Utils.getTcpOnConnectTemplate().formatted(serviceClassName, serviceClassName);
-            functions.add(onConnectFunc);
-        } else if (isAiAgent) {
-            String chatFunction = getAgentChatFunction();
-            functions.add(chatFunction);
-        } else {
-            service.getFunctions().forEach(function -> {
-                if (function.isEnabled()) {
-                    String functionNode = "\t" + generateFunctionDefSource(function, new ArrayList<>(), context,
-                            FunctionSignatureContext.FUNCTION_ADD, imports)
-                            .replace(System.lineSeparator(), System.lineSeparator() + "\t");
-                    functions.add(functionNode);
-                }
-            });
-        }
-        builder.append(String.join(System.lineSeparator() + System.lineSeparator(), functions));
-        builder.append(System.lineSeparator());
-        builder.append(ServiceModelGeneratorConstants.CLOSE_BRACE);
-        return builder.toString();
-    }
-
-    private static String getAgentChatFunction() {
-        return "    resource function post chat(@http:Payload ai:ChatReqMessage request) " +
-                "returns ai:ChatRespMessage|error {" + System.lineSeparator() +
-                "    }";
-    }
-
     public static List<String> getAnnotationEdits(Service service) {
         Map<String, Value> properties = service.getProperties();
         List<String> annots = new ArrayList<>();
@@ -641,8 +502,14 @@ public final class Utils {
     }
 
     public static List<String> getAnnotationEdits(Function function) {
-        Map<String, Value> properties = function.getAnnotations();
+        Map<String, Value> properties = function.getProperties().entrySet().stream()
+                        .filter(entry -> entry.getKey().startsWith("annot"))
+                        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+
         List<String> annots = new ArrayList<>();
+        if (properties.isEmpty()) {
+            return annots;
+        }
         for (Map.Entry<String, Value> property : properties.entrySet()) {
             Value value = property.getValue();
             if (Objects.nonNull(value.getCodedata()) && Objects.nonNull(value.getCodedata().getType()) &&
@@ -664,7 +531,7 @@ public final class Utils {
         String annotEdit = String.join(System.lineSeparator(), annots);
 
         Optional<MetadataNode> metadata = serviceNode.metadata();
-        if (metadata.isEmpty()) { // metadata is empty and service model has annotations
+        if (metadata.isEmpty()) { // metadata is empty and service has annotations
             if (!annotEdit.isEmpty()) {
                 annotEdit += System.lineSeparator();
                 edits.add(new TextEdit(toRange(serviceKeyword.lineRange().startLine()), annotEdit));
@@ -697,8 +564,8 @@ public final class Utils {
         return annots.size();
     }
 
-    public static int addFunctionAnnotationTextEdits(Function function, FunctionDefinitionNode functionDef,
-                                                    List<TextEdit> edits) {
+    public static void addFunctionAnnotationTextEdits(Function function, FunctionDefinitionNode functionDef,
+                                                      List<TextEdit> edits) {
         Token firstToken = functionDef.qualifierList().isEmpty() ? functionDef.functionKeyword()
                 : functionDef.qualifierList().get(0);
 
@@ -706,12 +573,12 @@ public final class Utils {
         String annotEdit = String.join(System.lineSeparator(), annots);
 
         Optional<MetadataNode> metadata = functionDef.metadata();
-        if (metadata.isEmpty()) { // metadata is empty and service model has annotations
+        if (metadata.isEmpty()) { // metadata is empty and service has annotations
             if (!annotEdit.isEmpty()) {
                 annotEdit += System.lineSeparator();
                 edits.add(new TextEdit(toRange(firstToken.lineRange().startLine()), annotEdit));
             }
-            return annots.size();
+            return;
         }
         NodeList<AnnotationNode> annotations = metadata.get().annotations();
         if (annotations.isEmpty()) { // metadata is present but no annotations
@@ -719,7 +586,7 @@ public final class Utils {
                 annotEdit += System.lineSeparator();
                 edits.add(new TextEdit(toRange(metadata.get().lineRange()), annotEdit));
             }
-            return annots.size();
+            return;
         }
 
         // first annotation end line range
@@ -736,7 +603,6 @@ public final class Utils {
             edits.add(new TextEdit(toRange(range), annotEdit));
         }
 
-        return annots.size();
     }
 
     public static String getValueString(Value value) {
@@ -961,7 +827,7 @@ public final class Utils {
      * @return generated import statement
      */
     public static String getImportStmt(String org, String module) {
-        return String.format(ServiceModelGeneratorConstants.IMPORT_STMT_TEMPLATE, org, module);
+        return String.format(Constants.IMPORT_STMT_TEMPLATE, org, module);
     }
 
     public static boolean filterTriggers(TriggerProperty triggerProperty, TriggerListRequest request) {
@@ -976,35 +842,6 @@ public final class Utils {
 
     public static boolean expectsTriggerByName(TriggerRequest request) {
         return request.id() == null && request.organization() != null && request.packageName() != null;
-    }
-
-    public static boolean isTcpService(String org, String module) {
-        return org.equals("ballerina") && module.equals("tcp");
-    }
-
-    public static String getTcpOnConnectTemplate() {
-        return "    remote function onConnect(tcp:Caller caller) returns tcp:ConnectionService|tcp:Error? {%n" +
-                "        do {%n" +
-                "            %s connectionService = new %s();%n" +
-                "            return connectionService;%n" +
-                "        } on fail error err {%n" +
-                "            // handle error%n" +
-                "            return error(\"unhandled error\", err);%n" +
-                "        }%n" +
-                "    }";
-    }
-
-    public static FunctionAddContext getTriggerAddContext(String org, String module) {
-        if (org.equals("ballerina")) {
-            if (module.equals("http")) {
-                return FunctionAddContext.HTTP_SERVICE_ADD;
-            } else if (module.equals("graphql")) {
-                return FunctionAddContext.GRAPHQL_SERVICE_ADD;
-            } else if (module.equals("tcp")) {
-                return FunctionAddContext.TCP_SERVICE_ADD;
-            }
-        }
-        return FunctionAddContext.TRIGGER_ADD;
     }
 
     public static String generateVariableIdentifier(SemanticModel semanticModel, Document document,

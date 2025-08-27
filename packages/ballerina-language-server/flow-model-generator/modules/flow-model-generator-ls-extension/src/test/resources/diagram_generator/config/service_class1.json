@@ -19,6 +19,7 @@
           "data": {
             "kind": "Resource",
             "label": "name1",
+            "isServiceFunction": true,
             "accessor": "get",
             "return": "string"
           }

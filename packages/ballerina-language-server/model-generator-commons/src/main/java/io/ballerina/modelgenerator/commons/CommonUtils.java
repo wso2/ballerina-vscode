@@ -99,6 +99,8 @@ public class CommonUtils {
     private static final String EMBEDDING_PROVIDER_TYPE_NAME = "EmbeddingProvider";
     private static final String MODEL_PROVIDER_TYPE_NAME = "ModelProvider";
     private static final String VECTOR_STORE_TYPE_NAME = "VectorStore";
+    private static final String DATA_LOADER_TYPE_NAME = "DataLoader";
+    private static final String CHUNKER_TYPE_NAME = "Chunker";
     public static final String BALLERINA_ORG_NAME = "ballerina";
     public static final String BALLERINAX_ORG_NAME = "ballerinax";
     public static final String LANG_LIB_PREFIX = "lang.";
@@ -990,6 +992,16 @@ public class CommonUtils {
     public static boolean isAiEmbeddingProvider(Symbol symbol) {
         ClassSymbol classSymbol = getClassSymbol(symbol);
         return classSymbol != null && hasAiTypeInclusion(classSymbol, EMBEDDING_PROVIDER_TYPE_NAME);
+    }
+
+    public static boolean isAiDataLoader(Symbol symbol) {
+        ClassSymbol classSymbol = getClassSymbol(symbol);
+        return classSymbol != null && hasAiTypeInclusion(classSymbol, DATA_LOADER_TYPE_NAME);
+    }
+
+    public static boolean isAiChunker(Symbol symbol) {
+        ClassSymbol classSymbol = getClassSymbol(symbol);
+        return classSymbol != null && hasAiTypeInclusion(classSymbol, CHUNKER_TYPE_NAME);
     }
 
     private static ClassSymbol getClassSymbol(Symbol symbol) {

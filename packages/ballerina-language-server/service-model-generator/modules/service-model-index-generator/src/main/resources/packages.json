@@ -73,6 +73,24 @@
           "description": "",
           "functions": []
         }
+      },
+      "annotations": {
+        "ServiceConfig": {
+          "attachmentPoints": [
+            "SERVICE"
+          ],
+          "displayName": "Service Configuration",
+          "description": "Define service configurations such as maximum query depth.",
+          "typeConstrain": "graphql:GraphqlServiceConfig"
+        },
+        "ResourceConfig": {
+          "attachmentPoints": [
+            "OBJECT_METHOD"
+          ],
+          "displayName": "Field Configuration",
+          "description": "Define configurations such as field level cache.",
+          "typeConstrain": "graphql:GraphqlResourceConfig"
+        }
       }
     },
     {

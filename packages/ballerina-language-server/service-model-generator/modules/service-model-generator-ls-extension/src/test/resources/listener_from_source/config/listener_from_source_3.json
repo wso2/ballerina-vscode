@@ -16,10 +16,6 @@
       "type": "http",
       "displayName": "Http",
       "description": "This is used for creating HTTP server endpoints. An HTTP server endpoint is capable of responding to\nremote callers. The `Listener` is responsible for initializing the endpoint using the provided configurations.",
-      "displayAnnotation": {
-        "label": "Http",
-        "iconPath": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.14.0.png"
-      },
       "moduleName": "http",
       "orgName": "ballerina",
       "version": "2.14.0",
@@ -32,14 +28,6 @@
             "label": "Name",
             "description": "The name of the listener"
           },
-          "enabled": true,
-          "editable": false,
-          "value": "listener3",
-          "valueType": "IDENTIFIER",
-          "valueTypeConstraint": "Global",
-          "isType": false,
-          "optional": false,
-          "advanced": false,
           "codedata": {
             "lineRange": {
               "fileName": "main.bal",
@@ -51,35 +39,29 @@
                 "line": 4,
                 "offset": 32
               }
-            },
-            "inListenerInit": false,
-            "isBasePath": false,
-            "inDisplayAnnotation": false
+            }
           },
-          "addNewButton": false
+          "valueType": "IDENTIFIER",
+          "valueTypeConstraint": "Global",
+          "value": "listener3",
+          "enabled": true,
+          "editable": false,
+          "optional": false,
+          "advanced": false
         },
         "port": {
           "metadata": {
             "label": "port",
             "description": "Listening port of the HTTP service listener"
           },
-          "enabled": true,
-          "editable": true,
-          "value": "9090",
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "int",
-          "isType": false,
-          "placeholder": "0",
-          "optional": false,
-          "advanced": false,
           "codedata": {
-            "inListenerInit": false,
-            "isBasePath": false,
-            "inDisplayAnnotation": false,
             "type": "LISTENER_INIT_PARAM",
             "originalName": "port"
           },
-          "addNewButton": false,
+          "placeholder": "0",
+          "valueType": "EXPRESSION",
+          "valueTypeConstraint": "int",
+          "value": "9090",
           "typeMembers": [
             {
               "type": "int",
@@ -87,30 +69,25 @@
               "kind": "BASIC_TYPE",
               "selected": false
             }
-          ]
+          ],
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
         },
         "config": {
           "metadata": {
             "label": "config",
             "description": "Configurations for the HTTP service listener"
           },
-          "enabled": true,
-          "editable": true,
-          "value": "{}",
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "http:ListenerConfiguration",
-          "isType": false,
-          "placeholder": "{}",
-          "optional": true,
-          "advanced": true,
           "codedata": {
-            "inListenerInit": false,
-            "isBasePath": false,
-            "inDisplayAnnotation": false,
             "type": "LISTENER_INIT_PARAM",
             "originalName": "config"
           },
-          "addNewButton": false,
+          "placeholder": "{}",
+          "valueType": "EXPRESSION",
+          "valueTypeConstraint": "http:ListenerConfiguration",
+          "value": "{}",
           "typeMembers": [
             {
               "type": "ListenerConfiguration",
@@ -118,7 +95,11 @@
               "kind": "RECORD_TYPE",
               "selected": false
             }
-          ]
+          ],
+          "enabled": true,
+          "editable": true,
+          "optional": true,
+          "advanced": true
         }
       },
       "codedata": {
@@ -132,10 +113,7 @@
             "line": 4,
             "offset": 50
           }
-        },
-        "inListenerInit": false,
-        "isBasePath": false,
-        "inDisplayAnnotation": false
+        }
       }
     }
   }

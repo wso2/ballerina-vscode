@@ -19,6 +19,7 @@
           "data": {
             "kind": "Resource",
             "label": "grapes",
+            "isServiceFunction": true,
             "accessor": "get",
             "parameters": [
               "int price"

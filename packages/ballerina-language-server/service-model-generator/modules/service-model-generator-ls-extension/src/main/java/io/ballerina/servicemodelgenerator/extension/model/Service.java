@@ -37,7 +37,6 @@ public class Service {
     private final String type;
     private final String displayName;
     private final String description;
-    private final DisplayAnnotation displayAnnotation;
     private final String moduleName;
     private final String orgName;
     private final String version;
@@ -49,7 +48,7 @@ public class Service {
     private List<Function> functions;
 
     public Service(String id, String name, String type, String displayName, String description,
-                   DisplayAnnotation displayAnnotation, String moduleName, String orgName, String version,
+                   String moduleName, String orgName, String version,
                    String packageName, String listenerProtocol, String icon, Map<String, Value> properties,
                    Codedata codedata, List<Function> functions) {
         this.id = id;
@@ -57,7 +56,6 @@ public class Service {
         this.type = type;
         this.displayName = displayName;
         this.description = description;
-        this.displayAnnotation = displayAnnotation;
         this.moduleName = moduleName;
         this.orgName = orgName;
         this.version = version;
@@ -193,10 +191,6 @@ public class Service {
         return description;
     }
 
-    public DisplayAnnotation getDisplayAnnotation() {
-        return displayAnnotation;
-    }
-
     public String getVersion() {
         return version;
     }
@@ -229,7 +223,6 @@ public class Service {
         private String type;
         private String displayName;
         private String description;
-        private DisplayAnnotation displayAnnotation;
         private String moduleName;
         private String orgName;
         private String version;
@@ -267,11 +260,6 @@ public class Service {
 
         public ServiceModelBuilder setDescription(String description) {
             this.description = description;
-            return this;
-        }
-
-        public ServiceModelBuilder setDisplayAnnotation(DisplayAnnotation displayAnnotation) {
-            this.displayAnnotation = displayAnnotation;
             return this;
         }
 
@@ -321,7 +309,7 @@ public class Service {
         }
 
         public Service build() {
-            return new Service(id, name, type, displayName, description, displayAnnotation, moduleName, orgName,
+            return new Service(id, name, type, displayName, description, moduleName, orgName,
                     version, packageName, listenerProtocol, icon, properties, codedata, functions);
         }
     }
