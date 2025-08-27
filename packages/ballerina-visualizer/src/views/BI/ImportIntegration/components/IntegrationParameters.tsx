@@ -17,9 +17,10 @@
  */
 
 import { MigrationTool } from "@wso2/ballerina-core";
-import { CheckBox, TextField, Typography } from "@wso2/ui-toolkit";
+import { CheckBox, Dropdown, OptionProps, TextField, Typography } from "@wso2/ui-toolkit";
 import React from "react";
 import { ParameterItem, ParametersSection } from "../styles";
+import { BodyText } from "../../../styles";
 
 interface IntegrationParametersProps {
     selectedIntegration: MigrationTool;
@@ -36,16 +37,39 @@ export const IntegrationParameters: React.FC<IntegrationParametersProps> = ({
 
     return (
         <ParametersSection>
-            <Typography variant="h4" sx={{ marginBottom: 12 }}>
+            <Typography variant="h3" sx={{ marginBottom: 12 }}>
                 Step 3: Configure {selectedIntegration.title} Settings
             </Typography>
+            <BodyText>{`Configure additional settings for ${selectedIntegration.title} migration.`}</BodyText>
             {selectedIntegration.parameters.map((param) => (
                 <ParameterItem key={param.key}>
-                    {param.type === "boolean" ? (
+                    {param.valueType === "boolean" ? (
                         <CheckBox
                             checked={integrationParams[param.key] || false}
                             onChange={(checked) => onParameterChange(param.key, checked)}
                             label={param.label}
+                        />
+                    ) : param.valueType === "enum" && param.options ? (
+                        <Dropdown
+                            id={`${param.key}-dropdown`}
+                            label={param.label}
+                            value={integrationParams[param.key] || param.defaultValue || param.options[0]}
+                            items={param.options.map(option => ({ 
+                                id: option, 
+                                content: option 
+                            } as OptionProps))}
+                            onChange={(e) => onParameterChange(param.key, e.target.value)}
+                            containerSx={{
+                                position: 'relative',
+                                marginBottom: '60px',
+                                '& vscode-dropdown::part(listbox)': {
+                                    position: 'absolute !important',
+                                    top: '100% !important',
+                                    bottom: 'auto !important',
+                                    transform: 'none !important',
+                                    marginTop: '2px !important'
+                                }
+                            }}
                         />
                     ) : (
                         <TextField

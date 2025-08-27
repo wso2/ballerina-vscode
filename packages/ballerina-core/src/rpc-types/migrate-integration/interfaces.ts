@@ -26,8 +26,9 @@ export interface MigrationTool {
     parameters: Array<{
         key: string;
         label: string;
-        type: "boolean" | "string" | "number";
+        valueType: "boolean" | "string" | "number" | "enum";
         defaultValue?: boolean | string | number;
+        options?: string[];
     }>;
 }
 
