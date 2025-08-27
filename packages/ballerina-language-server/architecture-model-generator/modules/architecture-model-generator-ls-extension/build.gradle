@@ -76,6 +76,42 @@ task unpackStdLibs() {
     }
 }
 
+def pullBallerinaTool(String orgName, String toolName, String toolDirName, String version = null) {
+    tasks.register("tool_pull${toolName}_${version ? version : 'latest'}", Exec) {
+        group = "ballerinaTools"
+        description = "Pulls Ballerina tool ${toolName}${version ? " version ${version}" : ""} if not present"
+
+        def userHome = System.getProperty("user.home")
+        def centralRepoDir = new File(userHome, ".ballerina/repositories/central.ballerina.io/bala/${orgName}")
+        def pkgDir = new File(centralRepoDir, toolDirName)
+        def versionDir = version ? new File(pkgDir, version) : null
+
+        onlyIf {
+            if (pkgDir.exists()) {
+                if (version) {
+                    return !versionDir.exists()
+                }
+                return false
+            }
+            return true
+        }
+
+        def balPullCommand = "bal tool pull ${toolName}${version ? ':' + version : ''}"
+        if (org.gradle.internal.os.OperatingSystem.current().isWindows()) {
+            commandLine 'cmd', '/c', balPullCommand
+        } else {
+            commandLine '/bin/sh', '-c', balPullCommand
+        }
+
+        doLast {
+            if (executionResult.get().exitValue != 0) {
+                throw new GradleException("Failed to pull Ballerina tool: ${toolName}")
+            }
+        }
+    }
+}
+
+
 task copyStdlibs() {
     dependsOn(unpackStdLibs)
     doLast {
@@ -106,6 +142,8 @@ test {
         suites "src/test/resources/testng.xml"
     }
 }
+
+test.dependsOn pullBallerinaTool('wso2', 'migrate-tibco', 'tool_migrate_tibco', migrateTibcoVersion)
 
 ext.moduleName = 'io.ballerina.architecturemodelgenerator.extension'
 
