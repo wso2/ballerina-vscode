@@ -1,23 +1,23 @@
 {
-  "source": "union2.bal",
+  "source": "union5.bal",
   "description": "Sample diagram node",
   "codedata": {
     "node": "VARIABLE",
     "lineRange": {
-      "fileName": "union1.bal",
+      "fileName": "union5.bal",
       "startLine": {
-        "line": 27,
+        "line": 37,
         "offset": 4
       },
       "endLine": {
-        "line": 27,
+        "line": 37,
         "offset": 31
       }
     },
     "sourceCode": ""
   },
   "position": {
-    "line": 27,
+    "line": 37,
     "offset": 4
   },
   "propertyKey": "expression",
@@ -25,18 +25,18 @@
     "inputs": [
       {
         "fields": [],
-        "id": "dog",
-        "name": "dog",
-        "typeName": "Dog",
+        "id": "elephant",
+        "name": "elephant",
+        "typeName": "Elephant|InvalidIntError",
         "kind": "record",
         "category": "local-variable",
-        "ref": "-27067364"
+        "ref": "252136892"
       },
       {
         "fields": [],
-        "id": "elephant",
-        "name": "elephant",
-        "typeName": "Elephant",
+        "id": "elephantOrNil",
+        "name": "elephantOrNil",
+        "typeName": "Elephant|()",
         "kind": "record",
         "category": "local-variable",
         "ref": "252136892"

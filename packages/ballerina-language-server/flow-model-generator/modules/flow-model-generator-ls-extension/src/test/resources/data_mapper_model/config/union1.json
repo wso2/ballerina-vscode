@@ -58,16 +58,16 @@
             "members": [
               {
                 "fields": [],
-                "id": "animal.record",
-                "name": "record",
+                "id": "animal",
+                "name": "animal",
                 "typeName": "Dog",
                 "kind": "record",
                 "ref": "-27067364"
               },
               {
                 "fields": [],
-                "id": "animal.record",
-                "name": "record",
+                "id": "animal",
+                "name": "animal",
                 "typeName": "Elephant",
                 "kind": "record",
                 "ref": "252136892"
