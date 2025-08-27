@@ -16,20 +16,15 @@
  * under the License.
  */
 
-import { GetRecordConfigRequest, GetRecordConfigResponse, PropertyTypeMemberInfo, RecordSourceGenRequest, RecordSourceGenResponse, RecordTypeField, TypeField } from "@wso2/ballerina-core";
+import { GetRecordConfigResponse, PropertyTypeMemberInfo, RecordSourceGenRequest, RecordSourceGenResponse, RecordTypeField, TypeField } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
-import { useSlidingPane } from "@wso2/ui-toolkit/lib/components/ExpressionEditor/components/Common/SlidingPane/context";
 import { RefObject, useEffect, useRef, useState } from "react";
-import { RecordConfig } from "./RecordConfigView";
-import { Button, CompletionItem } from "@wso2/ui-toolkit";
 import { getDefaultValue, isRowType } from "../Utils/types";
 import ExpandableList from "../Components/ExpandableList";
 import SelectableItem from "../Components/SelectableItem";
 import { SlidingPaneNavContainer } from "@wso2/ui-toolkit/lib/components/ExpressionEditor/components/Common/SlidingPane";
 import DynamicModal from "../Components/Modal";
-import FooterButtons from "../Components/FooterButtons";
-import * as Types from "../Components/RecordConstructView/Types";
-import { TypeProps } from "../../HelperView/ConfigurePanel";
+import { RecordConfig } from "./RecordConfigView";
 
 type CreateValuePageProps = {
     fileName: string;
@@ -109,56 +104,13 @@ export const CreateValue = (props: CreateValuePageProps) => {
         }
     }
 
-    const handleModelChange = async (updatedModel: TypeField[]) => {
-        const request: RecordSourceGenRequest = {
-            filePath: fileName,
-            type: updatedModel[0]
-        }
-        const recordSourceResponse: RecordSourceGenResponse = await rpcClient.getBIDiagramRpcClient().getRecordSource(request);
-        console.log(">>> recordSourceResponse", recordSourceResponse);
-
-        if (recordSourceResponse.recordValue !== undefined) {
-            const content = recordSourceResponse.recordValue;
-            sourceCode.current = content;
-            onChange(content, true);
-        }
-    }
-
-
-    const isTypePrimitive = (selectedType: string | string[]) => {
-        return isSelectedTypeContainsType(selectedType, "string") || isSelectedTypeContainsType(selectedType, "int") || isSelectedTypeContainsType(selectedType, "boolean" ) ;
-    }
-
-    console.log("selectedType", selectedType)
-
-
     useEffect(() => {
         fetchRecordModel()
     }, []);
 
     return (
-        (recordTypeField)?
+        (recordTypeField) ?
             <>
-
-                <ExpandableList>
-                    <SlidingPaneNavContainer onClick={() => setIsModalOpen(true)}>
-                        <ExpandableList.Item sx={{ width: "100%" }}>
-                            Create value for the complex type
-                        </ExpandableList.Item>
-                    </SlidingPaneNavContainer>
-                </ExpandableList>
-                <DynamicModal
-                    width={500}
-                    height={600}
-                    anchorRef={anchorRef}
-                    title="Record Configuration"
-                    openState={isModalOpen}
-                    setOpenState={setIsModalOpen}>
-                    <RecordConfig
-                        recordModel={recordModel}
-                        onModelChange={handleModelChange}
-                    />
-                </DynamicModal>
             </>
             : <NonRecordCreateValue
                 fileName={fileName}
@@ -190,11 +142,11 @@ const NonRecordCreateValue = (props: CreateValuePageProps) => {
         <>
             {defaultValue && (
                 <ExpandableList>
-                    <SelectableItem onClick={() => { handleValueSelect(defaultValue) }} className="selectable-list-item">
+                     <SlidingPaneNavContainer onClick={() => { handleValueSelect(defaultValue) }}>
                         <ExpandableList.Item sx={{ width: "100%" }}>
                             Initialize to {defaultValue}
                         </ExpandableList.Item>
-                    </SelectableItem>
+                    </SlidingPaneNavContainer>
                 </ExpandableList>
             )}
             {isSelectedTypeContainsType(selectedType, "string") && (
@@ -220,7 +172,7 @@ const NonRecordCreateValue = (props: CreateValuePageProps) => {
                     </SlidingPaneNavContainer>
                 </ExpandableList>
             )}
-             {isSelectedTypeContainsType(selectedType, "log:PrintableRawTemplate") && (
+            {isSelectedTypeContainsType(selectedType, "log:PrintableRawTemplate") && (
                 <ExpandableList>
                     <SlidingPaneNavContainer onClick={() => { handleValueSelect("string ``") }}>
                         <ExpandableList.Item sx={{ width: "100%" }}>

@@ -407,12 +407,14 @@ const HelperPaneNewEl = ({
                     title="Record Configuration"
                     openState={isModalOpen}
                     setOpenState={setIsModalOpen}>
-                    <RecordConfigModal
+                 <div style={{padding: '0px 16px'}}>
+                       <RecordConfigModal
                         valueTypeConstraint={valueTypeConstraint}
                         fileName={fileName}
                         recordTypeField={recordTypeField}
                         handleModalChange={handleModalChange}
                     />
+                 </div>
                 </DynamicModal>
             </HelperPaneCustom.Body>
         </HelperPaneCustom >
