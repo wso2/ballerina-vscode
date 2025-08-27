@@ -18,7 +18,8 @@
           "label": "Start",
           "data": {
             "kind": "Function",
-            "label": "langLibMethods"
+            "label": "langLibMethods",
+            "isServiceFunction": false
           }
         },
         "codedata": {

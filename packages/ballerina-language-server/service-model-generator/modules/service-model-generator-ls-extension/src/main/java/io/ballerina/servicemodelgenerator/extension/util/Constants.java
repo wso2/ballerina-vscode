@@ -161,6 +161,15 @@ public class Constants {
 
     public static final String DEFAULT = "default";
 
+    // GraphQL advance params
+    public static final String GRAPHQL_CONTEXT = "context";
+    public static final String GRAPHQL_FIELD = "'field";
+
+    // GraphQL function property keys
+    public static final String GRAPHQL_CONTEXT_KEY = "paramContext";
+    public static final String GRAPHQL_FIELD_KEY = "paramField";
+    public static final String VALUE_FIELD = "value";
+
     private Constants() {
     }
 }

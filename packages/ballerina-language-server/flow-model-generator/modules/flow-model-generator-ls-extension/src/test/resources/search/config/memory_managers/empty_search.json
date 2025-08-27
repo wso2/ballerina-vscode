@@ -1,0 +1,47 @@
+{
+  "description": "Empty memory managers search flow model",
+  "kind": "MEMORY_MANAGER",
+  "source": "empty.bal",
+  "queryMap": {
+    "q": ""
+  },
+  "categories": [
+    {
+      "metadata": {
+        "label": "Memory Managers"
+      },
+      "items": [
+        {
+          "metadata": {
+            "label": "Message Window Chat Memory",
+            "description": "A memory manager that stores chat messages in a window format, allowing for efficient retrieval and management of recent interactions."
+          },
+          "codedata": {
+            "node": "CLASS_INIT",
+            "org": "ballerina",
+            "module": "ai",
+            "packageName": "ai",
+            "object": "MessageWindowChatMemory",
+            "symbol": "init"
+          },
+          "enabled": true
+        },
+        {
+          "metadata": {
+            "label": "Message Window Chat Memory (ballerinax)",
+            "description": "A memory manager that stores chat messages in a window format, allowing for efficient retrieval and management of recent interactions."
+          },
+          "codedata": {
+            "node": "CLASS_INIT",
+            "org": "ballerinax",
+            "module": "ai",
+            "packageName": "ai",
+            "object": "MessageWindowChatMemory",
+            "symbol": "init"
+          },
+          "enabled": true
+        }
+      ]
+    }
+  ]
+}

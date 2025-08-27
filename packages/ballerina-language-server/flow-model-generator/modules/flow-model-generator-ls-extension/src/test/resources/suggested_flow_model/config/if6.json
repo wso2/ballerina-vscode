@@ -24,7 +24,8 @@
           "label": "Start",
           "data": {
             "kind": "Function",
-            "label": "fn2"
+            "label": "fn2",
+            "isServiceFunction": false
           }
         },
         "codedata": {

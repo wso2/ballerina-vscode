@@ -133,7 +133,10 @@
       "isBasePath": false,
       "inDisplayAnnotation": false
     },
-    "annotations": {}
+    "advanceProperties": {
+      "annotations": {},
+      "parameters": []
+    }
   },
   "output": {
     "add_function_for_class.bal": [

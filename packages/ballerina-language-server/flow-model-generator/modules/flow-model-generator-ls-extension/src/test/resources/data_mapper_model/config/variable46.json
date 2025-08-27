@@ -21,7 +21,7 @@
     "offset": 4
   },
   "propertyKey": "expression",
-  "targetField": "v2.i",
+  "targetField": "v2",
   "model": {
     "inputs": [
       {
@@ -30,57 +30,42 @@
         "name": "v1",
         "typeName": "MyType",
         "kind": "record",
-        "category": "variable",
+        "category": "local-variable",
         "ref": "1826392918"
-      },
-      {
-        "id": "kItem",
-        "name": "kItem",
-        "typeName": "string",
-        "kind": "string",
-        "isFocused": true
       }
     ],
     "output": {
-      "id": "i",
-      "name": "i",
-      "typeName": "string",
-      "kind": "string"
+      "fields": [],
+      "id": "v2",
+      "name": "v2",
+      "typeName": "MyType",
+      "kind": "record",
+      "ref": "1826392918"
     },
     "mappings": [
       {
-        "output": "i",
+        "output": "v2.i",
         "inputs": [
-          "kItem"
+          "v1.k"
         ],
-        "expression": "'join(\",\", kItem)",
+        "expression": "from var kItem in v1.k\n            collect 'join(\",\", kItem)",
         "diagnostics": [],
         "elements": [],
-        "isQueryExpression": false,
-        "isFunctionCall": true
+        "isQueryExpression": true,
+        "isFunctionCall": false
+      },
+      {
+        "output": "v2.k",
+        "inputs": [
+          "v1.k"
+        ],
+        "expression": "from var kItem in v1.k select kItem\n",
+        "diagnostics": [],
+        "elements": [],
+        "isQueryExpression": true,
+        "isFunctionCall": false
       }
     ],
-    "query": {
-      "output": "i",
-      "inputs": [
-        "v1.k"
-      ],
-      "fromClause": {
-        "type": "from",
-        "properties": {
-          "name": "kItem",
-          "type": "string",
-          "expression": "v1.k"
-        }
-      },
-      "intermediateClauses": [],
-      "resultClause": {
-        "type": "collect",
-        "properties": {
-          "expression": "'join(\",\", kItem)"
-        }
-      }
-    },
     "refs": {
       "1826392918": {
         "fields": [

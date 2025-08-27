@@ -25,6 +25,7 @@
           "data": {
             "kind": "Function",
             "label": "fn1",
+            "isServiceFunction": false,
             "parameters": [
               "boolean flag"
             ]
