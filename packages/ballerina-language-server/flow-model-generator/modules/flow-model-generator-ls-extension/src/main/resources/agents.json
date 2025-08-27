@@ -1,0 +1,43 @@
+{
+  "items": [
+    {
+      "metadata": {
+        "label": "Agents"
+      },
+      "items": [
+        {
+          "metadata": {
+            "label": "AI Agent",
+            "description": "An AI agent that can interact, process inputs, and provide responses using various AI capabilities."
+          },
+          "codedata": {
+            "node": "AGENT",
+            "module": "ai",
+            "packageName": "ai",
+            "symbol": "init",
+            "org": "ballerina",
+            "object": "Agent",
+            "flags": 1
+          },
+          "enabled": true
+        },
+        {
+          "metadata": {
+            "label": "AI Agent",
+            "description": "An AI agent that can interact, process inputs, and provide responses using various AI capabilities."
+          },
+          "codedata": {
+            "node": "AGENT",
+            "module": "ai",
+            "packageName": "ai",
+            "symbol": "init",
+            "org": "ballerinax",
+            "object": "Agent",
+            "flags": 1
+          },
+          "enabled": true
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,107 @@
+{
+  "items": [
+    {
+      "metadata": {
+        "label": "Class Initializers"
+      },
+      "items": [
+        {
+          "metadata": {
+            "label": "OpenAI Provider",
+            "description": "Initializes the OpenAI LLM provider."
+          },
+          "codedata": {
+            "node": "CLASS_INIT",
+            "org": "ballerinax",
+            "module": "ai",
+            "packageName": "ai",
+            "object": "OpenAiProvider",
+            "symbol": "init",
+            "flags": 1
+          },
+          "enabled": true
+        },
+        {
+          "metadata": {
+            "label": "Azure OpenAI Provider",
+            "description": "Initializes the Azure OpenAI LLM provider."
+          },
+          "codedata": {
+            "node": "CLASS_INIT",
+            "org": "ballerinax",
+            "module": "ai",
+            "packageName": "ai",
+            "object": "AzureOpenAiProvider",
+            "symbol": "init",
+            "flags": 1
+          },
+          "enabled": true
+        },
+        {
+          "metadata": {
+            "label": "Anthropic Provider",
+            "description": "Initializes the Anthropic LLM provider."
+          },
+          "codedata": {
+            "node": "CLASS_INIT",
+            "org": "ballerinax",
+            "module": "ai",
+            "packageName": "ai",
+            "object": "AnthropicProvider",
+            "symbol": "init",
+            "flags": 1
+          },
+          "enabled": true
+        },
+        {
+          "metadata": {
+            "label": "Mistral AI Provider",
+            "description": "Initializes the Mistral AI LLM provider."
+          },
+          "codedata": {
+            "node": "CLASS_INIT",
+            "org": "ballerinax",
+            "module": "ai",
+            "packageName": "ai",
+            "object": "MistralAiProvider",
+            "symbol": "init",
+            "flags": 1
+          },
+          "enabled": true
+        },
+        {
+          "metadata": {
+            "label": "Deepseek Provider",
+            "description": "Initializes the Deepseek LLM provider."
+          },
+          "codedata": {
+            "node": "CLASS_INIT",
+            "org": "ballerinax",
+            "module": "ai",
+            "packageName": "ai",
+            "object": "DeepseekProvider",
+            "symbol": "init",
+            "flags": 1
+          },
+          "enabled": true
+        },
+        {
+          "metadata": {
+            "label": "Ollama Provider",
+            "description": "Initializes the Ollama LLM provider."
+          },
+          "codedata": {
+            "node": "CLASS_INIT",
+            "org": "ballerinax",
+            "module": "ai",
+            "packageName": "ai",
+            "object": "OllamaProvider",
+            "symbol": "init",
+            "flags": 1
+          },
+          "enabled": true
+        }
+      ]
+    }
+  ]
+}
