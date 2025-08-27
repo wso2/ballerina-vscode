@@ -41,17 +41,23 @@ const VariablesMoreIconContainer = styled.div`
     }
 `;
 
+type BreadCrumbStep = {
+    label: string;
+    replaceText: string
+}
+
 export const Variables = (props: VariablesPageProps) => {
     const { fileName, targetLineRange, onChange, anchorRef, handleOnFormSubmit, selectedType, filteredCompletions, currentValue, recordTypeField, isInModal, handleRetrieveCompletions } = props;
     const [searchValue, setSearchValue] = useState<string>("");
     const { rpcClient } = useRpcContext();
-    const [variableInfo, setVariableInfo] = useState<HelperPaneVariableInfo | undefined>(undefined);
-    const [filteredVariableInfo, setFilteredVariableInfo] = useState<HelperPaneVariableInfo | undefined>(undefined);
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const newNodeNameRef = useRef<string>("");
     const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
     const [projectPathUri, setProjectPathUri] = useState<string>();
-    const [breadCrumbSteps, setBreadCrumbSteps] = useState<string[]>(["Variables"]);
+    const [breadCrumbSteps, setBreadCrumbSteps] = useState<BreadCrumbStep[]>([{
+        label: "Variables",
+        replaceText: ""
+    }]);
 
     const { field, triggerCharacters } = useFieldContext();
 
@@ -109,7 +115,6 @@ export const Variables = (props: VariablesPageProps) => {
         );
     }, [searchValue, dropdownItems]);
 
-
     const handleSearch = (searchText: string) => {
         setSearchValue(searchText);
     };
@@ -119,16 +124,20 @@ export const Variables = (props: VariablesPageProps) => {
     }
 
     const handleVariablesMoreIconClick = (value: string) => {
-        const newBreadCrumSteps = [...breadCrumbSteps, value];
+        const newBreadCrumSteps = [...breadCrumbSteps, {
+            label: value,
+            replaceText: currentValue + value
+        }];
         setBreadCrumbSteps(newBreadCrumSteps);
         onChange(value + '.', false, true);
     }
 
-    const handleBreadCrumbItemClicked = (variableName: string) => {
-        const patternStartIndex = currentValue.indexOf(variableName);
-        if (patternStartIndex === -1) return;
-        const newValue = currentValue.slice(0, patternStartIndex + variableName.length) + '.';
-        onChange(newValue, true);
+    const handleBreadCrumbItemClicked = (step: BreadCrumbStep) => {
+        const replaceText = step.replaceText === ''? step.replaceText : step.replaceText + '.';
+        onChange(replaceText, true);
+        const index = breadCrumbSteps.findIndex(item => item.label === step.label);
+        const newSteps = index !== -1 ? breadCrumbSteps.slice(0, index+1) : breadCrumbSteps;
+        setBreadCrumbSteps(newSteps);
     }
 
     const ExpandableListItems = () => {
@@ -265,7 +274,7 @@ export const Variables = (props: VariablesPageProps) => {
                         {breadCrumbSteps.map((step, index) => (
                             <span key={index} style={{ cursor: 'pointer', color: ThemeColors.HIGHLIGHT }}>
                                 <span onClick={() => handleBreadCrumbItemClicked(step)}>
-                                    {step}
+                                    {step.label}
                                 </span>
                                 {index < breadCrumbSteps.length - 1 && <span style={{ margin: '0 8px' }}>{'>'}</span>}
                             </span>
