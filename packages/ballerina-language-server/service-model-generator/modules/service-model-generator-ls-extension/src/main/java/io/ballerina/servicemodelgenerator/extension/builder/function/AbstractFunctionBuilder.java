@@ -252,7 +252,8 @@ public abstract class AbstractFunctionBuilder implements NodeBuilder<Function> {
 
     public static Map<String, List<TextEdit>> buildUpdateModel(UpdateModelContext context) {
         List<TextEdit> edits = new ArrayList<>();
-        Utils.addFunctionAnnotationTextEdits(context.function(), context.functionNode(), edits);
+        Map<String, String> imports = new HashMap<>();
+        Utils.addFunctionAnnotationTextEdits(context.function(), context.functionNode(), edits, imports);
 
         String functionName = context.functionNode().functionName().text().trim();
         LineRange nameRange = context.functionNode().functionName().lineRange();
@@ -279,7 +280,6 @@ public abstract class AbstractFunctionBuilder implements NodeBuilder<Function> {
             }
         }
 
-        Map<String, String> imports = new HashMap<>();
         LineRange signatureRange = context.functionNode().functionSignature().lineRange();
         List<String> newStatusCodeTypesDef = new ArrayList<>();
         String functionSignature = generateFunctionSignatureSource(context.function(), newStatusCodeTypesDef,

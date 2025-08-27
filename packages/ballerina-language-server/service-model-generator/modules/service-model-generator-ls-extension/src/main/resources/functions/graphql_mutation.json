@@ -48,7 +48,10 @@
         "isType": true,
         "placeholder": "string",
         "optional": false,
-        "advanced": false
+        "advanced": false,
+        "imports": {
+          "graphql": "ballerina/graphql:1.16.0"
+        }
       },
       "name": {
         "enabled": true,
@@ -82,7 +85,10 @@
         "isType": true,
         "placeholder": "string",
         "optional": false,
-        "advanced": false
+        "advanced": false,
+        "imports": {
+          "graphql": "ballerina/graphql:1.16.0"
+        }
       },
       "name": {
         "enabled": true,
@@ -203,7 +209,10 @@
           "kind": "RECORD_TYPE",
           "selected": true
         }
-      ]
+      ],
+      "imports": {
+        "graphql": "ballerina/graphql:1.16.0"
+      }
     },
     "paramContext": {
       "metadata": {

@@ -219,6 +219,32 @@
               "offset": 5
             }
           }
+        },
+        "properties": {
+          "annotResourceConfig": {
+            "metadata": {
+              "label": "Resource Configuration",
+              "description": "Configuration related to the resource function."
+            },
+            "codedata": {
+              "type": "ANNOTATION_ATTACHMENT",
+              "originalName": "ResourceConfig"
+            },
+            "placeholder": "{}",
+            "valueType": "EXPRESSION",
+            "valueTypeConstraint": "ResourceConfig",
+            "typeMembers": [
+              {
+                "type": "ResourceConfig",
+                "kind": "RECORD_TYPE",
+                "selected": false
+              }
+            ],
+            "enabled": false,
+            "editable": true,
+            "optional": true,
+            "advanced": true
+          }
         }
       },
       {
@@ -335,6 +361,32 @@
               "line": 28,
               "offset": 5
             }
+          }
+        },
+        "properties": {
+          "annotResourceConfig": {
+            "metadata": {
+              "label": "Resource Configuration",
+              "description": "Configuration related to the resource function."
+            },
+            "codedata": {
+              "type": "ANNOTATION_ATTACHMENT",
+              "originalName": "ResourceConfig"
+            },
+            "placeholder": "{}",
+            "valueType": "EXPRESSION",
+            "valueTypeConstraint": "ResourceConfig",
+            "typeMembers": [
+              {
+                "type": "ResourceConfig",
+                "kind": "RECORD_TYPE",
+                "selected": false
+              }
+            ],
+            "enabled": false,
+            "editable": true,
+            "optional": true,
+            "advanced": true
           }
         }
       },
@@ -498,6 +550,32 @@
               "line": 36,
               "offset": 5
             }
+          }
+        },
+        "properties": {
+          "annotResourceConfig": {
+            "metadata": {
+              "label": "Resource Configuration",
+              "description": "Configuration related to the resource function."
+            },
+            "codedata": {
+              "type": "ANNOTATION_ATTACHMENT",
+              "originalName": "ResourceConfig"
+            },
+            "placeholder": "{}",
+            "valueType": "EXPRESSION",
+            "valueTypeConstraint": "ResourceConfig",
+            "typeMembers": [
+              {
+                "type": "ResourceConfig",
+                "kind": "RECORD_TYPE",
+                "selected": false
+              }
+            ],
+            "enabled": false,
+            "editable": true,
+            "optional": true,
+            "advanced": true
           }
         }
       }
