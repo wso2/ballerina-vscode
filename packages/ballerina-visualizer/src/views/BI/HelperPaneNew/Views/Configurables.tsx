@@ -205,43 +205,23 @@ export const Configurables = (props: ConfigurablesPageProps) => {
                         category.items.some(sub => Array.isArray(sub.items) && sub.items.length > 0)
                     )
                     .map(category => (
-                        <ExpandableList.Section
-                            key={category.name}
-                            title={category.name}
-                            level={1}
-                        >
-                            <div style={{ marginTop: '10px' }}>
-                                {category.items
-                                    .filter(subCategory => subCategory.items && subCategory.items.length > 0)
-                                    .map(subCategory => (
-                                        <div key={subCategory.name}>
-                                            {subCategory.name !== '' ? (
-                                                <ExpandableList.Section
-                                                    sx={{ marginTop: '10px' }}
-                                                    key={subCategory.name}
-                                                    title={subCategory.name}
-                                                    level={0}
-                                                >
-                                                    <div style={{ marginTop: '10px' }}>
-                                                        {subCategory.items.map((item: ConfigVariable) => (
-                                                            <SlidingPaneNavContainer
-                                                                key={item.id}
-                                                                onClick={() => { handleItemClicked(item?.properties?.variable?.value as string) }}
-                                                            >
-                                                                <ExpandableList.Item
-                                                                >
-                                                                    {getIcon(COMPLETION_ITEM_KIND.Parameter)}
-                                                                    {item?.properties?.variable?.value as ReactNode}
-                                                                </ExpandableList.Item>
-                                                            </SlidingPaneNavContainer>
-                                                        ))}
-                                                    </div>
-                                                </ExpandableList.Section>
-                                            ) : (
-                                                <div>
+                        <div >
+                            {category.items
+                                .filter(subCategory => subCategory.items && subCategory.items.length > 0)
+                                .map(subCategory => (
+                                    <div key={subCategory.name}>
+                                        {subCategory.name !== '' ? (
+                                            <ExpandableList.Section
+                                                key={subCategory.name}
+                                                title={subCategory.name}
+                                                level={0}
+                                            >
+                                                <div style={{ marginTop: '10px' }}>
                                                     {subCategory.items.map((item: ConfigVariable) => (
-                                                        <SlidingPaneNavContainer key={item.id}
-                                                            onClick={() => { handleItemClicked(item?.properties?.variable?.value as string) }}>
+                                                        <SlidingPaneNavContainer
+                                                            key={item.id}
+                                                            onClick={() => { handleItemClicked(item?.properties?.variable?.value as string) }}
+                                                        >
                                                             <ExpandableList.Item
                                                             >
                                                                 {getIcon(COMPLETION_ITEM_KIND.Parameter)}
@@ -250,11 +230,24 @@ export const Configurables = (props: ConfigurablesPageProps) => {
                                                         </SlidingPaneNavContainer>
                                                     ))}
                                                 </div>
-                                            )}
-                                        </div>
-                                    ))}
-                            </div>
-                        </ExpandableList.Section>
+                                            </ExpandableList.Section>
+                                        ) : (
+                                            <div>
+                                                {subCategory.items.map((item: ConfigVariable) => (
+                                                    <SlidingPaneNavContainer key={item.id}
+                                                        onClick={() => { handleItemClicked(item?.properties?.variable?.value as string) }}>
+                                                        <ExpandableList.Item
+                                                        >
+                                                            {getIcon(COMPLETION_ITEM_KIND.Parameter)}
+                                                            {item?.properties?.variable?.value as ReactNode}
+                                                        </ExpandableList.Item>
+                                                    </SlidingPaneNavContainer>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+                                ))}
+                        </div>
                     ))}
             </ScrollableContainer>
 
