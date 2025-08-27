@@ -683,12 +683,15 @@ export function FormGeneratorNew(props: FormProps) {
                 onClose={onCloseTypeEditor}
             >
                 <FormTypeEditor
-                    newType={true}
+                    getNewTypeCreateForm={function (): void {
+                        throw new Error("Function not implemented.");
+                    } } onSaveType={function (type: Type): void {
+                        throw new Error("Function not implemented.");
+                    } } newType={true}
                     onTypeChange={handleTypeChange}
                     newTypeValue={typeEditorState.newTypeValue}
                     onTypeCreate={handleTypeCreate}
-                    {...(isGraphql && { type: defaultType(), isGraphql: true })}
-                />
+                    {...(isGraphql && { type: defaultType(), isGraphql: true })}                />
             </PanelContainer>
             <Overlay sx={{ background: `${ThemeColors.SURFACE_CONTAINER}`, opacity: `0.3`, zIndex: 1000 }} />
         </>

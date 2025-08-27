@@ -136,6 +136,7 @@ import {
     DeleteConfigVariableResponseV2,
     LoginMethod,
     Diagnostics,
+    ConfigVariableRequest,
 } from "@wso2/ballerina-core";
 import * as fs from "fs";
 import * as path from 'path';
@@ -690,17 +691,23 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
         });
     }
 
-    async getConfigVariablesV2(): Promise<ConfigVariableResponse> {
-        return new Promise(async (resolve) => {
-            const projectPath = path.join(StateMachine.context().projectUri);
-            const showLibraryConfigVariables = extension.ballerinaExtInstance.showLibraryConfigVariables();
-            const variables = await StateMachine.langClient().getConfigVariablesV2({
-                projectPath: projectPath,
-                includeLibraries: showLibraryConfigVariables !== false
-            }) as ConfigVariableResponse;
-            resolve(variables);
-        });
-    }
+async getConfigVariablesV2(params: ConfigVariableRequest): Promise<ConfigVariableResponse> {
+    return new Promise(async (resolve) => {
+        const projectPath = path.join(StateMachine.context().projectUri);
+        const showLibraryConfigVariables = extension.ballerinaExtInstance.showLibraryConfigVariables();
+        
+        // if params includeLibraries is not set, then use settings 
+        const includeLibraries = params?.includeLibraries !== undefined 
+            ? params.includeLibraries 
+            : showLibraryConfigVariables !== false;
+
+        const variables = await StateMachine.langClient().getConfigVariablesV2({
+            projectPath: projectPath,
+            includeLibraries
+        }) as ConfigVariableResponse;
+        resolve(variables);
+    });
+}
 
     async updateConfigVariablesV2(params: UpdateConfigVariableRequestV2): Promise<UpdateConfigVariableResponseV2> {
         return new Promise(async (resolve) => {
