@@ -37,7 +37,6 @@ import {
     VisualizerLocation,
     CurrentBreakpointsResponse as BreakpointInfo,
     ParentPopupData,
-    FocusFlowDiagramView,
     ExpressionProperty,
     TRIGGER_CHARACTERS,
     TriggerCharacter,
@@ -46,7 +45,7 @@ import {
     UpdatedArtifactsResponse
 } from "@wso2/ballerina-core";
 import { PanelContainer } from "@wso2/ballerina-side-panel";
-import { ModelConfig } from "../AIChatAgent/ModelConfig";
+import { ConnectionConfig, ConnectionCreator, ConnectionSelectionList } from "../../../components/ConnectionSelector";
 
 import {
     addDraftNodeToDiagram,
@@ -54,12 +53,13 @@ import {
     convertBICategoriesToSidePanelCategories,
     getFlowNodeForNaturalFunction,
     calculateExpressionOffsets,
-    isNaturalFunction,
     updateLineRange,
 } from "../../../utils/bi";
-import { NodePosition, STNode } from "@wso2/syntax-tree";
+import { NodePosition } from "@wso2/syntax-tree";
 import { View, ProgressRing, ProgressIndicator, ThemeColors, CompletionItem } from "@wso2/ui-toolkit";
 import { EXPRESSION_EXTRACTION_REGEX } from "../../../constants";
+import { ConnectionKind } from "../../../components/ConnectionSelector";
+import { SidePanelView } from "../FlowDiagram/PanelManager";
 
 const Container = styled.div`
     width: 100%;
@@ -88,8 +88,10 @@ export function BIFocusFlowDiagram(props: BIFocusFlowDiagramProps) {
     const [suggestedModel, setSuggestedModel] = useState<Flow>();
     const [showProgressIndicator, setShowProgressIndicator] = useState(false);
     const [breakpointInfo, setBreakpointInfo] = useState<BreakpointInfo>();
-    const [showModelConfigPanel, setShowModelConfigPanel] = useState(false);
-    const [selectedNodeForModelConfig, setSelectedNodeForModelConfig] = useState<FlowNode | undefined>();
+    const [showConnectionPanel, setShowConnectionPanel] = useState(false);
+    const [selectedNodeForConnection, setSelectedNodeForConnection] = useState<FlowNode | undefined>();
+    const [selectedConnectionKind, setSelectedConnectionKind] = useState<ConnectionKind>();
+    const [connectionView, setConnectionView] = useState<SidePanelView.CONNECTION_CONFIG | SidePanelView.CONNECTION_SELECT | SidePanelView.CONNECTION_CREATE>();
 
     const selectedNodeRef = useRef<FlowNode>();
     const nodeTemplateRef = useRef<FlowNode>();
@@ -569,21 +571,65 @@ export function BIFocusFlowDiagram(props: BIFocusFlowDiagramProps) {
 
     const handleOnEditAgentModel = (node: FlowNode) => {
         console.log(">>> on edit agent model", node);
-        setSelectedNodeForModelConfig(node);
-        setShowModelConfigPanel(true);
+        setSelectedNodeForConnection(node);
+        setSelectedConnectionKind('MODEL_PROVIDER');
+        setConnectionView(SidePanelView.CONNECTION_CONFIG);
+        setShowConnectionPanel(true);
     };
 
-    const handleSaveModelConfigPanel = (response: UpdatedArtifactsResponse) => {
-        setShowModelConfigPanel(false);
-        setSelectedNodeForModelConfig(undefined);
-        if (response) {
-            updateCurrentArtifactLocation(response);
-        }
+    const handleCloseConnectionPanel = () => {
+        setShowConnectionPanel(false);
+        setSelectedNodeForConnection(undefined);
+        getFlowModel();
     };
 
-    const handleCloseModelConfigPanel = () => {
-        setShowModelConfigPanel(false);
-        setSelectedNodeForModelConfig(undefined);
+    const handleCreateNewConnection = () => {
+        setConnectionView(SidePanelView.CONNECTION_SELECT);
+    };
+
+    const handleSelectConnection = (nodeId: string, metadata?: any) => {
+        console.log(">>> on select create new connection", { nodeId, metadata });
+        const { node } = metadata as { node: AvailableNode };
+
+        setShowProgressIndicator(true);
+
+        rpcClient
+            .getBIDiagramRpcClient()
+            .getNodeTemplate({
+                position: targetRef.current?.startLine || { line: 0, offset: 0 },
+                filePath: model?.fileName,
+                id: node.codedata,
+            })
+            .then((response) => {
+                nodeTemplateRef.current = response.flowNode;
+                nodeTemplateRef.current.metadata = node.metadata;
+                switch (nodeId) {
+                    case "MODEL_PROVIDER":
+                    case "CLASS_INIT":
+                        setSelectedConnectionKind('MODEL_PROVIDER');
+                        break;
+                }
+                setConnectionView(SidePanelView.CONNECTION_CREATE);
+            })
+            .finally(() => {
+                setShowProgressIndicator(false);
+            });
+    };
+
+    const handleUpdateNodeWithConnection = async (selectedNode: FlowNode) => {
+        setShowProgressIndicator(true);
+
+        const clonedNode = structuredClone(selectedNode);
+
+        const isNpFunction = clonedNode.codedata.node === "NP_FUNCTION";
+        if (isNpFunction)
+            clonedNode.codedata.node = "NP_FUNCTION_DEFINITION";
+
+        await rpcClient
+            .getBIDiagramRpcClient()
+            .getSourceCode({ filePath: model?.fileName, flowNode: clonedNode, isFunctionNodeUpdate: isNpFunction });
+        handleCloseConnectionPanel();
+        setShowProgressIndicator(false);
     };
 
     const memoizedDiagramProps = useMemo(
@@ -629,16 +675,37 @@ export function BIFocusFlowDiagram(props: BIFocusFlowDiagramProps) {
                 </Container>
             </View>
 
-            {showModelConfigPanel && selectedNodeForModelConfig && (
+            {showConnectionPanel && selectedNodeForConnection && (
                 <PanelContainer
-                    title="Configure LLM Model"
-                    show={showModelConfigPanel}
-                    onClose={handleCloseModelConfigPanel}
+                    title="Configure Model Provider Connection"
+                    show={showConnectionPanel}
+                    onClose={handleCloseConnectionPanel}
+                    onBack={connectionView === SidePanelView.CONNECTION_SELECT ? () => setConnectionView(SidePanelView.CONNECTION_CONFIG) :
+                        connectionView === SidePanelView.CONNECTION_CREATE ? () => setConnectionView(SidePanelView.CONNECTION_SELECT) :
+                            undefined}
                 >
-                    <ModelConfig
-                        agentCallNode={selectedNodeForModelConfig}
-                        onSave={handleSaveModelConfigPanel}
-                    />
+                    {connectionView === SidePanelView.CONNECTION_CONFIG && (
+                        <ConnectionConfig
+                            connectionKind={selectedConnectionKind}
+                            selectedNode={selectedNodeForConnection}
+                            onSave={handleUpdateNodeWithConnection}
+                            onCreateNew={handleCreateNewConnection}
+                        />
+                    )}
+                    {connectionView === SidePanelView.CONNECTION_SELECT && (
+                        <ConnectionSelectionList
+                            connectionKind={selectedConnectionKind}
+                            onSelect={handleSelectConnection}
+                        />
+                    )}
+                    {connectionView === SidePanelView.CONNECTION_CREATE && (
+                        <ConnectionCreator
+                            connectionKind={selectedConnectionKind}
+                            nodeFormTemplate={nodeTemplateRef.current}
+                            selectedNode={selectedNodeForConnection}
+                            onSave={handleUpdateNodeWithConnection}
+                        />
+                    )}
                 </PanelContainer>
             )}
         </>
