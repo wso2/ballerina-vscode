@@ -11,20 +11,16 @@ import { RefObject, useEffect, useLayoutEffect, useRef, useState } from 'react';
 
 import { ExpandableList } from './Components/ExpandableList';
 import { Variables } from './Views/Variables';
-import { CompletionInsertText, ExpressionProperty, FlowNode, GetRecordConfigResponse, LineRange, PropertyTypeMemberInfo, RecordSourceGenRequest, RecordSourceGenResponse, RecordTypeField, TypeField } from '@wso2/ballerina-core';
-import { Codicon, COMPLETION_ITEM_KIND, CompletionItem, FormExpressionEditorRef, getIcon, HELPER_PANE_EX_BTN_OFFSET, HELPER_PANE_WIDTH, HelperPaneCustom, HelperPaneHeight, ThemeColors, Typography } from '@wso2/ui-toolkit';
-import { CopilotFooter, SlidingPane, SlidingPaneHeader, SlidingPaneNavContainer, SlidingWindow } from '@wso2/ui-toolkit/lib/components/ExpressionEditor/components/Common/SlidingPane';
+import { CompletionInsertText, ExpressionProperty, FlowNode, LineRange, RecordSourceGenRequest, RecordSourceGenResponse, RecordTypeField, TypeField } from '@wso2/ballerina-core';
+import { COMPLETION_ITEM_KIND, CompletionItem, FormExpressionEditorRef, getIcon, HELPER_PANE_EX_BTN_OFFSET, HELPER_PANE_WIDTH, HelperPaneCustom, HelperPaneHeight, ThemeColors, Typography } from '@wso2/ui-toolkit';
+import {  SlidingPane, SlidingPaneHeader, SlidingPaneNavContainer, SlidingWindow } from '@wso2/ui-toolkit/lib/components/ExpressionEditor/components/Common/SlidingPane';
 import { CreateValue } from './Views/CreateValue';
 import DynamicModal from './Components/Modal';
-import FooterButtons from './Components/FooterButtons';
 import { FunctionsPage } from './Views/Functions';
-import { Divider } from '@wso2/ui-toolkit';
-import { GenerateBICopilot } from './Views/GenerateBICopilot';
 import { FormSubmitOptions } from '../FlowDiagram';
 import { EXPR_ICON_WIDTH } from '@wso2/ui-toolkit/lib/components/ExpressionEditor/components/Form';
 import { Configurables } from './Views/Configurables';
 import styled from '@emotion/styled';
-import { RecordConfig } from './Views/RecordConfigView';
 import { useRpcContext } from '@wso2/ballerina-rpc-client';
 import { RecordConfigModal } from './Views/RecordConfigModal';
 
