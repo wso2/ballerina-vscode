@@ -38,7 +38,7 @@
         "typeName": "Bank",
         "kind": "record",
         "category": "variable",
-        "isFocused": true,
+        "focusExpression": "banks",
         "ref": "668760670"
       },
       {
@@ -50,7 +50,6 @@
           "kind": "record",
           "ref": "668760670"
         },
-        "focusedMemberId": "bank",
         "id": "banks",
         "name": "banks",
         "typeName": "Bank[]",
@@ -80,7 +79,7 @@
         "name": "info",
         "typeName": "UserInfo",
         "kind": "record",
-        "isFocused": true,
+        "focusExpression": "bank.userInfo",
         "ref": "-481592369"
       }
     ],
