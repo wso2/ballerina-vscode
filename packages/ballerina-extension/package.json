@@ -2,7 +2,7 @@
     "name": "ballerina",
     "displayName": "Ballerina",
     "description": "Ballerina Language support, debugging, graphical visualization, AI-based data-mapping and many more.",
-    "version": "5.3.1",
+    "version": "5.3.2",
     "publisher": "wso2",
     "icon": "resources/images/ballerina.png",
     "homepage": "https://wso2.com/ballerina/vscode/docs",
@@ -219,6 +219,21 @@
                     "description": "Include components from the current organization in the search. This queries the Ballerina Central using the organization specified in the `Ballerina.toml`.",
                     "tags": [
                         "experimental"
+                    ]
+                },
+                "ballerina-vscode.trace.server": {
+                    "type": "string",
+                    "default": "off",
+                    "description": "Traces the communication between VS Code and the Ballerina language server.",
+                    "enum": [
+                        "off",
+                        "messages",
+                        "verbose"
+                    ],
+                    "enumDescriptions": [
+                        "No traces",
+                        "Trace request/response messages only",
+                        "Trace request/response messages with parameters and content"
                     ]
                 }
             }
@@ -693,6 +708,11 @@
                 "title": "Add Natural Function",
                 "icon": "$(add)",
                 "group": "navigation",
+                "category": "BI"
+            },
+            {
+                "command": "BI.toggle.trace.logs",
+                "title": "Toggle Trace Logs",
                 "category": "BI"
             }
         ],
