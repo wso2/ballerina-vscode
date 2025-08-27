@@ -107,7 +107,7 @@ export function ImportIntegrationForm({
                         <ButtonCard
                             key={tool.id}
                             id={`${tool.id}-integration-card`}
-                            icon={<Icon name="bi-globe" />}
+                            icon={<Icon name="bi-import" />}
                             title={tool.title}
                             description=""
                             onClick={() => handleIntegrationSelection(tool)}

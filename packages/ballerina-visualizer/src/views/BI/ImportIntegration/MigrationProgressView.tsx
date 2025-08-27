@@ -19,6 +19,7 @@
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { Button, ProgressRing, Typography } from "@wso2/ui-toolkit";
 import { useEffect, useMemo, useState } from "react";
+import { BodyText } from "../../styles";
 import { CoverageSummary } from "./components/CoverageSummary";
 import { MigrationLogs } from "./components/MigrationLogs";
 import { ReportButtons } from "./components/ReportButtons";
@@ -100,7 +101,7 @@ export function MigrationProgressView({
         <>
             <div>
                 <Typography variant="h2">{headerText}</Typography>
-                <Typography sx={{ color: "var(--vscode-descriptionForeground)" }}>{headerDesc}</Typography>
+                <BodyText>{headerDesc}</BodyText>
             </div>
             <StepWrapper>
                 {migrationCompleted && migrationSuccessful ? (
