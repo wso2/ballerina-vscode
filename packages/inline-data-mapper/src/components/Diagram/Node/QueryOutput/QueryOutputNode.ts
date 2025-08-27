@@ -69,7 +69,7 @@ export class QueryOutputNode extends DataMapperNodeModel {
     
             const headerPort = this.addPortsForHeader({
                 dmType: this.filteredOutputType,
-                name: this.rootName + ".HEADER",
+                name: this.rootName + ".#",
                 portType: "IN",
                 portPrefix: QUERY_OUTPUT_TARGET_PORT_PREFIX,
                 mappings: this.context.model.mappings,
@@ -175,7 +175,7 @@ export class QueryOutputNode extends DataMapperNodeModel {
             inPort = getInputPort(inputNode, queryInputs[0].replace(/\.\d+/g, ''));
         }
 
-        const [_, mappedOutPort] = getOutputPort(this, queryOutput + ".HEADER");
+        const [_, mappedOutPort] = getOutputPort(this, queryOutput + ".#");
 
         if (inPort && mappedOutPort) {
             const lm = new DataMapperLinkModel(undefined, undefined, true, undefined, true);

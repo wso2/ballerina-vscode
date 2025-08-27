@@ -74,7 +74,7 @@ export function QueryOutputWidget(props: QueryOutputWidgetProps) {
 
 	const field = outputType.member ?? outputType;
 
-	const portIn = getPort(`${id}.HEADER.IN`);
+	const portIn = getPort(`${id}.#.IN`);
 	const isUnknownType = outputType.kind === TypeKind.Unknown;
 
 	let expanded = true;
