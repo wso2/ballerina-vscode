@@ -219,7 +219,9 @@ public class DataMapManager {
             inputPorts = getInputPorts(semanticModel, this.document, position, enumPorts);
             inputPorts.sort(Comparator.comparing(mt -> mt.id));
             return gson.toJsonTree(new Model(inputPorts, outputPort, new ArrayList<>(), null));
-        } else if (expressionNode.kind() == SyntaxKind.QUERY_EXPRESSION) {
+        }
+
+        if (expressionNode.kind() == SyntaxKind.QUERY_EXPRESSION && !targetNode.isRootView) {
             QueryExpressionNode queryExpressionNode = (QueryExpressionNode) targetNode.expressionNode();
             FromClauseNode fromClauseNode = queryExpressionNode.queryPipeline().fromClause();
             LinePosition fromClausePosition = fromClauseNode.lineRange().startLine();
@@ -313,8 +315,12 @@ public class DataMapManager {
             generateRecordVariableDataMapping(expressionNode, mappings, name, semanticModel,
                     functionDocument, enumPorts);
         } else if (typeDescKind == TypeDescKind.ARRAY) {
-            generateArrayVariableDataMapping(expressionNode, mappings, name, semanticModel,
-                    functionDocument, enumPorts);
+            if (targetNode.isRootView) {
+                genRootQueryMapping(expressionNode, name, mappings, semanticModel, enumPorts);
+            } else {
+                generateArrayVariableDataMapping(expressionNode, mappings, name, semanticModel,
+                        functionDocument, enumPorts);
+            }
         } else {
             genMapping(expressionNode, name, mappings, semanticModel, functionDocument, enumPorts);
         }
@@ -431,15 +437,22 @@ public class DataMapManager {
         }
 
         if (optInitializer.isEmpty()) {
-            return new TargetNode(typeSymbol, name, null);
+            return new TargetNode(typeSymbol, name, null, false);
         }
 
         ExpressionNode initializer = optInitializer.get();
         if (targetField == null) {
-            return new TargetNode(typeSymbol, name, initializer);
+            return new TargetNode(typeSymbol, name, initializer, false);
         }
 
         String[] fieldSplits = targetField.split(DOT);
+        if (initializer.kind() == SyntaxKind.QUERY_EXPRESSION) {
+            if (fieldSplits.length == 1) {
+                return new TargetNode(typeSymbol, name, initializer, true);
+            } else if (fieldSplits.length == 2 && fieldSplits[1].equals("0")) {
+                return new TargetNode(typeSymbol, name, initializer, false);
+            }
+        }
         for (int i = 1; i < fieldSplits.length; i++) {
             String field = fieldSplits[i];
             typeSymbol = CommonUtils.getRawType(typeSymbol);
@@ -514,10 +527,10 @@ public class DataMapManager {
             }
         }
 
-        return new TargetNode(typeSymbol, fieldSplits[fieldSplits.length - 1], expr);
+        return new TargetNode(typeSymbol, fieldSplits[fieldSplits.length - 1], expr, false);
     }
 
-    private record TargetNode(TypeSymbol typeSymbol, String name, ExpressionNode expressionNode) {
+    private record TargetNode(TypeSymbol typeSymbol, String name, ExpressionNode expressionNode, boolean isRootView) {
     }
 
     private Map<String, SpecificFieldNode> convertMappingFieldsToMap(MappingConstructorExpressionNode mappingCtrExpr) {
@@ -633,6 +646,18 @@ public class DataMapManager {
                 expr.kind() == SyntaxKind.QUERY_EXPRESSION,
                 expr.kind() == SyntaxKind.FUNCTION_CALL,
                 customFunctionRange);
+        elements.add(mapping);
+    }
+
+    private void genRootQueryMapping(Node expr, String name, List<Mapping> elements, SemanticModel semanticModel,
+                                     List<MappingPort> enumPorts) {
+        List<String> inputs = new ArrayList<>();
+        expr.accept(new GenInputsVisitor(inputs, enumPorts));
+        Mapping mapping = new Mapping(name, inputs, expr.toSourceCode(),
+                getDiagnostics(expr.lineRange(), semanticModel), new ArrayList<>(),
+                expr.kind() == SyntaxKind.QUERY_EXPRESSION,
+                expr.kind() == SyntaxKind.FUNCTION_CALL,
+                null);
         elements.add(mapping);
     }
 

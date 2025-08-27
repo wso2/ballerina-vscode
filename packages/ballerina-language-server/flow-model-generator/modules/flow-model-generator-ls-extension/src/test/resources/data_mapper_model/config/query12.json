@@ -21,7 +21,7 @@
     "offset": 4
   },
   "propertyKey": "expression",
-  "targetField": "myTypes2.0",
+  "targetField": "myTypes2",
   "model": {
     "inputs": [
       {
@@ -48,36 +48,11 @@
           "kind": "record",
           "optional": false
         },
-        "focusedMemberId": "x",
         "id": "myTypes1",
         "variableName": "myTypes1",
         "typeName": "MyType[]",
         "kind": "array",
-        "category": "variable",
-        "optional": false
-      },
-      {
-        "fields": [
-          {
-            "id": "x.name1",
-            "variableName": "name1",
-            "typeName": "string",
-            "kind": "string",
-            "optional": false
-          },
-          {
-            "id": "x.i",
-            "variableName": "i",
-            "typeName": "int",
-            "kind": "int",
-            "optional": false
-          }
-        ],
-        "id": "x",
-        "variableName": "x",
-        "typeName": "MyType",
-        "kind": "record",
-        "isFocused": true,
+        "category": "local-variable",
         "optional": false
       }
     ],
@@ -115,35 +90,14 @@
       {
         "output": "myTypes2",
         "inputs": [
-          "x"
+          "myTypes1"
         ],
-        "expression": "x",
+        "expression": "from var x in myTypes1 select x",
         "diagnostics": [],
         "elements": [],
-        "isQueryExpression": false,
+        "isQueryExpression": true,
         "isFunctionCall": false
       }
-    ],
-    "query": {
-      "output": "myTypes2",
-      "inputs": [
-        "myTypes1"
-      ],
-      "fromClause": {
-        "type": "from",
-        "properties": {
-          "name": "x",
-          "type": "MyType",
-          "expression": "myTypes1"
-        }
-      },
-      "intermediateClauses": [],
-      "resultClause": {
-        "type": "select",
-        "properties": {
-          "expression": "x"
-        }
-      }
-    }
+    ]
   }
 }
