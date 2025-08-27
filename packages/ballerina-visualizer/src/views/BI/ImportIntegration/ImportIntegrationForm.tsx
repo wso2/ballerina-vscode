@@ -73,7 +73,7 @@ export function ImportIntegrationForm({
         const finalParams: FinalIntegrationParams = {
             importSourcePath,
             type: selectedIntegration.title,
-            ...integrationParams,
+            parameters: integrationParams,
         };
 
         setImportParams(finalParams);

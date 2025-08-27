@@ -49,14 +49,14 @@ export const sanitizeProjectName = (name: string): string => {
 };
 
 export const getCoverageLevel = (level: CoverageLevel): string => {
-    if (level === CoverageLevel.HIGH) return "HIGH COVERAGE";
-    if (level === CoverageLevel.MEDIUM) return "MEDIUM COVERAGE";
+    if (level.toLowerCase() === CoverageLevel.HIGH) return "HIGH COVERAGE";
+    if (level.toLowerCase() === CoverageLevel.MEDIUM) return "MEDIUM COVERAGE";
     return "LOW COVERAGE";
 };
 
 export const getCoverageColor = (level: CoverageLevel): string => {
-    if (level === CoverageLevel.HIGH) return "var(--vscode-charts-green)";
-    if (level === CoverageLevel.MEDIUM) return "var(--vscode-charts-orange)";
+    if (level.toLowerCase() === CoverageLevel.HIGH) return "var(--vscode-charts-green)";
+    if (level.toLowerCase() === CoverageLevel.MEDIUM) return "var(--vscode-charts-orange)";
     return "var(--vscode-charts-red)";
 };
 

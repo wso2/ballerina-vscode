@@ -47,6 +47,7 @@ export class MigrateIntegrationRpcManager implements MigrateIntegrationAPI {
             orgName: orgName,
             packageName: sanitizeName(params.packageName),
             sourcePath: params.sourcePath,
+            parameters: params.parameters,
         };
         StateMachine.langClient().registerMigrationToolCallbacks();
         switch (params.commandName) {

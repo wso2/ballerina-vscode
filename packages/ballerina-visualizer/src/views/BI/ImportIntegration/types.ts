@@ -21,7 +21,7 @@ import { DownloadProgress, ImportIntegrationResponse, MigrationTool } from "@wso
 export interface FinalIntegrationParams {
     importSourcePath: string;
     type: string;
-    [key: string]: any;
+    parameters?: Record<string, any>;
 }
 
 export enum CoverageLevel {
