@@ -297,7 +297,10 @@ export function ViewConfigurableVariables(props?: ConfigProps) {
 
         await rpcClient
             .getBIDiagramRpcClient()
-            .getConfigVariablesV2()
+            .getConfigVariablesV2({
+                includeLibraries: false,
+                projectPath: ''
+            })
             .then((variables) => {
                 data = (variables as any).configVariables;
                 errorMsg = (variables as any).errorMsg;

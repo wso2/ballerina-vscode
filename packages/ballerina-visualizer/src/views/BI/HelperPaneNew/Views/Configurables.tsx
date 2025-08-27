@@ -97,7 +97,10 @@ export const Configurables = (props: ConfigurablesPageProps) => {
 
         await rpcClient
             .getBIDiagramRpcClient()
-            .getConfigVariablesV2()
+            .getConfigVariablesV2({
+                includeLibraries: false,
+                projectPath: projectPathUri
+            })
             .then((variables) => {
                 data = (variables as any).configVariables;
                 errorMsg = (variables as any).errorMsg;
