@@ -25,66 +25,22 @@
   "model": {
     "inputs": [
       {
-        "fields": [
-          {
-            "member": {
-              "id": "v1.k.0",
-              "variableName": "<kItem>",
-              "typeName": "string",
-              "kind": "string",
-              "optional": false
-            },
-            "id": "v1.k",
-            "variableName": "k",
-            "typeName": "string[]",
-            "kind": "array",
-            "optional": false
-          },
-          {
-            "id": "v1.i",
-            "variableName": "i",
-            "typeName": "string",
-            "kind": "string",
-            "optional": false
-          }
-        ],
+        "fields": [],
         "id": "v1",
-        "variableName": "v1",
+        "name": "v1",
         "typeName": "MyType",
         "kind": "record",
         "category": "local-variable",
-        "optional": false
+        "ref": "1826392918"
       }
     ],
     "output": {
-      "fields": [
-        {
-          "member": {
-            "id": "v2.k",
-            "variableName": "<kItem>",
-            "typeName": "string",
-            "kind": "string",
-            "optional": false
-          },
-          "id": "v2.k",
-          "variableName": "k",
-          "typeName": "string[]",
-          "kind": "array",
-          "optional": false
-        },
-        {
-          "id": "v2.i",
-          "variableName": "i",
-          "typeName": "string",
-          "kind": "string",
-          "optional": false
-        }
-      ],
+      "fields": [],
       "id": "v2",
-      "variableName": "v2",
+      "name": "v2",
       "typeName": "MyType",
       "kind": "record",
-      "optional": false
+      "ref": "1826392918"
     },
     "mappings": [
       {
@@ -109,6 +65,34 @@
         "isQueryExpression": true,
         "isFunctionCall": false
       }
-    ]
+    ],
+    "refs": {
+      "1826392918": {
+        "fields": [
+          {
+            "member": {
+              "id": "k",
+              "name": "<kItem>",
+              "typeName": "string",
+              "kind": "string"
+            },
+            "id": "k",
+            "name": "k",
+            "typeName": "string[]",
+            "kind": "array",
+            "optional": false
+          },
+          {
+            "id": "i",
+            "name": "i",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          }
+        ],
+        "typeName": "MyType",
+        "kind": "record"
+      }
+    }
   }
 }

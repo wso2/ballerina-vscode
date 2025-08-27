@@ -26,90 +26,44 @@
     "inputs": [
       {
         "member": {
-          "fields": [
-            {
-              "id": "myType2.0.name1",
-              "variableName": "name1",
-              "typeName": "string",
-              "kind": "string",
-              "optional": false
-            },
-            {
-              "id": "myType2.0.i",
-              "variableName": "i",
-              "typeName": "int",
-              "kind": "int",
-              "optional": false
-            }
-          ],
-          "id": "myType2.0",
-          "variableName": "<myType2Item>",
+          "fields": [],
+          "id": "myType2",
+          "name": "<myType2Item>",
           "typeName": "MyType",
           "kind": "record",
-          "optional": false
+          "ref": "2079019383"
         },
-        "focusedMemberId": "x",
         "id": "myType2",
-        "variableName": "myType2",
+        "name": "myType2",
         "typeName": "MyType[]",
         "kind": "array",
         "category": "variable",
-        "optional": false
+        "ref": "2079019383"
       },
       {
-        "fields": [
-          {
-            "id": "x.name1",
-            "variableName": "name1",
-            "typeName": "string",
-            "kind": "string",
-            "optional": false
-          },
-          {
-            "id": "x.i",
-            "variableName": "i",
-            "typeName": "int",
-            "kind": "int",
-            "optional": false
-          }
-        ],
+        "fields": [],
         "id": "x",
-        "variableName": "x",
+        "name": "x",
         "typeName": "MyType",
         "kind": "record",
-        "isFocused": true,
-        "optional": false
+        "focusExpression": "myType2",
+        "ref": "2079019383"
       }
     ],
     "output": {
       "member": {
-        "fields": [
-          {
-            "id": "myTypes2.name1",
-            "variableName": "name1",
-            "typeName": "string",
-            "kind": "string",
-            "optional": false
-          },
-          {
-            "id": "myTypes2.i",
-            "variableName": "i",
-            "typeName": "int",
-            "kind": "int",
-            "optional": false
-          }
-        ],
+        "fields": [],
         "id": "myTypes2",
-        "variableName": "<myTypes2Item>",
+        "name": "<myTypes2Item>",
         "typeName": "MyType",
         "kind": "record",
-        "optional": false
+        "ref": "2079019383"
       },
       "id": "myTypes2",
-      "variableName": "myTypes2",
+      "name": "myTypes2",
       "typeName": "MyType[]",
       "kind": "array",
-      "optional": false
+      "ref": "2079019383"
     },
     "mappings": [
       {
@@ -143,6 +97,28 @@
         "properties": {
           "expression": "x"
         }
+      }
+    },
+    "refs": {
+      "2079019383": {
+        "fields": [
+          {
+            "id": "name1",
+            "name": "name1",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "id": "i",
+            "name": "i",
+            "typeName": "int",
+            "kind": "int",
+            "optional": false
+          }
+        ],
+        "typeName": "MyType",
+        "kind": "record"
       }
     }
   }

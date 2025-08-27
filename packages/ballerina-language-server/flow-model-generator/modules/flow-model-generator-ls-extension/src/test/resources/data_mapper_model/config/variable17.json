@@ -25,127 +25,51 @@
     "inputs": [
       {
         "id": "CONST",
-        "variableName": "CONST",
-        "typeName": "string",
-        "kind": "string",
-        "category": "constant",
-        "optional": false
+        "name": "CONST",
+        "typeName": "const",
+        "kind": "const",
+        "category": "constant"
       },
       {
         "member": {
-          "fields": [
-            {
-              "id": "credentials.0.username",
-              "variableName": "username",
-              "typeName": "string",
-              "kind": "string",
-              "optional": false
-            },
-            {
-              "id": "credentials.0.password",
-              "variableName": "password",
-              "typeName": "string",
-              "kind": "string",
-              "optional": false
-            }
-          ],
-          "id": "credentials.0",
-          "variableName": "<credentialsItem>",
+          "fields": [],
+          "id": "credentials",
+          "name": "<credentialsItem>",
           "typeName": "Credentials",
           "kind": "record",
-          "optional": false
+          "ref": "1085256861"
         },
         "id": "credentials",
-        "variableName": "credentials",
+        "name": "credentials",
         "typeName": "Credentials[]",
         "kind": "array",
         "category": "local-variable",
-        "optional": false
+        "ref": "1085256861"
       },
       {
         "member": {
-          "fields": [
-            {
-              "id": "userInfo.0.username",
-              "variableName": "username",
-              "typeName": "string",
-              "kind": "string",
-              "optional": false
-            },
-            {
-              "id": "userInfo.0.password",
-              "variableName": "password",
-              "typeName": "string",
-              "kind": "string",
-              "optional": false
-            }
-          ],
-          "id": "userInfo.0",
-          "variableName": "<userInfoItem>",
+          "fields": [],
+          "id": "userInfo",
+          "name": "<userInfoItem>",
           "typeName": "UserInfo",
           "kind": "record",
-          "optional": false
+          "ref": "-1418772512"
         },
         "id": "userInfo",
-        "variableName": "userInfo",
+        "name": "userInfo",
         "typeName": "UserInfo[]",
         "kind": "array",
         "category": "local-variable",
-        "optional": false
+        "ref": "-1418772512"
       }
     ],
     "output": {
-      "fields": [
-        {
-          "id": "student.id",
-          "variableName": "id",
-          "typeName": "int",
-          "kind": "int",
-          "optional": false
-        },
-        {
-          "member": {
-            "fields": [
-              {
-                "id": "student.credentials.username",
-                "variableName": "username",
-                "typeName": "string",
-                "kind": "string",
-                "optional": false
-              },
-              {
-                "id": "student.credentials.password",
-                "variableName": "password",
-                "typeName": "string",
-                "kind": "string",
-                "optional": false
-              }
-            ],
-            "id": "student.credentials",
-            "variableName": "<credentialsItem>",
-            "typeName": "Credentials",
-            "kind": "record",
-            "optional": false
-          },
-          "id": "student.credentials",
-          "variableName": "credentials",
-          "typeName": "Credentials[]",
-          "kind": "array",
-          "optional": false
-        },
-        {
-          "id": "student.length",
-          "variableName": "length",
-          "typeName": "int",
-          "kind": "int",
-          "optional": false
-        }
-      ],
+      "fields": [],
       "id": "student",
-      "variableName": "student",
+      "name": "student",
       "typeName": "Student",
       "kind": "record",
-      "optional": false
+      "ref": "-312915975"
     },
     "mappings": [
       {
@@ -200,6 +124,84 @@
         "isQueryExpression": false,
         "isFunctionCall": false
       }
-    ]
+    ],
+    "refs": {
+      "-1418772512": {
+        "fields": [
+          {
+            "id": "username",
+            "name": "username",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "id": "password",
+            "name": "password",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          }
+        ],
+        "typeName": "UserInfo",
+        "kind": "record"
+      },
+      "-312915975": {
+        "fields": [
+          {
+            "id": "id",
+            "name": "id",
+            "typeName": "int",
+            "kind": "int",
+            "optional": false
+          },
+          {
+            "member": {
+              "fields": [],
+              "id": "credentials",
+              "name": "<credentialsItem>",
+              "typeName": "Credentials",
+              "kind": "record",
+              "ref": "1085256861"
+            },
+            "id": "credentials",
+            "name": "credentials",
+            "typeName": "Credentials[]",
+            "kind": "array",
+            "optional": false,
+            "ref": "1085256861"
+          },
+          {
+            "id": "length",
+            "name": "length",
+            "typeName": "int",
+            "kind": "int",
+            "optional": false
+          }
+        ],
+        "typeName": "Student",
+        "kind": "record"
+      },
+      "1085256861": {
+        "fields": [
+          {
+            "id": "username",
+            "name": "username",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "id": "password",
+            "name": "password",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          }
+        ],
+        "typeName": "Credentials",
+        "kind": "record"
+      }
+    }
   }
 }

@@ -24,68 +24,22 @@
   "model": {
     "inputs": [
       {
-        "fields": [
-          {
-            "member": {
-              "id": "user.phoneNumber.0",
-              "variableName": "<phoneNumberItem>",
-              "typeName": "string",
-              "kind": "string",
-              "optional": false
-            },
-            "id": "user.phoneNumber",
-            "variableName": "phoneNumber",
-            "typeName": "string[]",
-            "kind": "array",
-            "optional": false
-          }
-        ],
+        "fields": [],
         "id": "user",
-        "variableName": "user",
+        "name": "user",
         "typeName": "User",
         "kind": "record",
         "category": "parameter",
-        "optional": false
+        "ref": "1177817223"
       }
     ],
     "output": {
-      "fields": [
-        {
-          "member": {
-            "fields": [
-              {
-                "id": "var3.contacts.primaryPhone",
-                "variableName": "primaryPhone",
-                "typeName": "string",
-                "kind": "string",
-                "optional": false
-              },
-              {
-                "id": "var3.contacts.secondaryPhone",
-                "variableName": "secondaryPhone",
-                "typeName": "string",
-                "kind": "string",
-                "optional": false
-              }
-            ],
-            "id": "var3.contacts",
-            "variableName": "<contactsItem>",
-            "typeName": "Contact",
-            "kind": "record",
-            "optional": false
-          },
-          "id": "var3.contacts",
-          "variableName": "contacts",
-          "typeName": "Contact[]",
-          "kind": "array",
-          "optional": false
-        }
-      ],
+      "fields": [],
       "id": "var3",
-      "variableName": "var3",
+      "name": "var3",
       "typeName": "Person",
       "kind": "record",
-      "optional": false
+      "ref": "-530812682"
     },
     "mappings": [
       {
@@ -148,6 +102,69 @@
           }
         ]
       }
-    ]
+    ],
+    "refs": {
+      "-530812682": {
+        "fields": [
+          {
+            "member": {
+              "fields": [],
+              "id": "contacts",
+              "name": "<contactsItem>",
+              "typeName": "Contact",
+              "kind": "record",
+              "ref": "1530779283"
+            },
+            "id": "contacts",
+            "name": "contacts",
+            "typeName": "Contact[]",
+            "kind": "array",
+            "optional": false,
+            "ref": "1530779283"
+          }
+        ],
+        "typeName": "Person",
+        "kind": "record"
+      },
+      "1530779283": {
+        "fields": [
+          {
+            "id": "primaryPhone",
+            "name": "primaryPhone",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "id": "secondaryPhone",
+            "name": "secondaryPhone",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          }
+        ],
+        "typeName": "Contact",
+        "kind": "record"
+      },
+      "1177817223": {
+        "fields": [
+          {
+            "member": {
+              "id": "phoneNumber",
+              "name": "<phoneNumberItem>",
+              "typeName": "string",
+              "kind": "string"
+            },
+            "id": "phoneNumber",
+            "name": "phoneNumber",
+            "typeName": "string[]",
+            "kind": "array",
+            "optional": false
+          }
+        ],
+        "typeName": "User",
+        "kind": "record"
+      }
+    }
   }
 }

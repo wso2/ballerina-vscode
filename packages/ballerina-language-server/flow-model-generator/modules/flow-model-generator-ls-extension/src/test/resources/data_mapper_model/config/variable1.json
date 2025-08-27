@@ -26,60 +26,51 @@
     "inputs": [
       {
         "id": "CONST",
-        "variableName": "CONST",
-        "typeName": "string",
-        "kind": "string",
-        "category": "constant",
-        "optional": false
+        "name": "CONST",
+        "typeName": "const",
+        "kind": "const",
+        "category": "constant"
       },
       {
+        "fields": [],
+        "id": "myStudent",
+        "name": "myStudent",
+        "typeName": "Student",
+        "kind": "record",
+        "category": "module-variable",
+        "ref": "-1801106114"
+      }
+    ],
+    "output": {
+      "fields": [],
+      "id": "student",
+      "name": "student",
+      "typeName": "Student",
+      "kind": "record",
+      "ref": "-1801106114"
+    },
+    "mappings": [],
+    "refs": {
+      "-1801106114": {
         "fields": [
           {
-            "id": "myStudent.username",
-            "variableName": "username",
+            "id": "username",
+            "name": "username",
             "typeName": "string",
             "kind": "string",
             "optional": false
           },
           {
-            "id": "myStudent.password",
-            "variableName": "password",
+            "id": "password",
+            "name": "password",
             "typeName": "string",
             "kind": "string",
             "optional": false
           }
         ],
-        "id": "myStudent",
-        "variableName": "myStudent",
         "typeName": "Student",
-        "kind": "record",
-        "category": "module-variable",
-        "optional": false
+        "kind": "record"
       }
-    ],
-    "output": {
-      "fields": [
-        {
-          "id": "student.username",
-          "variableName": "username",
-          "typeName": "string",
-          "kind": "string",
-          "optional": false
-        },
-        {
-          "id": "student.password",
-          "variableName": "password",
-          "typeName": "string",
-          "kind": "string",
-          "optional": false
-        }
-      ],
-      "id": "student",
-      "variableName": "student",
-      "typeName": "Student",
-      "kind": "record",
-      "optional": false
-    },
-    "mappings": []
+    }
   }
 }

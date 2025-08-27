@@ -25,54 +25,29 @@
   "model": {
     "inputs": [
       {
-        "fields": [
-          {
-            "fields": [
-              {
-                "id": "input.user.firstName",
-                "variableName": "firstName",
-                "typeName": "string",
-                "kind": "string",
-                "optional": false
-              }
-            ],
-            "id": "input.user",
-            "variableName": "user",
-            "typeName": "User",
-            "kind": "record",
-            "optional": true
-          }
-        ],
+        "fields": [],
         "id": "input",
-        "variableName": "input",
+        "name": "input",
         "typeName": "Input",
         "kind": "record",
         "category": "parameter",
-        "optional": false
+        "ref": "-1703435696"
       }
     ],
     "output": {
       "member": {
-        "fields": [
-          {
-            "id": "transform.fullName",
-            "variableName": "fullName",
-            "typeName": "string",
-            "kind": "string",
-            "optional": true
-          }
-        ],
+        "fields": [],
         "id": "transform",
-        "variableName": "<transformItem>",
+        "name": "<transformItem>",
         "typeName": "Output",
         "kind": "record",
-        "optional": false
+        "ref": "-1514999486"
       },
       "id": "transform",
-      "variableName": "transform",
+      "name": "transform",
       "typeName": "Output[]",
       "kind": "array",
-      "optional": false
+      "ref": "-1514999486"
     },
     "mappings": [
       {
@@ -98,6 +73,49 @@
           }
         ]
       }
-    ]
+    ],
+    "refs": {
+      "-1514999486": {
+        "fields": [
+          {
+            "id": "fullName",
+            "name": "fullName",
+            "typeName": "string",
+            "kind": "string",
+            "optional": true
+          }
+        ],
+        "typeName": "Output",
+        "kind": "record"
+      },
+      "-1703435696": {
+        "fields": [
+          {
+            "fields": [],
+            "id": "user",
+            "name": "user",
+            "typeName": "User",
+            "kind": "record",
+            "optional": true,
+            "ref": "-1064739742"
+          }
+        ],
+        "typeName": "Input",
+        "kind": "record"
+      },
+      "-1064739742": {
+        "fields": [
+          {
+            "id": "firstName",
+            "name": "firstName",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          }
+        ],
+        "typeName": "User",
+        "kind": "record"
+      }
+    }
   }
 }

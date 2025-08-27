@@ -8,7 +8,8 @@
         "fieldName": "sampleTypeName",
         "type": {
           "dependentTypeHashes": [],
-          "name": "string"
+          "name": "string",
+          "typeName": "string"
         },
         "optional": false,
         "defaultValue": ""
@@ -17,14 +18,15 @@
         "fieldName": "sampleTypeCode",
         "type": {
           "dependentTypeHashes": [],
-          "name": "int"
+          "name": "int",
+          "typeName": "int"
         },
         "optional": false,
         "defaultValue": ""
       }
     ],
     "dependentTypeHashes": [],
-    "hashCode": "733382244",
+    "hashCode": "695203170",
     "name": "SampleType",
     "typeName": "record"
   }

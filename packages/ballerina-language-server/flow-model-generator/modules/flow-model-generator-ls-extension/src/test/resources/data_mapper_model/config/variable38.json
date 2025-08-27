@@ -24,130 +24,29 @@
   "model": {
     "inputs": [
       {
-        "fields": [
-          {
-            "id": "user.name",
-            "variableName": "name",
-            "typeName": "string",
-            "kind": "string",
-            "optional": false
-          }
-        ],
+        "fields": [],
         "id": "user",
-        "variableName": "user",
+        "name": "user",
         "typeName": "User",
         "kind": "record",
         "category": "parameter",
-        "optional": false
+        "ref": "-699535980"
       }
     ],
     "output": {
       "member": {
-        "fields": [
-          {
-            "fields": [
-              {
-                "member": {
-                  "id": "users4.user5.u",
-                  "variableName": "<uItem>",
-                  "typeName": "string",
-                  "kind": "string",
-                  "optional": false
-                },
-                "id": "users4.user5.u",
-                "variableName": "u",
-                "typeName": "string[]",
-                "kind": "array",
-                "optional": false
-              }
-            ],
-            "id": "users4.user5",
-            "variableName": "user5",
-            "typeName": "User5",
-            "kind": "record",
-            "optional": false
-          },
-          {
-            "member": {
-              "fields": [
-                {
-                  "id": "users4.users6.account",
-                  "variableName": "account",
-                  "typeName": "string",
-                  "kind": "string",
-                  "optional": false
-                },
-                {
-                  "id": "users4.users6.balance",
-                  "variableName": "balance",
-                  "typeName": "decimal",
-                  "kind": "decimal",
-                  "optional": false
-                },
-                {
-                  "member": {
-                    "fields": [
-                      {
-                        "member": {
-                          "fields": [
-                            {
-                              "id": "users4.users6.banks.bankInfo.bankName",
-                              "variableName": "bankName",
-                              "typeName": "string",
-                              "kind": "string",
-                              "optional": false
-                            }
-                          ],
-                          "id": "users4.users6.banks.bankInfo",
-                          "variableName": "<bankInfoItem>",
-                          "typeName": "BankInfo",
-                          "kind": "record",
-                          "optional": false
-                        },
-                        "id": "users4.users6.banks.bankInfo",
-                        "variableName": "bankInfo",
-                        "typeName": "BankInfo[]",
-                        "kind": "array",
-                        "optional": false
-                      }
-                    ],
-                    "id": "users4.users6.banks",
-                    "variableName": "<banksItem>",
-                    "typeName": "Bank",
-                    "kind": "record",
-                    "optional": false
-                  },
-                  "id": "users4.users6.banks",
-                  "variableName": "banks",
-                  "typeName": "Bank[]",
-                  "kind": "array",
-                  "optional": false
-                }
-              ],
-              "id": "users4.users6",
-              "variableName": "<users6Item>",
-              "typeName": "User6",
-              "kind": "record",
-              "optional": false
-            },
-            "id": "users4.users6",
-            "variableName": "users6",
-            "typeName": "User6[]",
-            "kind": "array",
-            "optional": false
-          }
-        ],
+        "fields": [],
         "id": "users4",
-        "variableName": "<users4Item>",
+        "name": "<users4Item>",
         "typeName": "User4",
         "kind": "record",
-        "optional": false
+        "ref": "-1258898922"
       },
       "id": "users4",
-      "variableName": "users4",
+      "name": "users4",
       "typeName": "User4[]",
       "kind": "array",
-      "optional": false
+      "ref": "-1258898922"
     },
     "mappings": [
       {
@@ -267,6 +166,91 @@
           }
         ]
       }
-    ]
+    ],
+    "refs": {
+      "-539589308": {
+        "fields": [
+          {
+            "id": "account",
+            "name": "account",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "id": "balance",
+            "name": "balance",
+            "typeName": "decimal",
+            "kind": "decimal",
+            "optional": false
+          }
+        ],
+        "typeName": "User6",
+        "kind": "record"
+      },
+      "-1258898922": {
+        "fields": [
+          {
+            "fields": [],
+            "id": "user5",
+            "name": "user5",
+            "typeName": "User5",
+            "kind": "record",
+            "optional": false,
+            "ref": "438943303"
+          },
+          {
+            "member": {
+              "fields": [],
+              "id": "users6",
+              "name": "<users6Item>",
+              "typeName": "User6",
+              "kind": "record",
+              "ref": "-539589308"
+            },
+            "id": "users6",
+            "name": "users6",
+            "typeName": "User6[]",
+            "kind": "array",
+            "optional": false,
+            "ref": "-539589308"
+          }
+        ],
+        "typeName": "User4",
+        "kind": "record"
+      },
+      "-699535980": {
+        "fields": [
+          {
+            "id": "name",
+            "name": "name",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          }
+        ],
+        "typeName": "User",
+        "kind": "record"
+      },
+      "438943303": {
+        "fields": [
+          {
+            "member": {
+              "id": "u",
+              "name": "<uItem>",
+              "typeName": "string",
+              "kind": "string"
+            },
+            "id": "u",
+            "name": "u",
+            "typeName": "string[]",
+            "kind": "array",
+            "optional": false
+          }
+        ],
+        "typeName": "User5",
+        "kind": "record"
+      }
+    }
   }
 }
