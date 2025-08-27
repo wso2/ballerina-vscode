@@ -280,7 +280,8 @@ public class DataMapManager {
                                 Optional<TypeSymbol> expressionTypeSymbol = semanticModel.typeOf(parentExpression);
                                 if (expressionTypeSymbol.isPresent() && CommonUtils.getRawType(
                                         expressionTypeSymbol.get()).typeKind() == TypeDescKind.ARRAY) {
-                                    setFocusExpressionForInputPort(inputPorts, parentFromClauseVar, parentExpression.toString().trim());
+                                    setFocusExpressionForInputPort(inputPorts, parentFromClauseVar,
+                                            parentExpression.toString().trim());
                                 }
                             }
                             parent = parent.parent();
