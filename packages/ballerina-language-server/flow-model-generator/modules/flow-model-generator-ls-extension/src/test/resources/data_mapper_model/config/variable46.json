@@ -30,22 +30,17 @@
         "name": "v1",
         "typeName": "MyType",
         "kind": "record",
-        "category": "variable",
+        "category": "local-variable",
         "ref": "1826392918"
-      },
-      {
-        "id": "kItem",
-        "name": "kItem",
-        "typeName": "string",
-        "kind": "string",
-        "isFocused": true
       }
     ],
     "output": {
-      "id": "i",
-      "name": "i",
-      "typeName": "string",
-      "kind": "string"
+      "fields": [],
+      "id": "v2",
+      "name": "v2",
+      "typeName": "MyType",
+      "kind": "record",
+      "ref": "1826392918"
     },
     "mappings": [
       {
@@ -70,7 +65,7 @@
         "isQueryExpression": true,
         "isFunctionCall": false
       }
-    },
+    ],
     "refs": {
       "1826392918": {
         "fields": [
