@@ -32,13 +32,6 @@
         "kind": "record",
         "category": "local-variable",
         "ref": "1826392918"
-      },
-      {
-        "id": "kItem",
-        "name": "kItem",
-        "typeName": "string",
-        "kind": "string",
-        "focusExpression": "v1.k"
       }
     ],
     "output": {

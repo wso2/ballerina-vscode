@@ -38,7 +38,7 @@
         "name": "kItem",
         "typeName": "string",
         "kind": "string",
-        "isFocused": true
+        "focusExpression": "v1.k"
       }
     ],
     "output": {
