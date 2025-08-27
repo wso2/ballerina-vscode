@@ -139,10 +139,10 @@ const NonRecordCreateValue = (props: CreateValuePageProps) => {
 
     const defaultValue = getDefaultValue(Array.isArray(selectedType) ? selectedType[0] : selectedType);
     return (
-        <>
+        <div style={{ padding: '8px 0px' }}>
             {defaultValue && (
                 <ExpandableList>
-                     <SlidingPaneNavContainer onClick={() => { handleValueSelect(defaultValue) }}>
+                    <SlidingPaneNavContainer onClick={() => { handleValueSelect(defaultValue) }}>
                         <ExpandableList.Item sx={{ width: "100%" }}>
                             Initialize to {defaultValue}
                         </ExpandableList.Item>
@@ -151,12 +151,12 @@ const NonRecordCreateValue = (props: CreateValuePageProps) => {
             )}
             {isSelectedTypeContainsType(selectedType, "string") && (
                 <ExpandableList>
-                    <SlidingPaneNavContainer onClick={() => { handleValueSelect("string ``") }}>
+                    <SlidingPaneNavContainer onClick={() => { handleValueSelect("string `<type your string template here>`") }}>
                         <ExpandableList.Item sx={{ width: "100%" }}>
                             Create a string template
                         </ExpandableList.Item>
                     </SlidingPaneNavContainer>
-                    <SlidingPaneNavContainer onClick={() => { handleValueSelect("\"\"") }}>
+                    <SlidingPaneNavContainer onClick={() => { handleValueSelect("\"<type your string value here>\"") }}>
                         <ExpandableList.Item sx={{ width: "100%" }}>
                             Create a string value
                         </ExpandableList.Item>
@@ -174,13 +174,22 @@ const NonRecordCreateValue = (props: CreateValuePageProps) => {
             )}
             {isSelectedTypeContainsType(selectedType, "log:PrintableRawTemplate") && (
                 <ExpandableList>
-                    <SlidingPaneNavContainer onClick={() => { handleValueSelect("string ``") }}>
+                    <SlidingPaneNavContainer onClick={() => { handleValueSelect("string `<type your string template here>`") }}>
                         <ExpandableList.Item sx={{ width: "100%" }}>
                             Create a printable template
                         </ExpandableList.Item>
                     </SlidingPaneNavContainer>
                 </ExpandableList>
             )}
-        </>
+            {isSelectedTypeContainsType(selectedType, "error") && (
+                <ExpandableList>
+                    <SlidingPaneNavContainer onClick={() => { handleValueSelect("error(\"type your error message\")") }}>
+                        <ExpandableList.Item sx={{ width: "100%" }}>
+                            Create an error
+                        </ExpandableList.Item>
+                    </SlidingPaneNavContainer>
+                </ExpandableList>
+            )}
+        </div>
     );
 }
