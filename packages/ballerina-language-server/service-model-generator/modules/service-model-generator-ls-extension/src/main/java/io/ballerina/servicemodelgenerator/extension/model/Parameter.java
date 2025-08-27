@@ -18,7 +18,7 @@
 
 package io.ballerina.servicemodelgenerator.extension.model;
 
-import io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants;
+import io.ballerina.servicemodelgenerator.extension.util.Constants;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -26,15 +26,15 @@ import java.util.Comparator;
 import java.util.Locale;
 import java.util.Objects;
 
-import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.ARGUMENT_DEFAULT_VALUE_METADATA;
-import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.ARGUMENT_NAME_METADATA;
-import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.ARGUMENT_TYPE_METADATA;
-import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.FIELD_DEFAULT_VALUE_METADATA;
-import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.FIELD_NAME_METADATA;
-import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.FIELD_TYPE_METADATA;
-import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.PARAMETER_DEFAULT_VALUE_METADATA;
-import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.PARAMETER_NAME_METADATA;
-import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.PARAMETER_TYPE_METADATA;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.ARGUMENT_DEFAULT_VALUE_METADATA;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.ARGUMENT_NAME_METADATA;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.ARGUMENT_TYPE_METADATA;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.FIELD_DEFAULT_VALUE_METADATA;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.FIELD_NAME_METADATA;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.FIELD_TYPE_METADATA;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.PARAMETER_DEFAULT_VALUE_METADATA;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.PARAMETER_NAME_METADATA;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.PARAMETER_TYPE_METADATA;
 
 /**
  * Represents a parameter in service method.
@@ -52,9 +52,10 @@ public class Parameter {
     private boolean optional;
     private boolean advanced;
     private String httpParamType;
+    private boolean hidden;
 
     public Parameter(MetaData metadata, String kind, Value type, Value name, Value defaultValue, boolean enabled,
-                     boolean editable, boolean optional, boolean advanced, String httpParamType) {
+                     boolean editable, boolean optional, boolean advanced, String httpParamType, boolean hidden) {
         this.metadata = metadata;
         this.kind = kind;
         this.type = type;
@@ -65,6 +66,7 @@ public class Parameter {
         this.optional = optional;
         this.advanced = advanced;
         this.httpParamType = httpParamType;
+        this.hidden = hidden;
     }
 
     public Parameter(Parameter parameter) {
@@ -78,6 +80,7 @@ public class Parameter {
         this.optional = parameter.optional;
         this.advanced = parameter.advanced;
         this.httpParamType = parameter.httpParamType;
+        this.hidden = parameter.hidden;
     }
 
     public MetaData getMetadata() {
@@ -163,10 +166,18 @@ public class Parameter {
         this.httpParamType = httpParamType;
     }
 
+    public void setHidden(boolean hidden) {
+        this.hidden = hidden;
+    }
+
+    public boolean isHidden() {
+        return hidden;
+    }
+
     private static Value name(MetaData metadata) {
         return new Value.ValueBuilder()
                 .setMetadata(metadata)
-                .valueType(ServiceModelGeneratorConstants.VALUE_TYPE_IDENTIFIER)
+                .valueType(Constants.VALUE_TYPE_IDENTIFIER)
                 .enabled(true)
                 .editable(true)
                 .build();
@@ -175,8 +186,7 @@ public class Parameter {
     private static Value type(MetaData metadata) {
         return new Value.ValueBuilder()
                 .setMetadata(metadata)
-                .valueType(ServiceModelGeneratorConstants.VALUE_TYPE_TYPE)
-                .isType(true)
+                .valueType(Constants.VALUE_TYPE_TYPE)
                 .enabled(true)
                 .editable(true)
                 .build();
@@ -185,7 +195,7 @@ public class Parameter {
     private static Value defaultValue(MetaData metadata) {
         return new Value.ValueBuilder()
                 .setMetadata(metadata)
-                .valueType(ServiceModelGeneratorConstants.VALUE_TYPE_EXPRESSION)
+                .valueType(Constants.VALUE_TYPE_EXPRESSION)
                 .enabled(true)
                 .editable(true)
                 .optional(true)
@@ -200,7 +210,7 @@ public class Parameter {
                 .build();
     }
 
-    public static Parameter graphQLParamSchema() {
+    public static Parameter graphqlParamSchema() {
         return new Parameter.Builder()
                 .type(type(ARGUMENT_TYPE_METADATA))
                 .name(name(ARGUMENT_NAME_METADATA))
@@ -220,8 +230,12 @@ public class Parameter {
                 .build();
     }
 
-    public static Parameter getNewParameter(boolean isGraphQL) {
-        return isGraphQL ? graphQLParamSchema() : functionParamSchema();
+    public static Parameter getNewFunctionParameter() {
+        return functionParamSchema();
+    }
+
+    public static Parameter getNewGraphqlParameter() {
+        return graphqlParamSchema();
     }
 
     public static class RequiredParamSorter implements Comparator<Parameter>, Serializable {
@@ -266,6 +280,7 @@ public class Parameter {
         private boolean optional;
         private boolean advanced;
         private String httpParamType;
+        private boolean hidden;
 
         public Builder metadata(MetaData metadata) {
             this.metadata = metadata;
@@ -317,9 +332,14 @@ public class Parameter {
             return this;
         }
 
+        public Builder hidden(boolean hidden) {
+            this.hidden = hidden;
+            return this;
+        }
+
         public Parameter build() {
             return new Parameter(metadata, kind, type, name, defaultValue, enabled, editable, optional, advanced,
-                    httpParamType);
+                    httpParamType, hidden);
         }
     }
 }

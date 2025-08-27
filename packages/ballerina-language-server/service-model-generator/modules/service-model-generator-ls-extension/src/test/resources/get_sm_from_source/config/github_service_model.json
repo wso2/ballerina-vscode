@@ -15,10 +15,6 @@
     "type": "trigger.github",
     "displayName": "GitHub Event Handler",
     "description": "Add the service documentation",
-    "displayAnnotation": {
-      "label": "GitHub Event Handler",
-      "iconPath": "https://bcentral-packageicons.azureedge.net/images/ballerinax_trigger.github_0.10.0.png"
-    },
     "moduleName": "trigger.github",
     "orgName": "ballerinax",
     "version": "0.10.0",
@@ -31,42 +27,34 @@
           "label": "Listeners",
           "description": "The Listeners to be bound with the service"
         },
-        "enabled": true,
-        "editable": true,
-        "value": "githubDefaultListener",
-        "values": [],
+        "codedata": {
+          "type": "LISTENER"
+        },
+        "placeholder": "",
         "valueType": "MULTIPLE_SELECT",
         "valueTypeConstraint": "github:Listener",
-        "isType": false,
-        "placeholder": "",
-        "optional": false,
-        "advanced": false,
+        "value": "githubDefaultListener",
+        "values": [],
         "items": [
           "githubDefaultListener"
         ],
-        "codedata": {
-          "inListenerInit": false,
-          "isBasePath": false,
-          "inDisplayAnnotation": false,
-          "type": "LISTENER"
-        },
-        "addNewButton": true,
-        "imports": {}
+        "enabled": true,
+        "editable": true,
+        "optional": false,
+        "advanced": false
       },
       "serviceType": {
         "metadata": {
           "label": "Event Channel",
           "description": "The event channel name"
         },
-        "enabled": true,
-        "editable": true,
-        "value": "IssuesService",
+        "codedata": {
+          "type": "SERVICE_TYPE"
+        },
+        "placeholder": "",
         "valueType": "SINGLE_SELECT",
         "valueTypeConstraint": "string",
-        "isType": false,
-        "placeholder": "",
-        "optional": false,
-        "advanced": false,
+        "value": "IssuesService",
         "items": [
           "",
           "IssuesService",
@@ -80,14 +68,10 @@
           "PushService",
           "ProjectCardService"
         ],
-        "codedata": {
-          "inListenerInit": false,
-          "isBasePath": false,
-          "inDisplayAnnotation": false,
-          "type": "SERVICE_TYPE"
-        },
-        "addNewButton": false,
-        "imports": {}
+        "enabled": true,
+        "editable": true,
+        "optional": false,
+        "advanced": false
       }
     },
     "codedata": {
@@ -101,10 +85,7 @@
           "line": 60,
           "offset": 1
         }
-      },
-      "inListenerInit": false,
-      "isBasePath": false,
-      "inDisplayAnnotation": false
+      }
     },
     "functions": [
       {
@@ -118,23 +99,17 @@
             "label": "onOpened",
             "description": ""
           },
-          "enabled": true,
-          "editable": false,
-          "value": "onOpened",
-          "valueType": "IDENTIFIER",
-          "valueTypeConstraint": "string",
-          "isType": false,
-          "placeholder": "onOpened",
-          "optional": false,
-          "advanced": false,
           "codedata": {
-            "inListenerInit": false,
-            "isBasePath": false,
-            "inDisplayAnnotation": false,
             "type": "FUNCTION_NAME"
           },
-          "addNewButton": false,
-          "imports": {}
+          "placeholder": "onOpened",
+          "valueType": "IDENTIFIER",
+          "valueTypeConstraint": "string",
+          "value": "onOpened",
+          "enabled": true,
+          "editable": false,
+          "optional": false,
+          "advanced": false
         },
         "parameters": [
           {
@@ -148,59 +123,48 @@
                 "label": "Type",
                 "description": "The type of the parameter"
               },
+              "placeholder": "github:IssuesEvent",
+              "valueType": "TYPE",
+              "value": "github:IssuesEvent",
               "enabled": true,
               "editable": false,
-              "value": "github:IssuesEvent",
-              "valueType": "TYPE",
-              "isType": true,
-              "placeholder": "github:IssuesEvent",
               "optional": true,
-              "advanced": false,
-              "addNewButton": false,
-              "imports": {}
+              "advanced": false
             },
             "name": {
               "metadata": {
                 "label": "payload",
                 "description": ""
               },
-              "enabled": true,
-              "editable": false,
-              "value": "payload",
-              "valueType": "IDENTIFIER",
-              "isType": false,
-              "placeholder": "payload",
-              "optional": false,
-              "advanced": false,
               "codedata": {
-                "inListenerInit": false,
-                "isBasePath": false,
-                "inDisplayAnnotation": false,
                 "type": "PARAMETER_NAME"
               },
-              "addNewButton": false,
-              "imports": {}
+              "placeholder": "payload",
+              "valueType": "IDENTIFIER",
+              "value": "payload",
+              "enabled": true,
+              "editable": false,
+              "optional": false,
+              "advanced": false
             },
             "defaultValue": {
               "metadata": {
                 "label": "Default Value",
                 "description": "The default value of the parameter"
               },
+              "placeholder": "",
+              "valueType": "EXPRESSION",
+              "value": "",
               "enabled": true,
               "editable": true,
-              "value": "",
-              "valueType": "EXPRESSION",
-              "isType": false,
-              "placeholder": "",
               "optional": true,
-              "advanced": false,
-              "addNewButton": false,
-              "imports": {}
+              "advanced": false
             },
             "enabled": true,
             "editable": true,
             "optional": false,
-            "advanced": false
+            "advanced": false,
+            "hidden": false
           }
         ],
         "returnType": {
@@ -209,15 +173,13 @@
             "label": "Return Type",
             "description": "The return type of the function"
           },
+          "placeholder": "error|()",
+          "valueType": "TYPE",
+          "value": "error|()",
           "enabled": true,
           "editable": false,
-          "value": "error|()",
-          "valueType": "TYPE",
-          "isType": true,
-          "placeholder": "error|()",
           "optional": true,
-          "advanced": false,
-          "addNewButton": false
+          "advanced": false
         },
         "enabled": true,
         "optional": false,
@@ -234,10 +196,7 @@
               "line": 11,
               "offset": 5
             }
-          },
-          "inListenerInit": false,
-          "isBasePath": false,
-          "inDisplayAnnotation": false
+          }
         }
       },
       {
@@ -251,23 +210,17 @@
             "label": "onClosed",
             "description": ""
           },
-          "enabled": true,
-          "editable": false,
-          "value": "onClosed",
-          "valueType": "IDENTIFIER",
-          "valueTypeConstraint": "string",
-          "isType": false,
-          "placeholder": "onClosed",
-          "optional": false,
-          "advanced": false,
           "codedata": {
-            "inListenerInit": false,
-            "isBasePath": false,
-            "inDisplayAnnotation": false,
             "type": "FUNCTION_NAME"
           },
-          "addNewButton": false,
-          "imports": {}
+          "placeholder": "onClosed",
+          "valueType": "IDENTIFIER",
+          "valueTypeConstraint": "string",
+          "value": "onClosed",
+          "enabled": true,
+          "editable": false,
+          "optional": false,
+          "advanced": false
         },
         "parameters": [
           {
@@ -281,59 +234,48 @@
                 "label": "Type",
                 "description": "The type of the parameter"
               },
+              "placeholder": "github:IssuesEvent",
+              "valueType": "TYPE",
+              "value": "github:IssuesEvent",
               "enabled": true,
               "editable": false,
-              "value": "github:IssuesEvent",
-              "valueType": "TYPE",
-              "isType": true,
-              "placeholder": "github:IssuesEvent",
               "optional": true,
-              "advanced": false,
-              "addNewButton": false,
-              "imports": {}
+              "advanced": false
             },
             "name": {
               "metadata": {
                 "label": "payload",
                 "description": ""
               },
-              "enabled": true,
-              "editable": false,
-              "value": "payload",
-              "valueType": "IDENTIFIER",
-              "isType": false,
-              "placeholder": "payload",
-              "optional": false,
-              "advanced": false,
               "codedata": {
-                "inListenerInit": false,
-                "isBasePath": false,
-                "inDisplayAnnotation": false,
                 "type": "PARAMETER_NAME"
               },
-              "addNewButton": false,
-              "imports": {}
+              "placeholder": "payload",
+              "valueType": "IDENTIFIER",
+              "value": "payload",
+              "enabled": true,
+              "editable": false,
+              "optional": false,
+              "advanced": false
             },
             "defaultValue": {
               "metadata": {
                 "label": "Default Value",
                 "description": "The default value of the parameter"
               },
+              "placeholder": "",
+              "valueType": "EXPRESSION",
+              "value": "",
               "enabled": true,
               "editable": true,
-              "value": "",
-              "valueType": "EXPRESSION",
-              "isType": false,
-              "placeholder": "",
               "optional": true,
-              "advanced": false,
-              "addNewButton": false,
-              "imports": {}
+              "advanced": false
             },
             "enabled": true,
             "editable": true,
             "optional": false,
-            "advanced": false
+            "advanced": false,
+            "hidden": false
           }
         ],
         "returnType": {
@@ -342,15 +284,13 @@
             "label": "Return Type",
             "description": "The return type of the function"
           },
+          "placeholder": "error|()",
+          "valueType": "TYPE",
+          "value": "error|()",
           "enabled": true,
           "editable": false,
-          "value": "error|()",
-          "valueType": "TYPE",
-          "isType": true,
-          "placeholder": "error|()",
           "optional": true,
-          "advanced": false,
-          "addNewButton": false
+          "advanced": false
         },
         "enabled": true,
         "optional": false,
@@ -367,10 +307,7 @@
               "line": 19,
               "offset": 5
             }
-          },
-          "inListenerInit": false,
-          "isBasePath": false,
-          "inDisplayAnnotation": false
+          }
         }
       },
       {
@@ -384,23 +321,17 @@
             "label": "onReopened",
             "description": ""
           },
-          "enabled": true,
-          "editable": false,
-          "value": "onReopened",
-          "valueType": "IDENTIFIER",
-          "valueTypeConstraint": "string",
-          "isType": false,
-          "placeholder": "onReopened",
-          "optional": false,
-          "advanced": false,
           "codedata": {
-            "inListenerInit": false,
-            "isBasePath": false,
-            "inDisplayAnnotation": false,
             "type": "FUNCTION_NAME"
           },
-          "addNewButton": false,
-          "imports": {}
+          "placeholder": "onReopened",
+          "valueType": "IDENTIFIER",
+          "valueTypeConstraint": "string",
+          "value": "onReopened",
+          "enabled": true,
+          "editable": false,
+          "optional": false,
+          "advanced": false
         },
         "parameters": [
           {
@@ -414,59 +345,48 @@
                 "label": "Type",
                 "description": "The type of the parameter"
               },
+              "placeholder": "github:IssuesEvent",
+              "valueType": "TYPE",
+              "value": "github:IssuesEvent",
               "enabled": true,
               "editable": false,
-              "value": "github:IssuesEvent",
-              "valueType": "TYPE",
-              "isType": true,
-              "placeholder": "github:IssuesEvent",
               "optional": true,
-              "advanced": false,
-              "addNewButton": false,
-              "imports": {}
+              "advanced": false
             },
             "name": {
               "metadata": {
                 "label": "payload",
                 "description": ""
               },
-              "enabled": true,
-              "editable": false,
-              "value": "payload",
-              "valueType": "IDENTIFIER",
-              "isType": false,
-              "placeholder": "payload",
-              "optional": false,
-              "advanced": false,
               "codedata": {
-                "inListenerInit": false,
-                "isBasePath": false,
-                "inDisplayAnnotation": false,
                 "type": "PARAMETER_NAME"
               },
-              "addNewButton": false,
-              "imports": {}
+              "placeholder": "payload",
+              "valueType": "IDENTIFIER",
+              "value": "payload",
+              "enabled": true,
+              "editable": false,
+              "optional": false,
+              "advanced": false
             },
             "defaultValue": {
               "metadata": {
                 "label": "Default Value",
                 "description": "The default value of the parameter"
               },
+              "placeholder": "",
+              "valueType": "EXPRESSION",
+              "value": "",
               "enabled": true,
               "editable": true,
-              "value": "",
-              "valueType": "EXPRESSION",
-              "isType": false,
-              "placeholder": "",
               "optional": true,
-              "advanced": false,
-              "addNewButton": false,
-              "imports": {}
+              "advanced": false
             },
             "enabled": true,
             "editable": true,
             "optional": false,
-            "advanced": false
+            "advanced": false,
+            "hidden": false
           }
         ],
         "returnType": {
@@ -475,15 +395,13 @@
             "label": "Return Type",
             "description": "The return type of the function"
           },
+          "placeholder": "error|()",
+          "valueType": "TYPE",
+          "value": "error|()",
           "enabled": true,
           "editable": false,
-          "value": "error|()",
-          "valueType": "TYPE",
-          "isType": true,
-          "placeholder": "error|()",
           "optional": true,
-          "advanced": false,
-          "addNewButton": false
+          "advanced": false
         },
         "enabled": true,
         "optional": false,
@@ -500,10 +418,7 @@
               "line": 27,
               "offset": 5
             }
-          },
-          "inListenerInit": false,
-          "isBasePath": false,
-          "inDisplayAnnotation": false
+          }
         }
       },
       {
@@ -517,23 +432,17 @@
             "label": "onAssigned",
             "description": ""
           },
-          "enabled": true,
-          "editable": false,
-          "value": "onAssigned",
-          "valueType": "IDENTIFIER",
-          "valueTypeConstraint": "string",
-          "isType": false,
-          "placeholder": "onAssigned",
-          "optional": false,
-          "advanced": false,
           "codedata": {
-            "inListenerInit": false,
-            "isBasePath": false,
-            "inDisplayAnnotation": false,
             "type": "FUNCTION_NAME"
           },
-          "addNewButton": false,
-          "imports": {}
+          "placeholder": "onAssigned",
+          "valueType": "IDENTIFIER",
+          "valueTypeConstraint": "string",
+          "value": "onAssigned",
+          "enabled": true,
+          "editable": false,
+          "optional": false,
+          "advanced": false
         },
         "parameters": [
           {
@@ -547,59 +456,48 @@
                 "label": "Type",
                 "description": "The type of the parameter"
               },
+              "placeholder": "github:IssuesEvent",
+              "valueType": "TYPE",
+              "value": "github:IssuesEvent",
               "enabled": true,
               "editable": false,
-              "value": "github:IssuesEvent",
-              "valueType": "TYPE",
-              "isType": true,
-              "placeholder": "github:IssuesEvent",
               "optional": true,
-              "advanced": false,
-              "addNewButton": false,
-              "imports": {}
+              "advanced": false
             },
             "name": {
               "metadata": {
                 "label": "payload",
                 "description": ""
               },
-              "enabled": true,
-              "editable": false,
-              "value": "payload",
-              "valueType": "IDENTIFIER",
-              "isType": false,
-              "placeholder": "payload",
-              "optional": false,
-              "advanced": false,
               "codedata": {
-                "inListenerInit": false,
-                "isBasePath": false,
-                "inDisplayAnnotation": false,
                 "type": "PARAMETER_NAME"
               },
-              "addNewButton": false,
-              "imports": {}
+              "placeholder": "payload",
+              "valueType": "IDENTIFIER",
+              "value": "payload",
+              "enabled": true,
+              "editable": false,
+              "optional": false,
+              "advanced": false
             },
             "defaultValue": {
               "metadata": {
                 "label": "Default Value",
                 "description": "The default value of the parameter"
               },
+              "placeholder": "",
+              "valueType": "EXPRESSION",
+              "value": "",
               "enabled": true,
               "editable": true,
-              "value": "",
-              "valueType": "EXPRESSION",
-              "isType": false,
-              "placeholder": "",
               "optional": true,
-              "advanced": false,
-              "addNewButton": false,
-              "imports": {}
+              "advanced": false
             },
             "enabled": true,
             "editable": true,
             "optional": false,
-            "advanced": false
+            "advanced": false,
+            "hidden": false
           }
         ],
         "returnType": {
@@ -608,15 +506,13 @@
             "label": "Return Type",
             "description": "The return type of the function"
           },
+          "placeholder": "error|()",
+          "valueType": "TYPE",
+          "value": "error|()",
           "enabled": true,
           "editable": false,
-          "value": "error|()",
-          "valueType": "TYPE",
-          "isType": true,
-          "placeholder": "error|()",
           "optional": true,
-          "advanced": false,
-          "addNewButton": false
+          "advanced": false
         },
         "enabled": true,
         "optional": false,
@@ -633,10 +529,7 @@
               "line": 35,
               "offset": 5
             }
-          },
-          "inListenerInit": false,
-          "isBasePath": false,
-          "inDisplayAnnotation": false
+          }
         }
       },
       {
@@ -650,23 +543,17 @@
             "label": "onUnassigned",
             "description": ""
           },
-          "enabled": true,
-          "editable": false,
-          "value": "onUnassigned",
-          "valueType": "IDENTIFIER",
-          "valueTypeConstraint": "string",
-          "isType": false,
-          "placeholder": "onUnassigned",
-          "optional": false,
-          "advanced": false,
           "codedata": {
-            "inListenerInit": false,
-            "isBasePath": false,
-            "inDisplayAnnotation": false,
             "type": "FUNCTION_NAME"
           },
-          "addNewButton": false,
-          "imports": {}
+          "placeholder": "onUnassigned",
+          "valueType": "IDENTIFIER",
+          "valueTypeConstraint": "string",
+          "value": "onUnassigned",
+          "enabled": true,
+          "editable": false,
+          "optional": false,
+          "advanced": false
         },
         "parameters": [
           {
@@ -680,59 +567,48 @@
                 "label": "Type",
                 "description": "The type of the parameter"
               },
+              "placeholder": "github:IssuesEvent",
+              "valueType": "TYPE",
+              "value": "github:IssuesEvent",
               "enabled": true,
               "editable": false,
-              "value": "github:IssuesEvent",
-              "valueType": "TYPE",
-              "isType": true,
-              "placeholder": "github:IssuesEvent",
               "optional": true,
-              "advanced": false,
-              "addNewButton": false,
-              "imports": {}
+              "advanced": false
             },
             "name": {
               "metadata": {
                 "label": "payload",
                 "description": ""
               },
-              "enabled": true,
-              "editable": false,
-              "value": "payload",
-              "valueType": "IDENTIFIER",
-              "isType": false,
-              "placeholder": "payload",
-              "optional": false,
-              "advanced": false,
               "codedata": {
-                "inListenerInit": false,
-                "isBasePath": false,
-                "inDisplayAnnotation": false,
                 "type": "PARAMETER_NAME"
               },
-              "addNewButton": false,
-              "imports": {}
+              "placeholder": "payload",
+              "valueType": "IDENTIFIER",
+              "value": "payload",
+              "enabled": true,
+              "editable": false,
+              "optional": false,
+              "advanced": false
             },
             "defaultValue": {
               "metadata": {
                 "label": "Default Value",
                 "description": "The default value of the parameter"
               },
+              "placeholder": "",
+              "valueType": "EXPRESSION",
+              "value": "",
               "enabled": true,
               "editable": true,
-              "value": "",
-              "valueType": "EXPRESSION",
-              "isType": false,
-              "placeholder": "",
               "optional": true,
-              "advanced": false,
-              "addNewButton": false,
-              "imports": {}
+              "advanced": false
             },
             "enabled": true,
             "editable": true,
             "optional": false,
-            "advanced": false
+            "advanced": false,
+            "hidden": false
           }
         ],
         "returnType": {
@@ -741,15 +617,13 @@
             "label": "Return Type",
             "description": "The return type of the function"
           },
+          "placeholder": "error|()",
+          "valueType": "TYPE",
+          "value": "error|()",
           "enabled": true,
           "editable": false,
-          "value": "error|()",
-          "valueType": "TYPE",
-          "isType": true,
-          "placeholder": "error|()",
           "optional": true,
-          "advanced": false,
-          "addNewButton": false
+          "advanced": false
         },
         "enabled": true,
         "optional": false,
@@ -766,10 +640,7 @@
               "line": 43,
               "offset": 5
             }
-          },
-          "inListenerInit": false,
-          "isBasePath": false,
-          "inDisplayAnnotation": false
+          }
         }
       },
       {
@@ -783,23 +654,17 @@
             "label": "onLabeled",
             "description": ""
           },
-          "enabled": true,
-          "editable": false,
-          "value": "onLabeled",
-          "valueType": "IDENTIFIER",
-          "valueTypeConstraint": "string",
-          "isType": false,
-          "placeholder": "onLabeled",
-          "optional": false,
-          "advanced": false,
           "codedata": {
-            "inListenerInit": false,
-            "isBasePath": false,
-            "inDisplayAnnotation": false,
             "type": "FUNCTION_NAME"
           },
-          "addNewButton": false,
-          "imports": {}
+          "placeholder": "onLabeled",
+          "valueType": "IDENTIFIER",
+          "valueTypeConstraint": "string",
+          "value": "onLabeled",
+          "enabled": true,
+          "editable": false,
+          "optional": false,
+          "advanced": false
         },
         "parameters": [
           {
@@ -813,59 +678,48 @@
                 "label": "Type",
                 "description": "The type of the parameter"
               },
+              "placeholder": "github:IssuesEvent",
+              "valueType": "TYPE",
+              "value": "github:IssuesEvent",
               "enabled": true,
               "editable": false,
-              "value": "github:IssuesEvent",
-              "valueType": "TYPE",
-              "isType": true,
-              "placeholder": "github:IssuesEvent",
               "optional": true,
-              "advanced": false,
-              "addNewButton": false,
-              "imports": {}
+              "advanced": false
             },
             "name": {
               "metadata": {
                 "label": "payload",
                 "description": ""
               },
-              "enabled": true,
-              "editable": false,
-              "value": "payload",
-              "valueType": "IDENTIFIER",
-              "isType": false,
-              "placeholder": "payload",
-              "optional": false,
-              "advanced": false,
               "codedata": {
-                "inListenerInit": false,
-                "isBasePath": false,
-                "inDisplayAnnotation": false,
                 "type": "PARAMETER_NAME"
               },
-              "addNewButton": false,
-              "imports": {}
+              "placeholder": "payload",
+              "valueType": "IDENTIFIER",
+              "value": "payload",
+              "enabled": true,
+              "editable": false,
+              "optional": false,
+              "advanced": false
             },
             "defaultValue": {
               "metadata": {
                 "label": "Default Value",
                 "description": "The default value of the parameter"
               },
+              "placeholder": "",
+              "valueType": "EXPRESSION",
+              "value": "",
               "enabled": true,
               "editable": true,
-              "value": "",
-              "valueType": "EXPRESSION",
-              "isType": false,
-              "placeholder": "",
               "optional": true,
-              "advanced": false,
-              "addNewButton": false,
-              "imports": {}
+              "advanced": false
             },
             "enabled": true,
             "editable": true,
             "optional": false,
-            "advanced": false
+            "advanced": false,
+            "hidden": false
           }
         ],
         "returnType": {
@@ -874,15 +728,13 @@
             "label": "Return Type",
             "description": "The return type of the function"
           },
+          "placeholder": "error|()",
+          "valueType": "TYPE",
+          "value": "error|()",
           "enabled": true,
           "editable": false,
-          "value": "error|()",
-          "valueType": "TYPE",
-          "isType": true,
-          "placeholder": "error|()",
           "optional": true,
-          "advanced": false,
-          "addNewButton": false
+          "advanced": false
         },
         "enabled": true,
         "optional": false,
@@ -899,10 +751,7 @@
               "line": 51,
               "offset": 5
             }
-          },
-          "inListenerInit": false,
-          "isBasePath": false,
-          "inDisplayAnnotation": false
+          }
         }
       },
       {
@@ -916,23 +765,17 @@
             "label": "onUnlabeled",
             "description": ""
           },
-          "enabled": true,
-          "editable": false,
-          "value": "onUnlabeled",
-          "valueType": "IDENTIFIER",
-          "valueTypeConstraint": "string",
-          "isType": false,
-          "placeholder": "onUnlabeled",
-          "optional": false,
-          "advanced": false,
           "codedata": {
-            "inListenerInit": false,
-            "isBasePath": false,
-            "inDisplayAnnotation": false,
             "type": "FUNCTION_NAME"
           },
-          "addNewButton": false,
-          "imports": {}
+          "placeholder": "onUnlabeled",
+          "valueType": "IDENTIFIER",
+          "valueTypeConstraint": "string",
+          "value": "onUnlabeled",
+          "enabled": true,
+          "editable": false,
+          "optional": false,
+          "advanced": false
         },
         "parameters": [
           {
@@ -946,59 +789,48 @@
                 "label": "Type",
                 "description": "The type of the parameter"
               },
+              "placeholder": "github:IssuesEvent",
+              "valueType": "TYPE",
+              "value": "github:IssuesEvent",
               "enabled": true,
               "editable": false,
-              "value": "github:IssuesEvent",
-              "valueType": "TYPE",
-              "isType": true,
-              "placeholder": "github:IssuesEvent",
               "optional": true,
-              "advanced": false,
-              "addNewButton": false,
-              "imports": {}
+              "advanced": false
             },
             "name": {
               "metadata": {
                 "label": "payload",
                 "description": ""
               },
-              "enabled": true,
-              "editable": false,
-              "value": "payload",
-              "valueType": "IDENTIFIER",
-              "isType": false,
-              "placeholder": "payload",
-              "optional": false,
-              "advanced": false,
               "codedata": {
-                "inListenerInit": false,
-                "isBasePath": false,
-                "inDisplayAnnotation": false,
                 "type": "PARAMETER_NAME"
               },
-              "addNewButton": false,
-              "imports": {}
+              "placeholder": "payload",
+              "valueType": "IDENTIFIER",
+              "value": "payload",
+              "enabled": true,
+              "editable": false,
+              "optional": false,
+              "advanced": false
             },
             "defaultValue": {
               "metadata": {
                 "label": "Default Value",
                 "description": "The default value of the parameter"
               },
+              "placeholder": "",
+              "valueType": "EXPRESSION",
+              "value": "",
               "enabled": true,
               "editable": true,
-              "value": "",
-              "valueType": "EXPRESSION",
-              "isType": false,
-              "placeholder": "",
               "optional": true,
-              "advanced": false,
-              "addNewButton": false,
-              "imports": {}
+              "advanced": false
             },
             "enabled": true,
             "editable": true,
             "optional": false,
-            "advanced": false
+            "advanced": false,
+            "hidden": false
           }
         ],
         "returnType": {
@@ -1007,15 +839,13 @@
             "label": "Return Type",
             "description": "The return type of the function"
           },
+          "placeholder": "error|()",
+          "valueType": "TYPE",
+          "value": "error|()",
           "enabled": true,
           "editable": false,
-          "value": "error|()",
-          "valueType": "TYPE",
-          "isType": true,
-          "placeholder": "error|()",
           "optional": true,
-          "advanced": false,
-          "addNewButton": false
+          "advanced": false
         },
         "enabled": true,
         "optional": false,
@@ -1032,10 +862,7 @@
               "line": 59,
               "offset": 5
             }
-          },
-          "inListenerInit": false,
-          "isBasePath": false,
-          "inDisplayAnnotation": false
+          }
         }
       }
     ]

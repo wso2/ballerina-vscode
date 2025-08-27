@@ -13,10 +13,6 @@
     "id": "0",
     "name": "HTTP Service",
     "type": "http",
-    "displayAnnotation": {
-      "label": "HTTP Service",
-      "iconPath": "http://localhost:8080/icons/http.png"
-    },
     "moduleName": "http",
     "orgName": "ballerina",
     "version": "2.14.0",
@@ -29,80 +25,59 @@
           "label": "Listeners",
           "description": ""
         },
-        "enabled": true,
-        "editable": false,
+        "codedata": {
+          "type": "LISTENER"
+        },
+        "placeholder": "",
+        "valueType": "MULTIPLE_SELECT",
+        "valueTypeConstraint": "http:Listener",
         "value": "",
         "values": [
           "new http:Listener(port = 8080)",
           "httpListener",
           "githubListener"
         ],
-        "valueType": "MULTIPLE_SELECT",
-        "valueTypeConstraint": "http:Listener",
-        "isType": false,
-        "placeholder": "",
-        "optional": false,
-        "advanced": false,
         "items": [
           "httpListener",
           "githubListener",
           "(+) Create and use the default HTTP listener (port: 9090)",
           "new http:Listener(port = 8080)"
         ],
-        "codedata": {
-          "inListenerInit": false,
-          "isBasePath": false,
-          "inDisplayAnnotation": false,
-          "type": "LISTENER"
-        },
-        "addNewButton": true,
-        "imports": {}
+        "enabled": true,
+        "editable": false,
+        "optional": false,
+        "advanced": false
       },
       "basePath": {
         "metadata": {
           "label": "Service Base Path",
           "description": ""
         },
-        "enabled": true,
-        "editable": true,
-        "value": "/api/test",
-        "valueType": "SERVICE_PATH",
-        "valueTypeConstraint": "string",
-        "isType": false,
-        "placeholder": "",
-        "optional": false,
-        "advanced": false,
         "codedata": {
-          "inListenerInit": false,
-          "isBasePath": false,
-          "inDisplayAnnotation": false,
           "type": "SERVICE_BASEPATH"
         },
-        "addNewButton": false,
-        "imports": {}
+        "placeholder": "",
+        "valueType": "SERVICE_PATH",
+        "valueTypeConstraint": "string",
+        "value": "/api/test",
+        "enabled": true,
+        "editable": true,
+        "optional": false,
+        "advanced": false
       },
       "annotServiceConfig": {
         "metadata": {
           "label": "Service Configuration",
           "description": "Define advanced configurations like service level security, etc."
         },
-        "enabled": true,
-        "editable": true,
-        "value": "",
-        "valueType": "EXPRESSION",
-        "valueTypeConstraint": "http:HttpServiceConfig",
-        "isType": false,
-        "placeholder": "{}",
-        "optional": true,
-        "advanced": true,
         "codedata": {
-          "inListenerInit": false,
-          "isBasePath": false,
-          "inDisplayAnnotation": false,
           "type": "ANNOTATION_ATTACHMENT",
           "originalName": "ServiceConfig"
         },
-        "addNewButton": false,
+        "placeholder": "{}",
+        "valueType": "EXPRESSION",
+        "valueTypeConstraint": "http:HttpServiceConfig",
+        "value": "",
         "typeMembers": [
           {
             "type": "HttpServiceConfig",
@@ -111,7 +86,10 @@
             "selected": true
           }
         ],
-        "imports": {}
+        "enabled": true,
+        "editable": true,
+        "optional": true,
+        "advanced": true
       }
     },
     "codedata": {
@@ -125,10 +103,7 @@
           "line": 12,
           "offset": 1
         }
-      },
-      "inListenerInit": false,
-      "isBasePath": false,
-      "inDisplayAnnotation": false
+      }
     },
     "functions": []
   }

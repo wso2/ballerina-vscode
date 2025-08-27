@@ -11,10 +11,6 @@
       "type": "rabbitmq",
       "displayName": "RabbitMQ Event Handler",
       "description": "Add the service documentation",
-      "displayAnnotation": {
-        "label": "RabbitMQ Event Handler",
-        "iconPath": "https://bcentral-packageicons.azureedge.net/images/ballerinax_rabbitmq_3.2.0.png"
-      },
       "moduleName": "rabbitmq",
       "orgName": "ballerinax",
       "version": "3.2.0",
@@ -27,97 +23,73 @@
             "label": "Listeners",
             "description": "The Listeners to be bound with the service"
           },
-          "enabled": true,
-          "editable": true,
-          "value": "",
-          "values": [],
-          "valueType": "MULTIPLE_SELECT",
-          "valueTypeConstraint": "rabbitmq:Listener",
-          "isType": false,
-          "placeholder": "",
-          "optional": false,
-          "advanced": false,
-          "items": [],
           "codedata": {
-            "inListenerInit": false,
-            "isBasePath": false,
-            "inDisplayAnnotation": false,
             "type": "LISTENER"
           },
-          "addNewButton": true
+          "placeholder": "",
+          "valueType": "MULTIPLE_SELECT",
+          "valueTypeConstraint": "rabbitmq:Listener",
+          "value": "",
+          "values": [],
+          "items": [],
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
         },
         "serviceType": {
           "metadata": {
             "label": "Service Type",
             "description": "The name of the service contract type"
           },
-          "enabled": false,
-          "editable": true,
-          "value": "Service",
+          "codedata": {
+            "type": "SERVICE_TYPE"
+          },
+          "placeholder": "Service",
           "valueType": "SINGLE_SELECT",
           "valueTypeConstraint": "string",
-          "isType": false,
-          "placeholder": "Service",
-          "optional": false,
-          "advanced": false,
+          "value": "Service",
           "items": [
             "",
             "Service"
           ],
-          "codedata": {
-            "inListenerInit": false,
-            "isBasePath": false,
-            "inDisplayAnnotation": false,
-            "type": "SERVICE_TYPE"
-          },
-          "addNewButton": false
+          "enabled": false,
+          "editable": true,
+          "optional": false,
+          "advanced": false
         },
         "stringLiteral": {
           "metadata": {
             "label": "Queue Name",
             "description": "The name of the queue"
           },
-          "enabled": true,
-          "editable": true,
-          "value": "",
-          "values": [],
-          "valueType": "SERVICE_PATH",
-          "valueTypeConstraint": "string",
-          "isType": false,
-          "placeholder": "\"\"",
-          "optional": false,
-          "advanced": false,
           "codedata": {
-            "inListenerInit": false,
-            "isBasePath": false,
-            "inDisplayAnnotation": false,
             "type": "STRING_LITERAL"
           },
-          "addNewButton": false
+          "placeholder": "\"\"",
+          "valueType": "SERVICE_PATH",
+          "valueTypeConstraint": "string",
+          "value": "",
+          "values": [],
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
         },
         "annotServiceConfig": {
           "metadata": {
             "label": "Service Configuration",
             "description": "Define advanced queue configurations "
           },
-          "enabled": true,
-          "editable": true,
-          "value": "",
-          "values": [],
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "rabbitmq:RabbitMQServiceConfig",
-          "isType": false,
-          "placeholder": "{}",
-          "optional": true,
-          "advanced": true,
           "codedata": {
-            "inListenerInit": false,
-            "isBasePath": false,
-            "inDisplayAnnotation": false,
             "type": "ANNOTATION_ATTACHMENT",
             "originalName": "ServiceConfig"
           },
-          "addNewButton": false,
+          "placeholder": "{}",
+          "valueType": "EXPRESSION",
+          "valueTypeConstraint": "rabbitmq:RabbitMQServiceConfig",
+          "value": "",
+          "values": [],
           "typeMembers": [
             {
               "type": "RabbitMQServiceConfig",
@@ -125,7 +97,11 @@
               "kind": "RECORD_TYPE",
               "selected": true
             }
-          ]
+          ],
+          "enabled": true,
+          "editable": true,
+          "optional": true,
+          "advanced": true
         }
       },
       "functions": []

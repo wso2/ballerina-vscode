@@ -18,125 +18,47 @@
 
 package io.ballerina.servicemodelgenerator.extension.util;
 
-import com.google.gson.Gson;
-import com.google.gson.stream.JsonReader;
+import io.ballerina.compiler.api.ModuleID;
 import io.ballerina.compiler.api.SemanticModel;
-import io.ballerina.compiler.api.symbols.AnnotationAttachPoint;
-import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
+import io.ballerina.compiler.api.symbols.ModuleSymbol;
+import io.ballerina.compiler.api.symbols.Symbol;
+import io.ballerina.compiler.api.symbols.TypeSymbol;
+import io.ballerina.compiler.api.symbols.VariableSymbol;
+import io.ballerina.compiler.syntax.tree.ExplicitNewExpressionNode;
+import io.ballerina.compiler.syntax.tree.ExpressionNode;
+import io.ballerina.compiler.syntax.tree.NameReferenceNode;
+import io.ballerina.compiler.syntax.tree.SeparatedNodeList;
 import io.ballerina.compiler.syntax.tree.ServiceDeclarationNode;
+import io.ballerina.compiler.syntax.tree.TypeDescriptorNode;
 import io.ballerina.modelgenerator.commons.AnnotationAttachment;
-import io.ballerina.modelgenerator.commons.CommonUtils;
 import io.ballerina.modelgenerator.commons.ServiceDatabaseManager;
 import io.ballerina.modelgenerator.commons.ServiceDeclaration;
 import io.ballerina.modelgenerator.commons.ServiceTypeFunction;
 import io.ballerina.projects.Project;
-import io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants;
 import io.ballerina.servicemodelgenerator.extension.model.Codedata;
-import io.ballerina.servicemodelgenerator.extension.model.DisplayAnnotation;
 import io.ballerina.servicemodelgenerator.extension.model.Function;
 import io.ballerina.servicemodelgenerator.extension.model.FunctionReturnType;
 import io.ballerina.servicemodelgenerator.extension.model.MetaData;
 import io.ballerina.servicemodelgenerator.extension.model.Parameter;
 import io.ballerina.servicemodelgenerator.extension.model.PropertyTypeMemberInfo;
 import io.ballerina.servicemodelgenerator.extension.model.Service;
+import io.ballerina.servicemodelgenerator.extension.model.ServiceMetadata;
 import io.ballerina.servicemodelgenerator.extension.model.Value;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 
-import static io.ballerina.servicemodelgenerator.extension.util.Utils.getFunctionModel;
-import static io.ballerina.servicemodelgenerator.extension.util.Utils.getPath;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.isPresent;
-import static io.ballerina.servicemodelgenerator.extension.util.Utils.populateListenerInfo;
-import static io.ballerina.servicemodelgenerator.extension.util.Utils.updateAnnotationAttachmentProperty;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.updateValue;
 
 public class ServiceModelUtils {
 
-    /**
-     * Update the service model of services other than http.
-     *
-     * @param serviceModel service model initially populated using the database
-     * @param serviceNode service declaration node
-     * @param semanticModel semantic model of the source
-     */
-    public static void updateGenericServiceModel(Service serviceModel, ServiceDeclarationNode serviceNode,
-                                                 SemanticModel semanticModel) {
-        // handle base path and string literal
-        String attachPoint = getPath(serviceNode.absoluteResourcePath());
-        if (!attachPoint.isEmpty()) {
-            boolean isStringLiteral = attachPoint.startsWith("\"") && attachPoint.endsWith("\"");
-            if (isStringLiteral) {
-                Value stringLiteralProperty = serviceModel.getStringLiteralProperty();
-                if (Objects.nonNull(stringLiteralProperty)) {
-                    stringLiteralProperty.setValue(attachPoint);
-                } else {
-                    serviceModel.setStringLiteral(ServiceModelUtils.getStringLiteralProperty(attachPoint));
-                }
-            } else {
-                Value basePathProperty = serviceModel.getBasePath();
-                if (Objects.nonNull(basePathProperty)) {
-                    basePathProperty.setValue(attachPoint);
-                } else {
-                    serviceModel.setBasePath(ServiceModelUtils.getBasePathProperty(attachPoint));
-                }
-            }
-        }
-
-        boolean isGraphql = serviceModel.getModuleName().equals(ServiceModelGeneratorConstants.GRAPHQL);
-        List<Function> functionsInSource = serviceNode.members().stream()
-                .filter(member -> member instanceof FunctionDefinitionNode)
-                .map(member -> getFunctionModel((FunctionDefinitionNode) member, semanticModel, false,
-                        isGraphql, Map.of()))
-                .toList();
-
-        updateServiceInfoNew(serviceModel, functionsInSource);
-        serviceModel.setCodedata(new Codedata(serviceNode.lineRange()));
-        populateListenerInfo(serviceModel, serviceNode);
-        updateAnnotationAttachmentProperty(serviceNode, serviceModel);
-
-        if (serviceModel.getModuleName().equals(ServiceModelGeneratorConstants.RABBITMQ)) {
-            filterRabbitMqFunctions(serviceModel.getFunctions());
-        }
-    }
-
-    private static void filterRabbitMqFunctions(List<Function> functions) {
-        // RabbitMQ services can have on of `onMessage` or `onRequest` functions
-        boolean hasOnMessage = false;
-        boolean hasOnRequest = false;
-        int onMessageIndex = -1;
-        int onRequestIndex = -1;
-        for (int i = 0; i < functions.size(); i++) {
-            Function function = functions.get(i);
-            if (function.getName().getValue().equals("onMessage")) {
-                hasOnMessage = function.isEnabled();
-                onMessageIndex = i;
-            } else if (function.getName().getValue().equals("onRequest")) {
-                hasOnRequest = function.isEnabled();
-                onRequestIndex = i;
-            }
-        }
-        if (hasOnMessage) {
-            functions.remove(onRequestIndex);
-        } else if (hasOnRequest) {
-            functions.remove(onMessageIndex);
-        }
-    }
-
-    private static void updateServiceInfoNew(Service serviceModel, List<Function> functionsInSource) {
+    public static void updateServiceInfoNew(Service serviceModel, List<Function> functionsInSource) {
         Utils.populateRequiredFunctions(serviceModel);
-
-        boolean isGraphql = serviceModel.getModuleName().equals(ServiceModelGeneratorConstants.GRAPHQL);
 
         // mark the enabled functions as true if they present in the source
         serviceModel.getFunctions().forEach(functionModel -> {
@@ -151,21 +73,16 @@ public class ServiceModelUtils {
             );
         });
 
-        // functions contains in source but not enforced using the service contract type
+        // functions contains in a source but not enforced using the service contract type
         functionsInSource.forEach(funcInSource -> {
             if (serviceModel.getFunctions().stream().noneMatch(newFunction -> isPresent(funcInSource, newFunction))) {
-                if (isGraphql) {
-                    GraphqlUtil.updateGraphqlFunctionMetaData(funcInSource);
-                    serviceModel.addFunction(funcInSource);
-                } else {
-                    serviceModel.addFunction(funcInSource);
-                    funcInSource.setEditable(false);
-                }
+                serviceModel.addFunction(funcInSource);
+                funcInSource.setEditable(false);
             }
         });
     }
 
-    private static void updateFunction(Function target, Function source, Service service) {
+    public static void updateFunction(Function target, Function source, Service service) {
         target.setEnabled(source.isEnabled());
         target.setCodedata(source.getCodedata());
         updateValue(target.getAccessor(), source.getAccessor());
@@ -188,7 +105,7 @@ public class ServiceModelUtils {
             foundSourceParam.ifPresent(value -> updateParameter(targetParameter, value));
         }
         updateValue(target.getReturnType(), source.getReturnType());
-        Value requiredFunctions = service.getProperty(ServiceModelGeneratorConstants.PROPERTY_REQUIRED_FUNCTIONS);
+        Value requiredFunctions = service.getProperty(Constants.PROPERTY_REQUIRED_FUNCTIONS);
         if (Objects.nonNull(requiredFunctions)) {
             if (source.isEnabled() && requiredFunctions.getItems().contains(source.getName().getValue())) {
                 requiredFunctions.setValue(source.getName().getValue());
@@ -207,100 +124,6 @@ public class ServiceModelUtils {
         updateValue(target.getName(), source.getName());
     }
 
-    /**
-     * Get the service model of the given module without the function list.
-     *
-     * @param orgName org name
-     * @param moduleName module name
-     * @return {@link Optional<Service>} service model
-     */
-    public static Optional<Service> getEmptyServiceModel(String orgName, String moduleName) {
-        if (moduleName.equals("http")) {
-            return getHttpService();
-        }
-        Optional<ServiceDeclaration> serviceDeclaration = ServiceDatabaseManager.getInstance()
-                .getServiceDeclaration(orgName, moduleName);
-        if (serviceDeclaration.isEmpty()) {
-            return Optional.empty();
-        }
-        ServiceDeclaration serviceTemplate = serviceDeclaration.get();
-        ServiceDeclaration.Package pkg = serviceTemplate.packageInfo();
-
-        String protocol = getProtocol(moduleName);
-
-        String label = serviceTemplate.displayName();
-        String documentation = "Add the service documentation";
-        String icon = CommonUtils.generateIcon(pkg.org(), pkg.name(), pkg.version());
-
-        Map<String, Value> properties = new LinkedHashMap<>();
-
-        Service.ServiceModelBuilder serviceBuilder = new Service.ServiceModelBuilder();
-        serviceBuilder
-                .setId(String.valueOf(pkg.packageId()))
-                .setName(label)
-                .setType(moduleName)
-                .setDisplayName(label)
-                .setDescription(documentation)
-                .setDisplayAnnotation(new DisplayAnnotation(label, icon))
-                .setModuleName(moduleName)
-                .setOrgName(pkg.org())
-                .setVersion(pkg.version())
-                .setPackageName(pkg.name())
-                .setListenerProtocol(protocol)
-                .setIcon(icon)
-                .setProperties(properties)
-                .setFunctions(new ArrayList<>());
-
-        Service service = serviceBuilder.build();
-        properties.put("listener", getListenersProperty(protocol, serviceTemplate.listenerKind()));
-
-        // type descriptor
-        properties.put("serviceType", getTypeDescriptorProperty(serviceTemplate, pkg.packageId()));
-
-        // base path
-        if (serviceTemplate.optionalAbsoluteResourcePath() == 0) {
-            properties.put("basePath", getBasePathProperty(serviceTemplate));
-        }
-
-        // string literal
-        if (serviceTemplate.optionalStringLiteral() == 0) {
-            properties.put("stringLiteral", getStringLiteral(serviceTemplate));
-        }
-
-        List<AnnotationAttachment> annotationAttachments = ServiceDatabaseManager.getInstance()
-                .getAnnotationAttachments(pkg.packageId());
-        for (AnnotationAttachment annotationAttachment : annotationAttachments) {
-            if (annotationAttachment.attachmentPoints().contains(AnnotationAttachPoint.SERVICE)) {
-                String key = "annot" + annotationAttachment.annotName();
-                properties.put(key, getAnnotationAttachmentProperty(annotationAttachment));
-            }
-        }
-
-        return Optional.of(service);
-    }
-
-    /**
-     * Get the service model for a give service type including its functions.
-     *
-     * @param orgName org name
-     * @param moduleName module name
-     * @param serviceType service type
-     * @return {@link Optional<Service>} service model
-     */
-    public static Optional<Service> getServiceModelWithFunctions(String orgName, String moduleName,
-                                                                 String serviceType) {
-        Optional<Service> serviceOptional = getEmptyServiceModel(orgName, moduleName);
-        if (serviceOptional.isEmpty() || serviceOptional.get().getPackageName().equals("http")) {
-            return serviceOptional;
-        }
-        Service service = serviceOptional.get();
-        int packageId = Integer.parseInt(service.getId());
-        ServiceDatabaseManager.getInstance().getMatchingServiceTypeFunctions(packageId, serviceType)
-                .forEach(function -> service.getFunctions().add(getFunction(function)));
-        service.getServiceType().setValue(serviceType);
-        return Optional.of(service);
-    }
-
     public static void populateRequiredFunctionsForServiceType(Service service) {
         int packageId = Integer.parseInt(service.getId());
         String serviceTypeName = Objects.nonNull(service.getServiceType()) ? service.getServiceType().getValue()
@@ -309,7 +132,7 @@ public class ServiceModelUtils {
                 .forEach(function -> service.getFunctions().add(getFunction(function)));
     }
 
-    private static Function getFunction(ServiceTypeFunction function) {
+    public static Function getFunction(ServiceTypeFunction function) {
 
         List<Parameter> parameters = new ArrayList<>();
         for (ServiceTypeFunction.ServiceTypeFunctionParameter parameter : function.parameters()) {
@@ -334,7 +157,6 @@ public class ServiceModelUtils {
                 .setPlaceholder(function.returnType())
                 .editable(function.returnTypeEditable() == 1)
                 .enabled(true)
-                .isType(true)
                 .optional(true);
 
         FunctionReturnType functionReturnType = new FunctionReturnType(returnValue.build());
@@ -350,7 +172,7 @@ public class ServiceModelUtils {
                 .returnType(functionReturnType)
                 .parameters(parameters);
 
-        if (function.kind().equals(ServiceModelGeneratorConstants.KIND_RESOURCE)) {
+        if (function.kind().equals(Constants.KIND_RESOURCE)) {
             Value.ValueBuilder accessor = new Value.ValueBuilder()
                     .metadata("Accessor", "The accessor of the resource function")
                     .setCodedata(new Codedata("ACCESSOR"))
@@ -360,7 +182,6 @@ public class ServiceModelUtils {
                     .setPlaceholder(function.accessor())
                     .enabled(true)
                     .editable(false)
-                    .isType(false)
                     .optional(false)
                     .setAdvanced(false);
             functionBuilder.accessor(accessor.build());
@@ -388,7 +209,6 @@ public class ServiceModelUtils {
                 .setPlaceholder(parameter.type())
                 .enabled(true)
                 .editable(parameter.typeEditable() == 1)
-                .isType(true)
                 .optional(true);
 
         Value.ValueBuilder parameterDefaultValue = new Value.ValueBuilder();
@@ -417,7 +237,7 @@ public class ServiceModelUtils {
         return parameterBuilder.build();
     }
 
-    private static Value getTypeDescriptorProperty(ServiceDeclaration template, int packageId) {
+    public static Value getTypeDescriptorProperty(ServiceDeclaration template, int packageId) {
         List<String> serviceTypes = ServiceDatabaseManager.getInstance().getServiceTypes(packageId);
         String value = "";
         if (serviceTypes.size() == 1) {
@@ -439,9 +259,7 @@ public class ServiceModelUtils {
                 .optional(false)
                 .setAdvanced(false)
                 .enabled(template.optionalTypeDescriptor() == 0)
-                .editable(true)
-                .isType(false)
-                .setAddNewButton(false);
+                .editable(true);
 
         return valueBuilder.build();
     }
@@ -459,14 +277,12 @@ public class ServiceModelUtils {
                 .optional(false)
                 .setAdvanced(false)
                 .enabled(true)
-                .editable(true)
-                .isType(false)
-                .setAddNewButton(false);
+                .editable(true);
 
         return valueBuilder.build();
     }
 
-    private static Value getStringLiteral(ServiceDeclaration template) {
+    public static Value getStringLiteral(ServiceDeclaration template) {
         Value.ValueBuilder valueBuilder = new Value.ValueBuilder();
         valueBuilder
                 .setMetadata(new MetaData(template.stringLiteralLabel(), template.stringLiteralDescription()))
@@ -479,9 +295,7 @@ public class ServiceModelUtils {
                 .optional(false)
                 .setAdvanced(false)
                 .enabled(true)
-                .editable(true)
-                .isType(false)
-                .setAddNewButton(false);
+                .editable(true);
 
         return valueBuilder.build();
     }
@@ -499,14 +313,12 @@ public class ServiceModelUtils {
                 .optional(false)
                 .setAdvanced(false)
                 .enabled(true)
-                .editable(true)
-                .isType(false)
-                .setAddNewButton(false);
+                .editable(true);
 
         return valueBuilder.build();
     }
 
-    private static Value getBasePathProperty(ServiceDeclaration template) {
+    public static Value getBasePathProperty(ServiceDeclaration template) {
         Value.ValueBuilder valueBuilder = new Value.ValueBuilder();
         valueBuilder
                 .setMetadata(new MetaData(template.absoluteResourcePathLabel(),
@@ -520,14 +332,12 @@ public class ServiceModelUtils {
                 .optional(false)
                 .setAdvanced(false)
                 .enabled(true)
-                .editable(true)
-                .isType(false)
-                .setAddNewButton(false);
+                .editable(true);
 
         return valueBuilder.build();
     }
 
-    private static Value getAnnotationAttachmentProperty(AnnotationAttachment attachment) {
+    public static Value getAnnotationAttachmentProperty(AnnotationAttachment attachment) {
         String typeName = attachment.typeName();
         String[] split = typeName.split(":");
         if (split.length > 1) {
@@ -550,14 +360,12 @@ public class ServiceModelUtils {
                 .setAdvanced(true)
                 .enabled(true)
                 .editable(true)
-                .isType(false)
-                .setAddNewButton(false)
                 .setMembers(List.of(propertyTypeMemberInfo));
 
         return valueBuilder.build();
     }
 
-    private static Value getListenersProperty(String protocol, String valueType) {
+    public static Value getListenersProperty(String protocol, String valueType) {
         boolean isMultiple = valueType.equals("MULTIPLE_SELECT");
         MetaData metaData = isMultiple ?
                 new MetaData("Listeners", "The Listeners to be bound with the service")
@@ -575,9 +383,7 @@ public class ServiceModelUtils {
                 .optional(false)
                 .setAdvanced(false)
                 .enabled(true)
-                .editable(true)
-                .isType(false)
-                .setAddNewButton(isMultiple);
+                .editable(true);
 
         return valueBuilder.build();
     }
@@ -585,21 +391,6 @@ public class ServiceModelUtils {
     public static String getProtocol(String moduleName) {
         String[] split = moduleName.split("\\.");
         return split[split.length - 1];
-    }
-
-
-    public static Optional<Service> getHttpService() {
-        InputStream resourceStream = ServiceModelUtils.class.getClassLoader()
-                .getResourceAsStream("services/http.json");
-        if (resourceStream == null) {
-            return Optional.empty();
-        }
-
-        try (JsonReader reader = new JsonReader(new InputStreamReader(resourceStream, StandardCharsets.UTF_8))) {
-            return Optional.of(new Gson().fromJson(reader, Service.class));
-        } catch (IOException e) {
-            return Optional.empty();
-        }
     }
 
     public static void updateListenerItems(String moduleName, SemanticModel semanticModel, Project project,
@@ -615,5 +406,55 @@ public class ServiceModelUtils {
         if (!listeners.isEmpty()) {
             listener.setItems(listeners.stream().map(l -> (Object) l).toList());
         }
+    }
+
+    public static String serviceTypeWithoutPrefix(String serviceType) {
+        String[] serviceTypeNames = serviceType.split(":");
+        String actualServiceType = "Service";
+        if (serviceTypeNames.length > 1) {
+            actualServiceType = serviceTypeNames[1];
+        }
+        return actualServiceType;
+    }
+
+    public static ServiceMetadata deriveServiceType(ServiceDeclarationNode serviceNode,
+                                                    SemanticModel semanticModel) {
+        Optional<TypeDescriptorNode> serviceTypeDesc = serviceNode.typeDescriptor();
+        Optional<ModuleSymbol> module = Optional.empty();
+        String serviceType = "Service";
+        if (serviceTypeDesc.isPresent()) {
+            TypeDescriptorNode typeDescriptorNode = serviceTypeDesc.get();
+            serviceType = typeDescriptorNode.toString().trim();
+            Optional<TypeSymbol> typeSymbol = semanticModel.typeOf(typeDescriptorNode);
+            if (typeSymbol.isPresent()) {
+                module = typeSymbol.get().getModule();
+            }
+        }
+
+        if (module.isEmpty()) {
+            SeparatedNodeList<ExpressionNode> expressions = serviceNode.expressions();
+            if (expressions.isEmpty()) {
+                return new ServiceMetadata(serviceType);
+            }
+            ExpressionNode expressionNode = expressions.get(0);
+            if (expressionNode instanceof ExplicitNewExpressionNode explicitNewExpressionNode) {
+                Optional<Symbol> symbol = semanticModel.symbol(explicitNewExpressionNode.typeDescriptor());
+                if (symbol.isEmpty()) {
+                    return new ServiceMetadata(serviceType);
+                }
+                module = symbol.get().getModule();
+            } else if (expressionNode instanceof NameReferenceNode nameReferenceNode) {
+                Optional<Symbol> symbol = semanticModel.symbol(nameReferenceNode);
+                if (symbol.isPresent() && symbol.get() instanceof VariableSymbol variableSymbol) {
+                    module = variableSymbol.typeDescriptor().getModule();
+                }
+            }
+        }
+
+        if (module.isEmpty()) {
+            return new ServiceMetadata(serviceType);
+        }
+        ModuleID id = module.get().id();
+        return new ServiceMetadata(serviceType, id.orgName(), id.packageName(), id.moduleName());
     }
 }

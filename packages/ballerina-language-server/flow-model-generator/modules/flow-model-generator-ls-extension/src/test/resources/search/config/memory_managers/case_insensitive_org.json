@@ -1,0 +1,32 @@
+{
+  "description": "Case insensitive org name search test for memory managers",
+  "kind": "MEMORY_MANAGER",
+  "source": "empty.bal",
+  "queryMap": {
+    "orgName": "BALLERINA"
+  },
+  "categories": [
+    {
+      "metadata": {
+        "label": "Memory Managers"
+      },
+      "items": [
+        {
+          "metadata": {
+            "label": "Message Window Chat Memory",
+            "description": "A memory manager that stores chat messages in a window format, allowing for efficient retrieval and management of recent interactions."
+          },
+          "codedata": {
+            "node": "CLASS_INIT",
+            "org": "ballerina",
+            "module": "ai",
+            "packageName": "ai",
+            "object": "MessageWindowChatMemory",
+            "symbol": "init"
+          },
+          "enabled": true
+        }
+      ]
+    }
+  ]
+}

@@ -21,7 +21,7 @@ package io.ballerina.servicemodelgenerator.extension;
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
 import io.ballerina.modelgenerator.commons.AbstractLSTest;
-import io.ballerina.servicemodelgenerator.extension.request.ListenerDiscoveryRequest;
+import io.ballerina.servicemodelgenerator.extension.model.request.ListenerDiscoveryRequest;
 import org.eclipse.lsp4j.TextEdit;
 import org.testng.Assert;
 import org.testng.annotations.AfterClass;

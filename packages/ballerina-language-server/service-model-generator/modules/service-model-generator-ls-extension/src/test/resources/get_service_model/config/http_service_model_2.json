@@ -9,10 +9,6 @@
       "id": "0",
       "name": "HTTP Service",
       "type": "http",
-      "displayAnnotation": {
-        "label": "HTTP Service",
-        "iconPath": "http://localhost:8080/icons/http.png"
-      },
       "moduleName": "http",
       "orgName": "ballerina",
       "version": "2.14.0",
@@ -25,101 +21,70 @@
             "label": "Listeners",
             "description": ""
           },
-          "enabled": true,
-          "editable": false,
-          "value": "",
-          "values": [],
+          "codedata": {
+            "type": "LISTENER"
+          },
+          "placeholder": "",
           "valueType": "MULTIPLE_SELECT",
           "valueTypeConstraint": "http:Listener",
-          "isType": false,
-          "placeholder": "",
-          "optional": false,
-          "advanced": false,
+          "value": "",
+          "values": [],
           "items": [
             "defaultListener"
           ],
-          "codedata": {
-            "inListenerInit": false,
-            "isBasePath": false,
-            "inDisplayAnnotation": false,
-            "type": "LISTENER"
-          },
-          "addNewButton": true,
-          "imports": {}
+          "enabled": true,
+          "editable": false,
+          "optional": false,
+          "advanced": false
         },
         "designApproach": {
           "metadata": {
             "label": "Contract",
             "description": "Service Contract"
           },
-          "enabled": true,
-          "editable": true,
-          "value": "",
-          "valueType": "CHOICE",
-          "isType": false,
           "placeholder": "",
-          "optional": false,
-          "advanced": false,
+          "valueType": "CHOICE",
+          "value": "",
           "choices": [
             {
               "metadata": {
                 "label": "Design From Scratch",
                 "description": "Design the service from scratch"
               },
-              "enabled": true,
-              "editable": true,
-              "value": "true",
-              "valueType": "FORM",
-              "isType": false,
               "placeholder": "true",
-              "optional": false,
-              "advanced": false,
+              "valueType": "FORM",
+              "value": "true",
               "properties": {
                 "basePath": {
                   "metadata": {
                     "label": "Service Base Path",
                     "description": ""
                   },
-                  "enabled": true,
-                  "editable": true,
-                  "value": "/",
-                  "valueType": "SERVICE_PATH",
-                  "valueTypeConstraint": "string",
-                  "isType": false,
-                  "placeholder": "",
-                  "optional": false,
-                  "advanced": false,
                   "codedata": {
-                    "inListenerInit": false,
-                    "isBasePath": false,
-                    "inDisplayAnnotation": false,
                     "type": "SERVICE_BASEPATH"
                   },
-                  "addNewButton": false,
-                  "imports": {}
+                  "placeholder": "",
+                  "valueType": "SERVICE_PATH",
+                  "valueTypeConstraint": "string",
+                  "value": "/",
+                  "enabled": true,
+                  "editable": true,
+                  "optional": false,
+                  "advanced": false
                 },
                 "annotServiceConfig": {
                   "metadata": {
                     "label": "Service Configuration",
                     "description": "Define advanced configurations like service level security, etc."
                   },
-                  "enabled": true,
-                  "editable": true,
-                  "value": "",
-                  "valueType": "EXPRESSION",
-                  "valueTypeConstraint": "http:HttpServiceConfig",
-                  "isType": false,
-                  "placeholder": "{}",
-                  "optional": true,
-                  "advanced": true,
                   "codedata": {
-                    "inListenerInit": false,
-                    "isBasePath": false,
-                    "inDisplayAnnotation": false,
                     "type": "ANNOTATION_ATTACHMENT",
                     "originalName": "ServiceConfig"
                   },
-                  "addNewButton": false,
+                  "placeholder": "{}",
+                  "valueType": "EXPRESSION",
+                  "valueTypeConstraint": "http:HttpServiceConfig",
+                  "value": "",
                   "typeMembers": [
                     {
                       "type": "HttpServiceConfig",
@@ -128,79 +93,71 @@
                       "selected": true
                     }
                   ],
-                  "imports": {}
+                  "enabled": true,
+                  "editable": true,
+                  "optional": true,
+                  "advanced": true
                 }
               },
-              "addNewButton": false,
-              "imports": {}
+              "enabled": true,
+              "editable": true,
+              "optional": false,
+              "advanced": false
             },
             {
               "metadata": {
                 "label": "Import From OpenAPI Specification",
                 "description": "Implement the service from an OpenAPI specification"
               },
-              "enabled": false,
-              "editable": true,
-              "value": "true",
-              "valueType": "FORM",
-              "isType": false,
               "placeholder": "true",
-              "optional": false,
-              "advanced": false,
+              "valueType": "FORM",
+              "value": "true",
               "properties": {
                 "spec": {
                   "metadata": {
                     "label": "OpenAPI Specification",
                     "description": "Provide an OpenAPI specification to generate the resources"
                   },
-                  "enabled": true,
-                  "editable": true,
-                  "value": "",
-                  "valueType": "FILE_SELECT",
-                  "valueTypeConstraint": "string",
-                  "isType": false,
-                  "placeholder": "",
-                  "optional": true,
-                  "advanced": false,
                   "codedata": {
-                    "inListenerInit": false,
-                    "isBasePath": false,
-                    "inDisplayAnnotation": false,
                     "type": "OPENAPI"
                   },
-                  "addNewButton": false,
-                  "imports": {}
+                  "placeholder": "",
+                  "valueType": "FILE_SELECT",
+                  "valueTypeConstraint": "string",
+                  "value": "",
+                  "enabled": true,
+                  "editable": true,
+                  "optional": true,
+                  "advanced": false
                 },
                 "serviceTypeName": {
                   "metadata": {
                     "label": "Service Type Name",
                     "description": "The name of the service contract type generated from the OpenAPI specification"
                   },
-                  "enabled": true,
-                  "editable": true,
-                  "value": "",
-                  "valueType": "IDENTIFIER",
-                  "valueTypeConstraint": "string",
-                  "isType": false,
-                  "placeholder": "",
-                  "optional": false,
-                  "advanced": false,
                   "codedata": {
-                    "inListenerInit": false,
-                    "isBasePath": false,
-                    "inDisplayAnnotation": false,
                     "type": "SERVICE_BASEPATH"
                   },
-                  "addNewButton": false,
-                  "imports": {}
+                  "placeholder": "",
+                  "valueType": "IDENTIFIER",
+                  "valueTypeConstraint": "string",
+                  "value": "",
+                  "enabled": true,
+                  "editable": true,
+                  "optional": false,
+                  "advanced": false
                 }
               },
-              "addNewButton": false,
-              "imports": {}
+              "enabled": false,
+              "editable": true,
+              "optional": false,
+              "advanced": false
             }
           ],
-          "addNewButton": false,
-          "imports": {}
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
         }
       },
       "functions": [
@@ -215,15 +172,10 @@
               "label": "Resource Accessor",
               "description": "The resource accessor"
             },
-            "enabled": true,
-            "editable": true,
-            "value": "GET",
+            "placeholder": "GET",
             "valueType": "SINGLE_SELECT",
             "valueTypeConstraint": "http:Method",
-            "isType": false,
-            "placeholder": "GET",
-            "optional": false,
-            "advanced": false,
+            "value": "GET",
             "items": [
               "GET",
               "POST",
@@ -233,25 +185,24 @@
               "OPTIONS",
               "HEAD"
             ],
-            "addNewButton": false,
-            "imports": {}
+            "enabled": true,
+            "editable": true,
+            "optional": false,
+            "advanced": false
           },
           "name": {
             "metadata": {
               "label": "Resource Path",
               "description": "The resource path"
             },
-            "enabled": true,
-            "editable": false,
-            "value": "greeting",
+            "placeholder": "",
             "valueType": "IDENTIFIER",
             "valueTypeConstraint": "string",
-            "isType": false,
-            "placeholder": "",
+            "value": "greeting",
+            "enabled": true,
+            "editable": false,
             "optional": false,
-            "advanced": false,
-            "addNewButton": false,
-            "imports": {}
+            "advanced": false
           },
           "parameters": [
             {
@@ -261,43 +212,30 @@
               },
               "kind": "REQUIRED",
               "type": {
-                "metadata": {
-                  "label": "",
-                  "description": ""
-                },
-                "enabled": true,
-                "editable": false,
-                "value": "",
+                "placeholder": "string",
                 "valueType": "TYPE",
                 "valueTypeConstraint": "http:Request",
-                "isType": true,
-                "placeholder": "string",
+                "value": "",
+                "enabled": true,
+                "editable": false,
                 "optional": false,
-                "advanced": false,
-                "addNewButton": false,
-                "imports": {}
+                "advanced": false
               },
               "name": {
-                "metadata": {
-                  "label": "",
-                  "description": ""
-                },
-                "enabled": true,
-                "editable": true,
-                "value": "",
+                "placeholder": "request",
                 "valueType": "IDENTIFIER",
                 "valueTypeConstraint": "string",
-                "isType": false,
-                "placeholder": "request",
+                "value": "",
+                "enabled": true,
+                "editable": true,
                 "optional": false,
-                "advanced": false,
-                "addNewButton": false,
-                "imports": {}
+                "advanced": false
               },
               "enabled": false,
               "editable": true,
               "optional": true,
-              "advanced": true
+              "advanced": true,
+              "hidden": false
             },
             {
               "metadata": {
@@ -306,43 +244,30 @@
               },
               "kind": "REQUIRED",
               "type": {
-                "metadata": {
-                  "label": "",
-                  "description": ""
-                },
-                "enabled": true,
-                "editable": false,
-                "value": "",
+                "placeholder": "string",
                 "valueType": "TYPE",
                 "valueTypeConstraint": "http:Caller",
-                "isType": true,
-                "placeholder": "string",
+                "value": "",
+                "enabled": true,
+                "editable": false,
                 "optional": false,
-                "advanced": false,
-                "addNewButton": false,
-                "imports": {}
+                "advanced": false
               },
               "name": {
-                "metadata": {
-                  "label": "",
-                  "description": ""
-                },
-                "enabled": true,
-                "editable": true,
-                "value": "",
+                "placeholder": "request",
                 "valueType": "IDENTIFIER",
                 "valueTypeConstraint": "string",
-                "isType": false,
-                "placeholder": "request",
+                "value": "",
+                "enabled": true,
+                "editable": true,
                 "optional": false,
-                "advanced": false,
-                "addNewButton": false,
-                "imports": {}
+                "advanced": false
               },
               "enabled": false,
               "editable": true,
               "optional": true,
-              "advanced": true
+              "advanced": true,
+              "hidden": false
             },
             {
               "metadata": {
@@ -351,43 +276,30 @@
               },
               "kind": "REQUIRED",
               "type": {
-                "metadata": {
-                  "label": "",
-                  "description": ""
-                },
-                "enabled": true,
-                "editable": false,
-                "value": "",
+                "placeholder": "string",
                 "valueType": "TYPE",
                 "valueTypeConstraint": "http:Headers",
-                "isType": true,
-                "placeholder": "string",
+                "value": "",
+                "enabled": true,
+                "editable": false,
                 "optional": false,
-                "advanced": false,
-                "addNewButton": false,
-                "imports": {}
+                "advanced": false
               },
               "name": {
-                "metadata": {
-                  "label": "",
-                  "description": ""
-                },
-                "enabled": true,
-                "editable": true,
-                "value": "",
+                "placeholder": "request",
                 "valueType": "IDENTIFIER",
                 "valueTypeConstraint": "string",
-                "isType": false,
-                "placeholder": "request",
+                "value": "",
+                "enabled": true,
+                "editable": true,
                 "optional": false,
-                "advanced": false,
-                "addNewButton": false,
-                "imports": {}
+                "advanced": false
               },
               "enabled": false,
               "editable": true,
               "optional": true,
-              "advanced": true
+              "advanced": true,
+              "hidden": false
             }
           ],
           "schema": {
@@ -398,44 +310,31 @@
               },
               "kind": "REQUIRED",
               "type": {
-                "metadata": {
-                  "label": "",
-                  "description": ""
-                },
-                "enabled": true,
-                "editable": true,
-                "value": "",
+                "placeholder": "",
                 "valueType": "TYPE",
                 "valueTypeConstraint": "anydata",
-                "isType": true,
-                "placeholder": "",
-                "optional": false,
-                "advanced": false,
-                "addNewButton": false,
-                "imports": {}
-              },
-              "name": {
-                "metadata": {
-                  "label": "",
-                  "description": ""
-                },
+                "value": "",
                 "enabled": true,
                 "editable": true,
-                "value": "",
+                "optional": false,
+                "advanced": false
+              },
+              "name": {
+                "placeholder": "",
                 "valueType": "IDENTIFIER",
                 "valueTypeConstraint": "string",
-                "isType": false,
-                "placeholder": "",
+                "value": "",
+                "enabled": true,
+                "editable": true,
                 "optional": false,
-                "advanced": false,
-                "addNewButton": false,
-                "imports": {}
+                "advanced": false
               },
               "enabled": false,
               "editable": true,
               "optional": false,
               "advanced": false,
-              "httpParamType": "PAYLOAD"
+              "httpParamType": "PAYLOAD",
+              "hidden": false
             },
             "query": {
               "metadata": {
@@ -444,44 +343,31 @@
               },
               "kind": "REQUIRED",
               "type": {
-                "metadata": {
-                  "label": "",
-                  "description": ""
-                },
-                "enabled": true,
-                "editable": true,
-                "value": "",
+                "placeholder": "",
                 "valueType": "TYPE",
                 "valueTypeConstraint": "anydata",
-                "isType": true,
-                "placeholder": "",
-                "optional": false,
-                "advanced": false,
-                "addNewButton": false,
-                "imports": {}
-              },
-              "name": {
-                "metadata": {
-                  "label": "",
-                  "description": ""
-                },
+                "value": "",
                 "enabled": true,
                 "editable": true,
-                "value": "",
+                "optional": false,
+                "advanced": false
+              },
+              "name": {
+                "placeholder": "",
                 "valueType": "IDENTIFIER",
                 "valueTypeConstraint": "string",
-                "isType": false,
-                "placeholder": "",
+                "value": "",
+                "enabled": true,
+                "editable": true,
                 "optional": false,
-                "advanced": false,
-                "addNewButton": false,
-                "imports": {}
+                "advanced": false
               },
               "enabled": false,
               "editable": true,
               "optional": false,
               "advanced": false,
-              "httpParamType": "QUERY"
+              "httpParamType": "QUERY",
+              "hidden": false
             },
             "header": {
               "metadata": {
@@ -490,44 +376,31 @@
               },
               "kind": "REQUIRED",
               "type": {
-                "metadata": {
-                  "label": "",
-                  "description": ""
-                },
-                "enabled": true,
-                "editable": true,
-                "value": "",
+                "placeholder": "string",
                 "valueType": "TYPE",
                 "valueTypeConstraint": "anydata",
-                "isType": true,
-                "placeholder": "string",
-                "optional": false,
-                "advanced": false,
-                "addNewButton": false,
-                "imports": {}
-              },
-              "name": {
-                "metadata": {
-                  "label": "",
-                  "description": ""
-                },
+                "value": "",
                 "enabled": true,
                 "editable": true,
-                "value": "",
+                "optional": false,
+                "advanced": false
+              },
+              "name": {
+                "placeholder": "name",
                 "valueType": "IDENTIFIER",
                 "valueTypeConstraint": "string",
-                "isType": false,
-                "placeholder": "name",
+                "value": "",
+                "enabled": true,
+                "editable": true,
                 "optional": false,
-                "advanced": false,
-                "addNewButton": false,
-                "imports": {}
+                "advanced": false
               },
               "enabled": false,
               "editable": true,
               "optional": false,
               "advanced": false,
-              "httpParamType": "Header"
+              "httpParamType": "Header",
+              "hidden": false
             }
           },
           "returnType": {
@@ -538,15 +411,10 @@
                     "label": "Status Code",
                     "description": "The status code"
                   },
-                  "enabled": true,
-                  "editable": false,
-                  "value": "200",
+                  "placeholder": "200",
                   "valueType": "SINGLE_SELECT",
                   "valueTypeConstraint": "http:StatusCode",
-                  "isType": false,
-                  "placeholder": "200",
-                  "optional": false,
-                  "advanced": false,
+                  "value": "200",
                   "items": [
                     "200",
                     "201",
@@ -559,25 +427,24 @@
                     "405",
                     "500"
                   ],
-                  "addNewButton": false,
-                  "imports": {}
+                  "enabled": true,
+                  "editable": false,
+                  "optional": false,
+                  "advanced": false
                 },
                 "body": {
                   "metadata": {
                     "label": "Body",
                     "description": "The response body"
                   },
-                  "enabled": true,
-                  "editable": false,
-                  "value": "json",
+                  "placeholder": "json",
                   "valueType": "TYPE",
                   "valueTypeConstraint": "anydata",
-                  "isType": true,
-                  "placeholder": "json",
+                  "value": "json",
+                  "enabled": true,
+                  "editable": false,
                   "optional": true,
-                  "advanced": false,
-                  "addNewButton": false,
-                  "imports": {}
+                  "advanced": false
                 },
                 "enabled": true,
                 "editable": false,
@@ -590,15 +457,10 @@
                     "label": "Status Code",
                     "description": "The status code"
                   },
-                  "enabled": true,
-                  "editable": false,
-                  "value": "500",
+                  "placeholder": "500",
                   "valueType": "SINGLE_SELECT",
                   "valueTypeConstraint": "http:StatusCode",
-                  "isType": false,
-                  "placeholder": "500",
-                  "optional": false,
-                  "advanced": false,
+                  "value": "500",
                   "items": [
                     "200",
                     "201",
@@ -611,25 +473,24 @@
                     "405",
                     "500"
                   ],
-                  "addNewButton": false,
-                  "imports": {}
+                  "enabled": true,
+                  "editable": false,
+                  "optional": false,
+                  "advanced": false
                 },
                 "body": {
                   "metadata": {
                     "label": "Body",
                     "description": "The response body"
                   },
-                  "enabled": true,
-                  "editable": false,
-                  "value": "anydata",
+                  "placeholder": "anydata",
                   "valueType": "TYPE",
                   "valueTypeConstraint": "anydata",
-                  "isType": true,
-                  "placeholder": "anydata",
+                  "value": "anydata",
+                  "enabled": true,
+                  "editable": false,
                   "optional": true,
-                  "advanced": false,
-                  "addNewButton": false,
-                  "imports": {}
+                  "advanced": false
                 },
                 "enabled": true,
                 "editable": false,
@@ -644,15 +505,10 @@
                     "label": "Status Code",
                     "description": "The status code"
                   },
-                  "enabled": true,
-                  "editable": false,
-                  "value": "",
+                  "placeholder": "200",
                   "valueType": "SINGLE_SELECT",
                   "valueTypeConstraint": "http:StatusCode",
-                  "isType": false,
-                  "placeholder": "200",
-                  "optional": false,
-                  "advanced": false,
+                  "value": "",
                   "items": [
                     "200",
                     "201",
@@ -665,68 +521,58 @@
                     "405",
                     "500"
                   ],
-                  "addNewButton": false,
-                  "imports": {}
+                  "enabled": true,
+                  "editable": false,
+                  "optional": false,
+                  "advanced": false
                 },
                 "body": {
                   "metadata": {
                     "label": "Body",
                     "description": "Response Body"
                   },
+                  "valueType": "TYPE",
+                  "value": "",
                   "enabled": true,
                   "editable": true,
-                  "value": "",
-                  "valueType": "TYPE",
-                  "isType": false,
                   "optional": true,
-                  "advanced": false,
-                  "addNewButton": false,
-                  "imports": {}
+                  "advanced": false
                 },
                 "name": {
                   "metadata": {
                     "label": "Name of the response",
                     "description": "Create a new response type"
                   },
+                  "valueType": "IDENTIFIER",
+                  "value": "",
                   "enabled": true,
                   "editable": true,
-                  "value": "",
-                  "valueType": "IDENTIFIER",
-                  "isType": false,
                   "optional": true,
-                  "advanced": false,
-                  "addNewButton": false,
-                  "imports": {}
+                  "advanced": false
                 },
                 "type": {
                   "metadata": {
                     "label": "Response Type",
                     "description": "Select a response type"
                   },
+                  "valueType": "TYPE",
+                  "value": "",
                   "enabled": true,
                   "editable": true,
-                  "value": "",
-                  "valueType": "TYPE",
-                  "isType": false,
                   "optional": false,
-                  "advanced": false,
-                  "addNewButton": false,
-                  "imports": {}
+                  "advanced": false
                 },
                 "headers": {
                   "metadata": {
                     "label": "Header types",
                     "description": "Response header types"
                   },
+                  "valueType": "EXPRESSION_SET",
+                  "value": "",
                   "enabled": true,
                   "editable": true,
-                  "value": "",
-                  "valueType": "EXPRESSION_SET",
-                  "isType": false,
                   "optional": true,
-                  "advanced": false,
-                  "addNewButton": false,
-                  "imports": {}
+                  "advanced": false
                 },
                 "enabled": true,
                 "editable": false,
@@ -739,16 +585,14 @@
               "label": "Return type",
               "description": "Return type of the function"
             },
-            "enabled": true,
-            "editable": true,
-            "value": "json|http:InternalServerError",
+            "placeholder": "json|http:InternalServerError",
             "valueType": "TYPE",
             "valueTypeConstraint": "anydata|http:Response|http:StatusCodeResponse",
-            "isType": true,
-            "placeholder": "json|http:InternalServerError",
+            "value": "json|http:InternalServerError",
+            "enabled": true,
+            "editable": true,
             "optional": true,
-            "advanced": false,
-            "addNewButton": false
+            "advanced": false
           },
           "enabled": true,
           "optional": false,

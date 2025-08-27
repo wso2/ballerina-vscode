@@ -1,1 +1,1 @@
-io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorServerCapabilitySetter
+io.ballerina.servicemodelgenerator.extension.core.ServiceModelGeneratorServerCapabilitySetter

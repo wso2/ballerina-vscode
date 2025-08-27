@@ -19,6 +19,7 @@
           "data": {
             "kind": "Resource",
             "label": "cherries",
+            "isServiceFunction": true,
             "accessor": "get",
             "parameters": [
               "map<anydata> data"
