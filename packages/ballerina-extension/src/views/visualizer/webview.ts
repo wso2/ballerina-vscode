@@ -165,10 +165,10 @@ export class VisualizerWebview {
                 padding-top: 30vh;
             }
             .loader {
-                width: 32px;
+                width: 36px;
                 aspect-ratio: 1;
                 border-radius: 50%;
-                border: 4px solid var(--vscode-button-background);
+                border: 6px solid var(--vscode-button-background);
                 animation:
                     l20-1 0.8s infinite linear alternate,
                     l20-2 1.6s infinite linear;
