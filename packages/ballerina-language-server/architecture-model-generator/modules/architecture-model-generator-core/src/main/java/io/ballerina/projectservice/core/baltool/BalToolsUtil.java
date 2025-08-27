@@ -24,7 +24,6 @@ import io.ballerina.projects.JvmTarget;
 import io.ballerina.projects.PackageVersion;
 import io.ballerina.projects.ProjectException;
 import io.ballerina.projects.SemanticVersion;
-import io.ballerina.projects.util.CustomURLClassLoader;
 import io.ballerina.projects.util.ProjectConstants;
 import io.ballerina.projects.util.ProjectUtils;
 import org.wso2.ballerinalang.util.RepoUtils;
@@ -38,6 +37,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -185,7 +185,7 @@ public final class BalToolsUtil {
             File[] files = directory.listFiles();
             if (files != null) {
                 for (File file : files) {
-                    if (file.isFile() && file.getName().toLowerCase().endsWith(".jar")) {
+                    if (file.isFile() && file.getName().toLowerCase(Locale.ROOT).endsWith(".jar")) {
                         jarFiles.add(file);
                     }
                 }
@@ -254,13 +254,11 @@ public final class BalToolsUtil {
         Path balaPath = balaCache.resolve(
                 ProjectUtils.getRelativeBalaPath(orgName, pkgName, version, null));
         //First we will check for a bala that match any platform
-        String platform = ANY_PLATFORM;
         if (!Files.exists(balaPath)) {
             for (JvmTarget supportedPlatform : JvmTarget.values()) {
                 balaPath = balaCache.resolve(
                         ProjectUtils.getRelativeBalaPath(orgName, pkgName, version, supportedPlatform.code()));
                 if (Files.exists(balaPath)) {
-                    platform = supportedPlatform.code();
                     break;
                 }
             }

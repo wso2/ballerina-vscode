@@ -21,6 +21,10 @@ package io.ballerina.projectservice.extension.request;
 /**
  * Request to import a Tibco project.
  *
+ * @param orgName     The organization name for the Ballerina package.
+ * @param packageName The name of the Ballerina package to be created.
+ * @param sourcePath  The file system path to the root of the Tibco project to be imported.
+ *
  * @since 1.2.0
  */
 public record ImportTibcoRequest(String orgName, String packageName, String sourcePath) {

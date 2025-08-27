@@ -20,6 +20,7 @@ package io.ballerina.projectservice.core;
 
 import io.ballerina.projectservice.core.baltool.BalToolsUtil;
 
+import java.io.IOException;
 import java.lang.reflect.Method;
 import java.net.URLClassLoader;
 import java.util.HashMap;
@@ -49,12 +50,14 @@ public class MigrateToolInvokingUtil {
             Method method = toolClass.getMethod(methodName, Map.class);
             Object invoke = method.invoke(null, args);
             classLoader.close();
-            if (invoke instanceof Map<?,?> mapResult) {
+            if (invoke instanceof Map<?, ?> mapResult) {
                 return transformToolExecutionResult(mapResult);
             }
             throw new RuntimeException("Unexpected return type from migration method: " + invoke.getClass());
-        } catch (Exception e) {
+        } catch (ReflectiveOperationException e) {
             throw new RuntimeException("Error invoking migration method", e);
+        } catch (IOException e) {
+            throw new RuntimeException("Error closing class loader", e);
         }
     }
 
@@ -78,6 +81,7 @@ public class MigrateToolInvokingUtil {
                     }
                     case KEY_REPORT -> resultBuilder.report((String) value);
                     case KEY_REPORT_JSON -> resultBuilder.jsonReport(value);
+                    default -> { }
                 }
             }
         }

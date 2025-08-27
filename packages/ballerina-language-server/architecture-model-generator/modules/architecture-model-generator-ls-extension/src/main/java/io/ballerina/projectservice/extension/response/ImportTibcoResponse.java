@@ -19,12 +19,15 @@
 package io.ballerina.projectservice.extension.response;
 
 import io.ballerina.projectservice.core.ToolExecutionResult;
-import org.eclipse.lsp4j.TextEdit;
 
 import java.util.Map;
 
 /**
  * Response for the Tibco import operation.
+ *
+ * @param error     Error message if the operation failed, else null.
+ * @param textEdits Text edits to be applied to the Ballerina files.
+ * @param report    Report of the import operation.
  *
  * @since 1.2.0
  */

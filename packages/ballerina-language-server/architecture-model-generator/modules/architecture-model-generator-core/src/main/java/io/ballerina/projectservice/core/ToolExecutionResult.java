@@ -20,7 +20,6 @@ package io.ballerina.projectservice.core;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 
 /**
  * Represents the result of a tool execution.
