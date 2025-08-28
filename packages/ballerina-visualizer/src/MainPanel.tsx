@@ -24,6 +24,7 @@ import {
     MACHINE_VIEW,
     PopupMachineStateValue,
     EVENT_TYPE,
+    ParentPopupData,
 } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { Global, css } from "@emotion/react";
@@ -490,10 +491,10 @@ const MainPanel = () => {
         setPopupMessage(false);
     };
 
-    const handleOnClose = () => {
+    const handleOnClose = (parent?: ParentPopupData) => {
         rpcClient
             .getVisualizerRpcClient()
-            .openView({ type: EVENT_TYPE.CLOSE_VIEW, location: { view: null }, isPopup: true });
+            .openView({ type: EVENT_TYPE.CLOSE_VIEW, location: { view: null, recentIdentifier: parent?.recentIdentifier, artifactType: parent?.artifactType }, isPopup: true });
     };
 
     return (

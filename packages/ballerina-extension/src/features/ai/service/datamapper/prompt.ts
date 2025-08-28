@@ -60,18 +60,18 @@ Following operations/transformations can be used during a mapping between input 
 5) Member Access Expressions  
     5.1) x[y] : access y th element of x array object in the json
 6) Regex Operations
-    6.1) SPLIT(regex, text) : Split the string text based on the regex and returns an array of strings (string[]).
+    6.1) SPLIT(text, regex) : Split the string text based on the regex and returns an array of strings (string[]).
             Example: 
-          SPLIT(",", “word1, word2, word3”) will return a string array [“word1”, “word2”, “word3”].
-          SPLIT(" ", “word1 word2 word3”) will return a string array [“word1”, “word2”, “word3”].
-    6.2) REPLACE_ALL(regex, text, replacement) : Replace all the instances of regex in the text using string replacement. 
-            Example -  REPLACE_ALL(" ", “word1 word2 word3”, "") will return a string “word1word2word3”
+          SPLIT("word1, word2, word3", ",") will return a string array ["word1", "word2", "word3"].
+          SPLIT("word1 word2 word3", " ") will return a string array ["word1", "word2", "word3"].
+    6.2) REPLACE_ALL(text, regex, replacement) : Replace all the instances of regex in the text using string replacement. 
+            Example -  REPLACE_ALL("word1 word2 word3", " ", "") will return a string "word1word2word3"
     For above two operations, regex value must be one or combination of the following : [" ", "_", "-", "\n", ",", "\." ], here "\" is used to escape special characters.
 
 7) Numerical Operations  
     7.1) AVERAGE(x, TYPE) : get the average over x. x is a single array of variables of TYPE (ex - [12, 13, 14]) when TYPE is INTEGER .TYPE can be either INT, DECIMAL, or FLOAT.
     7.2) MAXIMUM(x, TYPE) : get the maximum over x. x is an array of variables of TYPE(ex - [12, 13, 14]) when TYPE is INTEGER .TYPE can be either INT, DECIMAL, or FLOAT.
-    7.3) MINIMUM(x, TYPE) : get the minimum over x. x is an array of variables of TYPE (ex - [12, 13, 14]) when TYPE is INTEGER .TYPE can be either INT, DECIMAL, or FLOAT.
+    7.3) MINIMUM(x, TYPE) : get the minimum over x. x is a single array of variables of TYPE (ex - [12, 13, 14]) when TYPE is INTEGER .TYPE can be either INT, DECIMAL, or FLOAT.
     7.4) SUMMATION(x, TYPE) : get the summation over x. x is a single array of variables of TYPE(ex - [12, 13, 14]) when TYPE is INTEGER .TYPE can be either INT, DECIMAL, or FLOAT.
     7.5) ABSOLUTE(x, TYPE) : get the absolute value of the given variable of TYPE, x .TYPE can be either INT, DECIMAL, or FLOAT.
 
@@ -165,7 +165,7 @@ Example Input json :
           "comment":"zip code"
         }
       },
-      academicDetails: {
+      "academicDetails": {
         "major":{
           "type":"string",
           "optional" : false, 
@@ -292,12 +292,12 @@ Example Mapping:
       "OPERATION": {
         "NAME": "ADDITION",
         "PARAMETER_1": "studentDetails.address.address1",
-        "PARAMETER_2": ", "
+        "PARAMETER_2": ", ",
         "PARAMETER_3": "studentDetails.address.address2",
         "PARAMETER_4": ", ",
         "PARAMETER_5": "studentDetails.address.country",
         "PARAMETER_6": ", ",
-        "PARAMETER_7": "studentDetails.address.zip",
+        "PARAMETER_7": "studentDetails.address.zip"
       }
     },
     "academicMajor": {
@@ -313,8 +313,10 @@ Example Mapping:
       }
     },
     "currentLevel": {
-      "OPERATION": "DIRECT",
-      "PARAMETER_1": "studentDetails.studentProgress.currentLevel"
+      "OPERATION": {
+        "NAME": "DIRECT",
+        "PARAMETER_1": "studentDetails.studentProgress.currentLevel"
+      }
     }
 }
 
