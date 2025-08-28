@@ -27,7 +27,7 @@ import {
     MACHINE_VIEW
 } from "@wso2/ballerina-core";
 import { BallerinaExtension } from "../../core";
-import { openView, switchProject } from "../../stateMachine";
+import { openView } from "../../stateMachine";
 import { prepareAndGenerateConfig } from "../config-generator/configGenerator";
 import { StateMachine } from "../../stateMachine";
 import { BiDiagramRpcManager } from "../../rpc-managers/bi-diagram/rpc-manager";
