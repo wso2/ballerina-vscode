@@ -58,7 +58,7 @@ public abstract class SearchCommand {
     private static final Gson GSON = new Gson();
     private static final int DEFAULT_LIMIT = 20;
     private static final int DEFAULT_OFFSET = 0;
-    private static final boolean DEFAULT_INCLUDE_CURRENT_ORG_IN_SEARCH = false;
+    private static final boolean DEFAULT_FILTER_BY_CURRENT_ORG = false;
 
     public static SearchCommand from(Kind kind, Project module, LineRange position, Map<String, String> queryMap,
                                      Document functionsDoc) {
@@ -87,20 +87,20 @@ public abstract class SearchCommand {
         this.dbManager = SearchDatabaseManager.getInstance();
         this.defaultViewHolder = DefaultViewHolder.getInstance();
 
-        boolean includeCurrentOrgInSearch;
+        boolean filterByCurrentOrg;
         if (queryMap == null) {
             this.query = "";
             this.limit = DEFAULT_LIMIT;
             this.offset = DEFAULT_OFFSET;
-            includeCurrentOrgInSearch = DEFAULT_INCLUDE_CURRENT_ORG_IN_SEARCH;
+            filterByCurrentOrg = DEFAULT_FILTER_BY_CURRENT_ORG;
         } else {
             this.query = queryMap.getOrDefault("q", "");
             this.limit = parseIntParam(queryMap.get("limit"), DEFAULT_LIMIT);
             this.offset = parseIntParam(queryMap.get("offset"), DEFAULT_OFFSET);
-            includeCurrentOrgInSearch = parseBooleanParam(queryMap.get("includeCurrentOrganizationInSearch"),
-                    DEFAULT_INCLUDE_CURRENT_ORG_IN_SEARCH);
+            filterByCurrentOrg = parseBooleanParam(queryMap.get("filterByCurrentOrg"),
+                    DEFAULT_FILTER_BY_CURRENT_ORG);
         }
-        this.currentOrg = includeCurrentOrgInSearch ? getOrganizationName().orElse(null) : null;
+        this.currentOrg = filterByCurrentOrg ? getOrganizationName().orElse(null) : null;
     }
 
     /**
