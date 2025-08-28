@@ -72,6 +72,11 @@ public abstract class SearchCommand {
             case VECTOR_STORE -> new VectorStoreSearchCommand(module, position, queryMap);
             case DATA_LOADER -> new DataLoaderSearchCommand(module, position, queryMap);
             case CHUNKER -> new ChunkerSearchCommand(module, position, queryMap);
+            case AGENT -> new AgentSearchCommand(module, position, queryMap);
+            case CLASS_INIT -> new ClassInitSearchCommand(module, position,
+                    queryMap); // This is a temporary implementation, to support ballerinax/ai usage
+            case MEMORY_MANAGER -> new MemoryManagerSearchCommand(module, position, queryMap);
+            case AGENT_TOOL -> new AgentToolSearchCommand(module, position, queryMap);
         };
     }
 
@@ -183,6 +188,10 @@ public abstract class SearchCommand {
         EMBEDDING_PROVIDER,
         VECTOR_STORE,
         DATA_LOADER,
-        CHUNKER
+        CHUNKER,
+        AGENT,
+        CLASS_INIT,
+        MEMORY_MANAGER,
+        AGENT_TOOL
     }
 }

@@ -26,6 +26,7 @@ import io.ballerina.compiler.syntax.tree.ParameterNode;
 import io.ballerina.compiler.syntax.tree.ReturnTypeDescriptorNode;
 import io.ballerina.compiler.syntax.tree.SeparatedNodeList;
 import io.ballerina.compiler.syntax.tree.Token;
+import io.ballerina.servicemodelgenerator.extension.builder.function.GraphqlFunctionBuilder;
 import io.ballerina.servicemodelgenerator.extension.model.Codedata;
 import io.ballerina.servicemodelgenerator.extension.model.Field;
 import io.ballerina.servicemodelgenerator.extension.model.Function;
@@ -34,6 +35,7 @@ import io.ballerina.servicemodelgenerator.extension.model.MetaData;
 import io.ballerina.servicemodelgenerator.extension.model.Parameter;
 import io.ballerina.servicemodelgenerator.extension.model.ServiceClass;
 import io.ballerina.servicemodelgenerator.extension.model.Value;
+import io.ballerina.servicemodelgenerator.extension.model.context.ModelFromSourceContext;
 import io.ballerina.tools.text.LineRange;
 
 import java.util.ArrayList;
@@ -46,9 +48,11 @@ import java.util.Optional;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.FUNCTION_NAME_METADATA;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.FUNCTION_RETURN_TYPE_METADATA;
 import static io.ballerina.servicemodelgenerator.extension.builder.function.GraphqlFunctionBuilder.getGraphqlParameterModel;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.GRAPHQL;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.GRAPHQL_CLASS_NAME_METADATA;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.SERCVICE_CLASS_NAME_METADATA;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.VALUE_TYPE_IDENTIFIER;
+import static io.ballerina.servicemodelgenerator.extension.util.Utils.updateAnnotationAttachmentProperty;
 
 /**
  * Util class for service class related operations.
@@ -118,11 +122,17 @@ public class ServiceClassUtil {
         classDef.members().forEach(member -> {
             if (member instanceof FunctionDefinitionNode functionDefinitionNode) {
                 FunctionKind functionKind = getFunctionKind(functionDefinitionNode);
-                if (context.equals(ServiceClassContext.GRAPHQL_DIAGRAM)
-                        && !functionKind.equals(FunctionKind.RESOURCE)) {
-                    return;
+                if (context.equals(ServiceClassContext.GRAPHQL_DIAGRAM)) {
+                    if (!functionKind.equals(FunctionKind.RESOURCE)) {
+                        return;
+                    }
+                    GraphqlFunctionBuilder gqlFunctionBuilder = new GraphqlFunctionBuilder();
+                    ModelFromSourceContext gqlContext = new ModelFromSourceContext(functionDefinitionNode,
+                            null, null, null, Constants.GRAPHQL, null, null, GRAPHQL);
+                    functions.add(gqlFunctionBuilder.getModelFromSource(gqlContext));
+                } else {
+                    functions.add(buildMemberFunction(functionDefinitionNode, functionKind, context));
                 }
-                functions.add(buildMemberFunction(functionDefinitionNode, functionKind, context));
             } else if (context == ServiceClassContext.TYPE_DIAGRAM
                     && member instanceof ObjectFieldNode objectFieldNode) {
                 fields.add(buildClassField(objectFieldNode));
@@ -135,7 +145,7 @@ public class ServiceClassUtil {
         Function functionModel = Function.getNewFunctionModel(context);
         updateMetadata(functionModel, kind);
         functionModel.setKind(kind.name());
-
+        updateAnnotationAttachmentProperty(functionDef, functionModel);
         if (kind == FunctionKind.INIT) {
             functionModel.getName().setMetadata(FUNCTION_NAME_METADATA);
             functionModel.getReturnType().setMetadata(FUNCTION_RETURN_TYPE_METADATA);

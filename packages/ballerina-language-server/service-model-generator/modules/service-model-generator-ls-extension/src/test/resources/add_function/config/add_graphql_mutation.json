@@ -49,6 +49,70 @@
     "parameters": [
       {
         "metadata": {
+          "label": "Context",
+          "description": "The GraphQL context object"
+        },
+        "kind": "REQUIRED",
+        "type": {
+          "placeholder": "string",
+          "valueType": "TYPE",
+          "valueTypeConstraint": "graphql:Context",
+          "value": "graphql:Context",
+          "enabled": true,
+          "editable": false,
+          "optional": false,
+          "advanced": false
+        },
+        "name": {
+          "placeholder": "context",
+          "valueType": "IDENTIFIER",
+          "valueTypeConstraint": "string",
+          "value": "context",
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "enabled": false,
+        "editable": true,
+        "optional": true,
+        "advanced": true,
+        "hidden": true
+      },
+      {
+        "metadata": {
+          "label": "Field",
+          "description": "The GraphQL field object"
+        },
+        "kind": "REQUIRED",
+        "type": {
+          "placeholder": "string",
+          "valueType": "TYPE",
+          "valueTypeConstraint": "graphql:Field",
+          "value": "graphql:Field",
+          "enabled": true,
+          "editable": false,
+          "optional": false,
+          "advanced": false
+        },
+        "name": {
+          "placeholder": "'field",
+          "valueType": "IDENTIFIER",
+          "valueTypeConstraint": "string",
+          "value": "'field",
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "enabled": false,
+        "editable": true,
+        "optional": true,
+        "advanced": true,
+        "hidden": true
+      },
+      {
+        "metadata": {
           "label": "id",
           "description": "id"
         },
@@ -184,7 +248,64 @@
       "isBasePath": false,
       "inDisplayAnnotation": false
     },
-    "annotations": {}
+    "properties": {
+      "paramContext": {
+        "metadata": {
+          "label": "Context",
+          "description": "The GraphQL context object"
+        },
+        "codedata": {
+          "type": "PARAMETER",
+          "originalName": "Context",
+          "orgName": "ballerina",
+          "moduleName": "graphql"
+        },
+        "placeholder": "{}",
+        "valueType": "FLAG",
+        "valueTypeConstraint": "graphql:Context",
+        "value": true,
+        "typeMembers": [
+          {
+            "type": "Context",
+            "packageInfo": "ballerina:graphql:1.16.0",
+            "kind": "OBJECT_TYPE",
+            "selected": false
+          }
+        ],
+        "enabled": true,
+        "editable": true,
+        "optional": true,
+        "advanced": true
+      },
+      "paramField": {
+        "metadata": {
+          "label": "Field",
+          "description": "The GraphQL field object"
+        },
+        "codedata": {
+          "type": "PARAMETER",
+          "originalName": "Field",
+          "orgName": "ballerina",
+          "moduleName": "graphql"
+        },
+        "placeholder": "{}",
+        "valueType": "FLAG",
+        "valueTypeConstraint": "graphql:Field",
+        "value": "",
+        "typeMembers": [
+          {
+            "type": "Field",
+            "packageInfo": "ballerina:graphql:1.16.0",
+            "kind": "OBJECT_TYPE",
+            "selected": false
+          }
+        ],
+        "enabled": true,
+        "editable": true,
+        "optional": true,
+        "advanced": true
+      }
+    }
   },
   "output": {
     "add_functions_for_graphql.bal": [

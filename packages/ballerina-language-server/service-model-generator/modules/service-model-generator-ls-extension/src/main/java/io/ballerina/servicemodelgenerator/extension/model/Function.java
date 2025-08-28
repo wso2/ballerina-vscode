@@ -35,6 +35,7 @@ import static io.ballerina.servicemodelgenerator.extension.util.Constants.FUNCTI
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.KIND_OBJECT_METHOD;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.RESOURCE_FUNCTION_RETURN_TYPE_METADATA;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.RESOURCE_NAME_METADATA;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.VALUE_TYPE_EXPRESSION;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceClassUtil.ServiceClassContext.GRAPHQL_DIAGRAM;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceClassUtil.ServiceClassContext.SERVICE_DIAGRAM;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceClassUtil.ServiceClassContext.TYPE_DIAGRAM;
@@ -58,12 +59,12 @@ public class Function {
     private boolean editable;
     private boolean canAddParameters;
     private Codedata codedata;
-    private Map<String, Value> annotations;
+    private Map<String, Value> properties;
 
     public Function(MetaData metadata, List<String> qualifiers, String kind, Value accessor, Value name,
                     List<Parameter> parameters, Map<String, Parameter> schema, FunctionReturnType returnType,
                     boolean enabled, boolean optional, boolean editable, boolean canAddParameters, Codedata codedata,
-                    Map<String, Value> annotations) {
+                    Map<String, Value> properties) {
         this.metadata = metadata;
         this.qualifiers = qualifiers;
         this.kind = kind;
@@ -76,8 +77,9 @@ public class Function {
         this.optional = optional;
         this.editable = editable;
         this.codedata = codedata;
-        this.annotations = annotations;
+        this.properties = properties;
     }
+
     public static Function getNewFunctionModel(ServiceClassUtil.ServiceClassContext context) {
         FunctionBuilder functionBuilder = new FunctionBuilder()
                 .metadata("", "")
@@ -91,17 +93,23 @@ public class Function {
                     .returnType(returnType(FIELD_TYPE_METADATA))
                     .schema(Map.of(Constants.PARAMETER, Parameter.graphqlParamSchema()));
         } else if (context == TYPE_DIAGRAM) {
-           functionBuilder
+            functionBuilder
                     .name(name(RESOURCE_NAME_METADATA))
                     .returnType(returnType(RESOURCE_FUNCTION_RETURN_TYPE_METADATA))
                     .schema(Map.of(Constants.PARAMETER, Parameter.functionParamSchema()));
+            Annotation annotation = new Annotation("ResourceConfig",
+                    "Resource Configuration",
+                    "Configuration related to the resource function.", "ResourceConfig", null, null, null);
+            Value annot = createAnnotation(annotation);
+            annot.setEnabled(false);
+            functionBuilder.setProperties(Map.of("annot" + annotation.annotationName(), annot));
         } else {
             functionBuilder
                     .name(name(FUNCTION_NAME_METADATA))
                     .returnType(returnType(FUNCTION_RETURN_TYPE_METADATA));
         }
         if (context == SERVICE_DIAGRAM) {
-           functionBuilder.schema(Map.of(Constants.PARAMETER, Parameter.functionParamSchema()));
+            functionBuilder.schema(Map.of(Constants.PARAMETER, Parameter.functionParamSchema()));
         }
         return functionBuilder.build();
     }
@@ -138,32 +146,35 @@ public class Function {
     public static Map<String, Value> createAnnotationsMap(List<Annotation> annotations) {
         Map<String, Value> annotationMap = new HashMap<>();
         for (Annotation annotation : annotations) {
-            Codedata codedata = new Codedata.Builder()
-                    .setType("ANNOTATION_ATTACHMENT")
-                    .setOriginalName(annotation.annotationName())
-                    .setOrgName(annotation.orgName())
-                    .setModuleName(annotation.moduleName())
-                    .build();
-            String[] parts = annotation.typeConstrain().split(":");
-            String type = parts.length > 1 ? parts[1] : parts[0];
-            Value value = new Value.ValueBuilder()
-                    .setMetadata(new MetaData(annotation.displayName(), annotation.description()))
-                    .setCodedata(codedata)
-                    .valueType("EXPRESSION")
-                    .setPlaceholder("{}")
-                    .setValueTypeConstraint(annotation.typeConstrain())
-                    .enabled(true)
-                    .editable(true)
-                    .optional(true)
-                    .setAdvanced(true)
-                    .setMembers(List.of(new PropertyTypeMemberInfo(type,
-                            annotation.packageIdentifier(), "RECORD_TYPE", false)))
-                    .build();
-
+            Value value = createAnnotation(annotation);
             String annotKey = "annot" + annotation.annotationName();
             annotationMap.put(annotKey, value);
         }
         return annotationMap;
+    }
+
+    public static Value createAnnotation(Annotation annotation) {
+        Codedata codedata = new Codedata.Builder()
+                .setType("ANNOTATION_ATTACHMENT")
+                .setOriginalName(annotation.annotationName())
+                .setOrgName(annotation.orgName())
+                .setModuleName(annotation.moduleName())
+                .build();
+        String[] parts = annotation.typeConstrain().split(":");
+        String type = parts.length > 1 ? parts[1] : parts[0];
+        return new Value.ValueBuilder()
+                .setMetadata(new MetaData(annotation.displayName(), annotation.description()))
+                .setCodedata(codedata)
+                .valueType(VALUE_TYPE_EXPRESSION)
+                .setPlaceholder("{}")
+                .setValueTypeConstraint(annotation.typeConstrain())
+                .enabled(true)
+                .editable(true)
+                .optional(true)
+                .setAdvanced(true)
+                .setMembers(List.of(new PropertyTypeMemberInfo(type,
+                        annotation.packageIdentifier(), "RECORD_TYPE", false)))
+                .build();
     }
 
     public MetaData getMetadata() {
@@ -270,15 +281,29 @@ public class Function {
         this.schema = schema;
     }
 
-    public Map<String, Value> getAnnotations() {
-        if (annotations == null) {
-            annotations = new HashMap<>();
+    public Map<String, Value> getProperties() {
+        if (properties == null) {
+            properties = new HashMap<>();
         }
-        return annotations;
+        return properties;
     }
 
-    public void setAnnotations(Map<String, Value> annotations) {
-        this.annotations = annotations;
+    public void setProperties(Map<String, Value> properties) {
+        this.properties = properties;
+    }
+
+    public void addProperty(String key, Value property) {
+        if (this.properties == null) {
+            this.properties = new HashMap<>();
+        }
+        this.properties.put(key, property);
+    }
+
+    public Value getProperty(String key) {
+        if (this.properties == null) {
+            return null;
+        }
+        return this.properties.get(key);
     }
 
     public boolean isCanAddParameters() {
@@ -303,7 +328,7 @@ public class Function {
         private boolean optional = false;
         private boolean editable = false;
         private boolean canAddParameters = false;
-        private Map<String, Value> annotations;
+        private Map<String, Value> properties;
 
         public FunctionBuilder metadata(String label, String description) {
             this.metadata = new MetaData(label, description);
@@ -375,14 +400,14 @@ public class Function {
             return this;
         }
 
-        public FunctionBuilder setAnnotations(Map<String, Value> annotations) {
-            this.annotations = annotations;
+        public FunctionBuilder setProperties(Map<String, Value> properties) {
+            this.properties = properties;
             return this;
         }
 
         public Function build() {
             return new Function(metadata, qualifiers, kind, accessor, name, parameters, schema, returnType, enabled,
-                    optional, editable, canAddParameters, codedata, annotations);
+                    optional, editable, canAddParameters, codedata, properties);
         }
     }
 }

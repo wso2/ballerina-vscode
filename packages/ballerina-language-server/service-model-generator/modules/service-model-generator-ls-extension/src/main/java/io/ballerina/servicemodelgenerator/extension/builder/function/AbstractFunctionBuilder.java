@@ -120,44 +120,7 @@ public abstract class AbstractFunctionBuilder implements NodeBuilder<Function> {
      */
     @Override
     public Map<String, List<TextEdit>> addModel(AddModelContext context) throws Exception {
-        List<TextEdit> edits = new ArrayList<>();
-        LineRange functionLineRange;
-        NodeList<Node> members;
-        if (context.node() instanceof ServiceDeclarationNode serviceDeclarationNode) {
-            functionLineRange = serviceDeclarationNode.openBraceToken().lineRange();
-            members = serviceDeclarationNode.members();
-        } else {
-            ClassDefinitionNode classDefinitionNode = (ClassDefinitionNode) context.node();
-            functionLineRange = classDefinitionNode.openBrace().lineRange();
-            members = classDefinitionNode.members();
-        }
-
-        if (!members.isEmpty()) {
-            functionLineRange = members.get(members.size() - 1).lineRange();
-        }
-        Map<String, String> imports = new HashMap<>();
-        String functionNode = NEW_LINE_WITH_TAB + generateFunctionDefSource(context.function(), List.of(),
-                Utils.FunctionAddContext.FUNCTION_ADD, FUNCTION_ADD, imports)
-                .replace(NEW_LINE, NEW_LINE_WITH_TAB);
-
-        List<String> importStmts = new ArrayList<>();
-        ModulePartNode rootNode = context.document().syntaxTree().rootNode();
-        imports.values().forEach(moduleId -> {
-            String[] importParts = moduleId.split("/");
-            String orgName = importParts[0];
-            String moduleName = importParts[1].split(":")[0];
-            if (!importExists(rootNode, orgName, moduleName)) {
-                importStmts.add(getImportStmt(orgName, moduleName));
-            }
-        });
-
-        if (!importStmts.isEmpty()) {
-            String importsStmts = String.join(NEW_LINE, importStmts);
-            edits.add(new TextEdit(Utils.toRange(rootNode.lineRange().startLine()), importsStmts));
-        }
-
-        edits.add(new TextEdit(Utils.toRange(functionLineRange.endLine()), functionNode));
-        return Map.of(context.filePath(), edits);
+        return buildModel(context);
     }
 
     /**
@@ -168,64 +131,7 @@ public abstract class AbstractFunctionBuilder implements NodeBuilder<Function> {
      */
     @Override
     public Map<String, List<TextEdit>> updateModel(UpdateModelContext context) {
-        List<TextEdit> edits = new ArrayList<>();
-        Utils.addFunctionAnnotationTextEdits(context.function(), context.functionNode(), edits);
-
-        String functionName = context.functionNode().functionName().text().trim();
-        LineRange nameRange = context.functionNode().functionName().lineRange();
-        String functionKind = context.function().getKind();
-        boolean isRemote = functionKind.equals(KIND_REMOTE) || functionKind.equals(KIND_MUTATION);
-        String newFunctionName = context.function().getName().getValue();
-        if (isRemote && !functionName.equals(newFunctionName)) {
-            edits.add(new TextEdit(Utils.toRange(nameRange), newFunctionName));
-        }
-
-        if (!isRemote) {
-            if (!functionName.equals(context.function().getAccessor().getValue())) {
-                edits.add(new TextEdit(Utils.toRange(nameRange), context.function().getAccessor().getValue()));
-            }
-
-            NodeList<Node> path = context.functionNode().relativeResourcePath();
-            if (Objects.nonNull(path) && !newFunctionName.equals(getPath(path))) {
-                LinePosition startPos = path.get(0).lineRange().startLine();
-                LinePosition endPos = path.get(path.size() - 1).lineRange().endLine();
-                LineRange lineRange = context.function().getCodedata().getLineRange();
-                LineRange pathLineRange = LineRange.from(lineRange.fileName(), startPos, endPos);
-                TextEdit pathEdit = new TextEdit(Utils.toRange(pathLineRange), newFunctionName);
-                edits.add(pathEdit);
-            }
-        }
-
-        Map<String, String> imports = new HashMap<>();
-        LineRange signatureRange = context.functionNode().functionSignature().lineRange();
-        List<String> newStatusCodeTypesDef = new ArrayList<>();
-        String functionSignature = generateFunctionSignatureSource(context.function(), newStatusCodeTypesDef,
-                FUNCTION_UPDATE, imports);
-        List<String> importStmts = new ArrayList<>();
-        ModulePartNode rootNode = context.document().syntaxTree().rootNode();
-        imports.values().forEach(moduleId -> {
-            String[] importParts = moduleId.split("/");
-            String orgName = importParts[0];
-            String moduleName = importParts[1].split(":")[0];
-            if (!importExists(rootNode, orgName, moduleName)) {
-                importStmts.add(getImportStmt(orgName, moduleName));
-            }
-        });
-
-        if (!importStmts.isEmpty()) {
-            String importsStmts = String.join(NEW_LINE, importStmts);
-            edits.addFirst(new TextEdit(Utils.toRange(rootNode.lineRange().startLine()), importsStmts));
-        }
-
-        edits.add(new TextEdit(Utils.toRange(signatureRange), functionSignature));
-
-        if (!newStatusCodeTypesDef.isEmpty() &&
-                context.functionNode().parent() instanceof ServiceDeclarationNode serviceNode) {
-            String statusCodeResEdits = String.join(TWO_NEW_LINES, newStatusCodeTypesDef);
-            edits.add(new TextEdit(Utils.toRange(serviceNode.closeBraceToken().lineRange().endLine()),
-                    NEW_LINE + statusCodeResEdits));
-        }
-        return Map.of(context.filePath(), edits);
+        return buildUpdateModel(context);
     }
 
     /**
@@ -301,6 +207,108 @@ public abstract class AbstractFunctionBuilder implements NodeBuilder<Function> {
             return Optional.of(parameterModel);
         }
         return Optional.empty();
+    }
+
+    public static Map<String, List<TextEdit>> buildModel(AddModelContext context) throws Exception {
+        List<TextEdit> edits = new ArrayList<>();
+        LineRange functionLineRange;
+        NodeList<Node> members;
+        if (context.node() instanceof ServiceDeclarationNode serviceDeclarationNode) {
+            functionLineRange = serviceDeclarationNode.openBraceToken().lineRange();
+            members = serviceDeclarationNode.members();
+        } else {
+            ClassDefinitionNode classDefinitionNode = (ClassDefinitionNode) context.node();
+            functionLineRange = classDefinitionNode.openBrace().lineRange();
+            members = classDefinitionNode.members();
+        }
+
+        if (!members.isEmpty()) {
+            functionLineRange = members.get(members.size() - 1).lineRange();
+        }
+        Map<String, String> imports = new HashMap<>();
+        String functionNode = NEW_LINE_WITH_TAB + generateFunctionDefSource(context.function(), List.of(),
+                Utils.FunctionAddContext.FUNCTION_ADD, FUNCTION_ADD, imports)
+                .replace(NEW_LINE, NEW_LINE_WITH_TAB);
+
+        List<String> importStmts = new ArrayList<>();
+        ModulePartNode rootNode = context.document().syntaxTree().rootNode();
+        imports.values().forEach(moduleId -> {
+            String[] importParts = moduleId.split("/");
+            String orgName = importParts[0];
+            String moduleName = importParts[1].split(":")[0];
+            if (!importExists(rootNode, orgName, moduleName)) {
+                importStmts.add(getImportStmt(orgName, moduleName));
+            }
+        });
+
+        if (!importStmts.isEmpty()) {
+            String importsStmts = String.join(NEW_LINE, importStmts);
+            edits.add(new TextEdit(Utils.toRange(rootNode.lineRange().startLine()), importsStmts));
+        }
+
+        edits.add(new TextEdit(Utils.toRange(functionLineRange.endLine()), functionNode));
+        return Map.of(context.filePath(), edits);
+    }
+
+    public static Map<String, List<TextEdit>> buildUpdateModel(UpdateModelContext context) {
+        List<TextEdit> edits = new ArrayList<>();
+        Map<String, String> imports = new HashMap<>();
+        Utils.addFunctionAnnotationTextEdits(context.function(), context.functionNode(), edits, imports);
+
+        String functionName = context.functionNode().functionName().text().trim();
+        LineRange nameRange = context.functionNode().functionName().lineRange();
+        String functionKind = context.function().getKind();
+        boolean isRemote = functionKind.equals(KIND_REMOTE) || functionKind.equals(KIND_MUTATION);
+        String newFunctionName = context.function().getName().getValue();
+        if (isRemote && !functionName.equals(newFunctionName)) {
+            edits.add(new TextEdit(Utils.toRange(nameRange), newFunctionName));
+        }
+
+        if (!isRemote) {
+            if (!functionName.equals(context.function().getAccessor().getValue())) {
+                edits.add(new TextEdit(Utils.toRange(nameRange), context.function().getAccessor().getValue()));
+            }
+
+            NodeList<Node> path = context.functionNode().relativeResourcePath();
+            if (Objects.nonNull(path) && !newFunctionName.equals(getPath(path))) {
+                LinePosition startPos = path.get(0).lineRange().startLine();
+                LinePosition endPos = path.get(path.size() - 1).lineRange().endLine();
+                LineRange lineRange = context.function().getCodedata().getLineRange();
+                LineRange pathLineRange = LineRange.from(lineRange.fileName(), startPos, endPos);
+                TextEdit pathEdit = new TextEdit(Utils.toRange(pathLineRange), newFunctionName);
+                edits.add(pathEdit);
+            }
+        }
+
+        LineRange signatureRange = context.functionNode().functionSignature().lineRange();
+        List<String> newStatusCodeTypesDef = new ArrayList<>();
+        String functionSignature = generateFunctionSignatureSource(context.function(), newStatusCodeTypesDef,
+                FUNCTION_UPDATE, imports);
+        List<String> importStmts = new ArrayList<>();
+        ModulePartNode rootNode = context.document().syntaxTree().rootNode();
+        imports.values().forEach(moduleId -> {
+            String[] importParts = moduleId.split("/");
+            String orgName = importParts[0];
+            String moduleName = importParts[1].split(":")[0];
+            if (!importExists(rootNode, orgName, moduleName)) {
+                importStmts.add(getImportStmt(orgName, moduleName));
+            }
+        });
+
+        if (!importStmts.isEmpty()) {
+            String importsStmts = String.join(NEW_LINE, importStmts);
+            edits.addFirst(new TextEdit(Utils.toRange(rootNode.lineRange().startLine()), importsStmts));
+        }
+
+        edits.add(new TextEdit(Utils.toRange(signatureRange), functionSignature));
+
+        if (!newStatusCodeTypesDef.isEmpty() &&
+                context.functionNode().parent() instanceof ServiceDeclarationNode serviceNode) {
+            String statusCodeResEdits = String.join(TWO_NEW_LINES, newStatusCodeTypesDef);
+            edits.add(new TextEdit(Utils.toRange(serviceNode.closeBraceToken().lineRange().endLine()),
+                    NEW_LINE + statusCodeResEdits));
+        }
+        return Map.of(context.filePath(), edits);
     }
 
     private static Parameter createParameter(String paramName, String paramKind, String typeName) {

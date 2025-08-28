@@ -234,7 +234,8 @@
               "enabled": false,
               "editable": true,
               "optional": true,
-              "advanced": true
+              "advanced": true,
+              "hidden": false
             },
             {
               "metadata": {
@@ -265,7 +266,8 @@
               "enabled": false,
               "editable": true,
               "optional": true,
-              "advanced": true
+              "advanced": true,
+              "hidden": false
             },
             {
               "metadata": {
@@ -296,7 +298,8 @@
               "enabled": false,
               "editable": true,
               "optional": true,
-              "advanced": true
+              "advanced": true,
+              "hidden": false
             }
           ],
           "schema": {
@@ -330,7 +333,8 @@
               "editable": true,
               "optional": false,
               "advanced": false,
-              "httpParamType": "PAYLOAD"
+              "httpParamType": "PAYLOAD",
+              "hidden": false
             },
             "query": {
               "metadata": {
@@ -362,7 +366,8 @@
               "editable": true,
               "optional": false,
               "advanced": false,
-              "httpParamType": "QUERY"
+              "httpParamType": "QUERY",
+              "hidden": false
             },
             "header": {
               "metadata": {
@@ -394,7 +399,8 @@
               "editable": true,
               "optional": false,
               "advanced": false,
-              "httpParamType": "Header"
+              "httpParamType": "Header",
+              "hidden": false
             }
           },
           "returnType": {

@@ -115,7 +115,8 @@
       "inListenerInit": false,
       "isBasePath": false,
       "inDisplayAnnotation": false
-    }
+    },
+    "properties": {}
   },
   "output": {
     "update_service_class_resource.bal": [

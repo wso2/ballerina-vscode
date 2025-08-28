@@ -144,7 +144,8 @@
             "enabled": true,
             "editable": true,
             "optional": false,
-            "advanced": false
+            "advanced": false,
+            "hidden": false
           }
         ],
         "schema": {
@@ -185,7 +186,8 @@
             "enabled": true,
             "editable": true,
             "optional": false,
-            "advanced": false
+            "advanced": false,
+            "hidden": false
           }
         },
         "returnType": {
@@ -216,6 +218,32 @@
               "line": 12,
               "offset": 5
             }
+          }
+        },
+        "properties": {
+          "annotResourceConfig": {
+            "metadata": {
+              "label": "Resource Configuration",
+              "description": "Configuration related to the resource function."
+            },
+            "codedata": {
+              "type": "ANNOTATION_ATTACHMENT",
+              "originalName": "ResourceConfig"
+            },
+            "placeholder": "{}",
+            "valueType": "EXPRESSION",
+            "valueTypeConstraint": "ResourceConfig",
+            "typeMembers": [
+              {
+                "type": "ResourceConfig",
+                "kind": "RECORD_TYPE",
+                "selected": false
+              }
+            ],
+            "enabled": false,
+            "editable": true,
+            "optional": true,
+            "advanced": true
           }
         }
       },
@@ -301,7 +329,8 @@
             "enabled": true,
             "editable": true,
             "optional": false,
-            "advanced": false
+            "advanced": false,
+            "hidden": false
           }
         },
         "returnType": {
@@ -332,6 +361,32 @@
               "line": 28,
               "offset": 5
             }
+          }
+        },
+        "properties": {
+          "annotResourceConfig": {
+            "metadata": {
+              "label": "Resource Configuration",
+              "description": "Configuration related to the resource function."
+            },
+            "codedata": {
+              "type": "ANNOTATION_ATTACHMENT",
+              "originalName": "ResourceConfig"
+            },
+            "placeholder": "{}",
+            "valueType": "EXPRESSION",
+            "valueTypeConstraint": "ResourceConfig",
+            "typeMembers": [
+              {
+                "type": "ResourceConfig",
+                "kind": "RECORD_TYPE",
+                "selected": false
+              }
+            ],
+            "enabled": false,
+            "editable": true,
+            "optional": true,
+            "advanced": true
           }
         }
       },
@@ -422,7 +477,8 @@
             "enabled": true,
             "editable": true,
             "optional": false,
-            "advanced": false
+            "advanced": false,
+            "hidden": false
           }
         ],
         "schema": {
@@ -463,7 +519,8 @@
             "enabled": true,
             "editable": true,
             "optional": false,
-            "advanced": false
+            "advanced": false,
+            "hidden": false
           }
         },
         "returnType": {
@@ -493,6 +550,32 @@
               "line": 36,
               "offset": 5
             }
+          }
+        },
+        "properties": {
+          "annotResourceConfig": {
+            "metadata": {
+              "label": "Resource Configuration",
+              "description": "Configuration related to the resource function."
+            },
+            "codedata": {
+              "type": "ANNOTATION_ATTACHMENT",
+              "originalName": "ResourceConfig"
+            },
+            "placeholder": "{}",
+            "valueType": "EXPRESSION",
+            "valueTypeConstraint": "ResourceConfig",
+            "typeMembers": [
+              {
+                "type": "ResourceConfig",
+                "kind": "RECORD_TYPE",
+                "selected": false
+              }
+            ],
+            "enabled": false,
+            "editable": true,
+            "optional": true,
+            "advanced": true
           }
         }
       }
@@ -565,7 +648,8 @@
         "enabled": true,
         "editable": false,
         "optional": false,
-        "advanced": false
+        "advanced": false,
+        "hidden": false
       },
       {
         "isPrivate": true,
@@ -634,7 +718,8 @@
         "enabled": true,
         "editable": false,
         "optional": false,
-        "advanced": false
+        "advanced": false,
+        "hidden": false
       },
       {
         "isPrivate": true,
@@ -704,7 +789,8 @@
         "enabled": true,
         "editable": false,
         "optional": false,
-        "advanced": false
+        "advanced": false,
+        "hidden": false
       }
     ]
   }
