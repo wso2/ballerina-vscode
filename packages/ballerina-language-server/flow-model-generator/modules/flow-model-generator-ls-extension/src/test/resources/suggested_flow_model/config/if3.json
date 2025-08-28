@@ -98,6 +98,7 @@
                   "description": "Boolean Condition"
                 },
                 "valueType": "EXPRESSION",
+                "valueTypeConstraint": "boolean",
                 "value": "flag ",
                 "placeholder": "true",
                 "optional": false,

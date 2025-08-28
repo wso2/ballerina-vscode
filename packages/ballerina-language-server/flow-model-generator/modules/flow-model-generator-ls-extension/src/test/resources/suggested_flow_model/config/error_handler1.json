@@ -146,6 +146,7 @@
                           "description": "Boolean Condition"
                         },
                         "valueType": "EXPRESSION",
+                        "valueTypeConstraint": "boolean",
                         "value": "name is string ",
                         "placeholder": "true",
                         "optional": false,

@@ -176,6 +176,7 @@
                   "description": "Boolean Condition"
                 },
                 "valueType": "EXPRESSION",
+                "valueTypeConstraint": "boolean",
                 "value": "(i > 10) ",
                 "placeholder": "true",
                 "optional": false,
