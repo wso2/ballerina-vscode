@@ -324,11 +324,11 @@ function CardList(props: CardListProps) {
           });
 
     const hasContent = filteredCategories.some((category) => category?.items && category.items.length > 0);
-
+    const shouldShowHeaderActions = (onBack && title) || onClose;
     return (
         <S.Container>
             <S.HeaderContainer>
-                {((onBack && title) || onClose) && (
+                {shouldShowHeaderActions && (
                     <S.Row>
                         {onBack && title && (
                             <S.LeftAlignRow>
