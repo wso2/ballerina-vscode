@@ -61,6 +61,8 @@ class RestClient {
     private static final String CONNECTOR = "connector";
     private final Gson gson;
     private final CentralAPIClient centralClient;
+    private final String accessToken;
+
 
     private static final String supportedPlatform = Arrays.stream(JvmTarget.values())
             .map(JvmTarget::code)
@@ -68,13 +70,12 @@ class RestClient {
 
     public RestClient() {
         gson = new Gson();
-
-        Settings settings;
-        settings = RepoUtils.readSettings();
+        Settings settings = RepoUtils.readSettings();
         Central central = settings.getCentral();
         Proxy proxy = settings.getProxy();
+        this.accessToken = getAccessTokenOfCLI(settings);
         centralClient = new CentralAPIClient(RepoUtils.getRemoteRepoURL(), initializeProxy(proxy), proxy.username(),
-                proxy.password(), getAccessTokenOfCLI(settings), central.getConnectTimeout(), central.getReadTimeout(),
+                proxy.password(), accessToken, central.getConnectTimeout(), central.getReadTimeout(),
                 central.getWriteTimeout(), central.getCallTimeout(), central.getMaxRetries());
     }
 
@@ -136,6 +137,10 @@ class RestClient {
         }
     }
 
+    public boolean hasAuthorizedAccess() {
+        return this.accessToken != null && !this.accessToken.isEmpty();
+    }
+
     private String getQueryMapString(Map<String, String> queryMap) {
         StringBuilder queryParams = new StringBuilder();
         for (Map.Entry<String, String> entry : queryMap.entrySet()) {
@@ -155,6 +160,11 @@ class RestClient {
             URL url = new URL(api);
             conn = (HttpURLConnection) url.openConnection();
             conn.setRequestMethod("GET");
+
+            // Add Authorization header if accessToken is present
+            if (this.accessToken != null && !this.accessToken.isEmpty()) {
+                conn.setRequestProperty("Authorization", "Bearer " + this.accessToken);
+            }
 
             int responseCode = conn.getResponseCode();
             if (responseCode == HttpURLConnection.HTTP_OK) { // success
