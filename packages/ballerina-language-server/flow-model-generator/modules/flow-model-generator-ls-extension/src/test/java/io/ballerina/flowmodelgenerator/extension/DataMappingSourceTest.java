@@ -99,6 +99,7 @@ public class DataMappingSourceTest extends AbstractLSTest {
                 {Path.of("function_defn1.json")},
                 {Path.of("function_defn2.json")},
                 {Path.of("function_defn3.json")},
+                {Path.of("query4.json")},
         };
     }
 

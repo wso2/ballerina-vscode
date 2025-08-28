@@ -1399,6 +1399,8 @@ public class DataMapManager {
             ClauseNode clauseNode = queryExpr.resultClause();
             if (clauseNode.kind() == SyntaxKind.SELECT_CLAUSE) {
                 return ((SelectClauseNode) clauseNode).expression();
+            } else {
+                return ((CollectClauseNode) clauseNode).expression();
             }
         }
         return mappingExpr;
