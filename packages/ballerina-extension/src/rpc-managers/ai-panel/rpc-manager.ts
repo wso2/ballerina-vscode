@@ -362,7 +362,7 @@ export class AiPanelRpcManager implements AIPanelAPI {
             });
 
             const { source } = res as SyntaxTree;
-            modifyFileContent({ filePath, content: source });
+            await modifyFileContent({ filePath, content: source });
             updateView();
         }
 
