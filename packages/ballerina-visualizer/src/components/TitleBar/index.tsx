@@ -21,6 +21,7 @@ import styled from "@emotion/styled";
 import { Icon } from "@wso2/ui-toolkit";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { BetaSVG } from "../../views/Connectors/Marketplace/BetaSVG";
+import { UndoRedoGroup } from "../UndoRedoGroup";
 
 const TitleBarContainer = styled.div`
     display: flex;
@@ -138,7 +139,10 @@ export function TitleBar(props: TitleBarProps) {
                     </BetaSVGWrapper>
                 )}
             </LeftContainer>
-            <RightContainer>{actions && <ActionsContainer>{actions}</ActionsContainer>}</RightContainer>
+            <RightContainer>
+                <UndoRedoGroup />
+                {actions && <ActionsContainer>{actions}</ActionsContainer>}
+            </RightContainer>
         </TitleBarContainer>
     );
 }

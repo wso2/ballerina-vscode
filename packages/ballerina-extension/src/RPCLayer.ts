@@ -107,9 +107,8 @@ export class RPCLayer {
             // Get the notification handler instance
             const notificationHandler = ArtifactNotificationHandler.getInstance();
             // Subscribe to notifications
-            const artifactUpdateUnsubscribe = notificationHandler.subscribe(ArtifactsUpdated.method, artifactData, (payload) => {
+            notificationHandler.subscribe(ArtifactsUpdated.method, artifactData, (payload) => {
                 RPCLayer._messenger.sendNotification(onArtifactUpdatedNotification, { type: 'webview', webviewType: VisualizerWebview.viewType }, payload.data);
-                artifactUpdateUnsubscribe();
             });
         });
     }
