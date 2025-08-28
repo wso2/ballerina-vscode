@@ -496,10 +496,10 @@
               }
             ],
             "properties": {
-              "condition": {
+              "matchTarget": {
                 "metadata": {
-                  "label": "Condition",
-                  "description": "Boolean Condition"
+                  "label": "Target",
+                  "description": "Match target expression"
                 },
                 "valueType": "EXPRESSION",
                 "value": "p % 4 ",
@@ -513,10 +513,10 @@
       }
     ],
     "properties": {
-      "condition": {
+      "matchTarget": {
         "metadata": {
-          "label": "Condition",
-          "description": "Boolean Condition"
+          "label": "Target",
+          "description": "Match target expression"
         },
         "valueType": "EXPRESSION",
         "value": "price ",
