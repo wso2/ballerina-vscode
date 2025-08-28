@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.ANNOT_PREFIX;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.FIELD_NAME_METADATA;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.FIELD_TYPE_METADATA;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.FUNCTION_NAME_METADATA;
@@ -102,7 +103,7 @@ public class Function {
                     "Configuration related to the resource function.", "ResourceConfig", null, null, null);
             Value annot = createAnnotation(annotation);
             annot.setEnabled(false);
-            functionBuilder.setProperties(Map.of("annot" + annotation.annotationName(), annot));
+            functionBuilder.setProperties(Map.of(ANNOT_PREFIX + annotation.annotationName(), annot));
         } else {
             functionBuilder
                     .name(name(FUNCTION_NAME_METADATA))
@@ -147,7 +148,7 @@ public class Function {
         Map<String, Value> annotationMap = new HashMap<>();
         for (Annotation annotation : annotations) {
             Value value = createAnnotation(annotation);
-            String annotKey = "annot" + annotation.annotationName();
+            String annotKey = ANNOT_PREFIX + annotation.annotationName();
             annotationMap.put(annotKey, value);
         }
         return annotationMap;
