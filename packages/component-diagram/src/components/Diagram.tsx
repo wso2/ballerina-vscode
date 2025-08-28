@@ -147,7 +147,7 @@ export function Diagram(props: DiagramProps) {
             }
 
             const isNodeExpanded = expandedNodes.has(service.uuid);
-            
+
             let visibleFunctions, hiddenFunctions;
             if (serviceFunctions.length <= 3 || isNodeExpanded) {
                 // Show all functions if ≤3 total or if expanded
