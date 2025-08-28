@@ -465,7 +465,14 @@ export function PanelManager(props: PanelManagerProps) {
                 );
 
             case SidePanelView.CONNECTION_CONFIG:
-                return <ConnectionConfig connectionKind={selectedConnectionKind} selectedNode={selectedNode} onSave={onUpdateNodeWithConnection} onCreateNew={() => setSidePanelView(SidePanelView.CONNECTION_SELECT)} />;
+                return (
+                    <ConnectionConfig
+                        connectionKind={selectedConnectionKind}
+                        selectedNode={selectedNode}
+                        onSave={onUpdateNodeWithConnection}
+                        onCreateNew={() => setSidePanelView(SidePanelView.CONNECTION_SELECT)}
+                    />
+                );
 
             case SidePanelView.CONNECTION_SELECT:
                 return <ConnectionSelectionList connectionKind={selectedConnectionKind} onSelect={onSelectNewConnection} />;
