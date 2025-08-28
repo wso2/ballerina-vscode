@@ -1,0 +1,46 @@
+{
+  "source": "query3.bal",
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "query3.bal",
+      "startLine": {
+        "line": 11,
+        "offset": 4
+      },
+      "endLine": {
+        "line": 11,
+        "offset": 56
+      }
+    },
+    "sourceCode": ""
+  },
+  "propertyKey": "expression",
+  "position": {
+    "line": 11,
+    "offset": 4
+  },
+  "mapping": {
+    "output": "myTypes2.i",
+    "expression": "abc"
+  },
+  "targetField": "myTypes2.0",
+  "output": {
+    "query3.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 11,
+            "character": 58
+          },
+          "end": {
+            "line": 11,
+            "character": 61
+          }
+        },
+        "newText": "abc"
+      }
+    ]
+  }
+}

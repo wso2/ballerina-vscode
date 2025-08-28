@@ -149,6 +149,7 @@ public class DataMapManager {
     public static final String DECIMAL = "decimal";
     public static final String BOOLEAN = "boolean";
     public static final String STRING = "string";
+    public static final String ZERO = "0";
     private final Document document;
     private final Gson gson = new Gson();
 
@@ -499,15 +500,6 @@ public class DataMapManager {
                         return null;
                     }
                     expr = (ExpressionNode) expressions.get(index);
-                } else if (expr.kind() == SyntaxKind.QUERY_EXPRESSION) {
-                    ClauseNode clauseNode = ((QueryExpressionNode) expr).resultClause();
-                    if (clauseNode.kind() == SyntaxKind.SELECT_CLAUSE) {
-                        expr = ((SelectClauseNode) clauseNode).expression();
-                    } else {
-                        expr = ((CollectClauseNode) clauseNode).expression();
-                    }
-                } else {
-                    return null;
                 }
             } else {
                 if (expr.kind() != SyntaxKind.MAPPING_CONSTRUCTOR) {
@@ -1267,6 +1259,7 @@ public class DataMapManager {
         if (targetField == null) {
             return expr;
         }
+
         String[] splits = targetField.split(DOT);
         ExpressionNode mappingExpr = expr;
         for (int i = 1; i < splits.length; i++) {
@@ -1285,6 +1278,10 @@ public class DataMapManager {
                     mappingExpr = (ExpressionNode) listCtrExprNode.expressions().get(index);
                 }
             } else if (mappingExpr.kind() == SyntaxKind.QUERY_EXPRESSION) {
+                String name = splits[i];
+                if (name.equals(ZERO)) {
+                    continue;
+                }
                 QueryExpressionNode queryExpr = (QueryExpressionNode) mappingExpr;
                 ClauseNode clauseNode = queryExpr.resultClause();
                 if (clauseNode.kind() == SyntaxKind.SELECT_CLAUSE) {
@@ -1293,7 +1290,7 @@ public class DataMapManager {
                         MappingConstructorExpressionNode mappingCtrExprNode =
                                 (MappingConstructorExpressionNode) mappingExpr;
                         Map<String, SpecificFieldNode> fields = convertMappingFieldsToMap(mappingCtrExprNode);
-                        mappingExpr = fields.get(splits[i]).valueExpr().orElseThrow();
+                        mappingExpr = fields.get(name).valueExpr().orElseThrow();
                     }
                 }
             }

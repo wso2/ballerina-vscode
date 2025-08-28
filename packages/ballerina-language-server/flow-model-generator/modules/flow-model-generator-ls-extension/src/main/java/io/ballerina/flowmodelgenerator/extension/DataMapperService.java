@@ -44,7 +44,6 @@ import io.ballerina.flowmodelgenerator.extension.response.DataMapperTypesRespons
 import io.ballerina.flowmodelgenerator.extension.response.DataMapperVisualizeResponse;
 import io.ballerina.flowmodelgenerator.extension.response.DataMappingDeleteResponse;
 import io.ballerina.projects.Document;
-import io.ballerina.projects.Project;
 import org.ballerinalang.annotation.JavaSPIService;
 import org.ballerinalang.langserver.commons.LanguageServerContext;
 import org.ballerinalang.langserver.commons.service.spi.ExtendedLanguageServerService;

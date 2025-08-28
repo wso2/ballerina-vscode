@@ -32,9 +32,9 @@ type simpleTypeArr record {|
 function bar() {
     simpleTypeArr arr1 = {};
     simpleTypeArr arr2 = {
-            m2: from var m2Item in arr1.m2 // m2: arr2.m2
-            select (from var m2ItemItem in m2Item
-                select m2ItemItem), // output type: MyType2[]
+            m2: from var m2Item in arr1.m2
+            select from var m2ItemItem in m2Item
+                select m2ItemItem,
             a1: [],
             b2: [[]],
             m0: {k: [], l: [], i: ""},

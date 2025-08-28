@@ -1,0 +1,336 @@
+{
+  "source": "query8.bal",
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "query8.bal",
+      "startLine": {
+        "line": 15,
+        "offset": 4
+      },
+      "endLine": {
+        "line": 15,
+        "offset": 97
+      }
+    },
+    "sourceCode": ""
+  },
+  "position": {
+    "line": 15,
+    "offset": 4
+  },
+  "propertyKey": "expression",
+  "targetField": "myTypes5.0.0",
+  "model": {
+    "inputs": [
+      {
+        "member": {
+          "fields": [
+            {
+              "id": "myType3.0.name1",
+              "variableName": "name1",
+              "typeName": "string",
+              "kind": "string",
+              "optional": false
+            },
+            {
+              "id": "myType3.0.i",
+              "variableName": "i",
+              "typeName": "int",
+              "kind": "int",
+              "optional": false
+            }
+          ],
+          "id": "myType3.0",
+          "variableName": "<myType3Item>",
+          "typeName": "MyType",
+          "kind": "record",
+          "optional": false
+        },
+        "focusedMemberId": "y",
+        "id": "myType3",
+        "variableName": "myType3",
+        "typeName": "MyType[]",
+        "kind": "array",
+        "category": "variable",
+        "isFocused": true,
+        "optional": false
+      },
+      {
+        "member": {
+          "fields": [
+            {
+              "id": "myTypes1.0.name1",
+              "variableName": "name1",
+              "typeName": "string",
+              "kind": "string",
+              "optional": false
+            },
+            {
+              "id": "myTypes1.0.i",
+              "variableName": "i",
+              "typeName": "int",
+              "kind": "int",
+              "optional": false
+            }
+          ],
+          "id": "myTypes1.0",
+          "variableName": "<myTypes1Item>",
+          "typeName": "MyType",
+          "kind": "record",
+          "optional": false
+        },
+        "id": "myTypes1",
+        "variableName": "myTypes1",
+        "typeName": "MyType[]",
+        "kind": "array",
+        "category": "variable",
+        "optional": false
+      },
+      {
+        "member": {
+          "fields": [
+            {
+              "id": "myTypes2.0.name1",
+              "variableName": "name1",
+              "typeName": "string",
+              "kind": "string",
+              "optional": false
+            },
+            {
+              "id": "myTypes2.0.i",
+              "variableName": "i",
+              "typeName": "int",
+              "kind": "int",
+              "optional": false
+            }
+          ],
+          "id": "myTypes2.0",
+          "variableName": "<myTypes2Item>",
+          "typeName": "MyType",
+          "kind": "record",
+          "optional": false
+        },
+        "id": "myTypes2",
+        "variableName": "myTypes2",
+        "typeName": "MyType[]",
+        "kind": "array",
+        "category": "variable",
+        "optional": false
+      },
+      {
+        "member": {
+          "member": {
+            "fields": [
+              {
+                "id": "myTypes3.0.0.name1",
+                "variableName": "name1",
+                "typeName": "string",
+                "kind": "string",
+                "optional": false
+              },
+              {
+                "id": "myTypes3.0.0.i",
+                "variableName": "i",
+                "typeName": "int",
+                "kind": "int",
+                "optional": false
+              }
+            ],
+            "id": "myTypes3.0.0",
+            "variableName": "<myTypes3ItemItem>",
+            "typeName": "MyType",
+            "kind": "record",
+            "optional": false
+          },
+          "id": "myTypes3.0",
+          "variableName": "<myTypes3Item>",
+          "typeName": "MyType[]",
+          "kind": "array",
+          "optional": false
+        },
+        "focusedMemberId": "myType3",
+        "id": "myTypes3",
+        "variableName": "myTypes3",
+        "typeName": "MyType[][]",
+        "kind": "array",
+        "category": "variable",
+        "optional": false
+      },
+      {
+        "member": {
+          "member": {
+            "fields": [
+              {
+                "id": "myTypes4.0.0.name1",
+                "variableName": "name1",
+                "typeName": "string",
+                "kind": "string",
+                "optional": false
+              },
+              {
+                "id": "myTypes4.0.0.i",
+                "variableName": "i",
+                "typeName": "int",
+                "kind": "int",
+                "optional": false
+              }
+            ],
+            "id": "myTypes4.0.0",
+            "variableName": "<myTypes4ItemItem>",
+            "typeName": "MyType",
+            "kind": "record",
+            "optional": false
+          },
+          "id": "myTypes4.0",
+          "variableName": "<myTypes4Item>",
+          "typeName": "MyType[]",
+          "kind": "array",
+          "optional": false
+        },
+        "id": "myTypes4",
+        "variableName": "myTypes4",
+        "typeName": "MyType[][]",
+        "kind": "array",
+        "category": "variable",
+        "optional": false
+      },
+      {
+        "fields": [
+          {
+            "member": {
+              "member": {
+                "fields": [
+                  {
+                    "id": "xxxx.xxx.0.0.name1",
+                    "variableName": "name1",
+                    "typeName": "string",
+                    "kind": "string",
+                    "optional": false
+                  },
+                  {
+                    "id": "xxxx.xxx.0.0.i",
+                    "variableName": "i",
+                    "typeName": "int",
+                    "kind": "int",
+                    "optional": false
+                  }
+                ],
+                "id": "xxxx.xxx.0.0",
+                "variableName": "<xxxItemItem>",
+                "typeName": "MyType",
+                "kind": "record",
+                "optional": false
+              },
+              "id": "xxxx.xxx.0",
+              "variableName": "<xxxItem>",
+              "typeName": "MyType[]",
+              "kind": "array",
+              "optional": false
+            },
+            "id": "xxxx.xxx",
+            "variableName": "xxx",
+            "typeName": "MyType[][]",
+            "kind": "array",
+            "optional": false
+          }
+        ],
+        "id": "xxxx",
+        "variableName": "xxxx",
+        "typeName": "XXX",
+        "kind": "record",
+        "category": "variable",
+        "optional": false
+      },
+      {
+        "fields": [
+          {
+            "id": "y.name1",
+            "variableName": "name1",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "id": "y.i",
+            "variableName": "i",
+            "typeName": "int",
+            "kind": "int",
+            "optional": false
+          }
+        ],
+        "id": "y",
+        "variableName": "y",
+        "typeName": "MyType",
+        "kind": "record",
+        "isFocused": true,
+        "optional": false
+      }
+    ],
+    "output": {
+      "member": {
+        "fields": [
+          {
+            "id": "0.name1",
+            "variableName": "name1",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "id": "0.i",
+            "variableName": "i",
+            "typeName": "int",
+            "kind": "int",
+            "optional": false
+          }
+        ],
+        "id": "0",
+        "variableName": "<0Item>",
+        "typeName": "MyType",
+        "kind": "record",
+        "optional": false
+      },
+      "id": "0",
+      "variableName": "0",
+      "typeName": "MyType[]",
+      "kind": "array",
+      "optional": false
+    },
+    "mappings": [
+      {
+        "output": "0",
+        "inputs": [
+          "y"
+        ],
+        "expression": "y",
+        "diagnostics": [],
+        "elements": [],
+        "isQueryExpression": false,
+        "isFunctionCall": false
+      }
+    ],
+    "query": {
+      "output": "0",
+      "inputs": [
+        "myType3"
+      ],
+      "fromClause": {
+        "type": "from",
+        "properties": {
+          "name": "y",
+          "type": "MyType",
+          "expression": "myType3"
+        }
+      },
+      "intermediateClauses": [],
+      "resultClause": {
+        "type": "select",
+        "properties": {
+          "expression": "y"
+        }
+      }
+    }
+  }
+}
