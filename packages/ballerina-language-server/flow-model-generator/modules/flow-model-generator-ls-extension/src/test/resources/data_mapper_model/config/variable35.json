@@ -24,95 +24,22 @@
   "model": {
     "inputs": [
       {
-        "fields": [
-          {
-            "id": "user.name",
-            "variableName": "name",
-            "typeName": "string",
-            "kind": "string",
-            "optional": false
-          }
-        ],
+        "fields": [],
         "id": "user",
-        "variableName": "user",
+        "name": "user",
         "typeName": "User",
         "kind": "record",
         "category": "parameter",
-        "optional": false
+        "ref": "-699535980"
       }
     ],
     "output": {
-      "fields": [
-        {
-          "fields": [
-            {
-              "fields": [
-                {
-                  "fields": [
-                    {
-                      "fields": [
-                        {
-                          "member": {
-                            "id": "user1.user2.user3.user4.user5.u",
-                            "variableName": "<uItem>",
-                            "typeName": "string",
-                            "kind": "string",
-                            "optional": false
-                          },
-                          "id": "user1.user2.user3.user4.user5.u",
-                          "variableName": "u",
-                          "typeName": "string[]",
-                          "kind": "array",
-                          "optional": false
-                        }
-                      ],
-                      "id": "user1.user2.user3.user4.user5",
-                      "variableName": "user5",
-                      "typeName": "User5",
-                      "kind": "record",
-                      "optional": false
-                    }
-                  ],
-                  "id": "user1.user2.user3.user4",
-                  "variableName": "user4",
-                  "typeName": "User4",
-                  "kind": "record",
-                  "optional": false
-                },
-                {
-                  "id": "user1.user2.user3.i3",
-                  "variableName": "i3",
-                  "typeName": "int",
-                  "kind": "int",
-                  "optional": false
-                }
-              ],
-              "id": "user1.user2.user3",
-              "variableName": "user3",
-              "typeName": "User3",
-              "kind": "record",
-              "optional": false
-            }
-          ],
-          "id": "user1.user2",
-          "variableName": "user2",
-          "typeName": "User2",
-          "kind": "record",
-          "optional": false
-        },
-        {
-          "id": "user1.s1",
-          "variableName": "s1",
-          "typeName": "string",
-          "kind": "string",
-          "optional": false
-        }
-      ],
+      "fields": [],
       "id": "user1",
-      "variableName": "user1",
+      "name": "user1",
       "typeName": "User1",
       "kind": "record",
-      "optional": false
+      "ref": "-2043998407"
     },
     "mappings": [
       {
@@ -173,6 +100,108 @@
         "isQueryExpression": false,
         "isFunctionCall": false
       }
-    ]
+    ],
+    "refs": {
+      "-1647132631": {
+        "fields": [
+          {
+            "id": "u",
+            "name": "u",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          }
+        ],
+        "typeName": "User5",
+        "kind": "record"
+      },
+      "-2043998407": {
+        "fields": [
+          {
+            "fields": [],
+            "id": "user2",
+            "name": "user2",
+            "typeName": "User2",
+            "kind": "record",
+            "optional": false,
+            "ref": "-69405822"
+          },
+          {
+            "id": "s1",
+            "name": "s1",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          }
+        ],
+        "typeName": "User1",
+        "kind": "record"
+      },
+      "-2112806689": {
+        "fields": [
+          {
+            "fields": [],
+            "id": "user4",
+            "name": "user4",
+            "typeName": "User4",
+            "kind": "record",
+            "optional": false,
+            "ref": "-462373188"
+          },
+          {
+            "id": "i3",
+            "name": "i3",
+            "typeName": "int",
+            "kind": "int",
+            "optional": false
+          }
+        ],
+        "typeName": "User3",
+        "kind": "record"
+      },
+      "-699535980": {
+        "fields": [
+          {
+            "id": "name",
+            "name": "name",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          }
+        ],
+        "typeName": "User",
+        "kind": "record"
+      },
+      "-462373188": {
+        "fields": [
+          {
+            "fields": [],
+            "id": "user5",
+            "name": "user5",
+            "typeName": "User5",
+            "kind": "record",
+            "optional": false,
+            "ref": "-1647132631"
+          }
+        ],
+        "typeName": "User4",
+        "kind": "record"
+      },
+      "-69405822": {
+        "fields": [
+          {
+            "fields": [],
+            "id": "user3",
+            "name": "user3",
+            "typeName": "User3",
+            "kind": "record",
+            "optional": false,
+            "ref": "-2112806689"
+          }
+        ],
+        "typeName": "User2",
+        "kind": "record"
+      }
+    }
   }
 }

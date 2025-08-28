@@ -46,6 +46,7 @@ import org.ballerinalang.langserver.commons.workspace.WorkspaceManagerProxy;
 import org.ballerinalang.langserver.contexts.ContextBuilder;
 import org.ballerinalang.langserver.definition.DefinitionUtil;
 import org.ballerinalang.langserver.diagnostic.DiagnosticsHelper;
+import org.ballerinalang.langserver.exception.UserErrorException;
 import org.ballerinalang.langserver.extensions.ballerina.document.visitor.FindNodes;
 import org.ballerinalang.langserver.extensions.ballerina.packages.BallerinaPackageService;
 import org.ballerinalang.langserver.extensions.ballerina.packages.PackageMetadataResponse;
@@ -78,6 +79,8 @@ import java.util.concurrent.CompletableFuture;
 public class BallerinaDocumentService implements ExtendedLanguageServerService {
 
     protected static final String MINUTIAE = "WHITESPACE_MINUTIAE";
+    private static final String RESOLVE_MODULE_FAILURE_MESSAGE =
+            "An internal error occurred while resolving module dependencies.";
 
     private WorkspaceManagerProxy workspaceManagerProxy;
     private LSClientLogger clientLogger;
@@ -524,6 +527,46 @@ public class BallerinaDocumentService implements ExtendedLanguageServerService {
                 reply.setParseSuccess(false);
                 String msg = "Operation 'ballerinaDocument/resolveMissingDependencies' failed!";
                 this.clientLogger.logError(DocumentContext.DC_RESOLVE_MISSING_DEPENDENCIES, msg, e,
+                        request.getDocumentIdentifier(), (Position) null);
+            }
+            return reply;
+        });
+    }
+
+    @JsonRequest
+    public CompletableFuture<ResolveModuleDependenciesResponse> resolveModuleDependencies(
+            BallerinaSyntaxTreeRequest request) {
+        return CompletableFuture.supplyAsync(() -> {
+            ResolveModuleDependenciesResponse reply = new ResolveModuleDependenciesResponse();
+            String fileUri = request.getDocumentIdentifier().getUri();
+            Optional<Path> filePath = PathUtil.getPathFromURI(fileUri);
+            if (filePath.isEmpty()) {
+                reply.setSuccess(false);
+                reply.setErrorMsg(RESOLVE_MODULE_FAILURE_MESSAGE);
+                return reply;
+            }
+            try {
+                Optional<SemanticModel> semanticModel = this.workspaceManagerProxy.get().semanticModel(filePath.get());
+                if (semanticModel.isEmpty()) {
+                    reply.setSuccess(false);
+                    reply.setErrorMsg(RESOLVE_MODULE_FAILURE_MESSAGE);
+                    return reply;
+                }
+
+                if (!CommonUtil.hasUnresolvedModules(semanticModel.get())) {
+                    reply.setSuccess(true);
+                    return reply;
+                }
+
+                PullModuleExecutor.resolveModules(fileUri, serverContext.get(ExtendedLanguageClient.class),
+                        workspaceManagerProxy.get(fileUri), serverContext).get();
+                reply.setSuccess(true);
+            } catch (Throwable e) {
+                reply.setSuccess(false);
+                reply.setErrorMsg(e.getCause() instanceof UserErrorException ? 
+                        e.getCause().getMessage() : RESOLVE_MODULE_FAILURE_MESSAGE);
+                String msg = "Operation 'ballerinaDocument/resolveModuleDependencies' failed!";
+                this.clientLogger.logError(DocumentContext.DC_RESOLVE_MODULE_DEPENDENCIES, msg, e,
                         request.getDocumentIdentifier(), (Position) null);
             }
             return reply;

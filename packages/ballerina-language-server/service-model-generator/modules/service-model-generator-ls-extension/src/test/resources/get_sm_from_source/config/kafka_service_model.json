@@ -15,10 +15,6 @@
     "type": "kafka",
     "displayName": "Kafka Event Handler",
     "description": "Add the service documentation",
-    "displayAnnotation": {
-      "label": "Kafka Event Handler",
-      "iconPath": "https://bcentral-packageicons.azureedge.net/images/ballerinax_kafka_4.5.0.png"
-    },
     "moduleName": "kafka",
     "orgName": "ballerinax",
     "version": "4.5.0",
@@ -31,54 +27,42 @@
           "label": "Listener",
           "description": "The Listener to be bound with the service"
         },
-        "enabled": true,
-        "editable": true,
-        "value": "kafkaListener",
-        "values": [],
+        "codedata": {
+          "type": "LISTENER"
+        },
+        "placeholder": "",
         "valueType": "SINGLE_SELECT",
         "valueTypeConstraint": "kafka:Listener",
-        "isType": false,
-        "placeholder": "",
-        "optional": false,
-        "advanced": false,
+        "value": "kafkaListener",
+        "values": [],
         "items": [
           "kafkaListener"
         ],
-        "codedata": {
-          "inListenerInit": false,
-          "isBasePath": false,
-          "inDisplayAnnotation": false,
-          "type": "LISTENER"
-        },
-        "addNewButton": false,
-        "imports": {}
+        "enabled": true,
+        "editable": true,
+        "optional": false,
+        "advanced": false
       },
       "serviceType": {
         "metadata": {
           "label": "Service Type",
           "description": "The name of the service contract type"
         },
-        "enabled": false,
-        "editable": true,
-        "value": "Service",
+        "codedata": {
+          "type": "SERVICE_TYPE"
+        },
+        "placeholder": "Service",
         "valueType": "SINGLE_SELECT",
         "valueTypeConstraint": "string",
-        "isType": false,
-        "placeholder": "Service",
-        "optional": false,
-        "advanced": false,
+        "value": "Service",
         "items": [
           "",
           "Service"
         ],
-        "codedata": {
-          "inListenerInit": false,
-          "isBasePath": false,
-          "inDisplayAnnotation": false,
-          "type": "SERVICE_TYPE"
-        },
-        "addNewButton": false,
-        "imports": {}
+        "enabled": false,
+        "editable": true,
+        "optional": false,
+        "advanced": false
       }
     },
     "codedata": {
@@ -92,10 +76,7 @@
           "line": 11,
           "offset": 1
         }
-      },
-      "inListenerInit": false,
-      "isBasePath": false,
-      "inDisplayAnnotation": false
+      }
     },
     "functions": [
       {
@@ -109,23 +90,17 @@
             "label": "onConsumerRecord",
             "description": "The `onConsumerRecord` remote method will be triggered when a message is received from Kafka topic(s)"
           },
-          "enabled": true,
-          "editable": false,
-          "value": "onConsumerRecord",
-          "valueType": "IDENTIFIER",
-          "valueTypeConstraint": "string",
-          "isType": false,
-          "placeholder": "onConsumerRecord",
-          "optional": false,
-          "advanced": false,
           "codedata": {
-            "inListenerInit": false,
-            "isBasePath": false,
-            "inDisplayAnnotation": false,
             "type": "FUNCTION_NAME"
           },
-          "addNewButton": false,
-          "imports": {}
+          "placeholder": "onConsumerRecord",
+          "valueType": "IDENTIFIER",
+          "valueTypeConstraint": "string",
+          "value": "onConsumerRecord",
+          "enabled": true,
+          "editable": false,
+          "optional": false,
+          "advanced": false
         },
         "parameters": [
           {
@@ -139,59 +114,48 @@
                 "label": "Type",
                 "description": "The type of the parameter"
               },
+              "placeholder": "kafka:AnydataConsumerRecord[]",
+              "valueType": "TYPE",
+              "value": "kafka:AnydataConsumerRecord[]",
               "enabled": true,
               "editable": true,
-              "value": "kafka:AnydataConsumerRecord[]",
-              "valueType": "TYPE",
-              "isType": true,
-              "placeholder": "kafka:AnydataConsumerRecord[]",
               "optional": true,
-              "advanced": false,
-              "addNewButton": false,
-              "imports": {}
+              "advanced": false
             },
             "name": {
               "metadata": {
                 "label": "records",
                 "description": "The records received for Kafka topic(s)"
               },
-              "enabled": true,
-              "editable": true,
-              "value": "records",
-              "valueType": "IDENTIFIER",
-              "isType": false,
-              "placeholder": "records",
-              "optional": false,
-              "advanced": false,
               "codedata": {
-                "inListenerInit": false,
-                "isBasePath": false,
-                "inDisplayAnnotation": false,
                 "type": "PARAMETER_NAME"
               },
-              "addNewButton": false,
-              "imports": {}
+              "placeholder": "records",
+              "valueType": "IDENTIFIER",
+              "value": "records",
+              "enabled": true,
+              "editable": true,
+              "optional": false,
+              "advanced": false
             },
             "defaultValue": {
               "metadata": {
                 "label": "Default Value",
                 "description": "The default value of the parameter"
               },
+              "placeholder": "",
+              "valueType": "EXPRESSION",
+              "value": "",
               "enabled": true,
               "editable": true,
-              "value": "",
-              "valueType": "EXPRESSION",
-              "isType": false,
-              "placeholder": "",
               "optional": true,
-              "advanced": false,
-              "addNewButton": false,
-              "imports": {}
+              "advanced": false
             },
             "enabled": true,
             "editable": true,
             "optional": false,
-            "advanced": false
+            "advanced": false,
+            "hidden": false
           },
           {
             "metadata": {
@@ -204,59 +168,48 @@
                 "label": "Type",
                 "description": "The type of the parameter"
               },
+              "placeholder": "kafka:Caller",
+              "valueType": "TYPE",
+              "value": "kafka:Caller",
               "enabled": true,
               "editable": false,
-              "value": "kafka:Caller",
-              "valueType": "TYPE",
-              "isType": true,
-              "placeholder": "kafka:Caller",
               "optional": true,
-              "advanced": false,
-              "addNewButton": false,
-              "imports": {}
+              "advanced": false
             },
             "name": {
               "metadata": {
                 "label": "caller",
                 "description": "The Kafka caller object to commit the offsets"
               },
-              "enabled": true,
-              "editable": true,
-              "value": "caller",
-              "valueType": "IDENTIFIER",
-              "isType": false,
-              "placeholder": "caller",
-              "optional": false,
-              "advanced": false,
               "codedata": {
-                "inListenerInit": false,
-                "isBasePath": false,
-                "inDisplayAnnotation": false,
                 "type": "PARAMETER_NAME"
               },
-              "addNewButton": false,
-              "imports": {}
+              "placeholder": "caller",
+              "valueType": "IDENTIFIER",
+              "value": "caller",
+              "enabled": true,
+              "editable": true,
+              "optional": false,
+              "advanced": false
             },
             "defaultValue": {
               "metadata": {
                 "label": "Default Value",
                 "description": "The default value of the parameter"
               },
+              "placeholder": "",
+              "valueType": "EXPRESSION",
+              "value": "",
               "enabled": true,
               "editable": true,
-              "value": "",
-              "valueType": "EXPRESSION",
-              "isType": false,
-              "placeholder": "",
               "optional": true,
-              "advanced": false,
-              "addNewButton": false,
-              "imports": {}
+              "advanced": false
             },
             "enabled": false,
             "editable": true,
             "optional": true,
-            "advanced": false
+            "advanced": false,
+            "hidden": false
           }
         ],
         "returnType": {
@@ -265,15 +218,13 @@
             "label": "Return Type",
             "description": "The return type of the function"
           },
+          "placeholder": "error?",
+          "valueType": "TYPE",
+          "value": "error?",
           "enabled": true,
           "editable": false,
-          "value": "error?",
-          "valueType": "TYPE",
-          "isType": true,
-          "placeholder": "error?",
           "optional": true,
-          "advanced": false,
-          "addNewButton": false
+          "advanced": false
         },
         "enabled": true,
         "optional": false,
@@ -290,10 +241,7 @@
               "line": 10,
               "offset": 5
             }
-          },
-          "inListenerInit": false,
-          "isBasePath": false,
-          "inDisplayAnnotation": false
+          }
         }
       },
       {
@@ -307,23 +255,17 @@
             "label": "onError",
             "description": "The `onError` remote method will be triggered when an error occurs during the message processing"
           },
-          "enabled": true,
-          "editable": false,
-          "value": "onError",
-          "valueType": "IDENTIFIER",
-          "valueTypeConstraint": "string",
-          "isType": false,
-          "placeholder": "onError",
-          "optional": false,
-          "advanced": false,
           "codedata": {
-            "inListenerInit": false,
-            "isBasePath": false,
-            "inDisplayAnnotation": false,
             "type": "FUNCTION_NAME"
           },
-          "addNewButton": false,
-          "imports": {}
+          "placeholder": "onError",
+          "valueType": "IDENTIFIER",
+          "valueTypeConstraint": "string",
+          "value": "onError",
+          "enabled": true,
+          "editable": false,
+          "optional": false,
+          "advanced": false
         },
         "parameters": [
           {
@@ -337,59 +279,48 @@
                 "label": "Type",
                 "description": "The type of the parameter"
               },
+              "placeholder": "kafka:Error",
+              "valueType": "TYPE",
+              "value": "kafka:Error",
               "enabled": true,
               "editable": false,
-              "value": "kafka:Error",
-              "valueType": "TYPE",
-              "isType": true,
-              "placeholder": "kafka:Error",
               "optional": true,
-              "advanced": false,
-              "addNewButton": false,
-              "imports": {}
+              "advanced": false
             },
             "name": {
               "metadata": {
                 "label": "kafkaError",
                 "description": "The error occurred during the message processing"
               },
-              "enabled": true,
-              "editable": true,
-              "value": "kafkaError",
-              "valueType": "IDENTIFIER",
-              "isType": false,
-              "placeholder": "kafkaError",
-              "optional": false,
-              "advanced": false,
               "codedata": {
-                "inListenerInit": false,
-                "isBasePath": false,
-                "inDisplayAnnotation": false,
                 "type": "PARAMETER_NAME"
               },
-              "addNewButton": false,
-              "imports": {}
+              "placeholder": "kafkaError",
+              "valueType": "IDENTIFIER",
+              "value": "kafkaError",
+              "enabled": true,
+              "editable": true,
+              "optional": false,
+              "advanced": false
             },
             "defaultValue": {
               "metadata": {
                 "label": "Default Value",
                 "description": "The default value of the parameter"
               },
+              "placeholder": "",
+              "valueType": "EXPRESSION",
+              "value": "",
               "enabled": true,
               "editable": true,
-              "value": "",
-              "valueType": "EXPRESSION",
-              "isType": false,
-              "placeholder": "",
               "optional": true,
-              "advanced": false,
-              "addNewButton": false,
-              "imports": {}
+              "advanced": false
             },
             "enabled": true,
             "editable": true,
             "optional": false,
-            "advanced": false
+            "advanced": false,
+            "hidden": false
           }
         ],
         "returnType": {
@@ -398,15 +329,13 @@
             "label": "Return Type",
             "description": "The return type of the function"
           },
+          "placeholder": "error?",
+          "valueType": "TYPE",
+          "value": "error?",
           "enabled": true,
           "editable": false,
-          "value": "error?",
-          "valueType": "TYPE",
-          "isType": true,
-          "placeholder": "error?",
           "optional": true,
-          "advanced": false,
-          "addNewButton": false
+          "advanced": false
         },
         "enabled": false,
         "optional": false,

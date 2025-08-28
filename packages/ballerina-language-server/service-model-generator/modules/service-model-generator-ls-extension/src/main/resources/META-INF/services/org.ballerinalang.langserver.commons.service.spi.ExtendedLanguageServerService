@@ -1,1 +1,1 @@
-io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorService
+io.ballerina.servicemodelgenerator.extension.core.ServiceModelGeneratorService

@@ -24,333 +24,276 @@
   "model": {
     "inputs": [
       {
-        "fields": [
-          {
-            "id": "param.fullName",
-            "variableName": "fullName",
-            "typeName": "string",
-            "kind": "string",
-            "optional": false
-          },
-          {
-            "fields": [
-              {
-                "id": "param.contactDetails.email",
-                "variableName": "email",
-                "typeName": "string",
-                "kind": "string",
-                "optional": false
-              },
-              {
-                "id": "param.contactDetails.primaryPhone",
-                "variableName": "primaryPhone",
-                "typeName": "string",
-                "kind": "string",
-                "optional": false
-              }
-            ],
-            "id": "param.contactDetails",
-            "variableName": "contactDetails",
-            "typeName": "record",
-            "kind": "record",
-            "optional": false
-          },
-          {
-            "fields": [
-              {
-                "id": "param.location.city",
-                "variableName": "city",
-                "typeName": "string",
-                "kind": "string",
-                "optional": false
-              },
-              {
-                "id": "param.location.state",
-                "variableName": "state",
-                "typeName": "string",
-                "kind": "string",
-                "optional": false
-              },
-              {
-                "id": "param.location.zipCode",
-                "variableName": "zipCode",
-                "typeName": "string",
-                "kind": "string",
-                "optional": false
-              }
-            ],
-            "id": "param.location",
-            "variableName": "location",
-            "typeName": "record",
-            "kind": "record",
-            "optional": false
-          },
-          {
-            "fields": [
-              {
-                "id": "param.accountInfo.accountNumber",
-                "variableName": "accountNumber",
-                "typeName": "string",
-                "kind": "string",
-                "optional": false
-              },
-              {
-                "id": "param.accountInfo.balance",
-                "variableName": "balance",
-                "typeName": "int",
-                "kind": "int",
-                "optional": false
-              }
-            ],
-            "id": "param.accountInfo",
-            "variableName": "accountInfo",
-            "typeName": "record",
-            "kind": "record",
-            "optional": false
-          },
-          {
-            "id": "param.transactionDate",
-            "variableName": "transactionDate",
-            "typeName": "string",
-            "kind": "string",
-            "optional": false
-          }
-        ],
+        "fields": [],
         "id": "param",
-        "variableName": "param",
+        "name": "param",
         "typeName": "Person",
         "kind": "record",
         "category": "parameter",
-        "optional": false
+        "ref": "1965861305"
       },
       {
-        "fields": [
-          {
-            "fields": [
-              {
-                "id": "user.customer.firstName",
-                "variableName": "firstName",
-                "typeName": "string",
-                "kind": "string",
-                "optional": false
-              },
-              {
-                "id": "user.customer.lastName",
-                "variableName": "lastName",
-                "typeName": "string",
-                "kind": "string",
-                "optional": false
-              },
-              {
-                "id": "user.customer.email",
-                "variableName": "email",
-                "typeName": "string",
-                "kind": "string",
-                "optional": false
-              },
-              {
-                "fields": [
-                  {
-                    "id": "user.customer.address.street",
-                    "variableName": "street",
-                    "typeName": "string",
-                    "kind": "string",
-                    "optional": false
-                  },
-                  {
-                    "id": "user.customer.address.city",
-                    "variableName": "city",
-                    "typeName": "string",
-                    "kind": "string",
-                    "optional": false
-                  },
-                  {
-                    "id": "user.customer.address.state",
-                    "variableName": "state",
-                    "typeName": "string",
-                    "kind": "string",
-                    "optional": false
-                  },
-                  {
-                    "id": "user.customer.address.postalCode",
-                    "variableName": "postalCode",
-                    "typeName": "int",
-                    "kind": "int",
-                    "optional": false
-                  }
-                ],
-                "id": "user.customer.address",
-                "variableName": "address",
-                "typeName": "record",
-                "kind": "record",
-                "optional": false
-              },
-              {
-                "id": "user.customer.phoneNumber",
-                "variableName": "phoneNumber",
-                "typeName": "string",
-                "kind": "string",
-                "optional": false
-              }
-            ],
-            "id": "user.customer",
-            "variableName": "customer",
-            "typeName": "record",
-            "kind": "record",
-            "optional": false
-          },
-          {
-            "fields": [
-              {
-                "id": "user.account.accountNumber",
-                "variableName": "accountNumber",
-                "typeName": "string",
-                "kind": "string",
-                "optional": false
-              },
-              {
-                "id": "user.account.balance",
-                "variableName": "balance",
-                "typeName": "int",
-                "kind": "int",
-                "optional": false
-              },
-              {
-                "id": "user.account.lastTransaction",
-                "variableName": "lastTransaction",
-                "typeName": "string",
-                "kind": "string",
-                "optional": false
-              }
-            ],
-            "id": "user.account",
-            "variableName": "account",
-            "typeName": "record",
-            "kind": "record",
-            "optional": false
-          }
-        ],
+        "fields": [],
         "id": "user",
-        "variableName": "user",
+        "name": "user",
         "typeName": "User",
         "kind": "record",
         "category": "local-variable",
-        "optional": false
+        "ref": "677675252"
       }
     ],
     "output": {
-      "fields": [
-        {
-          "fields": [
-            {
-              "id": "u.customer.firstName",
-              "variableName": "firstName",
-              "typeName": "string",
-              "kind": "string",
-              "optional": false
-            },
-            {
-              "id": "u.customer.lastName",
-              "variableName": "lastName",
-              "typeName": "string",
-              "kind": "string",
-              "optional": false
-            },
-            {
-              "id": "u.customer.email",
-              "variableName": "email",
-              "typeName": "string",
-              "kind": "string",
-              "optional": false
-            },
-            {
-              "fields": [
-                {
-                  "id": "u.customer.address.street",
-                  "variableName": "street",
-                  "typeName": "string",
-                  "kind": "string",
-                  "optional": false
-                },
-                {
-                  "id": "u.customer.address.city",
-                  "variableName": "city",
-                  "typeName": "string",
-                  "kind": "string",
-                  "optional": false
-                },
-                {
-                  "id": "u.customer.address.state",
-                  "variableName": "state",
-                  "typeName": "string",
-                  "kind": "string",
-                  "optional": false
-                },
-                {
-                  "id": "u.customer.address.postalCode",
-                  "variableName": "postalCode",
-                  "typeName": "int",
-                  "kind": "int",
-                  "optional": false
-                }
-              ],
-              "id": "u.customer.address",
-              "variableName": "address",
-              "typeName": "record",
-              "kind": "record",
-              "optional": false
-            },
-            {
-              "id": "u.customer.phoneNumber",
-              "variableName": "phoneNumber",
-              "typeName": "string",
-              "kind": "string",
-              "optional": false
-            }
-          ],
-          "id": "u.customer",
-          "variableName": "customer",
-          "typeName": "record",
-          "kind": "record",
-          "optional": false
-        },
-        {
-          "fields": [
-            {
-              "id": "u.account.accountNumber",
-              "variableName": "accountNumber",
-              "typeName": "string",
-              "kind": "string",
-              "optional": false
-            },
-            {
-              "id": "u.account.balance",
-              "variableName": "balance",
-              "typeName": "int",
-              "kind": "int",
-              "optional": false
-            },
-            {
-              "id": "u.account.lastTransaction",
-              "variableName": "lastTransaction",
-              "typeName": "string",
-              "kind": "string",
-              "optional": false
-            }
-          ],
-          "id": "u.account",
-          "variableName": "account",
-          "typeName": "record",
-          "kind": "record",
-          "optional": false
-        }
-      ],
+      "fields": [],
       "id": "u",
-      "variableName": "u",
+      "name": "u",
       "typeName": "User",
       "kind": "record",
-      "optional": false
+      "ref": "677675252"
     },
-    "mappings": []
+    "mappings": [],
+    "refs": {
+      "-1673315977": {
+        "fields": [
+          {
+            "id": "city",
+            "name": "city",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "id": "state",
+            "name": "state",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "id": "zipCode",
+            "name": "zipCode",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          }
+        ],
+        "typeName": "",
+        "kind": "record"
+      },
+      "-1686583489": {
+        "fields": [
+          {
+            "id": "accountNumber",
+            "name": "accountNumber",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "id": "balance",
+            "name": "balance",
+            "typeName": "int",
+            "kind": "int",
+            "optional": false
+          },
+          {
+            "id": "lastTransaction",
+            "name": "lastTransaction",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          }
+        ],
+        "typeName": "",
+        "kind": "record"
+      },
+      "1387857683": {
+        "fields": [
+          {
+            "id": "email",
+            "name": "email",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "id": "primaryPhone",
+            "name": "primaryPhone",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          }
+        ],
+        "typeName": "",
+        "kind": "record"
+      },
+      "1012789572": {
+        "fields": [
+          {
+            "id": "street",
+            "name": "street",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "id": "city",
+            "name": "city",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "id": "state",
+            "name": "state",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "id": "postalCode",
+            "name": "postalCode",
+            "typeName": "int",
+            "kind": "int",
+            "optional": false
+          }
+        ],
+        "typeName": "",
+        "kind": "record"
+      },
+      "1965861305": {
+        "fields": [
+          {
+            "id": "fullName",
+            "name": "fullName",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "fields": [],
+            "id": "contactDetails",
+            "name": "contactDetails",
+            "typeName": "",
+            "kind": "record",
+            "optional": false,
+            "ref": "1387857683"
+          },
+          {
+            "fields": [],
+            "id": "location",
+            "name": "location",
+            "typeName": "",
+            "kind": "record",
+            "optional": false,
+            "ref": "-1673315977"
+          },
+          {
+            "fields": [],
+            "id": "accountInfo",
+            "name": "accountInfo",
+            "typeName": "",
+            "kind": "record",
+            "optional": false,
+            "ref": "1255890909"
+          },
+          {
+            "id": "transactionDate",
+            "name": "transactionDate",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          }
+        ],
+        "typeName": "Person",
+        "kind": "record"
+      },
+      "-656952594": {
+        "fields": [
+          {
+            "id": "firstName",
+            "name": "firstName",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "id": "lastName",
+            "name": "lastName",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "id": "email",
+            "name": "email",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "fields": [],
+            "id": "address",
+            "name": "address",
+            "typeName": "",
+            "kind": "record",
+            "optional": false,
+            "ref": "1012789572"
+          },
+          {
+            "id": "phoneNumber",
+            "name": "phoneNumber",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          }
+        ],
+        "typeName": "",
+        "kind": "record"
+      },
+      "1255890909": {
+        "fields": [
+          {
+            "id": "accountNumber",
+            "name": "accountNumber",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "id": "balance",
+            "name": "balance",
+            "typeName": "int",
+            "kind": "int",
+            "optional": false
+          }
+        ],
+        "typeName": "",
+        "kind": "record"
+      },
+      "677675252": {
+        "fields": [
+          {
+            "fields": [],
+            "id": "customer",
+            "name": "customer",
+            "typeName": "",
+            "kind": "record",
+            "optional": false,
+            "ref": "-656952594"
+          },
+          {
+            "fields": [],
+            "id": "account",
+            "name": "account",
+            "typeName": "",
+            "kind": "record",
+            "optional": false,
+            "ref": "-1686583489"
+          }
+        ],
+        "typeName": "User",
+        "kind": "record"
+      }
+    }
   }
 }

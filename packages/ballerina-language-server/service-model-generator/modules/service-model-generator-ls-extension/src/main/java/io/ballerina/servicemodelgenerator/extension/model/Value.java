@@ -26,67 +26,28 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+/**
+ * Represents model to show input field in the UI.
+ *
+ * @since 1.0.0
+ */
 public class Value {
     private MetaData metadata;
-    private boolean enabled;
-    private boolean editable;
-    private Object value;
-    private List<Object> values;
+    private Codedata codedata;
+    private String placeholder;
     private String valueType;
     private String valueTypeConstraint;
-    private boolean isType;
-    private String placeholder;
+    private Object value;
+    private List<Object> values;
+    private List<Object> items;
+    private List<Value> choices;
+    private List<PropertyTypeMemberInfo> typeMembers;
+    private Map<String, Value> properties;
+    private final Map<String, String> imports;
+    private boolean enabled;
+    private boolean editable;
     private boolean optional;
     private boolean advanced;
-    private Map<String, Value> properties;
-    private List<Object> items;
-    private Codedata codedata;
-    private List<Value> choices;
-    private boolean addNewButton = false;
-    private List<PropertyTypeMemberInfo> typeMembers;
-    private final Map<String, String> imports;
-
-    public Value(MetaData metadata, String valueType, boolean editable, boolean optional) {
-        this(metadata, true, editable, null, valueType,
-                null, false, null, optional, false,
-                null, null, null, new HashMap<>());
-    }
-
-    public Value() {
-        this(new MetaData("", ""), false, true, null, null,
-                null, false, null, false, false,
-                null, null, null, new HashMap<>());
-    }
-
-    public Value(Object value, String valueType, boolean isEnabled) {
-        this(null, isEnabled, true, value, valueType, null, false, null,
-                false, false, null, null, null, new HashMap<>());
-    }
-
-    public Value(Object value, String valueType, boolean isEnabled, boolean editable, boolean optional) {
-        this(null, isEnabled, editable, value, valueType, null, false, null,
-                optional, false, null, null, null, new HashMap<>());
-    }
-
-    public Value(MetaData metadata, boolean enabled, boolean editable, Object value, String valueType,
-                 String valueTypeConstraint, boolean isType, String placeholder, boolean optional,
-                 boolean advanced, Map<String, Value> properties, List<Object> items, Codedata codedata,
-                 Map<String, String> imports) {
-        this.metadata = metadata;
-        this.enabled = enabled;
-        this.editable = editable;
-        this.value = value;
-        this.valueType = valueType;
-        this.valueTypeConstraint = valueTypeConstraint;
-        this.isType = isType;
-        this.placeholder = placeholder;
-        this.optional = optional;
-        this.advanced = advanced;
-        this.properties = properties;
-        this.items = items;
-        this.codedata = codedata;
-        this.imports = imports;
-    }
 
     public Value(Value value) {
         this.metadata = value.metadata;
@@ -96,7 +57,6 @@ public class Value {
         this.values = value.values;
         this.valueType = value.valueType;
         this.valueTypeConstraint = value.valueTypeConstraint;
-        this.isType = value.isType;
         this.placeholder = value.placeholder;
         this.optional = value.optional;
         this.advanced = value.advanced;
@@ -104,15 +64,13 @@ public class Value {
         this.items = value.items;
         this.codedata = value.codedata;
         this.choices = value.choices;
-        this.addNewButton = value.addNewButton;
         this.typeMembers = value.typeMembers;
         this.imports = value.imports;
     }
 
     public Value(MetaData metadata, boolean enabled, boolean editable, Object value, List<Object> values,
-                 String valueType, String valueTypeConstraint, boolean isType, String placeholder, boolean optional,
+                 String valueType, String valueTypeConstraint, String placeholder, boolean optional,
                  boolean advanced, Map<String, Value> properties, List<Object> items, Codedata codedata,
-                 boolean addNewButton,
                  List<PropertyTypeMemberInfo> typeMembers, Map<String, String> imports) {
         this.metadata = metadata;
         this.enabled = enabled;
@@ -121,14 +79,12 @@ public class Value {
         this.values = values;
         this.valueType = valueType;
         this.valueTypeConstraint = valueTypeConstraint;
-        this.isType = isType;
         this.placeholder = placeholder;
         this.optional = optional;
         this.advanced = advanced;
         this.properties = properties;
         this.items = items;
         this.codedata = codedata;
-        this.addNewButton = addNewButton;
         this.typeMembers = typeMembers;
         this.imports = imports;
     }
@@ -182,6 +138,10 @@ public class Value {
         return null;
     }
 
+    public Object getValueAsObject() {
+        return value;
+    }
+
     public List<String> getValues() {
         if (Objects.nonNull(values) && !values.isEmpty()) {
             Object firstValue = values.getFirst();
@@ -227,14 +187,6 @@ public class Value {
 
     public void setValueTypeConstraint(String valueTypeConstraint) {
         this.valueTypeConstraint = valueTypeConstraint;
-    }
-
-    public boolean isType() {
-        return isType;
-    }
-
-    public void setType(boolean isType) {
-        this.isType = isType;
     }
 
     public String getPlaceholder() {
@@ -297,14 +249,6 @@ public class Value {
         return properties.get(key);
     }
 
-    public void setAddNewButton(boolean addNewButton) {
-        this.addNewButton = addNewButton;
-    }
-
-    public boolean isAddNewButton() {
-        return addNewButton;
-    }
-
     public List<PropertyTypeMemberInfo> getTypeMembers() {
         return typeMembers;
     }
@@ -315,12 +259,6 @@ public class Value {
 
     public Map<String, String> getImports() {
         return imports;
-    }
-
-    public static Value getTcpValue(String value) {
-        return new Value(null, true, true, value,
-                null, null, false, null, false, false,
-                null, null, null, new HashMap<>());
     }
 
     public static class ValueBuilder {
@@ -335,8 +273,6 @@ public class Value {
         private Map<String, Value> properties;
         private List<PropertyTypeMemberInfo> typeMembers;
         private Map<String, String> imports;
-        private boolean isType = false;
-        private boolean addNewButton = false;
         private boolean enabled = false;
         private boolean editable = false;
         private boolean optional = false;
@@ -377,11 +313,6 @@ public class Value {
             return this;
         }
 
-        public ValueBuilder isType(boolean isType) {
-            this.isType = isType;
-            return this;
-        }
-
         public ValueBuilder setPlaceholder(String placeholder) {
             this.placeholder = placeholder;
             return this;
@@ -417,11 +348,6 @@ public class Value {
             return this;
         }
 
-        public ValueBuilder setAddNewButton(boolean addNewButton) {
-            this.addNewButton = addNewButton;
-            return this;
-        }
-
         public ValueBuilder setTypeMembers(List<ParameterMemberTypeData> typeMembers) {
             this.typeMembers = typeMembers.stream().map(memberType -> new PropertyTypeMemberInfo(memberType.type(),
                     memberType.packageInfo(), memberType.kind(), false)).toList();
@@ -447,8 +373,8 @@ public class Value {
         }
 
         public Value build() {
-            return new Value(metadata, enabled, editable, value, values, valueType, valueTypeConstraint, isType,
-                    placeholder, optional, advanced, properties, items, codedata, addNewButton, typeMembers, imports);
+            return new Value(metadata, enabled, editable, value, values, valueType, valueTypeConstraint,
+                    placeholder, optional, advanced, properties, items, codedata, typeMembers, imports);
         }
     }
 }

@@ -8,6 +8,7 @@
       "offset": 8
     },
     "offset": 0,
+    "lineOffset": 0,
     "codedata": {
       "node": "FUNCTION_CALL",
       "org": "ballerina",

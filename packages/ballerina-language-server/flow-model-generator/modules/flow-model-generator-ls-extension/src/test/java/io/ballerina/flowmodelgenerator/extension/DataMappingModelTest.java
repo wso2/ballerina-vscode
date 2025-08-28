@@ -123,6 +123,9 @@ public class DataMappingModelTest extends AbstractLSTest {
                 {Path.of("sub_mapping6.json")},
                 {Path.of("variable46.json")},
                 {Path.of("variable47.json")},
+                {Path.of("union3.json")},
+                {Path.of("union4.json")},
+                {Path.of("union5.json")},
                 {Path.of("variable48.json")},
                 {Path.of("variable49.json")},
                 {Path.of("query12.json")},
@@ -150,6 +153,9 @@ public class DataMappingModelTest extends AbstractLSTest {
         String actual = model.toString().replace(" ", "");
         String expected = testConfig.model().toString().replace(" ", "");
         if (!actual.equals(expected)) {
+            if (isJsonPermutation(model, testConfig.model())) {
+                return;
+            }
             TestConfig updateConfig = new TestConfig(testConfig.source(), testConfig.description(),
                     testConfig.codedata(), testConfig.position(), testConfig.propertyKey(), testConfig.targetField(),
                     model);

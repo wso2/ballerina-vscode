@@ -25,38 +25,15 @@
     "inputs": [
       {
         "id": "CONST",
-        "variableName": "CONST",
-        "typeName": "string",
-        "kind": "string",
-        "category": "constant",
-        "optional": false
+        "name": "CONST",
+        "typeName": "const",
+        "kind": "const",
+        "category": "constant"
       },
       {
-        "fields": [
-          {
-            "id": "var1.clientName",
-            "variableName": "clientName",
-            "typeName": "string",
-            "kind": "string",
-            "optional": true
-          },
-          {
-            "id": "var1.database",
-            "variableName": "database",
-            "typeName": "int",
-            "kind": "int",
-            "optional": false
-          },
-          {
-            "id": "var1.connectionTimeout",
-            "variableName": "connectionTimeout",
-            "typeName": "int",
-            "kind": "int",
-            "optional": false
-          }
-        ],
+        "fields": [],
         "id": "var1",
-        "variableName": "var1",
+        "name": "var1",
         "typeName": "Options",
         "kind": "record",
         "category": "local-variable",
@@ -66,35 +43,13 @@
           "moduleName": "redis",
           "version": "3.1.0"
         },
-        "optional": false
+        "ref": "1722113469"
       }
     ],
     "output": {
-      "fields": [
-        {
-          "id": "var2.clientName",
-          "variableName": "clientName",
-          "typeName": "string",
-          "kind": "string",
-          "optional": true
-        },
-        {
-          "id": "var2.database",
-          "variableName": "database",
-          "typeName": "int",
-          "kind": "int",
-          "optional": false
-        },
-        {
-          "id": "var2.connectionTimeout",
-          "variableName": "connectionTimeout",
-          "typeName": "int",
-          "kind": "int",
-          "optional": false
-        }
-      ],
+      "fields": [],
       "id": "var2",
-      "variableName": "var2",
+      "name": "var2",
       "typeName": "Options",
       "kind": "record",
       "moduleInfo": {
@@ -103,8 +58,37 @@
         "moduleName": "redis",
         "version": "3.1.0"
       },
-      "optional": false
+      "ref": "1722113469"
     },
-    "mappings": []
+    "mappings": [],
+    "refs": {
+      "1722113469": {
+        "fields": [
+          {
+            "id": "clientName",
+            "name": "clientName",
+            "typeName": "string",
+            "kind": "string",
+            "optional": true
+          },
+          {
+            "id": "database",
+            "name": "database",
+            "typeName": "int",
+            "kind": "int",
+            "optional": false
+          },
+          {
+            "id": "connectionTimeout",
+            "name": "connectionTimeout",
+            "typeName": "int",
+            "kind": "int",
+            "optional": false
+          }
+        ],
+        "typeName": "Options",
+        "kind": "record"
+      }
+    }
   }
 }

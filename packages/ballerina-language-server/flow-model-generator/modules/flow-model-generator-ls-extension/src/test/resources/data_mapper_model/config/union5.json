@@ -1,0 +1,135 @@
+{
+  "source": "union5.bal",
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "union5.bal",
+      "startLine": {
+        "line": 37,
+        "offset": 4
+      },
+      "endLine": {
+        "line": 37,
+        "offset": 31
+      }
+    },
+    "sourceCode": ""
+  },
+  "position": {
+    "line": 37,
+    "offset": 4
+  },
+  "propertyKey": "expression",
+  "model": {
+    "inputs": [
+      {
+        "fields": [],
+        "id": "elephant",
+        "name": "elephant",
+        "typeName": "Elephant|InvalidIntError",
+        "kind": "record",
+        "category": "local-variable",
+        "ref": "252136892"
+      },
+      {
+        "fields": [],
+        "id": "elephantOrNil",
+        "name": "elephantOrNil",
+        "typeName": "Elephant|()",
+        "kind": "record",
+        "category": "local-variable",
+        "ref": "252136892"
+      }
+    ],
+    "output": {
+      "fields": [],
+      "id": "animalType",
+      "name": "animalType",
+      "typeName": "AnimalType",
+      "kind": "record",
+      "ref": "-589946803"
+    },
+    "mappings": [],
+    "refs": {
+      "252136892": {
+        "fields": [
+          {
+            "id": "name",
+            "name": "name",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "id": "cast",
+            "name": "cast",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          }
+        ],
+        "typeName": "Elephant",
+        "kind": "record"
+      },
+      "-27067364": {
+        "fields": [
+          {
+            "id": "name",
+            "name": "name",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "id": "breed",
+            "name": "breed",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          }
+        ],
+        "typeName": "Dog",
+        "kind": "record"
+      },
+      "-589946803": {
+        "fields": [
+          {
+            "members": [
+              {
+                "fields": [],
+                "id": "animal",
+                "name": "animal",
+                "typeName": "Dog",
+                "kind": "record",
+                "ref": "-27067364"
+              },
+              {
+                "fields": [],
+                "id": "animal",
+                "name": "animal",
+                "typeName": "Elephant",
+                "kind": "record",
+                "ref": "252136892"
+              },
+              {
+                "id": "animal",
+                "name": "animal",
+                "typeName": "nil",
+                "kind": "nil"
+              }
+            ],
+            "id": "animal",
+            "name": "animal",
+            "typeName": "",
+            "kind": "union",
+            "optional": false,
+            "ref": "807791280"
+          }
+        ],
+        "typeName": "AnimalType",
+        "kind": "record"
+      }
+    }
+  }
+}

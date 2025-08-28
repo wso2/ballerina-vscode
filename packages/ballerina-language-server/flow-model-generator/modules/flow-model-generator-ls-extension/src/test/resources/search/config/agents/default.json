@@ -1,0 +1,45 @@
+{
+  "description": "Sample agent search flow model",
+  "kind": "AGENT",
+  "source": "empty.bal",
+  "queryMap": {},
+  "categories": [
+    {
+      "metadata": {
+        "label": "Agents"
+      },
+      "items": [
+        {
+          "metadata": {
+            "label": "AI Agent",
+            "description": "An AI agent that can interact, process inputs, and provide responses using various AI capabilities."
+          },
+          "codedata": {
+            "node": "AGENT",
+            "org": "ballerina",
+            "module": "ai",
+            "packageName": "ai",
+            "object": "Agent",
+            "symbol": "init"
+          },
+          "enabled": true
+        },
+        {
+          "metadata": {
+            "label": "AI Agent",
+            "description": "An AI agent that can interact, process inputs, and provide responses using various AI capabilities."
+          },
+          "codedata": {
+            "node": "AGENT",
+            "org": "ballerinax",
+            "module": "ai",
+            "packageName": "ai",
+            "object": "Agent",
+            "symbol": "init"
+          },
+          "enabled": true
+        }
+      ]
+    }
+  ]
+}
