@@ -44,7 +44,7 @@ import java.util.Optional;
  * {@code BalToolsManifestBuilder} processes the bal-tools toml file parsed
  * and populate a {@link BalToolsManifest}.
  *
- * @since 2201.6.0
+ * @since 1.2.0
  */
 public class BalToolsManifestBuilder {
     private final Optional<TomlDocument> balToolsToml;
@@ -206,7 +206,7 @@ public class BalToolsManifestBuilder {
      * @param org  tool org
      * @param name tool name
      *
-     * @since 2201.8.0
+     * @since 1.2.0
      */
     public record OldTool(String id, String org, String name) {
     }

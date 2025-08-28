@@ -34,7 +34,7 @@ import java.util.Map;
 public class MigrateToolInvokingUtil {
 
     private static final String KEY_ERROR = "error";
-    private static final String KET_TEXT_EDITS = "textEdits";
+    private static final String KEY_TEXT_EDITS = "textEdits";
     private static final String KEY_REPORT = "report";
     private static final String KEY_REPORT_JSON = "report-json";
 
@@ -73,7 +73,7 @@ public class MigrateToolInvokingUtil {
             if (entry.getKey() instanceof String key && entry.getValue() instanceof Object value) {
                 switch (key) {
                     case KEY_ERROR -> resultBuilder.error((String) value);
-                    case KET_TEXT_EDITS -> {
+                    case KEY_TEXT_EDITS -> {
                         if (value instanceof Map<?, ?> textEdits) {
                             Map<String, String> edits = new HashMap<>();
                             for (Map.Entry<?, ?> textEditEntry : textEdits.entrySet()) {

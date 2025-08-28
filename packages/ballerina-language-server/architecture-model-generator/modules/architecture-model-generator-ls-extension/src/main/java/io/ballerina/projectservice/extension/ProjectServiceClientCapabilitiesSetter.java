@@ -24,7 +24,7 @@ import org.ballerinalang.langserver.commons.registration.BallerinaClientCapabili
 import static io.ballerina.projectservice.extension.ProjectService.CAPABILITY_NAME;
 
 /**
- * Represents client capabilities for the design model generator service.
+ * Represents client capabilities for the Project Service.
  *
  * @since 1.2.0
  */
