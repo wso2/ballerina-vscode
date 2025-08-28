@@ -60,7 +60,7 @@ import { NodePosition, STNode } from "@wso2/syntax-tree";
 import { View, ProgressRing, ProgressIndicator, ThemeColors } from "@wso2/ui-toolkit";
 import { applyModifications, textToModifications } from "../../../utils/utils";
 import { PanelManager, SidePanelView } from "./PanelManager";
-import { findFunctionByName, transformCategories } from "./utils";
+import { findFunctionByName, transformCategories, getNodeTemplateForConnection } from "./utils";
 import { ExpressionFormField, Category as PanelCategory } from "@wso2/ballerina-side-panel";
 import { cloneDeep, debounce } from "lodash";
 import { ConnectionKind } from "../../../components/ConnectionSelector";
@@ -1000,38 +1000,27 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
         }
     };
 
-    const handleOnSelectNewConnection = (nodeId: string, metadata?: any) => {
-        console.log(">>> on select create new connection", { nodeId, metadata });
-        const { node } = metadata as { node: AvailableNode };
-
+    const handleOnSelectNewConnection = async (nodeId: string, metadata?: any) => {
         // Push current state to navigation stack before navigating
         pushToNavigationStack(sidePanelView, categories, selectedNodeRef.current, selectedClientName.current);
         setShowProgressIndicator(true);
 
-        rpcClient
-            .getBIDiagramRpcClient()
-            .getNodeTemplate({
-                position: targetRef.current?.startLine || { line: 0, offset: 0 },
-                filePath: model?.fileName,
-                id: node.codedata,
-            })
-            .then((response) => {
-                nodeTemplateRef.current = response.flowNode;
-                nodeTemplateRef.current.metadata = node.metadata;
-                switch (nodeId) {
-                    case "MODEL_PROVIDER":
-                    case "CLASS_INIT":
-                        setSelectedConnectionKind('MODEL_PROVIDER');
-                        break;
-                    default:
-                        setSelectedConnectionKind(nodeId as ConnectionKind);
-                }
-                setSidePanelView(SidePanelView.CONNECTION_CREATE);
-                setShowSidePanel(true);
-            })
-            .finally(() => {
-                setShowProgressIndicator(false);
-            });
+        try {
+            const { flowNode, connectionKind } = await getNodeTemplateForConnection(
+                nodeId,
+                metadata,
+                targetRef.current,
+                model?.fileName,
+                rpcClient
+            );
+
+            nodeTemplateRef.current = flowNode;
+            setSelectedConnectionKind(connectionKind as ConnectionKind);
+            setSidePanelView(SidePanelView.CONNECTION_CREATE);
+            setShowSidePanel(true);
+        } finally {
+            setShowProgressIndicator(false);
+        }
     };
 
     const handleOnFormSubmit = (updatedNode?: FlowNode, openInDataMapper?: boolean) => {
