@@ -136,6 +136,7 @@
                           "description": "Boolean Condition"
                         },
                         "valueType": "EXPRESSION",
+                        "valueTypeConstraint": "boolean",
                         "value": "i is () ",
                         "placeholder": "true",
                         "optional": false,

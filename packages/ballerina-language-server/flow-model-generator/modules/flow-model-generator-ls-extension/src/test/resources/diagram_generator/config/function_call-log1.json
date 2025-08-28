@@ -93,6 +93,7 @@
                   "description": "Boolean Condition"
                 },
                 "valueType": "EXPRESSION",
+                "valueTypeConstraint": "boolean",
                 "value": "count > 20 ",
                 "placeholder": "true",
                 "optional": false,
@@ -634,6 +635,7 @@
                   "description": "Boolean Condition"
                 },
                 "valueType": "EXPRESSION",
+                "valueTypeConstraint": "boolean",
                 "value": "res is error ",
                 "placeholder": "true",
                 "optional": false,

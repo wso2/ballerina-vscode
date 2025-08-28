@@ -393,6 +393,7 @@
                   "description": "Boolean Condition"
                 },
                 "valueType": "EXPRESSION",
+                "valueTypeConstraint": "boolean",
                 "value": "condition ",
                 "placeholder": "true",
                 "optional": false,

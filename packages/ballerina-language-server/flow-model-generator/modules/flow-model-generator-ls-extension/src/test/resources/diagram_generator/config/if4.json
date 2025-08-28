@@ -170,6 +170,7 @@
                   "description": "Boolean Condition"
                 },
                 "valueType": "EXPRESSION",
+                "valueTypeConstraint": "boolean",
                 "value": "price > 100 ",
                 "placeholder": "true",
                 "optional": false,
@@ -274,6 +275,7 @@
                           "description": "Boolean Condition"
                         },
                         "valueType": "EXPRESSION",
+                        "valueTypeConstraint": "boolean",
                         "value": "price < 50 ",
                         "placeholder": "true",
                         "optional": false,
@@ -332,6 +334,7 @@
                                   "description": "Boolean Condition"
                                 },
                                 "valueType": "EXPRESSION",
+                                "valueTypeConstraint": "boolean",
                                 "value": "price < 25 ",
                                 "placeholder": "true",
                                 "optional": false,
@@ -390,6 +393,7 @@
                                           "description": "Boolean Condition"
                                         },
                                         "valueType": "EXPRESSION",
+                                        "valueTypeConstraint": "boolean",
                                         "value": "price < 10 && mod == 1 ",
                                         "placeholder": "true",
                                         "optional": false,
@@ -487,6 +491,7 @@
                           "description": "Boolean Condition"
                         },
                         "valueType": "EXPRESSION",
+                        "valueTypeConstraint": "boolean",
                         "value": "mod == 0 ",
                         "placeholder": "true",
                         "optional": false,

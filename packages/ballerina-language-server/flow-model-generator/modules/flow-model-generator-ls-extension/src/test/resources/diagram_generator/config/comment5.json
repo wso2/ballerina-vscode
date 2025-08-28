@@ -92,6 +92,7 @@
                   "description": "Boolean Condition"
                 },
                 "valueType": "EXPRESSION",
+                "valueTypeConstraint": "boolean",
                 "value": "i == 3 ",
                 "placeholder": "true",
                 "optional": false,
@@ -128,6 +129,7 @@
                   "description": "Boolean Condition"
                 },
                 "valueType": "EXPRESSION",
+                "valueTypeConstraint": "boolean",
                 "value": "i == 5 ",
                 "placeholder": "true",
                 "optional": false,

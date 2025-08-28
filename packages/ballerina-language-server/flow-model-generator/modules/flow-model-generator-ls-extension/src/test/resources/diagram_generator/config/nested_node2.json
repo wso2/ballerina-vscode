@@ -137,6 +137,7 @@
                           "description": "Boolean Condition"
                         },
                         "valueType": "EXPRESSION",
+                        "valueTypeConstraint": "boolean",
                         "value": "isKandy ",
                         "placeholder": "true",
                         "optional": false,
